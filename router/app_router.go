@@ -1,18 +1,19 @@
 package router
 
 import (
-	"github.com/elabosak233/pgshub/internal/controller"
+	controller2 "github.com/elabosak233/pgshub/controller"
+	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func NewRouters(
-	userController *controller.UserController,
-	groupController *controller.GroupController,
+	userController *controller2.UserController,
+	groupController *controller2.GroupController,
 ) *gin.Engine {
 	router := gin.Default()
-	router.GET("", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, "welcome home")
+	router.GET("/", func(ctx *gin.Context) {
+		ctx.String(http.StatusOK, utils.GetInfo())
 	})
 	userRouter := router.Group("/user")
 	NewUserRouter(userRouter, userController)

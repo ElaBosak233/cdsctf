@@ -1,13 +1,13 @@
 package service
 
 import (
-	"github.com/elabosak233/pgshub/internal/model/request"
-	"github.com/elabosak233/pgshub/internal/model/response"
+	request2 "github.com/elabosak233/pgshub/model/request"
+	"github.com/elabosak233/pgshub/model/response"
 )
 
 type UserService interface {
-	Create(req request.CreateUserRequest)
-	Update(req request.UpdateUserRequest)
+	Create(req request2.CreateUserRequest)
+	Update(req request2.UpdateUserRequest)
 	Delete(id string)
 	FindById(id string) response.UserResponse
 	FindByUsername(username string) response.UserResponse

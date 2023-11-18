@@ -1,27 +1,27 @@
 package controller
 
 import (
-	request2 "github.com/elabosak233/pgshub/internal/model/request"
-	"github.com/elabosak233/pgshub/internal/model/response"
-	"github.com/elabosak233/pgshub/internal/service"
-	"github.com/elabosak233/pgshub/internal/utils"
+	"github.com/elabosak233/pgshub/model/request"
+	"github.com/elabosak233/pgshub/model/response"
+	service2 "github.com/elabosak233/pgshub/service"
+	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
 type GroupController struct {
-	groupService service.GroupService
+	groupService service2.GroupService
 }
 
-func NewGroupController(appService service.AppService) *GroupController {
+func NewGroupController(appService service2.AppService) *GroupController {
 	return &GroupController{
 		groupService: appService.GroupService,
 	}
 }
 
 func (controller *GroupController) Create(ctx *gin.Context) {
-	createGroupRequest := request2.CreateGroupRequest{}
+	createGroupRequest := request.CreateGroupRequest{}
 	err := ctx.ShouldBindJSON(&createGroupRequest)
 	utils.ErrorPanic(err)
 	log.Info().Msg("create group")
@@ -37,7 +37,7 @@ func (controller *GroupController) Create(ctx *gin.Context) {
 
 func (controller *GroupController) Update(ctx *gin.Context) {
 	log.Info().Msg("update tags")
-	updateGroupRequest := request2.UpdateGroupRequest{}
+	updateGroupRequest := request.UpdateGroupRequest{}
 	err := ctx.ShouldBindJSON(&updateGroupRequest)
 	utils.ErrorPanic(err)
 	id := ctx.Param("id")
@@ -97,7 +97,7 @@ func (controller *GroupController) FindAll(ctx *gin.Context) {
 
 func (controller *GroupController) AddUserToGroup(ctx *gin.Context) {
 	groupId := ctx.Param("id")
-	addUserToGroupRequest := request2.AddUserToGroupRequest{}
+	addUserToGroupRequest := request.AddUserToGroupRequest{}
 	err := ctx.ShouldBindJSON(&addUserToGroupRequest)
 	utils.ErrorPanic(err)
 	controller.groupService.AddUserToGroup(groupId, addUserToGroupRequest)
