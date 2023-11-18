@@ -1,35 +1,35 @@
 package service
 
 import (
-	"github.com/elabosak233/pgshub/internal/model/data"
-	"github.com/elabosak233/pgshub/internal/model/request"
-	"github.com/elabosak233/pgshub/internal/model/response"
-	"github.com/elabosak233/pgshub/internal/repository"
-	"github.com/elabosak233/pgshub/internal/utils"
+	model "github.com/elabosak233/pgshub/model/data"
+	request2 "github.com/elabosak233/pgshub/model/request"
+	"github.com/elabosak233/pgshub/model/response"
+	repository2 "github.com/elabosak233/pgshub/repository"
+	"github.com/elabosak233/pgshub/utils"
 	"github.com/go-playground/validator/v10"
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 type GroupServiceImpl struct {
-	GroupRepository repository.GroupRepository
-	UserRepository  repository.UserRepository
+	GroupRepository repository2.GroupRepository
+	UserRepository  repository2.UserRepository
 	Validate        *validator.Validate
 }
 
-func NewGroupServiceImpl(appRepository repository.AppRepository, validate *validator.Validate) GroupService {
+func NewGroupServiceImpl(appRepository repository2.AppRepository) GroupService {
 	return &GroupServiceImpl{
 		GroupRepository: appRepository.GroupRepository,
 		UserRepository:  appRepository.UserRepository,
-		Validate:        validate,
+		Validate:        validator.New(),
 	}
 }
 
 // Create implements UserService
-func (t *GroupServiceImpl) Create(req request.CreateGroupRequest) {
+func (t *GroupServiceImpl) Create(req request2.CreateGroupRequest) {
 	err := t.Validate.Struct(req)
 	utils.ErrorPanic(err)
-	groupModel := data.Group{
-		Id:   uuid.NewV4().String(),
+	groupModel := model.Group{
+		Id:   uuid.NewString(),
 		Name: req.Name,
 	}
 	t.GroupRepository.Insert(groupModel)
@@ -71,14 +71,14 @@ func (t *GroupServiceImpl) FindById(id string) response.GroupResponse {
 }
 
 // Update implements UserService
-func (t *GroupServiceImpl) Update(req request.UpdateGroupRequest) {
+func (t *GroupServiceImpl) Update(req request2.UpdateGroupRequest) {
 	groupData, err := t.GroupRepository.FindById(req.Id)
 	utils.ErrorPanic(err)
 	groupData.Name = req.Name
 	t.GroupRepository.Update(groupData)
 }
 
-func (t *GroupServiceImpl) AddUserToGroup(id string, req request.AddUserToGroupRequest) {
+func (t *GroupServiceImpl) AddUserToGroup(id string, req request2.AddUserToGroupRequest) {
 	user, err := t.UserRepository.FindById(req.Id)
 	if err != nil || user.Id == "" {
 		utils.ErrorPanic(err)

@@ -1,7 +1,6 @@
-package config
+package utils
 
 import (
-	"github.com/elabosak233/pgshub/internal/utils"
 	_ "modernc.org/sqlite"
 	"xorm.io/xorm"
 )
@@ -15,8 +14,7 @@ const (
 )
 
 func DatabaseConnection() *xorm.Engine {
-	//sqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
 	db, err := xorm.NewEngine("sqlite", "sqlite.db")
-	utils.ErrorPanic(err)
+	ErrorPanic(err)
 	return db
 }

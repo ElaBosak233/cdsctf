@@ -1,27 +1,27 @@
 package controller
 
 import (
-	request2 "github.com/elabosak233/pgshub/internal/model/request"
-	"github.com/elabosak233/pgshub/internal/model/response"
-	"github.com/elabosak233/pgshub/internal/service"
-	"github.com/elabosak233/pgshub/internal/utils"
+	"github.com/elabosak233/pgshub/model/request"
+	"github.com/elabosak233/pgshub/model/response"
+	service2 "github.com/elabosak233/pgshub/service"
+	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
 type UserController struct {
-	userService service.UserService
+	userService service2.UserService
 }
 
-func NewUserController(appService service.AppService) *UserController {
+func NewUserController(appService service2.AppService) *UserController {
 	return &UserController{
 		userService: appService.UserService,
 	}
 }
 
 func (controller *UserController) Create(ctx *gin.Context) {
-	createUserRequest := request2.CreateUserRequest{}
+	createUserRequest := request.CreateUserRequest{}
 	err := ctx.ShouldBindJSON(&createUserRequest)
 	utils.ErrorPanic(err)
 	log.Info().Msg("create user")
@@ -37,7 +37,7 @@ func (controller *UserController) Create(ctx *gin.Context) {
 
 func (controller *UserController) Update(ctx *gin.Context) {
 	log.Info().Msg("update tags")
-	updateUserRequest := request2.UpdateUserRequest{}
+	updateUserRequest := request.UpdateUserRequest{}
 	err := ctx.ShouldBindJSON(&updateUserRequest)
 	utils.ErrorPanic(err)
 	id := ctx.Param("id")

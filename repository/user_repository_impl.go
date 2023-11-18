@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/elabosak233/pgshub/internal/model/data"
-	"github.com/elabosak233/pgshub/internal/utils"
+	model "github.com/elabosak233/pgshub/model/data"
+	"github.com/elabosak233/pgshub/utils"
 	"xorm.io/xorm"
 )
 
@@ -16,22 +16,22 @@ func NewUserRepositoryImpl(Db *xorm.Engine) UserRepository {
 
 // Delete implements UserRepository
 func (t *UserRepositoryImpl) Delete(id string) {
-	var user data.User
+	var user model.User
 	_, err := t.Db.Table("user").Where("id = ?", id).Delete(&user)
 	utils.ErrorPanic(err)
 }
 
 // FindAll implements UserRepository
-func (t *UserRepositoryImpl) FindAll() []data.User {
-	var users []data.User
+func (t *UserRepositoryImpl) FindAll() []model.User {
+	var users []model.User
 	err := t.Db.Find(&users)
 	utils.ErrorPanic(err)
 	return users
 }
 
 // FindById implements UserRepository
-func (t *UserRepositoryImpl) FindById(id string) (data.User, error) {
-	var user data.User
+func (t *UserRepositoryImpl) FindById(id string) (model.User, error) {
+	var user model.User
 	re, err := t.Db.Table("user").Where("id = ?", id).Get(&user)
 	if re {
 		return user, nil
@@ -41,8 +41,8 @@ func (t *UserRepositoryImpl) FindById(id string) (data.User, error) {
 }
 
 // FindByUsername implements UserRepository
-func (t *UserRepositoryImpl) FindByUsername(username string) (data.User, error) {
-	var user data.User
+func (t *UserRepositoryImpl) FindByUsername(username string) (model.User, error) {
+	var user model.User
 	re, err := t.Db.Table("user").Where("username = ?", username).Get(&user)
 	if re {
 		return user, nil
@@ -51,13 +51,13 @@ func (t *UserRepositoryImpl) FindByUsername(username string) (data.User, error) 
 	}
 }
 
-// Save implements UserRepository
-func (t *UserRepositoryImpl) Save(user data.User) {
+// Insert implements UserRepository
+func (t *UserRepositoryImpl) Insert(user model.User) {
 	_, err := t.Db.Insert(&user)
 	utils.ErrorPanic(err)
 }
 
-func (t *UserRepositoryImpl) Update(user data.User) {
+func (t *UserRepositoryImpl) Update(user model.User) {
 	_, err := t.Db.Table("user").ID(user.Id).Update(&user)
 	utils.ErrorPanic(err)
 }

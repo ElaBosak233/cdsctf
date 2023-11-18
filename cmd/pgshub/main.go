@@ -1,52 +1,52 @@
 package main
 
 import (
-	"github.com/elabosak233/pgshub/config"
-	"github.com/elabosak233/pgshub/internal/controller"
-	"github.com/elabosak233/pgshub/internal/model/data"
-	"github.com/elabosak233/pgshub/internal/repository"
-	"github.com/elabosak233/pgshub/internal/router"
-	"github.com/elabosak233/pgshub/internal/service"
-	"github.com/elabosak233/pgshub/internal/utils"
-	"github.com/go-playground/validator/v10"
+	controller2 "github.com/elabosak233/pgshub/controller"
+	"github.com/elabosak233/pgshub/model/data"
+	repository2 "github.com/elabosak233/pgshub/repository"
+	"github.com/elabosak233/pgshub/router"
+	service2 "github.com/elabosak233/pgshub/service"
+	utils2 "github.com/elabosak233/pgshub/utils"
 	"net/http"
+	"strconv"
 )
 
 func main() {
-	utils.InitLogger()
-	utils.Welcome()
-	db := config.DatabaseConnection()
-	validate := validator.New()
-
-	err := db.Sync2(
+	// 初始化 Logger
+	utils2.InitLogger()
+	// 打印欢迎字符
+	utils2.Welcome()
+	// 初始化配置文件
+	config, _ := utils2.LoadConfig()
+	// 创建数据库连接
+	db := utils2.DatabaseConnection()
+	_ = db.Sync2(
 		&data.User{},
 		&data.Group{},
 	)
-	utils.ErrorPanic(err)
 
 	// Repositories
-	appRepository := repository.AppRepository{
-		GroupRepository: repository.NewGroupRepositoryImpl(db),
-		UserRepository:  repository.NewUserRepositoryImpl(db),
+	appRepository := repository2.AppRepository{
+		GroupRepository: repository2.NewGroupRepositoryImpl(db),
+		UserRepository:  repository2.NewUserRepositoryImpl(db),
 	}
 
 	// Services
-	appService := service.AppService{
-		UserService:  service.NewUserServiceImpl(appRepository, validate),
-		GroupService: service.NewGroupServiceImpl(appRepository, validate),
+	appService := service2.AppService{
+		UserService:  service2.NewUserServiceImpl(appRepository),
+		GroupService: service2.NewGroupServiceImpl(appRepository),
 	}
 
 	// Controllers
 	routes := router.NewRouters(
-		controller.NewUserController(appService),
-		controller.NewGroupController(appService),
+		controller2.NewUserController(appService),
+		controller2.NewGroupController(appService),
 	)
 
 	server := &http.Server{
-		Addr:    ":8888",
+		Addr:    ":" + strconv.Itoa(config.Server.Port),
 		Handler: routes,
 	}
 
-	err = server.ListenAndServe()
-	utils.ErrorPanic(err)
+	_ = server.ListenAndServe()
 }

@@ -1,39 +1,39 @@
 package service
 
 import (
-	"github.com/elabosak233/pgshub/internal/model/data"
-	"github.com/elabosak233/pgshub/internal/model/request"
-	"github.com/elabosak233/pgshub/internal/model/response"
-	"github.com/elabosak233/pgshub/internal/repository"
-	"github.com/elabosak233/pgshub/internal/utils"
+	model "github.com/elabosak233/pgshub/model/data"
+	request2 "github.com/elabosak233/pgshub/model/request"
+	"github.com/elabosak233/pgshub/model/response"
+	repository2 "github.com/elabosak233/pgshub/repository"
+	"github.com/elabosak233/pgshub/utils"
 	"github.com/go-playground/validator/v10"
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserServiceImpl struct {
-	UserRepository repository.UserRepository
+	UserRepository repository2.UserRepository
 	Validate       *validator.Validate
 }
 
-func NewUserServiceImpl(appRepository repository.AppRepository, validate *validator.Validate) UserService {
+func NewUserServiceImpl(appRepository repository2.AppRepository) UserService {
 	return &UserServiceImpl{
 		UserRepository: appRepository.UserRepository,
-		Validate:       validate,
+		Validate:       validator.New(),
 	}
 }
 
 // Create implements UserService
-func (t *UserServiceImpl) Create(req request.CreateUserRequest) {
+func (t *UserServiceImpl) Create(req request2.CreateUserRequest) {
 	err := t.Validate.Struct(req)
 	utils.ErrorPanic(err)
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	userModel := data.User{
-		Id:       uuid.NewV4().String(),
+	userModel := model.User{
+		Id:       uuid.NewString(),
 		Username: req.Username,
 		Password: string(hashedPassword),
 	}
-	t.UserRepository.Save(userModel)
+	t.UserRepository.Insert(userModel)
 }
 
 // Delete implements UserService
@@ -82,7 +82,7 @@ func (t *UserServiceImpl) FindByUsername(username string) response.UserResponse 
 }
 
 // Update implements UserService
-func (t *UserServiceImpl) Update(req request.UpdateUserRequest) {
+func (t *UserServiceImpl) Update(req request2.UpdateUserRequest) {
 	userData, err := t.UserRepository.FindById(req.Id)
 	utils.ErrorPanic(err)
 	userData.Username = req.Username
