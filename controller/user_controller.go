@@ -1,109 +1,126 @@
 package controller
 
 import (
-	"github.com/elabosak233/pgshub/model/request"
-	"github.com/elabosak233/pgshub/model/response"
-	service2 "github.com/elabosak233/pgshub/service"
+	req "github.com/elabosak233/pgshub/model/request/account"
+	"github.com/elabosak233/pgshub/service"
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
 type UserController struct {
-	userService service2.UserService
+	userService service.UserService
 }
 
-func NewUserController(appService service2.AppService) *UserController {
+func NewUserController(appService service.AppService) *UserController {
 	return &UserController{
 		userService: appService.UserService,
 	}
 }
 
-func (controller *UserController) Create(ctx *gin.Context) {
-	createUserRequest := request.CreateUserRequest{}
-	err := ctx.ShouldBindJSON(&createUserRequest)
-	utils.ErrorPanic(err)
-	log.Info().Msg("create user")
-	controller.userService.Create(createUserRequest)
-	res := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   nil,
+func (c *UserController) Login(ctx *gin.Context) {
+	userLoginRequest := req.UserLoginRequest{}
+	if ctx.ShouldBindJSON(&userLoginRequest) != nil {
+		utils.FormatErrorResponse(ctx)
+		return
+	}
+	user := c.userService.FindById(userLoginRequest.Id)
+	utils.Logger.WithFields(logrus.Fields{
+		"Username": user.Username,
+		"UserId":   userLoginRequest.Id,
+		"ClientIP": ctx.ClientIP(),
+	}).Info("登录")
+	if !c.userService.VerifyPasswordById(userLoginRequest.Id, userLoginRequest.Password) {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"code": http.StatusUnauthorized,
+			"msg":  "用户名或密码错误",
+		})
+		return
 	}
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, res)
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":  http.StatusOK,
+		"token": c.userService.GetJwtTokenById(userLoginRequest.Id),
+	})
 }
 
-func (controller *UserController) Update(ctx *gin.Context) {
-	log.Info().Msg("update tags")
-	updateUserRequest := request.UpdateUserRequest{}
-	err := ctx.ShouldBindJSON(&updateUserRequest)
-	utils.ErrorPanic(err)
+func (c *UserController) Logout(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+func (c *UserController) Create(ctx *gin.Context) {
+	createUserRequest := req.CreateUserRequest{}
+	if ctx.ShouldBindJSON(&createUserRequest) != nil {
+		utils.FormatErrorResponse(ctx)
+		return
+	}
+	err := c.userService.Create(createUserRequest)
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  "创建失败",
+		})
+		return
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+func (c *UserController) Update(ctx *gin.Context) {
+	updateUserRequest := req.UpdateUserRequest{}
+	if ctx.ShouldBindJSON(&updateUserRequest) != nil {
+		utils.FormatErrorResponse(ctx)
+		return
+	}
 	id := ctx.Param("id")
 	updateUserRequest.Id = id
-
-	controller.userService.Update(updateUserRequest)
-
-	webResponse := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   nil,
-	}
+	c.userService.Update(updateUserRequest)
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, webResponse)
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
 }
 
-func (controller *UserController) Delete(ctx *gin.Context) {
-	log.Info().Msg("delete tags")
+func (c *UserController) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
-	controller.userService.Delete(id)
-
-	webResponse := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   nil,
-	}
+	c.userService.Delete(id)
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, webResponse)
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
 }
 
-func (controller *UserController) FindById(ctx *gin.Context) {
-	log.Info().Msg("findbyid user")
+func (c *UserController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	tagResponse := controller.userService.FindById(id)
-
-	webResponse := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   tagResponse,
-	}
+	userResponse := c.userService.FindById(id)
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, webResponse)
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": userResponse,
+	})
 }
 
-func (controller *UserController) FindByUsername(ctx *gin.Context) {
-	log.Info().Msg("findbyusername user")
+func (c *UserController) FindByUsername(ctx *gin.Context) {
 	username := ctx.Param("username")
-	tagResponse := controller.userService.FindByUsername(username)
-	webResponse := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   tagResponse,
-	}
+	userResponse := c.userService.FindByUsername(username)
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, webResponse)
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": userResponse,
+	})
 }
 
-func (controller *UserController) FindAll(ctx *gin.Context) {
-	log.Info().Msg("findAll tags")
-	tagResponse := controller.userService.FindAll()
-	webResponse := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   tagResponse,
-	}
+func (c *UserController) FindAll(ctx *gin.Context) {
+	userResponse := c.userService.FindAll()
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, webResponse)
-
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": userResponse,
+	})
 }

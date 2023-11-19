@@ -22,3 +22,8 @@
 go.work
 sqlite.db
 .idea
+config.yml
+logs
+plugins
+files
+test.go

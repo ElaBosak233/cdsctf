@@ -1,14 +1,14 @@
 package repository
 
 import (
-	"github.com/elabosak233/pgshub/model/data"
+	model "github.com/elabosak233/pgshub/model/data"
 )
 
 type UserRepository interface {
-	Insert(user data.User)
-	Update(user data.User)
-	Delete(id string)
-	FindById(id string) (user data.User, err error)
-	FindByUsername(username string) (user data.User, err error)
-	FindAll() []data.User
+	Insert(user model.User) error
+	Update(user model.User) error
+	Delete(id string) error
+	FindById(id string) (user model.User, err error)
+	FindByUsername(username string) (user model.User, err error)
+	FindAll() []model.User
 }

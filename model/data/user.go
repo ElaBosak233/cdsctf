@@ -11,6 +11,8 @@ type User struct {
 	Id string `xorm:"pk unique 'id' notnull"`
 	// Username 用户名
 	Username string `xorm:"varchar(50) unique 'username' notnull"`
+	// Email 邮箱
+	Email string `xorm:"text unique 'email' notnull"`
 	// Password 密码哈希
 	Password string `xorm:"varchar(255) 'password' notnull"`
 	// GroupIds 所属用户组
@@ -18,7 +20,9 @@ type User struct {
 	// TeamIds 所属团队
 	TeamIds []string `xorm:"json 'team_ids'"`
 	// ArticleIds 撰写的文章
-	ArticleIds []string  `xorm:"json 'article_ids'"`
-	CreatedAt  time.Time `xorm:"created 'created_at'"`
-	UpdatedAt  time.Time `xorm:"updated 'updated_at'"`
+	ArticleIds []string `xorm:"json 'article_ids'"`
+	// SolvedChallengeIds 已解决题目的 Id
+	SolvedChallengeIds []string  `xorm:"json 'solved_challenge_ids'"`
+	CreatedAt          time.Time `xorm:"created 'created_at'"`
+	UpdatedAt          time.Time `xorm:"updated 'updated_at'"`
 }

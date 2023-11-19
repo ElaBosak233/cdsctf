@@ -12,4 +12,6 @@ func NewUserRouter(userRouter *gin.RouterGroup, userController *controller.UserC
 	userRouter.POST("/", userController.Create)
 	userRouter.PATCH("/:id", userController.Update)
 	userRouter.DELETE("/:id", userController.Delete)
+	userRouter.POST("/login", userController.Login)
+	userRouter.POST("/logout", userController.Logout)
 }

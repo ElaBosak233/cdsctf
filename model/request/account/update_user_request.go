@@ -1,4 +1,4 @@
-package request
+package account
 
 type UpdateUserRequest struct {
 	Id       string   `validate:"required"`

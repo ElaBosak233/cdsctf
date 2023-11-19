@@ -11,5 +11,5 @@ func NewGroupRouter(groupRouter *gin.RouterGroup, groupController *controller.Gr
 	groupRouter.POST("/", groupController.Create)
 	groupRouter.PATCH("/:id", groupController.Update)
 	groupRouter.DELETE("/:id", groupController.Delete)
-	groupRouter.POST("/join/:id", groupController.AddUserToGroup)
+	groupRouter.POST("/join", groupController.AddUserToGroup)
 }

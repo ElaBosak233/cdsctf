@@ -5,10 +5,9 @@ import (
 )
 
 type ChallengeRepository interface {
-	Insert(user model.Challenge)
-	Update(user model.Challenge)
-	Delete(id string)
-	SelectByGameId(gameId string) []model.Challenge
+	Insert(user model.Challenge) error
+	Update(user model.Challenge) error
+	Delete(id string) error
 	FindById(id string) (challenge model.Challenge, err error)
 	FindAll() []model.Challenge
 }
