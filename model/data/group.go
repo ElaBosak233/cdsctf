@@ -1,11 +1,8 @@
-/*
-用户组
-*/
-
 package data
 
 import "time"
 
+// Group 用户组对象
 type Group struct {
 	Id          string    `xorm:"pk unique 'id' notnull"`
 	Name        string    `xorm:"unique notnull"`

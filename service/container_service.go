@@ -5,11 +5,10 @@ import (
 	"github.com/elabosak233/pgshub/model/response"
 )
 
-type GroupService interface {
+type ContainerService interface {
 	Create(req req.CreateGroupRequest)
-	Update(req req.UpdateGroupRequest)
-	Delete(id string)
+	Renew(req req.UpdateGroupRequest)
+	ShutDown(id string)
 	FindById(id string) response.GroupResponse
 	FindAll() []response.GroupResponse
-	AddUserToGroup(req req.AddUserToGroupRequest)
 }

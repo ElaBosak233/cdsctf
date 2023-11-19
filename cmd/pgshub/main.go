@@ -1,52 +1,67 @@
 package main
 
 import (
-	controller2 "github.com/elabosak233/pgshub/controller"
+	"github.com/elabosak233/pgshub/controller"
 	"github.com/elabosak233/pgshub/model/data"
-	repository2 "github.com/elabosak233/pgshub/repository"
+	"github.com/elabosak233/pgshub/repository"
 	"github.com/elabosak233/pgshub/router"
-	service2 "github.com/elabosak233/pgshub/service"
-	utils2 "github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/service"
+	"github.com/elabosak233/pgshub/utils"
+	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
 	"strconv"
 )
 
 func main() {
-	// 初始化 Logger
-	utils2.InitLogger()
 	// 打印欢迎字符
-	utils2.Welcome()
+	utils.Welcome()
+	// 初始化 Logger
+	utils.InitLogger()
 	// 初始化配置文件
-	config, _ := utils2.LoadConfig()
+	utils.LoadConfig()
 	// 创建数据库连接
-	db := utils2.DatabaseConnection()
-	_ = db.Sync2(
+	db := utils.DatabaseConnection()
+	_ = db.Sync(
 		&data.User{},
 		&data.Group{},
+		&data.Challenge{},
 	)
 
+	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
+	if debug {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	r := gin.Default()
+
 	// Repositories
-	appRepository := repository2.AppRepository{
-		GroupRepository: repository2.NewGroupRepositoryImpl(db),
-		UserRepository:  repository2.NewUserRepositoryImpl(db),
+	appRepository := repository.AppRepository{
+		GroupRepository:     repository.NewGroupRepositoryImpl(db),
+		UserRepository:      repository.NewUserRepositoryImpl(db),
+		ChallengeRepository: repository.NewChallengeRepositoryImpl(db),
 	}
 
 	// Services
-	appService := service2.AppService{
-		UserService:  service2.NewUserServiceImpl(appRepository),
-		GroupService: service2.NewGroupServiceImpl(appRepository),
+	appService := service.AppService{
+		UserService:      service.NewUserServiceImpl(appRepository),
+		GroupService:     service.NewGroupServiceImpl(appRepository),
+		ChallengeService: service.NewChallengeServiceImpl(appRepository),
 	}
 
 	// Controllers
-	routes := router.NewRouters(
-		controller2.NewUserController(appService),
-		controller2.NewGroupController(appService),
+	router.NewRouters(
+		r,
+		controller.NewUserController(appService),
+		controller.NewGroupController(appService),
+		controller.NewChallengeController(appService),
 	)
 
-	server := &http.Server{
-		Addr:    ":" + strconv.Itoa(config.Server.Port),
-		Handler: routes,
+	s := &http.Server{
+		Addr:    utils.Cfg.Server.Host + ":" + strconv.Itoa(utils.Cfg.Server.Port),
+		Handler: r,
 	}
-
-	_ = server.ListenAndServe()
+	utils.Logger.Infof("PgsHub Core 服务已启动，访问地址 %s:%d", utils.Cfg.Server.Host, utils.Cfg.Server.Port)
+	_ = s.ListenAndServe()
 }

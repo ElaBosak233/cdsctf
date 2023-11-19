@@ -2,21 +2,21 @@ package service
 
 import (
 	model "github.com/elabosak233/pgshub/model/data"
-	request2 "github.com/elabosak233/pgshub/model/request"
+	req "github.com/elabosak233/pgshub/model/request/account"
 	"github.com/elabosak233/pgshub/model/response"
-	repository2 "github.com/elabosak233/pgshub/repository"
+	"github.com/elabosak233/pgshub/repository"
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
 type GroupServiceImpl struct {
-	GroupRepository repository2.GroupRepository
-	UserRepository  repository2.UserRepository
+	GroupRepository repository.GroupRepository
+	UserRepository  repository.UserRepository
 	Validate        *validator.Validate
 }
 
-func NewGroupServiceImpl(appRepository repository2.AppRepository) GroupService {
+func NewGroupServiceImpl(appRepository repository.AppRepository) GroupService {
 	return &GroupServiceImpl{
 		GroupRepository: appRepository.GroupRepository,
 		UserRepository:  appRepository.UserRepository,
@@ -25,7 +25,7 @@ func NewGroupServiceImpl(appRepository repository2.AppRepository) GroupService {
 }
 
 // Create implements UserService
-func (t *GroupServiceImpl) Create(req request2.CreateGroupRequest) {
+func (t *GroupServiceImpl) Create(req req.CreateGroupRequest) {
 	err := t.Validate.Struct(req)
 	utils.ErrorPanic(err)
 	groupModel := model.Group{
@@ -71,20 +71,20 @@ func (t *GroupServiceImpl) FindById(id string) response.GroupResponse {
 }
 
 // Update implements UserService
-func (t *GroupServiceImpl) Update(req request2.UpdateGroupRequest) {
+func (t *GroupServiceImpl) Update(req req.UpdateGroupRequest) {
 	groupData, err := t.GroupRepository.FindById(req.Id)
 	utils.ErrorPanic(err)
 	groupData.Name = req.Name
 	t.GroupRepository.Update(groupData)
 }
 
-func (t *GroupServiceImpl) AddUserToGroup(id string, req request2.AddUserToGroupRequest) {
-	user, err := t.UserRepository.FindById(req.Id)
+func (t *GroupServiceImpl) AddUserToGroup(req req.AddUserToGroupRequest) {
+	user, err := t.UserRepository.FindById(req.UserId)
 	if err != nil || user.Id == "" {
 		utils.ErrorPanic(err)
 		return
 	}
-	group, err := t.GroupRepository.FindById(id)
+	group, err := t.GroupRepository.FindById(req.GroupId)
 	if err != nil || group.Id == "" {
 		utils.ErrorPanic(err)
 		return
