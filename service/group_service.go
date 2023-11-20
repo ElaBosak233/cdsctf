@@ -1,15 +1,13 @@
 package service
 
 import (
-	req "github.com/elabosak233/pgshub/model/request/account"
-	"github.com/elabosak233/pgshub/model/response"
+	model "github.com/elabosak233/pgshub/model/data"
 )
 
 type GroupService interface {
-	Create(req req.CreateGroupRequest)
-	Update(req req.UpdateGroupRequest)
-	Delete(id string)
-	FindById(id string) response.GroupResponse
-	FindAll() []response.GroupResponse
-	AddUserToGroup(req req.AddUserToGroupRequest)
+	Create(req model.Group) error
+	Update(req model.Group) error
+	Delete(id string) error
+	FindById(id string) (model.Group, error)
+	FindAll() ([]model.Group, error)
 }

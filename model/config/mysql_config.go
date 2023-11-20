@@ -1,6 +1,6 @@
 package config
 
-type DatabaseConfig struct {
+type MySqlConfig struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
 	Username string `yaml:"username"`

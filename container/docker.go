@@ -19,30 +19,30 @@ type DockerContainer struct {
 	Cli         *client.Client
 	RespId      string
 	ImageName   string
-	InsidePort  int
+	ExposedPort int
 	FlagStr     string
-	FlagEnvName string
-	MemoryLimit int64
+	FlagEnv     string
+	MemoryLimit int64 // MB
 	Duration    time.Duration
 	Mu          sync.Mutex
 	StopRenew   chan struct{} // 用于停止续期的信号通道
 	Renewed     bool          // 标记是否已经进行过续期
 }
 
-func NewContainer(cli *client.Client, imageName string, insidePort int, flagStr string, flagEnvName string, memoryLimit int64, duration time.Duration) *DockerContainer {
+func NewContainer(cli *client.Client, imageName string, exposedPort int, flagStr string, flagEnv string, memoryLimit int64, duration time.Duration) *DockerContainer {
 	return &DockerContainer{
 		Cli:         cli,
 		ImageName:   imageName,
-		InsidePort:  insidePort,
+		ExposedPort: exposedPort,
 		Duration:    duration,
 		FlagStr:     flagStr,
-		FlagEnvName: flagEnvName,
+		FlagEnv:     flagEnv,
 		MemoryLimit: memoryLimit,
 	}
 }
 
 func getAvailablePort() int {
-	for port := utils.Cfg.Container.Ports.From; port <= utils.Cfg.Container.Ports.To; port++ {
+	for port := utils.Config.Container.Ports.From; port <= utils.Config.Container.Ports.To; port++ {
 		addr := fmt.Sprintf(":%d", port)
 		l, err := net.Listen("tcp", addr)
 		if err == nil {
@@ -62,22 +62,22 @@ func (c *DockerContainer) Setup() error {
 	if err != nil {
 		return errors.New("客户端创建失败")
 	}
-	env := []string{fmt.Sprintf("%s=%s", c.FlagEnvName, c.FlagStr)}
+	env := []string{fmt.Sprintf("%s=%s", c.FlagEnv, c.FlagStr)}
 	containerConfig := &container.Config{
 		Image: c.ImageName,
 		Env:   env,
 	}
 	hostConfig := &container.HostConfig{
 		PortBindings: nat.PortMap{
-			nat.Port(strconv.Itoa(c.InsidePort) + "/tcp"): []nat.PortBinding{
+			nat.Port(strconv.Itoa(c.ExposedPort) + "/tcp"): []nat.PortBinding{
 				{
-					HostIP:   utils.Cfg.Container.Host,
+					HostIP:   utils.Config.Container.Host,
 					HostPort: strconv.Itoa(port),
 				},
 			},
 		},
 		Resources: container.Resources{
-			Memory: c.MemoryLimit,
+			Memory: c.MemoryLimit * 1024 * 1024,
 		},
 	}
 	resp, err := cli.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")

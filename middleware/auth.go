@@ -12,17 +12,23 @@ import (
 func authMiddleware(c *gin.Context) {
 	tokenString := c.GetHeader("Authorization")
 	if tokenString == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code":  http.StatusUnauthorized,
+			"error": "缺少 Token",
+		})
 		c.Abort()
 		return
 	}
 	claims := &misc.Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return utils.Cfg.Jwt.SecretKey, nil
+		return utils.Config.Jwt.SecretKey, nil
 	})
 	if err != nil {
 		if errors.Is(err, jwt.ErrSignatureInvalid) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token signature"})
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":  http.StatusUnauthorized,
+				"error": "无效 Token",
+			})
 			c.Abort()
 			return
 		}
@@ -34,7 +40,10 @@ func authMiddleware(c *gin.Context) {
 		c.Set("id", claims.Id)
 		c.Next()
 	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code":  http.StatusUnauthorized,
+			"error": "无效 Token",
+		})
 		c.Abort()
 		return
 	}

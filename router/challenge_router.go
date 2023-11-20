@@ -9,6 +9,6 @@ func NewChallengeRouter(challengeRouter *gin.RouterGroup, challengeController *c
 	challengeRouter.GET("/", challengeController.FindAll)
 	challengeRouter.GET("/:id", challengeController.FindById)
 	challengeRouter.POST("/", challengeController.Create)
-	challengeRouter.PATCH("/:id", challengeController.Update)
-	challengeRouter.DELETE("/:id", challengeController.Delete)
+	challengeRouter.PATCH("/", challengeController.Update)
+	challengeRouter.DELETE("/", challengeController.Delete)
 }

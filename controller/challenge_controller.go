@@ -1,7 +1,7 @@
 package controller
 
 import (
-	req "github.com/elabosak233/pgshub/model/request/challenge"
+	"github.com/elabosak233/pgshub/model/data"
 	"github.com/elabosak233/pgshub/service"
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-gonic/gin"
@@ -19,10 +19,14 @@ func NewChallengeController(appService service.AppService) *ChallengeController 
 }
 
 func (c *ChallengeController) Create(ctx *gin.Context) {
-	createChallengeRequest := req.CreateChallengeRequest{}
+	createChallengeRequest := data.Challenge{}
 	err := ctx.ShouldBindJSON(&createChallengeRequest)
 	if err != nil {
-		utils.FormatErrorResponse(ctx)
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &createChallengeRequest),
+		})
 		return
 	}
 	_ = c.challengeService.Create(createChallengeRequest)
@@ -33,15 +37,16 @@ func (c *ChallengeController) Create(ctx *gin.Context) {
 }
 
 func (c *ChallengeController) Update(ctx *gin.Context) {
-	var updateChallengeRequest map[string]interface{}
+	var updateChallengeRequest data.Challenge
 	err := ctx.ShouldBindJSON(&updateChallengeRequest)
 	if err != nil {
-		utils.FormatErrorResponse(ctx)
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &updateChallengeRequest),
+		})
 		return
 	}
-	id := ctx.Param("id")
-	updateChallengeRequest["id"] = id
-
 	err = c.challengeService.Update(updateChallengeRequest)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
@@ -57,8 +62,17 @@ func (c *ChallengeController) Update(ctx *gin.Context) {
 }
 
 func (c *ChallengeController) Delete(ctx *gin.Context) {
-	id := ctx.Param("id")
-	err := c.challengeService.Delete(id)
+	deleteChallengeRequest := service.ChallengeDeleteRequest{}
+	err := ctx.ShouldBindJSON(&deleteChallengeRequest)
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &deleteChallengeRequest),
+		})
+		return
+	}
+	err = c.challengeService.Delete(deleteChallengeRequest.Id)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusBadRequest, gin.H{
