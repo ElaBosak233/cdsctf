@@ -1,14 +1,13 @@
 package service
 
 import (
-	req "github.com/elabosak233/pgshub/model/request/account"
-	"github.com/elabosak233/pgshub/model/response"
+	model "github.com/elabosak233/pgshub/model/data"
 )
 
 type ContainerService interface {
-	Create(req req.CreateGroupRequest)
-	Renew(req req.UpdateGroupRequest)
+	Create(req model.Container)
+	Renew(req model.Container)
 	ShutDown(id string)
-	FindById(id string) response.GroupResponse
-	FindAll() []response.GroupResponse
+	FindById(id string) []model.Container
+	FindAll() []model.Container
 }

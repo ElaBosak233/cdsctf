@@ -27,11 +27,7 @@ type Challenge struct {
 	// UploaderId 上传者 Id
 	UploaderId string `xorm:"text 'uploader_id' notnull" json:"uploader_id"`
 	// Difficulty 难度
-	Difficulty int `xorm:"int 'difficulty'" json:"difficulty"`
-	// ArticleIds 题解
-	ArticleIds []string `xorm:"json 'article_ids'" json:"article_ids"`
-	// SolvedUserIds 已解决用户 Id
-	SolvedUserIds []string  `xorm:"json 'solved_user_ids'" json:"solved_user_ids"`
-	CreatedAt     time.Time `xorm:"created 'created_at'" json:"created_at"`
-	UpdatedAt     time.Time `xorm:"updated 'updated_at'" json:"updated_at"`
+	Difficulty int       `xorm:"int 'difficulty'" json:"difficulty"`
+	CreatedAt  time.Time `xorm:"created 'created_at'" json:"created_at"`
+	UpdatedAt  time.Time `xorm:"updated 'updated_at'" json:"updated_at"`
 }

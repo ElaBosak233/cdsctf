@@ -16,7 +16,7 @@ func main() {
 	// 连接到 Docker 客户端，这里使用默认的本地 Docker 客户端
 	cli, _ := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	// 创建一个 DockerContainer 实例
-	ctn := container.NewContainer(cli, "my_ctf_image", 80, "DASCTF{怎么都对}", "FLAG", 1024*1024*1024, 3*time.Second)
+	ctn := container.NewContainer(cli, "my_ctf_image", 80, "DASCTF{怎么都对}", "FLAG", 1024, 3*time.Second)
 	// 测试 Setup 方法
 	_ = ctn.Setup()
 	// 测试 GetContainerStatus 方法

@@ -1,12 +1,11 @@
 package controller
 
 import (
-	req "github.com/elabosak233/pgshub/model/request/account"
-	"github.com/elabosak233/pgshub/model/response"
+	model "github.com/elabosak233/pgshub/model/data"
 	"github.com/elabosak233/pgshub/service"
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -20,88 +19,123 @@ func NewGroupController(appService service.AppService) *GroupController {
 	}
 }
 
-func (controller *GroupController) Create(ctx *gin.Context) {
-	createGroupRequest := req.CreateGroupRequest{}
+func (c *GroupController) Create(ctx *gin.Context) {
+	utils.Logger.WithFields(logrus.Fields{
+		"ClientIP": ctx.ClientIP(),
+	}).Info("Group 数据表记录创建")
+	createGroupRequest := model.Group{}
 	err := ctx.ShouldBindJSON(&createGroupRequest)
-	utils.ErrorPanic(err)
-	log.Info().Msg("create group")
-	controller.groupService.Create(createGroupRequest)
-	res := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   nil,
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &createGroupRequest),
+		})
 	}
-	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, res)
-}
-
-func (controller *GroupController) Update(ctx *gin.Context) {
-	log.Info().Msg("update tags")
-	updateGroupRequest := req.UpdateGroupRequest{}
-	err := ctx.ShouldBindJSON(&updateGroupRequest)
-	utils.ErrorPanic(err)
-	id := ctx.Param("id")
-	updateGroupRequest.Id = id
-	controller.groupService.Update(updateGroupRequest)
-	res := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   nil,
-	}
-	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, res)
-}
-
-func (controller *GroupController) Delete(ctx *gin.Context) {
-	log.Info().Msg("delete tags")
-	id := ctx.Param("id")
-	controller.groupService.Delete(id)
-	res := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   nil,
-	}
-	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, res)
-}
-
-func (controller *GroupController) FindById(ctx *gin.Context) {
-	log.Info().Msg("findbyid tags")
-	id := ctx.Param("id")
-	tagResponse := controller.groupService.FindById(id)
-
-	res := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   tagResponse,
-	}
-	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, res)
-}
-
-func (controller *GroupController) FindAll(ctx *gin.Context) {
-	log.Info().Msg("findAll tags")
-	groupResponse := controller.groupService.FindAll()
-	res := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
-		Data:   groupResponse,
-	}
-	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, res)
-
-}
-
-func (controller *GroupController) AddUserToGroup(ctx *gin.Context) {
-	addUserToGroupRequest := req.AddUserToGroupRequest{}
-	if ctx.ShouldBindJSON(&addUserToGroupRequest) != nil {
-		utils.FormatErrorResponse(ctx)
+	err = c.groupService.Create(createGroupRequest)
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
 		return
 	}
-	controller.groupService.AddUserToGroup(addUserToGroupRequest)
-	res := response.Response{
-		Code:   http.StatusOK,
-		Status: "Ok",
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+func (c *GroupController) Update(ctx *gin.Context) {
+	utils.Logger.WithFields(logrus.Fields{
+		"ClientIP": ctx.ClientIP(),
+	}).Info("Group 数据表记录更新")
+	updateGroupRequest := struct {
+		Id   string `validate:"required"`
+		Name string `validate:"required,max=20,min=3" json:"name"`
+	}{}
+	err := ctx.ShouldBindJSON(&updateGroupRequest)
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &updateGroupRequest),
+		})
 	}
-	ctx.JSON(http.StatusOK, res)
+	err = c.groupService.Update(model.Group{
+		Id:   updateGroupRequest.Id,
+		Name: updateGroupRequest.Name,
+	})
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+func (c *GroupController) Delete(ctx *gin.Context) {
+	utils.Logger.WithFields(logrus.Fields{
+		"ClientIP": ctx.ClientIP(),
+	}).Info("Group 数据表记录删除")
+	id := ctx.Param("id")
+	err := c.groupService.Delete(id)
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+func (c *GroupController) FindById(ctx *gin.Context) {
+	utils.Logger.WithFields(logrus.Fields{
+		"ClientIP": ctx.ClientIP(),
+	}).Info("Group 数据表记录通过 Id 查询")
+	id := ctx.Param("id")
+	groupResponse, err := c.groupService.FindById(id)
+	if err != nil || groupResponse.Id == "" {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": groupResponse,
+	})
+}
+
+func (c *GroupController) FindAll(ctx *gin.Context) {
+	utils.Logger.WithFields(logrus.Fields{
+		"ClientIP": ctx.ClientIP(),
+	}).Info("Group 数据表记录全查询")
+	groupResponse, err := c.groupService.FindAll()
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": groupResponse,
+	})
 }

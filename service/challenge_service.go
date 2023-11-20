@@ -2,12 +2,15 @@ package service
 
 import (
 	model "github.com/elabosak233/pgshub/model/data"
-	req "github.com/elabosak233/pgshub/model/request/challenge"
 )
 
+type ChallengeDeleteRequest struct {
+	Id string `json:"id" binding:"required"`
+}
+
 type ChallengeService interface {
-	Create(req req.CreateChallengeRequest) error
-	Update(req map[string]interface{}) error
+	Create(req model.Challenge) error
+	Update(req model.Challenge) error
 	Delete(id string) error
 	FindById(id string) model.Challenge
 	FindAll() []model.Challenge

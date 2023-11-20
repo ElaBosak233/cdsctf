@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-var Cfg model.Config
+var Config model.Config
 
 func LoadConfig() {
 	configFile := "config.yml"
@@ -17,11 +17,11 @@ func LoadConfig() {
 				Host: "0.0.0.0",
 				Port: 8888,
 			},
-			Database: model.DatabaseConfig{
+			MySql: model.MySqlConfig{
 				Host:     "localhost",
 				Port:     3306,
-				Username: "root",
-				Password: "password",
+				Username: "pgshub",
+				Password: "pgshub",
 			},
 			Jwt: model.JwtConfig{
 				SecretKey:      "20101010",
@@ -48,7 +48,7 @@ func LoadConfig() {
 		Logger.Error("无法读取配置文件")
 		return
 	}
-	err = yaml.Unmarshal(fileContent, &Cfg)
+	err = yaml.Unmarshal(fileContent, &Config)
 	if err != nil {
 		Logger.Error("无法解析配置文件")
 	}

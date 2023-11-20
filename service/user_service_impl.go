@@ -1,34 +1,31 @@
 package service
 
 import (
+	"errors"
 	"github.com/dgrijalva/jwt-go"
 	model "github.com/elabosak233/pgshub/model/data"
 	"github.com/elabosak233/pgshub/model/misc"
-	req "github.com/elabosak233/pgshub/model/request/account"
-	"github.com/elabosak233/pgshub/model/response"
 	"github.com/elabosak233/pgshub/repository"
 	"github.com/elabosak233/pgshub/utils"
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/mitchellh/mapstructure"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
 type UserServiceImpl struct {
 	UserRepository repository.UserRepository
-	Validate       *validator.Validate
 }
 
 func NewUserServiceImpl(appRepository repository.AppRepository) UserService {
 	return &UserServiceImpl{
 		UserRepository: appRepository.UserRepository,
-		Validate:       validator.New(),
 	}
 }
 
 func (t *UserServiceImpl) GetJwtTokenById(id string) string {
-	expirationTime := time.Now().Add(time.Duration(utils.Cfg.Jwt.ExpirationTime) * time.Minute)
-	jwtSecretKey := []byte(utils.Cfg.Jwt.SecretKey)
+	expirationTime := time.Now().Add(time.Duration(utils.Config.Jwt.ExpirationTime) * time.Minute)
+	jwtSecretKey := []byte(utils.Config.Jwt.SecretKey)
 	claims := &misc.Claims{
 		Id: id,
 		StandardClaims: jwt.StandardClaims{
@@ -42,9 +39,7 @@ func (t *UserServiceImpl) GetJwtTokenById(id string) string {
 }
 
 // Create implements UserService
-func (t *UserServiceImpl) Create(req req.CreateUserRequest) error {
-	err := t.Validate.Struct(req)
-	utils.ErrorPanic(err)
+func (t *UserServiceImpl) Create(req model.User) error {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	userModel := model.User{
 		Id:       uuid.NewString(),
@@ -52,22 +47,19 @@ func (t *UserServiceImpl) Create(req req.CreateUserRequest) error {
 		Email:    req.Email,
 		Password: string(hashedPassword),
 	}
-	err = t.UserRepository.Insert(userModel)
+	err := t.UserRepository.Insert(userModel)
 	return err
 }
 
 // Update implements UserService
-func (t *UserServiceImpl) Update(req req.UpdateUserRequest) error {
+func (t *UserServiceImpl) Update(req UserUpdateRequest) error {
 	userData, err := t.UserRepository.FindById(req.Id)
-	if err != nil {
-		return err
+	if err != nil || userData.Id == "" {
+		return errors.New("用户不存在")
 	}
-	userData.Username = req.Username
-	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(req.Password))
-	if err != nil {
-		return err
-	}
-	err = t.UserRepository.Update(userData)
+	userModel := model.User{}
+	_ = mapstructure.Decode(req, &userModel)
+	err = t.UserRepository.Update(userModel)
 	return err
 }
 
@@ -78,43 +70,42 @@ func (t *UserServiceImpl) Delete(id string) error {
 }
 
 // FindAll implements UserService
-func (t *UserServiceImpl) FindAll() []response.UserResponse {
+func (t *UserServiceImpl) FindAll() ([]UserResponse, error) {
 	result := t.UserRepository.FindAll()
-
-	var users []response.UserResponse
+	var users []UserResponse
 	for _, value := range result {
-		user := response.UserResponse{
-			Id:       value.Id,
-			Username: value.Username,
-			GroupIds: value.GroupIds,
-		}
-		users = append(users, user)
+		userResp := UserResponse{}
+		_ = mapstructure.Decode(value, &userResp)
+		userResp.CreatedAt = value.CreatedAt
+		userResp.UpdatedAt = value.UpdatedAt
+		users = append(users, userResp)
 	}
-
-	return users
+	return users, nil
 }
 
 // FindById implements UserService
-func (t *UserServiceImpl) FindById(id string) response.UserResponse {
+func (t *UserServiceImpl) FindById(id string) (UserResponse, error) {
 	userData, err := t.UserRepository.FindById(id)
-	utils.ErrorPanic(err)
-	user := response.UserResponse{
-		Id:       userData.Id,
-		Username: userData.Username,
-		GroupIds: userData.GroupIds,
+	if err != nil {
+		return UserResponse{}, errors.New("用户不存在")
 	}
-	return user
+	userResp := UserResponse{}
+	_ = mapstructure.Decode(userData, &userResp)
+	userResp.CreatedAt = userData.CreatedAt
+	userResp.UpdatedAt = userData.UpdatedAt
+	return userResp, nil
 }
 
-func (t *UserServiceImpl) FindByUsername(username string) response.UserResponse {
+func (t *UserServiceImpl) FindByUsername(username string) (UserResponse, error) {
 	userData, err := t.UserRepository.FindByUsername(username)
-	utils.ErrorPanic(err)
-	user := response.UserResponse{
-		Id:       userData.Id,
-		Username: userData.Username,
-		GroupIds: userData.GroupIds,
+	if err != nil {
+		return UserResponse{}, errors.New("用户不存在")
 	}
-	return user
+	userResp := UserResponse{}
+	_ = mapstructure.Decode(userData, &userResp)
+	userResp.CreatedAt = userData.CreatedAt
+	userResp.UpdatedAt = userData.UpdatedAt
+	return userResp, nil
 }
 
 func (t *UserServiceImpl) VerifyPasswordById(id string, password string) bool {

@@ -1,110 +1,75 @@
 package service
 
 import (
+	"errors"
 	model "github.com/elabosak233/pgshub/model/data"
-	req "github.com/elabosak233/pgshub/model/request/account"
-	"github.com/elabosak233/pgshub/model/response"
 	"github.com/elabosak233/pgshub/repository"
-	"github.com/elabosak233/pgshub/utils"
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
 type GroupServiceImpl struct {
 	GroupRepository repository.GroupRepository
 	UserRepository  repository.UserRepository
-	Validate        *validator.Validate
 }
 
 func NewGroupServiceImpl(appRepository repository.AppRepository) GroupService {
 	return &GroupServiceImpl{
 		GroupRepository: appRepository.GroupRepository,
 		UserRepository:  appRepository.UserRepository,
-		Validate:        validator.New(),
 	}
 }
 
 // Create implements UserService
-func (t *GroupServiceImpl) Create(req req.CreateGroupRequest) {
-	err := t.Validate.Struct(req)
-	utils.ErrorPanic(err)
+func (t *GroupServiceImpl) Create(req model.Group) error {
 	groupModel := model.Group{
 		Id:   uuid.NewString(),
 		Name: req.Name,
 	}
 	t.GroupRepository.Insert(groupModel)
+	return nil
 }
 
 // Delete implements UserService
-func (t *GroupServiceImpl) Delete(id string) {
+func (t *GroupServiceImpl) Delete(id string) error {
 	t.GroupRepository.Delete(id)
+	return nil
 }
 
 // FindAll implements UserService
-func (t *GroupServiceImpl) FindAll() []response.GroupResponse {
+func (t *GroupServiceImpl) FindAll() ([]model.Group, error) {
 	result := t.GroupRepository.FindAll()
-
-	var groups []response.GroupResponse
+	var groups []model.Group
 	for _, value := range result {
-		group := response.GroupResponse{
-			Id:      value.Id,
-			Name:    value.Name,
-			UserIds: value.UserIds,
+		group := model.Group{
+			Id:   value.Id,
+			Name: value.Name,
 		}
 		groups = append(groups, group)
 	}
 
-	return groups
+	return groups, nil
 }
 
 // FindById implements UserService
-func (t *GroupServiceImpl) FindById(id string) response.GroupResponse {
+func (t *GroupServiceImpl) FindById(id string) (model.Group, error) {
 	groupData, err := t.GroupRepository.FindById(id)
-	utils.ErrorPanic(err)
-
-	group := response.GroupResponse{
-		Id:      groupData.Id,
-		Name:    groupData.Name,
-		UserIds: groupData.UserIds,
+	if err != nil || groupData.Id == "" {
+		return groupData, errors.New("用户组不存在")
 	}
-	return group
+	group := model.Group{
+		Id:   groupData.Id,
+		Name: groupData.Name,
+	}
+	return group, nil
 }
 
 // Update implements UserService
-func (t *GroupServiceImpl) Update(req req.UpdateGroupRequest) {
+func (t *GroupServiceImpl) Update(req model.Group) error {
 	groupData, err := t.GroupRepository.FindById(req.Id)
-	utils.ErrorPanic(err)
+	if err != nil || groupData.Id == "" {
+		return errors.New("用户组不存在")
+	}
 	groupData.Name = req.Name
 	t.GroupRepository.Update(groupData)
-}
-
-func (t *GroupServiceImpl) AddUserToGroup(req req.AddUserToGroupRequest) {
-	user, err := t.UserRepository.FindById(req.UserId)
-	if err != nil || user.Id == "" {
-		utils.ErrorPanic(err)
-		return
-	}
-	group, err := t.GroupRepository.FindById(req.GroupId)
-	if err != nil || group.Id == "" {
-		utils.ErrorPanic(err)
-		return
-	}
-	if !contains(group.UserIds, user.Id) {
-		group.UserIds = append(group.UserIds, user.Id)
-		t.GroupRepository.Update(group)
-	}
-
-	if !contains(user.GroupIds, group.Id) {
-		user.GroupIds = append(user.GroupIds, group.Id)
-		t.UserRepository.Update(user)
-	}
-}
-
-func contains(slice []string, element string) bool {
-	for _, e := range slice {
-		if e == element {
-			return true
-		}
-	}
-	return false
+	return nil
 }

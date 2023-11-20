@@ -1,7 +1,7 @@
 package controller
 
 import (
-	req "github.com/elabosak233/pgshub/model/request/account"
+	model "github.com/elabosak233/pgshub/model/data"
 	"github.com/elabosak233/pgshub/service"
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-gonic/gin"
@@ -20,12 +20,20 @@ func NewUserController(appService service.AppService) *UserController {
 }
 
 func (c *UserController) Login(ctx *gin.Context) {
-	userLoginRequest := req.UserLoginRequest{}
-	if ctx.ShouldBindJSON(&userLoginRequest) != nil {
-		utils.FormatErrorResponse(ctx)
+	userLoginRequest := struct {
+		Id       string `binding:"required" json:"id"`
+		Password string `binding:"required" json:"password"`
+	}{}
+	err := ctx.ShouldBindJSON(&userLoginRequest)
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &userLoginRequest),
+		})
 		return
 	}
-	user := c.userService.FindById(userLoginRequest.Id)
+	user, _ := c.userService.FindById(userLoginRequest.Id)
 	utils.Logger.WithFields(logrus.Fields{
 		"Username": user.Username,
 		"UserId":   userLoginRequest.Id,
@@ -52,17 +60,26 @@ func (c *UserController) Logout(ctx *gin.Context) {
 }
 
 func (c *UserController) Create(ctx *gin.Context) {
-	createUserRequest := req.CreateUserRequest{}
-	if ctx.ShouldBindJSON(&createUserRequest) != nil {
-		utils.FormatErrorResponse(ctx)
-		return
-	}
-	err := c.userService.Create(createUserRequest)
+	createUserRequest := model.User{}
+	err := ctx.ShouldBindJSON(&createUserRequest)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  "创建失败",
+			"msg":  utils.GetValidMsg(err, &createUserRequest),
+		})
+		return
+	}
+	err = c.userService.Create(model.User{
+		Username: createUserRequest.Username,
+		Email:    createUserRequest.Email,
+		Password: createUserRequest.Password,
+	})
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  "用户名或邮箱重复",
 		})
 		return
 	}
@@ -73,14 +90,25 @@ func (c *UserController) Create(ctx *gin.Context) {
 }
 
 func (c *UserController) Update(ctx *gin.Context) {
-	updateUserRequest := req.UpdateUserRequest{}
-	if ctx.ShouldBindJSON(&updateUserRequest) != nil {
-		utils.FormatErrorResponse(ctx)
+	updateUserRequest := service.UserUpdateRequest{}
+	err := ctx.ShouldBindJSON(&updateUserRequest)
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &updateUserRequest),
+		})
 		return
 	}
-	id := ctx.Param("id")
-	updateUserRequest.Id = id
-	c.userService.Update(updateUserRequest)
+	err = c.userService.Update(updateUserRequest)
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
@@ -98,7 +126,7 @@ func (c *UserController) Delete(ctx *gin.Context) {
 
 func (c *UserController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	userResponse := c.userService.FindById(id)
+	userResponse, _ := c.userService.FindById(id)
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
@@ -108,7 +136,7 @@ func (c *UserController) FindById(ctx *gin.Context) {
 
 func (c *UserController) FindByUsername(ctx *gin.Context) {
 	username := ctx.Param("username")
-	userResponse := c.userService.FindByUsername(username)
+	userResponse, _ := c.userService.FindByUsername(username)
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
@@ -117,7 +145,7 @@ func (c *UserController) FindByUsername(ctx *gin.Context) {
 }
 
 func (c *UserController) FindAll(ctx *gin.Context) {
-	userResponse := c.userService.FindAll()
+	userResponse, _ := c.userService.FindAll()
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,

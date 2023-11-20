@@ -8,21 +8,13 @@ import "time"
 
 type User struct {
 	// Id 自动生成的 uuid
-	Id string `xorm:"pk unique 'id' notnull"`
+	Id string `xorm:"'id' pk unique notnull" json:"id"`
 	// Username 用户名
-	Username string `xorm:"varchar(50) unique 'username' notnull"`
+	Username string `xorm:"'username' varchar(32) unique notnull index" json:"username" binding:"required,min=3,max=32" msg:"用户名长度不能小于3大于32"`
 	// Email 邮箱
-	Email string `xorm:"text unique 'email' notnull"`
+	Email string `xorm:"'email' text unique notnull index" json:"email" binding:"required,email" msg:"邮箱地址格式不正确"`
 	// Password 密码哈希
-	Password string `xorm:"varchar(255) 'password' notnull"`
-	// GroupIds 所属用户组
-	GroupIds []string `xorm:"json 'group_ids'"`
-	// TeamIds 所属团队
-	TeamIds []string `xorm:"json 'team_ids'"`
-	// ArticleIds 撰写的文章
-	ArticleIds []string `xorm:"json 'article_ids'"`
-	// SolvedChallengeIds 已解决题目的 Id
-	SolvedChallengeIds []string  `xorm:"json 'solved_challenge_ids'"`
-	CreatedAt          time.Time `xorm:"created 'created_at'"`
-	UpdatedAt          time.Time `xorm:"updated 'updated_at'"`
+	Password  string    `xorm:"'password' varchar(255) notnull" json:"password" binding:"required,min=6" msg:"密码不能小于6位"`
+	CreatedAt time.Time `xorm:"'created_at' created" json:"created_at"`
+	UpdatedAt time.Time `xorm:"'updated_at' updated" json:"updated_at"`
 }
