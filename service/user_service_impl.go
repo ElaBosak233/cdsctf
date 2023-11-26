@@ -42,7 +42,7 @@ func (t *UserServiceImpl) GetJwtTokenById(id string) string {
 func (t *UserServiceImpl) Create(req model.User) error {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	userModel := model.User{
-		Id:       uuid.NewString(),
+		UserId:   uuid.NewString(),
 		Username: req.Username,
 		Email:    req.Email,
 		Password: string(hashedPassword),
@@ -54,7 +54,7 @@ func (t *UserServiceImpl) Create(req model.User) error {
 // Update implements UserService
 func (t *UserServiceImpl) Update(req UserUpdateRequest) error {
 	userData, err := t.UserRepository.FindById(req.Id)
-	if err != nil || userData.Id == "" {
+	if err != nil || userData.UserId == "" {
 		return errors.New("用户不存在")
 	}
 	userModel := model.User{}
@@ -110,6 +110,16 @@ func (t *UserServiceImpl) FindByUsername(username string) (UserResponse, error) 
 
 func (t *UserServiceImpl) VerifyPasswordById(id string, password string) bool {
 	userData, err := t.UserRepository.FindById(id)
+	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
+}
+
+func (t *UserServiceImpl) VerifyPasswordByUsername(username string, password string) bool {
+	userData, err := t.UserRepository.FindByUsername(username)
 	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
 	if err != nil {
 		return false

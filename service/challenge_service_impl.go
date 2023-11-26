@@ -23,17 +23,15 @@ func NewChallengeServiceImpl(appRepository repository.AppRepository) ChallengeSe
 // Create implements UserService
 func (t *ChallengeServiceImpl) Create(req model.Challenge) error {
 	challengeModel := model.Challenge{
-		Id:            uuid.NewString(),
-		UploaderId:    req.UploaderId,
-		Title:         req.Title,
-		Description:   req.Description,
-		HasAttachment: req.HasAttachment,
-		AttachmentId:  req.AttachmentId,
-		Flag:          req.Flag,
-		Difficulty:    req.Difficulty,
-		ImageName:     req.ImageName,
-		IsPractice:    req.IsPractice,
-		IsDynamic:     req.IsDynamic,
+		ChallengeId:  uuid.NewString(),
+		UploaderId:   req.UploaderId,
+		Title:        req.Title,
+		Description:  req.Description,
+		AttachmentId: req.AttachmentId,
+		Flag:         req.Flag,
+		Difficulty:   req.Difficulty,
+		ImageName:    req.ImageName,
+		IsDynamic:    req.IsDynamic,
 	}
 	err := t.ChallengeRepository.Insert(challengeModel)
 	return err
@@ -41,21 +39,19 @@ func (t *ChallengeServiceImpl) Create(req model.Challenge) error {
 
 // Update implements UserService
 func (t *ChallengeServiceImpl) Update(req model.Challenge) error {
-	challengeData, err := t.ChallengeRepository.FindById(req.Id)
-	if err != nil || challengeData.Id == "" {
+	challengeData, err := t.ChallengeRepository.FindById(req.ChallengeId)
+	if err != nil || challengeData.ChallengeId == "" {
 		return errors.New("题目不存在")
 	}
 	challengeData2 := model.Challenge{
-		Id:            challengeData.Id,
-		Title:         req.Title,
-		Description:   req.Description,
-		HasAttachment: req.HasAttachment,
-		AttachmentId:  req.AttachmentId,
-		Flag:          req.Flag,
-		Difficulty:    req.Difficulty,
-		ImageName:     req.ImageName,
-		IsPractice:    req.IsPractice,
-		IsDynamic:     req.IsDynamic,
+		ChallengeId:  challengeData.ChallengeId,
+		Title:        req.Title,
+		Description:  req.Description,
+		AttachmentId: req.AttachmentId,
+		Flag:         req.Flag,
+		Difficulty:   req.Difficulty,
+		ImageName:    req.ImageName,
+		IsDynamic:    req.IsDynamic,
 	}
 	err = t.ChallengeRepository.Update(challengeData2)
 	return err

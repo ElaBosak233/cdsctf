@@ -28,7 +28,7 @@ func (t *UserRepositoryImpl) Delete(id string) error {
 }
 
 func (t *UserRepositoryImpl) Update(user model.User) error {
-	_, err := t.Db.Table("user").ID(user.Id).Update(&user)
+	_, err := t.Db.Table("user").ID(user.UserId).Update(&user)
 	return err
 }
 

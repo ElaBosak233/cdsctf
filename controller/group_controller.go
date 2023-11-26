@@ -64,8 +64,8 @@ func (c *GroupController) Update(ctx *gin.Context) {
 		})
 	}
 	err = c.groupService.Update(model.Group{
-		Id:   updateGroupRequest.Id,
-		Name: updateGroupRequest.Name,
+		GroupId: updateGroupRequest.Id,
+		Name:    updateGroupRequest.Name,
 	})
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
@@ -105,7 +105,7 @@ func (c *GroupController) FindById(ctx *gin.Context) {
 	}).Info("Group 数据表记录通过 Id 查询")
 	id := ctx.Param("id")
 	groupResponse, err := c.groupService.FindById(id)
-	if err != nil || groupResponse.Id == "" {
+	if err != nil || groupResponse.GroupId == "" {
 		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,

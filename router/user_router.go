@@ -8,6 +8,7 @@ import (
 func NewUserRouter(userRouter *gin.RouterGroup, userController *controller.UserController) {
 	userRouter.GET("/", userController.FindAll)
 	userRouter.POST("/", userController.Create)
+	userRouter.POST("/register", userController.Register)
 	userRouter.PATCH("/", userController.Update)
 	userRouter.GET("/id/:id", userController.FindById)
 	userRouter.GET("/username/:username", userController.FindByUsername)

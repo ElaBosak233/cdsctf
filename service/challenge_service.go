@@ -8,6 +8,9 @@ type ChallengeDeleteRequest struct {
 	Id string `json:"id" binding:"required"`
 }
 
+type ChallengeCreateRequest struct {
+}
+
 type ChallengeService interface {
 	Create(req model.Challenge) error
 	Update(req model.Challenge) error
