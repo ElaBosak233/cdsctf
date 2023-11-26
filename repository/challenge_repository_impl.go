@@ -28,7 +28,7 @@ func (t *ChallengeRepositoryImpl) Delete(id string) error {
 
 // Update implements ChallengeRepository
 func (t *ChallengeRepositoryImpl) Update(challenge model.Challenge) error {
-	_, err := t.Db.Table("challenge").ID(challenge.Id).Update(&challenge)
+	_, err := t.Db.Table("challenge").ID(challenge.ChallengeId).Update(&challenge)
 	return err
 }
 

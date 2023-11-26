@@ -45,6 +45,6 @@ func (t *GroupRepositoryImpl) Insert(group model.Group) {
 
 // Update implements UserRepository
 func (t *GroupRepositoryImpl) Update(group model.Group) {
-	_, err := t.Db.Table("`group`").ID(group.Id).Update(&group)
+	_, err := t.Db.Table("`group`").ID(group.GroupId).Update(&group)
 	utils.ErrorPanic(err)
 }

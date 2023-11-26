@@ -61,7 +61,7 @@ func InitAdmin(db *xorm.Engine) {
 		utils.Logger.Warn("管理员账户不存在，即将创建")
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
 		_, err := db.Table("user").Insert(model.User{
-			Id:       uuid.NewString(),
+			UserId:   uuid.NewString(),
 			Username: "admin",
 			Password: string(hashedPassword),
 			Email:    "admin@admin.com",
@@ -76,9 +76,8 @@ func InitAdmin(db *xorm.Engine) {
 	if !existAdminGroup {
 		utils.Logger.Warn("管理员用户组不存在，即将创建")
 		_, err := db.Table("group").Insert(model.Group{
-			Id:          uuid.NewString(),
-			Name:        "admin",
-			Permissions: []string{"admin"},
+			GroupId: uuid.NewString(),
+			Name:    "admin",
 		})
 		if err != nil {
 			utils.Logger.Error("管理员用户组创建失败")
@@ -91,14 +90,14 @@ func InitAdmin(db *xorm.Engine) {
 	_, _ = db.Table("user").Where("username = ?", "admin").Get(&adminUser)
 	_, _ = db.Table("group").Where("name = ?", "admin").Get(&adminGroup)
 	existAdminUserGroup, _ := db.Table("user_group").Exist(&modelm2m.UserGroup{
-		UserId:  adminUser.Id,
-		GroupId: adminGroup.Id,
+		UserId:  adminUser.UserId,
+		GroupId: adminGroup.GroupId,
 	})
 	if !existAdminUserGroup {
 		utils.Logger.Warn("管理员用户与用户组关系不存在，即将创建")
 		_, err := db.Table("user_group").Insert(modelm2m.UserGroup{
-			UserId:  adminUser.Id,
-			GroupId: adminGroup.Id,
+			UserId:  adminUser.UserId,
+			GroupId: adminGroup.GroupId,
 		})
 		if err != nil {
 			utils.Logger.Error("管理员用户与用户组关系创建失败")

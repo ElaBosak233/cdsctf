@@ -21,26 +21,26 @@ func NewUserController(appService service.AppService) *UserController {
 
 func (c *UserController) Login(ctx *gin.Context) {
 	userLoginRequest := struct {
-		Id       string `binding:"required" json:"id"`
+		Username string `binding:"required" json:"username"`
 		Password string `binding:"required" json:"password"`
 	}{}
 	err := ctx.ShouldBindJSON(&userLoginRequest)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &userLoginRequest),
 		})
 		return
 	}
-	user, _ := c.userService.FindById(userLoginRequest.Id)
+	user, _ := c.userService.FindByUsername(userLoginRequest.Username)
 	utils.Logger.WithFields(logrus.Fields{
 		"Username": user.Username,
-		"UserId":   userLoginRequest.Id,
+		"UserId":   user.Id,
 		"ClientIP": ctx.ClientIP(),
 	}).Info("登录")
-	if !c.userService.VerifyPasswordById(userLoginRequest.Id, userLoginRequest.Password) {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
+	if !c.userService.VerifyPasswordByUsername(userLoginRequest.Username, userLoginRequest.Password) {
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusUnauthorized,
 			"msg":  "用户名或密码错误",
 		})
@@ -49,11 +49,41 @@ func (c *UserController) Login(ctx *gin.Context) {
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
-		"token": c.userService.GetJwtTokenById(userLoginRequest.Id),
+		"token": c.userService.GetJwtTokenById(user.Id),
 	})
 }
 
 func (c *UserController) Logout(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+func (c *UserController) Register(ctx *gin.Context) {
+	createUserRequest := model.User{}
+	err := ctx.ShouldBindJSON(&createUserRequest)
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &createUserRequest),
+		})
+		return
+	}
+	err = c.userService.Create(model.User{
+		Username: createUserRequest.Username,
+		Email:    createUserRequest.Email,
+		Password: createUserRequest.Password,
+	})
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  "用户名或邮箱重复",
+		})
+		return
+	}
+	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})

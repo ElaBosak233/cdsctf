@@ -5,9 +5,9 @@ import (
 )
 
 type ContainerService interface {
-	Create(req model.Container)
-	Renew(req model.Container)
+	Create(req model.Instance)
+	Renew(req model.Instance)
 	ShutDown(id string)
-	FindById(id string) []model.Container
-	FindAll() []model.Container
+	FindById(id string) []model.Instance
+	FindAll() []model.Instance
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/elabosak233/pgshub/controller"
 	"github.com/elabosak233/pgshub/router"
 	"github.com/elabosak233/pgshub/utils"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -23,6 +24,11 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.Default()
+
+	cor := cors.DefaultConfig()
+	cor.AllowOrigins = []string{"http://localhost:3000"}
+	cor.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
+	r.Use(cors.New(cor))
 
 	appRepository := InitRepositories(db)
 	appService := InitServices(appRepository)

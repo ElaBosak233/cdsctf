@@ -28,11 +28,11 @@ func (t *UserGroupServiceImpl) Create(req model.UserGroup) error {
 		GroupId: req.GroupId,
 	}
 	existUser, err := t.UserRepository.FindById(userGroupModel.UserId)
-	if existUser.Id == "" {
+	if existUser.UserId == "" {
 		return errors.New("用户不存在")
 	}
 	existGroup, err := t.GroupRepository.FindById(userGroupModel.GroupId)
-	if existGroup.Id == "" {
+	if existGroup.GroupId == "" {
 		return errors.New("用户组不存在")
 	}
 	exist, err := t.UserGroupRepository.Exist(userGroupModel)

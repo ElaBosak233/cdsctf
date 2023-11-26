@@ -22,8 +22,8 @@ func NewGroupServiceImpl(appRepository repository.AppRepository) GroupService {
 // Create implements UserService
 func (t *GroupServiceImpl) Create(req model.Group) error {
 	groupModel := model.Group{
-		Id:   uuid.NewString(),
-		Name: req.Name,
+		GroupId: uuid.NewString(),
+		Name:    req.Name,
 	}
 	t.GroupRepository.Insert(groupModel)
 	return nil
@@ -41,8 +41,8 @@ func (t *GroupServiceImpl) FindAll() ([]model.Group, error) {
 	var groups []model.Group
 	for _, value := range result {
 		group := model.Group{
-			Id:   value.Id,
-			Name: value.Name,
+			GroupId: value.GroupId,
+			Name:    value.Name,
 		}
 		groups = append(groups, group)
 	}
@@ -53,20 +53,20 @@ func (t *GroupServiceImpl) FindAll() ([]model.Group, error) {
 // FindById implements UserService
 func (t *GroupServiceImpl) FindById(id string) (model.Group, error) {
 	groupData, err := t.GroupRepository.FindById(id)
-	if err != nil || groupData.Id == "" {
+	if err != nil || groupData.GroupId == "" {
 		return groupData, errors.New("用户组不存在")
 	}
 	group := model.Group{
-		Id:   groupData.Id,
-		Name: groupData.Name,
+		GroupId: groupData.GroupId,
+		Name:    groupData.Name,
 	}
 	return group, nil
 }
 
 // Update implements UserService
 func (t *GroupServiceImpl) Update(req model.Group) error {
-	groupData, err := t.GroupRepository.FindById(req.Id)
-	if err != nil || groupData.Id == "" {
+	groupData, err := t.GroupRepository.FindById(req.GroupId)
+	if err != nil || groupData.GroupId == "" {
 		return errors.New("用户组不存在")
 	}
 	groupData.Name = req.Name
