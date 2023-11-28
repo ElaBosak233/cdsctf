@@ -1,55 +1,44 @@
 package utils
 
 import (
-	model "github.com/elabosak233/pgshub/model/config"
-	"gopkg.in/yaml.v3"
-	"os"
+	"github.com/spf13/viper"
 )
 
-var Config model.Config
-
 func LoadConfig() {
-	configFile := "config.yml"
-	if _, err := os.Stat(configFile); os.IsNotExist(err) {
+	configFile := "config.json"
+
+	// 使用Viper读取配置文件
+	viper.SetConfigFile(configFile)
+
+	// 读取配置文件，如果文件不存在则创建并写入默认配置
+	if err := viper.ReadInConfig(); err != nil {
 		Logger.Warn("未找到配置文件，将创建默认配置文件")
-		defaultConfig := &model.Config{
-			Server: model.ServerConfig{
-				Host: "0.0.0.0",
-				Port: 8888,
-			},
-			MySql: model.MySqlConfig{
-				Host:     "localhost",
-				Port:     3306,
-				Username: "pgshub",
-				Password: "pgshub",
-			},
-			Jwt: model.JwtConfig{
-				SecretKey:      "20101010",
-				ExpirationTime: 180,
-			},
-			Container: model.ContainerConfig{
-				Host: "0.0.0.0",
-				Ports: model.Ports{
-					From: 49152,
-					To:   65535,
-				},
-			},
+		defaults := map[string]interface{}{
+			"Server.Host":          "0.0.0.0",
+			"Server.Port":          8888,
+			"MySql.Host":           "localhost",
+			"MySql.Port":           3306,
+			"MySql.Username":       "pgshub",
+			"MySql.Password":       "pgshub",
+			"MySql.DbName":         "pgshub",
+			"Jwt.SecretKey":        "20101010",
+			"Jwt.ExpirationTime":   180,
+			"Container.Host":       "0.0.0.0",
+			"Container.Ports.From": 49152,
+			"Container.Ports.To":   65535,
+			"Redis.Host":           "localhost",
+			"Redis.Port":           6379,
 		}
-		defaultConfigYAML, _ := yaml.Marshal(defaultConfig)
-		err = os.WriteFile(configFile, defaultConfigYAML, 0644)
-		if err != nil {
+
+		for key, value := range defaults {
+			viper.SetDefault(key, value)
+		}
+
+		// 保存默认配置到文件
+		if err := viper.WriteConfigAs(configFile); err != nil {
 			Logger.Error("无法创建默认配置文件")
 			return
 		}
 		Logger.Info("默认配置文件已生成")
-	}
-	fileContent, err := os.ReadFile(configFile)
-	if err != nil {
-		Logger.Error("无法读取配置文件")
-		return
-	}
-	err = yaml.Unmarshal(fileContent, &Config)
-	if err != nil {
-		Logger.Error("无法解析配置文件")
 	}
 }

@@ -2,15 +2,22 @@ package main
 
 import (
 	"github.com/elabosak233/pgshub/controller"
+	_ "github.com/elabosak233/pgshub/docs"
 	"github.com/elabosak233/pgshub/router"
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
 	"os"
 	"strconv"
 )
 
+// @title PgsHub Backend
+// @version 1.0
+// @description PgsHub Backend
 func main() {
 	Welcome()
 	utils.InitLogger()
@@ -40,10 +47,12 @@ func main() {
 		controller.NewUserGroupController(appService),
 	)
 
+	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
+
 	s := &http.Server{
-		Addr:    utils.Config.Server.Host + ":" + strconv.Itoa(utils.Config.Server.Port),
+		Addr:    viper.GetString("Server.Host") + ":" + viper.GetString("Server.Port"),
 		Handler: r,
 	}
-	utils.Logger.Infof("PgsHub Core 服务已启动，访问地址 %s:%d", utils.Config.Server.Host, utils.Config.Server.Port)
+	utils.Logger.Infof("PgsHub Core 服务已启动，访问地址 %s:%d", viper.GetString("Server.Host"), viper.GetInt("Server.Port"))
 	_ = s.ListenAndServe()
 }

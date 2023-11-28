@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/elabosak233/pgshub/model/misc"
-	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"net/http"
 )
 
@@ -21,7 +21,7 @@ func authMiddleware(c *gin.Context) {
 	}
 	claims := &misc.Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return utils.Config.Jwt.SecretKey, nil
+		return viper.GetString("Jwt.SecretKey"), nil
 	})
 	if err != nil {
 		if errors.Is(err, jwt.ErrSignatureInvalid) {

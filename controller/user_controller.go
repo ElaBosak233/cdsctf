@@ -19,11 +19,21 @@ func NewUserController(appService service.AppService) *UserController {
 	}
 }
 
+type UserLoginRequest struct {
+	Username string `binding:"required" json:"username"`
+	Password string `binding:"required" json:"password"`
+}
+
+// Login
+// @Summary 用户登录
+// @Description 用户登录
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param input body UserLoginRequest true "UserLoginRequest"
+// @Router /user/login [post]
 func (c *UserController) Login(ctx *gin.Context) {
-	userLoginRequest := struct {
-		Username string `binding:"required" json:"username"`
-		Password string `binding:"required" json:"password"`
-	}{}
+	userLoginRequest := UserLoginRequest{}
 	err := ctx.ShouldBindJSON(&userLoginRequest)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
@@ -53,14 +63,40 @@ func (c *UserController) Login(ctx *gin.Context) {
 	})
 }
 
+type UserLogoutRequest struct {
+	Username string `binding:"required" json:"username"`
+}
+
+// Logout
+// @Summary 用户登出
+// @Description 用户登出
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param input body UserLogoutRequest true "UserLogoutRequest"
+// @Router /user/logout [post]
 func (c *UserController) Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
 }
 
+type UserRegisterRequest struct {
+	Username string `binding:"required" json:"username"`
+	Email    string `binding:"required" json:"email"`
+	Password string `binding:"required" json:"password"`
+}
+
+// Register
+// @Summary 用户注册
+// @Description 用户注册
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param input body UserRegisterRequest true "UserRegisterRequest"
+// @Router /user/register [post]
 func (c *UserController) Register(ctx *gin.Context) {
-	createUserRequest := model.User{}
+	createUserRequest := UserRegisterRequest{}
 	err := ctx.ShouldBindJSON(&createUserRequest)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")

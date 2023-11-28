@@ -9,6 +9,7 @@ import (
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -24,8 +25,8 @@ func NewUserServiceImpl(appRepository repository.AppRepository) UserService {
 }
 
 func (t *UserServiceImpl) GetJwtTokenById(id string) string {
-	expirationTime := time.Now().Add(time.Duration(utils.Config.Jwt.ExpirationTime) * time.Minute)
-	jwtSecretKey := []byte(utils.Config.Jwt.SecretKey)
+	expirationTime := time.Now().Add(time.Duration(viper.GetInt("Jwt.ExpirationTime")) * time.Minute)
+	jwtSecretKey := []byte(viper.GetString("Jwt.SecretKey"))
 	claims := &misc.Claims{
 		Id: id,
 		StandardClaims: jwt.StandardClaims{

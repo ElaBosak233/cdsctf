@@ -7,17 +7,18 @@ import (
 	"github.com/elabosak233/pgshub/utils"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
-	_ "github.com/lib/pq"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
+	"os"
 	"xorm.io/xorm"
 )
 
 func DatabaseConnection() *xorm.Engine {
-	host := utils.Config.MySql.Host
-	port := utils.Config.MySql.Port
-	user := utils.Config.MySql.Username
-	password := utils.Config.MySql.Password
-	dbName := utils.Config.MySql.DbName
+	host := viper.GetString("MySql.Host")
+	port := viper.GetInt("MySql.Port")
+	user := viper.GetString("MySql.Username")
+	password := viper.GetString("MySql.Password")
+	dbName := viper.GetString("MySql.DbName")
 
 	dbInfo := fmt.Sprintf(
 		"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4",
@@ -30,29 +31,31 @@ func DatabaseConnection() *xorm.Engine {
 
 	utils.Logger.Info("数据库连接信息 " + dbInfo)
 
-	db, err := xorm.NewEngine("mysql", dbInfo)
+	db, _ := xorm.NewEngine("mysql", dbInfo)
+	err := SyncDatabase(db)
 	if err != nil {
 		utils.Logger.Error("数据库连接失败")
+		os.Exit(1)
 		return nil
 	}
-	SyncDatabase(db)
 	InitAdmin(db)
 	return db
 }
 
-func SyncDatabase(db *xorm.Engine) {
-	_ = db.Sync2(
+func SyncDatabase(db *xorm.Engine) error {
+	err := db.Sync2(
 		&model.User{},
 	)
-	_ = db.Sync2(
+	err = db.Sync2(
 		&model.Group{},
 	)
-	_ = db.Sync2(
+	err = db.Sync2(
 		&modelm2m.UserGroup{},
 	)
-	_ = db.Sync2(
+	err = db.Sync2(
 		&model.Challenge{},
 	)
+	return err
 }
 
 func InitAdmin(db *xorm.Engine) {
@@ -68,6 +71,7 @@ func InitAdmin(db *xorm.Engine) {
 		})
 		if err != nil {
 			utils.Logger.Error("管理员账户创建失败")
+			os.Exit(1)
 			return
 		}
 		utils.Logger.Infof("管理员账户创建成功")
@@ -81,6 +85,7 @@ func InitAdmin(db *xorm.Engine) {
 		})
 		if err != nil {
 			utils.Logger.Error("管理员用户组创建失败")
+			os.Exit(1)
 			return
 		}
 		utils.Logger.Infof("管理员用户组创建成功")
@@ -101,6 +106,7 @@ func InitAdmin(db *xorm.Engine) {
 		})
 		if err != nil {
 			utils.Logger.Error("管理员用户与用户组关系创建失败")
+			os.Exit(1)
 			return
 		}
 		utils.Logger.Infof("管理员用户与用户组关系创建成功")

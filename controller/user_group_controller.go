@@ -26,7 +26,7 @@ func (c *UserGroupController) Create(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&userGroup)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &userGroup),
 		})
@@ -35,7 +35,7 @@ func (c *UserGroupController) Create(ctx *gin.Context) {
 	err = c.userGroupService.Create(userGroup)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -55,7 +55,7 @@ func (c *UserGroupController) Delete(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&userGroup)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &userGroup),
 		})
@@ -64,7 +64,7 @@ func (c *UserGroupController) Delete(ctx *gin.Context) {
 	err = c.userGroupService.Delete(userGroup)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
