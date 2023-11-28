@@ -8,7 +8,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/spf13/viper"
 	"net"
 	"strconv"
 	"sync"
@@ -42,7 +42,7 @@ func NewContainer(cli *client.Client, imageName string, exposedPort int, flagStr
 }
 
 func getAvailablePort() int {
-	for port := utils.Config.Container.Ports.From; port <= utils.Config.Container.Ports.To; port++ {
+	for port := viper.GetInt("Container.Ports.From"); port <= viper.GetInt("Container.Ports.To"); port++ {
 		addr := fmt.Sprintf(":%d", port)
 		l, err := net.Listen("tcp", addr)
 		if err == nil {
@@ -71,7 +71,7 @@ func (c *DockerContainer) Setup() error {
 		PortBindings: nat.PortMap{
 			nat.Port(strconv.Itoa(c.ExposedPort) + "/tcp"): []nat.PortBinding{
 				{
-					HostIP:   utils.Config.Container.Host,
+					HostIP:   viper.GetString("Container.Host"),
 					HostPort: strconv.Itoa(port),
 				},
 			},

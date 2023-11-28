@@ -1,0 +1,24 @@
+{
+  "container": {
+    "host": "0.0.0.0",
+    "ports": {
+      "from": 49152,
+      "to": 65535
+    }
+  },
+  "jwt": {
+    "expirationtime": 180,
+    "secretkey": "20101010"
+  },
+  "mysql": {
+    "dbname": "pgshub",
+    "host": "localhost",
+    "password": "pgshub",
+    "port": 3306,
+    "username": "pgshub"
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8888
+  }
+}

@@ -1,0 +1,92 @@
+definitions:
+  controller.UserLoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  controller.UserLogoutRequest:
+    properties:
+      username:
+        type: string
+    required:
+    - username
+    type: object
+  controller.UserRegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+info:
+  contact: {}
+  description: PgsHub Backend
+  title: PgsHub Backend
+  version: "1.0"
+paths:
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录
+      parameters:
+      - description: UserLoginRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.UserLoginRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户登录
+      tags:
+      - 用户
+  /user/logout:
+    post:
+      consumes:
+      - application/json
+      description: 用户登出
+      parameters:
+      - description: UserLogoutRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.UserLogoutRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户登出
+      tags:
+      - 用户
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: 用户注册
+      parameters:
+      - description: UserRegisterRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.UserRegisterRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户注册
+      tags:
+      - 用户
+swagger: "2.0"
