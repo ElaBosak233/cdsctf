@@ -9,18 +9,17 @@ import (
 
 func NewRouters(
 	router *gin.Engine,
-	userController *controller.UserController,
-	groupController *controller.GroupController,
-	challengeController *controller.ChallengeController,
-	userGroupController *controller.UserGroupController,
+	appController controller.AppController,
 ) {
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, fmt.Sprintf("The Backend of PgsHub"))
 	})
 	userRouter := router.Group("/user")
-	NewUserRouter(userRouter, userController)
+	NewUserRouter(userRouter, appController.UserController)
 	groupRouter := router.Group("/group")
-	NewGroupRouter(groupRouter, groupController, userGroupController)
+	NewGroupRouter(groupRouter, appController.GroupController, appController.UserGroupController)
 	challengeRouter := router.Group("/challenge")
-	NewChallengeRouter(challengeRouter, challengeController)
+	NewChallengeRouter(challengeRouter, appController.ChallengeController)
+	instanceRouter := router.Group("/instance")
+	NewInstanceRouter(instanceRouter, appController.InstanceController)
 }

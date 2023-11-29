@@ -1,4 +1,4 @@
-package controller
+package m2m
 
 import (
 	model "github.com/elabosak233/pgshub/model/data/m2m"
@@ -10,17 +10,17 @@ import (
 	"net/http"
 )
 
-type UserGroupController struct {
+type UserGroupControllerImpl struct {
 	userGroupService m2m.UserGroupService
 }
 
-func NewUserGroupController(appService service.AppService) *UserGroupController {
-	return &UserGroupController{
+func NewUserGroupController(appService service.AppService) UserGroupController {
+	return &UserGroupControllerImpl{
 		userGroupService: appService.UserGroupService,
 	}
 }
 
-func (c *UserGroupController) Create(ctx *gin.Context) {
+func (c *UserGroupControllerImpl) Create(ctx *gin.Context) {
 	utils.Logger.Info("User_Group 关联表记录创建")
 	userGroup := model.UserGroup{}
 	err := ctx.ShouldBindJSON(&userGroup)
@@ -47,7 +47,7 @@ func (c *UserGroupController) Create(ctx *gin.Context) {
 	})
 }
 
-func (c *UserGroupController) Delete(ctx *gin.Context) {
+func (c *UserGroupControllerImpl) Delete(ctx *gin.Context) {
 	utils.Logger.WithFields(logrus.Fields{
 		"ClientIP": ctx.ClientIP(),
 	}).Info("User_Group 关联表记录删除")

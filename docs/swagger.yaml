@@ -1,5 +1,12 @@
 definitions:
-  controller.UserLoginRequest:
+  request.InstanceCreateRequest:
+    properties:
+      challenge_id:
+        type: string
+    required:
+    - challenge_id
+    type: object
+  request.UserLoginRequest:
     properties:
       password:
         type: string
@@ -9,14 +16,14 @@ definitions:
     - password
     - username
     type: object
-  controller.UserLogoutRequest:
+  request.UserLogoutRequest:
     properties:
       username:
         type: string
     required:
     - username
     type: object
-  controller.UserRegisterRequest:
+  request.UserRegisterRequest:
     properties:
       email:
         type: string
@@ -31,10 +38,73 @@ definitions:
     type: object
 info:
   contact: {}
-  description: PgsHub Backend
-  title: PgsHub Backend
+  description: 没有其他东西啦，仅仅是所有的后端接口，不要乱用哦
+  title: PgsHub Backend API
   version: "1.0"
 paths:
+  /instance/create:
+    post:
+      consumes:
+      - application/json
+      description: 创建实例
+      parameters:
+      - description: InstanceCreateRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.InstanceCreateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 创建实例
+      tags:
+      - 实例
+  /instance/remove:
+    get:
+      description: 停止并删除容器
+      parameters:
+      - description: InstanceId
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 停止并删除容器
+      tags:
+      - 实例
+  /instance/renew:
+    get:
+      description: 容器续期
+      parameters:
+      - description: InstanceId
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 容器续期
+      tags:
+      - 实例
+  /instance/status:
+    get:
+      description: 获取示例状态
+      parameters:
+      - description: InstanceId
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 获取示例状态
+      tags:
+      - 实例
   /user/login:
     post:
       consumes:
@@ -46,7 +116,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/controller.UserLoginRequest'
+          $ref: '#/definitions/request.UserLoginRequest'
       produces:
       - application/json
       responses: {}
@@ -64,7 +134,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/controller.UserLogoutRequest'
+          $ref: '#/definitions/request.UserLogoutRequest'
       produces:
       - application/json
       responses: {}
@@ -82,7 +152,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/controller.UserRegisterRequest'
+          $ref: '#/definitions/request.UserRegisterRequest'
       produces:
       - application/json
       responses: {}

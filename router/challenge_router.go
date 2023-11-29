@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewChallengeRouter(challengeRouter *gin.RouterGroup, challengeController *controller.ChallengeController) {
+func NewChallengeRouter(challengeRouter *gin.RouterGroup, challengeController controller.ChallengeController) {
 	challengeRouter.GET("/", challengeController.FindAll)
 	challengeRouter.GET("/:id", challengeController.FindById)
 	challengeRouter.POST("/", challengeController.Create)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/elabosak233/pgshub/controller"
 	_ "github.com/elabosak233/pgshub/docs"
 	"github.com/elabosak233/pgshub/router"
 	"github.com/elabosak233/pgshub/utils"
@@ -15,14 +14,15 @@ import (
 	"strconv"
 )
 
-// @title PgsHub Backend
+// @title PgsHub Backend API
 // @version 1.0
-// @description PgsHub Backend
+// @description 没有其他东西啦，仅仅是所有的后端接口，不要乱用哦
 func main() {
 	Welcome()
 	utils.InitLogger()
 	utils.LoadConfig()
 	db := DatabaseConnection()
+	utils.InitRedis()
 
 	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
 	if debug {
@@ -39,13 +39,8 @@ func main() {
 
 	appRepository := InitRepositories(db)
 	appService := InitServices(appRepository)
-	router.NewRouters(
-		r,
-		controller.NewUserController(appService),
-		controller.NewGroupController(appService),
-		controller.NewChallengeController(appService),
-		controller.NewUserGroupController(appService),
-	)
+	appController := InitControllers(appService)
+	router.NewRouters(r, appController)
 
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
 

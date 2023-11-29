@@ -5,6 +5,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	model "github.com/elabosak233/pgshub/model/data"
 	"github.com/elabosak233/pgshub/model/misc"
+	"github.com/elabosak233/pgshub/model/request"
+	"github.com/elabosak233/pgshub/model/response"
 	"github.com/elabosak233/pgshub/repository"
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/google/uuid"
@@ -53,7 +55,7 @@ func (t *UserServiceImpl) Create(req model.User) error {
 }
 
 // Update implements UserService
-func (t *UserServiceImpl) Update(req UserUpdateRequest) error {
+func (t *UserServiceImpl) Update(req request.UserUpdateRequest) error {
 	userData, err := t.UserRepository.FindById(req.Id)
 	if err != nil || userData.UserId == "" {
 		return errors.New("用户不存在")
@@ -71,11 +73,11 @@ func (t *UserServiceImpl) Delete(id string) error {
 }
 
 // FindAll implements UserService
-func (t *UserServiceImpl) FindAll() ([]UserResponse, error) {
+func (t *UserServiceImpl) FindAll() ([]response.UserResponse, error) {
 	result := t.UserRepository.FindAll()
-	var users []UserResponse
+	var users []response.UserResponse
 	for _, value := range result {
-		userResp := UserResponse{}
+		userResp := response.UserResponse{}
 		_ = mapstructure.Decode(value, &userResp)
 		userResp.CreatedAt = value.CreatedAt
 		userResp.UpdatedAt = value.UpdatedAt
@@ -85,24 +87,24 @@ func (t *UserServiceImpl) FindAll() ([]UserResponse, error) {
 }
 
 // FindById implements UserService
-func (t *UserServiceImpl) FindById(id string) (UserResponse, error) {
+func (t *UserServiceImpl) FindById(id string) (response.UserResponse, error) {
 	userData, err := t.UserRepository.FindById(id)
 	if err != nil {
-		return UserResponse{}, errors.New("用户不存在")
+		return response.UserResponse{}, errors.New("用户不存在")
 	}
-	userResp := UserResponse{}
+	userResp := response.UserResponse{}
 	_ = mapstructure.Decode(userData, &userResp)
 	userResp.CreatedAt = userData.CreatedAt
 	userResp.UpdatedAt = userData.UpdatedAt
 	return userResp, nil
 }
 
-func (t *UserServiceImpl) FindByUsername(username string) (UserResponse, error) {
+func (t *UserServiceImpl) FindByUsername(username string) (response.UserResponse, error) {
 	userData, err := t.UserRepository.FindByUsername(username)
 	if err != nil {
-		return UserResponse{}, errors.New("用户不存在")
+		return response.UserResponse{}, errors.New("用户不存在")
 	}
-	userResp := UserResponse{}
+	userResp := response.UserResponse{}
 	_ = mapstructure.Decode(userData, &userResp)
 	userResp.CreatedAt = userData.CreatedAt
 	userResp.UpdatedAt = userData.UpdatedAt

@@ -1,5 +1,6 @@
 {
-  "container": {
+  "container": "docker",
+  "docker": {
     "host": "0.0.0.0",
     "ports": {
       "from": 49152,
@@ -16,6 +17,12 @@
     "password": "pgshub",
     "port": 3306,
     "username": "pgshub"
+  },
+  "redis": {
+    "db": 0,
+    "host": "localhost",
+    "password": "",
+    "port": 6379
   },
   "server": {
     "host": "0.0.0.0",
