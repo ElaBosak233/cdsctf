@@ -15,6 +15,99 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/instance/create": {
+            "post": {
+                "description": "创建实例",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实例"
+                ],
+                "summary": "创建实例",
+                "parameters": [
+                    {
+                        "description": "InstanceCreateRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.InstanceCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/instance/remove": {
+            "get": {
+                "description": "停止并删除容器",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实例"
+                ],
+                "summary": "停止并删除容器",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "InstanceId",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/instance/renew": {
+            "get": {
+                "description": "容器续期",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实例"
+                ],
+                "summary": "容器续期",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "InstanceId",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/instance/status": {
+            "get": {
+                "description": "获取示例状态",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实例"
+                ],
+                "summary": "获取示例状态",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "InstanceId",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/user/login": {
             "post": {
                 "description": "用户登录",
@@ -35,7 +128,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.UserLoginRequest"
+                            "$ref": "#/definitions/request.UserLoginRequest"
                         }
                     }
                 ],
@@ -62,7 +155,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.UserLogoutRequest"
+                            "$ref": "#/definitions/request.UserLogoutRequest"
                         }
                     }
                 ],
@@ -89,7 +182,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.UserRegisterRequest"
+                            "$ref": "#/definitions/request.UserRegisterRequest"
                         }
                     }
                 ],
@@ -98,7 +191,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controller.UserLoginRequest": {
+        "request.InstanceCreateRequest": {
+            "type": "object",
+            "required": [
+                "challenge_id"
+            ],
+            "properties": {
+                "challenge_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UserLoginRequest": {
             "type": "object",
             "required": [
                 "password",
@@ -113,7 +217,7 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.UserLogoutRequest": {
+        "request.UserLogoutRequest": {
             "type": "object",
             "required": [
                 "username"
@@ -124,7 +228,7 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.UserRegisterRequest": {
+        "request.UserRegisterRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -152,8 +256,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "PgsHub Backend",
-	Description:      "PgsHub Backend",
+	Title:            "PgsHub Backend API",
+	Description:      "没有其他东西啦，仅仅是所有的后端接口，不要乱用哦",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

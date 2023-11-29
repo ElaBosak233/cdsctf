@@ -19,6 +19,12 @@ type Challenge struct {
 	ImageName string `xorm:"text 'image_name'" json:"image_name"`
 	// Flag 期望的结果
 	Flag string `xorm:"text 'flag'" json:"flag"`
+	// FlagEnv 环境变量名
+	FlagEnv string `xorm:"'flag_env' text" json:"flag_env"`
+	// MemoryLimit 内存限制
+	MemoryLimit int64 `xorm:"int 'memory_limit'" json:"memory_limit"`
+	// Duration 时间限制
+	Duration int `xorm:"int 'duration'" json:"duration"`
 	// UploaderId 上传者 Id
 	UploaderId string `xorm:"varchar(36) 'uploader_id' notnull" json:"uploader_id"`
 	// Difficulty 难度

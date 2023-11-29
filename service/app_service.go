@@ -7,4 +7,5 @@ type AppService struct {
 	UserService      UserService
 	ChallengeService ChallengeService
 	UserGroupService m2m.UserGroupService
+	InstanceService  InstanceService
 }

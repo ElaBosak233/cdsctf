@@ -12,5 +12,6 @@ func InitServices(appRepository repository.AppRepository) service.AppService {
 		GroupService:     service.NewGroupServiceImpl(appRepository),
 		ChallengeService: service.NewChallengeServiceImpl(appRepository),
 		UserGroupService: servicem2m.NewUserServiceImpl(appRepository),
+		InstanceService:  service.NewInstanceServiceImpl(appRepository),
 	}
 }

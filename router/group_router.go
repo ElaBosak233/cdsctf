@@ -2,10 +2,11 @@ package router
 
 import (
 	"github.com/elabosak233/pgshub/controller"
+	"github.com/elabosak233/pgshub/controller/m2m"
 	"github.com/gin-gonic/gin"
 )
 
-func NewGroupRouter(groupRouter *gin.RouterGroup, groupController *controller.GroupController, userGroupController *controller.UserGroupController) {
+func NewGroupRouter(groupRouter *gin.RouterGroup, groupController controller.GroupController, userGroupController m2m.UserGroupController) {
 	groupRouter.GET("/", groupController.FindAll)
 	groupRouter.GET("/id/:id", groupController.FindById)
 	groupRouter.POST("/", groupController.Create)

@@ -4,19 +4,16 @@ import (
 	"errors"
 	model "github.com/elabosak233/pgshub/model/data"
 	"github.com/elabosak233/pgshub/repository"
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
 type ChallengeServiceImpl struct {
 	ChallengeRepository repository.ChallengeRepository
-	Validate            *validator.Validate
 }
 
 func NewChallengeServiceImpl(appRepository repository.AppRepository) ChallengeService {
 	return &ChallengeServiceImpl{
 		ChallengeRepository: appRepository.ChallengeRepository,
-		Validate:            validator.New(),
 	}
 }
 

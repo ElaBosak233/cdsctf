@@ -8,10 +8,10 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"github.com/elabosak233/pgshub/utils"
 	"github.com/spf13/viper"
 	"net"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -24,12 +24,11 @@ type DockerContainer struct {
 	FlagEnv     string
 	MemoryLimit int64 // MB
 	Duration    time.Duration
-	Mu          sync.Mutex
-	StopRenew   chan struct{} // 用于停止续期的信号通道
-	Renewed     bool          // 标记是否已经进行过续期
+	cancelCtx   context.Context    // 存储可取消的上下文
+	cancelFunc  context.CancelFunc // 存储取消函数
 }
 
-func NewContainer(cli *client.Client, imageName string, exposedPort int, flagStr string, flagEnv string, memoryLimit int64, duration time.Duration) *DockerContainer {
+func NewDockerContainer(cli *client.Client, imageName string, exposedPort int, flagStr string, flagEnv string, memoryLimit int64, duration time.Duration) *DockerContainer {
 	return &DockerContainer{
 		Cli:         cli,
 		ImageName:   imageName,
@@ -42,7 +41,7 @@ func NewContainer(cli *client.Client, imageName string, exposedPort int, flagStr
 }
 
 func getAvailablePort() int {
-	for port := viper.GetInt("Container.Ports.From"); port <= viper.GetInt("Container.Ports.To"); port++ {
+	for port := viper.GetInt("Docker.Ports.From"); port <= viper.GetInt("Docker.Ports.To"); port++ {
 		addr := fmt.Sprintf(":%d", port)
 		l, err := net.Listen("tcp", addr)
 		if err == nil {
@@ -71,7 +70,7 @@ func (c *DockerContainer) Setup() error {
 		PortBindings: nat.PortMap{
 			nat.Port(strconv.Itoa(c.ExposedPort) + "/tcp"): []nat.PortBinding{
 				{
-					HostIP:   viper.GetString("Container.Host"),
+					HostIP:   viper.GetString("Docker.Host"),
 					HostPort: strconv.Itoa(port),
 				},
 			},
@@ -89,7 +88,8 @@ func (c *DockerContainer) Setup() error {
 	if err != nil {
 		return err
 	}
-	c.ShutDownAfterDuration()
+	c.cancelCtx, c.cancelFunc = context.WithCancel(context.Background())
+	go c.RemoveAfterDuration(c.cancelCtx)
 	return nil
 }
 
@@ -104,13 +104,17 @@ func (c *DockerContainer) GetContainerStatus() (string, error) {
 	return resp.State.Status, nil
 }
 
-func (c *DockerContainer) ShutDownAfterDuration() {
-	time.AfterFunc(c.Duration, func() {
-		_ = c.ShutDown()
-	})
+func (c *DockerContainer) RemoveAfterDuration(ctx context.Context) {
+	select {
+	case <-time.After(c.Duration):
+		_ = c.Remove()
+	case <-ctx.Done(): // 当调用 cancelFunc 时，这里会接收到信号
+		utils.Logger.Warn("容器移除被取消")
+		return
+	}
 }
 
-func (c *DockerContainer) ShutDown() error {
+func (c *DockerContainer) Remove() error {
 	if c.Cli == nil {
 		return nil
 	}
@@ -134,19 +138,15 @@ func (c *DockerContainer) ShutDown() error {
 }
 
 func (c *DockerContainer) Renew(duration time.Duration) error {
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
-	if c.Renewed {
-		return errors.New("靶机已续期")
+	// 如果存在取消函数，则调用它来取消当前的移除操作
+	if c.cancelFunc != nil {
+		c.cancelFunc()
 	}
-	c.Duration += duration
-	time.AfterFunc(c.Duration, func() {
-		c.Mu.Lock()
-		defer c.Mu.Unlock()
-		if !c.Renewed {
-			_ = c.ShutDown()
-		}
-	})
-	c.Renewed = true
+	// 设置新的持续时间
+	c.Duration = duration
+	// 创建新的可取消上下文和取消函数
+	c.cancelCtx, c.cancelFunc = context.WithCancel(context.Background())
+	go c.RemoveAfterDuration(c.cancelCtx)
+	utils.Logger.Info("容器移除倒计时已重置")
 	return nil
 }

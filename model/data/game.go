@@ -11,6 +11,8 @@ type Game struct {
 	Description string `xorm:"text 'description'" json:"description"`
 	// NumLimitMin 队伍人数最小值
 	NumLimitMin int `xorm:"int 'num_limit_min' notnull default(1)" json:"num_limit_min"`
+	// ParallelContainerLimit 并发容器限制
+	ParallelContainerLimit int `xorm:"int 'parallel_container_limit' notnull default(2)" json:"parallel_container_limit"`
 	// NumLimitMax 队伍人数最大值
 	NumLimitMax int `xorm:"int 'num_limit_max' default(99)" json:"num_limit_max"`
 	// ChallengeIds 题目 Id
