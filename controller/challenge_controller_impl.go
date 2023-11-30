@@ -12,7 +12,7 @@ type ChallengeControllerImpl struct {
 	challengeService service.ChallengeService
 }
 
-func NewChallengeController(appService service.AppService) ChallengeController {
+func NewChallengeController(appService *service.AppService) ChallengeController {
 	return &ChallengeControllerImpl{
 		challengeService: appService.ChallengeService,
 	}

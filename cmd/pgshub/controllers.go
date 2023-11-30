@@ -5,8 +5,8 @@ import (
 	"github.com/elabosak233/pgshub/service"
 )
 
-func InitControllers(appService service.AppService) controller.AppController {
-	return controller.AppController{
+func InitControllers(appService *service.AppService) *controller.AppController {
+	return &controller.AppController{
 		UserController:      controller.NewUserControllerImpl(appService),
 		GroupController:     controller.NewGroupControllerImpl(appService),
 		UserGroupController: controller.NewUserControllerImpl(appService),

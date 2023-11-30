@@ -6,8 +6,8 @@ import (
 	servicem2m "github.com/elabosak233/pgshub/service/m2m"
 )
 
-func InitServices(appRepository repository.AppRepository) service.AppService {
-	return service.AppService{
+func InitServices(appRepository *repository.AppRepository) *service.AppService {
+	return &service.AppService{
 		UserService:      service.NewUserServiceImpl(appRepository),
 		GroupService:     service.NewGroupServiceImpl(appRepository),
 		ChallengeService: service.NewChallengeServiceImpl(appRepository),
