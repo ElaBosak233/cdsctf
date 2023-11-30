@@ -22,7 +22,6 @@ func main() {
 	utils.InitLogger()
 	utils.LoadConfig()
 	db := DatabaseConnection()
-	utils.InitRedis()
 
 	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
 	if debug {

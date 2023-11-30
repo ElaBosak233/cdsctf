@@ -11,7 +11,7 @@ type ChallengeServiceImpl struct {
 	ChallengeRepository repository.ChallengeRepository
 }
 
-func NewChallengeServiceImpl(appRepository repository.AppRepository) ChallengeService {
+func NewChallengeServiceImpl(appRepository *repository.AppRepository) ChallengeService {
 	return &ChallengeServiceImpl{
 		ChallengeRepository: appRepository.ChallengeRepository,
 	}

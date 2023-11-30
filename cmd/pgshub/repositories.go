@@ -6,8 +6,8 @@ import (
 	"xorm.io/xorm"
 )
 
-func InitRepositories(db *xorm.Engine) repository.AppRepository {
-	return repository.AppRepository{
+func InitRepositories(db *xorm.Engine) *repository.AppRepository {
+	return &repository.AppRepository{
 		GroupRepository:     repository.NewGroupRepositoryImpl(db),
 		UserRepository:      repository.NewUserRepositoryImpl(db),
 		ChallengeRepository: repository.NewChallengeRepositoryImpl(db),

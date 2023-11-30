@@ -13,7 +13,7 @@ type GroupControllerImpl struct {
 	groupService service.GroupService
 }
 
-func NewGroupControllerImpl(appService service.AppService) GroupController {
+func NewGroupControllerImpl(appService *service.AppService) GroupController {
 	return &GroupControllerImpl{
 		groupService: appService.GroupService,
 	}

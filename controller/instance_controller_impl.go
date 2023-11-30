@@ -12,7 +12,7 @@ type InstanceControllerImpl struct {
 	instanceService service.InstanceService
 }
 
-func NewInstanceControllerImpl(appService service.AppService) InstanceController {
+func NewInstanceControllerImpl(appService *service.AppService) InstanceController {
 	return &InstanceControllerImpl{
 		instanceService: appService.InstanceService,
 	}

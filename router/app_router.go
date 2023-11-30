@@ -9,7 +9,7 @@ import (
 
 func NewRouters(
 	router *gin.Engine,
-	appController controller.AppController,
+	appController *controller.AppController,
 ) {
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, fmt.Sprintf("The Backend of PgsHub"))

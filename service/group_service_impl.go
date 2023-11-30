@@ -12,7 +12,7 @@ type GroupServiceImpl struct {
 	UserRepository  repository.UserRepository
 }
 
-func NewGroupServiceImpl(appRepository repository.AppRepository) GroupService {
+func NewGroupServiceImpl(appRepository *repository.AppRepository) GroupService {
 	return &GroupServiceImpl{
 		GroupRepository: appRepository.GroupRepository,
 		UserRepository:  appRepository.UserRepository,
