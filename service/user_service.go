@@ -15,5 +15,6 @@ type UserService interface {
 	VerifyPasswordById(id string, password string) bool
 	VerifyPasswordByUsername(username string, password string) bool
 	GetJwtTokenById(id string) string
+	GetIdByJwtToken(token string) (string, error)
 	FindAll() ([]response.UserResponse, error)
 }

@@ -41,6 +41,20 @@ func (t *UserServiceImpl) GetJwtTokenById(id string) string {
 	return tokenString
 }
 
+func (t *UserServiceImpl) GetIdByJwtToken(token string) (string, error) {
+	pgsToken, err := jwt.ParseWithClaims(token, &misc.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(viper.GetString("Jwt.SecretKey")), nil
+	})
+	if err != nil {
+		return "", err
+	}
+	if claims, ok := pgsToken.Claims.(*misc.Claims); ok && pgsToken.Valid {
+		return claims.Id, nil
+	} else {
+		return "", errors.New("无效 Token")
+	}
+}
+
 // Create implements UserService
 func (t *UserServiceImpl) Create(req model.User) error {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -108,6 +122,7 @@ func (t *UserServiceImpl) FindByUsername(username string) (response.UserResponse
 	_ = mapstructure.Decode(userData, &userResp)
 	userResp.CreatedAt = userData.CreatedAt
 	userResp.UpdatedAt = userData.UpdatedAt
+	userResp.Id = userData.UserId
 	return userResp, nil
 }
 

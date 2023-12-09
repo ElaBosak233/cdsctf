@@ -20,7 +20,7 @@ func NewInstanceServiceImpl(appRepository *repository.AppRepository) InstanceSer
 		ChallengeRepository: appRepository.ChallengeRepository,
 	}
 }
-func (t *InstanceServiceImpl) Create(challengeId string) (instanceId string) {
+func (t *InstanceServiceImpl) Create(challengeId string) (instanceId string, entry string) {
 	if viper.GetString("Container") == "docker" {
 		cli, _ := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		challenge, _ := t.ChallengeRepository.FindById(challengeId)
@@ -33,29 +33,35 @@ func (t *InstanceServiceImpl) Create(challengeId string) (instanceId string) {
 			challenge.MemoryLimit,
 			time.Duration(challenge.Duration)*time.Second,
 		)
-		_ = ctn.Setup()
+		port, _ := ctn.Setup()
 		instanceId := uuid.NewString()
-		InstanceMap[instanceId] = ctn
-		return instanceId
+		InstanceMap[instanceId] = map[string]interface{}{
+			"ctn":  ctn,
+			"port": port,
+		}
+		return instanceId, fmt.Sprintf("%s:%d", viper.GetString("Docker.Host"), port)
 	}
-	return ""
+	return "", ""
 }
 
-func (t *InstanceServiceImpl) Status(id string) (status string, error error) {
+func (t *InstanceServiceImpl) Status(id string) (status string, entry string, error error) {
 	if viper.GetString("Container") == "docker" {
 		if InstanceMap[id] == nil {
-			return "", errors.New("实例不存在")
+			return "", "", errors.New("实例不存在")
 		}
-		ctn := InstanceMap[id].(*container.DockerContainer)
+		ctn := InstanceMap[id]["ctn"].(*container.DockerContainer)
 		status, _ = ctn.GetContainerStatus()
-		return status, nil
+		if status != "removed" {
+			return status, fmt.Sprintf("%s:%d", viper.GetString("Docker.Host"), InstanceMap[id]["port"]), nil
+		}
+		return status, "", nil
 	}
-	return "", errors.New("获取失败")
+	return "", "", errors.New("获取失败")
 }
 
 func (t *InstanceServiceImpl) Renew(id string) error {
 	if viper.GetString("Container") == "docker" {
-		ctn := InstanceMap[id].(*container.DockerContainer)
+		ctn := InstanceMap[id]["ctn"].(*container.DockerContainer)
 		err := ctn.Renew(ctn.Duration)
 		return err
 	}
@@ -64,7 +70,7 @@ func (t *InstanceServiceImpl) Renew(id string) error {
 
 func (t *InstanceServiceImpl) Remove(id string) error {
 	if viper.GetString("Container") == "docker" {
-		ctn := InstanceMap[id].(*container.DockerContainer)
+		ctn := InstanceMap[id]["ctn"].(*container.DockerContainer)
 		err := ctn.Remove()
 		return err
 	}

@@ -27,7 +27,7 @@ func NewUserControllerImpl(appService *service.AppService) UserController {
 // @Accept json
 // @Produce json
 // @Param input body request.UserLoginRequest true "UserLoginRequest"
-// @Router /user/login [post]
+// @Router /api/user/login [post]
 func (c *UserControllerImpl) Login(ctx *gin.Context) {
 	userLoginRequest := request.UserLoginRequest{}
 	err := ctx.ShouldBindJSON(&userLoginRequest)
@@ -59,6 +59,37 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 	})
 }
 
+// VerifyToken
+// @Summary Token 鉴定
+// @Description Token 鉴定
+// @Tags 用户
+// @Produce json
+// @Param token path string true "token"
+// @Router /api/user/verifyToken/{token} [get]
+func (c *UserControllerImpl) VerifyToken(ctx *gin.Context) {
+	id, err := c.userService.GetIdByJwtToken(ctx.Param("token"))
+	if err != nil {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+	}
+	if id == "" {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  "Token 无效",
+		})
+	} else {
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusOK,
+			"id":   id,
+		})
+	}
+}
+
 // Logout
 // @Summary 用户登出
 // @Description 用户登出
@@ -66,7 +97,7 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param input body request.UserLogoutRequest true "UserLogoutRequest"
-// @Router /user/logout [post]
+// @Router /api/user/logout [post]
 func (c *UserControllerImpl) Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
@@ -80,7 +111,7 @@ func (c *UserControllerImpl) Logout(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param input body request.UserRegisterRequest true "UserRegisterRequest"
-// @Router /user/register [post]
+// @Router /api/user/register [post]
 func (c *UserControllerImpl) Register(ctx *gin.Context) {
 	createUserRequest := request.UserRegisterRequest{}
 	err := ctx.ShouldBindJSON(&createUserRequest)

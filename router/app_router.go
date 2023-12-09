@@ -8,7 +8,7 @@ import (
 )
 
 func NewRouters(
-	router *gin.Engine,
+	router *gin.RouterGroup,
 	appController *controller.AppController,
 ) {
 	router.GET("/", func(ctx *gin.Context) {
