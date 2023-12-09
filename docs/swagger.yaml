@@ -42,7 +42,7 @@ info:
   title: PgsHub Backend API
   version: "1.0"
 paths:
-  /instance/create:
+  /api/instance/create:
     post:
       consumes:
       - application/json
@@ -60,7 +60,7 @@ paths:
       summary: 创建实例
       tags:
       - 实例
-  /instance/remove:
+  /api/instance/remove:
     get:
       description: 停止并删除容器
       parameters:
@@ -75,7 +75,7 @@ paths:
       summary: 停止并删除容器
       tags:
       - 实例
-  /instance/renew:
+  /api/instance/renew:
     get:
       description: 容器续期
       parameters:
@@ -90,7 +90,7 @@ paths:
       summary: 容器续期
       tags:
       - 实例
-  /instance/status:
+  /api/instance/status:
     get:
       description: 获取示例状态
       parameters:
@@ -105,7 +105,7 @@ paths:
       summary: 获取示例状态
       tags:
       - 实例
-  /user/login:
+  /api/user/login:
     post:
       consumes:
       - application/json
@@ -123,7 +123,7 @@ paths:
       summary: 用户登录
       tags:
       - 用户
-  /user/logout:
+  /api/user/logout:
     post:
       consumes:
       - application/json
@@ -141,7 +141,7 @@ paths:
       summary: 用户登出
       tags:
       - 用户
-  /user/register:
+  /api/user/register:
     post:
       consumes:
       - application/json
@@ -157,6 +157,21 @@ paths:
       - application/json
       responses: {}
       summary: 用户注册
+      tags:
+      - 用户
+  /api/user/verifyToken/{token}:
+    get:
+      description: Token 鉴定
+      parameters:
+      - description: token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Token 鉴定
       tags:
       - 用户
 swagger: "2.0"

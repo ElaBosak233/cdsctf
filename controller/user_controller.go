@@ -6,6 +6,7 @@ import (
 
 type UserController interface {
 	Login(ctx *gin.Context)
+	VerifyToken(ctx *gin.Context)
 	Logout(ctx *gin.Context)
 	Register(ctx *gin.Context)
 	Create(ctx *gin.Context)

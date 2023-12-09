@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "github.com/elabosak233/pgshub/docs"
+	"github.com/elabosak233/pgshub/middleware"
 	"github.com/elabosak233/pgshub/router"
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-contrib/cors"
@@ -32,16 +33,19 @@ func main() {
 	r := gin.Default()
 
 	cor := cors.DefaultConfig()
-	cor.AllowOrigins = []string{"http://localhost:3000"}
+	cor.AllowOrigins = []string{"*"}
 	cor.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
 	r.Use(cors.New(cor))
 
 	appRepository := InitRepositories(db)
 	appService := InitServices(appRepository)
 	appController := InitControllers(appService)
-	router.NewRouters(r, appController)
+	api := r.Group("/api")
+	router.NewRouters(api, appController)
 
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
+
+	r.Use(middleware.StaticServe("/", "./dist"))
 
 	s := &http.Server{
 		Addr:    viper.GetString("Server.Host") + ":" + viper.GetString("Server.Port"),

@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/instance/create": {
+        "/api/instance/create": {
             "post": {
                 "description": "创建实例",
                 "consumes": [
@@ -42,7 +42,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/instance/remove": {
+        "/api/instance/remove": {
             "get": {
                 "description": "停止并删除容器",
                 "produces": [
@@ -64,7 +64,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/instance/renew": {
+        "/api/instance/renew": {
             "get": {
                 "description": "容器续期",
                 "produces": [
@@ -86,7 +86,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/instance/status": {
+        "/api/instance/status": {
             "get": {
                 "description": "获取示例状态",
                 "produces": [
@@ -108,7 +108,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/user/login": {
+        "/api/user/login": {
             "post": {
                 "description": "用户登录",
                 "consumes": [
@@ -135,7 +135,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/user/logout": {
+        "/api/user/logout": {
             "post": {
                 "description": "用户登出",
                 "consumes": [
@@ -162,7 +162,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/user/register": {
+        "/api/user/register": {
             "post": {
                 "description": "用户注册",
                 "consumes": [
@@ -184,6 +184,28 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.UserRegisterRequest"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/user/verifyToken/{token}": {
+            "get": {
+                "description": "Token 鉴定",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "Token 鉴定",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {}

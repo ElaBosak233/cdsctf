@@ -7,8 +7,8 @@ type UserRegisterRequest struct {
 }
 
 type UserLoginRequest struct {
-	Username string `binding:"required" json:"username"`
-	Password string `binding:"required" json:"password"`
+	Username string `binding:"required" json:"username" msg:"用户名或密码错误"`
+	Password string `binding:"required" json:"password" msg:"用户名或密码错误"`
 }
 
 type UserLogoutRequest struct {

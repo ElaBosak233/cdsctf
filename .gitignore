@@ -27,3 +27,4 @@ logs
 plugins
 files
 test.go
+dist

@@ -25,7 +25,7 @@ func NewInstanceControllerImpl(appService *service.AppService) InstanceControlle
 // @Accept json
 // @Produce json
 // @Param input body request.InstanceCreateRequest true "InstanceCreateRequest"
-// @Router /instance/create [post]
+// @Router /api/instance/create [post]
 func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 	instanceCreateRequest := request.InstanceCreateRequest{}
 	err := ctx.ShouldBindJSON(&instanceCreateRequest)
@@ -37,24 +37,25 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	id := c.instanceService.Create(instanceCreateRequest.ChallengeId)
+	id, entry := c.instanceService.Create(instanceCreateRequest.ChallengeId)
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"id":   id,
+		"code":  http.StatusOK,
+		"id":    id,
+		"entry": entry,
 	})
 }
 
 // Status
-// @Summary 获取示例状态
-// @Description 获取示例状态
+// @Summary 获取实例状态
+// @Description 获取实例状态
 // @Tags 实例
 // @Produce json
 // @Param id query string true "InstanceId"
-// @Router /instance/status [get]
+// @Router /api/instance/status [get]
 func (c *InstanceControllerImpl) Status(ctx *gin.Context) {
 	id := ctx.Query("id")
-	status, err := c.instanceService.Status(id)
+	status, entry, err := c.instanceService.Status(id)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
@@ -66,6 +67,7 @@ func (c *InstanceControllerImpl) Status(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code":   http.StatusOK,
 			"status": status,
+			"entry":  entry,
 		})
 	}
 }
@@ -76,7 +78,7 @@ func (c *InstanceControllerImpl) Status(ctx *gin.Context) {
 // @Tags 实例
 // @Produce json
 // @Param id query string true "InstanceId"
-// @Router /instance/remove [get]
+// @Router /api/instance/remove [get]
 func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 	id := ctx.Query("id")
 	err := c.instanceService.Remove(id)
@@ -100,7 +102,7 @@ func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 // @Tags 实例
 // @Produce json
 // @Param id query string true "InstanceId"
-// @Router /instance/renew [get]
+// @Router /api/instance/renew [get]
 func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 	id := ctx.Query("id")
 	err := c.instanceService.Renew(id)

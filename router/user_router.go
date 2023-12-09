@@ -15,4 +15,5 @@ func NewUserRouter(userRouter *gin.RouterGroup, userController controller.UserCo
 	userRouter.DELETE("/:id", userController.Delete)
 	userRouter.POST("/login", userController.Login)
 	userRouter.POST("/logout", userController.Logout)
+	userRouter.GET("/verifyToken/:token", userController.VerifyToken)
 }

@@ -52,14 +52,14 @@ func getAvailablePort() int {
 	return 0
 }
 
-func (c *DockerContainer) Setup() error {
-	port := getAvailablePort()
+func (c *DockerContainer) Setup() (port int, error error) {
+	port = getAvailablePort()
 	if port == 0 {
-		return errors.New("未找到可用端口")
+		return 0, errors.New("未找到可用端口")
 	}
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		return errors.New("客户端创建失败")
+		return 0, errors.New("客户端创建失败")
 	}
 	env := []string{fmt.Sprintf("%s=%s", c.FlagEnv, c.FlagStr)}
 	containerConfig := &container.Config{
@@ -81,16 +81,16 @@ func (c *DockerContainer) Setup() error {
 	}
 	resp, err := cli.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")
 	if err != nil {
-		return err
+		return 0, err
 	}
 	c.RespId = resp.ID
 	err = cli.ContainerStart(context.Background(), c.RespId, types.ContainerStartOptions{})
 	if err != nil {
-		return err
+		return 0, err
 	}
 	c.cancelCtx, c.cancelFunc = context.WithCancel(context.Background())
 	go c.RemoveAfterDuration(c.cancelCtx)
-	return nil
+	return port, nil
 }
 
 func (c *DockerContainer) GetContainerStatus() (string, error) {
