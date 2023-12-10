@@ -70,12 +70,14 @@ func (t *UserServiceImpl) Create(req model.User) error {
 
 // Update implements UserService
 func (t *UserServiceImpl) Update(req request.UserUpdateRequest) error {
-	userData, err := t.UserRepository.FindById(req.Id)
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	userData, err := t.UserRepository.FindById(req.UserId)
 	if err != nil || userData.UserId == "" {
 		return errors.New("用户不存在")
 	}
 	userModel := model.User{}
 	_ = mapstructure.Decode(req, &userModel)
+	userModel.Password = string(hashedPassword)
 	err = t.UserRepository.Update(userModel)
 	return err
 }
@@ -88,7 +90,7 @@ func (t *UserServiceImpl) Delete(id string) error {
 
 // FindAll implements UserService
 func (t *UserServiceImpl) FindAll() ([]response.UserResponse, error) {
-	result := t.UserRepository.FindAll()
+	result, _ := t.UserRepository.FindAll()
 	var users []response.UserResponse
 	for _, value := range result {
 		userResp := response.UserResponse{}
@@ -122,7 +124,6 @@ func (t *UserServiceImpl) FindByUsername(username string) (response.UserResponse
 	_ = mapstructure.Decode(userData, &userResp)
 	userResp.CreatedAt = userData.CreatedAt
 	userResp.UpdatedAt = userData.UpdatedAt
-	userResp.Id = userData.UserId
 	return userResp, nil
 }
 
@@ -131,9 +132,8 @@ func (t *UserServiceImpl) VerifyPasswordById(id string, password string) bool {
 	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
 	if err != nil {
 		return false
-	} else {
-		return true
 	}
+	return true
 }
 
 func (t *UserServiceImpl) VerifyPasswordByUsername(username string, password string) bool {
@@ -141,7 +141,6 @@ func (t *UserServiceImpl) VerifyPasswordByUsername(username string, password str
 	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
 	if err != nil {
 		return false
-	} else {
-		return true
 	}
+	return true
 }

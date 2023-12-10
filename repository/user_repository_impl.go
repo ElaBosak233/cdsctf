@@ -2,7 +2,6 @@ package repository
 
 import (
 	model "github.com/elabosak233/pgshub/model/data"
-	"github.com/elabosak233/pgshub/utils"
 	"xorm.io/xorm"
 )
 
@@ -16,14 +15,13 @@ func NewUserRepositoryImpl(Db *xorm.Engine) UserRepository {
 
 // Insert implements UserRepository
 func (t *UserRepositoryImpl) Insert(user model.User) error {
-	_, err := t.Db.Insert(&user)
+	_, err := t.Db.Table("user").Insert(&user)
 	return err
 }
 
 // Delete implements UserRepository
 func (t *UserRepositoryImpl) Delete(id string) error {
-	var user model.User
-	_, err := t.Db.Table("user").Where("id = ?", id).Delete(&user)
+	_, err := t.Db.Table("user").ID(id).Delete(&model.User{})
 	return err
 }
 
@@ -33,17 +31,16 @@ func (t *UserRepositoryImpl) Update(user model.User) error {
 }
 
 // FindAll implements UserRepository
-func (t *UserRepositoryImpl) FindAll() []model.User {
+func (t *UserRepositoryImpl) FindAll() ([]model.User, error) {
 	var users []model.User
-	err := t.Db.Find(&users)
-	utils.ErrorPanic(err)
-	return users
+	err := t.Db.Table("user").Find(&users)
+	return users, err
 }
 
 // FindById implements UserRepository
 func (t *UserRepositoryImpl) FindById(id string) (model.User, error) {
 	var user model.User
-	has, err := t.Db.Table("user").Where("id = ?", id).Get(&user)
+	has, err := t.Db.Table("user").ID(id).Get(&user)
 	if has {
 		return user, nil
 	} else {

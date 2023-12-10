@@ -10,6 +10,7 @@ func LoadConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		Logger.Warn("未找到配置文件，将创建默认配置文件")
 		defaults := map[string]interface{}{
+			"Title":              "PgsHub",
 			"Server.Host":        "0.0.0.0",
 			"Server.Port":        8888,
 			"MySql.Host":         "localhost",
@@ -20,7 +21,7 @@ func LoadConfig() {
 			"Jwt.SecretKey":      "20101010",
 			"Jwt.ExpirationTime": 180,
 			"Container":          "docker",
-			"Docker.Host":        "0.0.0.0",
+			"Docker.Entry":       "0.0.0.0",
 			"Docker.Ports.From":  49152,
 			"Docker.Ports.To":    65535,
 			"Redis.Host":         "localhost",

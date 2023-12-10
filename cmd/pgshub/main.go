@@ -45,7 +45,7 @@ func main() {
 
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
 
-	r.Use(middleware.StaticServe("/", "./dist"))
+	r.Use(middleware.FrontendMiddleware("/", "./dist"))
 
 	s := &http.Server{
 		Addr:    viper.GetString("Server.Host") + ":" + viper.GetString("Server.Port"),

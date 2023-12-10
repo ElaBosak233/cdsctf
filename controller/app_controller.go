@@ -8,4 +8,5 @@ type AppController struct {
 	UserGroupController m2m.UserGroupController
 	ChallengeController ChallengeController
 	InstanceController  InstanceController
+	ConfigController    ConfigController
 }

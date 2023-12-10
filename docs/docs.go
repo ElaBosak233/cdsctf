@@ -15,7 +15,134 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/instance/create": {
+        "/api/challenges": {
+            "get": {
+                "description": "题目全部查询",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "题目"
+                ],
+                "summary": "题目全部查询",
+                "responses": {}
+            },
+            "put": {
+                "description": "更新题目",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "题目"
+                ],
+                "summary": "更新题目",
+                "parameters": [
+                    {
+                        "description": "ChallengeUpdateRequest",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ChallengeUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "创建题目",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "题目"
+                ],
+                "summary": "创建题目",
+                "parameters": [
+                    {
+                        "description": "ChallengeCreateRequest",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ChallengeCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "删除题目",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "题目"
+                ],
+                "summary": "删除题目",
+                "parameters": [
+                    {
+                        "description": "ChallengeDeleteRequest",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ChallengeDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/challenges/{id}": {
+            "get": {
+                "description": "题目查询",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "题目"
+                ],
+                "summary": "题目查询",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/instances": {
+            "get": {
+                "description": "实例全部查询",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实例"
+                ],
+                "summary": "实例全部查询",
+                "responses": {}
+            },
             "post": {
                 "description": "创建实例",
                 "consumes": [
@@ -40,10 +167,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
-            }
-        },
-        "/api/instance/remove": {
-            "get": {
+            },
+            "delete": {
                 "description": "停止并删除容器",
                 "produces": [
                     "application/json"
@@ -64,7 +189,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/instance/renew": {
+        "/api/instances/renew": {
             "get": {
                 "description": "容器续期",
                 "produces": [
@@ -86,22 +211,44 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/instance/status": {
+        "/api/instances/status": {
             "get": {
-                "description": "获取示例状态",
+                "description": "获取实例状态",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "实例"
                 ],
-                "summary": "获取示例状态",
+                "summary": "获取实例状态",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "InstanceId",
                         "name": "id",
                         "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/instances/{id}": {
+            "get": {
+                "description": "实例查询",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "实例"
+                ],
+                "summary": "实例查询",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -189,7 +336,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/user/verifyToken/{token}": {
+        "/api/user/token/{token}": {
             "get": {
                 "description": "Token 鉴定",
                 "produces": [
@@ -210,9 +357,248 @@ const docTemplate = `{
                 ],
                 "responses": {}
             }
+        },
+        "/api/users": {
+            "get": {
+                "description": "用户全部查询",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "用户全部查询",
+                "responses": {}
+            },
+            "put": {
+                "description": "用户更新（管理员）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "用户更新 *",
+                "parameters": [
+                    {
+                        "description": "UserUpdateRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UserUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "用户创建（管理员）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "用户创建 *",
+                "parameters": [
+                    {
+                        "description": "UserCreateRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UserCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "用户删除（管理员）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "用户删除 *",
+                "parameters": [
+                    {
+                        "description": "UserDeleteRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UserDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/users/id/{id}": {
+            "get": {
+                "description": "用户查询",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "用户查询（通过 Id）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/users/username/{username}": {
+            "get": {
+                "description": "用户查询",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "用户查询（通过 Username）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
         }
     },
     "definitions": {
+        "request.ChallengeCreateRequest": {
+            "type": "object",
+            "properties": {
+                "attachment_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "difficulty": {
+                    "type": "integer"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "exposed_port": {
+                    "type": "integer"
+                },
+                "flag": {
+                    "type": "string"
+                },
+                "flag_env": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "is_dynamic": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ]
+                },
+                "memory_limit": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.ChallengeDeleteRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.ChallengeUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "attachment_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "difficulty": {
+                    "type": "integer"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "exposed_port": {
+                    "type": "integer"
+                },
+                "flag": {
+                    "type": "string"
+                },
+                "flag_env": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "is_dynamic": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ]
+                },
+                "memory_limit": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "request.InstanceCreateRequest": {
             "type": "object",
             "required": [
@@ -220,6 +606,36 @@ const docTemplate = `{
             ],
             "properties": {
                 "challenge_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UserCreateRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UserDeleteRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
                     "type": "string"
                 }
             }
@@ -266,6 +682,31 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "request.UserUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 3
                 }
             }
         }

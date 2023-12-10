@@ -10,5 +10,5 @@ type UserRepository interface {
 	Delete(id string) error
 	FindById(id string) (user model.User, err error)
 	FindByUsername(username string) (user model.User, err error)
-	FindAll() []model.User
+	FindAll() ([]model.User, error)
 }
