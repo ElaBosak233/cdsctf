@@ -14,12 +14,14 @@ func NewRouters(
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, fmt.Sprintf("The Backend of PgsHub"))
 	})
-	userRouter := router.Group("/user")
+	userRouter := router.Group("/users")
 	NewUserRouter(userRouter, appController.UserController)
-	groupRouter := router.Group("/group")
+	groupRouter := router.Group("/groups")
 	NewGroupRouter(groupRouter, appController.GroupController, appController.UserGroupController)
-	challengeRouter := router.Group("/challenge")
+	challengeRouter := router.Group("/challenges")
 	NewChallengeRouter(challengeRouter, appController.ChallengeController)
-	instanceRouter := router.Group("/instance")
+	instanceRouter := router.Group("/instances")
 	NewInstanceRouter(instanceRouter, appController.InstanceController)
+	configRouter := router.Group("/configs")
+	NewConfigRouter(configRouter, appController.ConfigController)
 }

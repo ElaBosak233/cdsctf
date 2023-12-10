@@ -12,11 +12,11 @@ type Challenge struct {
 	// AttachmentId 附件 Id
 	AttachmentId string `xorm:"json 'attachment_ids'" json:"attachment_id"`
 	// IsDynamic 是否为动态题目
-	IsDynamic int `xorm:"int 'is_dynamic'" json:"is_dynamic" binding:"oneof=0 1"`
-	// InsidePort 内部端口号
-	InsidePort int `xorm:"int 'inside_port'" json:"inside_port"`
-	// ImageName 镜像名
-	ImageName string `xorm:"text 'image_name'" json:"image_name"`
+	IsDynamic int `xorm:"'is_dynamic' int" json:"is_dynamic" binding:"oneof=0 1"`
+	// ExposedPort 内部端口号
+	ExposedPort int `xorm:"'exposed_port' int" json:"exposed_port"`
+	// Image 镜像名
+	Image string `xorm:"text 'image'" json:"image"`
 	// Flag 期望的结果
 	Flag string `xorm:"text 'flag'" json:"flag"`
 	// FlagEnv 环境变量名
@@ -25,8 +25,6 @@ type Challenge struct {
 	MemoryLimit int64 `xorm:"int 'memory_limit'" json:"memory_limit"`
 	// Duration 时间限制
 	Duration int `xorm:"int 'duration'" json:"duration"`
-	// UploaderId 上传者 Id
-	UploaderId string `xorm:"varchar(36) 'uploader_id' notnull" json:"uploader_id"`
 	// Difficulty 难度
 	Difficulty int       `xorm:"int 'difficulty'" json:"difficulty"`
 	CreatedAt  time.Time `xorm:"created 'created_at'" json:"created_at"`

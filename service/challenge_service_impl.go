@@ -3,8 +3,10 @@ package service
 import (
 	"errors"
 	model "github.com/elabosak233/pgshub/model/data"
+	"github.com/elabosak233/pgshub/model/request"
 	"github.com/elabosak233/pgshub/repository"
 	"github.com/google/uuid"
+	"github.com/mitchellh/mapstructure"
 )
 
 type ChallengeServiceImpl struct {
@@ -18,39 +20,24 @@ func NewChallengeServiceImpl(appRepository *repository.AppRepository) ChallengeS
 }
 
 // Create implements UserService
-func (t *ChallengeServiceImpl) Create(req model.Challenge) error {
-	challengeModel := model.Challenge{
-		ChallengeId:  uuid.NewString(),
-		UploaderId:   req.UploaderId,
-		Title:        req.Title,
-		Description:  req.Description,
-		AttachmentId: req.AttachmentId,
-		Flag:         req.Flag,
-		Difficulty:   req.Difficulty,
-		ImageName:    req.ImageName,
-		IsDynamic:    req.IsDynamic,
-	}
+func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) error {
+	challengeModel := model.Challenge{}
+	_ = mapstructure.Decode(req, &challengeModel)
+	challengeModel.ChallengeId = uuid.NewString()
 	err := t.ChallengeRepository.Insert(challengeModel)
 	return err
 }
 
 // Update implements UserService
-func (t *ChallengeServiceImpl) Update(req model.Challenge) error {
+func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) error {
 	challengeData, err := t.ChallengeRepository.FindById(req.ChallengeId)
 	if err != nil || challengeData.ChallengeId == "" {
 		return errors.New("题目不存在")
 	}
-	challengeData2 := model.Challenge{
-		ChallengeId:  challengeData.ChallengeId,
-		Title:        req.Title,
-		Description:  req.Description,
-		AttachmentId: req.AttachmentId,
-		Flag:         req.Flag,
-		Difficulty:   req.Difficulty,
-		ImageName:    req.ImageName,
-		IsDynamic:    req.IsDynamic,
-	}
-	err = t.ChallengeRepository.Update(challengeData2)
+	challengeModel := model.Challenge{}
+	_ = mapstructure.Decode(req, &challengeModel)
+	challengeModel.ChallengeId = uuid.NewString()
+	err = t.ChallengeRepository.Update(challengeModel)
 	return err
 }
 

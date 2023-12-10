@@ -1,10 +1,95 @@
 definitions:
+  request.ChallengeCreateRequest:
+    properties:
+      attachment_id:
+        type: string
+      description:
+        type: string
+      difficulty:
+        type: integer
+      duration:
+        type: integer
+      exposed_port:
+        type: integer
+      flag:
+        type: string
+      flag_env:
+        type: string
+      image:
+        type: string
+      is_dynamic:
+        enum:
+        - 0
+        - 1
+        type: integer
+      memory_limit:
+        type: integer
+      title:
+        type: string
+    type: object
+  request.ChallengeDeleteRequest:
+    properties:
+      id:
+        type: string
+    required:
+    - id
+    type: object
+  request.ChallengeUpdateRequest:
+    properties:
+      attachment_id:
+        type: string
+      description:
+        type: string
+      difficulty:
+        type: integer
+      duration:
+        type: integer
+      exposed_port:
+        type: integer
+      flag:
+        type: string
+      flag_env:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      is_dynamic:
+        enum:
+        - 0
+        - 1
+        type: integer
+      memory_limit:
+        type: integer
+      title:
+        type: string
+    type: object
   request.InstanceCreateRequest:
     properties:
       challenge_id:
         type: string
     required:
     - challenge_id
+    type: object
+  request.UserCreateRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  request.UserDeleteRequest:
+    properties:
+      id:
+        type: string
+    required:
+    - id
     type: object
   request.UserLoginRequest:
     properties:
@@ -36,13 +121,132 @@ definitions:
     - password
     - username
     type: object
+  request.UserUpdateRequest:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      username:
+        maxLength: 20
+        minLength: 3
+        type: string
+    required:
+    - id
+    - password
+    - username
+    type: object
 info:
   contact: {}
   description: 没有其他东西啦，仅仅是所有的后端接口，不要乱用哦
   title: PgsHub Backend API
   version: "1.0"
 paths:
-  /api/instance/create:
+  /api/challenges:
+    delete:
+      consumes:
+      - application/json
+      description: 删除题目
+      parameters:
+      - description: ChallengeDeleteRequest
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ChallengeDeleteRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 删除题目
+      tags:
+      - 题目
+    get:
+      consumes:
+      - application/json
+      description: 题目全部查询
+      produces:
+      - application/json
+      responses: {}
+      summary: 题目全部查询
+      tags:
+      - 题目
+    post:
+      consumes:
+      - application/json
+      description: 创建题目
+      parameters:
+      - description: ChallengeCreateRequest
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ChallengeCreateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 创建题目
+      tags:
+      - 题目
+    put:
+      consumes:
+      - application/json
+      description: 更新题目
+      parameters:
+      - description: ChallengeUpdateRequest
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ChallengeUpdateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 更新题目
+      tags:
+      - 题目
+  /api/challenges/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 题目查询
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 题目查询
+      tags:
+      - 题目
+  /api/instances:
+    delete:
+      description: 停止并删除容器
+      parameters:
+      - description: InstanceId
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 停止并删除容器
+      tags:
+      - 实例
+    get:
+      description: 实例全部查询
+      produces:
+      - application/json
+      responses: {}
+      summary: 实例全部查询
+      tags:
+      - 实例
     post:
       consumes:
       - application/json
@@ -60,22 +264,22 @@ paths:
       summary: 创建实例
       tags:
       - 实例
-  /api/instance/remove:
+  /api/instances/{id}:
     get:
-      description: 停止并删除容器
+      description: 实例查询
       parameters:
-      - description: InstanceId
-        in: query
+      - description: id
+        in: path
         name: id
         required: true
         type: string
       produces:
       - application/json
       responses: {}
-      summary: 停止并删除容器
+      summary: 实例查询
       tags:
       - 实例
-  /api/instance/renew:
+  /api/instances/renew:
     get:
       description: 容器续期
       parameters:
@@ -90,9 +294,9 @@ paths:
       summary: 容器续期
       tags:
       - 实例
-  /api/instance/status:
+  /api/instances/status:
     get:
-      description: 获取示例状态
+      description: 获取实例状态
       parameters:
       - description: InstanceId
         in: query
@@ -102,7 +306,7 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 获取示例状态
+      summary: 获取实例状态
       tags:
       - 实例
   /api/user/login:
@@ -159,7 +363,7 @@ paths:
       summary: 用户注册
       tags:
       - 用户
-  /api/user/verifyToken/{token}:
+  /api/user/token/{token}:
     get:
       description: Token 鉴定
       parameters:
@@ -172,6 +376,102 @@ paths:
       - application/json
       responses: {}
       summary: Token 鉴定
+      tags:
+      - 用户
+  /api/users:
+    delete:
+      consumes:
+      - application/json
+      description: 用户删除（管理员）
+      parameters:
+      - description: UserDeleteRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserDeleteRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户删除 *
+      tags:
+      - 用户
+    get:
+      consumes:
+      - application/json
+      description: 用户全部查询
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户全部查询
+      tags:
+      - 用户
+    post:
+      consumes:
+      - application/json
+      description: 用户创建（管理员）
+      parameters:
+      - description: UserCreateRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserCreateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户创建 *
+      tags:
+      - 用户
+    put:
+      consumes:
+      - application/json
+      description: 用户更新（管理员）
+      parameters:
+      - description: UserUpdateRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserUpdateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户更新 *
+      tags:
+      - 用户
+  /api/users/id/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 用户查询
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户查询（通过 Id）
+      tags:
+      - 用户
+  /api/users/username/{username}:
+    get:
+      consumes:
+      - application/json
+      description: 用户查询
+      parameters:
+      - description: username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户查询（通过 Username）
       tags:
       - 用户
 swagger: "2.0"

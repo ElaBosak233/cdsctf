@@ -12,5 +12,6 @@ func InitControllers(appService *service.AppService) *controller.AppController {
 		UserGroupController: controller.NewUserControllerImpl(appService),
 		ChallengeController: controller.NewChallengeController(appService),
 		InstanceController:  controller.NewInstanceControllerImpl(appService),
+		ConfigController:    controller.NewConfigControllerImpl(appService),
 	}
 }

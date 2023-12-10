@@ -32,7 +32,6 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 	userLoginRequest := request.UserLoginRequest{}
 	err := ctx.ShouldBindJSON(&userLoginRequest)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &userLoginRequest),
@@ -42,7 +41,7 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 	user, _ := c.userService.FindByUsername(userLoginRequest.Username)
 	utils.Logger.WithFields(logrus.Fields{
 		"Username": user.Username,
-		"UserId":   user.Id,
+		"UserId":   user.UserId,
 		"ClientIP": ctx.ClientIP(),
 	}).Info("登录")
 	if !c.userService.VerifyPasswordByUsername(userLoginRequest.Username, userLoginRequest.Password) {
@@ -52,10 +51,9 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 		})
 		return
 	}
-	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
-		"token": c.userService.GetJwtTokenById(user.Id),
+		"token": c.userService.GetJwtTokenById(user.UserId),
 	})
 }
 
@@ -65,24 +63,21 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 // @Tags 用户
 // @Produce json
 // @Param token path string true "token"
-// @Router /api/user/verifyToken/{token} [get]
+// @Router /api/user/token/{token} [get]
 func (c *UserControllerImpl) VerifyToken(ctx *gin.Context) {
 	id, err := c.userService.GetIdByJwtToken(ctx.Param("token"))
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
 	}
 	if id == "" {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "Token 无效",
 		})
 	} else {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
 			"id":   id,
@@ -116,7 +111,6 @@ func (c *UserControllerImpl) Register(ctx *gin.Context) {
 	createUserRequest := request.UserRegisterRequest{}
 	err := ctx.ShouldBindJSON(&createUserRequest)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &createUserRequest),
@@ -129,24 +123,29 @@ func (c *UserControllerImpl) Register(ctx *gin.Context) {
 		Password: createUserRequest.Password,
 	})
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "用户名或邮箱重复",
 		})
 		return
 	}
-	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
 }
 
+// Create
+// @Summary 用户创建 *
+// @Description 用户创建（管理员）
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param input body request.UserCreateRequest true "UserCreateRequest"
+// @Router /api/users [post]
 func (c *UserControllerImpl) Create(ctx *gin.Context) {
-	createUserRequest := model.User{}
+	createUserRequest := request.UserCreateRequest{}
 	err := ctx.ShouldBindJSON(&createUserRequest)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &createUserRequest),
@@ -159,24 +158,29 @@ func (c *UserControllerImpl) Create(ctx *gin.Context) {
 		Password: createUserRequest.Password,
 	})
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "用户名或邮箱重复",
 		})
 		return
 	}
-	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
 }
 
+// Update
+// @Summary 用户更新 *
+// @Description 用户更新（管理员）
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param input body request.UserUpdateRequest true "UserUpdateRequest"
+// @Router /api/users [put]
 func (c *UserControllerImpl) Update(ctx *gin.Context) {
 	updateUserRequest := request.UserUpdateRequest{}
 	err := ctx.ShouldBindJSON(&updateUserRequest)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &updateUserRequest),
@@ -185,51 +189,98 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 	}
 	err = c.userService.Update(updateUserRequest)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
 		return
 	}
-	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
 }
 
+// Delete
+// @Summary 用户删除 *
+// @Description 用户删除（管理员）
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param input body request.UserDeleteRequest true "UserDeleteRequest"
+// @Router /api/users [delete]
 func (c *UserControllerImpl) Delete(ctx *gin.Context) {
-	id := ctx.Param("id")
-	c.userService.Delete(id)
-	ctx.Header("Content-Type", "application/json")
+	deleteUserRequest := request.UserDeleteRequest{}
+	err := ctx.ShouldBindJSON(&deleteUserRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &deleteUserRequest),
+		})
+		return
+	}
+	_ = c.userService.Delete(deleteUserRequest.UserId)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
 }
 
+// FindById
+// @Summary 用户查询（通过 Id）
+// @Description 用户查询
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param id path string true "id"
+// @Router /api/users/id/{id} [get]
 func (c *UserControllerImpl) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
 	userResponse, _ := c.userService.FindById(id)
-	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": userResponse,
-	})
+	if userResponse.UserId != "" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusOK,
+			"data": userResponse,
+		})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  "用户不存在",
+		})
+	}
 }
 
+// FindByUsername
+// @Summary 用户查询（通过 Username）
+// @Description 用户查询
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param username path string true "username"
+// @Router /api/users/username/{username} [get]
 func (c *UserControllerImpl) FindByUsername(ctx *gin.Context) {
 	username := ctx.Param("username")
 	userResponse, _ := c.userService.FindByUsername(username)
-	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": userResponse,
-	})
+	if userResponse.UserId != "" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusOK,
+			"data": userResponse,
+		})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  "用户不存在",
+		})
+	}
 }
 
+// FindAll
+// @Summary 用户全部查询
+// @Description 用户全部查询
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Router /api/users [get]
 func (c *UserControllerImpl) FindAll(ctx *gin.Context) {
 	userResponse, _ := c.userService.FindAll()
-	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"data": userResponse,

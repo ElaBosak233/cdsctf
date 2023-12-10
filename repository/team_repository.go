@@ -5,10 +5,9 @@ import (
 )
 
 type TeamRepository interface {
-	Insert(user model.Team)
-	Update(user model.Team)
-	Delete(id string)
+	Insert(team model.Team) error
+	Update(team model.Team) error
+	Delete(id string) error
 	FindById(id string) (team model.Team, err error)
-	SelectByUserId(userId string) []model.Team
-	FindAll() []model.Team
+	FindAll() (teams []model.Team, err error)
 }

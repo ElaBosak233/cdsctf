@@ -25,12 +25,11 @@ func NewInstanceControllerImpl(appService *service.AppService) InstanceControlle
 // @Accept json
 // @Produce json
 // @Param input body request.InstanceCreateRequest true "InstanceCreateRequest"
-// @Router /api/instance/create [post]
+// @Router /api/instances [post]
 func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 	instanceCreateRequest := request.InstanceCreateRequest{}
 	err := ctx.ShouldBindJSON(&instanceCreateRequest)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &instanceCreateRequest),
@@ -38,7 +37,6 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 		return
 	}
 	id, entry := c.instanceService.Create(instanceCreateRequest.ChallengeId)
-	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"id":    id,
@@ -52,22 +50,21 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 // @Tags 实例
 // @Produce json
 // @Param id query string true "InstanceId"
-// @Router /api/instance/status [get]
+// @Router /api/instances/status [get]
 func (c *InstanceControllerImpl) Status(ctx *gin.Context) {
 	id := ctx.Query("id")
-	status, entry, err := c.instanceService.Status(id)
+	rep, err := c.instanceService.Status(id)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
 	} else {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
-			"code":   http.StatusOK,
-			"status": status,
-			"entry":  entry,
+			"code":      http.StatusOK,
+			"status":    rep.Status,
+			"entry":     rep.Entry,
+			"remove_at": rep.RemoveAt.Unix(),
 		})
 	}
 }
@@ -78,18 +75,16 @@ func (c *InstanceControllerImpl) Status(ctx *gin.Context) {
 // @Tags 实例
 // @Produce json
 // @Param id query string true "InstanceId"
-// @Router /api/instance/remove [get]
+// @Router /api/instances [delete]
 func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 	id := ctx.Query("id")
 	err := c.instanceService.Remove(id)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
 	} else {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
 		})
@@ -102,20 +97,66 @@ func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 // @Tags 实例
 // @Produce json
 // @Param id query string true "InstanceId"
-// @Router /api/instance/renew [get]
+// @Router /api/instances/renew [get]
 func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 	id := ctx.Query("id")
 	err := c.instanceService.Renew(id)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
 	} else {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
 		})
 	}
+}
+
+// FindById
+// @Summary 实例查询
+// @Description 实例查询
+// @Tags 实例
+// @Produce json
+// @Param id path string true "id"
+// @Router /api/instances/{id} [get]
+func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
+	id := ctx.Param("id")
+	rep, err := c.instanceService.FindById(id)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": rep,
+	})
+}
+
+// FindAll
+// @Summary 实例全部查询
+// @Description 实例全部查询
+// @Tags 实例
+// @Produce json
+// @Router /api/instances [get]
+func (c *InstanceControllerImpl) FindAll(ctx *gin.Context) {
+	rep, _ := c.instanceService.FindAll()
+	res := make([]map[string]any, len(rep))
+	for i, v := range rep {
+		item := map[string]any{
+			"id":           v.InstanceId,
+			"challenge_id": v.ChallengeId,
+			"status":       v.Status,
+			"entry":        v.Entry,
+			"remove_at":    v.RemoveAt.Unix(),
+		}
+		res[i] = item
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": res,
+	})
 }
