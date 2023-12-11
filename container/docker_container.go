@@ -41,7 +41,7 @@ func NewDockerContainer(cli *client.Client, imageName string, exposedPort int, f
 }
 
 func getAvailablePort() int {
-	for port := viper.GetInt("Docker.Ports.From"); port <= viper.GetInt("Docker.Ports.To"); port++ {
+	for port := viper.GetInt("Container.Docker.Ports.From"); port <= viper.GetInt("Container.Docker.Ports.To"); port++ {
 		addr := fmt.Sprintf(":%d", port)
 		l, err := net.Listen("tcp", addr)
 		if err == nil {
@@ -70,7 +70,7 @@ func (c *DockerContainer) Setup() (port int, error error) {
 		PortBindings: nat.PortMap{
 			nat.Port(strconv.Itoa(c.ExposedPort) + "/tcp"): []nat.PortBinding{
 				{
-					HostIP:   viper.GetString("Docker.Host"),
+					HostIP:   viper.GetString("Container.Docker.Entry"),
 					HostPort: strconv.Itoa(port),
 				},
 			},
