@@ -50,7 +50,7 @@ func (t *InstanceServiceImpl) Create(challengeId string) (instanceId string, ent
 
 func (t *InstanceServiceImpl) Status(id string) (rep response.InstanceStatusResponse, error error) {
 	rep = response.InstanceStatusResponse{}
-	if viper.GetString("Container") == "docker" {
+	if viper.GetString("Container.Provider") == "docker" {
 		if InstanceMap[id] == nil {
 			return rep, errors.New("实例不存在")
 		}
@@ -70,7 +70,7 @@ func (t *InstanceServiceImpl) Status(id string) (rep response.InstanceStatusResp
 }
 
 func (t *InstanceServiceImpl) Renew(id string) error {
-	if viper.GetString("Container") == "docker" {
+	if viper.GetString("Container.Provider") == "docker" {
 		ctn := InstanceMap[id]["ctn"].(*container.DockerContainer)
 		err := ctn.Renew(ctn.Duration)
 		InstanceMap[id]["removeAt"] = time.Now().Add(ctn.Duration)
@@ -80,7 +80,7 @@ func (t *InstanceServiceImpl) Renew(id string) error {
 }
 
 func (t *InstanceServiceImpl) Remove(id string) error {
-	if viper.GetString("Container") == "docker" {
+	if viper.GetString("Container.Provider") == "docker" {
 		ctn := InstanceMap[id]["ctn"].(*container.DockerContainer)
 		err := ctn.Remove()
 		return err
@@ -89,7 +89,7 @@ func (t *InstanceServiceImpl) Remove(id string) error {
 }
 
 func (t *InstanceServiceImpl) FindById(id string) (rep response.InstanceResponse, err error) {
-	if viper.GetString("Container") == "docker" {
+	if viper.GetString("Container.Provider") == "docker" {
 		if InstanceMap[id] == nil {
 			return rep, errors.New("实例不存在")
 		}
@@ -107,7 +107,7 @@ func (t *InstanceServiceImpl) FindById(id string) (rep response.InstanceResponse
 }
 
 func (t *InstanceServiceImpl) FindAll() (rep []response.InstanceResponse, err error) {
-	if viper.GetString("Container") == "docker" {
+	if viper.GetString("Container.Provider") == "docker" {
 		for k, v := range InstanceMap {
 			status, _ := v["ctn"].(*container.DockerContainer).GetContainerStatus()
 			rep = append(rep, response.InstanceResponse{
