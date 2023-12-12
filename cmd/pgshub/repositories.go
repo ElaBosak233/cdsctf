@@ -12,5 +12,7 @@ func InitRepositories(db *xorm.Engine) *repository.AppRepository {
 		UserRepository:      repository.NewUserRepositoryImpl(db),
 		ChallengeRepository: repository.NewChallengeRepositoryImpl(db),
 		UserGroupRepository: repositorym2m.NewUserGroupRepositoryImpl(db),
+		TeamRepository:      repository.NewTeamRepositoryImpl(db),
+		UserTeamRepository:  repositorym2m.NewUserTeamRepositoryImpl(db),
 	}
 }

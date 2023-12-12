@@ -7,4 +7,6 @@ type AppRepository struct {
 	GroupRepository     GroupRepository
 	ChallengeRepository ChallengeRepository
 	UserGroupRepository m2m.UserGroupRepository
+	TeamRepository      TeamRepository
+	UserTeamRepository  m2m.UserTeamRepository
 }

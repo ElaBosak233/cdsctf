@@ -16,7 +16,7 @@ type UserGroupControllerImpl struct {
 
 func NewUserGroupController(appService service.AppService) UserGroupController {
 	return &UserGroupControllerImpl{
-		userGroupService: appService.UserGroupService,
+		//userGroupService: appService.UserGroupService,
 	}
 }
 

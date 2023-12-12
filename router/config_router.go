@@ -6,5 +6,5 @@ import (
 )
 
 func NewConfigRouter(configRouter *gin.RouterGroup, configController controller.ConfigController) {
-	configRouter.GET("/", configController.Get)
+	configRouter.GET("/", configController.FindAll)
 }

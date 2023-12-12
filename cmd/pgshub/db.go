@@ -14,11 +14,11 @@ import (
 )
 
 func DatabaseConnection() *xorm.Engine {
-	host := viper.GetString("MySql.Host")
-	port := viper.GetInt("MySql.Port")
-	user := viper.GetString("MySql.Username")
-	password := viper.GetString("MySql.Password")
-	dbName := viper.GetString("MySql.DbName")
+	host := viper.GetString("Db.MySql.Host")
+	port := viper.GetInt("Db.MySql.Port")
+	user := viper.GetString("Db.MySql.Username")
+	password := viper.GetString("Db.MySql.Password")
+	dbName := viper.GetString("Db.MySql.DbName")
 
 	dbInfo := fmt.Sprintf(
 		"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4",
@@ -43,19 +43,21 @@ func DatabaseConnection() *xorm.Engine {
 }
 
 func SyncDatabase(db *xorm.Engine) error {
-	err := db.Sync2(
+	var dbs = []interface{}{
 		&model.User{},
-	)
-	err = db.Sync2(
 		&model.Group{},
-	)
-	err = db.Sync2(
 		&modelm2m.UserGroup{},
-	)
-	err = db.Sync2(
 		&model.Challenge{},
-	)
-	return err
+		&model.Team{},
+		&modelm2m.UserTeam{},
+	}
+	for _, v := range dbs {
+		err := db.Sync2(v)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func InitAdmin(db *xorm.Engine) {

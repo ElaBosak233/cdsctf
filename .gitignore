@@ -25,7 +25,7 @@ sqlite.db
 config.yml
 logs
 plugins
-files
+assets
 test.go
 dist
 
