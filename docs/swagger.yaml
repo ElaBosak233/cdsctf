@@ -71,6 +71,56 @@ definitions:
     required:
     - challenge_id
     type: object
+  request.TeamCreateRequest:
+    properties:
+      captain_id:
+        type: string
+      name:
+        type: string
+    required:
+    - captain_id
+    - name
+    type: object
+  request.TeamDeleteRequest:
+    properties:
+      id:
+        type: string
+    required:
+    - id
+    type: object
+  request.TeamJoinRequest:
+    properties:
+      team_id:
+        type: string
+      user_id:
+        type: string
+    required:
+    - team_id
+    - user_id
+    type: object
+  request.TeamQuitRequest:
+    properties:
+      team_id:
+        type: string
+      user_id:
+        type: string
+    required:
+    - team_id
+    - user_id
+    type: object
+  request.TeamUpdateRequest:
+    properties:
+      captain_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    required:
+    - captain_id
+    - id
+    - name
+    type: object
   request.UserCreateRequest:
     properties:
       email:
@@ -145,6 +195,131 @@ info:
   title: PgsHub Backend API
   version: "1.0"
 paths:
+  /api/assets/games/cover/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 通过比赛 Id 获取比赛封面
+      parameters:
+      - description: 比赛 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 通过比赛 Id 获取比赛封面
+      tags:
+      - 资源
+    post:
+      consumes:
+      - multipart/form-data
+      description: 通过比赛 Id 设置比赛封面
+      parameters:
+      - description: 比赛 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 封面文件
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      responses: {}
+      summary: 通过比赛 Id 设置比赛封面
+      tags:
+      - 资源
+  /api/assets/games/writeups/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 通过团队 Id 获取比赛 Writeup
+      parameters:
+      - description: 团队 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 通过团队 Id 获取比赛 Writeup
+      tags:
+      - 资源
+  /api/assets/teams/avatar/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 通过团队 Id 获取团队头像
+      parameters:
+      - description: 团队 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 通过团队 Id 获取团队头像
+      tags:
+      - 资源
+    post:
+      consumes:
+      - multipart/form-data
+      description: 通过团队 Id 设置团队头像
+      parameters:
+      - description: 团队 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 头像文件
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      responses: {}
+      summary: 通过团队 Id 设置团队头像
+      tags:
+      - 资源
+  /api/assets/users/avatar/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 通过用户 Id 获取用户头像
+      parameters:
+      - description: 用户 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 通过用户 Id 获取用户头像
+      tags:
+      - 资源
+    post:
+      consumes:
+      - multipart/form-data
+      description: 通过用户 Id 设置用户头像
+      parameters:
+      - description: 用户 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 头像文件
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      responses: {}
+      summary: 通过用户 Id 设置用户头像
+      tags:
+      - 资源
   /api/challenges:
     delete:
       consumes:
@@ -224,6 +399,27 @@ paths:
       summary: 题目查询
       tags:
       - 题目
+  /api/configs:
+    get:
+      consumes:
+      - application/json
+      description: 配置全部查询
+      produces:
+      - application/json
+      responses: {}
+      summary: 配置全部查询
+      tags:
+      - 配置
+    put:
+      consumes:
+      - application/json
+      description: 更新配置
+      produces:
+      - application/json
+      responses: {}
+      summary: 更新配置
+      tags:
+      - 配置
   /api/instances:
     delete:
       description: 停止并删除容器
@@ -309,6 +505,121 @@ paths:
       summary: 获取实例状态
       tags:
       - 实例
+  /api/teams:
+    delete:
+      consumes:
+      - application/json
+      description: 删除团队
+      parameters:
+      - description: TeamDeleteRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.TeamDeleteRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 删除团队
+      tags:
+      - 团队
+    post:
+      consumes:
+      - application/json
+      description: 创建团队
+      parameters:
+      - description: TeamCreateRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.TeamCreateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 创建团队
+      tags:
+      - 团队
+    put:
+      consumes:
+      - application/json
+      description: 更新团队
+      parameters:
+      - description: TeamUpdateRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.TeamUpdateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 更新团队
+      tags:
+      - 团队
+  /api/teams/:
+    get:
+      consumes:
+      - application/json
+      description: 查找所有团队
+      produces:
+      - application/json
+      responses: {}
+      summary: 查找所有团队
+      tags:
+      - 团队
+  /api/teams/id/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 查找团队
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 查找团队
+      tags:
+      - 团队
+  /api/teams/members:
+    delete:
+      consumes:
+      - application/json
+      description: 退出团队
+      parameters:
+      - description: TeamQuitRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.TeamQuitRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 退出团队
+      tags:
+      - 团队
+    post:
+      consumes:
+      - application/json
+      description: 加入团队
+      parameters:
+      - description: TeamJoinRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.TeamJoinRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 加入团队
+      tags:
+      - 团队
   /api/user/login:
     post:
       consumes:

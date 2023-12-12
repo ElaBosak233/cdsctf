@@ -15,6 +15,187 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/assets/games/cover/{id}": {
+            "get": {
+                "description": "通过比赛 Id 获取比赛封面",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过比赛 Id 获取比赛封面",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "比赛 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "通过比赛 Id 设置比赛封面",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过比赛 Id 设置比赛封面",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "比赛 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "封面文件",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/assets/games/writeups/{id}": {
+            "get": {
+                "description": "通过团队 Id 获取比赛 Writeup",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过团队 Id 获取比赛 Writeup",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "团队 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/assets/teams/avatar/{id}": {
+            "get": {
+                "description": "通过团队 Id 获取团队头像",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过团队 Id 获取团队头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "团队 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "通过团队 Id 设置团队头像",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过团队 Id 设置团队头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "团队 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "头像文件",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/assets/users/avatar/{id}": {
+            "get": {
+                "description": "通过用户 Id 获取用户头像",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过用户 Id 获取用户头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "通过用户 Id 设置用户头像",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过用户 Id 设置用户头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "头像文件",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/challenges": {
             "get": {
                 "description": "题目全部查询",
@@ -128,6 +309,36 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
+                "responses": {}
+            }
+        },
+        "/api/configs": {
+            "get": {
+                "description": "配置全部查询",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "配置"
+                ],
+                "summary": "配置全部查询",
+                "responses": {}
+            },
+            "put": {
+                "description": "更新配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "配置"
+                ],
+                "summary": "更新配置",
                 "responses": {}
             }
         },
@@ -250,6 +461,176 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/teams": {
+            "put": {
+                "description": "更新团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "团队"
+                ],
+                "summary": "更新团队",
+                "parameters": [
+                    {
+                        "description": "TeamUpdateRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TeamUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "创建团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "团队"
+                ],
+                "summary": "创建团队",
+                "parameters": [
+                    {
+                        "description": "TeamCreateRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TeamCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "删除团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "团队"
+                ],
+                "summary": "删除团队",
+                "parameters": [
+                    {
+                        "description": "TeamDeleteRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TeamDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/teams/": {
+            "get": {
+                "description": "查找所有团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "团队"
+                ],
+                "summary": "查找所有团队",
+                "responses": {}
+            }
+        },
+        "/api/teams/id/{id}": {
+            "get": {
+                "description": "查找团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "团队"
+                ],
+                "summary": "查找团队",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/teams/members": {
+            "post": {
+                "description": "加入团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "团队"
+                ],
+                "summary": "加入团队",
+                "parameters": [
+                    {
+                        "description": "TeamJoinRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TeamJoinRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "退出团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "团队"
+                ],
+                "summary": "退出团队",
+                "parameters": [
+                    {
+                        "description": "TeamQuitRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TeamQuitRequest"
+                        }
                     }
                 ],
                 "responses": {}
@@ -606,6 +987,81 @@ const docTemplate = `{
             ],
             "properties": {
                 "challenge_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.TeamCreateRequest": {
+            "type": "object",
+            "required": [
+                "captain_id",
+                "name"
+            ],
+            "properties": {
+                "captain_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.TeamDeleteRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.TeamJoinRequest": {
+            "type": "object",
+            "required": [
+                "team_id",
+                "user_id"
+            ],
+            "properties": {
+                "team_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.TeamQuitRequest": {
+            "type": "object",
+            "required": [
+                "team_id",
+                "user_id"
+            ],
+            "properties": {
+                "team_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.TeamUpdateRequest": {
+            "type": "object",
+            "required": [
+                "captain_id",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "captain_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

@@ -8,6 +8,7 @@ import (
 	"github.com/elabosak233/pgshub/model/request"
 	"github.com/elabosak233/pgshub/model/response"
 	"github.com/elabosak233/pgshub/repository"
+	repositorym2m "github.com/elabosak233/pgshub/repository/m2m"
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
@@ -17,12 +18,14 @@ import (
 )
 
 type UserServiceImpl struct {
-	UserRepository repository.UserRepository
+	UserRepository     repository.UserRepository
+	UserTeamRepository repositorym2m.UserTeamRepository
 }
 
 func NewUserServiceImpl(appRepository *repository.AppRepository) UserService {
 	return &UserServiceImpl{
-		UserRepository: appRepository.UserRepository,
+		UserRepository:     appRepository.UserRepository,
+		UserTeamRepository: appRepository.UserTeamRepository,
 	}
 }
 
@@ -85,6 +88,7 @@ func (t *UserServiceImpl) Update(req request.UserUpdateRequest) error {
 // Delete implements UserService
 func (t *UserServiceImpl) Delete(id string) error {
 	err := t.UserRepository.Delete(id)
+	err = t.UserTeamRepository.DeleteByUserId(id)
 	return err
 }
 
@@ -97,6 +101,10 @@ func (t *UserServiceImpl) FindAll() ([]response.UserResponse, error) {
 		_ = mapstructure.Decode(value, &userResp)
 		userResp.CreatedAt = value.CreatedAt
 		userResp.UpdatedAt = value.UpdatedAt
+		userTeams, _ := t.UserTeamRepository.FindByUserId(value.UserId)
+		for _, v1 := range userTeams {
+			userResp.TeamIds = append(userResp.TeamIds, v1.TeamId)
+		}
 		users = append(users, userResp)
 	}
 	return users, nil
@@ -112,6 +120,10 @@ func (t *UserServiceImpl) FindById(id string) (response.UserResponse, error) {
 	_ = mapstructure.Decode(userData, &userResp)
 	userResp.CreatedAt = userData.CreatedAt
 	userResp.UpdatedAt = userData.UpdatedAt
+	userTeams, _ := t.UserTeamRepository.FindByUserId(id)
+	for _, value := range userTeams {
+		userResp.TeamIds = append(userResp.TeamIds, value.TeamId)
+	}
 	return userResp, nil
 }
 
@@ -124,6 +136,10 @@ func (t *UserServiceImpl) FindByUsername(username string) (response.UserResponse
 	_ = mapstructure.Decode(userData, &userResp)
 	userResp.CreatedAt = userData.CreatedAt
 	userResp.UpdatedAt = userData.UpdatedAt
+	userTeams, _ := t.UserTeamRepository.FindByUserId(userResp.UserId)
+	for _, value := range userTeams {
+		userResp.TeamIds = append(userResp.TeamIds, value.TeamId)
+	}
 	return userResp, nil
 }
 
