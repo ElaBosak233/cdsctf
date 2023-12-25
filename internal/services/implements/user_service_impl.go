@@ -1,4 +1,4 @@
-package services
+package implements
 
 import (
 	"errors"
@@ -8,7 +8,8 @@ import (
 	"github.com/elabosak233/pgshub/internal/models/request"
 	"github.com/elabosak233/pgshub/internal/models/response"
 	"github.com/elabosak233/pgshub/internal/repositorys"
-	repositorym2m "github.com/elabosak233/pgshub/internal/repositorys/m2m"
+	"github.com/elabosak233/pgshub/internal/repositorys/relations"
+	"github.com/elabosak233/pgshub/internal/services"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
@@ -18,10 +19,10 @@ import (
 
 type UserServiceImpl struct {
 	UserRepository     repositorys.UserRepository
-	UserTeamRepository repositorym2m.UserTeamRepository
+	UserTeamRepository relations.UserTeamRepository
 }
 
-func NewUserServiceImpl(appRepository *repositorys.AppRepository) UserService {
+func NewUserServiceImpl(appRepository *repositorys.AppRepository) services.UserService {
 	return &UserServiceImpl{
 		UserRepository:     appRepository.UserRepository,
 		UserTeamRepository: appRepository.UserTeamRepository,
@@ -29,13 +30,12 @@ func NewUserServiceImpl(appRepository *repositorys.AppRepository) UserService {
 }
 
 func (t *UserServiceImpl) GetJwtTokenById(user response.UserResponse) (tokenString string, err error) {
-	expirationTime := time.Now().Add(time.Duration(viper.GetInt("Jwt.ExpirationTime")) * time.Minute)
-	jwtSecretKey := []byte(viper.GetString("Jwt.SecretKey"))
+	expiration := time.Now().Add(time.Duration(viper.GetInt("jwt.expiration")) * time.Minute)
+	jwtSecretKey := []byte(viper.GetString("jwt.secret_key"))
 	claims := &misc.Claims{
 		UserId: user.UserId,
-		Role:   user.Role,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
+			ExpiresAt: expiration.Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -43,15 +43,15 @@ func (t *UserServiceImpl) GetJwtTokenById(user response.UserResponse) (tokenStri
 	return tokenString, err
 }
 
-func (t *UserServiceImpl) GetIdByJwtToken(token string) (string, error) {
+func (t *UserServiceImpl) GetIdByJwtToken(token string) (id string, err error) {
 	pgsToken, err := jwt.ParseWithClaims(token, &misc.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(viper.GetString("Jwt.SecretKey")), nil
+		return []byte(viper.GetString("jwt.secret_key")), nil
 	})
 	if err != nil {
 		return "", err
 	}
 	if claims, ok := pgsToken.Claims.(*misc.Claims); ok && pgsToken.Valid {
-		return claims.Id, nil
+		return claims.UserId, nil
 	} else {
 		return "", errors.New("无效 Token")
 	}
@@ -64,6 +64,7 @@ func (t *UserServiceImpl) Create(req model.User) error {
 		UserId:   uuid.NewString(),
 		Username: req.Username,
 		Email:    req.Email,
+		Role:     3,
 		Password: string(hashedPassword),
 	}
 	err := t.UserRepository.Insert(userModel)

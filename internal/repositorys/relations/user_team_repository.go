@@ -1,6 +1,6 @@
-package m2m
+package relations
 
-import model "github.com/elabosak233/pgshub/internal/models/data/m2m"
+import model "github.com/elabosak233/pgshub/internal/models/data/relations"
 
 type UserTeamRepository interface {
 	Insert(userTeam model.UserTeam) error

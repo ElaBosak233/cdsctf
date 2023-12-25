@@ -2,7 +2,7 @@ package data
 
 // Article 文章对象
 type Article struct {
-	ArticleId   string `xorm:"'id' varchar(36) pk unique notnull" json:"id"`
+	ArticleId   int64  `xorm:"'id' pk autoincr" json:"id"`
 	Title       string `xorm:"'title' varchar(50) notnull" json:"title"`
 	Summary     string `xorm:"text 'summary' notnull" json:"summary"`
 	Content     string `xorm:"text 'content' notnull" json:"content"`

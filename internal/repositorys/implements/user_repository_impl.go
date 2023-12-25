@@ -1,7 +1,8 @@
-package repositorys
+package implements
 
 import (
 	model "github.com/elabosak233/pgshub/internal/models/data"
+	"github.com/elabosak233/pgshub/internal/repositorys"
 	"xorm.io/xorm"
 )
 
@@ -9,7 +10,7 @@ type UserRepositoryImpl struct {
 	Db *xorm.Engine
 }
 
-func NewUserRepositoryImpl(Db *xorm.Engine) UserRepository {
+func NewUserRepositoryImpl(Db *xorm.Engine) repositorys.UserRepository {
 	return &UserRepositoryImpl{Db: Db}
 }
 

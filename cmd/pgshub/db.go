@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	model "github.com/elabosak233/pgshub/internal/models/data"
-	modelm2m "github.com/elabosak233/pgshub/internal/models/data/m2m"
+	"github.com/elabosak233/pgshub/internal/models/data/relations"
 	"github.com/elabosak233/pgshub/internal/utils"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
@@ -13,12 +13,12 @@ import (
 	"xorm.io/xorm"
 )
 
-func DatabaseConnection() *xorm.Engine {
-	host := viper.GetString("Db.MySql.Host")
-	port := viper.GetInt("Db.MySql.Port")
-	user := viper.GetString("Db.MySql.Username")
-	password := viper.GetString("Db.MySql.Password")
-	dbName := viper.GetString("Db.MySql.DbName")
+func GetDatabaseConnection() *xorm.Engine {
+	host := viper.GetString("db.mysql.host")
+	port := viper.GetInt("db.mysql.port")
+	user := viper.GetString("db.mysql.username")
+	password := viper.GetString("db.mysql.password")
+	dbName := viper.GetString("db.mysql.dbname")
 
 	dbInfo := fmt.Sprintf(
 		"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4",
@@ -47,7 +47,7 @@ func SyncDatabase(db *xorm.Engine) error {
 		&model.User{},
 		&model.Challenge{},
 		&model.Team{},
-		&modelm2m.UserTeam{},
+		&relations.UserTeam{},
 	}
 	for _, v := range dbs {
 		err := db.Sync2(v)

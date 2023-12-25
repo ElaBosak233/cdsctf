@@ -1,7 +1,8 @@
-package m2m
+package implements
 
 import (
-	model "github.com/elabosak233/pgshub/internal/models/data/m2m"
+	model "github.com/elabosak233/pgshub/internal/models/data/relations"
+	"github.com/elabosak233/pgshub/internal/repositorys/relations"
 	"xorm.io/xorm"
 )
 
@@ -9,7 +10,7 @@ type UserTeamRepositoryImpl struct {
 	Db *xorm.Engine
 }
 
-func NewUserTeamRepositoryImpl(Db *xorm.Engine) UserTeamRepository {
+func NewUserTeamRepositoryImpl(Db *xorm.Engine) relations.UserTeamRepository {
 	return &UserTeamRepositoryImpl{Db: Db}
 }
 

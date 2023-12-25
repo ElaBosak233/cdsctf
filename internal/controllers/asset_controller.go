@@ -7,6 +7,7 @@ type AssetController interface {
 	FindUserAvatarByUserId(ctx *gin.Context)
 	CheckUserAvatarExistsByUserId(ctx *gin.Context)
 	SetUserAvatarByUserId(ctx *gin.Context)
+	DeleteUserAvatarByUserId(ctx *gin.Context)
 	GetTeamAvatarList(ctx *gin.Context)
 	FindTeamAvatarByTeamId(ctx *gin.Context)
 	CheckTeamAvatarExistsByTeamId(ctx *gin.Context)

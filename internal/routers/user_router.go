@@ -2,12 +2,13 @@ package routers
 
 import (
 	"github.com/elabosak233/pgshub/internal/controllers"
+	"github.com/elabosak233/pgshub/internal/middlewares"
 	"github.com/gin-gonic/gin"
 )
 
-func NewUserRouter(userRouter *gin.RouterGroup, userController controllers.UserController) {
+func NewUserRouter(userRouter *gin.RouterGroup, userController controllers.UserController, authMiddleware middlewares.AuthMiddleware) {
 	userRouter.GET("/", userController.FindAll)
-	userRouter.POST("/", userController.Create)
+	userRouter.POST("/", authMiddleware.Auth(), userController.Create)
 	userRouter.POST("/register", userController.Register)
 	userRouter.PUT("/", userController.Update)
 	userRouter.DELETE("/", userController.Delete)

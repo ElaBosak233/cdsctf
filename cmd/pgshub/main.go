@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "github.com/elabosak233/pgshub/docs"
-	"github.com/elabosak233/pgshub/internal/middlewares"
 	"github.com/elabosak233/pgshub/internal/routers"
 	"github.com/elabosak233/pgshub/internal/utils"
 	"github.com/gin-contrib/cors"
@@ -22,7 +21,7 @@ func main() {
 	Welcome()
 	utils.InitLogger()
 	utils.LoadConfig()
-	db := DatabaseConnection()
+	db := GetDatabaseConnection()
 
 	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
 	if debug {
@@ -33,24 +32,25 @@ func main() {
 	r := gin.Default()
 
 	cor := cors.DefaultConfig()
-	cor.AllowOrigins = []string{"*"}
-	cor.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
+	cor.AllowOrigins = viper.GetStringSlice("server.cors.allow_origins")
+	cor.AllowMethods = viper.GetStringSlice("server.cors.allow_methods")
 	r.Use(cors.New(cor))
 
 	appRepository := InitRepositories(db)
 	appService := InitServices(appRepository)
+	appMiddleware := InitMiddlewares(appService)
 	appController := InitControllers(appService)
 	api := r.Group("/api")
-	routers.NewRouters(api, appController)
+	routers.NewRouters(api, appController, appMiddleware)
 
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
 
-	r.Use(middlewares.FrontendMiddleware("/", "./dist"))
+	r.Use(appMiddleware.FrontendMiddleware.Frontend("/", "./dist"))
 
 	s := &http.Server{
-		Addr:    viper.GetString("Server.Host") + ":" + viper.GetString("Server.Port"),
+		Addr:    viper.GetString("server.host") + ":" + viper.GetString("server.port"),
 		Handler: r,
 	}
-	utils.Logger.Infof("PgsHub Core 服务已启动，访问地址 %s:%d", viper.GetString("Server.Host"), viper.GetInt("Server.Port"))
+	utils.Logger.Infof("PgsHub 已启动，访问地址 %s:%d", viper.GetString("server.host"), viper.GetInt("server.port"))
 	_ = s.ListenAndServe()
 }

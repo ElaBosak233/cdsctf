@@ -1,8 +1,9 @@
-package repositorys
+package implements
 
 import (
 	model "github.com/elabosak233/pgshub/internal/models/data"
 	"github.com/elabosak233/pgshub/internal/models/request"
+	"github.com/elabosak233/pgshub/internal/repositorys"
 	"xorm.io/xorm"
 )
 
@@ -10,7 +11,7 @@ type ChallengeRepositoryImpl struct {
 	Db *xorm.Engine
 }
 
-func NewChallengeRepositoryImpl(Db *xorm.Engine) ChallengeRepository {
+func NewChallengeRepositoryImpl(Db *xorm.Engine) repositorys.ChallengeRepository {
 	return &ChallengeRepositoryImpl{Db: Db}
 }
 
@@ -42,18 +43,13 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 			q = q.Where("title LIKE ?", "%"+req.Title+"%")
 		}
 		if req.IsPracticable != -1 {
-			if req.IsPracticable == 0 {
-				q = q.Where("is_practicable = 0")
-			} else if req.IsPracticable == 1 {
-				q = q.Where("is_practicable = 1")
-			}
+			q = q.Where("is_practicable = ?", req.IsPracticable == 1)
 		}
 		if req.IsDynamic != -1 {
-			if req.IsDynamic == 0 {
-				q = q.Where("is_dynamic = 0")
-			} else if req.IsDynamic == 1 {
-				q = q.Where("is_dynamic = 1")
-			}
+			q = q.Where("is_dynamic = ?", req.IsDynamic == 1)
+		}
+		if req.IsEnabled != -1 {
+			q = q.Where("is_enabled = ?", req.IsEnabled == 1)
 		}
 		if req.Difficulty != -1 {
 			q = q.Where("difficulty = ?", req.Difficulty)

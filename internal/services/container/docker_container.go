@@ -70,7 +70,7 @@ func (c *DockerContainer) Setup() (port int, error error) {
 		PortBindings: nat.PortMap{
 			nat.Port(strconv.Itoa(c.ExposedPort) + "/tcp"): []nat.PortBinding{
 				{
-					HostIP:   viper.GetString("Container.Docker.Entry"),
+					HostIP:   viper.GetString("container.docker.public_entry"),
 					HostPort: strconv.Itoa(port),
 				},
 			},

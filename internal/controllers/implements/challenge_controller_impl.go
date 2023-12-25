@@ -1,6 +1,7 @@
-package controllers
+package implements
 
 import (
+	"github.com/elabosak233/pgshub/internal/controllers"
 	"github.com/elabosak233/pgshub/internal/models/request"
 	"github.com/elabosak233/pgshub/internal/services"
 	"github.com/elabosak233/pgshub/internal/utils"
@@ -12,7 +13,7 @@ type ChallengeControllerImpl struct {
 	challengeService services.ChallengeService
 }
 
-func NewChallengeController(appService *services.AppService) ChallengeController {
+func NewChallengeController(appService *services.AppService) controllers.ChallengeController {
 	return &ChallengeControllerImpl{
 		challengeService: appService.ChallengeService,
 	}
@@ -24,13 +25,7 @@ func NewChallengeController(appService *services.AppService) ChallengeController
 // @Tags 题目
 // @Accept json
 // @Produce json
-// @Param title query string false "标题"
-// @Param category query string false "分类"
-// @Param is_practicable query int false "是否为练习题"
-// @Param is_dynamic query int false "是否为动态题"
-// @Param difficulty query int false "难度"
-// @Param page query int false "页码"
-// @param size query int false "每页数量"
+// @Param input query request.ChallengeFindRequest false "ChallengeFindRequest"
 // @Router /api/challenges/ [get]
 func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 	challengeData, pageCount, _ := c.challengeService.Find(request.ChallengeFindRequest{
@@ -38,6 +33,7 @@ func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 		Category:      ctx.Query("category"),
 		IsPracticable: utils.ParseIntParam(ctx.Query("is_practicable"), -1),
 		IsDynamic:     utils.ParseIntParam(ctx.Query("is_dynamic"), -1),
+		IsEnabled:     utils.ParseIntParam(ctx.Query("is_enabled"), -1),
 		Difficulty:    utils.ParseIntParam(ctx.Query("difficulty"), -1),
 		Page:          utils.ParseIntParam(ctx.Query("page"), -1),
 		Size:          utils.ParseIntParam(ctx.Query("size"), -1),
@@ -55,7 +51,7 @@ func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 // @Tags 题目
 // @Accept json
 // @Produce json
-// @Param data body request.ChallengeCreateRequest true "ChallengeCreateRequest"
+// @Param 创建请求 body request.ChallengeCreateRequest true "ChallengeCreateRequest"
 // @Router /api/challenges/ [post]
 func (c *ChallengeControllerImpl) Create(ctx *gin.Context) {
 	createChallengeRequest := request.ChallengeCreateRequest{}

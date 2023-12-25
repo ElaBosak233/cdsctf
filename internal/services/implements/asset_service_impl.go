@@ -1,14 +1,15 @@
-package services
+package implements
 
 import (
 	"github.com/elabosak233/pgshub/internal/repositorys"
+	"github.com/elabosak233/pgshub/internal/services"
 	"os"
 )
 
 type AssetServiceImpl struct {
 }
 
-func NewAssetServiceImpl(appRepository *repositorys.AppRepository) AssetService {
+func NewAssetServiceImpl(appRepository *repositorys.AppRepository) services.AssetService {
 	return &AssetServiceImpl{}
 }
 

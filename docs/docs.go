@@ -251,6 +251,29 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            },
+            "delete": {
+                "description": "通过用户 Id 删除用户头像",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过用户 Id 删除用户头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
             }
         },
         "/api/assets/users/avatar/{id}/exists": {
@@ -294,44 +317,42 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "标题",
-                        "name": "title",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "分类",
                         "name": "category",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "是否为练习题",
-                        "name": "is_practicable",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "是否为动态题",
-                        "name": "is_dynamic",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "难度",
                         "name": "difficulty",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "name": "is_dynamic",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "is_enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "is_practicable",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
                         "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "title",
                         "in": "query"
                     }
                 ],
@@ -377,7 +398,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "ChallengeCreateRequest",
-                        "name": "data",
+                        "name": "创建请求",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -574,7 +595,7 @@ const docTemplate = `{
         },
         "/api/teams/": {
             "get": {
-                "description": "查找所有团队",
+                "description": "查找团队",
                 "consumes": [
                     "application/json"
                 ],
@@ -584,7 +605,29 @@ const docTemplate = `{
                 "tags": [
                     "团队"
                 ],
-                "summary": "查找所有团队",
+                "summary": "查找团队",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "captain_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
                 "responses": {}
             },
             "put": {
@@ -794,6 +837,13 @@ const docTemplate = `{
                 "summary": "用户创建 *",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "UserCreateRequest",
                         "name": "input",
                         "in": "body",
@@ -856,7 +906,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/users/login/": {
+        "/api/users/login": {
             "post": {
                 "description": "用户登录",
                 "consumes": [
@@ -872,7 +922,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "UserLoginRequest",
-                        "name": "input",
+                        "name": "登录请求",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -883,7 +933,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/users/logout/": {
+        "/api/users/logout": {
             "post": {
                 "description": "用户登出",
                 "consumes": [
@@ -898,19 +948,17 @@ const docTemplate = `{
                 "summary": "用户登出",
                 "parameters": [
                     {
-                        "description": "UserLogoutRequest",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UserLogoutRequest"
-                        }
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {}
             }
         },
-        "/api/users/register/": {
+        "/api/users/register": {
             "post": {
                 "description": "用户注册",
                 "consumes": [
@@ -990,46 +1038,72 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "misc"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "题目描述"
                 },
                 "difficulty": {
-                    "type": "integer"
+                    "type": "integer",
+                    "default": 1
                 },
                 "duration": {
-                    "type": "integer"
+                    "type": "integer",
+                    "default": 1800
                 },
                 "exposed_port": {
-                    "type": "integer"
+                    "type": "integer",
+                    "default": 80
                 },
                 "flag": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "PgsCTF{Th4nk5_4_us1ng_PgsHub}"
                 },
                 "flag_env": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "FLAG"
                 },
-                "flag_prefix": {
-                    "type": "string"
+                "flag_fmt": {
+                    "type": "string",
+                    "default": "PgsCTF{[UUID]}"
                 },
                 "has_attachment": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": false
                 },
                 "image": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "nginx"
                 },
                 "is_dynamic": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": true
+                },
+                "is_enabled": {
+                    "type": "boolean",
+                    "default": false
                 },
                 "is_practicable": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": false
+                },
+                "max_pts": {
+                    "type": "integer",
+                    "default": 1000
                 },
                 "memory_limit": {
-                    "type": "integer"
+                    "type": "integer",
+                    "default": 512
+                },
+                "min_pts": {
+                    "type": "integer",
+                    "default": 200
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "新题目"
                 }
             }
         },
@@ -1068,7 +1142,7 @@ const docTemplate = `{
                 "flag_env": {
                     "type": "string"
                 },
-                "flag_prefix": {
+                "flag_fmt": {
                     "type": "string"
                 },
                 "has_attachment": {
@@ -1083,10 +1157,19 @@ const docTemplate = `{
                 "is_dynamic": {
                     "type": "boolean"
                 },
+                "is_enabled": {
+                    "type": "boolean"
+                },
                 "is_practicable": {
                     "type": "boolean"
                 },
+                "max_pts": {
+                    "type": "integer"
+                },
                 "memory_limit": {
+                    "type": "integer"
+                },
+                "min_pts": {
                     "type": "integer"
                 },
                 "title": {
@@ -1242,17 +1325,6 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.UserLogoutRequest": {
-            "type": "object",
-            "required": [
-                "username"
-            ],
-            "properties": {
                 "username": {
                     "type": "string"
                 }
