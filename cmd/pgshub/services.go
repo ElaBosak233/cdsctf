@@ -1,17 +1,17 @@
 package main
 
 import (
-	"github.com/elabosak233/pgshub/repository"
-	"github.com/elabosak233/pgshub/service"
+	"github.com/elabosak233/pgshub/internal/repositorys"
+	"github.com/elabosak233/pgshub/internal/services"
 )
 
-func InitServices(appRepository *repository.AppRepository) *service.AppService {
-	return &service.AppService{
-		UserService:      service.NewUserServiceImpl(appRepository),
-		GroupService:     service.NewGroupServiceImpl(appRepository),
-		ChallengeService: service.NewChallengeServiceImpl(appRepository),
-		InstanceService:  service.NewInstanceServiceImpl(appRepository),
-		ConfigService:    service.NewConfigServiceImpl(appRepository),
-		TeamService:      service.NewTeamServiceImpl(appRepository),
+func InitServices(appRepository *repositorys.AppRepository) *services.AppService {
+	return &services.AppService{
+		AssetService:     services.NewAssetServiceImpl(appRepository),
+		UserService:      services.NewUserServiceImpl(appRepository),
+		ChallengeService: services.NewChallengeServiceImpl(appRepository),
+		InstanceService:  services.NewInstanceServiceImpl(appRepository),
+		ConfigService:    services.NewConfigServiceImpl(appRepository),
+		TeamService:      services.NewTeamServiceImpl(appRepository),
 	}
 }

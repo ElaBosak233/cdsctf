@@ -1,18 +1,17 @@
 package main
 
 import (
-	"github.com/elabosak233/pgshub/controller"
-	"github.com/elabosak233/pgshub/service"
+	"github.com/elabosak233/pgshub/internal/controllers"
+	"github.com/elabosak233/pgshub/internal/services"
 )
 
-func InitControllers(appService *service.AppService) *controller.AppController {
-	return &controller.AppController{
-		UserController:      controller.NewUserControllerImpl(appService),
-		GroupController:     controller.NewGroupControllerImpl(appService),
-		ChallengeController: controller.NewChallengeController(appService),
-		InstanceController:  controller.NewInstanceControllerImpl(appService),
-		ConfigController:    controller.NewConfigControllerImpl(appService),
-		AssetController:     controller.NewAssetControllerImpl(appService),
-		TeamController:      controller.NewTeamControllerImpl(appService),
+func InitControllers(appService *services.AppService) *controllers.AppController {
+	return &controllers.AppController{
+		UserController:      controllers.NewUserControllerImpl(appService),
+		ChallengeController: controllers.NewChallengeController(appService),
+		InstanceController:  controllers.NewInstanceControllerImpl(appService),
+		ConfigController:    controllers.NewConfigControllerImpl(appService),
+		AssetController:     controllers.NewAssetControllerImpl(appService),
+		TeamController:      controllers.NewTeamControllerImpl(appService),
 	}
 }

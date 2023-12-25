@@ -1,7 +1,7 @@
 definitions:
   request.ChallengeCreateRequest:
     properties:
-      attachment_id:
+      category:
         type: string
       description:
         type: string
@@ -15,13 +15,16 @@ definitions:
         type: string
       flag_env:
         type: string
+      flag_prefix:
+        type: string
+      has_attachment:
+        type: boolean
       image:
         type: string
       is_dynamic:
-        enum:
-        - 0
-        - 1
-        type: integer
+        type: boolean
+      is_practicable:
+        type: boolean
       memory_limit:
         type: integer
       title:
@@ -36,7 +39,7 @@ definitions:
     type: object
   request.ChallengeUpdateRequest:
     properties:
-      attachment_id:
+      category:
         type: string
       description:
         type: string
@@ -50,15 +53,18 @@ definitions:
         type: string
       flag_env:
         type: string
+      flag_prefix:
+        type: string
+      has_attachment:
+        type: boolean
       id:
         type: string
       image:
         type: string
       is_dynamic:
-        enum:
-        - 0
-        - 1
-        type: integer
+        type: boolean
+      is_practicable:
+        type: boolean
       memory_limit:
         type: integer
       title:
@@ -70,6 +76,20 @@ definitions:
         type: string
     required:
     - challenge_id
+    type: object
+  request.InstanceRemoveRequest:
+    properties:
+      id:
+        type: string
+    required:
+    - id
+    type: object
+  request.InstanceRenewRequest:
+    properties:
+      id:
+        type: string
+    required:
+    - id
     type: object
   request.TeamCreateRequest:
     properties:
@@ -248,6 +268,17 @@ paths:
       summary: 通过团队 Id 获取比赛 Writeup
       tags:
       - 资源
+  /api/assets/teams/avatar/:
+    get:
+      consumes:
+      - application/json
+      description: 获取拥有头像的团队列表
+      produces:
+      - application/json
+      responses: {}
+      summary: 获取拥有头像的团队列表
+      tags:
+      - 资源
   /api/assets/teams/avatar/{id}:
     get:
       consumes:
@@ -282,6 +313,34 @@ paths:
         type: file
       responses: {}
       summary: 通过团队 Id 设置团队头像
+      tags:
+      - 资源
+  /api/assets/teams/avatar/{id}/exists:
+    get:
+      consumes:
+      - application/json
+      description: 通过团队 Id 确认团队头像是否存在
+      parameters:
+      - description: 团队 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 通过团队 Id 确认团队头像是否存在
+      tags:
+      - 资源
+  /api/assets/users/avatar/:
+    get:
+      consumes:
+      - application/json
+      description: 获取拥有头像的用户列表
+      produces:
+      - application/json
+      responses: {}
+      summary: 获取拥有头像的用户列表
       tags:
       - 资源
   /api/assets/users/avatar/{id}:
@@ -320,11 +379,28 @@ paths:
       summary: 通过用户 Id 设置用户头像
       tags:
       - 资源
-  /api/challenges:
+  /api/assets/users/avatar/{id}/exists:
+    get:
+      consumes:
+      - application/json
+      description: 通过用户 Id 确认用户头像是否存在
+      parameters:
+      - description: 用户 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 通过用户 Id 确认用户头像是否存在
+      tags:
+      - 资源
+  /api/challenges/:
     delete:
       consumes:
       - application/json
-      description: 删除题目
+      description: 删除题目（管理员）
       parameters:
       - description: ChallengeDeleteRequest
         in: body
@@ -335,23 +411,52 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 删除题目
+      summary: 删除题目 *
       tags:
       - 题目
     get:
       consumes:
       - application/json
-      description: 题目全部查询
+      description: 题目查询（管理员）
+      parameters:
+      - description: 标题
+        in: query
+        name: title
+        type: string
+      - description: 分类
+        in: query
+        name: category
+        type: string
+      - description: 是否为练习题
+        in: query
+        name: is_practicable
+        type: integer
+      - description: 是否为动态题
+        in: query
+        name: is_dynamic
+        type: integer
+      - description: 难度
+        in: query
+        name: difficulty
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: size
+        type: integer
       produces:
       - application/json
       responses: {}
-      summary: 题目全部查询
+      summary: 题目查询 *
       tags:
       - 题目
     post:
       consumes:
       - application/json
-      description: 创建题目
+      description: 创建题目（管理员）
       parameters:
       - description: ChallengeCreateRequest
         in: body
@@ -362,13 +467,13 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 创建题目
+      summary: 创建题目 *
       tags:
       - 题目
     put:
       consumes:
       - application/json
-      description: 更新题目
+      description: 更新题目（管理员）
       parameters:
       - description: ChallengeUpdateRequest
         in: body
@@ -379,14 +484,14 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 更新题目
+      summary: 更新题目 *
       tags:
       - 题目
   /api/challenges/{id}:
     get:
       consumes:
       - application/json
-      description: 题目查询
+      description: 题目查询（管理员）
       parameters:
       - description: id
         in: path
@@ -396,10 +501,10 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 题目查询
+      summary: 题目查询 *
       tags:
       - 题目
-  /api/configs:
+  /api/configs/:
     get:
       consumes:
       - application/json
@@ -420,15 +525,16 @@ paths:
       summary: 更新配置
       tags:
       - 配置
-  /api/instances:
+  /api/instances/:
     delete:
       description: 停止并删除容器
       parameters:
-      - description: InstanceId
-        in: query
-        name: id
+      - description: InstanceRemoveRequest
+        in: body
+        name: input
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/request.InstanceRemoveRequest'
       produces:
       - application/json
       responses: {}
@@ -460,6 +566,21 @@ paths:
       summary: 创建实例
       tags:
       - 实例
+    put:
+      description: 容器续期
+      parameters:
+      - description: InstanceRenewRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.InstanceRenewRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 容器续期
+      tags:
+      - 实例
   /api/instances/{id}:
     get:
       description: 实例查询
@@ -475,37 +596,7 @@ paths:
       summary: 实例查询
       tags:
       - 实例
-  /api/instances/renew:
-    get:
-      description: 容器续期
-      parameters:
-      - description: InstanceId
-        in: query
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: 容器续期
-      tags:
-      - 实例
-  /api/instances/status:
-    get:
-      description: 获取实例状态
-      parameters:
-      - description: InstanceId
-        in: query
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: 获取实例状态
-      tags:
-      - 实例
-  /api/teams:
+  /api/teams/:
     delete:
       consumes:
       - application/json
@@ -521,6 +612,16 @@ paths:
       - application/json
       responses: {}
       summary: 删除团队
+      tags:
+      - 团队
+    get:
+      consumes:
+      - application/json
+      description: 查找所有团队
+      produces:
+      - application/json
+      responses: {}
+      summary: 查找所有团队
       tags:
       - 团队
     post:
@@ -557,17 +658,6 @@ paths:
       summary: 更新团队
       tags:
       - 团队
-  /api/teams/:
-    get:
-      consumes:
-      - application/json
-      description: 查找所有团队
-      produces:
-      - application/json
-      responses: {}
-      summary: 查找所有团队
-      tags:
-      - 团队
   /api/teams/id/{id}:
     get:
       consumes:
@@ -585,7 +675,7 @@ paths:
       summary: 查找团队
       tags:
       - 团队
-  /api/teams/members:
+  /api/teams/members/:
     delete:
       consumes:
       - application/json
@@ -620,76 +710,7 @@ paths:
       summary: 加入团队
       tags:
       - 团队
-  /api/user/login:
-    post:
-      consumes:
-      - application/json
-      description: 用户登录
-      parameters:
-      - description: UserLoginRequest
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/request.UserLoginRequest'
-      produces:
-      - application/json
-      responses: {}
-      summary: 用户登录
-      tags:
-      - 用户
-  /api/user/logout:
-    post:
-      consumes:
-      - application/json
-      description: 用户登出
-      parameters:
-      - description: UserLogoutRequest
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/request.UserLogoutRequest'
-      produces:
-      - application/json
-      responses: {}
-      summary: 用户登出
-      tags:
-      - 用户
-  /api/user/register:
-    post:
-      consumes:
-      - application/json
-      description: 用户注册
-      parameters:
-      - description: UserRegisterRequest
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/request.UserRegisterRequest'
-      produces:
-      - application/json
-      responses: {}
-      summary: 用户注册
-      tags:
-      - 用户
-  /api/user/token/{token}:
-    get:
-      description: Token 鉴定
-      parameters:
-      - description: token
-        in: path
-        name: token
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: Token 鉴定
-      tags:
-      - 用户
-  /api/users:
+  /api/users/:
     delete:
       consumes:
       - application/json
@@ -766,6 +787,75 @@ paths:
       - application/json
       responses: {}
       summary: 用户查询（通过 Id）
+      tags:
+      - 用户
+  /api/users/login/:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录
+      parameters:
+      - description: UserLoginRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserLoginRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户登录
+      tags:
+      - 用户
+  /api/users/logout/:
+    post:
+      consumes:
+      - application/json
+      description: 用户登出
+      parameters:
+      - description: UserLogoutRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserLogoutRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户登出
+      tags:
+      - 用户
+  /api/users/register/:
+    post:
+      consumes:
+      - application/json
+      description: 用户注册
+      parameters:
+      - description: UserRegisterRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserRegisterRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 用户注册
+      tags:
+      - 用户
+  /api/users/token/{token}:
+    get:
+      description: Token 鉴定
+      parameters:
+      - description: token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Token 鉴定
       tags:
       - 用户
   /api/users/username/{username}:
