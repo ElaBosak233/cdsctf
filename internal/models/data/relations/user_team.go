@@ -1,4 +1,4 @@
-package m2m
+package relations
 
 type UserTeam struct {
 	UserId string `xorm:"'user_id' varchar(36) index" json:"user_id" binding:"required" msg:"user_id 不能为空"`

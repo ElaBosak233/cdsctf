@@ -11,6 +11,13 @@ type TeamUpdateRequest struct {
 	CaptainId string `binding:"required" json:"captain_id"`
 }
 
+type TeamFindRequest struct {
+	TeamName  string `json:"name"`
+	CaptainId string `json:"captain_id"`
+	Page      int    `json:"page"`
+	Size      int    `json:"size"`
+}
+
 type TeamDeleteRequest struct {
 	TeamId string `binding:"required" json:"id"`
 }

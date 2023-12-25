@@ -8,6 +8,7 @@ import (
 func NewAssetRouter(assetRouter *gin.RouterGroup, assetController controllers.AssetController) {
 	assetRouter.GET("/users/avatar", assetController.GetUserAvatarList)
 	assetRouter.GET("/users/avatar/:id", assetController.FindUserAvatarByUserId)
+	assetRouter.DELETE("/users/avatar/:id", assetController.DeleteUserAvatarByUserId)
 	assetRouter.GET("/users/avatar/:id/exists", assetController.CheckUserAvatarExistsByUserId)
 	assetRouter.POST("/users/avatar/:id", assetController.SetUserAvatarByUserId)
 	assetRouter.GET("/teams/avatar", assetController.GetTeamAvatarList)

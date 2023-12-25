@@ -1,4 +1,4 @@
-package m2m
+package relations
 
 type TeamChallengeFlag struct {
 	TeamId      string `xorm:"'team_id' varchar(36) index notnull" json:"team_id"`

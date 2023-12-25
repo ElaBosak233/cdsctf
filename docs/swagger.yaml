@@ -2,32 +2,55 @@ definitions:
   request.ChallengeCreateRequest:
     properties:
       category:
+        default: misc
         type: string
       description:
+        default: 题目描述
         type: string
       difficulty:
+        default: 1
         type: integer
       duration:
+        default: 1800
         type: integer
       exposed_port:
+        default: 80
         type: integer
       flag:
+        default: PgsCTF{Th4nk5_4_us1ng_PgsHub}
         type: string
       flag_env:
+        default: FLAG
         type: string
-      flag_prefix:
+      flag_fmt:
+        default: PgsCTF{[UUID]}
         type: string
       has_attachment:
+        default: false
         type: boolean
       image:
+        default: nginx
         type: string
       is_dynamic:
+        default: true
+        type: boolean
+      is_enabled:
+        default: false
         type: boolean
       is_practicable:
+        default: false
         type: boolean
+      max_pts:
+        default: 1000
+        type: integer
       memory_limit:
+        default: 512
+        type: integer
+      min_pts:
+        default: 200
         type: integer
       title:
+        default: 新题目
         type: string
     type: object
   request.ChallengeDeleteRequest:
@@ -53,7 +76,7 @@ definitions:
         type: string
       flag_env:
         type: string
-      flag_prefix:
+      flag_fmt:
         type: string
       has_attachment:
         type: boolean
@@ -63,9 +86,15 @@ definitions:
         type: string
       is_dynamic:
         type: boolean
+      is_enabled:
+        type: boolean
       is_practicable:
         type: boolean
+      max_pts:
+        type: integer
       memory_limit:
+        type: integer
+      min_pts:
         type: integer
       title:
         type: string
@@ -169,13 +198,6 @@ definitions:
         type: string
     required:
     - password
-    - username
-    type: object
-  request.UserLogoutRequest:
-    properties:
-      username:
-        type: string
-    required:
     - username
     type: object
   request.UserRegisterRequest:
@@ -344,6 +366,22 @@ paths:
       tags:
       - 资源
   /api/assets/users/avatar/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 通过用户 Id 删除用户头像
+      parameters:
+      - description: 用户 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 通过用户 Id 删除用户头像
+      tags:
+      - 资源
     get:
       consumes:
       - application/json
@@ -419,34 +457,30 @@ paths:
       - application/json
       description: 题目查询（管理员）
       parameters:
-      - description: 标题
-        in: query
-        name: title
-        type: string
-      - description: 分类
-        in: query
+      - in: query
         name: category
         type: string
-      - description: 是否为练习题
-        in: query
-        name: is_practicable
-        type: integer
-      - description: 是否为动态题
-        in: query
-        name: is_dynamic
-        type: integer
-      - description: 难度
-        in: query
+      - in: query
         name: difficulty
         type: integer
-      - description: 页码
-        in: query
+      - in: query
+        name: is_dynamic
+        type: integer
+      - in: query
+        name: is_enabled
+        type: integer
+      - in: query
+        name: is_practicable
+        type: integer
+      - in: query
         name: page
         type: integer
-      - description: 每页数量
-        in: query
+      - in: query
         name: size
         type: integer
+      - in: query
+        name: title
+        type: string
       produces:
       - application/json
       responses: {}
@@ -460,7 +494,7 @@ paths:
       parameters:
       - description: ChallengeCreateRequest
         in: body
-        name: data
+        name: 创建请求
         required: true
         schema:
           $ref: '#/definitions/request.ChallengeCreateRequest'
@@ -617,11 +651,24 @@ paths:
     get:
       consumes:
       - application/json
-      description: 查找所有团队
+      description: 查找团队
+      parameters:
+      - in: query
+        name: captain_id
+        type: string
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: size
+        type: integer
       produces:
       - application/json
       responses: {}
-      summary: 查找所有团队
+      summary: 查找团队
       tags:
       - 团队
     post:
@@ -743,6 +790,11 @@ paths:
       - application/json
       description: 用户创建（管理员）
       parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: UserCreateRequest
         in: body
         name: input
@@ -789,7 +841,7 @@ paths:
       summary: 用户查询（通过 Id）
       tags:
       - 用户
-  /api/users/login/:
+  /api/users/login:
     post:
       consumes:
       - application/json
@@ -797,7 +849,7 @@ paths:
       parameters:
       - description: UserLoginRequest
         in: body
-        name: input
+        name: 登录请求
         required: true
         schema:
           $ref: '#/definitions/request.UserLoginRequest'
@@ -807,25 +859,24 @@ paths:
       summary: 用户登录
       tags:
       - 用户
-  /api/users/logout/:
+  /api/users/logout:
     post:
       consumes:
       - application/json
       description: 用户登出
       parameters:
-      - description: UserLogoutRequest
-        in: body
-        name: input
+      - description: Authorization
+        in: header
+        name: Authorization
         required: true
-        schema:
-          $ref: '#/definitions/request.UserLogoutRequest'
+        type: string
       produces:
       - application/json
       responses: {}
       summary: 用户登出
       tags:
       - 用户
-  /api/users/register/:
+  /api/users/register:
     post:
       consumes:
       - application/json

@@ -1,24 +1,26 @@
-package services
+package implements
 
 import (
 	"errors"
 	model "github.com/elabosak233/pgshub/internal/models/data"
-	modelm2m "github.com/elabosak233/pgshub/internal/models/data/m2m"
+	modelm2m "github.com/elabosak233/pgshub/internal/models/data/relations"
 	"github.com/elabosak233/pgshub/internal/models/request"
 	"github.com/elabosak233/pgshub/internal/models/response"
 	"github.com/elabosak233/pgshub/internal/repositorys"
-	"github.com/elabosak233/pgshub/internal/repositorys/m2m"
+	"github.com/elabosak233/pgshub/internal/repositorys/relations"
+	"github.com/elabosak233/pgshub/internal/services"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
+	"math"
 )
 
 type TeamServiceImpl struct {
 	UserRepository     repositorys.UserRepository
 	TeamRepository     repositorys.TeamRepository
-	UserTeamRepository m2m.UserTeamRepository
+	UserTeamRepository relations.UserTeamRepository
 }
 
-func NewTeamServiceImpl(appRepository *repositorys.AppRepository) TeamService {
+func NewTeamServiceImpl(appRepository *repositorys.AppRepository) services.TeamService {
 	return &TeamServiceImpl{
 		UserRepository:     appRepository.UserRepository,
 		TeamRepository:     appRepository.TeamRepository,
@@ -74,6 +76,25 @@ func (t *TeamServiceImpl) Delete(id string) error {
 	}
 }
 
+func (t *TeamServiceImpl) Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, err error) {
+	ts, count, err := t.TeamRepository.Find(req)
+	if req.Size >= 1 && req.Page >= 1 {
+		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
+	} else {
+		pageCount = 1
+	}
+	for _, team := range ts {
+		res := response.TeamResponse{}
+		userTeams, _ := t.UserTeamRepository.FindByTeamId(team.TeamId)
+		for _, userTeam := range userTeams {
+			res.UserIds = append(res.UserIds, userTeam.UserId)
+		}
+		_ = mapstructure.Decode(team, &res)
+		teams = append(teams, res)
+	}
+	return teams, pageCount, err
+}
+
 func (t *TeamServiceImpl) Join(req request.TeamJoinRequest) error {
 	user, err := t.UserRepository.FindById(req.UserId)
 	if user.UserId != "" && err == nil {
@@ -122,20 +143,4 @@ func (t *TeamServiceImpl) FindById(id string) (res response.TeamResponse, err er
 	} else {
 		return res, errors.New("团队不存在")
 	}
-}
-
-func (t *TeamServiceImpl) FindAll() (reses []response.TeamResponse, err error) {
-	teams, err := t.TeamRepository.FindAll()
-	for _, team := range teams {
-		res := response.TeamResponse{}
-		userTeams, _ := t.UserTeamRepository.FindByTeamId(team.TeamId)
-		for _, userTeam := range userTeams {
-			res.UserIds = append(res.UserIds, userTeam.UserId)
-		}
-		_ = mapstructure.Decode(team, &res)
-		res.CreatedAt = team.CreatedAt
-		res.UpdatedAt = team.UpdatedAt
-		reses = append(reses, res)
-	}
-	return reses, err
 }

@@ -1,6 +1,8 @@
-package controllers
+package implements
 
 import (
+	"fmt"
+	"github.com/elabosak233/pgshub/internal/controllers"
 	model "github.com/elabosak233/pgshub/internal/models/data"
 	"github.com/elabosak233/pgshub/internal/models/request"
 	"github.com/elabosak233/pgshub/internal/services"
@@ -14,7 +16,7 @@ type UserControllerImpl struct {
 	userService services.UserService
 }
 
-func NewUserControllerImpl(appService *services.AppService) UserController {
+func NewUserControllerImpl(appService *services.AppService) controllers.UserController {
 	return &UserControllerImpl{
 		userService: appService.UserService,
 	}
@@ -26,8 +28,8 @@ func NewUserControllerImpl(appService *services.AppService) UserController {
 // @Tags 用户
 // @Accept json
 // @Produce json
-// @Param input body request.UserLoginRequest true "UserLoginRequest"
-// @Router /api/users/login/ [post]
+// @Param 登录请求 body request.UserLoginRequest true "UserLoginRequest"
+// @Router /api/users/login [post]
 func (c *UserControllerImpl) Login(ctx *gin.Context) {
 	userLoginRequest := request.UserLoginRequest{}
 	err := ctx.ShouldBindJSON(&userLoginRequest)
@@ -98,11 +100,20 @@ func (c *UserControllerImpl) VerifyToken(ctx *gin.Context) {
 // @Tags 用户
 // @Accept json
 // @Produce json
-// @Param input body request.UserLogoutRequest true "UserLogoutRequest"
-// @Router /api/users/logout/ [post]
+// @Param Authorization header string true "Authorization"
+// @Router /api/users/logout [post]
 func (c *UserControllerImpl) Logout(ctx *gin.Context) {
+	id, err := c.userService.GetIdByJwtToken(ctx.GetHeader("Authorization"))
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
+		"id":   id,
 	})
 }
 
@@ -113,7 +124,7 @@ func (c *UserControllerImpl) Logout(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param input body request.UserRegisterRequest true "UserRegisterRequest"
-// @Router /api/users/register/ [post]
+// @Router /api/users/register [post]
 func (c *UserControllerImpl) Register(ctx *gin.Context) {
 	createUserRequest := request.UserRegisterRequest{}
 	err := ctx.ShouldBindJSON(&createUserRequest)
@@ -147,9 +158,11 @@ func (c *UserControllerImpl) Register(ctx *gin.Context) {
 // @Tags 用户
 // @Accept json
 // @Produce json
+// @Param Authorization header string true "Authorization"
 // @Param input body request.UserCreateRequest true "UserCreateRequest"
 // @Router /api/users/ [post]
 func (c *UserControllerImpl) Create(ctx *gin.Context) {
+	fmt.Print(ctx.GetHeader("UserRole"))
 	createUserRequest := request.UserCreateRequest{}
 	err := ctx.ShouldBindJSON(&createUserRequest)
 	if err != nil {

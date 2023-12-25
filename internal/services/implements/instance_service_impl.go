@@ -1,4 +1,4 @@
-package services
+package implements
 
 import (
 	"errors"
@@ -6,7 +6,9 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/elabosak233/pgshub/internal/models/response"
 	"github.com/elabosak233/pgshub/internal/repositorys"
+	"github.com/elabosak233/pgshub/internal/services"
 	"github.com/elabosak233/pgshub/internal/services/container"
+	"github.com/elabosak233/pgshub/internal/utils"
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
 	"time"
@@ -16,13 +18,13 @@ type InstanceServiceImpl struct {
 	ChallengeRepository repositorys.ChallengeRepository
 }
 
-func NewInstanceServiceImpl(appRepository *repositorys.AppRepository) InstanceService {
+func NewInstanceServiceImpl(appRepository *repositorys.AppRepository) services.InstanceService {
 	return &InstanceServiceImpl{
 		ChallengeRepository: appRepository.ChallengeRepository,
 	}
 }
 
-func (t *InstanceServiceImpl) Create(challengeId string) (instanceId string, entry string) {
+func (t *InstanceServiceImpl) Create(challengeId string) (res response.InstanceStatusResponse, err error) {
 	if viper.GetString("Container.Provider") == "docker" {
 		cli, _ := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		challenge, _ := t.ChallengeRepository.FindById(challengeId)
@@ -30,37 +32,42 @@ func (t *InstanceServiceImpl) Create(challengeId string) (instanceId string, ent
 			cli,
 			challenge.Image,
 			challenge.ExposedPort,
-			fmt.Sprintf("%s{%s}", challenge.FlagPrefix, uuid.NewString()),
+			utils.GenerateFlag(challenge.FlagFmt),
 			challenge.FlagEnv,
 			challenge.MemoryLimit,
 			time.Duration(challenge.Duration)*time.Second,
 		)
 		port, _ := ctn.Setup()
 		instanceId := uuid.NewString()
-		InstanceMap[instanceId] = map[string]any{
+		services.InstanceMap[instanceId] = map[string]any{
 			"ctn":         ctn,
 			"challengeId": challengeId,
-			"entry":       fmt.Sprintf("%s:%d", viper.GetString("Container.Docker.Entry"), port),
+			"entry":       fmt.Sprintf("%s:%d", viper.GetString("container.docker.public_entry"), port),
 			"removeAt":    time.Now().Add(time.Duration(challenge.Duration) * time.Second),
 		}
-		return instanceId, fmt.Sprintf("%s:%d", viper.GetString("Container.Docker.Entry"), port)
+		return response.InstanceStatusResponse{
+			InstanceId: instanceId,
+			Entry:      fmt.Sprintf("%s:%d", viper.GetString("container.docker.public_entry"), port),
+			RemoveAt:   time.Now().Add(time.Duration(challenge.Duration) * time.Second).Unix(),
+			Status:     "running",
+		}, nil
 	}
-	return "", ""
+	return res, errors.New("创建失败")
 }
 
-func (t *InstanceServiceImpl) Status(id string) (rep response.InstanceStatusResponse, error error) {
+func (t *InstanceServiceImpl) Status(id string) (rep response.InstanceStatusResponse, err error) {
 	rep = response.InstanceStatusResponse{}
 	if viper.GetString("Container.Provider") == "docker" {
-		if InstanceMap[id] == nil {
+		if services.InstanceMap[id] == nil {
 			return rep, errors.New("实例不存在")
 		}
-		ctn := InstanceMap[id]["ctn"].(*container.DockerContainer)
+		ctn := services.InstanceMap[id]["ctn"].(*container.DockerContainer)
 		status, _ := ctn.GetContainerStatus()
 		if status != "removed" {
 			rep.InstanceId = id
 			rep.Status = status
-			rep.Entry = InstanceMap[id]["entry"].(string)
-			rep.RemoveAt = InstanceMap[id]["removeAt"].(time.Time).Unix()
+			rep.Entry = services.InstanceMap[id]["entry"].(string)
+			rep.RemoveAt = services.InstanceMap[id]["removeAt"].(time.Time).Unix()
 			return rep, nil
 		}
 		rep.Status = "removed"
@@ -71,9 +78,9 @@ func (t *InstanceServiceImpl) Status(id string) (rep response.InstanceStatusResp
 
 func (t *InstanceServiceImpl) Renew(id string) error {
 	if viper.GetString("Container.Provider") == "docker" {
-		ctn := InstanceMap[id]["ctn"].(*container.DockerContainer)
+		ctn := services.InstanceMap[id]["ctn"].(*container.DockerContainer)
 		err := ctn.Renew(ctn.Duration)
-		InstanceMap[id]["removeAt"] = time.Now().Add(ctn.Duration)
+		services.InstanceMap[id]["removeAt"] = time.Now().Add(ctn.Duration)
 		return err
 	}
 	return errors.New("续期失败")
@@ -81,7 +88,7 @@ func (t *InstanceServiceImpl) Renew(id string) error {
 
 func (t *InstanceServiceImpl) Remove(id string) error {
 	if viper.GetString("Container.Provider") == "docker" {
-		ctn := InstanceMap[id]["ctn"].(*container.DockerContainer)
+		ctn := services.InstanceMap[id]["ctn"].(*container.DockerContainer)
 		err := ctn.Remove()
 		return err
 	}
@@ -90,15 +97,15 @@ func (t *InstanceServiceImpl) Remove(id string) error {
 
 func (t *InstanceServiceImpl) FindById(id string) (rep response.InstanceResponse, err error) {
 	if viper.GetString("Container.Provider") == "docker" {
-		if InstanceMap[id] == nil {
+		if services.InstanceMap[id] == nil {
 			return rep, errors.New("实例不存在")
 		}
-		status, _ := InstanceMap[id]["ctn"].(*container.DockerContainer).GetContainerStatus()
+		status, _ := services.InstanceMap[id]["ctn"].(*container.DockerContainer).GetContainerStatus()
 		rep = response.InstanceResponse{
 			InstanceId:  id,
-			Entry:       InstanceMap[id]["entry"].(string),
-			RemoveAt:    InstanceMap[id]["removeAt"].(time.Time).Unix(),
-			ChallengeId: InstanceMap[id]["challengeId"].(string),
+			Entry:       services.InstanceMap[id]["entry"].(string),
+			RemoveAt:    services.InstanceMap[id]["removeAt"].(time.Time).Unix(),
+			ChallengeId: services.InstanceMap[id]["challengeId"].(string),
 			Status:      status,
 		}
 		return rep, nil
@@ -108,7 +115,7 @@ func (t *InstanceServiceImpl) FindById(id string) (rep response.InstanceResponse
 
 func (t *InstanceServiceImpl) FindAll() (rep []response.InstanceResponse, err error) {
 	if viper.GetString("Container.Provider") == "docker" {
-		for k, v := range InstanceMap {
+		for k, v := range services.InstanceMap {
 			status, _ := v["ctn"].(*container.DockerContainer).GetContainerStatus()
 			rep = append(rep, response.InstanceResponse{
 				InstanceId:  k,

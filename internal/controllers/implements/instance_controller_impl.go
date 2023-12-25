@@ -1,6 +1,7 @@
-package controllers
+package implements
 
 import (
+	"github.com/elabosak233/pgshub/internal/controllers"
 	"github.com/elabosak233/pgshub/internal/models/request"
 	"github.com/elabosak233/pgshub/internal/services"
 	"github.com/elabosak233/pgshub/internal/utils"
@@ -12,7 +13,7 @@ type InstanceControllerImpl struct {
 	instanceService services.InstanceService
 }
 
-func NewInstanceControllerImpl(appService *services.AppService) InstanceController {
+func NewInstanceControllerImpl(appService *services.AppService) controllers.InstanceController {
 	return &InstanceControllerImpl{
 		instanceService: appService.InstanceService,
 	}
@@ -36,11 +37,12 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	id, entry := c.instanceService.Create(instanceCreateRequest.ChallengeId)
+	res, err := c.instanceService.Create(instanceCreateRequest.ChallengeId)
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":  http.StatusOK,
-		"id":    id,
-		"entry": entry,
+		"code":      http.StatusOK,
+		"id":        res.InstanceId,
+		"entry":     res.Entry,
+		"remove_at": res.RemoveAt,
 	})
 }
 

@@ -1,10 +1,11 @@
-package services
+package implements
 
 import (
 	"errors"
 	model "github.com/elabosak233/pgshub/internal/models/data"
 	"github.com/elabosak233/pgshub/internal/models/request"
 	"github.com/elabosak233/pgshub/internal/repositorys"
+	"github.com/elabosak233/pgshub/internal/services"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 	"math"
@@ -14,7 +15,7 @@ type ChallengeServiceImpl struct {
 	ChallengeRepository repositorys.ChallengeRepository
 }
 
-func NewChallengeServiceImpl(appRepository *repositorys.AppRepository) ChallengeService {
+func NewChallengeServiceImpl(appRepository *repositorys.AppRepository) services.ChallengeService {
 	return &ChallengeServiceImpl{
 		ChallengeRepository: appRepository.ChallengeRepository,
 	}

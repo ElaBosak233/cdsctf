@@ -11,6 +11,6 @@ type TeamService interface {
 	Delete(id string) error
 	Join(req request.TeamJoinRequest) error
 	Quit(req request.TeamQuitRequest) error
+	Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, err error)
 	FindById(id string) (res response.TeamResponse, err error)
-	FindAll() (reses []response.TeamResponse, err error)
 }

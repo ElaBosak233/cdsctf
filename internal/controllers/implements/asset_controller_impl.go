@@ -1,7 +1,8 @@
-package controllers
+package implements
 
 import (
 	"fmt"
+	"github.com/elabosak233/pgshub/internal/controllers"
 	"github.com/elabosak233/pgshub/internal/services"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,7 @@ type AssetControllerImpl struct {
 	assetService services.AssetService
 }
 
-func NewAssetControllerImpl(appService *services.AppService) AssetController {
+func NewAssetControllerImpl(appService *services.AppService) controllers.AssetController {
 	return &AssetControllerImpl{
 		assetService: appService.AssetService,
 	}
@@ -111,6 +112,37 @@ func (c *AssetControllerImpl) SetUserAvatarByUserId(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
+}
+
+// DeleteUserAvatarByUserId
+// @Summary 通过用户 Id 删除用户头像
+// @Description 通过用户 Id 删除用户头像
+// @Tags 资源
+// @Accept json
+// @Produce json
+// @Param id path string true "用户 Id"
+// @Router /api/assets/users/avatar/{id} [delete]
+func (c *AssetControllerImpl) DeleteUserAvatarByUserId(ctx *gin.Context) {
+	id := ctx.Param("id")
+	path := fmt.Sprintf("./assets/users/avatar/%s", id)
+	_, err := os.Stat(path)
+	if err == nil {
+		err = os.Remove(path)
+		if err != nil {
+			ctx.JSON(http.StatusOK, gin.H{
+				"code": http.StatusInternalServerError,
+				"msg":  err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusOK,
+		})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusNotFound,
+		})
+	}
 }
 
 // GetTeamAvatarList

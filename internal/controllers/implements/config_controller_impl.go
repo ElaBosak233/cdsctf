@@ -1,6 +1,7 @@
-package controllers
+package implements
 
 import (
+	"github.com/elabosak233/pgshub/internal/controllers"
 	"github.com/elabosak233/pgshub/internal/services"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -10,7 +11,7 @@ type ConfigControllerImpl struct {
 	configService services.ConfigService
 }
 
-func NewConfigControllerImpl(appService *services.AppService) ConfigController {
+func NewConfigControllerImpl(appService *services.AppService) controllers.ConfigController {
 	return &ConfigControllerImpl{
 		appService.ConfigService,
 	}
