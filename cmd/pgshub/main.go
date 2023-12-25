@@ -2,9 +2,9 @@ package main
 
 import (
 	_ "github.com/elabosak233/pgshub/docs"
-	"github.com/elabosak233/pgshub/middleware"
-	"github.com/elabosak233/pgshub/router"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/internal/middlewares"
+	"github.com/elabosak233/pgshub/internal/routers"
+	"github.com/elabosak233/pgshub/internal/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -41,11 +41,11 @@ func main() {
 	appService := InitServices(appRepository)
 	appController := InitControllers(appService)
 	api := r.Group("/api")
-	router.NewRouters(api, appController)
+	routers.NewRouters(api, appController)
 
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
 
-	r.Use(middleware.FrontendMiddleware("/", "./dist"))
+	r.Use(middlewares.FrontendMiddleware("/", "./dist"))
 
 	s := &http.Server{
 		Addr:    viper.GetString("Server.Host") + ":" + viper.GetString("Server.Port"),

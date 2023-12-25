@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	model "github.com/elabosak233/pgshub/model/data"
-	modelm2m "github.com/elabosak233/pgshub/model/data/m2m"
-	"github.com/elabosak233/pgshub/utils"
+	model "github.com/elabosak233/pgshub/internal/models/data"
+	modelm2m "github.com/elabosak233/pgshub/internal/models/data/m2m"
+	"github.com/elabosak233/pgshub/internal/utils"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
@@ -45,8 +45,6 @@ func DatabaseConnection() *xorm.Engine {
 func SyncDatabase(db *xorm.Engine) error {
 	var dbs = []interface{}{
 		&model.User{},
-		&model.Group{},
-		&modelm2m.UserGroup{},
 		&model.Challenge{},
 		&model.Team{},
 		&modelm2m.UserTeam{},
@@ -68,6 +66,7 @@ func InitAdmin(db *xorm.Engine) {
 		_, err := db.Table("user").Insert(model.User{
 			UserId:   uuid.NewString(),
 			Username: "admin",
+			Role:     0,
 			Password: string(hashedPassword),
 			Email:    "admin@admin.com",
 		})
@@ -77,40 +76,5 @@ func InitAdmin(db *xorm.Engine) {
 			return
 		}
 		utils.Logger.Infof("管理员账户创建成功")
-	}
-	existAdminGroup, _ := db.Table("group").Where("name = ?", "admin").Exist()
-	if !existAdminGroup {
-		utils.Logger.Warn("管理员用户组不存在，即将创建")
-		_, err := db.Table("group").Insert(model.Group{
-			GroupId: uuid.NewString(),
-			Name:    "admin",
-		})
-		if err != nil {
-			utils.Logger.Error("管理员用户组创建失败")
-			os.Exit(1)
-			return
-		}
-		utils.Logger.Infof("管理员用户组创建成功")
-	}
-	adminUser := model.User{}
-	adminGroup := model.Group{}
-	_, _ = db.Table("user").Where("username = ?", "admin").Get(&adminUser)
-	_, _ = db.Table("group").Where("name = ?", "admin").Get(&adminGroup)
-	existAdminUserGroup, _ := db.Table("user_group").Exist(&modelm2m.UserGroup{
-		UserId:  adminUser.UserId,
-		GroupId: adminGroup.GroupId,
-	})
-	if !existAdminUserGroup {
-		utils.Logger.Warn("管理员用户与用户组关系不存在，即将创建")
-		_, err := db.Table("user_group").Insert(modelm2m.UserGroup{
-			UserId:  adminUser.UserId,
-			GroupId: adminGroup.GroupId,
-		})
-		if err != nil {
-			utils.Logger.Error("管理员用户与用户组关系创建失败")
-			os.Exit(1)
-			return
-		}
-		utils.Logger.Infof("管理员用户与用户组关系创建成功")
 	}
 }
