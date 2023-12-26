@@ -12,12 +12,12 @@ import (
 )
 
 type AssetControllerImpl struct {
-	assetService services.AssetService
+	AssetService services.AssetService
 }
 
 func NewAssetControllerImpl(appService *services.AppService) controllers.AssetController {
 	return &AssetControllerImpl{
-		assetService: appService.AssetService,
+		AssetService: appService.AssetService,
 	}
 }
 
@@ -29,7 +29,7 @@ func NewAssetControllerImpl(appService *services.AppService) controllers.AssetCo
 // @Produce json
 // @Router /api/assets/users/avatar/ [get]
 func (c *AssetControllerImpl) GetUserAvatarList(ctx *gin.Context) {
-	res, _ := c.assetService.GetUserAvatarList()
+	res, _ := c.AssetService.GetUserAvatarList()
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"data": res,
@@ -153,7 +153,7 @@ func (c *AssetControllerImpl) DeleteUserAvatarByUserId(ctx *gin.Context) {
 // @Produce json
 // @Router /api/assets/teams/avatar/ [get]
 func (c *AssetControllerImpl) GetTeamAvatarList(ctx *gin.Context) {
-	res, _ := c.assetService.GetTeamAvatarList()
+	res, _ := c.AssetService.GetTeamAvatarList()
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"data": res,

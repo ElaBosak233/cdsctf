@@ -6,9 +6,9 @@ import (
 )
 
 type ChallengeService interface {
-	Create(req request.ChallengeCreateRequest) error
-	Update(req request.ChallengeUpdateRequest) error
+	Create(req request.ChallengeCreateRequest) (err error)
+	Update(req request.ChallengeUpdateRequest) (err error)
 	Delete(id string) error
-	FindById(id string) model.Challenge
+	FindById(id string, isDetailed int) model.Challenge
 	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pageCount int64, err error)
 }

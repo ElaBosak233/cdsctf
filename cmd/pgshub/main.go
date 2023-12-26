@@ -40,8 +40,7 @@ func main() {
 	appService := InitServices(appRepository)
 	appMiddleware := InitMiddlewares(appService)
 	appController := InitControllers(appService)
-	api := r.Group("/api")
-	routers.NewRouters(api, appController, appMiddleware)
+	routers.NewRouters(r.Group("/api"), appController, appMiddleware)
 
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
 

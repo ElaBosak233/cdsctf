@@ -34,19 +34,13 @@ definitions:
       is_dynamic:
         default: true
         type: boolean
-      is_enabled:
-        default: false
-        type: boolean
       is_practicable:
         default: false
         type: boolean
-      max_pts:
-        default: 1000
-        type: integer
       memory_limit:
         default: 512
         type: integer
-      min_pts:
+      practice_pts:
         default: 200
         type: integer
       title:
@@ -86,15 +80,11 @@ definitions:
         type: string
       is_dynamic:
         type: boolean
-      is_enabled:
-        type: boolean
       is_practicable:
         type: boolean
-      max_pts:
-        type: integer
       memory_limit:
         type: integer
-      min_pts:
+      practice_pts:
         type: integer
       title:
         type: string
@@ -174,13 +164,19 @@ definitions:
     properties:
       email:
         type: string
+      name:
+        type: string
       password:
         type: string
+      role:
+        type: integer
       username:
         type: string
     required:
     - email
+    - name
     - password
+    - role
     - username
     type: object
   request.UserDeleteRequest:
@@ -204,12 +200,15 @@ definitions:
     properties:
       email:
         type: string
+      name:
+        type: string
       password:
         type: string
       username:
         type: string
     required:
     - email
+    - name
     - password
     - username
     type: object
@@ -222,14 +221,14 @@ definitions:
       password:
         minLength: 6
         type: string
+      role:
+        type: integer
       username:
         maxLength: 20
         minLength: 3
         type: string
     required:
     - id
-    - password
-    - username
     type: object
 info:
   contact: {}
@@ -438,8 +437,12 @@ paths:
     delete:
       consumes:
       - application/json
-      description: 删除题目（管理员）
       parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
       - description: ChallengeDeleteRequest
         in: body
         name: data
@@ -449,14 +452,19 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 删除题目 *
+      summary: 删除题目（Role≤2）
       tags:
       - 题目
     get:
       consumes:
       - application/json
-      description: 题目查询（管理员）
+      description: 只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息
       parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
       - in: query
         name: category
         type: string
@@ -464,10 +472,13 @@ paths:
         name: difficulty
         type: integer
       - in: query
-        name: is_dynamic
+        name: id
+        type: string
+      - in: query
+        name: is_detailed
         type: integer
       - in: query
-        name: is_enabled
+        name: is_dynamic
         type: integer
       - in: query
         name: is_practicable
@@ -484,14 +495,18 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 题目查询 *
+      summary: 题目查询
       tags:
       - 题目
     post:
       consumes:
       - application/json
-      description: 创建题目（管理员）
       parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
       - description: ChallengeCreateRequest
         in: body
         name: 创建请求
@@ -501,14 +516,18 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 创建题目 *
+      summary: 创建题目（Role≤2）
       tags:
       - 题目
     put:
       consumes:
       - application/json
-      description: 更新题目（管理员）
       parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
       - description: ChallengeUpdateRequest
         in: body
         name: data
@@ -518,24 +537,7 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 更新题目 *
-      tags:
-      - 题目
-  /api/challenges/{id}:
-    get:
-      consumes:
-      - application/json
-      description: 题目查询（管理员）
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: 题目查询 *
+      summary: 更新题目（Role≤2）
       tags:
       - 题目
   /api/configs/:
@@ -630,6 +632,54 @@ paths:
       summary: 实例查询
       tags:
       - 实例
+  /api/submissions/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
+      - description: 题目 Id
+        in: query
+        name: challenge_id
+        type: string
+      - description: 比赛 Id
+        in: query
+        name: game_id
+        type: integer
+      - description: 是否详细
+        in: query
+        name: is_detailed
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小
+        in: query
+        name: size
+        type: integer
+      - description: 评判结果
+        in: query
+        name: status
+        type: integer
+      - description: 团队 Id
+        in: query
+        name: team_id
+        type: string
+      - description: 用户 Id
+        in: query
+        name: user_id
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 提交记录查询
+      tags:
+      - 提交
   /api/teams/:
     delete:
       consumes:
@@ -761,8 +811,12 @@ paths:
     delete:
       consumes:
       - application/json
-      description: 用户删除（管理员）
       parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
       - description: UserDeleteRequest
         in: body
         name: input
@@ -772,80 +826,87 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 用户删除 *
+      summary: 用户删除（Role≤1 或 (Request)UserId=(PgsToken)UserId）
       tags:
       - 用户
     get:
       consumes:
       - application/json
-      description: 用户全部查询
+      parameters:
+      - in: query
+        name: email
+        type: string
+      - in: query
+        name: id
+        type: string
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: role
+        type: integer
+      - in: query
+        name: size
+        type: integer
+      - in: query
+        name: username
+        type: string
       produces:
       - application/json
       responses: {}
-      summary: 用户全部查询
+      summary: 用户查询
       tags:
       - 用户
     post:
       consumes:
       - application/json
-      description: 用户创建（管理员）
       parameters:
-      - description: Authorization
+      - description: PgsToken
         in: header
-        name: Authorization
+        name: PgsToken
         required: true
         type: string
       - description: UserCreateRequest
         in: body
-        name: input
+        name: 创建请求
         required: true
         schema:
           $ref: '#/definitions/request.UserCreateRequest'
       produces:
       - application/json
       responses: {}
-      summary: 用户创建 *
+      summary: 用户创建（Role<=1）
       tags:
       - 用户
     put:
       consumes:
       - application/json
-      description: 用户更新（管理员）
+      description: 若 Role>1，则自动忽略 UserUpdateRequest 中的 Role 属性
       parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
       - description: UserUpdateRequest
         in: body
-        name: input
+        name: 更新请求
         required: true
         schema:
           $ref: '#/definitions/request.UserUpdateRequest'
       produces:
       - application/json
       responses: {}
-      summary: 用户更新 *
-      tags:
-      - 用户
-  /api/users/id/{id}:
-    get:
-      consumes:
-      - application/json
-      description: 用户查询
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: 用户查询（通过 Id）
+      summary: 用户更新（Role≤1 或 (Request)UserId=(PgsToken)UserId）
       tags:
       - 用户
   /api/users/login:
     post:
       consumes:
       - application/json
-      description: 用户登录
       parameters:
       - description: UserLoginRequest
         in: body
@@ -863,7 +924,6 @@ paths:
     post:
       consumes:
       - application/json
-      description: 用户登出
       parameters:
       - description: Authorization
         in: header
@@ -880,7 +940,6 @@ paths:
     post:
       consumes:
       - application/json
-      description: 用户注册
       parameters:
       - description: UserRegisterRequest
         in: body
@@ -896,7 +955,6 @@ paths:
       - 用户
   /api/users/token/{token}:
     get:
-      description: Token 鉴定
       parameters:
       - description: token
         in: path
@@ -907,23 +965,6 @@ paths:
       - application/json
       responses: {}
       summary: Token 鉴定
-      tags:
-      - 用户
-  /api/users/username/{username}:
-    get:
-      consumes:
-      - application/json
-      description: 用户查询
-      parameters:
-      - description: username
-        in: path
-        name: username
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: 用户查询（通过 Username）
       tags:
       - 用户
 swagger: "2.0"

@@ -6,6 +6,6 @@ type InstanceController interface {
 	Create(ctx *gin.Context)
 	Remove(ctx *gin.Context)
 	Renew(ctx *gin.Context)
-	FindAll(ctx *gin.Context)
+	Find(ctx *gin.Context)
 	FindById(ctx *gin.Context)
 }

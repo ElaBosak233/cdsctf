@@ -27,7 +27,7 @@ func NewInstanceServiceImpl(appRepository *repositorys.AppRepository) services.I
 func (t *InstanceServiceImpl) Create(challengeId string) (res response.InstanceStatusResponse, err error) {
 	if viper.GetString("Container.Provider") == "docker" {
 		cli, _ := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-		challenge, _ := t.ChallengeRepository.FindById(challengeId)
+		challenge, _ := t.ChallengeRepository.FindById(challengeId, 1)
 		ctn := container.NewDockerContainer(
 			cli,
 			challenge.Image,

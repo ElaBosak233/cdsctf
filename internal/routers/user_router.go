@@ -7,14 +7,12 @@ import (
 )
 
 func NewUserRouter(userRouter *gin.RouterGroup, userController controllers.UserController, authMiddleware middlewares.AuthMiddleware) {
-	userRouter.GET("/", userController.FindAll)
-	userRouter.POST("/", authMiddleware.Auth(), userController.Create)
+	userRouter.GET("/", userController.Find)
+	userRouter.POST("/", authMiddleware.AuthInRole(1), userController.Create)
 	userRouter.POST("/register", userController.Register)
 	userRouter.PUT("/", userController.Update)
-	userRouter.DELETE("/", userController.Delete)
-	userRouter.GET("/id/:id", userController.FindById)
-	userRouter.GET("/username/:username", userController.FindByUsername)
+	userRouter.DELETE("/", authMiddleware.Auth(), userController.Delete)
 	userRouter.POST("/login", userController.Login)
-	userRouter.POST("/logout", userController.Logout)
+	userRouter.POST("/logout", authMiddleware.Auth(), userController.Logout)
 	userRouter.GET("/token/:token", userController.VerifyToken)
 }

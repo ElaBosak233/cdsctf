@@ -48,6 +48,7 @@ func SyncDatabase(db *xorm.Engine) error {
 		&model.Challenge{},
 		&model.Team{},
 		&relations.UserTeam{},
+		&model.Submission{},
 	}
 	for _, v := range dbs {
 		err := db.Sync2(v)
@@ -61,20 +62,21 @@ func SyncDatabase(db *xorm.Engine) error {
 func InitAdmin(db *xorm.Engine) {
 	existAdminUser, _ := db.Table("user").Where("username = ?", "admin").Exist()
 	if !existAdminUser {
-		utils.Logger.Warn("管理员账户不存在，即将创建")
+		utils.Logger.Warn("超级管理员账户不存在，即将创建")
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
 		_, err := db.Table("user").Insert(model.User{
 			UserId:   uuid.NewString(),
 			Username: "admin",
+			Name:     "超级管理员",
 			Role:     0,
 			Password: string(hashedPassword),
 			Email:    "admin@admin.com",
 		})
 		if err != nil {
-			utils.Logger.Error("管理员账户创建失败")
+			utils.Logger.Error("超级管理员账户创建失败")
 			os.Exit(1)
 			return
 		}
-		utils.Logger.Infof("管理员账户创建成功")
+		utils.Logger.Infof("超级管理员账户创建成功")
 	}
 }

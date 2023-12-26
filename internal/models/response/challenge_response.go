@@ -11,8 +11,8 @@ type ChallengeInfoResponse struct {
 	Category      string `xorm:"'category' varchar(16) notnull" json:"category"`
 	HasAttachment bool   `xorm:"'has_attachment' bool notnull" json:"has_attachment"`
 	IsDynamic     bool   `xorm:"'is_dynamic' bool" json:"is_dynamic"`
-	Duration      int    `xorm:"'duration' int" json:"duration"`
-	Difficulty    int    `xorm:"'difficulty' int" json:"difficulty"`
+	Duration      int64  `xorm:"'duration' int" json:"duration"`
+	Difficulty    int64  `xorm:"'difficulty' int" json:"difficulty"`
 	CreatedAt     int64  `xorm:"created 'created_at'" json:"created_at"`
 	UpdatedAt     int64  `xorm:"updated 'updated_at'" json:"updated_at"`
 }

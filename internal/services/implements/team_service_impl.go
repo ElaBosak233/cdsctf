@@ -36,7 +36,7 @@ func (t *TeamServiceImpl) Create(req request.TeamCreateRequest) error {
 			TeamId:    uid,
 			TeamName:  req.TeamName,
 			CaptainId: req.CaptainId,
-			IsLocked:  0,
+			IsLocked:  false,
 		})
 		err = t.UserTeamRepository.Insert(modelm2m.UserTeam{
 			TeamId: uid,

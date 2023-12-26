@@ -21,16 +21,16 @@ func NewChallengeServiceImpl(appRepository *repositorys.AppRepository) services.
 	}
 }
 
-func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) error {
+func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) (err error) {
 	challengeModel := model.Challenge{}
 	_ = mapstructure.Decode(req, &challengeModel)
 	challengeModel.ChallengeId = uuid.NewString()
-	err := t.ChallengeRepository.Insert(challengeModel)
+	err = t.ChallengeRepository.Insert(challengeModel)
 	return err
 }
 
-func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) error {
-	challengeData, err := t.ChallengeRepository.FindById(req.ChallengeId)
+func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) (err error) {
+	challengeData, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
 	if err != nil || challengeData.ChallengeId == "" {
 		return errors.New("题目不存在")
 	}
@@ -56,7 +56,7 @@ func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenge
 }
 
 // FindById implements ChallengeService
-func (t *ChallengeServiceImpl) FindById(id string) model.Challenge {
-	challengeData, _ := t.ChallengeRepository.FindById(id)
+func (t *ChallengeServiceImpl) FindById(id string, isDetailed int) model.Challenge {
+	challengeData, _ := t.ChallengeRepository.FindById(id, isDetailed)
 	return challengeData
 }

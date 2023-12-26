@@ -10,12 +10,12 @@ import (
 )
 
 type InstanceControllerImpl struct {
-	instanceService services.InstanceService
+	InstanceService services.InstanceService
 }
 
 func NewInstanceControllerImpl(appService *services.AppService) controllers.InstanceController {
 	return &InstanceControllerImpl{
-		instanceService: appService.InstanceService,
+		InstanceService: appService.InstanceService,
 	}
 }
 
@@ -37,7 +37,7 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	res, err := c.instanceService.Create(instanceCreateRequest.ChallengeId)
+	res, err := c.InstanceService.Create(instanceCreateRequest.ChallengeId)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":      http.StatusOK,
 		"id":        res.InstanceId,
@@ -56,7 +56,7 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 	instanceRemoveRequest := request.InstanceRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
-	err = c.instanceService.Remove(instanceRemoveRequest.InstanceId)
+	err = c.InstanceService.Remove(instanceRemoveRequest.InstanceId)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -79,7 +79,7 @@ func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.InstanceRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
-	err = c.instanceService.Renew(instanceRenewRequest.InstanceId)
+	err = c.InstanceService.Renew(instanceRenewRequest.InstanceId)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -101,7 +101,7 @@ func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 // @Router /api/instances/{id} [get]
 func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	rep, err := c.instanceService.FindById(id)
+	rep, err := c.InstanceService.FindById(id)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -121,8 +121,8 @@ func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
 // @Tags 实例
 // @Produce json
 // @Router /api/instances/ [get]
-func (c *InstanceControllerImpl) FindAll(ctx *gin.Context) {
-	rep, _ := c.instanceService.FindAll()
+func (c *InstanceControllerImpl) Find(ctx *gin.Context) {
+	rep, _ := c.InstanceService.FindAll()
 	res := make([]map[string]any, len(rep))
 	for i, v := range rep {
 		item := map[string]any{

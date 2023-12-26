@@ -2,6 +2,6 @@ package controllers
 
 import "github.com/gin-gonic/gin"
 
-type ConfigController interface {
+type SubmissionController interface {
 	Find(ctx *gin.Context)
 }
