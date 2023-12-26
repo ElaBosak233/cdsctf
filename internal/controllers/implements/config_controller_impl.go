@@ -8,7 +8,7 @@ import (
 )
 
 type ConfigControllerImpl struct {
-	configService services.ConfigService
+	ConfigService services.ConfigService
 }
 
 func NewConfigControllerImpl(appService *services.AppService) controllers.ConfigController {
@@ -17,17 +17,17 @@ func NewConfigControllerImpl(appService *services.AppService) controllers.Config
 	}
 }
 
-// FindAll
+// Find
 // @Summary 配置全部查询
 // @Description 配置全部查询
 // @Tags 配置
 // @Accept json
 // @Produce json
 // @Router /api/configs/ [get]
-func (c *ConfigControllerImpl) FindAll(ctx *gin.Context) {
+func (c *ConfigControllerImpl) Find(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":   http.StatusOK,
-		"config": c.configService.FindAll(),
+		"config": c.ConfigService.FindAll(),
 	})
 }
 

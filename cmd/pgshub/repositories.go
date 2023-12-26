@@ -8,9 +8,10 @@ import (
 
 func InitRepositories(db *xorm.Engine) *repositorys.AppRepository {
 	return &repositorys.AppRepository{
-		UserRepository:      implements.NewUserRepositoryImpl(db),
-		ChallengeRepository: implements.NewChallengeRepositoryImpl(db),
-		TeamRepository:      implements.NewTeamRepositoryImpl(db),
-		UserTeamRepository:  implements.NewUserTeamRepositoryImpl(db),
+		UserRepository:       implements.NewUserRepositoryImpl(db),
+		ChallengeRepository:  implements.NewChallengeRepositoryImpl(db),
+		TeamRepository:       implements.NewTeamRepositoryImpl(db),
+		SubmissionRepository: implements.NewSubmissionRepositoryImpl(db),
+		UserTeamRepository:   implements.NewUserTeamRepositoryImpl(db),
 	}
 }

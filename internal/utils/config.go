@@ -13,10 +13,10 @@ var defaultSettings = map[string]interface{}{
 	"server.cors.allow_origins": []string{"*"},
 	"server.cors.allow_methods": []string{"GET", "POST", "PUT", "DELETE"},
 	// 邮箱设置
-	"email.address":   "pgshub@163.com",
-	"email.password":  "123456",
-	"email.smtp.host": "smtp.163.com",
-	"email.smtp.port": 25,
+	"email.address":   "",
+	"email.password":  "",
+	"email.smtp.host": "",
+	"email.smtp.port": 0,
 	// 数据库设置
 	"db.mysql.host":     "localhost",
 	"db.mysql.port":     3306,
@@ -39,8 +39,7 @@ func LoadConfig() {
 	viper.SetConfigFile(configFile)
 	if err := viper.ReadInConfig(); err != nil {
 		Logger.Warn("未找到配置文件，将创建默认配置文件")
-		defaults := defaultSettings
-		for key, value := range defaults {
+		for key, value := range defaultSettings {
 			viper.SetDefault(key, value)
 		}
 		if err := viper.WriteConfigAs(configFile); err != nil {

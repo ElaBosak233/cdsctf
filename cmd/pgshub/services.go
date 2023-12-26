@@ -8,11 +8,12 @@ import (
 
 func InitServices(appRepository *repositorys.AppRepository) *services.AppService {
 	return &services.AppService{
-		AssetService:     implements.NewAssetServiceImpl(appRepository),
-		UserService:      implements.NewUserServiceImpl(appRepository),
-		ChallengeService: implements.NewChallengeServiceImpl(appRepository),
-		InstanceService:  implements.NewInstanceServiceImpl(appRepository),
-		ConfigService:    implements.NewConfigServiceImpl(appRepository),
-		TeamService:      implements.NewTeamServiceImpl(appRepository),
+		AssetService:      implements.NewAssetServiceImpl(appRepository),
+		UserService:       implements.NewUserServiceImpl(appRepository),
+		ChallengeService:  implements.NewChallengeServiceImpl(appRepository),
+		InstanceService:   implements.NewInstanceServiceImpl(appRepository),
+		ConfigService:     implements.NewConfigServiceImpl(appRepository),
+		TeamService:       implements.NewTeamServiceImpl(appRepository),
+		SubmissionService: implements.NewSubmissionServiceImpl(appRepository),
 	}
 }

@@ -303,7 +303,7 @@ const docTemplate = `{
         },
         "/api/challenges/": {
             "get": {
-                "description": "题目查询（管理员）",
+                "description": "只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -313,8 +313,15 @@ const docTemplate = `{
                 "tags": [
                     "题目"
                 ],
-                "summary": "题目查询 *",
+                "summary": "题目查询",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "name": "category",
@@ -326,13 +333,18 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "name": "is_dynamic",
+                        "type": "string",
+                        "name": "id",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "name": "is_enabled",
+                        "name": "is_detailed",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "is_dynamic",
                         "in": "query"
                     },
                     {
@@ -359,7 +371,6 @@ const docTemplate = `{
                 "responses": {}
             },
             "put": {
-                "description": "更新题目（管理员）",
                 "consumes": [
                     "application/json"
                 ],
@@ -369,8 +380,15 @@ const docTemplate = `{
                 "tags": [
                     "题目"
                 ],
-                "summary": "更新题目 *",
+                "summary": "更新题目（Role≤2）",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "ChallengeUpdateRequest",
                         "name": "data",
@@ -384,7 +402,6 @@ const docTemplate = `{
                 "responses": {}
             },
             "post": {
-                "description": "创建题目（管理员）",
                 "consumes": [
                     "application/json"
                 ],
@@ -394,8 +411,15 @@ const docTemplate = `{
                 "tags": [
                     "题目"
                 ],
-                "summary": "创建题目 *",
+                "summary": "创建题目（Role≤2）",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "ChallengeCreateRequest",
                         "name": "创建请求",
@@ -409,7 +433,6 @@ const docTemplate = `{
                 "responses": {}
             },
             "delete": {
-                "description": "删除题目（管理员）",
                 "consumes": [
                     "application/json"
                 ],
@@ -419,8 +442,15 @@ const docTemplate = `{
                 "tags": [
                     "题目"
                 ],
-                "summary": "删除题目 *",
+                "summary": "删除题目（Role≤2）",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "ChallengeDeleteRequest",
                         "name": "data",
@@ -429,31 +459,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.ChallengeDeleteRequest"
                         }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/api/challenges/{id}": {
-            "get": {
-                "description": "题目查询（管理员）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "题目"
-                ],
-                "summary": "题目查询 *",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {}
@@ -588,6 +593,78 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/submissions/": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "提交"
+                ],
+                "summary": "提交记录查询",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "题目 Id",
+                        "name": "challenge_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "比赛 Id",
+                        "name": "game_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "是否详细",
+                        "name": "is_detailed",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "评判结果",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "团队 Id",
+                        "name": "team_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户 Id",
+                        "name": "user_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {}
@@ -785,7 +862,6 @@ const docTemplate = `{
         },
         "/api/users/": {
             "get": {
-                "description": "用户全部查询",
                 "consumes": [
                     "application/json"
                 ],
@@ -795,11 +871,48 @@ const docTemplate = `{
                 "tags": [
                     "用户"
                 ],
-                "summary": "用户全部查询",
+                "summary": "用户查询",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "username",
+                        "in": "query"
+                    }
+                ],
                 "responses": {}
             },
             "put": {
-                "description": "用户更新（管理员）",
+                "description": "若 Role\u003e1，则自动忽略 UserUpdateRequest 中的 Role 属性",
                 "consumes": [
                     "application/json"
                 ],
@@ -809,11 +922,18 @@ const docTemplate = `{
                 "tags": [
                     "用户"
                 ],
-                "summary": "用户更新 *",
+                "summary": "用户更新（Role≤1 或 (Request)UserId=(PgsToken)UserId）",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "UserUpdateRequest",
-                        "name": "input",
+                        "name": "更新请求",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -824,7 +944,6 @@ const docTemplate = `{
                 "responses": {}
             },
             "post": {
-                "description": "用户创建（管理员）",
                 "consumes": [
                     "application/json"
                 ],
@@ -834,18 +953,18 @@ const docTemplate = `{
                 "tags": [
                     "用户"
                 ],
-                "summary": "用户创建 *",
+                "summary": "用户创建（Role\u003c=1）",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
                         "in": "header",
                         "required": true
                     },
                     {
                         "description": "UserCreateRequest",
-                        "name": "input",
+                        "name": "创建请求",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -856,7 +975,6 @@ const docTemplate = `{
                 "responses": {}
             },
             "delete": {
-                "description": "用户删除（管理员）",
                 "consumes": [
                     "application/json"
                 ],
@@ -866,8 +984,15 @@ const docTemplate = `{
                 "tags": [
                     "用户"
                 ],
-                "summary": "用户删除 *",
+                "summary": "用户删除（Role≤1 或 (Request)UserId=(PgsToken)UserId）",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "UserDeleteRequest",
                         "name": "input",
@@ -881,34 +1006,8 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/users/id/{id}": {
-            "get": {
-                "description": "用户查询",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "用户"
-                ],
-                "summary": "用户查询（通过 Id）",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/api/users/login": {
             "post": {
-                "description": "用户登录",
                 "consumes": [
                     "application/json"
                 ],
@@ -935,7 +1034,6 @@ const docTemplate = `{
         },
         "/api/users/logout": {
             "post": {
-                "description": "用户登出",
                 "consumes": [
                     "application/json"
                 ],
@@ -960,7 +1058,6 @@ const docTemplate = `{
         },
         "/api/users/register": {
             "post": {
-                "description": "用户注册",
                 "consumes": [
                     "application/json"
                 ],
@@ -987,7 +1084,6 @@ const docTemplate = `{
         },
         "/api/users/token/{token}": {
             "get": {
-                "description": "Token 鉴定",
                 "produces": [
                     "application/json"
                 ],
@@ -1000,31 +1096,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "token",
                         "name": "token",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/api/users/username/{username}": {
-            "get": {
-                "description": "用户查询",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "用户"
-                ],
-                "summary": "用户查询（通过 Username）",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "username",
-                        "name": "username",
                         "in": "path",
                         "required": true
                     }
@@ -1081,23 +1152,15 @@ const docTemplate = `{
                     "type": "boolean",
                     "default": true
                 },
-                "is_enabled": {
-                    "type": "boolean",
-                    "default": false
-                },
                 "is_practicable": {
                     "type": "boolean",
                     "default": false
-                },
-                "max_pts": {
-                    "type": "integer",
-                    "default": 1000
                 },
                 "memory_limit": {
                     "type": "integer",
                     "default": 512
                 },
-                "min_pts": {
+                "practice_pts": {
                     "type": "integer",
                     "default": 200
                 },
@@ -1157,19 +1220,13 @@ const docTemplate = `{
                 "is_dynamic": {
                     "type": "boolean"
                 },
-                "is_enabled": {
-                    "type": "boolean"
-                },
                 "is_practicable": {
                     "type": "boolean"
-                },
-                "max_pts": {
-                    "type": "integer"
                 },
                 "memory_limit": {
                     "type": "integer"
                 },
-                "min_pts": {
+                "practice_pts": {
                     "type": "integer"
                 },
                 "title": {
@@ -1289,15 +1346,23 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
+                "name",
                 "password",
+                "role",
                 "username"
             ],
             "properties": {
                 "email": {
                     "type": "string"
                 },
+                "name": {
+                    "type": "string"
+                },
                 "password": {
                     "type": "string"
+                },
+                "role": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"
@@ -1334,11 +1399,15 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
+                "name",
                 "password",
                 "username"
             ],
             "properties": {
                 "email": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "password": {
@@ -1352,9 +1421,7 @@ const docTemplate = `{
         "request.UserUpdateRequest": {
             "type": "object",
             "required": [
-                "id",
-                "password",
-                "username"
+                "id"
             ],
             "properties": {
                 "email": {
@@ -1366,6 +1433,9 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 6
+                },
+                "role": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string",

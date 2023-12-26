@@ -48,11 +48,11 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		if req.IsDynamic != -1 {
 			q = q.Where("is_dynamic = ?", req.IsDynamic == 1)
 		}
-		if req.IsEnabled != -1 {
-			q = q.Where("is_enabled = ?", req.IsEnabled == 1)
-		}
 		if req.Difficulty != -1 {
 			q = q.Where("difficulty = ?", req.Difficulty)
+		}
+		if req.IsDetailed == 0 {
+			q = q.Omit("flag", "flag_fmt", "flag_env", "image")
 		}
 		return q
 	}
@@ -78,12 +78,11 @@ func (t *ChallengeRepositoryImpl) FindAll() []model.Challenge {
 }
 
 // FindById implements ChallengeRepository
-func (t *ChallengeRepositoryImpl) FindById(id string) (model.Challenge, error) {
-	var challenge model.Challenge
-	has, err := t.Db.Table("challenge").ID(id).Get(&challenge)
-	if has {
-		return challenge, nil
-	} else {
-		return challenge, err
+func (t *ChallengeRepositoryImpl) FindById(id string, isDetailed int) (challenge model.Challenge, err error) {
+	db := t.Db.Table("challenge").ID(id)
+	if isDetailed == 0 {
+		db = db.Omit("flag", "flag_fmt", "flag_env", "image")
 	}
+	_, err = db.Get(&challenge)
+	return challenge, err
 }

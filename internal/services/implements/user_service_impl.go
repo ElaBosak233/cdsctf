@@ -14,6 +14,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
+	"math"
 	"time"
 )
 
@@ -57,21 +58,20 @@ func (t *UserServiceImpl) GetIdByJwtToken(token string) (id string, err error) {
 	}
 }
 
-// Create implements UserService
-func (t *UserServiceImpl) Create(req model.User) error {
+func (t *UserServiceImpl) Create(req request.UserCreateRequest) (err error) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	userModel := model.User{
 		UserId:   uuid.NewString(),
 		Username: req.Username,
 		Email:    req.Email,
-		Role:     3,
+		Name:     req.Name,
+		Role:     req.Role,
 		Password: string(hashedPassword),
 	}
-	err := t.UserRepository.Insert(userModel)
+	err = t.UserRepository.Insert(userModel)
 	return err
 }
 
-// Update implements UserService
 func (t *UserServiceImpl) Update(req request.UserUpdateRequest) error {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	userData, err := t.UserRepository.FindById(req.UserId)
@@ -92,10 +92,13 @@ func (t *UserServiceImpl) Delete(id string) error {
 	return err
 }
 
-// FindAll implements UserService
-func (t *UserServiceImpl) FindAll() ([]response.UserResponse, error) {
-	result, _ := t.UserRepository.FindAll()
-	var users []response.UserResponse
+func (t *UserServiceImpl) Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, err error) {
+	result, count, err := t.UserRepository.Find(req)
+	if req.Size >= 1 && req.Page >= 1 {
+		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
+	} else {
+		pageCount = 1
+	}
 	for _, value := range result {
 		userResp := response.UserResponse{}
 		_ = mapstructure.Decode(value, &userResp)
@@ -105,7 +108,7 @@ func (t *UserServiceImpl) FindAll() ([]response.UserResponse, error) {
 		}
 		users = append(users, userResp)
 	}
-	return users, nil
+	return users, pageCount, err
 }
 
 // FindById implements UserService
@@ -135,6 +138,19 @@ func (t *UserServiceImpl) FindByUsername(username string) (response.UserResponse
 		userResp.TeamIds = append(userResp.TeamIds, value.TeamId)
 	}
 	return userResp, nil
+}
+
+func (t *UserServiceImpl) FindByEmail(email string) (user response.UserResponse, err error) {
+	userData, err := t.UserRepository.FindByEmail(email)
+	if err != nil {
+		return user, errors.New("用户不存在")
+	}
+	_ = mapstructure.Decode(userData, &user)
+	userTeams, _ := t.UserTeamRepository.FindByUserId(user.UserId)
+	for _, value := range userTeams {
+		user.TeamIds = append(user.TeamIds, value.TeamId)
+	}
+	return user, err
 }
 
 func (t *UserServiceImpl) VerifyPasswordById(id string, password string) bool {

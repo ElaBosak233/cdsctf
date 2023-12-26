@@ -6,7 +6,7 @@ import (
 )
 
 func NewInstanceRouter(instanceRouter *gin.RouterGroup, instanceController controllers.InstanceController) {
-	instanceRouter.GET("/", instanceController.FindAll)
+	instanceRouter.GET("/", instanceController.Find)
 	instanceRouter.GET("/:id", instanceController.FindById)
 	instanceRouter.POST("/", instanceController.Create)
 	instanceRouter.DELETE("/", instanceController.Remove)

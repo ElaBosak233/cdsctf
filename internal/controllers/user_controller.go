@@ -12,7 +12,5 @@ type UserController interface {
 	Create(ctx *gin.Context)
 	Update(ctx *gin.Context)
 	Delete(ctx *gin.Context)
-	FindById(ctx *gin.Context)
-	FindByUsername(ctx *gin.Context)
-	FindAll(ctx *gin.Context)
+	Find(ctx *gin.Context)
 }

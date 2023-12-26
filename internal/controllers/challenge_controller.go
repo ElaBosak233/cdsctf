@@ -7,5 +7,4 @@ type ChallengeController interface {
 	Update(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 	Find(ctx *gin.Context)
-	FindById(ctx *gin.Context)
 }
