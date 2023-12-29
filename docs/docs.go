@@ -542,6 +542,13 @@ const docTemplate = `{
                 "summary": "创建实例",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "InstanceCreateRequest",
                         "name": "input",
                         "in": "body",
@@ -665,6 +672,37 @@ const docTemplate = `{
                         "description": "用户 Id",
                         "name": "user_id",
                         "in": "query"
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "提交"
+                ],
+                "summary": "提交",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "SubmissionCreateRequest",
+                        "name": "创建请求",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SubmissionCreateRequest"
+                        }
                     }
                 ],
                 "responses": {}
@@ -1263,6 +1301,27 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.SubmissionCreateRequest": {
+            "type": "object",
+            "properties": {
+                "challenge_id": {
+                    "description": "题目 Id",
+                    "type": "string"
+                },
+                "flag": {
+                    "description": "提交内容",
+                    "type": "string"
+                },
+                "game_id": {
+                    "description": "比赛 Id",
+                    "type": "integer"
+                },
+                "team_id": {
+                    "description": "团队 Id",
                     "type": "string"
                 }
             }

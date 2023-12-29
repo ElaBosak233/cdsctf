@@ -110,6 +110,21 @@ definitions:
     required:
     - id
     type: object
+  request.SubmissionCreateRequest:
+    properties:
+      challenge_id:
+        description: 题目 Id
+        type: string
+      flag:
+        description: 提交内容
+        type: string
+      game_id:
+        description: 比赛 Id
+        type: integer
+      team_id:
+        description: 团队 Id
+        type: string
+    type: object
   request.TeamCreateRequest:
     properties:
       captain_id:
@@ -590,6 +605,11 @@ paths:
       - application/json
       description: 创建实例
       parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
       - description: InstanceCreateRequest
         in: body
         name: input
@@ -678,6 +698,27 @@ paths:
       - application/json
       responses: {}
       summary: 提交记录查询
+      tags:
+      - 提交
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
+      - description: SubmissionCreateRequest
+        in: body
+        name: 创建请求
+        required: true
+        schema:
+          $ref: '#/definitions/request.SubmissionCreateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 提交
       tags:
       - 提交
   /api/teams/:

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"github.com/elabosak233/pgshub/cmd/pgshub/initialize"
 	_ "github.com/elabosak233/pgshub/docs"
+	"github.com/elabosak233/pgshub/internal/containers/providers"
 	"github.com/elabosak233/pgshub/internal/routers"
 	"github.com/elabosak233/pgshub/internal/utils"
 	"github.com/gin-contrib/cors"
@@ -21,7 +23,11 @@ func main() {
 	Welcome()
 	utils.InitLogger()
 	utils.LoadConfig()
-	db := GetDatabaseConnection()
+	db := initialize.GetDatabaseConnection()
+
+	if viper.GetString("container.provider") == "docker" {
+		providers.NewDockerProvider()
+	}
 
 	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
 	if debug {
@@ -36,10 +42,10 @@ func main() {
 	cor.AllowMethods = viper.GetStringSlice("server.cors.allow_methods")
 	r.Use(cors.New(cor))
 
-	appRepository := InitRepositories(db)
-	appService := InitServices(appRepository)
-	appMiddleware := InitMiddlewares(appService)
-	appController := InitControllers(appService)
+	appRepository := initialize.Repositories(db)
+	appService := initialize.Services(appRepository)
+	appMiddleware := initialize.Middlewares(appService)
+	appController := initialize.Controllers(appService)
 	routers.NewRouters(r.Group("/api"), appController, appMiddleware)
 
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
