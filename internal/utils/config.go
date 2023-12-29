@@ -28,6 +28,7 @@ var defaultSettings = map[string]interface{}{
 	"jwt.expiration": 180,
 	// 容器设置
 	"container.provider":            "docker",
+	"container.docker.host":         "unix:///var/run/docker.sock", // npipe:////./pipe/docker_engine
 	"container.docker.public_entry": "127.0.0.1",
 	"container.docker.ports.from":   49152,
 	"container.docker.ports.to":     65535,

@@ -1,8 +1,8 @@
 package request
 
 type SubmissionCreateRequest struct {
-	Content     string `json:"content"`      // 提交内容
-	UserId      string `json:"user_id"`      // 用户 Id
+	Flag        string `json:"flag"`         // 提交内容
+	UserId      string `json:"-"`            // 用户 Id
 	ChallengeId string `json:"challenge_id"` // 题目 Id
 	TeamId      string `json:"team_id"`      // 团队 Id
 	GameId      int64  `json:"game_id"`      // 比赛 Id
