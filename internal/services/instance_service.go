@@ -18,10 +18,10 @@ import (
 type InstanceService interface {
 	Create(req request.InstanceCreateRequest) (res response.InstanceStatusResponse, err error)
 	Status(id string) (rep response.InstanceStatusResponse, err error)
-	Renew(id string) error
-	Remove(id string) error
+	Renew(id string) (removedAt int64, err error)
+	Remove(id string) (err error)
 	FindById(id string) (rep response.InstanceResponse, err error)
-	FindAll() (rep []response.InstanceResponse, err error)
+	Find(req request.InstanceFindRequest) (rep []response.InstanceResponse, err error)
 }
 
 type InstanceServiceImpl struct {
@@ -93,29 +93,31 @@ func (t *InstanceServiceImpl) Status(id string) (rep response.InstanceStatusResp
 	return rep, errors.New("获取失败")
 }
 
-func (t *InstanceServiceImpl) Renew(id string) error {
+func (t *InstanceServiceImpl) Renew(id string) (removedAt int64, err error) {
 	if viper.GetString("Container.Provider") == "docker" {
 		instance, err := t.InstanceRepository.FindById(id)
 		if err != nil || internal.InstanceMap[id] == nil {
-			return errors.New("实例不存在")
+			return 0, errors.New("实例不存在")
 		}
 		ctn := internal.InstanceMap[id].(*managers.DockerManager)
 		err = ctn.Renew(ctn.Duration)
 		instance.RemovedAt = time.Now().Add(ctn.Duration).Unix()
 		err = t.InstanceRepository.Update(instance)
-		return err
+		return instance.RemovedAt, err
 	}
-	return errors.New("续期失败")
+	return 0, errors.New("续期失败")
 }
 
-func (t *InstanceServiceImpl) Remove(id string) error {
-	if viper.GetString("Container.Provider") == "docker" {
-		_, err := t.InstanceRepository.FindById(id)
+func (t *InstanceServiceImpl) Remove(id string) (err error) {
+	if viper.GetString("container.provider") == "docker" {
+		instance, err := t.InstanceRepository.FindById(id)
 		if err != nil || internal.InstanceMap[id] == nil {
 			return errors.New("实例不存在")
 		}
+		_ = t.InstanceRepository.Update(instance)
 		ctn := internal.InstanceMap[id].(*managers.DockerManager)
 		err = ctn.Remove()
+		instance.RemovedAt = time.Now().Unix()
 		return err
 	}
 	return errors.New("移除失败")
@@ -141,23 +143,28 @@ func (t *InstanceServiceImpl) FindById(id string) (rep response.InstanceResponse
 	return rep, errors.New("获取失败")
 }
 
-func (t *InstanceServiceImpl) FindAll() (rep []response.InstanceResponse, err error) {
+func (t *InstanceServiceImpl) Find(req request.InstanceFindRequest) (instances []response.InstanceResponse, err error) {
 	if viper.GetString("container.provider") == "docker" {
-		instances, err := t.InstanceRepository.FindAllAvailable()
-		for _, instance := range instances {
-			ctn := internal.InstanceMap[instance.InstanceId].(*managers.DockerManager)
-			if ctn != nil {
-				status, _ := ctn.GetContainerStatus()
-				rep = append(rep, response.InstanceResponse{
-					InstanceId:  instance.InstanceId,
-					Entry:       instance.Entry,
-					RemovedAt:   instance.RemovedAt,
-					ChallengeId: instance.ChallengeId,
-					Status:      status,
-				})
-			}
+		if req.TeamId != "" && req.GameId != 0 {
+			req.UserId = ""
 		}
-		return rep, err
+		responses, _, err := t.InstanceRepository.Find(req)
+		for _, instance := range responses {
+			var ctn *managers.DockerManager
+			status := "removed"
+			if internal.InstanceMap[instance.InstanceId] != nil {
+				ctn = internal.InstanceMap[instance.InstanceId].(*managers.DockerManager)
+				status, _ = ctn.GetContainerStatus()
+			}
+			instances = append(instances, response.InstanceResponse{
+				InstanceId:  instance.InstanceId,
+				Entry:       instance.Entry,
+				RemovedAt:   instance.RemovedAt,
+				ChallengeId: instance.ChallengeId,
+				Status:      status,
+			})
+		}
+		return instances, err
 	}
 	return nil, errors.New("获取失败")
 }

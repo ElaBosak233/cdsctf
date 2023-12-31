@@ -7,7 +7,7 @@ type InstanceCreateRequest struct {
 
 type InstanceFindRequest struct {
 	ChallengeId string `json:"challenge_id"`
-	UserId      string `json:"user_id"`
+	UserId      string `json:"-"`
 	TeamId      string `json:"team_id"`
 	GameId      int64  `json:"game_id"`
 	IsAvailable int    `json:"is_available"`

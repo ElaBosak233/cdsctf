@@ -124,6 +124,9 @@ definitions:
       team_id:
         description: 团队 Id
         type: string
+    required:
+    - challenge_id
+    - flag
     type: object
   request.TeamCreateRequest:
     properties:
@@ -593,11 +596,35 @@ paths:
       tags:
       - 实例
     get:
-      description: 实例全部查询
+      description: 实例查询
+      parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
+      - in: query
+        name: challenge_id
+        type: string
+      - in: query
+        name: game_id
+        type: integer
+      - in: query
+        name: is_available
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: size
+        type: integer
+      - in: query
+        name: team_id
+        type: string
       produces:
       - application/json
       responses: {}
-      summary: 实例全部查询
+      summary: 实例查询
       tags:
       - 实例
     post:

@@ -1,11 +1,11 @@
 package request
 
 type SubmissionCreateRequest struct {
-	Flag        string `json:"flag"`         // 提交内容
-	UserId      string `json:"-"`            // 用户 Id
-	ChallengeId string `json:"challenge_id"` // 题目 Id
-	TeamId      string `json:"team_id"`      // 团队 Id
-	GameId      int64  `json:"game_id"`      // 比赛 Id
+	Flag        string `json:"flag" binding:"required" msg:"Flag 不能为空"`          // 提交内容
+	UserId      string `json:"-"`                                                // 用户 Id
+	ChallengeId string `json:"challenge_id" binding:"required" msg:"题目 Id 不能为空"` // 题目 Id
+	TeamId      string `json:"team_id"`                                          // 团队 Id
+	GameId      int64  `json:"game_id"`                                          // 比赛 Id
 }
 
 type SubmissionFindRequest struct {

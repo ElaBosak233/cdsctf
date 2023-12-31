@@ -36,7 +36,9 @@ func (t *InstanceRepositoryImpl) Update(instance model.Instance) (err error) {
 
 func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instances []model.Instance, pageCount int64, err error) {
 	applyFilter := func(q *xorm.Session) *xorm.Session {
-		q = q.Where("challenge_id = ?", req.ChallengeId)
+		if req.ChallengeId != "" {
+			q = q.Where("challenge_id = ?", req.ChallengeId)
+		}
 		if req.UserId != "" {
 			q = q.Where("user_id = ?", req.UserId)
 		}

@@ -496,14 +496,53 @@ const docTemplate = `{
         },
         "/api/instances/": {
             "get": {
-                "description": "实例全部查询",
+                "description": "实例查询",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "实例"
                 ],
-                "summary": "实例全部查询",
+                "summary": "实例查询",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "challenge_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "game_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "is_available",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "team_id",
+                        "in": "query"
+                    }
+                ],
                 "responses": {}
             },
             "put": {
@@ -1307,6 +1346,10 @@ const docTemplate = `{
         },
         "request.SubmissionCreateRequest": {
             "type": "object",
+            "required": [
+                "challenge_id",
+                "flag"
+            ],
             "properties": {
                 "challenge_id": {
                     "description": "题目 Id",
