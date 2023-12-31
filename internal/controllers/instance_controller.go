@@ -88,7 +88,7 @@ func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.InstanceRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
-	err = c.InstanceService.Renew(instanceRenewRequest.InstanceId)
+	removedAt, err := c.InstanceService.Renew(instanceRenewRequest.InstanceId)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -96,7 +96,8 @@ func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 		})
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
+			"code":       http.StatusOK,
+			"removed_at": removedAt,
 		})
 	}
 }
@@ -125,13 +126,24 @@ func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
 }
 
 // Find
-// @Summary 实例全部查询
-// @Description 实例全部查询
+// @Summary 实例查询
+// @Description 实例查询
 // @Tags 实例
 // @Produce json
+// @Param PgsToken header string true "PgsToken"
+// @Param input query request.InstanceFindRequest false "InstanceFindRequest"
 // @Router /api/instances/ [get]
 func (c *InstanceControllerImpl) Find(ctx *gin.Context) {
-	rep, _ := c.InstanceService.FindAll()
+	instanceFindRequest := request.InstanceFindRequest{
+		UserId:      ctx.GetString("UserId"),
+		ChallengeId: ctx.Query("challenge_id"),
+		TeamId:      ctx.Query("team_id"),
+		GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
+		IsAvailable: utils.ParseIntParam(ctx.Query("is_available"), -1),
+		Page:        utils.ParseIntParam(ctx.Query("page"), -1),
+		Size:        utils.ParseIntParam(ctx.Query("size"), -1),
+	}
+	rep, _ := c.InstanceService.Find(instanceFindRequest)
 	res := make([]map[string]any, len(rep))
 	for i, v := range rep {
 		item := map[string]any{

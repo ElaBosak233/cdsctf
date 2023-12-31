@@ -7,7 +7,7 @@ import (
 )
 
 func NewInstanceRouter(instanceRouter *gin.RouterGroup, instanceController controllers.InstanceController, authMiddleware middlewares.AuthMiddleware) {
-	instanceRouter.GET("/", instanceController.Find)
+	instanceRouter.GET("/", authMiddleware.Auth(), instanceController.Find)
 	instanceRouter.GET("/:id", instanceController.FindById)
 	instanceRouter.POST("/", authMiddleware.Auth(), instanceController.Create)
 	instanceRouter.DELETE("/", instanceController.Remove)

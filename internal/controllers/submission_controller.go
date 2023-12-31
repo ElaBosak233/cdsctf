@@ -70,16 +70,16 @@ func (c *SubmissionControllerImpl) Create(ctx *gin.Context) {
 	submissionCreateRequest := request.SubmissionCreateRequest{}
 	err := ctx.ShouldBindJSON(&submissionCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
+			"msg":  utils.GetValidMsg(err, &submissionCreateRequest),
 		})
 		return
 	}
 	submissionCreateRequest.UserId = ctx.GetString("UserId")
 	status, err := c.SubmissionService.Create(submissionCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  err.Error(),
 		})

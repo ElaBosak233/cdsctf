@@ -40,6 +40,8 @@ func main() {
 	cor := cors.DefaultConfig()
 	cor.AllowOrigins = viper.GetStringSlice("server.cors.allow_origins")
 	cor.AllowMethods = viper.GetStringSlice("server.cors.allow_methods")
+	cor.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "PgsToken"}
+	cor.AllowCredentials = true
 	r.Use(cors.New(cor))
 
 	appRepository := initialize.Repositories(db)
