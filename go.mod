@@ -15,7 +15,9 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/google/uuid v1.4.0
+	github.com/lib/pq v1.10.7
 	github.com/mattn/go-colorable v0.1.13
+	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.18.2

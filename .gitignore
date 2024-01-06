@@ -21,6 +21,7 @@
 # Go workspace file
 go.work
 sqlite.db
+db.sqlite3
 .idea
 config.yml
 logs
@@ -28,5 +29,6 @@ plugins
 assets
 test.go
 dist
+_PgsHub.exe
 
 config.json
