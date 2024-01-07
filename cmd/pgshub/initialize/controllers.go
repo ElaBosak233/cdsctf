@@ -2,10 +2,10 @@ package initialize
 
 import (
 	"github.com/elabosak233/pgshub/internal/controllers"
-	registry2 "github.com/elabosak233/pgshub/internal/services"
+	"github.com/elabosak233/pgshub/internal/services"
 )
 
-func Controllers(appService *registry2.AppService) *controllers.AppController {
+func Controllers(appService *services.AppService) *controllers.AppController {
 	return &controllers.AppController{
 		UserController:       controllers.NewUserControllerImpl(appService),
 		ChallengeController:  controllers.NewChallengeController(appService),

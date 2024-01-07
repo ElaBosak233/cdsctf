@@ -1,11 +1,11 @@
 package initialize
 
 import (
-	registry2 "github.com/elabosak233/pgshub/internal/repositories"
+	"github.com/elabosak233/pgshub/internal/repositories"
 	"github.com/elabosak233/pgshub/internal/services"
 )
 
-func Services(appRepository *registry2.AppRepository) *services.AppService {
+func Services(appRepository *repositories.AppRepository) *services.AppService {
 	return &services.AppService{
 		AssetService:      services.NewAssetServiceImpl(appRepository),
 		UserService:       services.NewUserServiceImpl(appRepository),

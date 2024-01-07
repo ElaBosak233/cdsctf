@@ -1,7 +1,6 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "没有其他东西啦，仅仅是所有的后端接口，不要乱用哦",
         "title": "PgsHub Backend API",
         "contact": {},
         "version": "1.0"
