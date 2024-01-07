@@ -18,7 +18,6 @@ import (
 
 // @title PgsHub Backend API
 // @version 1.0
-// @description 没有其他东西啦，仅仅是所有的后端接口，不要乱用哦
 func main() {
 	Welcome()
 	utils.InitLogger()
@@ -29,6 +28,7 @@ func main() {
 		providers.NewDockerProvider()
 	}
 
+	// Debug 模式
 	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
 	if debug {
 		gin.SetMode(gin.DebugMode)
@@ -37,6 +37,7 @@ func main() {
 	}
 	r := gin.Default()
 
+	// Cors 配置
 	cor := cors.DefaultConfig()
 	cor.AllowOrigins = viper.GetStringSlice("server.cors.allow_origins")
 	cor.AllowMethods = viper.GetStringSlice("server.cors.allow_methods")
@@ -44,14 +45,17 @@ func main() {
 	cor.AllowCredentials = true
 	r.Use(cors.New(cor))
 
+	// 依赖注入
 	appRepository := initialize.Repositories(db)
 	appService := initialize.Services(appRepository)
 	appMiddleware := initialize.Middlewares(appService)
 	appController := initialize.Controllers(appService)
 	routers.NewRouters(r.Group("/api"), appController, appMiddleware)
 
+	// Swagger 文档
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
 
+	// 前端资源
 	r.Use(appMiddleware.FrontendMiddleware.Frontend("/", "./dist"))
 
 	s := &http.Server{

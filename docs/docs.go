@@ -1556,7 +1556,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "PgsHub Backend API",
-	Description:      "没有其他东西啦，仅仅是所有的后端接口，不要乱用哦",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
