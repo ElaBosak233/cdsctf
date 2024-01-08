@@ -5,7 +5,7 @@ type UserFindRequest struct {
 	Username string `json:"username"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
-	Role     int    `json:"role"`
+	Role     int64  `json:"role"`
 	Page     int    `json:"page"`
 	Size     int    `json:"size"`
 }
@@ -35,7 +35,7 @@ type UserUpdateRequest struct {
 	Username string `binding:"max=20,min=3" json:"username"`
 	Password string `binding:"min=6" json:"password"`
 	Email    string `binding:"email" json:"email"`
-	Role     int    `json:"role"`
+	Role     int64  `json:"role"`
 }
 
 type UserDeleteRequest struct {

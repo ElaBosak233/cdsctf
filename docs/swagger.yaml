@@ -696,6 +696,10 @@ paths:
         in: query
         name: game_id
         type: integer
+      - description: 是否升序
+        in: query
+        name: is_ascend
+        type: boolean
       - description: 是否详细
         in: query
         name: is_detailed

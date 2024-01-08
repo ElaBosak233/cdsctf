@@ -210,9 +210,9 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt("UserRole") <= 1 || ctx.GetString("UserId") == updateUserRequest.UserId {
-		if ctx.GetInt("UserRole") > 1 {
-			updateUserRequest.Role = ctx.GetInt("UserRole")
+	if ctx.GetInt64("UserRole") <= 1 || ctx.GetString("UserId") == updateUserRequest.UserId {
+		if ctx.GetInt64("UserRole") > 1 {
+			updateUserRequest.Role = ctx.GetInt64("UserRole")
 		}
 		err = c.UserService.Update(updateUserRequest)
 		if err != nil {
@@ -253,7 +253,7 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt("UserRole") <= 1 || ctx.GetString("UserId") == deleteUserRequest.UserId {
+	if ctx.GetInt64("UserRole") <= 1 || ctx.GetString("UserId") == deleteUserRequest.UserId {
 		_ = c.UserService.Delete(deleteUserRequest.UserId)
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
@@ -277,7 +277,7 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 func (c *UserControllerImpl) Find(ctx *gin.Context) {
 	if ctx.Query("id") == "" && ctx.Query("username") == "" && ctx.Query("email") == "" {
 		userResponse, pageCount, _ := c.UserService.Find(request.UserFindRequest{
-			Role: utils.ParseIntParam(ctx.Query("UserRole"), -1),
+			Role: int64(utils.ParseIntParam(ctx.Query("UserRole"), -1)),
 			Name: ctx.Query("name"),
 			Page: utils.ParseIntParam(ctx.Query("page"), -1),
 			Size: utils.ParseIntParam(ctx.Query("size"), -1),

@@ -677,6 +677,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "是否升序",
+                        "name": "is_ascend",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "是否详细",
                         "name": "is_detailed",

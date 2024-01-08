@@ -114,10 +114,10 @@ func (t *InstanceServiceImpl) Remove(id string) (err error) {
 		if err != nil || internal.InstanceMap[id] == nil {
 			return errors.New("实例不存在")
 		}
+		instance.RemovedAt = time.Now().Unix()
 		_ = t.InstanceRepository.Update(instance)
 		ctn := internal.InstanceMap[id].(*managers.DockerManager)
 		err = ctn.Remove()
-		instance.RemovedAt = time.Now().Unix()
 		return err
 	}
 	return errors.New("移除失败")
