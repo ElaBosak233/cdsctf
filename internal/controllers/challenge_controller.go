@@ -36,7 +36,7 @@ func NewChallengeController(appService *services.AppService) ChallengeController
 // @Router /api/challenges/ [get]
 func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 	isDetailed := func() int {
-		if ctx.GetInt("UserRole") <= 2 && utils.ParseIntParam(ctx.Query("is_detailed"), 0) == 1 {
+		if ctx.GetInt64("UserRole") <= 2 && utils.ParseIntParam(ctx.Query("is_detailed"), 0) == 1 {
 			return 1
 		}
 		return 0

@@ -112,19 +112,27 @@ func (c *DockerManager) Remove() (err error) {
 	if internal.DockerClient == nil {
 		return nil
 	}
-	err = internal.DockerClient.ContainerStop(context.Background(), c.RespId, container.StopOptions{})
-	if err != nil {
-		return err
-	}
-	statusCh, errCh := internal.DockerClient.ContainerWait(context.Background(), c.RespId, container.WaitConditionNotRunning)
-	select {
-	case err := <-errCh:
-		if err != nil {
-			return err
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		// Stop the container
+		errStop := internal.DockerClient.ContainerStop(context.Background(), c.RespId, container.StopOptions{})
+		if errStop != nil {
+			// Handle error if needed
 		}
-	case <-statusCh:
-	}
-	err = internal.DockerClient.ContainerRemove(context.Background(), c.RespId, types.ContainerRemoveOptions{})
+		// Wait for the container to stop
+		_, errWait := internal.DockerClient.ContainerWait(context.Background(), c.RespId, container.WaitConditionNotRunning)
+		if errWait != nil {
+			// Handle error if needed
+		}
+		// Remove the container
+		errRemove := internal.DockerClient.ContainerRemove(context.Background(), c.RespId, types.ContainerRemoveOptions{})
+		if errRemove != nil {
+			// Handle error if needed
+		}
+	}()
+	wg.Wait()
 	delete(internal.InstanceMap, c.InstanceId)
 	return err
 }

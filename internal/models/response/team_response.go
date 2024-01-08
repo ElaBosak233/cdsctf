@@ -9,3 +9,8 @@ type TeamResponse struct {
 	CreatedAt int64    `json:"created_at"`
 	UpdatedAt int64    `json:"updated_at"`
 }
+
+type TeamSimpleResponse struct {
+	TeamId   string `json:"id"`
+	TeamName string `json:"name"`
+}

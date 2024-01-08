@@ -47,6 +47,14 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (subm
 		if req.Status != -1 {
 			q = q.Where("status = ?", req.Status)
 		}
+		if req.IsDetailed == 0 {
+			q = q.Omit("flag")
+		}
+		if req.IsAscend {
+			q = q.Asc("created_at")
+		} else {
+			q = q.Desc("created_at")
+		}
 		return q
 	}
 	db := applyFilters(t.Db.Table("submission"))

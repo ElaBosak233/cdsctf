@@ -15,6 +15,7 @@ type SubmissionFindRequest struct {
 	TeamId      string `json:"team_id"`      // 团队 Id
 	GameId      int64  `json:"game_id"`      // 比赛 Id
 	IsDetailed  int    `json:"is_detailed"`  // 是否详细
+	IsAscend    bool   `json:"is_ascend"`    // 是否升序
 	Page        int    `json:"page"`         // 页码
 	Size        int    `json:"size"`         // 每页大小
 }
