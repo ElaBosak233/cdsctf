@@ -13,7 +13,7 @@ import (
 type SubmissionService interface {
 	Create(req request.SubmissionCreateRequest) (status int, err error)
 	Delete(id string) (err error)
-	Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, pageCount int64, err error)
+	Find(req request.SubmissionFindRequestInternal) (submissions []response.SubmissionResponse, pageCount int64, err error)
 }
 
 type SubmissionServiceImpl struct {
@@ -75,7 +75,7 @@ func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (sta
 	}
 	// 判断是否重复提交
 	if status == 1 {
-		existedSubmissions, _, _ := t.Find(request.SubmissionFindRequest{
+		existedSubmissions, _, _ := t.Find(request.SubmissionFindRequestInternal{
 			UserId:      req.UserId,
 			Status:      1,
 			ChallengeId: req.ChallengeId,
@@ -104,7 +104,7 @@ func (t *SubmissionServiceImpl) Delete(id string) (err error) {
 	return err
 }
 
-func (t *SubmissionServiceImpl) Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, pageCount int64, err error) {
+func (t *SubmissionServiceImpl) Find(req request.SubmissionFindRequestInternal) (submissions []response.SubmissionResponse, pageCount int64, err error) {
 	submissionsRep, count, err := t.SubmissionRepository.Find(req)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
