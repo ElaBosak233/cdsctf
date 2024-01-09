@@ -692,6 +692,13 @@ paths:
         in: query
         name: challenge_id
         type: string
+      - collectionFormat: csv
+        description: 题目 Id 数组
+        in: query
+        items:
+          type: string
+        name: challenge_ids
+        type: array
       - description: 比赛 Id
         in: query
         name: game_id

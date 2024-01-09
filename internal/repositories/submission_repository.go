@@ -9,7 +9,7 @@ import (
 type SubmissionRepository interface {
 	Insert(submission model.Submission) (err error)
 	Delete(id string) (err error)
-	Find(req request.SubmissionFindRequest) (submissions []model.Submission, count int64, err error)
+	Find(req request.SubmissionFindRequestInternal) (submissions []model.Submission, count int64, err error)
 }
 
 type SubmissionRepositoryImpl struct {
@@ -30,7 +30,7 @@ func (t *SubmissionRepositoryImpl) Delete(id string) (err error) {
 	return err
 }
 
-func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (submissions []model.Submission, count int64, err error) {
+func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequestInternal) (submissions []model.Submission, count int64, err error) {
 	applyFilters := func(q *xorm.Session) *xorm.Session {
 		if req.UserId != "" {
 			q = q.Where("user_id = ?", req.UserId)

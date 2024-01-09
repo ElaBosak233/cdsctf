@@ -40,22 +40,45 @@ func (c *SubmissionControllerImpl) Find(ctx *gin.Context) {
 		return 0
 	}
 	if ctx.Query("id") == "" {
-		submissions, pageCount, _ := c.SubmissionService.Find(request.SubmissionFindRequest{
-			UserId:      ctx.Query("user_id"),
-			Status:      utils.ParseIntParam(ctx.Query("status"), -1),
-			TeamId:      ctx.Query("team_id"),
-			GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), -1)), // 0 表示练习场
-			IsDetailed:  isDetailed(),
-			ChallengeId: ctx.Query("challenge_id"),
-			IsAscend:    ctx.Query("is_ascend") == "true",
-			Page:        utils.ParseIntParam(ctx.Query("page"), -1),
-			Size:        utils.ParseIntParam(ctx.Query("size"), -1),
-		})
-		ctx.JSON(http.StatusOK, gin.H{
-			"code":  http.StatusOK,
-			"pages": pageCount,
-			"data":  submissions,
-		})
+		challengeIds := ctx.QueryArray("challenge_ids")
+		if len(challengeIds) > 0 {
+			var submissionsMap = make(map[string]any)
+			for _, challengeId := range challengeIds {
+				submissions, _, _ := c.SubmissionService.Find(request.SubmissionFindRequestInternal{
+					UserId:      ctx.Query("user_id"),
+					Status:      utils.ParseIntParam(ctx.Query("status"), -1),
+					TeamId:      ctx.Query("team_id"),
+					GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), -1)), // 0 表示练习场
+					IsDetailed:  isDetailed(),
+					ChallengeId: challengeId,
+					IsAscend:    ctx.Query("is_ascend") == "true",
+					Page:        utils.ParseIntParam(ctx.Query("page"), -1),
+					Size:        utils.ParseIntParam(ctx.Query("size"), -1),
+				})
+				submissionsMap[challengeId] = submissions
+			}
+			ctx.JSON(http.StatusOK, gin.H{
+				"code": http.StatusOK,
+				"data": submissionsMap,
+			})
+		} else {
+			submissions, pageCount, _ := c.SubmissionService.Find(request.SubmissionFindRequestInternal{
+				UserId:      ctx.Query("user_id"),
+				Status:      utils.ParseIntParam(ctx.Query("status"), -1),
+				TeamId:      ctx.Query("team_id"),
+				GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), -1)), // 0 表示练习场
+				IsDetailed:  isDetailed(),
+				ChallengeId: ctx.Query("challenge_id"),
+				IsAscend:    ctx.Query("is_ascend") == "true",
+				Page:        utils.ParseIntParam(ctx.Query("page"), -1),
+				Size:        utils.ParseIntParam(ctx.Query("size"), -1),
+			})
+			ctx.JSON(http.StatusOK, gin.H{
+				"code":  http.StatusOK,
+				"pages": pageCount,
+				"data":  submissions,
+			})
+		}
 	}
 }
 

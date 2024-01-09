@@ -671,6 +671,16 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "题目 Id 数组",
+                        "name": "challenge_ids",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "比赛 Id",
                         "name": "game_id",
