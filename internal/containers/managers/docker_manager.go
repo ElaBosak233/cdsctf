@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/elabosak233/pgshub/internal"
 	"github.com/elabosak233/pgshub/internal/containers/providers"
@@ -51,7 +50,6 @@ func (c *DockerManager) Setup() (port int, err error) {
 	if port == 0 {
 		return 0, errors.New("未找到可用端口")
 	}
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return 0, errors.New("客户端创建失败")
 	}
@@ -73,12 +71,12 @@ func (c *DockerManager) Setup() (port int, err error) {
 			Memory: c.MemoryLimit * 1024 * 1024,
 		},
 	}
-	resp, err := cli.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")
+	resp, err := internal.DockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")
 	if err != nil {
 		return 0, err
 	}
 	c.RespId = resp.ID
-	err = cli.ContainerStart(context.Background(), c.RespId, types.ContainerStartOptions{})
+	err = internal.DockerClient.ContainerStart(context.Background(), c.RespId, types.ContainerStartOptions{})
 	if err != nil {
 		return 0, err
 	}
