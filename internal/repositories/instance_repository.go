@@ -8,10 +8,10 @@ import (
 )
 
 type InstanceRepository interface {
-	Insert(instance model.Instance) (err error)
+	Insert(instance model.Instance) (i model.Instance, err error)
 	Update(instance model.Instance) (err error)
 	Find(req request.InstanceFindRequest) (instances []model.Instance, pageCount int64, err error)
-	FindById(id string) (instance model.Instance, err error)
+	FindById(id int64) (instance model.Instance, err error)
 	FindAllAvailable() (instances []model.Instance, err error)
 	FindAll() (instances []model.Instance, err error)
 }
@@ -24,9 +24,9 @@ func NewInstanceRepositoryImpl(Db *xorm.Engine) InstanceRepository {
 	return &InstanceRepositoryImpl{Db: Db}
 }
 
-func (t *InstanceRepositoryImpl) Insert(instance model.Instance) (err error) {
+func (t *InstanceRepositoryImpl) Insert(instance model.Instance) (i model.Instance, err error) {
 	_, err = t.Db.Table("instance").Insert(&instance)
-	return err
+	return instance, err
 }
 
 func (t *InstanceRepositoryImpl) Update(instance model.Instance) (err error) {
@@ -36,13 +36,13 @@ func (t *InstanceRepositoryImpl) Update(instance model.Instance) (err error) {
 
 func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instances []model.Instance, pageCount int64, err error) {
 	applyFilter := func(q *xorm.Session) *xorm.Session {
-		if req.ChallengeId != "" {
+		if req.ChallengeId != 0 {
 			q = q.Where("challenge_id = ?", req.ChallengeId)
 		}
-		if req.UserId != "" {
+		if req.UserId != 0 {
 			q = q.Where("user_id = ?", req.UserId)
 		}
-		if req.TeamId != "" {
+		if req.TeamId != 0 {
 			q = q.Where("team_id = ?", req.TeamId)
 		}
 		if req.GameId != 0 {
@@ -67,7 +67,7 @@ func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instance
 	return instances, count, err
 }
 
-func (t *InstanceRepositoryImpl) FindById(id string) (instance model.Instance, err error) {
+func (t *InstanceRepositoryImpl) FindById(id int64) (instance model.Instance, err error) {
 	_, err = t.Db.Table("instance").ID(id).Get(&instance)
 	return instance, err
 }

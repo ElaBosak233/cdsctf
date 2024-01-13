@@ -1,7 +1,7 @@
 package request
 
 type UserFindRequest struct {
-	UserId   string `json:"id"`
+	UserId   int64  `json:"id"`
 	Username string `json:"username"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
@@ -31,7 +31,7 @@ type UserLoginRequest struct {
 }
 
 type UserUpdateRequest struct {
-	UserId   string `binding:"required" json:"id"`
+	UserId   int64  `binding:"required" json:"id"`
 	Username string `binding:"max=20,min=3" json:"username"`
 	Password string `binding:"min=6" json:"password"`
 	Email    string `binding:"email" json:"email"`
@@ -39,5 +39,5 @@ type UserUpdateRequest struct {
 }
 
 type UserDeleteRequest struct {
-	UserId string `binding:"required" json:"id"`
+	UserId int64 `binding:"required" json:"id"`
 }

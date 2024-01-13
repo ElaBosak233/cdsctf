@@ -8,7 +8,6 @@ import (
 	"github.com/elabosak233/pgshub/internal/models/response"
 	"github.com/elabosak233/pgshub/internal/repositories"
 	"github.com/elabosak233/pgshub/internal/repositories/relations"
-	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 	"math"
 )
@@ -16,11 +15,11 @@ import (
 type TeamService interface {
 	Create(req request.TeamCreateRequest) error
 	Update(req request.TeamUpdateRequest) error
-	Delete(id string) error
-	Join(req request.TeamJoinRequest) error
-	Quit(req request.TeamQuitRequest) error
+	Delete(id int64) error
+	Join(req request.TeamJoinRequest) (err error)
+	Quit(req request.TeamQuitRequest) (err error)
 	Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, err error)
-	FindById(id string) (res response.TeamResponse, err error)
+	FindById(id int64) (res response.TeamResponse, err error)
 }
 
 type TeamServiceImpl struct {
@@ -39,16 +38,14 @@ func NewTeamServiceImpl(appRepository *repositories.AppRepository) TeamService {
 
 func (t *TeamServiceImpl) Create(req request.TeamCreateRequest) error {
 	user, err := t.UserRepository.FindById(req.CaptainId)
-	uid := uuid.NewString()
-	if user.UserId != "" && err == nil {
-		err = t.TeamRepository.Insert(model.Team{
-			TeamId:    uid,
+	if user.UserId != 0 && err == nil {
+		team, err := t.TeamRepository.Insert(model.Team{
 			TeamName:  req.TeamName,
 			CaptainId: req.CaptainId,
 			IsLocked:  false,
 		})
 		err = t.UserTeamRepository.Insert(modelm2m.UserTeam{
-			TeamId: uid,
+			TeamId: team.TeamId,
 			UserId: req.CaptainId,
 		})
 		return err
@@ -58,9 +55,9 @@ func (t *TeamServiceImpl) Create(req request.TeamCreateRequest) error {
 
 func (t *TeamServiceImpl) Update(req request.TeamUpdateRequest) error {
 	user, err := t.UserRepository.FindById(req.CaptainId)
-	if user.UserId != "" && err == nil {
+	if user.UserId != 0 && err == nil {
 		team, err := t.TeamRepository.FindById(req.TeamId)
-		if team.TeamId != "" {
+		if team.TeamId != 0 {
 			err = t.TeamRepository.Update(model.Team{
 				TeamId:    team.TeamId,
 				TeamName:  req.TeamName,
@@ -74,9 +71,9 @@ func (t *TeamServiceImpl) Update(req request.TeamUpdateRequest) error {
 	return errors.New("用户不存在")
 }
 
-func (t *TeamServiceImpl) Delete(id string) error {
+func (t *TeamServiceImpl) Delete(id int64) error {
 	team, err := t.TeamRepository.FindById(id)
-	if team.TeamId != "" {
+	if team.TeamId != 0 {
 		err = t.TeamRepository.Delete(id)
 		err = t.UserTeamRepository.DeleteByTeamId(id)
 		return err
@@ -106,9 +103,9 @@ func (t *TeamServiceImpl) Find(req request.TeamFindRequest) (teams []response.Te
 
 func (t *TeamServiceImpl) Join(req request.TeamJoinRequest) error {
 	user, err := t.UserRepository.FindById(req.UserId)
-	if user.UserId != "" && err == nil {
+	if user.UserId != 0 && err == nil {
 		team, err := t.TeamRepository.FindById(req.TeamId)
-		if team.TeamId != "" {
+		if team.TeamId != 0 {
 			err = t.UserTeamRepository.Insert(modelm2m.UserTeam{
 				TeamId: team.TeamId,
 				UserId: req.UserId,
@@ -121,11 +118,11 @@ func (t *TeamServiceImpl) Join(req request.TeamJoinRequest) error {
 	return errors.New("用户不存在")
 }
 
-func (t *TeamServiceImpl) Quit(req request.TeamQuitRequest) error {
+func (t *TeamServiceImpl) Quit(req request.TeamQuitRequest) (err error) {
 	user, err := t.UserRepository.FindById(req.UserId)
-	if user.UserId != "" && err == nil {
+	if user.UserId != 0 && err == nil {
 		team, err := t.TeamRepository.FindById(req.TeamId)
-		if team.TeamId != "" {
+		if team.TeamId != 0 {
 			err = t.UserTeamRepository.Delete(modelm2m.UserTeam{
 				TeamId: team.TeamId,
 				UserId: req.UserId,
@@ -138,9 +135,9 @@ func (t *TeamServiceImpl) Quit(req request.TeamQuitRequest) error {
 	return errors.New("用户不存在")
 }
 
-func (t *TeamServiceImpl) FindById(id string) (res response.TeamResponse, err error) {
+func (t *TeamServiceImpl) FindById(id int64) (res response.TeamResponse, err error) {
 	team, err := t.TeamRepository.FindById(id)
-	if team.TeamId != "" {
+	if team.TeamId != 0 {
 		userTeams, _ := t.UserTeamRepository.FindByTeamId(team.TeamId)
 		for _, userTeam := range userTeams {
 			res.UserIds = append(res.UserIds, userTeam.UserId)

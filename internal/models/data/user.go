@@ -2,7 +2,7 @@ package data
 
 // User 用户
 type User struct {
-	UserId    string `xorm:"'id' varchar(36) pk unique notnull" json:"id"`
+	UserId    int64  `xorm:"'id' pk autoincr" json:"id"`
 	Username  string `xorm:"'username' varchar(36) unique notnull index" json:"username"` // 用户名
 	Name      string `xorm:"'name' varchar(36) notnull" json:"name"`                      // 昵称
 	Email     string `xorm:"'email' varchar(128) unique notnull" json:"email"`            // 邮箱

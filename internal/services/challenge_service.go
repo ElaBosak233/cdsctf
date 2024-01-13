@@ -5,7 +5,6 @@ import (
 	model "github.com/elabosak233/pgshub/internal/models/data"
 	"github.com/elabosak233/pgshub/internal/models/request"
 	"github.com/elabosak233/pgshub/internal/repositories"
-	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 	"math"
 )
@@ -13,8 +12,8 @@ import (
 type ChallengeService interface {
 	Create(req request.ChallengeCreateRequest) (err error)
 	Update(req request.ChallengeUpdateRequest) (err error)
-	Delete(id string) error
-	FindById(id string, isDetailed int) model.Challenge
+	Delete(id int64) error
+	FindById(id int64, isDetailed int) model.Challenge
 	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pageCount int64, err error)
 }
 
@@ -31,14 +30,13 @@ func NewChallengeServiceImpl(appRepository *repositories.AppRepository) Challeng
 func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) (err error) {
 	challengeModel := model.Challenge{}
 	_ = mapstructure.Decode(req, &challengeModel)
-	challengeModel.ChallengeId = uuid.NewString()
 	err = t.ChallengeRepository.Insert(challengeModel)
 	return err
 }
 
 func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) (err error) {
 	challengeData, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
-	if err != nil || challengeData.ChallengeId == "" {
+	if err != nil || challengeData.ChallengeId == 0 {
 		return errors.New("题目不存在")
 	}
 	challengeModel := model.Challenge{}
@@ -47,7 +45,7 @@ func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) (err e
 	return err
 }
 
-func (t *ChallengeServiceImpl) Delete(id string) error {
+func (t *ChallengeServiceImpl) Delete(id int64) error {
 	err := t.ChallengeRepository.Delete(id)
 	return err
 }
@@ -63,7 +61,7 @@ func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenge
 }
 
 // FindById implements ChallengeService
-func (t *ChallengeServiceImpl) FindById(id string, isDetailed int) model.Challenge {
+func (t *ChallengeServiceImpl) FindById(id int64, isDetailed int) model.Challenge {
 	challengeData, _ := t.ChallengeRepository.FindById(id, isDetailed)
 	return challengeData
 }

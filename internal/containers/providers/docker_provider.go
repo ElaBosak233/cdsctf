@@ -33,9 +33,7 @@ func GetFreePort() (port int) {
 	if viper.GetString("container.docker.host") == ("unix:///var/run/docker.sock") || viper.GetString("container.docker.host") == "npipe:////./pipe/docker_engine" {
 		for port := viper.GetInt("container.docker.ports.from"); port <= viper.GetInt("container.docker.ports.to"); port++ {
 			addr := fmt.Sprintf("127.0.0.1:%d", port)
-			l, err := net.Listen("tcp", addr)
-			if err == nil {
-				_ = l.Close()
+			if isPortAvailable(addr) {
 				return port
 			}
 		}

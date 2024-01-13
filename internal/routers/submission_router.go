@@ -8,5 +8,6 @@ import (
 
 func NewSubmissionRouter(submissionRouter *gin.RouterGroup, submissionController controllers.SubmissionController, authMiddleware middlewares.AuthMiddleware) {
 	submissionRouter.GET("/", authMiddleware.Auth(), submissionController.Find)
+	submissionRouter.GET("/batch", authMiddleware.Auth(), submissionController.BatchFind)
 	submissionRouter.POST("/", authMiddleware.Auth(), submissionController.Create)
 }

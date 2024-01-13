@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-playground/validator/v10"
 	"reflect"
 	"strconv"
@@ -26,4 +27,17 @@ func ParseIntParam(queryValue string, defaultValue int) int {
 		return value
 	}
 	return defaultValue
+}
+
+func MapStringsToInts(strArray []string) []int64 {
+	intArray := make([]int64, len(strArray))
+	for i, str := range strArray {
+		num, err := strconv.Atoi(str)
+		if err != nil {
+			fmt.Printf("Error converting string to int: %v\n", err)
+			return nil
+		}
+		intArray[i] = int64(num)
+	}
+	return intArray
 }

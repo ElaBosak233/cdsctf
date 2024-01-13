@@ -19,7 +19,7 @@ import (
 var portMutex sync.Mutex // 互斥锁
 
 type DockerManager struct {
-	InstanceId  string
+	InstanceId  int64
 	RespId      string
 	ImageName   string
 	ExposedPort int
@@ -31,9 +31,8 @@ type DockerManager struct {
 	cancelFunc  context.CancelFunc // 存储取消函数
 }
 
-func NewDockerManagerImpl(instanceId string, imageName string, exposedPort int, flagStr string, flagEnv string, memoryLimit int64, duration time.Duration) *DockerManager {
+func NewDockerManagerImpl(imageName string, exposedPort int, flagStr string, flagEnv string, memoryLimit int64, duration time.Duration) *DockerManager {
 	return &DockerManager{
-		InstanceId:  instanceId,
 		ImageName:   imageName,
 		ExposedPort: exposedPort,
 		Duration:    duration,
@@ -41,6 +40,10 @@ func NewDockerManagerImpl(instanceId string, imageName string, exposedPort int, 
 		FlagEnv:     flagEnv,
 		MemoryLimit: memoryLimit,
 	}
+}
+
+func (c *DockerManager) SetInstanceId(instanceId int64) {
+	c.InstanceId = instanceId
 }
 
 func (c *DockerManager) Setup() (port int, err error) {

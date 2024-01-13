@@ -12,8 +12,9 @@ import (
 
 type SubmissionService interface {
 	Create(req request.SubmissionCreateRequest) (status int, err error)
-	Delete(id string) (err error)
+	Delete(id int64) (err error)
 	Find(req request.SubmissionFindRequestInternal) (submissions []response.SubmissionResponse, pageCount int64, err error)
+	BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error)
 }
 
 type SubmissionServiceImpl struct {
@@ -43,13 +44,12 @@ func (t *SubmissionServiceImpl) JudgeDynamicChallenge(req request.SubmissionCrea
 	status = 0
 	for _, instance := range perhapsInstances {
 		if req.Flag == instance.Flag {
-			if (req.UserId == instance.UserId && req.UserId != "") || (req.TeamId == instance.TeamId && req.TeamId != "") {
+			if (req.UserId == instance.UserId && req.UserId != 0) || (req.TeamId == instance.TeamId && req.TeamId != 0) {
 				status = 1
-				break
 			} else {
 				status = 2
-				break
 			}
+			break
 		}
 	}
 	return status, err
@@ -99,7 +99,7 @@ func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (sta
 	return status, err
 }
 
-func (t *SubmissionServiceImpl) Delete(id string) (err error) {
+func (t *SubmissionServiceImpl) Delete(id int64) (err error) {
 	err = t.SubmissionRepository.Delete(id)
 	return err
 }
@@ -121,4 +121,9 @@ func (t *SubmissionServiceImpl) Find(req request.SubmissionFindRequestInternal) 
 		})
 	}
 	return submissions, pageCount, err
+}
+
+func (t *SubmissionServiceImpl) BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error) {
+	submissions, err = t.SubmissionRepository.BatchFind(req)
+	return submissions, err
 }

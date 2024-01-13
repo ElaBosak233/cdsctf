@@ -11,6 +11,7 @@ import (
 type SubmissionController interface {
 	Find(ctx *gin.Context)
 	Create(ctx *gin.Context)
+	BatchFind(ctx *gin.Context)
 }
 
 type SubmissionControllerImpl struct {
@@ -40,46 +41,55 @@ func (c *SubmissionControllerImpl) Find(ctx *gin.Context) {
 		return 0
 	}
 	if ctx.Query("id") == "" {
-		challengeIds := ctx.QueryArray("challenge_ids")
-		if len(challengeIds) > 0 {
-			var submissionsMap = make(map[string]any)
-			for _, challengeId := range challengeIds {
-				submissions, _, _ := c.SubmissionService.Find(request.SubmissionFindRequestInternal{
-					UserId:      ctx.Query("user_id"),
-					Status:      utils.ParseIntParam(ctx.Query("status"), -1),
-					TeamId:      ctx.Query("team_id"),
-					GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), -1)), // 0 表示练习场
-					IsDetailed:  isDetailed(),
-					ChallengeId: challengeId,
-					IsAscend:    ctx.Query("is_ascend") == "true",
-					Page:        utils.ParseIntParam(ctx.Query("page"), -1),
-					Size:        utils.ParseIntParam(ctx.Query("size"), -1),
-				})
-				submissionsMap[challengeId] = submissions
-			}
-			ctx.JSON(http.StatusOK, gin.H{
-				"code": http.StatusOK,
-				"data": submissionsMap,
-			})
-		} else {
-			submissions, pageCount, _ := c.SubmissionService.Find(request.SubmissionFindRequestInternal{
-				UserId:      ctx.Query("user_id"),
-				Status:      utils.ParseIntParam(ctx.Query("status"), -1),
-				TeamId:      ctx.Query("team_id"),
-				GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), -1)), // 0 表示练习场
-				IsDetailed:  isDetailed(),
-				ChallengeId: ctx.Query("challenge_id"),
-				IsAscend:    ctx.Query("is_ascend") == "true",
-				Page:        utils.ParseIntParam(ctx.Query("page"), -1),
-				Size:        utils.ParseIntParam(ctx.Query("size"), -1),
-			})
-			ctx.JSON(http.StatusOK, gin.H{
-				"code":  http.StatusOK,
-				"pages": pageCount,
-				"data":  submissions,
-			})
-		}
+		submissions, pageCount, _ := c.SubmissionService.Find(request.SubmissionFindRequestInternal{
+			UserId:      int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
+			Status:      utils.ParseIntParam(ctx.Query("status"), -1),
+			TeamId:      int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
+			GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
+			IsDetailed:  isDetailed(),
+			ChallengeId: int64(utils.ParseIntParam(ctx.Query("challenge_id"), -1)),
+			IsAscend:    ctx.Query("is_ascend") == "true",
+			Page:        utils.ParseIntParam(ctx.Query("page"), -1),
+			Size:        utils.ParseIntParam(ctx.Query("size"), -1),
+		})
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":  http.StatusOK,
+			"pages": pageCount,
+			"data":  submissions,
+		})
 	}
+}
+
+// BatchFind
+// @Summary 提交记录批量查询
+// @Description
+// @Tags 提交
+// @Accept json
+// @Produce json
+// @Param PgsToken header string true "PgsToken"
+// @Param 查找请求 query request.SubmissionBatchFindRequest false "SubmissionBatchFindRequest"
+// @Router /api/submissions/batch/ [get]
+func (c *SubmissionControllerImpl) BatchFind(ctx *gin.Context) {
+	submissions, err := c.SubmissionService.BatchFind(request.SubmissionBatchFindRequest{
+		Page:         utils.ParseIntParam(ctx.Query("page"), -1),
+		Size:         utils.ParseIntParam(ctx.Query("size"), -1),
+		UserId:       int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
+		ChallengeIds: utils.MapStringsToInts(ctx.QueryArray("challenge_ids")),
+		Status:       utils.ParseIntParam(ctx.Query("status"), -1),
+		TeamId:       int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
+		GameId:       int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
+	})
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusInternalServerError,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": submissions,
+	})
 }
 
 // Create
@@ -101,7 +111,7 @@ func (c *SubmissionControllerImpl) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	submissionCreateRequest.UserId = ctx.GetString("UserId")
+	submissionCreateRequest.UserId = ctx.GetInt64("UserId")
 	status, err := c.SubmissionService.Create(submissionCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

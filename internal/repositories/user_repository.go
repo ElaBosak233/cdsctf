@@ -9,8 +9,8 @@ import (
 type UserRepository interface {
 	Insert(user model.User) error
 	Update(user model.User) error
-	Delete(id string) error
-	FindById(id string) (user model.User, err error)
+	Delete(id int64) error
+	FindById(id int64) (user model.User, err error)
 	FindByUsername(username string) (user model.User, err error)
 	FindByEmail(email string) (user model.User, err error)
 	Find(req request.UserFindRequest) (user []model.User, count int64, err error)
@@ -31,7 +31,7 @@ func (t *UserRepositoryImpl) Insert(user model.User) error {
 }
 
 // Delete implements UserRepository
-func (t *UserRepositoryImpl) Delete(id string) error {
+func (t *UserRepositoryImpl) Delete(id int64) error {
 	_, err := t.Db.Table("user").ID(id).Delete(&model.User{})
 	return err
 }
@@ -64,7 +64,7 @@ func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []model.Us
 }
 
 // FindById implements UserRepository
-func (t *UserRepositoryImpl) FindById(id string) (model.User, error) {
+func (t *UserRepositoryImpl) FindById(id int64) (model.User, error) {
 	var user model.User
 	has, err := t.Db.Table("user").ID(id).Get(&user)
 	if has {

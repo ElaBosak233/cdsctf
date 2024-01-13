@@ -8,7 +8,6 @@ import (
 	"github.com/elabosak233/pgshub/internal/repositories"
 	"github.com/elabosak233/pgshub/internal/repositories/relations"
 	jwt "github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
@@ -19,14 +18,14 @@ import (
 type UserService interface {
 	Create(req request.UserCreateRequest) (err error)
 	Update(req request.UserUpdateRequest) error
-	Delete(id string) error
-	FindById(id string) (response.UserResponse, error)
+	Delete(id int64) error
+	FindById(id int64) (response.UserResponse, error)
 	FindByUsername(username string) (response.UserResponse, error)
 	FindByEmail(email string) (user response.UserResponse, err error)
-	VerifyPasswordById(id string, password string) bool
+	VerifyPasswordById(id int64, password string) bool
 	VerifyPasswordByUsername(username string, password string) bool
 	GetJwtTokenById(user response.UserResponse) (tokenString string, err error)
-	GetIdByJwtToken(token string) (id string, err error)
+	GetIdByJwtToken(token string) (id int64, err error)
 	Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, err error)
 }
 
@@ -51,24 +50,23 @@ func (t *UserServiceImpl) GetJwtTokenById(user response.UserResponse) (tokenStri
 	return pgsToken.SignedString(jwtSecretKey)
 }
 
-func (t *UserServiceImpl) GetIdByJwtToken(token string) (id string, err error) {
+func (t *UserServiceImpl) GetIdByJwtToken(token string) (id int64, err error) {
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(viper.GetString("jwt.secret_key")), nil
 	})
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
-		return claims["user_id"].(string), nil
+		return int64(claims["user_id"].(float64)), nil
 	} else {
-		return "", errors.New("无效 Token")
+		return 0, errors.New("无效 Token")
 	}
 }
 
 func (t *UserServiceImpl) Create(req request.UserCreateRequest) (err error) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	userModel := model.User{
-		UserId:   uuid.NewString(),
 		Username: req.Username,
 		Email:    req.Email,
 		Name:     req.Name,
@@ -82,7 +80,7 @@ func (t *UserServiceImpl) Create(req request.UserCreateRequest) (err error) {
 func (t *UserServiceImpl) Update(req request.UserUpdateRequest) error {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	userData, err := t.UserRepository.FindById(req.UserId)
-	if err != nil || userData.UserId == "" {
+	if err != nil || userData.UserId == 0 {
 		return errors.New("用户不存在")
 	}
 	userModel := model.User{}
@@ -93,7 +91,7 @@ func (t *UserServiceImpl) Update(req request.UserUpdateRequest) error {
 }
 
 // Delete implements UserService
-func (t *UserServiceImpl) Delete(id string) error {
+func (t *UserServiceImpl) Delete(id int64) error {
 	err := t.UserRepository.Delete(id)
 	err = t.UserTeamRepository.DeleteByUserId(id)
 	return err
@@ -119,7 +117,7 @@ func (t *UserServiceImpl) Find(req request.UserFindRequest) (users []response.Us
 }
 
 // FindById implements UserService
-func (t *UserServiceImpl) FindById(id string) (response.UserResponse, error) {
+func (t *UserServiceImpl) FindById(id int64) (response.UserResponse, error) {
 	userData, err := t.UserRepository.FindById(id)
 	if err != nil {
 		return response.UserResponse{}, errors.New("用户不存在")
@@ -160,7 +158,7 @@ func (t *UserServiceImpl) FindByEmail(email string) (user response.UserResponse,
 	return user, err
 }
 
-func (t *UserServiceImpl) VerifyPasswordById(id string, password string) bool {
+func (t *UserServiceImpl) VerifyPasswordById(id int64, password string) bool {
 	userData, err := t.UserRepository.FindById(id)
 	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
 	if err != nil {

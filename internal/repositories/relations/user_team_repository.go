@@ -8,11 +8,11 @@ import (
 type UserTeamRepository interface {
 	Insert(userTeam model.UserTeam) error
 	Delete(userTeam model.UserTeam) error
-	DeleteByUserId(userId string) error
-	DeleteByTeamId(teamId string) error
+	DeleteByUserId(userId int64) error
+	DeleteByTeamId(teamId int64) error
 	Exist(userTeam model.UserTeam) (bool, error)
-	FindByUserId(userId string) (userTeams []model.UserTeam, err error)
-	FindByTeamId(teamId string) (userTeams []model.UserTeam, err error)
+	FindByUserId(userId int64) (userTeams []model.UserTeam, err error)
+	FindByTeamId(teamId int64) (userTeams []model.UserTeam, err error)
 	FindAll() (userTeams []model.UserTeam, err error)
 }
 
@@ -34,12 +34,12 @@ func (t *UserTeamRepositoryImpl) Delete(userTeam model.UserTeam) error {
 	return err
 }
 
-func (t *UserTeamRepositoryImpl) DeleteByUserId(userId string) error {
+func (t *UserTeamRepositoryImpl) DeleteByUserId(userId int64) error {
 	_, err := t.Db.Table("user_team").Where("user_id = ?", userId).Delete(&model.UserTeam{})
 	return err
 }
 
-func (t *UserTeamRepositoryImpl) DeleteByTeamId(teamId string) error {
+func (t *UserTeamRepositoryImpl) DeleteByTeamId(teamId int64) error {
 	_, err := t.Db.Table("user_team").Where("team_id = ?", teamId).Delete(&model.UserTeam{})
 	return err
 }
@@ -49,7 +49,7 @@ func (t *UserTeamRepositoryImpl) Exist(userTeam model.UserTeam) (bool, error) {
 	return r, err
 }
 
-func (t *UserTeamRepositoryImpl) FindByUserId(userId string) (userTeams []model.UserTeam, err error) {
+func (t *UserTeamRepositoryImpl) FindByUserId(userId int64) (userTeams []model.UserTeam, err error) {
 	var userTeam []model.UserTeam
 	err = t.Db.Table("user_team").
 		Join("INNER", "team", "user_team.team_id = team.id").
@@ -61,7 +61,7 @@ func (t *UserTeamRepositoryImpl) FindByUserId(userId string) (userTeams []model.
 	return userTeam, err
 }
 
-func (t *UserTeamRepositoryImpl) FindByTeamId(teamId string) (userTeams []model.UserTeam, err error) {
+func (t *UserTeamRepositoryImpl) FindByTeamId(teamId int64) (userTeams []model.UserTeam, err error) {
 	var teamUser []model.UserTeam
 	err = t.Db.Table("user_team").
 		Join("INNER", "user", "user_team.user_id = user.id").

@@ -45,7 +45,7 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	instanceCreateRequest.UserId = ctx.GetString("UserId")
+	instanceCreateRequest.UserId = ctx.GetInt64("UserId")
 	res, err := c.InstanceService.Create(instanceCreateRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":       http.StatusOK,
@@ -111,7 +111,7 @@ func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 // @Router /api/instances/{id} [get]
 func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	rep, err := c.InstanceService.FindById(id)
+	rep, err := c.InstanceService.FindById(int64(utils.ParseIntParam(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -135,9 +135,9 @@ func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
 // @Router /api/instances/ [get]
 func (c *InstanceControllerImpl) Find(ctx *gin.Context) {
 	instanceFindRequest := request.InstanceFindRequest{
-		UserId:      ctx.GetString("UserId"),
-		ChallengeId: ctx.Query("challenge_id"),
-		TeamId:      ctx.Query("team_id"),
+		UserId:      ctx.GetInt64("UserId"),
+		ChallengeId: int64(utils.ParseIntParam(ctx.Query("challenge_id"), 0)),
+		TeamId:      int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
 		GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
 		IsAvailable: utils.ParseIntParam(ctx.Query("is_available"), -1),
 		Page:        utils.ParseIntParam(ctx.Query("page"), -1),

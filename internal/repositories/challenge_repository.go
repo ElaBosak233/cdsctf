@@ -9,8 +9,8 @@ import (
 type ChallengeRepository interface {
 	Insert(user model.Challenge) error
 	Update(user model.Challenge) error
-	Delete(id string) error
-	FindById(id string, isDetailed int) (challenge model.Challenge, err error)
+	Delete(id int64) error
+	FindById(id int64, isDetailed int) (challenge model.Challenge, err error)
 	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, count int64, err error)
 }
 
@@ -29,9 +29,9 @@ func (t *ChallengeRepositoryImpl) Insert(challenge model.Challenge) error {
 }
 
 // Delete implements ChallengeRepository
-func (t *ChallengeRepositoryImpl) Delete(id string) error {
-	var user model.Challenge
-	_, err := t.Db.Table("challenge").ID(id).Delete(&user)
+func (t *ChallengeRepositoryImpl) Delete(id int64) error {
+	var challenge model.Challenge
+	_, err := t.Db.Table("challenge").ID(id).Delete(&challenge)
 	return err
 }
 
@@ -85,7 +85,7 @@ func (t *ChallengeRepositoryImpl) FindAll() []model.Challenge {
 }
 
 // FindById implements ChallengeRepository
-func (t *ChallengeRepositoryImpl) FindById(id string, isDetailed int) (challenge model.Challenge, err error) {
+func (t *ChallengeRepositoryImpl) FindById(id int64, isDetailed int) (challenge model.Challenge, err error) {
 	db := t.Db.Table("challenge").ID(id)
 	if isDetailed == 0 {
 		db = db.Omit("flag", "flag_fmt", "flag_env", "image")
