@@ -5,7 +5,7 @@ import (
 )
 
 type ChallengeInfoResponse struct {
-	ChallengeId   string `json:"id"`
+	ChallengeId   int64  `json:"id"`
 	Title         string `xorm:"'title' varchar(50) notnull" json:"title"`
 	Description   string `xorm:"'description' text notnull" json:"description"`
 	Category      string `xorm:"'category' varchar(16) notnull" json:"category"`

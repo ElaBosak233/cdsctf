@@ -58,7 +58,8 @@ func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 			"data":  challengeData,
 		})
 	} else {
-		challengeData := c.ChallengeService.FindById(ctx.Query("id"), isDetailed())
+		id := int64(utils.ParseIntParam(ctx.Query("id"), 0))
+		challengeData := c.ChallengeService.FindById(id, isDetailed())
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
 			"data": challengeData,

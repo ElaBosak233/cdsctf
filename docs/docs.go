@@ -333,7 +333,7 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "name": "id",
                         "in": "query"
                     },
@@ -513,7 +513,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "name": "challenge_id",
                         "in": "query"
                     },
@@ -538,7 +538,7 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "name": "team_id",
                         "in": "query"
                     }
@@ -665,19 +665,9 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "题目 Id",
                         "name": "challenge_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "题目 Id 数组",
-                        "name": "challenge_ids",
                         "in": "query"
                     },
                     {
@@ -717,13 +707,13 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "团队 Id",
                         "name": "team_id",
                         "in": "query"
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "用户 Id",
                         "name": "user_id",
                         "in": "query"
@@ -763,6 +753,82 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/submissions/batch/": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "提交"
+                ],
+                "summary": "提交记录批量查询",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "题目 Id 数组",
+                        "name": "challenge_ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "比赛 Id",
+                        "name": "game_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否升序",
+                        "name": "is_ascend",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "评估结果",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "团队 Id",
+                        "name": "team_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "用户 Id",
+                        "name": "user_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/teams/": {
             "get": {
                 "description": "查找团队",
@@ -778,7 +844,7 @@ const docTemplate = `{
                 "summary": "查找团队",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "integer",
                         "name": "captain_id",
                         "in": "query"
                     },
@@ -972,7 +1038,7 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "name": "id",
                         "in": "query"
                     },
@@ -1270,7 +1336,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1305,7 +1371,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "image": {
                     "type": "string"
@@ -1334,7 +1400,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "challenge_id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1345,7 +1411,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1356,7 +1422,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1369,7 +1435,7 @@ const docTemplate = `{
             "properties": {
                 "challenge_id": {
                     "description": "题目 Id",
-                    "type": "string"
+                    "type": "integer"
                 },
                 "flag": {
                     "description": "提交内容",
@@ -1381,7 +1447,7 @@ const docTemplate = `{
                 },
                 "team_id": {
                     "description": "团队 Id",
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1393,7 +1459,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "captain_id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
@@ -1407,7 +1473,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1419,10 +1485,10 @@ const docTemplate = `{
             ],
             "properties": {
                 "team_id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1434,10 +1500,10 @@ const docTemplate = `{
             ],
             "properties": {
                 "team_id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1450,10 +1516,10 @@ const docTemplate = `{
             ],
             "properties": {
                 "captain_id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
@@ -1494,7 +1560,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1546,7 +1612,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "password": {
                     "type": "string",

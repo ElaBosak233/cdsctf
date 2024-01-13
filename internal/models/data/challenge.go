@@ -2,7 +2,7 @@ package data
 
 // Challenge 题目
 type Challenge struct {
-	ChallengeId   string `xorm:"'id' varchar(36) pk unique notnull" json:"id"`
+	ChallengeId   int64  `xorm:"'id' pk autoincr" json:"id"`
 	Title         string `xorm:"'title' varchar(50) notnull" json:"title"`                           // 题目标题
 	Description   string `xorm:"'description' text notnull" json:"description"`                      // 题目描述
 	Category      string `xorm:"'category' varchar(16) notnull" json:"category"`                     // 题目分类

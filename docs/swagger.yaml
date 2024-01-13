@@ -50,7 +50,7 @@ definitions:
   request.ChallengeDeleteRequest:
     properties:
       id:
-        type: string
+        type: integer
     required:
     - id
     type: object
@@ -75,7 +75,7 @@ definitions:
       has_attachment:
         type: boolean
       id:
-        type: string
+        type: integer
       image:
         type: string
       is_dynamic:
@@ -92,21 +92,21 @@ definitions:
   request.InstanceCreateRequest:
     properties:
       challenge_id:
-        type: string
+        type: integer
     required:
     - challenge_id
     type: object
   request.InstanceRemoveRequest:
     properties:
       id:
-        type: string
+        type: integer
     required:
     - id
     type: object
   request.InstanceRenewRequest:
     properties:
       id:
-        type: string
+        type: integer
     required:
     - id
     type: object
@@ -114,7 +114,7 @@ definitions:
     properties:
       challenge_id:
         description: 题目 Id
-        type: string
+        type: integer
       flag:
         description: 提交内容
         type: string
@@ -123,7 +123,7 @@ definitions:
         type: integer
       team_id:
         description: 团队 Id
-        type: string
+        type: integer
     required:
     - challenge_id
     - flag
@@ -131,7 +131,7 @@ definitions:
   request.TeamCreateRequest:
     properties:
       captain_id:
-        type: string
+        type: integer
       name:
         type: string
     required:
@@ -141,16 +141,16 @@ definitions:
   request.TeamDeleteRequest:
     properties:
       id:
-        type: string
+        type: integer
     required:
     - id
     type: object
   request.TeamJoinRequest:
     properties:
       team_id:
-        type: string
+        type: integer
       user_id:
-        type: string
+        type: integer
     required:
     - team_id
     - user_id
@@ -158,9 +158,9 @@ definitions:
   request.TeamQuitRequest:
     properties:
       team_id:
-        type: string
+        type: integer
       user_id:
-        type: string
+        type: integer
     required:
     - team_id
     - user_id
@@ -168,9 +168,9 @@ definitions:
   request.TeamUpdateRequest:
     properties:
       captain_id:
-        type: string
+        type: integer
       id:
-        type: string
+        type: integer
       name:
         type: string
     required:
@@ -200,7 +200,7 @@ definitions:
   request.UserDeleteRequest:
     properties:
       id:
-        type: string
+        type: integer
     required:
     - id
     type: object
@@ -235,7 +235,7 @@ definitions:
       email:
         type: string
       id:
-        type: string
+        type: integer
       password:
         minLength: 6
         type: string
@@ -490,7 +490,7 @@ paths:
         type: integer
       - in: query
         name: id
-        type: string
+        type: integer
       - in: query
         name: is_detailed
         type: integer
@@ -604,7 +604,7 @@ paths:
         type: string
       - in: query
         name: challenge_id
-        type: string
+        type: integer
       - in: query
         name: game_id
         type: integer
@@ -619,7 +619,7 @@ paths:
         type: integer
       - in: query
         name: team_id
-        type: string
+        type: integer
       produces:
       - application/json
       responses: {}
@@ -691,14 +691,7 @@ paths:
       - description: 题目 Id
         in: query
         name: challenge_id
-        type: string
-      - collectionFormat: csv
-        description: 题目 Id 数组
-        in: query
-        items:
-          type: string
-        name: challenge_ids
-        type: array
+        type: integer
       - description: 比赛 Id
         in: query
         name: game_id
@@ -726,11 +719,11 @@ paths:
       - description: 团队 Id
         in: query
         name: team_id
-        type: string
+        type: integer
       - description: 用户 Id
         in: query
         name: user_id
-        type: string
+        type: integer
       produces:
       - application/json
       responses: {}
@@ -758,6 +751,57 @@ paths:
       summary: 提交
       tags:
       - 提交
+  /api/submissions/batch/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: 题目 Id 数组
+        in: query
+        items:
+          type: integer
+        name: challenge_ids
+        type: array
+      - description: 比赛 Id
+        in: query
+        name: game_id
+        type: integer
+      - description: 是否升序
+        in: query
+        name: is_ascend
+        type: boolean
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小
+        in: query
+        name: size
+        type: integer
+      - description: 评估结果
+        in: query
+        name: status
+        type: integer
+      - description: 团队 Id
+        in: query
+        name: team_id
+        type: integer
+      - description: 用户 Id
+        in: query
+        name: user_id
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: 提交记录批量查询
+      tags:
+      - 提交
   /api/teams/:
     delete:
       consumes:
@@ -783,7 +827,7 @@ paths:
       parameters:
       - in: query
         name: captain_id
-        type: string
+        type: integer
       - in: query
         name: name
         type: string
@@ -916,7 +960,7 @@ paths:
         type: string
       - in: query
         name: id
-        type: string
+        type: integer
       - in: query
         name: name
         type: string

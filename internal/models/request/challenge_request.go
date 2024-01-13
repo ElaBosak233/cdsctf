@@ -19,7 +19,7 @@ type ChallengeCreateRequest struct {
 }
 
 type ChallengeUpdateRequest struct {
-	ChallengeId   string `json:"id"`
+	ChallengeId   int64  `json:"id"`
 	Title         string `json:"title"`
 	Description   string `json:"description"`
 	Category      string `json:"category"`
@@ -38,11 +38,11 @@ type ChallengeUpdateRequest struct {
 }
 
 type ChallengeDeleteRequest struct {
-	ChallengeId string `json:"id" binding:"required"`
+	ChallengeId int64 `json:"id" binding:"required"`
 }
 
 type ChallengeFindRequest struct {
-	Id            string `json:"id"`
+	Id            int64  `json:"id"`
 	Category      string `json:"category"`
 	Title         string `json:"title"`
 	IsPracticable int    `json:"is_practicable"`

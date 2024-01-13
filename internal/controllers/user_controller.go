@@ -90,7 +90,7 @@ func (c *UserControllerImpl) VerifyToken(ctx *gin.Context) {
 			"msg":  err.Error(),
 		})
 	}
-	if id == "" {
+	if id == 0 {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "Token 无效",
@@ -210,7 +210,7 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt64("UserRole") <= 1 || ctx.GetString("UserId") == updateUserRequest.UserId {
+	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("UserId") == updateUserRequest.UserId {
 		if ctx.GetInt64("UserRole") > 1 {
 			updateUserRequest.Role = ctx.GetInt64("UserRole")
 		}
@@ -253,7 +253,7 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt64("UserRole") <= 1 || ctx.GetString("UserId") == deleteUserRequest.UserId {
+	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("UserId") == deleteUserRequest.UserId {
 		_ = c.UserService.Delete(deleteUserRequest.UserId)
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
@@ -288,7 +288,7 @@ func (c *UserControllerImpl) Find(ctx *gin.Context) {
 			"pages": pageCount,
 		})
 	} else if ctx.Query("id") != "" && ctx.Query("username") == "" && ctx.Query("email") == "" {
-		userResponse, _ := c.UserService.FindById(ctx.Query("id"))
+		userResponse, _ := c.UserService.FindById(int64(utils.ParseIntParam(ctx.Query("id"), 0)))
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
 			"data": userResponse,

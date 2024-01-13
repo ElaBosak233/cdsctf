@@ -7,11 +7,11 @@ import (
 )
 
 type TeamRepository interface {
-	Insert(team model.Team) error
-	Update(team model.Team) error
-	Delete(id string) error
+	Insert(team model.Team) (te model.Team, err error)
+	Update(team model.Team) (err error)
+	Delete(id int64) (err error)
 	Find(req request.TeamFindRequest) (teams []model.Team, count int64, err error)
-	FindById(id string) (team model.Team, err error)
+	FindById(id int64) (team model.Team, err error)
 }
 
 type TeamRepositoryImpl struct {
@@ -22,18 +22,18 @@ func NewTeamRepositoryImpl(Db *xorm.Engine) TeamRepository {
 	return &TeamRepositoryImpl{Db: Db}
 }
 
-func (t TeamRepositoryImpl) Insert(team model.Team) error {
-	_, err := t.Db.Table("team").Insert(&team)
+func (t TeamRepositoryImpl) Insert(team model.Team) (te model.Team, err error) {
+	_, err = t.Db.Table("team").Insert(&team)
+	return team, err
+}
+
+func (t TeamRepositoryImpl) Update(team model.Team) (err error) {
+	_, err = t.Db.Table("team").ID(team.TeamId).Update(&team)
 	return err
 }
 
-func (t TeamRepositoryImpl) Update(team model.Team) error {
-	_, err := t.Db.Table("team").ID(team.TeamId).Update(&team)
-	return err
-}
-
-func (t TeamRepositoryImpl) Delete(id string) error {
-	_, err := t.Db.Table("team").ID(id).Delete(&model.Team{})
+func (t TeamRepositoryImpl) Delete(id int64) (err error) {
+	_, err = t.Db.Table("team").ID(id).Delete(&model.Team{})
 	return err
 }
 
@@ -42,7 +42,7 @@ func (t TeamRepositoryImpl) Find(req request.TeamFindRequest) (teams []model.Tea
 		if req.TeamName != "" {
 			q = q.Where("name LIKE ?", "%"+req.TeamName+"%")
 		}
-		if req.CaptainId != "" {
+		if req.CaptainId != 0 {
 			q = q.Where("captain_id = ?", req.CaptainId)
 		}
 		return q
@@ -58,7 +58,7 @@ func (t TeamRepositoryImpl) Find(req request.TeamFindRequest) (teams []model.Tea
 	return teams, count, err
 }
 
-func (t TeamRepositoryImpl) FindById(id string) (team model.Team, err error) {
+func (t TeamRepositoryImpl) FindById(id int64) (team model.Team, err error) {
 	team = model.Team{}
 	has, err := t.Db.Table("team").ID(id).Get(&team)
 	if has {

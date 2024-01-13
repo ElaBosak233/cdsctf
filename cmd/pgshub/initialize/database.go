@@ -6,7 +6,6 @@ import (
 	"github.com/elabosak233/pgshub/internal/models/data/relations"
 	"github.com/elabosak233/pgshub/internal/utils"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/spf13/viper"
@@ -81,7 +80,6 @@ func InitAdmin() {
 		utils.Logger.Warn("超级管理员账户不存在，即将创建")
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
 		_, err := db.Table("user").Insert(model.User{
-			UserId:   uuid.NewString(),
 			Username: "admin",
 			Name:     "超级管理员",
 			Role:     0,

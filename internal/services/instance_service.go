@@ -10,17 +10,16 @@ import (
 	"github.com/elabosak233/pgshub/internal/models/response"
 	"github.com/elabosak233/pgshub/internal/repositories"
 	"github.com/elabosak233/pgshub/internal/utils"
-	"github.com/google/uuid"
 	"github.com/spf13/viper"
 	"time"
 )
 
 type InstanceService interface {
 	Create(req request.InstanceCreateRequest) (res response.InstanceStatusResponse, err error)
-	Status(id string) (rep response.InstanceStatusResponse, err error)
-	Renew(id string) (removedAt int64, err error)
-	Remove(id string) (err error)
-	FindById(id string) (rep response.InstanceResponse, err error)
+	Status(id int64) (rep response.InstanceStatusResponse, err error)
+	Renew(id int64) (removedAt int64, err error)
+	Remove(id int64) (err error)
+	FindById(id int64) (rep response.InstanceResponse, err error)
 	Find(req request.InstanceFindRequest) (rep []response.InstanceResponse, err error)
 }
 
@@ -40,9 +39,7 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 	if viper.GetString("container.provider") == "docker" {
 		challenge, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
 		flag := utils.GenerateFlag(challenge.FlagFmt)
-		instanceId := uuid.NewString()
 		ctn := managers.NewDockerManagerImpl(
-			instanceId,
 			challenge.Image,
 			challenge.ExposedPort,
 			flag,
@@ -52,17 +49,17 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 		port, err := ctn.Setup()
 		entry := fmt.Sprintf("%s:%d", viper.GetString("container.docker.public_entry"), port)
 		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).Unix()
-		err = t.InstanceRepository.Insert(model.Instance{
-			InstanceId:  instanceId,
+		instance, err := t.InstanceRepository.Insert(model.Instance{
 			ChallengeId: req.ChallengeId,
 			UserId:      req.UserId,
 			Flag:        flag,
 			Entry:       entry,
 			RemovedAt:   removedAt,
 		})
-		internal.InstanceMap[instanceId] = ctn
+		ctn.SetInstanceId(instance.InstanceId)
+		internal.InstanceMap[instance.InstanceId] = ctn
 		return response.InstanceStatusResponse{
-			InstanceId: instanceId,
+			InstanceId: instance.InstanceId,
 			Entry:      entry,
 			RemovedAt:  removedAt,
 			Status:     "running",
@@ -71,7 +68,7 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 	return res, errors.New("创建失败")
 }
 
-func (t *InstanceServiceImpl) Status(id string) (rep response.InstanceStatusResponse, err error) {
+func (t *InstanceServiceImpl) Status(id int64) (rep response.InstanceStatusResponse, err error) {
 	rep = response.InstanceStatusResponse{}
 	if viper.GetString("container.provider") == "docker" {
 		instance, err := t.InstanceRepository.FindById(id)
@@ -93,7 +90,7 @@ func (t *InstanceServiceImpl) Status(id string) (rep response.InstanceStatusResp
 	return rep, errors.New("获取失败")
 }
 
-func (t *InstanceServiceImpl) Renew(id string) (removedAt int64, err error) {
+func (t *InstanceServiceImpl) Renew(id int64) (removedAt int64, err error) {
 	if viper.GetString("Container.Provider") == "docker" {
 		instance, err := t.InstanceRepository.FindById(id)
 		if err != nil || internal.InstanceMap[id] == nil {
@@ -108,7 +105,7 @@ func (t *InstanceServiceImpl) Renew(id string) (removedAt int64, err error) {
 	return 0, errors.New("续期失败")
 }
 
-func (t *InstanceServiceImpl) Remove(id string) (err error) {
+func (t *InstanceServiceImpl) Remove(id int64) (err error) {
 	if viper.GetString("container.provider") == "docker" {
 		instance, err := t.InstanceRepository.FindById(id)
 		if err != nil || internal.InstanceMap[id] == nil {
@@ -123,7 +120,7 @@ func (t *InstanceServiceImpl) Remove(id string) (err error) {
 	return errors.New("移除失败")
 }
 
-func (t *InstanceServiceImpl) FindById(id string) (rep response.InstanceResponse, err error) {
+func (t *InstanceServiceImpl) FindById(id int64) (rep response.InstanceResponse, err error) {
 	if viper.GetString("container.provider") == "docker" {
 		instance, err := t.InstanceRepository.FindById(id)
 		if err != nil || internal.InstanceMap[id] == nil {
@@ -145,8 +142,8 @@ func (t *InstanceServiceImpl) FindById(id string) (rep response.InstanceResponse
 
 func (t *InstanceServiceImpl) Find(req request.InstanceFindRequest) (instances []response.InstanceResponse, err error) {
 	if viper.GetString("container.provider") == "docker" {
-		if req.TeamId != "" && req.GameId != 0 {
-			req.UserId = ""
+		if req.TeamId != 0 && req.GameId != 0 {
+			req.UserId = 0
 		}
 		responses, _, err := t.InstanceRepository.Find(req)
 		for _, instance := range responses {
