@@ -4,6 +4,7 @@ import (
 	"errors"
 	model "github.com/elabosak233/pgshub/internal/models/data"
 	"github.com/elabosak233/pgshub/internal/models/request"
+	"github.com/elabosak233/pgshub/internal/models/response"
 	"github.com/elabosak233/pgshub/internal/repositories"
 	"github.com/mitchellh/mapstructure"
 	"math"
@@ -14,7 +15,7 @@ type ChallengeService interface {
 	Update(req request.ChallengeUpdateRequest) (err error)
 	Delete(id int64) error
 	FindById(id int64, isDetailed int) model.Challenge
-	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pageCount int64, err error)
+	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error)
 }
 
 type ChallengeServiceImpl struct {
@@ -50,14 +51,14 @@ func (t *ChallengeServiceImpl) Delete(id int64) error {
 	return err
 }
 
-func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pageCount int64, err error) {
+func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error) {
 	challenges, count, err := t.ChallengeRepository.Find(req)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
 		pageCount = 1
 	}
-	return challenges, pageCount, err
+	return challenges, pageCount, count, err
 }
 
 // FindById implements ChallengeService

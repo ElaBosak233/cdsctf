@@ -33,21 +33,22 @@ func NewSubmissionServiceImpl(appRepository *repositories.AppRepository) Submiss
 	}
 }
 
+// JudgeDynamicChallenge 动态题目判断
 func (t *SubmissionServiceImpl) JudgeDynamicChallenge(req request.SubmissionCreateRequest) (status int, err error) {
 	perhapsInstances, _, err := t.InstanceRepository.Find(request.InstanceFindRequest{
 		ChallengeId: req.ChallengeId,
 		GameId:      req.GameId,
 		IsAvailable: 1,
-		Page:        -1,
-		Size:        -1,
+		Page:        0,
+		Size:        0,
 	})
-	status = 0
+	status = 1
 	for _, instance := range perhapsInstances {
 		if req.Flag == instance.Flag {
 			if (req.UserId == instance.UserId && req.UserId != 0) || (req.TeamId == instance.TeamId && req.TeamId != 0) {
-				status = 1
-			} else {
 				status = 2
+			} else {
+				status = 3
 			}
 			break
 		}
@@ -55,11 +56,12 @@ func (t *SubmissionServiceImpl) JudgeDynamicChallenge(req request.SubmissionCrea
 	return status, err
 }
 
+// JudgeStaticChallenge 静态题目判断
 func (t *SubmissionServiceImpl) JudgeStaticChallenge(reqFlag string, challengeFlag string) (status int) {
 	if challengeFlag == reqFlag {
-		return 1
+		return 2
 	} else {
-		return 0
+		return 1
 	}
 }
 
@@ -74,18 +76,18 @@ func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (sta
 		status = max(t.JudgeStaticChallenge(req.Flag, challenge.Flag), t.JudgeStaticChallenge(req.Flag, challenge.FlagFmt))
 	}
 	// 判断是否重复提交
-	if status == 1 {
+	if status == 2 {
 		existedSubmissions, _, _ := t.Find(request.SubmissionFindRequestInternal{
 			UserId:      req.UserId,
-			Status:      1,
+			Status:      2,
 			ChallengeId: req.ChallengeId,
 			TeamId:      req.TeamId,
 			GameId:      req.GameId,
-			Page:        -1,
-			Size:        -1,
+			Page:        0,
+			Size:        0,
 		})
 		if len(existedSubmissions) > 0 {
-			status = 3
+			status = 4
 		}
 	}
 	err = t.SubmissionRepository.Insert(model.Submission{

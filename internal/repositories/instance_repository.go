@@ -48,10 +48,10 @@ func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instance
 		if req.GameId != 0 {
 			q = q.Where("game_id = ?", req.GameId)
 		}
-		if req.IsAvailable != -1 {
-			if req.IsAvailable == 0 {
+		if req.IsAvailable != 0 {
+			if req.IsAvailable == 2 { // 无效
 				q = q.Where("removed_at < ?", time.Now().Unix())
-			} else if req.IsAvailable == 1 {
+			} else if req.IsAvailable == 1 { // 有效
 				q = q.Where("removed_at > ?", time.Now().Unix())
 			}
 		}
@@ -59,7 +59,7 @@ func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instance
 	}
 	db := applyFilter(t.Db.Table("instance"))
 	count, err := applyFilter(t.Db.Table("instance")).Count(&model.Instance{})
-	if req.Page != -1 && req.Size != -1 {
+	if req.Page != 0 && req.Size != 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}

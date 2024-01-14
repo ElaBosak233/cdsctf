@@ -82,7 +82,7 @@ func InitAdmin() {
 		_, err := db.Table("user").Insert(model.User{
 			Username: "admin",
 			Name:     "超级管理员",
-			Role:     0,
+			Role:     1,
 			Password: string(hashedPassword),
 			Email:    "admin@admin.com",
 		})
