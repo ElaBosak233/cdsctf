@@ -46,7 +46,7 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequestInterna
 		if req.GameId != 0 {
 			q = q.Where("game_id = ?", req.GameId)
 		}
-		if req.Status != -1 {
+		if req.Status != 0 {
 			q = q.Where("status = ?", req.Status)
 		}
 		if req.IsDetailed == 0 {
@@ -62,7 +62,7 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequestInterna
 	db := applyFilters(t.Db.Table("submission"))
 	ct := applyFilters(t.Db.Table("submission"))
 	count, err = ct.Count(&model.Submission{})
-	if req.Page != -1 && req.Size != -1 {
+	if req.Page != 0 && req.Size != 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}
@@ -71,9 +71,35 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequestInterna
 }
 
 func (t *SubmissionRepositoryImpl) BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error) {
-	_ = t.Db.Table("submission").
+	applyFilters := func(q *xorm.Session) *xorm.Session {
+		if req.UserId != 0 {
+			q = q.Where("user_id = ?", req.UserId)
+		}
+		if req.TeamId != 0 {
+			q = q.Where("team_id = ?", req.TeamId)
+		}
+		if req.GameId != 0 {
+			q = q.Where("game_id = ?", req.GameId)
+		}
+		if req.Status != 0 {
+			q = q.Where("status = ?", req.Status)
+		}
+		if !req.IsDetailed {
+			q = q.Omit("flag")
+		}
+		if req.IsAscend {
+			q = q.Asc("created_at")
+		} else {
+			q = q.Desc("created_at")
+		}
+		return q
+	}
+	subQuery := applyFilters(t.Db.Table("submission")).Select("id").In("challenge_id", req.ChallengeIds).GroupBy("challenge_id").Limit(req.Size)
+	var ids []int64
+	_ = subQuery.Find(&ids)
+	_ = applyFilters(t.Db.Table("submission")).
 		Join("INNER", "user", "submission.user_id = user.id").
-		In("challenge_id", req.ChallengeIds).
-		Find(&submissions)
+		Join("LEFT", "team", "submission.team_id = team.id").
+		In("submission.id", ids).Find(&submissions)
 	return submissions, err
 }

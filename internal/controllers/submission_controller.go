@@ -43,14 +43,14 @@ func (c *SubmissionControllerImpl) Find(ctx *gin.Context) {
 	if ctx.Query("id") == "" {
 		submissions, pageCount, _ := c.SubmissionService.Find(request.SubmissionFindRequestInternal{
 			UserId:      int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
-			Status:      utils.ParseIntParam(ctx.Query("status"), -1),
+			Status:      utils.ParseIntParam(ctx.Query("status"), 0),
 			TeamId:      int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
 			GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
 			IsDetailed:  isDetailed(),
-			ChallengeId: int64(utils.ParseIntParam(ctx.Query("challenge_id"), -1)),
+			ChallengeId: int64(utils.ParseIntParam(ctx.Query("challenge_id"), 0)),
 			IsAscend:    ctx.Query("is_ascend") == "true",
-			Page:        utils.ParseIntParam(ctx.Query("page"), -1),
-			Size:        utils.ParseIntParam(ctx.Query("size"), -1),
+			Page:        utils.ParseIntParam(ctx.Query("page"), 0),
+			Size:        utils.ParseIntParam(ctx.Query("size"), 0),
 		})
 		ctx.JSON(http.StatusOK, gin.H{
 			"code":  http.StatusOK,
@@ -71,11 +71,10 @@ func (c *SubmissionControllerImpl) Find(ctx *gin.Context) {
 // @Router /api/submissions/batch/ [get]
 func (c *SubmissionControllerImpl) BatchFind(ctx *gin.Context) {
 	submissions, err := c.SubmissionService.BatchFind(request.SubmissionBatchFindRequest{
-		Page:         utils.ParseIntParam(ctx.Query("page"), -1),
-		Size:         utils.ParseIntParam(ctx.Query("size"), -1),
+		Size:         utils.ParseIntParam(ctx.Query("size"), 1),
 		UserId:       int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
 		ChallengeIds: utils.MapStringsToInts(ctx.QueryArray("challenge_ids")),
-		Status:       utils.ParseIntParam(ctx.Query("status"), -1),
+		Status:       utils.ParseIntParam(ctx.Query("status"), 0),
 		TeamId:       int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
 		GameId:       int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
 	})

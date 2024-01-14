@@ -47,7 +47,7 @@ func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []model.Us
 		if req.Name != "" {
 			q = q.Where("name LIKE ?", "%"+req.Name+"%")
 		}
-		if req.Role != -1 {
+		if req.Role != 0 {
 			q = q.Where("role = ?", req.Role)
 		}
 		return q
@@ -55,7 +55,7 @@ func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []model.Us
 	db := applyFilter(t.Db.Table("user"))
 	ct := applyFilter(t.Db.Table("user"))
 	count, err = ct.Count(&model.User{})
-	if req.Page != -1 && req.Size != -1 {
+	if req.Page != 0 && req.Size != 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}

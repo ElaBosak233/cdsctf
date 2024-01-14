@@ -133,8 +133,8 @@ func (c *TeamControllerImpl) Find(ctx *gin.Context) {
 	teamData, pageCount, _ := c.TeamService.Find(request.TeamFindRequest{
 		TeamName:  ctx.Query("name"),
 		CaptainId: int64(utils.ParseIntParam(ctx.Query("captainId"), 0)),
-		Page:      utils.ParseIntParam(ctx.Query("page"), -1),
-		Size:      utils.ParseIntParam(ctx.Query("size"), -1),
+		Page:      utils.ParseIntParam(ctx.Query("page"), 0),
+		Size:      utils.ParseIntParam(ctx.Query("size"), 0),
 	})
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,

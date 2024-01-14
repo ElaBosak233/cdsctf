@@ -39,6 +39,6 @@ type SubmissionBatchFindRequest struct {
 	TeamId       int64   `json:"team_id"`       // 团队 Id
 	GameId       int64   `json:"game_id"`       // 比赛 Id
 	IsAscend     bool    `json:"is_ascend"`     // 是否升序
-	Page         int     `json:"page"`          // 页码
+	IsDetailed   bool    `json:"is_detailed"`   // 是否详细
 	Size         int     `json:"size"`          // 每页大小
 }

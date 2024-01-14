@@ -334,6 +334,11 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "name": "game_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
                         "name": "id",
                         "in": "query"
                     },
@@ -363,8 +368,27 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "team_id",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "user_id",
                         "in": "query"
                     }
                 ],
@@ -491,6 +515,24 @@ const docTemplate = `{
                     "配置"
                 ],
                 "summary": "更新配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "body",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ConfigUpdateRequest"
+                        }
+                    }
+                ],
                 "responses": {}
             }
         },
@@ -796,9 +838,9 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
+                        "type": "boolean",
+                        "description": "是否详细",
+                        "name": "is_detailed",
                         "in": "query"
                     },
                     {
@@ -1387,6 +1429,17 @@ const docTemplate = `{
                 },
                 "practice_pts": {
                     "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.ConfigUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
                 },
                 "title": {
                     "type": "string"

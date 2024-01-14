@@ -161,6 +161,7 @@ func (t *InstanceServiceImpl) Find(req request.InstanceFindRequest) (instances [
 				Status:      status,
 			})
 		}
+		fmt.Println(instances)
 		return instances, err
 	}
 	return nil, errors.New("获取失败")

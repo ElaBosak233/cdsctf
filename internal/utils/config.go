@@ -7,6 +7,7 @@ import (
 var defaultSettings = map[string]interface{}{
 	// 全局设置
 	"global.title": "PgsHub",
+	"global.bio":   "Hack for fun not for profit.",
 	// 服务器设置
 	"server.host":               "0.0.0.0",
 	"server.port":               8888,
@@ -57,4 +58,14 @@ func LoadConfig() {
 		}
 		Logger.Info("默认配置文件已生成")
 	}
+}
+
+func SaveConfig() (err error) {
+	configData := viper.AllSettings()
+	err = viper.WriteConfig()
+	if err != nil {
+		return err
+	}
+	err = viper.MergeConfigMap(configData)
+	return err
 }

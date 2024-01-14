@@ -42,19 +42,22 @@ func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 		return 0
 	}
 	if ctx.Query("id") == "" {
-		challengeData, pageCount, _ := c.ChallengeService.Find(request.ChallengeFindRequest{
+		challengeData, pageCount, total, _ := c.ChallengeService.Find(request.ChallengeFindRequest{
 			Title:         ctx.Query("title"),
 			Category:      ctx.Query("category"),
-			IsPracticable: utils.ParseIntParam(ctx.Query("is_practicable"), -1),
+			IsPracticable: utils.ParseIntParam(ctx.Query("is_practicable"), 0),
 			IsDetailed:    isDetailed(),
-			IsDynamic:     utils.ParseIntParam(ctx.Query("is_dynamic"), -1),
-			Difficulty:    int64(utils.ParseIntParam(ctx.Query("difficulty"), -1)),
-			Page:          utils.ParseIntParam(ctx.Query("page"), -1),
-			Size:          utils.ParseIntParam(ctx.Query("size"), -1),
+			IsDynamic:     utils.ParseIntParam(ctx.Query("is_dynamic"), 0),
+			Difficulty:    int64(utils.ParseIntParam(ctx.Query("difficulty"), 0)),
+			UserId:        ctx.GetInt64("UserId"),
+			SortBy:        ctx.QueryArray("sort_by"),
+			Page:          utils.ParseIntParam(ctx.Query("page"), 0),
+			Size:          utils.ParseIntParam(ctx.Query("size"), 0),
 		})
 		ctx.JSON(http.StatusOK, gin.H{
 			"code":  http.StatusOK,
 			"pages": pageCount,
+			"total": total,
 			"data":  challengeData,
 		})
 	} else {

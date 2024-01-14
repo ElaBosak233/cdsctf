@@ -139,9 +139,9 @@ func (c *InstanceControllerImpl) Find(ctx *gin.Context) {
 		ChallengeId: int64(utils.ParseIntParam(ctx.Query("challenge_id"), 0)),
 		TeamId:      int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
 		GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
-		IsAvailable: utils.ParseIntParam(ctx.Query("is_available"), -1),
-		Page:        utils.ParseIntParam(ctx.Query("page"), -1),
-		Size:        utils.ParseIntParam(ctx.Query("size"), -1),
+		IsAvailable: utils.ParseIntParam(ctx.Query("is_available"), 0),
+		Page:        utils.ParseIntParam(ctx.Query("page"), 0),
+		Size:        utils.ParseIntParam(ctx.Query("size"), 0),
 	}
 	rep, _ := c.InstanceService.Find(instanceFindRequest)
 	res := make([]map[string]any, len(rep))

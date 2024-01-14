@@ -277,10 +277,10 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 func (c *UserControllerImpl) Find(ctx *gin.Context) {
 	if ctx.Query("id") == "" && ctx.Query("username") == "" && ctx.Query("email") == "" {
 		userResponse, pageCount, _ := c.UserService.Find(request.UserFindRequest{
-			Role: int64(utils.ParseIntParam(ctx.Query("UserRole"), -1)),
+			Role: int64(utils.ParseIntParam(ctx.Query("UserRole"), 0)),
 			Name: ctx.Query("name"),
-			Page: utils.ParseIntParam(ctx.Query("page"), -1),
-			Size: utils.ParseIntParam(ctx.Query("size"), -1),
+			Page: utils.ParseIntParam(ctx.Query("page"), 0),
+			Size: utils.ParseIntParam(ctx.Query("size"), 0),
 		})
 		ctx.JSON(http.StatusOK, gin.H{
 			"code":  http.StatusOK,
