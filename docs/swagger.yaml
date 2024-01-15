@@ -260,6 +260,69 @@ info:
   title: PgsHub Backend API
   version: "1.0"
 paths:
+  /api/assets/challenges/attachments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 通过题目 Id 删除题目附件
+      parameters:
+      - description: 题目 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses: {}
+      summary: 通过题目 Id 删除 题目附件
+      tags:
+      - 资源
+    get:
+      consumes:
+      - application/json
+      description: 通过题目 Id 获取题目附件
+      parameters:
+      - description: 题目 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses: {}
+      summary: 通过题目 Id 获取题目附件
+      tags:
+      - 资源
+    post:
+      consumes:
+      - multipart/form-data
+      description: 通过题目 Id 设置题目附件
+      parameters:
+      - description: 题目 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 附件文件
+        in: formData
+        name: attachment
+        required: true
+        type: file
+      responses: {}
+      summary: 通过题目 Id 设置题目附件
+      tags:
+      - 资源
+  /api/assets/challenges/attachments/{id}/exists:
+    get:
+      consumes:
+      - application/json
+      description: 通过题目 Id 查找题目附件
+      parameters:
+      - description: 题目 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses: {}
+      summary: 通过题目 Id 查找题目附件
+      tags:
+      - 资源
   /api/assets/games/cover/{id}:
     get:
       consumes:

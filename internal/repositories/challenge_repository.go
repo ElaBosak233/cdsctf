@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	model "github.com/elabosak233/pgshub/internal/models/data"
 	"github.com/elabosak233/pgshub/internal/models/request"
 	"github.com/elabosak233/pgshub/internal/models/response"
@@ -38,7 +39,8 @@ func (t *ChallengeRepositoryImpl) Delete(id int64) error {
 
 // Update implements ChallengeRepository
 func (t *ChallengeRepositoryImpl) Update(challenge model.Challenge) error {
-	_, err := t.Db.Table("challenge").ID(challenge.ChallengeId).Update(&challenge)
+	fmt.Println(challenge.ChallengeId)
+	_, err := t.Db.Table("challenge").ID(challenge.ChallengeId).MustCols("is_practicable, is_dynamic, has_attachment").Update(&challenge)
 	return err
 }
 
@@ -59,9 +61,6 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		if req.Difficulty != 0 {
 			q = q.Where("difficulty = ?", req.Difficulty)
 		}
-		if req.IsDetailed == 0 {
-			q = q.Omit("flag", "flag_fmt", "flag_env", "image")
-		}
 		if len(req.SortBy) > 0 {
 			sortKey := req.SortBy[0]
 			sortOrder := req.SortBy[1]
@@ -73,7 +72,7 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("challenge"))
+	db := applyFilter(t.Db.Table("challenge AS c"))
 	ct := applyFilter(t.Db.Table("challenge"))
 	count, err = ct.Count(&model.Challenge{})
 	if req.Page != 0 && req.Size != 0 {
@@ -81,8 +80,16 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		db = db.Limit(req.Size, offset)
 	}
 	// TODO 这里还需要判断是练习场还是比赛，如果是比赛，需要判断 team_id 和 game_id
-	db = db.Join("LEFT", "submission", "submission.challenge_id = challenge.id AND submission.status = 2 AND submission.user_id = ?", req.UserId).
-		Cols("challenge.*", "submission.id as is_solved")
+	db = db.Join("LEFT", "submission", "submission.challenge_id = c.id AND submission.status = 2 AND submission.user_id = ?", req.UserId)
+	db = db.Cols("submission.id as is_solved")
+	if req.IsDetailed == 0 {
+		db = db.Cols("c.id", "c.title", "c.description",
+			"c.category", "c.duration", "c.is_dynamic",
+			"c.has_attachment", "c.difficulty", "c.practice_pts",
+		)
+	} else {
+		db = db.Cols("c.*")
+	}
 	err = db.Find(&challenges)
 	return challenges, count, err
 }

@@ -41,11 +41,17 @@ func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 		}
 		return 0
 	}
+	isPracticable := func() int {
+		if ctx.GetInt64("UserRole") <= 2 && utils.ParseIntParam(ctx.Query("is_practicable"), 0) == 0 {
+			return 0
+		}
+		return 1
+	}
 	if ctx.Query("id") == "" {
 		challengeData, pageCount, total, _ := c.ChallengeService.Find(request.ChallengeFindRequest{
 			Title:         ctx.Query("title"),
 			Category:      ctx.Query("category"),
-			IsPracticable: utils.ParseIntParam(ctx.Query("is_practicable"), 0),
+			IsPracticable: isPracticable(),
 			IsDetailed:    isDetailed(),
 			IsDynamic:     utils.ParseIntParam(ctx.Query("is_dynamic"), 0),
 			Difficulty:    int64(utils.ParseIntParam(ctx.Query("difficulty"), 0)),
@@ -111,7 +117,7 @@ func (c *ChallengeControllerImpl) Update(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&updateChallengeRequest)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &updateChallengeRequest),
 		})
@@ -120,7 +126,7 @@ func (c *ChallengeControllerImpl) Update(ctx *gin.Context) {
 	err = c.ChallengeService.Update(updateChallengeRequest)
 	if err != nil {
 		ctx.Header("Content-Type", "application/json")
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "更新失败",
 		})
@@ -144,7 +150,7 @@ func (c *ChallengeControllerImpl) Delete(ctx *gin.Context) {
 	deleteChallengeRequest := request.ChallengeDeleteRequest{}
 	err := ctx.ShouldBindJSON(&deleteChallengeRequest)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &deleteChallengeRequest),
 		})
@@ -152,7 +158,7 @@ func (c *ChallengeControllerImpl) Delete(ctx *gin.Context) {
 	}
 	err = c.ChallengeService.Delete(deleteChallengeRequest.ChallengeId)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "删除失败",
 		})

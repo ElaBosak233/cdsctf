@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"github.com/elabosak233/pgshub/internal/services"
+	"github.com/elabosak233/pgshub/internal/utils"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 	"mime/multipart"
@@ -23,6 +24,10 @@ type AssetController interface {
 	FindGameCoverByGameId(ctx *gin.Context)
 	SetGameCoverByGameId(ctx *gin.Context)
 	FindGameWriteUpByTeamId(ctx *gin.Context)
+	SetChallengeAttachmentByChallengeId(ctx *gin.Context)
+	CheckChallengeAttachmentByChallengeId(ctx *gin.Context)
+	DeleteChallengeAttachmentByChallengeId(ctx *gin.Context)
+	FindChallengeAttachmentByChallengeId(ctx *gin.Context)
 }
 
 type AssetControllerImpl struct {
@@ -324,6 +329,111 @@ func (c *AssetControllerImpl) FindGameWriteUpByTeamId(ctx *gin.Context) {
 	} else {
 		ctx.Status(http.StatusNotFound)
 	}
+}
+
+// SetChallengeAttachmentByChallengeId
+// @Summary 通过题目 Id 设置题目附件
+// @Description 通过题目 Id 设置题目附件
+// @Tags 资源
+// @Accept multipart/form-data
+// @Param id path string true "题目 Id"
+// @Param attachment formData file true "附件文件"
+// @Router /api/assets/challenges/attachments/{id} [post]
+func (c *AssetControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Context) {
+	id := ctx.Param("id")
+	file, err := ctx.FormFile("attachment")
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  "无效文件",
+		})
+		return
+	}
+	if _, fileSize, _ := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0))); fileSize != 0 {
+		err = c.AssetService.DeleteChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0)))
+		if err != nil {
+			ctx.JSON(http.StatusOK, gin.H{
+				"code": http.StatusInternalServerError,
+				"msg":  err.Error(),
+			})
+			return
+		}
+	}
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("./assets/challenges/attachments/%s/%s", id, file.Filename))
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusInternalServerError,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// CheckChallengeAttachmentByChallengeId
+// @Summary 通过题目 Id 查找题目附件
+// @Description 通过题目 Id 查找题目附件
+// @Tags 资源
+// @Accept json
+// @Param id path string true "题目 Id"
+// @Router /api/assets/challenges/attachments/{id}/exists [get]
+func (c *AssetControllerImpl) CheckChallengeAttachmentByChallengeId(ctx *gin.Context) {
+	id := ctx.Param("id")
+	fileName, fileSize, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0)))
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusNotFound,
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":      http.StatusOK,
+		"file_name": fileName,
+		"file_size": fileSize,
+	})
+}
+
+// FindChallengeAttachmentByChallengeId
+// @Summary 通过题目 Id 获取题目附件
+// @Description 通过题目 Id 获取题目附件
+// @Tags 资源
+// @Accept json
+// @Param id path string true "题目 Id"
+// @Router /api/assets/challenges/attachments/{id} [get]
+func (c *AssetControllerImpl) FindChallengeAttachmentByChallengeId(ctx *gin.Context) {
+	id := ctx.Param("id")
+	fileName, _, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0)))
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusNotFound,
+		})
+		return
+	}
+	ctx.File(fmt.Sprintf("./assets/challenges/attachments/%s/%s", id, fileName))
+}
+
+// DeleteChallengeAttachmentByChallengeId
+// @Summary 通过题目 Id 删除 题目附件
+// @Description 通过题目 Id 删除题目附件
+// @Tags 资源
+// @Accept json
+// @Param id path string true "题目 Id"
+// @Router /api/assets/challenges/attachments/{id} [delete]
+func (c *AssetControllerImpl) DeleteChallengeAttachmentByChallengeId(ctx *gin.Context) {
+	id := ctx.Param("id")
+	err := c.AssetService.DeleteChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0)))
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusInternalServerError,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
 }
 
 func (c *AssetControllerImpl) detectContentType(file *multipart.FileHeader) (mime *mimetype.MIME, err error) {
