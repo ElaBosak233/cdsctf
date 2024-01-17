@@ -84,16 +84,16 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/assets/challenges/attachments/{id}/exists": {
+        "/api/assets/challenges/attachments/{id}/info": {
             "get": {
-                "description": "通过题目 Id 查找题目附件",
+                "description": "通过题目 Id 查找题目附件信息",
                 "consumes": [
                     "application/json"
                 ],
                 "tags": [
                     "资源"
                 ],
-                "summary": "通过题目 Id 查找题目附件",
+                "summary": "通过题目 Id 查找题目附件信息",
                 "parameters": [
                     {
                         "type": "string",
@@ -367,9 +367,9 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/assets/users/avatar/{id}/exists": {
+        "/api/assets/users/avatar/{id}/info": {
             "get": {
-                "description": "通过用户 Id 确认用户头像是否存在",
+                "description": "通过用户 Id 获得用户头像信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -379,7 +379,7 @@ const docTemplate = `{
                 "tags": [
                     "资源"
                 ],
-                "summary": "通过用户 Id 确认用户头像是否存在",
+                "summary": "通过用户 Id 获得用户头像信息",
                 "parameters": [
                     {
                         "type": "string",
@@ -810,12 +810,6 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "boolean",
-                        "description": "是否升序",
-                        "name": "is_ascend",
-                        "in": "query"
-                    },
-                    {
                         "type": "integer",
                         "description": "是否详细",
                         "name": "is_detailed",
@@ -831,6 +825,16 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "每页大小",
                         "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "排序参数",
+                        "name": "sort_by",
                         "in": "query"
                     },
                     {
@@ -913,7 +917,7 @@ const docTemplate = `{
                         },
                         "collectionFormat": "csv",
                         "description": "题目 Id 数组",
-                        "name": "challenge_ids",
+                        "name": "challenge_id",
                         "in": "query"
                     },
                     {
@@ -979,6 +983,11 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "name": "captain_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "id",
                         "in": "query"
                     },
                     {
@@ -1070,6 +1079,53 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.TeamDeleteRequest"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/teams/batch/": {
+            "get": {
+                "description": "批量查找团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "团队"
+                ],
+                "summary": "批量查找团队",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "captain_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "size",
+                        "in": "query"
                     }
                 ],
                 "responses": {}
@@ -1193,6 +1249,15 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "sort_by",
                         "in": "query"
                     },
                     {
@@ -1404,6 +1469,10 @@ const docTemplate = `{
                     "type": "string",
                     "default": "misc"
                 },
+                "cpu_limit": {
+                    "type": "number",
+                    "default": 1
+                },
                 "description": {
                     "type": "string",
                     "default": "题目描述"
@@ -1478,6 +1547,9 @@ const docTemplate = `{
             "properties": {
                 "category": {
                     "type": "string"
+                },
+                "cpu_limit": {
+                    "type": "number"
                 },
                 "description": {
                     "type": "string"
@@ -1684,16 +1756,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 2
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 6
                 },
                 "role": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 3
                 }
             }
         },
@@ -1758,12 +1836,18 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "name": {
+                    "type": "string",
+                    "minLength": 2
+                },
                 "password": {
                     "type": "string",
                     "minLength": 6
                 },
                 "role": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
                 },
                 "username": {
                     "type": "string",

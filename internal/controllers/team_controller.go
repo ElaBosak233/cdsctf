@@ -13,6 +13,7 @@ type TeamController interface {
 	Update(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 	Find(ctx *gin.Context)
+	BatchFind(ctx *gin.Context)
 	Join(ctx *gin.Context)
 	Quit(ctx *gin.Context)
 	FindById(ctx *gin.Context)
@@ -131,8 +132,9 @@ func (c *TeamControllerImpl) Delete(ctx *gin.Context) {
 // @Router /api/teams/ [get]
 func (c *TeamControllerImpl) Find(ctx *gin.Context) {
 	teamData, pageCount, _ := c.TeamService.Find(request.TeamFindRequest{
+		TeamId:    int64(utils.ParseIntParam(ctx.Query("id"), 0)),
 		TeamName:  ctx.Query("name"),
-		CaptainId: int64(utils.ParseIntParam(ctx.Query("captainId"), 0)),
+		CaptainId: int64(utils.ParseIntParam(ctx.Query("captain_id"), 0)),
 		Page:      utils.ParseIntParam(ctx.Query("page"), 0),
 		Size:      utils.ParseIntParam(ctx.Query("size"), 0),
 	})
@@ -140,6 +142,25 @@ func (c *TeamControllerImpl) Find(ctx *gin.Context) {
 		"code":  http.StatusOK,
 		"pages": pageCount,
 		"data":  teamData,
+	})
+}
+
+// BatchFind
+// @Summary 批量查找团队
+// @Summary 批量查找团队
+// @Description 批量查找团队
+// @Tags 团队
+// @Accept json
+// @Produce json
+// @Param input query request.TeamBatchFindRequest false "TeamBatchFindRequest"
+// @Router /api/teams/batch/ [get]
+func (c *TeamControllerImpl) BatchFind(ctx *gin.Context) {
+	teams, _ := c.TeamService.BatchFind(request.TeamBatchFindRequest{
+		TeamId: utils.MapStringsToInts(ctx.QueryArray("id")),
+	})
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": teams,
 	})
 }
 

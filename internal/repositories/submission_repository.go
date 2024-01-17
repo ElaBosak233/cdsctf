@@ -10,7 +10,7 @@ import (
 type SubmissionRepository interface {
 	Insert(submission model.Submission) (err error)
 	Delete(id int64) (err error)
-	Find(req request.SubmissionFindRequestInternal) (submissions []model.Submission, count int64, err error)
+	Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, count int64, err error)
 	BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error)
 }
 
@@ -23,16 +23,16 @@ func NewSubmissionRepositoryImpl(Db *xorm.Engine) SubmissionRepository {
 }
 
 func (t *SubmissionRepositoryImpl) Insert(submission model.Submission) (err error) {
-	_, err = t.Db.Table("submission").Insert(&submission)
+	_, err = t.Db.Table("submissions").Insert(&submission)
 	return err
 }
 
 func (t *SubmissionRepositoryImpl) Delete(id int64) (err error) {
-	_, err = t.Db.Table("submission").ID(id).Delete(&model.Submission{})
+	_, err = t.Db.Table("submissions").ID(id).Delete(&model.Submission{})
 	return err
 }
 
-func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequestInternal) (submissions []model.Submission, count int64, err error) {
+func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, count int64, err error) {
 	applyFilters := func(q *xorm.Session) *xorm.Session {
 		if req.UserId != 0 {
 			q = q.Where("user_id = ?", req.UserId)
@@ -52,20 +52,27 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequestInterna
 		if req.IsDetailed == 0 {
 			q = q.Omit("flag")
 		}
-		if req.IsAscend {
-			q = q.Asc("created_at")
-		} else {
-			q = q.Desc("created_at")
-		}
 		return q
 	}
-	db := applyFilters(t.Db.Table("submission"))
-	ct := applyFilters(t.Db.Table("submission"))
+	db := applyFilters(t.Db.Table("submissions"))
+	ct := applyFilters(t.Db.Table("submissions"))
 	count, err = ct.Count(&model.Submission{})
-	if req.Page != 0 && req.Size != 0 {
+	if len(req.SortBy) > 0 {
+		sortKey := req.SortBy[0]
+		sortOrder := req.SortBy[1]
+		if sortOrder == "asc" {
+			db = db.Asc("submissions." + sortKey)
+		} else if sortOrder == "desc" {
+			db = db.Desc("submissions." + sortKey)
+		}
+	}
+	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}
+	db = db.Join("INNER", "users", "submissions.user_id = users.id").
+		Join("LEFT", "teams", "submissions.team_id = teams.id").
+		Join("LEFT", "challenges", "submissions.challenge_id = challenges.id")
 	err = db.Find(&submissions)
 	return submissions, count, err
 }
@@ -94,12 +101,13 @@ func (t *SubmissionRepositoryImpl) BatchFind(req request.SubmissionBatchFindRequ
 		}
 		return q
 	}
-	subQuery := applyFilters(t.Db.Table("submission")).Select("id").In("challenge_id", req.ChallengeIds).GroupBy("challenge_id").Limit(req.Size)
+	subQuery := applyFilters(t.Db.Table("submissions")).Select("id").In("challenge_id", req.ChallengeId).GroupBy("challenge_id").Limit(req.Size)
 	var ids []int64
 	_ = subQuery.Find(&ids)
-	_ = applyFilters(t.Db.Table("submission")).
-		Join("INNER", "user", "submission.user_id = user.id").
-		Join("LEFT", "team", "submission.team_id = team.id").
-		In("submission.id", ids).Find(&submissions)
+	_ = applyFilters(t.Db.Table("submissions")).
+		Join("INNER", "users", "submissions.user_id = users.id").
+		Join("LEFT", "teams", "submissions.team_id = teams.id").
+		Join("INNER", "challenges", "submissions.challenge_id = challenges.id").
+		In("submissions.id", ids).Find(&submissions)
 	return submissions, err
 }

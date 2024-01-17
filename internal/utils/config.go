@@ -19,25 +19,19 @@ var defaultSettings = map[string]interface{}{
 	"email.smtp.host": "",
 	"email.smtp.port": 0,
 	// 数据库设置
-	"db.provider":          "sqlite",
-	"db.mysql.host":        "localhost",
-	"db.mysql.port":        3306,
-	"db.mysql.username":    "pgshub",
-	"db.mysql.password":    "pgshub",
-	"db.mysql.dbname":      "pgshub",
+	"db.provider":          "postgres",
 	"db.postgres.host":     "localhost",
 	"db.postgres.port":     5432,
 	"db.postgres.username": "pgshub",
 	"db.postgres.password": "pgshub",
 	"db.postgres.dbname":   "pgshub",
 	"db.postgres.sslmode":  "disable",
-	"db.sqlite.filename":   "db.sqlite3",
 	// JWT 设置
 	"jwt.secret_key": "20101010",
 	"jwt.expiration": 180,
 	// 容器设置
 	"container.provider":            "docker",
-	"container.docker.host":         "unix:///var/run/docker.sock", // npipe:////./pipe/docker_engine
+	"container.docker.uri":          "unix:///var/run/docker.sock", // npipe:////./pipe/docker_engine
 	"container.docker.public_entry": "127.0.0.1",
 	"container.docker.ports.from":   49152,
 	"container.docker.ports.to":     65535,

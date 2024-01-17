@@ -8,7 +8,6 @@ import (
 	"github.com/elabosak233/pgshub/internal/models/response"
 	"github.com/elabosak233/pgshub/internal/repositories"
 	"github.com/elabosak233/pgshub/internal/repositories/relations"
-	"github.com/mitchellh/mapstructure"
 	"math"
 )
 
@@ -19,6 +18,7 @@ type TeamService interface {
 	Join(req request.TeamJoinRequest) (err error)
 	Quit(req request.TeamQuitRequest) (err error)
 	Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, err error)
+	BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error)
 	FindById(id int64) (res response.TeamResponse, err error)
 }
 
@@ -83,22 +83,18 @@ func (t *TeamServiceImpl) Delete(id int64) error {
 }
 
 func (t *TeamServiceImpl) Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, err error) {
-	ts, count, err := t.TeamRepository.Find(req)
+	teams, count, err := t.TeamRepository.Find(req)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
 		pageCount = 1
 	}
-	for _, team := range ts {
-		res := response.TeamResponse{}
-		userTeams, _ := t.UserTeamRepository.FindByTeamId(team.TeamId)
-		for _, userTeam := range userTeams {
-			res.UserIds = append(res.UserIds, userTeam.UserId)
-		}
-		_ = mapstructure.Decode(team, &res)
-		teams = append(teams, res)
-	}
 	return teams, pageCount, err
+}
+
+func (t *TeamServiceImpl) BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error) {
+	teams, err = t.TeamRepository.BatchFind(req)
+	return teams, err
 }
 
 func (t *TeamServiceImpl) Join(req request.TeamJoinRequest) error {
@@ -135,18 +131,12 @@ func (t *TeamServiceImpl) Quit(req request.TeamQuitRequest) (err error) {
 	return errors.New("用户不存在")
 }
 
-func (t *TeamServiceImpl) FindById(id int64) (res response.TeamResponse, err error) {
-	team, err := t.TeamRepository.FindById(id)
-	if team.TeamId != 0 {
-		userTeams, _ := t.UserTeamRepository.FindByTeamId(team.TeamId)
-		for _, userTeam := range userTeams {
-			res.UserIds = append(res.UserIds, userTeam.UserId)
-		}
-		_ = mapstructure.Decode(team, &res)
-		res.CreatedAt = team.CreatedAt
-		res.UpdatedAt = team.UpdatedAt
-		return res, err
-	} else {
-		return res, errors.New("团队不存在")
+func (t *TeamServiceImpl) FindById(id int64) (team response.TeamResponse, err error) {
+	teams, _, err := t.TeamRepository.Find(request.TeamFindRequest{
+		TeamId: id,
+	})
+	if len(teams) > 0 {
+		team = teams[0]
 	}
+	return team, err
 }

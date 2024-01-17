@@ -25,13 +25,14 @@ type DockerManager struct {
 	ExposedPort int
 	FlagStr     string
 	FlagEnv     string
-	MemoryLimit int64 // MB
+	MemoryLimit int64   // MB
+	CpuLimit    float64 // 核
 	Duration    time.Duration
 	cancelCtx   context.Context    // 存储可取消的上下文
 	cancelFunc  context.CancelFunc // 存储取消函数
 }
 
-func NewDockerManagerImpl(imageName string, exposedPort int, flagStr string, flagEnv string, memoryLimit int64, duration time.Duration) *DockerManager {
+func NewDockerManagerImpl(imageName string, exposedPort int, flagStr string, flagEnv string, memoryLimit int64, cpuLimit float64, duration time.Duration) *DockerManager {
 	return &DockerManager{
 		ImageName:   imageName,
 		ExposedPort: exposedPort,
@@ -39,6 +40,7 @@ func NewDockerManagerImpl(imageName string, exposedPort int, flagStr string, fla
 		FlagStr:     flagStr,
 		FlagEnv:     flagEnv,
 		MemoryLimit: memoryLimit,
+		CpuLimit:    cpuLimit,
 	}
 }
 
@@ -52,9 +54,6 @@ func (c *DockerManager) Setup() (port int, err error) {
 	port = providers.GetFreePort()
 	if port == 0 {
 		return 0, errors.New("未找到可用端口")
-	}
-	if err != nil {
-		return 0, errors.New("客户端创建失败")
 	}
 	env := []string{fmt.Sprintf("%s=%s", c.FlagEnv, c.FlagStr)}
 	containerConfig := &container.Config{
@@ -71,7 +70,8 @@ func (c *DockerManager) Setup() (port int, err error) {
 			},
 		},
 		Resources: container.Resources{
-			Memory: c.MemoryLimit * 1024 * 1024,
+			Memory:   c.MemoryLimit * 1024 * 1024,
+			CPUQuota: int64(c.CpuLimit * 1000),
 		},
 	}
 	resp, err := internal.DockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")
@@ -117,20 +117,16 @@ func (c *DockerManager) Remove() (err error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		// Stop the container
 		errStop := internal.DockerClient.ContainerStop(context.Background(), c.RespId, container.StopOptions{})
 		if errStop != nil {
-			// Handle error if needed
 		}
-		// Wait for the container to stop
+		// 等待容器停止
 		_, errWait := internal.DockerClient.ContainerWait(context.Background(), c.RespId, container.WaitConditionNotRunning)
 		if errWait != nil {
-			// Handle error if needed
 		}
-		// Remove the container
+		// 移除容器
 		errRemove := internal.DockerClient.ContainerRemove(context.Background(), c.RespId, types.ContainerRemoveOptions{})
 		if errRemove != nil {
-			// Handle error if needed
 		}
 	}()
 	wg.Wait()

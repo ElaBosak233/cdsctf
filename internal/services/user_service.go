@@ -26,7 +26,7 @@ type UserService interface {
 	VerifyPasswordByUsername(username string, password string) bool
 	GetJwtTokenById(user response.UserResponse) (tokenString string, err error)
 	GetIdByJwtToken(token string) (id int64, err error)
-	Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, err error)
+	Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, total int64, err error)
 }
 
 type UserServiceImpl struct {
@@ -97,23 +97,14 @@ func (t *UserServiceImpl) Delete(id int64) error {
 	return err
 }
 
-func (t *UserServiceImpl) Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, err error) {
-	result, count, err := t.UserRepository.Find(req)
+func (t *UserServiceImpl) Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, total int64, err error) {
+	users, count, err := t.UserRepository.Find(req)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
 		pageCount = 1
 	}
-	for _, value := range result {
-		userResp := response.UserResponse{}
-		_ = mapstructure.Decode(value, &userResp)
-		userTeams, _ := t.UserTeamRepository.FindByUserId(value.UserId)
-		for _, v1 := range userTeams {
-			userResp.TeamIds = append(userResp.TeamIds, v1.TeamId)
-		}
-		users = append(users, userResp)
-	}
-	return users, pageCount, err
+	return users, pageCount, count, err
 }
 
 // FindById implements UserService
@@ -124,10 +115,6 @@ func (t *UserServiceImpl) FindById(id int64) (response.UserResponse, error) {
 	}
 	userResp := response.UserResponse{}
 	_ = mapstructure.Decode(userData, &userResp)
-	userTeams, _ := t.UserTeamRepository.FindByUserId(id)
-	for _, value := range userTeams {
-		userResp.TeamIds = append(userResp.TeamIds, value.TeamId)
-	}
 	return userResp, nil
 }
 
@@ -138,10 +125,6 @@ func (t *UserServiceImpl) FindByUsername(username string) (response.UserResponse
 	}
 	userResp := response.UserResponse{}
 	_ = mapstructure.Decode(userData, &userResp)
-	userTeams, _ := t.UserTeamRepository.FindByUserId(userResp.UserId)
-	for _, value := range userTeams {
-		userResp.TeamIds = append(userResp.TeamIds, value.TeamId)
-	}
 	return userResp, nil
 }
 
@@ -151,10 +134,6 @@ func (t *UserServiceImpl) FindByEmail(email string) (user response.UserResponse,
 		return user, errors.New("用户不存在")
 	}
 	_ = mapstructure.Decode(userData, &user)
-	userTeams, _ := t.UserTeamRepository.FindByUserId(user.UserId)
-	for _, value := range userTeams {
-		user.TeamIds = append(user.TeamIds, value.TeamId)
-	}
 	return user, err
 }
 

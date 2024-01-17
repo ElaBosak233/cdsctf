@@ -45,6 +45,7 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 			flag,
 			challenge.FlagEnv,
 			challenge.MemoryLimit,
+			challenge.CpuLimit,
 			time.Duration(challenge.Duration)*time.Second)
 		port, err := ctn.Setup()
 		entry := fmt.Sprintf("%s:%d", viper.GetString("container.docker.public_entry"), port)

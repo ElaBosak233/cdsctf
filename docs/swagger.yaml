@@ -4,6 +4,9 @@ definitions:
       category:
         default: misc
         type: string
+      cpu_limit:
+        default: 1
+        type: number
       description:
         default: 题目描述
         type: string
@@ -58,6 +61,8 @@ definitions:
     properties:
       category:
         type: string
+      cpu_limit:
+        type: number
       description:
         type: string
       difficulty:
@@ -190,12 +195,18 @@ definitions:
       email:
         type: string
       name:
+        minLength: 2
         type: string
       password:
+        minLength: 6
         type: string
       role:
+        maximum: 5
+        minimum: 1
         type: integer
       username:
+        maxLength: 20
+        minLength: 3
         type: string
     required:
     - email
@@ -243,10 +254,15 @@ definitions:
         type: string
       id:
         type: integer
+      name:
+        minLength: 2
+        type: string
       password:
         minLength: 6
         type: string
       role:
+        maximum: 5
+        minimum: 1
         type: integer
       username:
         maxLength: 20
@@ -308,11 +324,11 @@ paths:
       summary: 通过题目 Id 设置题目附件
       tags:
       - 资源
-  /api/assets/challenges/attachments/{id}/exists:
+  /api/assets/challenges/attachments/{id}/info:
     get:
       consumes:
       - application/json
-      description: 通过题目 Id 查找题目附件
+      description: 通过题目 Id 查找题目附件信息
       parameters:
       - description: 题目 Id
         in: path
@@ -320,7 +336,7 @@ paths:
         required: true
         type: string
       responses: {}
-      summary: 通过题目 Id 查找题目附件
+      summary: 通过题目 Id 查找题目附件信息
       tags:
       - 资源
   /api/assets/games/cover/{id}:
@@ -503,11 +519,11 @@ paths:
       summary: 通过用户 Id 设置用户头像
       tags:
       - 资源
-  /api/assets/users/avatar/{id}/exists:
+  /api/assets/users/avatar/{id}/info:
     get:
       consumes:
       - application/json
-      description: 通过用户 Id 确认用户头像是否存在
+      description: 通过用户 Id 获得用户头像信息
       parameters:
       - description: 用户 Id
         in: path
@@ -517,7 +533,7 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 通过用户 Id 确认用户头像是否存在
+      summary: 通过用户 Id 获得用户头像信息
       tags:
       - 资源
   /api/challenges/:
@@ -793,10 +809,6 @@ paths:
         in: query
         name: game_id
         type: integer
-      - description: 是否升序
-        in: query
-        name: is_ascend
-        type: boolean
       - description: 是否详细
         in: query
         name: is_detailed
@@ -809,6 +821,13 @@ paths:
         in: query
         name: size
         type: integer
+      - collectionFormat: csv
+        description: 排序参数
+        in: query
+        items:
+          type: string
+        name: sort_by
+        type: array
       - description: 评判结果
         in: query
         name: status
@@ -863,7 +882,7 @@ paths:
         in: query
         items:
           type: integer
-        name: challenge_ids
+        name: challenge_id
         type: array
       - description: 比赛 Id
         in: query
@@ -926,6 +945,9 @@ paths:
         name: captain_id
         type: integer
       - in: query
+        name: id
+        type: integer
+      - in: query
         name: name
         type: string
       - in: query
@@ -972,6 +994,36 @@ paths:
       - application/json
       responses: {}
       summary: 更新团队
+      tags:
+      - 团队
+  /api/teams/batch/:
+    get:
+      consumes:
+      - application/json
+      description: 批量查找团队
+      parameters:
+      - in: query
+        name: captain_id
+        type: integer
+      - collectionFormat: csv
+        in: query
+        items:
+          type: integer
+        name: id
+        type: array
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: 批量查找团队
       tags:
       - 团队
   /api/teams/id/{id}:
@@ -1070,6 +1122,12 @@ paths:
       - in: query
         name: size
         type: integer
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: sort_by
+        type: array
       - in: query
         name: username
         type: string

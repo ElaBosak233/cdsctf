@@ -12,6 +12,7 @@ type SubmissionController interface {
 	Find(ctx *gin.Context)
 	Create(ctx *gin.Context)
 	BatchFind(ctx *gin.Context)
+	Delete(ctx *gin.Context)
 }
 
 type SubmissionControllerImpl struct {
@@ -41,20 +42,21 @@ func (c *SubmissionControllerImpl) Find(ctx *gin.Context) {
 		return 0
 	}
 	if ctx.Query("id") == "" {
-		submissions, pageCount, _ := c.SubmissionService.Find(request.SubmissionFindRequestInternal{
+		submissions, pageCount, total, _ := c.SubmissionService.Find(request.SubmissionFindRequest{
 			UserId:      int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
 			Status:      utils.ParseIntParam(ctx.Query("status"), 0),
 			TeamId:      int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
 			GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
 			IsDetailed:  isDetailed(),
 			ChallengeId: int64(utils.ParseIntParam(ctx.Query("challenge_id"), 0)),
-			IsAscend:    ctx.Query("is_ascend") == "true",
+			SortBy:      ctx.QueryArray("sort_by"),
 			Page:        utils.ParseIntParam(ctx.Query("page"), 0),
 			Size:        utils.ParseIntParam(ctx.Query("size"), 0),
 		})
 		ctx.JSON(http.StatusOK, gin.H{
 			"code":  http.StatusOK,
 			"pages": pageCount,
+			"total": total,
 			"data":  submissions,
 		})
 	}
@@ -71,12 +73,12 @@ func (c *SubmissionControllerImpl) Find(ctx *gin.Context) {
 // @Router /api/submissions/batch/ [get]
 func (c *SubmissionControllerImpl) BatchFind(ctx *gin.Context) {
 	submissions, err := c.SubmissionService.BatchFind(request.SubmissionBatchFindRequest{
-		Size:         utils.ParseIntParam(ctx.Query("size"), 1),
-		UserId:       int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
-		ChallengeIds: utils.MapStringsToInts(ctx.QueryArray("challenge_ids")),
-		Status:       utils.ParseIntParam(ctx.Query("status"), 0),
-		TeamId:       int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
-		GameId:       int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
+		Size:        utils.ParseIntParam(ctx.Query("size"), 1),
+		UserId:      int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
+		ChallengeId: utils.MapStringsToInts(ctx.QueryArray("challenge_id")),
+		Status:      utils.ParseIntParam(ctx.Query("status"), 0),
+		TeamId:      int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
+		GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -122,5 +124,28 @@ func (c *SubmissionControllerImpl) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":   http.StatusOK,
 		"status": status,
+	})
+}
+
+func (c *SubmissionControllerImpl) Delete(ctx *gin.Context) {
+	deleteSubmissionRequest := request.SubmissionDeleteRequest{}
+	err := ctx.ShouldBindJSON(&deleteSubmissionRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &deleteSubmissionRequest),
+		})
+		return
+	}
+	err = c.SubmissionService.Delete(deleteSubmissionRequest.SubmissionId)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusInternalServerError,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
 	})
 }

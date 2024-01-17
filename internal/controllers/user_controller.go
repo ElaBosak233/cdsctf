@@ -172,7 +172,7 @@ func (c *UserControllerImpl) Create(ctx *gin.Context) {
 	createUserRequest := request.UserCreateRequest{}
 	err := ctx.ShouldBindJSON(&createUserRequest)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &createUserRequest),
 		})
@@ -180,7 +180,7 @@ func (c *UserControllerImpl) Create(ctx *gin.Context) {
 	}
 	err = c.UserService.Create(createUserRequest)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "用户名或邮箱重复",
 		})
@@ -204,7 +204,7 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 	updateUserRequest := request.UserUpdateRequest{}
 	err := ctx.ShouldBindJSON(&updateUserRequest)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &updateUserRequest),
 		})
@@ -216,7 +216,7 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 		}
 		err = c.UserService.Update(updateUserRequest)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
+			ctx.JSON(http.StatusOK, gin.H{
 				"code": http.StatusBadRequest,
 				"msg":  err.Error(),
 			})
@@ -231,6 +231,7 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 			"code": http.StatusForbidden,
 			"msg":  "权限不足",
 		})
+		return
 	}
 }
 
@@ -247,7 +248,7 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 	deleteUserRequest := request.UserDeleteRequest{}
 	err := ctx.ShouldBindJSON(&deleteUserRequest)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &deleteUserRequest),
 		})
@@ -275,40 +276,19 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 // @Param input query request.UserFindRequest false "UserFindRequest"
 // @Router /api/users/ [get]
 func (c *UserControllerImpl) Find(ctx *gin.Context) {
-	if ctx.Query("id") == "" && ctx.Query("username") == "" && ctx.Query("email") == "" {
-		userResponse, pageCount, _ := c.UserService.Find(request.UserFindRequest{
-			Role: int64(utils.ParseIntParam(ctx.Query("UserRole"), 0)),
-			Name: ctx.Query("name"),
-			Page: utils.ParseIntParam(ctx.Query("page"), 0),
-			Size: utils.ParseIntParam(ctx.Query("size"), 0),
-		})
-		ctx.JSON(http.StatusOK, gin.H{
-			"code":  http.StatusOK,
-			"data":  userResponse,
-			"pages": pageCount,
-		})
-	} else if ctx.Query("id") != "" && ctx.Query("username") == "" && ctx.Query("email") == "" {
-		userResponse, _ := c.UserService.FindById(int64(utils.ParseIntParam(ctx.Query("id"), 0)))
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
-			"data": userResponse,
-		})
-	} else if ctx.Query("id") == "" && ctx.Query("username") != "" && ctx.Query("email") == "" {
-		userResponse, _ := c.UserService.FindByUsername(ctx.Query("username"))
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
-			"data": userResponse,
-		})
-	} else if ctx.Query("id") == "" && ctx.Query("username") == "" && ctx.Query("email") != "" {
-		userResponse, _ := c.UserService.FindByEmail(ctx.Query("email"))
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
-			"data": userResponse,
-		})
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  "参数错误",
-		})
-	}
+	userResponse, pageCount, total, _ := c.UserService.Find(request.UserFindRequest{
+		Role:   int64(utils.ParseIntParam(ctx.Query("role"), 0)),
+		UserId: int64(utils.ParseIntParam(ctx.Query("id"), 0)),
+		Email:  ctx.Query("email"),
+		Name:   ctx.Query("name"),
+		SortBy: ctx.QueryArray("sort_by"),
+		Page:   utils.ParseIntParam(ctx.Query("page"), 0),
+		Size:   utils.ParseIntParam(ctx.Query("size"), 0),
+	})
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":  http.StatusOK,
+		"data":  userResponse,
+		"pages": pageCount,
+		"total": total,
+	})
 }

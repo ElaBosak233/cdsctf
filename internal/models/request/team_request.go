@@ -12,10 +12,19 @@ type TeamUpdateRequest struct {
 }
 
 type TeamFindRequest struct {
+	TeamId    int64  `json:"id"`
 	TeamName  string `json:"name"`
 	CaptainId int64  `json:"captain_id"`
 	Page      int    `json:"page"`
 	Size      int    `json:"size"`
+}
+
+type TeamBatchFindRequest struct {
+	TeamId    []int64 `json:"id"`
+	TeamName  string  `json:"name"`
+	CaptainId int64   `json:"captain_id"`
+	Page      int     `json:"page"`
+	Size      int     `json:"size"`
 }
 
 type TeamDeleteRequest struct {
