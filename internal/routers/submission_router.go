@@ -10,4 +10,5 @@ func NewSubmissionRouter(submissionRouter *gin.RouterGroup, submissionController
 	submissionRouter.GET("/", authMiddleware.Auth(), submissionController.Find)
 	submissionRouter.GET("/batch", authMiddleware.Auth(), submissionController.BatchFind)
 	submissionRouter.POST("/", authMiddleware.Auth(), submissionController.Create)
+	submissionRouter.DELETE("/", authMiddleware.AuthInRole(1), submissionController.Delete)
 }

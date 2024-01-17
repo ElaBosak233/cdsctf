@@ -8,9 +8,13 @@ type Submission struct {
 	ChallengeId  int64  `xorm:"'challenge_id' notnull" json:"challenge_id"`        // 题目 Id
 	TeamId       int64  `xorm:"'team_id'" json:"team_id,omitempty"`                // 团队 Id
 	GameId       int64  `xorm:"'game_id' index" json:"game_id,omitempty"`          // 比赛 Id
-	Pts          int64  `xorm:"'pts' int default(0)" json:"pts"`                   // 提交得分
+	Pts          int64  `xorm:"'pts' default(0)" json:"pts"`                       // 提交得分
 	CreatedAt    int64  `xorm:"'created_at' created" json:"created_at"`            // 创建时间
 	UpdatedAt    int64  `xorm:"'updated_at' updated" json:"updated_at"`            // 更新时间
+}
+
+func (s *Submission) TableName() string {
+	return "submissions"
 }
 
 /*

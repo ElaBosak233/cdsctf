@@ -6,14 +6,13 @@ import (
 	"github.com/elabosak233/pgshub/internal/models/response"
 	"github.com/elabosak233/pgshub/internal/repositories"
 	"github.com/elabosak233/pgshub/internal/utils"
-	"github.com/mitchellh/mapstructure"
 	"math"
 )
 
 type SubmissionService interface {
 	Create(req request.SubmissionCreateRequest) (status int, err error)
 	Delete(id int64) (err error)
-	Find(req request.SubmissionFindRequestInternal) (submissions []response.SubmissionResponse, pageCount int64, err error)
+	Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, pageCount int64, total int64, err error)
 	BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error)
 }
 
@@ -77,7 +76,7 @@ func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (sta
 	}
 	// 判断是否重复提交
 	if status == 2 {
-		existedSubmissions, _, _ := t.Find(request.SubmissionFindRequestInternal{
+		existedSubmissions, _, _, _ := t.Find(request.SubmissionFindRequest{
 			UserId:      req.UserId,
 			Status:      2,
 			ChallengeId: req.ChallengeId,
@@ -106,23 +105,14 @@ func (t *SubmissionServiceImpl) Delete(id int64) (err error) {
 	return err
 }
 
-func (t *SubmissionServiceImpl) Find(req request.SubmissionFindRequestInternal) (submissions []response.SubmissionResponse, pageCount int64, err error) {
-	submissionsRep, count, err := t.SubmissionRepository.Find(req)
+func (t *SubmissionServiceImpl) Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, pageCount int64, total int64, err error) {
+	submissions, count, err := t.SubmissionRepository.Find(req)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
 		pageCount = 1
 	}
-	for _, submission := range submissionsRep {
-		user, _ := t.UserRepository.FindById(submission.UserId)
-		var userResponse response.UserSimpleResponse
-		_ = mapstructure.Decode(user, &userResponse)
-		submissions = append(submissions, response.SubmissionResponse{
-			Submission: submission,
-			User:       userResponse,
-		})
-	}
-	return submissions, pageCount, err
+	return submissions, pageCount, count, err
 }
 
 func (t *SubmissionServiceImpl) BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error) {

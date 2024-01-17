@@ -7,6 +7,7 @@ import (
 
 func NewTeamRouter(teamRouter *gin.RouterGroup, teamController controllers.TeamController) {
 	teamRouter.GET("/", teamController.Find)
+	teamRouter.GET("/batch", teamController.BatchFind)
 	teamRouter.GET("/id/:id", teamController.FindById)
 	teamRouter.POST("/", teamController.Create)
 	teamRouter.DELETE("/", teamController.Delete)

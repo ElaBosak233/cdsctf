@@ -11,3 +11,7 @@ type Instance struct {
 	RemovedAt   int64  `xorm:"'removed_at'" json:"removed_at"`
 	CreatedAt   int64  `xorm:"'created_at' created" json:"created_at"`
 }
+
+func (i *Instance) TableName() string {
+	return "instances"
+}

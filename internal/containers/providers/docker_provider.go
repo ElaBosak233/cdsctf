@@ -13,8 +13,8 @@ import (
 )
 
 func NewDockerProvider() {
-	dockerHost := viper.GetString("container.docker.host")
-	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation(), client.WithHost(dockerHost))
+	dockerUri := viper.GetString("container.docker.uri")
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation(), client.WithHost(dockerUri))
 	if err != nil {
 		utils.Logger.Error("Docker 客户端初始化失败")
 		panic(err)
@@ -30,7 +30,7 @@ func NewDockerProvider() {
 }
 
 func GetFreePort() (port int) {
-	if viper.GetString("container.docker.host") == ("unix:///var/run/docker.sock") || viper.GetString("container.docker.host") == "npipe:////./pipe/docker_engine" {
+	if viper.GetString("container.docker.uri") == ("unix:///var/run/docker.sock") || viper.GetString("container.docker.uri") == "npipe:////./pipe/docker_engine" {
 		for port := viper.GetInt("container.docker.ports.from"); port <= viper.GetInt("container.docker.ports.to"); port++ {
 			addr := fmt.Sprintf("127.0.0.1:%d", port)
 			if isPortAvailable(addr) {
@@ -39,7 +39,7 @@ func GetFreePort() (port int) {
 		}
 	} else {
 		for port := viper.GetInt("container.docker.ports.from"); port <= viper.GetInt("container.docker.ports.to"); port++ {
-			addr := fmt.Sprintf("%s:%d", extractIP(viper.GetString("container.docker.host")), port)
+			addr := fmt.Sprintf("%s:%d", extractIP(viper.GetString("container.docker.uri")), port)
 			if isPortAvailable(addr) {
 				return port
 			}

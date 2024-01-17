@@ -13,10 +13,10 @@ import (
 
 type AssetController interface {
 	GetUserAvatarList(ctx *gin.Context)
-	FindUserAvatarByUserId(ctx *gin.Context)
-	CheckUserAvatarExistsByUserId(ctx *gin.Context)
-	SetUserAvatarByUserId(ctx *gin.Context)
-	DeleteUserAvatarByUserId(ctx *gin.Context)
+	SetUserAvatarByUserId(ctx *gin.Context)     // 设置用户头像
+	DeleteUserAvatarByUserId(ctx *gin.Context)  // 删除用户头像
+	GetUserAvatarByUserId(ctx *gin.Context)     // 获取用户头像
+	GetUserAvatarInfoByUserId(ctx *gin.Context) // 获取用户头像信息
 	GetTeamAvatarList(ctx *gin.Context)
 	FindTeamAvatarByTeamId(ctx *gin.Context)
 	CheckTeamAvatarExistsByTeamId(ctx *gin.Context)
@@ -24,10 +24,10 @@ type AssetController interface {
 	FindGameCoverByGameId(ctx *gin.Context)
 	SetGameCoverByGameId(ctx *gin.Context)
 	FindGameWriteUpByTeamId(ctx *gin.Context)
-	SetChallengeAttachmentByChallengeId(ctx *gin.Context)
-	CheckChallengeAttachmentByChallengeId(ctx *gin.Context)
-	DeleteChallengeAttachmentByChallengeId(ctx *gin.Context)
-	FindChallengeAttachmentByChallengeId(ctx *gin.Context)
+	SetChallengeAttachmentByChallengeId(ctx *gin.Context)     // 设置题目附件
+	DeleteChallengeAttachmentByChallengeId(ctx *gin.Context)  // 删除题目附件
+	GetChallengeAttachmentByChallengeId(ctx *gin.Context)     // 获取题目附件
+	GetChallengeAttachmentInfoByChallengeId(ctx *gin.Context) // 获取题目附件信息
 }
 
 type AssetControllerImpl struct {
@@ -55,7 +55,7 @@ func (c *AssetControllerImpl) GetUserAvatarList(ctx *gin.Context) {
 	})
 }
 
-// FindUserAvatarByUserId
+// GetUserAvatarByUserId
 // @Summary 通过用户 Id 获取用户头像
 // @Description 通过用户 Id 获取用户头像
 // @Tags 资源
@@ -63,26 +63,28 @@ func (c *AssetControllerImpl) GetUserAvatarList(ctx *gin.Context) {
 // @Produce json
 // @Param id path string true "用户 Id"
 // @Router /api/assets/users/avatar/{id} [get]
-func (c *AssetControllerImpl) FindUserAvatarByUserId(ctx *gin.Context) {
+func (c *AssetControllerImpl) GetUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("./assets/users/avatar/%s", id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
 	} else {
-		ctx.Status(http.StatusNotFound)
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusNotFound,
+		})
 	}
 }
 
-// CheckUserAvatarExistsByUserId
-// @Summary 通过用户 Id 确认用户头像是否存在
-// @Description 通过用户 Id 确认用户头像是否存在
+// GetUserAvatarInfoByUserId
+// @Summary 通过用户 Id 获得用户头像信息
+// @Description 通过用户 Id 获得用户头像信息
 // @Tags 资源
 // @Accept json
 // @Produce json
 // @Param id path string true "用户 Id"
-// @Router /api/assets/users/avatar/{id}/exists [get]
-func (c *AssetControllerImpl) CheckUserAvatarExistsByUserId(ctx *gin.Context) {
+// @Router /api/assets/users/avatar/{id}/info [get]
+func (c *AssetControllerImpl) GetUserAvatarInfoByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("./assets/users/avatar/%s", id)
 	_, err := os.Stat(path)
@@ -372,14 +374,14 @@ func (c *AssetControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Conte
 	})
 }
 
-// CheckChallengeAttachmentByChallengeId
-// @Summary 通过题目 Id 查找题目附件
-// @Description 通过题目 Id 查找题目附件
+// GetChallengeAttachmentInfoByChallengeId
+// @Summary 通过题目 Id 查找题目附件信息
+// @Description 通过题目 Id 查找题目附件信息
 // @Tags 资源
 // @Accept json
 // @Param id path string true "题目 Id"
-// @Router /api/assets/challenges/attachments/{id}/exists [get]
-func (c *AssetControllerImpl) CheckChallengeAttachmentByChallengeId(ctx *gin.Context) {
+// @Router /api/assets/challenges/attachments/{id}/info [get]
+func (c *AssetControllerImpl) GetChallengeAttachmentInfoByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	fileName, fileSize, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0)))
 	if err != nil {
@@ -395,14 +397,14 @@ func (c *AssetControllerImpl) CheckChallengeAttachmentByChallengeId(ctx *gin.Con
 	})
 }
 
-// FindChallengeAttachmentByChallengeId
+// GetChallengeAttachmentByChallengeId
 // @Summary 通过题目 Id 获取题目附件
 // @Description 通过题目 Id 获取题目附件
 // @Tags 资源
 // @Accept json
 // @Param id path string true "题目 Id"
 // @Router /api/assets/challenges/attachments/{id} [get]
-func (c *AssetControllerImpl) FindChallengeAttachmentByChallengeId(ctx *gin.Context) {
+func (c *AssetControllerImpl) GetChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	fileName, _, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0)))
 	if err != nil {

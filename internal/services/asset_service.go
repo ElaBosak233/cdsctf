@@ -79,14 +79,7 @@ func (a *AssetServiceImpl) DeleteChallengeAttachmentByChallengeId(id int64) (err
 	if len(files) == 0 {
 		return nil
 	} else {
-		for _, file := range files {
-			if !file.IsDir() {
-				err = os.Remove(fmt.Sprintf("%s/%s", path, file.Name()))
-				if err != nil {
-					return err
-				}
-			}
-		}
+		err = os.RemoveAll(path)
 	}
-	return nil
+	return err
 }

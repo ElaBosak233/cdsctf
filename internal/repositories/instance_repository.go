@@ -25,12 +25,12 @@ func NewInstanceRepositoryImpl(Db *xorm.Engine) InstanceRepository {
 }
 
 func (t *InstanceRepositoryImpl) Insert(instance model.Instance) (i model.Instance, err error) {
-	_, err = t.Db.Table("instance").Insert(&instance)
+	_, err = t.Db.Table("instances").Insert(&instance)
 	return instance, err
 }
 
 func (t *InstanceRepositoryImpl) Update(instance model.Instance) (err error) {
-	_, err = t.Db.Table("instance").ID(instance.InstanceId).Update(&instance)
+	_, err = t.Db.Table("instances").ID(instance.InstanceId).Update(&instance)
 	return err
 }
 
@@ -57,8 +57,8 @@ func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instance
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("instance"))
-	count, err := applyFilter(t.Db.Table("instance")).Count(&model.Instance{})
+	db := applyFilter(t.Db.Table("instances"))
+	count, err := applyFilter(t.Db.Table("instances")).Count(&model.Instance{})
 	if req.Page != 0 && req.Size != 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
@@ -68,16 +68,16 @@ func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instance
 }
 
 func (t *InstanceRepositoryImpl) FindById(id int64) (instance model.Instance, err error) {
-	_, err = t.Db.Table("instance").ID(id).Get(&instance)
+	_, err = t.Db.Table("instances").ID(id).Get(&instance)
 	return instance, err
 }
 
 func (t *InstanceRepositoryImpl) FindAllAvailable() (instances []model.Instance, err error) {
-	err = t.Db.Table("instance").Where("removed_at > ?", time.Now().Unix()).Find(&instances)
+	err = t.Db.Table("instances").Where("removed_at > ?", time.Now().Unix()).Find(&instances)
 	return instances, err
 }
 
 func (t *InstanceRepositoryImpl) FindAll() (instances []model.Instance, err error) {
-	err = t.Db.Table("instance").Find(&instances)
+	err = t.Db.Table("instances").Find(&instances)
 	return instances, err
 }
