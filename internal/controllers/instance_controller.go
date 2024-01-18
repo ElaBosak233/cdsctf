@@ -47,6 +47,13 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 	}
 	instanceCreateRequest.UserId = ctx.GetInt64("UserId")
 	res, err := c.InstanceService.Create(instanceCreateRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":       http.StatusOK,
 		"id":         res.InstanceId,
@@ -60,22 +67,24 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 // @Description 停止并删除容器
 // @Tags 实例
 // @Produce json
+// @Param PgsToken header string true "PgsToken"
 // @Param input body request.InstanceRemoveRequest true "InstanceRemoveRequest"
 // @Router /api/instances/ [delete]
 func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 	instanceRemoveRequest := request.InstanceRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
-	err = c.InstanceService.Remove(instanceRemoveRequest.InstanceId)
+	instanceRemoveRequest.UserId = ctx.GetInt64("UserId")
+	err = c.InstanceService.Remove(instanceRemoveRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
-		})
+		return
 	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
 }
 
 // Renew
@@ -83,23 +92,25 @@ func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 // @Description 容器续期
 // @Tags 实例
 // @Produce json
+// @Param PgsToken header string true "PgsToken"
 // @Param input body request.InstanceRenewRequest true "InstanceRenewRequest"
 // @Router /api/instances/ [put]
 func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.InstanceRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
-	removedAt, err := c.InstanceService.Renew(instanceRenewRequest.InstanceId)
+	instanceRenewRequest.UserId = ctx.GetInt64("UserId")
+	removedAt, err := c.InstanceService.Renew(instanceRenewRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code":       http.StatusOK,
-			"removed_at": removedAt,
-		})
+		return
 	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":       http.StatusOK,
+		"removed_at": removedAt,
+	})
 }
 
 // FindById

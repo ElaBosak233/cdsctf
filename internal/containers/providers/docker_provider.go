@@ -8,6 +8,7 @@ import (
 	"github.com/elabosak233/pgshub/internal/utils"
 	"github.com/spf13/viper"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -62,7 +63,14 @@ func extractIP(input string) (host string) {
 }
 
 func isPortAvailable(addr string) bool {
-	conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return false
+	}
+	if _, err := strconv.Atoi(port); err != nil {
+		return false
+	}
+	conn, err := net.DialTimeout("tcp", net.JoinHostPort(host, port), 1*time.Second)
 	if err != nil {
 		return true
 	}

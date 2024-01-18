@@ -8,20 +8,24 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 	"xorm.io/xorm"
 )
 
 var db *xorm.Engine
 var dbInfo string
 
+// GetDatabaseConnection 获取数据库连接
 func GetDatabaseConnection() *xorm.Engine {
 	InitDatabaseEngine()
 	utils.Logger.Info("数据库连接信息 " + dbInfo)
 	SyncDatabase()
 	InitAdmin()
+	SelfCheck()
 	return db
 }
 
+// InitDatabaseEngine 初始化数据库引擎
 func InitDatabaseEngine() {
 	var err error
 	if viper.GetString("db.provider") == "postgres" {
@@ -42,6 +46,7 @@ func InitDatabaseEngine() {
 	}
 }
 
+// SyncDatabase 同步数据库
 func SyncDatabase() {
 	var dbs = []interface{}{
 		&model.User{},
@@ -59,6 +64,17 @@ func SyncDatabase() {
 	}
 }
 
+// SelfCheck 数据库自检
+// 主要用于配平不合理的时间数据
+func SelfCheck() {
+	// 对于 instances 中的所有数据，若 removed_at 大于当前时间，则强制赋值为现在的时间，以免后续程序错误判断
+	_, _ = db.Table("instances").Where("removed_at > ?", time.Now().Unix()).Update(model.Instance{
+		RemovedAt: time.Now().Unix(),
+	})
+}
+
+// InitAdmin 创建超级管理员账户
+// 仅用于第一次生成
 func InitAdmin() {
 	existAdminUser, _ := db.Table("users").Where("username = ?", "admin").Exist()
 	if !existAdminUser {

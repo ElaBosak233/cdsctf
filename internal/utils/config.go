@@ -6,8 +6,10 @@ import (
 
 var defaultSettings = map[string]interface{}{
 	// 全局设置
-	"global.title": "PgsHub",
-	"global.bio":   "Hack for fun not for profit.",
+	"global.title":                    "PgsHub",
+	"global.bio":                      "Hack for fun not for profit.",
+	"global.parallel_container_limit": 1,  // 练习场并行容器数
+	"global.container_request_limit":  30, // 有关容器请求时间的限制（秒）
 	// 服务器设置
 	"server.host":               "0.0.0.0",
 	"server.port":               8888,

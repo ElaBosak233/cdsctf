@@ -10,6 +10,6 @@ func NewInstanceRouter(instanceRouter *gin.RouterGroup, instanceController contr
 	instanceRouter.GET("/", authMiddleware.Auth(), instanceController.Find)
 	instanceRouter.GET("/:id", instanceController.FindById)
 	instanceRouter.POST("/", authMiddleware.Auth(), instanceController.Create)
-	instanceRouter.DELETE("/", instanceController.Remove)
-	instanceRouter.PUT("/", instanceController.Renew)
+	instanceRouter.DELETE("/", authMiddleware.Auth(), instanceController.Remove)
+	instanceRouter.PUT("/", authMiddleware.Auth(), instanceController.Renew)
 }
