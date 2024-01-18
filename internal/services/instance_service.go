@@ -17,8 +17,8 @@ import (
 type InstanceService interface {
 	Create(req request.InstanceCreateRequest) (res response.InstanceStatusResponse, err error)
 	Status(id int64) (rep response.InstanceStatusResponse, err error)
-	Renew(id int64) (removedAt int64, err error)
-	Remove(id int64) (err error)
+	Renew(req request.InstanceRenewRequest) (removedAt int64, err error)
+	Remove(req request.InstanceRemoveRequest) (err error)
 	FindById(id int64) (rep response.InstanceResponse, err error)
 	Find(req request.InstanceFindRequest) (rep []response.InstanceResponse, err error)
 }
@@ -35,9 +35,55 @@ func NewInstanceServiceImpl(appRepository *repositories.AppRepository) InstanceS
 	}
 }
 
+func (t *InstanceServiceImpl) IsLimited(userId int64, limit int64) (remainder int64) {
+	if userId == 0 {
+		return 0
+	}
+	ti := internal.GetUserInstanceRequestMap(userId)
+	if ti != 0 {
+		if time.Now().Unix()-ti < limit {
+			return limit - (time.Now().Unix() - ti)
+		}
+	}
+	return 0
+}
+
 func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res response.InstanceStatusResponse, err error) {
+	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container_request_limit"))
+	if remainder != 0 {
+		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
+	}
 	if viper.GetString("container.provider") == "docker" {
+		internal.SetUserInstanceRequestMap(req.UserId, time.Now().Unix()) // 保存用户请求时间
 		challenge, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
+		availableInstances, count, err := t.InstanceRepository.Find(request.InstanceFindRequest{
+			UserId:      req.UserId,
+			TeamId:      req.TeamId,
+			GameId:      req.GameId,
+			IsAvailable: 1,
+		})
+		if req.TeamId == 0 && req.GameId == 0 { // 练习场限制并行
+			needToBeDeactivated := count - viper.GetInt64("global.parallel_container_limit")
+			fmt.Println(count, needToBeDeactivated)
+			if needToBeDeactivated > 0 {
+				for _, instance := range availableInstances {
+					if needToBeDeactivated == 0 {
+						break
+					}
+					go func() {
+						err = t.Remove(request.InstanceRemoveRequest{
+							InstanceId: instance.InstanceId,
+						})
+						if err != nil {
+							fmt.Println(err)
+						}
+					}()
+					needToBeDeactivated -= 1
+				}
+			}
+		} else if req.TeamId != 0 && req.GameId != 0 { // 比赛限制并行
+			// TODO
+		}
 		flag := utils.GenerateFlag(challenge.FlagFmt)
 		ctn := managers.NewDockerManagerImpl(
 			challenge.Image,
@@ -73,31 +119,35 @@ func (t *InstanceServiceImpl) Status(id int64) (rep response.InstanceStatusRespo
 	rep = response.InstanceStatusResponse{}
 	if viper.GetString("container.provider") == "docker" {
 		instance, err := t.InstanceRepository.FindById(id)
-		if err != nil || internal.InstanceMap[id] == nil {
-			return rep, errors.New("实例不存在")
-		}
-		ctn := internal.InstanceMap[id].(*managers.DockerManager)
-		status, _ := ctn.GetContainerStatus()
-		if status != "removed" {
-			rep.InstanceId = id
-			rep.Status = status
-			rep.Entry = instance.Entry
-			rep.RemovedAt = instance.RemovedAt
-			return rep, nil
+		if internal.InstanceMap[id] != nil {
+			ctn := internal.InstanceMap[id].(*managers.DockerManager)
+			status, _ := ctn.GetContainerStatus()
+			if status != "removed" {
+				rep.InstanceId = id
+				rep.Status = status
+				rep.Entry = instance.Entry
+				rep.RemovedAt = instance.RemovedAt
+				return rep, nil
+			}
 		}
 		rep.Status = "removed"
-		return rep, nil
+		return rep, err
 	}
 	return rep, errors.New("获取失败")
 }
 
-func (t *InstanceServiceImpl) Renew(id int64) (removedAt int64, err error) {
+func (t *InstanceServiceImpl) Renew(req request.InstanceRenewRequest) (removedAt int64, err error) {
+	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container_request_limit"))
+	if remainder != 0 {
+		return 0, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
+	}
 	if viper.GetString("Container.Provider") == "docker" {
-		instance, err := t.InstanceRepository.FindById(id)
-		if err != nil || internal.InstanceMap[id] == nil {
+		internal.SetUserInstanceRequestMap(req.UserId, time.Now().Unix()) // 保存用户请求时间
+		instance, err := t.InstanceRepository.FindById(req.InstanceId)
+		if err != nil || internal.InstanceMap[req.InstanceId] == nil {
 			return 0, errors.New("实例不存在")
 		}
-		ctn := internal.InstanceMap[id].(*managers.DockerManager)
+		ctn := internal.InstanceMap[req.InstanceId].(*managers.DockerManager)
 		err = ctn.Renew(ctn.Duration)
 		instance.RemovedAt = time.Now().Add(ctn.Duration).Unix()
 		err = t.InstanceRepository.Update(instance)
@@ -106,16 +156,20 @@ func (t *InstanceServiceImpl) Renew(id int64) (removedAt int64, err error) {
 	return 0, errors.New("续期失败")
 }
 
-func (t *InstanceServiceImpl) Remove(id int64) (err error) {
+func (t *InstanceServiceImpl) Remove(req request.InstanceRemoveRequest) (err error) {
+	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container_request_limit"))
+	if remainder != 0 {
+		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
+	}
 	if viper.GetString("container.provider") == "docker" {
-		instance, err := t.InstanceRepository.FindById(id)
-		if err != nil || internal.InstanceMap[id] == nil {
-			return errors.New("实例不存在")
+		_ = t.InstanceRepository.Update(model.Instance{
+			InstanceId: req.InstanceId,
+			RemovedAt:  time.Now().Unix(),
+		})
+		if internal.InstanceMap[req.InstanceId] != nil {
+			ctn := internal.InstanceMap[req.InstanceId].(*managers.DockerManager)
+			err = ctn.Remove()
 		}
-		instance.RemovedAt = time.Now().Unix()
-		_ = t.InstanceRepository.Update(instance)
-		ctn := internal.InstanceMap[id].(*managers.DockerManager)
-		err = ctn.Remove()
 		return err
 	}
 	return errors.New("移除失败")
@@ -162,7 +216,6 @@ func (t *InstanceServiceImpl) Find(req request.InstanceFindRequest) (instances [
 				Status:      status,
 			})
 		}
-		fmt.Println(instances)
 		return instances, err
 	}
 	return nil, errors.New("获取失败")

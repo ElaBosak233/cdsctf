@@ -73,12 +73,14 @@ func (c *SubmissionControllerImpl) Find(ctx *gin.Context) {
 // @Router /api/submissions/batch/ [get]
 func (c *SubmissionControllerImpl) BatchFind(ctx *gin.Context) {
 	submissions, err := c.SubmissionService.BatchFind(request.SubmissionBatchFindRequest{
-		Size:        utils.ParseIntParam(ctx.Query("size"), 1),
-		UserId:      int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
-		ChallengeId: utils.MapStringsToInts(ctx.QueryArray("challenge_id")),
-		Status:      utils.ParseIntParam(ctx.Query("status"), 0),
-		TeamId:      int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
-		GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
+		Size:             utils.ParseIntParam(ctx.Query("size"), 1),
+		SizePerChallenge: utils.ParseIntParam(ctx.Query("size_per_challenge"), 0),
+		UserId:           int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
+		ChallengeId:      utils.MapStringsToInts(ctx.QueryArray("challenge_id")),
+		Status:           utils.ParseIntParam(ctx.Query("status"), 0),
+		SortBy:           ctx.QueryArray("sort_by"),
+		TeamId:           int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
+		GameId:           int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

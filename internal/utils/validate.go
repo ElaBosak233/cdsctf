@@ -8,6 +8,7 @@ import (
 	"strconv"
 )
 
+// GetValidMsg 获取错误信息
 func GetValidMsg(err error, obj any) string {
 	getObj := reflect.TypeOf(obj)
 	var errs validator.ValidationErrors
@@ -22,6 +23,7 @@ func GetValidMsg(err error, obj any) string {
 	return err.Error()
 }
 
+// ParseIntParam 获取 int 参数
 func ParseIntParam(queryValue string, defaultValue int) int {
 	if value, err := strconv.Atoi(queryValue); err == nil {
 		return value
@@ -29,6 +31,7 @@ func ParseIntParam(queryValue string, defaultValue int) int {
 	return defaultValue
 }
 
+// MapStringsToInts 字符串数组转 int64 数组
 func MapStringsToInts(strArray []string) []int64 {
 	intArray := make([]int64, len(strArray))
 	for i, str := range strArray {

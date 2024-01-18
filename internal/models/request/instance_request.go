@@ -2,6 +2,8 @@ package request
 
 type InstanceCreateRequest struct {
 	ChallengeId int64 `binding:"required" json:"challenge_id"`
+	TeamId      int64 `json:"team_id"`
+	GameId      int64 `json:"game_id"`
 	UserId      int64 `json:"-"`
 }
 
@@ -17,8 +19,14 @@ type InstanceFindRequest struct {
 
 type InstanceRemoveRequest struct {
 	InstanceId int64 `binding:"required" json:"id"`
+	TeamId     int64 `json:"team_id"`
+	GameId     int64 `json:"game_id"`
+	UserId     int64 `json:"-"`
 }
 
 type InstanceRenewRequest struct {
 	InstanceId int64 `binding:"required" json:"id"`
+	TeamId     int64 `json:"team_id"`
+	GameId     int64 `json:"game_id"`
+	UserId     int64 `json:"-"`
 }

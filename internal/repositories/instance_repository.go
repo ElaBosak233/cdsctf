@@ -10,6 +10,7 @@ import (
 type InstanceRepository interface {
 	Insert(instance model.Instance) (i model.Instance, err error)
 	Update(instance model.Instance) (err error)
+	BatchDeactivate(id []int64) (err error)
 	Find(req request.InstanceFindRequest) (instances []model.Instance, pageCount int64, err error)
 	FindById(id int64) (instance model.Instance, err error)
 	FindAllAvailable() (instances []model.Instance, err error)
@@ -31,6 +32,13 @@ func (t *InstanceRepositoryImpl) Insert(instance model.Instance) (i model.Instan
 
 func (t *InstanceRepositoryImpl) Update(instance model.Instance) (err error) {
 	_, err = t.Db.Table("instances").ID(instance.InstanceId).Update(&instance)
+	return err
+}
+
+func (t *InstanceRepositoryImpl) BatchDeactivate(id []int64) (err error) {
+	_, err = t.Db.Table("instances").In("instances.id", id).Update(model.Instance{
+		RemovedAt: time.Now().Unix(),
+	})
 	return err
 }
 

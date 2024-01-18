@@ -26,5 +26,7 @@ func (c ConfigServiceImpl) FindAll() (config map[string]any) {
 func (c ConfigServiceImpl) Update(req request.ConfigUpdateRequest) (err error) {
 	viper.Set("global.title", req.Title)
 	viper.Set("global.bio", req.Bio)
+	viper.Set("global.parallel_container_limit", req.ParallelContainerLimit)
+	viper.Set("global.container_request_limit", req.ContainerRequestLimit)
 	return utils.SaveConfig()
 }

@@ -70,9 +70,9 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
 		if sortOrder == "asc" {
-			db = db.Asc("challenges." + sortKey)
+			db = db.Asc("c." + sortKey)
 		} else if sortOrder == "desc" {
-			db = db.Desc("challenges." + sortKey)
+			db = db.Desc("c." + sortKey)
 		}
 	}
 	if req.Page != 0 && req.Size > 0 {

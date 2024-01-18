@@ -10,8 +10,10 @@ import (
 	"time"
 )
 
+// Logger 日志对象
 var Logger *logrus.Logger
 
+// InitLogger 初始化日志系统
 func InitLogger() {
 	filename := fmt.Sprintf("logs/%d.log", time.Now().Unix())
 	logWriter := &lumberjack.Logger{
