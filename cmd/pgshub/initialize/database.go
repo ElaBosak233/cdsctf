@@ -2,14 +2,15 @@ package initialize
 
 import (
 	"fmt"
-	model "github.com/elabosak233/pgshub/internal/models/data"
-	"github.com/elabosak233/pgshub/internal/models/data/relations"
-	"github.com/elabosak233/pgshub/internal/utils"
+	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity/relations"
+	"github.com/elabosak233/pgshub/utils"
 	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/spf13/viper"
+	"github.com/xormplus/xorm"
 	"golang.org/x/crypto/bcrypt"
 	"time"
-	"xorm.io/xorm"
 )
 
 var db *xorm.Engine
@@ -38,7 +39,10 @@ func InitDatabaseEngine() {
 			viper.GetString("db.postgres.dbname"),
 			viper.GetString("db.postgres.sslmode"),
 		)
-		db, err = xorm.NewEngine("postgres", dbInfo)
+		db, err = xorm.NewPostgreSQL(dbInfo)
+	} else if viper.GetString("db.provider") == "sqlite3" {
+		dbInfo = viper.GetString("db.sqlite3.filename")
+		db, err = xorm.NewSqlite3(dbInfo)
 	}
 	if err != nil {
 		utils.Logger.Error("数据库连接失败")

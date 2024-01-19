@@ -1,8 +1,8 @@
 package initialize
 
 import (
-	"github.com/elabosak233/pgshub/internal/repositories"
-	"github.com/elabosak233/pgshub/internal/services"
+	"github.com/elabosak233/pgshub/repositories"
+	"github.com/elabosak233/pgshub/services"
 )
 
 func Services(appRepository *repositories.AppRepository) *services.AppService {

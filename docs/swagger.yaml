@@ -307,7 +307,7 @@ paths:
       - 资源
     post:
       consumes:
-      - multipart/form-data
+      - multipart/form-entity
       description: 通过题目 Id 设置题目附件
       parameters:
       - description: 题目 Id
@@ -358,7 +358,7 @@ paths:
       - 资源
     post:
       consumes:
-      - multipart/form-data
+      - multipart/form-entity
       description: 通过比赛 Id 设置比赛封面
       parameters:
       - description: 比赛 Id
@@ -422,7 +422,7 @@ paths:
       - 资源
     post:
       consumes:
-      - multipart/form-data
+      - multipart/form-entity
       description: 通过团队 Id 设置团队头像
       parameters:
       - description: 团队 Id
@@ -502,7 +502,7 @@ paths:
       - 资源
     post:
       consumes:
-      - multipart/form-data
+      - multipart/form-entity
       description: 通过用户 Id 设置用户头像
       parameters:
       - description: 用户 Id
@@ -548,7 +548,7 @@ paths:
         type: string
       - description: ChallengeDeleteRequest
         in: body
-        name: data
+        name: entity
         required: true
         schema:
           $ref: '#/definitions/request.ChallengeDeleteRequest'
@@ -648,7 +648,7 @@ paths:
         type: string
       - description: ChallengeUpdateRequest
         in: body
-        name: data
+        name: entity
         required: true
         schema:
           $ref: '#/definitions/request.ChallengeUpdateRequest'
