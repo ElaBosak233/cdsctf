@@ -1,9 +1,9 @@
 package initialize
 
 import (
-	"github.com/elabosak233/pgshub/internal/repositories"
-	"github.com/elabosak233/pgshub/internal/repositories/relations"
-	"xorm.io/xorm"
+	"github.com/elabosak233/pgshub/repositories"
+	"github.com/elabosak233/pgshub/repositories/relations"
+	"github.com/xormplus/xorm"
 )
 
 func Repositories(db *xorm.Engine) *repositories.AppRepository {

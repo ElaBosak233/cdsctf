@@ -1,8 +1,8 @@
 package initialize
 
 import (
-	"github.com/elabosak233/pgshub/internal/controllers"
-	"github.com/elabosak233/pgshub/internal/services"
+	"github.com/elabosak233/pgshub/controllers"
+	"github.com/elabosak233/pgshub/services"
 )
 
 func Controllers(appService *services.AppService) *controllers.AppController {

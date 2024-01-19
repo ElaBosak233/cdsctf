@@ -39,7 +39,7 @@ const docTemplate = `{
             "post": {
                 "description": "通过题目 Id 设置题目附件",
                 "consumes": [
-                    "multipart/form-data"
+                    "multipart/form-entity"
                 ],
                 "tags": [
                     "资源"
@@ -133,7 +133,7 @@ const docTemplate = `{
             "post": {
                 "description": "通过比赛 Id 设置比赛封面",
                 "consumes": [
-                    "multipart/form-data"
+                    "multipart/form-entity"
                 ],
                 "tags": [
                     "资源"
@@ -226,7 +226,7 @@ const docTemplate = `{
             "post": {
                 "description": "通过团队 Id 设置团队头像",
                 "consumes": [
-                    "multipart/form-data"
+                    "multipart/form-entity"
                 ],
                 "tags": [
                     "资源"
@@ -319,7 +319,7 @@ const docTemplate = `{
             "post": {
                 "description": "通过用户 Id 设置用户头像",
                 "consumes": [
-                    "multipart/form-data"
+                    "multipart/form-entity"
                 ],
                 "tags": [
                     "资源"
@@ -506,7 +506,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "ChallengeUpdateRequest",
-                        "name": "data",
+                        "name": "entity",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -568,7 +568,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "ChallengeDeleteRequest",
-                        "name": "data",
+                        "name": "entity",
                         "in": "body",
                         "required": true,
                         "schema": {

@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/elabosak233/pgshub/cmd/pgshub/initialize"
+	"github.com/elabosak233/pgshub/containers/providers"
 	_ "github.com/elabosak233/pgshub/docs"
-	"github.com/elabosak233/pgshub/internal/containers/providers"
-	"github.com/elabosak233/pgshub/internal/routers"
-	"github.com/elabosak233/pgshub/internal/utils"
+	"github.com/elabosak233/pgshub/routers"
+	"github.com/elabosak233/pgshub/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
