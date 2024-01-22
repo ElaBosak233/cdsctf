@@ -19,14 +19,15 @@ func NewConfigServiceImpl(appRepository *repositories.AppRepository) ConfigServi
 	return &ConfigServiceImpl{}
 }
 
-func (c ConfigServiceImpl) FindAll() (config map[string]any) {
+func (c *ConfigServiceImpl) FindAll() (config map[string]any) {
 	return viper.GetStringMap("global")
 }
 
-func (c ConfigServiceImpl) Update(req request.ConfigUpdateRequest) (err error) {
-	viper.Set("global.title", req.Title)
-	viper.Set("global.bio", req.Bio)
-	viper.Set("global.parallel_container_limit", req.ParallelContainerLimit)
-	viper.Set("global.container_request_limit", req.ContainerRequestLimit)
+func (c *ConfigServiceImpl) Update(req request.ConfigUpdateRequest) (err error) {
+	viper.Set("global.platform.title", req.Platform.Title)
+	viper.Set("global.platform.bio", req.Platform.Bio)
+	viper.Set("global.container.parallel_limit", req.Container.ParallelLimit)
+	viper.Set("global.container.request_limit", req.Container.RequestLimit)
+	viper.Set("global.user.allow_registration", req.User.AllowRegistration)
 	return utils.SaveConfig()
 }

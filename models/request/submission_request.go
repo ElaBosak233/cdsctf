@@ -31,7 +31,6 @@ type SubmissionBatchFindRequest struct {
 	SizePerChallenge int      `json:"size_per_challenge"` // 每道题查询量
 	TeamId           int64    `json:"team_id"`            // 团队 Id
 	GameId           int64    `json:"game_id"`            // 比赛 Id
-	IsAscend         bool     `json:"is_ascend"`          // 是否升序
 	IsDetailed       bool     `json:"is_detailed"`        // 是否详细
 	SortBy           []string `json:"sort_by"`            // 排序参数
 	Size             int      `json:"size"`               // 每页大小

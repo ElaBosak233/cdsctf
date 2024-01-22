@@ -17,7 +17,7 @@ import (
 
 type UserService interface {
 	Create(req request.UserCreateRequest) (err error)
-	Update(req request.UserUpdateRequest) error
+	Update(req request.UserUpdateRequest) (err error)
 	Delete(id int64) error
 	FindById(id int64) (response.UserResponse, error)
 	FindByUsername(username string) (response.UserResponse, error)
@@ -79,15 +79,13 @@ func (t *UserServiceImpl) Create(req request.UserCreateRequest) (err error) {
 	return err
 }
 
-func (t *UserServiceImpl) Update(req request.UserUpdateRequest) error {
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	userData, err := t.UserRepository.FindById(req.UserId)
-	if err != nil || userData.UserId == 0 {
-		return errors.New("用户不存在")
-	}
+func (t *UserServiceImpl) Update(req request.UserUpdateRequest) (err error) {
 	userModel := model.User{}
 	_ = mapstructure.Decode(req, &userModel)
-	userModel.Password = string(hashedPassword)
+	if req.Password != "" {
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		userModel.Password = string(hashedPassword)
+	}
 	err = t.UserRepository.Update(userModel)
 	return err
 }
@@ -112,7 +110,7 @@ func (t *UserServiceImpl) Find(req request.UserFindRequest) (users []response.Us
 		UserId: userIds,
 	})
 	for _, team := range teams {
-		var teamResponse response.TeamResponse
+		var teamResponse response.TeamSimpleResponse
 		_ = mapstructure.Decode(team, &teamResponse)
 		if user, ok := usersMap[team.UserId]; ok {
 			user.Teams = append(user.Teams, teamResponse)
