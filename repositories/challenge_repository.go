@@ -85,15 +85,7 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		"submissions",
 		"submissions.challenge_id = challenges.id AND submissions.status = 2 AND submissions.user_id = ?",
 		req.UserId)
-	db = db.Cols("submissions.id AS is_solved")
-	if req.IsDetailed == 0 {
-		db = db.Cols("challenges.id", "challenges.title", "challenges.description",
-			"challenges.category", "challenges.duration", "challenges.is_dynamic",
-			"challenges.has_attachment", "challenges.difficulty", "challenges.practice_pts",
-		)
-	} else {
-		db = db.Cols("challenges.*")
-	}
+	db = db.Cols("challenges.*", "submissions.id AS is_solved")
 	err = db.Find(&challenges)
 	return challenges, count, err
 }

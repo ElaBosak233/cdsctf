@@ -79,6 +79,7 @@ func (c *SubmissionControllerImpl) BatchFind(ctx *gin.Context) {
 		ChallengeId:      utils.MapStringsToInts(ctx.QueryArray("challenge_id")),
 		Status:           utils.ParseIntParam(ctx.Query("status"), 0),
 		SortBy:           ctx.QueryArray("sort_by"),
+		IsDetailed:       ctx.Query("is_detailed") == "true",
 		TeamId:           int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
 		GameId:           int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
 	})

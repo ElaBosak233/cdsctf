@@ -242,9 +242,9 @@
                 "responses": {}
             }
         },
-        "/api/assets/teams/avatar/{id}/exists": {
+        "/api/assets/teams/avatar/{id}/info": {
             "get": {
-                "description": "通过团队 Id 确认团队头像是否存在",
+                "description": "通过团队 Id 获取团队头像信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -254,7 +254,7 @@
                 "tags": [
                     "资源"
                 ],
-                "summary": "通过团队 Id 确认团队头像是否存在",
+                "summary": "通过团队 Id 获取团队头像信息",
                 "parameters": [
                     {
                         "type": "string",
@@ -497,7 +497,7 @@
                     },
                     {
                         "description": "ChallengeUpdateRequest",
-                        "name": "data",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -559,7 +559,7 @@
                     },
                     {
                         "description": "ChallengeDeleteRequest",
-                        "name": "data",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -680,6 +680,13 @@
                 "summary": "容器续期",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "InstanceRenewRequest",
                         "name": "input",
                         "in": "body",
@@ -733,6 +740,13 @@
                 ],
                 "summary": "停止并删除容器",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "InstanceRemoveRequest",
                         "name": "input",
@@ -919,12 +933,6 @@
                     },
                     {
                         "type": "boolean",
-                        "description": "是否升序",
-                        "name": "is_ascend",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
                         "description": "是否详细",
                         "name": "is_detailed",
                         "in": "query"
@@ -933,6 +941,22 @@
                         "type": "integer",
                         "description": "每页大小",
                         "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每道题查询量",
+                        "name": "size_per_challenge",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "排序参数",
+                        "name": "sort_by",
                         "in": "query"
                     },
                     {
@@ -1592,11 +1616,25 @@
         "request.ConfigUpdateRequest": {
             "type": "object",
             "properties": {
-                "bio": {
-                    "type": "string"
+                "container": {
+                    "$ref": "#/definitions/request.Container"
                 },
-                "title": {
-                    "type": "string"
+                "platform": {
+                    "$ref": "#/definitions/request.Platform"
+                },
+                "user": {
+                    "$ref": "#/definitions/request.User"
+                }
+            }
+        },
+        "request.Container": {
+            "type": "object",
+            "properties": {
+                "parallel_limit": {
+                    "type": "integer"
+                },
+                "request_limit": {
+                    "type": "integer"
                 }
             }
         },
@@ -1608,6 +1646,12 @@
             "properties": {
                 "challenge_id": {
                     "type": "integer"
+                },
+                "game_id": {
+                    "type": "integer"
+                },
+                "team_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -1617,7 +1661,13 @@
                 "id"
             ],
             "properties": {
+                "game_id": {
+                    "type": "integer"
+                },
                 "id": {
+                    "type": "integer"
+                },
+                "team_id": {
                     "type": "integer"
                 }
             }
@@ -1628,8 +1678,25 @@
                 "id"
             ],
             "properties": {
+                "game_id": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "integer"
+                },
+                "team_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.Platform": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
@@ -1730,6 +1797,14 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "request.User": {
+            "type": "object",
+            "properties": {
+                "allow_registration": {
+                    "type": "boolean"
                 }
             }
         },

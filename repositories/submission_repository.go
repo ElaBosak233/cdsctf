@@ -34,7 +34,7 @@ func (t *SubmissionRepositoryImpl) Delete(id int64) (err error) {
 
 func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, count int64, err error) {
 	applyFilters := func(q *xorm.Session) *xorm.Session {
-		if req.UserId != 0 {
+		if req.UserId != 0 && req.TeamId == 0 && req.GameId == 0 {
 			q = q.Where("user_id = ?", req.UserId)
 		}
 		if req.ChallengeId != 0 {
@@ -90,9 +90,6 @@ func (t *SubmissionRepositoryImpl) BatchFind(req request.SubmissionBatchFindRequ
 		}
 		if req.Status != 0 {
 			q = q.Where("submissions.status = ?", req.Status)
-		}
-		if !req.IsDetailed {
-			q = q.Omit("submissions.flag")
 		}
 		return q
 	}

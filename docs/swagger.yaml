@@ -96,31 +96,59 @@ definitions:
     type: object
   request.ConfigUpdateRequest:
     properties:
-      bio:
-        type: string
-      title:
-        type: string
+      container:
+        $ref: '#/definitions/request.Container'
+      platform:
+        $ref: '#/definitions/request.Platform'
+      user:
+        $ref: '#/definitions/request.User'
+    type: object
+  request.Container:
+    properties:
+      parallel_limit:
+        type: integer
+      request_limit:
+        type: integer
     type: object
   request.InstanceCreateRequest:
     properties:
       challenge_id:
+        type: integer
+      game_id:
+        type: integer
+      team_id:
         type: integer
     required:
     - challenge_id
     type: object
   request.InstanceRemoveRequest:
     properties:
+      game_id:
+        type: integer
       id:
+        type: integer
+      team_id:
         type: integer
     required:
     - id
     type: object
   request.InstanceRenewRequest:
     properties:
+      game_id:
+        type: integer
       id:
+        type: integer
+      team_id:
         type: integer
     required:
     - id
+    type: object
+  request.Platform:
+    properties:
+      bio:
+        type: string
+      title:
+        type: string
     type: object
   request.SubmissionCreateRequest:
     properties:
@@ -189,6 +217,11 @@ definitions:
     - captain_id
     - id
     - name
+    type: object
+  request.User:
+    properties:
+      allow_registration:
+        type: boolean
     type: object
   request.UserCreateRequest:
     properties:
@@ -307,7 +340,7 @@ paths:
       - 资源
     post:
       consumes:
-      - multipart/form-entity
+      - multipart/form-data
       description: 通过题目 Id 设置题目附件
       parameters:
       - description: 题目 Id
@@ -358,7 +391,7 @@ paths:
       - 资源
     post:
       consumes:
-      - multipart/form-entity
+      - multipart/form-data
       description: 通过比赛 Id 设置比赛封面
       parameters:
       - description: 比赛 Id
@@ -422,7 +455,7 @@ paths:
       - 资源
     post:
       consumes:
-      - multipart/form-entity
+      - multipart/form-data
       description: 通过团队 Id 设置团队头像
       parameters:
       - description: 团队 Id
@@ -439,11 +472,11 @@ paths:
       summary: 通过团队 Id 设置团队头像
       tags:
       - 资源
-  /api/assets/teams/avatar/{id}/exists:
+  /api/assets/teams/avatar/{id}/info:
     get:
       consumes:
       - application/json
-      description: 通过团队 Id 确认团队头像是否存在
+      description: 通过团队 Id 获取团队头像信息
       parameters:
       - description: 团队 Id
         in: path
@@ -453,7 +486,7 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 通过团队 Id 确认团队头像是否存在
+      summary: 通过团队 Id 获取团队头像信息
       tags:
       - 资源
   /api/assets/users/avatar/:
@@ -502,7 +535,7 @@ paths:
       - 资源
     post:
       consumes:
-      - multipart/form-entity
+      - multipart/form-data
       description: 通过用户 Id 设置用户头像
       parameters:
       - description: 用户 Id
@@ -548,7 +581,7 @@ paths:
         type: string
       - description: ChallengeDeleteRequest
         in: body
-        name: entity
+        name: request
         required: true
         schema:
           $ref: '#/definitions/request.ChallengeDeleteRequest'
@@ -648,7 +681,7 @@ paths:
         type: string
       - description: ChallengeUpdateRequest
         in: body
-        name: entity
+        name: request
         required: true
         schema:
           $ref: '#/definitions/request.ChallengeUpdateRequest'
@@ -695,6 +728,11 @@ paths:
     delete:
       description: 停止并删除容器
       parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
       - description: InstanceRemoveRequest
         in: body
         name: input
@@ -764,6 +802,11 @@ paths:
     put:
       description: 容器续期
       parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
       - description: InstanceRenewRequest
         in: body
         name: input
@@ -888,10 +931,6 @@ paths:
         in: query
         name: game_id
         type: integer
-      - description: 是否升序
-        in: query
-        name: is_ascend
-        type: boolean
       - description: 是否详细
         in: query
         name: is_detailed
@@ -900,6 +939,17 @@ paths:
         in: query
         name: size
         type: integer
+      - description: 每道题查询量
+        in: query
+        name: size_per_challenge
+        type: integer
+      - collectionFormat: csv
+        description: 排序参数
+        in: query
+        items:
+          type: string
+        name: sort_by
+        type: array
       - description: 评估结果
         in: query
         name: status

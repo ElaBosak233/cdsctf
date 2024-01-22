@@ -16,8 +16,6 @@ import (
 	"time"
 )
 
-var portMutex sync.Mutex // 互斥锁
-
 type DockerManager struct {
 	InstanceId  int64
 	RespId      string
@@ -50,8 +48,6 @@ func (c *DockerManager) SetInstanceId(instanceId int64) {
 }
 
 func (c *DockerManager) Setup() (port int, err error) {
-	portMutex.Lock()         // 获取锁
-	defer portMutex.Unlock() // 确保在函数退出时释放锁
 	port = providers.GetFreePort()
 	if port == 0 {
 		return 0, errors.New("未找到可用端口")

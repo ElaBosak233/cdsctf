@@ -7,6 +7,7 @@ import (
 	"github.com/elabosak233/pgshub/repositories"
 	"github.com/elabosak233/pgshub/utils"
 	"math"
+	"sync"
 )
 
 type SubmissionService interface {
@@ -64,6 +65,9 @@ func (t *SubmissionServiceImpl) JudgeStaticChallenge(reqFlag string, challengeFl
 	}
 }
 
+// createSync 提交创建锁，可优化
+var createSync = sync.RWMutex{}
+
 func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (status int, err error) {
 	challenge, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
 	if err != nil {
@@ -74,18 +78,18 @@ func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (sta
 	} else {
 		status = max(t.JudgeStaticChallenge(req.Flag, challenge.Flag), t.JudgeStaticChallenge(req.Flag, challenge.FlagFmt))
 	}
+	createSync.Lock()
+	defer createSync.Unlock()
 	// 判断是否重复提交
 	if status == 2 {
-		existedSubmissions, _, _, _ := t.Find(request.SubmissionFindRequest{
+		_, n, _ := t.SubmissionRepository.Find(request.SubmissionFindRequest{
 			UserId:      req.UserId,
 			Status:      2,
 			ChallengeId: req.ChallengeId,
 			TeamId:      req.TeamId,
 			GameId:      req.GameId,
-			Page:        0,
-			Size:        0,
 		})
-		if len(existedSubmissions) > 0 {
+		if n > 0 {
 			status = 4
 		}
 	}
@@ -123,10 +127,16 @@ func (t *SubmissionServiceImpl) BatchFind(req request.SubmissionBatchFindRequest
 		for _, submission := range result {
 			if submissionsPerChallenge[submission.ChallengeId] < req.SizePerChallenge {
 				submissions = append(submissions, submission)
+				submissionsPerChallenge[submission.ChallengeId] += 1
 			}
 		}
 	} else {
 		submissions = result
+	}
+	if !req.IsDetailed {
+		for index, _ := range submissions {
+			submissions[index].Flag = ""
+		}
 	}
 	return submissions, err
 }

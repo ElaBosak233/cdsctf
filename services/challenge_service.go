@@ -53,6 +53,11 @@ func (t *ChallengeServiceImpl) Delete(id int64) error {
 
 func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error) {
 	challenges, count, err := t.ChallengeRepository.Find(req)
+	if req.IsDetailed == 0 {
+		for i := range challenges {
+			challenges[i].Flag = ""
+		}
+	}
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {

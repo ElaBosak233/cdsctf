@@ -18,7 +18,7 @@ type TeamService interface {
 	Delete(id int64) error
 	Join(req request.TeamJoinRequest) (err error)
 	Quit(req request.TeamQuitRequest) (err error)
-	Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, err error)
+	Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, total int64, err error)
 	BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error)
 	FindById(id int64) (res response.TeamResponse, err error)
 }
@@ -35,6 +35,37 @@ func NewTeamServiceImpl(appRepository *repositories.AppRepository) TeamService {
 		TeamRepository:     appRepository.TeamRepository,
 		UserTeamRepository: appRepository.UserTeamRepository,
 	}
+}
+
+// Mixin 用于向 Team 响应实体中混入 User 实体
+func (t *TeamServiceImpl) Mixin(teams []response.TeamResponse) (ts []response.TeamResponse, err error) {
+	var teamIds []int64
+	teamsMap := make(map[int64]response.TeamResponse)
+	for _, team := range teams {
+		if _, ok := teamsMap[team.TeamId]; !ok {
+			teamsMap[team.TeamId] = team
+		}
+		teamIds = append(teamIds, team.TeamId)
+	}
+	users, err := t.UserRepository.BatchFindByTeamId(request.UserBatchFindByTeamIdRequest{
+		TeamId: teamIds,
+	})
+	for _, user := range users {
+		var userResponse response.UserResponse
+		_ = mapstructure.Decode(user, &userResponse)
+		if team, ok := teamsMap[user.TeamId]; ok {
+			if team.CaptainId == user.UserId {
+				team.Captain = userResponse
+			}
+			team.Users = append(team.Users, userResponse)
+			teamsMap[user.TeamId] = team
+		}
+	}
+	for index, team := range teams {
+		teams[index].Users = teamsMap[team.TeamId].Users
+		teams[index].Captain = teamsMap[team.TeamId].Captain
+	}
+	return teams, err
 }
 
 func (t *TeamServiceImpl) Create(req request.TeamCreateRequest) error {
@@ -83,40 +114,20 @@ func (t *TeamServiceImpl) Delete(id int64) error {
 	}
 }
 
-func (t *TeamServiceImpl) Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, err error) {
+func (t *TeamServiceImpl) Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, total int64, err error) {
 	teams, count, err := t.TeamRepository.Find(req)
+	teams, err = t.Mixin(teams)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
 		pageCount = 1
 	}
-	return teams, pageCount, err
+	return teams, pageCount, count, err
 }
 
 func (t *TeamServiceImpl) BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error) {
 	teams, err = t.TeamRepository.BatchFind(req)
-	var teamIds []int64
-	teamsMap := make(map[int64]response.TeamResponse)
-	for _, team := range teams {
-		if _, ok := teamsMap[team.TeamId]; !ok {
-			teamsMap[team.TeamId] = team
-		}
-		teamIds = append(teamIds, team.TeamId)
-	}
-	users, err := t.UserRepository.BatchFindByTeamId(request.UserBatchFindByTeamIdRequest{
-		TeamId: teamIds,
-	})
-	for _, user := range users {
-		var userResponse response.UserResponse
-		_ = mapstructure.Decode(user, &userResponse)
-		if team, ok := teamsMap[user.TeamId]; ok {
-			team.Users = append(team.Users, userResponse)
-			teamsMap[user.TeamId] = team
-		}
-	}
-	for index, team := range teams {
-		teams[index].Users = teamsMap[team.TeamId].Users
-	}
+	teams, err = t.Mixin(teams)
 	return teams, err
 }
 

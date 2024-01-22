@@ -39,7 +39,7 @@ const docTemplate = `{
             "post": {
                 "description": "通过题目 Id 设置题目附件",
                 "consumes": [
-                    "multipart/form-entity"
+                    "multipart/form-data"
                 ],
                 "tags": [
                     "资源"
@@ -133,7 +133,7 @@ const docTemplate = `{
             "post": {
                 "description": "通过比赛 Id 设置比赛封面",
                 "consumes": [
-                    "multipart/form-entity"
+                    "multipart/form-data"
                 ],
                 "tags": [
                     "资源"
@@ -226,7 +226,7 @@ const docTemplate = `{
             "post": {
                 "description": "通过团队 Id 设置团队头像",
                 "consumes": [
-                    "multipart/form-entity"
+                    "multipart/form-data"
                 ],
                 "tags": [
                     "资源"
@@ -251,9 +251,9 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/assets/teams/avatar/{id}/exists": {
+        "/api/assets/teams/avatar/{id}/info": {
             "get": {
-                "description": "通过团队 Id 确认团队头像是否存在",
+                "description": "通过团队 Id 获取团队头像信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -263,7 +263,7 @@ const docTemplate = `{
                 "tags": [
                     "资源"
                 ],
-                "summary": "通过团队 Id 确认团队头像是否存在",
+                "summary": "通过团队 Id 获取团队头像信息",
                 "parameters": [
                     {
                         "type": "string",
@@ -319,7 +319,7 @@ const docTemplate = `{
             "post": {
                 "description": "通过用户 Id 设置用户头像",
                 "consumes": [
-                    "multipart/form-entity"
+                    "multipart/form-data"
                 ],
                 "tags": [
                     "资源"
@@ -506,7 +506,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "ChallengeUpdateRequest",
-                        "name": "entity",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -568,7 +568,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "ChallengeDeleteRequest",
-                        "name": "entity",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -689,6 +689,13 @@ const docTemplate = `{
                 "summary": "容器续期",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "InstanceRenewRequest",
                         "name": "input",
                         "in": "body",
@@ -742,6 +749,13 @@ const docTemplate = `{
                 ],
                 "summary": "停止并删除容器",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "InstanceRemoveRequest",
                         "name": "input",
@@ -928,12 +942,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
-                        "description": "是否升序",
-                        "name": "is_ascend",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
                         "description": "是否详细",
                         "name": "is_detailed",
                         "in": "query"
@@ -942,6 +950,22 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "每页大小",
                         "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每道题查询量",
+                        "name": "size_per_challenge",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "排序参数",
+                        "name": "sort_by",
                         "in": "query"
                     },
                     {
@@ -1601,11 +1625,25 @@ const docTemplate = `{
         "request.ConfigUpdateRequest": {
             "type": "object",
             "properties": {
-                "bio": {
-                    "type": "string"
+                "container": {
+                    "$ref": "#/definitions/request.Container"
                 },
-                "title": {
-                    "type": "string"
+                "platform": {
+                    "$ref": "#/definitions/request.Platform"
+                },
+                "user": {
+                    "$ref": "#/definitions/request.User"
+                }
+            }
+        },
+        "request.Container": {
+            "type": "object",
+            "properties": {
+                "parallel_limit": {
+                    "type": "integer"
+                },
+                "request_limit": {
+                    "type": "integer"
                 }
             }
         },
@@ -1617,6 +1655,12 @@ const docTemplate = `{
             "properties": {
                 "challenge_id": {
                     "type": "integer"
+                },
+                "game_id": {
+                    "type": "integer"
+                },
+                "team_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -1626,7 +1670,13 @@ const docTemplate = `{
                 "id"
             ],
             "properties": {
+                "game_id": {
+                    "type": "integer"
+                },
                 "id": {
+                    "type": "integer"
+                },
+                "team_id": {
                     "type": "integer"
                 }
             }
@@ -1637,8 +1687,25 @@ const docTemplate = `{
                 "id"
             ],
             "properties": {
+                "game_id": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "integer"
+                },
+                "team_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.Platform": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
@@ -1739,6 +1806,14 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "request.User": {
+            "type": "object",
+            "properties": {
+                "allow_registration": {
+                    "type": "boolean"
                 }
             }
         },

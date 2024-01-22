@@ -70,7 +70,7 @@ func (t *InstanceServiceImpl) IsLimited(userId int64, limit int64) (remainder in
 }
 
 func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res response.InstanceStatusResponse, err error) {
-	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container_request_limit"))
+	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container.request_limit"))
 	if remainder != 0 {
 		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
@@ -84,7 +84,7 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 			IsAvailable: 1,
 		})
 		if req.TeamId == 0 && req.GameId == 0 { // 练习场限制并行
-			needToBeDeactivated := count - viper.GetInt64("global.parallel_container_limit")
+			needToBeDeactivated := count - viper.GetInt64("global.container.parallel_limit")
 			if needToBeDeactivated > 0 {
 				for _, instance := range availableInstances {
 					if needToBeDeactivated == 0 {
@@ -157,7 +157,7 @@ func (t *InstanceServiceImpl) Status(id int64) (rep response.InstanceStatusRespo
 }
 
 func (t *InstanceServiceImpl) Renew(req request.InstanceRenewRequest) (removedAt int64, err error) {
-	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container_request_limit"))
+	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container.request_limit"))
 	if remainder != 0 {
 		return 0, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
@@ -177,7 +177,7 @@ func (t *InstanceServiceImpl) Renew(req request.InstanceRenewRequest) (removedAt
 }
 
 func (t *InstanceServiceImpl) Remove(req request.InstanceRemoveRequest) (err error) {
-	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container_request_limit"))
+	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container.request_limit"))
 	if remainder != 0 {
 		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}

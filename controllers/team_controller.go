@@ -131,7 +131,7 @@ func (c *TeamControllerImpl) Delete(ctx *gin.Context) {
 // @Param input query request.TeamFindRequest false "TeamFindRequest"
 // @Router /api/teams/ [get]
 func (c *TeamControllerImpl) Find(ctx *gin.Context) {
-	teamData, pageCount, _ := c.TeamService.Find(request.TeamFindRequest{
+	teamData, pageCount, total, _ := c.TeamService.Find(request.TeamFindRequest{
 		TeamId:    int64(utils.ParseIntParam(ctx.Query("id"), 0)),
 		TeamName:  ctx.Query("name"),
 		CaptainId: int64(utils.ParseIntParam(ctx.Query("captain_id"), 0)),
@@ -141,6 +141,7 @@ func (c *TeamControllerImpl) Find(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"pages": pageCount,
+		"total": total,
 		"data":  teamData,
 	})
 }
