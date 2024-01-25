@@ -23,4 +23,5 @@ func NewRouters(
 	NewAssetRouter(router.Group("/assets"), appController.AssetController)
 	NewTeamRouter(router.Group("/teams"), appController.TeamController)
 	NewSubmissionRouter(router.Group("/submissions"), appController.SubmissionController, appMiddleware.AuthMiddleware)
+	NewGameRouter(router.Group("/games"), appController.GameController, appMiddleware.AuthMiddleware)
 }

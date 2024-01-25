@@ -56,6 +56,8 @@ func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 			IsDynamic:     utils.ParseIntParam(ctx.Query("is_dynamic"), 0),
 			Difficulty:    int64(utils.ParseIntParam(ctx.Query("difficulty"), 0)),
 			UserId:        ctx.GetInt64("UserId"),
+			GameId:        int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
+			TeamId:        int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
 			SortBy:        ctx.QueryArray("sort_by"),
 			Page:          utils.ParseIntParam(ctx.Query("page"), 0),
 			Size:          utils.ParseIntParam(ctx.Query("size"), 0),

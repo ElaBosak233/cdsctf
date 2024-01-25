@@ -56,6 +56,9 @@ func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenge
 	if req.IsDetailed == 0 {
 		for i := range challenges {
 			challenges[i].Flag = ""
+			challenges[i].FlagEnv = ""
+			challenges[i].FlagFmt = ""
+			challenges[i].Image = ""
 		}
 	}
 	if req.Size >= 1 && req.Page >= 1 {

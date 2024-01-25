@@ -14,5 +14,6 @@ func Repositories(db *xorm.Engine) *repositories.AppRepository {
 		SubmissionRepository: repositories.NewSubmissionRepositoryImpl(db),
 		UserTeamRepository:   relations.NewUserTeamRepositoryImpl(db),
 		InstanceRepository:   repositories.NewInstanceRepositoryImpl(db),
+		GameRepository:       repositories.NewGameRepositoryImpl(db),
 	}
 }

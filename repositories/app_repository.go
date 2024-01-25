@@ -11,4 +11,5 @@ type AppRepository struct {
 	SubmissionRepository SubmissionRepository
 	UserTeamRepository   relations.UserTeamRepository
 	InstanceRepository   InstanceRepository
+	GameRepository       GameRepository
 }

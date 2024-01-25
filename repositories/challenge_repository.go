@@ -61,6 +61,11 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		if req.Difficulty != 0 {
 			q = q.Where("difficulty = ?", req.Difficulty)
 		}
+		if req.GameId != 0 && req.TeamId != 0 {
+			q = q.Join("INNER",
+				"game_challenge",
+				"game_challenge.challenge_id = challenges.id AND game_challenge.game_id = ?", req.GameId)
+		}
 		return q
 	}
 	db := applyFilter(t.Db.Table("challenges"))
@@ -79,12 +84,19 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}
-	// TODO 这里还需要判断是练习场还是比赛，如果是比赛，需要判断 team_id 和 game_id
-	db = db.Join(
-		"LEFT",
-		"submissions",
-		"submissions.challenge_id = challenges.id AND submissions.status = 2 AND submissions.user_id = ?",
-		req.UserId)
+	if req.GameId != 0 && req.TeamId != 0 {
+		db = db.Join(
+			"LEFT",
+			"submissions",
+			"submissions.challenge_id = challenges.id AND submissions.status = 2 AND submissions.team_id = ?",
+			req.TeamId)
+	} else {
+		db = db.Join(
+			"LEFT",
+			"submissions",
+			"submissions.challenge_id = challenges.id AND submissions.status = 2 AND submissions.user_id = ?",
+			req.UserId)
+	}
 	db = db.Cols("challenges.*", "submissions.id AS is_solved")
 	err = db.Find(&challenges)
 	return challenges, count, err

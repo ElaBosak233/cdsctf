@@ -213,6 +213,7 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("UserId") == updateUserRequest.UserId {
 		if ctx.GetInt64("UserRole") > 1 {
 			updateUserRequest.Role = ctx.GetInt64("UserRole")
+			updateUserRequest.Username = ""
 		}
 		err = c.UserService.Update(updateUserRequest)
 		if err != nil {

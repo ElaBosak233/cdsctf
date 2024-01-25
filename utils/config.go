@@ -7,7 +7,7 @@ import (
 var defaultSettings = map[string]interface{}{
 	// 全局设置
 	"global.platform.title":           "PgsHub",
-	"global.platform.bio":             "Hack for fun not for profit.",
+	"global.platform.description":     "Hack for fun not for profit.",
 	"global.container.parallel_limit": 1,    // 练习场并行容器数
 	"global.container.request_limit":  30,   // 有关容器请求时间的限制（秒）
 	"global.user.allow_registration":  true, // 允许新用户注册

@@ -71,7 +71,7 @@ func (t *UserServiceImpl) Create(req request.UserCreateRequest) (err error) {
 	userModel := model.User{
 		Username: req.Username,
 		Email:    req.Email,
-		Name:     req.Name,
+		Nickname: req.Nickname,
 		Role:     req.Role,
 		Password: string(hashedPassword),
 	}

@@ -8,4 +8,5 @@ type AppController struct {
 	AssetController      AssetController
 	TeamController       TeamController
 	SubmissionController SubmissionController
+	GameController       GameController
 }
