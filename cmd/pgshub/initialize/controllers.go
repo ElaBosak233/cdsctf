@@ -14,5 +14,6 @@ func Controllers(appService *services.AppService) *controllers.AppController {
 		AssetController:      controllers.NewAssetControllerImpl(appService),
 		TeamController:       controllers.NewTeamControllerImpl(appService),
 		SubmissionController: controllers.NewSubmissionControllerImpl(appService),
+		GameController:       controllers.NewGameControllerImpl(appService),
 	}
 }

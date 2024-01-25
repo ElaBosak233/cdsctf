@@ -2,7 +2,7 @@ package initialize
 
 import (
 	"fmt"
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/entity/relations"
 	"github.com/elabosak233/pgshub/utils"
 	_ "github.com/lib/pq"
@@ -53,12 +53,14 @@ func InitDatabaseEngine() {
 // SyncDatabase 同步数据库
 func SyncDatabase() {
 	var dbs = []interface{}{
-		&model.User{},
-		&model.Challenge{},
-		&model.Team{},
+		&entity.User{},
+		&entity.Challenge{},
+		&entity.Team{},
 		&relations.UserTeam{},
-		&model.Submission{},
-		&model.Instance{},
+		&entity.Submission{},
+		&entity.Instance{},
+		&entity.Game{},
+		&relations.GameChallenge{},
 	}
 	for _, v := range dbs {
 		err := db.Sync2(v)
@@ -72,8 +74,8 @@ func SyncDatabase() {
 // 主要用于配平不合理的时间数据
 func SelfCheck() {
 	// 对于 instances 中的所有数据，若 removed_at 大于当前时间，则强制赋值为现在的时间，以免后续程序错误判断
-	_, _ = db.Table("instances").Where("removed_at > ?", time.Now().Unix()).Update(model.Instance{
-		RemovedAt: time.Now().Unix(),
+	_, _ = db.Table("instances").Where("removed_at > ?", time.Now()).Update(entity.Instance{
+		RemovedAt: time.Now(),
 	})
 }
 
@@ -84,9 +86,9 @@ func InitAdmin() {
 	if !existAdminUser {
 		utils.Logger.Warn("超级管理员账户不存在，即将创建")
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-		_, err := db.Table("users").Insert(model.User{
+		_, err := db.Table("users").Insert(entity.User{
 			Username: "admin",
-			Name:     "超级管理员",
+			Nickname: "超级管理员",
 			Role:     1,
 			Password: string(hashedPassword),
 			Email:    "admin@admin.com",

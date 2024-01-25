@@ -35,7 +35,7 @@ func (t *InstanceRepositoryImpl) Update(instance model.Instance) (err error) {
 
 func (t *InstanceRepositoryImpl) BatchDeactivate(id []int64) (err error) {
 	_, err = t.Db.Table("instances").In("instances.id", id).Update(model.Instance{
-		RemovedAt: time.Now().Unix(),
+		RemovedAt: time.Now(),
 	})
 	return err
 }
@@ -56,9 +56,9 @@ func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instance
 		}
 		if req.IsAvailable != 0 {
 			if req.IsAvailable == 2 { // 无效
-				q = q.Where("removed_at < ?", time.Now().Unix())
+				q = q.Where("removed_at < ?", time.Now())
 			} else if req.IsAvailable == 1 { // 有效
-				q = q.Where("removed_at > ?", time.Now().Unix())
+				q = q.Where("removed_at > ?", time.Now())
 			}
 		}
 		return q

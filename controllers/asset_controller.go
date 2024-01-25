@@ -19,10 +19,11 @@ type AssetController interface {
 	GetUserAvatarInfoByUserId(ctx *gin.Context) // 获取用户头像信息
 	GetTeamAvatarList(ctx *gin.Context)
 	SetTeamAvatarByTeamId(ctx *gin.Context)     // 设置团队头像
+	DeleteTeamAvatarByTeamId(ctx *gin.Context)  // 删除团队头像
 	GetTeamAvatarByTeamId(ctx *gin.Context)     // 获取团队头像
 	GetTeamAvatarInfoByTeamId(ctx *gin.Context) // 获取团队头像信息
-	FindGameCoverByGameId(ctx *gin.Context)
-	SetGameCoverByGameId(ctx *gin.Context)
+	GetGameCoverByGameId(ctx *gin.Context)      // 获取比赛封面
+	SetGameCoverByGameId(ctx *gin.Context)      // 设置比赛封面
 	FindGameWriteUpByTeamId(ctx *gin.Context)
 	SetChallengeAttachmentByChallengeId(ctx *gin.Context)     // 设置题目附件
 	DeleteChallengeAttachmentByChallengeId(ctx *gin.Context)  // 删除题目附件
@@ -261,7 +262,38 @@ func (c *AssetControllerImpl) SetTeamAvatarByTeamId(ctx *gin.Context) {
 	})
 }
 
-// FindGameCoverByGameId
+// DeleteTeamAvatarByTeamId
+// @Summary 通过团队 Id 删除团队头像
+// @Description 通过团队 Id 删除团队头像
+// @Tags 资源
+// @Accept json
+// @Produce json
+// @Param id path string true "用户 Id"
+// @Router /api/assets/teams/avatar/{id} [delete]
+func (c *AssetControllerImpl) DeleteTeamAvatarByTeamId(ctx *gin.Context) {
+	id := ctx.Param("id")
+	path := fmt.Sprintf("./assets/teams/avatar/%s", id)
+	_, err := os.Stat(path)
+	if err == nil {
+		err = os.Remove(path)
+		if err != nil {
+			ctx.JSON(http.StatusOK, gin.H{
+				"code": http.StatusInternalServerError,
+				"msg":  err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusOK,
+		})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusNotFound,
+		})
+	}
+}
+
+// GetGameCoverByGameId
 // @Summary 通过比赛 Id 获取比赛封面
 // @Description 通过比赛 Id 获取比赛封面
 // @Tags 资源
@@ -269,14 +301,16 @@ func (c *AssetControllerImpl) SetTeamAvatarByTeamId(ctx *gin.Context) {
 // @Produce json
 // @Param id path string true "比赛 Id"
 // @Router /api/assets/games/cover/{id} [get]
-func (c *AssetControllerImpl) FindGameCoverByGameId(ctx *gin.Context) {
+func (c *AssetControllerImpl) GetGameCoverByGameId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("./assets/games/cover/%s", id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
 	} else {
-		ctx.Status(http.StatusNotFound)
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusNotFound,
+		})
 	}
 }
 

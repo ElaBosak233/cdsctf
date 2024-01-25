@@ -8,4 +8,5 @@ type AppService struct {
 	ConfigService     ConfigService
 	TeamService       TeamService
 	SubmissionService SubmissionService
+	GameService       GameService
 }

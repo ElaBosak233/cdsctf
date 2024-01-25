@@ -249,6 +249,29 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            },
+            "delete": {
+                "description": "通过团队 Id 删除团队头像",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过团队 Id 删除团队头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
             }
         },
         "/api/assets/teams/avatar/{id}/info": {
@@ -621,6 +644,90 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.ConfigUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/games/": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "比赛"
+                ],
+                "summary": "比赛查询",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "title",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "比赛"
+                ],
+                "summary": "创建比赛（Role≤3）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PgsToken",
+                        "name": "PgsToken",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "GameCreateRequest",
+                        "name": "创建请求",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GameCreateRequest"
                         }
                     }
                 ],
@@ -1647,6 +1754,59 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GameCreateRequest": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "ended_at": {
+                    "type": "integer"
+                },
+                "first_blood_reward_ratio": {
+                    "type": "number"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "is_need_write_up": {
+                    "type": "boolean"
+                },
+                "is_public": {
+                    "type": "boolean"
+                },
+                "member_limit_max": {
+                    "type": "integer"
+                },
+                "member_limit_min": {
+                    "type": "integer"
+                },
+                "parallel_container_limit": {
+                    "type": "integer"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "second_blood_reward_ratio": {
+                    "type": "number"
+                },
+                "started_at": {
+                    "type": "integer"
+                },
+                "third_blood_reward_ratio": {
+                    "type": "number"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "request.InstanceCreateRequest": {
             "type": "object",
             "required": [
@@ -1701,7 +1861,7 @@ const docTemplate = `{
         "request.Platform": {
             "type": "object",
             "properties": {
-                "bio": {
+                "description": {
                     "type": "string"
                 },
                 "title": {
@@ -1743,6 +1903,9 @@ const docTemplate = `{
             "properties": {
                 "captain_id": {
                     "type": "integer"
+                },
+                "description": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -1801,6 +1964,9 @@ const docTemplate = `{
                 "captain_id": {
                     "type": "integer"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -1821,7 +1987,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "name",
+                "nickname",
                 "password",
                 "role",
                 "username"
@@ -1830,7 +1996,7 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "name": {
+                "nickname": {
                     "type": "string",
                     "minLength": 2
                 },
@@ -1880,7 +2046,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "name",
+                "nickname",
                 "password",
                 "username"
             ],
@@ -1888,7 +2054,7 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "name": {
+                "nickname": {
                     "type": "string"
                 },
                 "password": {
@@ -1911,7 +2077,7 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "name": {
+                "nickname": {
                     "type": "string",
                     "minLength": 2
                 },

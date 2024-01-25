@@ -1,8 +1,8 @@
 package request
 
 type Platform struct {
-	Title string `json:"title,omitempty"`
-	Bio   string `json:"bio,omitempty"`
+	Title       string `json:"title,omitempty"`
+	Description string `json:"description,omitempty"`
 }
 
 type Container struct {

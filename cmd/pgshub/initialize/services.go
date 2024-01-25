@@ -14,5 +14,6 @@ func Services(appRepository *repositories.AppRepository) *services.AppService {
 		ConfigService:     services.NewConfigServiceImpl(appRepository),
 		TeamService:       services.NewTeamServiceImpl(appRepository),
 		SubmissionService: services.NewSubmissionServiceImpl(appRepository),
+		GameService:       services.NewGameServiceImpl(appRepository),
 	}
 }

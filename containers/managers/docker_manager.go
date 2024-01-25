@@ -69,7 +69,7 @@ func (c *DockerManager) Setup() (port int, err error) {
 		},
 		Resources: container.Resources{
 			Memory:   c.MemoryLimit * 1024 * 1024,
-			CPUQuota: int64(c.CpuLimit * 1000),
+			NanoCPUs: int64(c.CpuLimit * 1e9),
 		},
 	}
 	resp, err := global.DockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")

@@ -110,6 +110,41 @@ definitions:
       request_limit:
         type: integer
     type: object
+  request.GameCreateRequest:
+    properties:
+      bio:
+        type: string
+      description:
+        type: string
+      ended_at:
+        type: integer
+      first_blood_reward_ratio:
+        type: number
+      is_enabled:
+        type: boolean
+      is_need_write_up:
+        type: boolean
+      is_public:
+        type: boolean
+      member_limit_max:
+        type: integer
+      member_limit_min:
+        type: integer
+      parallel_container_limit:
+        type: integer
+      password:
+        type: string
+      second_blood_reward_ratio:
+        type: number
+      started_at:
+        type: integer
+      third_blood_reward_ratio:
+        type: number
+      title:
+        type: string
+    required:
+    - title
+    type: object
   request.InstanceCreateRequest:
     properties:
       challenge_id:
@@ -145,7 +180,7 @@ definitions:
     type: object
   request.Platform:
     properties:
-      bio:
+      description:
         type: string
       title:
         type: string
@@ -172,6 +207,8 @@ definitions:
     properties:
       captain_id:
         type: integer
+      description:
+        type: string
       name:
         type: string
     required:
@@ -209,6 +246,8 @@ definitions:
     properties:
       captain_id:
         type: integer
+      description:
+        type: string
       id:
         type: integer
       name:
@@ -227,7 +266,7 @@ definitions:
     properties:
       email:
         type: string
-      name:
+      nickname:
         minLength: 2
         type: string
       password:
@@ -243,7 +282,7 @@ definitions:
         type: string
     required:
     - email
-    - name
+    - nickname
     - password
     - role
     - username
@@ -269,7 +308,7 @@ definitions:
     properties:
       email:
         type: string
-      name:
+      nickname:
         type: string
       password:
         type: string
@@ -277,7 +316,7 @@ definitions:
         type: string
     required:
     - email
-    - name
+    - nickname
     - password
     - username
     type: object
@@ -287,7 +326,7 @@ definitions:
         type: string
       id:
         type: integer
-      name:
+      nickname:
         minLength: 2
         type: string
       password:
@@ -437,6 +476,22 @@ paths:
       tags:
       - 资源
   /api/assets/teams/avatar/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 通过团队 Id 删除团队头像
+      parameters:
+      - description: 用户 Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 通过团队 Id 删除团队头像
+      tags:
+      - 资源
     get:
       consumes:
       - application/json
@@ -724,6 +779,61 @@ paths:
       summary: 更新配置
       tags:
       - 配置
+  /api/games/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
+      - in: query
+        name: id
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: size
+        type: integer
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: sort_by
+        type: array
+      - in: query
+        name: title
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 比赛查询
+      tags:
+      - 比赛
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: PgsToken
+        in: header
+        name: PgsToken
+        required: true
+        type: string
+      - description: GameCreateRequest
+        in: body
+        name: 创建请求
+        required: true
+        schema:
+          $ref: '#/definitions/request.GameCreateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 创建比赛（Role≤3）
+      tags:
+      - 比赛
   /api/instances/:
     delete:
       description: 停止并删除容器

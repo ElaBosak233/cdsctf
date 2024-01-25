@@ -1,14 +1,16 @@
 package request
 
 type TeamCreateRequest struct {
-	TeamName  string `binding:"required" json:"name"`
-	CaptainId int64  `binding:"required" json:"captain_id"`
+	Name        string `binding:"required" json:"name"`
+	Description string `json:"description"`
+	CaptainId   int64  `binding:"required" json:"captain_id"`
 }
 
 type TeamUpdateRequest struct {
-	TeamId    int64  `binding:"required" json:"id"`
-	TeamName  string `binding:"required" json:"name"`
-	CaptainId int64  `binding:"required" json:"captain_id"`
+	TeamId      int64  `binding:"required" json:"id"`
+	Name        string `binding:"required" json:"name"`
+	Description string `json:"description"`
+	CaptainId   int64  `binding:"required" json:"captain_id"`
 }
 
 type TeamFindRequest struct {

@@ -41,25 +41,23 @@ func (c *SubmissionControllerImpl) Find(ctx *gin.Context) {
 		}
 		return 0
 	}
-	if ctx.Query("id") == "" {
-		submissions, pageCount, total, _ := c.SubmissionService.Find(request.SubmissionFindRequest{
-			UserId:      int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
-			Status:      utils.ParseIntParam(ctx.Query("status"), 0),
-			TeamId:      int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
-			GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
-			IsDetailed:  isDetailed(),
-			ChallengeId: int64(utils.ParseIntParam(ctx.Query("challenge_id"), 0)),
-			SortBy:      ctx.QueryArray("sort_by"),
-			Page:        utils.ParseIntParam(ctx.Query("page"), 0),
-			Size:        utils.ParseIntParam(ctx.Query("size"), 0),
-		})
-		ctx.JSON(http.StatusOK, gin.H{
-			"code":  http.StatusOK,
-			"pages": pageCount,
-			"total": total,
-			"data":  submissions,
-		})
-	}
+	submissions, pageCount, total, _ := c.SubmissionService.Find(request.SubmissionFindRequest{
+		UserId:      int64(utils.ParseIntParam(ctx.Query("user_id"), 0)),
+		Status:      utils.ParseIntParam(ctx.Query("status"), 0),
+		TeamId:      int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
+		GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
+		IsDetailed:  isDetailed(),
+		ChallengeId: int64(utils.ParseIntParam(ctx.Query("challenge_id"), 0)),
+		SortBy:      ctx.QueryArray("sort_by"),
+		Page:        utils.ParseIntParam(ctx.Query("page"), 0),
+		Size:        utils.ParseIntParam(ctx.Query("size"), 0),
+	})
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":  http.StatusOK,
+		"pages": pageCount,
+		"total": total,
+		"data":  submissions,
+	})
 }
 
 // BatchFind

@@ -38,7 +38,7 @@ func SetUserInstanceRequestMap(userId int64, t int64) {
 type InstanceService interface {
 	Create(req request.InstanceCreateRequest) (res response.InstanceStatusResponse, err error)
 	Status(id int64) (rep response.InstanceStatusResponse, err error)
-	Renew(req request.InstanceRenewRequest) (removedAt int64, err error)
+	Renew(req request.InstanceRenewRequest) (removedAt time.Time, err error)
 	Remove(req request.InstanceRemoveRequest) (err error)
 	FindById(id int64) (rep response.InstanceResponse, err error)
 	Find(req request.InstanceFindRequest) (rep []response.InstanceResponse, err error)
@@ -115,7 +115,7 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 			time.Duration(challenge.Duration)*time.Second)
 		port, err := ctn.Setup()
 		entry := fmt.Sprintf("%s:%d", viper.GetString("container.docker.public_entry"), port)
-		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).Unix()
+		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second)
 		instance, err := t.InstanceRepository.Insert(model.Instance{
 			ChallengeId: req.ChallengeId,
 			UserId:      req.UserId,
@@ -156,24 +156,24 @@ func (t *InstanceServiceImpl) Status(id int64) (rep response.InstanceStatusRespo
 	return rep, errors.New("获取失败")
 }
 
-func (t *InstanceServiceImpl) Renew(req request.InstanceRenewRequest) (removedAt int64, err error) {
+func (t *InstanceServiceImpl) Renew(req request.InstanceRenewRequest) (removedAt time.Time, err error) {
 	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container.request_limit"))
 	if remainder != 0 {
-		return 0, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
+		return time.Time{}, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
 	if viper.GetString("Container.Provider") == "docker" {
 		SetUserInstanceRequestMap(req.UserId, time.Now().Unix()) // 保存用户请求时间
 		instance, err := t.InstanceRepository.FindById(req.InstanceId)
 		if err != nil || global.InstanceMap[req.InstanceId] == nil {
-			return 0, errors.New("实例不存在")
+			return time.Time{}, errors.New("实例不存在")
 		}
 		ctn := global.InstanceMap[req.InstanceId].(*managers.DockerManager)
 		err = ctn.Renew(ctn.Duration)
-		instance.RemovedAt = time.Now().Add(ctn.Duration).Unix()
+		instance.RemovedAt = time.Now().Add(ctn.Duration)
 		err = t.InstanceRepository.Update(instance)
 		return instance.RemovedAt, err
 	}
-	return 0, errors.New("续期失败")
+	return time.Time{}, errors.New("续期失败")
 }
 
 func (t *InstanceServiceImpl) Remove(req request.InstanceRemoveRequest) (err error) {
@@ -184,7 +184,7 @@ func (t *InstanceServiceImpl) Remove(req request.InstanceRemoveRequest) (err err
 	if viper.GetString("container.provider") == "docker" {
 		_ = t.InstanceRepository.Update(model.Instance{
 			InstanceId: req.InstanceId,
-			RemovedAt:  time.Now().Unix(),
+			RemovedAt:  time.Now(),
 		})
 		if global.InstanceMap[req.InstanceId] != nil {
 			ctn := global.InstanceMap[req.InstanceId].(*managers.DockerManager)

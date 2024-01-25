@@ -72,9 +72,10 @@ func (t *TeamServiceImpl) Create(req request.TeamCreateRequest) error {
 	user, err := t.UserRepository.FindById(req.CaptainId)
 	if user.UserId != 0 && err == nil {
 		team, err := t.TeamRepository.Insert(model.Team{
-			TeamName:  req.TeamName,
-			CaptainId: req.CaptainId,
-			IsLocked:  false,
+			Name:        req.Name,
+			CaptainId:   req.CaptainId,
+			Description: req.Description,
+			IsLocked:    false,
 		})
 		err = t.UserTeamRepository.Insert(modelm2m.UserTeam{
 			TeamId: team.TeamId,
@@ -90,10 +91,17 @@ func (t *TeamServiceImpl) Update(req request.TeamUpdateRequest) error {
 	if user.UserId != 0 && err == nil {
 		team, err := t.TeamRepository.FindById(req.TeamId)
 		if team.TeamId != 0 {
+			if team.TeamId != req.CaptainId {
+				err = t.Join(request.TeamJoinRequest{
+					TeamId: team.TeamId,
+					UserId: req.CaptainId,
+				})
+			}
 			err = t.TeamRepository.Update(model.Team{
-				TeamId:    team.TeamId,
-				TeamName:  req.TeamName,
-				CaptainId: req.CaptainId,
+				TeamId:      team.TeamId,
+				Name:        req.Name,
+				Description: req.Description,
+				CaptainId:   req.CaptainId,
 			})
 			return err
 		} else {

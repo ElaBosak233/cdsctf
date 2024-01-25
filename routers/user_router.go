@@ -10,7 +10,7 @@ func NewUserRouter(userRouter *gin.RouterGroup, userController controllers.UserC
 	userRouter.GET("/", userController.Find)
 	userRouter.POST("/", authMiddleware.AuthInRole(1), userController.Create)
 	userRouter.POST("/register", userController.Register)
-	userRouter.PUT("/", userController.Update)
+	userRouter.PUT("/", authMiddleware.Auth(), userController.Update)
 	userRouter.DELETE("/", authMiddleware.Auth(), userController.Delete)
 	userRouter.POST("/login", userController.Login)
 	userRouter.POST("/logout", authMiddleware.Auth(), userController.Logout)
