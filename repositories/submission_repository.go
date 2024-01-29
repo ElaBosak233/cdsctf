@@ -40,10 +40,10 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (subm
 		if req.ChallengeId != 0 {
 			q = q.Where("challenge_id = ?", req.ChallengeId)
 		}
-		if req.TeamId != 0 {
+		if req.TeamId != -1 {
 			q = q.Where("team_id = ?", req.TeamId)
 		}
-		if req.GameId != 0 {
+		if req.GameId != -1 {
 			q = q.Where("game_id = ?", req.GameId)
 		}
 		if req.Status != 0 {
@@ -65,14 +65,17 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (subm
 		} else if sortOrder == "desc" {
 			db = db.Desc("submissions." + sortKey)
 		}
+	} else {
+		db = db.Desc("submissions.id") // 默认采用 ID 降序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}
 	db = db.Join("INNER", "users", "submissions.user_id = users.id").
+		Join("INNER", "challenges", "submissions.challenge_id = challenges.id").
 		Join("LEFT", "teams", "submissions.team_id = teams.id").
-		Join("LEFT", "challenges", "submissions.challenge_id = challenges.id")
+		Join("LEFT", "games", "submissions.game_id = games.id")
 	err = db.Find(&submissions)
 	return submissions, count, err
 }
@@ -85,7 +88,7 @@ func (t *SubmissionRepositoryImpl) BatchFind(req request.SubmissionBatchFindRequ
 		if req.TeamId != 0 {
 			q = q.Where("submissions.team_id = ?", req.TeamId)
 		}
-		if req.GameId != 0 {
+		if req.GameId != -1 {
 			q = q.Where("submissions.game_id = ?", req.GameId)
 		}
 		if req.Status != 0 {

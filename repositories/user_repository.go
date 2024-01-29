@@ -70,6 +70,8 @@ func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []response
 		} else if sortOrder == "desc" {
 			db = db.Desc("users." + sortKey)
 		}
+	} else {
+		db = db.Asc("users.id") // 默认采用 ID 升序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size

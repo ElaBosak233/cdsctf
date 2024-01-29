@@ -65,8 +65,26 @@ func (g *GameControllerImpl) Delete(ctx *gin.Context) {
 }
 
 func (g *GameControllerImpl) Update(ctx *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	gameUpdateRequest := request.GameUpdateRequest{}
+	err := ctx.ShouldBindJSON(&gameUpdateRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  utils.GetValidMsg(err, &gameUpdateRequest),
+		})
+		return
+	}
+	err = g.GameService.Update(gameUpdateRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
 }
 
 // Find
@@ -79,12 +97,19 @@ func (g *GameControllerImpl) Update(ctx *gin.Context) {
 // @Param 查找请求 query request.GameFindRequest false "GameFindRequest"
 // @Router /api/games/ [get]
 func (g *GameControllerImpl) Find(ctx *gin.Context) {
+	isEnabled := func() int {
+		if ctx.GetInt64("UserRole") < 3 && ctx.Query("is_enabled") == "-1" {
+			return -1
+		}
+		return 1
+	} // -1 代表忽略此条件，0 代表没被启用，1 代表被启用，默认状态下只查询被启用的比赛
 	games, pageCount, total, err := g.GameService.Find(request.GameFindRequest{
-		GameId: int64(utils.ParseIntParam(ctx.Query("id"), 0)),
-		Title:  ctx.Query("title"),
-		Size:   utils.ParseIntParam(ctx.Query("size"), 0),
-		Page:   utils.ParseIntParam(ctx.Query("page"), 0),
-		SortBy: ctx.QueryArray("sort_by"),
+		GameId:    int64(utils.ParseIntParam(ctx.Query("id"), 0)),
+		Title:     ctx.Query("title"),
+		IsEnabled: isEnabled(),
+		Size:      utils.ParseIntParam(ctx.Query("size"), 0),
+		Page:      utils.ParseIntParam(ctx.Query("page"), 0),
+		SortBy:    ctx.QueryArray("sort_by"),
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

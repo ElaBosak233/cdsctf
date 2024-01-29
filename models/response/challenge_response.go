@@ -6,8 +6,9 @@ import (
 
 type ChallengeResponse struct {
 	model.Challenge `xorm:"extends"`
+	Pts             int64            `xorm:"-" json:"pts"`
 	Submission      model.Submission `xorm:"extends" json:"-"`
-	IsSolved        int64            `xorm:"'is_solved'" json:"is_solved"`
+	IsSolved        bool             `xorm:"'is_solved'" json:"is_solved"`
 }
 
 type ChallengeSimpleResponse struct {

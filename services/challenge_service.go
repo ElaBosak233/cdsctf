@@ -2,10 +2,13 @@ package services
 
 import (
 	"errors"
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
+	relationEntity "github.com/elabosak233/pgshub/models/entity/relations"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
 	"github.com/elabosak233/pgshub/repositories"
+	"github.com/elabosak233/pgshub/repositories/relations"
+	"github.com/elabosak233/pgshub/utils"
 	"github.com/mitchellh/mapstructure"
 	"math"
 )
@@ -14,22 +17,26 @@ type ChallengeService interface {
 	Create(req request.ChallengeCreateRequest) (err error)
 	Update(req request.ChallengeUpdateRequest) (err error)
 	Delete(id int64) error
-	FindById(id int64, isDetailed int) model.Challenge
+	FindById(id int64, isDetailed int) entity.Challenge
 	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error)
 }
 
 type ChallengeServiceImpl struct {
-	ChallengeRepository repositories.ChallengeRepository
+	ChallengeRepository     repositories.ChallengeRepository
+	GameChallengeRepository relations.GameChallengeRepository
+	SubmissionRepository    repositories.SubmissionRepository
 }
 
 func NewChallengeServiceImpl(appRepository *repositories.AppRepository) ChallengeService {
 	return &ChallengeServiceImpl{
-		ChallengeRepository: appRepository.ChallengeRepository,
+		ChallengeRepository:     appRepository.ChallengeRepository,
+		GameChallengeRepository: appRepository.GameChallengeRepository,
+		SubmissionRepository:    appRepository.SubmissionRepository,
 	}
 }
 
 func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) (err error) {
-	challengeModel := model.Challenge{}
+	challengeModel := entity.Challenge{}
 	_ = mapstructure.Decode(req, &challengeModel)
 	err = t.ChallengeRepository.Insert(challengeModel)
 	return err
@@ -40,7 +47,7 @@ func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) (err e
 	if err != nil || challengeData.ChallengeId == 0 {
 		return errors.New("题目不存在")
 	}
-	challengeModel := model.Challenge{}
+	challengeModel := entity.Challenge{}
 	_ = mapstructure.Decode(req, &challengeModel)
 	err = t.ChallengeRepository.Update(challengeModel)
 	return err
@@ -53,12 +60,50 @@ func (t *ChallengeServiceImpl) Delete(id int64) error {
 
 func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error) {
 	challenges, count, err := t.ChallengeRepository.Find(req)
-	if req.IsDetailed == 0 {
-		for i := range challenges {
+	gameChallengesMap := make(map[int64]relationEntity.GameChallenge)
+	submissionsMap := make(map[int64][]response.SubmissionResponse)
+	// 比赛模式
+	if req.GameId != 0 && req.TeamId != 0 {
+		challengeIds := make([]int64, len(challenges))
+		for _, challenge := range challenges {
+			challengeIds = append(challengeIds, challenge.ChallengeId)
+		}
+		gameChallenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(req.GameId, challengeIds)
+		for _, gameChallenge := range gameChallenges {
+			gameChallengesMap[gameChallenge.ChallengeId] = gameChallenge
+		}
+		submissions, _ := t.SubmissionRepository.BatchFind(request.SubmissionBatchFindRequest{
+			GameId:      req.GameId,
+			TeamId:      req.TeamId,
+			Status:      2,
+			ChallengeId: challengeIds,
+		})
+		for _, submission := range submissions {
+			submissionsMap[submission.ChallengeId] = append(submissionsMap[submission.ChallengeId], submission)
+		}
+	}
+	// 二次处理
+	for i := range challenges {
+		// 非详细模式需要去除敏感信息
+		if req.IsDetailed == 0 {
 			challenges[i].Flag = ""
 			challenges[i].FlagEnv = ""
 			challenges[i].FlagFmt = ""
 			challenges[i].Image = ""
+		}
+		if req.GameId != 0 && req.TeamId != 0 {
+			challengeId := challenges[i].ChallengeId
+			S := gameChallengesMap[challengeId].MaxPts
+			R := gameChallengesMap[challengeId].MinPts
+			d := challenges[i].Difficulty
+			x := len(submissionsMap[challengeId])
+			pts := utils.CalculateChallengePts(S, R, d, x)
+			challenges[i].Pts = pts
+		} else {
+			challenges[i].Pts = challenges[i].PracticePts
+		}
+		if challenges[i].Submission.SubmissionId != 0 {
+			challenges[i].IsSolved = true
 		}
 	}
 	if req.Size >= 1 && req.Page >= 1 {
@@ -70,7 +115,7 @@ func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenge
 }
 
 // FindById implements ChallengeService
-func (t *ChallengeServiceImpl) FindById(id int64, isDetailed int) model.Challenge {
+func (t *ChallengeServiceImpl) FindById(id int64, isDetailed int) entity.Challenge {
 	challengeData, _ := t.ChallengeRepository.FindById(id, isDetailed)
 	return challengeData
 }
