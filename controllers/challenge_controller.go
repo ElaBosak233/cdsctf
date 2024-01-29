@@ -4,6 +4,7 @@ import (
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/services"
 	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/convertor"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -53,14 +54,14 @@ func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 			Category:      ctx.Query("category"),
 			IsPracticable: isPracticable(),
 			IsDetailed:    isDetailed(),
-			IsDynamic:     utils.ParseIntParam(ctx.Query("is_dynamic"), 0),
-			Difficulty:    int64(utils.ParseIntParam(ctx.Query("difficulty"), 0)),
+			IsDynamic:     convertor.ToIntD(ctx.Query("is_dynamic"), 0),
+			Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), 0),
 			UserId:        ctx.GetInt64("UserId"),
-			GameId:        int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
-			TeamId:        int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
+			GameId:        convertor.ToInt64D(ctx.Query("game_id"), 0),
+			TeamId:        convertor.ToInt64D(ctx.Query("team_id"), 0),
+			Page:          convertor.ToIntD(ctx.Query("page"), 0),
+			Size:          convertor.ToIntD(ctx.Query("size"), 0),
 			SortBy:        ctx.QueryArray("sort_by"),
-			Page:          utils.ParseIntParam(ctx.Query("page"), 0),
-			Size:          utils.ParseIntParam(ctx.Query("size"), 0),
 		})
 		ctx.JSON(http.StatusOK, gin.H{
 			"code":  http.StatusOK,
@@ -118,7 +119,6 @@ func (c *ChallengeControllerImpl) Update(ctx *gin.Context) {
 	var updateChallengeRequest request.ChallengeUpdateRequest
 	err := ctx.ShouldBindJSON(&updateChallengeRequest)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  utils.GetValidMsg(err, &updateChallengeRequest),
@@ -127,13 +127,11 @@ func (c *ChallengeControllerImpl) Update(ctx *gin.Context) {
 	}
 	err = c.ChallengeService.Update(updateChallengeRequest)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  "更新失败",
+			"msg":  err.Error(),
 		})
 	}
-	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})

@@ -3,8 +3,8 @@ package services
 import (
 	"errors"
 	"fmt"
-	"github.com/elabosak233/pgshub"
 	"github.com/elabosak233/pgshub/containers/managers"
+	"github.com/elabosak233/pgshub/globals"
 	model "github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
@@ -124,7 +124,7 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 			RemovedAt:   removedAt,
 		})
 		ctn.SetInstanceId(instance.InstanceId)
-		global.InstanceMap[instance.InstanceId] = ctn
+		globals.InstanceMap[instance.InstanceId] = ctn
 		return response.InstanceStatusResponse{
 			InstanceId: instance.InstanceId,
 			Entry:      entry,
@@ -139,8 +139,8 @@ func (t *InstanceServiceImpl) Status(id int64) (rep response.InstanceStatusRespo
 	rep = response.InstanceStatusResponse{}
 	if viper.GetString("container.provider") == "docker" {
 		instance, err := t.InstanceRepository.FindById(id)
-		if global.InstanceMap[id] != nil {
-			ctn := global.InstanceMap[id].(*managers.DockerManager)
+		if globals.InstanceMap[id] != nil {
+			ctn := globals.InstanceMap[id].(*managers.DockerManager)
 			status, _ := ctn.GetContainerStatus()
 			if status != "removed" {
 				rep.InstanceId = id
@@ -164,10 +164,10 @@ func (t *InstanceServiceImpl) Renew(req request.InstanceRenewRequest) (removedAt
 	if viper.GetString("Container.Provider") == "docker" {
 		SetUserInstanceRequestMap(req.UserId, time.Now().Unix()) // 保存用户请求时间
 		instance, err := t.InstanceRepository.FindById(req.InstanceId)
-		if err != nil || global.InstanceMap[req.InstanceId] == nil {
+		if err != nil || globals.InstanceMap[req.InstanceId] == nil {
 			return time.Time{}, errors.New("实例不存在")
 		}
-		ctn := global.InstanceMap[req.InstanceId].(*managers.DockerManager)
+		ctn := globals.InstanceMap[req.InstanceId].(*managers.DockerManager)
 		err = ctn.Renew(ctn.Duration)
 		instance.RemovedAt = time.Now().Add(ctn.Duration)
 		err = t.InstanceRepository.Update(instance)
@@ -186,8 +186,8 @@ func (t *InstanceServiceImpl) Remove(req request.InstanceRemoveRequest) (err err
 			InstanceId: req.InstanceId,
 			RemovedAt:  time.Now(),
 		})
-		if global.InstanceMap[req.InstanceId] != nil {
-			ctn := global.InstanceMap[req.InstanceId].(*managers.DockerManager)
+		if globals.InstanceMap[req.InstanceId] != nil {
+			ctn := globals.InstanceMap[req.InstanceId].(*managers.DockerManager)
 			err = ctn.Remove()
 		}
 		return err
@@ -198,10 +198,10 @@ func (t *InstanceServiceImpl) Remove(req request.InstanceRemoveRequest) (err err
 func (t *InstanceServiceImpl) FindById(id int64) (rep response.InstanceResponse, err error) {
 	if viper.GetString("container.provider") == "docker" {
 		instance, err := t.InstanceRepository.FindById(id)
-		if err != nil || global.InstanceMap[id] == nil {
+		if err != nil || globals.InstanceMap[id] == nil {
 			return rep, errors.New("实例不存在")
 		}
-		ctn := global.InstanceMap[id].(*managers.DockerManager)
+		ctn := globals.InstanceMap[id].(*managers.DockerManager)
 		status, _ := ctn.GetContainerStatus()
 		rep = response.InstanceResponse{
 			InstanceId:  id,
@@ -224,8 +224,8 @@ func (t *InstanceServiceImpl) Find(req request.InstanceFindRequest) (instances [
 		for _, instance := range responses {
 			var ctn *managers.DockerManager
 			status := "removed"
-			if global.InstanceMap[instance.InstanceId] != nil {
-				ctn = global.InstanceMap[instance.InstanceId].(*managers.DockerManager)
+			if globals.InstanceMap[instance.InstanceId] != nil {
+				ctn = globals.InstanceMap[instance.InstanceId].(*managers.DockerManager)
 				status, _ = ctn.GetContainerStatus()
 			}
 			instances = append(instances, response.InstanceResponse{

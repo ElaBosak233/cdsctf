@@ -28,7 +28,7 @@ func (t *GameRepositoryImpl) Insert(game entity.Game) (g entity.Game, err error)
 }
 
 func (t *GameRepositoryImpl) Update(game entity.Game) (err error) {
-	_, err = t.Db.Table("games").Update(&game)
+	_, err = t.Db.Table("games").ID(game.GameId).MustCols("is_enabled", "is_public", "is_need_write_up").Update(&game)
 	return err
 }
 
@@ -47,6 +47,9 @@ func (t *GameRepositoryImpl) Find(req request.GameFindRequest) (games []response
 		if req.Title != "" {
 			q = q.Where("title LIKE ?", "%"+req.Title+"%")
 		}
+		if req.IsEnabled != -1 {
+			q = q.Where("is_enabled = ?", req.IsEnabled == 1)
+		}
 		return q
 	}
 	db := applyFilters(t.Db.Table("games"))
@@ -60,6 +63,8 @@ func (t *GameRepositoryImpl) Find(req request.GameFindRequest) (games []response
 		} else if sortOrder == "desc" {
 			db = db.Desc("games." + sortKey)
 		}
+	} else {
+		db = db.Desc("games.id") // 默认采用 ID 降序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size

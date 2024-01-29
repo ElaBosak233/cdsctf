@@ -79,7 +79,7 @@ func (c *SubmissionControllerImpl) BatchFind(ctx *gin.Context) {
 		SortBy:           ctx.QueryArray("sort_by"),
 		IsDetailed:       ctx.Query("is_detailed") == "true",
 		TeamId:           int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
-		GameId:           int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
+		GameId:           int64(utils.ParseIntParam(ctx.Query("game_id"), -1)),
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -114,7 +114,7 @@ func (c *SubmissionControllerImpl) Create(ctx *gin.Context) {
 		return
 	}
 	submissionCreateRequest.UserId = ctx.GetInt64("UserId")
-	status, err := c.SubmissionService.Create(submissionCreateRequest)
+	status, pts, err := c.SubmissionService.Create(submissionCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -125,6 +125,7 @@ func (c *SubmissionControllerImpl) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":   http.StatusOK,
 		"status": status,
+		"pts":    pts,
 	})
 }
 

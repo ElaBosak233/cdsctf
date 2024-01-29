@@ -59,8 +59,22 @@ func (g *GameServiceImpl) Create(req request.GameCreateRequest) (err error) {
 }
 
 func (g *GameServiceImpl) Update(req request.GameUpdateRequest) (err error) {
-	//TODO implement me
-	panic("implement me")
+	gameEntity := entity.Game{}
+	err = mapstructure.Decode(req, &gameEntity)
+	if req.StartedAtUnix != 0 {
+		gameEntity.StartedAt = time.Unix(req.StartedAtUnix, 0)
+	}
+	if req.EndedAtUnix != 0 {
+		gameEntity.EndedAt = time.Unix(req.EndedAtUnix, 0)
+	}
+	if req.Password != "" {
+		hasher := crypto.SHA256.New()
+		hasher.Write([]byte(req.Password))
+		hashBytes := hasher.Sum(nil)
+		gameEntity.Password = hex.EncodeToString(hashBytes)
+	}
+	err = g.GameRepository.Update(gameEntity)
+	return err
 }
 
 func (g *GameServiceImpl) Delete(id int64) (err error) {

@@ -7,8 +7,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
-	"github.com/elabosak233/pgshub"
 	"github.com/elabosak233/pgshub/containers/providers"
+	"github.com/elabosak233/pgshub/globals"
 	"github.com/elabosak233/pgshub/utils"
 	"github.com/spf13/viper"
 	"strconv"
@@ -72,12 +72,12 @@ func (c *DockerManager) Setup() (port int, err error) {
 			NanoCPUs: int64(c.CpuLimit * 1e9),
 		},
 	}
-	resp, err := global.DockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")
+	resp, err := globals.DockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")
 	if err != nil {
 		return 0, err
 	}
 	c.RespId = resp.ID
-	err = global.DockerClient.ContainerStart(context.Background(), c.RespId, types.ContainerStartOptions{})
+	err = globals.DockerClient.ContainerStart(context.Background(), c.RespId, types.ContainerStartOptions{})
 	if err != nil {
 		return 0, err
 	}
@@ -87,10 +87,10 @@ func (c *DockerManager) Setup() (port int, err error) {
 }
 
 func (c *DockerManager) GetContainerStatus() (status string, err error) {
-	if global.DockerClient == nil || c.RespId == "" {
+	if globals.DockerClient == nil || c.RespId == "" {
 		return "", errors.New("容器未创建或初始化失败")
 	}
-	resp, err := global.DockerClient.ContainerInspect(context.Background(), c.RespId)
+	resp, err := globals.DockerClient.ContainerInspect(context.Background(), c.RespId)
 	if err != nil {
 		return "removed", err
 	}
@@ -108,28 +108,28 @@ func (c *DockerManager) RemoveAfterDuration(ctx context.Context) {
 }
 
 func (c *DockerManager) Remove() (err error) {
-	if global.DockerClient == nil {
+	if globals.DockerClient == nil {
 		return nil
 	}
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		errStop := global.DockerClient.ContainerStop(context.Background(), c.RespId, container.StopOptions{})
+		errStop := globals.DockerClient.ContainerStop(context.Background(), c.RespId, container.StopOptions{})
 		if errStop != nil {
 		}
 		// 等待容器停止
-		_, errWait := global.DockerClient.ContainerWait(context.Background(), c.RespId, container.WaitConditionNotRunning)
+		_, errWait := globals.DockerClient.ContainerWait(context.Background(), c.RespId, container.WaitConditionNotRunning)
 		if errWait != nil {
 		}
 		// 移除容器
-		errRemove := global.DockerClient.ContainerRemove(context.Background(), c.RespId, types.ContainerRemoveOptions{})
+		errRemove := globals.DockerClient.ContainerRemove(context.Background(), c.RespId, types.ContainerRemoveOptions{})
 		if errRemove != nil {
 		}
 	}()
 	wg.Wait()
-	delete(global.InstanceMap, c.InstanceId)
-	delete(global.DockerPortsMap.M, c.Port)
+	delete(globals.InstanceMap, c.InstanceId)
+	delete(globals.DockerPortsMap.M, c.Port)
 	return err
 }
 

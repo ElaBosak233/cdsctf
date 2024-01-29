@@ -79,6 +79,8 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		} else if sortOrder == "desc" {
 			db = db.Desc("challenges." + sortKey)
 		}
+	} else {
+		db = db.Asc("challenges.id") // 默认采用 ID 升序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
@@ -94,10 +96,9 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		db = db.Join(
 			"LEFT",
 			"submissions",
-			"submissions.challenge_id = challenges.id AND submissions.status = 2 AND submissions.user_id = ?",
+			"submissions.challenge_id = challenges.id AND submissions.status = 2 AND submissions.game_id = 0 AND submissions.user_id = ?",
 			req.UserId)
 	}
-	db = db.Cols("challenges.*", "submissions.id AS is_solved")
 	err = db.Find(&challenges)
 	return challenges, count, err
 }

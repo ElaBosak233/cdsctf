@@ -1,35 +1,38 @@
 package services
 
 import (
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
 	"github.com/elabosak233/pgshub/repositories"
+	"github.com/elabosak233/pgshub/repositories/relations"
 	"github.com/elabosak233/pgshub/utils"
 	"math"
 	"sync"
 )
 
 type SubmissionService interface {
-	Create(req request.SubmissionCreateRequest) (status int, err error)
+	Create(req request.SubmissionCreateRequest) (status int, pts int64, err error)
 	Delete(id int64) (err error)
 	Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, pageCount int64, total int64, err error)
 	BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error)
 }
 
 type SubmissionServiceImpl struct {
-	InstanceRepository   repositories.InstanceRepository
-	SubmissionRepository repositories.SubmissionRepository
-	ChallengeRepository  repositories.ChallengeRepository
-	UserRepository       repositories.UserRepository
+	InstanceRepository      repositories.InstanceRepository
+	SubmissionRepository    repositories.SubmissionRepository
+	ChallengeRepository     repositories.ChallengeRepository
+	UserRepository          repositories.UserRepository
+	GameChallengeRepository relations.GameChallengeRepository
 }
 
 func NewSubmissionServiceImpl(appRepository *repositories.AppRepository) SubmissionService {
 	return &SubmissionServiceImpl{
-		InstanceRepository:   appRepository.InstanceRepository,
-		SubmissionRepository: appRepository.SubmissionRepository,
-		ChallengeRepository:  appRepository.ChallengeRepository,
-		UserRepository:       appRepository.UserRepository,
+		InstanceRepository:      appRepository.InstanceRepository,
+		SubmissionRepository:    appRepository.SubmissionRepository,
+		ChallengeRepository:     appRepository.ChallengeRepository,
+		UserRepository:          appRepository.UserRepository,
+		GameChallengeRepository: appRepository.GameChallengeRepository,
 	}
 }
 
@@ -68,10 +71,10 @@ func (t *SubmissionServiceImpl) JudgeStaticChallenge(reqFlag string, challengeFl
 // createSync 提交创建锁，可优化
 var createSync = sync.RWMutex{}
 
-func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (status int, err error) {
+func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (status int, pts int64, err error) {
 	challenge, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	if challenge.IsDynamic && req.Flag != utils.GenerateFlag(challenge.FlagFmt) {
 		status, err = t.JudgeDynamicChallenge(req)
@@ -93,15 +96,28 @@ func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (sta
 			status = 4
 		}
 	}
-	err = t.SubmissionRepository.Insert(model.Submission{
+	if status == 2 {
+		if req.GameId != 0 && req.TeamId != 0 {
+			challenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(req.GameId, []int64{req.ChallengeId})
+			submissions, _, _ := t.SubmissionRepository.Find(request.SubmissionFindRequest{
+				GameId:      req.GameId,
+				ChallengeId: req.ChallengeId,
+			})
+			pts = utils.CalculateChallengePts(challenges[0].MaxPts, challenges[0].MinPts, challenge.Difficulty, len(submissions))
+		} else {
+			pts = challenge.PracticePts
+		}
+	}
+	err = t.SubmissionRepository.Insert(entity.Submission{
 		Flag:        req.Flag,
 		UserId:      req.UserId,
 		ChallengeId: req.ChallengeId,
 		TeamId:      req.TeamId,
 		GameId:      req.GameId,
 		Status:      status,
+		Pts:         pts,
 	})
-	return status, err
+	return status, pts, err
 }
 
 func (t *SubmissionServiceImpl) Delete(id int64) (err error) {
