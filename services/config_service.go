@@ -3,7 +3,7 @@ package services
 import (
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/repositories"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/config"
 	"github.com/spf13/viper"
 )
 
@@ -15,7 +15,7 @@ type ConfigService interface {
 type ConfigServiceImpl struct {
 }
 
-func NewConfigServiceImpl(appRepository *repositories.AppRepository) ConfigService {
+func NewConfigServiceImpl(appRepository *repositories.Repositories) ConfigService {
 	return &ConfigServiceImpl{}
 }
 
@@ -29,5 +29,5 @@ func (c *ConfigServiceImpl) Update(req request.ConfigUpdateRequest) (err error) 
 	viper.Set("global.container.parallel_limit", req.Container.ParallelLimit)
 	viper.Set("global.container.request_limit", req.Container.RequestLimit)
 	viper.Set("global.user.allow_registration", req.User.AllowRegistration)
-	return utils.SaveConfig()
+	return config.SaveConfig()
 }

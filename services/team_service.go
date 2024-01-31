@@ -29,7 +29,7 @@ type TeamServiceImpl struct {
 	UserTeamRepository relations.UserTeamRepository
 }
 
-func NewTeamServiceImpl(appRepository *repositories.AppRepository) TeamService {
+func NewTeamServiceImpl(appRepository *repositories.Repositories) TeamService {
 	return &TeamServiceImpl{
 		UserRepository:     appRepository.UserRepository,
 		TeamRepository:     appRepository.TeamRepository,

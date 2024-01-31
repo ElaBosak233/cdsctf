@@ -14,10 +14,10 @@ type AuthMiddleware interface {
 }
 
 type AuthMiddlewareImpl struct {
-	appService *services.AppService
+	appService *services.Services
 }
 
-func NewAuthMiddleware(appService *services.AppService) AuthMiddleware {
+func NewAuthMiddleware(appService *services.Services) AuthMiddleware {
 	return &AuthMiddlewareImpl{
 		appService: appService,
 	}

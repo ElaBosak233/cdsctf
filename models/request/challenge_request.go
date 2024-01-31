@@ -44,17 +44,18 @@ type ChallengeDeleteRequest struct {
 }
 
 type ChallengeFindRequest struct {
-	Id            int64    `json:"id"`
-	Category      string   `json:"category"`
-	Title         string   `json:"title"`
-	IsPracticable int      `json:"is_practicable"`
-	IsDynamic     int      `json:"is_dynamic"`
-	IsDetailed    int      `json:"is_detailed"`
-	Difficulty    int64    `json:"difficulty"`
-	UserId        int64    `json:"user_id"`
-	GameId        int64    `json:"game_id"`
-	TeamId        int64    `json:"team_id"`
-	SortBy        []string `json:"sort_by"`
-	Page          int      `json:"page"`
-	Size          int      `json:"size"`
+	ChallengeIds  []int64 `json:"id"`
+	Category      string  `json:"category"`
+	Title         string  `json:"title"`
+	IsPracticable int     `json:"is_practicable"`
+	IsDynamic     int     `json:"is_dynamic"`
+	Difficulty    int64   `json:"difficulty"`
+	UserId        int64   `json:"user_id"`
+	GameId        int64   `json:"game_id"`
+	TeamId        int64   `json:"team_id"`
+
+	IsDetailed int      `json:"is_detailed"`
+	SortBy     []string `json:"sort_by"`
+	Page       int      `json:"page"`
+	Size       int      `json:"size"`
 }

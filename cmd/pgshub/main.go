@@ -1,11 +1,20 @@
 package main
 
 import (
-	"github.com/elabosak233/pgshub/cmd/pgshub/initialize"
+	"fmt"
+	"github.com/TwiN/go-color"
 	"github.com/elabosak233/pgshub/containers/providers"
+	"github.com/elabosak233/pgshub/controllers"
 	_ "github.com/elabosak233/pgshub/docs"
+	"github.com/elabosak233/pgshub/middlewares"
+	"github.com/elabosak233/pgshub/repositories"
 	"github.com/elabosak233/pgshub/routers"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/services"
+	"github.com/elabosak233/pgshub/utils/assets"
+	"github.com/elabosak233/pgshub/utils/config"
+	"github.com/elabosak233/pgshub/utils/convertor"
+	"github.com/elabosak233/pgshub/utils/database"
+	log "github.com/elabosak233/pgshub/utils/logger"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -13,24 +22,26 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
 	"os"
-	"strconv"
 )
+
+func init() {
+	data, _ := assets.ReadStaticFile("banner.txt")
+	fmt.Println(color.Ize(color.CyanBackground, string(data)))
+}
 
 // @title PgsHub Backend API
 // @version 1.0
 func main() {
-	Welcome()
-	utils.InitLogger()
-	utils.LoadConfig()
-	db := initialize.GetDatabaseConnection()
+	config.InitConfig()
+	database.InitDatabase()
 
 	if viper.GetString("container.provider") == "docker" {
 		providers.NewDockerProvider()
 	}
 
 	// Debug 模式
-	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
-	if debug {
+	if convertor.ToBoolD(os.Getenv("DEBUG"), false) {
+		database.GetDatabase().ShowSQL(true)
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
@@ -46,10 +57,10 @@ func main() {
 	r.Use(cors.New(cor))
 
 	// 依赖注入
-	appRepository := initialize.Repositories(db)
-	appService := initialize.Services(appRepository)
-	appMiddleware := initialize.Middlewares(appService)
-	appController := initialize.Controllers(appService)
+	appRepository := repositories.InitRepositories(database.GetDatabase())
+	appService := services.InitServices(appRepository)
+	appMiddleware := middlewares.InitMiddlewares(appService)
+	appController := controllers.InitControllers(appService)
 	routers.NewRouters(r.Group("/api"), appController, appMiddleware)
 
 	// Swagger 文档
@@ -62,6 +73,6 @@ func main() {
 		Addr:    viper.GetString("server.host") + ":" + viper.GetString("server.port"),
 		Handler: r,
 	}
-	utils.Logger.Infof("PgsHub 已启动，访问地址 %s:%d", viper.GetString("server.host"), viper.GetInt("server.port"))
+	log.Infof("PgsHub 已启动，访问地址 %s:%d", viper.GetString("server.host"), viper.GetInt("server.port"))
 	_ = s.ListenAndServe()
 }

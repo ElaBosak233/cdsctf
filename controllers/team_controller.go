@@ -3,7 +3,8 @@ package controllers
 import (
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/services"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/convertor"
+	"github.com/elabosak233/pgshub/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -23,7 +24,7 @@ type TeamControllerImpl struct {
 	TeamService services.TeamService
 }
 
-func NewTeamControllerImpl(appService *services.AppService) TeamController {
+func NewTeamControllerImpl(appService *services.Services) TeamController {
 	return &TeamControllerImpl{
 		TeamService: appService.TeamService,
 	}
@@ -43,7 +44,7 @@ func (c *TeamControllerImpl) Create(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &createTeamRequest),
+			"msg":  validator.GetValidMsg(err, &createTeamRequest),
 		})
 		return
 	}
@@ -74,7 +75,7 @@ func (c *TeamControllerImpl) Update(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &updateTeamRequest),
+			"msg":  validator.GetValidMsg(err, &updateTeamRequest),
 		})
 		return
 	}
@@ -105,7 +106,7 @@ func (c *TeamControllerImpl) Delete(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &deleteTeamRequest),
+			"msg":  validator.GetValidMsg(err, &deleteTeamRequest),
 		})
 		return
 	}
@@ -132,11 +133,11 @@ func (c *TeamControllerImpl) Delete(ctx *gin.Context) {
 // @Router /api/teams/ [get]
 func (c *TeamControllerImpl) Find(ctx *gin.Context) {
 	teamData, pageCount, total, _ := c.TeamService.Find(request.TeamFindRequest{
-		TeamId:    int64(utils.ParseIntParam(ctx.Query("id"), 0)),
+		TeamId:    int64(convertor.ToIntD(ctx.Query("id"), 0)),
 		TeamName:  ctx.Query("name"),
-		CaptainId: int64(utils.ParseIntParam(ctx.Query("captain_id"), 0)),
-		Page:      utils.ParseIntParam(ctx.Query("page"), 0),
-		Size:      utils.ParseIntParam(ctx.Query("size"), 0),
+		CaptainId: int64(convertor.ToIntD(ctx.Query("captain_id"), 0)),
+		Page:      convertor.ToIntD(ctx.Query("page"), 0),
+		Size:      convertor.ToIntD(ctx.Query("size"), 0),
 	})
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
@@ -157,7 +158,7 @@ func (c *TeamControllerImpl) Find(ctx *gin.Context) {
 // @Router /api/teams/batch/ [get]
 func (c *TeamControllerImpl) BatchFind(ctx *gin.Context) {
 	teams, _ := c.TeamService.BatchFind(request.TeamBatchFindRequest{
-		TeamId: utils.MapStringsToInts(ctx.QueryArray("id")),
+		TeamId: convertor.ToInt64SliceD(ctx.QueryArray("id"), []int64{}),
 	})
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
@@ -179,7 +180,7 @@ func (c *TeamControllerImpl) Join(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &joinTeamRequest),
+			"msg":  validator.GetValidMsg(err, &joinTeamRequest),
 		})
 		return
 	}
@@ -210,7 +211,7 @@ func (c *TeamControllerImpl) Quit(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &quitTeamRequest),
+			"msg":  validator.GetValidMsg(err, &quitTeamRequest),
 		})
 		return
 	}
@@ -237,7 +238,7 @@ func (c *TeamControllerImpl) Quit(ctx *gin.Context) {
 // @Router /api/teams/id/{id} [get]
 func (c *TeamControllerImpl) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	res, err := c.TeamService.FindById(int64(utils.ParseIntParam(id, 0)))
+	res, err := c.TeamService.FindById(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,

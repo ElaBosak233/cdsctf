@@ -2,12 +2,12 @@ package services
 
 import (
 	"errors"
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
 	"github.com/elabosak233/pgshub/repositories"
 	"github.com/elabosak233/pgshub/repositories/relations"
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
@@ -35,7 +35,7 @@ type UserServiceImpl struct {
 	UserTeamRepository relations.UserTeamRepository
 }
 
-func NewUserServiceImpl(appRepository *repositories.AppRepository) UserService {
+func NewUserServiceImpl(appRepository *repositories.Repositories) UserService {
 	return &UserServiceImpl{
 		UserRepository:     appRepository.UserRepository,
 		TeamRepository:     appRepository.TeamRepository,
@@ -68,7 +68,7 @@ func (t *UserServiceImpl) GetIdByJwtToken(token string) (id int64, err error) {
 
 func (t *UserServiceImpl) Create(req request.UserCreateRequest) (err error) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	userModel := model.User{
+	userModel := entity.User{
 		Username: req.Username,
 		Email:    req.Email,
 		Nickname: req.Nickname,
@@ -80,7 +80,7 @@ func (t *UserServiceImpl) Create(req request.UserCreateRequest) (err error) {
 }
 
 func (t *UserServiceImpl) Update(req request.UserUpdateRequest) (err error) {
-	userModel := model.User{}
+	userModel := entity.User{}
 	_ = mapstructure.Decode(req, &userModel)
 	if req.Password != "" {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)

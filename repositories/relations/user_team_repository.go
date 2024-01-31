@@ -2,7 +2,7 @@ package relations
 
 import (
 	model "github.com/elabosak233/pgshub/models/entity/relations"
-	"github.com/xormplus/xorm"
+	"xorm.io/xorm"
 )
 
 type UserTeamRepository interface {

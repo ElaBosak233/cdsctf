@@ -10,8 +10,8 @@ import (
 
 func NewRouters(
 	router *gin.RouterGroup,
-	appController *controllers.AppController,
-	appMiddleware *middlewares.AppMiddleware,
+	appController *controllers.Controllers,
+	appMiddleware *middlewares.Middlewares,
 ) {
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, fmt.Sprintf("The Backend of PgsHub"))

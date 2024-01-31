@@ -23,7 +23,7 @@ type GameServiceImpl struct {
 	GameRepository repositories.GameRepository
 }
 
-func NewGameServiceImpl(appRepository *repositories.AppRepository) GameService {
+func NewGameServiceImpl(appRepository *repositories.Repositories) GameService {
 	return &GameServiceImpl{
 		GameRepository: appRepository.GameRepository,
 	}

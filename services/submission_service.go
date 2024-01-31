@@ -26,7 +26,7 @@ type SubmissionServiceImpl struct {
 	GameChallengeRepository relations.GameChallengeRepository
 }
 
-func NewSubmissionServiceImpl(appRepository *repositories.AppRepository) SubmissionService {
+func NewSubmissionServiceImpl(appRepository *repositories.Repositories) SubmissionService {
 	return &SubmissionServiceImpl{
 		InstanceRepository:      appRepository.InstanceRepository,
 		SubmissionRepository:    appRepository.SubmissionRepository,

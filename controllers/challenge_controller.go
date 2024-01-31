@@ -3,8 +3,8 @@ package controllers
 import (
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/services"
-	"github.com/elabosak233/pgshub/utils"
 	"github.com/elabosak233/pgshub/utils/convertor"
+	"github.com/elabosak233/pgshub/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -20,7 +20,7 @@ type ChallengeControllerImpl struct {
 	ChallengeService services.ChallengeService
 }
 
-func NewChallengeController(appService *services.AppService) ChallengeController {
+func NewChallengeController(appService *services.Services) ChallengeController {
 	return &ChallengeControllerImpl{
 		ChallengeService: appService.ChallengeService,
 	}
@@ -37,46 +37,45 @@ func NewChallengeController(appService *services.AppService) ChallengeController
 // @Router /api/challenges/ [get]
 func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 	isDetailed := func() int {
-		if ctx.GetInt64("UserRole") <= 2 && utils.ParseIntParam(ctx.Query("is_detailed"), 0) == 1 {
+		if ctx.GetInt64("UserRole") <= 2 && convertor.ToIntD(ctx.Query("is_detailed"), 0) == 1 {
 			return 1
 		}
 		return 0
 	}
 	isPracticable := func() int {
-		if ctx.GetInt64("UserRole") <= 2 && utils.ParseIntParam(ctx.Query("is_practicable"), 0) == 0 {
-			return 0
+		if ctx.GetInt64("UserRole") <= 2 {
+			switch convertor.ToIntD(ctx.Query("is_practicable"), -1) {
+			case 0:
+				return 0
+			case 1:
+				return 1
+			case -1:
+				return -1
+			}
 		}
 		return 1
 	}
-	if ctx.Query("id") == "" {
-		challengeData, pageCount, total, _ := c.ChallengeService.Find(request.ChallengeFindRequest{
-			Title:         ctx.Query("title"),
-			Category:      ctx.Query("category"),
-			IsPracticable: isPracticable(),
-			IsDetailed:    isDetailed(),
-			IsDynamic:     convertor.ToIntD(ctx.Query("is_dynamic"), 0),
-			Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), 0),
-			UserId:        ctx.GetInt64("UserId"),
-			GameId:        convertor.ToInt64D(ctx.Query("game_id"), 0),
-			TeamId:        convertor.ToInt64D(ctx.Query("team_id"), 0),
-			Page:          convertor.ToIntD(ctx.Query("page"), 0),
-			Size:          convertor.ToIntD(ctx.Query("size"), 0),
-			SortBy:        ctx.QueryArray("sort_by"),
-		})
-		ctx.JSON(http.StatusOK, gin.H{
-			"code":  http.StatusOK,
-			"pages": pageCount,
-			"total": total,
-			"data":  challengeData,
-		})
-	} else {
-		id := int64(utils.ParseIntParam(ctx.Query("id"), 0))
-		challengeData := c.ChallengeService.FindById(id, isDetailed())
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
-			"data": challengeData,
-		})
-	}
+	challengeData, pageCount, total, _ := c.ChallengeService.Find(request.ChallengeFindRequest{
+		Title:         ctx.Query("title"),
+		Category:      ctx.Query("category"),
+		IsPracticable: isPracticable(),
+		ChallengeIds:  convertor.ToInt64SliceD(ctx.QueryArray("id"), make([]int64, 0)),
+		IsDynamic:     convertor.ToIntD(ctx.Query("is_dynamic"), -1),
+		Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), -1),
+		UserId:        ctx.GetInt64("UserId"),
+		GameId:        convertor.ToInt64D(ctx.Query("game_id"), -1),
+		TeamId:        convertor.ToInt64D(ctx.Query("team_id"), -1),
+		IsDetailed:    isDetailed(),
+		Page:          convertor.ToIntD(ctx.Query("page"), -1),
+		Size:          convertor.ToIntD(ctx.Query("size"), -1),
+		SortBy:        ctx.QueryArray("sort_by"),
+	})
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":  http.StatusOK,
+		"pages": pageCount,
+		"total": total,
+		"data":  challengeData,
+	})
 }
 
 // Create
@@ -95,7 +94,7 @@ func (c *ChallengeControllerImpl) Create(ctx *gin.Context) {
 		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &createChallengeRequest),
+			"msg":  validator.GetValidMsg(err, &createChallengeRequest),
 		})
 		return
 	}
@@ -121,7 +120,7 @@ func (c *ChallengeControllerImpl) Update(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &updateChallengeRequest),
+			"msg":  validator.GetValidMsg(err, &updateChallengeRequest),
 		})
 		return
 	}
@@ -152,7 +151,7 @@ func (c *ChallengeControllerImpl) Delete(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &deleteChallengeRequest),
+			"msg":  validator.GetValidMsg(err, &deleteChallengeRequest),
 		})
 		return
 	}

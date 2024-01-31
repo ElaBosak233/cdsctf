@@ -3,10 +3,10 @@ package controllers
 import (
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/services"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/convertor"
+	"github.com/elabosak233/pgshub/utils/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
-	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -25,7 +25,7 @@ type UserControllerImpl struct {
 	UserService services.UserService
 }
 
-func NewUserControllerImpl(appService *services.AppService) UserController {
+func NewUserControllerImpl(appService *services.Services) UserController {
 	return &UserControllerImpl{
 		UserService: appService.UserService,
 	}
@@ -45,16 +45,16 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &userLoginRequest),
+			"msg":  validator.GetValidMsg(err, &userLoginRequest),
 		})
 		return
 	}
 	user, _ := c.UserService.FindByUsername(userLoginRequest.Username)
-	utils.Logger.WithFields(logrus.Fields{
-		"Username": user.Username,
-		"UserId":   user.UserId,
-		"ClientIP": ctx.ClientIP(),
-	}).Info("登录")
+	//logger.WithFields(zap.Field{
+	//	"Username": user.Username,
+	//	"UserId":   user.UserId,
+	//	"ClientIP": ctx.ClientIP(),
+	//}).Info("登录")
 	if !c.UserService.VerifyPasswordByUsername(userLoginRequest.Username, userLoginRequest.Password) {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusUnauthorized,
@@ -140,7 +140,7 @@ func (c *UserControllerImpl) Register(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &registerUserRequest),
+			"msg":  validator.GetValidMsg(err, &registerUserRequest),
 		})
 		return
 	}
@@ -174,7 +174,7 @@ func (c *UserControllerImpl) Create(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &createUserRequest),
+			"msg":  validator.GetValidMsg(err, &createUserRequest),
 		})
 		return
 	}
@@ -206,7 +206,7 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &updateUserRequest),
+			"msg":  validator.GetValidMsg(err, &updateUserRequest),
 		})
 		return
 	}
@@ -251,7 +251,7 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &deleteUserRequest),
+			"msg":  validator.GetValidMsg(err, &deleteUserRequest),
 		})
 		return
 	}
@@ -278,13 +278,13 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 // @Router /api/users/ [get]
 func (c *UserControllerImpl) Find(ctx *gin.Context) {
 	userResponse, pageCount, total, _ := c.UserService.Find(request.UserFindRequest{
-		Role:   int64(utils.ParseIntParam(ctx.Query("role"), 0)),
-		UserId: int64(utils.ParseIntParam(ctx.Query("id"), 0)),
+		Role:   int64(convertor.ToIntD(ctx.Query("role"), 0)),
+		UserId: int64(convertor.ToIntD(ctx.Query("id"), 0)),
 		Email:  ctx.Query("email"),
 		Name:   ctx.Query("name"),
 		SortBy: ctx.QueryArray("sort_by"),
-		Page:   utils.ParseIntParam(ctx.Query("page"), 0),
-		Size:   utils.ParseIntParam(ctx.Query("size"), 0),
+		Page:   convertor.ToIntD(ctx.Query("page"), 0),
+		Size:   convertor.ToIntD(ctx.Query("size"), 0),
 	})
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
