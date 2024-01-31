@@ -2,17 +2,18 @@ package repositories
 
 import (
 	"fmt"
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
-	"github.com/xormplus/xorm"
+	challengeValidator "github.com/elabosak233/pgshub/utils/validator/challenge"
+	"xorm.io/xorm"
 )
 
 type ChallengeRepository interface {
-	Insert(user model.Challenge) error
-	Update(user model.Challenge) error
+	Insert(user entity.Challenge) error
+	Update(user entity.Challenge) error
 	Delete(id int64) error
-	FindById(id int64, isDetailed int) (challenge model.Challenge, err error)
+	FindById(id int64, isDetailed int) (challenge entity.Challenge, err error)
 	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, count int64, err error)
 }
 
@@ -24,53 +25,54 @@ func NewChallengeRepositoryImpl(Db *xorm.Engine) ChallengeRepository {
 	return &ChallengeRepositoryImpl{Db: Db}
 }
 
-// Insert implements ChallengeRepository
-func (t *ChallengeRepositoryImpl) Insert(challenge model.Challenge) error {
+func (t *ChallengeRepositoryImpl) Insert(challenge entity.Challenge) error {
 	_, err := t.Db.Table("challenges").Insert(&challenge)
 	return err
 }
 
-// Delete implements ChallengeRepository
 func (t *ChallengeRepositoryImpl) Delete(id int64) error {
-	var challenge model.Challenge
+	var challenge entity.Challenge
 	_, err := t.Db.Table("challenges").ID(id).Delete(&challenge)
 	return err
 }
 
-// Update implements ChallengeRepository
-func (t *ChallengeRepositoryImpl) Update(challenge model.Challenge) error {
+func (t *ChallengeRepositoryImpl) Update(challenge entity.Challenge) error {
 	fmt.Println(challenge.ChallengeId)
 	_, err := t.Db.Table("challenges").ID(challenge.ChallengeId).MustCols("is_practicable, is_dynamic, has_attachment").Update(&challenge)
 	return err
 }
 
 func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, count int64, err error) {
+	isGame := challengeValidator.IsIdValid(req.GameId) && challengeValidator.IsIdValid(req.GameId)
 	applyFilter := func(q *xorm.Session) *xorm.Session {
-		if req.Category != "" {
+		if challengeValidator.IsCategoryStringValid(req.Category) {
 			q = q.Where("category = ?", req.Category)
 		}
-		if req.Title != "" {
+		if challengeValidator.IsTitleStringValid(req.Title) {
 			q = q.Where("title LIKE ?", "%"+req.Title+"%")
 		}
-		if req.IsPracticable != 0 {
+		if challengeValidator.IsPracticableIntValid(req.IsPracticable) {
 			q = q.Where("is_practicable = ?", req.IsPracticable == 1)
 		}
-		if req.IsDynamic != 0 {
+		if challengeValidator.IsDynamicIntValid(req.IsDynamic) {
 			q = q.Where("is_dynamic = ?", req.IsDynamic == 1)
 		}
-		if req.Difficulty != 0 {
+		if challengeValidator.IsDifficultyIntValid(req.Difficulty) {
 			q = q.Where("difficulty = ?", req.Difficulty)
 		}
-		if req.GameId != 0 && req.TeamId != 0 {
+		if isGame {
 			q = q.Join("INNER",
 				"game_challenge",
 				"game_challenge.challenge_id = challenges.id AND game_challenge.game_id = ?", req.GameId)
+		}
+		if challengeValidator.IsIdArrayValid(req.ChallengeIds) {
+			q = q.In("challenges.id", req.ChallengeIds)
 		}
 		return q
 	}
 	db := applyFilter(t.Db.Table("challenges"))
 	ct := applyFilter(t.Db.Table("challenges"))
-	count, err = ct.Count(&model.Challenge{})
+	count, err = ct.Count(&entity.Challenge{})
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
@@ -86,7 +88,7 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}
-	if req.GameId != 0 && req.TeamId != 0 {
+	if isGame {
 		db = db.Join(
 			"LEFT",
 			"submissions",
@@ -103,18 +105,7 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 	return challenges, count, err
 }
 
-// FindAll implements ChallengeRepository
-func (t *ChallengeRepositoryImpl) FindAll() []model.Challenge {
-	var challenges []model.Challenge
-	err := t.Db.Table("challenges").Find(&challenges)
-	if err != nil {
-		return nil
-	}
-	return challenges
-}
-
-// FindById implements ChallengeRepository
-func (t *ChallengeRepositoryImpl) FindById(id int64, isDetailed int) (challenge model.Challenge, err error) {
+func (t *ChallengeRepositoryImpl) FindById(id int64, isDetailed int) (challenge entity.Challenge, err error) {
 	db := t.Db.Table("challenges").ID(id)
 	if isDetailed == 0 {
 		db = db.Omit("flag", "flag_fmt", "flag_env", "image")

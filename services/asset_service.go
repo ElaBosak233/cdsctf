@@ -17,13 +17,13 @@ type AssetService interface {
 
 type AssetServiceImpl struct{}
 
-func NewAssetServiceImpl(appRepository *repositories.AppRepository) AssetService {
+func NewAssetServiceImpl(appRepository *repositories.Repositories) AssetService {
 	return &AssetServiceImpl{}
 }
 
 func (a *AssetServiceImpl) GetUserAvatarList() (res []string, err error) {
 	res = []string{}
-	path := "./assets/users/avatar"
+	path := "./uploads/users/avatar"
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func (a *AssetServiceImpl) GetUserAvatarList() (res []string, err error) {
 
 func (a *AssetServiceImpl) GetTeamAvatarList() (res []string, err error) {
 	res = []string{}
-	path := "./assets/teams/avatar"
+	path := "./uploads/teams/avatar"
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (a *AssetServiceImpl) FindChallengeAttachmentByChallengeId(id int64) (err e
 }
 
 func (a *AssetServiceImpl) CheckChallengeAttachmentByChallengeId(id int64) (fileName string, fileSize int64, err error) {
-	path := fmt.Sprintf("./assets/challenges/attachments/%d", id)
+	path := fmt.Sprintf("./uploads/challenges/attachments/%d", id)
 	files, err := os.ReadDir(path)
 	if len(files) == 0 {
 		return "", 0, errors.New("无附件")
@@ -74,7 +74,7 @@ func (a *AssetServiceImpl) CheckChallengeAttachmentByChallengeId(id int64) (file
 }
 
 func (a *AssetServiceImpl) DeleteChallengeAttachmentByChallengeId(id int64) (err error) {
-	path := fmt.Sprintf("./assets/challenges/attachments/%d", id)
+	path := fmt.Sprintf("./uploads/challenges/attachments/%d", id)
 	files, err := os.ReadDir(path)
 	if len(files) == 0 {
 		return nil

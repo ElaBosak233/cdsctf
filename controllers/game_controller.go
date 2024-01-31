@@ -3,7 +3,8 @@ package controllers
 import (
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/services"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/convertor"
+	"github.com/elabosak233/pgshub/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -21,7 +22,7 @@ type GameControllerImpl struct {
 	GameService services.GameService
 }
 
-func NewGameControllerImpl(appService *services.AppService) GameController {
+func NewGameControllerImpl(appService *services.Services) GameController {
 	return &GameControllerImpl{
 		GameService: appService.GameService,
 	}
@@ -42,7 +43,7 @@ func (g *GameControllerImpl) Create(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &gameCreateRequest),
+			"msg":  validator.GetValidMsg(err, &gameCreateRequest),
 		})
 		return
 	}
@@ -70,7 +71,7 @@ func (g *GameControllerImpl) Update(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &gameUpdateRequest),
+			"msg":  validator.GetValidMsg(err, &gameUpdateRequest),
 		})
 		return
 	}
@@ -104,11 +105,11 @@ func (g *GameControllerImpl) Find(ctx *gin.Context) {
 		return 1
 	} // -1 代表忽略此条件，0 代表没被启用，1 代表被启用，默认状态下只查询被启用的比赛
 	games, pageCount, total, err := g.GameService.Find(request.GameFindRequest{
-		GameId:    int64(utils.ParseIntParam(ctx.Query("id"), 0)),
+		GameId:    int64(convertor.ToIntD(ctx.Query("id"), 0)),
 		Title:     ctx.Query("title"),
 		IsEnabled: isEnabled(),
-		Size:      utils.ParseIntParam(ctx.Query("size"), 0),
-		Page:      utils.ParseIntParam(ctx.Query("page"), 0),
+		Size:      convertor.ToIntD(ctx.Query("size"), 0),
+		Page:      convertor.ToIntD(ctx.Query("page"), 0),
 		SortBy:    ctx.QueryArray("sort_by"),
 	})
 	if err != nil {

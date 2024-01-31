@@ -9,7 +9,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/elabosak233/pgshub/containers/providers"
 	"github.com/elabosak233/pgshub/globals"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/logger"
 	"github.com/spf13/viper"
 	"strconv"
 	"sync"
@@ -102,7 +102,7 @@ func (c *DockerManager) RemoveAfterDuration(ctx context.Context) {
 	case <-time.After(c.Duration):
 		_ = c.Remove()
 	case <-ctx.Done(): // 当调用 cancelFunc 时，这里会接收到信号
-		utils.Logger.Warn("容器移除被取消")
+		logger.Warn("容器移除被取消")
 		return
 	}
 }
@@ -143,6 +143,6 @@ func (c *DockerManager) Renew(duration time.Duration) (err error) {
 	// 创建新的可取消上下文和取消函数
 	c.cancelCtx, c.cancelFunc = context.WithCancel(context.Background())
 	go c.RemoveAfterDuration(c.cancelCtx)
-	utils.Logger.Info("容器移除倒计时已重置")
+	logger.Info("容器移除倒计时已重置")
 	return nil
 }

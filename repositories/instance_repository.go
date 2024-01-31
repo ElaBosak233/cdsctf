@@ -3,8 +3,8 @@ package repositories
 import (
 	model "github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
-	"github.com/xormplus/xorm"
 	"time"
+	"xorm.io/xorm"
 )
 
 type InstanceRepository interface {

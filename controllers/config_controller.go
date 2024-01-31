@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/services"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -17,7 +17,7 @@ type ConfigControllerImpl struct {
 	ConfigService services.ConfigService
 }
 
-func NewConfigControllerImpl(appService *services.AppService) ConfigController {
+func NewConfigControllerImpl(appService *services.Services) ConfigController {
 	return &ConfigControllerImpl{
 		appService.ConfigService,
 	}
@@ -52,7 +52,7 @@ func (c *ConfigControllerImpl) Update(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &configUpdateRequest),
+			"msg":  validator.GetValidMsg(err, &configUpdateRequest),
 		})
 		return
 	}

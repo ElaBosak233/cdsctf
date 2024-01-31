@@ -26,7 +26,7 @@ db.sqlite3
 config.yml
 logs
 plugins
-assets
+uploads
 test.go
 dist
 _PgsHub.exe

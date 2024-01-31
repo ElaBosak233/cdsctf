@@ -9,6 +9,7 @@ import (
 	"github.com/elabosak233/pgshub/repositories"
 	"github.com/elabosak233/pgshub/repositories/relations"
 	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/validator"
 	"github.com/mitchellh/mapstructure"
 	"math"
 )
@@ -27,7 +28,7 @@ type ChallengeServiceImpl struct {
 	SubmissionRepository    repositories.SubmissionRepository
 }
 
-func NewChallengeServiceImpl(appRepository *repositories.AppRepository) ChallengeService {
+func NewChallengeServiceImpl(appRepository *repositories.Repositories) ChallengeService {
 	return &ChallengeServiceImpl{
 		ChallengeRepository:     appRepository.ChallengeRepository,
 		GameChallengeRepository: appRepository.GameChallengeRepository,
@@ -62,8 +63,8 @@ func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenge
 	challenges, count, err := t.ChallengeRepository.Find(req)
 	gameChallengesMap := make(map[int64]relationEntity.GameChallenge)
 	submissionsMap := make(map[int64][]response.SubmissionResponse)
-	// 比赛模式
-	if req.GameId != 0 && req.TeamId != 0 {
+	isGame := validator.IsIdValid(req.GameId) && validator.IsIdValid(req.TeamId)
+	if isGame {
 		challengeIds := make([]int64, len(challenges))
 		for _, challenge := range challenges {
 			challengeIds = append(challengeIds, challenge.ChallengeId)
@@ -91,7 +92,7 @@ func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenge
 			challenges[i].FlagFmt = ""
 			challenges[i].Image = ""
 		}
-		if req.GameId != 0 && req.TeamId != 0 {
+		if isGame {
 			challengeId := challenges[i].ChallengeId
 			S := gameChallengesMap[challengeId].MaxPts
 			R := gameChallengesMap[challengeId].MinPts

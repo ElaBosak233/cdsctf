@@ -3,12 +3,16 @@ package controllers
 import (
 	"fmt"
 	"github.com/elabosak233/pgshub/services"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/convertor"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 	"mime/multipart"
 	"net/http"
 	"os"
+)
+
+var (
+	assetsPath string = "./uploads"
 )
 
 type AssetController interface {
@@ -35,7 +39,7 @@ type AssetControllerImpl struct {
 	AssetService services.AssetService
 }
 
-func NewAssetControllerImpl(appService *services.AppService) AssetController {
+func NewAssetControllerImpl(appService *services.Services) AssetController {
 	return &AssetControllerImpl{
 		AssetService: appService.AssetService,
 	}
@@ -66,7 +70,7 @@ func (c *AssetControllerImpl) GetUserAvatarList(ctx *gin.Context) {
 // @Router /api/assets/users/avatar/{id} [get]
 func (c *AssetControllerImpl) GetUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("./assets/users/avatar/%s", id)
+	path := fmt.Sprintf("%s/users/avatar/%s", assetsPath, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -87,7 +91,7 @@ func (c *AssetControllerImpl) GetUserAvatarByUserId(ctx *gin.Context) {
 // @Router /api/assets/users/avatar/{id}/info [get]
 func (c *AssetControllerImpl) GetUserAvatarInfoByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("./assets/users/avatar/%s", id)
+	path := fmt.Sprintf("%s/users/avatar/%s", assetsPath, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -123,7 +127,7 @@ func (c *AssetControllerImpl) SetUserAvatarByUserId(ctx *gin.Context) {
 		})
 		return
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("./assets/users/avatar/%s", id))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/users/avatar/%s", assetsPath, id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -146,7 +150,7 @@ func (c *AssetControllerImpl) SetUserAvatarByUserId(ctx *gin.Context) {
 // @Router /api/assets/users/avatar/{id} [delete]
 func (c *AssetControllerImpl) DeleteUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("./assets/users/avatar/%s", id)
+	path := fmt.Sprintf("%s/users/avatar/%s", assetsPath, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		err = os.Remove(path)
@@ -192,7 +196,7 @@ func (c *AssetControllerImpl) GetTeamAvatarList(ctx *gin.Context) {
 // @Router /api/assets/teams/avatar/{id} [get]
 func (c *AssetControllerImpl) GetTeamAvatarByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("./assets/teams/avatar/%s", id)
+	path := fmt.Sprintf("%s/teams/avatar/%s", assetsPath, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -213,7 +217,7 @@ func (c *AssetControllerImpl) GetTeamAvatarByTeamId(ctx *gin.Context) {
 // @Router /api/assets/teams/avatar/{id}/info [get]
 func (c *AssetControllerImpl) GetTeamAvatarInfoByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("./assets/teams/avatar/%s", id)
+	path := fmt.Sprintf("%s/teams/avatar/%s", assetsPath, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -249,7 +253,7 @@ func (c *AssetControllerImpl) SetTeamAvatarByTeamId(ctx *gin.Context) {
 		})
 		return
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("./assets/teams/avatar/%s", id))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/teams/avatar/%s", assetsPath, id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -272,7 +276,7 @@ func (c *AssetControllerImpl) SetTeamAvatarByTeamId(ctx *gin.Context) {
 // @Router /api/assets/teams/avatar/{id} [delete]
 func (c *AssetControllerImpl) DeleteTeamAvatarByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("./assets/teams/avatar/%s", id)
+	path := fmt.Sprintf("%s/teams/avatar/%s", assetsPath, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		err = os.Remove(path)
@@ -303,7 +307,7 @@ func (c *AssetControllerImpl) DeleteTeamAvatarByTeamId(ctx *gin.Context) {
 // @Router /api/assets/games/cover/{id} [get]
 func (c *AssetControllerImpl) GetGameCoverByGameId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("./assets/games/cover/%s", id)
+	path := fmt.Sprintf("%s/games/cover/%s", assetsPath, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -337,7 +341,7 @@ func (c *AssetControllerImpl) SetGameCoverByGameId(ctx *gin.Context) {
 		})
 		return
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("./assets/games/cover/%s", id))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/games/cover/%s", assetsPath, id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -360,7 +364,7 @@ func (c *AssetControllerImpl) SetGameCoverByGameId(ctx *gin.Context) {
 // @Router /api/assets/games/writeups/{id} [get]
 func (c *AssetControllerImpl) FindGameWriteUpByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("./assets/games/writeups/%s.pdf", id)
+	path := fmt.Sprintf("%s/games/writeups/%s.pdf", assetsPath, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -387,8 +391,8 @@ func (c *AssetControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Conte
 		})
 		return
 	}
-	if _, fileSize, _ := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0))); fileSize != 0 {
-		err = c.AssetService.DeleteChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0)))
+	if _, fileSize, _ := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0))); fileSize != 0 {
+		err = c.AssetService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 		if err != nil {
 			ctx.JSON(http.StatusOK, gin.H{
 				"code": http.StatusInternalServerError,
@@ -397,7 +401,7 @@ func (c *AssetControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Conte
 			return
 		}
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("./assets/challenges/attachments/%s/%s", id, file.Filename))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/challenges/attachments/%s/%s", assetsPath, id, file.Filename))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -419,7 +423,7 @@ func (c *AssetControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Conte
 // @Router /api/assets/challenges/attachments/{id}/info [get]
 func (c *AssetControllerImpl) GetChallengeAttachmentInfoByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	fileName, fileSize, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0)))
+	fileName, fileSize, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusNotFound,
@@ -442,14 +446,14 @@ func (c *AssetControllerImpl) GetChallengeAttachmentInfoByChallengeId(ctx *gin.C
 // @Router /api/assets/challenges/attachments/{id} [get]
 func (c *AssetControllerImpl) GetChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	fileName, _, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0)))
+	fileName, _, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusNotFound,
 		})
 		return
 	}
-	ctx.File(fmt.Sprintf("./assets/challenges/attachments/%s/%s", id, fileName))
+	ctx.File(fmt.Sprintf("%s/challenges/attachments/%s/%s", assetsPath, id, fileName))
 }
 
 // DeleteChallengeAttachmentByChallengeId
@@ -461,7 +465,7 @@ func (c *AssetControllerImpl) GetChallengeAttachmentByChallengeId(ctx *gin.Conte
 // @Router /api/assets/challenges/attachments/{id} [delete]
 func (c *AssetControllerImpl) DeleteChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	err := c.AssetService.DeleteChallengeAttachmentByChallengeId(int64(utils.ParseIntParam(id, 0)))
+	err := c.AssetService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,

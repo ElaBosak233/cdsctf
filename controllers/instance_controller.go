@@ -3,7 +3,8 @@ package controllers
 import (
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/services"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/convertor"
+	"github.com/elabosak233/pgshub/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -20,7 +21,7 @@ type InstanceControllerImpl struct {
 	InstanceService services.InstanceService
 }
 
-func NewInstanceControllerImpl(appService *services.AppService) InstanceController {
+func NewInstanceControllerImpl(appService *services.Services) InstanceController {
 	return &InstanceControllerImpl{
 		InstanceService: appService.InstanceService,
 	}
@@ -41,7 +42,7 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  utils.GetValidMsg(err, &instanceCreateRequest),
+			"msg":  validator.GetValidMsg(err, &instanceCreateRequest),
 		})
 		return
 	}
@@ -122,7 +123,7 @@ func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 // @Router /api/instances/{id} [get]
 func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	rep, err := c.InstanceService.FindById(int64(utils.ParseIntParam(id, 0)))
+	rep, err := c.InstanceService.FindById(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -147,12 +148,12 @@ func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
 func (c *InstanceControllerImpl) Find(ctx *gin.Context) {
 	instanceFindRequest := request.InstanceFindRequest{
 		UserId:      ctx.GetInt64("UserId"),
-		ChallengeId: int64(utils.ParseIntParam(ctx.Query("challenge_id"), 0)),
-		TeamId:      int64(utils.ParseIntParam(ctx.Query("team_id"), 0)),
-		GameId:      int64(utils.ParseIntParam(ctx.Query("game_id"), 0)),
-		IsAvailable: utils.ParseIntParam(ctx.Query("is_available"), 0),
-		Page:        utils.ParseIntParam(ctx.Query("page"), 0),
-		Size:        utils.ParseIntParam(ctx.Query("size"), 0),
+		ChallengeId: int64(convertor.ToIntD(ctx.Query("challenge_id"), 0)),
+		TeamId:      int64(convertor.ToIntD(ctx.Query("team_id"), 0)),
+		GameId:      int64(convertor.ToIntD(ctx.Query("game_id"), 0)),
+		IsAvailable: convertor.ToIntD(ctx.Query("is_available"), 0),
+		Page:        convertor.ToIntD(ctx.Query("page"), 0),
+		Size:        convertor.ToIntD(ctx.Query("size"), 0),
 	}
 	rep, _ := c.InstanceService.Find(instanceFindRequest)
 	res := make([]map[string]any, len(rep))

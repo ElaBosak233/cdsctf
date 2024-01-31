@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/docker/docker/client"
 	"github.com/elabosak233/pgshub/globals"
-	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/logger"
 	"github.com/spf13/viper"
 	"net"
 	"strconv"
@@ -17,17 +17,17 @@ func NewDockerProvider() {
 	dockerUri := viper.GetString("container.docker.uri")
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation(), client.WithHost(dockerUri))
 	if err != nil {
-		utils.Logger.Error("Docker 客户端初始化失败")
+		logger.Error("Docker 客户端初始化失败")
 		panic(err)
 	}
-	utils.Logger.Info(fmt.Sprintf("Docker 客户端初始化成功，客户端版本 %s", dockerClient.ClientVersion()))
+	logger.Info(fmt.Sprintf("Docker 客户端初始化成功，客户端版本 %s", dockerClient.ClientVersion()))
 	globals.DockerClient = dockerClient // 注入全局变量
 	version, err := dockerClient.ServerVersion(context.Background())
 	if err != nil {
-		utils.Logger.Error("Docker 服务端连接失败")
+		logger.Error("Docker 服务端连接失败")
 		panic(err)
 	}
-	utils.Logger.Info(fmt.Sprintf("Docker 远程服务端连接成功，服务端版本 %s", version.Version))
+	logger.Info(fmt.Sprintf("Docker 远程服务端连接成功，服务端版本 %s", version.Version))
 }
 
 func GetFreePort() (port int) {

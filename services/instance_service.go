@@ -49,7 +49,7 @@ type InstanceServiceImpl struct {
 	InstanceRepository  repositories.InstanceRepository
 }
 
-func NewInstanceServiceImpl(appRepository *repositories.AppRepository) InstanceService {
+func NewInstanceServiceImpl(appRepository *repositories.Repositories) InstanceService {
 	return &InstanceServiceImpl{
 		ChallengeRepository: appRepository.ChallengeRepository,
 		InstanceRepository:  appRepository.InstanceRepository,

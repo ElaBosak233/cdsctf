@@ -4,7 +4,7 @@ import (
 	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
-	"github.com/xormplus/xorm"
+	"xorm.io/xorm"
 )
 
 type SubmissionRepository interface {
