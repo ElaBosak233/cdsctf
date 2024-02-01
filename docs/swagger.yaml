@@ -665,9 +665,12 @@ paths:
       - in: query
         name: game_id
         type: integer
-      - in: query
+      - collectionFormat: csv
+        in: query
+        items:
+          type: integer
         name: id
-        type: integer
+        type: array
       - in: query
         name: is_detailed
         type: integer
@@ -791,6 +794,9 @@ paths:
         type: string
       - in: query
         name: id
+        type: integer
+      - in: query
+        name: is_enabled
         type: integer
       - in: query
         name: page

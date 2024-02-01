@@ -24,9 +24,20 @@ import (
 	"os"
 )
 
+var (
+	CommitId = ""
+	BuildAt  = ""
+)
+
 func init() {
 	data, _ := assets.ReadStaticFile("banner.txt")
-	fmt.Println(color.Ize(color.CyanBackground, string(data)))
+	banner := string(data)
+	fmt.Printf("\n%s\n", color.InWhiteOverCyan(banner))
+	fmt.Printf("\n%s %s\n", color.InRed("WARNING"), color.InWhiteOverRed("PgsHub is still in development."))
+	fmt.Printf("%s %s\n", color.InRed("WARNING"), color.InWhiteOverRed("All features are not guaranteed to work."))
+	fmt.Printf("\n%s %s\n", color.Ize(color.Bold, "Commit ID:"), color.Ize(color.Bold, CommitId))
+	fmt.Printf("%s %s\n", color.Ize(color.Bold, "Build At:"), color.Ize(color.Bold, BuildAt))
+	fmt.Printf("%s %s\n\n", color.Ize(color.Bold, "Issues:"), color.Ize(color.Bold, "https://github.com/elabosak233/PgsHub/issues"))
 }
 
 // @title PgsHub Backend API
@@ -73,6 +84,10 @@ func main() {
 		Addr:    viper.GetString("server.host") + ":" + viper.GetString("server.port"),
 		Handler: r,
 	}
-	log.Infof("PgsHub 已启动，访问地址 %s:%d", viper.GetString("server.host"), viper.GetInt("server.port"))
-	_ = s.ListenAndServe()
+	log.Info("The PgsHub service is launching! Enjoy your hacking challenges!")
+	log.Infof("Here's the address! %s:%d", viper.GetString("server.host"), viper.GetInt("server.port"))
+	err := s.ListenAndServe()
+	if err != nil {
+		log.Error("Err... It seems that the port for PgsHub is not available. Plz try again.")
+	}
 }
