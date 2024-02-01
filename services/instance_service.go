@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/elabosak233/pgshub/containers/managers"
-	"github.com/elabosak233/pgshub/globals"
 	model "github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
@@ -15,11 +14,16 @@ import (
 	"time"
 )
 
-// UserInstanceRequestMap 用于存储用户上次请求的时间
-var UserInstanceRequestMap = struct {
-	sync.RWMutex
-	m map[int64]int64
-}{m: make(map[int64]int64)}
+var (
+	// UserInstanceRequestMap 用于存储用户上次请求的时间
+	UserInstanceRequestMap = struct {
+		sync.RWMutex
+		m map[int64]int64
+	}{m: make(map[int64]int64)}
+
+	// InstanceMap 存储当前状态下所有的实例
+	InstanceMap = make(map[any]interface{})
+)
 
 // GetUserInstanceRequestMap 返回用户上次请求的时间
 func GetUserInstanceRequestMap(userId int64) int64 {
@@ -124,7 +128,12 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 			RemovedAt:   removedAt,
 		})
 		ctn.SetInstanceId(instance.InstanceId)
-		globals.InstanceMap[instance.InstanceId] = ctn
+		InstanceMap[instance.InstanceId] = ctn
+		go func() {
+			if ctn.RemoveAfterDuration(ctn.CancelCtx) {
+				delete(InstanceMap, instance.InstanceId)
+			}
+		}()
 		return response.InstanceStatusResponse{
 			InstanceId: instance.InstanceId,
 			Entry:      entry,
@@ -139,8 +148,8 @@ func (t *InstanceServiceImpl) Status(id int64) (rep response.InstanceStatusRespo
 	rep = response.InstanceStatusResponse{}
 	if viper.GetString("container.provider") == "docker" {
 		instance, err := t.InstanceRepository.FindById(id)
-		if globals.InstanceMap[id] != nil {
-			ctn := globals.InstanceMap[id].(*managers.DockerManager)
+		if InstanceMap[id] != nil {
+			ctn := InstanceMap[id].(*managers.DockerManager)
 			status, _ := ctn.GetContainerStatus()
 			if status != "removed" {
 				rep.InstanceId = id
@@ -164,10 +173,10 @@ func (t *InstanceServiceImpl) Renew(req request.InstanceRenewRequest) (removedAt
 	if viper.GetString("Container.Provider") == "docker" {
 		SetUserInstanceRequestMap(req.UserId, time.Now().Unix()) // 保存用户请求时间
 		instance, err := t.InstanceRepository.FindById(req.InstanceId)
-		if err != nil || globals.InstanceMap[req.InstanceId] == nil {
+		if err != nil || InstanceMap[req.InstanceId] == nil {
 			return time.Time{}, errors.New("实例不存在")
 		}
-		ctn := globals.InstanceMap[req.InstanceId].(*managers.DockerManager)
+		ctn := InstanceMap[req.InstanceId].(*managers.DockerManager)
 		err = ctn.Renew(ctn.Duration)
 		instance.RemovedAt = time.Now().Add(ctn.Duration)
 		err = t.InstanceRepository.Update(instance)
@@ -186,22 +195,25 @@ func (t *InstanceServiceImpl) Remove(req request.InstanceRemoveRequest) (err err
 			InstanceId: req.InstanceId,
 			RemovedAt:  time.Now(),
 		})
-		if globals.InstanceMap[req.InstanceId] != nil {
-			ctn := globals.InstanceMap[req.InstanceId].(*managers.DockerManager)
+		if InstanceMap[req.InstanceId] != nil {
+			ctn := InstanceMap[req.InstanceId].(*managers.DockerManager)
 			err = ctn.Remove()
 		}
 		return err
 	}
+	go func() {
+		delete(InstanceMap, req.InstanceId)
+	}()
 	return errors.New("移除失败")
 }
 
 func (t *InstanceServiceImpl) FindById(id int64) (rep response.InstanceResponse, err error) {
 	if viper.GetString("container.provider") == "docker" {
 		instance, err := t.InstanceRepository.FindById(id)
-		if err != nil || globals.InstanceMap[id] == nil {
+		if err != nil || InstanceMap[id] == nil {
 			return rep, errors.New("实例不存在")
 		}
-		ctn := globals.InstanceMap[id].(*managers.DockerManager)
+		ctn := InstanceMap[id].(*managers.DockerManager)
 		status, _ := ctn.GetContainerStatus()
 		rep = response.InstanceResponse{
 			InstanceId:  id,
@@ -224,8 +236,8 @@ func (t *InstanceServiceImpl) Find(req request.InstanceFindRequest) (instances [
 		for _, instance := range responses {
 			var ctn *managers.DockerManager
 			status := "removed"
-			if globals.InstanceMap[instance.InstanceId] != nil {
-				ctn = globals.InstanceMap[instance.InstanceId].(*managers.DockerManager)
+			if InstanceMap[instance.InstanceId] != nil {
+				ctn = InstanceMap[instance.InstanceId].(*managers.DockerManager)
 				status, _ = ctn.GetContainerStatus()
 			}
 			instances = append(instances, response.InstanceResponse{

@@ -26,7 +26,7 @@ func init() {
 	log.SetFormatter(&IFormatter{})
 	log.SetOutput(io.MultiWriter(colorable.NewColorableStdout(), logWriter))
 	gin.DefaultWriter = log.Writer()
-	log.Info("日志系统已启动")
+	log.Info("The logging system has started.")
 }
 
 func Get() *logrus.Logger {

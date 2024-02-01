@@ -3,51 +3,63 @@ package providers
 import (
 	"context"
 	"fmt"
+	"github.com/TwiN/go-color"
 	"github.com/docker/docker/client"
-	"github.com/elabosak233/pgshub/globals"
 	"github.com/elabosak233/pgshub/utils/logger"
 	"github.com/spf13/viper"
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
+)
+
+var (
+	// DockerClient 存储 Docker 客户端指针
+	DockerClient *client.Client
+
+	// DockerPortsMap 存储当前状态下端口占用状态
+	DockerPortsMap = struct {
+		sync.RWMutex
+		M map[int]bool
+	}{M: make(map[int]bool)}
 )
 
 func NewDockerProvider() {
 	dockerUri := viper.GetString("container.docker.uri")
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation(), client.WithHost(dockerUri))
 	if err != nil {
-		logger.Error("Docker 客户端初始化失败")
+		logger.Error("Docker client initialization failed.")
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("Docker 客户端初始化成功，客户端版本 %s", dockerClient.ClientVersion()))
-	globals.DockerClient = dockerClient // 注入全局变量
+	logger.Info(fmt.Sprintf("Docker client initialization successful, client version %s", color.InCyan(dockerClient.ClientVersion())))
+	DockerClient = dockerClient // 注入全局变量
 	version, err := dockerClient.ServerVersion(context.Background())
 	if err != nil {
-		logger.Error("Docker 服务端连接失败")
+		logger.Error("Docker server connection failure.")
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("Docker 远程服务端连接成功，服务端版本 %s", version.Version))
+	logger.Info(fmt.Sprintf("Docker remote server connection successful, server version %s", color.InCyan(version.Version)))
 }
 
 func GetFreePort() (port int) {
-	globals.DockerPortsMap.Lock()
-	defer globals.DockerPortsMap.Unlock()
+	DockerPortsMap.Lock()
+	defer DockerPortsMap.Unlock()
 	portFrom := viper.GetInt("container.docker.ports.from")
 	portTo := viper.GetInt("container.docker.ports.to")
 	if viper.GetString("container.docker.uri") == ("unix:///var/run/docker.sock") || viper.GetString("container.docker.uri") == "npipe:////./pipe/docker_engine" {
 		for port := portFrom; port <= portTo; port++ {
 			addr := fmt.Sprintf("127.0.0.1:%d", port)
-			if isPortAvailable(addr) && !globals.DockerPortsMap.M[port] {
-				globals.DockerPortsMap.M[port] = true
+			if isPortAvailable(addr) && !DockerPortsMap.M[port] {
+				DockerPortsMap.M[port] = true
 				return port
 			}
 		}
 	} else {
 		for port := portFrom; port <= portTo; port++ {
 			addr := fmt.Sprintf("%s:%d", extractIP(viper.GetString("container.docker.uri")), port)
-			if isPortAvailable(addr) && !globals.DockerPortsMap.M[port] {
-				globals.DockerPortsMap.M[port] = true
+			if isPortAvailable(addr) && !DockerPortsMap.M[port] {
+				DockerPortsMap.M[port] = true
 				return port
 			}
 		}

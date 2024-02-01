@@ -19,7 +19,7 @@ var dbInfo string
 
 func InitDatabase() {
 	initDatabaseEngine()
-	log.Info("数据库连接信息 " + dbInfo)
+	log.Infof("Database Connect Information: %s", dbInfo)
 	db.SetLogger(xormlogrus.NewLogrusLogger2(log.Get()))
 	syncDatabase()
 	initAdmin()
@@ -49,7 +49,7 @@ func initDatabaseEngine() {
 		db, err = xorm.NewEngine("sqlite3", dbInfo)
 	}
 	if err != nil {
-		log.Error("数据库连接失败")
+		log.Error("Database connection failed.")
 		panic(err)
 	}
 }
@@ -88,7 +88,7 @@ func selfCheck() {
 func initAdmin() {
 	existAdminUser, _ := db.Table("users").Where("username = ?", "admin").Exist()
 	if !existAdminUser {
-		log.Warn("超级管理员账户不存在，即将创建")
+		log.Warn("Super administrator account does not exist, will be created soon.")
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
 		_, err := db.Table("users").Insert(entity.User{
 			Username: "admin",
@@ -98,10 +98,10 @@ func initAdmin() {
 			Email:    "admin@admin.com",
 		})
 		if err != nil {
-			log.Error("超级管理员账户创建失败")
+			log.Error("Super administrator account creation failed.")
 			panic(err)
 			return
 		}
-		log.Info("超级管理员账户创建成功")
+		log.Info("Super administrator account created successfully")
 	}
 }

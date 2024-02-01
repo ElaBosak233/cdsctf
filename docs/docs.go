@@ -452,7 +452,11 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
                         "name": "id",
                         "in": "query"
                     },
@@ -673,6 +677,11 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "is_enabled",
                         "in": "query"
                     },
                     {

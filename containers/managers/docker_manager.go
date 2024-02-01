@@ -8,7 +8,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/elabosak233/pgshub/containers/providers"
-	"github.com/elabosak233/pgshub/globals"
 	"github.com/elabosak233/pgshub/utils/logger"
 	"github.com/spf13/viper"
 	"strconv"
@@ -27,8 +26,8 @@ type DockerManager struct {
 	MemoryLimit int64   // MB
 	CpuLimit    float64 // 核
 	Duration    time.Duration
-	cancelCtx   context.Context    // 存储可取消的上下文
-	cancelFunc  context.CancelFunc // 存储取消函数
+	CancelCtx   context.Context    // 存储可取消的上下文
+	CancelFunc  context.CancelFunc // 存储取消函数
 }
 
 func NewDockerManagerImpl(imageName string, exposedPort int, flagStr string, flagEnv string, memoryLimit int64, cpuLimit float64, duration time.Duration) *DockerManager {
@@ -72,77 +71,76 @@ func (c *DockerManager) Setup() (port int, err error) {
 			NanoCPUs: int64(c.CpuLimit * 1e9),
 		},
 	}
-	resp, err := globals.DockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")
+	resp, err := providers.DockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")
 	if err != nil {
 		return 0, err
 	}
 	c.RespId = resp.ID
-	err = globals.DockerClient.ContainerStart(context.Background(), c.RespId, types.ContainerStartOptions{})
+	err = providers.DockerClient.ContainerStart(context.Background(), c.RespId, types.ContainerStartOptions{})
 	if err != nil {
 		return 0, err
 	}
-	c.cancelCtx, c.cancelFunc = context.WithCancel(context.Background())
-	go c.RemoveAfterDuration(c.cancelCtx)
+	c.CancelCtx, c.CancelFunc = context.WithCancel(context.Background())
 	return port, nil
 }
 
 func (c *DockerManager) GetContainerStatus() (status string, err error) {
-	if globals.DockerClient == nil || c.RespId == "" {
+	if providers.DockerClient == nil || c.RespId == "" {
 		return "", errors.New("容器未创建或初始化失败")
 	}
-	resp, err := globals.DockerClient.ContainerInspect(context.Background(), c.RespId)
+	resp, err := providers.DockerClient.ContainerInspect(context.Background(), c.RespId)
 	if err != nil {
 		return "removed", err
 	}
 	return resp.State.Status, err
 }
 
-func (c *DockerManager) RemoveAfterDuration(ctx context.Context) {
+func (c *DockerManager) RemoveAfterDuration(ctx context.Context) (success bool) {
 	select {
 	case <-time.After(c.Duration):
 		_ = c.Remove()
+		return true
 	case <-ctx.Done(): // 当调用 cancelFunc 时，这里会接收到信号
 		logger.Warn("容器移除被取消")
-		return
+		return false
 	}
 }
 
 func (c *DockerManager) Remove() (err error) {
-	if globals.DockerClient == nil {
+	if providers.DockerClient == nil {
 		return nil
 	}
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		errStop := globals.DockerClient.ContainerStop(context.Background(), c.RespId, container.StopOptions{})
+		errStop := providers.DockerClient.ContainerStop(context.Background(), c.RespId, container.StopOptions{})
 		if errStop != nil {
 		}
 		// 等待容器停止
-		_, errWait := globals.DockerClient.ContainerWait(context.Background(), c.RespId, container.WaitConditionNotRunning)
+		_, errWait := providers.DockerClient.ContainerWait(context.Background(), c.RespId, container.WaitConditionNotRunning)
 		if errWait != nil {
 		}
 		// 移除容器
-		errRemove := globals.DockerClient.ContainerRemove(context.Background(), c.RespId, types.ContainerRemoveOptions{})
+		errRemove := providers.DockerClient.ContainerRemove(context.Background(), c.RespId, types.ContainerRemoveOptions{})
 		if errRemove != nil {
 		}
 	}()
 	wg.Wait()
-	delete(globals.InstanceMap, c.InstanceId)
-	delete(globals.DockerPortsMap.M, c.Port)
+	delete(providers.DockerPortsMap.M, c.Port)
 	return err
 }
 
 func (c *DockerManager) Renew(duration time.Duration) (err error) {
 	// 如果存在取消函数，则调用它来取消当前的移除操作
-	if c.cancelFunc != nil {
-		c.cancelFunc()
+	if c.CancelFunc != nil {
+		c.CancelFunc()
 	}
 	// 设置新的持续时间
 	c.Duration = duration
 	// 创建新的可取消上下文和取消函数
-	c.cancelCtx, c.cancelFunc = context.WithCancel(context.Background())
-	go c.RemoveAfterDuration(c.cancelCtx)
+	c.CancelCtx, c.CancelFunc = context.WithCancel(context.Background())
+	go c.RemoveAfterDuration(c.CancelCtx)
 	logger.Info("容器移除倒计时已重置")
 	return nil
 }
