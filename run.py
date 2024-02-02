@@ -1,6 +1,9 @@
 import subprocess
+import os
 
 from cmd import cmd, gen_params, swag_init
+
+os.environ["DEBUG"] = "true"
 
 if __name__ == "__main__":
     cmd(swag_init())

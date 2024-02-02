@@ -52,7 +52,7 @@ func (t *UserTeamRepositoryImpl) Exist(userTeam model.UserTeam) (bool, error) {
 func (t *UserTeamRepositoryImpl) FindByUserId(userId int64) (userTeams []model.UserTeam, err error) {
 	var userTeam []model.UserTeam
 	err = t.Db.Table("user_team").
-		Join("INNER", "teams", "user_team.team_id = teams.id").
+		Join("INNER", "team", "user_team.team_id = team.id").
 		Where("user_team.user_id = ?", userId).
 		Find(&userTeam)
 	if err != nil {
@@ -64,7 +64,7 @@ func (t *UserTeamRepositoryImpl) FindByUserId(userId int64) (userTeams []model.U
 func (t *UserTeamRepositoryImpl) FindByTeamId(teamId int64) (userTeams []model.UserTeam, err error) {
 	var teamUser []model.UserTeam
 	err = t.Db.Table("user_team").
-		Join("INNER", "users", "user_team.user_id = users.id").
+		Join("INNER", "user", "user_team.user_id = user.id").
 		Where("user_team.team_id = ?", teamId).
 		Find(&teamUser)
 	if err != nil {

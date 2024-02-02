@@ -23,12 +23,12 @@ func NewSubmissionRepositoryImpl(Db *xorm.Engine) SubmissionRepository {
 }
 
 func (t *SubmissionRepositoryImpl) Insert(submission entity.Submission) (err error) {
-	_, err = t.Db.Table("submissions").Insert(&submission)
+	_, err = t.Db.Table("submission").Insert(&submission)
 	return err
 }
 
 func (t *SubmissionRepositoryImpl) Delete(id int64) (err error) {
-	_, err = t.Db.Table("submissions").ID(id).Delete(&entity.Submission{})
+	_, err = t.Db.Table("submission").ID(id).Delete(&entity.Submission{})
 	return err
 }
 
@@ -54,28 +54,28 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (subm
 		}
 		return q
 	}
-	db := applyFilters(t.Db.Table("submissions"))
-	ct := applyFilters(t.Db.Table("submissions"))
+	db := applyFilters(t.Db.Table("submission"))
+	ct := applyFilters(t.Db.Table("submission"))
 	count, err = ct.Count(&entity.Submission{})
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
 		if sortOrder == "asc" {
-			db = db.Asc("submissions." + sortKey)
+			db = db.Asc("submission." + sortKey)
 		} else if sortOrder == "desc" {
-			db = db.Desc("submissions." + sortKey)
+			db = db.Desc("submission." + sortKey)
 		}
 	} else {
-		db = db.Desc("submissions.id") // 默认采用 ID 降序排列
+		db = db.Desc("submission.id") // 默认采用 ID 降序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}
-	db = db.Join("INNER", "users", "submissions.user_id = users.id").
-		Join("INNER", "challenges", "submissions.challenge_id = challenges.id").
-		Join("LEFT", "teams", "submissions.team_id = teams.id").
-		Join("LEFT", "games", "submissions.game_id = games.id")
+	db = db.Join("INNER", "user", "submission.user_id = user.id").
+		Join("INNER", "challenge", "submission.challenge_id = challenge.id").
+		Join("LEFT", "team", "submission.team_id = team.id").
+		Join("LEFT", "game", "submission.game_id = game.id")
 	err = db.Find(&submissions)
 	return submissions, count, err
 }
@@ -83,33 +83,33 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (subm
 func (t *SubmissionRepositoryImpl) BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error) {
 	applyFilters := func(q *xorm.Session) *xorm.Session {
 		if req.UserId != 0 {
-			q = q.Where("submissions.user_id = ?", req.UserId)
+			q = q.Where("submission.user_id = ?", req.UserId)
 		}
 		if req.TeamId != 0 {
-			q = q.Where("submissions.team_id = ?", req.TeamId)
+			q = q.Where("submission.team_id = ?", req.TeamId)
 		}
 		if req.GameId != -1 {
-			q = q.Where("submissions.game_id = ?", req.GameId)
+			q = q.Where("submission.game_id = ?", req.GameId)
 		}
 		if req.Status != 0 {
-			q = q.Where("submissions.status = ?", req.Status)
+			q = q.Where("submission.status = ?", req.Status)
 		}
 		return q
 	}
-	db := applyFilters(t.Db.Table("submissions"))
+	db := applyFilters(t.Db.Table("submission"))
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
 		if sortOrder == "asc" {
-			db = db.Asc("submissions." + sortKey)
+			db = db.Asc("submission." + sortKey)
 		} else if sortOrder == "desc" {
-			db = db.Desc("submissions." + sortKey)
+			db = db.Desc("submission." + sortKey)
 		}
 	}
-	db = db.Join("INNER", "users", "submissions.user_id = users.id").
-		Join("LEFT", "teams", "submissions.team_id = teams.id").
-		Join("LEFT", "challenges", "submissions.challenge_id = challenges.id").
-		In("submissions.challenge_id", req.ChallengeId)
+	db = db.Join("INNER", "user", "submission.user_id = user.id").
+		Join("LEFT", "team", "submission.team_id = team.id").
+		Join("LEFT", "challenge", "submission.challenge_id = challenge.id").
+		In("submission.challenge_id", req.ChallengeId)
 	_ = db.Find(&submissions)
 	return submissions, err
 }

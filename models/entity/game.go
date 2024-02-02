@@ -25,5 +25,5 @@ type Game struct {
 }
 
 func (g *Game) TableName() string {
-	return "games"
+	return "game"
 }

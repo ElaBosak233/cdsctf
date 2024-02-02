@@ -24,17 +24,17 @@ func NewInstanceRepositoryImpl(Db *xorm.Engine) InstanceRepository {
 }
 
 func (t *InstanceRepositoryImpl) Insert(instance model.Instance) (i model.Instance, err error) {
-	_, err = t.Db.Table("instances").Insert(&instance)
+	_, err = t.Db.Table("instance").Insert(&instance)
 	return instance, err
 }
 
 func (t *InstanceRepositoryImpl) Update(instance model.Instance) (err error) {
-	_, err = t.Db.Table("instances").ID(instance.InstanceId).Update(&instance)
+	_, err = t.Db.Table("instance").ID(instance.InstanceId).Update(&instance)
 	return err
 }
 
 func (t *InstanceRepositoryImpl) BatchDeactivate(id []int64) (err error) {
-	_, err = t.Db.Table("instances").In("instances.id", id).Update(model.Instance{
+	_, err = t.Db.Table("instance").In("instance.id", id).Update(model.Instance{
 		RemovedAt: time.Now(),
 	})
 	return err
@@ -56,15 +56,15 @@ func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instance
 		}
 		if req.IsAvailable != 0 {
 			if req.IsAvailable == 2 { // 无效
-				q = q.Where("removed_at < ?", time.Now())
+				q = q.Where("removed_at < ?", time.Now().UTC())
 			} else if req.IsAvailable == 1 { // 有效
-				q = q.Where("removed_at > ?", time.Now())
+				q = q.Where("removed_at > ?", time.Now().UTC())
 			}
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("instances"))
-	count, err := applyFilter(t.Db.Table("instances")).Count(&model.Instance{})
+	db := applyFilter(t.Db.Table("instance"))
+	count, err := applyFilter(t.Db.Table("instance")).Count(&model.Instance{})
 	if req.Page != 0 && req.Size != 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
@@ -74,6 +74,6 @@ func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instance
 }
 
 func (t *InstanceRepositoryImpl) FindById(id int64) (instance model.Instance, err error) {
-	_, err = t.Db.Table("instances").ID(id).Get(&instance)
+	_, err = t.Db.Table("instance").ID(id).Get(&instance)
 	return instance, err
 }

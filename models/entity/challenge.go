@@ -26,5 +26,5 @@ type Challenge struct {
 }
 
 func (c *Challenge) TableName() string {
-	return "challenges"
+	return "challenge"
 }

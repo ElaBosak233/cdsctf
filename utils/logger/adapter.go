@@ -20,13 +20,13 @@ func Logger(logger *zap.Logger) log.ContextLogger {
 	}
 }
 
-func (l *Adapter) BeforeSQL(_ log.LogContext) {}
+func (a *Adapter) BeforeSQL(_ log.LogContext) {}
 
-func (l *Adapter) AfterSQL(lc log.LogContext) {
-	if !l.showSQL {
+func (a *Adapter) AfterSQL(lc log.LogContext) {
+	if !a.showSQL {
 		return
 	}
-	lg := l.logger
+	lg := a.logger
 	sql := fmt.Sprintf("%v %v", lc.SQL, lc.Args)
 	var level zapcore.Level
 	if lc.Err != nil {
@@ -38,38 +38,38 @@ func (l *Adapter) AfterSQL(lc log.LogContext) {
 	lg.Check(level, fmt.Sprintf("[%s] %s", color.InYellow("SQL"), sql)).Write(zap.Duration("duration", lc.ExecuteTime), zap.Error(lc.Err))
 }
 
-func (l *Adapter) Debugf(format string, v ...interface{}) {
-	l.logger.Sugar().Debugf(format, v...)
+func (a *Adapter) Debugf(format string, v ...interface{}) {
+	a.logger.Sugar().Debugf(format, v...)
 }
 
-func (l *Adapter) Errorf(format string, v ...interface{}) {
-	l.logger.Sugar().Errorf(format, v...)
+func (a *Adapter) Errorf(format string, v ...interface{}) {
+	a.logger.Sugar().Errorf(format, v...)
 }
 
-func (l *Adapter) Infof(format string, v ...interface{}) {
-	l.logger.Sugar().Infof(format, v...)
+func (a *Adapter) Infof(format string, v ...interface{}) {
+	a.logger.Sugar().Infof(format, v...)
 }
 
-func (l *Adapter) Warnf(format string, v ...interface{}) {
-	l.logger.Sugar().Warnf(format, v...)
+func (a *Adapter) Warnf(format string, v ...interface{}) {
+	a.logger.Sugar().Warnf(format, v...)
 }
 
-func (l *Adapter) Level() log.LogLevel {
-	return l.level
+func (a *Adapter) Level() log.LogLevel {
+	return a.level
 }
 
-func (l *Adapter) SetLevel(lv log.LogLevel) {
-	l.level = lv
+func (a *Adapter) SetLevel(lv log.LogLevel) {
+	a.level = lv
 }
 
-func (l *Adapter) ShowSQL(show ...bool) {
+func (a *Adapter) ShowSQL(show ...bool) {
 	if len(show) == 0 {
-		l.showSQL = true
+		a.showSQL = true
 		return
 	}
-	l.showSQL = show[0]
+	a.showSQL = show[0]
 }
 
-func (l *Adapter) IsShowSQL() bool {
-	return l.showSQL
+func (a *Adapter) IsShowSQL() bool {
+	return a.showSQL
 }

@@ -15,5 +15,5 @@ type Instance struct {
 }
 
 func (i *Instance) TableName() string {
-	return "instances"
+	return "instance"
 }

@@ -20,7 +20,6 @@ var dbInfo string
 func InitDatabase() {
 	initDatabaseEngine()
 	zap.L().Info(fmt.Sprintf("Database Connect Information: %s", dbInfo))
-	//db.SetLogger(xormlogrus.NewLogrusLogger2(log.Get()))
 	db.SetLogger(logger.Logger(zap.L()))
 	syncDatabase()
 	initAdmin()
@@ -79,19 +78,19 @@ func syncDatabase() {
 // 主要用于配平不合理的时间数据
 func selfCheck() {
 	// 对于 instances 中的所有数据，若 removed_at 大于当前时间，则强制赋值为现在的时间，以免后续程序错误判断
-	_, _ = db.Table("instances").Where("removed_at > ?", time.Now()).Update(entity.Instance{
-		RemovedAt: time.Now(),
+	_, _ = db.Table("instance").Where("removed_at > ?", time.Now().UTC()).Update(entity.Instance{
+		RemovedAt: time.Now().UTC(),
 	})
 }
 
 // InitAdmin 创建超级管理员账户
 // 仅用于第一次生成
 func initAdmin() {
-	existAdminUser, _ := db.Table("users").Where("username = ?", "admin").Exist()
+	existAdminUser, _ := db.Table("user").Where("username = ?", "admin").Exist()
 	if !existAdminUser {
 		zap.L().Warn("Administrator account does not exist, will be created soon.")
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-		_, err := db.Table("users").Insert(entity.User{
+		_, err := db.Table("user").Insert(entity.User{
 			Username: "admin",
 			Nickname: "Administrator",
 			Role:     1,
@@ -103,6 +102,6 @@ func initAdmin() {
 			panic(err)
 			return
 		}
-		zap.L().Info("Super administrator account created successfully")
+		zap.L().Info("Super administrator account created successfully.")
 	}
 }

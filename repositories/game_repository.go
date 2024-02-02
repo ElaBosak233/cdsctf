@@ -23,17 +23,17 @@ func NewGameRepositoryImpl(Db *xorm.Engine) GameRepository {
 }
 
 func (t *GameRepositoryImpl) Insert(game entity.Game) (g entity.Game, err error) {
-	_, err = t.Db.Table("games").Insert(&game)
+	_, err = t.Db.Table("game").Insert(&game)
 	return game, err
 }
 
 func (t *GameRepositoryImpl) Update(game entity.Game) (err error) {
-	_, err = t.Db.Table("games").ID(game.GameId).MustCols("is_enabled", "is_public", "is_need_write_up").Update(&game)
+	_, err = t.Db.Table("game").ID(game.GameId).MustCols("is_enabled", "is_public", "is_need_write_up").Update(&game)
 	return err
 }
 
 func (t *GameRepositoryImpl) Delete(id int64) (err error) {
-	_, err = t.Db.Table("games").Delete(&entity.Game{
+	_, err = t.Db.Table("game").Delete(&entity.Game{
 		GameId: id,
 	})
 	return err
@@ -52,19 +52,19 @@ func (t *GameRepositoryImpl) Find(req request.GameFindRequest) (games []response
 		}
 		return q
 	}
-	db := applyFilters(t.Db.Table("games"))
-	ct := applyFilters(t.Db.Table("games"))
+	db := applyFilters(t.Db.Table("game"))
+	ct := applyFilters(t.Db.Table("game"))
 	count, err = ct.Count(&entity.Submission{})
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
 		if sortOrder == "asc" {
-			db = db.Asc("games." + sortKey)
+			db = db.Asc("game." + sortKey)
 		} else if sortOrder == "desc" {
-			db = db.Desc("games." + sortKey)
+			db = db.Desc("game." + sortKey)
 		}
 	} else {
-		db = db.Desc("games.id") // 默认采用 ID 降序排列
+		db = db.Desc("game.id") // 默认采用 ID 降序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size

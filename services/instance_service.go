@@ -119,7 +119,7 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 			time.Duration(challenge.Duration)*time.Second)
 		port, err := ctn.Setup()
 		entry := fmt.Sprintf("%s:%d", viper.GetString("container.docker.public_entry"), port)
-		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second)
+		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).UTC()
 		instance, err := t.InstanceRepository.Insert(model.Instance{
 			ChallengeId: req.ChallengeId,
 			UserId:      req.UserId,
@@ -193,7 +193,7 @@ func (t *InstanceServiceImpl) Remove(req request.InstanceRemoveRequest) (err err
 	if viper.GetString("container.provider") == "docker" {
 		_ = t.InstanceRepository.Update(model.Instance{
 			InstanceId: req.InstanceId,
-			RemovedAt:  time.Now(),
+			RemovedAt:  time.Now().UTC(),
 		})
 		if InstanceMap[req.InstanceId] != nil {
 			ctn := InstanceMap[req.InstanceId].(*managers.DockerManager)
