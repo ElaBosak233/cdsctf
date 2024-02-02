@@ -2,7 +2,6 @@
 
 import subprocess
 import time
-import sys
 import os
 
 os.environ["TERM"] = "xterm-256color"
@@ -46,25 +45,3 @@ def gen_params():
 
 def swag_init():
     return "swag init -g ./cmd/pgshub/main.go -o ./docs"
-
-
-def go_build():
-    return f"go build {gen_params()} github.com/elabosak233/pgshub/cmd/pgshub"
-
-
-def go_run():
-    return f"go run {gen_params()} github.com/elabosak233/pgshub/cmd/pgshub"
-
-
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "build":
-            cmd(swag_init())
-            if subprocess.call(go_build(), shell=True) == 0:
-                print("Build Finished.")
-    else:
-        cmd(swag_init())
-        try:
-            subprocess.call(go_run(), shell=True)
-        except KeyboardInterrupt:
-            print("Run Finished.")
