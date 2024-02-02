@@ -26,19 +26,19 @@ func NewChallengeRepositoryImpl(Db *xorm.Engine) ChallengeRepository {
 }
 
 func (t *ChallengeRepositoryImpl) Insert(challenge entity.Challenge) error {
-	_, err := t.Db.Table("challenges").Insert(&challenge)
+	_, err := t.Db.Table("challenge").Insert(&challenge)
 	return err
 }
 
 func (t *ChallengeRepositoryImpl) Delete(id int64) error {
 	var challenge entity.Challenge
-	_, err := t.Db.Table("challenges").ID(id).Delete(&challenge)
+	_, err := t.Db.Table("challenge").ID(id).Delete(&challenge)
 	return err
 }
 
 func (t *ChallengeRepositoryImpl) Update(challenge entity.Challenge) error {
 	fmt.Println(challenge.ChallengeId)
-	_, err := t.Db.Table("challenges").ID(challenge.ChallengeId).MustCols("is_practicable, is_dynamic, has_attachment").Update(&challenge)
+	_, err := t.Db.Table("challenge").ID(challenge.ChallengeId).MustCols("is_practicable, is_dynamic, has_attachment").Update(&challenge)
 	return err
 }
 
@@ -63,26 +63,26 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		if isGame {
 			q = q.Join("INNER",
 				"game_challenge",
-				"game_challenge.challenge_id = challenges.id AND game_challenge.game_id = ?", req.GameId)
+				"game_challenge.challenge_id = challenge.id AND game_challenge.game_id = ?", req.GameId)
 		}
 		if challengeValidator.IsIdArrayValid(req.ChallengeIds) {
-			q = q.In("challenges.id", req.ChallengeIds)
+			q = q.In("challenge.id", req.ChallengeIds)
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("challenges"))
-	ct := applyFilter(t.Db.Table("challenges"))
+	db := applyFilter(t.Db.Table("challenge"))
+	ct := applyFilter(t.Db.Table("challenge"))
 	count, err = ct.Count(&entity.Challenge{})
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
 		if sortOrder == "asc" {
-			db = db.Asc("challenges." + sortKey)
+			db = db.Asc("challenge." + sortKey)
 		} else if sortOrder == "desc" {
-			db = db.Desc("challenges." + sortKey)
+			db = db.Desc("challenge." + sortKey)
 		}
 	} else {
-		db = db.Asc("challenges.id") // 默认采用 ID 升序排列
+		db = db.Asc("challenge.id") // 默认采用 ID 升序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
@@ -91,14 +91,14 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 	if isGame {
 		db = db.Join(
 			"LEFT",
-			"submissions",
-			"submissions.challenge_id = challenges.id AND submissions.status = 2 AND submissions.team_id = ?",
+			"submission",
+			"submission.challenge_id = challenge.id AND submission.status = 2 AND submission.team_id = ?",
 			req.TeamId)
 	} else {
 		db = db.Join(
 			"LEFT",
-			"submissions",
-			"submissions.challenge_id = challenges.id AND submissions.status = 2 AND submissions.game_id = 0 AND submissions.user_id = ?",
+			"submission",
+			"submission.challenge_id = challenge.id AND submission.status = 2 AND submission.game_id = 0 AND submission.user_id = ?",
 			req.UserId)
 	}
 	err = db.Find(&challenges)
@@ -106,7 +106,7 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 }
 
 func (t *ChallengeRepositoryImpl) FindById(id int64, isDetailed int) (challenge entity.Challenge, err error) {
-	db := t.Db.Table("challenges").ID(id)
+	db := t.Db.Table("challenge").ID(id)
 	if isDetailed == 0 {
 		db = db.Omit("flag", "flag_fmt", "flag_env", "image")
 	}

@@ -9,7 +9,7 @@ import (
 var (
 	_levelToColor = map[zapcore.Level]string{
 		zapcore.DebugLevel:  color.Cyan,
-		zapcore.InfoLevel:   color.Blue,
+		zapcore.InfoLevel:   color.Cyan,
 		zapcore.WarnLevel:   color.Yellow,
 		zapcore.ErrorLevel:  color.Red,
 		zapcore.DPanicLevel: color.Red,
@@ -21,7 +21,7 @@ var (
 func iLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
 	c, ok := _levelToColor[level]
 	if !ok {
-		c = color.Blue
+		c = color.Cyan
 	}
 	enc.AppendString("[" + color.Ize(c, level.CapitalString()) + "]")
 }

@@ -28,18 +28,18 @@ func NewUserRepositoryImpl(Db *xorm.Engine) UserRepository {
 
 // Insert implements UserRepository
 func (t *UserRepositoryImpl) Insert(user model.User) error {
-	_, err := t.Db.Table("users").Insert(&user)
+	_, err := t.Db.Table("\"user\"").Insert(&user)
 	return err
 }
 
 // Delete implements UserRepository
 func (t *UserRepositoryImpl) Delete(id int64) error {
-	_, err := t.Db.Table("users").ID(id).Delete(&model.User{})
+	_, err := t.Db.Table("\"user\"").ID(id).Delete(&model.User{})
 	return err
 }
 
 func (t *UserRepositoryImpl) Update(user model.User) error {
-	_, err := t.Db.Table("users").ID(user.UserId).Update(&user)
+	_, err := t.Db.Table("\"user\"").ID(user.UserId).Update(&user)
 	return err
 }
 
@@ -59,19 +59,19 @@ func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []response
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("users"))
-	ct := applyFilter(t.Db.Table("users"))
+	db := applyFilter(t.Db.Table("\"user\""))
+	ct := applyFilter(t.Db.Table("\"user\""))
 	count, err = ct.Count(&model.User{})
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
 		if sortOrder == "asc" {
-			db = db.Asc("users." + sortKey)
+			db = db.Asc("\"user\"." + sortKey)
 		} else if sortOrder == "desc" {
-			db = db.Desc("users." + sortKey)
+			db = db.Desc("\"user\"." + sortKey)
 		}
 	} else {
-		db = db.Asc("users.id") // 默认采用 ID 升序排列
+		db = db.Asc("\"user\".id") // 默认采用 ID 升序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
@@ -82,25 +82,25 @@ func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []response
 }
 
 func (t *UserRepositoryImpl) BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []response.UserResponseWithTeamId, err error) {
-	err = t.Db.Table("users").
-		Join("INNER", "user_team", "users.id = user_team.user_id").
-		In("user_team.team_id", req.TeamId).
+	err = t.Db.Table("\"user\"").
+		Join("INNER", "\"user_team\"", "\"user\".id = user_team.user_id").
+		In("\"user_team\".team_id", req.TeamId).
 		Find(&users)
 	return users, err
 }
 
 func (t *UserRepositoryImpl) FindById(id int64) (user model.User, err error) {
-	_, err = t.Db.Table("users").ID(id).Get(&user)
+	_, err = t.Db.Table("\"user\"").ID(id).Get(&user)
 	return user, err
 }
 
 // FindByUsername implements UserRepository
 func (t *UserRepositoryImpl) FindByUsername(username string) (user model.User, err error) {
-	_, err = t.Db.Table("users").Where("username = ?", username).Get(&user)
+	_, err = t.Db.Table("\"user\"").Where("username = ?", username).Get(&user)
 	return user, err
 }
 
 func (t *UserRepositoryImpl) FindByEmail(email string) (user model.User, err error) {
-	_, err = t.Db.Table("users").Where("email = ?", email).Get(&user)
+	_, err = t.Db.Table("\"user\"").Where("email = ?", email).Get(&user)
 	return user, err
 }

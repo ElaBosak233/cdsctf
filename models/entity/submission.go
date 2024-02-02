@@ -16,7 +16,7 @@ type Submission struct {
 }
 
 func (s *Submission) TableName() string {
-	return "submissions"
+	return "submission"
 }
 
 /*
