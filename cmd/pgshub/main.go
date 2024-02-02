@@ -14,12 +14,13 @@ import (
 	"github.com/elabosak233/pgshub/utils/config"
 	"github.com/elabosak233/pgshub/utils/convertor"
 	"github.com/elabosak233/pgshub/utils/database"
-	log "github.com/elabosak233/pgshub/utils/logger"
+	"github.com/elabosak233/pgshub/utils/logger"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 )
@@ -32,7 +33,7 @@ var (
 func init() {
 	data, _ := assets.ReadStaticFile("banner.txt")
 	banner := string(data)
-	fmt.Printf("\n%s\n", color.InWhiteOverCyan(banner))
+	fmt.Printf("\n%s\n", banner)
 	fmt.Printf("\n%s %s\n", color.InRed("WARNING"), color.InWhiteOverRed("PgsHub is still in development."))
 	fmt.Printf("%s %s\n", color.InRed("WARNING"), color.InWhiteOverRed("All features are not guaranteed to work."))
 	fmt.Printf("\n%s %s\n", color.Ize(color.Bold, "Commit ID:"), color.Ize(color.Bold, CommitId))
@@ -43,6 +44,7 @@ func init() {
 // @title PgsHub Backend API
 // @version 1.0
 func main() {
+	logger.InitLogger()
 	config.InitConfig()
 	database.InitDatabase()
 
@@ -57,7 +59,9 @@ func main() {
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	r := gin.Default()
+	r := gin.New()
+
+	r.Use(logger.GinLogger(), logger.GinRecovery(true))
 
 	// Cors 配置
 	cor := cors.DefaultConfig()
@@ -84,10 +88,10 @@ func main() {
 		Addr:    viper.GetString("server.host") + ":" + viper.GetString("server.port"),
 		Handler: r,
 	}
-	log.Info("The PgsHub service is launching! Enjoy your hacking challenges!")
-	log.Infof("Here's the address! %s:%d", viper.GetString("server.host"), viper.GetInt("server.port"))
+	zap.L().Info("The PgsHub service is launching! Enjoy your hacking challenges!")
+	zap.L().Info(fmt.Sprintf("Here's the address! %s:%d", viper.GetString("server.host"), viper.GetInt("server.port")))
 	err := s.ListenAndServe()
 	if err != nil {
-		log.Error("Err... It seems that the port for PgsHub is not available. Plz try again.")
+		zap.L().Error("Err... It seems that the port for PgsHub is not available. Plz try again.")
 	}
 }

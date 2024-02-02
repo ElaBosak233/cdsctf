@@ -1,8 +1,8 @@
 package config
 
 import (
-	log "github.com/elabosak233/pgshub/utils/logger"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var defaultSettings = map[string]interface{}{
@@ -47,15 +47,15 @@ func InitConfig() {
 	viper.SetConfigType("json")
 	viper.SetConfigFile(configFile)
 	if err := viper.ReadInConfig(); err != nil {
-		log.Warn("未找到配置文件，将创建默认配置文件")
+		zap.L().Warn("未找到配置文件，将创建默认配置文件")
 		for key, value := range defaultSettings {
 			viper.SetDefault(key, value)
 		}
 		if err := viper.WriteConfigAs(configFile); err != nil {
-			log.Error("无法创建默认配置文件")
+			zap.L().Error("无法创建默认配置文件")
 			return
 		}
-		log.Info("默认配置文件已生成")
+		zap.L().Info("默认配置文件已生成")
 	}
 }
 

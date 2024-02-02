@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/TwiN/go-color"
 	"github.com/docker/docker/client"
-	"github.com/elabosak233/pgshub/utils/logger"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"net"
 	"strconv"
 	"strings"
@@ -29,17 +29,17 @@ func NewDockerProvider() {
 	dockerUri := viper.GetString("container.docker.uri")
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation(), client.WithHost(dockerUri))
 	if err != nil {
-		logger.Error("Docker client initialization failed.")
+		zap.L().Error("Docker client initialization failed.")
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("Docker client initialization successful, client version %s", color.InCyan(dockerClient.ClientVersion())))
+	zap.L().Info(fmt.Sprintf("Docker client initialization successful, client version %s", color.InCyan(dockerClient.ClientVersion())))
 	DockerClient = dockerClient // 注入全局变量
 	version, err := dockerClient.ServerVersion(context.Background())
 	if err != nil {
-		logger.Error("Docker server connection failure.")
+		zap.L().Error("Docker server connection failure.")
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("Docker remote server connection successful, server version %s", color.InCyan(version.Version)))
+	zap.L().Info(fmt.Sprintf("Docker remote server connection successful, server version %s", color.InCyan(version.Version)))
 }
 
 func GetFreePort() (port int) {

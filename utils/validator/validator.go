@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-// GetValidMsg 获取错误信息
+// GetValidMsg Get the 'msg' tag of the field if error exists
 func GetValidMsg(err error, obj any) string {
 	getObj := reflect.TypeOf(obj)
 	var errs validator.ValidationErrors

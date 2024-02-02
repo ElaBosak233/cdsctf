@@ -2,13 +2,13 @@ package database
 
 import (
 	"fmt"
-	xormlogrus "github.com/RuiFG/xorm-logrus"
 	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/entity/relations"
-	log "github.com/elabosak233/pgshub/utils/logger"
+	"github.com/elabosak233/pgshub/utils/logger"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 	"xorm.io/xorm"
@@ -19,8 +19,9 @@ var dbInfo string
 
 func InitDatabase() {
 	initDatabaseEngine()
-	log.Infof("Database Connect Information: %s", dbInfo)
-	db.SetLogger(xormlogrus.NewLogrusLogger2(log.Get()))
+	zap.L().Info(fmt.Sprintf("Database Connect Information: %s", dbInfo))
+	//db.SetLogger(xormlogrus.NewLogrusLogger2(log.Get()))
+	db.SetLogger(logger.Logger(zap.L()))
 	syncDatabase()
 	initAdmin()
 	selfCheck()
@@ -49,7 +50,7 @@ func initDatabaseEngine() {
 		db, err = xorm.NewEngine("sqlite3", dbInfo)
 	}
 	if err != nil {
-		log.Error("Database connection failed.")
+		zap.L().Error("Database connection failed.")
 		panic(err)
 	}
 }
@@ -88,20 +89,20 @@ func selfCheck() {
 func initAdmin() {
 	existAdminUser, _ := db.Table("users").Where("username = ?", "admin").Exist()
 	if !existAdminUser {
-		log.Warn("Super administrator account does not exist, will be created soon.")
+		zap.L().Warn("Administrator account does not exist, will be created soon.")
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
 		_, err := db.Table("users").Insert(entity.User{
 			Username: "admin",
-			Nickname: "超级管理员",
+			Nickname: "Administrator",
 			Role:     1,
 			Password: string(hashedPassword),
 			Email:    "admin@admin.com",
 		})
 		if err != nil {
-			log.Error("Super administrator account creation failed.")
+			zap.L().Error("Super administrator account creation failed.")
 			panic(err)
 			return
 		}
-		log.Info("Super administrator account created successfully")
+		zap.L().Info("Super administrator account created successfully")
 	}
 }
