@@ -5,6 +5,7 @@ import time
 import os
 
 os.environ["TERM"] = "xterm-256color"
+os.environ["CGO_ENABLED"] = "1"
 
 
 class Git:

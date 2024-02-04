@@ -71,11 +71,12 @@ func (t *TeamServiceImpl) Mixin(teams []response.TeamResponse) (ts []response.Te
 func (t *TeamServiceImpl) Create(req request.TeamCreateRequest) error {
 	user, err := t.UserRepository.FindById(req.CaptainId)
 	if user.UserId != 0 && err == nil {
+		isLocked := false
 		team, err := t.TeamRepository.Insert(model.Team{
 			Name:        req.Name,
 			CaptainId:   req.CaptainId,
 			Description: req.Description,
-			IsLocked:    false,
+			IsLocked:    &isLocked,
 		})
 		err = t.UserTeamRepository.Insert(modelm2m.UserTeam{
 			TeamId: team.TeamId,
@@ -102,6 +103,7 @@ func (t *TeamServiceImpl) Update(req request.TeamUpdateRequest) error {
 				Name:        req.Name,
 				Description: req.Description,
 				CaptainId:   req.CaptainId,
+				IsLocked:    req.IsLocked,
 			})
 			return err
 		} else {

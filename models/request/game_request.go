@@ -15,8 +15,8 @@ type GameCreateRequest struct {
 	Title                  string    `json:"title" binding:"required" msg:"标题不能为空"`
 	Bio                    string    `json:"bio"`
 	Description            string    `json:"description"`
-	IsEnabled              bool      `json:"is_enabled"`
-	IsPublic               bool      `json:"is_public"`
+	IsEnabled              *bool     `json:"is_enabled"`
+	IsPublic               *bool     `json:"is_public"`
 	Password               string    `json:"password"`
 	MemberLimitMin         int64     `json:"member_limit_min"`
 	MemberLimitMax         int64     `json:"member_limit_max"`
@@ -24,7 +24,7 @@ type GameCreateRequest struct {
 	FirstBloodRewardRatio  float64   `json:"first_blood_reward_ratio"`
 	SecondBloodRewardRatio float64   `json:"second_blood_reward_ratio"`
 	ThirdBloodRewardRatio  float64   `json:"third_blood_reward_ratio"`
-	IsNeedWriteUp          bool      `json:"is_need_write_up"`
+	IsNeedWriteUp          *bool     `json:"is_need_write_up"`
 	StartedAt              time.Time `json:"-"`
 	StartedAtUnix          int64     `json:"started_at"`
 	EndedAt                time.Time `json:"-"`
@@ -36,8 +36,8 @@ type GameUpdateRequest struct {
 	Title                  string    `json:"title"`
 	Bio                    string    `json:"bio"`
 	Description            string    `json:"description"`
-	IsEnabled              bool      `json:"is_enabled"`
-	IsPublic               bool      `json:"is_public"`
+	IsEnabled              *bool     `json:"is_enabled"`
+	IsPublic               *bool     `json:"is_public"`
 	Password               string    `json:"password"`
 	MemberLimitMin         int64     `json:"member_limit_min"`
 	MemberLimitMax         int64     `json:"member_limit_max"`
@@ -45,7 +45,7 @@ type GameUpdateRequest struct {
 	FirstBloodRewardRatio  float64   `json:"first_blood_reward_ratio"`
 	SecondBloodRewardRatio float64   `json:"second_blood_reward_ratio"`
 	ThirdBloodRewardRatio  float64   `json:"third_blood_reward_ratio"`
-	IsNeedWriteUp          bool      `json:"is_need_write_up"`
+	IsNeedWriteUp          *bool     `json:"is_need_write_up"`
 	StartedAt              time.Time `json:"-"`
 	StartedAtUnix          int64     `json:"started_at"`
 	EndedAt                time.Time `json:"-"`

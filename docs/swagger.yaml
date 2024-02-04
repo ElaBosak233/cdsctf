@@ -250,12 +250,12 @@ definitions:
         type: string
       id:
         type: integer
+      is_locked:
+        type: boolean
       name:
         type: string
     required:
-    - captain_id
     - id
-    - name
     type: object
   request.User:
     properties:

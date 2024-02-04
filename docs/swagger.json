@@ -1956,9 +1956,7 @@
         "request.TeamUpdateRequest": {
             "type": "object",
             "required": [
-                "captain_id",
-                "id",
-                "name"
+                "id"
             ],
             "properties": {
                 "captain_id": {
@@ -1969,6 +1967,9 @@
                 },
                 "id": {
                     "type": "integer"
+                },
+                "is_locked": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"

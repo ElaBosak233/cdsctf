@@ -1965,9 +1965,7 @@ const docTemplate = `{
         "request.TeamUpdateRequest": {
             "type": "object",
             "required": [
-                "captain_id",
-                "id",
-                "name"
+                "id"
             ],
             "properties": {
                 "captain_id": {
@@ -1978,6 +1976,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "is_locked": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"

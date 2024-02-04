@@ -86,11 +86,11 @@ func selfCheck() {
 // InitAdmin 创建超级管理员账户
 // 仅用于第一次生成
 func initAdmin() {
-	existAdminUser, _ := db.Table("user").Where("username = ?", "admin").Exist()
+	existAdminUser, _ := db.Table("account").Where("username = ?", "admin").Exist()
 	if !existAdminUser {
 		zap.L().Warn("Administrator account does not exist, will be created soon.")
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-		_, err := db.Table("user").Insert(entity.User{
+		_, err := db.Table("account").Insert(entity.User{
 			Username: "admin",
 			Nickname: "Administrator",
 			Role:     1,

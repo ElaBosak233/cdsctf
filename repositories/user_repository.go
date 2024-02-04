@@ -1,19 +1,19 @@
 package repositories
 
 import (
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
 	"xorm.io/xorm"
 )
 
 type UserRepository interface {
-	Insert(user model.User) error
-	Update(user model.User) error
+	Insert(user entity.User) error
+	Update(user entity.User) error
 	Delete(id int64) error
-	FindById(id int64) (user model.User, err error)
-	FindByUsername(username string) (user model.User, err error)
-	FindByEmail(email string) (user model.User, err error)
+	FindById(id int64) (user entity.User, err error)
+	FindByUsername(username string) (user entity.User, err error)
+	FindByEmail(email string) (user entity.User, err error)
 	Find(req request.UserFindRequest) (user []response.UserResponse, count int64, err error)
 	BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []response.UserResponseWithTeamId, err error)
 }
@@ -26,20 +26,18 @@ func NewUserRepositoryImpl(Db *xorm.Engine) UserRepository {
 	return &UserRepositoryImpl{Db: Db}
 }
 
-// Insert implements UserRepository
-func (t *UserRepositoryImpl) Insert(user model.User) error {
-	_, err := t.Db.Table("\"user\"").Insert(&user)
+func (t *UserRepositoryImpl) Insert(user entity.User) error {
+	_, err := t.Db.Table("account").Insert(&user)
 	return err
 }
 
-// Delete implements UserRepository
 func (t *UserRepositoryImpl) Delete(id int64) error {
-	_, err := t.Db.Table("\"user\"").ID(id).Delete(&model.User{})
+	_, err := t.Db.Table("account").ID(id).Delete(&entity.User{})
 	return err
 }
 
-func (t *UserRepositoryImpl) Update(user model.User) error {
-	_, err := t.Db.Table("\"user\"").ID(user.UserId).Update(&user)
+func (t *UserRepositoryImpl) Update(user entity.User) error {
+	_, err := t.Db.Table("account").ID(user.UserId).Update(&user)
 	return err
 }
 
@@ -59,19 +57,19 @@ func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []response
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("\"user\""))
-	ct := applyFilter(t.Db.Table("\"user\""))
-	count, err = ct.Count(&model.User{})
+	db := applyFilter(t.Db.Table("account"))
+	ct := applyFilter(t.Db.Table("account"))
+	count, err = ct.Count(&entity.User{})
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
 		if sortOrder == "asc" {
-			db = db.Asc("\"user\"." + sortKey)
+			db = db.Asc("account." + sortKey)
 		} else if sortOrder == "desc" {
-			db = db.Desc("\"user\"." + sortKey)
+			db = db.Desc("account." + sortKey)
 		}
 	} else {
-		db = db.Asc("\"user\".id") // 默认采用 ID 升序排列
+		db = db.Asc("account.id") // 默认采用 ID 升序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
@@ -82,25 +80,24 @@ func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []response
 }
 
 func (t *UserRepositoryImpl) BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []response.UserResponseWithTeamId, err error) {
-	err = t.Db.Table("\"user\"").
-		Join("INNER", "\"user_team\"", "\"user\".id = user_team.user_id").
-		In("\"user_team\".team_id", req.TeamId).
+	err = t.Db.Table("account").
+		Join("INNER", "user_team", "account.id = user_team.user_id").
+		In("user_team.team_id", req.TeamId).
 		Find(&users)
 	return users, err
 }
 
-func (t *UserRepositoryImpl) FindById(id int64) (user model.User, err error) {
-	_, err = t.Db.Table("\"user\"").ID(id).Get(&user)
+func (t *UserRepositoryImpl) FindById(id int64) (user entity.User, err error) {
+	_, err = t.Db.Table("account").ID(id).Get(&user)
 	return user, err
 }
 
-// FindByUsername implements UserRepository
-func (t *UserRepositoryImpl) FindByUsername(username string) (user model.User, err error) {
-	_, err = t.Db.Table("\"user\"").Where("username = ?", username).Get(&user)
+func (t *UserRepositoryImpl) FindByUsername(username string) (user entity.User, err error) {
+	_, err = t.Db.Table("account").Where("username = ?", username).Get(&user)
 	return user, err
 }
 
-func (t *UserRepositoryImpl) FindByEmail(email string) (user model.User, err error) {
-	_, err = t.Db.Table("\"user\"").Where("email = ?", email).Get(&user)
+func (t *UserRepositoryImpl) FindByEmail(email string) (user entity.User, err error) {
+	_, err = t.Db.Table("account").Where("email = ?", email).Get(&user)
 	return user, err
 }

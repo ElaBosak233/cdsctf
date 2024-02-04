@@ -76,7 +76,7 @@ func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (sta
 	if err != nil {
 		return 0, 0, err
 	}
-	if challenge.IsDynamic && req.Flag != utils.GenerateFlag(challenge.FlagFmt) {
+	if *(challenge.IsDynamic) && req.Flag != utils.GenerateFlag(challenge.FlagFmt) {
 		status, err = t.JudgeDynamicChallenge(req)
 	} else {
 		status = max(t.JudgeStaticChallenge(req.Flag, challenge.Flag), t.JudgeStaticChallenge(req.Flag, challenge.FlagFmt))

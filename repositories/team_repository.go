@@ -1,20 +1,20 @@
 package repositories
 
 import (
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
 	"xorm.io/xorm"
 )
 
 type TeamRepository interface {
-	Insert(team model.Team) (te model.Team, err error)
-	Update(team model.Team) (err error)
+	Insert(team entity.Team) (te entity.Team, err error)
+	Update(team entity.Team) (err error)
 	Delete(id int64) (err error)
 	Find(req request.TeamFindRequest) (teams []response.TeamResponse, count int64, err error)
 	BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error)
 	BatchFindByUserId(req request.TeamBatchFindByUserIdRequest) (teams []response.TeamResponseWithUserId, err error)
-	FindById(id int64) (team model.Team, err error)
+	FindById(id int64) (team entity.Team, err error)
 }
 
 type TeamRepositoryImpl struct {
@@ -25,18 +25,18 @@ func NewTeamRepositoryImpl(Db *xorm.Engine) TeamRepository {
 	return &TeamRepositoryImpl{Db: Db}
 }
 
-func (t *TeamRepositoryImpl) Insert(team model.Team) (te model.Team, err error) {
+func (t *TeamRepositoryImpl) Insert(team entity.Team) (te entity.Team, err error) {
 	_, err = t.Db.Table("team").Insert(&team)
 	return team, err
 }
 
-func (t *TeamRepositoryImpl) Update(team model.Team) (err error) {
+func (t *TeamRepositoryImpl) Update(team entity.Team) (err error) {
 	_, err = t.Db.Table("team").ID(team.TeamId).Update(&team)
 	return err
 }
 
 func (t *TeamRepositoryImpl) Delete(id int64) (err error) {
-	_, err = t.Db.Table("team").ID(id).Delete(&model.Team{})
+	_, err = t.Db.Table("team").ID(id).Delete(&entity.Team{})
 	return err
 }
 
@@ -55,7 +55,7 @@ func (t *TeamRepositoryImpl) Find(req request.TeamFindRequest) (teams []response
 	}
 	db := applyFilters(t.Db.Table("team"))
 	ct := applyFilters(t.Db.Table("team"))
-	count, err = ct.Count(&model.Team{})
+	count, err = ct.Count(&entity.Team{})
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
@@ -79,8 +79,8 @@ func (t *TeamRepositoryImpl) BatchFindByUserId(req request.TeamBatchFindByUserId
 	return teams, err
 }
 
-func (t *TeamRepositoryImpl) FindById(id int64) (team model.Team, err error) {
-	team = model.Team{}
+func (t *TeamRepositoryImpl) FindById(id int64) (team entity.Team, err error) {
+	team = entity.Team{}
 	has, err := t.Db.Table("team").ID(id).Get(&team)
 	if has {
 		return team, nil

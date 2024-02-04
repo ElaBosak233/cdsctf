@@ -1,18 +1,18 @@
 package repositories
 
 import (
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"time"
 	"xorm.io/xorm"
 )
 
 type InstanceRepository interface {
-	Insert(instance model.Instance) (i model.Instance, err error)
-	Update(instance model.Instance) (err error)
+	Insert(instance entity.Instance) (i entity.Instance, err error)
+	Update(instance entity.Instance) (err error)
 	BatchDeactivate(id []int64) (err error)
-	Find(req request.InstanceFindRequest) (instances []model.Instance, pageCount int64, err error)
-	FindById(id int64) (instance model.Instance, err error)
+	Find(req request.InstanceFindRequest) (instances []entity.Instance, pageCount int64, err error)
+	FindById(id int64) (instance entity.Instance, err error)
 }
 
 type InstanceRepositoryImpl struct {
@@ -23,24 +23,24 @@ func NewInstanceRepositoryImpl(Db *xorm.Engine) InstanceRepository {
 	return &InstanceRepositoryImpl{Db: Db}
 }
 
-func (t *InstanceRepositoryImpl) Insert(instance model.Instance) (i model.Instance, err error) {
+func (t *InstanceRepositoryImpl) Insert(instance entity.Instance) (i entity.Instance, err error) {
 	_, err = t.Db.Table("instance").Insert(&instance)
 	return instance, err
 }
 
-func (t *InstanceRepositoryImpl) Update(instance model.Instance) (err error) {
+func (t *InstanceRepositoryImpl) Update(instance entity.Instance) (err error) {
 	_, err = t.Db.Table("instance").ID(instance.InstanceId).Update(&instance)
 	return err
 }
 
 func (t *InstanceRepositoryImpl) BatchDeactivate(id []int64) (err error) {
-	_, err = t.Db.Table("instance").In("instance.id", id).Update(model.Instance{
+	_, err = t.Db.Table("instance").In("instance.id", id).Update(entity.Instance{
 		RemovedAt: time.Now(),
 	})
 	return err
 }
 
-func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instances []model.Instance, pageCount int64, err error) {
+func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instances []entity.Instance, pageCount int64, err error) {
 	applyFilter := func(q *xorm.Session) *xorm.Session {
 		if req.ChallengeId != 0 {
 			q = q.Where("challenge_id = ?", req.ChallengeId)
@@ -64,7 +64,7 @@ func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instance
 		return q
 	}
 	db := applyFilter(t.Db.Table("instance"))
-	count, err := applyFilter(t.Db.Table("instance")).Count(&model.Instance{})
+	count, err := applyFilter(t.Db.Table("instance")).Count(&entity.Instance{})
 	if req.Page != 0 && req.Size != 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
@@ -73,7 +73,7 @@ func (t *InstanceRepositoryImpl) Find(req request.InstanceFindRequest) (instance
 	return instances, count, err
 }
 
-func (t *InstanceRepositoryImpl) FindById(id int64) (instance model.Instance, err error) {
+func (t *InstanceRepositoryImpl) FindById(id int64) (instance entity.Instance, err error) {
 	_, err = t.Db.Table("instance").ID(id).Get(&instance)
 	return instance, err
 }

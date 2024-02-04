@@ -8,9 +8,10 @@ type TeamCreateRequest struct {
 
 type TeamUpdateRequest struct {
 	TeamId      int64  `binding:"required" json:"id"`
-	Name        string `binding:"required" json:"name"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
-	CaptainId   int64  `binding:"required" json:"captain_id"`
+	CaptainId   int64  `json:"captain_id"`
+	IsLocked    *bool  `json:"is_locked"`
 }
 
 type TeamFindRequest struct {
