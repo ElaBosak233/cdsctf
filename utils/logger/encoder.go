@@ -8,22 +8,22 @@ import (
 
 var (
 	_levelToColor = map[zapcore.Level]string{
-		zapcore.DebugLevel:  color.Cyan,
-		zapcore.InfoLevel:   color.Cyan,
-		zapcore.WarnLevel:   color.Yellow,
-		zapcore.ErrorLevel:  color.Red,
-		zapcore.DPanicLevel: color.Red,
-		zapcore.PanicLevel:  color.Red,
-		zapcore.FatalLevel:  color.Red,
+		zapcore.DebugLevel:  color.CyanBackground,
+		zapcore.InfoLevel:   color.CyanBackground,
+		zapcore.WarnLevel:   color.YellowBackground,
+		zapcore.ErrorLevel:  color.RedBackground,
+		zapcore.DPanicLevel: color.RedBackground,
+		zapcore.PanicLevel:  color.RedBackground,
+		zapcore.FatalLevel:  color.RedBackground,
 	}
 )
 
 func iLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
 	c, ok := _levelToColor[level]
 	if !ok {
-		c = color.Cyan
+		c = color.CyanBackground
 	}
-	enc.AppendString("[" + color.Ize(c, level.CapitalString()) + "]")
+	enc.AppendString(color.Ize(color.White+c, " "+level.CapitalString()+" "))
 }
 
 func iTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {

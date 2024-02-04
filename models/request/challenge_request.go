@@ -4,9 +4,9 @@ type ChallengeCreateRequest struct {
 	Title         string  `json:"title" default:"新题目"`
 	Description   string  `json:"description" default:"题目描述"`
 	Category      string  `json:"category" default:"misc"`
-	HasAttachment bool    `json:"has_attachment" default:"false"`
-	IsPracticable bool    `json:"is_practicable" default:"false"`
-	IsDynamic     bool    `json:"is_dynamic" default:"true"`
+	HasAttachment *bool   `json:"has_attachment" default:"false"`
+	IsPracticable *bool   `json:"is_practicable" default:"false"`
+	IsDynamic     *bool   `json:"is_dynamic" default:"true"`
 	ExposedPort   int64   `json:"exposed_port" default:"80"`
 	Image         string  `json:"image" default:"nginx"`
 	Flag          string  `json:"flag" default:"PgsCTF{Th4nk5_4_us1ng_PgsHub}"`
@@ -24,9 +24,9 @@ type ChallengeUpdateRequest struct {
 	Title         string  `json:"title"`
 	Description   string  `json:"description"`
 	Category      string  `json:"category"`
-	HasAttachment bool    `json:"has_attachment"`
-	IsPracticable bool    `json:"is_practicable"`
-	IsDynamic     bool    `json:"is_dynamic"`
+	HasAttachment *bool   `json:"has_attachment"`
+	IsPracticable *bool   `json:"is_practicable"`
+	IsDynamic     *bool   `json:"is_dynamic"`
 	ExposedPort   int     `json:"exposed_port"`
 	Image         string  `json:"image"`
 	Flag          string  `json:"flag"`

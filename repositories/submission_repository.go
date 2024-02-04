@@ -72,7 +72,7 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (subm
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}
-	db = db.Join("INNER", "user", "submission.user_id = user.id").
+	db = db.Join("INNER", "account", "submission.user_id = account.id").
 		Join("INNER", "challenge", "submission.challenge_id = challenge.id").
 		Join("LEFT", "team", "submission.team_id = team.id").
 		Join("LEFT", "game", "submission.game_id = game.id")
@@ -106,7 +106,7 @@ func (t *SubmissionRepositoryImpl) BatchFind(req request.SubmissionBatchFindRequ
 			db = db.Desc("submission." + sortKey)
 		}
 	}
-	db = db.Join("INNER", "user", "submission.user_id = user.id").
+	db = db.Join("INNER", "account", "submission.user_id = account.id").
 		Join("LEFT", "team", "submission.team_id = team.id").
 		Join("LEFT", "challenge", "submission.challenge_id = challenge.id").
 		In("submission.challenge_id", req.ChallengeId)

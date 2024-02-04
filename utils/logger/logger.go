@@ -108,7 +108,10 @@ func GinLogger() gin.HandlerFunc {
 		query := c.Request.URL.RawQuery
 		c.Next()
 		duration := time.Since(start)
-		lg.Info(fmt.Sprintf("[%s] %s", color.InCyan("GIN"), path),
+		lg.Info(fmt.Sprintf(
+			"[%s] %s",
+			color.InCyan("GIN"),
+			color.InBold(path)),
 			zap.Int("status", c.Writer.Status()),
 			zap.String("method", c.Request.Method),
 			zap.String("path", path),
@@ -147,13 +150,13 @@ func GinRecovery(stack bool) gin.HandlerFunc {
 				}
 
 				if stack {
-					lg.Error("[Recovery from panic]",
+					lg.Error("Recovery from panic.",
 						zap.Any("error", err),
 						zap.String("request", string(httpRequest)),
 						zap.String("stack", string(debug.Stack())),
 					)
 				} else {
-					lg.Error("[Recovery from panic]",
+					lg.Error("Recovery from panic.",
 						zap.Any("error", err),
 						zap.String("request", string(httpRequest)),
 					)
