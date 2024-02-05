@@ -12,7 +12,7 @@ type ChallengeResponse struct {
 }
 
 type ChallengeSimpleResponse struct {
-	ChallengeId int64  `xorm:"'id'" json:"id"`
+	ChallengeID int64  `xorm:"'id'" json:"id"`
 	Title       string `xorm:"'title'" json:"title"`
 	Description string `xorm:"'description'" json:"description"`
 	Category    string `xorm:"'category'" json:"category"`

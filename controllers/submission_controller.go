@@ -32,7 +32,7 @@ func NewSubmissionControllerImpl(appService *services.Services) SubmissionContro
 // @Tags 提交
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param 查找请求 query request.SubmissionFindRequest false "SubmissionFindRequest"
 // @Router /api/submissions/ [get]
 func (c *SubmissionControllerImpl) Find(ctx *gin.Context) {
@@ -67,7 +67,7 @@ func (c *SubmissionControllerImpl) Find(ctx *gin.Context) {
 // @Tags 提交
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param 查找请求 query request.SubmissionBatchFindRequest false "SubmissionBatchFindRequest"
 // @Router /api/submissions/batch/ [get]
 func (c *SubmissionControllerImpl) BatchFind(ctx *gin.Context) {
@@ -101,7 +101,7 @@ func (c *SubmissionControllerImpl) BatchFind(ctx *gin.Context) {
 // @Tags 提交
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param 创建请求 body request.SubmissionCreateRequest true "SubmissionCreateRequest"
 // @Router /api/submissions/ [post]
 func (c *SubmissionControllerImpl) Create(ctx *gin.Context) {
@@ -114,7 +114,7 @@ func (c *SubmissionControllerImpl) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	submissionCreateRequest.UserId = ctx.GetInt64("UserId")
+	submissionCreateRequest.UserId = ctx.GetInt64("UserID")
 	status, pts, err := c.SubmissionService.Create(submissionCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

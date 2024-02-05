@@ -45,7 +45,7 @@ func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) (err e
 
 func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) (err error) {
 	challengeData, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
-	if err != nil || challengeData.ChallengeId == 0 {
+	if err != nil || challengeData.ChallengeID == 0 {
 		return errors.New("题目不存在")
 	}
 	challengeModel := entity.Challenge{}
@@ -67,7 +67,7 @@ func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenge
 	if isGame {
 		challengeIds := make([]int64, len(challenges))
 		for _, challenge := range challenges {
-			challengeIds = append(challengeIds, challenge.ChallengeId)
+			challengeIds = append(challengeIds, challenge.ChallengeID)
 		}
 		gameChallenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(req.GameId, challengeIds)
 		for _, gameChallenge := range gameChallenges {
@@ -80,7 +80,7 @@ func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenge
 			ChallengeId: challengeIds,
 		})
 		for _, submission := range submissions {
-			submissionsMap[submission.ChallengeId] = append(submissionsMap[submission.ChallengeId], submission)
+			submissionsMap[submission.ChallengeID] = append(submissionsMap[submission.ChallengeID], submission)
 		}
 	}
 	// 二次处理
@@ -93,7 +93,7 @@ func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenge
 			challenges[i].Image = ""
 		}
 		if isGame {
-			challengeId := challenges[i].ChallengeId
+			challengeId := challenges[i].ChallengeID
 			S := gameChallengesMap[challengeId].MaxPts
 			R := gameChallengesMap[challengeId].MinPts
 			d := challenges[i].Difficulty
@@ -103,7 +103,7 @@ func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenge
 		} else {
 			challenges[i].Pts = challenges[i].PracticePts
 		}
-		if challenges[i].Submission.SubmissionId != 0 {
+		if challenges[i].Submission.SubmissionID != 0 {
 			challenges[i].IsSolved = true
 		}
 	}

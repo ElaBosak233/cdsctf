@@ -43,7 +43,7 @@ func (c *ConfigControllerImpl) Find(ctx *gin.Context) {
 // @Tags 配置
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param input body request.ConfigUpdateRequest true "body"
 // @Router /api/configs/ [put]
 func (c *ConfigControllerImpl) Update(ctx *gin.Context) {

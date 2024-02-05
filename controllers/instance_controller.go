@@ -33,7 +33,7 @@ func NewInstanceControllerImpl(appService *services.Services) InstanceController
 // @Tags 实例
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param input body request.InstanceCreateRequest true "InstanceCreateRequest"
 // @Router /api/instances/ [post]
 func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
@@ -46,7 +46,7 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	instanceCreateRequest.UserId = ctx.GetInt64("UserId")
+	instanceCreateRequest.UserId = ctx.GetInt64("UserID")
 	res, err := c.InstanceService.Create(instanceCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -57,7 +57,7 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":       http.StatusOK,
-		"id":         res.InstanceId,
+		"id":         res.InstanceID,
 		"entry":      res.Entry,
 		"removed_at": res.RemovedAt,
 	})
@@ -68,13 +68,13 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 // @Description 停止并删除容器
 // @Tags 实例
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param input body request.InstanceRemoveRequest true "InstanceRemoveRequest"
 // @Router /api/instances/ [delete]
 func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 	instanceRemoveRequest := request.InstanceRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
-	instanceRemoveRequest.UserId = ctx.GetInt64("UserId")
+	instanceRemoveRequest.UserId = ctx.GetInt64("UserID")
 	err = c.InstanceService.Remove(instanceRemoveRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -93,13 +93,13 @@ func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 // @Description 容器续期
 // @Tags 实例
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param input body request.InstanceRenewRequest true "InstanceRenewRequest"
 // @Router /api/instances/ [put]
 func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.InstanceRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
-	instanceRenewRequest.UserId = ctx.GetInt64("UserId")
+	instanceRenewRequest.UserId = ctx.GetInt64("UserID")
 	removedAt, err := c.InstanceService.Renew(instanceRenewRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -142,12 +142,12 @@ func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
 // @Description 实例查询
 // @Tags 实例
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param input query request.InstanceFindRequest false "InstanceFindRequest"
 // @Router /api/instances/ [get]
 func (c *InstanceControllerImpl) Find(ctx *gin.Context) {
 	instanceFindRequest := request.InstanceFindRequest{
-		UserId:      ctx.GetInt64("UserId"),
+		UserId:      ctx.GetInt64("UserID"),
 		ChallengeId: int64(convertor.ToIntD(ctx.Query("challenge_id"), 0)),
 		TeamId:      int64(convertor.ToIntD(ctx.Query("team_id"), 0)),
 		GameId:      int64(convertor.ToIntD(ctx.Query("game_id"), 0)),
@@ -159,8 +159,8 @@ func (c *InstanceControllerImpl) Find(ctx *gin.Context) {
 	res := make([]map[string]any, len(rep))
 	for i, v := range rep {
 		item := map[string]any{
-			"id":           v.InstanceId,
-			"challenge_id": v.ChallengeId,
+			"id":           v.InstanceID,
+			"challenge_id": v.ChallengeID,
 			"status":       v.Status,
 			"entry":        v.Entry,
 			"removed_at":   v.RemovedAt,

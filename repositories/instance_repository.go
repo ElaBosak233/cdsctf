@@ -29,7 +29,7 @@ func (t *InstanceRepositoryImpl) Insert(instance entity.Instance) (i entity.Inst
 }
 
 func (t *InstanceRepositoryImpl) Update(instance entity.Instance) (err error) {
-	_, err = t.Db.Table("instance").ID(instance.InstanceId).Update(&instance)
+	_, err = t.Db.Table("instance").ID(instance.InstanceID).Update(&instance)
 	return err
 }
 

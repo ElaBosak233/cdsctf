@@ -24,7 +24,7 @@ func NewAuthMiddleware(appService *services.Services) AuthMiddleware {
 }
 
 func (m *AuthMiddlewareImpl) BasicAuth(ctx *gin.Context) {
-	token := ctx.GetHeader("PgsToken")
+	token := ctx.GetHeader("Authorization")
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(viper.GetString("jwt.secret_key")), nil
 	})
@@ -38,7 +38,7 @@ func (m *AuthMiddlewareImpl) BasicAuth(ctx *gin.Context) {
 	}
 	if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
 		userId := int64(claims["user_id"].(float64))
-		ctx.Set("UserId", userId)
+		ctx.Set("UserID", userId)
 		user, err := m.appService.UserService.FindById(userId)
 		if err != nil {
 			ctx.JSON(http.StatusOK, gin.H{

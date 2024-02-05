@@ -1,12 +1,15 @@
 package controllers
 
 import (
+	"fmt"
+	"github.com/elabosak233/pgshub/hubs"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/services"
 	"github.com/elabosak233/pgshub/utils/convertor"
 	"github.com/elabosak233/pgshub/utils/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -50,16 +53,12 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 		return
 	}
 	user, _ := c.UserService.FindByUsername(userLoginRequest.Username)
-	//logger.WithFields(zap.Field{
-	//	"Username": user.Username,
-	//	"UserId":   user.UserId,
-	//	"ClientIP": ctx.ClientIP(),
-	//}).Info("登录")
 	if !c.UserService.VerifyPasswordByUsername(userLoginRequest.Username, userLoginRequest.Password) {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusUnauthorized,
 			"msg":  "用户名或密码错误",
 		})
+		zap.L().Warn(fmt.Sprintf("用户 %s 登录失败", user.Username), zap.Int64("user_id", user.UserID))
 		return
 	}
 	tokenString, err := c.UserService.GetJwtTokenById(user)
@@ -68,11 +67,14 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 			"code": http.StatusInternalServerError,
 			"msg":  err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"token": tokenString,
 	})
+	zap.L().Info(fmt.Sprintf("用户 %s 登录成功", user.Username), zap.Int64("user_id", user.UserID))
+	hubs.SendMsg(1, fmt.Sprintf("用户 %s 登录了", user.Username))
 }
 
 // VerifyToken
@@ -165,7 +167,7 @@ func (c *UserControllerImpl) Register(ctx *gin.Context) {
 // @Tags 用户
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param 创建请求 body request.UserCreateRequest true "UserCreateRequest"
 // @Router /api/users/ [post]
 func (c *UserControllerImpl) Create(ctx *gin.Context) {
@@ -192,12 +194,12 @@ func (c *UserControllerImpl) Create(ctx *gin.Context) {
 }
 
 // Update
-// @Summary 用户更新（Role≤1 或 (Request)UserId=(PgsToken)UserId）
+// @Summary 用户更新（Role≤1 或 (Request)UserID=(Authorization)UserID）
 // @Description 若 Role>1，则自动忽略 UserUpdateRequest 中的 Role 属性
 // @Tags 用户
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param 更新请求 body request.UserUpdateRequest true "UserUpdateRequest"
 // @Router /api/users/ [put]
 func (c *UserControllerImpl) Update(ctx *gin.Context) {
@@ -210,7 +212,7 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("UserId") == updateUserRequest.UserId {
+	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("UserID") == updateUserRequest.UserId {
 		if ctx.GetInt64("UserRole") > 1 {
 			updateUserRequest.Role = ctx.GetInt64("UserRole")
 			updateUserRequest.Username = ""
@@ -237,12 +239,12 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 }
 
 // Delete
-// @Summary 用户删除（Role≤1 或 (Request)UserId=(PgsToken)UserId）
+// @Summary 用户删除（Role≤1 或 (Request)UserID=(Authorization)UserID）
 // @Description
 // @Tags 用户
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param input body request.UserDeleteRequest true "UserDeleteRequest"
 // @Router /api/users/ [delete]
 func (c *UserControllerImpl) Delete(ctx *gin.Context) {
@@ -255,7 +257,7 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("UserId") == deleteUserRequest.UserId {
+	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("UserID") == deleteUserRequest.UserId {
 		_ = c.UserService.Delete(deleteUserRequest.UserId)
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/elabosak233/pgshub/containers/managers"
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
 	"github.com/elabosak233/pgshub/repositories"
@@ -96,7 +96,7 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 					}
 					go func() {
 						err = t.Remove(request.InstanceRemoveRequest{
-							InstanceId: instance.InstanceId,
+							InstanceId: instance.InstanceID,
 						})
 						if err != nil {
 							fmt.Println(err)
@@ -120,22 +120,22 @@ func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res res
 		port, err := ctn.Setup()
 		entry := fmt.Sprintf("%s:%d", viper.GetString("container.docker.public_entry"), port)
 		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).UTC()
-		instance, err := t.InstanceRepository.Insert(model.Instance{
-			ChallengeId: req.ChallengeId,
+		instance, err := t.InstanceRepository.Insert(entity.Instance{
+			ChallengeID: req.ChallengeId,
 			UserId:      req.UserId,
 			Flag:        flag,
 			Entry:       entry,
 			RemovedAt:   removedAt,
 		})
-		ctn.SetInstanceId(instance.InstanceId)
-		InstanceMap[instance.InstanceId] = ctn
+		ctn.SetInstanceId(instance.InstanceID)
+		InstanceMap[instance.InstanceID] = ctn
 		go func() {
 			if ctn.RemoveAfterDuration(ctn.CancelCtx) {
-				delete(InstanceMap, instance.InstanceId)
+				delete(InstanceMap, instance.InstanceID)
 			}
 		}()
 		return response.InstanceStatusResponse{
-			InstanceId: instance.InstanceId,
+			InstanceID: instance.InstanceID,
 			Entry:      entry,
 			RemovedAt:  removedAt,
 			Status:     "running",
@@ -152,7 +152,7 @@ func (t *InstanceServiceImpl) Status(id int64) (rep response.InstanceStatusRespo
 			ctn := InstanceMap[id].(*managers.DockerManager)
 			status, _ := ctn.GetContainerStatus()
 			if status != "removed" {
-				rep.InstanceId = id
+				rep.InstanceID = id
 				rep.Status = status
 				rep.Entry = instance.Entry
 				rep.RemovedAt = instance.RemovedAt
@@ -177,7 +177,7 @@ func (t *InstanceServiceImpl) Renew(req request.InstanceRenewRequest) (removedAt
 			return time.Time{}, errors.New("实例不存在")
 		}
 		ctn := InstanceMap[req.InstanceId].(*managers.DockerManager)
-		err = ctn.Renew(ctn.Duration)
+		ctn.Renew(ctn.Duration)
 		instance.RemovedAt = time.Now().Add(ctn.Duration)
 		err = t.InstanceRepository.Update(instance)
 		return instance.RemovedAt, err
@@ -191,13 +191,13 @@ func (t *InstanceServiceImpl) Remove(req request.InstanceRemoveRequest) (err err
 		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
 	if viper.GetString("container.provider") == "docker" {
-		_ = t.InstanceRepository.Update(model.Instance{
-			InstanceId: req.InstanceId,
+		_ = t.InstanceRepository.Update(entity.Instance{
+			InstanceID: req.InstanceId,
 			RemovedAt:  time.Now().UTC(),
 		})
 		if InstanceMap[req.InstanceId] != nil {
 			ctn := InstanceMap[req.InstanceId].(*managers.DockerManager)
-			err = ctn.Remove()
+			ctn.Remove()
 		}
 		return err
 	}
@@ -216,10 +216,10 @@ func (t *InstanceServiceImpl) FindById(id int64) (rep response.InstanceResponse,
 		ctn := InstanceMap[id].(*managers.DockerManager)
 		status, _ := ctn.GetContainerStatus()
 		rep = response.InstanceResponse{
-			InstanceId:  id,
+			InstanceID:  id,
 			Entry:       instance.Entry,
 			RemovedAt:   instance.RemovedAt,
-			ChallengeId: instance.ChallengeId,
+			ChallengeID: instance.ChallengeID,
 			Status:      status,
 		}
 		return rep, nil
@@ -236,15 +236,15 @@ func (t *InstanceServiceImpl) Find(req request.InstanceFindRequest) (instances [
 		for _, instance := range responses {
 			var ctn *managers.DockerManager
 			status := "removed"
-			if InstanceMap[instance.InstanceId] != nil {
-				ctn = InstanceMap[instance.InstanceId].(*managers.DockerManager)
+			if InstanceMap[instance.InstanceID] != nil {
+				ctn = InstanceMap[instance.InstanceID].(*managers.DockerManager)
 				status, _ = ctn.GetContainerStatus()
 			}
 			instances = append(instances, response.InstanceResponse{
-				InstanceId:  instance.InstanceId,
+				InstanceID:  instance.InstanceID,
 				Entry:       instance.Entry,
 				RemovedAt:   instance.RemovedAt,
-				ChallengeId: instance.ChallengeId,
+				ChallengeID: instance.ChallengeID,
 				Status:      status,
 			})
 		}
