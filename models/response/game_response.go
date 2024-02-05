@@ -9,6 +9,6 @@ type GameResponse struct {
 }
 
 type GameSimpleResponse struct {
-	GameId int64  `xorm:"'id'" json:"id"`
+	GameID int64  `xorm:"'id'" json:"id"`
 	Title  string `xorm:"'title'" json:"title"`
 }

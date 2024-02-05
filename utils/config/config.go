@@ -38,8 +38,6 @@ var defaultSettings = map[string]interface{}{
 	"container.provider":            "docker",
 	"container.docker.uri":          "unix:///var/run/docker.sock", // npipe:////./pipe/docker_engine
 	"container.docker.public_entry": "127.0.0.1",
-	"container.docker.ports.from":   49152,
-	"container.docker.ports.to":     65535,
 }
 
 func InitConfig() {

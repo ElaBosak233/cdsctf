@@ -3,7 +3,7 @@ package response
 import "time"
 
 type TeamResponse struct {
-	TeamId      int64          `xorm:"'id'" json:"id"`
+	TeamID      int64          `xorm:"'id'" json:"id"`
 	Name        string         `xorm:"'name'" json:"name"`
 	Description string         `xorm:"'description'" json:"description"`
 	CaptainId   int64          `xorm:"'captain_id'" json:"captain_id"`
@@ -15,7 +15,7 @@ type TeamResponse struct {
 }
 
 type TeamResponseWithUserId struct {
-	TeamId      int64     `xorm:"'id'" json:"id"`
+	TeamID      int64     `xorm:"'id'" json:"id"`
 	Name        string    `xorm:"'name'" json:"name"`
 	Description string    `xorm:"'description'" json:"description"`
 	CaptainId   int64     `xorm:"'captain_id'" json:"captain_id"`
@@ -26,7 +26,7 @@ type TeamResponseWithUserId struct {
 }
 
 type TeamSimpleResponse struct {
-	TeamId      int64  `json:"id"`
+	TeamID      int64  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	CaptainId   int64  `json:"captain_id"`

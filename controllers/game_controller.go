@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/elabosak233/pgshub/hubs"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/services"
 	"github.com/elabosak233/pgshub/utils/convertor"
@@ -10,6 +11,7 @@ import (
 )
 
 type GameController interface {
+	BroadCast(ctx *gin.Context)
 	Create(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 	Update(ctx *gin.Context)
@@ -28,13 +30,25 @@ func NewGameControllerImpl(appService *services.Services) GameController {
 	}
 }
 
+// BroadCast
+// @Summary 广播消息
+// @Description 广播消息
+// @Tags 比赛
+// @Router /api/games/:id/broadcast [get]
+func (g *GameControllerImpl) BroadCast(ctx *gin.Context) {
+	id := convertor.ToInt64D(ctx.Param("id"), 0)
+	if id != 0 {
+		hubs.ServeGameHub(ctx.Writer, ctx.Request, id)
+	}
+}
+
 // Create
 // @Summary 创建比赛（Role≤3）
 // @Description
 // @Tags 比赛
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param 创建请求 body request.GameCreateRequest true "GameCreateRequest"
 // @Router /api/games/ [post]
 func (g *GameControllerImpl) Create(ctx *gin.Context) {
@@ -94,7 +108,7 @@ func (g *GameControllerImpl) Update(ctx *gin.Context) {
 // @Tags 比赛
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param 查找请求 query request.GameFindRequest false "GameFindRequest"
 // @Router /api/games/ [get]
 func (g *GameControllerImpl) Find(ctx *gin.Context) {

@@ -1,5 +1,7 @@
 package request
 
+import "github.com/elabosak233/pgshub/models/entity"
+
 type ChallengeCreateRequest struct {
 	Title         string  `json:"title" default:"新题目"`
 	Description   string  `json:"description" default:"题目描述"`
@@ -17,6 +19,17 @@ type ChallengeCreateRequest struct {
 	Duration      int64   `json:"duration" default:"1800"`
 	Difficulty    int64   `json:"difficulty" default:"1"`
 	PracticePts   int64   `json:"practice_pts" default:"200"`
+}
+
+type ChallengeCreateRequest2 struct {
+	Title         string         `json:"title"`
+	Description   string         `json:"description"`
+	HasAttachment *bool          `json:"has_attachment"`
+	IsPracticable *bool          `json:"is_practicable"`
+	CategoryID    int64          `json:"category_id"`
+	Duration      int64          `json:"duration"`
+	Difficulty    int64          `json:"difficulty"`
+	Images        []entity.Image `json:"image_ids"`
 }
 
 type ChallengeUpdateRequest struct {

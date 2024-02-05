@@ -31,7 +31,7 @@ func (t *TeamRepositoryImpl) Insert(team entity.Team) (te entity.Team, err error
 }
 
 func (t *TeamRepositoryImpl) Update(team entity.Team) (err error) {
-	_, err = t.Db.Table("team").ID(team.TeamId).Update(&team)
+	_, err = t.Db.Table("team").ID(team.TeamID).Update(&team)
 	return err
 }
 

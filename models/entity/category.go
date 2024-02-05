@@ -2,8 +2,9 @@ package entity
 
 import "time"
 
+// Category is the category of the challenge.
 type Category struct {
-	CategoryId  int64     `xorm:"'id' pk autoincr" json:"id"`                          // The category's id. As primary key.
+	CategoryID  int64     `xorm:"'id' pk autoincr" json:"id"`                          // The category's id. As primary key.
 	Name        string    `xorm:"'name' varchar(16) notnull unique" json:"name"`       // The category's name.
 	Description string    `xorm:"'description' text" json:"description"`               // The category's description.
 	ColorHex    string    `xorm:"'color_hex' varchar(7)" json:"color_hex"`             // The category's theme color. (Such as Rainbow Dash's color is "#60AEE4")

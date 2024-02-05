@@ -629,9 +629,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: ChallengeDeleteRequest
@@ -651,9 +651,9 @@ paths:
       - application/json
       description: 只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - in: query
@@ -711,9 +711,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: ChallengeCreateRequest
@@ -732,9 +732,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: ChallengeUpdateRequest
@@ -765,9 +765,9 @@ paths:
       - application/json
       description: 更新配置
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: body
@@ -787,9 +787,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - in: query
@@ -823,9 +823,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: GameCreateRequest
@@ -840,13 +840,20 @@ paths:
       summary: 创建比赛（Role≤3）
       tags:
       - 比赛
+  /api/games/:id/broadcast:
+    get:
+      description: 广播消息
+      responses: {}
+      summary: 广播消息
+      tags:
+      - 比赛
   /api/instances/:
     delete:
       description: 停止并删除容器
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: InstanceRemoveRequest
@@ -864,9 +871,9 @@ paths:
     get:
       description: 实例查询
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - in: query
@@ -898,9 +905,9 @@ paths:
       - application/json
       description: 创建实例
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: InstanceCreateRequest
@@ -918,9 +925,9 @@ paths:
     put:
       description: 容器续期
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: InstanceRenewRequest
@@ -955,9 +962,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: 题目 Id
@@ -1009,9 +1016,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: SubmissionCreateRequest
@@ -1031,9 +1038,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - collectionFormat: csv
@@ -1249,9 +1256,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: UserDeleteRequest
@@ -1263,7 +1270,7 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 用户删除（Role≤1 或 (Request)UserId=(PgsToken)UserId）
+      summary: 用户删除（Role≤1 或 (Request)UserID=(Authorization)UserID）
       tags:
       - 用户
     get:
@@ -1307,9 +1314,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: UserCreateRequest
@@ -1329,9 +1336,9 @@ paths:
       - application/json
       description: 若 Role>1，则自动忽略 UserUpdateRequest 中的 Role 属性
       parameters:
-      - description: PgsToken
+      - description: Authorization
         in: header
-        name: PgsToken
+        name: Authorization
         required: true
         type: string
       - description: UserUpdateRequest
@@ -1343,7 +1350,7 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 用户更新（Role≤1 或 (Request)UserId=(PgsToken)UserId）
+      summary: 用户更新（Role≤1 或 (Request)UserID=(Authorization)UserID）
       tags:
       - 用户
   /api/users/login:

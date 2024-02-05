@@ -431,8 +431,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -526,8 +526,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -557,8 +557,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -588,8 +588,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -636,8 +636,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -669,8 +669,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -725,8 +725,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -743,6 +743,16 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/games/:id/broadcast": {
+            "get": {
+                "description": "广播消息",
+                "tags": [
+                    "比赛"
+                ],
+                "summary": "广播消息",
+                "responses": {}
+            }
+        },
         "/api/instances/": {
             "get": {
                 "description": "实例查询",
@@ -756,8 +766,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -806,8 +816,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -838,8 +848,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -867,8 +877,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -922,8 +932,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -1002,8 +1012,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -1035,8 +1045,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -1419,12 +1429,12 @@ const docTemplate = `{
                 "tags": [
                     "用户"
                 ],
-                "summary": "用户更新（Role≤1 或 (Request)UserId=(PgsToken)UserId）",
+                "summary": "用户更新（Role≤1 或 (Request)UserID=(Authorization)UserID）",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -1454,8 +1464,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -1481,12 +1491,12 @@ const docTemplate = `{
                 "tags": [
                     "用户"
                 ],
-                "summary": "用户删除（Role≤1 或 (Request)UserId=(PgsToken)UserId）",
+                "summary": "用户删除（Role≤1 或 (Request)UserID=(Authorization)UserID）",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "PgsToken",
-                        "name": "PgsToken",
+                        "description": "Authorization",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },

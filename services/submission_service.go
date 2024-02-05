@@ -110,10 +110,10 @@ func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (sta
 	}
 	err = t.SubmissionRepository.Insert(entity.Submission{
 		Flag:        req.Flag,
-		UserId:      req.UserId,
-		ChallengeId: req.ChallengeId,
-		TeamId:      req.TeamId,
-		GameId:      req.GameId,
+		UserID:      req.UserId,
+		ChallengeID: req.ChallengeId,
+		TeamID:      req.TeamId,
+		GameID:      req.GameId,
 		Status:      status,
 		Pts:         pts,
 	})
@@ -137,13 +137,13 @@ func (t *SubmissionServiceImpl) Find(req request.SubmissionFindRequest) (submiss
 
 func (t *SubmissionServiceImpl) BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error) {
 	result, err := t.SubmissionRepository.BatchFind(req)
-	// SizePerChallenge 可以得出每个 ChallengeId 对应的最多的 Submission
+	// SizePerChallenge 可以得出每个 ChallengeID 对应的最多的 Submission
 	if req.SizePerChallenge != 0 {
 		submissionsPerChallenge := make(map[int64]int)
 		for _, submission := range result {
-			if submissionsPerChallenge[submission.ChallengeId] < req.SizePerChallenge {
+			if submissionsPerChallenge[submission.ChallengeID] < req.SizePerChallenge {
 				submissions = append(submissions, submission)
-				submissionsPerChallenge[submission.ChallengeId] += 1
+				submissionsPerChallenge[submission.ChallengeID] += 1
 			}
 		}
 	} else {

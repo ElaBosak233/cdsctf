@@ -37,9 +37,8 @@ func (t *ChallengeRepositoryImpl) Delete(id int64) error {
 }
 
 func (t *ChallengeRepositoryImpl) Update(challenge entity.Challenge) error {
-	fmt.Println(challenge.ChallengeId)
-	_, err := t.Db.Table("challenge").ID(challenge.ChallengeId).Update(&challenge)
-	//_, err := t.Db.Table("challenge").ID(challenge.ChallengeId).MustCols("is_practicable, is_dynamic, has_attachment").Update(&challenge)
+	fmt.Println(challenge.ChallengeID)
+	_, err := t.Db.Table("challenge").ID(challenge.ChallengeID).Update(&challenge)
 	return err
 }
 

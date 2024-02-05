@@ -37,7 +37,7 @@ func (t *UserRepositoryImpl) Delete(id int64) error {
 }
 
 func (t *UserRepositoryImpl) Update(user entity.User) error {
-	_, err := t.Db.Table("account").ID(user.UserId).Update(&user)
+	_, err := t.Db.Table("account").ID(user.UserID).Update(&user)
 	return err
 }
 

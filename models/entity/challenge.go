@@ -2,8 +2,9 @@ package entity
 
 import "time"
 
+// Challenge is the challenge for Jeopardy-style CTF game.
 type Challenge struct {
-	ChallengeId   int64     `xorm:"'id' pk autoincr" json:"id"`                                         // The challenge's id. As primary key.
+	ChallengeID   int64     `xorm:"'id' pk autoincr" json:"id"`                                         // The challenge's id. As primary key.
 	Title         string    `xorm:"'title' nvarchar(32) notnull" json:"title"`                          // The challenge's title.
 	Description   string    `xorm:"'description' text notnull" json:"description"`                      // The challenge's description.
 	Category      string    `xorm:"'category' varchar(16) notnull" json:"category"`                     // The challenge's category.

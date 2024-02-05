@@ -3,7 +3,7 @@ package entity
 import "time"
 
 type User struct {
-	UserId      int64     `xorm:"'id' pk autoincr" json:"id"`                                  // The user's id. As primary key.
+	UserID      int64     `xorm:"'id' pk autoincr" json:"id"`                                  // The user's id. As primary key.
 	Username    string    `xorm:"'username' varchar(16) unique notnull index" json:"username"` // The user's username. As a unique identifier.
 	Nickname    string    `xorm:"'nickname' nvarchar(36) notnull" json:"nickname"`             // The user's nickname. Not unique.
 	Description string    `xorm:"'description' text" json:"description"`                       // The user's description.

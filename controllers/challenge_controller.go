@@ -32,7 +32,7 @@ func NewChallengeController(appService *services.Services) ChallengeController {
 // @Tags 题目
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param input query request.ChallengeFindRequest false "ChallengeFindRequest"
 // @Router /api/challenges/ [get]
 func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
@@ -62,7 +62,7 @@ func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 		ChallengeIds:  convertor.ToInt64SliceD(ctx.QueryArray("id"), make([]int64, 0)),
 		IsDynamic:     convertor.ToIntD(ctx.Query("is_dynamic"), -1),
 		Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), -1),
-		UserId:        ctx.GetInt64("UserId"),
+		UserId:        ctx.GetInt64("UserID"),
 		GameId:        convertor.ToInt64D(ctx.Query("game_id"), -1),
 		TeamId:        convertor.ToInt64D(ctx.Query("team_id"), -1),
 		IsDetailed:    isDetailed(),
@@ -84,7 +84,7 @@ func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
 // @Tags 题目
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param 创建请求 body request.ChallengeCreateRequest true "ChallengeCreateRequest"
 // @Router /api/challenges/ [post]
 func (c *ChallengeControllerImpl) Create(ctx *gin.Context) {
@@ -111,7 +111,7 @@ func (c *ChallengeControllerImpl) Create(ctx *gin.Context) {
 // @Tags 题目
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param request body request.ChallengeUpdateRequest true "ChallengeUpdateRequest"
 // @Router /api/challenges/ [put]
 func (c *ChallengeControllerImpl) Update(ctx *gin.Context) {
@@ -142,7 +142,7 @@ func (c *ChallengeControllerImpl) Update(ctx *gin.Context) {
 // @Tags 题目
 // @Accept json
 // @Produce json
-// @Param PgsToken header string true "PgsToken"
+// @Param Authorization header string true "Authorization"
 // @Param request body request.ChallengeDeleteRequest true "ChallengeDeleteRequest"
 // @Router /api/challenges/ [delete]
 func (c *ChallengeControllerImpl) Delete(ctx *gin.Context) {

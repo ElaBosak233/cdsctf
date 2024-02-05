@@ -28,14 +28,13 @@ func (t *GameRepositoryImpl) Insert(game entity.Game) (g entity.Game, err error)
 }
 
 func (t *GameRepositoryImpl) Update(game entity.Game) (err error) {
-	_, err = t.Db.Table("game").ID(game.GameId).Update(&game)
-	//_, err = t.Db.Table("game").ID(game.GameId).MustCols("is_enabled", "is_public", "is_need_write_up").Update(&game)
+	_, err = t.Db.Table("game").ID(game.GameID).Update(&game)
 	return err
 }
 
 func (t *GameRepositoryImpl) Delete(id int64) (err error) {
 	_, err = t.Db.Table("game").Delete(&entity.Game{
-		GameId: id,
+		GameID: id,
 	})
 	return err
 }

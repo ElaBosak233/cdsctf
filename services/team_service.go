@@ -42,10 +42,10 @@ func (t *TeamServiceImpl) Mixin(teams []response.TeamResponse) (ts []response.Te
 	var teamIds []int64
 	teamsMap := make(map[int64]response.TeamResponse)
 	for _, team := range teams {
-		if _, ok := teamsMap[team.TeamId]; !ok {
-			teamsMap[team.TeamId] = team
+		if _, ok := teamsMap[team.TeamID]; !ok {
+			teamsMap[team.TeamID] = team
 		}
-		teamIds = append(teamIds, team.TeamId)
+		teamIds = append(teamIds, team.TeamID)
 	}
 	users, err := t.UserRepository.BatchFindByTeamId(request.UserBatchFindByTeamIdRequest{
 		TeamId: teamIds,
@@ -54,7 +54,7 @@ func (t *TeamServiceImpl) Mixin(teams []response.TeamResponse) (ts []response.Te
 		var userResponse response.UserResponse
 		_ = mapstructure.Decode(user, &userResponse)
 		if team, ok := teamsMap[user.TeamId]; ok {
-			if team.CaptainId == user.UserId {
+			if team.CaptainId == user.UserID {
 				team.Captain = userResponse
 			}
 			team.Users = append(team.Users, userResponse)
@@ -62,24 +62,24 @@ func (t *TeamServiceImpl) Mixin(teams []response.TeamResponse) (ts []response.Te
 		}
 	}
 	for index, team := range teams {
-		teams[index].Users = teamsMap[team.TeamId].Users
-		teams[index].Captain = teamsMap[team.TeamId].Captain
+		teams[index].Users = teamsMap[team.TeamID].Users
+		teams[index].Captain = teamsMap[team.TeamID].Captain
 	}
 	return teams, err
 }
 
 func (t *TeamServiceImpl) Create(req request.TeamCreateRequest) error {
 	user, err := t.UserRepository.FindById(req.CaptainId)
-	if user.UserId != 0 && err == nil {
+	if user.UserID != 0 && err == nil {
 		isLocked := false
 		team, err := t.TeamRepository.Insert(model.Team{
 			Name:        req.Name,
-			CaptainId:   req.CaptainId,
+			CaptainID:   req.CaptainId,
 			Description: req.Description,
 			IsLocked:    &isLocked,
 		})
 		err = t.UserTeamRepository.Insert(modelm2m.UserTeam{
-			TeamId: team.TeamId,
+			TeamId: team.TeamID,
 			UserId: req.CaptainId,
 		})
 		return err
@@ -89,20 +89,20 @@ func (t *TeamServiceImpl) Create(req request.TeamCreateRequest) error {
 
 func (t *TeamServiceImpl) Update(req request.TeamUpdateRequest) error {
 	user, err := t.UserRepository.FindById(req.CaptainId)
-	if user.UserId != 0 && err == nil {
+	if user.UserID != 0 && err == nil {
 		team, err := t.TeamRepository.FindById(req.TeamId)
-		if team.TeamId != 0 {
-			if team.TeamId != req.CaptainId {
+		if team.TeamID != 0 {
+			if team.TeamID != req.CaptainId {
 				err = t.Join(request.TeamJoinRequest{
-					TeamId: team.TeamId,
+					TeamId: team.TeamID,
 					UserId: req.CaptainId,
 				})
 			}
 			err = t.TeamRepository.Update(model.Team{
-				TeamId:      team.TeamId,
+				TeamID:      team.TeamID,
 				Name:        req.Name,
 				Description: req.Description,
-				CaptainId:   req.CaptainId,
+				CaptainID:   req.CaptainId,
 				IsLocked:    req.IsLocked,
 			})
 			return err
@@ -115,7 +115,7 @@ func (t *TeamServiceImpl) Update(req request.TeamUpdateRequest) error {
 
 func (t *TeamServiceImpl) Delete(id int64) error {
 	team, err := t.TeamRepository.FindById(id)
-	if team.TeamId != 0 {
+	if team.TeamID != 0 {
 		err = t.TeamRepository.Delete(id)
 		err = t.UserTeamRepository.DeleteByTeamId(id)
 		return err
@@ -143,11 +143,11 @@ func (t *TeamServiceImpl) BatchFind(req request.TeamBatchFindRequest) (teams []r
 
 func (t *TeamServiceImpl) Join(req request.TeamJoinRequest) error {
 	user, err := t.UserRepository.FindById(req.UserId)
-	if user.UserId != 0 && err == nil {
+	if user.UserID != 0 && err == nil {
 		team, err := t.TeamRepository.FindById(req.TeamId)
-		if team.TeamId != 0 {
+		if team.TeamID != 0 {
 			err = t.UserTeamRepository.Insert(modelm2m.UserTeam{
-				TeamId: team.TeamId,
+				TeamId: team.TeamID,
 				UserId: req.UserId,
 			})
 			return err
@@ -160,11 +160,11 @@ func (t *TeamServiceImpl) Join(req request.TeamJoinRequest) error {
 
 func (t *TeamServiceImpl) Quit(req request.TeamQuitRequest) (err error) {
 	user, err := t.UserRepository.FindById(req.UserId)
-	if user.UserId != 0 && err == nil {
+	if user.UserID != 0 && err == nil {
 		team, err := t.TeamRepository.FindById(req.TeamId)
-		if team.TeamId != 0 {
+		if team.TeamID != 0 {
 			err = t.UserTeamRepository.Delete(modelm2m.UserTeam{
-				TeamId: team.TeamId,
+				TeamId: team.TeamID,
 				UserId: req.UserId,
 			})
 			return err

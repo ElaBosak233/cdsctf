@@ -36,9 +36,9 @@ func init() {
 	fmt.Printf("\n%s\n", banner)
 	fmt.Printf("\n%s %s\n", color.InRed("WARNING"), color.InWhiteOverRed("PgsHub is still in development."))
 	fmt.Printf("%s %s\n", color.InRed("WARNING"), color.InWhiteOverRed("All features are not guaranteed to work."))
-	fmt.Printf("\n%s %s\n", color.Ize(color.Bold, "Commit ID:"), color.Ize(color.Bold, CommitId))
-	fmt.Printf("%s %s\n", color.Ize(color.Bold, "Build At:"), color.Ize(color.Bold, BuildAt))
-	fmt.Printf("%s %s\n\n", color.Ize(color.Bold, "Issues:"), color.Ize(color.Bold, "https://github.com/elabosak233/PgsHub/issues"))
+	fmt.Printf("\n%s %s\n", color.InBold("Commit ID:"), color.InBold(CommitId))
+	fmt.Printf("%s %s\n", color.InBold("Build At:"), color.InBold(BuildAt))
+	fmt.Printf("%s %s\n\n", color.InBold("Issues:"), color.InBold("https://github.com/elabosak233/PgsHub/issues"))
 }
 
 // @title PgsHub Backend API
@@ -67,7 +67,7 @@ func main() {
 	cor := cors.DefaultConfig()
 	cor.AllowOrigins = viper.GetStringSlice("server.cors.allow_origins")
 	cor.AllowMethods = viper.GetStringSlice("server.cors.allow_methods")
-	cor.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "PgsToken"}
+	cor.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	cor.AllowCredentials = true
 	r.Use(cors.New(cor))
 
