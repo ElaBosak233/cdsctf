@@ -1,14 +1,13 @@
 package response
 
 import (
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
 )
 
 type ChallengeResponse struct {
-	model.Challenge `xorm:"extends"`
-	Pts             int64            `xorm:"-" json:"pts"`
-	Submission      model.Submission `xorm:"extends" json:"-"`
-	IsSolved        bool             `xorm:"'is_solved'" json:"is_solved"`
+	entity.Challenge `xorm:"extends"`
+	IsSolved         bool  `xorm:"-" json:"is_solved"`
+	Pts              int64 `xorm:"-" json:"pts"`
 }
 
 type ChallengeSimpleResponse struct {

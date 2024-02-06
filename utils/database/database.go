@@ -23,6 +23,7 @@ func InitDatabase() {
 	db.SetLogger(logger.Logger(zap.L()))
 	syncDatabase()
 	initAdmin()
+	initCategory()
 	selfCheck()
 }
 
@@ -58,6 +59,7 @@ func initDatabaseEngine() {
 func syncDatabase() {
 	var dbs = []interface{}{
 		&entity.User{},
+		&entity.Category{},
 		&entity.Challenge{},
 		&entity.Team{},
 		&relations.UserTeam{},
@@ -65,6 +67,9 @@ func syncDatabase() {
 		&entity.Instance{},
 		&entity.Game{},
 		&relations.GameChallenge{},
+		&entity.Image{},
+		&entity.Flag{},
+		&entity.Port{},
 	}
 	for _, v := range dbs {
 		err := db.Sync2(v)
@@ -103,5 +108,49 @@ func initAdmin() {
 			return
 		}
 		zap.L().Info("Super administrator account created successfully.")
+	}
+}
+
+func initCategory() {
+	count, _ := db.Table("category").Count(&entity.Category{})
+	if count == 0 {
+		defaultCategories := []entity.Category{
+			{
+				Name:        "misc",
+				Description: "misc",
+				ColorHex:    "#3F51B5",
+				Mdi:         "fingerprint",
+			},
+			{
+				Name:        "web",
+				Description: "web",
+				ColorHex:    "#009688",
+				Mdi:         "web",
+			},
+			{
+				Name:        "pwn",
+				Description: "pwn",
+				ColorHex:    "#673AB7",
+				Mdi:         "matrix",
+			},
+			{
+				Name:        "crypto",
+				Description: "crypto",
+				ColorHex:    "#607D8B",
+				Mdi:         "pound",
+			},
+			{
+				Name:        "reverse",
+				Description: "reverse",
+				ColorHex:    "#009688",
+				Mdi:         "chevron-triple-left",
+			},
+		}
+		_, err := db.Table("category").Insert(&defaultCategories)
+		if err != nil {
+			zap.L().Error("Category initialization failed.")
+			panic(err)
+			return
+		}
 	}
 }

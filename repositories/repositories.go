@@ -14,6 +14,10 @@ type Repositories struct {
 	GameRepository          GameRepository
 	UserTeamRepository      relations.UserTeamRepository
 	GameChallengeRepository relations.GameChallengeRepository
+	CategoryRepository      CategoryRepository
+	FlagRepository          FlagRepository
+	ImageRepository         ImageRepository
+	PortRepository          PortRepository
 }
 
 func InitRepositories(db *xorm.Engine) *Repositories {
@@ -26,5 +30,9 @@ func InitRepositories(db *xorm.Engine) *Repositories {
 		GameRepository:          NewGameRepositoryImpl(db),
 		UserTeamRepository:      relations.NewUserTeamRepositoryImpl(db),
 		GameChallengeRepository: relations.NewGameChallengeRepositoryImpl(db),
+		CategoryRepository:      NewCategoryRepositoryImpl(db),
+		FlagRepository:          NewFlagRepositoryImpl(db),
+		ImageRepository:         NewImageRepositoryImpl(db),
+		PortRepository:          NewPortRepositoryImpl(db),
 	}
 }

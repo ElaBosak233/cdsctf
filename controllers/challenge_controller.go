@@ -91,7 +91,6 @@ func (c *ChallengeControllerImpl) Create(ctx *gin.Context) {
 	createChallengeRequest := request.ChallengeCreateRequest{}
 	err := ctx.ShouldBindJSON(&createChallengeRequest)
 	if err != nil {
-		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &createChallengeRequest),
@@ -99,7 +98,6 @@ func (c *ChallengeControllerImpl) Create(ctx *gin.Context) {
 		return
 	}
 	_ = c.ChallengeService.Create(createChallengeRequest)
-	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -112,10 +110,10 @@ func (c *ChallengeControllerImpl) Create(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Authorization"
-// @Param request body request.ChallengeUpdateRequest true "ChallengeUpdateRequest"
+// @Param request body request.ChallengeUpdateRequest2 true "ChallengeUpdateRequest"
 // @Router /api/challenges/ [put]
 func (c *ChallengeControllerImpl) Update(ctx *gin.Context) {
-	var updateChallengeRequest request.ChallengeUpdateRequest
+	var updateChallengeRequest request.ChallengeUpdateRequest2
 	err := ctx.ShouldBindJSON(&updateChallengeRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

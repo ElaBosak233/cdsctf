@@ -8,7 +8,6 @@ import (
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
 	"github.com/elabosak233/pgshub/repositories"
-	"github.com/elabosak233/pgshub/utils"
 	"github.com/spf13/viper"
 	"sync"
 	"time"
@@ -74,73 +73,73 @@ func (t *InstanceServiceImpl) IsLimited(userId int64, limit int64) (remainder in
 }
 
 func (t *InstanceServiceImpl) Create(req request.InstanceCreateRequest) (res response.InstanceStatusResponse, err error) {
-	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container.request_limit"))
-	if remainder != 0 {
-		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
-	}
-	if viper.GetString("container.provider") == "docker" {
-		SetUserInstanceRequestMap(req.UserId, time.Now().Unix()) // 保存用户请求时间
-		challenge, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
-		availableInstances, count, err := t.InstanceRepository.Find(request.InstanceFindRequest{
-			UserId:      req.UserId,
-			TeamId:      req.TeamId,
-			GameId:      req.GameId,
-			IsAvailable: 1,
-		})
-		if req.TeamId == 0 && req.GameId == 0 { // 练习场限制并行
-			needToBeDeactivated := count - viper.GetInt64("global.container.parallel_limit")
-			if needToBeDeactivated > 0 {
-				for _, instance := range availableInstances {
-					if needToBeDeactivated == 0 {
-						break
-					}
-					go func() {
-						err = t.Remove(request.InstanceRemoveRequest{
-							InstanceId: instance.InstanceID,
-						})
-						if err != nil {
-							fmt.Println(err)
-						}
-					}()
-					needToBeDeactivated -= 1
-				}
-			}
-		} else if req.TeamId != 0 && req.GameId != 0 { // 比赛限制并行
-			// TODO
-		}
-		flag := utils.GenerateFlag(challenge.FlagFmt)
-		ctn := managers.NewDockerManagerImpl(
-			challenge.Image,
-			challenge.ExposedPort,
-			flag,
-			challenge.FlagEnv,
-			challenge.MemoryLimit,
-			challenge.CpuLimit,
-			time.Duration(challenge.Duration)*time.Second)
-		port, err := ctn.Setup()
-		entry := fmt.Sprintf("%s:%d", viper.GetString("container.docker.public_entry"), port)
-		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).UTC()
-		instance, err := t.InstanceRepository.Insert(entity.Instance{
-			ChallengeID: req.ChallengeId,
-			UserId:      req.UserId,
-			Flag:        flag,
-			Entry:       entry,
-			RemovedAt:   removedAt,
-		})
-		ctn.SetInstanceId(instance.InstanceID)
-		InstanceMap[instance.InstanceID] = ctn
-		go func() {
-			if ctn.RemoveAfterDuration(ctn.CancelCtx) {
-				delete(InstanceMap, instance.InstanceID)
-			}
-		}()
-		return response.InstanceStatusResponse{
-			InstanceID: instance.InstanceID,
-			Entry:      entry,
-			RemovedAt:  removedAt,
-			Status:     "running",
-		}, err
-	}
+	//remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container.request_limit"))
+	//if remainder != 0 {
+	//	return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
+	//}
+	//if viper.GetString("container.provider") == "docker" {
+	//	SetUserInstanceRequestMap(req.UserId, time.Now().Unix()) // 保存用户请求时间
+	//	challenge, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
+	//	availableInstances, count, err := t.InstanceRepository.Find(request.InstanceFindRequest{
+	//		UserId:      req.UserId,
+	//		TeamId:      req.TeamId,
+	//		GameId:      req.GameId,
+	//		IsAvailable: 1,
+	//	})
+	//	if req.TeamId == 0 && req.GameId == 0 { // 练习场限制并行
+	//		needToBeDeactivated := count - viper.GetInt64("global.container.parallel_limit")
+	//		if needToBeDeactivated > 0 {
+	//			for _, instance := range availableInstances {
+	//				if needToBeDeactivated == 0 {
+	//					break
+	//				}
+	//				go func() {
+	//					err = t.Remove(request.InstanceRemoveRequest{
+	//						InstanceId: instance.InstanceID,
+	//					})
+	//					if err != nil {
+	//						fmt.Println(err)
+	//					}
+	//				}()
+	//				needToBeDeactivated -= 1
+	//			}
+	//		}
+	//	} else if req.TeamId != 0 && req.GameId != 0 { // 比赛限制并行
+	//		// TODO
+	//	}
+	//	flag := utils.GenerateFlag(challenge.FlagFmt)
+	//	ctn := managers.NewDockerManagerImpl(
+	//		challenge.Image,
+	//		challenge.ExposedPort,
+	//		flag,
+	//		challenge.FlagEnv,
+	//		challenge.MemoryLimit,
+	//		challenge.CpuLimit,
+	//		time.Duration(challenge.Duration)*time.Second)
+	//	port, err := ctn.Setup()
+	//	entry := fmt.Sprintf("%s:%d", viper.GetString("container.docker.public_entry"), port)
+	//	removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).UTC()
+	//	instance, err := t.InstanceRepository.Insert(entity.Instance{
+	//		ChallengeID: req.ChallengeId,
+	//		UserId:      req.UserId,
+	//		Flag:        flag,
+	//		Entry:       entry,
+	//		RemovedAt:   removedAt,
+	//	})
+	//	ctn.SetInstanceId(instance.InstanceID)
+	//	InstanceMap[instance.InstanceID] = ctn
+	//	go func() {
+	//		if ctn.RemoveAfterDuration(ctn.CancelCtx) {
+	//			delete(InstanceMap, instance.InstanceID)
+	//		}
+	//	}()
+	//	return response.InstanceStatusResponse{
+	//		InstanceID: instance.InstanceID,
+	//		Entry:      entry,
+	//		RemovedAt:  removedAt,
+	//		Status:     "running",
+	//	}, err
+	//}
 	return res, errors.New("创建失败")
 }
 

@@ -3,53 +3,28 @@ package request
 import "github.com/elabosak233/pgshub/models/entity"
 
 type ChallengeCreateRequest struct {
-	Title         string  `json:"title" default:"新题目"`
-	Description   string  `json:"description" default:"题目描述"`
-	Category      string  `json:"category" default:"misc"`
-	HasAttachment *bool   `json:"has_attachment" default:"false"`
-	IsPracticable *bool   `json:"is_practicable" default:"false"`
-	IsDynamic     *bool   `json:"is_dynamic" default:"true"`
-	ExposedPort   int64   `json:"exposed_port" default:"80"`
-	Image         string  `json:"image" default:"nginx"`
-	Flag          string  `json:"flag" default:"PgsCTF{Th4nk5_4_us1ng_PgsHub}"`
-	FlagEnv       string  `json:"flag_env" default:"FLAG"`
-	FlagFmt       string  `json:"flag_fmt" default:"PgsCTF{[UUID]}"`
-	CpuLimit      float64 `json:"cpu_limit" default:"1"`
-	MemoryLimit   int64   `json:"memory_limit" default:"512"`
-	Duration      int64   `json:"duration" default:"1800"`
-	Difficulty    int64   `json:"difficulty" default:"1"`
-	PracticePts   int64   `json:"practice_pts" default:"200"`
+	Title         string          `json:"title"`
+	Description   string          `json:"description"`
+	HasAttachment *bool           `json:"has_attachment"`
+	IsPracticable *bool           `json:"is_practicable"`
+	CategoryID    int64           `json:"category_id"`
+	Duration      int64           `json:"duration"`
+	Difficulty    int64           `json:"difficulty"`
+	Images        *[]entity.Image `json:"images"`
+	Flags         *[]entity.Flag  `json:"flags"`
 }
 
-type ChallengeCreateRequest2 struct {
-	Title         string         `json:"title"`
-	Description   string         `json:"description"`
-	HasAttachment *bool          `json:"has_attachment"`
-	IsPracticable *bool          `json:"is_practicable"`
-	CategoryID    int64          `json:"category_id"`
-	Duration      int64          `json:"duration"`
-	Difficulty    int64          `json:"difficulty"`
-	Images        []entity.Image `json:"image_ids"`
-}
-
-type ChallengeUpdateRequest struct {
-	ChallengeId   int64   `json:"id"`
-	Title         string  `json:"title"`
-	Description   string  `json:"description"`
-	Category      string  `json:"category"`
-	HasAttachment *bool   `json:"has_attachment"`
-	IsPracticable *bool   `json:"is_practicable"`
-	IsDynamic     *bool   `json:"is_dynamic"`
-	ExposedPort   int     `json:"exposed_port"`
-	Image         string  `json:"image"`
-	Flag          string  `json:"flag"`
-	FlagEnv       string  `json:"flag_env"`
-	FlagFmt       string  `json:"flag_fmt"`
-	CpuLimit      float64 `json:"cpu_limit"`
-	MemoryLimit   int64   `json:"memory_limit"`
-	Duration      int64   `json:"duration"`
-	Difficulty    int64   `json:"difficulty"`
-	PracticePts   int64   `json:"practice_pts"`
+type ChallengeUpdateRequest2 struct {
+	ChallengeID   int64           `json:"id"`
+	Title         string          `json:"title"`
+	Description   string          `json:"description"`
+	HasAttachment *bool           `json:"has_attachment"`
+	IsPracticable *bool           `json:"is_practicable"`
+	CategoryID    int64           `json:"category_id"`
+	Duration      int64           `json:"duration"`
+	Difficulty    int64           `json:"difficulty"`
+	Images        *[]entity.Image `json:"images"`
+	Flags         *[]entity.Flag  `json:"flags"`
 }
 
 type ChallengeDeleteRequest struct {
