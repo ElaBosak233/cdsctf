@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/elabosak233/pgshub/hubs"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/services"
 	"github.com/elabosak233/pgshub/utils/convertor"
@@ -74,7 +73,6 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 		"token": tokenString,
 	})
 	zap.L().Info(fmt.Sprintf("用户 %s 登录成功", user.Username), zap.Int64("user_id", user.UserID))
-	hubs.SendMsg(1, fmt.Sprintf("用户 %s 登录了", user.Username))
 }
 
 // VerifyToken

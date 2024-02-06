@@ -1,53 +1,86 @@
 definitions:
-  request.ChallengeCreateRequest:
+  entity.Flag:
     properties:
-      category:
-        default: misc
+      challenge_id:
+        description: The challenge id. The flag belongs to.
+        type: integer
+      content:
+        description: The flag content. Maybe a string or a regex, or the placeholder
+          for dynamic challenges. (Such as "flag{friendsh1p_1s_magic}" or "flag{[a-zA-Z]{5}}"
+          or "flag{[UUID]}")
         type: string
+      created_at:
+        description: The flag created time.
+        type: string
+      env:
+        description: The environment variable which is used to be injected with the
+          flag.
+        type: string
+      id:
+        description: The flag id.
+        type: integer
+      type:
+        description: The flag type. ("static"/"dynamic"/"pattern")
+        type: string
+    type: object
+  entity.Image:
+    properties:
+      challenge_id:
+        type: integer
       cpu_limit:
-        default: 1
         type: number
       description:
-        default: 题目描述
+        type: string
+      id:
+        type: integer
+      memory_limit:
+        type: integer
+      name:
+        description: A name of image is always repository + tag. (Such as "nginx:latest")
+        type: string
+      ports:
+        items:
+          $ref: '#/definitions/entity.Port'
+        type: array
+    type: object
+  entity.Port:
+    properties:
+      description:
+        description: The port's description.
+        type: string
+      id:
+        description: The port's id. As primary key.
+        type: integer
+      image_id:
+        description: The Image which the port belongs to.
+        type: integer
+      value:
+        description: The port number.
+        type: integer
+    type: object
+  request.ChallengeCreateRequest:
+    properties:
+      category_id:
+        type: integer
+      description:
         type: string
       difficulty:
-        default: 1
         type: integer
       duration:
-        default: 1800
         type: integer
-      exposed_port:
-        default: 80
-        type: integer
-      flag:
-        default: PgsCTF{Th4nk5_4_us1ng_PgsHub}
-        type: string
-      flag_env:
-        default: FLAG
-        type: string
-      flag_fmt:
-        default: PgsCTF{[UUID]}
-        type: string
+      flags:
+        items:
+          $ref: '#/definitions/entity.Flag'
+        type: array
       has_attachment:
-        default: false
         type: boolean
-      image:
-        default: nginx
-        type: string
-      is_dynamic:
-        default: true
-        type: boolean
+      images:
+        items:
+          $ref: '#/definitions/entity.Image'
+        type: array
       is_practicable:
-        default: false
         type: boolean
-      memory_limit:
-        default: 512
-        type: integer
-      practice_pts:
-        default: 200
-        type: integer
       title:
-        default: 新题目
         type: string
     type: object
   request.ChallengeDeleteRequest:
@@ -57,40 +90,30 @@ definitions:
     required:
     - id
     type: object
-  request.ChallengeUpdateRequest:
+  request.ChallengeUpdateRequest2:
     properties:
-      category:
-        type: string
-      cpu_limit:
-        type: number
+      category_id:
+        type: integer
       description:
         type: string
       difficulty:
         type: integer
       duration:
         type: integer
-      exposed_port:
-        type: integer
-      flag:
-        type: string
-      flag_env:
-        type: string
-      flag_fmt:
-        type: string
+      flags:
+        items:
+          $ref: '#/definitions/entity.Flag'
+        type: array
       has_attachment:
         type: boolean
       id:
         type: integer
-      image:
-        type: string
-      is_dynamic:
-        type: boolean
+      images:
+        items:
+          $ref: '#/definitions/entity.Image'
+        type: array
       is_practicable:
         type: boolean
-      memory_limit:
-        type: integer
-      practice_pts:
-        type: integer
       title:
         type: string
     type: object
@@ -742,7 +765,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/request.ChallengeUpdateRequest'
+          $ref: '#/definitions/request.ChallengeUpdateRequest2'
       produces:
       - application/json
       responses: {}

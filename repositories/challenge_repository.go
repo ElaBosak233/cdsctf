@@ -10,8 +10,8 @@ import (
 )
 
 type ChallengeRepository interface {
-	Insert(user entity.Challenge) error
-	Update(user entity.Challenge) error
+	Insert(challenge entity.Challenge) (c entity.Challenge, err error)
+	Update(challenge entity.Challenge) (c entity.Challenge, err error)
 	Delete(id int64) error
 	FindById(id int64, isDetailed int) (challenge entity.Challenge, err error)
 	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, count int64, err error)
@@ -25,9 +25,9 @@ func NewChallengeRepositoryImpl(Db *xorm.Engine) ChallengeRepository {
 	return &ChallengeRepositoryImpl{Db: Db}
 }
 
-func (t *ChallengeRepositoryImpl) Insert(challenge entity.Challenge) error {
-	_, err := t.Db.Table("challenge").Insert(&challenge)
-	return err
+func (t *ChallengeRepositoryImpl) Insert(challenge entity.Challenge) (c entity.Challenge, err error) {
+	_, err = t.Db.Table("challenge").Insert(&challenge)
+	return challenge, err
 }
 
 func (t *ChallengeRepositoryImpl) Delete(id int64) error {
@@ -36,10 +36,10 @@ func (t *ChallengeRepositoryImpl) Delete(id int64) error {
 	return err
 }
 
-func (t *ChallengeRepositoryImpl) Update(challenge entity.Challenge) error {
+func (t *ChallengeRepositoryImpl) Update(challenge entity.Challenge) (c entity.Challenge, err error) {
 	fmt.Println(challenge.ChallengeID)
-	_, err := t.Db.Table("challenge").ID(challenge.ChallengeID).Update(&challenge)
-	return err
+	_, err = t.Db.Table("challenge").ID(challenge.ChallengeID).Update(&challenge)
+	return challenge, err
 }
 
 func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, count int64, err error) {
@@ -101,7 +101,7 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 			"submission.challenge_id = challenge.id AND submission.status = 2 AND submission.game_id = 0 AND submission.user_id = ?",
 			req.UserId)
 	}
-	err = db.Find(&challenges)
+	err = db.Cols("challenge.*", "submission.*").Find(&challenges)
 	return challenges, count, err
 }
 

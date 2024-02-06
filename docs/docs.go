@@ -537,7 +537,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.ChallengeUpdateRequest"
+                            "$ref": "#/definitions/request.ChallengeUpdateRequest2"
                         }
                     }
                 ],
@@ -1612,72 +1612,121 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "entity.Flag": {
+            "type": "object",
+            "properties": {
+                "challenge_id": {
+                    "description": "The challenge id. The flag belongs to.",
+                    "type": "integer"
+                },
+                "content": {
+                    "description": "The flag content. Maybe a string or a regex, or the placeholder for dynamic challenges. (Such as \"flag{friendsh1p_1s_magic}\" or \"flag{[a-zA-Z]{5}}\" or \"flag{[UUID]}\")",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "The flag created time.",
+                    "type": "string"
+                },
+                "env": {
+                    "description": "The environment variable which is used to be injected with the flag.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "The flag id.",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "The flag type. (\"static\"/\"dynamic\"/\"pattern\")",
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Image": {
+            "type": "object",
+            "properties": {
+                "challenge_id": {
+                    "type": "integer"
+                },
+                "cpu_limit": {
+                    "type": "number"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "memory_limit": {
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "A name of image is always repository + tag. (Such as \"nginx:latest\")",
+                    "type": "string"
+                },
+                "ports": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Port"
+                    }
+                }
+            }
+        },
+        "entity.Port": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "The port's description.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "The port's id. As primary key.",
+                    "type": "integer"
+                },
+                "image_id": {
+                    "description": "The Image which the port belongs to.",
+                    "type": "integer"
+                },
+                "value": {
+                    "description": "The port number.",
+                    "type": "integer"
+                }
+            }
+        },
         "request.ChallengeCreateRequest": {
             "type": "object",
             "properties": {
-                "category": {
-                    "type": "string",
-                    "default": "misc"
-                },
-                "cpu_limit": {
-                    "type": "number",
-                    "default": 1
+                "category_id": {
+                    "type": "integer"
                 },
                 "description": {
-                    "type": "string",
-                    "default": "题目描述"
+                    "type": "string"
                 },
                 "difficulty": {
-                    "type": "integer",
-                    "default": 1
+                    "type": "integer"
                 },
                 "duration": {
-                    "type": "integer",
-                    "default": 1800
+                    "type": "integer"
                 },
-                "exposed_port": {
-                    "type": "integer",
-                    "default": 80
-                },
-                "flag": {
-                    "type": "string",
-                    "default": "PgsCTF{Th4nk5_4_us1ng_PgsHub}"
-                },
-                "flag_env": {
-                    "type": "string",
-                    "default": "FLAG"
-                },
-                "flag_fmt": {
-                    "type": "string",
-                    "default": "PgsCTF{[UUID]}"
+                "flags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Flag"
+                    }
                 },
                 "has_attachment": {
-                    "type": "boolean",
-                    "default": false
+                    "type": "boolean"
                 },
-                "image": {
-                    "type": "string",
-                    "default": "nginx"
-                },
-                "is_dynamic": {
-                    "type": "boolean",
-                    "default": true
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Image"
+                    }
                 },
                 "is_practicable": {
-                    "type": "boolean",
-                    "default": false
-                },
-                "memory_limit": {
-                    "type": "integer",
-                    "default": 512
-                },
-                "practice_pts": {
-                    "type": "integer",
-                    "default": 200
+                    "type": "boolean"
                 },
                 "title": {
-                    "type": "string",
-                    "default": "新题目"
+                    "type": "string"
                 }
             }
         },
@@ -1692,14 +1741,11 @@ const docTemplate = `{
                 }
             }
         },
-        "request.ChallengeUpdateRequest": {
+        "request.ChallengeUpdateRequest2": {
             "type": "object",
             "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "cpu_limit": {
-                    "type": "number"
+                "category_id": {
+                    "type": "integer"
                 },
                 "description": {
                     "type": "string"
@@ -1710,17 +1756,11 @@ const docTemplate = `{
                 "duration": {
                     "type": "integer"
                 },
-                "exposed_port": {
-                    "type": "integer"
-                },
-                "flag": {
-                    "type": "string"
-                },
-                "flag_env": {
-                    "type": "string"
-                },
-                "flag_fmt": {
-                    "type": "string"
+                "flags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Flag"
+                    }
                 },
                 "has_attachment": {
                     "type": "boolean"
@@ -1728,20 +1768,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "image": {
-                    "type": "string"
-                },
-                "is_dynamic": {
-                    "type": "boolean"
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Image"
+                    }
                 },
                 "is_practicable": {
                     "type": "boolean"
-                },
-                "memory_limit": {
-                    "type": "integer"
-                },
-                "practice_pts": {
-                    "type": "integer"
                 },
                 "title": {
                     "type": "string"

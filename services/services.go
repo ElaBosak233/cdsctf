@@ -11,6 +11,7 @@ type Services struct {
 	TeamService       TeamService
 	SubmissionService SubmissionService
 	GameService       GameService
+	CategoryService   CategoryService
 }
 
 func InitServices(appRepository *repositories.Repositories) *Services {
@@ -23,5 +24,6 @@ func InitServices(appRepository *repositories.Repositories) *Services {
 		TeamService:       NewTeamServiceImpl(appRepository),
 		SubmissionService: NewSubmissionServiceImpl(appRepository),
 		GameService:       NewGameServiceImpl(appRepository),
+		CategoryService:   NewCategoryServiceImpl(appRepository),
 	}
 }

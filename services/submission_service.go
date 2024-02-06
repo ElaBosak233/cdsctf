@@ -1,12 +1,10 @@
 package services
 
 import (
-	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
 	"github.com/elabosak233/pgshub/repositories"
 	"github.com/elabosak233/pgshub/repositories/relations"
-	"github.com/elabosak233/pgshub/utils"
 	"math"
 	"sync"
 )
@@ -72,51 +70,51 @@ func (t *SubmissionServiceImpl) JudgeStaticChallenge(reqFlag string, challengeFl
 var createSync = sync.RWMutex{}
 
 func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (status int, pts int64, err error) {
-	challenge, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
-	if err != nil {
-		return 0, 0, err
-	}
-	if *(challenge.IsDynamic) && req.Flag != utils.GenerateFlag(challenge.FlagFmt) {
-		status, err = t.JudgeDynamicChallenge(req)
-	} else {
-		status = max(t.JudgeStaticChallenge(req.Flag, challenge.Flag), t.JudgeStaticChallenge(req.Flag, challenge.FlagFmt))
-	}
-	createSync.Lock()
-	defer createSync.Unlock()
-	// 判断是否重复提交
-	if status == 2 {
-		_, n, _ := t.SubmissionRepository.Find(request.SubmissionFindRequest{
-			UserId:      req.UserId,
-			Status:      2,
-			ChallengeId: req.ChallengeId,
-			TeamId:      req.TeamId,
-			GameId:      req.GameId,
-		})
-		if n > 0 {
-			status = 4
-		}
-	}
-	if status == 2 {
-		if req.GameId != 0 && req.TeamId != 0 {
-			challenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(req.GameId, []int64{req.ChallengeId})
-			submissions, _, _ := t.SubmissionRepository.Find(request.SubmissionFindRequest{
-				GameId:      req.GameId,
-				ChallengeId: req.ChallengeId,
-			})
-			pts = utils.CalculateChallengePts(challenges[0].MaxPts, challenges[0].MinPts, challenge.Difficulty, len(submissions))
-		} else {
-			pts = challenge.PracticePts
-		}
-	}
-	err = t.SubmissionRepository.Insert(entity.Submission{
-		Flag:        req.Flag,
-		UserID:      req.UserId,
-		ChallengeID: req.ChallengeId,
-		TeamID:      req.TeamId,
-		GameID:      req.GameId,
-		Status:      status,
-		Pts:         pts,
-	})
+	//challenge, err := t.ChallengeRepository.FindById(req.ChallengeId, 1)
+	//if err != nil {
+	//	return 0, 0, err
+	//}
+	//if *(challenge.IsDynamic) && req.Flag != utils.GenerateFlag(challenge.FlagFmt) {
+	//	status, err = t.JudgeDynamicChallenge(req)
+	//} else {
+	//	status = max(t.JudgeStaticChallenge(req.Flag, challenge.Flag), t.JudgeStaticChallenge(req.Flag, challenge.FlagFmt))
+	//}
+	//createSync.Lock()
+	//defer createSync.Unlock()
+	//// 判断是否重复提交
+	//if status == 2 {
+	//	_, n, _ := t.SubmissionRepository.Find(request.SubmissionFindRequest{
+	//		UserId:      req.UserId,
+	//		Status:      2,
+	//		ChallengeId: req.ChallengeId,
+	//		TeamId:      req.TeamId,
+	//		GameId:      req.GameId,
+	//	})
+	//	if n > 0 {
+	//		status = 4
+	//	}
+	//}
+	//if status == 2 {
+	//	if req.GameId != 0 && req.TeamId != 0 {
+	//		challenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(req.GameId, []int64{req.ChallengeId})
+	//		submissions, _, _ := t.SubmissionRepository.Find(request.SubmissionFindRequest{
+	//			GameId:      req.GameId,
+	//			ChallengeId: req.ChallengeId,
+	//		})
+	//		pts = utils.CalculateChallengePts(challenges[0].MaxPts, challenges[0].MinPts, challenge.Difficulty, len(submissions))
+	//	} else {
+	//		pts = challenge.PracticePts
+	//	}
+	//}
+	//err = t.SubmissionRepository.Insert(entity.Submission{
+	//	Flag:        req.Flag,
+	//	UserID:      req.UserId,
+	//	ChallengeID: req.ChallengeId,
+	//	TeamID:      req.TeamId,
+	//	GameID:      req.GameId,
+	//	Status:      status,
+	//	Pts:         pts,
+	//})
 	return status, pts, err
 }
 
