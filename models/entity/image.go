@@ -10,6 +10,7 @@ type Image struct {
 	MemoryLimit int64   `xorm:"'memory_limit' default(256)" json:"memory_limit"`
 	Description string  `xorm:"'description' text" json:"description"`
 	Ports       []Port  `xorm:"-" json:"ports"`
+	Envs        []Env   `xorm:"-" json:"envs"`
 }
 
 func (i *Image) TableName() string {

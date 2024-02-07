@@ -18,8 +18,8 @@ type Game struct {
 	SecondBloodRewardRatio float64   `xorm:"'second_blood_reward_ratio' default(3)" json:"second_blood_reward_ratio"`       // The prize ratio of second blood.
 	ThirdBloodRewardRatio  float64   `xorm:"'third_blood_reward_ratio' default(1)" json:"third_blood_reward_ratio"`         // The prize ratio of third blood.
 	IsNeedWriteUp          *bool     `xorm:"'is_need_write_up' bool default(true) notnull" json:"is_need_write_up"`         // Whether the game need write up.
-	StartedAt              time.Time `xorm:"'started_at' notnull" json:"started_at"`                                        // The game's start time.
-	EndedAt                time.Time `xorm:"'ended_at' notnull" json:"ended_at"`                                            // The game's end time.
+	StartedAt              int64     `xorm:"'started_at' notnull" json:"started_at"`                                        // The game's start time. (Unix)
+	EndedAt                int64     `xorm:"'ended_at' notnull" json:"ended_at"`                                            // The game's end time. (Unix)
 	CreatedAt              time.Time `xorm:"'created_at' created" json:"created_at"`                                        // The game's creation time.
 	UpdatedAt              time.Time `xorm:"'updated_at' updated" json:"updated_at"`                                        // The game's last update time.
 }

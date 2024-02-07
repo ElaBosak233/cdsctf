@@ -5,7 +5,7 @@ import "github.com/elabosak233/pgshub/services"
 type Controllers struct {
 	UserController       UserController
 	ChallengeController  ChallengeController
-	InstanceController   InstanceController
+	InstanceController   PodController
 	ConfigController     ConfigController
 	AssetController      AssetController
 	TeamController       TeamController

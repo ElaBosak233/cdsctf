@@ -64,12 +64,17 @@ func syncDatabase() {
 		&entity.Team{},
 		&relations.UserTeam{},
 		&entity.Submission{},
-		&entity.Instance{},
+		&entity.Nat{},
+		&entity.Container{},
+		&entity.Pod{},
 		&entity.Game{},
 		&relations.GameChallenge{},
 		&entity.Image{},
 		&entity.Flag{},
+		&entity.FlagGen{},
 		&entity.Port{},
+		&entity.Nat{},
+		&entity.Env{},
 	}
 	for _, v := range dbs {
 		err := db.Sync2(v)
@@ -82,9 +87,9 @@ func syncDatabase() {
 // SelfCheck 数据库自检
 // 主要用于配平不合理的时间数据
 func selfCheck() {
-	// 对于 instances 中的所有数据，若 removed_at 大于当前时间，则强制赋值为现在的时间，以免后续程序错误判断
-	_, _ = db.Table("instance").Where("removed_at > ?", time.Now().UTC()).Update(entity.Instance{
-		RemovedAt: time.Now().UTC(),
+	// 对于 pods 中的所有数据，若 removed_at 大于当前时间，则强制赋值为现在的时间，以免后续程序错误判断
+	_, _ = db.Table("pod").Where("removed_at > ?", time.Now().Unix()).Update(entity.Pod{
+		RemovedAt: time.Now().Unix(),
 	})
 }
 

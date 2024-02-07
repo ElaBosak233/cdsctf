@@ -51,11 +51,11 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		if challengeValidator.IsTitleStringValid(req.Title) {
 			q = q.Where("title LIKE ?", "%"+req.Title+"%")
 		}
-		if challengeValidator.IsPracticableIntValid(req.IsPracticable) {
-			q = q.Where("is_practicable = ?", req.IsPracticable == 1)
+		if req.IsPracticable != nil {
+			q = q.Where("is_practicable = ?", *(req.IsPracticable))
 		}
-		if challengeValidator.IsDynamicIntValid(req.IsDynamic) {
-			q = q.Where("is_dynamic = ?", req.IsDynamic == 1)
+		if req.IsDynamic != nil {
+			q = q.Where("is_dynamic = ?", *(req.IsDynamic))
 		}
 		if challengeValidator.IsDifficultyIntValid(req.Difficulty) {
 			q = q.Where("difficulty = ?", req.Difficulty)

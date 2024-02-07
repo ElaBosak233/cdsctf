@@ -1,4 +1,15 @@
 definitions:
+  entity.Env:
+    properties:
+      id:
+        type: integer
+      image_id:
+        type: integer
+      key:
+        type: string
+      value:
+        type: string
+    type: object
   entity.Flag:
     properties:
       challenge_id:
@@ -8,9 +19,6 @@ definitions:
         description: The flag content. Maybe a string or a regex, or the placeholder
           for dynamic challenges. (Such as "flag{friendsh1p_1s_magic}" or "flag{[a-zA-Z]{5}}"
           or "flag{[UUID]}")
-        type: string
-      created_at:
-        description: The flag created time.
         type: string
       env:
         description: The environment variable which is used to be injected with the
@@ -31,6 +39,10 @@ definitions:
         type: number
       description:
         type: string
+      envs:
+        items:
+          $ref: '#/definitions/entity.Env'
+        type: array
       id:
         type: integer
       memory_limit:
@@ -78,6 +90,8 @@ definitions:
         items:
           $ref: '#/definitions/entity.Image'
         type: array
+      is_dynamic:
+        type: boolean
       is_practicable:
         type: boolean
       title:
@@ -90,7 +104,7 @@ definitions:
     required:
     - id
     type: object
-  request.ChallengeUpdateRequest2:
+  request.ChallengeUpdateRequest:
     properties:
       category_id:
         type: integer
@@ -179,17 +193,6 @@ definitions:
     required:
     - challenge_id
     type: object
-  request.InstanceRemoveRequest:
-    properties:
-      game_id:
-        type: integer
-      id:
-        type: integer
-      team_id:
-        type: integer
-    required:
-    - id
-    type: object
   request.InstanceRenewRequest:
     properties:
       game_id:
@@ -207,6 +210,17 @@ definitions:
         type: string
       title:
         type: string
+    type: object
+  request.PodRemoveRequest:
+    properties:
+      game_id:
+        type: integer
+      id:
+        type: integer
+      team_id:
+        type: integer
+    required:
+    - id
     type: object
   request.SubmissionCreateRequest:
     properties:
@@ -696,13 +710,13 @@ paths:
         type: array
       - in: query
         name: is_detailed
-        type: integer
+        type: boolean
       - in: query
         name: is_dynamic
-        type: integer
+        type: boolean
       - in: query
         name: is_practicable
-        type: integer
+        type: boolean
       - in: query
         name: page
         type: integer
@@ -765,7 +779,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/request.ChallengeUpdateRequest2'
+          $ref: '#/definitions/request.ChallengeUpdateRequest'
       produces:
       - application/json
       responses: {}
@@ -870,7 +884,7 @@ paths:
       summary: 广播消息
       tags:
       - 比赛
-  /api/instances/:
+  /api/pods/:
     delete:
       description: 停止并删除容器
       parameters:
@@ -879,12 +893,12 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: InstanceRemoveRequest
+      - description: PodRemoveRequest
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/request.InstanceRemoveRequest'
+          $ref: '#/definitions/request.PodRemoveRequest'
       produces:
       - application/json
       responses: {}
@@ -907,7 +921,7 @@ paths:
         type: integer
       - in: query
         name: is_available
-        type: integer
+        type: boolean
       - in: query
         name: page
         type: integer
@@ -965,7 +979,7 @@ paths:
       summary: 容器续期
       tags:
       - 实例
-  /api/instances/{id}:
+  /api/pods/{id}:
     get:
       description: 实例查询
       parameters:

@@ -36,31 +36,24 @@ func NewChallengeController(appService *services.Services) ChallengeController {
 // @Param input query request.ChallengeFindRequest false "ChallengeFindRequest"
 // @Router /api/challenges/ [get]
 func (c *ChallengeControllerImpl) Find(ctx *gin.Context) {
-	isDetailed := func() int {
-		if ctx.GetInt64("UserRole") <= 2 && convertor.ToIntD(ctx.Query("is_detailed"), 0) == 1 {
-			return 1
-		}
-		return 0
-	}
-	isPracticable := func() int {
+	isDetailed := func() *bool {
 		if ctx.GetInt64("UserRole") <= 2 {
-			switch convertor.ToIntD(ctx.Query("is_practicable"), -1) {
-			case 0:
-				return 0
-			case 1:
-				return 1
-			case -1:
-				return -1
-			}
+			return convertor.ToBoolP(ctx.Query("is_detailed"))
 		}
-		return 1
+		return convertor.FalseP()
+	}
+	isPracticable := func() *bool {
+		if ctx.GetInt64("UserRole") <= 2 {
+			return convertor.ToBoolP(ctx.Query("is_practicable"))
+		}
+		return convertor.TrueP()
 	}
 	challengeData, pageCount, total, _ := c.ChallengeService.Find(request.ChallengeFindRequest{
 		Title:         ctx.Query("title"),
 		Category:      ctx.Query("category"),
 		IsPracticable: isPracticable(),
 		ChallengeIds:  convertor.ToInt64SliceD(ctx.QueryArray("id"), make([]int64, 0)),
-		IsDynamic:     convertor.ToIntD(ctx.Query("is_dynamic"), -1),
+		IsDynamic:     convertor.ToBoolP(ctx.Query("is_dynamic")),
 		Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), -1),
 		UserId:        ctx.GetInt64("UserID"),
 		GameId:        convertor.ToInt64D(ctx.Query("game_id"), -1),
@@ -110,10 +103,10 @@ func (c *ChallengeControllerImpl) Create(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Authorization"
-// @Param request body request.ChallengeUpdateRequest2 true "ChallengeUpdateRequest"
+// @Param request body request.ChallengeUpdateRequest true "ChallengeUpdateRequest"
 // @Router /api/challenges/ [put]
 func (c *ChallengeControllerImpl) Update(ctx *gin.Context) {
-	var updateChallengeRequest request.ChallengeUpdateRequest2
+	var updateChallengeRequest request.ChallengeUpdateRequest
 	err := ctx.ShouldBindJSON(&updateChallengeRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

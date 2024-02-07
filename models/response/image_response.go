@@ -1,8 +1,11 @@
 package response
 
+import "github.com/elabosak233/pgshub/models/entity"
+
 type ImageResponse struct {
 	ImageSimpleResponse
 	Ports []PortSimpleResponse `xorm:"-" json:"ports"`
+	Envs  []entity.Env         `xorm:"-" json:"envs"`
 }
 
 type ImageSimpleResponse struct {

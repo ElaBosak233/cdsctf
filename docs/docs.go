@@ -461,17 +461,17 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
+                        "type": "boolean",
                         "name": "is_detailed",
                         "in": "query"
                     },
                     {
-                        "type": "integer",
+                        "type": "boolean",
                         "name": "is_dynamic",
                         "in": "query"
                     },
                     {
-                        "type": "integer",
+                        "type": "boolean",
                         "name": "is_practicable",
                         "in": "query"
                     },
@@ -537,7 +537,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.ChallengeUpdateRequest2"
+                            "$ref": "#/definitions/request.ChallengeUpdateRequest"
                         }
                     }
                 ],
@@ -753,7 +753,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/instances/": {
+        "/api/pods/": {
             "get": {
                 "description": "实例查询",
                 "produces": [
@@ -782,7 +782,7 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
+                        "type": "boolean",
                         "name": "is_available",
                         "in": "query"
                     },
@@ -883,19 +883,19 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "InstanceRemoveRequest",
+                        "description": "PodRemoveRequest",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.InstanceRemoveRequest"
+                            "$ref": "#/definitions/request.PodRemoveRequest"
                         }
                     }
                 ],
                 "responses": {}
             }
         },
-        "/api/instances/{id}": {
+        "/api/pods/{id}": {
             "get": {
                 "description": "实例查询",
                 "produces": [
@@ -1612,6 +1612,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "entity.Env": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "image_id": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.Flag": {
             "type": "object",
             "properties": {
@@ -1621,10 +1638,6 @@ const docTemplate = `{
                 },
                 "content": {
                     "description": "The flag content. Maybe a string or a regex, or the placeholder for dynamic challenges. (Such as \"flag{friendsh1p_1s_magic}\" or \"flag{[a-zA-Z]{5}}\" or \"flag{[UUID]}\")",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "The flag created time.",
                     "type": "string"
                 },
                 "env": {
@@ -1652,6 +1665,12 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "envs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Env"
+                    }
                 },
                 "id": {
                     "type": "integer"
@@ -1722,6 +1741,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/entity.Image"
                     }
                 },
+                "is_dynamic": {
+                    "type": "boolean"
+                },
                 "is_practicable": {
                     "type": "boolean"
                 },
@@ -1741,7 +1763,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request.ChallengeUpdateRequest2": {
+        "request.ChallengeUpdateRequest": {
             "type": "object",
             "properties": {
                 "category_id": {
@@ -1877,23 +1899,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.InstanceRemoveRequest": {
-            "type": "object",
-            "required": [
-                "id"
-            ],
-            "properties": {
-                "game_id": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "team_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "request.InstanceRenewRequest": {
             "type": "object",
             "required": [
@@ -1919,6 +1924,23 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "request.PodRemoveRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "game_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "team_id": {
+                    "type": "integer"
                 }
             }
         },
