@@ -10,7 +10,7 @@ type Repositories struct {
 	ChallengeRepository     ChallengeRepository
 	TeamRepository          TeamRepository
 	SubmissionRepository    SubmissionRepository
-	InstanceRepository      InstanceRepository
+	PodRepository           PodRepository
 	GameRepository          GameRepository
 	UserTeamRepository      relations.UserTeamRepository
 	GameChallengeRepository relations.GameChallengeRepository
@@ -18,6 +18,10 @@ type Repositories struct {
 	FlagRepository          FlagRepository
 	ImageRepository         ImageRepository
 	PortRepository          PortRepository
+	NatRepository           NatRepository
+	ContainerRepository     ContainerRepository
+	EnvRepository           EnvRepository
+	FlagGenRepository       FlagGenRepository
 }
 
 func InitRepositories(db *xorm.Engine) *Repositories {
@@ -26,7 +30,7 @@ func InitRepositories(db *xorm.Engine) *Repositories {
 		ChallengeRepository:     NewChallengeRepositoryImpl(db),
 		TeamRepository:          NewTeamRepositoryImpl(db),
 		SubmissionRepository:    NewSubmissionRepositoryImpl(db),
-		InstanceRepository:      NewInstanceRepositoryImpl(db),
+		PodRepository:           NewPodRepositoryImpl(db),
 		GameRepository:          NewGameRepositoryImpl(db),
 		UserTeamRepository:      relations.NewUserTeamRepositoryImpl(db),
 		GameChallengeRepository: relations.NewGameChallengeRepositoryImpl(db),
@@ -34,5 +38,9 @@ func InitRepositories(db *xorm.Engine) *Repositories {
 		FlagRepository:          NewFlagRepositoryImpl(db),
 		ImageRepository:         NewImageRepositoryImpl(db),
 		PortRepository:          NewPortRepositoryImpl(db),
+		NatRepository:           NewNatRepositoryImpl(db),
+		ContainerRepository:     NewContainerRepositoryImpl(db),
+		EnvRepository:           NewEnvRepositoryImpl(db),
+		FlagGenRepository:       NewFlagGenRepositoryImpl(db),
 	}
 }

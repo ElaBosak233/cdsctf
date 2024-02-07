@@ -10,71 +10,106 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/elabosak233/pgshub/containers/providers"
-	"github.com/elabosak233/pgshub/utils/convertor"
+	"github.com/elabosak233/pgshub/models/entity"
 	"go.uber.org/zap"
 	"strconv"
 	"time"
 )
 
 type DockerManager struct {
-	InstanceID  int64
+	ContainerID int64
 	RespID      string
 	Image       string
 	Inspect     types.ContainerJSON
 	Port        int
-	ExposedPort int
-	FlagStr     string
-	FlagEnv     string
+	ExposedPort []entity.Port
+	Env         []entity.Env
 	MemoryLimit int64   // MB
-	CpuLimit    float64 // Core
+	CPULimit    float64 // Core
 	Duration    time.Duration
 	CancelCtx   context.Context
 	CancelFunc  context.CancelFunc
 }
 
-func NewDockerManagerImpl(imageName string, exposedPort int, flagStr string, flagEnv string, memoryLimit int64, cpuLimit float64, duration time.Duration) *DockerManager {
+func NewDockerManagerImpl(imageName string, exposedPort []entity.Port, env []entity.Env, memoryLimit int64, cpuLimit float64, duration time.Duration) *DockerManager {
 	return &DockerManager{
 		Image:       imageName,
 		ExposedPort: exposedPort,
 		Duration:    duration,
-		FlagStr:     flagStr,
-		FlagEnv:     flagEnv,
+		Env:         env,
 		MemoryLimit: memoryLimit,
-		CpuLimit:    cpuLimit,
+		CPULimit:    cpuLimit,
 	}
 }
 
-func (c *DockerManager) SetInstanceId(instanceId int64) {
-	c.InstanceID = instanceId
+func (c *DockerManager) SetContainerID(containerID int64) {
+	c.ContainerID = containerID
 }
 
-func (c *DockerManager) Setup() (port int, err error) {
-	env := []string{fmt.Sprintf("%s=%s", c.FlagEnv, c.FlagStr)}
+func (c *DockerManager) Setup() (assignedPorts nat.PortMap, err error) {
+	var envs []string
+	for _, env := range c.Env {
+		envs = append(envs, fmt.Sprintf("%s=%s", env.Key, env.Value))
+	}
 	containerConfig := &container.Config{
 		Image: c.Image,
-		Env:   env,
+		Env:   envs,
+	}
+	portBindings := make(nat.PortMap)
+	for _, exposedPort := range c.ExposedPort {
+		portStr := strconv.Itoa(exposedPort.Value) + "/tcp"
+		portBindings[nat.Port(portStr)] = []nat.PortBinding{
+			{
+				HostIP:   "0.0.0.0",
+				HostPort: "", // Let docker decide the port.
+			},
+		}
 	}
 	hostConfig := &container.HostConfig{
-		PortBindings: nat.PortMap{
-			nat.Port(strconv.Itoa(c.ExposedPort) + "/tcp"): []nat.PortBinding{
-				{
-					HostIP:   "0.0.0.0",
-					HostPort: "", // Let docker decide the port.
-				},
-			},
-		},
+		PortBindings: portBindings,
 		Resources: container.Resources{
 			Memory:   c.MemoryLimit * 1024 * 1024,
-			NanoCPUs: int64(c.CpuLimit * 1e9),
+			NanoCPUs: int64(c.CPULimit * 1e9),
 		},
 	}
-	resp, err := providers.DockerCli.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, "")
+	resp, err := providers.DockerCli.ContainerCreate(
+		context.Background(),
+		containerConfig,
+		hostConfig,
+		nil,
+		nil,
+		"",
+	)
+	if err != nil {
+		panic(err)
+	}
 	c.RespID = resp.ID
-	err = providers.DockerCli.ContainerStart(context.Background(), c.RespID, types.ContainerStartOptions{})
-	inspect, err := providers.DockerCli.ContainerInspect(context.Background(), c.RespID)
+	err = providers.DockerCli.ContainerStart(
+		context.Background(),
+		c.RespID,
+		types.ContainerStartOptions{},
+	)
+	if err != nil {
+		panic(err)
+	}
+	inspect, err := providers.DockerCli.ContainerInspect(
+		context.Background(),
+		c.RespID,
+	)
 	c.Inspect = inspect
 	c.CancelCtx, c.CancelFunc = context.WithCancel(context.Background())
-	return convertor.ToIntD(inspect.NetworkSettings.Ports[nat.Port(strconv.Itoa(c.ExposedPort)+"/tcp")][0].HostPort, 0), err
+
+	assignedPorts = make(nat.PortMap)
+	for port, bindings := range inspect.NetworkSettings.Ports {
+		assignedPorts[port] = make([]nat.PortBinding, len(bindings))
+		for i, binding := range bindings {
+			assignedPorts[port][i] = nat.PortBinding{
+				HostIP:   binding.HostIP,
+				HostPort: binding.HostPort,
+			}
+		}
+	}
+	return assignedPorts, err
 }
 
 func (c *DockerManager) GetContainerStatus() (status string, err error) {
@@ -94,7 +129,7 @@ func (c *DockerManager) RemoveAfterDuration(ctx context.Context) (success bool) 
 		c.Remove()
 		return true
 	case <-ctx.Done():
-		zap.L().Warn(fmt.Sprintf("[%s] Instance %d (RespID %s)'s removal plan has been cancelled.", color.InCyan("DOCKER"), c.InstanceID, c.RespID))
+		zap.L().Warn(fmt.Sprintf("[%s] Instance %d (RespID %s)'s removal plan has been cancelled.", color.InCyan("DOCKER"), c.ContainerID, c.RespID))
 		return false
 	}
 }
@@ -131,6 +166,8 @@ func (c *DockerManager) Renew(duration time.Duration) {
 	zap.L().Warn(
 		fmt.Sprintf("[%s] Instance %d (RespID %s) successfully renewed.",
 			color.InCyan("DOCKER"),
-			c.InstanceID,
-			c.RespID))
+			c.ContainerID,
+			c.RespID,
+		),
+	)
 }

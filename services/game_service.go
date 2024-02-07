@@ -9,7 +9,6 @@ import (
 	"github.com/elabosak233/pgshub/repositories"
 	"github.com/mitchellh/mapstructure"
 	"math"
-	"time"
 )
 
 type GameService interface {
@@ -42,12 +41,6 @@ func (g *GameServiceImpl) Find(req request.GameFindRequest) (games []response.Ga
 func (g *GameServiceImpl) Create(req request.GameCreateRequest) (err error) {
 	gameEntity := entity.Game{}
 	err = mapstructure.Decode(req, &gameEntity)
-	if req.StartedAtUnix != 0 {
-		gameEntity.StartedAt = time.Unix(req.StartedAtUnix, 0)
-	}
-	if req.EndedAtUnix != 0 {
-		gameEntity.EndedAt = time.Unix(req.EndedAtUnix, 0)
-	}
 	if req.Password != "" {
 		hasher := crypto.SHA256.New()
 		hasher.Write([]byte(req.Password))
@@ -61,12 +54,6 @@ func (g *GameServiceImpl) Create(req request.GameCreateRequest) (err error) {
 func (g *GameServiceImpl) Update(req request.GameUpdateRequest) (err error) {
 	gameEntity := entity.Game{}
 	err = mapstructure.Decode(req, &gameEntity)
-	if req.StartedAtUnix != 0 {
-		gameEntity.StartedAt = time.Unix(req.StartedAtUnix, 0)
-	}
-	if req.EndedAtUnix != 0 {
-		gameEntity.EndedAt = time.Unix(req.EndedAtUnix, 0)
-	}
 	if req.Password != "" {
 		hasher := crypto.SHA256.New()
 		hasher.Write([]byte(req.Password))

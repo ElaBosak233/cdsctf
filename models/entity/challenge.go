@@ -11,11 +11,12 @@ type Challenge struct {
 	HasAttachment *bool        `xorm:"'has_attachment' bool notnull default(false)" json:"has_attachment"` // Whether the challenge has attachment.
 	IsPracticable *bool        `xorm:"'is_practicable' bool notnull default(false)" json:"is_practicable"` // Whether the challenge is practicable. (Is the practice field visible.)
 	IsDynamic     *bool        `xorm:"'is_dynamic' bool default(false)" json:"is_dynamic"`                 // Whether the challenge is based on dynamic container.
-	Duration      int64        `xorm:"'duration' default(1800)" json:"duration,omitempty"`                 // The duration of container maintenance in the initial state. (Seconds)
 	Difficulty    int64        `xorm:"'difficulty' default(1)" json:"difficulty"`                          // The degree of difficulty. (From 1 to 5)
 	PracticePts   int64        `xorm:"'practice_pts' default(200) notnull" json:"practice_pts"`            // The points will be given when the challenge is solved in practice field.
+	Duration      int64        `xorm:"'duration' default(1800)" json:"duration,omitempty"`                 // The duration of container maintenance in the initial state. (Seconds)
 	Category      Category     `xorm:"-" json:"category"`
 	Flags         []Flag       `xorm:"-" json:"flags"`
+	Hints         []Hint       `xorm:"-" json:"hints"`
 	Images        []Image      `xorm:"-" json:"images"`
 	Submissions   []Submission `xorm:"-" json:"submissions"`
 	Pts           int64        `xorm:"-" json:"pts"`

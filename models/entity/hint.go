@@ -11,3 +11,7 @@ type Hint struct {
 	CreatedAt   time.Time `xorm:"'created_at' created" json:"created_at"`     // The hint's creation time.
 	UpdatedAt   time.Time `xorm:"'updated_at' updated" json:"updated_at"`     // The hint's last update time.
 }
+
+func (h *Hint) TableName() string {
+	return "hint"
+}

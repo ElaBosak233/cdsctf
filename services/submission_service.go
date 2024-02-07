@@ -17,7 +17,7 @@ type SubmissionService interface {
 }
 
 type SubmissionServiceImpl struct {
-	InstanceRepository      repositories.InstanceRepository
+	InstanceRepository      repositories.PodRepository
 	SubmissionRepository    repositories.SubmissionRepository
 	ChallengeRepository     repositories.ChallengeRepository
 	UserRepository          repositories.UserRepository
@@ -26,7 +26,7 @@ type SubmissionServiceImpl struct {
 
 func NewSubmissionServiceImpl(appRepository *repositories.Repositories) SubmissionService {
 	return &SubmissionServiceImpl{
-		InstanceRepository:      appRepository.InstanceRepository,
+		InstanceRepository:      appRepository.PodRepository,
 		SubmissionRepository:    appRepository.SubmissionRepository,
 		ChallengeRepository:     appRepository.ChallengeRepository,
 		UserRepository:          appRepository.UserRepository,
@@ -36,24 +36,25 @@ func NewSubmissionServiceImpl(appRepository *repositories.Repositories) Submissi
 
 // JudgeDynamicChallenge 动态题目判断
 func (t *SubmissionServiceImpl) JudgeDynamicChallenge(req request.SubmissionCreateRequest) (status int, err error) {
-	perhapsInstances, _, err := t.InstanceRepository.Find(request.InstanceFindRequest{
-		ChallengeId: req.ChallengeId,
-		GameId:      req.GameId,
-		IsAvailable: 1,
-		Page:        0,
-		Size:        0,
-	})
-	status = 1
-	for _, instance := range perhapsInstances {
-		if req.Flag == instance.Flag {
-			if (req.UserId == instance.UserId && req.UserId != 0) || (req.TeamId == instance.TeamId && req.TeamId != 0) {
-				status = 2
-			} else {
-				status = 3
-			}
-			break
-		}
-	}
+	//isAvailable := true
+	//perhapsInstances, _, err := t.InstanceRepository.Find(request.PodFindRequest{
+	//	ChallengeId: req.ChallengeId,
+	//	GameId:      req.GameId,
+	//	IsAvailable: &isAvailable,
+	//	Page:        0,
+	//	Size:        0,
+	//})
+	//status = 1
+	//for _, instance := range perhapsInstances {
+	//	if req.Flag == instance.Flag {
+	//		if (req.UserId == instance.UserId && req.UserId != 0) || (req.TeamId == instance.TeamId && req.TeamId != 0) {
+	//			status = 2
+	//		} else {
+	//			status = 3
+	//		}
+	//		break
+	//	}
+	//}
 	return status, err
 }
 

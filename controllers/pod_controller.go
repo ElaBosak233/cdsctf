@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-type InstanceController interface {
+type PodController interface {
 	Create(ctx *gin.Context)
 	Remove(ctx *gin.Context)
 	Renew(ctx *gin.Context)
@@ -17,13 +17,13 @@ type InstanceController interface {
 	FindById(ctx *gin.Context)
 }
 
-type InstanceControllerImpl struct {
-	InstanceService services.InstanceService
+type PodControllerImpl struct {
+	PodService services.PodService
 }
 
-func NewInstanceControllerImpl(appService *services.Services) InstanceController {
-	return &InstanceControllerImpl{
-		InstanceService: appService.InstanceService,
+func NewInstanceControllerImpl(appService *services.Services) PodController {
+	return &PodControllerImpl{
+		PodService: appService.PodService,
 	}
 }
 
@@ -35,8 +35,8 @@ func NewInstanceControllerImpl(appService *services.Services) InstanceController
 // @Produce json
 // @Param Authorization header string true "Authorization"
 // @Param input body request.InstanceCreateRequest true "InstanceCreateRequest"
-// @Router /api/instances/ [post]
-func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
+// @Router /api/pods/ [post]
+func (c *PodControllerImpl) Create(ctx *gin.Context) {
 	instanceCreateRequest := request.InstanceCreateRequest{}
 	err := ctx.ShouldBindJSON(&instanceCreateRequest)
 	if err != nil {
@@ -47,7 +47,7 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 		return
 	}
 	instanceCreateRequest.UserId = ctx.GetInt64("UserID")
-	res, err := c.InstanceService.Create(instanceCreateRequest)
+	res, err := c.PodService.Create(instanceCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -57,8 +57,8 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":       http.StatusOK,
-		"id":         res.InstanceID,
-		"entry":      res.Entry,
+		"id":         res.PodID,
+		"containers": res.Containers,
 		"removed_at": res.RemovedAt,
 	})
 }
@@ -69,13 +69,13 @@ func (c *InstanceControllerImpl) Create(ctx *gin.Context) {
 // @Tags 实例
 // @Produce json
 // @Param Authorization header string true "Authorization"
-// @Param input body request.InstanceRemoveRequest true "InstanceRemoveRequest"
-// @Router /api/instances/ [delete]
-func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
-	instanceRemoveRequest := request.InstanceRemoveRequest{}
+// @Param input body request.PodRemoveRequest true "PodRemoveRequest"
+// @Router /api/pods/ [delete]
+func (c *PodControllerImpl) Remove(ctx *gin.Context) {
+	instanceRemoveRequest := request.PodRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
 	instanceRemoveRequest.UserId = ctx.GetInt64("UserID")
-	err = c.InstanceService.Remove(instanceRemoveRequest)
+	err = c.PodService.Remove(instanceRemoveRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -95,12 +95,12 @@ func (c *InstanceControllerImpl) Remove(ctx *gin.Context) {
 // @Produce json
 // @Param Authorization header string true "Authorization"
 // @Param input body request.InstanceRenewRequest true "InstanceRenewRequest"
-// @Router /api/instances/ [put]
-func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
+// @Router /api/pods/ [put]
+func (c *PodControllerImpl) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.InstanceRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
 	instanceRenewRequest.UserId = ctx.GetInt64("UserID")
-	removedAt, err := c.InstanceService.Renew(instanceRenewRequest)
+	removedAt, err := c.PodService.Renew(instanceRenewRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -120,10 +120,10 @@ func (c *InstanceControllerImpl) Renew(ctx *gin.Context) {
 // @Tags 实例
 // @Produce json
 // @Param id path string true "id"
-// @Router /api/instances/{id} [get]
-func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
+// @Router /api/pods/{id} [get]
+func (c *PodControllerImpl) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	rep, err := c.InstanceService.FindById(int64(convertor.ToIntD(id, 0)))
+	rep, err := c.PodService.FindById(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -143,32 +143,21 @@ func (c *InstanceControllerImpl) FindById(ctx *gin.Context) {
 // @Tags 实例
 // @Produce json
 // @Param Authorization header string true "Authorization"
-// @Param input query request.InstanceFindRequest false "InstanceFindRequest"
-// @Router /api/instances/ [get]
-func (c *InstanceControllerImpl) Find(ctx *gin.Context) {
-	instanceFindRequest := request.InstanceFindRequest{
+// @Param input query request.PodFindRequest false "PodFindRequest"
+// @Router /api/pods/ [get]
+func (c *PodControllerImpl) Find(ctx *gin.Context) {
+	podFindRequest := request.PodFindRequest{
 		UserId:      ctx.GetInt64("UserID"),
 		ChallengeId: int64(convertor.ToIntD(ctx.Query("challenge_id"), 0)),
 		TeamId:      int64(convertor.ToIntD(ctx.Query("team_id"), 0)),
 		GameId:      int64(convertor.ToIntD(ctx.Query("game_id"), 0)),
-		IsAvailable: convertor.ToIntD(ctx.Query("is_available"), 0),
+		IsAvailable: convertor.ToBoolP(ctx.Query("is_available")),
 		Page:        convertor.ToIntD(ctx.Query("page"), 0),
 		Size:        convertor.ToIntD(ctx.Query("size"), 0),
 	}
-	rep, _ := c.InstanceService.Find(instanceFindRequest)
-	res := make([]map[string]any, len(rep))
-	for i, v := range rep {
-		item := map[string]any{
-			"id":           v.InstanceID,
-			"challenge_id": v.ChallengeID,
-			"status":       v.Status,
-			"entry":        v.Entry,
-			"removed_at":   v.RemovedAt,
-		}
-		res[i] = item
-	}
+	pods, _ := c.PodService.Find(podFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"data": res,
+		"data": pods,
 	})
 }
