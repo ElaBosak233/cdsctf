@@ -119,7 +119,7 @@ func (g *GameControllerImpl) Find(ctx *gin.Context) {
 		return 1
 	} // -1 代表忽略此条件，0 代表没被启用，1 代表被启用，默认状态下只查询被启用的比赛
 	games, pageCount, total, err := g.GameService.Find(request.GameFindRequest{
-		GameId:    int64(convertor.ToIntD(ctx.Query("id"), 0)),
+		ID:        int64(convertor.ToIntD(ctx.Query("id"), 0)),
 		Title:     ctx.Query("title"),
 		IsEnabled: isEnabled(),
 		Size:      convertor.ToIntD(ctx.Query("size"), 0),

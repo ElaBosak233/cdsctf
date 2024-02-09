@@ -31,7 +31,7 @@ func (t *TeamRepositoryImpl) Insert(team entity.Team) (te entity.Team, err error
 }
 
 func (t *TeamRepositoryImpl) Update(team entity.Team) (err error) {
-	_, err = t.Db.Table("team").ID(team.TeamID).Update(&team)
+	_, err = t.Db.Table("team").ID(team.ID).Update(&team)
 	return err
 }
 
@@ -42,8 +42,8 @@ func (t *TeamRepositoryImpl) Delete(id int64) (err error) {
 
 func (t *TeamRepositoryImpl) Find(req request.TeamFindRequest) (teams []response.TeamResponse, count int64, err error) {
 	applyFilters := func(q *xorm.Session) *xorm.Session {
-		if req.TeamId != 0 {
-			q = q.Where("id = ?", req.TeamId)
+		if req.ID != 0 {
+			q = q.Where("id = ?", req.ID)
 		}
 		if req.TeamName != "" {
 			q = q.Where("name LIKE ?", "%"+req.TeamName+"%")
@@ -66,7 +66,7 @@ func (t *TeamRepositoryImpl) Find(req request.TeamFindRequest) (teams []response
 
 func (t *TeamRepositoryImpl) BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error) {
 	err = t.Db.Table("team").
-		In("team.id", req.TeamId).
+		In("team.id", req.ID).
 		Find(&teams)
 	return teams, err
 }
@@ -74,7 +74,7 @@ func (t *TeamRepositoryImpl) BatchFind(req request.TeamBatchFindRequest) (teams 
 func (t *TeamRepositoryImpl) BatchFindByUserId(req request.TeamBatchFindByUserIdRequest) (teams []response.TeamResponseWithUserId, err error) {
 	err = t.Db.Table("team").
 		Join("INNER", "user_team", "user_team.team_id = team.id").
-		In("user_team.user_id", req.UserId).
+		In("user_team.user_id", req.UserID).
 		Find(&teams)
 	return teams, err
 }

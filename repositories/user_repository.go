@@ -37,14 +37,14 @@ func (t *UserRepositoryImpl) Delete(id int64) error {
 }
 
 func (t *UserRepositoryImpl) Update(user entity.User) error {
-	_, err := t.Db.Table("account").ID(user.UserID).Update(&user)
+	_, err := t.Db.Table("account").ID(user.ID).Update(&user)
 	return err
 }
 
 func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []response.UserResponse, count int64, err error) {
 	applyFilter := func(q *xorm.Session) *xorm.Session {
-		if req.UserId != 0 {
-			q = q.Where("id = ?", req.UserId)
+		if req.ID != 0 {
+			q = q.Where("id = ?", req.ID)
 		}
 		if req.Email != "" {
 			q = q.Where("email LIKE ?", "%"+req.Email+"%")
@@ -69,7 +69,7 @@ func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []response
 			db = db.Desc("account." + sortKey)
 		}
 	} else {
-		db = db.Asc("account.id") // 默认采用 ID 升序排列
+		db = db.Asc("account.id") // 默认采用 IDs 升序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
@@ -82,7 +82,7 @@ func (t *UserRepositoryImpl) Find(req request.UserFindRequest) (users []response
 func (t *UserRepositoryImpl) BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []response.UserResponseWithTeamId, err error) {
 	err = t.Db.Table("account").
 		Join("INNER", "user_team", "account.id = user_team.user_id").
-		In("user_team.team_id", req.TeamId).
+		In("user_team.team_id", req.TeamID).
 		Find(&users)
 	return users, err
 }

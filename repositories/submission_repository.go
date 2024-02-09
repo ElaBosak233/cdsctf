@@ -34,17 +34,17 @@ func (t *SubmissionRepositoryImpl) Delete(id int64) (err error) {
 
 func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, count int64, err error) {
 	applyFilters := func(q *xorm.Session) *xorm.Session {
-		if req.UserId != 0 && req.TeamId == 0 && req.GameId == 0 {
-			q = q.Where("user_id = ?", req.UserId)
+		if req.UserID != 0 && req.TeamID == 0 && req.GameID == 0 {
+			q = q.Where("user_id = ?", req.UserID)
 		}
-		if req.ChallengeId != 0 {
-			q = q.Where("challenge_id = ?", req.ChallengeId)
+		if req.ChallengeID != 0 {
+			q = q.Where("challenge_id = ?", req.ChallengeID)
 		}
-		if req.TeamId != -1 {
-			q = q.Where("team_id = ?", req.TeamId)
+		if req.TeamID != -1 {
+			q = q.Where("team_id = ?", req.TeamID)
 		}
-		if req.GameId != -1 {
-			q = q.Where("game_id = ?", req.GameId)
+		if req.GameID != -1 {
+			q = q.Where("game_id = ?", req.GameID)
 		}
 		if req.Status != 0 {
 			q = q.Where("status = ?", req.Status)
@@ -66,7 +66,7 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (subm
 			db = db.Desc("submission." + sortKey)
 		}
 	} else {
-		db = db.Desc("submission.id") // 默认采用 ID 降序排列
+		db = db.Desc("submission.id") // 默认采用 IDs 降序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
@@ -82,14 +82,14 @@ func (t *SubmissionRepositoryImpl) Find(req request.SubmissionFindRequest) (subm
 
 func (t *SubmissionRepositoryImpl) BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error) {
 	applyFilters := func(q *xorm.Session) *xorm.Session {
-		if req.UserId != 0 {
-			q = q.Where("submission.user_id = ?", req.UserId)
+		if req.UserID != 0 {
+			q = q.Where("submission.user_id = ?", req.UserID)
 		}
-		if req.TeamId != 0 {
-			q = q.Where("submission.team_id = ?", req.TeamId)
+		if req.TeamID != 0 {
+			q = q.Where("submission.team_id = ?", req.TeamID)
 		}
-		if req.GameId != -1 {
-			q = q.Where("submission.game_id = ?", req.GameId)
+		if req.GameID != -1 {
+			q = q.Where("submission.game_id = ?", req.GameID)
 		}
 		if req.Status != 0 {
 			q = q.Where("submission.status = ?", req.Status)
@@ -109,7 +109,7 @@ func (t *SubmissionRepositoryImpl) BatchFind(req request.SubmissionBatchFindRequ
 	db = db.Join("INNER", "account", "submission.user_id = account.id").
 		Join("LEFT", "team", "submission.team_id = team.id").
 		Join("LEFT", "challenge", "submission.challenge_id = challenge.id").
-		In("submission.challenge_id", req.ChallengeId)
+		In("submission.challenge_id", req.ChallengeID)
 	_ = db.Find(&submissions)
 	return submissions, err
 }

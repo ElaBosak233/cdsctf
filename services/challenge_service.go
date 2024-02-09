@@ -53,10 +53,10 @@ func (t *ChallengeServiceImpl) Mixin(challenges []response.ChallengeResponse) (c
 	challengeMap := make(map[int64]response.ChallengeResponse)
 	challengeIDs := make([]int64, 0)
 	for _, challenge := range challenges {
-		challengeMap[challenge.ChallengeID] = challenge
-		challengeIDs = append(challengeIDs, challenge.ChallengeID)
+		challengeMap[challenge.ID] = challenge
+		challengeIDs = append(challengeIDs, challenge.ID)
 	}
-	// Mixin category -> challenges.
+	// mixin category -> challenges
 	categoryIDMap := make(map[int64]bool)
 	for _, challenge := range challenges {
 		categoryIDMap[challenge.CategoryID] = true
@@ -68,15 +68,16 @@ func (t *ChallengeServiceImpl) Mixin(challenges []response.ChallengeResponse) (c
 	categories, _ := t.CategoryRepository.FindByID(categoryIDs)
 	for _, challenge := range challengeMap {
 		for _, category := range categories {
-			if challenge.CategoryID == category.CategoryID {
-				challenge.Category = category
-				challengeMap[challenge.ChallengeID] = challenge
+			if challenge.CategoryID == category.ID {
+				cate := category
+				challenge.Category = &cate
+				challengeMap[challenge.ID] = challenge
 				break
 			}
 		}
 	}
 
-	// Mixin flags -> challenges.
+	// mixin flags -> challenges
 	flags, _ := t.FlagRepository.FindByChallengeID(challengeIDs)
 	for _, flag := range flags {
 		challenge := challengeMap[flag.ChallengeID]
@@ -84,7 +85,7 @@ func (t *ChallengeServiceImpl) Mixin(challenges []response.ChallengeResponse) (c
 		challengeMap[flag.ChallengeID] = challenge
 	}
 
-	// Mixin images -> challenges.
+	// mixin images -> challenges
 	images, _ := t.ImageService.FindByChallengeID(challengeIDs)
 	for _, image := range images {
 		challenge := challengeMap[image.ChallengeID]
@@ -92,8 +93,8 @@ func (t *ChallengeServiceImpl) Mixin(challenges []response.ChallengeResponse) (c
 		challengeMap[image.ChallengeID] = challenge
 	}
 
-	for _, challenge := range challengeMap {
-		chas = append(chas, challenge)
+	for _, challenge := range challenges {
+		chas = append(chas, challengeMap[challenge.ID])
 	}
 
 	return chas, err
@@ -112,7 +113,7 @@ func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) (err e
 			for _, flag := range *(req.Flags) {
 				var flagModel entity.Flag
 				_ = mapstructure.Decode(flag, &flagModel)
-				flagModel.ChallengeID = challenge.ChallengeID
+				flagModel.ChallengeID = challenge.ID
 				_, _ = t.FlagRepository.Insert(flagModel)
 			}
 		}
@@ -122,7 +123,7 @@ func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) (err e
 	go func() {
 		if req.Images != nil {
 			for index := range *(req.Images) {
-				(*(req.Images))[index].ChallengeID = challenge.ChallengeID
+				(*(req.Images))[index].ChallengeID = challenge.ID
 			}
 			for index := range *(req.Images) {
 				(*(req.Images))[index], _ = t.ImageRepository.Insert((*(req.Images))[index])
@@ -132,11 +133,11 @@ func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) (err e
 			envs := make([]entity.Env, 0)
 			for _, image := range *(req.Images) {
 				for _, port := range image.Ports {
-					port.ImageID = image.ImageID
+					port.ImageID = image.ID
 					ports = append(ports, port)
 				}
 				for _, env := range image.Envs {
-					env.ImageID = image.ImageID
+					env.ImageID = image.ID
 					envs = append(envs, env)
 				}
 			}
@@ -164,8 +165,8 @@ func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) (err e
 }
 
 func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) (err error) {
-	challengeData, err := t.ChallengeRepository.FindById(req.ChallengeID, 1)
-	if err != nil || challengeData.ChallengeID == 0 {
+	challengeData, err := t.ChallengeRepository.FindById(req.ID, 1)
+	if err != nil || challengeData.ID == 0 {
 		return errors.New("题目不存在")
 	}
 	challengeModel := entity.Challenge{}
@@ -180,9 +181,9 @@ func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) (err e
 		if req.Flags != nil {
 			// Update Flags
 			for index := range *(req.Flags) {
-				(*(req.Flags))[index].ChallengeID = challengeModel.ChallengeID
+				(*(req.Flags))[index].ChallengeID = challengeModel.ID
 			}
-			_ = t.FlagRepository.DeleteByChallengeID([]int64{challengeModel.ChallengeID})
+			_ = t.FlagRepository.DeleteByChallengeID([]int64{challengeModel.ID})
 			for _, flag := range *(req.Flags) {
 				_, _ = t.FlagRepository.Insert(flag)
 			}
@@ -194,17 +195,17 @@ func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) (err e
 		// Check if images and ports need to be changed.
 		if req.Images != nil {
 			// Necessary patch, find old images.
-			oldImages, _ := t.ImageRepository.FindByChallengeID([]int64{challengeModel.ChallengeID})
+			oldImages, _ := t.ImageRepository.FindByChallengeID([]int64{challengeModel.ID})
 			oldImageIDs := make([]int64, 0)
 			for _, image := range oldImages {
-				oldImageIDs = append(oldImageIDs, image.ImageID)
+				oldImageIDs = append(oldImageIDs, image.ID)
 			}
 
 			// Update Images
 			for index := range *(req.Images) {
-				(*(req.Images))[index].ChallengeID = challengeModel.ChallengeID
+				(*(req.Images))[index].ChallengeID = challengeModel.ID
 			}
-			_ = t.ImageRepository.DeleteByChallengeID([]int64{challengeModel.ChallengeID})
+			_ = t.ImageRepository.DeleteByChallengeID([]int64{challengeModel.ID})
 			// Don't use batch insert. Because we need the id of the image.
 			for index := range *(req.Images) {
 				(*(req.Images))[index], _ = t.ImageRepository.Insert((*(req.Images))[index])
@@ -214,7 +215,7 @@ func (t *ChallengeServiceImpl) Update(req request.ChallengeUpdateRequest) (err e
 			ports := make([]entity.Port, 0)
 			for _, image := range *(req.Images) {
 				for _, port := range image.Ports {
-					port.ImageID = image.ImageID
+					port.ImageID = image.ID
 					ports = append(ports, port)
 				}
 			}
@@ -244,53 +245,86 @@ func (t *ChallengeServiceImpl) Delete(id int64) error {
 
 func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error) {
 	challenges, count, err := t.ChallengeRepository.Find(req)
-
 	challenges, err = t.Mixin(challenges)
 
 	challengeMap := make(map[int64]response.ChallengeResponse)
 	challengeIDs := make([]int64, 0)
 	for _, challenge := range challenges {
-		challengeMap[challenge.ChallengeID] = challenge
-		challengeIDs = append(challengeIDs, challenge.ChallengeID)
+		challengeMap[challenge.ID] = challenge
+		challengeIDs = append(challengeIDs, challenge.ID)
 	}
 
 	gameChallengesMap := make(map[int64]relationEntity.GameChallenge)
 	submissionsMap := make(map[int64][]response.SubmissionResponse)
-	isGame := validator.IsIdValid(req.GameId) && validator.IsIdValid(req.TeamId)
+	isGame := validator.IsIdValid(req.GameID) && validator.IsIdValid(req.TeamID)
 	if isGame {
-		gameChallenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(req.GameId, challengeIDs)
+		gameChallenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(req.GameID, challengeIDs)
 		for _, gameChallenge := range gameChallenges {
 			gameChallengesMap[gameChallenge.ChallengeId] = gameChallenge
 		}
 		submissions, _ := t.SubmissionRepository.BatchFind(request.SubmissionBatchFindRequest{
-			GameId:      req.GameId,
-			TeamId:      req.TeamId,
+			GameID:      req.GameID,
+			TeamID:      req.TeamID,
 			Status:      2,
-			ChallengeId: challengeIDs,
+			ChallengeID: challengeIDs,
 		})
 		for _, submission := range submissions {
 			submissionsMap[submission.ChallengeID] = append(submissionsMap[submission.ChallengeID], submission)
 		}
 	}
 
-	// Overwrite challenges.
-	for index, challenge := range challenges {
-		challenges[index] = challengeMap[challenge.ChallengeID]
-	}
-
-	for i := range challenges {
-		if isGame {
-			challengeId := challenges[i].ChallengeID
-			S := gameChallengesMap[challengeId].MaxPts
-			R := gameChallengesMap[challengeId].MinPts
-			d := challenges[i].Difficulty
-			x := len(submissionsMap[challengeId])
-			pts := utils.CalculateChallengePts(S, R, d, x)
-			challenges[i].Pts = pts
-		} else {
-			challenges[i].Pts = challenges[i].PracticePts
+	// Judge isSolved
+	if isGame {
+		submissions, _ := t.SubmissionRepository.BatchFind(request.SubmissionBatchFindRequest{
+			GameID:      req.GameID,
+			TeamID:      req.TeamID,
+			Status:      2,
+			ChallengeID: challengeIDs,
+		})
+		for _, submission := range submissions {
+			challenge := challengeMap[submission.ChallengeID]
+			challenge.IsSolved = true
+			challengeMap[submission.ChallengeID] = challenge
+		}
+	} else {
+		submissions, _ := t.SubmissionRepository.BatchFind(request.SubmissionBatchFindRequest{
+			UserID:      req.UserID,
+			Status:      2,
+			ChallengeID: challengeIDs,
+		})
+		for _, submission := range submissions {
+			challenge := challengeMap[submission.ChallengeID]
+			challenge.IsSolved = true
+			challengeMap[submission.ChallengeID] = challenge
 		}
 	}
+
+	for index, challenge := range challengeMap {
+		// Calculate pts
+		if isGame {
+			challengeID := challenge.ID
+			S := gameChallengesMap[challengeID].MaxPts
+			R := gameChallengesMap[challengeID].MinPts
+			d := challenge.Difficulty
+			x := len(submissionsMap[challengeID])
+			pts := utils.CalculateChallengePts(S, R, d, x)
+			challenge.Pts = pts
+		} else {
+			challenge.Pts = challenge.PracticePts
+		}
+
+		// IsDetailed or not
+		if req.IsDetailed != nil && !*(req.IsDetailed) {
+			challenge.Flags = nil
+		}
+		challengeMap[index] = challenge
+	}
+
+	// Overwrite challenges
+	for index, challenge := range challenges {
+		challenges[index] = challengeMap[challenge.ID]
+	}
+
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {

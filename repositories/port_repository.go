@@ -33,12 +33,12 @@ func (t *PortRepositoryImpl) InsertMulti(ports []entity.Port) (err error) {
 }
 
 func (t *PortRepositoryImpl) Update(port entity.Port) (p entity.Port, err error) {
-	_, err = t.Db.Table("port").ID(port.PortID).Update(&port)
+	_, err = t.Db.Table("port").ID(port.ID).Update(&port)
 	return port, err
 }
 
 func (t *PortRepositoryImpl) Delete(port entity.Port) (err error) {
-	_, err = t.Db.Table("port").ID(port.PortID).Delete(&port)
+	_, err = t.Db.Table("port").ID(port.ID).Delete(&port)
 	return err
 }
 

@@ -28,23 +28,23 @@ func (t *PodRepositoryImpl) Insert(pod entity.Pod) (i entity.Pod, err error) {
 }
 
 func (t *PodRepositoryImpl) Update(pod entity.Pod) (err error) {
-	_, err = t.Db.Table("pod").ID(pod.PodID).Update(&pod)
+	_, err = t.Db.Table("pod").ID(pod.ID).Update(&pod)
 	return err
 }
 
 func (t *PodRepositoryImpl) Find(req request.PodFindRequest) (pods []entity.Pod, pageCount int64, err error) {
 	applyFilter := func(q *xorm.Session) *xorm.Session {
-		if req.ChallengeId != 0 {
-			q = q.Where("challenge_id = ?", req.ChallengeId)
+		if req.ChallengeID != 0 {
+			q = q.Where("challenge_id = ?", req.ChallengeID)
 		}
-		if req.UserId != 0 {
-			q = q.Where("user_id = ?", req.UserId)
+		if req.UserID != 0 {
+			q = q.Where("user_id = ?", req.UserID)
 		}
-		if req.TeamId != 0 {
-			q = q.Where("team_id = ?", req.TeamId)
+		if req.TeamID != 0 {
+			q = q.Where("team_id = ?", req.TeamID)
 		}
-		if req.GameId != 0 {
-			q = q.Where("game_id = ?", req.GameId)
+		if req.GameID != 0 {
+			q = q.Where("game_id = ?", req.GameID)
 		}
 		if req.IsAvailable != nil {
 			if *(req.IsAvailable) == false {
@@ -52,6 +52,9 @@ func (t *PodRepositoryImpl) Find(req request.PodFindRequest) (pods []entity.Pod,
 			} else if *(req.IsAvailable) == true {
 				q = q.Where("removed_at > ?", time.Now().Unix())
 			}
+		}
+		if len(req.IDs) > 0 {
+			q = q.In("id", req.IDs)
 		}
 		return q
 	}

@@ -1,7 +1,7 @@
 package request
 
 type GameFindRequest struct {
-	GameId    int64    `json:"id"`
+	ID        int64    `json:"id"`
 	Title     string   `json:"title"`
 	SortBy    []string `json:"sort_by"`
 	IsEnabled int      `json:"is_enabled"`
@@ -28,7 +28,7 @@ type GameCreateRequest struct {
 }
 
 type GameUpdateRequest struct {
-	GameId                 int64   `json:"id"`
+	ID                     int64   `json:"id"`
 	Title                  string  `json:"title"`
 	Bio                    string  `json:"bio"`
 	Description            string  `json:"description"`

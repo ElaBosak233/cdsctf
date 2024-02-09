@@ -782,6 +782,15 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
                         "type": "boolean",
                         "name": "is_available",
                         "in": "query"
@@ -822,12 +831,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "InstanceRenewRequest",
+                        "description": "PodRenewRequest",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.InstanceRenewRequest"
+                            "$ref": "#/definitions/request.PodRenewRequest"
                         }
                     }
                 ],
@@ -854,12 +863,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "InstanceCreateRequest",
+                        "description": "PodCreateRequest",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.InstanceCreateRequest"
+                            "$ref": "#/definitions/request.PodCreateRequest"
                         }
                     }
                 ],
@@ -1429,7 +1438,7 @@ const docTemplate = `{
                 "tags": [
                     "用户"
                 ],
-                "summary": "用户更新（Role≤1 或 (Request)UserID=(Authorization)UserID）",
+                "summary": "用户更新（Role≤1 或 (Request)ID=(Authorization)ID）",
                 "parameters": [
                     {
                         "type": "string",
@@ -1491,7 +1500,7 @@ const docTemplate = `{
                 "tags": [
                     "用户"
                 ],
-                "summary": "用户删除（Role≤1 或 (Request)UserID=(Authorization)UserID）",
+                "summary": "用户删除（Role≤1 或 (Request)ID=(Authorization)ID）",
                 "parameters": [
                     {
                         "type": "string",
@@ -1636,10 +1645,6 @@ const docTemplate = `{
                     "description": "The challenge id. The flag belongs to.",
                     "type": "integer"
                 },
-                "content": {
-                    "description": "The flag content. Maybe a string or a regex, or the placeholder for dynamic challenges. (Such as \"flag{friendsh1p_1s_magic}\" or \"flag{[a-zA-Z]{5}}\" or \"flag{[UUID]}\")",
-                    "type": "string"
-                },
                 "env": {
                     "description": "The environment variable which is used to be injected with the flag.",
                     "type": "string"
@@ -1650,6 +1655,10 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "The flag type. (\"static\"/\"dynamic\"/\"pattern\")",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "The flag content. Maybe a string or a regex, or the placeholder for dynamic challenges. (Such as \"flag{friendsh1p_1s_magic}\" or \"flag{[a-zA-Z]{5}}\" or \"flag{[UUID]}\")",
                     "type": "string"
                 }
             }
@@ -1702,12 +1711,31 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "image_id": {
-                    "description": "The Image which the port belongs to.",
+                    "description": "The JeopardyImage which the port belongs to.",
                     "type": "integer"
                 },
                 "value": {
                     "description": "The port number.",
                     "type": "integer"
+                }
+            }
+        },
+        "request.CategoryCreateRequest": {
+            "type": "object",
+            "required": [
+                "color",
+                "description",
+                "name"
+            ],
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -1746,6 +1774,9 @@ const docTemplate = `{
                 },
                 "is_practicable": {
                     "type": "boolean"
+                },
+                "practice_pts": {
+                    "type": "integer"
                 },
                 "title": {
                     "type": "string"
@@ -1798,6 +1829,9 @@ const docTemplate = `{
                 },
                 "is_practicable": {
                     "type": "boolean"
+                },
+                "practice_pts": {
+                    "type": "integer"
                 },
                 "title": {
                     "type": "string"
@@ -1882,7 +1916,18 @@ const docTemplate = `{
                 }
             }
         },
-        "request.InstanceCreateRequest": {
+        "request.Platform": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.PodCreateRequest": {
             "type": "object",
             "required": [
                 "challenge_id"
@@ -1899,7 +1944,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request.InstanceRenewRequest": {
+        "request.PodRemoveRequest": {
             "type": "object",
             "required": [
                 "id"
@@ -1916,18 +1961,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request.Platform": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.PodRemoveRequest": {
+        "request.PodRenewRequest": {
             "type": "object",
             "required": [
                 "id"

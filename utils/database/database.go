@@ -123,32 +123,32 @@ func initCategory() {
 			{
 				Name:        "misc",
 				Description: "misc",
-				ColorHex:    "#3F51B5",
-				Mdi:         "fingerprint",
+				Color:       "#3F51B5",
+				Icon:        "fingerprint",
 			},
 			{
 				Name:        "web",
 				Description: "web",
-				ColorHex:    "#009688",
-				Mdi:         "web",
+				Color:       "#009688",
+				Icon:        "web",
 			},
 			{
 				Name:        "pwn",
 				Description: "pwn",
-				ColorHex:    "#673AB7",
-				Mdi:         "matrix",
+				Color:       "#673AB7",
+				Icon:        "matrix",
 			},
 			{
 				Name:        "crypto",
 				Description: "crypto",
-				ColorHex:    "#607D8B",
-				Mdi:         "pound",
+				Color:       "#607D8B",
+				Icon:        "pound",
 			},
 			{
 				Name:        "reverse",
 				Description: "reverse",
-				ColorHex:    "#009688",
-				Mdi:         "chevron-triple-left",
+				Color:       "#009688",
+				Icon:        "chevron-triple-left",
 			},
 		}
 		_, err := db.Table("category").Insert(&defaultCategories)

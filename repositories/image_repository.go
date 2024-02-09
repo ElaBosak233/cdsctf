@@ -9,6 +9,7 @@ type ImageRepository interface {
 	Insert(image entity.Image) (i entity.Image, err error)
 	Update(image entity.Image) (i entity.Image, err error)
 	Delete(image entity.Image) (err error)
+	FindByID(IDs []int64) (images []entity.Image, err error)
 	FindByChallengeID(challengeIDs []int64) (images []entity.Image, err error)
 	DeleteByChallengeID(challengeIDs []int64) (err error)
 }
@@ -27,13 +28,18 @@ func (t *ImageRepositoryImpl) Insert(image entity.Image) (i entity.Image, err er
 }
 
 func (t *ImageRepositoryImpl) Update(image entity.Image) (i entity.Image, err error) {
-	_, err = t.Db.Table("image").ID(image.ImageID).Update(&image)
+	_, err = t.Db.Table("image").ID(image.ID).Update(&image)
 	return image, err
 }
 
 func (t *ImageRepositoryImpl) Delete(image entity.Image) (err error) {
-	_, err = t.Db.Table("image").ID(image.ImageID).Delete(&image)
+	_, err = t.Db.Table("image").ID(image.ID).Delete(&image)
 	return err
+}
+
+func (t *ImageRepositoryImpl) FindByID(IDs []int64) (images []entity.Image, err error) {
+	err = t.Db.Table("image").In("id", IDs).Find(&images)
+	return images, err
 }
 
 func (t *ImageRepositoryImpl) FindByChallengeID(challengeIDs []int64) (images []entity.Image, err error) {

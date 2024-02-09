@@ -57,7 +57,7 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 			"code": http.StatusUnauthorized,
 			"msg":  "用户名或密码错误",
 		})
-		zap.L().Warn(fmt.Sprintf("用户 %s 登录失败", user.Username), zap.Int64("user_id", user.UserID))
+		zap.L().Warn(fmt.Sprintf("用户 %s 登录失败", user.Username), zap.Int64("user_id", user.ID))
 		return
 	}
 	tokenString, err := c.UserService.GetJwtTokenById(user)
@@ -72,7 +72,7 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 		"code":  http.StatusOK,
 		"token": tokenString,
 	})
-	zap.L().Info(fmt.Sprintf("用户 %s 登录成功", user.Username), zap.Int64("user_id", user.UserID))
+	zap.L().Info(fmt.Sprintf("用户 %s 登录成功", user.Username), zap.Int64("user_id", user.ID))
 }
 
 // VerifyToken
@@ -192,7 +192,7 @@ func (c *UserControllerImpl) Create(ctx *gin.Context) {
 }
 
 // Update
-// @Summary 用户更新（Role≤1 或 (Request)UserID=(Authorization)UserID）
+// @Summary 用户更新（Role≤1 或 (Request)ID=(Authorization)ID）
 // @Description 若 Role>1，则自动忽略 UserUpdateRequest 中的 Role 属性
 // @Tags 用户
 // @Accept json
@@ -210,7 +210,7 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("UserID") == updateUserRequest.UserId {
+	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("ID") == updateUserRequest.ID {
 		if ctx.GetInt64("UserRole") > 1 {
 			updateUserRequest.Role = ctx.GetInt64("UserRole")
 			updateUserRequest.Username = ""
@@ -237,7 +237,7 @@ func (c *UserControllerImpl) Update(ctx *gin.Context) {
 }
 
 // Delete
-// @Summary 用户删除（Role≤1 或 (Request)UserID=(Authorization)UserID）
+// @Summary 用户删除（Role≤1 或 (Request)ID=(Authorization)ID）
 // @Description
 // @Tags 用户
 // @Accept json
@@ -255,8 +255,8 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("UserID") == deleteUserRequest.UserId {
-		_ = c.UserService.Delete(deleteUserRequest.UserId)
+	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("ID") == deleteUserRequest.ID {
+		_ = c.UserService.Delete(deleteUserRequest.ID)
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
 		})
@@ -279,7 +279,7 @@ func (c *UserControllerImpl) Delete(ctx *gin.Context) {
 func (c *UserControllerImpl) Find(ctx *gin.Context) {
 	userResponse, pageCount, total, _ := c.UserService.Find(request.UserFindRequest{
 		Role:   int64(convertor.ToIntD(ctx.Query("role"), 0)),
-		UserId: int64(convertor.ToIntD(ctx.Query("id"), 0)),
+		ID:     int64(convertor.ToIntD(ctx.Query("id"), 0)),
 		Email:  ctx.Query("email"),
 		Name:   ctx.Query("name"),
 		SortBy: ctx.QueryArray("sort_by"),

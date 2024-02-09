@@ -15,11 +15,6 @@ definitions:
       challenge_id:
         description: The challenge id. The flag belongs to.
         type: integer
-      content:
-        description: The flag content. Maybe a string or a regex, or the placeholder
-          for dynamic challenges. (Such as "flag{friendsh1p_1s_magic}" or "flag{[a-zA-Z]{5}}"
-          or "flag{[UUID]}")
-        type: string
       env:
         description: The environment variable which is used to be injected with the
           flag.
@@ -29,6 +24,11 @@ definitions:
         type: integer
       type:
         description: The flag type. ("static"/"dynamic"/"pattern")
+        type: string
+      value:
+        description: The flag content. Maybe a string or a regex, or the placeholder
+          for dynamic challenges. (Such as "flag{friendsh1p_1s_magic}" or "flag{[a-zA-Z]{5}}"
+          or "flag{[UUID]}")
         type: string
     type: object
   entity.Image:
@@ -64,11 +64,24 @@ definitions:
         description: The port's id. As primary key.
         type: integer
       image_id:
-        description: The Image which the port belongs to.
+        description: The JeopardyImage which the port belongs to.
         type: integer
       value:
         description: The port number.
         type: integer
+    type: object
+  request.CategoryCreateRequest:
+    properties:
+      color:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - color
+    - description
+    - name
     type: object
   request.ChallengeCreateRequest:
     properties:
@@ -94,6 +107,8 @@ definitions:
         type: boolean
       is_practicable:
         type: boolean
+      practice_pts:
+        type: integer
       title:
         type: string
     type: object
@@ -128,6 +143,8 @@ definitions:
         type: array
       is_practicable:
         type: boolean
+      practice_pts:
+        type: integer
       title:
         type: string
     type: object
@@ -182,7 +199,14 @@ definitions:
     required:
     - title
     type: object
-  request.InstanceCreateRequest:
+  request.Platform:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    type: object
+  request.PodCreateRequest:
     properties:
       challenge_id:
         type: integer
@@ -193,7 +217,7 @@ definitions:
     required:
     - challenge_id
     type: object
-  request.InstanceRenewRequest:
+  request.PodRemoveRequest:
     properties:
       game_id:
         type: integer
@@ -204,14 +228,7 @@ definitions:
     required:
     - id
     type: object
-  request.Platform:
-    properties:
-      description:
-        type: string
-      title:
-        type: string
-    type: object
-  request.PodRemoveRequest:
+  request.PodRenewRequest:
     properties:
       game_id:
         type: integer
@@ -919,6 +936,12 @@ paths:
       - in: query
         name: game_id
         type: integer
+      - collectionFormat: csv
+        in: query
+        items:
+          type: integer
+        name: id
+        type: array
       - in: query
         name: is_available
         type: boolean
@@ -947,12 +970,12 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: InstanceCreateRequest
+      - description: PodCreateRequest
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/request.InstanceCreateRequest'
+          $ref: '#/definitions/request.PodCreateRequest'
       produces:
       - application/json
       responses: {}
@@ -967,12 +990,12 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: InstanceRenewRequest
+      - description: PodRenewRequest
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/request.InstanceRenewRequest'
+          $ref: '#/definitions/request.PodRenewRequest'
       produces:
       - application/json
       responses: {}
@@ -1307,7 +1330,7 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 用户删除（Role≤1 或 (Request)UserID=(Authorization)UserID）
+      summary: 用户删除（Role≤1 或 (Request)ID=(Authorization)ID）
       tags:
       - 用户
     get:
@@ -1387,7 +1410,7 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 用户更新（Role≤1 或 (Request)UserID=(Authorization)UserID）
+      summary: 用户更新（Role≤1 或 (Request)ID=(Authorization)ID）
       tags:
       - 用户
   /api/users/login:

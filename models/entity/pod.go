@@ -2,7 +2,7 @@ package entity
 
 // Pod is the minimum unit of Container operation.
 type Pod struct {
-	PodID       int64 `xorm:"'id' pk autoincr" json:"id"`
+	ID          int64 `xorm:"'id' pk autoincr" json:"id"`
 	GameID      int64 `xorm:"'game_id'" json:"game_id"`
 	UserID      int64 `xorm:"'user_id'" json:"user_id"`
 	TeamID      int64 `xorm:"'team_id'" json:"team_id"`

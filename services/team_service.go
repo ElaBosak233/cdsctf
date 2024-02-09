@@ -2,7 +2,7 @@ package services
 
 import (
 	"errors"
-	model "github.com/elabosak233/pgshub/models/entity"
+	"github.com/elabosak233/pgshub/models/entity"
 	modelm2m "github.com/elabosak233/pgshub/models/entity/relations"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/models/response"
@@ -42,19 +42,19 @@ func (t *TeamServiceImpl) Mixin(teams []response.TeamResponse) (ts []response.Te
 	var teamIds []int64
 	teamsMap := make(map[int64]response.TeamResponse)
 	for _, team := range teams {
-		if _, ok := teamsMap[team.TeamID]; !ok {
-			teamsMap[team.TeamID] = team
+		if _, ok := teamsMap[team.ID]; !ok {
+			teamsMap[team.ID] = team
 		}
-		teamIds = append(teamIds, team.TeamID)
+		teamIds = append(teamIds, team.ID)
 	}
 	users, err := t.UserRepository.BatchFindByTeamId(request.UserBatchFindByTeamIdRequest{
-		TeamId: teamIds,
+		TeamID: teamIds,
 	})
 	for _, user := range users {
 		var userResponse response.UserResponse
 		_ = mapstructure.Decode(user, &userResponse)
 		if team, ok := teamsMap[user.TeamId]; ok {
-			if team.CaptainId == user.UserID {
+			if team.CaptainId == user.ID {
 				team.Captain = userResponse
 			}
 			team.Users = append(team.Users, userResponse)
@@ -62,24 +62,24 @@ func (t *TeamServiceImpl) Mixin(teams []response.TeamResponse) (ts []response.Te
 		}
 	}
 	for index, team := range teams {
-		teams[index].Users = teamsMap[team.TeamID].Users
-		teams[index].Captain = teamsMap[team.TeamID].Captain
+		teams[index].Users = teamsMap[team.ID].Users
+		teams[index].Captain = teamsMap[team.ID].Captain
 	}
 	return teams, err
 }
 
 func (t *TeamServiceImpl) Create(req request.TeamCreateRequest) error {
 	user, err := t.UserRepository.FindById(req.CaptainId)
-	if user.UserID != 0 && err == nil {
+	if user.ID != 0 && err == nil {
 		isLocked := false
-		team, err := t.TeamRepository.Insert(model.Team{
+		team, err := t.TeamRepository.Insert(entity.Team{
 			Name:        req.Name,
 			CaptainID:   req.CaptainId,
 			Description: req.Description,
 			IsLocked:    &isLocked,
 		})
 		err = t.UserTeamRepository.Insert(modelm2m.UserTeam{
-			TeamId: team.TeamID,
+			TeamId: team.ID,
 			UserId: req.CaptainId,
 		})
 		return err
@@ -89,17 +89,17 @@ func (t *TeamServiceImpl) Create(req request.TeamCreateRequest) error {
 
 func (t *TeamServiceImpl) Update(req request.TeamUpdateRequest) error {
 	user, err := t.UserRepository.FindById(req.CaptainId)
-	if user.UserID != 0 && err == nil {
-		team, err := t.TeamRepository.FindById(req.TeamId)
-		if team.TeamID != 0 {
-			if team.TeamID != req.CaptainId {
+	if user.ID != 0 && err == nil {
+		team, err := t.TeamRepository.FindById(req.ID)
+		if team.ID != 0 {
+			if team.ID != req.CaptainId {
 				err = t.Join(request.TeamJoinRequest{
-					TeamId: team.TeamID,
-					UserId: req.CaptainId,
+					TeamID: team.ID,
+					UserID: req.CaptainId,
 				})
 			}
-			err = t.TeamRepository.Update(model.Team{
-				TeamID:      team.TeamID,
+			err = t.TeamRepository.Update(entity.Team{
+				ID:          team.ID,
 				Name:        req.Name,
 				Description: req.Description,
 				CaptainID:   req.CaptainId,
@@ -115,7 +115,7 @@ func (t *TeamServiceImpl) Update(req request.TeamUpdateRequest) error {
 
 func (t *TeamServiceImpl) Delete(id int64) error {
 	team, err := t.TeamRepository.FindById(id)
-	if team.TeamID != 0 {
+	if team.ID != 0 {
 		err = t.TeamRepository.Delete(id)
 		err = t.UserTeamRepository.DeleteByTeamId(id)
 		return err
@@ -142,13 +142,13 @@ func (t *TeamServiceImpl) BatchFind(req request.TeamBatchFindRequest) (teams []r
 }
 
 func (t *TeamServiceImpl) Join(req request.TeamJoinRequest) error {
-	user, err := t.UserRepository.FindById(req.UserId)
-	if user.UserID != 0 && err == nil {
-		team, err := t.TeamRepository.FindById(req.TeamId)
-		if team.TeamID != 0 {
+	user, err := t.UserRepository.FindById(req.UserID)
+	if user.ID != 0 && err == nil {
+		team, err := t.TeamRepository.FindById(req.TeamID)
+		if team.ID != 0 {
 			err = t.UserTeamRepository.Insert(modelm2m.UserTeam{
-				TeamId: team.TeamID,
-				UserId: req.UserId,
+				TeamId: team.ID,
+				UserId: req.UserID,
 			})
 			return err
 		} else {
@@ -159,13 +159,13 @@ func (t *TeamServiceImpl) Join(req request.TeamJoinRequest) error {
 }
 
 func (t *TeamServiceImpl) Quit(req request.TeamQuitRequest) (err error) {
-	user, err := t.UserRepository.FindById(req.UserId)
-	if user.UserID != 0 && err == nil {
-		team, err := t.TeamRepository.FindById(req.TeamId)
-		if team.TeamID != 0 {
+	user, err := t.UserRepository.FindById(req.UserID)
+	if user.ID != 0 && err == nil {
+		team, err := t.TeamRepository.FindById(req.TeamID)
+		if team.ID != 0 {
 			err = t.UserTeamRepository.Delete(modelm2m.UserTeam{
-				TeamId: team.TeamID,
-				UserId: req.UserId,
+				TeamId: team.ID,
+				UserId: req.UserID,
 			})
 			return err
 		} else {
@@ -177,7 +177,7 @@ func (t *TeamServiceImpl) Quit(req request.TeamQuitRequest) (err error) {
 
 func (t *TeamServiceImpl) FindById(id int64) (team response.TeamResponse, err error) {
 	teams, _, err := t.TeamRepository.Find(request.TeamFindRequest{
-		TeamId: id,
+		ID: id,
 	})
 	if len(teams) > 0 {
 		team = teams[0]

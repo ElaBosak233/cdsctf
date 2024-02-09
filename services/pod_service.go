@@ -23,10 +23,10 @@ var (
 		m map[int64]int64
 	}{m: make(map[int64]int64)}
 
-	// ContainerManagerPtrMap is a mapping of ContainerID and manager pointer.
+	// ContainerManagerPtrMap is a mapping of ID and manager pointer.
 	ContainerManagerPtrMap = make(map[any]interface{})
 
-	// PodMap is a mapping of PodID and ContainerID
+	// PodMap is a mapping of IDs and ID
 	PodMap = make(map[int64][]int64)
 )
 
@@ -45,9 +45,9 @@ func SetUserInstanceRequestMap(userId int64, t int64) {
 }
 
 type PodService interface {
-	Create(req request.InstanceCreateRequest) (res response.PodStatusResponse, err error)
+	Create(req request.PodCreateRequest) (res response.PodStatusResponse, err error)
 	Status(id int64) (rep response.PodStatusResponse, err error)
-	Renew(req request.InstanceRenewRequest) (removedAt int64, err error)
+	Renew(req request.PodRenewRequest) (removedAt int64, err error)
 	Remove(req request.PodRemoveRequest) (err error)
 	FindById(id int64) (rep response.PodResponse, err error)
 	Find(req request.PodFindRequest) (rep []response.PodResponse, err error)
@@ -79,8 +79,8 @@ func (t *PodServiceImpl) Mixin(pods []entity.Pod) (p []entity.Pod, err error) {
 	podMap := make(map[int64]entity.Pod)
 	podIDs := make([]int64, 0)
 	for _, pod := range pods {
-		podMap[pod.PodID] = pod
-		podIDs = append(podIDs, pod.PodID)
+		podMap[pod.ID] = pod
+		podIDs = append(podIDs, pod.ID)
 	}
 
 	// mixin container -> pod
@@ -111,26 +111,25 @@ func (t *PodServiceImpl) IsLimited(userId int64, limit int64) (remainder int64) 
 	return 0
 }
 
-func (t *PodServiceImpl) Create(req request.InstanceCreateRequest) (res response.PodStatusResponse, err error) {
-	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container.request_limit"))
+func (t *PodServiceImpl) Create(req request.PodCreateRequest) (res response.PodStatusResponse, err error) {
+	remainder := t.IsLimited(req.UserID, viper.GetInt64("global.container.request_limit"))
 	if remainder != 0 {
 		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
 	if viper.GetString("container.provider") == "docker" {
-		SetUserInstanceRequestMap(req.UserId, time.Now().Unix()) // 保存用户请求时间
+		SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
 		challenges, _, _, _ := t.ChallengeService.Find(request.ChallengeFindRequest{
-			ChallengeIds: []int64{req.ChallengeId},
-			IsDynamic:    convertor.TrueP(),
+			IDs:       []int64{req.ChallengeID},
+			IsDynamic: convertor.TrueP(),
 		})
 		challenge := challenges[0]
-		isAvailable := true
 		availableInstances, count, err := t.PodRepository.Find(request.PodFindRequest{
-			UserId:      req.UserId,
-			TeamId:      req.TeamId,
-			GameId:      req.GameId,
-			IsAvailable: &isAvailable,
+			UserID:      req.UserID,
+			TeamID:      req.TeamID,
+			GameID:      req.GameID,
+			IsAvailable: convertor.TrueP(),
 		})
-		if req.TeamId == 0 && req.GameId == 0 { // 练习场限制并行
+		if req.TeamID == 0 && req.GameID == 0 { // 练习场限制并行
 			needToBeDeactivated := count - viper.GetInt64("global.container.parallel_limit")
 			if needToBeDeactivated > 0 {
 				for _, instance := range availableInstances {
@@ -138,17 +137,14 @@ func (t *PodServiceImpl) Create(req request.InstanceCreateRequest) (res response
 						break
 					}
 					go func() {
-						err = t.Remove(request.PodRemoveRequest{
-							PodID: instance.PodID,
+						_ = t.Remove(request.PodRemoveRequest{
+							ID: instance.ID,
 						})
-						if err != nil {
-							fmt.Println(err)
-						}
 					}()
 					needToBeDeactivated -= 1
 				}
 			}
-		} else if req.TeamId != 0 && req.GameId != 0 { // 比赛限制并行
+		} else if req.TeamID != 0 && req.GameID != 0 { // 比赛限制并行
 			// TODO
 		}
 
@@ -157,38 +153,43 @@ func (t *PodServiceImpl) Create(req request.InstanceCreateRequest) (res response
 		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).Unix()
 
 		pod, _ := t.PodRepository.Insert(entity.Pod{
-			ChallengeID: req.ChallengeId,
-			UserID:      req.UserId,
+			ChallengeID: req.ChallengeID,
+			UserID:      req.UserID,
 			RemovedAt:   removedAt,
 		})
 
-		if _, ok := PodMap[pod.PodID]; !ok {
-			PodMap[pod.PodID] = make([]int64, 0)
+		if _, ok := PodMap[pod.ID]; !ok {
+			PodMap[pod.ID] = make([]int64, 0)
 		}
+
+		// Select the first one as the target flag which will be injected
+		var flag entity.Flag
+		var flagStr string
+		for _, f := range challenge.Flags {
+			if f.Type == "dynamic" {
+				flag = f
+				flagStr = utils.GenerateFlag(flag.Value)
+			} else if f.Type == "static" {
+				flag = f
+				flagStr = f.Value
+			}
+		}
+
+		_, _ = t.FlagGenRepository.Insert(entity.FlagGen{
+			Flag:  flagStr,
+			PodID: pod.ID,
+		})
 
 		for _, image := range challenge.Images {
 			var envs = make([]entity.Env, 0)
 			for _, e := range image.Envs {
 				envs = append(envs, e)
 			}
-			var flag entity.Flag
-			for _, f := range challenge.Flags {
-				if f.Type == "dynamic" {
-					flag = f
-					break
-				}
-			}
-			flagStr := utils.GenerateFlag(flag.Content)
 
-			// This Env is only a temporary entity. It will not be persisted.
+			// This Flag Env is only a temporary entity. It will not be persisted.
 			envs = append(envs, entity.Env{
 				Key:   flag.Env,
 				Value: flagStr,
-			})
-
-			_, _ = t.FlagGenRepository.Insert(entity.FlagGen{
-				Flag:  flagStr,
-				PodID: pod.PodID,
 			})
 
 			ctnManager := managers.NewDockerManagerImpl(
@@ -203,13 +204,13 @@ func (t *PodServiceImpl) Create(req request.InstanceCreateRequest) (res response
 
 			// Container -> Pod
 			container, _ := t.ContainerRepository.Insert(entity.Container{
-				ChallengeID: req.ChallengeId,
-				PodID:       pod.PodID,
-				ImageID:     image.ImageID,
+				PodID:   pod.ID,
+				ImageID: image.ID,
 			})
-			PodMap[pod.PodID] = append(PodMap[pod.PodID], container.ContainerID)
+			PodMap[pod.ID] = append(PodMap[pod.ID], container.ID)
 
-			ctn := ctnMap[container.ContainerID]
+			ctn := ctnMap[container.ID]
+			ctn.Image = nil
 			for src, dsts := range assignedPorts {
 				srcPort := convertor.ToIntD(strings.Split(string(src), "/")[0], 0)
 				for _, dst := range dsts {
@@ -221,7 +222,7 @@ func (t *PodServiceImpl) Create(req request.InstanceCreateRequest) (res response
 					)
 					// Nat -> Container
 					nat, _ := t.NatRepository.Insert(entity.Nat{
-						ContainerID: container.ContainerID,
+						ContainerID: container.ID,
 						SrcPort:     srcPort,
 						DstPort:     dstPort,
 						Entry:       entry,
@@ -229,15 +230,15 @@ func (t *PodServiceImpl) Create(req request.InstanceCreateRequest) (res response
 					ctn.Nats = append(ctn.Nats, nat)
 				}
 			}
-			ctnMap[container.ContainerID] = ctn
+			ctnMap[container.ID] = ctn
 
-			ctnManager.SetContainerID(container.ContainerID)
-			ContainerManagerPtrMap[container.ContainerID] = ctnManager
+			ctnManager.SetContainerID(container.ID)
+			ContainerManagerPtrMap[container.ID] = ctnManager
 
 			// Start removal plan
 			go func() {
 				if ctnManager.RemoveAfterDuration(ctnManager.CancelCtx) {
-					delete(ContainerManagerPtrMap, container.ContainerID)
+					delete(ContainerManagerPtrMap, container.ID)
 				}
 			}()
 		}
@@ -246,7 +247,7 @@ func (t *PodServiceImpl) Create(req request.InstanceCreateRequest) (res response
 			ctns = append(ctns, ctn)
 		}
 		return response.PodStatusResponse{
-			PodID:      pod.PodID,
+			ID:         pod.ID,
 			Containers: ctns,
 			RemovedAt:  removedAt,
 		}, err
@@ -262,7 +263,7 @@ func (t *PodServiceImpl) Status(podID int64) (rep response.PodStatusResponse, er
 			ctn := ContainerManagerPtrMap[podID].(*managers.DockerManager)
 			status, _ := ctn.GetContainerStatus()
 			if status != "removed" {
-				rep.PodID = podID
+				rep.ID = podID
 				rep.Status = status
 				//rep.Entry = instance.Entry
 				rep.RemovedAt = instance.RemovedAt
@@ -275,44 +276,52 @@ func (t *PodServiceImpl) Status(podID int64) (rep response.PodStatusResponse, er
 	return rep, errors.New("获取失败")
 }
 
-func (t *PodServiceImpl) Renew(req request.InstanceRenewRequest) (removedAt int64, err error) {
-	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container.request_limit"))
+func (t *PodServiceImpl) Renew(req request.PodRenewRequest) (removedAt int64, err error) {
+	remainder := t.IsLimited(req.UserID, viper.GetInt64("global.container.request_limit"))
 	if remainder != 0 {
 		return 0, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
 	if viper.GetString("Container.Provider") == "docker" {
-		SetUserInstanceRequestMap(req.UserId, time.Now().Unix()) // 保存用户请求时间
-		instance, err := t.PodRepository.FindById(req.InstanceId)
-		if err != nil || ContainerManagerPtrMap[req.InstanceId] == nil {
+		SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
+		pod, err := t.PodRepository.FindById(req.ID)
+		if err != nil || PodMap[req.ID] == nil {
 			return 0, errors.New("实例不存在")
 		}
-		ctn := ContainerManagerPtrMap[req.InstanceId].(*managers.DockerManager)
-		ctn.Renew(ctn.Duration)
-		instance.RemovedAt = time.Now().Add(ctn.Duration).Unix()
-		err = t.PodRepository.Update(instance)
-		return instance.RemovedAt, err
+		var duration time.Duration
+		for _, ctnID := range PodMap[req.ID] {
+			if ContainerManagerPtrMap[ctnID] != nil {
+				ctn := ContainerManagerPtrMap[ctnID].(*managers.DockerManager)
+				duration = ctn.Duration
+				ctn.Renew(duration)
+			}
+		}
+		pod.RemovedAt = time.Now().Add(duration).Unix()
+		err = t.PodRepository.Update(pod)
+		return pod.RemovedAt, err
 	}
 	return 0, errors.New("续期失败")
 }
 
 func (t *PodServiceImpl) Remove(req request.PodRemoveRequest) (err error) {
-	remainder := t.IsLimited(req.UserId, viper.GetInt64("global.container.request_limit"))
+	remainder := t.IsLimited(req.UserID, viper.GetInt64("global.container.request_limit"))
 	if remainder != 0 {
 		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
 	if viper.GetString("container.provider") == "docker" {
 		_ = t.PodRepository.Update(entity.Pod{
-			PodID:     req.PodID,
+			ID:        req.ID,
 			RemovedAt: time.Now().Unix(),
 		})
-		if ContainerManagerPtrMap[req.PodID] != nil {
-			ctn := ContainerManagerPtrMap[req.PodID].(*managers.DockerManager)
-			ctn.Remove()
+		for _, ctnID := range PodMap[req.ID] {
+			if ContainerManagerPtrMap[ctnID] != nil {
+				ctn := ContainerManagerPtrMap[ctnID].(*managers.DockerManager)
+				ctn.Remove()
+			}
 		}
 		return err
 	}
 	go func() {
-		delete(ContainerManagerPtrMap, req.PodID)
+		delete(ContainerManagerPtrMap, req.ID)
 	}()
 	return errors.New("移除失败")
 }
@@ -326,7 +335,7 @@ func (t *PodServiceImpl) FindById(id int64) (rep response.PodResponse, err error
 		ctn := ContainerManagerPtrMap[id].(*managers.DockerManager)
 		status, _ := ctn.GetContainerStatus()
 		rep = response.PodResponse{
-			PodID:       id,
+			ID:          id,
 			RemovedAt:   instance.RemovedAt,
 			ChallengeID: instance.ChallengeID,
 			Status:      status,
@@ -338,20 +347,25 @@ func (t *PodServiceImpl) FindById(id int64) (rep response.PodResponse, err error
 
 func (t *PodServiceImpl) Find(req request.PodFindRequest) (pods []response.PodResponse, err error) {
 	if viper.GetString("container.provider") == "docker" {
-		if req.TeamId != 0 && req.GameId != 0 {
-			req.UserId = 0
+		if req.TeamID != 0 && req.GameID != 0 {
+			req.UserID = 0
 		}
 		podResponse, _, err := t.PodRepository.Find(req)
 		podResponse, err = t.Mixin(podResponse)
 		for _, pod := range podResponse {
 			var ctn *managers.DockerManager
 			status := "removed"
-			if ContainerManagerPtrMap[pod.PodID] != nil {
-				ctn = ContainerManagerPtrMap[pod.PodID].(*managers.DockerManager)
-				status, _ = ctn.GetContainerStatus()
+			for _, ctnID := range PodMap[pod.ID] {
+				if ContainerManagerPtrMap[ctnID] != nil {
+					ctn = ContainerManagerPtrMap[ctnID].(*managers.DockerManager)
+					s, _ := ctn.GetContainerStatus()
+					if s == "running" {
+						status = s
+					}
+				}
 			}
 			pods = append(pods, response.PodResponse{
-				PodID:       pod.PodID,
+				ID:          pod.ID,
 				RemovedAt:   pod.RemovedAt,
 				Containers:  pod.Containers,
 				ChallengeID: pod.ChallengeID,

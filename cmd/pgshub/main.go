@@ -36,7 +36,7 @@ func init() {
 	fmt.Printf("\n%s\n", banner)
 	fmt.Printf("\n%s %s\n", color.InRed("WARNING"), color.InWhiteOverRed("PgsHub is still in development."))
 	fmt.Printf("%s %s\n", color.InRed("WARNING"), color.InWhiteOverRed("All features are not guaranteed to work."))
-	fmt.Printf("\n%s %s\n", color.InBold("Commit ID:"), color.InBold(CommitId))
+	fmt.Printf("\n%s %s\n", color.InBold("Commit IDs:"), color.InBold(CommitId))
 	fmt.Printf("%s %s\n", color.InBold("Build At:"), color.InBold(BuildAt))
 	fmt.Printf("%s %s\n\n", color.InBold("Issues:"), color.InBold("https://github.com/elabosak233/PgsHub/issues"))
 }
