@@ -34,29 +34,31 @@ func NewContainerServiceImpl(appRepository *repositories.Repositories) Container
 func (c *ContainerServiceImpl) Mixin(containers []entity.Container) (ctns []entity.Container, err error) {
 	ctnMap := make(map[int64]entity.Container)
 	ctnIDs := make([]int64, 0)
-	challengeMap := make(map[int64]bool)
 
-	for _, ctn := range containers {
-		ctnMap[ctn.ContainerID] = ctn
-		ctnIDs = append(ctnIDs, ctn.ContainerID)
-		challengeMap[ctn.ChallengeID] = true
-	}
+	imageIDMap := make(map[int64]bool)
 
-	challengeIDs := make([]int64, 0)
-	for id := range challengeMap {
-		challengeIDs = append(challengeIDs, id)
+	for _, container := range containers {
+		ctnMap[container.ID] = container
+		ctnIDs = append(ctnIDs, container.ID)
+		imageIDMap[container.ImageID] = true
 	}
 
 	imageMap := make(map[int64]entity.Image)
-	images, _ := c.ImageService.FindByChallengeID(challengeIDs)
+	imageIDs := make([]int64, 0)
+	for imageID := range imageIDMap {
+		imageIDs = append(imageIDs, imageID)
+	}
+
+	images, err := c.ImageService.FindByID(imageIDs)
+
 	for _, image := range images {
-		imageMap[image.ImageID] = image
+		imageMap[image.ID] = image
 	}
 
 	// mixin image -> container
 	for index, ctn := range ctnMap {
 		image := imageMap[ctn.ImageID]
-		ctn.Image = image
+		ctn.Image = &image
 		ctnMap[index] = ctn
 	}
 

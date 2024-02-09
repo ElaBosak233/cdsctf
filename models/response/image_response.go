@@ -9,7 +9,7 @@ type ImageResponse struct {
 }
 
 type ImageSimpleResponse struct {
-	ImageID     int64   `xorm:"'id'" json:"id"`
+	ID          int64   `xorm:"'id'" json:"id"`
 	Name        string  `xorm:"'name'" json:"name"`
 	Description string  `xorm:"'description'" json:"description"`
 	MemoryLimit int64   `xorm:"'memory_limit'" json:"memory_limit"`

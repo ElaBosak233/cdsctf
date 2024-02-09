@@ -38,7 +38,7 @@ func (m *AuthMiddlewareImpl) BasicAuth(ctx *gin.Context) {
 	}
 	if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
 		userId := int64(claims["user_id"].(float64))
-		ctx.Set("UserID", userId)
+		ctx.Set("ID", userId)
 		user, err := m.appService.UserService.FindById(userId)
 		if err != nil {
 			ctx.JSON(http.StatusOK, gin.H{

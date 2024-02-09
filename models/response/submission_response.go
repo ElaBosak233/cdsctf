@@ -1,6 +1,8 @@
 package response
 
-import model "github.com/elabosak233/pgshub/models/entity"
+import (
+	model "github.com/elabosak233/pgshub/models/entity"
+)
 
 type SubmissionResponse struct {
 	model.Submission `xorm:"extends"`

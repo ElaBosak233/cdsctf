@@ -27,12 +27,12 @@ func (t *FlagRepositoryImpl) Insert(flag entity.Flag) (f entity.Flag, err error)
 }
 
 func (t *FlagRepositoryImpl) Update(flag entity.Flag) (f entity.Flag, err error) {
-	_, err = t.Db.Table("flag").ID(flag.FlagID).Update(&flag)
+	_, err = t.Db.Table("flag").ID(flag.ID).Update(&flag)
 	return flag, err
 }
 
 func (t *FlagRepositoryImpl) Delete(flag entity.Flag) (err error) {
-	_, err = t.Db.Table("flag").ID(flag.FlagID).Delete(&flag)
+	_, err = t.Db.Table("flag").ID(flag.ID).Delete(&flag)
 	return err
 }
 

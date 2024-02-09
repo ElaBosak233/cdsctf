@@ -46,7 +46,7 @@ func NewUserServiceImpl(appRepository *repositories.Repositories) UserService {
 func (t *UserServiceImpl) GetJwtTokenById(user response.UserResponse) (tokenString string, err error) {
 	jwtSecretKey := []byte(viper.GetString("jwt.secret_key"))
 	pgsToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.UserID,
+		"user_id": user.ID,
 		"exp":     time.Now().Add(time.Duration(viper.GetInt("jwt.expiration")) * time.Minute).Unix(),
 	})
 	return pgsToken.SignedString(jwtSecretKey)
@@ -101,13 +101,13 @@ func (t *UserServiceImpl) Find(req request.UserFindRequest) (users []response.Us
 	var userIds []int64
 	usersMap := make(map[int64]response.UserResponse)
 	for _, result := range users {
-		if _, ok := usersMap[result.UserID]; !ok {
-			usersMap[result.UserID] = result
+		if _, ok := usersMap[result.ID]; !ok {
+			usersMap[result.ID] = result
 		}
-		userIds = append(userIds, result.UserID)
+		userIds = append(userIds, result.ID)
 	}
 	teams, err := t.TeamRepository.BatchFindByUserId(request.TeamBatchFindByUserIdRequest{
-		UserId: userIds,
+		UserID: userIds,
 	})
 	for _, team := range teams {
 		var teamResponse response.TeamSimpleResponse
@@ -118,7 +118,7 @@ func (t *UserServiceImpl) Find(req request.UserFindRequest) (users []response.Us
 		}
 	}
 	for index, user := range users {
-		users[index].Teams = usersMap[user.UserID].Teams
+		users[index].Teams = usersMap[user.ID].Teams
 	}
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))

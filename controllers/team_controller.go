@@ -110,7 +110,7 @@ func (c *TeamControllerImpl) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	err = c.TeamService.Delete(deleteTeamRequest.TeamId)
+	err = c.TeamService.Delete(deleteTeamRequest.ID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -133,7 +133,7 @@ func (c *TeamControllerImpl) Delete(ctx *gin.Context) {
 // @Router /api/teams/ [get]
 func (c *TeamControllerImpl) Find(ctx *gin.Context) {
 	teamData, pageCount, total, _ := c.TeamService.Find(request.TeamFindRequest{
-		TeamId:    int64(convertor.ToIntD(ctx.Query("id"), 0)),
+		ID:        int64(convertor.ToIntD(ctx.Query("id"), 0)),
 		TeamName:  ctx.Query("name"),
 		CaptainId: int64(convertor.ToIntD(ctx.Query("captain_id"), 0)),
 		Page:      convertor.ToIntD(ctx.Query("page"), 0),
@@ -158,7 +158,7 @@ func (c *TeamControllerImpl) Find(ctx *gin.Context) {
 // @Router /api/teams/batch/ [get]
 func (c *TeamControllerImpl) BatchFind(ctx *gin.Context) {
 	teams, _ := c.TeamService.BatchFind(request.TeamBatchFindRequest{
-		TeamId: convertor.ToInt64SliceD(ctx.QueryArray("id"), []int64{}),
+		ID: convertor.ToInt64SliceD(ctx.QueryArray("id"), []int64{}),
 	})
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,

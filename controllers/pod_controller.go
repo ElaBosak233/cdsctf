@@ -34,10 +34,10 @@ func NewInstanceControllerImpl(appService *services.Services) PodController {
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Authorization"
-// @Param input body request.InstanceCreateRequest true "InstanceCreateRequest"
+// @Param input body request.PodCreateRequest true "PodCreateRequest"
 // @Router /api/pods/ [post]
 func (c *PodControllerImpl) Create(ctx *gin.Context) {
-	instanceCreateRequest := request.InstanceCreateRequest{}
+	instanceCreateRequest := request.PodCreateRequest{}
 	err := ctx.ShouldBindJSON(&instanceCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -46,7 +46,7 @@ func (c *PodControllerImpl) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	instanceCreateRequest.UserId = ctx.GetInt64("UserID")
+	instanceCreateRequest.UserID = ctx.GetInt64("ID")
 	res, err := c.PodService.Create(instanceCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -57,7 +57,7 @@ func (c *PodControllerImpl) Create(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":       http.StatusOK,
-		"id":         res.PodID,
+		"id":         res.ID,
 		"containers": res.Containers,
 		"removed_at": res.RemovedAt,
 	})
@@ -74,7 +74,7 @@ func (c *PodControllerImpl) Create(ctx *gin.Context) {
 func (c *PodControllerImpl) Remove(ctx *gin.Context) {
 	instanceRemoveRequest := request.PodRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
-	instanceRemoveRequest.UserId = ctx.GetInt64("UserID")
+	instanceRemoveRequest.UserID = ctx.GetInt64("ID")
 	err = c.PodService.Remove(instanceRemoveRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -94,12 +94,12 @@ func (c *PodControllerImpl) Remove(ctx *gin.Context) {
 // @Tags 实例
 // @Produce json
 // @Param Authorization header string true "Authorization"
-// @Param input body request.InstanceRenewRequest true "InstanceRenewRequest"
+// @Param input body request.PodRenewRequest true "PodRenewRequest"
 // @Router /api/pods/ [put]
 func (c *PodControllerImpl) Renew(ctx *gin.Context) {
-	instanceRenewRequest := request.InstanceRenewRequest{}
+	instanceRenewRequest := request.PodRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
-	instanceRenewRequest.UserId = ctx.GetInt64("UserID")
+	instanceRenewRequest.UserID = ctx.GetInt64("ID")
 	removedAt, err := c.PodService.Renew(instanceRenewRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -147,10 +147,11 @@ func (c *PodControllerImpl) FindById(ctx *gin.Context) {
 // @Router /api/pods/ [get]
 func (c *PodControllerImpl) Find(ctx *gin.Context) {
 	podFindRequest := request.PodFindRequest{
-		UserId:      ctx.GetInt64("UserID"),
-		ChallengeId: int64(convertor.ToIntD(ctx.Query("challenge_id"), 0)),
-		TeamId:      int64(convertor.ToIntD(ctx.Query("team_id"), 0)),
-		GameId:      int64(convertor.ToIntD(ctx.Query("game_id"), 0)),
+		UserID:      ctx.GetInt64("ID"),
+		IDs:         convertor.ToInt64SliceD(ctx.QueryArray("id"), []int64{}),
+		ChallengeID: int64(convertor.ToIntD(ctx.Query("challenge_id"), 0)),
+		TeamID:      int64(convertor.ToIntD(ctx.Query("team_id"), 0)),
+		GameID:      int64(convertor.ToIntD(ctx.Query("game_id"), 0)),
 		IsAvailable: convertor.ToBoolP(ctx.Query("is_available")),
 		Page:        convertor.ToIntD(ctx.Query("page"), 0),
 		Size:        convertor.ToIntD(ctx.Query("size"), 0),

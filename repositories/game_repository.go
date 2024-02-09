@@ -28,21 +28,21 @@ func (t *GameRepositoryImpl) Insert(game entity.Game) (g entity.Game, err error)
 }
 
 func (t *GameRepositoryImpl) Update(game entity.Game) (err error) {
-	_, err = t.Db.Table("game").ID(game.GameID).Update(&game)
+	_, err = t.Db.Table("game").ID(game.ID).Update(&game)
 	return err
 }
 
 func (t *GameRepositoryImpl) Delete(id int64) (err error) {
 	_, err = t.Db.Table("game").Delete(&entity.Game{
-		GameID: id,
+		ID: id,
 	})
 	return err
 }
 
 func (t *GameRepositoryImpl) Find(req request.GameFindRequest) (games []response.GameResponse, count int64, err error) {
 	applyFilters := func(q *xorm.Session) *xorm.Session {
-		if req.GameId != 0 {
-			q = q.Where("id = ?", req.GameId)
+		if req.ID != 0 {
+			q = q.Where("id = ?", req.ID)
 		}
 		if req.Title != "" {
 			q = q.Where("title LIKE ?", "%"+req.Title+"%")
@@ -64,7 +64,7 @@ func (t *GameRepositoryImpl) Find(req request.GameFindRequest) (games []response
 			db = db.Desc("game." + sortKey)
 		}
 	} else {
-		db = db.Desc("game.id") // 默认采用 ID 降序排列
+		db = db.Desc("game.id") // 默认采用 IDs 降序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size

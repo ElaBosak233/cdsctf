@@ -6,6 +6,7 @@ import (
 )
 
 type ImageService interface {
+	FindByID(IDs []int64) (images []entity.Image, err error)
 	FindByChallengeID(challengeIDs []int64) (images []entity.Image, err error)
 }
 
@@ -26,7 +27,7 @@ func NewImageServiceImpl(appRepository *repositories.Repositories) ImageService 
 func (t *ImageServiceImpl) Mixin(images []entity.Image) (imgs []entity.Image, err error) {
 	imageMap := make(map[int64]entity.Image)
 	for _, image := range images {
-		imageMap[image.ImageID] = image
+		imageMap[image.ID] = image
 	}
 	imageIDs := make([]int64, 0)
 	for id := range imageMap {
@@ -53,6 +54,12 @@ func (t *ImageServiceImpl) Mixin(images []entity.Image) (imgs []entity.Image, er
 	}
 
 	return imgs, err
+}
+
+func (t *ImageServiceImpl) FindByID(IDs []int64) (images []entity.Image, err error) {
+	images, err = t.ImageRepository.FindByID(IDs)
+	images, err = t.Mixin(images)
+	return images, err
 }
 
 func (t *ImageServiceImpl) FindByChallengeID(challengeIDs []int64) (images []entity.Image, err error) {

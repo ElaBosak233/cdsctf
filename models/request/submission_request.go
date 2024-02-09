@@ -1,11 +1,11 @@
 package request
 
 type SubmissionCreateRequest struct {
-	Flag        string `json:"flag" binding:"required" msg:"Flag 不能为空"`          // 提交内容
-	UserId      int64  `json:"-"`                                                // 用户 Id
-	ChallengeId int64  `json:"challenge_id" binding:"required" msg:"题目 Id 不能为空"` // 题目 Id
-	TeamId      int64  `json:"team_id"`                                          // 团队 Id
-	GameId      int64  `json:"game_id"`                                          // 比赛 Id
+	Flag        string `json:"flag" binding:"required"`         // 提交内容
+	UserID      int64  `json:"-"`                               // 用户 Id
+	ChallengeID int64  `json:"challenge_id" binding:"required"` // 题目 Id
+	TeamID      int64  `json:"team_id"`                         // 团队 Id
+	GameID      int64  `json:"game_id"`                         // 比赛 Id
 }
 
 type SubmissionDeleteRequest struct {
@@ -13,11 +13,11 @@ type SubmissionDeleteRequest struct {
 }
 
 type SubmissionFindRequest struct {
-	UserId      int64    `json:"user_id"`      // 用户 Id
+	UserID      int64    `json:"user_id"`      // 用户 Id
 	Status      int      `json:"status"`       // 评判结果
-	ChallengeId int64    `json:"challenge_id"` // 题目 Id
-	TeamId      int64    `json:"team_id"`      // 团队 Id
-	GameId      int64    `json:"game_id"`      // 比赛 Id
+	ChallengeID int64    `json:"challenge_id"` // 题目 Id
+	TeamID      int64    `json:"team_id"`      // 团队 Id
+	GameID      int64    `json:"game_id"`      // 比赛 Id
 	IsDetailed  int      `json:"is_detailed"`  // 是否详细
 	SortBy      []string `json:"sort_by"`      // 排序参数
 	Page        int      `json:"page"`         // 页码
@@ -25,12 +25,12 @@ type SubmissionFindRequest struct {
 }
 
 type SubmissionBatchFindRequest struct {
-	UserId           int64    `json:"user_id"`            // 用户 Id
+	UserID           int64    `json:"user_id"`            // 用户 Id
 	Status           int      `json:"status"`             // 评估结果
-	ChallengeId      []int64  `json:"challenge_id"`       // 题目 Id 数组
+	ChallengeID      []int64  `json:"challenge_id"`       // 题目 Id 数组
 	SizePerChallenge int      `json:"size_per_challenge"` // 每道题查询量
-	TeamId           int64    `json:"team_id"`            // 团队 Id
-	GameId           int64    `json:"game_id"`            // 比赛 Id
+	TeamID           int64    `json:"team_id"`            // 团队 Id
+	GameID           int64    `json:"game_id"`            // 比赛 Id
 	IsDetailed       bool     `json:"is_detailed"`        // 是否详细
 	SortBy           []string `json:"sort_by"`            // 排序参数
 	Size             int      `json:"size"`               // 每页大小

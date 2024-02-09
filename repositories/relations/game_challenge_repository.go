@@ -6,7 +6,7 @@ import (
 )
 
 type GameChallengeRepository interface {
-	BatchFindByGameIdAndChallengeId(gameId int64, challengeIds []int64) (gameChallenges []model.GameChallenge, err error)
+	BatchFindByGameIdAndChallengeId(gameID int64, challengeIDs []int64) (gameChallenges []model.GameChallenge, err error)
 }
 
 type GameChallengeRepositoryImpl struct {
@@ -17,7 +17,7 @@ func NewGameChallengeRepositoryImpl(Db *xorm.Engine) GameChallengeRepository {
 	return &GameChallengeRepositoryImpl{Db: Db}
 }
 
-func (t *GameChallengeRepositoryImpl) BatchFindByGameIdAndChallengeId(gameId int64, challengeIds []int64) (gameChallenges []model.GameChallenge, err error) {
-	err = t.Db.Table("game_challenge").Where("game_id = ?", gameId).In("challenge_id", challengeIds).Find(&gameChallenges)
+func (t *GameChallengeRepositoryImpl) BatchFindByGameIdAndChallengeId(gameID int64, challengeIDs []int64) (gameChallenges []model.GameChallenge, err error) {
+	err = t.Db.Table("game_challenge").Where("game_id = ?", gameID).In("challenge_id", challengeIDs).Find(&gameChallenges)
 	return gameChallenges, err
 }

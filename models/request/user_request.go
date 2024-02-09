@@ -1,7 +1,7 @@
 package request
 
 type UserFindRequest struct {
-	UserId   int64    `json:"id"`
+	ID       int64    `json:"id"`
 	Username string   `json:"username"`
 	Name     string   `json:"name"`
 	Email    string   `json:"email"`
@@ -12,7 +12,7 @@ type UserFindRequest struct {
 }
 
 type UserBatchFindByTeamIdRequest struct {
-	TeamId []int64
+	TeamID []int64
 }
 
 type UserRegisterRequest struct {
@@ -36,7 +36,7 @@ type UserLoginRequest struct {
 }
 
 type UserUpdateRequest struct {
-	UserId   int64  `binding:"required" json:"id"`
+	ID       int64  `binding:"required" json:"id"`
 	Nickname string `binding:"omitempty,min=2" json:"nickname" msg:"昵称必须有 2 位"`
 	Username string `binding:"omitempty,max=20,min=3" json:"username,omitempty" msg:"用户名必须位于 3 ~ 20 位"`
 	Password string `binding:"omitempty,min=6" json:"password,omitempty" msg:"密码必须大于 6 位"`
@@ -45,5 +45,5 @@ type UserUpdateRequest struct {
 }
 
 type UserDeleteRequest struct {
-	UserId int64 `binding:"required" json:"id"`
+	ID int64 `binding:"required" json:"id"`
 }

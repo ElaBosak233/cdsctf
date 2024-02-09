@@ -37,13 +37,13 @@ func (t *ChallengeRepositoryImpl) Delete(id int64) error {
 }
 
 func (t *ChallengeRepositoryImpl) Update(challenge entity.Challenge) (c entity.Challenge, err error) {
-	fmt.Println(challenge.ChallengeID)
-	_, err = t.Db.Table("challenge").ID(challenge.ChallengeID).Update(&challenge)
+	fmt.Println(challenge.ID)
+	_, err = t.Db.Table("challenge").ID(challenge.ID).Update(&challenge)
 	return challenge, err
 }
 
 func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, count int64, err error) {
-	isGame := challengeValidator.IsIdValid(req.GameId) && challengeValidator.IsIdValid(req.GameId)
+	isGame := challengeValidator.IsIdValid(req.GameID) && challengeValidator.IsIdValid(req.GameID)
 	applyFilter := func(q *xorm.Session) *xorm.Session {
 		if challengeValidator.IsCategoryStringValid(req.Category) {
 			q = q.Where("category = ?", req.Category)
@@ -63,10 +63,10 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 		if isGame {
 			q = q.Join("INNER",
 				"game_challenge",
-				"game_challenge.challenge_id = challenge.id AND game_challenge.game_id = ?", req.GameId)
+				"game_challenge.challenge_id = challenge.id AND game_challenge.game_id = ?", req.GameID)
 		}
-		if challengeValidator.IsIdArrayValid(req.ChallengeIds) {
-			q = q.In("challenge.id", req.ChallengeIds)
+		if challengeValidator.IsIdArrayValid(req.IDs) {
+			q = q.In("challenge.id", req.IDs)
 		}
 		return q
 	}
@@ -82,26 +82,26 @@ func (t *ChallengeRepositoryImpl) Find(req request.ChallengeFindRequest) (challe
 			db = db.Desc("challenge." + sortKey)
 		}
 	} else {
-		db = db.Asc("challenge.id") // 默认采用 ID 升序排列
+		db = db.Asc("challenge.id") // 默认采用 IDs 升序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}
-	if isGame {
-		db = db.Join(
-			"LEFT",
-			"submission",
-			"submission.challenge_id = challenge.id AND submission.status = 2 AND submission.team_id = ?",
-			req.TeamId)
-	} else {
-		db = db.Join(
-			"LEFT",
-			"submission",
-			"submission.challenge_id = challenge.id AND submission.status = 2 AND submission.game_id = 0 AND submission.user_id = ?",
-			req.UserId)
-	}
-	err = db.Cols("challenge.*", "submission.*").Find(&challenges)
+	//if isGame {
+	//	db = db.Join(
+	//		"LEFT",
+	//		"submission",
+	//		"submission.challenge_id = challenge.id AND submission.status = 2 AND submission.team_id = ?",
+	//		req.ID)
+	//} else {
+	//	db = db.Join(
+	//		"LEFT",
+	//		"submission",
+	//		"submission.challenge_id = challenge.id AND submission.status = 2 AND submission.game_id = 0 AND submission.user_id = ?",
+	//		req.ID)
+	//}
+	err = db.Cols("challenge.*").Find(&challenges)
 	return challenges, count, err
 }
 

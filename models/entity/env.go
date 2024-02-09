@@ -1,7 +1,7 @@
 package entity
 
 type Env struct {
-	EnvID   int64  `xorm:"'id' pk autoincr" json:"id"`
+	ID      int64  `xorm:"'id' pk autoincr" json:"id"`
 	Key     string `xorm:"'key' varchar(128) notnull" json:"key"`
 	Value   string `xorm:"'value' varchar(128) notnull" json:"value"`
 	ImageID int64  `xorm:"'image_id' notnull" json:"image_id"`
