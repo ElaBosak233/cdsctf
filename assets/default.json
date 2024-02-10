@@ -1,0 +1,63 @@
+{
+  "container": {
+    "docker": {
+      "public_entry": "127.0.0.0",
+        "uri": "unix:///var/run/docker.sock"
+    },
+    "provider": "docker"
+  },
+  "db": {
+    "postgres": {
+      "dbname": "pgshub",
+      "host": "127.0.0.1",
+      "password": "pgshub",
+      "port": 5432,
+      "sslmode": "disable",
+      "username": "pgshub"
+    },
+    "provider": "postgres",
+    "sqlite3": {
+      "filename": "db.sqlite3"
+    }
+  },
+  "email": {
+    "address": "",
+    "password": "",
+    "smtp": {
+      "host": "",
+      "port": 0
+    }
+  },
+  "global": {
+    "container": {
+      "parallel_limit": 1,
+      "request_limit": 0
+    },
+    "platform": {
+      "description": "Hack for fun not for profit.",
+      "title": "PgsHub"
+    },
+    "user": {
+      "allow_registration": true
+    }
+  },
+  "jwt": {
+    "expiration": 180,
+    "secret_key": "20101010"
+  },
+  "server": {
+    "cors": {
+      "allow_methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "allow_origins": [
+        "*"
+      ]
+    },
+    "host": "0.0.0.0",
+    "port": 8888
+  }
+}

@@ -2,9 +2,9 @@ package middlewares
 
 import (
 	"github.com/elabosak233/pgshub/services"
+	"github.com/elabosak233/pgshub/utils/config"
 	"github.com/gin-gonic/gin"
-	jwt "github.com/golang-jwt/jwt/v5"
-	"github.com/spf13/viper"
+	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 )
 
@@ -26,7 +26,7 @@ func NewAuthMiddleware(appService *services.Services) AuthMiddleware {
 func (m *AuthMiddlewareImpl) BasicAuth(ctx *gin.Context) {
 	token := ctx.GetHeader("Authorization")
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(viper.GetString("jwt.secret_key")), nil
+		return []byte(config.Cfg().Jwt.SecretKey), nil
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

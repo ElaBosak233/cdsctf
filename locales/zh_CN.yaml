@@ -1,0 +1,6 @@
+user:
+  login:
+    title: 登录
+    error:
+      invalid: 无效的用户名或密码
+      locked: 用户已被锁定

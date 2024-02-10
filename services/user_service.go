@@ -7,9 +7,9 @@ import (
 	"github.com/elabosak233/pgshub/models/response"
 	"github.com/elabosak233/pgshub/repositories"
 	"github.com/elabosak233/pgshub/repositories/relations"
+	"github.com/elabosak233/pgshub/utils/config"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"math"
 	"time"
@@ -44,17 +44,17 @@ func NewUserServiceImpl(appRepository *repositories.Repositories) UserService {
 }
 
 func (t *UserServiceImpl) GetJwtTokenById(user response.UserResponse) (tokenString string, err error) {
-	jwtSecretKey := []byte(viper.GetString("jwt.secret_key"))
+	jwtSecretKey := []byte(config.Cfg().Jwt.SecretKey)
 	pgsToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Duration(viper.GetInt("jwt.expiration")) * time.Minute).Unix(),
+		"exp":     time.Now().Add(time.Duration(config.Cfg().Jwt.Expiration) * time.Minute).Unix(),
 	})
 	return pgsToken.SignedString(jwtSecretKey)
 }
 
 func (t *UserServiceImpl) GetIdByJwtToken(token string) (id int64, err error) {
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(viper.GetString("jwt.secret_key")), nil
+		return []byte(config.Cfg().Jwt.SecretKey), nil
 	})
 	if err != nil {
 		return 0, err
