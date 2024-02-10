@@ -9,8 +9,8 @@ import (
 	"github.com/elabosak233/pgshub/models/response"
 	"github.com/elabosak233/pgshub/repositories"
 	"github.com/elabosak233/pgshub/utils"
+	"github.com/elabosak233/pgshub/utils/config"
 	"github.com/elabosak233/pgshub/utils/convertor"
-	"github.com/spf13/viper"
 	"strings"
 	"sync"
 	"time"
@@ -112,11 +112,11 @@ func (t *PodServiceImpl) IsLimited(userId int64, limit int64) (remainder int64) 
 }
 
 func (t *PodServiceImpl) Create(req request.PodCreateRequest) (res response.PodStatusResponse, err error) {
-	remainder := t.IsLimited(req.UserID, viper.GetInt64("global.container.request_limit"))
+	remainder := t.IsLimited(req.UserID, int64(config.Cfg().Global.Container.RequestLimit))
 	if remainder != 0 {
 		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
-	if viper.GetString("container.provider") == "docker" {
+	if config.Cfg().Container.Provider == "docker" {
 		SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
 		challenges, _, _, _ := t.ChallengeService.Find(request.ChallengeFindRequest{
 			IDs:       []int64{req.ChallengeID},
@@ -130,7 +130,7 @@ func (t *PodServiceImpl) Create(req request.PodCreateRequest) (res response.PodS
 			IsAvailable: convertor.TrueP(),
 		})
 		if req.TeamID == 0 && req.GameID == 0 { // 练习场限制并行
-			needToBeDeactivated := count - viper.GetInt64("global.container.parallel_limit")
+			needToBeDeactivated := count - int64(config.Cfg().Global.Container.ParallelLimit)
 			if needToBeDeactivated > 0 {
 				for _, instance := range availableInstances {
 					if needToBeDeactivated == 0 {
@@ -217,7 +217,7 @@ func (t *PodServiceImpl) Create(req request.PodCreateRequest) (res response.PodS
 					dstPort := convertor.ToIntD(dst.HostPort, 0)
 					entry := fmt.Sprintf(
 						"%s:%d",
-						viper.GetString("container.docker.public_entry"),
+						config.Cfg().Container.Docker.PublicEntry,
 						dstPort,
 					)
 					// Nat -> Container
@@ -257,7 +257,7 @@ func (t *PodServiceImpl) Create(req request.PodCreateRequest) (res response.PodS
 
 func (t *PodServiceImpl) Status(podID int64) (rep response.PodStatusResponse, err error) {
 	rep = response.PodStatusResponse{}
-	if viper.GetString("container.provider") == "docker" {
+	if config.Cfg().Container.Provider == "docker" {
 		instance, err := t.PodRepository.FindById(podID)
 		if ContainerManagerPtrMap[podID] != nil {
 			ctn := ContainerManagerPtrMap[podID].(*managers.DockerManager)
@@ -277,11 +277,11 @@ func (t *PodServiceImpl) Status(podID int64) (rep response.PodStatusResponse, er
 }
 
 func (t *PodServiceImpl) Renew(req request.PodRenewRequest) (removedAt int64, err error) {
-	remainder := t.IsLimited(req.UserID, viper.GetInt64("global.container.request_limit"))
+	remainder := t.IsLimited(req.UserID, int64(config.Cfg().Global.Container.RequestLimit))
 	if remainder != 0 {
 		return 0, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
-	if viper.GetString("Container.Provider") == "docker" {
+	if config.Cfg().Container.Provider == "docker" {
 		SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
 		pod, err := t.PodRepository.FindById(req.ID)
 		if err != nil || PodMap[req.ID] == nil {
@@ -303,11 +303,11 @@ func (t *PodServiceImpl) Renew(req request.PodRenewRequest) (removedAt int64, er
 }
 
 func (t *PodServiceImpl) Remove(req request.PodRemoveRequest) (err error) {
-	remainder := t.IsLimited(req.UserID, viper.GetInt64("global.container.request_limit"))
+	remainder := t.IsLimited(req.UserID, int64(config.Cfg().Global.Container.RequestLimit))
 	if remainder != 0 {
 		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
-	if viper.GetString("container.provider") == "docker" {
+	if config.Cfg().Container.Provider == "docker" {
 		_ = t.PodRepository.Update(entity.Pod{
 			ID:        req.ID,
 			RemovedAt: time.Now().Unix(),
@@ -327,7 +327,7 @@ func (t *PodServiceImpl) Remove(req request.PodRemoveRequest) (err error) {
 }
 
 func (t *PodServiceImpl) FindById(id int64) (rep response.PodResponse, err error) {
-	if viper.GetString("container.provider") == "docker" {
+	if config.Cfg().Container.Provider == "docker" {
 		instance, err := t.PodRepository.FindById(id)
 		if err != nil || ContainerManagerPtrMap[id] == nil {
 			return rep, errors.New("实例不存在")
@@ -346,7 +346,7 @@ func (t *PodServiceImpl) FindById(id int64) (rep response.PodResponse, err error
 }
 
 func (t *PodServiceImpl) Find(req request.PodFindRequest) (pods []response.PodResponse, err error) {
-	if viper.GetString("container.provider") == "docker" {
+	if config.Cfg().Container.Provider == "docker" {
 		if req.TeamID != 0 && req.GameID != 0 {
 			req.UserID = 0
 		}

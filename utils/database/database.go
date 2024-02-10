@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/elabosak233/pgshub/models/entity"
 	"github.com/elabosak233/pgshub/models/entity/relations"
+	"github.com/elabosak233/pgshub/utils/config"
 	"github.com/elabosak233/pgshub/utils/logger"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -34,19 +34,19 @@ func GetDatabase() *xorm.Engine {
 // initDatabaseEngine 初始化数据库引擎
 func initDatabaseEngine() {
 	var err error
-	if viper.GetString("db.provider") == "postgres" {
+	if config.Cfg().Db.Provider == "postgres" {
 		dbInfo = fmt.Sprintf(
 			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-			viper.GetString("db.postgres.host"),
-			viper.GetInt("db.postgres.port"),
-			viper.GetString("db.postgres.username"),
-			viper.GetString("db.postgres.password"),
-			viper.GetString("db.postgres.dbname"),
-			viper.GetString("db.postgres.sslmode"),
+			config.Cfg().Db.Postgres.Host,
+			config.Cfg().Db.Postgres.Port,
+			config.Cfg().Db.Postgres.Username,
+			config.Cfg().Db.Postgres.Password,
+			config.Cfg().Db.Postgres.Dbname,
+			config.Cfg().Db.Postgres.Sslmode,
 		)
 		db, err = xorm.NewEngine("postgres", dbInfo)
-	} else if viper.GetString("db.provider") == "sqlite3" {
-		dbInfo = viper.GetString("db.sqlite3.filename")
+	} else if config.Cfg().Db.Provider == "sqlite3" {
+		dbInfo = config.Cfg().Db.Sqlite3.Filename
 		db, err = xorm.NewEngine("sqlite3", dbInfo)
 	}
 	if err != nil {

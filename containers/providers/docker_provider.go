@@ -5,24 +5,28 @@ import (
 	"fmt"
 	"github.com/TwiN/go-color"
 	"github.com/docker/docker/client"
-	"github.com/spf13/viper"
+	"github.com/elabosak233/pgshub/utils/config"
 	"go.uber.org/zap"
 )
 
 var (
-	// DockerCli Store Docker client pointers
-	DockerCli *client.Client
+	// dockerCli Store Docker client pointers
+	dockerCli *client.Client
 )
 
+func DockerCli() *client.Client {
+	return dockerCli
+}
+
 func NewDockerProvider() {
-	dockerUri := viper.GetString("container.docker.uri")
+	dockerUri := config.Cfg().Container.Docker.URI
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation(), client.WithHost(dockerUri))
 	if err != nil {
 		zap.L().Error("Docker client initialization failed.")
 		panic(err)
 	}
 	zap.L().Info(fmt.Sprintf("Docker client initialization successful, client version %s", color.InCyan(dockerClient.ClientVersion())))
-	DockerCli = dockerClient // Inject into global variable DockerCli
+	dockerCli = dockerClient
 	version, err := dockerClient.ServerVersion(context.Background())
 	if err != nil {
 		zap.L().Error("Docker server connection failure.")

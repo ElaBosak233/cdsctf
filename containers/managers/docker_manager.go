@@ -72,7 +72,7 @@ func (c *DockerManager) Setup() (assignedPorts nat.PortMap, err error) {
 			NanoCPUs: int64(c.CPULimit * 1e9),
 		},
 	}
-	resp, err := providers.DockerCli.ContainerCreate(
+	resp, err := providers.DockerCli().ContainerCreate(
 		context.Background(),
 		containerConfig,
 		hostConfig,
@@ -84,7 +84,7 @@ func (c *DockerManager) Setup() (assignedPorts nat.PortMap, err error) {
 		panic(err)
 	}
 	c.RespID = resp.ID
-	err = providers.DockerCli.ContainerStart(
+	err = providers.DockerCli().ContainerStart(
 		context.Background(),
 		c.RespID,
 		types.ContainerStartOptions{},
@@ -92,7 +92,7 @@ func (c *DockerManager) Setup() (assignedPorts nat.PortMap, err error) {
 	if err != nil {
 		panic(err)
 	}
-	inspect, err := providers.DockerCli.ContainerInspect(
+	inspect, err := providers.DockerCli().ContainerInspect(
 		context.Background(),
 		c.RespID,
 	)
@@ -116,7 +116,7 @@ func (c *DockerManager) GetContainerStatus() (status string, err error) {
 	if c.RespID == "" {
 		return "", errors.New("容器未创建或初始化失败")
 	}
-	resp, err := providers.DockerCli.ContainerInspect(context.Background(), c.RespID)
+	resp, err := providers.DockerCli().ContainerInspect(context.Background(), c.RespID)
 	if err != nil {
 		return "removed", err
 	}
@@ -137,22 +137,22 @@ func (c *DockerManager) RemoveAfterDuration(ctx context.Context) (success bool) 
 func (c *DockerManager) Remove() {
 	go func() {
 		// Check if the container is running before stopping it
-		info, err := providers.DockerCli.ContainerInspect(context.Background(), c.RespID)
+		info, err := providers.DockerCli().ContainerInspect(context.Background(), c.RespID)
 		if err != nil {
 			return
 		}
 
 		if info.State.Running {
-			_ = providers.DockerCli.ContainerStop(context.Background(), c.RespID, container.StopOptions{})              // Stop the container
-			_, _ = providers.DockerCli.ContainerWait(context.Background(), c.RespID, container.WaitConditionNotRunning) // Wait for the container to stop
+			_ = providers.DockerCli().ContainerStop(context.Background(), c.RespID, container.StopOptions{})              // Stop the container
+			_, _ = providers.DockerCli().ContainerWait(context.Background(), c.RespID, container.WaitConditionNotRunning) // Wait for the container to stop
 		}
 
 		// Check if the container still exists before removing it
-		_, err = providers.DockerCli.ContainerInspect(context.Background(), c.RespID)
+		_, err = providers.DockerCli().ContainerInspect(context.Background(), c.RespID)
 		if err != nil && client.IsErrNotFound(err) {
 			return // Container not found, it has been removed
 		}
-		_ = providers.DockerCli.ContainerRemove(context.Background(), c.RespID, types.ContainerRemoveOptions{}) // Remove the container
+		_ = providers.DockerCli().ContainerRemove(context.Background(), c.RespID, types.ContainerRemoveOptions{}) // Remove the container
 	}()
 }
 

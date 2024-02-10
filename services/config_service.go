@@ -1,14 +1,14 @@
 package services
 
 import (
+	"fmt"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/repositories"
 	"github.com/elabosak233/pgshub/utils/config"
-	"github.com/spf13/viper"
 )
 
 type ConfigService interface {
-	FindAll() (config map[string]any)
+	FindAll() (cfg config.Global)
 	Update(req request.ConfigUpdateRequest) (err error)
 }
 
@@ -19,15 +19,17 @@ func NewConfigServiceImpl(appRepository *repositories.Repositories) ConfigServic
 	return &ConfigServiceImpl{}
 }
 
-func (c *ConfigServiceImpl) FindAll() (config map[string]any) {
-	return viper.GetStringMap("global")
+func (c *ConfigServiceImpl) FindAll() (cfg config.Global) {
+	fmt.Print(config.Cfg().Global)
+	return config.Cfg().Global
 }
 
 func (c *ConfigServiceImpl) Update(req request.ConfigUpdateRequest) (err error) {
-	viper.Set("global.platform.title", req.Platform.Title)
-	viper.Set("global.platform.description", req.Platform.Description)
-	viper.Set("global.container.parallel_limit", req.Container.ParallelLimit)
-	viper.Set("global.container.request_limit", req.Container.RequestLimit)
-	viper.Set("global.user.allow_registration", req.User.AllowRegistration)
-	return config.SaveConfig()
+	config.Cfg().Global.Platform.Title = req.Platform.Title
+	config.Cfg().Global.Platform.Description = req.Platform.Description
+	config.Cfg().Global.Container.ParallelLimit = int(req.Container.ParallelLimit)
+	config.Cfg().Global.Container.RequestLimit = int(req.Container.RequestLimit)
+	config.Cfg().Global.User.AllowRegistration = req.User.AllowRegistration
+	err = config.SaveConfig()
+	return err
 }
