@@ -44,11 +44,15 @@ func init() {
 func main() {
 	logger.InitLogger()
 	config.InitConfig()
+	assets.InitAssets()
 	database.InitDatabase()
 
 	switch config.Cfg().Container.Provider {
 	case "docker":
 		providers.NewDockerProvider()
+	case "k8s":
+	default:
+		zap.L().Fatal("Invalid container provider!")
 	}
 
 	// Debug mode
@@ -81,7 +85,7 @@ func main() {
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
 
 	// Frontend resources
-	r.Use(appMiddleware.FrontendMiddleware.Frontend("/", "./dist"))
+	r.Use(appMiddleware.FrontendMiddleware.Frontend("/"))
 
 	s := &http.Server{
 		Addr:    config.Cfg().Server.Host + ":" + strconv.Itoa(config.Cfg().Server.Port),
@@ -91,6 +95,6 @@ func main() {
 	zap.L().Info(fmt.Sprintf("Here's the address! %s:%d", config.Cfg().Server.Host, config.Cfg().Server.Port))
 	err := s.ListenAndServe()
 	if err != nil {
-		zap.L().Error("Err... It seems that the port for PgsHub is not available. Plz try again.")
+		zap.L().Fatal("Err... It seems that the port for PgsHub is not available. Plz try again.")
 	}
 }

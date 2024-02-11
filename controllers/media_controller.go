@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"github.com/elabosak233/pgshub/services"
+	"github.com/elabosak233/pgshub/utils/config"
 	"github.com/elabosak233/pgshub/utils/convertor"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
@@ -11,11 +12,7 @@ import (
 	"os"
 )
 
-var (
-	assetsPath string = "./uploads"
-)
-
-type AssetController interface {
+type MediaController interface {
 	GetUserAvatarList(ctx *gin.Context)
 	SetUserAvatarByUserId(ctx *gin.Context)     // 设置用户头像
 	DeleteUserAvatarByUserId(ctx *gin.Context)  // 删除用户头像
@@ -35,12 +32,12 @@ type AssetController interface {
 	GetChallengeAttachmentInfoByChallengeId(ctx *gin.Context) // 获取题目附件信息
 }
 
-type AssetControllerImpl struct {
-	AssetService services.AssetService
+type MediaControllerImpl struct {
+	AssetService services.MediaService
 }
 
-func NewAssetControllerImpl(appService *services.Services) AssetController {
-	return &AssetControllerImpl{
+func NewMediaControllerImpl(appService *services.Services) MediaController {
+	return &MediaControllerImpl{
 		AssetService: appService.AssetService,
 	}
 }
@@ -51,8 +48,8 @@ func NewAssetControllerImpl(appService *services.Services) AssetController {
 // @Tags 资源
 // @Accept json
 // @Produce json
-// @Router /api/assets/users/avatar/ [get]
-func (c *AssetControllerImpl) GetUserAvatarList(ctx *gin.Context) {
+// @Router /api/media/users/avatar/ [get]
+func (c *MediaControllerImpl) GetUserAvatarList(ctx *gin.Context) {
 	res, _ := c.AssetService.GetUserAvatarList()
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
@@ -67,10 +64,10 @@ func (c *AssetControllerImpl) GetUserAvatarList(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "用户 Id"
-// @Router /api/assets/users/avatar/{id} [get]
-func (c *AssetControllerImpl) GetUserAvatarByUserId(ctx *gin.Context) {
+// @Router /api/media/users/avatar/{id} [get]
+func (c *MediaControllerImpl) GetUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/users/avatar/%s", assetsPath, id)
+	path := fmt.Sprintf("%s/users/avatar/%s", config.Cfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -88,10 +85,10 @@ func (c *AssetControllerImpl) GetUserAvatarByUserId(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "用户 Id"
-// @Router /api/assets/users/avatar/{id}/info [get]
-func (c *AssetControllerImpl) GetUserAvatarInfoByUserId(ctx *gin.Context) {
+// @Router /api/media/users/avatar/{id}/info [get]
+func (c *MediaControllerImpl) GetUserAvatarInfoByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/users/avatar/%s", assetsPath, id)
+	path := fmt.Sprintf("%s/users/avatar/%s", config.Cfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -111,8 +108,8 @@ func (c *AssetControllerImpl) GetUserAvatarInfoByUserId(ctx *gin.Context) {
 // @Accept multipart/form-data
 // @Param id path string true "用户 Id"
 // @Param avatar formData file true "头像文件"
-// @Router /api/assets/users/avatar/{id} [post]
-func (c *AssetControllerImpl) SetUserAvatarByUserId(ctx *gin.Context) {
+// @Router /api/media/users/avatar/{id} [post]
+func (c *MediaControllerImpl) SetUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	file, err := ctx.FormFile("avatar")
 	if err != nil {
@@ -127,7 +124,7 @@ func (c *AssetControllerImpl) SetUserAvatarByUserId(ctx *gin.Context) {
 		})
 		return
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/users/avatar/%s", assetsPath, id))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/users/avatar/%s", config.Cfg().Server.Paths.Media, id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -147,10 +144,10 @@ func (c *AssetControllerImpl) SetUserAvatarByUserId(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "用户 Id"
-// @Router /api/assets/users/avatar/{id} [delete]
-func (c *AssetControllerImpl) DeleteUserAvatarByUserId(ctx *gin.Context) {
+// @Router /api/media/users/avatar/{id} [delete]
+func (c *MediaControllerImpl) DeleteUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/users/avatar/%s", assetsPath, id)
+	path := fmt.Sprintf("%s/users/avatar/%s", config.Cfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		err = os.Remove(path)
@@ -177,8 +174,8 @@ func (c *AssetControllerImpl) DeleteUserAvatarByUserId(ctx *gin.Context) {
 // @Tags 资源
 // @Accept json
 // @Produce json
-// @Router /api/assets/teams/avatar/ [get]
-func (c *AssetControllerImpl) GetTeamAvatarList(ctx *gin.Context) {
+// @Router /api/media/teams/avatar/ [get]
+func (c *MediaControllerImpl) GetTeamAvatarList(ctx *gin.Context) {
 	res, _ := c.AssetService.GetTeamAvatarList()
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
@@ -193,10 +190,10 @@ func (c *AssetControllerImpl) GetTeamAvatarList(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "团队 Id"
-// @Router /api/assets/teams/avatar/{id} [get]
-func (c *AssetControllerImpl) GetTeamAvatarByTeamId(ctx *gin.Context) {
+// @Router /api/media/teams/avatar/{id} [get]
+func (c *MediaControllerImpl) GetTeamAvatarByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/teams/avatar/%s", assetsPath, id)
+	path := fmt.Sprintf("%s/teams/avatar/%s", config.Cfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -214,10 +211,10 @@ func (c *AssetControllerImpl) GetTeamAvatarByTeamId(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "团队 Id"
-// @Router /api/assets/teams/avatar/{id}/info [get]
-func (c *AssetControllerImpl) GetTeamAvatarInfoByTeamId(ctx *gin.Context) {
+// @Router /api/media/teams/avatar/{id}/info [get]
+func (c *MediaControllerImpl) GetTeamAvatarInfoByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/teams/avatar/%s", assetsPath, id)
+	path := fmt.Sprintf("%s/teams/avatar/%s", config.Cfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -237,8 +234,8 @@ func (c *AssetControllerImpl) GetTeamAvatarInfoByTeamId(ctx *gin.Context) {
 // @Accept multipart/form-data
 // @Param id path string true "团队 Id"
 // @Param avatar formData file true "头像文件"
-// @Router /api/assets/teams/avatar/{id} [post]
-func (c *AssetControllerImpl) SetTeamAvatarByTeamId(ctx *gin.Context) {
+// @Router /api/media/teams/avatar/{id} [post]
+func (c *MediaControllerImpl) SetTeamAvatarByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	file, err := ctx.FormFile("avatar")
 	if err != nil {
@@ -253,7 +250,7 @@ func (c *AssetControllerImpl) SetTeamAvatarByTeamId(ctx *gin.Context) {
 		})
 		return
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/teams/avatar/%s", assetsPath, id))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/teams/avatar/%s", config.Cfg().Server.Paths.Media, id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -273,10 +270,10 @@ func (c *AssetControllerImpl) SetTeamAvatarByTeamId(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "用户 Id"
-// @Router /api/assets/teams/avatar/{id} [delete]
-func (c *AssetControllerImpl) DeleteTeamAvatarByTeamId(ctx *gin.Context) {
+// @Router /api/media/teams/avatar/{id} [delete]
+func (c *MediaControllerImpl) DeleteTeamAvatarByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/teams/avatar/%s", assetsPath, id)
+	path := fmt.Sprintf("%s/teams/avatar/%s", config.Cfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		err = os.Remove(path)
@@ -304,10 +301,10 @@ func (c *AssetControllerImpl) DeleteTeamAvatarByTeamId(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "比赛 Id"
-// @Router /api/assets/games/cover/{id} [get]
-func (c *AssetControllerImpl) GetGameCoverByGameId(ctx *gin.Context) {
+// @Router /api/media/games/cover/{id} [get]
+func (c *MediaControllerImpl) GetGameCoverByGameId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/games/cover/%s", assetsPath, id)
+	path := fmt.Sprintf("%s/games/cover/%s", config.Cfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -325,8 +322,8 @@ func (c *AssetControllerImpl) GetGameCoverByGameId(ctx *gin.Context) {
 // @Accept multipart/form-data
 // @Param id path string true "比赛 Id"
 // @Param avatar formData file true "封面文件"
-// @Router /api/assets/games/cover/{id} [post]
-func (c *AssetControllerImpl) SetGameCoverByGameId(ctx *gin.Context) {
+// @Router /api/media/games/cover/{id} [post]
+func (c *MediaControllerImpl) SetGameCoverByGameId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	file, err := ctx.FormFile("avatar")
 	if err != nil {
@@ -341,7 +338,7 @@ func (c *AssetControllerImpl) SetGameCoverByGameId(ctx *gin.Context) {
 		})
 		return
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/games/cover/%s", assetsPath, id))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/games/cover/%s", config.Cfg().Server.Paths.Media, id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -361,10 +358,10 @@ func (c *AssetControllerImpl) SetGameCoverByGameId(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "团队 Id"
-// @Router /api/assets/games/writeups/{id} [get]
-func (c *AssetControllerImpl) FindGameWriteUpByTeamId(ctx *gin.Context) {
+// @Router /api/media/games/writeups/{id} [get]
+func (c *MediaControllerImpl) FindGameWriteUpByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/games/writeups/%s.pdf", assetsPath, id)
+	path := fmt.Sprintf("%s/games/writeups/%s.pdf", config.Cfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -380,8 +377,8 @@ func (c *AssetControllerImpl) FindGameWriteUpByTeamId(ctx *gin.Context) {
 // @Accept multipart/form-data
 // @Param id path string true "题目 Id"
 // @Param attachment formData file true "附件文件"
-// @Router /api/assets/challenges/attachments/{id} [post]
-func (c *AssetControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Context) {
+// @Router /api/media/challenges/attachments/{id} [post]
+func (c *MediaControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	file, err := ctx.FormFile("attachment")
 	if err != nil {
@@ -401,7 +398,7 @@ func (c *AssetControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Conte
 			return
 		}
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/challenges/attachments/%s/%s", assetsPath, id, file.Filename))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/challenges/attachments/%s/%s", config.Cfg().Server.Paths.Media, id, file.Filename))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -420,8 +417,8 @@ func (c *AssetControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Conte
 // @Tags 资源
 // @Accept json
 // @Param id path string true "题目 Id"
-// @Router /api/assets/challenges/attachments/{id}/info [get]
-func (c *AssetControllerImpl) GetChallengeAttachmentInfoByChallengeId(ctx *gin.Context) {
+// @Router /api/media/challenges/attachments/{id}/info [get]
+func (c *MediaControllerImpl) GetChallengeAttachmentInfoByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	fileName, fileSize, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
@@ -443,8 +440,8 @@ func (c *AssetControllerImpl) GetChallengeAttachmentInfoByChallengeId(ctx *gin.C
 // @Tags 资源
 // @Accept json
 // @Param id path string true "题目 Id"
-// @Router /api/assets/challenges/attachments/{id} [get]
-func (c *AssetControllerImpl) GetChallengeAttachmentByChallengeId(ctx *gin.Context) {
+// @Router /api/media/challenges/attachments/{id} [get]
+func (c *MediaControllerImpl) GetChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	fileName, _, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
@@ -453,7 +450,7 @@ func (c *AssetControllerImpl) GetChallengeAttachmentByChallengeId(ctx *gin.Conte
 		})
 		return
 	}
-	ctx.File(fmt.Sprintf("%s/challenges/attachments/%s/%s", assetsPath, id, fileName))
+	ctx.File(fmt.Sprintf("%s/challenges/attachments/%s/%s", config.Cfg().Server.Paths.Media, id, fileName))
 }
 
 // DeleteChallengeAttachmentByChallengeId
@@ -462,8 +459,8 @@ func (c *AssetControllerImpl) GetChallengeAttachmentByChallengeId(ctx *gin.Conte
 // @Tags 资源
 // @Accept json
 // @Param id path string true "题目 Id"
-// @Router /api/assets/challenges/attachments/{id} [delete]
-func (c *AssetControllerImpl) DeleteChallengeAttachmentByChallengeId(ctx *gin.Context) {
+// @Router /api/media/challenges/attachments/{id} [delete]
+func (c *MediaControllerImpl) DeleteChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	err := c.AssetService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
@@ -478,7 +475,7 @@ func (c *AssetControllerImpl) DeleteChallengeAttachmentByChallengeId(ctx *gin.Co
 	})
 }
 
-func (c *AssetControllerImpl) detectContentType(file *multipart.FileHeader) (mime *mimetype.MIME, err error) {
+func (c *MediaControllerImpl) detectContentType(file *multipart.FileHeader) (mime *mimetype.MIME, err error) {
 	src, err := file.Open()
 	if err != nil {
 		return nil, err

@@ -6,406 +6,6 @@
         "version": "1.0"
     },
     "paths": {
-        "/api/assets/challenges/attachments/{id}": {
-            "get": {
-                "description": "通过题目 Id 获取题目附件",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过题目 Id 获取题目附件",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "题目 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "post": {
-                "description": "通过题目 Id 设置题目附件",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过题目 Id 设置题目附件",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "题目 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "附件文件",
-                        "name": "attachment",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "delete": {
-                "description": "通过题目 Id 删除题目附件",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过题目 Id 删除 题目附件",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "题目 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/api/assets/challenges/attachments/{id}/info": {
-            "get": {
-                "description": "通过题目 Id 查找题目附件信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过题目 Id 查找题目附件信息",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "题目 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/api/assets/games/cover/{id}": {
-            "get": {
-                "description": "通过比赛 Id 获取比赛封面",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过比赛 Id 获取比赛封面",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "比赛 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "post": {
-                "description": "通过比赛 Id 设置比赛封面",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过比赛 Id 设置比赛封面",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "比赛 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "封面文件",
-                        "name": "avatar",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/api/assets/games/writeups/{id}": {
-            "get": {
-                "description": "通过团队 Id 获取比赛 Writeup",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过团队 Id 获取比赛 Writeup",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "团队 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/api/assets/teams/avatar/": {
-            "get": {
-                "description": "获取拥有头像的团队列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "获取拥有头像的团队列表",
-                "responses": {}
-            }
-        },
-        "/api/assets/teams/avatar/{id}": {
-            "get": {
-                "description": "通过团队 Id 获取团队头像",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过团队 Id 获取团队头像",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "团队 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "post": {
-                "description": "通过团队 Id 设置团队头像",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过团队 Id 设置团队头像",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "团队 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "头像文件",
-                        "name": "avatar",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "delete": {
-                "description": "通过团队 Id 删除团队头像",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过团队 Id 删除团队头像",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "用户 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/api/assets/teams/avatar/{id}/info": {
-            "get": {
-                "description": "通过团队 Id 获取团队头像信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过团队 Id 获取团队头像信息",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "团队 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/api/assets/users/avatar/": {
-            "get": {
-                "description": "获取拥有头像的用户列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "获取拥有头像的用户列表",
-                "responses": {}
-            }
-        },
-        "/api/assets/users/avatar/{id}": {
-            "get": {
-                "description": "通过用户 Id 获取用户头像",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过用户 Id 获取用户头像",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "用户 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "post": {
-                "description": "通过用户 Id 设置用户头像",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过用户 Id 设置用户头像",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "用户 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "头像文件",
-                        "name": "avatar",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "delete": {
-                "description": "通过用户 Id 删除用户头像",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过用户 Id 删除用户头像",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "用户 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/api/assets/users/avatar/{id}/info": {
-            "get": {
-                "description": "通过用户 Id 获得用户头像信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "资源"
-                ],
-                "summary": "通过用户 Id 获得用户头像信息",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "用户 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/api/challenges/": {
             "get": {
                 "description": "只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息",
@@ -741,6 +341,406 @@
                     "比赛"
                 ],
                 "summary": "广播消息",
+                "responses": {}
+            }
+        },
+        "/api/media/challenges/attachments/{id}": {
+            "get": {
+                "description": "通过题目 Id 获取题目附件",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过题目 Id 获取题目附件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "题目 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "通过题目 Id 设置题目附件",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过题目 Id 设置题目附件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "题目 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "附件文件",
+                        "name": "attachment",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "通过题目 Id 删除题目附件",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过题目 Id 删除 题目附件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "题目 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/media/challenges/attachments/{id}/info": {
+            "get": {
+                "description": "通过题目 Id 查找题目附件信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过题目 Id 查找题目附件信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "题目 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/media/games/cover/{id}": {
+            "get": {
+                "description": "通过比赛 Id 获取比赛封面",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过比赛 Id 获取比赛封面",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "比赛 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "通过比赛 Id 设置比赛封面",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过比赛 Id 设置比赛封面",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "比赛 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "封面文件",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/media/games/writeups/{id}": {
+            "get": {
+                "description": "通过团队 Id 获取比赛 Writeup",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过团队 Id 获取比赛 Writeup",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "团队 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/media/teams/avatar/": {
+            "get": {
+                "description": "获取拥有头像的团队列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "获取拥有头像的团队列表",
+                "responses": {}
+            }
+        },
+        "/api/media/teams/avatar/{id}": {
+            "get": {
+                "description": "通过团队 Id 获取团队头像",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过团队 Id 获取团队头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "团队 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "通过团队 Id 设置团队头像",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过团队 Id 设置团队头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "团队 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "头像文件",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "通过团队 Id 删除团队头像",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过团队 Id 删除团队头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/media/teams/avatar/{id}/info": {
+            "get": {
+                "description": "通过团队 Id 获取团队头像信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过团队 Id 获取团队头像信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "团队 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/media/users/avatar/": {
+            "get": {
+                "description": "获取拥有头像的用户列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "获取拥有头像的用户列表",
+                "responses": {}
+            }
+        },
+        "/api/media/users/avatar/{id}": {
+            "get": {
+                "description": "通过用户 Id 获取用户头像",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过用户 Id 获取用户头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "通过用户 Id 设置用户头像",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过用户 Id 设置用户头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "头像文件",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "通过用户 Id 删除用户头像",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过用户 Id 删除用户头像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/media/users/avatar/{id}/info": {
+            "get": {
+                "description": "通过用户 Id 获得用户头像信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源"
+                ],
+                "summary": "通过用户 Id 获得用户头像信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户 Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {}
             }
         },

@@ -3,7 +3,7 @@ package services
 import "github.com/elabosak233/pgshub/repositories"
 
 type Services struct {
-	AssetService      AssetService
+	AssetService      MediaService
 	UserService       UserService
 	ChallengeService  ChallengeService
 	PodService        PodService
@@ -17,7 +17,7 @@ type Services struct {
 
 func InitServices(appRepository *repositories.Repositories) *Services {
 	return &Services{
-		AssetService:      NewAssetServiceImpl(appRepository),
+		AssetService:      NewMediaServiceImpl(appRepository),
 		UserService:       NewUserServiceImpl(appRepository),
 		ChallengeService:  NewChallengeServiceImpl(appRepository),
 		PodService:        NewPodServiceImpl(appRepository),

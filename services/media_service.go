@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/elabosak233/pgshub/repositories"
+	"github.com/elabosak233/pgshub/utils/config"
 	"os"
 )
 
-type AssetService interface {
+type MediaService interface {
 	GetUserAvatarList() (res []string, err error)
 	GetTeamAvatarList() (res []string, err error)
 	FindChallengeAttachmentByChallengeId(id int64) (err error)
@@ -15,15 +16,15 @@ type AssetService interface {
 	DeleteChallengeAttachmentByChallengeId(id int64) (err error)
 }
 
-type AssetServiceImpl struct{}
+type MediaServiceImpl struct{}
 
-func NewAssetServiceImpl(appRepository *repositories.Repositories) AssetService {
-	return &AssetServiceImpl{}
+func NewMediaServiceImpl(appRepository *repositories.Repositories) MediaService {
+	return &MediaServiceImpl{}
 }
 
-func (a *AssetServiceImpl) GetUserAvatarList() (res []string, err error) {
+func (a *MediaServiceImpl) GetUserAvatarList() (res []string, err error) {
 	res = []string{}
-	path := "./uploads/users/avatar"
+	path := fmt.Sprintf("%s/users/avatar", config.Cfg().Server.Paths.Media)
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
@@ -36,9 +37,9 @@ func (a *AssetServiceImpl) GetUserAvatarList() (res []string, err error) {
 	return res, nil
 }
 
-func (a *AssetServiceImpl) GetTeamAvatarList() (res []string, err error) {
+func (a *MediaServiceImpl) GetTeamAvatarList() (res []string, err error) {
 	res = []string{}
-	path := "./uploads/teams/avatar"
+	path := fmt.Sprintf("%s/teams/avatar", config.Cfg().Server.Paths.Media)
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
@@ -51,13 +52,13 @@ func (a *AssetServiceImpl) GetTeamAvatarList() (res []string, err error) {
 	return res, nil
 }
 
-func (a *AssetServiceImpl) FindChallengeAttachmentByChallengeId(id int64) (err error) {
+func (a *MediaServiceImpl) FindChallengeAttachmentByChallengeId(id int64) (err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (a *AssetServiceImpl) CheckChallengeAttachmentByChallengeId(id int64) (fileName string, fileSize int64, err error) {
-	path := fmt.Sprintf("./uploads/challenges/attachments/%d", id)
+func (a *MediaServiceImpl) CheckChallengeAttachmentByChallengeId(id int64) (fileName string, fileSize int64, err error) {
+	path := fmt.Sprintf("%s/challenges/attachments/%d", config.Cfg().Server.Paths.Media, id)
 	files, err := os.ReadDir(path)
 	if len(files) == 0 {
 		return "", 0, errors.New("无附件")
@@ -73,8 +74,8 @@ func (a *AssetServiceImpl) CheckChallengeAttachmentByChallengeId(id int64) (file
 	}
 }
 
-func (a *AssetServiceImpl) DeleteChallengeAttachmentByChallengeId(id int64) (err error) {
-	path := fmt.Sprintf("./uploads/challenges/attachments/%d", id)
+func (a *MediaServiceImpl) DeleteChallengeAttachmentByChallengeId(id int64) (err error) {
+	path := fmt.Sprintf("%s/challenges/attachments/%d", config.Cfg().Server.Paths.Media, id)
 	files, err := os.ReadDir(path)
 	if len(files) == 0 {
 		return nil

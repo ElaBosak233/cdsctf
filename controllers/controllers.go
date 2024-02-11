@@ -7,7 +7,7 @@ type Controllers struct {
 	ChallengeController  ChallengeController
 	InstanceController   PodController
 	ConfigController     ConfigController
-	AssetController      AssetController
+	MediaController      MediaController
 	TeamController       TeamController
 	SubmissionController SubmissionController
 	GameController       GameController
@@ -19,7 +19,7 @@ func InitControllers(appService *services.Services) *Controllers {
 		ChallengeController:  NewChallengeController(appService),
 		InstanceController:   NewInstanceControllerImpl(appService),
 		ConfigController:     NewConfigControllerImpl(appService),
-		AssetController:      NewAssetControllerImpl(appService),
+		MediaController:      NewMediaControllerImpl(appService),
 		TeamController:       NewTeamControllerImpl(appService),
 		SubmissionController: NewSubmissionControllerImpl(appService),
 		GameController:       NewGameControllerImpl(appService),
