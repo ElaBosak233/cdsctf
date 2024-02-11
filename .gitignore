@@ -27,6 +27,8 @@ config.yml
 logs
 plugins
 uploads
+media
+assets
 test.go
 dist
 _PgsHub.exe

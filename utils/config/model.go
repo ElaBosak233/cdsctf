@@ -30,14 +30,21 @@ type GlobalUser struct {
 }
 
 type Server struct {
-	Host string     `yaml:"host" json:"host" mapstructure:"host"`
-	Port int        `yaml:"port" json:"port" mapstructure:"port"`
-	CORS ServerCORS `yaml:"cors" json:"cors" mapstructure:"cors"`
+	Host  string      `yaml:"host" json:"host" mapstructure:"host"`
+	Port  int         `yaml:"port" json:"port" mapstructure:"port"`
+	CORS  ServerCORS  `yaml:"cors" json:"cors" mapstructure:"cors"`
+	Paths ServerPaths `yaml:"paths" json:"paths" mapstructure:"paths"`
 }
 
 type ServerCORS struct {
 	AllowOrigins []string `yaml:"allow_origins" json:"allow_origins" mapstructure:"allow_origins"`
 	AllowMethods []string `yaml:"allow_methods" json:"allow_methods" mapstructure:"allow_methods"`
+}
+
+type ServerPaths struct {
+	Assets   string `yaml:"assets" json:"assets" mapstructure:"assets"`
+	Media    string `yaml:"media" json:"media" mapstructure:"media"`
+	Frontend string `yaml:"frontend" json:"frontend" mapstructure:"frontend"`
 }
 
 type Email struct {
@@ -78,9 +85,15 @@ type Jwt struct {
 type Container struct {
 	Provider string          `yaml:"provider" json:"provider" mapstructure:"provider"`
 	Docker   ContainerDocker `yaml:"docker" json:"docker" mapstructure:"docker"`
+	K8s      ContainerK8s    `yaml:"k8s" json:"k8s" mapstructure:"k8s"`
 }
 
 type ContainerDocker struct {
 	URI         string `yaml:"uri" json:"uri" mapstructure:"uri"`
 	PublicEntry string `yaml:"public_entry" json:"public_entry" mapstructure:"public_entry"`
+}
+
+type ContainerK8s struct {
+	Namespace string `yaml:"namespace" json:"namespace" mapstructure:"namespace"`
+	Config    string `yaml:"config" json:"config" mapstructure:"config"`
 }

@@ -20,7 +20,7 @@ func NewRouters(
 	NewChallengeRouter(router.Group("/challenges"), appController.ChallengeController, appMiddleware.AuthMiddleware)
 	NewPodRouter(router.Group("/pods"), appController.InstanceController, appMiddleware.AuthMiddleware)
 	NewConfigRouter(router.Group("/configs"), appController.ConfigController, appMiddleware.AuthMiddleware)
-	NewAssetRouter(router.Group("/assets"), appController.AssetController)
+	NewMediaRouter(router.Group("/media"), appController.MediaController)
 	NewTeamRouter(router.Group("/teams"), appController.TeamController)
 	NewSubmissionRouter(router.Group("/submissions"), appController.SubmissionController, appMiddleware.AuthMiddleware)
 	NewGameRouter(router.Group("/games"), appController.GameController, appMiddleware.AuthMiddleware)

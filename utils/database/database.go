@@ -50,8 +50,7 @@ func initDatabaseEngine() {
 		db, err = xorm.NewEngine("sqlite3", dbInfo)
 	}
 	if err != nil {
-		zap.L().Error("Database connection failed.")
-		panic(err)
+		zap.L().Fatal("Database connection failed.", zap.Error(err))
 	}
 }
 
@@ -108,8 +107,7 @@ func initAdmin() {
 			Email:    "admin@admin.com",
 		})
 		if err != nil {
-			zap.L().Error("Super administrator account creation failed.")
-			panic(err)
+			zap.L().Fatal("Super administrator account creation failed.", zap.Error(err))
 			return
 		}
 		zap.L().Info("Super administrator account created successfully.")
@@ -153,8 +151,7 @@ func initCategory() {
 		}
 		_, err := db.Table("category").Insert(&defaultCategories)
 		if err != nil {
-			zap.L().Error("Category initialization failed.")
-			panic(err)
+			zap.L().Fatal("Category initialization failed.", zap.Error(err))
 			return
 		}
 	}

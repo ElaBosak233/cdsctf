@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/elabosak233/pgshub/utils/config"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -8,8 +9,12 @@ import (
 	"strings"
 )
 
+var (
+	root = config.Cfg().Server.Paths.Frontend
+)
+
 type FrontendMiddleware interface {
-	Frontend(urlPrefix, root string) gin.HandlerFunc
+	Frontend(urlPrefix string) gin.HandlerFunc
 }
 
 type FrontendMiddlewareImpl struct {
@@ -19,7 +24,7 @@ func NewFrontendMiddleware() FrontendMiddleware {
 	return &FrontendMiddlewareImpl{}
 }
 
-func (m *FrontendMiddlewareImpl) Frontend(urlPrefix, root string) gin.HandlerFunc {
+func (m *FrontendMiddlewareImpl) Frontend(urlPrefix string) gin.HandlerFunc {
 	fileServer := http.FileServer(http.Dir(root))
 	if !strings.HasSuffix(urlPrefix, "/") {
 		urlPrefix = urlPrefix + "/" // 如果不是以 / 结尾的，需要添加 /
@@ -29,6 +34,12 @@ func (m *FrontendMiddlewareImpl) Frontend(urlPrefix, root string) gin.HandlerFun
 		if strings.HasPrefix(ctx.Request.URL.Path, "/api") || strings.HasPrefix(ctx.Request.URL.Path, "/docs") {
 			ctx.Next()
 		} else {
+			if ctx.Request.URL.Path == "/favicon.ico" {
+				if _, err := os.Stat(path.Join(config.Cfg().Server.Paths.Assets, "favicon.ico")); err == nil {
+					http.ServeFile(ctx.Writer, ctx.Request, path.Join(config.Cfg().Server.Paths.Assets, "favicon.ico"))
+					ctx.Abort()
+				}
+			}
 			filePath := path.Join(root, ctx.Request.URL.Path)
 			_, err := os.Stat(filePath)
 			if err != nil {

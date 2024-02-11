@@ -1,7 +1,7 @@
 package config
 
 import (
-	embed "github.com/elabosak233/pgshub/assets"
+	"github.com/elabosak233/pgshub/embed"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"io"
@@ -10,17 +10,20 @@ import (
 	"reflect"
 )
 
-// cfg is the global variable to store the configuration
-var cfg Config
+var (
+	v1     *viper.Viper
+	appCfg Config
+)
 
 func Cfg() *Config {
-	return &cfg
+	return &appCfg
 }
 
 func InitConfig() {
+	v1 = viper.New()
 	configFile := "config.json"
-	viper.SetConfigType("json")
-	viper.SetConfigFile(configFile)
+	v1.SetConfigType("json")
+	v1.SetConfigFile(configFile)
 	if _, err := os.Stat(configFile); err != nil {
 		zap.L().Warn("No configuration file found, default configuration file will be created.")
 
@@ -47,25 +50,25 @@ func InitConfig() {
 		zap.L().Info("The default configuration file has been generated.")
 	}
 
-	if err := viper.ReadInConfig(); err != nil {
+	if err := v1.ReadInConfig(); err != nil {
 		zap.L().Error("Unable to read configuration file.")
 		return
 	}
 
-	if err := viper.Unmarshal(&cfg); err != nil {
+	if err := v1.Unmarshal(&appCfg); err != nil {
 		zap.L().Error("Unable to parse configuration file to structure.")
 	}
 }
 
 // SaveConfig is used to save(or sync) the configuration to the file
 func SaveConfig() (err error) {
-	val := reflect.ValueOf(cfg)
+	val := reflect.ValueOf(appCfg)
 	typeOfCfg := val.Type()
 
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
-		viper.Set(typeOfCfg.Field(i).Tag.Get("mapstructure"), field.Interface())
+		v1.Set(typeOfCfg.Field(i).Tag.Get("mapstructure"), field.Interface())
 	}
-	err = viper.WriteConfig()
+	err = v1.WriteConfig()
 	return err
 }
