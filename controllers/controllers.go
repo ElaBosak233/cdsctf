@@ -14,14 +14,24 @@ type Controllers struct {
 }
 
 func InitControllers(appService *services.Services) *Controllers {
+
+	userController := NewUserControllerImpl(appService)
+	challengeController := NewChallengeController(appService)
+	instanceController := NewInstanceControllerImpl(appService)
+	configController := NewConfigControllerImpl(appService)
+	mediaController := NewMediaControllerImpl(appService)
+	teamController := NewTeamControllerImpl(appService)
+	submissionController := NewSubmissionControllerImpl(appService)
+	gameController := NewGameControllerImpl(appService)
+
 	return &Controllers{
-		UserController:       NewUserControllerImpl(appService),
-		ChallengeController:  NewChallengeController(appService),
-		InstanceController:   NewInstanceControllerImpl(appService),
-		ConfigController:     NewConfigControllerImpl(appService),
-		MediaController:      NewMediaControllerImpl(appService),
-		TeamController:       NewTeamControllerImpl(appService),
-		SubmissionController: NewSubmissionControllerImpl(appService),
-		GameController:       NewGameControllerImpl(appService),
+		UserController:       userController,
+		ChallengeController:  challengeController,
+		InstanceController:   instanceController,
+		ConfigController:     configController,
+		MediaController:      mediaController,
+		TeamController:       teamController,
+		SubmissionController: submissionController,
+		GameController:       gameController,
 	}
 }
