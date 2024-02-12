@@ -54,8 +54,7 @@ type PodService interface {
 }
 
 type PodServiceImpl struct {
-	ChallengeService    ChallengeService
-	ContainerService    ContainerService
+	MixinService        MixinService
 	ChallengeRepository repositories.ChallengeRepository
 	PodRepository       repositories.PodRepository
 	NatRepository       repositories.NatRepository
@@ -65,37 +64,13 @@ type PodServiceImpl struct {
 
 func NewPodServiceImpl(appRepository *repositories.Repositories) PodService {
 	return &PodServiceImpl{
-		ChallengeService:    NewChallengeServiceImpl(appRepository),
-		ContainerService:    NewContainerServiceImpl(appRepository),
+		MixinService:        NewMixinServiceImpl(appRepository),
 		ChallengeRepository: appRepository.ChallengeRepository,
 		ContainerRepository: appRepository.ContainerRepository,
 		FlagGenRepository:   appRepository.FlagGenRepository,
 		PodRepository:       appRepository.PodRepository,
 		NatRepository:       appRepository.NatRepository,
 	}
-}
-
-func (t *PodServiceImpl) Mixin(pods []entity.Pod) (p []entity.Pod, err error) {
-	podMap := make(map[int64]entity.Pod)
-	podIDs := make([]int64, 0)
-	for _, pod := range pods {
-		podMap[pod.ID] = pod
-		podIDs = append(podIDs, pod.ID)
-	}
-
-	// mixin container -> pod
-	containers, err := t.ContainerService.FindByPodID(podIDs)
-	for _, container := range containers {
-		pod := podMap[container.PodID]
-		pod.Containers = append(pod.Containers, container)
-		podMap[container.PodID] = pod
-	}
-
-	for _, pod := range podMap {
-		p = append(p, pod)
-	}
-
-	return p, err
 }
 
 func (t *PodServiceImpl) IsLimited(userId int64, limit int64) (remainder int64) {
@@ -116,12 +91,14 @@ func (t *PodServiceImpl) Create(req request.PodCreateRequest) (res response.PodS
 	if remainder != 0 {
 		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
-	if config.Cfg().Container.Provider == "docker" {
+	switch config.Cfg().Container.Provider {
+	case "docker":
 		SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
-		challenges, _, _, _ := t.ChallengeService.Find(request.ChallengeFindRequest{
+		challenges, _, _ := t.ChallengeRepository.Find(request.ChallengeFindRequest{
 			IDs:       []int64{req.ChallengeID},
 			IsDynamic: convertor.TrueP(),
 		})
+		challenges, _ = t.MixinService.MixinChallenge(challenges)
 		challenge := challenges[0]
 		availableInstances, count, err := t.PodRepository.Find(request.PodFindRequest{
 			UserID:      req.UserID,
@@ -351,7 +328,7 @@ func (t *PodServiceImpl) Find(req request.PodFindRequest) (pods []response.PodRe
 			req.UserID = 0
 		}
 		podResponse, _, err := t.PodRepository.Find(req)
-		podResponse, err = t.Mixin(podResponse)
+		podResponse, err = t.MixinService.MixinPod(podResponse)
 		for _, pod := range podResponse {
 			var ctn *managers.DockerManager
 			status := "removed"

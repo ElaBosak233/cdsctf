@@ -10,7 +10,7 @@ type ContainerService interface {
 }
 
 type ContainerServiceImpl struct {
-	ImageService        ImageService
+	MixinService        MixinService
 	ContainerRepository repositories.ContainerRepository
 	EnvRepository       repositories.EnvRepository
 	NatRepository       repositories.NatRepository
@@ -21,7 +21,7 @@ type ContainerServiceImpl struct {
 
 func NewContainerServiceImpl(appRepository *repositories.Repositories) ContainerService {
 	return &ContainerServiceImpl{
-		ImageService:        NewImageServiceImpl(appRepository),
+		MixinService:        NewMixinServiceImpl(appRepository),
 		ContainerRepository: appRepository.ContainerRepository,
 		EnvRepository:       appRepository.EnvRepository,
 		NatRepository:       appRepository.NatRepository,
@@ -31,54 +31,8 @@ func NewContainerServiceImpl(appRepository *repositories.Repositories) Container
 	}
 }
 
-func (c *ContainerServiceImpl) Mixin(containers []entity.Container) (ctns []entity.Container, err error) {
-	ctnMap := make(map[int64]entity.Container)
-	ctnIDs := make([]int64, 0)
-
-	imageIDMap := make(map[int64]bool)
-
-	for _, container := range containers {
-		ctnMap[container.ID] = container
-		ctnIDs = append(ctnIDs, container.ID)
-		imageIDMap[container.ImageID] = true
-	}
-
-	imageMap := make(map[int64]entity.Image)
-	imageIDs := make([]int64, 0)
-	for imageID := range imageIDMap {
-		imageIDs = append(imageIDs, imageID)
-	}
-
-	images, err := c.ImageService.FindByID(imageIDs)
-
-	for _, image := range images {
-		imageMap[image.ID] = image
-	}
-
-	// mixin image -> container
-	for index, ctn := range ctnMap {
-		image := imageMap[ctn.ImageID]
-		ctn.Image = &image
-		ctnMap[index] = ctn
-	}
-
-	// mixin nat -> container
-	nats, _ := c.NatRepository.FindByContainerID(ctnIDs)
-	for _, nat := range nats {
-		ctn := ctnMap[nat.ContainerID]
-		ctn.Nats = append(ctn.Nats, nat)
-		ctnMap[nat.ContainerID] = ctn
-	}
-
-	for _, ctn := range ctnMap {
-		ctns = append(ctns, ctn)
-	}
-
-	return ctns, err
-}
-
 func (c *ContainerServiceImpl) FindByPodID(podIDs []int64) (containers []entity.Container, err error) {
 	ctns, err := c.ContainerRepository.FindByPodID(podIDs)
-	containers, err = c.Mixin(ctns)
+	containers, err = c.MixinService.MixinContainer(ctns)
 	return containers, err
 }

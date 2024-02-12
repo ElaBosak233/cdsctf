@@ -78,7 +78,7 @@ func syncDatabase() {
 	for _, v := range dbs {
 		err := db.Sync2(v)
 		if err != nil {
-			panic(err)
+			zap.L().Fatal("Database sync failed.", zap.Error(err))
 		}
 	}
 }
