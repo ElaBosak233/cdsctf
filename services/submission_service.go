@@ -87,18 +87,15 @@ func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (sta
 		case "static":
 			if flag.Value == req.Flag {
 				status = max(status, 2)
-				break
 			}
 		case "pattern":
 			re := regexp.MustCompile(flag.Value)
 			if re.Match([]byte(req.Flag)) {
 				status = max(status, 2)
-				break
 			}
 		case "dynamic":
 			s, _ := t.JudgeDynamicChallenge(req)
 			status = max(status, s)
-			break
 		}
 	}
 	createSync.Lock()
@@ -171,7 +168,7 @@ func (t *SubmissionServiceImpl) BatchFind(req request.SubmissionBatchFindRequest
 		submissions = result
 	}
 	if !req.IsDetailed {
-		for index, _ := range submissions {
+		for index := range submissions {
 			submissions[index].Flag = ""
 		}
 	}

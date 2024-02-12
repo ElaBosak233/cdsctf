@@ -3,7 +3,7 @@ package services
 import "github.com/elabosak233/pgshub/repositories"
 
 type Services struct {
-	AssetService      MediaService
+	MediaService      MediaService
 	UserService       UserService
 	ChallengeService  ChallengeService
 	PodService        PodService
@@ -16,16 +16,28 @@ type Services struct {
 }
 
 func InitServices(appRepository *repositories.Repositories) *Services {
+
+	mediaService := NewMediaServiceImpl(appRepository)
+	userService := NewUserServiceImpl(appRepository)
+	challengeService := NewChallengeServiceImpl(appRepository)
+	podService := NewPodServiceImpl(appRepository)
+	configService := NewConfigServiceImpl(appRepository)
+	teamService := NewTeamServiceImpl(appRepository)
+	submissionService := NewSubmissionServiceImpl(appRepository)
+	gameService := NewGameServiceImpl(appRepository)
+	categoryService := NewCategoryServiceImpl(appRepository)
+	containerService := NewContainerServiceImpl(appRepository)
+
 	return &Services{
-		AssetService:      NewMediaServiceImpl(appRepository),
-		UserService:       NewUserServiceImpl(appRepository),
-		ChallengeService:  NewChallengeServiceImpl(appRepository),
-		PodService:        NewPodServiceImpl(appRepository),
-		ConfigService:     NewConfigServiceImpl(appRepository),
-		TeamService:       NewTeamServiceImpl(appRepository),
-		SubmissionService: NewSubmissionServiceImpl(appRepository),
-		GameService:       NewGameServiceImpl(appRepository),
-		CategoryService:   NewCategoryServiceImpl(appRepository),
-		ContainerService:  NewContainerServiceImpl(appRepository),
+		MediaService:      mediaService,
+		UserService:       userService,
+		ChallengeService:  challengeService,
+		PodService:        podService,
+		ConfigService:     configService,
+		TeamService:       teamService,
+		SubmissionService: submissionService,
+		GameService:       gameService,
+		CategoryService:   categoryService,
+		ContainerService:  containerService,
 	}
 }

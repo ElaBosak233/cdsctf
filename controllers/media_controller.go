@@ -33,12 +33,12 @@ type MediaController interface {
 }
 
 type MediaControllerImpl struct {
-	AssetService services.MediaService
+	MediaService services.MediaService
 }
 
 func NewMediaControllerImpl(appService *services.Services) MediaController {
 	return &MediaControllerImpl{
-		AssetService: appService.AssetService,
+		MediaService: appService.MediaService,
 	}
 }
 
@@ -50,7 +50,7 @@ func NewMediaControllerImpl(appService *services.Services) MediaController {
 // @Produce json
 // @Router /api/media/users/avatar/ [get]
 func (c *MediaControllerImpl) GetUserAvatarList(ctx *gin.Context) {
-	res, _ := c.AssetService.GetUserAvatarList()
+	res, _ := c.MediaService.GetUserAvatarList()
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"data": res,
@@ -176,7 +176,7 @@ func (c *MediaControllerImpl) DeleteUserAvatarByUserId(ctx *gin.Context) {
 // @Produce json
 // @Router /api/media/teams/avatar/ [get]
 func (c *MediaControllerImpl) GetTeamAvatarList(ctx *gin.Context) {
-	res, _ := c.AssetService.GetTeamAvatarList()
+	res, _ := c.MediaService.GetTeamAvatarList()
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"data": res,
@@ -388,8 +388,8 @@ func (c *MediaControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Conte
 		})
 		return
 	}
-	if _, fileSize, _ := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0))); fileSize != 0 {
-		err = c.AssetService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
+	if _, fileSize, _ := c.MediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0))); fileSize != 0 {
+		err = c.MediaService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 		if err != nil {
 			ctx.JSON(http.StatusOK, gin.H{
 				"code": http.StatusInternalServerError,
@@ -420,7 +420,7 @@ func (c *MediaControllerImpl) SetChallengeAttachmentByChallengeId(ctx *gin.Conte
 // @Router /api/media/challenges/attachments/{id}/info [get]
 func (c *MediaControllerImpl) GetChallengeAttachmentInfoByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	fileName, fileSize, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
+	fileName, fileSize, err := c.MediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusNotFound,
@@ -443,7 +443,7 @@ func (c *MediaControllerImpl) GetChallengeAttachmentInfoByChallengeId(ctx *gin.C
 // @Router /api/media/challenges/attachments/{id} [get]
 func (c *MediaControllerImpl) GetChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	fileName, _, err := c.AssetService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
+	fileName, _, err := c.MediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusNotFound,
@@ -462,7 +462,7 @@ func (c *MediaControllerImpl) GetChallengeAttachmentByChallengeId(ctx *gin.Conte
 // @Router /api/media/challenges/attachments/{id} [delete]
 func (c *MediaControllerImpl) DeleteChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	err := c.AssetService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
+	err := c.MediaService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,

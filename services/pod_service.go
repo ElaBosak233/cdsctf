@@ -100,35 +100,45 @@ func (t *PodServiceImpl) Create(req request.PodCreateRequest) (res response.PodS
 		})
 		challenges, _ = t.MixinService.MixinChallenge(challenges)
 		challenge := challenges[0]
-		availableInstances, count, err := t.PodRepository.Find(request.PodFindRequest{
-			UserID:      req.UserID,
-			TeamID:      req.TeamID,
-			GameID:      req.GameID,
-			IsAvailable: convertor.TrueP(),
-		})
-		if req.TeamID == 0 && req.GameID == 0 { // 练习场限制并行
-			needToBeDeactivated := count - int64(config.Cfg().Global.Container.ParallelLimit)
+		isGame := req.GameID != 0 && req.TeamID != 0
+
+		// Parallel container limit
+		if config.Cfg().Global.Container.ParallelLimit > 0 {
+			var availablePods []entity.Pod
+			var count int64
+			if !isGame {
+				availablePods, count, _ = t.PodRepository.Find(request.PodFindRequest{
+					UserID:      req.UserID,
+					IsAvailable: convertor.TrueP(),
+				})
+			} else {
+				availablePods, count, _ = t.PodRepository.Find(request.PodFindRequest{
+					TeamID:      req.TeamID,
+					GameID:      req.GameID,
+					IsAvailable: convertor.TrueP(),
+				})
+			}
+			needToBeDeactivated := count - int64(config.Cfg().Global.Container.ParallelLimit) + 1
 			if needToBeDeactivated > 0 {
-				for _, instance := range availableInstances {
+				for _, pod := range availablePods {
 					if needToBeDeactivated == 0 {
 						break
 					}
 					go func() {
 						_ = t.Remove(request.PodRemoveRequest{
-							ID: instance.ID,
+							ID: pod.ID,
 						})
 					}()
 					needToBeDeactivated -= 1
 				}
 			}
-		} else if req.TeamID != 0 && req.GameID != 0 { // 比赛限制并行
-			// TODO
 		}
 
 		var ctnMap = make(map[int64]entity.Container)
 
 		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).Unix()
 
+		// Insert Pod entity, get Pod's ID
 		pod, _ := t.PodRepository.Insert(entity.Pod{
 			ChallengeID: req.ChallengeID,
 			UserID:      req.UserID,

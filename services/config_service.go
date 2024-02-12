@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"github.com/elabosak233/pgshub/models/request"
 	"github.com/elabosak233/pgshub/repositories"
 	"github.com/elabosak233/pgshub/utils/config"
@@ -20,7 +19,6 @@ func NewConfigServiceImpl(appRepository *repositories.Repositories) ConfigServic
 }
 
 func (c *ConfigServiceImpl) FindAll() (cfg config.Global) {
-	fmt.Print(config.Cfg().Global)
 	return config.Cfg().Global
 }
 
