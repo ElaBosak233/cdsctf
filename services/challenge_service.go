@@ -24,7 +24,7 @@ type ChallengeService interface {
 }
 
 type ChallengeServiceImpl struct {
-	ImageService            ImageService
+	MixinService            MixinService
 	ChallengeRepository     repositories.ChallengeRepository
 	FlagRepository          repositories.FlagRepository
 	ImageRepository         repositories.ImageRepository
@@ -37,7 +37,7 @@ type ChallengeServiceImpl struct {
 
 func NewChallengeServiceImpl(appRepository *repositories.Repositories) ChallengeService {
 	return &ChallengeServiceImpl{
-		ImageService:            NewImageServiceImpl(appRepository),
+		MixinService:            NewMixinServiceImpl(appRepository),
 		ChallengeRepository:     appRepository.ChallengeRepository,
 		GameChallengeRepository: appRepository.GameChallengeRepository,
 		SubmissionRepository:    appRepository.SubmissionRepository,
@@ -47,57 +47,6 @@ func NewChallengeServiceImpl(appRepository *repositories.Repositories) Challenge
 		PortRepository:          appRepository.PortRepository,
 		EnvRepository:           appRepository.EnvRepository,
 	}
-}
-
-func (t *ChallengeServiceImpl) Mixin(challenges []response.ChallengeResponse) (chas []response.ChallengeResponse, err error) {
-	challengeMap := make(map[int64]response.ChallengeResponse)
-	challengeIDs := make([]int64, 0)
-	for _, challenge := range challenges {
-		challengeMap[challenge.ID] = challenge
-		challengeIDs = append(challengeIDs, challenge.ID)
-	}
-	// mixin category -> challenges
-	categoryIDMap := make(map[int64]bool)
-	for _, challenge := range challenges {
-		categoryIDMap[challenge.CategoryID] = true
-	}
-	categoryIDs := make([]int64, 0)
-	for id := range categoryIDMap {
-		categoryIDs = append(categoryIDs, id)
-	}
-	categories, _ := t.CategoryRepository.FindByID(categoryIDs)
-	for _, challenge := range challengeMap {
-		for _, category := range categories {
-			if challenge.CategoryID == category.ID {
-				cate := category
-				challenge.Category = &cate
-				challengeMap[challenge.ID] = challenge
-				break
-			}
-		}
-	}
-
-	// mixin flags -> challenges
-	flags, _ := t.FlagRepository.FindByChallengeID(challengeIDs)
-	for _, flag := range flags {
-		challenge := challengeMap[flag.ChallengeID]
-		challenge.Flags = append(challengeMap[flag.ChallengeID].Flags, flag)
-		challengeMap[flag.ChallengeID] = challenge
-	}
-
-	// mixin images -> challenges
-	images, _ := t.ImageService.FindByChallengeID(challengeIDs)
-	for _, image := range images {
-		challenge := challengeMap[image.ChallengeID]
-		challenge.Images = append(challengeMap[image.ChallengeID].Images, image)
-		challengeMap[image.ChallengeID] = challenge
-	}
-
-	for _, challenge := range challenges {
-		chas = append(chas, challengeMap[challenge.ID])
-	}
-
-	return chas, err
 }
 
 func (t *ChallengeServiceImpl) Create(req request.ChallengeCreateRequest) (err error) {
@@ -245,7 +194,7 @@ func (t *ChallengeServiceImpl) Delete(id int64) error {
 
 func (t *ChallengeServiceImpl) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error) {
 	challenges, count, err := t.ChallengeRepository.Find(req)
-	challenges, err = t.Mixin(challenges)
+	challenges, err = t.MixinService.MixinChallenge(challenges)
 
 	challengeMap := make(map[int64]response.ChallengeResponse)
 	challengeIDs := make([]int64, 0)

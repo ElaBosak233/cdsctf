@@ -21,7 +21,7 @@ type SubmissionService interface {
 }
 
 type SubmissionServiceImpl struct {
-	ChallengeService        ChallengeService
+	MixinService            MixinService
 	PodRepository           repositories.PodRepository
 	SubmissionRepository    repositories.SubmissionRepository
 	ChallengeRepository     repositories.ChallengeRepository
@@ -32,7 +32,7 @@ type SubmissionServiceImpl struct {
 
 func NewSubmissionServiceImpl(appRepository *repositories.Repositories) SubmissionService {
 	return &SubmissionServiceImpl{
-		ChallengeService:        NewChallengeServiceImpl(appRepository),
+		MixinService:            NewMixinServiceImpl(appRepository),
 		PodRepository:           appRepository.PodRepository,
 		SubmissionRepository:    appRepository.SubmissionRepository,
 		ChallengeRepository:     appRepository.ChallengeRepository,
@@ -76,9 +76,10 @@ func (t *SubmissionServiceImpl) JudgeDynamicChallenge(req request.SubmissionCrea
 var createSync = sync.RWMutex{}
 
 func (t *SubmissionServiceImpl) Create(req request.SubmissionCreateRequest) (status int, pts int64, err error) {
-	challenges, _, _, err := t.ChallengeService.Find(request.ChallengeFindRequest{
+	challenges, _, err := t.ChallengeRepository.Find(request.ChallengeFindRequest{
 		IDs: []int64{req.ChallengeID},
 	})
+	challenges, err = t.MixinService.MixinChallenge(challenges)
 	challenge := challenges[0]
 	status = 1
 	for _, flag := range challenge.Flags {
