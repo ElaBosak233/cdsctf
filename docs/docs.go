@@ -1621,7 +1621,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "entity.Env": {
+        "model.Env": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1638,7 +1638,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.Flag": {
+        "model.Flag": {
             "type": "object",
             "properties": {
                 "challenge_id": {
@@ -1663,7 +1663,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.Image": {
+        "model.Image": {
             "type": "object",
             "properties": {
                 "challenge_id": {
@@ -1678,7 +1678,7 @@ const docTemplate = `{
                 "envs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entity.Env"
+                        "$ref": "#/definitions/model.Env"
                     }
                 },
                 "id": {
@@ -1694,12 +1694,12 @@ const docTemplate = `{
                 "ports": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entity.Port"
+                        "$ref": "#/definitions/model.Port"
                     }
                 }
             }
         },
-        "entity.Port": {
+        "model.Port": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1757,7 +1757,7 @@ const docTemplate = `{
                 "flags": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entity.Flag"
+                        "$ref": "#/definitions/model.Flag"
                     }
                 },
                 "has_attachment": {
@@ -1766,7 +1766,7 @@ const docTemplate = `{
                 "images": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entity.Image"
+                        "$ref": "#/definitions/model.Image"
                     }
                 },
                 "is_dynamic": {
@@ -1812,7 +1812,7 @@ const docTemplate = `{
                 "flags": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entity.Flag"
+                        "$ref": "#/definitions/model.Flag"
                     }
                 },
                 "has_attachment": {
@@ -1824,7 +1824,7 @@ const docTemplate = `{
                 "images": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entity.Image"
+                        "$ref": "#/definitions/model.Image"
                     }
                 },
                 "is_practicable": {
@@ -2212,11 +2212,11 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "",
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "PgsHub Backend API",
+	Title:            "",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

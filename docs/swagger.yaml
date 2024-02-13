@@ -1,5 +1,5 @@
 definitions:
-  entity.Env:
+  model.Env:
     properties:
       id:
         type: integer
@@ -10,7 +10,7 @@ definitions:
       value:
         type: string
     type: object
-  entity.Flag:
+  model.Flag:
     properties:
       challenge_id:
         description: The challenge id. The flag belongs to.
@@ -31,7 +31,7 @@ definitions:
           or "flag{[UUID]}")
         type: string
     type: object
-  entity.Image:
+  model.Image:
     properties:
       challenge_id:
         type: integer
@@ -41,7 +41,7 @@ definitions:
         type: string
       envs:
         items:
-          $ref: '#/definitions/entity.Env'
+          $ref: '#/definitions/model.Env'
         type: array
       id:
         type: integer
@@ -52,10 +52,10 @@ definitions:
         type: string
       ports:
         items:
-          $ref: '#/definitions/entity.Port'
+          $ref: '#/definitions/model.Port'
         type: array
     type: object
-  entity.Port:
+  model.Port:
     properties:
       description:
         description: The port's description.
@@ -95,13 +95,13 @@ definitions:
         type: integer
       flags:
         items:
-          $ref: '#/definitions/entity.Flag'
+          $ref: '#/definitions/model.Flag'
         type: array
       has_attachment:
         type: boolean
       images:
         items:
-          $ref: '#/definitions/entity.Image'
+          $ref: '#/definitions/model.Image'
         type: array
       is_dynamic:
         type: boolean
@@ -131,7 +131,7 @@ definitions:
         type: integer
       flags:
         items:
-          $ref: '#/definitions/entity.Flag'
+          $ref: '#/definitions/model.Flag'
         type: array
       has_attachment:
         type: boolean
@@ -139,7 +139,7 @@ definitions:
         type: integer
       images:
         items:
-          $ref: '#/definitions/entity.Image'
+          $ref: '#/definitions/model.Image'
         type: array
       is_practicable:
         type: boolean
@@ -399,8 +399,6 @@ definitions:
     type: object
 info:
   contact: {}
-  title: PgsHub Backend API
-  version: "1.0"
 paths:
   /api/challenges/:
     delete:

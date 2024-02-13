@@ -8,6 +8,8 @@ import os
 os.environ["TERM"] = "xterm-256color"
 os.environ["CGO_ENABLED"] = "1"
 
+package = "github.com/elabosak233/pgshub"
+
 
 class Git:
 
@@ -34,31 +36,31 @@ def gen_params():
     build_flag = []
     version = Git.get_last_tag()
     if version:
-        build_flag.append("-X 'main.Version={}'".format(version))
+        build_flag.append(f"-X '{package}/internal/global.Version={version}'")
     branch_name = Git.get_branch()
     if branch_name:
-        build_flag.append("-X 'main.Branch={}'".format(branch_name))
+        build_flag.append(f"-X '{package}/internal/global.Branch={branch_name}'")
     commit_id = Git.get_last_commit_id()
     if commit_id:
-        build_flag.append("-X 'main.GitCommitID={}'".format(commit_id))
-    build_flag.append("-X 'main.AppBuildAt={}'".format(time.strftime("%Y-%m-%d %H:%M %z")))
+        build_flag.append(f"-X '{package}/internal/global.GitCommitID={commit_id}'")
+    build_flag.append(f"-X '{package}/internal/global.BuildAt={time.strftime('%Y-%m-%d %H:%M %z')}'")
     return "-ldflags \"{}\"".format(" ".join(build_flag))
 
 
 def swag_init():
-    return "swag init -g ./main.go -o ./docs"
+    return "swag init -g ./cmd/pgshub/main.go -o ./docs"
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "build":
         subprocess.call(swag_init(), shell=True)
-        if subprocess.call(f"go build {gen_params()} github.com/elabosak233/pgshub", shell=True) == 0:
+        if subprocess.call(f"go build {gen_params()} {package}/cmd/pgshub", shell=True) == 0:
             print("Build Finished.")
     elif len(sys.argv) > 1 and sys.argv[1] == "run":
         os.environ["DEBUG"] = "true"
         subprocess.call(swag_init(), shell=True)
         try:
-            subprocess.call(f"go run {gen_params()} github.com/elabosak233/pgshub", shell=True)
+            subprocess.call(f"go run {gen_params()} {package}/cmd/pgshub", shell=True)
         except KeyboardInterrupt:
             print("Run Finished.")
     else:
