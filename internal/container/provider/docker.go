@@ -19,7 +19,7 @@ func DockerCli() *client.Client {
 }
 
 func NewDockerProvider() {
-	dockerUri := config.Cfg().Container.Docker.URI
+	dockerUri := config.AppCfg().Container.Docker.URI
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation(), client.WithHost(dockerUri))
 	if err != nil {
 		zap.L().Fatal("Docker client initialization failed.")

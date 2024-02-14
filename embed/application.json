@@ -2,7 +2,13 @@
   "container": {
     "docker": {
       "public_entry": "127.0.0.0",
-        "uri": "unix:///var/run/docker.sock"
+      "uri": "unix:///var/run/docker.sock"
+    },
+    "k8s": {
+      "namespace": "default",
+      "path": {
+        "config": "./k8s-config.yml"
+      }
     },
     "provider": "docker"
   },
@@ -26,19 +32,6 @@
     "smtp": {
       "host": "",
       "port": 0
-    }
-  },
-  "global": {
-    "container": {
-      "parallel_limit": 1,
-      "request_limit": 0
-    },
-    "platform": {
-      "description": "Hack for fun not for profit.",
-      "title": "PgsHub"
-    },
-    "user": {
-      "allow_registration": true
     }
   },
   "jwt": {

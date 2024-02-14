@@ -33,19 +33,19 @@ func GetDatabase() *xorm.Engine {
 // initDatabaseEngine 初始化数据库引擎
 func initDatabaseEngine() {
 	var err error
-	if config.Cfg().Db.Provider == "postgres" {
+	if config.AppCfg().Db.Provider == "postgres" {
 		dbInfo = fmt.Sprintf(
 			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-			config.Cfg().Db.Postgres.Host,
-			config.Cfg().Db.Postgres.Port,
-			config.Cfg().Db.Postgres.Username,
-			config.Cfg().Db.Postgres.Password,
-			config.Cfg().Db.Postgres.Dbname,
-			config.Cfg().Db.Postgres.Sslmode,
+			config.AppCfg().Db.Postgres.Host,
+			config.AppCfg().Db.Postgres.Port,
+			config.AppCfg().Db.Postgres.Username,
+			config.AppCfg().Db.Postgres.Password,
+			config.AppCfg().Db.Postgres.Dbname,
+			config.AppCfg().Db.Postgres.Sslmode,
 		)
 		db, err = xorm.NewEngine("postgres", dbInfo)
-	} else if config.Cfg().Db.Provider == "sqlite3" {
-		dbInfo = config.Cfg().Db.Sqlite3.Filename
+	} else if config.AppCfg().Db.Provider == "sqlite3" {
+		dbInfo = config.AppCfg().Db.Sqlite3.Filename
 		db, err = xorm.NewEngine("sqlite3", dbInfo)
 	}
 	if err != nil {

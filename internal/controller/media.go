@@ -67,7 +67,7 @@ func (c *MediaController) GetUserAvatarList(ctx *gin.Context) {
 // @Router /api/media/users/avatar/{id} [get]
 func (c *MediaController) GetUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/users/avatar/%s", config.Cfg().Server.Paths.Media, id)
+	path := fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -88,7 +88,7 @@ func (c *MediaController) GetUserAvatarByUserId(ctx *gin.Context) {
 // @Router /api/media/users/avatar/{id}/info [get]
 func (c *MediaController) GetUserAvatarInfoByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/users/avatar/%s", config.Cfg().Server.Paths.Media, id)
+	path := fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -124,7 +124,7 @@ func (c *MediaController) SetUserAvatarByUserId(ctx *gin.Context) {
 		})
 		return
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/users/avatar/%s", config.Cfg().Server.Paths.Media, id))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Server.Paths.Media, id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -147,7 +147,7 @@ func (c *MediaController) SetUserAvatarByUserId(ctx *gin.Context) {
 // @Router /api/media/users/avatar/{id} [delete]
 func (c *MediaController) DeleteUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/users/avatar/%s", config.Cfg().Server.Paths.Media, id)
+	path := fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		err = os.Remove(path)
@@ -193,7 +193,7 @@ func (c *MediaController) GetTeamAvatarList(ctx *gin.Context) {
 // @Router /api/media/teams/avatar/{id} [get]
 func (c *MediaController) GetTeamAvatarByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/teams/avatar/%s", config.Cfg().Server.Paths.Media, id)
+	path := fmt.Sprintf("%s/teams/avatar/%s", config.AppCfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -214,7 +214,7 @@ func (c *MediaController) GetTeamAvatarByTeamId(ctx *gin.Context) {
 // @Router /api/media/teams/avatar/{id}/info [get]
 func (c *MediaController) GetTeamAvatarInfoByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/teams/avatar/%s", config.Cfg().Server.Paths.Media, id)
+	path := fmt.Sprintf("%s/teams/avatar/%s", config.AppCfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -250,7 +250,7 @@ func (c *MediaController) SetTeamAvatarByTeamId(ctx *gin.Context) {
 		})
 		return
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/teams/avatar/%s", config.Cfg().Server.Paths.Media, id))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/teams/avatar/%s", config.AppCfg().Server.Paths.Media, id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -273,7 +273,7 @@ func (c *MediaController) SetTeamAvatarByTeamId(ctx *gin.Context) {
 // @Router /api/media/teams/avatar/{id} [delete]
 func (c *MediaController) DeleteTeamAvatarByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/teams/avatar/%s", config.Cfg().Server.Paths.Media, id)
+	path := fmt.Sprintf("%s/teams/avatar/%s", config.AppCfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		err = os.Remove(path)
@@ -304,7 +304,7 @@ func (c *MediaController) DeleteTeamAvatarByTeamId(ctx *gin.Context) {
 // @Router /api/media/games/cover/{id} [get]
 func (c *MediaController) GetGameCoverByGameId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/games/cover/%s", config.Cfg().Server.Paths.Media, id)
+	path := fmt.Sprintf("%s/games/cover/%s", config.AppCfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -338,7 +338,7 @@ func (c *MediaController) SetGameCoverByGameId(ctx *gin.Context) {
 		})
 		return
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/games/cover/%s", config.Cfg().Server.Paths.Media, id))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/games/cover/%s", config.AppCfg().Server.Paths.Media, id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -361,7 +361,7 @@ func (c *MediaController) SetGameCoverByGameId(ctx *gin.Context) {
 // @Router /api/media/games/writeups/{id} [get]
 func (c *MediaController) FindGameWriteUpByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/games/writeups/%s.pdf", config.Cfg().Server.Paths.Media, id)
+	path := fmt.Sprintf("%s/games/writeups/%s.pdf", config.AppCfg().Server.Paths.Media, id)
 	_, err := os.Stat(path)
 	if err == nil {
 		ctx.File(path)
@@ -398,7 +398,7 @@ func (c *MediaController) SetChallengeAttachmentByChallengeId(ctx *gin.Context) 
 			return
 		}
 	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/challenges/attachments/%s/%s", config.Cfg().Server.Paths.Media, id, file.Filename))
+	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/challenges/attachments/%s/%s", config.AppCfg().Server.Paths.Media, id, file.Filename))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -450,7 +450,7 @@ func (c *MediaController) GetChallengeAttachmentByChallengeId(ctx *gin.Context) 
 		})
 		return
 	}
-	ctx.File(fmt.Sprintf("%s/challenges/attachments/%s/%s", config.Cfg().Server.Paths.Media, id, fileName))
+	ctx.File(fmt.Sprintf("%s/challenges/attachments/%s/%s", config.AppCfg().Server.Paths.Media, id, fileName))
 }
 
 // DeleteChallengeAttachmentByChallengeId

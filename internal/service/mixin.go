@@ -156,11 +156,11 @@ func (t *MixinService) MixinInstance(containers []model.Instance) (ctns []model.
 	}
 
 	// mixin nat -> instance
-	nats, _ := t.NatRepository.FindByContainerID(ctnIDs)
+	nats, _ := t.NatRepository.FindByInstanceID(ctnIDs)
 	for _, nat := range nats {
-		ctn := ctnMap[nat.ContainerID]
+		ctn := ctnMap[nat.InstanceID]
 		ctn.Nats = append(ctn.Nats, nat)
-		ctnMap[nat.ContainerID] = ctn
+		ctnMap[nat.InstanceID] = ctn
 	}
 
 	for _, ctn := range ctnMap {

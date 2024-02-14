@@ -1,0 +1,13 @@
+{
+  "container": {
+    "parallel_limit": 1,
+    "request_limit": 0
+  },
+  "site": {
+    "description": "Hack for fun not for profit.",
+    "title": "PgsHub"
+  },
+  "user": {
+    "allow_registration": true
+  }
+}

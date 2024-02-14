@@ -7,7 +7,7 @@ import (
 
 type INatRepository interface {
 	Insert(nat model.Nat) (n model.Nat, err error)
-	FindByContainerID(containerIDs []int64) (nats []model.Nat, err error)
+	FindByInstanceID(instanceIDs []int64) (nats []model.Nat, err error)
 }
 
 type NatRepository struct {
@@ -23,7 +23,7 @@ func (t *NatRepository) Insert(nat model.Nat) (n model.Nat, err error) {
 	return nat, err
 }
 
-func (t *NatRepository) FindByContainerID(containerIDs []int64) (nats []model.Nat, err error) {
-	err = t.Db.Table("nat").In("container_id", containerIDs).Find(&nats)
+func (t *NatRepository) FindByInstanceID(instanceIDs []int64) (nats []model.Nat, err error) {
+	err = t.Db.Table("nat").In("instance_id", instanceIDs).Find(&nats)
 	return nats, err
 }

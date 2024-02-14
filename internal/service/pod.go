@@ -59,14 +59,14 @@ type PodService struct {
 	PodRepository       repository.IPodRepository
 	NatRepository       repository.INatRepository
 	FlagGenRepository   repository.IFlagGenRepository
-	ContainerRepository repository.IInstanceRepository
+	InstanceRepository  repository.IInstanceRepository
 }
 
 func NewPodService(appRepository *repository.Repository) IPodService {
 	return &PodService{
 		MixinService:        NewMixinService(appRepository),
 		ChallengeRepository: appRepository.ChallengeRepository,
-		ContainerRepository: appRepository.ContainerRepository,
+		InstanceRepository:  appRepository.ContainerRepository,
 		FlagGenRepository:   appRepository.FlagGenRepository,
 		PodRepository:       appRepository.PodRepository,
 		NatRepository:       appRepository.NatRepository,
@@ -87,11 +87,11 @@ func (t *PodService) IsLimited(userId int64, limit int64) (remainder int64) {
 }
 
 func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatusResponse, err error) {
-	remainder := t.IsLimited(req.UserID, int64(config.Cfg().Global.Container.RequestLimit))
+	remainder := t.IsLimited(req.UserID, int64(config.AppCfg().Global.Container.RequestLimit))
 	if remainder != 0 {
 		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
-	switch config.Cfg().Container.Provider {
+	switch config.AppCfg().Container.Provider {
 	case "docker":
 		SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
 		challenges, _, _ := t.ChallengeRepository.Find(request.ChallengeFindRequest{
@@ -103,7 +103,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		isGame := req.GameID != 0 && req.TeamID != 0
 
 		// Parallel container limit
-		if config.Cfg().Global.Container.ParallelLimit > 0 {
+		if config.AppCfg().Global.Container.ParallelLimit > 0 {
 			var availablePods []model.Pod
 			var count int64
 			if !isGame {
@@ -118,7 +118,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 					IsAvailable: convertor.TrueP(),
 				})
 			}
-			needToBeDeactivated := count - int64(config.Cfg().Global.Container.ParallelLimit) + 1
+			needToBeDeactivated := count - int64(config.AppCfg().Global.Container.ParallelLimit) + 1
 			if needToBeDeactivated > 0 {
 				for _, pod := range availablePods {
 					if needToBeDeactivated == 0 {
@@ -179,7 +179,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 				Value: flagStr,
 			})
 
-			ctnManager := manager.NewDockerManagerImpl(
+			ctnManager := manager.NewDockerManager(
 				image.Name,
 				image.Ports,
 				envs,
@@ -190,7 +190,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 			assignedPorts, _ := ctnManager.Setup()
 
 			// Instance -> Pod
-			container, _ := t.ContainerRepository.Insert(model.Instance{
+			container, _ := t.InstanceRepository.Insert(model.Instance{
 				PodID:   pod.ID,
 				ImageID: image.ID,
 			})
@@ -204,22 +204,22 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 					dstPort := convertor.ToIntD(dst.HostPort, 0)
 					entry := fmt.Sprintf(
 						"%s:%d",
-						config.Cfg().Container.Docker.PublicEntry,
+						config.AppCfg().Container.Docker.PublicEntry,
 						dstPort,
 					)
 					// Nat -> Instance
 					nat, _ := t.NatRepository.Insert(model.Nat{
-						ContainerID: container.ID,
-						SrcPort:     srcPort,
-						DstPort:     dstPort,
-						Entry:       entry,
+						InstanceID: container.ID,
+						SrcPort:    srcPort,
+						DstPort:    dstPort,
+						Entry:      entry,
 					})
 					ctn.Nats = append(ctn.Nats, nat)
 				}
 			}
 			ctnMap[container.ID] = ctn
 
-			ctnManager.SetContainerID(container.ID)
+			ctnManager.SetInstanceID(container.ID)
 			ContainerManagerPtrMap[container.ID] = ctnManager
 
 			// Start removal plan
@@ -234,9 +234,115 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 			ctns = append(ctns, ctn)
 		}
 		return response.PodStatusResponse{
-			ID:         pod.ID,
-			Containers: ctns,
-			RemovedAt:  removedAt,
+			ID:        pod.ID,
+			Instances: ctns,
+			RemovedAt: removedAt,
+		}, err
+	case "k8s":
+		SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
+		challenges, _, _ := t.ChallengeRepository.Find(request.ChallengeFindRequest{
+			IDs:       []int64{req.ChallengeID},
+			IsDynamic: convertor.TrueP(),
+		})
+		challenges, _ = t.MixinService.MixinChallenge(challenges)
+		challenge := challenges[0]
+		isGame := req.GameID != 0 && req.TeamID != 0
+
+		// Parallel container limit
+		if config.AppCfg().Global.Container.ParallelLimit > 0 {
+			var availablePods []model.Pod
+			var count int64
+			if !isGame {
+				availablePods, count, _ = t.PodRepository.Find(request.PodFindRequest{
+					UserID:      req.UserID,
+					IsAvailable: convertor.TrueP(),
+				})
+			} else {
+				availablePods, count, _ = t.PodRepository.Find(request.PodFindRequest{
+					TeamID:      req.TeamID,
+					GameID:      req.GameID,
+					IsAvailable: convertor.TrueP(),
+				})
+			}
+			needToBeDeactivated := count - int64(config.AppCfg().Global.Container.ParallelLimit) + 1
+			if needToBeDeactivated > 0 {
+				for _, pod := range availablePods {
+					if needToBeDeactivated == 0 {
+						break
+					}
+					go func() {
+						_ = t.Remove(request.PodRemoveRequest{
+							ID: pod.ID,
+						})
+					}()
+					needToBeDeactivated -= 1
+				}
+			}
+		}
+
+		var ctnMap = make(map[int64]model.Instance)
+
+		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).Unix()
+
+		// Insert Pod model, get Pod's ID
+		pod, _ := t.PodRepository.Insert(model.Pod{
+			ChallengeID: req.ChallengeID,
+			UserID:      req.UserID,
+			RemovedAt:   removedAt,
+		})
+
+		if _, ok := PodMap[pod.ID]; !ok {
+			PodMap[pod.ID] = make([]int64, 0)
+		}
+
+		// Select the first one as the target flag which will be injected
+		var flag model.Flag
+		var flagStr string
+		for _, f := range challenge.Flags {
+			if f.Type == "dynamic" {
+				flag = f
+				flagStr = generator.GenerateFlag(flag.Value)
+			} else if f.Type == "static" {
+				flag = f
+				flagStr = f.Value
+			}
+		}
+
+		_, _ = t.FlagGenRepository.Insert(model.FlagGen{
+			Flag:  flagStr,
+			PodID: pod.ID,
+		})
+
+		ctnManager := manager.NewK8sManager(
+			pod.ID,
+			challenge.Images,
+			flag,
+			time.Duration(challenge.Duration),
+		)
+
+		instances, _ := ctnManager.Setup()
+
+		for _, instance := range instances {
+			PodMap[pod.ID] = append(PodMap[pod.ID], instance.ID)
+			for _, nat := range instance.Nats {
+				nat.InstanceID = instance.ID
+				_, _ = t.NatRepository.Insert(nat)
+			}
+			_, _ = t.InstanceRepository.Insert(instance)
+		}
+		go func() {
+			if ctnManager.RemoveAfterDuration(ctnManager.CancelCtx) {
+				delete(ContainerManagerPtrMap, pod.ID)
+			}
+		}()
+		var ctns []model.Instance
+		for _, ctn := range ctnMap {
+			ctns = append(ctns, ctn)
+		}
+		return response.PodStatusResponse{
+			ID:        pod.ID,
+			Instances: instances,
+			RemovedAt: removedAt,
 		}, err
 	}
 	return res, errors.New("创建失败")
@@ -244,7 +350,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 func (t *PodService) Status(podID int64) (rep response.PodStatusResponse, err error) {
 	rep = response.PodStatusResponse{}
-	if config.Cfg().Container.Provider == "docker" {
+	if config.AppCfg().Container.Provider == "docker" {
 		instance, err := t.PodRepository.FindById(podID)
 		if ContainerManagerPtrMap[podID] != nil {
 			ctn := ContainerManagerPtrMap[podID].(*manager.DockerManager)
@@ -264,11 +370,11 @@ func (t *PodService) Status(podID int64) (rep response.PodStatusResponse, err er
 }
 
 func (t *PodService) Renew(req request.PodRenewRequest) (removedAt int64, err error) {
-	remainder := t.IsLimited(req.UserID, int64(config.Cfg().Global.Container.RequestLimit))
+	remainder := t.IsLimited(req.UserID, int64(config.AppCfg().Global.Container.RequestLimit))
 	if remainder != 0 {
 		return 0, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
-	if config.Cfg().Container.Provider == "docker" {
+	if config.AppCfg().Container.Provider == "docker" {
 		SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
 		pod, err := t.PodRepository.FindById(req.ID)
 		if err != nil || PodMap[req.ID] == nil {
@@ -290,11 +396,11 @@ func (t *PodService) Renew(req request.PodRenewRequest) (removedAt int64, err er
 }
 
 func (t *PodService) Remove(req request.PodRemoveRequest) (err error) {
-	remainder := t.IsLimited(req.UserID, int64(config.Cfg().Global.Container.RequestLimit))
+	remainder := t.IsLimited(req.UserID, int64(config.AppCfg().Global.Container.RequestLimit))
 	if remainder != 0 {
 		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
-	if config.Cfg().Container.Provider == "docker" {
+	if config.AppCfg().Container.Provider == "docker" {
 		_ = t.PodRepository.Update(model.Pod{
 			ID:        req.ID,
 			RemovedAt: time.Now().Unix(),
@@ -314,7 +420,7 @@ func (t *PodService) Remove(req request.PodRemoveRequest) (err error) {
 }
 
 func (t *PodService) FindById(id int64) (rep response.PodResponse, err error) {
-	if config.Cfg().Container.Provider == "docker" {
+	if config.AppCfg().Container.Provider == "docker" {
 		instance, err := t.PodRepository.FindById(id)
 		if err != nil || ContainerManagerPtrMap[id] == nil {
 			return rep, errors.New("实例不存在")
@@ -333,7 +439,7 @@ func (t *PodService) FindById(id int64) (rep response.PodResponse, err error) {
 }
 
 func (t *PodService) Find(req request.PodFindRequest) (pods []response.PodResponse, err error) {
-	if config.Cfg().Container.Provider == "docker" {
+	if config.AppCfg().Container.Provider == "docker" {
 		if req.TeamID != 0 && req.GameID != 0 {
 			req.UserID = 0
 		}
@@ -354,7 +460,7 @@ func (t *PodService) Find(req request.PodFindRequest) (pods []response.PodRespon
 			pods = append(pods, response.PodResponse{
 				ID:          pod.ID,
 				RemovedAt:   pod.RemovedAt,
-				Containers:  pod.Instances,
+				Instances:   pod.Instances,
 				ChallengeID: pod.ChallengeID,
 				Status:      status,
 			})

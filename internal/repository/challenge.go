@@ -88,19 +88,6 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 		offset := (req.Page - 1) * req.Size
 		db = db.Limit(req.Size, offset)
 	}
-	//if isGame {
-	//	db = db.Join(
-	//		"LEFT",
-	//		"submission",
-	//		"submission.challenge_id = challenge.id AND submission.status = 2 AND submission.team_id = ?",
-	//		req.ID)
-	//} else {
-	//	db = db.Join(
-	//		"LEFT",
-	//		"submission",
-	//		"submission.challenge_id = challenge.id AND submission.status = 2 AND submission.game_id = 0 AND submission.user_id = ?",
-	//		req.ID)
-	//}
 	err = db.Cols("challenge.*").Find(&challenges)
 	return challenges, count, err
 }
