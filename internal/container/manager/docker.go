@@ -17,7 +17,7 @@ import (
 )
 
 type DockerManager struct {
-	ContainerID int64
+	InstanceID  int64
 	RespID      string
 	Image       string
 	Inspect     types.ContainerJSON
@@ -31,7 +31,7 @@ type DockerManager struct {
 	CancelFunc  context.CancelFunc
 }
 
-func NewDockerManagerImpl(imageName string, exposedPort []model.Port, env []model.Env, memoryLimit int64, cpuLimit float64, duration time.Duration) *DockerManager {
+func NewDockerManager(imageName string, exposedPort []model.Port, env []model.Env, memoryLimit int64, cpuLimit float64, duration time.Duration) *DockerManager {
 	return &DockerManager{
 		Image:       imageName,
 		ExposedPort: exposedPort,
@@ -42,8 +42,8 @@ func NewDockerManagerImpl(imageName string, exposedPort []model.Port, env []mode
 	}
 }
 
-func (c *DockerManager) SetContainerID(containerID int64) {
-	c.ContainerID = containerID
+func (c *DockerManager) SetInstanceID(instanceID int64) {
+	c.InstanceID = instanceID
 }
 
 func (c *DockerManager) Setup() (assignedPorts nat.PortMap, err error) {
@@ -129,7 +129,7 @@ func (c *DockerManager) RemoveAfterDuration(ctx context.Context) (success bool) 
 		c.Remove()
 		return true
 	case <-ctx.Done():
-		zap.L().Warn(fmt.Sprintf("[%s] Instance %d (RespID %s)'s removal plan has been cancelled.", color.InCyan("DOCKER"), c.ContainerID, c.RespID))
+		zap.L().Warn(fmt.Sprintf("[%s] Instance %d (RespID %s)'s removal plan has been cancelled.", color.InCyan("DOCKER"), c.InstanceID, c.RespID))
 		return false
 	}
 }
@@ -166,7 +166,7 @@ func (c *DockerManager) Renew(duration time.Duration) {
 	zap.L().Warn(
 		fmt.Sprintf("[%s] Instance %d (RespID %s) successfully renewed.",
 			color.InCyan("DOCKER"),
-			c.ContainerID,
+			c.InstanceID,
 			c.RespID,
 		),
 	)

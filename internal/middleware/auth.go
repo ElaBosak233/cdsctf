@@ -26,7 +26,7 @@ func NewAuthMiddleware(appService *service.Service) IAuthMiddleware {
 func (m *AuthMiddleware) BasicAuth(ctx *gin.Context) {
 	token := ctx.GetHeader("Authorization")
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.Cfg().Jwt.SecretKey), nil
+		return []byte(config.AppCfg().Jwt.SecretKey), nil
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

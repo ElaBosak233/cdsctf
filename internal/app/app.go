@@ -41,10 +41,11 @@ func Run() {
 	assets.InitAssets()
 	database.InitDatabase()
 
-	switch config.Cfg().Container.Provider {
+	switch config.AppCfg().Container.Provider {
 	case "docker":
 		provider.NewDockerProvider()
 	case "k8s":
+		provider.NewK8sProvider()
 	default:
 		zap.L().Fatal("Invalid container provider!")
 	}
@@ -62,8 +63,8 @@ func Run() {
 
 	// Cors configurations
 	cor := cors.DefaultConfig()
-	cor.AllowOrigins = config.Cfg().Server.CORS.AllowOrigins
-	cor.AllowMethods = config.Cfg().Server.CORS.AllowMethods
+	cor.AllowOrigins = config.AppCfg().Server.CORS.AllowOrigins
+	cor.AllowMethods = config.AppCfg().Server.CORS.AllowMethods
 	cor.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	cor.AllowCredentials = true
 	r.Use(cors.New(cor))
@@ -82,11 +83,11 @@ func Run() {
 	r.Use(appMiddleware.FrontendMiddleware.Frontend("/"))
 
 	s := &http.Server{
-		Addr:    config.Cfg().Server.Host + ":" + strconv.Itoa(config.Cfg().Server.Port),
+		Addr:    config.AppCfg().Server.Host + ":" + strconv.Itoa(config.AppCfg().Server.Port),
 		Handler: r,
 	}
 	zap.L().Info("The PgsHub service is launching! Enjoy your hacking challenges!")
-	zap.L().Info(fmt.Sprintf("Here's the address! %s:%d", config.Cfg().Server.Host, config.Cfg().Server.Port))
+	zap.L().Info(fmt.Sprintf("Here's the address! %s:%d", config.AppCfg().Server.Host, config.AppCfg().Server.Port))
 	err := s.ListenAndServe()
 	if err != nil {
 		zap.L().Fatal("Err... It seems that the port for PgsHub is not available. Plz try again.")

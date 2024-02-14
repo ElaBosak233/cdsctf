@@ -29,6 +29,11 @@ plugins
 uploads
 /media/
 /assets/
+/config/
+/application.json
+/k8s-config.yml
+/platform.json
+/ca/
 test.go
 dist
 _PgsHub.exe
