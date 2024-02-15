@@ -15,7 +15,7 @@ type IGameService interface {
 	Find(req request.GameFindRequest) (games []response.GameResponse, pageCount int64, total int64, err error)
 	Create(req request.GameCreateRequest) (err error)
 	Update(req request.GameUpdateRequest) (err error)
-	Delete(id int64) (err error)
+	Delete(id uint) (err error)
 }
 
 type GameService struct {
@@ -39,32 +39,32 @@ func (g *GameService) Find(req request.GameFindRequest) (games []response.GameRe
 }
 
 func (g *GameService) Create(req request.GameCreateRequest) (err error) {
-	gamemodel := model.Game{}
-	err = mapstructure.Decode(req, &gamemodel)
+	game := model.Game{}
+	err = mapstructure.Decode(req, &game)
 	if req.Password != "" {
 		hasher := crypto.SHA256.New()
 		hasher.Write([]byte(req.Password))
 		hashBytes := hasher.Sum(nil)
-		gamemodel.Password = hex.EncodeToString(hashBytes)
+		game.Password = hex.EncodeToString(hashBytes)
 	}
-	_, err = g.GameRepository.Insert(gamemodel)
+	_, err = g.GameRepository.Insert(game)
 	return err
 }
 
 func (g *GameService) Update(req request.GameUpdateRequest) (err error) {
-	gamemodel := model.Game{}
-	err = mapstructure.Decode(req, &gamemodel)
+	game := model.Game{}
+	err = mapstructure.Decode(req, &game)
 	if req.Password != "" {
 		hasher := crypto.SHA256.New()
 		hasher.Write([]byte(req.Password))
 		hashBytes := hasher.Sum(nil)
-		gamemodel.Password = hex.EncodeToString(hashBytes)
+		game.Password = hex.EncodeToString(hashBytes)
 	}
-	err = g.GameRepository.Update(gamemodel)
+	err = g.GameRepository.Update(game)
 	return err
 }
 
-func (g *GameService) Delete(id int64) (err error) {
+func (g *GameService) Delete(id uint) (err error) {
 	//TODO implement me
 	panic("implement me")
 }

@@ -4,87 +4,84 @@ import (
 	"github.com/elabosak233/pgshub/internal/model"
 	"github.com/elabosak233/pgshub/internal/model/dto/request"
 	"github.com/elabosak233/pgshub/internal/model/dto/response"
-	"xorm.io/xorm"
+	"gorm.io/gorm"
 )
 
 type ITeamRepository interface {
 	Insert(team model.Team) (te model.Team, err error)
 	Update(team model.Team) (err error)
-	Delete(id int64) (err error)
+	Delete(id uint) (err error)
 	Find(req request.TeamFindRequest) (teams []response.TeamResponse, count int64, err error)
 	BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error)
 	BatchFindByUserId(req request.TeamBatchFindByUserIdRequest) (teams []response.TeamResponseWithUserId, err error)
-	FindById(id int64) (team model.Team, err error)
+	FindById(id uint) (team model.Team, err error)
 }
 
 type TeamRepository struct {
-	Db *xorm.Engine
+	Db *gorm.DB
 }
 
-func NewTeamRepository(Db *xorm.Engine) ITeamRepository {
+func NewTeamRepository(Db *gorm.DB) ITeamRepository {
 	return &TeamRepository{Db: Db}
 }
 
 func (t *TeamRepository) Insert(team model.Team) (te model.Team, err error) {
-	_, err = t.Db.Table("team").Insert(&team)
-	return team, err
+	result := t.Db.Table("teams").Create(&team)
+	return team, result.Error
 }
 
 func (t *TeamRepository) Update(team model.Team) (err error) {
-	_, err = t.Db.Table("team").ID(team.ID).Update(&team)
-	return err
+	result := t.Db.Table("team").Model(&team).Updates(&team)
+	return result.Error
 }
 
-func (t *TeamRepository) Delete(id int64) (err error) {
-	_, err = t.Db.Table("team").ID(id).Delete(&model.Team{})
-	return err
+func (t *TeamRepository) Delete(id uint) (err error) {
+	result := t.Db.Table("teams").Delete(&model.Team{
+		ID: id,
+	})
+	return result.Error
 }
 
 func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []response.TeamResponse, count int64, err error) {
-	applyFilters := func(q *xorm.Session) *xorm.Session {
+	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
 		}
 		if req.TeamName != "" {
 			q = q.Where("name LIKE ?", "%"+req.TeamName+"%")
 		}
-		if req.CaptainId != 0 {
-			q = q.Where("captain_id = ?", req.CaptainId)
+		if req.CaptainID != 0 {
+			q = q.Where("captain_id = ?", req.CaptainID)
 		}
 		return q
 	}
-	db := applyFilters(t.Db.Table("team"))
-	ct := applyFilters(t.Db.Table("team"))
-	count, err = ct.Count(&model.Team{})
+	db := applyFilters(t.Db.Table("teams"))
+	ct := applyFilters(t.Db.Table("teams"))
+	result := ct.Model(&model.Team{}).Count(&count)
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
-		db = db.Limit(req.Size, offset)
+		db = db.Offset(offset).Limit(req.Size)
 	}
-	err = db.Find(&teams)
-	return teams, count, err
+	result = db.Find(&teams)
+	return teams, count, result.Error
 }
 
 func (t *TeamRepository) BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error) {
-	err = t.Db.Table("team").
-		In("team.id", req.ID).
+	result := t.Db.Table("teams").
+		Where("teams.id IN ?", req.ID).
 		Find(&teams)
-	return teams, err
+	return teams, result.Error
 }
 
 func (t *TeamRepository) BatchFindByUserId(req request.TeamBatchFindByUserIdRequest) (teams []response.TeamResponseWithUserId, err error) {
-	err = t.Db.Table("team").
-		Join("INNER", "user_team", "user_team.team_id = team.id").
-		In("user_team.user_id", req.UserID).
+	result := t.Db.Table("teams").
+		Joins("INNER JOIN user_teams ON user_teams.team_id = teams.id").
+		Where("user_teams.user_id = ?", req.UserID).
 		Find(&teams)
-	return teams, err
+	return teams, result.Error
 }
 
-func (t *TeamRepository) FindById(id int64) (team model.Team, err error) {
-	team = model.Team{}
-	has, err := t.Db.Table("team").ID(id).Get(&team)
-	if has {
-		return team, nil
-	} else {
-		return team, err
-	}
+func (t *TeamRepository) FindById(id uint) (team model.Team, err error) {
+	result := t.Db.Table("teams").Where("id = ?", id).First(&team)
+	return team, result.Error
 }

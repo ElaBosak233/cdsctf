@@ -1,12 +1,9 @@
 package model
 
 type Env struct {
-	ID      int64  `xorm:"'id' pk autoincr" json:"id"`
-	Key     string `xorm:"'key' varchar(128) notnull" json:"key"`
-	Value   string `xorm:"'value' varchar(128) notnull" json:"value"`
-	ImageID int64  `xorm:"'image_id' notnull" json:"image_id"`
-}
-
-func (e *Env) TableName() string {
-	return "env"
+	ID      uint   `json:"id"`
+	Key     string `gorm:"type:varchar(128);not null;" json:"key"`
+	Value   string `gorm:"type:varchar(128);not null;" json:"value"`
+	ImageID uint   `gorm:"not null;" json:"image_id"`
+	Image   *Image `json:"image"`
 }

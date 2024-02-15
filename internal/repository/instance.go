@@ -2,28 +2,28 @@ package repository
 
 import (
 	"github.com/elabosak233/pgshub/internal/model"
-	"xorm.io/xorm"
+	"gorm.io/gorm"
 )
 
 type IInstanceRepository interface {
 	Insert(container model.Instance) (c model.Instance, err error)
-	FindByPodID(podIDs []int64) (containers []model.Instance, err error)
+	FindByPodID(podIDs []uint) (containers []model.Instance, err error)
 }
 
 type InstanceRepository struct {
-	Db *xorm.Engine
+	Db *gorm.DB
 }
 
-func NewInstanceRepository(Db *xorm.Engine) IInstanceRepository {
+func NewInstanceRepository(Db *gorm.DB) IInstanceRepository {
 	return &InstanceRepository{Db: Db}
 }
 
 func (t *InstanceRepository) Insert(container model.Instance) (c model.Instance, err error) {
-	_, err = t.Db.Table("instance").Insert(&container)
-	return container, err
+	result := t.Db.Table("instances").Create(&container)
+	return container, result.Error
 }
 
-func (t *InstanceRepository) FindByPodID(podIDs []int64) (containers []model.Instance, err error) {
-	err = t.Db.Table("instance").In("pod_id", podIDs).Find(&containers)
-	return containers, err
+func (t *InstanceRepository) FindByPodID(podIDs []uint) (containers []model.Instance, err error) {
+	result := t.Db.Table("instances").Where("pod_id IN ?", podIDs).Find(&containers)
+	return containers, result.Error
 }

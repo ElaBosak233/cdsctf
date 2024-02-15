@@ -40,11 +40,11 @@ func NewMixinService(appRepository *repository.Repository) IMixinService {
 }
 
 func (t *MixinService) MixinImage(images []model.Image) (imgs []model.Image, err error) {
-	imageMap := make(map[int64]model.Image)
+	imageMap := make(map[uint]model.Image)
 	for _, image := range images {
 		imageMap[image.ID] = image
 	}
-	imageIDs := make([]int64, 0)
+	imageIDs := make([]uint, 0)
 	for id := range imageMap {
 		imageIDs = append(imageIDs, id)
 	}
@@ -52,7 +52,8 @@ func (t *MixinService) MixinImage(images []model.Image) (imgs []model.Image, err
 	envs, _ := t.EnvRepository.FindByImageID(imageIDs)
 	for _, env := range envs {
 		image := imageMap[env.ImageID]
-		image.Envs = append(image.Envs, env)
+		e := env
+		image.Envs = append(image.Envs, &e)
 		imageMap[env.ImageID] = image
 	}
 
@@ -60,7 +61,8 @@ func (t *MixinService) MixinImage(images []model.Image) (imgs []model.Image, err
 	ports, _ := t.PortRepository.FindByImageID(imageIDs)
 	for _, port := range ports {
 		image := imageMap[port.ImageID]
-		image.Ports = append(image.Ports, port)
+		p := port
+		image.Ports = append(image.Ports, &p)
 		imageMap[port.ImageID] = image
 	}
 
@@ -72,18 +74,18 @@ func (t *MixinService) MixinImage(images []model.Image) (imgs []model.Image, err
 }
 
 func (t *MixinService) MixinChallenge(challenges []response.ChallengeResponse) (chas []response.ChallengeResponse, err error) {
-	challengeMap := make(map[int64]response.ChallengeResponse)
-	challengeIDs := make([]int64, 0)
+	challengeMap := make(map[uint]response.ChallengeResponse)
+	challengeIDs := make([]uint, 0)
 	for _, challenge := range challenges {
 		challengeMap[challenge.ID] = challenge
 		challengeIDs = append(challengeIDs, challenge.ID)
 	}
 	// mixin category -> challenges
-	categoryIDMap := make(map[int64]bool)
+	categoryIDMap := make(map[uint]bool)
 	for _, challenge := range challenges {
 		categoryIDMap[challenge.CategoryID] = true
 	}
-	categoryIDs := make([]int64, 0)
+	categoryIDs := make([]uint, 0)
 	for id := range categoryIDMap {
 		categoryIDs = append(categoryIDs, id)
 	}
@@ -103,7 +105,8 @@ func (t *MixinService) MixinChallenge(challenges []response.ChallengeResponse) (
 	flags, _ := t.FlagRepository.FindByChallengeID(challengeIDs)
 	for _, flag := range flags {
 		challenge := challengeMap[flag.ChallengeID]
-		challenge.Flags = append(challengeMap[flag.ChallengeID].Flags, flag)
+		f := flag
+		challenge.Flags = append(challengeMap[flag.ChallengeID].Flags, &f)
 		challengeMap[flag.ChallengeID] = challenge
 	}
 
@@ -112,7 +115,8 @@ func (t *MixinService) MixinChallenge(challenges []response.ChallengeResponse) (
 	images, _ = t.MixinImage(images)
 	for _, image := range images {
 		challenge := challengeMap[image.ChallengeID]
-		challenge.Images = append(challengeMap[image.ChallengeID].Images, image)
+		i := image
+		challenge.Images = append(challengeMap[image.ChallengeID].Images, &i)
 		challengeMap[image.ChallengeID] = challenge
 	}
 
@@ -124,10 +128,10 @@ func (t *MixinService) MixinChallenge(challenges []response.ChallengeResponse) (
 }
 
 func (t *MixinService) MixinInstance(containers []model.Instance) (ctns []model.Instance, err error) {
-	ctnMap := make(map[int64]model.Instance)
-	ctnIDs := make([]int64, 0)
+	ctnMap := make(map[uint]model.Instance)
+	ctnIDs := make([]uint, 0)
 
-	imageIDMap := make(map[int64]bool)
+	imageIDMap := make(map[uint]bool)
 
 	for _, container := range containers {
 		ctnMap[container.ID] = container
@@ -135,8 +139,8 @@ func (t *MixinService) MixinInstance(containers []model.Instance) (ctns []model.
 		imageIDMap[container.ImageID] = true
 	}
 
-	imageMap := make(map[int64]model.Image)
-	imageIDs := make([]int64, 0)
+	imageMap := make(map[uint]model.Image)
+	imageIDs := make([]uint, 0)
 	for imageID := range imageIDMap {
 		imageIDs = append(imageIDs, imageID)
 	}
@@ -159,7 +163,8 @@ func (t *MixinService) MixinInstance(containers []model.Instance) (ctns []model.
 	nats, _ := t.NatRepository.FindByInstanceID(ctnIDs)
 	for _, nat := range nats {
 		ctn := ctnMap[nat.InstanceID]
-		ctn.Nats = append(ctn.Nats, nat)
+		n := nat
+		ctn.Nats = append(ctn.Nats, &n)
 		ctnMap[nat.InstanceID] = ctn
 	}
 
@@ -171,8 +176,8 @@ func (t *MixinService) MixinInstance(containers []model.Instance) (ctns []model.
 }
 
 func (t *MixinService) MixinPod(pods []model.Pod) (p []model.Pod, err error) {
-	podMap := make(map[int64]model.Pod)
-	podIDs := make([]int64, 0)
+	podMap := make(map[uint]model.Pod)
+	podIDs := make([]uint, 0)
 	for _, pod := range pods {
 		podMap[pod.ID] = pod
 		podIDs = append(podIDs, pod.ID)
@@ -183,7 +188,8 @@ func (t *MixinService) MixinPod(pods []model.Pod) (p []model.Pod, err error) {
 	containers, err = t.MixinInstance(containers)
 	for _, container := range containers {
 		pod := podMap[container.PodID]
-		pod.Instances = append(pod.Instances, container)
+		c := container
+		pod.Instances = append(pod.Instances, &c)
 		podMap[container.PodID] = pod
 	}
 

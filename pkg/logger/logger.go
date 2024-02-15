@@ -76,10 +76,6 @@ func L() *zap.Logger {
 	return lg
 }
 
-func S() *zap.SugaredLogger {
-	return sugarLg
-}
-
 func getEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder

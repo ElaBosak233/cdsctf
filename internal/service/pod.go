@@ -20,36 +20,36 @@ var (
 	// UserPodRequestMap 用于存储用户上次请求的时间
 	UserPodRequestMap = struct {
 		sync.RWMutex
-		m map[int64]int64
-	}{m: make(map[int64]int64)}
+		m map[uint]int64
+	}{m: make(map[uint]int64)}
 
 	// ContainerManagerPtrMap is a mapping of ID and manager pointer.
 	ContainerManagerPtrMap = make(map[any]interface{})
 
 	// PodMap is a mapping of IDs and ID
-	PodMap = make(map[int64][]int64)
+	PodMap = make(map[uint][]uint)
 )
 
 // GetUserInstanceRequestMap 返回用户上次请求的时间
-func GetUserInstanceRequestMap(userId int64) int64 {
+func GetUserInstanceRequestMap(userID uint) int64 {
 	UserPodRequestMap.RLock()
 	defer UserPodRequestMap.RUnlock()
-	return UserPodRequestMap.m[userId]
+	return UserPodRequestMap.m[userID]
 }
 
 // SetUserInstanceRequestMap 设置用户上次请求的时间
-func SetUserInstanceRequestMap(userId int64, t int64) {
+func SetUserInstanceRequestMap(userID uint, t int64) {
 	UserPodRequestMap.Lock()
 	defer UserPodRequestMap.Unlock()
-	UserPodRequestMap.m[userId] = t
+	UserPodRequestMap.m[userID] = t
 }
 
 type IPodService interface {
 	Create(req request.PodCreateRequest) (res response.PodStatusResponse, err error)
-	Status(id int64) (rep response.PodStatusResponse, err error)
+	Status(id uint) (rep response.PodStatusResponse, err error)
 	Renew(req request.PodRenewRequest) (removedAt int64, err error)
 	Remove(req request.PodRemoveRequest) (err error)
-	FindById(id int64) (rep response.PodResponse, err error)
+	FindById(id uint) (rep response.PodResponse, err error)
 	Find(req request.PodFindRequest) (rep []response.PodResponse, err error)
 }
 
@@ -73,11 +73,11 @@ func NewPodService(appRepository *repository.Repository) IPodService {
 	}
 }
 
-func (t *PodService) IsLimited(userId int64, limit int64) (remainder int64) {
-	if userId == 0 {
+func (t *PodService) IsLimited(userID uint, limit int64) (remainder int64) {
+	if userID == 0 {
 		return 0
 	}
-	ti := GetUserInstanceRequestMap(userId)
+	ti := GetUserInstanceRequestMap(userID)
 	if ti != 0 {
 		if time.Now().Unix()-ti < limit {
 			return limit - (time.Now().Unix() - ti)
@@ -95,12 +95,12 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 	case "docker":
 		SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
 		challenges, _, _ := t.ChallengeRepository.Find(request.ChallengeFindRequest{
-			IDs:       []int64{req.ChallengeID},
+			IDs:       []uint{req.ChallengeID},
 			IsDynamic: convertor.TrueP(),
 		})
 		challenges, _ = t.MixinService.MixinChallenge(challenges)
 		challenge := challenges[0]
-		isGame := req.GameID != 0 && req.TeamID != 0
+		isGame := req.GameID != nil && req.TeamID != nil
 
 		// Parallel container limit
 		if config.AppCfg().Global.Container.ParallelLimit > 0 {
@@ -134,7 +134,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 			}
 		}
 
-		var ctnMap = make(map[int64]model.Instance)
+		var ctnMap = make(map[uint]model.Instance)
 
 		removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).Unix()
 
@@ -146,7 +146,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		})
 
 		if _, ok := PodMap[pod.ID]; !ok {
-			PodMap[pod.ID] = make([]int64, 0)
+			PodMap[pod.ID] = make([]uint, 0)
 		}
 
 		// Select the first one as the target flag which will be injected
@@ -154,10 +154,10 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		var flagStr string
 		for _, f := range challenge.Flags {
 			if f.Type == "dynamic" {
-				flag = f
+				flag = *f
 				flagStr = generator.GenerateFlag(flag.Value)
 			} else if f.Type == "static" {
-				flag = f
+				flag = *f
 				flagStr = f.Value
 			}
 		}
@@ -168,13 +168,14 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		})
 
 		for _, image := range challenge.Images {
-			var envs = make([]model.Env, 0)
+			var envs = make([]*model.Env, 0)
 			for _, e := range image.Envs {
-				envs = append(envs, e)
+				ee := *e
+				envs = append(envs, &ee)
 			}
 
 			// This Flag Env is only a temporary model. It will not be persisted.
-			envs = append(envs, model.Env{
+			envs = append(envs, &model.Env{
 				Key:   flag.Env,
 				Value: flagStr,
 			})
@@ -197,7 +198,6 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 			PodMap[pod.ID] = append(PodMap[pod.ID], container.ID)
 
 			ctn := ctnMap[container.ID]
-			ctn.Image = nil
 			for src, dsts := range assignedPorts {
 				srcPort := convertor.ToIntD(strings.Split(string(src), "/")[0], 0)
 				for _, dst := range dsts {
@@ -214,7 +214,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 						DstPort:    dstPort,
 						Entry:      entry,
 					})
-					ctn.Nats = append(ctn.Nats, nat)
+					ctn.Nats = append(ctn.Nats, &nat)
 				}
 			}
 			ctnMap[container.ID] = ctn
@@ -229,9 +229,10 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 				}
 			}()
 		}
-		var ctns []model.Instance
+		var ctns []*model.Instance
 		for _, ctn := range ctnMap {
-			ctns = append(ctns, ctn)
+			cctn := ctn
+			ctns = append(ctns, &cctn)
 		}
 		return response.PodStatusResponse{
 			ID:        pod.ID,
@@ -241,12 +242,12 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 	case "k8s":
 		SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
 		challenges, _, _ := t.ChallengeRepository.Find(request.ChallengeFindRequest{
-			IDs:       []int64{req.ChallengeID},
+			IDs:       []uint{req.ChallengeID},
 			IsDynamic: convertor.TrueP(),
 		})
 		challenges, _ = t.MixinService.MixinChallenge(challenges)
 		challenge := challenges[0]
-		isGame := req.GameID != 0 && req.TeamID != 0
+		isGame := req.GameID != nil && req.TeamID != nil
 
 		// Parallel container limit
 		if config.AppCfg().Global.Container.ParallelLimit > 0 {
@@ -292,7 +293,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		})
 
 		if _, ok := PodMap[pod.ID]; !ok {
-			PodMap[pod.ID] = make([]int64, 0)
+			PodMap[pod.ID] = make([]uint, 0)
 		}
 
 		// Select the first one as the target flag which will be injected
@@ -300,10 +301,10 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		var flagStr string
 		for _, f := range challenge.Flags {
 			if f.Type == "dynamic" {
-				flag = f
+				flag = *f
 				flagStr = generator.GenerateFlag(flag.Value)
 			} else if f.Type == "static" {
-				flag = f
+				flag = *f
 				flagStr = f.Value
 			}
 		}
@@ -326,9 +327,9 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 			PodMap[pod.ID] = append(PodMap[pod.ID], instance.ID)
 			for _, nat := range instance.Nats {
 				nat.InstanceID = instance.ID
-				_, _ = t.NatRepository.Insert(nat)
+				_, _ = t.NatRepository.Insert(*nat)
 			}
-			_, _ = t.InstanceRepository.Insert(instance)
+			_, _ = t.InstanceRepository.Insert(*instance)
 		}
 		go func() {
 			if ctnManager.RemoveAfterDuration(ctnManager.CancelCtx) {
@@ -348,7 +349,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 	return res, errors.New("创建失败")
 }
 
-func (t *PodService) Status(podID int64) (rep response.PodStatusResponse, err error) {
+func (t *PodService) Status(podID uint) (rep response.PodStatusResponse, err error) {
 	rep = response.PodStatusResponse{}
 	if config.AppCfg().Container.Provider == "docker" {
 		instance, err := t.PodRepository.FindById(podID)
@@ -419,7 +420,7 @@ func (t *PodService) Remove(req request.PodRemoveRequest) (err error) {
 	return errors.New("移除失败")
 }
 
-func (t *PodService) FindById(id int64) (rep response.PodResponse, err error) {
+func (t *PodService) FindById(id uint) (rep response.PodResponse, err error) {
 	if config.AppCfg().Container.Provider == "docker" {
 		instance, err := t.PodRepository.FindById(id)
 		if err != nil || ContainerManagerPtrMap[id] == nil {
@@ -440,7 +441,7 @@ func (t *PodService) FindById(id int64) (rep response.PodResponse, err error) {
 
 func (t *PodService) Find(req request.PodFindRequest) (pods []response.PodResponse, err error) {
 	if config.AppCfg().Container.Provider == "docker" {
-		if req.TeamID != 0 && req.GameID != 0 {
+		if req.TeamID != nil && req.GameID != nil {
 			req.UserID = 0
 		}
 		podResponse, _, err := t.PodRepository.Find(req)

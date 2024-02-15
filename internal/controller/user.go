@@ -57,7 +57,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 			"code": http.StatusUnauthorized,
 			"msg":  "用户名或密码错误",
 		})
-		zap.L().Warn(fmt.Sprintf("用户 %s 登录失败", user.Username), zap.Int64("user_id", user.ID))
+		zap.L().Warn(fmt.Sprintf("用户 %s 登录失败", user.Username), zap.Uint("user_id", user.ID))
 		return
 	}
 	tokenString, err := c.UserService.GetJwtTokenById(user)
@@ -72,7 +72,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 		"code":  http.StatusOK,
 		"token": tokenString,
 	})
-	zap.L().Info(fmt.Sprintf("用户 %s 登录成功", user.Username), zap.Int64("user_id", user.ID))
+	zap.L().Info(fmt.Sprintf("用户 %s 登录成功", user.Username), zap.Uint("user_id", user.ID))
 }
 
 // VerifyToken
@@ -210,7 +210,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("ID") == updateUserRequest.ID {
+	if ctx.GetInt64("UserRole") <= 1 || ctx.GetUint("UserID") == updateUserRequest.ID {
 		if ctx.GetInt64("UserRole") > 1 {
 			updateUserRequest.Role = ctx.GetInt64("UserRole")
 			updateUserRequest.Username = ""
@@ -255,7 +255,7 @@ func (c *UserController) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt64("UserRole") <= 1 || ctx.GetInt64("ID") == deleteUserRequest.ID {
+	if ctx.GetInt64("UserRole") <= 1 || ctx.GetUint("UserID") == deleteUserRequest.ID {
 		_ = c.UserService.Delete(deleteUserRequest.ID)
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
@@ -279,7 +279,7 @@ func (c *UserController) Delete(ctx *gin.Context) {
 func (c *UserController) Find(ctx *gin.Context) {
 	userResponse, pageCount, total, _ := c.UserService.Find(request.UserFindRequest{
 		Role:   int64(convertor.ToIntD(ctx.Query("role"), 0)),
-		ID:     int64(convertor.ToIntD(ctx.Query("id"), 0)),
+		ID:     convertor.ToUintD(ctx.Query("id"), 0),
 		Email:  ctx.Query("email"),
 		Name:   ctx.Query("name"),
 		SortBy: ctx.QueryArray("sort_by"),

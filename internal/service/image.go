@@ -6,8 +6,8 @@ import (
 )
 
 type IImageService interface {
-	FindByID(IDs []int64) (images []model.Image, err error)
-	FindByChallengeID(challengeIDs []int64) (images []model.Image, err error)
+	FindByID(IDs []uint) (images []model.Image, err error)
+	FindByChallengeID(challengeIDs []uint) (images []model.Image, err error)
 }
 
 type ImageServiceImpl struct {
@@ -26,13 +26,13 @@ func NewImageServiceImpl(appRepository *repository.Repository) IImageService {
 	}
 }
 
-func (t *ImageServiceImpl) FindByID(IDs []int64) (images []model.Image, err error) {
+func (t *ImageServiceImpl) FindByID(IDs []uint) (images []model.Image, err error) {
 	images, err = t.ImageRepository.FindByID(IDs)
 	images, err = t.MixinService.MixinImage(images)
 	return images, err
 }
 
-func (t *ImageServiceImpl) FindByChallengeID(challengeIDs []int64) (images []model.Image, err error) {
+func (t *ImageServiceImpl) FindByChallengeID(challengeIDs []uint) (images []model.Image, err error) {
 	images, err = t.ImageRepository.FindByChallengeID(challengeIDs)
 	images, err = t.MixinService.MixinImage(images)
 	return images, err

@@ -52,12 +52,12 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 		Title:         ctx.Query("title"),
 		Category:      ctx.Query("category"),
 		IsPracticable: isPracticable(),
-		IDs:           convertor.ToInt64SliceD(ctx.QueryArray("id"), make([]int64, 0)),
+		IDs:           convertor.ToUintSliceD(ctx.QueryArray("id"), make([]uint, 0)),
 		IsDynamic:     convertor.ToBoolP(ctx.Query("is_dynamic")),
 		Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), -1),
-		UserID:        ctx.GetInt64("ID"),
-		GameID:        convertor.ToInt64D(ctx.Query("game_id"), -1),
-		TeamID:        convertor.ToInt64D(ctx.Query("team_id"), -1),
+		UserID:        ctx.GetUint("ID"),
+		GameID:        convertor.ToUintP(ctx.Query("game_id")),
+		TeamID:        convertor.ToUintP(ctx.Query("team_id")),
 		IsDetailed:    isDetailed(),
 		Page:          convertor.ToIntD(ctx.Query("page"), -1),
 		Size:          convertor.ToIntD(ctx.Query("size"), -1),
@@ -146,7 +146,7 @@ func (c *ChallengeController) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	err = c.ChallengeService.Delete(deleteChallengeRequest.ChallengeId)
+	err = c.ChallengeService.Delete(deleteChallengeRequest.ID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,

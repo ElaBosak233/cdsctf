@@ -44,6 +44,19 @@ func ToIntP(v string) *int {
 	return &result
 }
 
+func ToUintD(v string, d uint) uint {
+	return uint(ToInt64D(v, int64(d)))
+}
+
+func ToUintP(v string) *uint {
+	result64, err := convertor.ToInt(v)
+	if err != nil {
+		return nil
+	}
+	result := uint(result64)
+	return &result
+}
+
 func ToBoolD(v string, d bool) bool {
 	result, err := convertor.ToBool(v)
 	if err != nil {
@@ -70,4 +83,16 @@ func ToInt64SliceD(strSlice []string, d []int64) []int64 {
 		int64Slice[i] = int64(num)
 	}
 	return int64Slice
+}
+
+func ToUintSliceD(strSlice []string, d []uint) []uint {
+	uintSlice := make([]uint, len(strSlice))
+	for i, str := range strSlice {
+		num, err := strconv.Atoi(str)
+		if err != nil {
+			return d
+		}
+		uintSlice[i] = uint(num)
+	}
+	return uintSlice
 }

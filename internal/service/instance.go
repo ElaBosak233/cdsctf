@@ -6,7 +6,7 @@ import (
 )
 
 type IInstanceService interface {
-	FindByPodID(podIDs []int64) (containers []model.Instance, err error)
+	FindByPodID(podIDs []uint) (containers []model.Instance, err error)
 }
 
 type Instance struct {
@@ -31,7 +31,7 @@ func NewInstanceService(appRepository *repository.Repository) IInstanceService {
 	}
 }
 
-func (c *Instance) FindByPodID(podIDs []int64) (containers []model.Instance, err error) {
+func (c *Instance) FindByPodID(podIDs []uint) (containers []model.Instance, err error) {
 	ctns, err := c.ContainerRepository.FindByPodID(podIDs)
 	containers, err = c.MixinService.MixinInstance(ctns)
 	return containers, err

@@ -32,7 +32,7 @@ def shell(s):
     return stdout
 
 
-def gen_params():
+def gen_params(build = True):
     build_flag = []
     version = Git.get_last_tag()
     if version:
@@ -44,7 +44,10 @@ def gen_params():
     if commit_id:
         build_flag.append(f"-X '{package}/internal/global.GitCommitID={commit_id}'")
     build_flag.append(f"-X '{package}/internal/global.BuildAt={time.strftime('%Y-%m-%d %H:%M %z')}'")
-    return "-ldflags \"{}\"".format(" ".join(build_flag))
+    if build:
+        return "-ldflags \"-linkmode external -w -s {}\"".format(" ".join(build_flag))
+    else:
+        return "-ldflags \"{}\"".format(" ".join(build_flag))
 
 
 def swag_init():

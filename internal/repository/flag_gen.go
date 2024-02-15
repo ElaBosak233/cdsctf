@@ -2,34 +2,34 @@ package repository
 
 import (
 	"github.com/elabosak233/pgshub/internal/model"
-	"xorm.io/xorm"
+	"gorm.io/gorm"
 )
 
 type IFlagGenRepository interface {
 	Insert(flag model.FlagGen) (f model.FlagGen, err error)
-	FindByID(IDs []int64) (flags []model.FlagGen, err error)
-	FindByPodID(podIDs []int64) (flags []model.FlagGen, err error)
+	FindByID(IDs []uint) (flags []model.FlagGen, err error)
+	FindByPodID(podIDs []uint) (flags []model.FlagGen, err error)
 }
 
 type FlagGenRepository struct {
-	Db *xorm.Engine
+	Db *gorm.DB
 }
 
-func NewFlagGenRepository(Db *xorm.Engine) IFlagGenRepository {
+func NewFlagGenRepository(Db *gorm.DB) IFlagGenRepository {
 	return &FlagGenRepository{Db: Db}
 }
 
 func (t *FlagGenRepository) Insert(flag model.FlagGen) (f model.FlagGen, err error) {
-	_, err = t.Db.Table("flag_gen").Insert(&flag)
-	return flag, err
+	result := t.Db.Table("flag_gens").Create(&flag)
+	return flag, result.Error
 }
 
-func (t *FlagGenRepository) FindByID(IDs []int64) (flags []model.FlagGen, err error) {
-	err = t.Db.Table("flag_gen").In("id", IDs).Find(&flags)
-	return flags, err
+func (t *FlagGenRepository) FindByID(IDs []uint) (flags []model.FlagGen, err error) {
+	result := t.Db.Table("flag_gens").Where("id IN ?", IDs).Find(&flags)
+	return flags, result.Error
 }
 
-func (t *FlagGenRepository) FindByPodID(podIDs []int64) (flags []model.FlagGen, err error) {
-	err = t.Db.Table("flag_gen").In("pod_id", podIDs).Find(&flags)
-	return flags, err
+func (t *FlagGenRepository) FindByPodID(podIDs []uint) (flags []model.FlagGen, err error) {
+	result := t.Db.Table("flag_gens").Where("pod_id IN ?", podIDs).Find(&flags)
+	return flags, result.Error
 }

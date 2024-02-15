@@ -52,7 +52,7 @@ func Run() {
 
 	// Debug mode
 	if convertor.ToBoolD(os.Getenv("DEBUG"), false) {
-		database.GetDatabase().ShowSQL(true)
+		database.Debug()
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)

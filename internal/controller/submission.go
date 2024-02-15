@@ -43,12 +43,12 @@ func (c *SubmissionController) Find(ctx *gin.Context) {
 		return 0
 	}
 	submissions, pageCount, total, _ := c.SubmissionService.Find(request.SubmissionFindRequest{
-		UserID:      int64(convertor.ToIntD(ctx.Query("user_id"), 0)),
+		UserID:      convertor.ToUintD(ctx.Query("user_id"), 0),
 		Status:      convertor.ToIntD(ctx.Query("status"), 0),
-		TeamID:      int64(convertor.ToIntD(ctx.Query("team_id"), 0)),
-		GameID:      int64(convertor.ToIntD(ctx.Query("game_id"), 0)),
+		TeamID:      convertor.ToUintP(ctx.Query("team_id")),
+		GameID:      convertor.ToUintP(ctx.Query("game_id")),
 		IsDetailed:  isDetailed(),
-		ChallengeID: int64(convertor.ToIntD(ctx.Query("challenge_id"), 0)),
+		ChallengeID: convertor.ToUintD(ctx.Query("challenge_id"), 0),
 		SortBy:      ctx.QueryArray("sort_by"),
 		Page:        convertor.ToIntD(ctx.Query("page"), 0),
 		Size:        convertor.ToIntD(ctx.Query("size"), 0),
@@ -74,13 +74,13 @@ func (c *SubmissionController) BatchFind(ctx *gin.Context) {
 	submissions, err := c.SubmissionService.BatchFind(request.SubmissionBatchFindRequest{
 		Size:             convertor.ToIntD(ctx.Query("size"), 1),
 		SizePerChallenge: convertor.ToIntD(ctx.Query("size_per_challenge"), 0),
-		UserID:           int64(convertor.ToIntD(ctx.Query("user_id"), 0)),
-		ChallengeID:      convertor.ToInt64SliceD(ctx.QueryArray("challenge_id"), []int64{}),
+		UserID:           convertor.ToUintD(ctx.Query("user_id"), 0),
+		ChallengeID:      convertor.ToUintSliceD(ctx.QueryArray("challenge_id"), []uint{}),
 		Status:           convertor.ToIntD(ctx.Query("status"), 0),
 		SortBy:           ctx.QueryArray("sort_by"),
 		IsDetailed:       ctx.Query("is_detailed") == "true",
-		TeamID:           int64(convertor.ToIntD(ctx.Query("team_id"), 0)),
-		GameID:           int64(convertor.ToIntD(ctx.Query("game_id"), -1)),
+		TeamID:           convertor.ToUintP(ctx.Query("team_id")),
+		GameID:           convertor.ToUintP(ctx.Query("game_id")),
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -114,7 +114,7 @@ func (c *SubmissionController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	submissionCreateRequest.UserID = ctx.GetInt64("ID")
+	submissionCreateRequest.UserID = ctx.GetUint("UserID")
 	status, pts, err := c.SubmissionService.Create(submissionCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -140,7 +140,7 @@ func (c *SubmissionController) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	err = c.SubmissionService.Delete(deleteSubmissionRequest.SubmissionId)
+	err = c.SubmissionService.Delete(deleteSubmissionRequest.SubmissionID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,

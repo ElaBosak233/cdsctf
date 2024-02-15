@@ -17,14 +17,14 @@ import (
 type IUserService interface {
 	Create(req request.UserCreateRequest) (err error)
 	Update(req request.UserUpdateRequest) (err error)
-	Delete(id int64) error
-	FindById(id int64) (response.UserResponse, error)
+	Delete(id uint) error
+	FindById(id uint) (response.UserResponse, error)
 	FindByUsername(username string) (response.UserResponse, error)
 	FindByEmail(email string) (user response.UserResponse, err error)
-	VerifyPasswordById(id int64, password string) bool
+	VerifyPasswordById(id uint, password string) bool
 	VerifyPasswordByUsername(username string, password string) bool
 	GetJwtTokenById(user response.UserResponse) (tokenString string, err error)
-	GetIdByJwtToken(token string) (id int64, err error)
+	GetIdByJwtToken(token string) (id uint, err error)
 	Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, total int64, err error)
 }
 
@@ -51,7 +51,7 @@ func (t *UserService) GetJwtTokenById(user response.UserResponse) (tokenString s
 	return pgsToken.SignedString(jwtSecretKey)
 }
 
-func (t *UserService) GetIdByJwtToken(token string) (id int64, err error) {
+func (t *UserService) GetIdByJwtToken(token string) (id uint, err error) {
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.AppCfg().Jwt.SecretKey), nil
 	})
@@ -59,7 +59,7 @@ func (t *UserService) GetIdByJwtToken(token string) (id int64, err error) {
 		return 0, err
 	}
 	if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
-		return int64(claims["user_id"].(float64)), nil
+		return uint(claims["user_id"].(float64)), nil
 	} else {
 		return 0, errors.New("无效 Token")
 	}
@@ -89,35 +89,18 @@ func (t *UserService) Update(req request.UserUpdateRequest) (err error) {
 	return err
 }
 
-func (t *UserService) Delete(id int64) error {
+func (t *UserService) Delete(id uint) error {
 	err := t.UserRepository.Delete(id)
 	err = t.UserTeamRepository.DeleteByUserId(id)
 	return err
 }
 
 func (t *UserService) Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, total int64, err error) {
-	users, count, err := t.UserRepository.Find(req)
-	var userIds []int64
-	usersMap := make(map[int64]response.UserResponse)
-	for _, result := range users {
-		if _, ok := usersMap[result.ID]; !ok {
-			usersMap[result.ID] = result
-		}
-		userIds = append(userIds, result.ID)
-	}
-	teams, err := t.TeamRepository.BatchFindByUserId(request.TeamBatchFindByUserIdRequest{
-		UserID: userIds,
-	})
-	for _, team := range teams {
-		var teamResponse response.TeamSimpleResponse
-		_ = mapstructure.Decode(team, &teamResponse)
-		if user, ok := usersMap[team.UserId]; ok {
-			user.Teams = append(user.Teams, teamResponse)
-			usersMap[team.UserId] = user
-		}
-	}
-	for index, user := range users {
-		users[index].Teams = usersMap[user.ID].Teams
+	userResults, count, err := t.UserRepository.Find(req)
+	for _, result := range userResults {
+		var userResponse response.UserResponse
+		_ = mapstructure.Decode(result, &userResponse)
+		users = append(users, userResponse)
 	}
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
@@ -127,7 +110,7 @@ func (t *UserService) Find(req request.UserFindRequest) (users []response.UserRe
 	return users, pageCount, count, err
 }
 
-func (t *UserService) FindById(id int64) (response.UserResponse, error) {
+func (t *UserService) FindById(id uint) (response.UserResponse, error) {
 	userData, err := t.UserRepository.FindById(id)
 	if err != nil {
 		return response.UserResponse{}, errors.New("用户不存在")
@@ -156,7 +139,7 @@ func (t *UserService) FindByEmail(email string) (user response.UserResponse, err
 	return user, err
 }
 
-func (t *UserService) VerifyPasswordById(id int64, password string) bool {
+func (t *UserService) VerifyPasswordById(id uint, password string) bool {
 	userData, err := t.UserRepository.FindById(id)
 	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
 	if err != nil {

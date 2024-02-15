@@ -6,19 +6,18 @@ import (
 	"github.com/elabosak233/pgshub/internal/model/dto/request"
 	"github.com/elabosak233/pgshub/internal/model/dto/response"
 	"github.com/elabosak233/pgshub/internal/repository"
-	"github.com/mitchellh/mapstructure"
 	"math"
 )
 
 type ITeamService interface {
 	Create(req request.TeamCreateRequest) error
 	Update(req request.TeamUpdateRequest) error
-	Delete(id int64) error
+	Delete(id uint) error
 	Join(req request.TeamJoinRequest) (err error)
 	Quit(req request.TeamQuitRequest) (err error)
 	Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, total int64, err error)
 	BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error)
-	FindById(id int64) (res response.TeamResponse, err error)
+	FindById(id uint) (res response.TeamResponse, err error)
 }
 
 type TeamService struct {
@@ -35,36 +34,36 @@ func NewTeamService(appRepository *repository.Repository) ITeamService {
 	}
 }
 
-// Mixin 用于向 Team 响应实体中混入 User 实体
-func (t *TeamService) Mixin(teams []response.TeamResponse) (ts []response.TeamResponse, err error) {
-	var teamIds []int64
-	teamsMap := make(map[int64]response.TeamResponse)
-	for _, team := range teams {
-		if _, ok := teamsMap[team.ID]; !ok {
-			teamsMap[team.ID] = team
-		}
-		teamIds = append(teamIds, team.ID)
-	}
-	users, err := t.UserRepository.BatchFindByTeamId(request.UserBatchFindByTeamIdRequest{
-		TeamID: teamIds,
-	})
-	for _, user := range users {
-		var userResponse response.UserResponse
-		_ = mapstructure.Decode(user, &userResponse)
-		if team, ok := teamsMap[user.TeamId]; ok {
-			if team.CaptainId == user.ID {
-				team.Captain = userResponse
-			}
-			team.Users = append(team.Users, userResponse)
-			teamsMap[user.TeamId] = team
-		}
-	}
-	for index, team := range teams {
-		teams[index].Users = teamsMap[team.ID].Users
-		teams[index].Captain = teamsMap[team.ID].Captain
-	}
-	return teams, err
-}
+//// Mixin 用于向 Team 响应实体中混入 User 实体
+//func (t *TeamService) Mixin(teams []response.TeamResponse) (ts []response.TeamResponse, err error) {
+//	var teamIds []uint
+//	teamsMap := make(map[uint]response.TeamResponse)
+//	for _, team := range teams {
+//		if _, ok := teamsMap[team.ID]; !ok {
+//			teamsMap[team.ID] = team
+//		}
+//		teamIds = append(teamIds, team.ID)
+//	}
+//	users, err := t.UserRepository.BatchFindByTeamId(request.UserBatchFindByTeamIdRequest{
+//		TeamID: teamIds,
+//	})
+//	for _, user := range users {
+//		var userResponse response.UserResponse
+//		_ = mapstructure.Decode(user, &userResponse)
+//		if team, ok := teamsMap[user.Team]; ok {
+//			if team.CaptainId == user.ID {
+//				team.Captain = userResponse
+//			}
+//			team.Users = append(team.Users, userResponse)
+//			teamsMap[user.TeamId] = team
+//		}
+//	}
+//	for index, team := range teams {
+//		teams[index].Users = teamsMap[team.ID].Users
+//		teams[index].Captain = teamsMap[team.ID].Captain
+//	}
+//	return teams, err
+//}
 
 func (t *TeamService) Create(req request.TeamCreateRequest) error {
 	user, err := t.UserRepository.FindById(req.CaptainId)
@@ -77,8 +76,8 @@ func (t *TeamService) Create(req request.TeamCreateRequest) error {
 			IsLocked:    &isLocked,
 		})
 		err = t.UserTeamRepository.Insert(model.UserTeam{
-			TeamId: team.ID,
-			UserId: req.CaptainId,
+			TeamID: team.ID,
+			UserID: req.CaptainId,
 		})
 		return err
 	}
@@ -111,7 +110,7 @@ func (t *TeamService) Update(req request.TeamUpdateRequest) error {
 	return errors.New("用户不存在")
 }
 
-func (t *TeamService) Delete(id int64) error {
+func (t *TeamService) Delete(id uint) error {
 	team, err := t.TeamRepository.FindById(id)
 	if team.ID != 0 {
 		err = t.TeamRepository.Delete(id)
@@ -124,7 +123,7 @@ func (t *TeamService) Delete(id int64) error {
 
 func (t *TeamService) Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, total int64, err error) {
 	teams, count, err := t.TeamRepository.Find(req)
-	teams, err = t.Mixin(teams)
+	//teams, err = t.Mixin(teams)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
@@ -135,7 +134,7 @@ func (t *TeamService) Find(req request.TeamFindRequest) (teams []response.TeamRe
 
 func (t *TeamService) BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error) {
 	teams, err = t.TeamRepository.BatchFind(req)
-	teams, err = t.Mixin(teams)
+	//teams, err = t.Mixin(teams)
 	return teams, err
 }
 
@@ -145,8 +144,8 @@ func (t *TeamService) Join(req request.TeamJoinRequest) error {
 		team, err := t.TeamRepository.FindById(req.TeamID)
 		if team.ID != 0 {
 			err = t.UserTeamRepository.Insert(model.UserTeam{
-				TeamId: team.ID,
-				UserId: req.UserID,
+				TeamID: team.ID,
+				UserID: req.UserID,
 			})
 			return err
 		} else {
@@ -162,8 +161,8 @@ func (t *TeamService) Quit(req request.TeamQuitRequest) (err error) {
 		team, err := t.TeamRepository.FindById(req.TeamID)
 		if team.ID != 0 {
 			err = t.UserTeamRepository.Delete(model.UserTeam{
-				TeamId: team.ID,
-				UserId: req.UserID,
+				TeamID: team.ID,
+				UserID: req.UserID,
 			})
 			return err
 		} else {
@@ -173,7 +172,7 @@ func (t *TeamService) Quit(req request.TeamQuitRequest) (err error) {
 	return errors.New("用户不存在")
 }
 
-func (t *TeamService) FindById(id int64) (team response.TeamResponse, err error) {
+func (t *TeamService) FindById(id uint) (team response.TeamResponse, err error) {
 	teams, _, err := t.TeamRepository.Find(request.TeamFindRequest{
 		ID: id,
 	})

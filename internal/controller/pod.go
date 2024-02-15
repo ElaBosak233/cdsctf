@@ -46,7 +46,7 @@ func (c *PodController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	instanceCreateRequest.UserID = ctx.GetInt64("ID")
+	instanceCreateRequest.UserID = ctx.GetUint("ID")
 	res, err := c.PodService.Create(instanceCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -74,7 +74,7 @@ func (c *PodController) Create(ctx *gin.Context) {
 func (c *PodController) Remove(ctx *gin.Context) {
 	instanceRemoveRequest := request.PodRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
-	instanceRemoveRequest.UserID = ctx.GetInt64("ID")
+	instanceRemoveRequest.UserID = ctx.GetUint("ID")
 	err = c.PodService.Remove(instanceRemoveRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -99,7 +99,7 @@ func (c *PodController) Remove(ctx *gin.Context) {
 func (c *PodController) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.PodRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
-	instanceRenewRequest.UserID = ctx.GetInt64("ID")
+	instanceRenewRequest.UserID = ctx.GetUint("ID")
 	removedAt, err := c.PodService.Renew(instanceRenewRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -123,7 +123,7 @@ func (c *PodController) Renew(ctx *gin.Context) {
 // @Router /api/pods/{id} [get]
 func (c *PodController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	rep, err := c.PodService.FindById(int64(convertor.ToIntD(id, 0)))
+	rep, err := c.PodService.FindById(convertor.ToUintD(id, 0))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -147,11 +147,11 @@ func (c *PodController) FindById(ctx *gin.Context) {
 // @Router /api/pods/ [get]
 func (c *PodController) Find(ctx *gin.Context) {
 	podFindRequest := request.PodFindRequest{
-		UserID:      ctx.GetInt64("ID"),
-		IDs:         convertor.ToInt64SliceD(ctx.QueryArray("id"), []int64{}),
-		ChallengeID: int64(convertor.ToIntD(ctx.Query("challenge_id"), 0)),
-		TeamID:      int64(convertor.ToIntD(ctx.Query("team_id"), 0)),
-		GameID:      int64(convertor.ToIntD(ctx.Query("game_id"), 0)),
+		UserID:      ctx.GetUint("ID"),
+		IDs:         convertor.ToUintSliceD(ctx.QueryArray("id"), []uint{}),
+		ChallengeID: convertor.ToUintD(ctx.Query("challenge_id"), 0),
+		TeamID:      convertor.ToUintP(ctx.Query("team_id")),
+		GameID:      convertor.ToUintP(ctx.Query("game_id")),
 		IsAvailable: convertor.ToBoolP(ctx.Query("is_available")),
 		Page:        convertor.ToIntD(ctx.Query("page"), 0),
 		Size:        convertor.ToIntD(ctx.Query("size"), 0),

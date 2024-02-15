@@ -133,9 +133,9 @@ func (c *TeamController) Delete(ctx *gin.Context) {
 // @Router /api/teams/ [get]
 func (c *TeamController) Find(ctx *gin.Context) {
 	teamData, pageCount, total, _ := c.TeamService.Find(request.TeamFindRequest{
-		ID:        int64(convertor.ToIntD(ctx.Query("id"), 0)),
+		ID:        convertor.ToUintD(ctx.Query("id"), 0),
 		TeamName:  ctx.Query("name"),
-		CaptainId: int64(convertor.ToIntD(ctx.Query("captain_id"), 0)),
+		CaptainID: convertor.ToUintD(ctx.Query("captain_id"), 0),
 		Page:      convertor.ToIntD(ctx.Query("page"), 0),
 		Size:      convertor.ToIntD(ctx.Query("size"), 0),
 	})
@@ -238,7 +238,7 @@ func (c *TeamController) Quit(ctx *gin.Context) {
 // @Router /api/teams/id/{id} [get]
 func (c *TeamController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	res, err := c.TeamService.FindById(int64(convertor.ToIntD(id, 0)))
+	res, err := c.TeamService.FindById(convertor.ToUintD(id, 0))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
