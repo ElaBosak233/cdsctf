@@ -1,14 +1,10 @@
 package model
 
 type Instance struct {
-	ID      int64 `xorm:"'id' pk autoincr" json:"id,omitempty"`
-	ImageID int64 `xorm:"'image_id' notnull" json:"image_id,omitempty"`
-	PodID   int64 `xorm:"'pod_id' notnull" json:"pod_id,omitempty"`
-
-	Nats  []Nat  `xorm:"-" json:"nats,omitempty"`
-	Image *Image `xorm:"-" json:"image,omitempty"`
-}
-
-func (c *Instance) TableName() string {
-	return "instance"
+	ID      uint   `json:"id,omitempty"`
+	ImageID uint   `gorm:"not null" json:"image_id,omitempty"`
+	Image   *Image `json:"image,omitempty"`
+	PodID   uint   `gorm:"not null" json:"pod_id,omitempty"`
+	Pod     *Pod   `json:"pod,omitempty"`
+	Nats    []*Nat `json:"nats,omitempty"`
 }

@@ -1,14 +1,11 @@
 package model
 
-// Nat is an model used to reveal the relationship between JeopardyImage ports and Instance network port forwarding.
+// Nat is a model used to reveal the relationship between JeopardyImage ports and Instance network port forwarding.
 type Nat struct {
-	ID         int64  `xorm:"'id' pk autoincr" json:"id"`
-	InstanceID int64  `xorm:"'instance_id' notnull" json:"instance_id"`
-	SrcPort    int    `xorm:"'src_port' notnull" json:"src_port"`
-	DstPort    int    `xorm:"'dst_port' notnull" json:"dst_port"`
-	Entry      string `xorm:"'entry' varchar(128)" json:"entry"`
-}
-
-func (n *Nat) TableName() string {
-	return "nat"
+	ID         uint      `json:"id"`
+	InstanceID uint      `gorm:"not null" json:"instance_id"`
+	Instance   *Instance `json:"instance"`
+	SrcPort    int       `gorm:"not null" json:"src_port"`
+	DstPort    int       `gorm:"not null" json:"dst_port"`
+	Entry      string    `gorm:"type:varchar(128)" json:"entry"`
 }

@@ -2,82 +2,64 @@ package repository
 
 import (
 	"github.com/elabosak233/pgshub/internal/model"
-	"xorm.io/xorm"
+	"gorm.io/gorm"
 )
 
 type IUserTeamRepository interface {
 	Insert(userTeam model.UserTeam) error
 	Delete(userTeam model.UserTeam) error
-	DeleteByUserId(userId int64) error
-	DeleteByTeamId(teamId int64) error
-	Exist(userTeam model.UserTeam) (bool, error)
-	FindByUserId(userId int64) (userTeams []model.UserTeam, err error)
-	FindByTeamId(teamId int64) (userTeams []model.UserTeam, err error)
+	DeleteByUserId(userID uint) error
+	DeleteByTeamId(teamID uint) error
+	FindByUserId(userID uint) (userTeams []model.UserTeam, err error)
+	FindByTeamId(teamId uint) (userTeams []model.UserTeam, err error)
 	FindAll() (userTeams []model.UserTeam, err error)
 }
 
 type UserTeamRepository struct {
-	Db *xorm.Engine
+	Db *gorm.DB
 }
 
-func NewUserTeamRepository(Db *xorm.Engine) IUserTeamRepository {
+func NewUserTeamRepository(Db *gorm.DB) IUserTeamRepository {
 	return &UserTeamRepository{Db: Db}
 }
 
 func (t *UserTeamRepository) Insert(userTeam model.UserTeam) error {
-	_, err := t.Db.Table("user_team").Insert(&userTeam)
-	return err
+	result := t.Db.Table("user_teams").Create(&userTeam)
+	return result.Error
 }
 
 func (t *UserTeamRepository) Delete(userTeam model.UserTeam) error {
-	_, err := t.Db.Table("user_team").Delete(&userTeam)
-	return err
+	result := t.Db.Table("user_teams").Delete(&userTeam)
+	return result.Error
 }
 
-func (t *UserTeamRepository) DeleteByUserId(userId int64) error {
-	_, err := t.Db.Table("user_team").Where("user_id = ?", userId).Delete(&model.UserTeam{})
-	return err
+func (t *UserTeamRepository) DeleteByUserId(userId uint) error {
+	result := t.Db.Table("user_teams").Where("user_id = ?", userId).Delete(&model.UserTeam{})
+	return result.Error
 }
 
-func (t *UserTeamRepository) DeleteByTeamId(teamId int64) error {
-	_, err := t.Db.Table("user_team").Where("team_id = ?", teamId).Delete(&model.UserTeam{})
-	return err
+func (t *UserTeamRepository) DeleteByTeamId(teamID uint) error {
+	result := t.Db.Table("user_teams").Where("team_id = ?", teamID).Delete(&model.UserTeam{})
+	return result.Error
 }
 
-func (t *UserTeamRepository) Exist(userTeam model.UserTeam) (bool, error) {
-	r, err := t.Db.Table("user_team").Exist(&userTeam)
-	return r, err
+func (t *UserTeamRepository) FindByUserId(userId uint) (userTeams []model.UserTeam, err error) {
+	result := t.Db.Table("user_teams").
+		Joins("INNER JOIN teams ON user_teams.team_id = teams.id").
+		Where("user_teams.user_id = ?", userId).
+		Find(&userTeams)
+	return userTeams, result.Error
 }
 
-func (t *UserTeamRepository) FindByUserId(userId int64) (userTeams []model.UserTeam, err error) {
-	var userTeam []model.UserTeam
-	err = t.Db.Table("user_team").
-		Join("INNER", "team", "user_team.team_id = team.id").
-		Where("user_team.user_id = ?", userId).
-		Find(&userTeam)
-	if err != nil {
-		return nil, err
-	}
-	return userTeam, err
-}
-
-func (t *UserTeamRepository) FindByTeamId(teamId int64) (userTeams []model.UserTeam, err error) {
-	var teamUser []model.UserTeam
-	err = t.Db.Table("user_team").
-		Join("INNER", "user", "user_team.user_id = user.id").
-		Where("user_team.team_id = ?", teamId).
-		Find(&teamUser)
-	if err != nil {
-		return nil, err
-	}
-	return teamUser, err
+func (t *UserTeamRepository) FindByTeamId(teamId uint) (userTeams []model.UserTeam, err error) {
+	result := t.Db.Table("user_teams").
+		Joins("INNER JOIN users ON user_teams.user_id = users.id").
+		Where("user_teams.team_id = ?", teamId).
+		Find(&userTeams)
+	return userTeams, result.Error
 }
 
 func (t *UserTeamRepository) FindAll() (userTeams []model.UserTeam, err error) {
-	var userTeam []model.UserTeam
-	err = t.Db.Find(&userTeam)
-	if err != nil {
-		return nil, err
-	}
-	return userTeam, err
+	result := t.Db.Table("user_teams").Find(&userTeams)
+	return userTeams, result.Error
 }

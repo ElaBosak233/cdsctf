@@ -1621,11 +1621,135 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "model.Category": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "description": "The category's theme color. (Such as Rainbow Dash's color is \"#60AEE4\")",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "The category's creation time.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "The category's description.",
+                    "type": "string"
+                },
+                "icon": {
+                    "description": "The category's icon. (Based on Material Design Icons, Reference site: https://pictogrammers.com/library/mdi/) (Such as \"fingerprint\": https://pictogrammers.com/library/mdi/icon/fingerprint/)",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "The category's id. As primary key.",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "The category's name.",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "The category's last update time.",
+                    "type": "string"
+                }
+            }
+        },
+        "model.Challenge": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "The challenge's category.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Category"
+                        }
+                    ]
+                },
+                "category_id": {
+                    "description": "The challenge's category.",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "The challenge's creation time.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "The challenge's description.",
+                    "type": "string"
+                },
+                "difficulty": {
+                    "description": "The degree of difficulty. (From 1 to 5)",
+                    "type": "integer"
+                },
+                "duration": {
+                    "description": "The duration of container maintenance in the initial state. (Seconds)",
+                    "type": "integer"
+                },
+                "flags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Flag"
+                    }
+                },
+                "has_attachment": {
+                    "description": "Whether the challenge has attachment.",
+                    "type": "boolean"
+                },
+                "hints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Hint"
+                    }
+                },
+                "id": {
+                    "description": "The challenge's id. As primary key.",
+                    "type": "integer"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Image"
+                    }
+                },
+                "is_dynamic": {
+                    "description": "Whether the challenge is based on dynamic container.",
+                    "type": "boolean"
+                },
+                "is_practicable": {
+                    "description": "Whether the challenge is practicable. (Is the practice field visible.)",
+                    "type": "boolean"
+                },
+                "is_solved": {
+                    "type": "boolean"
+                },
+                "practice_pts": {
+                    "description": "The points will be given when the challenge is solved in practice field.",
+                    "type": "integer"
+                },
+                "submissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Submission"
+                    }
+                },
+                "title": {
+                    "description": "The challenge's title.",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "The challenge's last update time.",
+                    "type": "string"
+                }
+            }
+        },
         "model.Env": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "integer"
+                },
+                "image": {
+                    "$ref": "#/definitions/model.Image"
                 },
                 "image_id": {
                     "type": "integer"
@@ -1641,6 +1765,14 @@ const docTemplate = `{
         "model.Flag": {
             "type": "object",
             "properties": {
+                "challenge": {
+                    "description": "The challenge which the flag belongs to.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Challenge"
+                        }
+                    ]
+                },
                 "challenge_id": {
                     "description": "The challenge id. The flag belongs to.",
                     "type": "integer"
@@ -1659,6 +1791,139 @@ const docTemplate = `{
                 },
                 "value": {
                     "description": "The flag content. Maybe a string or a regex, or the placeholder for dynamic challenges. (Such as \"flag{friendsh1p_1s_magic}\" or \"flag{[a-zA-Z]{5}}\" or \"flag{[UUID]}\")",
+                    "type": "string"
+                }
+            }
+        },
+        "model.Game": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "description": "The game's short description.",
+                    "type": "string"
+                },
+                "challenges": {
+                    "description": "The game's challenges.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Challenge"
+                    }
+                },
+                "created_at": {
+                    "description": "The game's creation time.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "The game's description. (Markdown supported.)",
+                    "type": "string"
+                },
+                "ended_at": {
+                    "description": "The game's end time. (Unix)",
+                    "type": "integer"
+                },
+                "first_blood_reward_ratio": {
+                    "description": "The prize ratio of first blood.",
+                    "type": "number"
+                },
+                "id": {
+                    "description": "The game's id. As primary key.",
+                    "type": "integer"
+                },
+                "is_enabled": {
+                    "description": "Whether the game is enabled.",
+                    "type": "boolean"
+                },
+                "is_need_write_up": {
+                    "description": "Whether the game need write up.",
+                    "type": "boolean"
+                },
+                "is_public": {
+                    "description": "Whether the game is public.",
+                    "type": "boolean"
+                },
+                "member_limit_max": {
+                    "description": "The maximum team member limit.",
+                    "type": "integer"
+                },
+                "member_limit_min": {
+                    "description": "The minimum team member limit.",
+                    "type": "integer"
+                },
+                "parallel_container_limit": {
+                    "description": "The maximum parallel container limit.",
+                    "type": "integer"
+                },
+                "password": {
+                    "description": "The game's password. Only enabled when the game is private.",
+                    "type": "string"
+                },
+                "second_blood_reward_ratio": {
+                    "description": "The prize ratio of second blood.",
+                    "type": "number"
+                },
+                "started_at": {
+                    "description": "The game's start time. (Unix)",
+                    "type": "integer"
+                },
+                "third_blood_reward_ratio": {
+                    "description": "The prize ratio of third blood.",
+                    "type": "number"
+                },
+                "title": {
+                    "description": "The game's title.",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "The game's last update time.",
+                    "type": "string"
+                }
+            }
+        },
+        "model.Hint": {
+            "type": "object",
+            "properties": {
+                "challenge": {
+                    "description": "The challenge which the hint belongs to.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Challenge"
+                        }
+                    ]
+                },
+                "challenge_id": {
+                    "description": "The challenge which the hint belongs to.",
+                    "type": "integer"
+                },
+                "content": {
+                    "description": "The content of the hint.",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "The hint's creation time.",
+                    "type": "string"
+                },
+                "game": {
+                    "description": "The game which the hint belongs to.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Game"
+                        }
+                    ]
+                },
+                "game_id": {
+                    "description": "The game which the hint belongs to. (If 0, it means the hint is visible in practice field.)",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "The hint's id.",
+                    "type": "integer"
+                },
+                "published_at": {
+                    "description": "When the hint will be published.",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "description": "The hint's last update time.",
                     "type": "string"
                 }
             }
@@ -1710,6 +1975,14 @@ const docTemplate = `{
                     "description": "The port's id. As primary key.",
                     "type": "integer"
                 },
+                "image": {
+                    "description": "The JeopardyImage which the port belongs to.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Image"
+                        }
+                    ]
+                },
                 "image_id": {
                     "description": "The JeopardyImage which the port belongs to.",
                     "type": "integer"
@@ -1717,6 +1990,171 @@ const docTemplate = `{
                 "value": {
                     "description": "The port number.",
                     "type": "integer"
+                }
+            }
+        },
+        "model.Submission": {
+            "type": "object",
+            "properties": {
+                "challenge": {
+                    "description": "The challenge which is related to this submission.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Challenge"
+                        }
+                    ]
+                },
+                "challenge_id": {
+                    "description": "The challenge which is related to this submission.",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "The submission's creation time.",
+                    "type": "string"
+                },
+                "flag": {
+                    "description": "The flag which was submitted for judgement.",
+                    "type": "string"
+                },
+                "game": {
+                    "description": "The game which is related to this submission.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Game"
+                        }
+                    ]
+                },
+                "game_id": {
+                    "description": "The game which is related to this submission. (Must be set when TeamID is set)",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "The submission's id. As primary key.",
+                    "type": "integer"
+                },
+                "pts": {
+                    "description": "The points of the submission.",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "The status of the submission. (0-meaningless, 1-accepted, 2-incorrect, 3-cheat, 4-duplicate)",
+                    "type": "integer"
+                },
+                "team": {
+                    "description": "The team which submitted the flag.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Team"
+                        }
+                    ]
+                },
+                "team_id": {
+                    "description": "The team which submitted the flag. (Must be set when GameID is set)",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "description": "The submission's last update time.",
+                    "type": "string"
+                },
+                "user": {
+                    "description": "The user who submitted the flag.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    ]
+                },
+                "user_id": {
+                    "description": "The user who submitted the flag.",
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Team": {
+            "type": "object",
+            "properties": {
+                "captain_id": {
+                    "description": "The captain's id.",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "The team's creation time.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "The team's description.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "The team's id. As primary key.",
+                    "type": "integer"
+                },
+                "is_locked": {
+                    "description": "Whether the team is locked. (true/false)",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "The team's name.",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "The team's last update time.",
+                    "type": "string"
+                },
+                "users": {
+                    "description": "The team's users.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.User"
+                    }
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "The user's creation time.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "The user's description.",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "The user's email.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "The user's id. As primary key.",
+                    "type": "integer"
+                },
+                "nickname": {
+                    "description": "The user's nickname. Not unique.",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "The user's password. Crypt.",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "The user's role.",
+                    "type": "integer"
+                },
+                "teams": {
+                    "description": "The user's teams.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Team"
+                    }
+                },
+                "updated_at": {
+                    "description": "The user's last update time.",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "The user's username. As a unique identifier.",
+                    "type": "string"
                 }
             }
         },

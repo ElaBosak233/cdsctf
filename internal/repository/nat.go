@@ -2,28 +2,28 @@ package repository
 
 import (
 	"github.com/elabosak233/pgshub/internal/model"
-	"xorm.io/xorm"
+	"gorm.io/gorm"
 )
 
 type INatRepository interface {
 	Insert(nat model.Nat) (n model.Nat, err error)
-	FindByInstanceID(instanceIDs []int64) (nats []model.Nat, err error)
+	FindByInstanceID(instanceIDs []uint) (nats []model.Nat, err error)
 }
 
 type NatRepository struct {
-	Db *xorm.Engine
+	Db *gorm.DB
 }
 
-func NewNatRepository(Db *xorm.Engine) INatRepository {
+func NewNatRepository(Db *gorm.DB) INatRepository {
 	return &NatRepository{Db: Db}
 }
 
 func (t *NatRepository) Insert(nat model.Nat) (n model.Nat, err error) {
-	_, err = t.Db.Table("nat").Insert(&nat)
-	return nat, err
+	result := t.Db.Table("nats").Create(&nat)
+	return nat, result.Error
 }
 
-func (t *NatRepository) FindByInstanceID(instanceIDs []int64) (nats []model.Nat, err error) {
-	err = t.Db.Table("nat").In("instance_id", instanceIDs).Find(&nats)
-	return nats, err
+func (t *NatRepository) FindByInstanceID(instanceIDs []uint) (nats []model.Nat, err error) {
+	result := t.Db.Table("nats").Where("instance_id IN ?", instanceIDs).Find(&nats)
+	return nats, result.Error
 }

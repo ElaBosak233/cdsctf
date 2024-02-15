@@ -1,54 +1,50 @@
 package repository
 
 import (
-	"fmt"
 	"github.com/elabosak233/pgshub/internal/model"
 	"github.com/elabosak233/pgshub/internal/model/dto/request"
 	"github.com/elabosak233/pgshub/internal/model/dto/response"
-	challengeValidator "github.com/elabosak233/pgshub/pkg/validator/challenge"
-	"xorm.io/xorm"
+	"gorm.io/gorm"
 )
 
 type IChallengeRepository interface {
 	Insert(challenge model.Challenge) (c model.Challenge, err error)
 	Update(challenge model.Challenge) (c model.Challenge, err error)
-	Delete(id int64) error
-	FindById(id int64, isDetailed int) (challenge model.Challenge, err error)
+	Delete(id uint) error
+	FindById(id uint, isDetailed int) (challenge model.Challenge, err error)
 	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, count int64, err error)
 }
 
 type ChallengeRepository struct {
-	Db *xorm.Engine
+	Db *gorm.DB
 }
 
-func NewChallengeRepository(Db *xorm.Engine) IChallengeRepository {
+func NewChallengeRepository(Db *gorm.DB) IChallengeRepository {
 	return &ChallengeRepository{Db: Db}
 }
 
 func (t *ChallengeRepository) Insert(challenge model.Challenge) (c model.Challenge, err error) {
-	_, err = t.Db.Table("challenge").Insert(&challenge)
-	return challenge, err
+	result := t.Db.Table("challenges").Create(&challenge)
+	return challenge, result.Error
 }
 
-func (t *ChallengeRepository) Delete(id int64) error {
-	var challenge model.Challenge
-	_, err := t.Db.Table("challenge").ID(id).Delete(&challenge)
-	return err
+func (t *ChallengeRepository) Delete(id uint) error {
+	result := t.Db.Table("challenges").Delete(&model.Challenge{ID: id})
+	return result.Error
 }
 
 func (t *ChallengeRepository) Update(challenge model.Challenge) (c model.Challenge, err error) {
-	fmt.Println(challenge.ID)
-	_, err = t.Db.Table("challenge").ID(challenge.ID).Update(&challenge)
-	return challenge, err
+	result := t.Db.Table("challenges").Model(&challenge).Updates(&challenge)
+	return challenge, result.Error
 }
 
 func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, count int64, err error) {
-	isGame := challengeValidator.IsIdValid(req.GameID) && challengeValidator.IsIdValid(req.GameID)
-	applyFilter := func(q *xorm.Session) *xorm.Session {
-		if challengeValidator.IsCategoryStringValid(req.Category) {
+	isGame := req.GameID != nil && req.TeamID != nil
+	applyFilter := func(q *gorm.DB) *gorm.DB {
+		if req.Category != "" {
 			q = q.Where("category = ?", req.Category)
 		}
-		if challengeValidator.IsTitleStringValid(req.Title) {
+		if req.Title != "" {
 			q = q.Where("title LIKE ?", "%"+req.Title+"%")
 		}
 		if req.IsPracticable != nil {
@@ -57,46 +53,45 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 		if req.IsDynamic != nil {
 			q = q.Where("is_dynamic = ?", *(req.IsDynamic))
 		}
-		if challengeValidator.IsDifficultyIntValid(req.Difficulty) {
+		if req.Difficulty > 0 {
 			q = q.Where("difficulty = ?", req.Difficulty)
 		}
 		if isGame {
-			q = q.Join("INNER",
-				"game_challenge",
-				"game_challenge.challenge_id = challenge.id AND game_challenge.game_id = ?", req.GameID)
+			q = q.Joins("INNER JOIN game_challenges ON game_challenges.challenge_id = challenges.id AND game_challenges.game_id = ?", *(req.GameID))
 		}
-		if challengeValidator.IsIdArrayValid(req.IDs) {
-			q = q.In("challenge.id", req.IDs)
+		if len(req.IDs) > 0 {
+			q = q.Where("(challenges.id) IN ?", req.IDs)
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("challenge"))
-	ct := applyFilter(t.Db.Table("challenge"))
-	count, err = ct.Count(&model.Challenge{})
+	db := applyFilter(t.Db.Table("challenges"))
+	ct := applyFilter(t.Db.Table("challenges"))
+	result := ct.Model(&model.Challenge{}).Count(&count)
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
 		if sortOrder == "asc" {
-			db = db.Asc("challenge." + sortKey)
+			db = db.Order("challenges." + sortKey + " ASC")
 		} else if sortOrder == "desc" {
-			db = db.Desc("challenge." + sortKey)
+			db = db.Order("challenges." + sortKey + " DESC")
 		}
 	} else {
-		db = db.Asc("challenge.id") // 默认采用 IDs 升序排列
+		db = db.Order("challenges.id ASC")
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
-		db = db.Limit(req.Size, offset)
+		db = db.Offset(offset).Limit(req.Size)
 	}
-	err = db.Cols("challenge.*").Find(&challenges)
-	return challenges, count, err
+	result = db.
+		Preload("Category").
+		Preload("Flags").
+		Preload("Images.Ports").
+		Preload("Images.Envs").
+		Find(&challenges)
+	return challenges, count, result.Error
 }
 
-func (t *ChallengeRepository) FindById(id int64, isDetailed int) (challenge model.Challenge, err error) {
-	db := t.Db.Table("challenge").ID(id)
-	if isDetailed == 0 {
-		db = db.Omit("flag", "flag_fmt", "flag_env", "image")
-	}
-	_, err = db.Get(&challenge)
-	return challenge, err
+func (t *ChallengeRepository) FindById(id uint, isDetailed int) (challenge model.Challenge, err error) {
+	result := t.Db.Table("challenges").Where("id = ?", id).First(&challenge)
+	return challenge, result.Error
 }

@@ -3,46 +3,47 @@ package repository
 import (
 	"github.com/elabosak233/pgshub/internal/model"
 	"github.com/elabosak233/pgshub/internal/model/dto/request"
-	"github.com/elabosak233/pgshub/internal/model/dto/response"
-	"xorm.io/xorm"
+	"gorm.io/gorm"
 )
 
 type IUserRepository interface {
 	Insert(user model.User) error
 	Update(user model.User) error
-	Delete(id int64) error
-	FindById(id int64) (user model.User, err error)
+	Delete(id uint) error
+	FindById(id uint) (user model.User, err error)
 	FindByUsername(username string) (user model.User, err error)
 	FindByEmail(email string) (user model.User, err error)
-	Find(req request.UserFindRequest) (user []response.UserResponse, count int64, err error)
-	BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []response.UserResponseWithTeamId, err error)
+	Find(req request.UserFindRequest) (user []model.User, count int64, err error)
+	BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []model.User, err error)
 }
 
 type UserRepository struct {
-	Db *xorm.Engine
+	Db *gorm.DB
 }
 
-func NewUserRepository(Db *xorm.Engine) IUserRepository {
+func NewUserRepository(Db *gorm.DB) IUserRepository {
 	return &UserRepository{Db: Db}
 }
 
 func (t *UserRepository) Insert(user model.User) error {
-	_, err := t.Db.Table("account").Insert(&user)
-	return err
+	result := t.Db.Table("users").Create(&user)
+	return result.Error
 }
 
-func (t *UserRepository) Delete(id int64) error {
-	_, err := t.Db.Table("account").ID(id).Delete(&model.User{})
-	return err
+func (t *UserRepository) Delete(id uint) error {
+	result := t.Db.Table("users").Delete(&model.User{
+		ID: id,
+	})
+	return result.Error
 }
 
 func (t *UserRepository) Update(user model.User) error {
-	_, err := t.Db.Table("account").ID(user.ID).Update(&user)
-	return err
+	result := t.Db.Table("users").Model(&user).Updates(&user)
+	return result.Error
 }
 
-func (t *UserRepository) Find(req request.UserFindRequest) (users []response.UserResponse, count int64, err error) {
-	applyFilter := func(q *xorm.Session) *xorm.Session {
+func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, count int64, err error) {
+	applyFilter := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
 		}
@@ -57,47 +58,47 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []response.Use
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("account"))
-	ct := applyFilter(t.Db.Table("account"))
-	count, err = ct.Count(&model.User{})
+	db := applyFilter(t.Db.Table("users"))
+	ct := applyFilter(t.Db.Table("users"))
+	result := ct.Model(&model.User{}).Count(&count)
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
 		if sortOrder == "asc" {
-			db = db.Asc("account." + sortKey)
+			db = db.Order("users." + sortKey + " ASC")
 		} else if sortOrder == "desc" {
-			db = db.Desc("account." + sortKey)
+			db = db.Order("users." + sortKey + " DESC")
 		}
 	} else {
-		db = db.Asc("account.id") // 默认采用 IDs 升序排列
+		db = db.Order("users.id ASC") // 默认采用 IDs 升序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
-		db = db.Limit(req.Size, offset)
+		db = db.Offset(offset).Limit(req.Size)
 	}
-	err = db.Find(&users)
-	return users, count, err
+	result = db.Find(&users)
+	return users, count, result.Error
 }
 
-func (t *UserRepository) BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []response.UserResponseWithTeamId, err error) {
-	err = t.Db.Table("account").
-		Join("INNER", "user_team", "account.id = user_team.user_id").
-		In("user_team.team_id", req.TeamID).
-		Find(&users)
+func (t *UserRepository) BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []model.User, err error) {
+	err = t.Db.Table("users").
+		Joins("INNER JOIN user_team ON users.id = user_team.user_id").
+		Where("user_team.team_id = ?", req.TeamID).
+		Find(&users).Error
 	return users, err
 }
 
-func (t *UserRepository) FindById(id int64) (user model.User, err error) {
-	_, err = t.Db.Table("account").ID(id).Get(&user)
-	return user, err
+func (t *UserRepository) FindById(id uint) (user model.User, err error) {
+	result := t.Db.Table("users").Where("id = ?", id).First(&user)
+	return user, result.Error
 }
 
 func (t *UserRepository) FindByUsername(username string) (user model.User, err error) {
-	_, err = t.Db.Table("account").Where("username = ?", username).Get(&user)
-	return user, err
+	result := t.Db.Table("users").Where("username = ?", username).First(&user)
+	return user, result.Error
 }
 
 func (t *UserRepository) FindByEmail(email string) (user model.User, err error) {
-	_, err = t.Db.Table("account").Where("email = ?", email).Get(&user)
-	return user, err
+	result := t.Db.Table("users").Where("email = ?", email).First(&user)
+	return user, result.Error
 }

@@ -3,15 +3,13 @@ package model
 import "time"
 
 type Hint struct {
-	ID          int64      `xorm:"'id' pk autoincr" json:"id"`                 // The hint's id.
-	ChallengeID int64      `xorm:"'challenge_id' notnull" json:"challenge_id"` // The challenge which the hint belongs to.
-	GameID      int64      `xorm:"'game_id'" json:"game_id"`                   // The game which the hint belongs to. (If 0, it means the hint is visible in practice field.)
-	Content     string     `xorm:"'content' text notnull" json:"content"`      // The content of the hint.
-	PublishedAt *time.Time `xorm:"'published_at' notnull" json:"published_at"` // When the hint will be published.
-	CreatedAt   *time.Time `xorm:"'created_at' created" json:"created_at"`     // The hint's creation time.
-	UpdatedAt   *time.Time `xorm:"'updated_at' updated" json:"updated_at"`     // The hint's last update time.
-}
-
-func (h *Hint) TableName() string {
-	return "hint"
+	ID          uint       `json:"id"`                                 // The hint's id.
+	ChallengeID uint       `gorm:"not null;" json:"challenge_id"`      // The challenge which the hint belongs to.
+	Challenge   *Challenge `json:"challenge"`                          // The challenge which the hint belongs to.
+	GameID      uint       `json:"game_id"`                            // The game which the hint belongs to. (If 0, it means the hint is visible in practice field.)
+	Game        *Game      `json:"game"`                               // The game which the hint belongs to.
+	Content     string     `gorm:"type:text;not null;" json:"content"` // The content of the hint.
+	PublishedAt int64      `gorm:"not null;" json:"published_at"`      // When the hint will be published.
+	CreatedAt   time.Time  `json:"created_at"`                         // The hint's creation time.
+	UpdatedAt   time.Time  `json:"updated_at"`                         // The hint's last update time.
 }

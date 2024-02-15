@@ -2,52 +2,46 @@ package repository
 
 import (
 	"github.com/elabosak233/pgshub/internal/model"
-	"xorm.io/xorm"
+	"gorm.io/gorm"
 )
 
 type IPortRepository interface {
 	Insert(port model.Port) (p model.Port, err error)
-	InsertMulti(ports []model.Port) (err error)
 	Update(port model.Port) (p model.Port, err error)
 	Delete(port model.Port) (err error)
-	FindByImageID(imageIDs []int64) (ports []model.Port, err error)
-	DeleteByImageID(imageIDs []int64) (err error)
+	FindByImageID(imageIDs []uint) (ports []model.Port, err error)
+	DeleteByImageID(imageIDs []uint) (err error)
 }
 
 type PortRepository struct {
-	Db *xorm.Engine
+	Db *gorm.DB
 }
 
-func NewPortRepository(Db *xorm.Engine) IPortRepository {
+func NewPortRepository(Db *gorm.DB) IPortRepository {
 	return &PortRepository{Db: Db}
 }
 
 func (t *PortRepository) Insert(port model.Port) (p model.Port, err error) {
-	_, err = t.Db.Table("port").Insert(&port)
-	return port, err
-}
-
-func (t *PortRepository) InsertMulti(ports []model.Port) (err error) {
-	_, err = t.Db.Table("port").Insert(&ports)
-	return err
+	result := t.Db.Table("ports").Create(&port)
+	return port, result.Error
 }
 
 func (t *PortRepository) Update(port model.Port) (p model.Port, err error) {
-	_, err = t.Db.Table("port").ID(port.ID).Update(&port)
-	return port, err
+	result := t.Db.Table("ports").Model(&port).Updates(&port)
+	return port, result.Error
 }
 
 func (t *PortRepository) Delete(port model.Port) (err error) {
-	_, err = t.Db.Table("port").ID(port.ID).Delete(&port)
-	return err
+	result := t.Db.Table("ports").Delete(&port)
+	return result.Error
 }
 
-func (t *PortRepository) FindByImageID(imageIDs []int64) (ports []model.Port, err error) {
-	err = t.Db.Table("port").In("image_id", imageIDs).Find(&ports)
-	return ports, err
+func (t *PortRepository) FindByImageID(imageIDs []uint) (ports []model.Port, err error) {
+	result := t.Db.Table("ports").Where("image_id IN ?", imageIDs).Find(&ports)
+	return ports, result.Error
 }
 
-func (t *PortRepository) DeleteByImageID(imageIDs []int64) (err error) {
-	_, err = t.Db.Table("port").In("image_id", imageIDs).Delete(&model.Port{})
-	return err
+func (t *PortRepository) DeleteByImageID(imageIDs []uint) (err error) {
+	result := t.Db.Table("ports").Where("image_id IN ?", imageIDs).Delete(&model.Port{})
+	return result.Error
 }

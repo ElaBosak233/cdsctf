@@ -2,22 +2,19 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"github.com/elabosak233/pgshub/internal/model"
 	"github.com/elabosak233/pgshub/internal/model/dto/request"
 	"github.com/elabosak233/pgshub/internal/model/dto/response"
 	"github.com/elabosak233/pgshub/internal/repository"
 	"github.com/elabosak233/pgshub/pkg/calculate"
-	"github.com/elabosak233/pgshub/pkg/validator"
 	"github.com/mitchellh/mapstructure"
 	"math"
-	"sync"
 )
 
 type IChallengeService interface {
 	Create(req request.ChallengeCreateRequest) (err error)
 	Update(req request.ChallengeUpdateRequest) (err error)
-	Delete(id int64) error
+	Delete(id uint) error
 	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error)
 }
 
@@ -50,63 +47,7 @@ func NewChallengeService(appRepository *repository.Repository) IChallengeService
 func (t *ChallengeService) Create(req request.ChallengeCreateRequest) (err error) {
 	challengeModel := model.Challenge{}
 	_ = mapstructure.Decode(req, &challengeModel)
-	challenge, err := t.ChallengeRepository.Insert(challengeModel)
-
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		if req.Flags != nil {
-			for _, flag := range *(req.Flags) {
-				var flagModel model.Flag
-				_ = mapstructure.Decode(flag, &flagModel)
-				flagModel.ChallengeID = challenge.ID
-				_, _ = t.FlagRepository.Insert(flagModel)
-			}
-		}
-		wg.Done()
-	}()
-
-	go func() {
-		if req.Images != nil {
-			for index := range *(req.Images) {
-				(*(req.Images))[index].ChallengeID = challenge.ID
-			}
-			for index := range *(req.Images) {
-				(*(req.Images))[index], _ = t.ImageRepository.Insert((*(req.Images))[index])
-			}
-			// Update Ports & Envs
-			ports := make([]model.Port, 0)
-			envs := make([]model.Env, 0)
-			for _, image := range *(req.Images) {
-				for _, port := range image.Ports {
-					port.ImageID = image.ID
-					ports = append(ports, port)
-				}
-				for _, env := range image.Envs {
-					env.ImageID = image.ID
-					envs = append(envs, env)
-				}
-			}
-			// Don't always use batch insert. Because excessive quantity can lead to SQL execution failure.
-			// Maybe 200ms is enough.
-			insertedPorts := make(map[string]bool) // insertedPorts is a set, used to avoid inserting duplicate ports.
-			for _, port := range ports {
-				if _, ok := insertedPorts[fmt.Sprintf("%d-%d", port.ImageID, port.Value)]; !ok {
-					insertedPorts[fmt.Sprintf("%d-%d", port.ImageID, port.Value)] = true
-					_, err = t.PortRepository.Insert(port)
-				}
-			}
-			insertedEnvs := make(map[string]bool)
-			for _, env := range envs {
-				if _, ok := insertedEnvs[fmt.Sprintf("%d-%s", env.ImageID, env.Key)]; !ok {
-					insertedEnvs[fmt.Sprintf("%d-%s", env.ImageID, env.Key)] = true
-					_, err = t.EnvRepository.Insert(env)
-				}
-			}
-		}
-		wg.Done()
-	}()
+	_, err = t.ChallengeRepository.Insert(challengeModel)
 
 	return err
 }
@@ -118,96 +59,34 @@ func (t *ChallengeService) Update(req request.ChallengeUpdateRequest) (err error
 	}
 	challengeModel := model.Challenge{}
 	_ = mapstructure.Decode(req, &challengeModel)
+	_ = t.FlagRepository.DeleteByChallengeID([]uint{challengeModel.ID})
+	_ = t.ImageRepository.DeleteByChallengeID([]uint{challengeModel.ID})
 	challengeModel, err = t.ChallengeRepository.Update(challengeModel)
-
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		// Check if flag need to be changed.
-		if req.Flags != nil {
-			// Update Flags
-			for index := range *(req.Flags) {
-				(*(req.Flags))[index].ChallengeID = challengeModel.ID
-			}
-			_ = t.FlagRepository.DeleteByChallengeID([]int64{challengeModel.ID})
-			for _, flag := range *(req.Flags) {
-				_, _ = t.FlagRepository.Insert(flag)
-			}
-		}
-		wg.Done()
-	}()
-
-	go func() {
-		// Check if images and ports need to be changed.
-		if req.Images != nil {
-			// Necessary patch, find old images.
-			oldImages, _ := t.ImageRepository.FindByChallengeID([]int64{challengeModel.ID})
-			oldImageIDs := make([]int64, 0)
-			for _, image := range oldImages {
-				oldImageIDs = append(oldImageIDs, image.ID)
-			}
-
-			// Update Images
-			for index := range *(req.Images) {
-				(*(req.Images))[index].ChallengeID = challengeModel.ID
-			}
-			_ = t.ImageRepository.DeleteByChallengeID([]int64{challengeModel.ID})
-			// Don't use batch insert. Because we need the id of the image.
-			for index := range *(req.Images) {
-				(*(req.Images))[index], _ = t.ImageRepository.Insert((*(req.Images))[index])
-			}
-
-			// Update Ports
-			ports := make([]model.Port, 0)
-			for _, image := range *(req.Images) {
-				for _, port := range image.Ports {
-					port.ImageID = image.ID
-					ports = append(ports, port)
-				}
-			}
-			_ = t.PortRepository.DeleteByImageID(oldImageIDs)
-			// Don't always use batch insert. Because excessive quantity can lead to SQL execution failure.
-			// Maybe 200ms is enough.
-			insertedPorts := make(map[int]bool) // insertedPorts is a set, used to avoid inserting duplicate ports.
-			for _, port := range ports {
-				if _, ok := insertedPorts[port.Value]; !ok {
-					insertedPorts[port.Value] = true
-					_, err = t.PortRepository.Insert(port)
-				}
-			}
-		}
-		wg.Done()
-	}()
-
-	wg.Wait()
-
 	return err
 }
 
-func (t *ChallengeService) Delete(id int64) error {
+func (t *ChallengeService) Delete(id uint) error {
 	err := t.ChallengeRepository.Delete(id)
 	return err
 }
 
 func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error) {
 	challenges, count, err := t.ChallengeRepository.Find(req)
-	challenges, err = t.MixinService.MixinChallenge(challenges)
 
-	challengeMap := make(map[int64]response.ChallengeResponse)
-	challengeIDs := make([]int64, 0)
+	challengeMap := make(map[uint]response.ChallengeResponse)
+	challengeIDs := make([]uint, 0)
 	for _, challenge := range challenges {
 		challengeMap[challenge.ID] = challenge
 		challengeIDs = append(challengeIDs, challenge.ID)
 	}
 
-	gameChallengesMap := make(map[int64]model.GameChallenge)
-	submissionsMap := make(map[int64][]response.SubmissionResponse)
-	isGame := validator.IsIdValid(req.GameID) && validator.IsIdValid(req.TeamID)
+	gameChallengesMap := make(map[uint]model.GameChallenge)
+	submissionsMap := make(map[uint][]response.SubmissionResponse)
+	isGame := req.GameID != nil && req.TeamID != nil
 	if isGame {
-		gameChallenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(req.GameID, challengeIDs)
+		gameChallenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(*(req.GameID), challengeIDs)
 		for _, gameChallenge := range gameChallenges {
-			gameChallengesMap[gameChallenge.ChallengeId] = gameChallenge
+			gameChallengesMap[gameChallenge.ChallengeID] = gameChallenge
 		}
 		submissions, _ := t.SubmissionRepository.BatchFind(request.SubmissionBatchFindRequest{
 			GameID:      req.GameID,
@@ -254,7 +133,7 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 			R := gameChallengesMap[challengeID].MinPts
 			d := challenge.Difficulty
 			x := len(submissionsMap[challengeID])
-			pts := calculate.CalculateChallengePts(S, R, d, x)
+			pts := calculate.ChallengePts(S, R, d, x)
 			challenge.Pts = pts
 		} else {
 			challenge.Pts = challenge.PracticePts

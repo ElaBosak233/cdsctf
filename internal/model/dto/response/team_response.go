@@ -3,10 +3,10 @@ package response
 import "time"
 
 type TeamResponse struct {
-	ID          int64          `xorm:"'id'" json:"id"`
+	ID          uint           `xorm:"'id'" json:"id"`
 	Name        string         `xorm:"'name'" json:"name"`
 	Description string         `xorm:"'description'" json:"description"`
-	CaptainId   int64          `xorm:"'captain_id'" json:"captain_id"`
+	CaptainId   uint           `xorm:"'captain_id'" json:"captain_id"`
 	IsLocked    bool           `xorm:"'is_locked'" json:"is_locked"`
 	CreatedAt   time.Time      `xorm:"'created_at'" json:"created_at"`
 	UpdatedAt   time.Time      `xorm:"'updated_at'" json:"updated_at"`
@@ -15,20 +15,20 @@ type TeamResponse struct {
 }
 
 type TeamResponseWithUserId struct {
-	ID          int64     `xorm:"'id'" json:"id"`
+	ID          uint      `xorm:"'id'" json:"id"`
 	Name        string    `xorm:"'name'" json:"name"`
 	Description string    `xorm:"'description'" json:"description"`
-	CaptainId   int64     `xorm:"'captain_id'" json:"captain_id"`
+	CaptainId   uint      `xorm:"'captain_id'" json:"captain_id"`
 	IsLocked    bool      `xorm:"'is_locked'" json:"is_locked"`
 	CreatedAt   time.Time `xorm:"'created_at'" json:"created_at"`
 	UpdatedAt   time.Time `xorm:"'updated_at'" json:"updated_at"`
-	UserId      int64     `xorm:"'user_id'" json:"user_id"`
+	UserId      uint      `xorm:"'user_id'" json:"user_id"`
 }
 
 type TeamSimpleResponse struct {
-	ID          int64  `json:"id"`
+	ID          uint   `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	CaptainId   int64  `json:"captain_id"`
+	CaptainId   uint   `json:"captain_id"`
 	IsLocked    bool   `json:"is_locked"`
 }

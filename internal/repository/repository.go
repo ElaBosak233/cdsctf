@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"xorm.io/xorm"
+	"gorm.io/gorm"
 )
 
 type Repository struct {
@@ -23,7 +23,7 @@ type Repository struct {
 	FlagGenRepository       IFlagGenRepository
 }
 
-func InitRepository(db *xorm.Engine) *Repository {
+func InitRepository(db *gorm.DB) *Repository {
 	return &Repository{
 		UserRepository:          NewUserRepository(db),
 		ChallengeRepository:     NewChallengeRepository(db),

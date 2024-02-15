@@ -17,13 +17,13 @@ import (
 )
 
 type DockerManager struct {
-	InstanceID  int64
+	InstanceID  uint
 	RespID      string
 	Image       string
 	Inspect     types.ContainerJSON
 	Port        int
-	ExposedPort []model.Port
-	Env         []model.Env
+	ExposedPort []*model.Port
+	Env         []*model.Env
 	MemoryLimit int64   // MB
 	CPULimit    float64 // Core
 	Duration    time.Duration
@@ -31,7 +31,7 @@ type DockerManager struct {
 	CancelFunc  context.CancelFunc
 }
 
-func NewDockerManager(imageName string, exposedPort []model.Port, env []model.Env, memoryLimit int64, cpuLimit float64, duration time.Duration) *DockerManager {
+func NewDockerManager(imageName string, exposedPort []*model.Port, env []*model.Env, memoryLimit int64, cpuLimit float64, duration time.Duration) *DockerManager {
 	return &DockerManager{
 		Image:       imageName,
 		ExposedPort: exposedPort,
@@ -42,7 +42,7 @@ func NewDockerManager(imageName string, exposedPort []model.Port, env []model.En
 	}
 }
 
-func (c *DockerManager) SetInstanceID(instanceID int64) {
+func (c *DockerManager) SetInstanceID(instanceID uint) {
 	c.InstanceID = instanceID
 }
 

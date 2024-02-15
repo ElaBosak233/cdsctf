@@ -21,18 +21,18 @@ var (
 )
 
 type K8sManager struct {
-	PodID      int64
+	PodID      uint
 	RespID     string
-	Images     []model.Image
+	Images     []*model.Image
 	Flag       model.Flag
-	Instances  []model.Instance
+	Instances  []*model.Instance
 	Inspect    corev1.Pod
 	Duration   time.Duration
 	CancelCtx  context.Context
 	CancelFunc context.CancelFunc
 }
 
-func NewK8sManager(podID int64, images []model.Image, flag model.Flag, duration time.Duration) *K8sManager {
+func NewK8sManager(podID uint, images []*model.Image, flag model.Flag, duration time.Duration) *K8sManager {
 	namespace = config.AppCfg().Container.K8s.Namespace
 	return &K8sManager{
 		PodID:    podID,
@@ -42,9 +42,9 @@ func NewK8sManager(podID int64, images []model.Image, flag model.Flag, duration 
 	}
 }
 
-func (c *K8sManager) Setup() (instances []model.Instance, err error) {
+func (c *K8sManager) Setup() (instances []*model.Instance, err error) {
 	var containers []corev1.Container
-	var imageMap = make(map[string]int64)
+	var imageMap = make(map[string]uint)
 	for _, image := range c.Images {
 		var ports []corev1.ContainerPort
 		for _, port := range image.Ports {
@@ -109,13 +109,13 @@ func (c *K8sManager) Setup() (instances []model.Instance, err error) {
 			ImageID: imageMap[container.Name],
 		}
 		for _, port := range container.Ports {
-			nat := model.Nat{
+			nat := &model.Nat{
 				SrcPort: int(port.ContainerPort),
 				DstPort: int(port.HostPort),
 			}
 			instance.Nats = append(instance.Nats, nat)
 		}
-		instances = append(instances, instance)
+		instances = append(instances, &instance)
 	}
 
 	return instances, err
