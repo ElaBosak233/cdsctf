@@ -10,7 +10,6 @@ type IInstanceService interface {
 }
 
 type Instance struct {
-	MixinService        IMixinService
 	ContainerRepository repository.IInstanceRepository
 	EnvRepository       repository.IEnvRepository
 	NatRepository       repository.INatRepository
@@ -21,7 +20,6 @@ type Instance struct {
 
 func NewInstanceService(appRepository *repository.Repository) IInstanceService {
 	return &Instance{
-		MixinService:        NewMixinService(appRepository),
 		ContainerRepository: appRepository.ContainerRepository,
 		EnvRepository:       appRepository.EnvRepository,
 		NatRepository:       appRepository.NatRepository,
@@ -33,6 +31,5 @@ func NewInstanceService(appRepository *repository.Repository) IInstanceService {
 
 func (c *Instance) FindByPodID(podIDs []uint) (containers []model.Instance, err error) {
 	ctns, err := c.ContainerRepository.FindByPodID(podIDs)
-	containers, err = c.MixinService.MixinInstance(ctns)
-	return containers, err
+	return ctns, err
 }

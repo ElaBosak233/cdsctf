@@ -6,6 +6,7 @@ import (
 	"github.com/elabosak233/pgshub/internal/model"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -47,8 +48,18 @@ func initDatabaseEngine() {
 			config.AppCfg().Db.Postgres.Sslmode,
 		)
 		db, err = gorm.Open(postgres.Open(dbInfo), &gorm.Config{})
+	} else if config.AppCfg().Db.Provider == "mysql" {
+		dbInfo = fmt.Sprintf(
+			"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			config.AppCfg().Db.MySQL.Username,
+			config.AppCfg().Db.MySQL.Password,
+			config.AppCfg().Db.MySQL.Host,
+			config.AppCfg().Db.MySQL.Port,
+			config.AppCfg().Db.MySQL.Dbname,
+		)
+		db, err = gorm.Open(mysql.Open(dbInfo), &gorm.Config{})
 	} else if config.AppCfg().Db.Provider == "sqlite3" {
-		dbInfo = config.AppCfg().Db.Sqlite3.Filename
+		dbInfo = config.AppCfg().Db.SQLite3.Filename
 		db, err = gorm.Open(sqlite.Open(dbInfo), &gorm.Config{})
 	}
 	if err != nil {

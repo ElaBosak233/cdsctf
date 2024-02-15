@@ -19,7 +19,6 @@ type IChallengeService interface {
 }
 
 type ChallengeService struct {
-	MixinService            IMixinService
 	ChallengeRepository     repository.IChallengeRepository
 	FlagRepository          repository.IFlagRepository
 	ImageRepository         repository.IImageRepository
@@ -32,7 +31,6 @@ type ChallengeService struct {
 
 func NewChallengeService(appRepository *repository.Repository) IChallengeService {
 	return &ChallengeService{
-		MixinService:            NewMixinService(appRepository),
 		ChallengeRepository:     appRepository.ChallengeRepository,
 		GameChallengeRepository: appRepository.GameChallengeRepository,
 		SubmissionRepository:    appRepository.SubmissionRepository,

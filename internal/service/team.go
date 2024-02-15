@@ -34,37 +34,6 @@ func NewTeamService(appRepository *repository.Repository) ITeamService {
 	}
 }
 
-//// Mixin 用于向 Team 响应实体中混入 User 实体
-//func (t *TeamService) Mixin(teams []response.TeamResponse) (ts []response.TeamResponse, err error) {
-//	var teamIds []uint
-//	teamsMap := make(map[uint]response.TeamResponse)
-//	for _, team := range teams {
-//		if _, ok := teamsMap[team.ID]; !ok {
-//			teamsMap[team.ID] = team
-//		}
-//		teamIds = append(teamIds, team.ID)
-//	}
-//	users, err := t.UserRepository.BatchFindByTeamId(request.UserBatchFindByTeamIdRequest{
-//		TeamID: teamIds,
-//	})
-//	for _, user := range users {
-//		var userResponse response.UserResponse
-//		_ = mapstructure.Decode(user, &userResponse)
-//		if team, ok := teamsMap[user.Team]; ok {
-//			if team.CaptainId == user.ID {
-//				team.Captain = userResponse
-//			}
-//			team.Users = append(team.Users, userResponse)
-//			teamsMap[user.TeamId] = team
-//		}
-//	}
-//	for index, team := range teams {
-//		teams[index].Users = teamsMap[team.ID].Users
-//		teams[index].Captain = teamsMap[team.ID].Captain
-//	}
-//	return teams, err
-//}
-
 func (t *TeamService) Create(req request.TeamCreateRequest) error {
 	user, err := t.UserRepository.FindById(req.CaptainId)
 	if user.ID != 0 && err == nil {

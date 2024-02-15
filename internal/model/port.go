@@ -5,7 +5,7 @@ package model
 type Port struct {
 	ID          uint   `json:"id"`                                  // The port's id. As primary key.
 	ImageID     uint   `gorm:"not null;" json:"image_id"`           // The JeopardyImage which the port belongs to.
-	Image       *Image `json:"image"`                               // The JeopardyImage which the port belongs to.
+	Image       *Image `json:"image,omitempty"`                     // The JeopardyImage which the port belongs to.
 	Value       int    `gorm:"not null;" json:"value"`              // The port number.
 	Description string `gorm:"type:varchar(32)" json:"description"` // The port's description.
 }

@@ -30,7 +30,7 @@ type ApplicationCfg struct {
 			AllowRegistration bool `yaml:"allow_registration" json:"allow_registration" mapstructure:"allow_registration"`
 		} `yaml:"user" json:"user" mapstructure:"user"`
 	} `yaml:"global" json:"global" mapstructure:"global"`
-	Server struct {
+	Gin struct {
 		Host string `yaml:"host" json:"host" mapstructure:"host"`
 		Port int    `yaml:"port" json:"port" mapstructure:"port"`
 		CORS struct {
@@ -42,7 +42,7 @@ type ApplicationCfg struct {
 			Media    string `yaml:"media" json:"media" mapstructure:"media"`
 			Frontend string `yaml:"frontend" json:"frontend" mapstructure:"frontend"`
 		} `yaml:"paths" json:"paths" mapstructure:"paths"`
-	} `yaml:"server" json:"server" mapstructure:"server"`
+	} `yaml:"gin" json:"gin" mapstructure:"gin"`
 	Email struct {
 		Address  string `yaml:"address" json:"address" mapstructure:"address"`
 		Password string `yaml:"password" json:"password" mapstructure:"password"`
@@ -61,9 +61,16 @@ type ApplicationCfg struct {
 			Dbname   string `yaml:"dbname" json:"dbname" mapstructure:"dbname"`
 			Sslmode  string `yaml:"sslmode" json:"sslmode" mapstructure:"sslmode"`
 		} `yaml:"postgres" json:"postgres" mapstructure:"postgres"`
-		Sqlite3 struct {
+		SQLite3 struct {
 			Filename string `yaml:"filename" json:"filename" mapstructure:"filename"`
 		} `yaml:"sqlite3" json:"sqlite3" mapstructure:"sqlite3"`
+		MySQL struct {
+			Host     string `yaml:"host" json:"host" mapstructure:"host"`
+			Port     int    `yaml:"port" json:"port" mapstructure:"port"`
+			Username string `yaml:"username" json:"username" mapstructure:"username"`
+			Password string `yaml:"password" json:"password" mapstructure:"password"`
+			Dbname   string `yaml:"dbname" json:"dbname" mapstructure:"dbname"`
+		} `yaml:"mysql" json:"mysql" mapstructure:"mysql"`
 	} `yaml:"db" json:"db" mapstructure:"db"`
 	Jwt struct {
 		SecretKey  string `yaml:"secret_key" json:"secret_key" mapstructure:"secret_key"`
@@ -97,7 +104,7 @@ func NewApplicationCfg() {
 		zap.L().Warn("No configuration file found, default configuration file will be created.")
 
 		// Read default configuration from embed
-		defaultConfig, _err := embed.FS.Open("application.json")
+		defaultConfig, _err := embed.FS.Open("configs/application.json")
 		if _err != nil {
 			zap.L().Error("Unable to read default configuration file.")
 			return

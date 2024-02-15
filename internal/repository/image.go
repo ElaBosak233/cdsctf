@@ -38,16 +38,28 @@ func (t *ImageRepository) Delete(image model.Image) (err error) {
 }
 
 func (t *ImageRepository) FindByID(IDs []uint) (images []model.Image, err error) {
-	result := t.Db.Table("images").Where("id IN ?", IDs).Find(&images)
+	result := t.Db.Table("images").
+		Where("id IN ?", IDs).
+		Preload("Ports").
+		Preload("Envs").
+		Find(&images)
 	return images, result.Error
 }
 
 func (t *ImageRepository) FindByChallengeID(challengeIDs []uint) (images []model.Image, err error) {
-	result := t.Db.Table("images").Where("challenge_id IN ?", challengeIDs).Find(&images)
+	result := t.Db.Table("images").
+		Where("challenge_id IN ?", challengeIDs).
+		Preload("Ports").
+		Preload("Envs").
+		Find(&images)
 	return images, result.Error
 }
 
 func (t *ImageRepository) DeleteByChallengeID(challengeIDs []uint) (err error) {
-	result := t.Db.Table("images").Where("challenge_id IN ?", challengeIDs).Delete(&model.Image{})
+	result := t.Db.Table("images").
+		Where("challenge_id IN ?", challengeIDs).
+		Preload("Ports").
+		Preload("Envs").
+		Delete(&model.Image{})
 	return result.Error
 }

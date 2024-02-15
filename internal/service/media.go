@@ -24,7 +24,7 @@ func NewMediaService(appRepository *repository.Repository) IMediaService {
 
 func (a *MediaService) GetUserAvatarList() (res []string, err error) {
 	res = []string{}
-	path := fmt.Sprintf("%s/users/avatar", config.AppCfg().Server.Paths.Media)
+	path := fmt.Sprintf("%s/users/avatar", config.AppCfg().Gin.Paths.Media)
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (a *MediaService) GetUserAvatarList() (res []string, err error) {
 
 func (a *MediaService) GetTeamAvatarList() (res []string, err error) {
 	res = []string{}
-	path := fmt.Sprintf("%s/teams/avatar", config.AppCfg().Server.Paths.Media)
+	path := fmt.Sprintf("%s/teams/avatar", config.AppCfg().Gin.Paths.Media)
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (a *MediaService) FindChallengeAttachmentByChallengeId(id int64) (err error
 }
 
 func (a *MediaService) CheckChallengeAttachmentByChallengeId(id int64) (fileName string, fileSize int64, err error) {
-	path := fmt.Sprintf("%s/challenges/attachments/%d", config.AppCfg().Server.Paths.Media, id)
+	path := fmt.Sprintf("%s/challenges/attachments/%d", config.AppCfg().Gin.Paths.Media, id)
 	files, err := os.ReadDir(path)
 	if len(files) == 0 {
 		return "", 0, errors.New("无附件")
@@ -75,7 +75,7 @@ func (a *MediaService) CheckChallengeAttachmentByChallengeId(id int64) (fileName
 }
 
 func (a *MediaService) DeleteChallengeAttachmentByChallengeId(id int64) (err error) {
-	path := fmt.Sprintf("%s/challenges/attachments/%d", config.AppCfg().Server.Paths.Media, id)
+	path := fmt.Sprintf("%s/challenges/attachments/%d", config.AppCfg().Gin.Paths.Media, id)
 	files, err := os.ReadDir(path)
 	if len(files) == 0 {
 		return nil

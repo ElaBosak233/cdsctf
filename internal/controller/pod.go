@@ -46,7 +46,7 @@ func (c *PodController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	instanceCreateRequest.UserID = ctx.GetUint("ID")
+	instanceCreateRequest.UserID = ctx.GetUint("UserID")
 	res, err := c.PodService.Create(instanceCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -147,7 +147,7 @@ func (c *PodController) FindById(ctx *gin.Context) {
 // @Router /api/pods/ [get]
 func (c *PodController) Find(ctx *gin.Context) {
 	podFindRequest := request.PodFindRequest{
-		UserID:      ctx.GetUint("ID"),
+		UserID:      ctx.GetUint("UserID"),
 		IDs:         convertor.ToUintSliceD(ctx.QueryArray("id"), []uint{}),
 		ChallengeID: convertor.ToUintD(ctx.Query("challenge_id"), 0),
 		TeamID:      convertor.ToUintP(ctx.Query("team_id")),

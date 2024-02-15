@@ -11,7 +11,6 @@ type IImageService interface {
 }
 
 type ImageServiceImpl struct {
-	MixinService    IMixinService
 	ImageRepository repository.IImageRepository
 	PortRepository  repository.IPortRepository
 	EnvRepository   repository.IEnvRepository
@@ -19,7 +18,6 @@ type ImageServiceImpl struct {
 
 func NewImageServiceImpl(appRepository *repository.Repository) IImageService {
 	return &ImageServiceImpl{
-		MixinService:    NewMixinService(appRepository),
 		ImageRepository: appRepository.ImageRepository,
 		PortRepository:  appRepository.PortRepository,
 		EnvRepository:   appRepository.EnvRepository,
@@ -28,12 +26,10 @@ func NewImageServiceImpl(appRepository *repository.Repository) IImageService {
 
 func (t *ImageServiceImpl) FindByID(IDs []uint) (images []model.Image, err error) {
 	images, err = t.ImageRepository.FindByID(IDs)
-	images, err = t.MixinService.MixinImage(images)
 	return images, err
 }
 
 func (t *ImageServiceImpl) FindByChallengeID(challengeIDs []uint) (images []model.Image, err error) {
 	images, err = t.ImageRepository.FindByChallengeID(challengeIDs)
-	images, err = t.MixinService.MixinImage(images)
 	return images, err
 }
