@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	root = config.AppCfg().Server.Paths.Frontend
+	root = config.AppCfg().Gin.Paths.Frontend
 )
 
 type IFrontendMiddleware interface {
@@ -35,8 +35,8 @@ func (m *FrontendMiddleware) Frontend(urlPrefix string) gin.HandlerFunc {
 			ctx.Next()
 		} else {
 			if ctx.Request.URL.Path == "/favicon.ico" {
-				if _, err := os.Stat(path.Join(config.AppCfg().Server.Paths.Assets, "favicon.ico")); err == nil {
-					http.ServeFile(ctx.Writer, ctx.Request, path.Join(config.AppCfg().Server.Paths.Assets, "favicon.ico"))
+				if _, err := os.Stat(path.Join(config.AppCfg().Gin.Paths.Assets, "favicon.ico")); err == nil {
+					http.ServeFile(ctx.Writer, ctx.Request, path.Join(config.AppCfg().Gin.Paths.Assets, "favicon.ico"))
 					ctx.Abort()
 				}
 			}

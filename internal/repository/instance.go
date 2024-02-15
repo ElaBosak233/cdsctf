@@ -24,6 +24,10 @@ func (t *InstanceRepository) Insert(container model.Instance) (c model.Instance,
 }
 
 func (t *InstanceRepository) FindByPodID(podIDs []uint) (containers []model.Instance, err error) {
-	result := t.Db.Table("instances").Where("pod_id IN ?", podIDs).Find(&containers)
+	result := t.Db.Table("instances").
+		Where("pod_id IN ?", podIDs).
+		Preload("Image").
+		Preload("Nats").
+		Find(&containers)
 	return containers, result.Error
 }

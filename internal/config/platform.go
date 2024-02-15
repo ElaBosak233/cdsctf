@@ -43,7 +43,7 @@ func NewPlatformCfg() {
 		zap.L().Warn("No configuration file found, default configuration file will be created.")
 
 		// Read default configuration from embed
-		defaultConfig, _err := embed.FS.Open("platform.json")
+		defaultConfig, _err := embed.FS.Open("configs/platform.json")
 		if _err != nil {
 			zap.L().Error("Unable to read default configuration file.")
 			return

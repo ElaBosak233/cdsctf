@@ -64,7 +64,12 @@ func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, page
 		offset := (req.Page - 1) * req.Size
 		db = db.Offset(offset).Limit(req.Size)
 	}
-	result = db.Find(&pods)
+	result = db.
+		Preload("Instances.Image").
+		Preload("Instances.Nats").
+		Preload("Instances.Image.Ports").
+		Preload("Instances.Image.Envs").
+		Find(&pods)
 	return pods, pageCount, result.Error
 }
 

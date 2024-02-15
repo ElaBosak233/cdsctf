@@ -1,12 +1,14 @@
 package service
 
 import (
+	"fmt"
 	"github.com/elabosak233/pgshub/internal/model"
 	"github.com/elabosak233/pgshub/internal/model/dto/request"
 	"github.com/elabosak233/pgshub/internal/model/dto/response"
 	"github.com/elabosak233/pgshub/internal/repository"
 	"github.com/elabosak233/pgshub/pkg/calculate"
 	"github.com/elabosak233/pgshub/pkg/convertor"
+	"go.uber.org/zap"
 	"math"
 	"regexp"
 	"sync"
@@ -20,7 +22,6 @@ type ISubmissionService interface {
 }
 
 type SubmissionService struct {
-	MixinService            IMixinService
 	PodRepository           repository.IPodRepository
 	SubmissionRepository    repository.ISubmissionRepository
 	ChallengeRepository     repository.IChallengeRepository
@@ -31,7 +32,6 @@ type SubmissionService struct {
 
 func NewSubmissionService(appRepository *repository.Repository) ISubmissionService {
 	return &SubmissionService{
-		MixinService:            NewMixinService(appRepository),
 		PodRepository:           appRepository.PodRepository,
 		SubmissionRepository:    appRepository.SubmissionRepository,
 		ChallengeRepository:     appRepository.ChallengeRepository,
@@ -53,6 +53,7 @@ func (t *SubmissionService) JudgeDynamicChallenge(req request.SubmissionCreateRe
 	for _, pod := range perhapsPods {
 		podIDs = append(podIDs, pod.ID)
 	}
+	zap.L().Debug(fmt.Sprintf("podIDs: %v", podIDs))
 	flags, err := t.FlagGenRepository.FindByPodID(podIDs)
 	flagMap := make(map[uint]string)
 	for _, flag := range flags {
@@ -78,10 +79,11 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 	challenges, _, err := t.ChallengeRepository.Find(request.ChallengeFindRequest{
 		IDs: []uint{req.ChallengeID},
 	})
-	challenges, err = t.MixinService.MixinChallenge(challenges)
 	challenge := challenges[0]
 	status = 1
+	zap.L().Debug(fmt.Sprintf("req.Flag: %s", req.Flag))
 	for _, flag := range challenge.Flags {
+		zap.L().Debug(fmt.Sprintf("flag.Type: %s", flag.Type))
 		switch flag.Type {
 		case "static":
 			if flag.Value == req.Flag {

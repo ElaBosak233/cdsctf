@@ -9,6 +9,6 @@ type Image struct {
 	CPULimit    float64 `gorm:"default:1;" json:"cpu_limit"`
 	MemoryLimit int64   `gorm:"default:256;" json:"memory_limit"`
 	Description string  `gorm:"type:text;" json:"description"`
-	Ports       []*Port `json:"ports"`
-	Envs        []*Env  `json:"envs"`
+	Ports       []*Port `json:"ports,omitempty"`
+	Envs        []*Env  `json:"envs,omitempty"`
 }
