@@ -8,6 +8,7 @@ import (
 	"github.com/elabosak233/pgshub/internal/repository"
 	"github.com/elabosak233/pgshub/pkg/calculate"
 	"github.com/elabosak233/pgshub/pkg/convertor"
+	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 	"math"
 	"regexp"
@@ -145,7 +146,14 @@ func (t *SubmissionService) Delete(id uint) (err error) {
 }
 
 func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, pageCount int64, total int64, err error) {
-	submissions, count, err := t.SubmissionRepository.Find(req)
+	submissionResp, count, err := t.SubmissionRepository.Find(req)
+
+	for _, s := range submissionResp {
+		var submission response.SubmissionResponse
+		_ = mapstructure.Decode(s, &submission)
+		submissions = append(submissions, submission)
+	}
+
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {

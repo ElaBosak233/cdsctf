@@ -56,12 +56,13 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []response.Tea
 		return q
 	}
 	db := applyFilters(t.Db.Table("teams"))
-	ct := applyFilters(t.Db.Table("teams"))
-	result := ct.Model(&model.Team{}).Count(&count)
+
+	result := db.Model(&model.Team{}).Count(&count)
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Offset(offset).Limit(req.Size)
 	}
+
 	result = db.Find(&teams)
 	return teams, count, result.Error
 }

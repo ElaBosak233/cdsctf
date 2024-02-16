@@ -10,7 +10,7 @@ import (
 type ISubmissionRepository interface {
 	Insert(submission model.Submission) (err error)
 	Delete(id uint) (err error)
-	Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, count int64, err error)
+	Find(req request.SubmissionFindRequest) (submissions []model.Submission, count int64, err error)
 	BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error)
 }
 
@@ -32,7 +32,7 @@ func (t *SubmissionRepository) Delete(id uint) (err error) {
 	return result.Error
 }
 
-func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, count int64, err error) {
+func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissions []model.Submission, count int64, err error) {
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.UserID != 0 && req.TeamID == nil && req.GameID == nil {
 			q = q.Where("user_id = ?", req.UserID)
@@ -55,8 +55,8 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 		return q
 	}
 	db := applyFilters(t.Db.Table("submissions"))
-	ct := applyFilters(t.Db.Table("submissions"))
-	result := ct.Model(&model.Submission{}).Count(&count)
+
+	result := db.Model(&model.Submission{}).Count(&count)
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
@@ -72,6 +72,7 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 		offset := (req.Page - 1) * req.Size
 		db = db.Offset(offset).Limit(req.Size)
 	}
+
 	db = db.Joins("INNER JOIN users ON submissions.user_id = users.id").
 		Joins("INNER JOIN challenges ON submissions.challenge_id = challenges.id").
 		Joins("LEFT JOIN teams ON submissions.team_id = teams.id").

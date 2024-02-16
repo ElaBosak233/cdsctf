@@ -65,8 +65,8 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 		return q
 	}
 	db := applyFilter(t.Db.Table("challenges"))
-	ct := applyFilter(t.Db.Table("challenges"))
-	result := ct.Model(&model.Challenge{}).Count(&count)
+
+	result := db.Model(&model.Challenge{}).Count(&count)
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
@@ -82,16 +82,22 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 		offset := (req.Page - 1) * req.Size
 		db = db.Offset(offset).Limit(req.Size)
 	}
+
 	result = db.
 		Preload("Category").
 		Preload("Flags").
-		Preload("Images.Ports").
-		Preload("Images.Envs").
+		Preload("Images", func(Db *gorm.DB) *gorm.DB {
+			return Db.
+				Preload("Ports").
+				Preload("Envs")
+		}).
 		Find(&challenges)
 	return challenges, count, result.Error
 }
 
 func (t *ChallengeRepository) FindById(id uint, isDetailed int) (challenge model.Challenge, err error) {
-	result := t.Db.Table("challenges").Where("id = ?", id).First(&challenge)
+	result := t.Db.Table("challenges").
+		Where("id = ?", id).
+		First(&challenge)
 	return challenge, result.Error
 }
