@@ -37,13 +37,13 @@ func NewChallengeController(appService *service.Service) IChallengeController {
 // @Router /api/challenges/ [get]
 func (c *ChallengeController) Find(ctx *gin.Context) {
 	isDetailed := func() *bool {
-		if ctx.GetInt64("UserRole") <= 2 {
+		if ctx.GetInt64("UserLevel") <= 2 {
 			return convertor.ToBoolP(ctx.Query("is_detailed"))
 		}
 		return convertor.FalseP()
 	}
 	isPracticable := func() *bool {
-		if ctx.GetInt64("UserRole") <= 2 {
+		if ctx.GetInt64("UserLevel") <= 2 {
 			return convertor.ToBoolP(ctx.Query("is_practicable"))
 		}
 		return convertor.TrueP()

@@ -37,7 +37,7 @@ func NewSubmissionController(appService *service.Service) ISubmissionController 
 // @Router /api/submissions/ [get]
 func (c *SubmissionController) Find(ctx *gin.Context) {
 	isDetailed := func() int {
-		if ctx.GetInt64("UserRole") <= 3 && convertor.ToIntD(ctx.Query("is_detailed"), 0) == 1 {
+		if ctx.GetInt64("UserLevel") <= 3 && convertor.ToIntD(ctx.Query("is_detailed"), 0) == 1 {
 			return 1
 		}
 		return 0

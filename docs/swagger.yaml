@@ -71,8 +71,6 @@ definitions:
         description: Whether the challenge is practicable. (Is the practice field
           visible.)
         type: boolean
-      is_solved:
-        type: boolean
       practice_pts:
         description: The points will be given when the challenge is solved in practice
           field.
@@ -187,6 +185,21 @@ definitions:
       updated_at:
         description: The game's last update time.
         type: string
+    type: object
+  model.Group:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      name:
+        type: string
+      users:
+        items:
+          $ref: '#/definitions/model.User'
+        type: array
     type: object
   model.Hint:
     properties:
@@ -356,6 +369,13 @@ definitions:
       email:
         description: The user's email.
         type: string
+      group:
+        allOf:
+        - $ref: '#/definitions/model.Group'
+        description: The user's role.
+      group_id:
+        description: The user's role.
+        type: integer
       id:
         description: The user's id. As primary key.
         type: integer
@@ -365,9 +385,6 @@ definitions:
       password:
         description: The user's password. Crypt.
         type: string
-      role:
-        description: The user's role.
-        type: integer
       teams:
         description: The user's teams.
         items:
@@ -630,25 +647,25 @@ definitions:
     properties:
       email:
         type: string
+      group_id:
+        maximum: 5
+        minimum: 1
+        type: integer
       nickname:
         minLength: 2
         type: string
       password:
         minLength: 6
         type: string
-      role:
-        maximum: 5
-        minimum: 1
-        type: integer
       username:
         maxLength: 20
         minLength: 3
         type: string
     required:
     - email
+    - group_id
     - nickname
     - password
-    - role
     - username
     type: object
   request.UserDeleteRequest:
@@ -688,6 +705,10 @@ definitions:
     properties:
       email:
         type: string
+      group_id:
+        maximum: 5
+        minimum: 1
+        type: integer
       id:
         type: integer
       nickname:
@@ -696,10 +717,6 @@ definitions:
       password:
         minLength: 6
         type: string
-      role:
-        maximum: 5
-        minimum: 1
-        type: integer
       username:
         maxLength: 20
         minLength: 3
@@ -1656,9 +1673,6 @@ paths:
         type: string
       - in: query
         name: page
-        type: integer
-      - in: query
-        name: role
         type: integer
       - in: query
         name: size

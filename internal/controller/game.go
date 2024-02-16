@@ -113,7 +113,7 @@ func (g *GameController) Update(ctx *gin.Context) {
 // @Router /api/games/ [get]
 func (g *GameController) Find(ctx *gin.Context) {
 	isEnabled := func() int {
-		if ctx.GetInt64("UserRole") < 3 && ctx.Query("is_enabled") == "-1" {
+		if ctx.GetInt64("UserLevel") < 3 && ctx.Query("is_enabled") == "-1" {
 			return -1
 		}
 		return 1

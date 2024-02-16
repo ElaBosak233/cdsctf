@@ -53,14 +53,10 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 		if req.Name != "" {
 			q = q.Where("name LIKE ? OR username LIKE ?", "%"+req.Name+"%", "%"+req.Name+"%")
 		}
-		if req.Role != 0 {
-			q = q.Where("role = ?", req.Role)
-		}
 		return q
 	}
 	db := applyFilter(t.Db.Table("users"))
-	ct := applyFilter(t.Db.Table("users"))
-	result := ct.Model(&model.User{}).Count(&count)
+	result := db.Model(&model.User{}).Count(&count)
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
@@ -76,7 +72,9 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 		offset := (req.Page - 1) * req.Size
 		db = db.Offset(offset).Limit(req.Size)
 	}
-	result = db.Find(&users)
+	result = db.
+		Preload("Group").
+		Find(&users)
 	return users, count, result.Error
 }
 
@@ -89,16 +87,25 @@ func (t *UserRepository) BatchFindByTeamId(req request.UserBatchFindByTeamIdRequ
 }
 
 func (t *UserRepository) FindById(id uint) (user model.User, err error) {
-	result := t.Db.Table("users").Where("id = ?", id).First(&user)
+	result := t.Db.Table("users").
+		Where("id = ?", id).
+		Preload("Group").
+		First(&user)
 	return user, result.Error
 }
 
 func (t *UserRepository) FindByUsername(username string) (user model.User, err error) {
-	result := t.Db.Table("users").Where("username = ?", username).First(&user)
+	result := t.Db.Table("users").
+		Where("username = ?", username).
+		Preload("Group").
+		First(&user)
 	return user, result.Error
 }
 
 func (t *UserRepository) FindByEmail(email string) (user model.User, err error) {
-	result := t.Db.Table("users").Where("email = ?", email).First(&user)
+	result := t.Db.Table("users").
+		Where("email = ?", email).
+		Preload("Group").
+		First(&user)
 	return user, result.Error
 }
