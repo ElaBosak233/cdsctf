@@ -120,19 +120,18 @@ func NewApplicationCfg() {
 		}(dstConfig)
 
 		if _, _err = io.Copy(dstConfig, defaultConfig); _err != nil {
-			zap.L().Error("Unable to create default configuration file.")
-			panic(err)
+			zap.L().Fatal("Unable to create default configuration file.")
 		}
 		zap.L().Info("The default configuration file has been generated.")
 	}
 
 	if err := v1.ReadInConfig(); err != nil {
-		zap.L().Error("Unable to read configuration file.")
+		zap.L().Fatal("Unable to read configuration file.")
 		return
 	}
 
 	if err := v1.Unmarshal(&appCfg); err != nil {
-		zap.L().Error("Unable to parse configuration file to structure.")
+		zap.L().Fatal("Unable to parse configuration file to structure.")
 	}
 }
 
