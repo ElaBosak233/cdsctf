@@ -69,7 +69,13 @@ func (t *ChallengeService) Delete(id uint) error {
 }
 
 func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error) {
-	challenges, count, err := t.ChallengeRepository.Find(req)
+	challengesData, count, err := t.ChallengeRepository.Find(req)
+
+	for _, challenge := range challengesData {
+		var cha response.ChallengeResponse
+		_ = mapstructure.Decode(challenge, &cha)
+		challenges = append(challenges, cha)
+	}
 
 	challengeMap := make(map[uint]response.ChallengeResponse)
 	challengeIDs := make([]uint, 0)

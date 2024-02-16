@@ -210,9 +210,9 @@ func (c *UserController) Update(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt64("UserRole") <= 1 || ctx.GetUint("UserID") == updateUserRequest.ID {
-		if ctx.GetInt64("UserRole") > 1 {
-			updateUserRequest.Role = ctx.GetInt64("UserRole")
+	if ctx.GetInt64("UserLevel") <= 1 || ctx.GetUint("UserID") == updateUserRequest.ID {
+		if ctx.GetInt64("UserLevel") > 1 {
+			updateUserRequest.GroupID = ctx.GetUint("UserGroupID")
 			updateUserRequest.Username = ""
 		}
 		err = c.UserService.Update(updateUserRequest)
@@ -255,7 +255,7 @@ func (c *UserController) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	if ctx.GetInt64("UserRole") <= 1 || ctx.GetUint("UserID") == deleteUserRequest.ID {
+	if ctx.GetInt64("UserLevel") <= 1 || ctx.GetUint("UserID") == deleteUserRequest.ID {
 		_ = c.UserService.Delete(deleteUserRequest.ID)
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
@@ -278,7 +278,6 @@ func (c *UserController) Delete(ctx *gin.Context) {
 // @Router /api/users/ [get]
 func (c *UserController) Find(ctx *gin.Context) {
 	userResponse, pageCount, total, _ := c.UserService.Find(request.UserFindRequest{
-		Role:   int64(convertor.ToIntD(ctx.Query("role"), 0)),
 		ID:     convertor.ToUintD(ctx.Query("id"), 0),
 		Email:  ctx.Query("email"),
 		Name:   ctx.Query("name"),

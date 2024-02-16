@@ -22,6 +22,7 @@ func InitDatabase() {
 	zap.L().Info(fmt.Sprintf("Database Connect Information: %s", dbInfo))
 	db.Logger = zapgorm2.New(zap.L())
 	syncDatabase()
+	initGroup()
 	initAdmin()
 	initCategory()
 	selfCheck()
@@ -70,6 +71,7 @@ func initDatabaseEngine() {
 func syncDatabase() {
 	err := db.AutoMigrate(
 		&model.User{},
+		&model.Group{},
 		&model.Category{},
 		&model.Challenge{},
 		&model.Team{},
@@ -106,7 +108,7 @@ func initAdmin() {
 		err := db.Create(&model.User{
 			Username: "admin",
 			Nickname: "Administrator",
-			Role:     1,
+			GroupID:  1,
 			Password: string(hashedPassword),
 			Email:    "admin@admin.com",
 		}).Error
@@ -159,5 +161,41 @@ func initCategory() {
 			zap.L().Fatal("Category initialization failed.", zap.Error(err))
 			return
 		}
+	}
+}
+
+func initGroup() {
+	var count int64
+	db.Model(&model.Group{}).Count(&count)
+	if count == 0 {
+		zap.L().Warn("Groups do not exist, will be created soon.")
+		defaultGroups := []model.Group{
+			{
+				Name:        "admin",
+				Description: "The administrator has the highest authority.",
+				Level:       1,
+			},
+			{
+				Name:        "monitor",
+				Description: "The monitor has the authority to control the games.",
+				Level:       2,
+			},
+			{
+				Name:        "user",
+				Description: "The user is the default role.",
+				Level:       3,
+			},
+			{
+				Name:        "banned",
+				Description: "The banned user has no authority.",
+				Level:       5,
+			},
+		}
+		err := db.Create(&defaultGroups).Error
+		if err != nil {
+			zap.L().Fatal("Groups initialization failed.", zap.Error(err))
+			return
+		}
+		zap.L().Info("Groups created successfully.")
 	}
 }

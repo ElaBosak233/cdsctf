@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/elabosak233/pgshub/internal/config"
 	"github.com/elabosak233/pgshub/internal/service"
 	"github.com/gin-gonic/gin"
@@ -48,7 +49,9 @@ func (m *AuthMiddleware) BasicAuth(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		ctx.Set("UserRole", user.Role)
+		fmt.Println(user)
+		ctx.Set("UserGroupID", user.Group.ID)
+		ctx.Set("UserLevel", user.Group.Level)
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusUnauthorized,
@@ -62,7 +65,7 @@ func (m *AuthMiddleware) BasicAuth(ctx *gin.Context) {
 func (m *AuthMiddleware) AuthInRole(role int64) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		m.BasicAuth(ctx)
-		if ctx.GetInt64("UserRole") > role {
+		if ctx.GetInt64("UserLevel") > role {
 			ctx.JSON(http.StatusOK, gin.H{
 				"code": http.StatusForbidden,
 				"msg":  "权限不足",

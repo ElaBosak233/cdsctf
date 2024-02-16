@@ -3,7 +3,6 @@ package repository
 import (
 	"github.com/elabosak233/pgshub/internal/model"
 	"github.com/elabosak233/pgshub/internal/model/dto/request"
-	"github.com/elabosak233/pgshub/internal/model/dto/response"
 	"gorm.io/gorm"
 )
 
@@ -12,7 +11,7 @@ type IChallengeRepository interface {
 	Update(challenge model.Challenge) (c model.Challenge, err error)
 	Delete(id uint) error
 	FindById(id uint, isDetailed int) (challenge model.Challenge, err error)
-	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, count int64, err error)
+	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, count int64, err error)
 }
 
 type ChallengeRepository struct {
@@ -38,7 +37,7 @@ func (t *ChallengeRepository) Update(challenge model.Challenge) (c model.Challen
 	return challenge, result.Error
 }
 
-func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, count int64, err error) {
+func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, count int64, err error) {
 	isGame := req.GameID != nil && req.TeamID != nil
 	applyFilter := func(q *gorm.DB) *gorm.DB {
 		if req.Category != "" {

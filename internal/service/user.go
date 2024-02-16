@@ -71,7 +71,7 @@ func (t *UserService) Create(req request.UserCreateRequest) (err error) {
 		Username: req.Username,
 		Email:    req.Email,
 		Nickname: req.Nickname,
-		Role:     req.Role,
+		GroupID:  req.GroupID,
 		Password: string(hashedPassword),
 	}
 	err = t.UserRepository.Insert(userModel)
@@ -112,12 +112,9 @@ func (t *UserService) Find(req request.UserFindRequest) (users []response.UserRe
 
 func (t *UserService) FindById(id uint) (response.UserResponse, error) {
 	userData, err := t.UserRepository.FindById(id)
-	if err != nil {
-		return response.UserResponse{}, errors.New("用户不存在")
-	}
 	userResp := response.UserResponse{}
 	_ = mapstructure.Decode(userData, &userResp)
-	return userResp, nil
+	return userResp, err
 }
 
 func (t *UserService) FindByUsername(username string) (response.UserResponse, error) {

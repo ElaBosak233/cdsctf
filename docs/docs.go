@@ -1402,11 +1402,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "name": "role",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
                         "name": "size",
                         "in": "query"
                     },
@@ -1719,9 +1714,6 @@ const docTemplate = `{
                     "description": "Whether the challenge is practicable. (Is the practice field visible.)",
                     "type": "boolean"
                 },
-                "is_solved": {
-                    "type": "boolean"
-                },
                 "practice_pts": {
                     "description": "The points will be given when the challenge is solved in practice field.",
                     "type": "integer"
@@ -1876,6 +1868,29 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "The game's last update time.",
                     "type": "string"
+                }
+            }
+        },
+        "model.Group": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.User"
+                    }
                 }
             }
         },
@@ -2125,6 +2140,18 @@ const docTemplate = `{
                     "description": "The user's email.",
                     "type": "string"
                 },
+                "group": {
+                    "description": "The user's role.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Group"
+                        }
+                    ]
+                },
+                "group_id": {
+                    "description": "The user's role.",
+                    "type": "integer"
+                },
                 "id": {
                     "description": "The user's id. As primary key.",
                     "type": "integer"
@@ -2136,10 +2163,6 @@ const docTemplate = `{
                 "password": {
                     "description": "The user's password. Crypt.",
                     "type": "string"
-                },
-                "role": {
-                    "description": "The user's role.",
-                    "type": "integer"
                 },
                 "teams": {
                     "description": "The user's teams.",
@@ -2535,14 +2558,19 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
+                "group_id",
                 "nickname",
                 "password",
-                "role",
                 "username"
             ],
             "properties": {
                 "email": {
                     "type": "string"
+                },
+                "group_id": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
                 },
                 "nickname": {
                     "type": "string",
@@ -2551,11 +2579,6 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 6
-                },
-                "role": {
-                    "type": "integer",
-                    "maximum": 5,
-                    "minimum": 1
                 },
                 "username": {
                     "type": "string",
@@ -2622,6 +2645,11 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "group_id": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -2632,11 +2660,6 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 6
-                },
-                "role": {
-                    "type": "integer",
-                    "maximum": 5,
-                    "minimum": 1
                 },
                 "username": {
                     "type": "string",

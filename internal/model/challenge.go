@@ -23,5 +23,4 @@ type Challenge struct {
 	Hints         []*Hint       `json:"hints,omitempty"`
 	Images        []*Image      `json:"images,omitempty"`
 	Submissions   []*Submission `json:"submissions,omitempty"`
-	IsSolved      bool          `gorm:"-" json:"is_solved,omitempty"`
 }
