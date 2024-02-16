@@ -1,7 +1,6 @@
 package router
 
 import (
-	"fmt"
 	"github.com/elabosak233/pgshub/internal/controller"
 	"github.com/elabosak233/pgshub/internal/middleware"
 	"github.com/gin-gonic/gin"
@@ -14,7 +13,10 @@ func NewRouter(
 	appMiddleware *middleware.Middleware,
 ) {
 	router.GET("/", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, fmt.Sprintf("The Backend of PgsHub"))
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusOK,
+			"msg":  "This is the heart of PgsHub.",
+		})
 	})
 	NewUserRouter(router.Group("/users"), appController.UserController, appMiddleware.AuthMiddleware)
 	NewChallengeRouter(router.Group("/challenges"), appController.ChallengeController, appMiddleware.AuthMiddleware)
@@ -24,4 +26,5 @@ func NewRouter(
 	NewTeamRouter(router.Group("/teams"), appController.TeamController)
 	NewSubmissionRouter(router.Group("/submissions"), appController.SubmissionController, appMiddleware.AuthMiddleware)
 	NewGameRouter(router.Group("/games"), appController.GameController, appMiddleware.AuthMiddleware)
+	NewCategoryRouter(router.Group("/categories"), appController.CategoryController, appMiddleware.AuthMiddleware)
 }

@@ -8,6 +8,8 @@ import (
 
 type ICategoryRepository interface {
 	Create(category model.Category) (err error)
+	Update(category model.Category) (err error)
+	Find(req request.CategoryFindRequest) (categories []model.Category, err error)
 	FindByID(IDs []uint) (categories []model.Category, err error)
 }
 
@@ -20,7 +22,12 @@ func NewCategoryRepositoryImpl(Db *gorm.DB) ICategoryRepository {
 }
 
 func (t *CategoryRepository) Create(category model.Category) (err error) {
-	result := t.Db.Create(&category)
+	result := t.Db.Table("categories").Create(&category)
+	return result.Error
+}
+
+func (t *CategoryRepository) Update(category model.Category) (err error) {
+	result := t.Db.Table("categories").Updates(&category)
 	return result.Error
 }
 
@@ -34,11 +41,11 @@ func (t *CategoryRepository) Find(req request.CategoryFindRequest) (categories [
 		}
 		return db
 	}
-	result := applyFilters(t.Db).Find(&categories)
+	result := applyFilters(t.Db.Table("categories")).Find(&categories)
 	return categories, result.Error
 }
 
 func (t *CategoryRepository) FindByID(IDs []uint) (categories []model.Category, err error) {
-	result := t.Db.Where("id IN ?", IDs).Find(&categories)
+	result := t.Db.Table("categories").Where("id IN ?", IDs).Find(&categories)
 	return categories, result.Error
 }

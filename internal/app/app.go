@@ -16,6 +16,7 @@ import (
 	"github.com/elabosak233/pgshub/internal/service"
 	"github.com/elabosak233/pgshub/pkg/convertor"
 	"github.com/elabosak233/pgshub/pkg/logger"
+	"github.com/elabosak233/pgshub/pkg/logger/adapter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -59,7 +60,7 @@ func Run() {
 	}
 	r := gin.New()
 
-	r.Use(logger.GinLogger(), logger.GinRecovery(true))
+	r.Use(adapter.GinLogger(), adapter.GinRecovery(true))
 
 	// Cors configurations
 	cor := cors.DefaultConfig()
