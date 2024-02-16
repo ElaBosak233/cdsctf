@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"github.com/elabosak233/pgshub/internal/config"
 	"github.com/elabosak233/pgshub/internal/model"
+	"github.com/elabosak233/pgshub/pkg/logger/adapter"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"moul.io/zapgorm2"
 	"time"
 )
 
@@ -20,7 +20,7 @@ var dbInfo string
 func InitDatabase() {
 	initDatabaseEngine()
 	zap.L().Info(fmt.Sprintf("Database Connect Information: %s", dbInfo))
-	db.Logger = zapgorm2.New(zap.L())
+	db.Logger = adapter.NewGORMAdapter(zap.L())
 	syncDatabase()
 	initGroup()
 	initAdmin()
