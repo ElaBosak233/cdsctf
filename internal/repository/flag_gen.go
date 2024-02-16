@@ -25,11 +25,15 @@ func (t *FlagGenRepository) Insert(flag model.FlagGen) (f model.FlagGen, err err
 }
 
 func (t *FlagGenRepository) FindByID(IDs []uint) (flags []model.FlagGen, err error) {
-	result := t.Db.Table("flag_gens").Where("id IN ?", IDs).Find(&flags)
+	result := t.Db.Table("flag_gens").
+		Where("id IN ?", IDs).
+		Find(&flags)
 	return flags, result.Error
 }
 
 func (t *FlagGenRepository) FindByPodID(podIDs []uint) (flags []model.FlagGen, err error) {
-	result := t.Db.Table("flag_gens").Where("pod_id IN ?", podIDs).Find(&flags)
+	result := t.Db.Table("flag_gens").
+		Where("pod_id IN ?", podIDs).
+		Find(&flags)
 	return flags, result.Error
 }

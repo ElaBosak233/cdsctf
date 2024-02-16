@@ -346,19 +346,18 @@ func (t *PodService) Remove(req request.PodRemoveRequest) (err error) {
 
 func (t *PodService) FindById(id uint) (rep response.PodResponse, err error) {
 	if config.AppCfg().Container.Provider == "docker" {
-		instance, err := t.PodRepository.FindById(id)
-		if err != nil || PodManagers[id] == nil {
-			return rep, errors.New("实例不存在")
+		instance, _ := t.PodRepository.FindById(id)
+		if PodManagers[id] != nil {
+			ctn := PodManagers[id].(*manager.DockerManager)
+			status, _ := ctn.GetContainerStatus()
+			rep = response.PodResponse{
+				ID:          id,
+				RemovedAt:   instance.RemovedAt,
+				ChallengeID: instance.ChallengeID,
+				Status:      status,
+			}
+			return rep, nil
 		}
-		ctn := PodManagers[id].(*manager.DockerManager)
-		status, _ := ctn.GetContainerStatus()
-		rep = response.PodResponse{
-			ID:          id,
-			RemovedAt:   instance.RemovedAt,
-			ChallengeID: instance.ChallengeID,
-			Status:      status,
-		}
-		return rep, nil
 	}
 	return rep, errors.New("获取失败")
 }
@@ -370,12 +369,13 @@ func (t *PodService) Find(req request.PodFindRequest) (pods []response.PodRespon
 		}
 		podResponse, _, err := t.PodRepository.Find(req)
 		for _, pod := range podResponse {
-			var ctn *manager.DockerManager
 			status := "removed"
-			ctn = PodManagers[pod.ID].(*manager.DockerManager)
-			s, _ := ctn.GetContainerStatus()
-			if s == "running" {
-				status = s
+			if PodManagers[pod.ID] != nil {
+				ctn := PodManagers[pod.ID].(*manager.DockerManager)
+				s, _ := ctn.GetContainerStatus()
+				if s == "running" {
+					status = s
+				}
 			}
 			pods = append(pods, response.PodResponse{
 				ID:          pod.ID,

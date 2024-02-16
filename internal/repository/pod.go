@@ -10,7 +10,7 @@ import (
 type IPodRepository interface {
 	Insert(pod model.Pod) (i model.Pod, err error)
 	Update(pod model.Pod) (err error)
-	Find(req request.PodFindRequest) (pods []model.Pod, pageCount int64, err error)
+	Find(req request.PodFindRequest) (pods []model.Pod, count int64, err error)
 	FindById(id uint) (pod model.Pod, err error)
 }
 
@@ -32,7 +32,7 @@ func (t *PodRepository) Update(pod model.Pod) (err error) {
 	return result.Error
 }
 
-func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, pageCount int64, err error) {
+func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, count int64, err error) {
 	applyFilter := func(q *gorm.DB) *gorm.DB {
 		if req.ChallengeID != 0 {
 			q = q.Where("challenge_id = ?", req.ChallengeID)
@@ -59,18 +59,25 @@ func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, page
 		return q
 	}
 	db := applyFilter(t.Db.Table("pods"))
-	result := applyFilter(t.Db.Table("pods")).Model(&model.Pod{}).Count(&pageCount)
+
+	result := db.Model(&model.Pod{}).Count(&count)
 	if req.Page != 0 && req.Size != 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Offset(offset).Limit(req.Size)
 	}
+
 	result = db.
-		Preload("Instances.Image").
-		Preload("Instances.Nats").
-		Preload("Instances.Image.Ports").
-		Preload("Instances.Image.Envs").
+		Preload("Instances", func(Db *gorm.DB) *gorm.DB {
+			return Db.
+				Preload("Image", func(Db *gorm.DB) *gorm.DB {
+					return Db.
+						Preload("Ports").
+						Preload("Envs")
+				}).
+				Preload("Nats")
+		}).
 		Find(&pods)
-	return pods, pageCount, result.Error
+	return pods, count, result.Error
 }
 
 func (t *PodRepository) FindById(id uint) (pod model.Pod, err error) {

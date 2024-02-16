@@ -37,11 +37,15 @@ func (t *FlagRepository) Delete(flag model.Flag) (err error) {
 }
 
 func (t *FlagRepository) FindByChallengeID(challengeIDs []uint) (flags []model.Flag, err error) {
-	result := t.Db.Table("flags").Where("challenge_id IN ?", challengeIDs).Find(&flags)
+	result := t.Db.Table("flags").
+		Where("challenge_id IN ?", challengeIDs).
+		Find(&flags)
 	return flags, result.Error
 }
 
 func (t *FlagRepository) DeleteByChallengeID(challengeIDs []uint) (err error) {
-	result := t.Db.Table("flags").Where("challenge_id IN ?", challengeIDs).Delete(&model.Flag{})
+	result := t.Db.Table("flags").
+		Where("challenge_id IN ?", challengeIDs).
+		Delete(&model.Flag{})
 	return result.Error
 }

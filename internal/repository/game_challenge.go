@@ -18,6 +18,9 @@ func NewGameChallengeRepository(Db *gorm.DB) IGameChallengeRepository {
 }
 
 func (t *GameChallengeRepository) BatchFindByGameIdAndChallengeId(gameID uint, challengeIDs []uint) (gameChallenges []model.GameChallenge, err error) {
-	result := t.Db.Table("game_challenges").Where("game_id = ?", gameID).Where("challenge_id IN ?", challengeIDs).Find(&gameChallenges)
+	result := t.Db.Table("game_challenges").
+		Where("game_id = ?", gameID).
+		Where("challenge_id IN ?", challengeIDs).
+		Find(&gameChallenges)
 	return gameChallenges, result.Error
 }

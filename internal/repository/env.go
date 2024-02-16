@@ -19,11 +19,14 @@ func NewEnvRepository(Db *gorm.DB) IEnvRepository {
 }
 
 func (t *EnvRepository) Insert(env model.Env) (e model.Env, err error) {
-	result := t.Db.Table("envs").Create(&env)
+	result := t.Db.Table("envs").
+		Create(&env)
 	return env, result.Error
 }
 
 func (t *EnvRepository) FindByImageID(imageIDs []uint) (envs []model.Env, err error) {
-	result := t.Db.Table("envs").Where("image_id IN ?", imageIDs).Find(&envs)
+	result := t.Db.Table("envs").
+		Where("image_id IN ?", imageIDs).
+		Find(&envs)
 	return envs, result.Error
 }

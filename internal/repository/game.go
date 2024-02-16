@@ -53,8 +53,8 @@ func (t *GameRepository) Find(req request.GameFindRequest) (games []response.Gam
 		return q
 	}
 	db := applyFilters(t.Db.Table("games"))
-	ct := applyFilters(t.Db.Table("games"))
-	result := ct.Model(&model.Submission{}).Count(&count)
+
+	result := db.Model(&model.Submission{}).Count(&count)
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
@@ -70,6 +70,7 @@ func (t *GameRepository) Find(req request.GameFindRequest) (games []response.Gam
 		offset := (req.Page - 1) * req.Size
 		db = db.Offset(offset).Limit(req.Size)
 	}
+
 	result = db.Find(&games)
 	return games, count, result.Error
 }
