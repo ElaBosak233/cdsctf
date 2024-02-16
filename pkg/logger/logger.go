@@ -59,7 +59,9 @@ func InitLogger() {
 	sugarLg = lg.Sugar()
 	zap.ReplaceGlobals(lg)
 	if err != nil {
-		panic(err)
+		zap.L().Fatal("Failed to load logging system.",
+			zap.Error(err),
+		)
 	}
 	zap.L().Info("The logging system has started.")
 }

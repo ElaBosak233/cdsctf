@@ -62,8 +62,7 @@ func checkK8sConfig(kubeconfig string) {
 			}(dstConfig)
 
 			if _, _err = io.Copy(dstConfig, defaultConfig); _err != nil {
-				zap.L().Error("Unable to create default configuration file.")
-				panic(err)
+				zap.L().Fatal("Unable to create default configuration file.")
 			}
 			zap.L().Info("The default configuration file has been generated.")
 		} else {
