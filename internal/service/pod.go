@@ -81,7 +81,7 @@ func (t *PodService) IsLimited(userID uint, limit int64) (remainder int64) {
 }
 
 func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatusResponse, err error) {
-	remainder := t.IsLimited(req.UserID, int64(config.AppCfg().Global.Container.RequestLimit))
+	remainder := t.IsLimited(req.UserID, int64(config.PltCfg().Container.RequestLimit))
 	if remainder != 0 {
 		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
@@ -96,7 +96,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		isGame := req.GameID != nil && req.TeamID != nil
 
 		// Parallel container limit
-		if config.AppCfg().Global.Container.ParallelLimit > 0 {
+		if config.PltCfg().Container.ParallelLimit > 0 {
 			var availablePods []model.Pod
 			var count int64
 			if !isGame {
@@ -111,7 +111,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 					IsAvailable: convertor.TrueP(),
 				})
 			}
-			needToBeDeactivated := count - int64(config.AppCfg().Global.Container.ParallelLimit) + 1
+			needToBeDeactivated := count - int64(config.PltCfg().Container.ParallelLimit) + 1
 			if needToBeDeactivated > 0 {
 				for _, pod := range availablePods {
 					if needToBeDeactivated == 0 {
@@ -303,7 +303,7 @@ func (t *PodService) Status(podID uint) (rep response.PodStatusResponse, err err
 }
 
 func (t *PodService) Renew(req request.PodRenewRequest) (removedAt int64, err error) {
-	remainder := t.IsLimited(req.UserID, int64(config.AppCfg().Global.Container.RequestLimit))
+	remainder := t.IsLimited(req.UserID, int64(config.PltCfg().Container.RequestLimit))
 	if remainder != 0 {
 		return 0, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
@@ -324,7 +324,7 @@ func (t *PodService) Renew(req request.PodRenewRequest) (removedAt int64, err er
 }
 
 func (t *PodService) Remove(req request.PodRemoveRequest) (err error) {
-	remainder := t.IsLimited(req.UserID, int64(config.AppCfg().Global.Container.RequestLimit))
+	remainder := t.IsLimited(req.UserID, int64(config.PltCfg().Container.RequestLimit))
 	if remainder != 0 {
 		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}

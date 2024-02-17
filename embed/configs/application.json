@@ -21,14 +21,17 @@
   },
   "container": {
     "provider": "docker",
-    "nat_type": "direct",
+    "nat": {
+      "type": "direct",
+      "entry": "127.0.0.1"
+    },
     "traffic_capture": {
         "enabled": false,
         "path": "./captures"
     },
     "docker": {
       "uri": "unix:///var/run/docker.sock",
-      "public_entry": "127.0.0.0"
+      "entry": "127.0.0.0"
     },
     "k8s": {
       "namespace": "default",
