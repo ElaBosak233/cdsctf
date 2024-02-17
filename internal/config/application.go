@@ -77,8 +77,13 @@ type ApplicationCfg struct {
 		Expiration int    `yaml:"expiration" json:"expiration" mapstructure:"expiration"`
 	} `yaml:"jwt" json:"jwt" mapstructure:"jwt"`
 	Container struct {
-		Provider string `yaml:"provider" json:"provider" mapstructure:"provider"`
-		Docker   struct {
+		Provider       string `yaml:"provider" json:"provider" mapstructure:"provider"`
+		NatType        string `yaml:"nat_type" json:"nat_type" mapstructure:"nat_type"`
+		TrafficCapture struct {
+			Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
+			Path    string `yaml:"path" json:"path" mapstructure:"path"`
+		} `yaml:"traffic_capture" json:"traffic_capture" mapstructure:"traffic_capture"`
+		Docker struct {
 			URI         string `yaml:"uri" json:"uri" mapstructure:"uri"`
 			PublicEntry string `yaml:"public_entry" json:"public_entry" mapstructure:"public_entry"`
 		} `yaml:"docker" json:"docker" mapstructure:"docker"`
@@ -133,6 +138,15 @@ func NewApplicationCfg() {
 	if err := v1.Unmarshal(&appCfg); err != nil {
 		zap.L().Fatal("Unable to parse configuration file to structure.")
 	}
+
+	if AppCfg().Container.TrafficCapture.Enabled {
+		if _, err := os.Stat(AppCfg().Container.TrafficCapture.Path); err != nil {
+			if _err := os.MkdirAll(AppCfg().Container.TrafficCapture.Path, os.ModePerm); _err != nil {
+				zap.L().Fatal("Unable to create directory for traffic capture.")
+			}
+		}
+	}
+
 }
 
 func (a *ApplicationCfg) Save() (err error) {

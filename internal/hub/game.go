@@ -72,7 +72,7 @@ func handleGameHub(gameHub *GameHub) {
 	}
 }
 
-func SendMsg(gameID int64, msg interface{}) {
+func SendGameMsg(gameID int64, msg interface{}) {
 	gameHubsLock.Lock()
 	gameHub, ok := gameHubs[gameID]
 	gameHubsLock.Unlock()

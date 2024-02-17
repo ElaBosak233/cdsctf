@@ -35,6 +35,7 @@ uploads
 /platform.json
 /ca/
 /build/
+/captures/
 test.go
 dist
 _PgsHub.exe
