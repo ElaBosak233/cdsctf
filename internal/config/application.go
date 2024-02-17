@@ -17,19 +17,6 @@ var (
 )
 
 type ApplicationCfg struct {
-	Global struct {
-		Platform struct {
-			Title       string `yaml:"title" json:"title" mapstructure:"title"`
-			Description string `yaml:"description" json:"description" mapstructure:"description"`
-		} `yaml:"platform" json:"platform" mapstructure:"platform"`
-		Container struct {
-			ParallelLimit int `yaml:"parallel_limit" json:"parallel_limit" mapstructure:"parallel_limit"`
-			RequestLimit  int `yaml:"request_limit" json:"request_limit" mapstructure:"request_limit"`
-		} `yaml:"container" json:"container" mapstructure:"container"`
-		User struct {
-			AllowRegistration bool `yaml:"allow_registration" json:"allow_registration" mapstructure:"allow_registration"`
-		} `yaml:"user" json:"user" mapstructure:"user"`
-	} `yaml:"global" json:"global" mapstructure:"global"`
 	Gin struct {
 		Host string `yaml:"host" json:"host" mapstructure:"host"`
 		Port int    `yaml:"port" json:"port" mapstructure:"port"`
@@ -77,15 +64,18 @@ type ApplicationCfg struct {
 		Expiration int    `yaml:"expiration" json:"expiration" mapstructure:"expiration"`
 	} `yaml:"jwt" json:"jwt" mapstructure:"jwt"`
 	Container struct {
-		Provider       string `yaml:"provider" json:"provider" mapstructure:"provider"`
-		NatType        string `yaml:"nat_type" json:"nat_type" mapstructure:"nat_type"`
+		Provider string `yaml:"provider" json:"provider" mapstructure:"provider"`
+		Nat      struct {
+			Type  string `yaml:"type" json:"type" mapstructure:"type"`
+			Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
+		}
 		TrafficCapture struct {
 			Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
 			Path    string `yaml:"path" json:"path" mapstructure:"path"`
 		} `yaml:"traffic_capture" json:"traffic_capture" mapstructure:"traffic_capture"`
 		Docker struct {
-			URI         string `yaml:"uri" json:"uri" mapstructure:"uri"`
-			PublicEntry string `yaml:"public_entry" json:"public_entry" mapstructure:"public_entry"`
+			URI   string `yaml:"uri" json:"uri" mapstructure:"uri"`
+			Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
 		} `yaml:"docker" json:"docker" mapstructure:"docker"`
 		K8s struct {
 			Namespace string `yaml:"namespace" json:"namespace" mapstructure:"namespace"`

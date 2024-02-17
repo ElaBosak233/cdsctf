@@ -104,14 +104,14 @@ func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 
 		nats := make([]*model.Nat, 0)
 
-		switch config.AppCfg().Container.NatType {
+		switch config.AppCfg().Container.Nat.Type {
 		case "proxy":
 			for port, bindings := range inspect.NetworkSettings.Ports {
 				entries := make([]string, 0)
 				for _, binding := range bindings {
 					entries = append(entries, fmt.Sprintf(
 						"%s:%d",
-						config.AppCfg().Container.Docker.PublicEntry,
+						config.AppCfg().Container.Docker.Entry,
 						convertor.ToIntD(binding.HostPort, 0),
 					))
 				}
@@ -134,7 +134,7 @@ func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 						DstPort: convertor.ToIntD(binding.HostPort, 0),
 						Entry: fmt.Sprintf(
 							"%s:%d",
-							config.AppCfg().Container.Docker.PublicEntry,
+							config.AppCfg().Container.Docker.Entry,
 							convertor.ToIntD(binding.HostPort, 0),
 						),
 					})

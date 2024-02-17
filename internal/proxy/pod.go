@@ -37,7 +37,7 @@ func (p *PodProxy) Start() {
 		if err != nil {
 			zap.L().Error("Failed to get free port for proxy.", zap.Error(err))
 		}
-		instanceProxy.Listen = fmt.Sprintf("%s:%d", config.AppCfg().Gin.Host, port)
+		instanceProxy.Listen = fmt.Sprintf("%s:%d", config.AppCfg().Container.Nat.Entry, port)
 		instanceProxy.listener, err = net.Listen("tcp", instanceProxy.Listen)
 		if err != nil {
 			zap.L().Error(fmt.Sprintf("Failed to listen on %s: %v", instanceProxy.Listen, err))
