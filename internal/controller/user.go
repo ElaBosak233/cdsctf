@@ -2,10 +2,10 @@ package controller
 
 import (
 	"fmt"
-	"github.com/elabosak233/pgshub/internal/model/dto/request"
-	"github.com/elabosak233/pgshub/internal/service"
-	"github.com/elabosak233/pgshub/pkg/convertor"
-	"github.com/elabosak233/pgshub/pkg/validator"
+	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
+	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/pkg/convertor"
+	"github.com/elabosak233/cloudsdale/pkg/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"

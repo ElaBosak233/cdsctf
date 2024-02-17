@@ -1,6 +1,6 @@
 package request
 
-import "github.com/elabosak233/pgshub/internal/model"
+import "github.com/elabosak233/cloudsdale/internal/model"
 
 type ImageCreateRequest struct {
 	Name        string              `json:"name"`

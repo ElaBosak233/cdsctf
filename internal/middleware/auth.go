@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/elabosak233/pgshub/internal/config"
-	"github.com/elabosak233/pgshub/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"

@@ -3,8 +3,8 @@ package provider
 import (
 	"fmt"
 	"github.com/TwiN/go-color"
-	"github.com/elabosak233/pgshub/embed"
-	"github.com/elabosak233/pgshub/internal/config"
+	"github.com/elabosak233/cloudsdale/embed"
+	"github.com/elabosak233/cloudsdale/internal/config"
 	"go.uber.org/zap"
 	"io"
 	"io/fs"

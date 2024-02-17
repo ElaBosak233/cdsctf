@@ -4,15 +4,15 @@ clusters:
   - cluster:
       certificate-authority: /path/to/ca.crt
       server: https://127.0.0.1:8443
-    name: pgshub-cluster
+    name: cloudsdale-cluster
 contexts:
   - context:
-      cluster: pgshub-cluster
-      user: pgshub
-    name: pgshub-context
-current-context: pgshub-context
+      cluster: cloudsdale-cluster
+      user: cloudsdale
+    name: cloudsdale-context
+current-context: cloudsdale-context
 users:
-  - name: pgshub
+  - name: cloudsdale
     user:
       client-certificate: /path/to/client.crt
       client-key: /path/to/client.key

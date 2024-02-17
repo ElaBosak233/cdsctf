@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/elabosak233/pgshub/internal/controller"
+	"github.com/elabosak233/cloudsdale/internal/controller"
 	"github.com/gin-gonic/gin"
 )
 

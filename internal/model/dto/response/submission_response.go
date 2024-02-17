@@ -1,7 +1,7 @@
 package response
 
 import (
-	model "github.com/elabosak233/pgshub/internal/model"
+	model "github.com/elabosak233/cloudsdale/internal/model"
 )
 
 type SubmissionResponse struct {

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/elabosak233/pgshub/internal/model"
+	"github.com/elabosak233/cloudsdale/internal/model"
 	"gorm.io/gorm"
 )
 

@@ -35,18 +35,18 @@
   "db": {
     "provider": "sqlite3",
     "postgres": {
-      "dbname": "pgshub",
+      "dbname": "cloudsdale",
       "host": "127.0.0.1",
-      "username": "pgshub",
-      "password": "pgshub",
+      "username": "cloudsdale",
+      "password": "cloudsdale",
       "port": 5432,
       "sslmode": "disable"
     },
     "mysql": {
-      "dbname": "pgshub",
+      "dbname": "cloudsdale",
       "host": "127.0.0.1",
-      "username": "pgshub",
-      "password": "pgshub",
+      "username": "cloudsdale",
+      "password": "cloudsdale",
       "port": 3306
     },
     "sqlite3": {

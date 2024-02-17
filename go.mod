@@ -1,4 +1,4 @@
-module github.com/elabosak233/pgshub
+module github.com/elabosak233/cloudsdale
 
 go 1.21
 

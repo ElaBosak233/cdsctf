@@ -1,6 +1,6 @@
 package service
 
-import "github.com/elabosak233/pgshub/internal/repository"
+import "github.com/elabosak233/cloudsdale/internal/repository"
 
 type Service struct {
 	MediaService      IMediaService

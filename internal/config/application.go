@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/elabosak233/pgshub/embed"
+	"github.com/elabosak233/cloudsdale/embed"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"io"
