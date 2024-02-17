@@ -2,8 +2,8 @@ package assets
 
 import (
 	"fmt"
-	"github.com/elabosak233/pgshub/embed"
-	"github.com/elabosak233/pgshub/internal/config"
+	"github.com/elabosak233/cloudsdale/embed"
+	"github.com/elabosak233/cloudsdale/internal/config"
 	"os"
 )
 

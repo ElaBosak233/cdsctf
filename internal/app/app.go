@@ -3,20 +3,20 @@ package app
 import (
 	"fmt"
 	"github.com/TwiN/go-color"
-	_ "github.com/elabosak233/pgshub/docs"
-	"github.com/elabosak233/pgshub/internal/assets"
-	"github.com/elabosak233/pgshub/internal/config"
-	"github.com/elabosak233/pgshub/internal/container/provider"
-	"github.com/elabosak233/pgshub/internal/controller"
-	"github.com/elabosak233/pgshub/internal/database"
-	"github.com/elabosak233/pgshub/internal/global"
-	"github.com/elabosak233/pgshub/internal/middleware"
-	"github.com/elabosak233/pgshub/internal/repository"
-	"github.com/elabosak233/pgshub/internal/router"
-	"github.com/elabosak233/pgshub/internal/service"
-	"github.com/elabosak233/pgshub/pkg/convertor"
-	"github.com/elabosak233/pgshub/pkg/logger"
-	"github.com/elabosak233/pgshub/pkg/logger/adapter"
+	_ "github.com/elabosak233/cloudsdale/docs"
+	"github.com/elabosak233/cloudsdale/internal/assets"
+	"github.com/elabosak233/cloudsdale/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/container/provider"
+	"github.com/elabosak233/cloudsdale/internal/controller"
+	"github.com/elabosak233/cloudsdale/internal/database"
+	"github.com/elabosak233/cloudsdale/internal/global"
+	"github.com/elabosak233/cloudsdale/internal/middleware"
+	"github.com/elabosak233/cloudsdale/internal/repository"
+	"github.com/elabosak233/cloudsdale/internal/router"
+	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/pkg/convertor"
+	"github.com/elabosak233/cloudsdale/pkg/logger"
+	"github.com/elabosak233/cloudsdale/pkg/logger/adapter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -33,7 +33,7 @@ func init() {
 	fmt.Printf("\n%s\n", banner)
 	fmt.Printf("%s %s\n", color.InBold("Commit IDs:"), color.InBold(global.GitCommitID))
 	fmt.Printf("%s %s\n", color.InBold("Build At:"), color.InBold(global.BuildAt))
-	fmt.Printf("%s %s\n\n", color.InBold("Issues:"), color.InBold("https://github.com/elabosak233/PgsHub/issues"))
+	fmt.Printf("%s %s\n\n", color.InBold("Issues:"), color.InBold("https://github.com/elabosak233/Cloudsdale/issues"))
 }
 
 func Run() {
@@ -87,10 +87,10 @@ func Run() {
 		Addr:    config.AppCfg().Gin.Host + ":" + strconv.Itoa(config.AppCfg().Gin.Port),
 		Handler: r,
 	}
-	zap.L().Info("The PgsHub service is launching! Enjoy your hacking challenges!")
+	zap.L().Info("The Cloudsdale service is launching! Enjoy your hacking challenges!")
 	zap.L().Info(fmt.Sprintf("Here's the address! %s:%d", config.AppCfg().Gin.Host, config.AppCfg().Gin.Port))
 	err := s.ListenAndServe()
 	if err != nil {
-		zap.L().Fatal("Err... It seems that the port for PgsHub is not available. Plz try again.")
+		zap.L().Fatal("Err... It seems that the port for Cloudsdale is not available. Plz try again.")
 	}
 }

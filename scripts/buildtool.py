@@ -8,7 +8,7 @@ import os
 os.environ["TERM"] = "xterm-256color"
 os.environ["CGO_ENABLED"] = "1"
 
-package = "github.com/elabosak233/pgshub"
+package = "github.com/elabosak233/cloudsdale"
 
 
 class Git:
@@ -29,7 +29,7 @@ class Git:
 class Swag:
     @staticmethod
     def init():
-        subprocess.call("swag init -g ./cmd/pgshub/main.go -o ./docs", shell=True)
+        subprocess.call("swag init -g ./cmd/cloudsdale/main.go -o ./docs", shell=True)
 
 
 class Go:
@@ -38,14 +38,14 @@ class Go:
         os.environ["DEBUG"] = "true"
         Swag.init()
         try:
-            subprocess.call(f"go run {gen_params(build=False)} {package}/cmd/pgshub", shell=True)
+            subprocess.call(f"go run {gen_params(build=False)} {package}/cmd/cloudsdale", shell=True)
         except KeyboardInterrupt:
             print("Run Finished.")
 
     @staticmethod
     def build():
         Swag.init()
-        if subprocess.call(f"go build {gen_params()} -o ./build/ {package}/cmd/pgshub", shell=True) == 0:
+        if subprocess.call(f"go build {gen_params()} -o ./build/ {package}/cmd/cloudsdale", shell=True) == 0:
             print("Build Finished.")
 
 

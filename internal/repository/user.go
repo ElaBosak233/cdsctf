@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/elabosak233/pgshub/internal/model"
-	"github.com/elabosak233/pgshub/internal/model/dto/request"
+	"github.com/elabosak233/cloudsdale/internal/model"
+	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
 	"gorm.io/gorm"
 )
 

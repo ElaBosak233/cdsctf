@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/elabosak233/pgshub/internal/model"
-	"github.com/elabosak233/pgshub/internal/repository"
+	"github.com/elabosak233/cloudsdale/internal/model"
+	"github.com/elabosak233/cloudsdale/internal/repository"
 )
 
 type IInstanceService interface {

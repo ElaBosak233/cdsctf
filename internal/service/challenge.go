@@ -2,11 +2,11 @@ package service
 
 import (
 	"errors"
-	"github.com/elabosak233/pgshub/internal/model"
-	"github.com/elabosak233/pgshub/internal/model/dto/request"
-	"github.com/elabosak233/pgshub/internal/model/dto/response"
-	"github.com/elabosak233/pgshub/internal/repository"
-	"github.com/elabosak233/pgshub/pkg/calculate"
+	"github.com/elabosak233/cloudsdale/internal/model"
+	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
+	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
+	"github.com/elabosak233/cloudsdale/internal/repository"
+	"github.com/elabosak233/cloudsdale/pkg/calculate"
 	"github.com/mitchellh/mapstructure"
 	"math"
 )

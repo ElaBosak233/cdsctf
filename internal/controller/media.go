@@ -2,9 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"github.com/elabosak233/pgshub/internal/config"
-	"github.com/elabosak233/pgshub/internal/service"
-	"github.com/elabosak233/pgshub/pkg/convertor"
+	"github.com/elabosak233/cloudsdale/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/pkg/convertor"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 	"mime/multipart"

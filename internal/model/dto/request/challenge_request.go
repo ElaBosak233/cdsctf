@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/elabosak233/pgshub/internal/model"
+	"github.com/elabosak233/cloudsdale/internal/model"
 )
 
 type ChallengeCreateRequest struct {

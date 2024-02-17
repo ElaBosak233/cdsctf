@@ -1,6 +1,6 @@
 package middleware
 
-import "github.com/elabosak233/pgshub/internal/service"
+import "github.com/elabosak233/cloudsdale/internal/service"
 
 type Middleware struct {
 	AuthMiddleware     IAuthMiddleware

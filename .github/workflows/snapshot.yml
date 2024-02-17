@@ -34,16 +34,16 @@ jobs:
       - name: Build for Linux
         run: |
           echo "Building for Linux..."
-          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/pgshub/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/pgshub/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/pgshub/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/pgshub/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/linux/pgshub ./cmd/pgshub || true
+          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/cloudsdale/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/cloudsdale/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/cloudsdale/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/cloudsdale/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/linux/cloudsdale ./cmd/cloudsdale || true
           cd ./build/linux
-          mv pgshub pgshub-linux
+          mv cloudsdale cloudsdale-linux
           cd ../..
 
       - name: Upload Linux Binary
         uses: actions/upload-artifact@v4
         with:
-          name: pgshub-linux
-          path: build/linux/pgshub-linux
+          name: cloudsdale-linux
+          path: build/linux/cloudsdale-linux
 
   build_for_windows:
     runs-on: windows-latest
@@ -75,16 +75,16 @@ jobs:
       - name: Build for Windows
         run: |
           echo "Building for Windows..."
-          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/pgshub/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/pgshub/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/pgshub/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/pgshub/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/windows/pgshub.exe ./cmd/pgshub || true
+          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/cloudsdale/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/cloudsdale/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/cloudsdale/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/cloudsdale/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/windows/cloudsdale.exe ./cmd/cloudsdale || true
           cd ./build/windows
-          mv pgshub.exe pgshub-windows.exe
+          mv cloudsdale.exe cloudsdale-windows.exe
           cd ../..
 
       - name: Upload Windows Binary
         uses: actions/upload-artifact@v4
         with:
-          name: pgshub-windows
-          path: build/windows/pgshub-windows.exe
+          name: cloudsdale-windows
+          path: build/windows/cloudsdale-windows.exe
 
   build_for_macos:
     runs-on: macos-latest
@@ -116,13 +116,13 @@ jobs:
       - name: Build for macOS
         run: |
           echo "Building for macOS..."
-          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/pgshub/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/pgshub/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/pgshub/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/pgshub/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/macos/pgshub ./cmd/pgshub || true
+          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/cloudsdale/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/cloudsdale/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/cloudsdale/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/cloudsdale/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/macos/cloudsdale ./cmd/cloudsdale || true
           cd ./build/macos
-          mv pgshub pgshub-macos
+          mv cloudsdale cloudsdale-macos
           cd ../..
 
       - name: Upload macOS Binary
         uses: actions/upload-artifact@v4
         with:
-          name: pgshub-macos
-          path: build/macos/pgshub-macos
+          name: cloudsdale-macos
+          path: build/macos/cloudsdale-macos

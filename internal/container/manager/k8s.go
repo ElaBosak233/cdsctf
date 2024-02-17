@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/TwiN/go-color"
-	"github.com/elabosak233/pgshub/internal/config"
-	"github.com/elabosak233/pgshub/internal/container/provider"
-	"github.com/elabosak233/pgshub/internal/model"
+	"github.com/elabosak233/cloudsdale/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/container/provider"
+	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
@@ -80,7 +80,7 @@ func (c *K8sManager) Setup() (instances []*model.Instance, err error) {
 		ObjectMeta: v1.ObjectMeta{
 			GenerateName: uuid.NewString(),
 			Labels: map[string]string{
-				"app": "pgshub",
+				"app": "cloudsdale",
 			},
 		},
 		Spec: corev1.PodSpec{

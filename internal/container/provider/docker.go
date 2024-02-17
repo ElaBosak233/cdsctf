@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/TwiN/go-color"
 	"github.com/docker/docker/client"
-	"github.com/elabosak233/pgshub/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/config"
 	"go.uber.org/zap"
 )
 
