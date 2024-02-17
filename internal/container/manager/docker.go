@@ -10,9 +10,11 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/config"
 	"github.com/elabosak233/cloudsdale/internal/container/provider"
 	"github.com/elabosak233/cloudsdale/internal/model"
+	"github.com/elabosak233/cloudsdale/internal/proxy"
 	"github.com/elabosak233/cloudsdale/pkg/convertor"
 	"go.uber.org/zap"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -23,6 +25,7 @@ type DockerManager struct {
 
 	PodID      uint
 	RespID     []string
+	Proxy      *proxy.PodProxy
 	Instances  []*model.Instance
 	CancelCtx  context.Context
 	CancelFunc context.CancelFunc
@@ -100,17 +103,42 @@ func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 		)
 
 		nats := make([]*model.Nat, 0)
-		for port, bindings := range inspect.NetworkSettings.Ports {
-			for _, binding := range bindings {
-				nats = append(nats, &model.Nat{
-					SrcPort: port.Int(),
-					DstPort: convertor.ToIntD(binding.HostPort, 0),
-					Entry: fmt.Sprintf(
+
+		switch config.AppCfg().Container.NatType {
+		case "proxy":
+			for port, bindings := range inspect.NetworkSettings.Ports {
+				entries := make([]string, 0)
+				for _, binding := range bindings {
+					entries = append(entries, fmt.Sprintf(
 						"%s:%d",
 						config.AppCfg().Container.Docker.PublicEntry,
 						convertor.ToIntD(binding.HostPort, 0),
-					),
-				})
+					))
+				}
+				c.Proxy = proxy.NewPodProxy(entries)
+				c.Proxy.Start()
+				for index, pp := range c.Proxy.Proxies {
+					nats = append(nats, &model.Nat{
+						SrcPort: port.Int(),
+						DstPort: convertor.ToIntD(strings.Split(entries[index], ":")[1], 0),
+						Proxy:   entries[index],
+						Entry:   pp.Listen,
+					})
+				}
+			}
+		case "direct":
+			for port, bindings := range inspect.NetworkSettings.Ports {
+				for _, binding := range bindings {
+					nats = append(nats, &model.Nat{
+						SrcPort: port.Int(),
+						DstPort: convertor.ToIntD(binding.HostPort, 0),
+						Entry: fmt.Sprintf(
+							"%s:%d",
+							config.AppCfg().Container.Docker.PublicEntry,
+							convertor.ToIntD(binding.HostPort, 0),
+						),
+					})
+				}
 			}
 		}
 
@@ -173,6 +201,7 @@ func (c *DockerManager) Remove() {
 			) // Remove the container
 		}(respID)
 	}
+	c.Proxy.Close()
 }
 
 func (c *DockerManager) Renew(duration time.Duration) {
