@@ -9,10 +9,6 @@ import (
 	"strings"
 )
 
-var (
-	root = config.AppCfg().Gin.Paths.Frontend
-)
-
 type IFrontendMiddleware interface {
 	Frontend(urlPrefix string) gin.HandlerFunc
 }
@@ -25,6 +21,7 @@ func NewFrontendMiddleware() IFrontendMiddleware {
 }
 
 func (m *FrontendMiddleware) Frontend(urlPrefix string) gin.HandlerFunc {
+	root := config.AppCfg().Gin.Paths.Frontend
 	fileServer := http.FileServer(http.Dir(root))
 	if !strings.HasSuffix(urlPrefix, "/") {
 		urlPrefix = urlPrefix + "/" // 如果不是以 / 结尾的，需要添加 /

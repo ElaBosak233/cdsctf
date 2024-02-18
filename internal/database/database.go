@@ -3,8 +3,8 @@ package database
 import (
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/logger/adapter"
 	"github.com/elabosak233/cloudsdale/internal/model"
-	"github.com/elabosak233/cloudsdale/pkg/logger/adapter"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"

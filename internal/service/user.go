@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/elabosak233/cloudsdale/internal/captcha"
 	"github.com/elabosak233/cloudsdale/internal/config"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
@@ -16,6 +17,7 @@ import (
 
 type IUserService interface {
 	Create(req request.UserCreateRequest) (err error)
+	Register(req request.UserRegisterRequest) (err error)
 	Update(req request.UserUpdateRequest) (err error)
 	Delete(id uint) error
 	FindById(id uint) (response.UserResponse, error)
@@ -43,17 +45,17 @@ func NewUserService(appRepository *repository.Repository) IUserService {
 }
 
 func (t *UserService) GetJwtTokenById(user response.UserResponse) (tokenString string, err error) {
-	jwtSecretKey := []byte(config.AppCfg().Jwt.SecretKey)
+	jwtSecretKey := []byte(config.AppCfg().Gin.Jwt.SecretKey)
 	pgsToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Duration(config.AppCfg().Jwt.Expiration) * time.Minute).Unix(),
+		"exp":     time.Now().Add(time.Duration(config.AppCfg().Gin.Jwt.Expiration) * time.Minute).Unix(),
 	})
 	return pgsToken.SignedString(jwtSecretKey)
 }
 
 func (t *UserService) GetIdByJwtToken(token string) (id uint, err error) {
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.AppCfg().Jwt.SecretKey), nil
+		return []byte(config.AppCfg().Gin.Jwt.SecretKey), nil
 	})
 	if err != nil {
 		return 0, err
@@ -75,6 +77,23 @@ func (t *UserService) Create(req request.UserCreateRequest) (err error) {
 		Password: string(hashedPassword),
 	}
 	err = t.UserRepository.Insert(userModel)
+	return err
+}
+
+func (t *UserService) Register(req request.UserRegisterRequest) (err error) {
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	capt := captcha.NewCaptcha()
+	success, err := capt.Verify(req.CaptchaToken, req.RemoteIP)
+	if success {
+		userModel := model.User{
+			Username: req.Username,
+			Email:    req.Email,
+			Nickname: req.Nickname,
+			GroupID:  3,
+			Password: string(hashedPassword),
+		}
+		err = t.UserRepository.Insert(userModel)
+	}
 	return err
 }
 

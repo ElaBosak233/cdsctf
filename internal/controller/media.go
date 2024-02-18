@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/config"
 	"github.com/elabosak233/cloudsdale/internal/service"
-	"github.com/elabosak233/cloudsdale/pkg/convertor"
+	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 	"mime/multipart"

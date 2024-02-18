@@ -8,6 +8,12 @@
     "request_limit": 0
   },
   "user": {
-    "allow_registration": true
+    "registration": {
+      "enabled": true,
+      "email": {
+        "domain": [],
+        "verification": false
+      }
+    }
   }
 }

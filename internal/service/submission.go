@@ -6,9 +6,8 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
 	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
-	"github.com/elabosak233/cloudsdale/pkg/calculate"
-	"github.com/elabosak233/cloudsdale/pkg/convertor"
-	"github.com/mitchellh/mapstructure"
+	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
+	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"go.uber.org/zap"
 	"math"
 	"regexp"
@@ -18,7 +17,7 @@ import (
 type ISubmissionService interface {
 	Create(req request.SubmissionCreateRequest) (status int, pts int64, err error)
 	Delete(id uint) (err error)
-	Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, pageCount int64, total int64, err error)
+	Find(req request.SubmissionFindRequest) (submissions []model.Submission, pageCount int64, total int64, err error)
 	BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error)
 }
 
@@ -145,14 +144,8 @@ func (t *SubmissionService) Delete(id uint) (err error) {
 	return err
 }
 
-func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions []response.SubmissionResponse, pageCount int64, total int64, err error) {
-	submissionResp, count, err := t.SubmissionRepository.Find(req)
-
-	for _, s := range submissionResp {
-		var submission response.SubmissionResponse
-		_ = mapstructure.Decode(s, &submission)
-		submissions = append(submissions, submission)
-	}
+func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions []model.Submission, pageCount int64, total int64, err error) {
+	submissions, count, err := t.SubmissionRepository.Find(req)
 
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))

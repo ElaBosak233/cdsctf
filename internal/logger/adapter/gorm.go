@@ -83,16 +83,16 @@ func (a GORMAdapter) Trace(ctx context.Context, begin time.Time, fc func() (stri
 	if a.LogLevel <= 0 {
 		return
 	}
+	sql, rows := fc()
 	trace := fmt.Sprintf(
 		"[%s] %s",
 		color.InCyan("GORM"),
-		color.InWhiteOverYellow(" TRACE "),
+		color.InBold(sql),
 	)
 	elapsed := time.Since(begin)
 	logger := a.logger(ctx)
 	switch {
 	case err != nil && a.LogLevel >= gormLogger.Error && (!a.IgnoreRecordNotFoundError || !errors.Is(err, gorm.ErrRecordNotFound)):
-		sql, rows := fc()
 		logger.Error(trace,
 			zap.Error(err),
 			zap.Duration("elapsed", elapsed),
@@ -100,14 +100,12 @@ func (a GORMAdapter) Trace(ctx context.Context, begin time.Time, fc func() (stri
 			zap.String("sql", sql),
 		)
 	case a.SlowThreshold != 0 && elapsed > a.SlowThreshold && a.LogLevel >= gormLogger.Warn:
-		sql, rows := fc()
 		logger.Warn(trace,
 			zap.Duration("elapsed", elapsed),
 			zap.Int64("rows", rows),
 			zap.String("sql", sql),
 		)
 	case a.LogLevel >= gormLogger.Info:
-		sql, rows := fc()
 		logger.Debug(trace,
 			zap.Duration("elapsed", elapsed),
 			zap.Int64("rows", rows),

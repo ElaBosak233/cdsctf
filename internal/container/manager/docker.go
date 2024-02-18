@@ -11,7 +11,7 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/container/provider"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/proxy"
-	"github.com/elabosak233/cloudsdale/pkg/convertor"
+	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"go.uber.org/zap"
 	"strconv"
 	"strings"
@@ -31,7 +31,7 @@ type DockerManager struct {
 	CancelFunc context.CancelFunc
 }
 
-func NewDockerManager(images []*model.Image, flag model.Flag, duration time.Duration) *DockerManager {
+func NewDockerManager(images []*model.Image, flag model.Flag, duration time.Duration) ContainerManager {
 	return &DockerManager{
 		Images:   images,
 		Duration: duration,
@@ -41,6 +41,10 @@ func NewDockerManager(images []*model.Image, flag model.Flag, duration time.Dura
 
 func (c *DockerManager) SetPodID(podID uint) {
 	c.PodID = podID
+}
+
+func (c *DockerManager) GetDuration() (duration time.Duration) {
+	return c.Duration
 }
 
 func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
@@ -158,18 +162,17 @@ func (c *DockerManager) GetContainerStatus() (status string, err error) {
 	for _, respID := range c.RespID {
 		if resp, err := provider.DockerCli().ContainerInspect(context.Background(), respID); err == nil {
 			status = resp.State.Status
-			fmt.Println(status)
 		}
 	}
 	return status, err
 }
 
-func (c *DockerManager) RemoveAfterDuration(ctx context.Context) (success bool) {
+func (c *DockerManager) RemoveAfterDuration() (success bool) {
 	select {
 	case <-time.After(c.Duration):
 		c.Remove()
 		return true
-	case <-ctx.Done():
+	case <-c.CancelCtx.Done():
 		zap.L().Warn(fmt.Sprintf("[%s] Pod %d (RespID %s)'s removal plan has been cancelled.", color.InCyan("DOCKER"), c.PodID, c.RespID))
 		return false
 	}
@@ -201,7 +204,9 @@ func (c *DockerManager) Remove() {
 			) // Remove the container
 		}(respID)
 	}
-	c.Proxy.Close()
+	if c.Proxy != nil {
+		c.Proxy.Close()
+	}
 }
 
 func (c *DockerManager) Renew(duration time.Duration) {
@@ -210,7 +215,7 @@ func (c *DockerManager) Renew(duration time.Duration) {
 	}
 	c.Duration = duration
 	c.CancelCtx, c.CancelFunc = context.WithCancel(context.Background())
-	go c.RemoveAfterDuration(c.CancelCtx)
+	go c.RemoveAfterDuration()
 	zap.L().Warn(
 		fmt.Sprintf("[%s] Pod %d (RespID %s) successfully renewed.",
 			color.InCyan("DOCKER"),

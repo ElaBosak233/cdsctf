@@ -15,10 +15,12 @@ type UserBatchFindByTeamIdRequest struct {
 }
 
 type UserRegisterRequest struct {
-	Username string `binding:"required" json:"username"`
-	Nickname string `binding:"required" json:"nickname"`
-	Email    string `binding:"required" json:"email"`
-	Password string `binding:"required" json:"password"`
+	Username     string `binding:"required" json:"username"`
+	Nickname     string `binding:"required" json:"nickname"`
+	Email        string `binding:"required" json:"email"`
+	Password     string `binding:"required" json:"password"`
+	CaptchaToken string `json:"token"`
+	RemoteIP     string `json:"-"`
 }
 
 type UserCreateRequest struct {

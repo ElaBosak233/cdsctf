@@ -17,6 +17,6 @@ type Submission struct {
 	GameID      uint       `json:"game_id,omitempty"`                                // The game which is related to this submission. (Must be set when TeamID is set)
 	Game        *Game      `json:"game,omitempty"`                                   // The game which is related to this submission.
 	Pts         int64      `gorm:"default:0" json:"pts"`                             // The points of the submission.
-	CreatedAt   time.Time  `gorm:"autoCreateTime" json:"created_at,omitempty"`       // The submission's creation time.
-	UpdatedAt   time.Time  `gorm:"autoUpdateTime" json:"updated_at,omitempty"`       // The submission's last update time.
+	CreatedAt   *time.Time `gorm:"autoCreateTime" json:"created_at,omitempty"`       // The submission's creation time.
+	UpdatedAt   *time.Time `gorm:"autoUpdateTime" json:"updated_at,omitempty"`       // The submission's last update time.
 }

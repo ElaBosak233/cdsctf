@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/config"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/gin-gonic/gin"
@@ -27,7 +26,7 @@ func NewAuthMiddleware(appService *service.Service) IAuthMiddleware {
 func (m *AuthMiddleware) BasicAuth(ctx *gin.Context) {
 	token := ctx.GetHeader("Authorization")
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.AppCfg().Jwt.SecretKey), nil
+		return []byte(config.AppCfg().Gin.Jwt.SecretKey), nil
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -49,7 +48,6 @@ func (m *AuthMiddleware) BasicAuth(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		fmt.Println(user)
 		ctx.Set("UserGroupID", user.Group.ID)
 		ctx.Set("UserLevel", user.Group.Level)
 	} else {

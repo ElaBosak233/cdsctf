@@ -6,7 +6,7 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
 	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
-	"github.com/elabosak233/cloudsdale/pkg/calculate"
+	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
 	"github.com/mitchellh/mapstructure"
 	"math"
 )

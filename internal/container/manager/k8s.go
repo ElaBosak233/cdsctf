@@ -21,21 +21,21 @@ var (
 )
 
 type K8sManager struct {
+	Images   []*model.Image
+	Flag     model.Flag
+	Duration time.Duration
+
 	PodID      uint
 	RespID     string
-	Images     []*model.Image
-	Flag       model.Flag
 	Instances  []*model.Instance
 	Inspect    corev1.Pod
-	Duration   time.Duration
 	CancelCtx  context.Context
 	CancelFunc context.CancelFunc
 }
 
-func NewK8sManager(podID uint, images []*model.Image, flag model.Flag, duration time.Duration) *K8sManager {
+func NewK8sManager(images []*model.Image, flag model.Flag, duration time.Duration) ContainerManager {
 	namespace = config.AppCfg().Container.K8s.Namespace
 	return &K8sManager{
-		PodID:    podID,
 		Images:   images,
 		Duration: duration,
 		Flag:     flag,
@@ -121,6 +121,15 @@ func (c *K8sManager) Setup() (instances []*model.Instance, err error) {
 	return instances, err
 }
 
+func (c *K8sManager) SetPodID(podID uint) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *K8sManager) GetDuration() (duration time.Duration) {
+	return c.Duration
+}
+
 func (c *K8sManager) GetContainerStatus() (status string, err error) {
 	if c.RespID == "" {
 		return "", errors.New("pod not created or initialization failed")
@@ -132,12 +141,12 @@ func (c *K8sManager) GetContainerStatus() (status string, err error) {
 	return string(pod.Status.Phase), err
 }
 
-func (c *K8sManager) RemoveAfterDuration(ctx context.Context) (success bool) {
+func (c *K8sManager) RemoveAfterDuration() (success bool) {
 	select {
 	case <-time.After(c.Duration):
 		c.Remove()
 		return true
-	case <-ctx.Done():
+	case <-c.CancelCtx.Done():
 		zap.L().Warn(fmt.Sprintf("[%s] Pod %d (RespID %s)'s removal plan has been cancelled.", color.InCyan("K8S"), c.PodID, c.RespID))
 		return false
 	}
@@ -155,7 +164,7 @@ func (c *K8sManager) Renew(duration time.Duration) {
 	}
 	c.Duration = duration
 	c.CancelCtx, c.CancelFunc = context.WithCancel(context.Background())
-	go c.RemoveAfterDuration(c.CancelCtx)
+	go c.RemoveAfterDuration()
 	zap.L().Warn(
 		fmt.Sprintf("[%s] Pod %d (RespID %s) successfully renewed.",
 			color.InCyan("K8S"),

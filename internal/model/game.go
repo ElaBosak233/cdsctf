@@ -21,7 +21,7 @@ type Game struct {
 	IsNeedWriteUp          *bool        `gorm:"not null;default:true" json:"is_need_write_up"`          // Whether the game need write up.
 	StartedAt              int64        `gorm:"not null" json:"started_at"`                             // The game's start time. (Unix)
 	EndedAt                int64        `gorm:"not null" json:"ended_at"`                               // The game's end time. (Unix)
-	CreatedAt              time.Time    `json:"created_at,omitempty"`                                   // The game's creation time.
-	UpdatedAt              time.Time    `json:"updated_at,omitempty"`                                   // The game's last update time.
+	CreatedAt              *time.Time   `json:"created_at,omitempty"`                                   // The game's creation time.
+	UpdatedAt              *time.Time   `json:"updated_at,omitempty"`                                   // The game's last update time.
 	Challenges             []*Challenge `gorm:"many2many:game_challenges;" json:"challenges,omitempty"` // The game's challenges.
 }
