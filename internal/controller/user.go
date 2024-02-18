@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
-	"github.com/elabosak233/cloudsdale/pkg/convertor"
-	"github.com/elabosak233/cloudsdale/pkg/validator"
+	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
+	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-gonic/gin"
-	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -144,9 +143,8 @@ func (c *UserController) Register(ctx *gin.Context) {
 		})
 		return
 	}
-	createUserRequest := request.UserCreateRequest{}
-	_ = mapstructure.Decode(registerUserRequest, &createUserRequest)
-	err = c.UserService.Create(createUserRequest)
+	registerUserRequest.RemoteIP = ctx.RemoteIP()
+	err = c.UserService.Register(registerUserRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,

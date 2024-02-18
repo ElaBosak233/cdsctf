@@ -24,6 +24,10 @@ type ApplicationCfg struct {
 			AllowOrigins []string `yaml:"allow_origins" json:"allow_origins" mapstructure:"allow_origins"`
 			AllowMethods []string `yaml:"allow_methods" json:"allow_methods" mapstructure:"allow_methods"`
 		} `yaml:"cors" json:"cors" mapstructure:"cors"`
+		Jwt struct {
+			SecretKey  string `yaml:"secret_key" json:"secret_key" mapstructure:"secret_key"`
+			Expiration int    `yaml:"expiration" json:"expiration" mapstructure:"expiration"`
+		} `yaml:"jwt" json:"jwt" mapstructure:"jwt"`
 		Paths struct {
 			Assets   string `yaml:"assets" json:"assets" mapstructure:"assets"`
 			Media    string `yaml:"media" json:"media" mapstructure:"media"`
@@ -38,6 +42,20 @@ type ApplicationCfg struct {
 			Port int    `yaml:"port" json:"port" mapstructure:"port"`
 		} `yaml:"smtp" json:"smtp" mapstructure:"smtp"`
 	} `yaml:"email" json:"email" mapstructure:"email"`
+	Captcha struct {
+		Provider  string `yaml:"provider" json:"provider" mapstructure:"provider"`
+		ReCaptcha struct {
+			URL       string  `yaml:"url" json:"url" mapstructure:"url"`
+			SiteKey   string  `yaml:"site_key" json:"site_key" mapstructure:"site_key"`
+			SecretKey string  `yaml:"secret_key" json:"secret_key" mapstructure:"secret_key"`
+			Threshold float64 `yaml:"threshold" json:"threshold" mapstructure:"threshold"`
+		} `yaml:"re_captcha" json:"re_captcha" mapstructure:"re_captcha"`
+		Turnstile struct {
+			URL       string `yaml:"url" json:"url" mapstructure:"url"`
+			SiteKey   string `yaml:"site_key" json:"site_key" mapstructure:"site_key"`
+			SecretKey string `yaml:"secret_key" json:"secret_key" mapstructure:"secret_key"`
+		} `yaml:"turnstile" json:"turnstile" mapstructure:"turnstile"`
+	} `yaml:"captcha" json:"captcha" mapstructure:"captcha"`
 	Db struct {
 		Provider string `yaml:"provider" json:"provider" mapstructure:"provider"`
 		Postgres struct {
@@ -59,10 +77,6 @@ type ApplicationCfg struct {
 			Dbname   string `yaml:"dbname" json:"dbname" mapstructure:"dbname"`
 		} `yaml:"mysql" json:"mysql" mapstructure:"mysql"`
 	} `yaml:"db" json:"db" mapstructure:"db"`
-	Jwt struct {
-		SecretKey  string `yaml:"secret_key" json:"secret_key" mapstructure:"secret_key"`
-		Expiration int    `yaml:"expiration" json:"expiration" mapstructure:"expiration"`
-	} `yaml:"jwt" json:"jwt" mapstructure:"jwt"`
 	Container struct {
 		Provider string `yaml:"provider" json:"provider" mapstructure:"provider"`
 		Nat      struct {

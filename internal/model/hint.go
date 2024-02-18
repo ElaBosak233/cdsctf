@@ -10,6 +10,6 @@ type Hint struct {
 	Game        *Game      `json:"game"`                               // The game which the hint belongs to.
 	Content     string     `gorm:"type:text;not null;" json:"content"` // The content of the hint.
 	PublishedAt int64      `gorm:"not null;" json:"published_at"`      // When the hint will be published.
-	CreatedAt   time.Time  `json:"created_at"`                         // The hint's creation time.
-	UpdatedAt   time.Time  `json:"updated_at"`                         // The hint's last update time.
+	CreatedAt   *time.Time `json:"created_at"`                         // The hint's creation time.
+	UpdatedAt   *time.Time `json:"updated_at"`                         // The hint's last update time.
 }

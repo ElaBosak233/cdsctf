@@ -11,6 +11,10 @@
         "*"
       ]
     },
+    "jwt": {
+      "expiration": 180,
+      "secret_key": "20101010"
+    },
     "paths": {
       "media": "./media",
       "assets": "./assets",
@@ -69,8 +73,19 @@
       "port": 0
     }
   },
-  "jwt": {
-    "expiration": 180,
-    "secret_key": "20101010"
+  "captcha": {
+    "enable": false,
+    "provider": "turnstile",
+    "turnstile": {
+      "url": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      "site_key": "",
+      "secret_key": ""
+    },
+    "recaptcha": {
+      "url:": "https://www.google.com/recaptcha/api/siteverify",
+      "site_key": "",
+      "secret_key": "",
+      "threshold": 0.5
+    }
   }
 }

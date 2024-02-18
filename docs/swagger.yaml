@@ -403,11 +403,33 @@ definitions:
         type: string
       description:
         type: string
+      icon:
+        type: string
       name:
         type: string
     required:
     - color
     - description
+    - icon
+    - name
+    type: object
+  request.CategoryUpdateRequest:
+    properties:
+      color:
+        type: string
+      description:
+        type: string
+      icon:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    required:
+    - color
+    - description
+    - icon
+    - id
     - name
     type: object
   request.ChallengeCreateRequest:
@@ -727,6 +749,70 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/categories/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - in: query
+        name: id
+        type: integer
+      - in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: get category
+      tags:
+      - Category
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: CategoryCreateRequest
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request.CategoryCreateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: create new category
+      tags:
+      - Category
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: CategoryUpdateRequest
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request.CategoryUpdateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: update category
+      tags:
+      - Category
   /api/challenges/:
     delete:
       consumes:
