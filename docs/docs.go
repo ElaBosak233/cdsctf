@@ -15,8 +15,13 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/categories/": {
+        "/categories/": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -28,13 +33,6 @@ const docTemplate = `{
                 ],
                 "summary": "get category",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "name": "id",
@@ -49,6 +47,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -60,13 +63,6 @@ const docTemplate = `{
                 ],
                 "summary": "update category",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "CategoryUpdateRequest",
                         "name": "req",
@@ -80,6 +76,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -91,13 +92,6 @@ const docTemplate = `{
                 ],
                 "summary": "create new category",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "CategoryCreateRequest",
                         "name": "req",
@@ -111,8 +105,13 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/challenges/": {
+        "/challenges/": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息",
                 "consumes": [
                     "application/json"
@@ -121,17 +120,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "题目"
+                    "Challenge"
                 ],
                 "summary": "题目查询",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "name": "category",
@@ -209,6 +201,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -216,17 +213,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "题目"
+                    "Challenge"
                 ],
                 "summary": "更新题目（Role≤2）",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "ChallengeUpdateRequest",
                         "name": "request",
@@ -240,6 +230,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -247,17 +242,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "题目"
+                    "Challenge"
                 ],
                 "summary": "创建题目（Role≤2）",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "ChallengeCreateRequest",
                         "name": "创建请求",
@@ -271,6 +259,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -278,17 +271,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "题目"
+                    "Challenge"
                 ],
                 "summary": "删除题目（Role≤2）",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "ChallengeDeleteRequest",
                         "name": "request",
@@ -302,7 +288,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/configs/": {
+        "/configs/": {
             "get": {
                 "description": "配置全部查询",
                 "consumes": [
@@ -312,12 +298,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "配置"
+                    "Config"
                 ],
                 "summary": "配置全部查询",
                 "responses": {}
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "更新配置",
                 "consumes": [
                     "application/json"
@@ -326,17 +317,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "配置"
+                    "Config"
                 ],
                 "summary": "更新配置",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "body",
                         "name": "input",
@@ -350,8 +334,13 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/games/": {
+        "/games/": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -359,17 +348,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "比赛"
+                    "Game"
                 ],
                 "summary": "比赛查询",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "name": "id",
@@ -408,6 +390,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -415,17 +402,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "比赛"
+                    "Game"
                 ],
                 "summary": "创建比赛（Role≤3）",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "GameCreateRequest",
                         "name": "创建请求",
@@ -439,24 +419,24 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/games/:id/broadcast": {
+        "/games/:id/broadcast": {
             "get": {
                 "description": "广播消息",
                 "tags": [
-                    "比赛"
+                    "Game"
                 ],
                 "summary": "广播消息",
                 "responses": {}
             }
         },
-        "/api/media/challenges/attachments/{id}": {
+        "/media/challenges/attachments/{id}": {
             "get": {
                 "description": "通过题目 Id 获取题目附件",
                 "consumes": [
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过题目 Id 获取题目附件",
                 "parameters": [
@@ -476,7 +456,7 @@ const docTemplate = `{
                     "multipart/form-data"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过题目 Id 设置题目附件",
                 "parameters": [
@@ -503,7 +483,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过题目 Id 删除 题目附件",
                 "parameters": [
@@ -518,14 +498,14 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/media/challenges/attachments/{id}/info": {
+        "/media/challenges/attachments/{id}/info": {
             "get": {
                 "description": "通过题目 Id 查找题目附件信息",
                 "consumes": [
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过题目 Id 查找题目附件信息",
                 "parameters": [
@@ -540,7 +520,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/media/games/cover/{id}": {
+        "/media/games/cover/{id}": {
             "get": {
                 "description": "通过比赛 Id 获取比赛封面",
                 "consumes": [
@@ -550,7 +530,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过比赛 Id 获取比赛封面",
                 "parameters": [
@@ -570,7 +550,7 @@ const docTemplate = `{
                     "multipart/form-data"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过比赛 Id 设置比赛封面",
                 "parameters": [
@@ -592,7 +572,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/media/games/writeups/{id}": {
+        "/media/games/writeups/{id}": {
             "get": {
                 "description": "通过团队 Id 获取比赛 Writeup",
                 "consumes": [
@@ -602,7 +582,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过团队 Id 获取比赛 Writeup",
                 "parameters": [
@@ -617,7 +597,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/media/teams/avatar/": {
+        "/media/teams/avatar/": {
             "get": {
                 "description": "获取拥有头像的团队列表",
                 "consumes": [
@@ -627,13 +607,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "获取拥有头像的团队列表",
                 "responses": {}
             }
         },
-        "/api/media/teams/avatar/{id}": {
+        "/media/teams/avatar/{id}": {
             "get": {
                 "description": "通过团队 Id 获取团队头像",
                 "consumes": [
@@ -643,7 +623,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过团队 Id 获取团队头像",
                 "parameters": [
@@ -663,7 +643,7 @@ const docTemplate = `{
                     "multipart/form-data"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过团队 Id 设置团队头像",
                 "parameters": [
@@ -693,7 +673,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过团队 Id 删除团队头像",
                 "parameters": [
@@ -708,7 +688,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/media/teams/avatar/{id}/info": {
+        "/media/teams/avatar/{id}/info": {
             "get": {
                 "description": "通过团队 Id 获取团队头像信息",
                 "consumes": [
@@ -718,7 +698,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过团队 Id 获取团队头像信息",
                 "parameters": [
@@ -733,7 +713,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/media/users/avatar/": {
+        "/media/users/avatar/": {
             "get": {
                 "description": "获取拥有头像的用户列表",
                 "consumes": [
@@ -743,13 +723,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "获取拥有头像的用户列表",
                 "responses": {}
             }
         },
-        "/api/media/users/avatar/{id}": {
+        "/media/users/avatar/{id}": {
             "get": {
                 "description": "通过用户 Id 获取用户头像",
                 "consumes": [
@@ -759,7 +739,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过用户 Id 获取用户头像",
                 "parameters": [
@@ -779,7 +759,7 @@ const docTemplate = `{
                     "multipart/form-data"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过用户 Id 设置用户头像",
                 "parameters": [
@@ -809,7 +789,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过用户 Id 删除用户头像",
                 "parameters": [
@@ -824,7 +804,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/media/users/avatar/{id}/info": {
+        "/media/users/avatar/{id}/info": {
             "get": {
                 "description": "通过用户 Id 获得用户头像信息",
                 "consumes": [
@@ -834,7 +814,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "资源"
+                    "Media"
                 ],
                 "summary": "通过用户 Id 获得用户头像信息",
                 "parameters": [
@@ -849,24 +829,22 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/pods/": {
+        "/pods/": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "实例查询",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "实例"
+                    "Pod"
                 ],
                 "summary": "实例查询",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "name": "challenge_id",
@@ -910,22 +888,20 @@ const docTemplate = `{
                 "responses": {}
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "容器续期",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "实例"
+                    "Pod"
                 ],
                 "summary": "容器续期",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "PodRenewRequest",
                         "name": "input",
@@ -939,6 +915,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "创建实例",
                 "consumes": [
                     "application/json"
@@ -947,17 +928,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "实例"
+                    "Pod"
                 ],
                 "summary": "创建实例",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "PodCreateRequest",
                         "name": "input",
@@ -971,22 +945,20 @@ const docTemplate = `{
                 "responses": {}
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "停止并删除容器",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "实例"
+                    "Pod"
                 ],
                 "summary": "停止并删除容器",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "PodRemoveRequest",
                         "name": "input",
@@ -1000,14 +972,14 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/pods/{id}": {
+        "/pods/{id}": {
             "get": {
                 "description": "实例查询",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "实例"
+                    "Pod"
                 ],
                 "summary": "实例查询",
                 "parameters": [
@@ -1022,8 +994,13 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/submissions/": {
+        "/submissions/": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1031,17 +1008,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "提交"
+                    "Submission"
                 ],
                 "summary": "提交记录查询",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "description": "题目 Id",
@@ -1104,6 +1074,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1111,17 +1086,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "提交"
+                    "Submission"
                 ],
                 "summary": "提交",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "SubmissionCreateRequest",
                         "name": "创建请求",
@@ -1135,8 +1103,13 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/submissions/batch/": {
+        "/submissions/batch/": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1144,17 +1117,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "提交"
+                    "Submission"
                 ],
                 "summary": "提交记录批量查询",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "array",
                         "items": {
@@ -1221,7 +1187,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/teams/": {
+        "/teams/": {
             "get": {
                 "description": "查找团队",
                 "consumes": [
@@ -1231,7 +1197,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "团队"
+                    "Team"
                 ],
                 "summary": "查找团队",
                 "parameters": [
@@ -1272,7 +1238,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "团队"
+                    "Team"
                 ],
                 "summary": "更新团队",
                 "parameters": [
@@ -1297,7 +1263,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "团队"
+                    "Team"
                 ],
                 "summary": "创建团队",
                 "parameters": [
@@ -1322,7 +1288,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "团队"
+                    "Team"
                 ],
                 "summary": "删除团队",
                 "parameters": [
@@ -1339,7 +1305,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/teams/batch/": {
+        "/teams/batch/": {
             "get": {
                 "description": "批量查找团队",
                 "consumes": [
@@ -1349,7 +1315,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "团队"
+                    "Team"
                 ],
                 "summary": "批量查找团队",
                 "parameters": [
@@ -1386,7 +1352,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/teams/id/{id}": {
+        "/teams/id/{id}": {
             "get": {
                 "description": "查找团队",
                 "consumes": [
@@ -1396,7 +1362,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "团队"
+                    "Team"
                 ],
                 "summary": "查找团队",
                 "parameters": [
@@ -1411,7 +1377,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/teams/members/": {
+        "/teams/members/": {
             "post": {
                 "description": "加入团队",
                 "consumes": [
@@ -1421,7 +1387,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "团队"
+                    "Team"
                 ],
                 "summary": "加入团队",
                 "parameters": [
@@ -1446,7 +1412,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "团队"
+                    "Team"
                 ],
                 "summary": "退出团队",
                 "parameters": [
@@ -1463,7 +1429,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/users/": {
+        "/users/": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -1472,7 +1438,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户"
+                    "User"
                 ],
                 "summary": "用户查询",
                 "parameters": [
@@ -1519,6 +1485,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "若 Role\u003e1，则自动忽略 UserUpdateRequest 中的 Role 属性",
                 "consumes": [
                     "application/json"
@@ -1527,17 +1498,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户"
+                    "User"
                 ],
                 "summary": "用户更新（Role≤1 或 (Request)ID=(Authorization)ID）",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "UserUpdateRequest",
                         "name": "更新请求",
@@ -1551,6 +1515,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1558,17 +1527,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户"
+                    "User"
                 ],
                 "summary": "用户创建（Role\u003c=1）",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "UserCreateRequest",
                         "name": "创建请求",
@@ -1582,6 +1544,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1589,17 +1556,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户"
+                    "User"
                 ],
                 "summary": "用户删除（Role≤1 或 (Request)ID=(Authorization)ID）",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "UserDeleteRequest",
                         "name": "input",
@@ -1613,7 +1573,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/users/login": {
+        "/users/login": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -1622,7 +1582,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户"
+                    "User"
                 ],
                 "summary": "用户登录",
                 "parameters": [
@@ -1639,8 +1599,13 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/users/logout": {
+        "/users/logout": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1648,22 +1613,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户"
+                    "User"
                 ],
                 "summary": "用户登出",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
                 "responses": {}
             }
         },
-        "/api/users/register": {
+        "/users/register": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -1672,7 +1628,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户"
+                    "User"
                 ],
                 "summary": "用户注册",
                 "parameters": [
@@ -1689,13 +1645,13 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/users/token/{token}": {
+        "/users/token/{token}": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "用户"
+                    "User"
                 ],
                 "summary": "Token 鉴定",
                 "parameters": [
@@ -2803,12 +2759,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "1.0",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Cloudsdale API",
+	Description:      "Hack for fun not for profit.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

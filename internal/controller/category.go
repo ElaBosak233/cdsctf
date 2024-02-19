@@ -32,9 +32,9 @@ func NewCategoryController(appService *service.Service) ICategoryController {
 // @Tags Category
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
+// @Security ApiKeyAuth
 // @Param req body request.CategoryCreateRequest true "CategoryCreateRequest"
-// @Router /api/categories/ [post]
+// @Router /categories/ [post]
 func (c *CategoryController) Create(ctx *gin.Context) {
 	req := model.Category{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -63,9 +63,9 @@ func (c *CategoryController) Create(ctx *gin.Context) {
 // @Tags Category
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
+// @Security ApiKeyAuth
 // @Param req body request.CategoryUpdateRequest true "CategoryUpdateRequest"
-// @Router /api/categories/ [put]
+// @Router /categories/ [put]
 func (c *CategoryController) Update(ctx *gin.Context) {
 	req := model.Category{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -94,9 +94,9 @@ func (c *CategoryController) Update(ctx *gin.Context) {
 // @Tags Category
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
-// @Param req query request.CategoryFindRequest true "CategoryFindRequest"
-// @Router /api/categories/ [get]
+// @Security ApiKeyAuth
+// @Param req query request.CategoryFindRequest	true "CategoryFindRequest"
+// @Router /categories/ [get]
 func (c *CategoryController) Find(ctx *gin.Context) {
 	req := request.CategoryFindRequest{
 		ID:   convertor.ToUintD(ctx.Query("id"), 0),

@@ -25,11 +25,11 @@ func NewConfigController(appService *service.Service) IConfigController {
 
 // Find
 // @Summary 配置全部查询
-// @Description 配置全部查询
-// @Tags 配置
+// @Description	配置全部查询
+// @Tags Config
 // @Accept json
 // @Produce json
-// @Router /api/configs/ [get]
+// @Router /configs/ [get]
 func (c *ConfigController) Find(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
@@ -39,13 +39,13 @@ func (c *ConfigController) Find(ctx *gin.Context) {
 
 // Update
 // @Summary 更新配置
-// @Description 更新配置
-// @Tags 配置
+// @Description	更新配置
+// @Tags Config
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
+// @Security ApiKeyAuth
 // @Param input body request.ConfigUpdateRequest true "body"
-// @Router /api/configs/ [put]
+// @Router /configs/ [put]
 func (c *ConfigController) Update(ctx *gin.Context) {
 	configUpdateRequest := request.ConfigUpdateRequest{}
 	err := ctx.ShouldBindJSON(&configUpdateRequest)

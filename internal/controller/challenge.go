@@ -28,13 +28,13 @@ func NewChallengeController(appService *service.Service) IChallengeController {
 
 // Find
 // @Summary 题目查询
-// @Description 只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息
-// @Tags 题目
+// @Description	只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息
+// @Tags Challenge
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
-// @Param input query request.ChallengeFindRequest false "ChallengeFindRequest"
-// @Router /api/challenges/ [get]
+// @Security ApiKeyAuth
+// @Param input	query request.ChallengeFindRequest false "ChallengeFindRequest"
+// @Router /challenges/ [get]
 func (c *ChallengeController) Find(ctx *gin.Context) {
 	isDetailed := func() *bool {
 		if ctx.GetInt64("UserLevel") <= 2 {
@@ -74,12 +74,12 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 // Create
 // @Summary 创建题目（Role≤2）
 // @Description
-// @Tags 题目
+// @Tags Challenge
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
+// @Security ApiKeyAuth
 // @Param 创建请求 body request.ChallengeCreateRequest true "ChallengeCreateRequest"
-// @Router /api/challenges/ [post]
+// @Router /challenges/ [post]
 func (c *ChallengeController) Create(ctx *gin.Context) {
 	createChallengeRequest := request.ChallengeCreateRequest{}
 	err := ctx.ShouldBindJSON(&createChallengeRequest)
@@ -99,12 +99,12 @@ func (c *ChallengeController) Create(ctx *gin.Context) {
 // Update
 // @Summary 更新题目（Role≤2）
 // @Description
-// @Tags 题目
+// @Tags Challenge
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
+// @Security ApiKeyAuth
 // @Param request body request.ChallengeUpdateRequest true "ChallengeUpdateRequest"
-// @Router /api/challenges/ [put]
+// @Router /challenges/ [put]
 func (c *ChallengeController) Update(ctx *gin.Context) {
 	var updateChallengeRequest request.ChallengeUpdateRequest
 	err := ctx.ShouldBindJSON(&updateChallengeRequest)
@@ -130,12 +130,12 @@ func (c *ChallengeController) Update(ctx *gin.Context) {
 // Delete
 // @Summary 删除题目（Role≤2）
 // @Description
-// @Tags 题目
+// @Tags Challenge
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
+// @Security ApiKeyAuth
 // @Param request body request.ChallengeDeleteRequest true "ChallengeDeleteRequest"
-// @Router /api/challenges/ [delete]
+// @Router /challenges/ [delete]
 func (c *ChallengeController) Delete(ctx *gin.Context) {
 	deleteChallengeRequest := request.ChallengeDeleteRequest{}
 	err := ctx.ShouldBindJSON(&deleteChallengeRequest)

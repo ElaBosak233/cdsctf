@@ -158,6 +158,6 @@ func (t *TCPProxy) HandleInTrafficCapture(clientConn net.Conn, target string) {
 	}(f)
 }
 
-func (t *TCPProxy) GetEntry() string {
+func (t *TCPProxy) Entry() string {
 	return t.Listen
 }

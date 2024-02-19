@@ -190,6 +190,6 @@ func (w *WSProxy) handleInTrafficCapture(conn *websocket.Conn) {
 	}
 }
 
-func (w *WSProxy) GetEntry() string {
+func (w *WSProxy) Entry() string {
 	return w.Listen
 }

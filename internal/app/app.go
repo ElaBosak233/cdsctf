@@ -41,18 +41,11 @@ func Run() {
 	config.InitConfig()
 	assets.InitAssets()
 	database.InitDatabase()
-
-	switch config.AppCfg().Container.Provider {
-	case "docker":
-		provider.NewDockerProvider()
-	case "k8s":
-		provider.NewK8sProvider()
-	default:
-		zap.L().Fatal("Invalid container provider!")
-	}
+	provider.InitContainerProvider()
 
 	// Debug mode
-	if convertor.ToBoolD(os.Getenv("DEBUG"), false) {
+	isDebug := convertor.ToBoolD(os.Getenv("DEBUG"), false)
+	if isDebug {
 		database.Debug()
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -71,14 +64,21 @@ func Run() {
 	r.Use(cors.New(cor))
 
 	// Dependencies injection
-	appRepository := repository.InitRepository(database.GetDatabase())
+	appRepository := repository.InitRepository(database.Db())
 	appService := service.InitService(appRepository)
 	appMiddleware := middleware.InitMiddleware(appService)
 	appController := controller.InitController(appService)
 	router.NewRouter(r.Group("/api"), appController, appMiddleware)
 
-	// Swagger docs
-	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.NewHandler()))
+	if isDebug {
+		// Swagger docs
+		r.GET("/docs/*any",
+			ginSwagger.WrapHandler(
+				swaggerFiles.NewHandler(),
+				ginSwagger.PersistAuthorization(true),
+			),
+		)
+	}
 
 	// Frontend resources
 	r.Use(appMiddleware.FrontendMiddleware.Frontend("/"))

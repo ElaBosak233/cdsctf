@@ -19,13 +19,13 @@ import (
 )
 
 type DockerManager struct {
-	Images   []*model.Image
-	Flag     model.Flag
-	Duration time.Duration
+	images   []*model.Image
+	flag     model.Flag
+	duration time.Duration
 
 	PodID      uint
 	RespID     []string
-	Proxy      *proxy.PodProxy
+	Proxy      proxy.IPodProxy
 	Instances  []*model.Instance
 	CancelCtx  context.Context
 	CancelFunc context.CancelFunc
@@ -33,9 +33,9 @@ type DockerManager struct {
 
 func NewDockerManager(images []*model.Image, flag model.Flag, duration time.Duration) IContainerManager {
 	return &DockerManager{
-		Images:   images,
-		Duration: duration,
-		Flag:     flag,
+		images:   images,
+		duration: duration,
+		flag:     flag,
 	}
 }
 
@@ -43,20 +43,20 @@ func (c *DockerManager) SetPodID(podID uint) {
 	c.PodID = podID
 }
 
-func (c *DockerManager) GetDuration() (duration time.Duration) {
-	return c.Duration
+func (c *DockerManager) Duration() (duration time.Duration) {
+	return c.duration
 }
 
 func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 
 	c.CancelCtx, c.CancelFunc = context.WithCancel(context.Background())
 
-	for _, image := range c.Images {
+	for _, image := range c.images {
 		envs := make([]string, 0)
 		for _, env := range image.Envs {
 			envs = append(envs, fmt.Sprintf("%s=%s", env.Key, env.Value))
 		}
-		envs = append(envs, fmt.Sprintf("%s=%s", c.Flag.Env, c.Flag.Value))
+		envs = append(envs, fmt.Sprintf("%s=%s", c.flag.Env, c.flag.Value))
 
 		containerConfig := &container.Config{
 			Image: image.Name,
@@ -120,13 +120,13 @@ func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 					))
 				}
 				c.Proxy = proxy.NewPodProxy(entries)
-				c.Proxy.Start()
-				for index, pp := range c.Proxy.Proxies {
+				c.Proxy.Setup()
+				for index, pp := range c.Proxy.Proxies() {
 					nats = append(nats, &model.Nat{
 						SrcPort: port.Int(),
 						DstPort: convertor.ToIntD(strings.Split(entries[index], ":")[1], 0),
 						Proxy:   entries[index],
-						Entry:   pp.GetEntry(),
+						Entry:   pp.Entry(),
 					})
 				}
 			}
@@ -157,7 +157,7 @@ func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 	return instances, err
 }
 
-func (c *DockerManager) GetContainerStatus() (status string, err error) {
+func (c *DockerManager) Status() (status string, err error) {
 	status = "removed"
 	for _, respID := range c.RespID {
 		if resp, err := provider.DockerCli().ContainerInspect(context.Background(), respID); err == nil {
@@ -169,7 +169,7 @@ func (c *DockerManager) GetContainerStatus() (status string, err error) {
 
 func (c *DockerManager) RemoveAfterDuration() (success bool) {
 	select {
-	case <-time.After(c.Duration):
+	case <-time.After(c.duration):
 		c.Remove()
 		return true
 	case <-c.CancelCtx.Done():
@@ -213,7 +213,7 @@ func (c *DockerManager) Renew(duration time.Duration) {
 	if c.CancelFunc != nil {
 		c.CancelFunc() // Calling the cancel function
 	}
-	c.Duration = duration
+	c.duration = duration
 	c.CancelCtx, c.CancelFunc = context.WithCancel(context.Background())
 	go c.RemoveAfterDuration()
 	zap.L().Warn(

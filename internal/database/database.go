@@ -28,7 +28,7 @@ func InitDatabase() {
 	selfCheck()
 }
 
-func GetDatabase() *gorm.DB {
+func Db() *gorm.DB {
 	return db
 }
 

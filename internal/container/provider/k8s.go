@@ -22,7 +22,7 @@ func K8sCli() *kubernetes.Clientset {
 	return k8sCli
 }
 
-func NewK8sProvider() {
+func InitK8sProvider() {
 	kubeconfig := config.AppCfg().Container.K8s.Path.Config
 	checkK8sConfig(kubeconfig)
 	cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfig)

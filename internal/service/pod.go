@@ -187,7 +187,7 @@ func (t *PodService) Status(podID uint) (rep response.PodStatusResponse, err err
 	if PodManagers[podID] != nil {
 		ctn = PodManagers[podID]
 		rep.Status = "removed"
-		status, _ := ctn.GetContainerStatus()
+		status, _ := ctn.Status()
 		if status != "removed" {
 			rep.Status = status
 		}
@@ -209,8 +209,8 @@ func (t *PodService) Renew(req request.PodRenewRequest) (removedAt int64, err er
 	if !ok {
 		return 0, errors.New("实例不存在")
 	}
-	ctn.Renew(ctn.GetDuration())
-	pod.RemovedAt = time.Now().Add(ctn.GetDuration()).Unix()
+	ctn.Renew(ctn.Duration())
+	pod.RemovedAt = time.Now().Add(ctn.Duration()).Unix()
 	err = t.PodRepository.Update(pod)
 	return pod.RemovedAt, err
 }
@@ -237,7 +237,7 @@ func (t *PodService) FindById(id uint) (rep response.PodResponse, err error) {
 	instance, _ := t.PodRepository.FindById(id)
 	if PodManagers[id] != nil {
 		ctn := PodManagers[id]
-		status, _ := ctn.GetContainerStatus()
+		status, _ := ctn.Status()
 		rep = response.PodResponse{
 			ID:          id,
 			RemovedAt:   instance.RemovedAt,
@@ -258,7 +258,7 @@ func (t *PodService) Find(req request.PodFindRequest) (pods []response.PodRespon
 		status := "removed"
 		if PodManagers[pod.ID] != nil {
 			ctn := PodManagers[pod.ID]
-			s, _ := ctn.GetContainerStatus()
+			s, _ := ctn.Status()
 			if s == "running" {
 				status = s
 			}
