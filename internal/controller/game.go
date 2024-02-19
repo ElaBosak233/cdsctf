@@ -42,8 +42,18 @@ func (g *GameController) BroadCast(ctx *gin.Context) {
 	}
 }
 
+// ScoreBoard
+// @Summary 计分板
+// @Description	计分板
+// @Tags Game
+// @Router /games/:id/scoreboard [get]
+func (g *GameController) ScoreBoard(ctx *gin.Context) {
+	//TODO implement me
+	panic("implement me")
+}
+
 // Create
-// @Summary 创建比赛（Role≤3）
+// @Summary 创建比赛
 // @Description
 // @Tags Game
 // @Accept json
@@ -74,11 +84,47 @@ func (g *GameController) Create(ctx *gin.Context) {
 	})
 }
 
+// Delete
+// @Summary 删除比赛
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param 删除请求 body request.GameDeleteRequest true "GameDeleteRequest"
+// @Router /games/ [delete]
 func (g *GameController) Delete(ctx *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	gameDeleteRequest := request.GameDeleteRequest{}
+	err := ctx.ShouldBindJSON(&gameDeleteRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &gameDeleteRequest),
+		})
+		return
+	}
+	err = g.GameService.Delete(gameDeleteRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
 }
 
+// Update
+// @Summary 更新比赛
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param 更新请求 body request.GameUpdateRequest true "GameUpdateRequest"
+// @Router /games/ [put]
 func (g *GameController) Update(ctx *gin.Context) {
 	gameUpdateRequest := request.GameUpdateRequest{}
 	err := ctx.ShouldBindJSON(&gameUpdateRequest)

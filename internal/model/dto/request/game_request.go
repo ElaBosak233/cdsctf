@@ -45,3 +45,7 @@ type GameUpdateRequest struct {
 	StartedAt              int64   `json:"started_at"`
 	EndedAt                int64   `json:"ended_at"`
 }
+
+type GameDeleteRequest struct {
+	ID uint `json:"id"`
+}

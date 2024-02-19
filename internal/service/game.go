@@ -15,7 +15,7 @@ type IGameService interface {
 	Find(req request.GameFindRequest) (games []response.GameResponse, pageCount int64, total int64, err error)
 	Create(req request.GameCreateRequest) (err error)
 	Update(req request.GameUpdateRequest) (err error)
-	Delete(id uint) (err error)
+	Delete(req request.GameDeleteRequest) (err error)
 }
 
 type GameService struct {
@@ -26,6 +26,10 @@ func NewGameService(appRepository *repository.Repository) IGameService {
 	return &GameService{
 		GameRepository: appRepository.GameRepository,
 	}
+}
+
+func (g *GameService) Scoreboard(id uint) (err error) {
+	panic("implement me")
 }
 
 func (g *GameService) Find(req request.GameFindRequest) (games []response.GameResponse, pageCount int64, total int64, err error) {
@@ -64,7 +68,6 @@ func (g *GameService) Update(req request.GameUpdateRequest) (err error) {
 	return err
 }
 
-func (g *GameService) Delete(id uint) (err error) {
-	//TODO implement me
-	panic("implement me")
+func (g *GameService) Delete(req request.GameDeleteRequest) (err error) {
+	return g.GameRepository.Delete(req)
 }

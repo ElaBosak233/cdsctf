@@ -549,6 +549,46 @@ definitions:
     required:
     - title
     type: object
+  request.GameDeleteRequest:
+    properties:
+      id:
+        type: integer
+    type: object
+  request.GameUpdateRequest:
+    properties:
+      bio:
+        type: string
+      description:
+        type: string
+      ended_at:
+        type: integer
+      first_blood_reward_ratio:
+        type: number
+      id:
+        type: integer
+      is_enabled:
+        type: boolean
+      is_need_write_up:
+        type: boolean
+      is_public:
+        type: boolean
+      member_limit_max:
+        type: integer
+      member_limit_min:
+        type: integer
+      parallel_container_limit:
+        type: integer
+      password:
+        type: string
+      second_blood_reward_ratio:
+        type: number
+      started_at:
+        type: integer
+      third_blood_reward_ratio:
+        type: number
+      title:
+        type: string
+    type: object
   request.Platform:
     properties:
       description:
@@ -954,6 +994,24 @@ paths:
       tags:
       - Config
   /games/:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: GameDeleteRequest
+        in: body
+        name: 删除请求
+        required: true
+        schema:
+          $ref: '#/definitions/request.GameDeleteRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 删除比赛
+      tags:
+      - Game
     get:
       consumes:
       - application/json
@@ -1002,7 +1060,25 @@ paths:
       responses: {}
       security:
       - ApiKeyAuth: []
-      summary: 创建比赛（Role≤3）
+      summary: 创建比赛
+      tags:
+      - Game
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: GameUpdateRequest
+        in: body
+        name: 更新请求
+        required: true
+        schema:
+          $ref: '#/definitions/request.GameUpdateRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 更新比赛
       tags:
       - Game
   /games/:id/broadcast:
@@ -1010,6 +1086,13 @@ paths:
       description: 广播消息
       responses: {}
       summary: 广播消息
+      tags:
+      - Game
+  /games/:id/scoreboard:
+    get:
+      description: 计分板
+      responses: {}
+      summary: 计分板
       tags:
       - Game
   /media/challenges/attachments/{id}:
