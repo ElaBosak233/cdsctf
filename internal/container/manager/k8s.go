@@ -21,9 +21,9 @@ var (
 )
 
 type K8sManager struct {
-	Images   []*model.Image
-	Flag     model.Flag
-	Duration time.Duration
+	images   []*model.Image
+	flag     model.Flag
+	duration time.Duration
 
 	PodID      uint
 	RespID     string
@@ -36,16 +36,16 @@ type K8sManager struct {
 func NewK8sManager(images []*model.Image, flag model.Flag, duration time.Duration) IContainerManager {
 	namespace = config.AppCfg().Container.K8s.Namespace
 	return &K8sManager{
-		Images:   images,
-		Duration: duration,
-		Flag:     flag,
+		images:   images,
+		duration: duration,
+		flag:     flag,
 	}
 }
 
 func (c *K8sManager) Setup() (instances []*model.Instance, err error) {
 	var containers []corev1.Container
 	var imageMap = make(map[string]uint)
-	for _, image := range c.Images {
+	for _, image := range c.images {
 		var ports []corev1.ContainerPort
 		for _, port := range image.Ports {
 			// Don't set HostPort because it should be decided by Kubernetes
@@ -59,7 +59,7 @@ func (c *K8sManager) Setup() (instances []*model.Instance, err error) {
 			envs = append(envs, corev1.EnvVar{Name: env.Key, Value: env.Value})
 		}
 		// Add the flag information to the environment variables
-		envs = append(envs, corev1.EnvVar{Name: c.Flag.Env, Value: c.Flag.Value})
+		envs = append(envs, corev1.EnvVar{Name: c.flag.Env, Value: c.flag.Value})
 		uid := uuid.NewString()
 		imageMap[uid] = image.ID
 		containers = append(containers, corev1.Container{
@@ -126,11 +126,11 @@ func (c *K8sManager) SetPodID(podID uint) {
 	panic("implement me")
 }
 
-func (c *K8sManager) GetDuration() (duration time.Duration) {
-	return c.Duration
+func (c *K8sManager) Duration() (duration time.Duration) {
+	return c.duration
 }
 
-func (c *K8sManager) GetContainerStatus() (status string, err error) {
+func (c *K8sManager) Status() (status string, err error) {
 	if c.RespID == "" {
 		return "", errors.New("pod not created or initialization failed")
 	}
@@ -143,7 +143,7 @@ func (c *K8sManager) GetContainerStatus() (status string, err error) {
 
 func (c *K8sManager) RemoveAfterDuration() (success bool) {
 	select {
-	case <-time.After(c.Duration):
+	case <-time.After(c.duration):
 		c.Remove()
 		return true
 	case <-c.CancelCtx.Done():
@@ -162,7 +162,7 @@ func (c *K8sManager) Renew(duration time.Duration) {
 	if c.CancelFunc != nil {
 		c.CancelFunc() // Calling the cancel function
 	}
-	c.Duration = duration
+	c.duration = duration
 	c.CancelCtx, c.CancelFunc = context.WithCancel(context.Background())
 	go c.RemoveAfterDuration()
 	zap.L().Warn(

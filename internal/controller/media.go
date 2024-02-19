@@ -45,10 +45,10 @@ func NewMediaController(appService *service.Service) IMediaController {
 // GetUserAvatarList
 // @Summary 获取拥有头像的用户列表
 // @Description 获取拥有头像的用户列表
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Produce json
-// @Router /api/media/users/avatar/ [get]
+// @Router /media/users/avatar/ [get]
 func (c *MediaController) GetUserAvatarList(ctx *gin.Context) {
 	res, _ := c.MediaService.GetUserAvatarList()
 	ctx.JSON(http.StatusOK, gin.H{
@@ -60,11 +60,11 @@ func (c *MediaController) GetUserAvatarList(ctx *gin.Context) {
 // GetUserAvatarByUserId
 // @Summary 通过用户 Id 获取用户头像
 // @Description 通过用户 Id 获取用户头像
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Produce json
 // @Param id path string true "用户 Id"
-// @Router /api/media/users/avatar/{id} [get]
+// @Router /media/users/avatar/{id} [get]
 func (c *MediaController) GetUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Gin.Paths.Media, id)
@@ -81,11 +81,11 @@ func (c *MediaController) GetUserAvatarByUserId(ctx *gin.Context) {
 // GetUserAvatarInfoByUserId
 // @Summary 通过用户 Id 获得用户头像信息
 // @Description 通过用户 Id 获得用户头像信息
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Produce json
 // @Param id path string true "用户 Id"
-// @Router /api/media/users/avatar/{id}/info [get]
+// @Router /media/users/avatar/{id}/info [get]
 func (c *MediaController) GetUserAvatarInfoByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Gin.Paths.Media, id)
@@ -104,11 +104,11 @@ func (c *MediaController) GetUserAvatarInfoByUserId(ctx *gin.Context) {
 // SetUserAvatarByUserId
 // @Summary 通过用户 Id 设置用户头像
 // @Description 通过用户 Id 设置用户头像
-// @Tags 资源
+// @Tags Media
 // @Accept multipart/form-data
 // @Param id path string true "用户 Id"
 // @Param avatar formData file true "头像文件"
-// @Router /api/media/users/avatar/{id} [post]
+// @Router /media/users/avatar/{id} [post]
 func (c *MediaController) SetUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	file, err := ctx.FormFile("avatar")
@@ -140,11 +140,11 @@ func (c *MediaController) SetUserAvatarByUserId(ctx *gin.Context) {
 // DeleteUserAvatarByUserId
 // @Summary 通过用户 Id 删除用户头像
 // @Description 通过用户 Id 删除用户头像
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Produce json
 // @Param id path string true "用户 Id"
-// @Router /api/media/users/avatar/{id} [delete]
+// @Router /media/users/avatar/{id} [delete]
 func (c *MediaController) DeleteUserAvatarByUserId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Gin.Paths.Media, id)
@@ -171,10 +171,10 @@ func (c *MediaController) DeleteUserAvatarByUserId(ctx *gin.Context) {
 // GetTeamAvatarList
 // @Summary 获取拥有头像的团队列表
 // @Description 获取拥有头像的团队列表
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Produce json
-// @Router /api/media/teams/avatar/ [get]
+// @Router /media/teams/avatar/ [get]
 func (c *MediaController) GetTeamAvatarList(ctx *gin.Context) {
 	res, _ := c.MediaService.GetTeamAvatarList()
 	ctx.JSON(http.StatusOK, gin.H{
@@ -186,11 +186,11 @@ func (c *MediaController) GetTeamAvatarList(ctx *gin.Context) {
 // GetTeamAvatarByTeamId
 // @Summary 通过团队 Id 获取团队头像
 // @Description 通过团队 Id 获取团队头像
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Produce json
 // @Param id path string true "团队 Id"
-// @Router /api/media/teams/avatar/{id} [get]
+// @Router /media/teams/avatar/{id} [get]
 func (c *MediaController) GetTeamAvatarByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("%s/teams/avatar/%s", config.AppCfg().Gin.Paths.Media, id)
@@ -207,11 +207,11 @@ func (c *MediaController) GetTeamAvatarByTeamId(ctx *gin.Context) {
 // GetTeamAvatarInfoByTeamId
 // @Summary 通过团队 Id 获取团队头像信息
 // @Description 通过团队 Id 获取团队头像信息
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Produce json
 // @Param id path string true "团队 Id"
-// @Router /api/media/teams/avatar/{id}/info [get]
+// @Router /media/teams/avatar/{id}/info [get]
 func (c *MediaController) GetTeamAvatarInfoByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("%s/teams/avatar/%s", config.AppCfg().Gin.Paths.Media, id)
@@ -230,11 +230,11 @@ func (c *MediaController) GetTeamAvatarInfoByTeamId(ctx *gin.Context) {
 // SetTeamAvatarByTeamId
 // @Summary 通过团队 Id 设置团队头像
 // @Description 通过团队 Id 设置团队头像
-// @Tags 资源
+// @Tags Media
 // @Accept multipart/form-data
 // @Param id path string true "团队 Id"
 // @Param avatar formData file true "头像文件"
-// @Router /api/media/teams/avatar/{id} [post]
+// @Router /media/teams/avatar/{id} [post]
 func (c *MediaController) SetTeamAvatarByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	file, err := ctx.FormFile("avatar")
@@ -266,11 +266,11 @@ func (c *MediaController) SetTeamAvatarByTeamId(ctx *gin.Context) {
 // DeleteTeamAvatarByTeamId
 // @Summary 通过团队 Id 删除团队头像
 // @Description 通过团队 Id 删除团队头像
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Produce json
 // @Param id path string true "用户 Id"
-// @Router /api/media/teams/avatar/{id} [delete]
+// @Router /media/teams/avatar/{id} [delete]
 func (c *MediaController) DeleteTeamAvatarByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("%s/teams/avatar/%s", config.AppCfg().Gin.Paths.Media, id)
@@ -297,11 +297,11 @@ func (c *MediaController) DeleteTeamAvatarByTeamId(ctx *gin.Context) {
 // GetGameCoverByGameId
 // @Summary 通过比赛 Id 获取比赛封面
 // @Description 通过比赛 Id 获取比赛封面
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Produce json
 // @Param id path string true "比赛 Id"
-// @Router /api/media/games/cover/{id} [get]
+// @Router /media/games/cover/{id} [get]
 func (c *MediaController) GetGameCoverByGameId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("%s/games/cover/%s", config.AppCfg().Gin.Paths.Media, id)
@@ -318,11 +318,11 @@ func (c *MediaController) GetGameCoverByGameId(ctx *gin.Context) {
 // SetGameCoverByGameId
 // @Summary 通过比赛 Id 设置比赛封面
 // @Description 通过比赛 Id 设置比赛封面
-// @Tags 资源
+// @Tags Media
 // @Accept multipart/form-data
 // @Param id path string true "比赛 Id"
 // @Param avatar formData file true "封面文件"
-// @Router /api/media/games/cover/{id} [post]
+// @Router /media/games/cover/{id} [post]
 func (c *MediaController) SetGameCoverByGameId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	file, err := ctx.FormFile("avatar")
@@ -354,11 +354,11 @@ func (c *MediaController) SetGameCoverByGameId(ctx *gin.Context) {
 // FindGameWriteUpByTeamId
 // @Summary 通过团队 Id 获取比赛 Writeup
 // @Description 通过团队 Id 获取比赛 Writeup
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Produce json
 // @Param id path string true "团队 Id"
-// @Router /api/media/games/writeups/{id} [get]
+// @Router /media/games/writeups/{id} [get]
 func (c *MediaController) FindGameWriteUpByTeamId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	path := fmt.Sprintf("%s/games/writeups/%s.pdf", config.AppCfg().Gin.Paths.Media, id)
@@ -373,11 +373,11 @@ func (c *MediaController) FindGameWriteUpByTeamId(ctx *gin.Context) {
 // SetChallengeAttachmentByChallengeId
 // @Summary 通过题目 Id 设置题目附件
 // @Description 通过题目 Id 设置题目附件
-// @Tags 资源
+// @Tags Media
 // @Accept multipart/form-data
 // @Param id path string true "题目 Id"
 // @Param attachment formData file true "附件文件"
-// @Router /api/media/challenges/attachments/{id} [post]
+// @Router /media/challenges/attachments/{id} [post]
 func (c *MediaController) SetChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	file, err := ctx.FormFile("attachment")
@@ -414,10 +414,10 @@ func (c *MediaController) SetChallengeAttachmentByChallengeId(ctx *gin.Context) 
 // GetChallengeAttachmentInfoByChallengeId
 // @Summary 通过题目 Id 查找题目附件信息
 // @Description 通过题目 Id 查找题目附件信息
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Param id path string true "题目 Id"
-// @Router /api/media/challenges/attachments/{id}/info [get]
+// @Router /media/challenges/attachments/{id}/info [get]
 func (c *MediaController) GetChallengeAttachmentInfoByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	fileName, fileSize, err := c.MediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
@@ -437,10 +437,10 @@ func (c *MediaController) GetChallengeAttachmentInfoByChallengeId(ctx *gin.Conte
 // GetChallengeAttachmentByChallengeId
 // @Summary 通过题目 Id 获取题目附件
 // @Description 通过题目 Id 获取题目附件
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Param id path string true "题目 Id"
-// @Router /api/media/challenges/attachments/{id} [get]
+// @Router /media/challenges/attachments/{id} [get]
 func (c *MediaController) GetChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	fileName, _, err := c.MediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
@@ -456,10 +456,10 @@ func (c *MediaController) GetChallengeAttachmentByChallengeId(ctx *gin.Context) 
 // DeleteChallengeAttachmentByChallengeId
 // @Summary 通过题目 Id 删除 题目附件
 // @Description 通过题目 Id 删除题目附件
-// @Tags 资源
+// @Tags Media
 // @Accept json
 // @Param id path string true "题目 Id"
-// @Router /api/media/challenges/attachments/{id} [delete]
+// @Router /media/challenges/attachments/{id} [delete]
 func (c *MediaController) DeleteChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
 	err := c.MediaService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))

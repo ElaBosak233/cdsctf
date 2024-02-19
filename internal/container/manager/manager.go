@@ -8,12 +8,12 @@ import (
 
 type IContainerManager interface {
 	Setup() (instances []*model.Instance, err error)
-	GetContainerStatus() (status string, err error)
-	RemoveAfterDuration() (success bool)
+	Status() (status string, err error)
+	Duration() (duration time.Duration)
 	Remove()
+	RemoveAfterDuration() (success bool)
 	Renew(duration time.Duration)
 	SetPodID(podID uint)
-	GetDuration() (duration time.Duration)
 }
 
 func NewContainerManager(images []*model.Image, flag model.Flag, duration time.Duration) IContainerManager {

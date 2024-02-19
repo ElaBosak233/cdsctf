@@ -29,12 +29,12 @@ func NewSubmissionController(appService *service.Service) ISubmissionController 
 // Find
 // @Summary 提交记录查询
 // @Description
-// @Tags 提交
+// @Tags Submission
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
-// @Param 查找请求 query request.SubmissionFindRequest false "SubmissionFindRequest"
-// @Router /api/submissions/ [get]
+// @Security ApiKeyAuth
+// @Param 查找请求 query	request.SubmissionFindRequest false "SubmissionFindRequest"
+// @Router /submissions/ [get]
 func (c *SubmissionController) Find(ctx *gin.Context) {
 	isDetailed := func() int {
 		if ctx.GetInt64("UserLevel") <= 3 && convertor.ToIntD(ctx.Query("is_detailed"), 0) == 1 {
@@ -64,12 +64,12 @@ func (c *SubmissionController) Find(ctx *gin.Context) {
 // BatchFind
 // @Summary 提交记录批量查询
 // @Description
-// @Tags 提交
+// @Tags Submission
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
+// @Security ApiKeyAuth
 // @Param 查找请求 query request.SubmissionBatchFindRequest false "SubmissionBatchFindRequest"
-// @Router /api/submissions/batch/ [get]
+// @Router /submissions/batch/ [get]
 func (c *SubmissionController) BatchFind(ctx *gin.Context) {
 	submissions, err := c.SubmissionService.BatchFind(request.SubmissionBatchFindRequest{
 		Size:             convertor.ToIntD(ctx.Query("size"), 1),
@@ -98,12 +98,12 @@ func (c *SubmissionController) BatchFind(ctx *gin.Context) {
 // Create
 // @Summary 提交
 // @Description
-// @Tags 提交
+// @Tags Submission
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
+// @Security ApiKeyAuth
 // @Param 创建请求 body request.SubmissionCreateRequest true "SubmissionCreateRequest"
-// @Router /api/submissions/ [post]
+// @Router /submissions/ [post]
 func (c *SubmissionController) Create(ctx *gin.Context) {
 	submissionCreateRequest := request.SubmissionCreateRequest{}
 	err := ctx.ShouldBindJSON(&submissionCreateRequest)

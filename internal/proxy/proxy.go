@@ -7,7 +7,7 @@ import (
 type IProxy interface {
 	Setup()
 	Close()
-	GetEntry() (entry string)
+	Entry() (entry string)
 }
 
 func NewProxy(target string) IProxy {
@@ -18,30 +18,4 @@ func NewProxy(target string) IProxy {
 		return NewWSProxy(target)
 	}
 	return nil
-}
-
-type PodProxy struct {
-	Proxies []IProxy
-}
-
-func NewPodProxy(targets []string) *PodProxy {
-	instanceProxies := make([]IProxy, 0)
-	for _, target := range targets {
-		instanceProxies = append(instanceProxies, NewProxy(target))
-	}
-	return &PodProxy{
-		Proxies: instanceProxies,
-	}
-}
-
-func (p *PodProxy) Start() {
-	for _, instanceProxy := range p.Proxies {
-		instanceProxy.Setup()
-	}
-}
-
-func (p *PodProxy) Close() {
-	for _, instanceProxy := range p.Proxies {
-		instanceProxy.Close()
-	}
 }

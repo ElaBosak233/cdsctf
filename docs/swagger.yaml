@@ -1,3 +1,4 @@
+basePath: /api
 definitions:
   model.Category:
     properties:
@@ -750,17 +751,15 @@ definitions:
     type: object
 info:
   contact: {}
+  description: Hack for fun not for profit.
+  title: Cloudsdale API
+  version: "1.0"
 paths:
-  /api/categories/:
+  /categories/:
     get:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - in: query
         name: id
         type: integer
@@ -770,6 +769,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: get category
       tags:
       - Category
@@ -777,11 +778,6 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: CategoryCreateRequest
         in: body
         name: req
@@ -791,6 +787,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: create new category
       tags:
       - Category
@@ -798,11 +796,6 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: CategoryUpdateRequest
         in: body
         name: req
@@ -812,19 +805,16 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: update category
       tags:
       - Category
-  /api/challenges/:
+  /challenges/:
     delete:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: ChallengeDeleteRequest
         in: body
         name: request
@@ -834,19 +824,16 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 删除题目（Role≤2）
       tags:
-      - 题目
+      - Challenge
     get:
       consumes:
       - application/json
       description: 只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - in: query
         name: category
         type: string
@@ -895,18 +882,15 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 题目查询
       tags:
-      - 题目
+      - Challenge
     post:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: ChallengeCreateRequest
         in: body
         name: 创建请求
@@ -916,18 +900,15 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 创建题目（Role≤2）
       tags:
-      - 题目
+      - Challenge
     put:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: ChallengeUpdateRequest
         in: body
         name: request
@@ -937,10 +918,12 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 更新题目（Role≤2）
       tags:
-      - 题目
-  /api/configs/:
+      - Challenge
+  /configs/:
     get:
       consumes:
       - application/json
@@ -950,17 +933,12 @@ paths:
       responses: {}
       summary: 配置全部查询
       tags:
-      - 配置
+      - Config
     put:
       consumes:
       - application/json
       description: 更新配置
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: body
         in: body
         name: input
@@ -970,19 +948,16 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 更新配置
       tags:
-      - 配置
-  /api/games/:
+      - Config
+  /games/:
     get:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - in: query
         name: id
         type: integer
@@ -1007,18 +982,15 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 比赛查询
       tags:
-      - 比赛
+      - Game
     post:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: GameCreateRequest
         in: body
         name: 创建请求
@@ -1028,17 +1000,19 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 创建比赛（Role≤3）
       tags:
-      - 比赛
-  /api/games/:id/broadcast:
+      - Game
+  /games/:id/broadcast:
     get:
       description: 广播消息
       responses: {}
       summary: 广播消息
       tags:
-      - 比赛
-  /api/media/challenges/attachments/{id}:
+      - Game
+  /media/challenges/attachments/{id}:
     delete:
       consumes:
       - application/json
@@ -1052,7 +1026,7 @@ paths:
       responses: {}
       summary: 通过题目 Id 删除 题目附件
       tags:
-      - 资源
+      - Media
     get:
       consumes:
       - application/json
@@ -1066,7 +1040,7 @@ paths:
       responses: {}
       summary: 通过题目 Id 获取题目附件
       tags:
-      - 资源
+      - Media
     post:
       consumes:
       - multipart/form-data
@@ -1085,8 +1059,8 @@ paths:
       responses: {}
       summary: 通过题目 Id 设置题目附件
       tags:
-      - 资源
-  /api/media/challenges/attachments/{id}/info:
+      - Media
+  /media/challenges/attachments/{id}/info:
     get:
       consumes:
       - application/json
@@ -1100,8 +1074,8 @@ paths:
       responses: {}
       summary: 通过题目 Id 查找题目附件信息
       tags:
-      - 资源
-  /api/media/games/cover/{id}:
+      - Media
+  /media/games/cover/{id}:
     get:
       consumes:
       - application/json
@@ -1117,7 +1091,7 @@ paths:
       responses: {}
       summary: 通过比赛 Id 获取比赛封面
       tags:
-      - 资源
+      - Media
     post:
       consumes:
       - multipart/form-data
@@ -1136,8 +1110,8 @@ paths:
       responses: {}
       summary: 通过比赛 Id 设置比赛封面
       tags:
-      - 资源
-  /api/media/games/writeups/{id}:
+      - Media
+  /media/games/writeups/{id}:
     get:
       consumes:
       - application/json
@@ -1153,8 +1127,8 @@ paths:
       responses: {}
       summary: 通过团队 Id 获取比赛 Writeup
       tags:
-      - 资源
-  /api/media/teams/avatar/:
+      - Media
+  /media/teams/avatar/:
     get:
       consumes:
       - application/json
@@ -1164,8 +1138,8 @@ paths:
       responses: {}
       summary: 获取拥有头像的团队列表
       tags:
-      - 资源
-  /api/media/teams/avatar/{id}:
+      - Media
+  /media/teams/avatar/{id}:
     delete:
       consumes:
       - application/json
@@ -1181,7 +1155,7 @@ paths:
       responses: {}
       summary: 通过团队 Id 删除团队头像
       tags:
-      - 资源
+      - Media
     get:
       consumes:
       - application/json
@@ -1197,7 +1171,7 @@ paths:
       responses: {}
       summary: 通过团队 Id 获取团队头像
       tags:
-      - 资源
+      - Media
     post:
       consumes:
       - multipart/form-data
@@ -1216,8 +1190,8 @@ paths:
       responses: {}
       summary: 通过团队 Id 设置团队头像
       tags:
-      - 资源
-  /api/media/teams/avatar/{id}/info:
+      - Media
+  /media/teams/avatar/{id}/info:
     get:
       consumes:
       - application/json
@@ -1233,8 +1207,8 @@ paths:
       responses: {}
       summary: 通过团队 Id 获取团队头像信息
       tags:
-      - 资源
-  /api/media/users/avatar/:
+      - Media
+  /media/users/avatar/:
     get:
       consumes:
       - application/json
@@ -1244,8 +1218,8 @@ paths:
       responses: {}
       summary: 获取拥有头像的用户列表
       tags:
-      - 资源
-  /api/media/users/avatar/{id}:
+      - Media
+  /media/users/avatar/{id}:
     delete:
       consumes:
       - application/json
@@ -1261,7 +1235,7 @@ paths:
       responses: {}
       summary: 通过用户 Id 删除用户头像
       tags:
-      - 资源
+      - Media
     get:
       consumes:
       - application/json
@@ -1277,7 +1251,7 @@ paths:
       responses: {}
       summary: 通过用户 Id 获取用户头像
       tags:
-      - 资源
+      - Media
     post:
       consumes:
       - multipart/form-data
@@ -1296,8 +1270,8 @@ paths:
       responses: {}
       summary: 通过用户 Id 设置用户头像
       tags:
-      - 资源
-  /api/media/users/avatar/{id}/info:
+      - Media
+  /media/users/avatar/{id}/info:
     get:
       consumes:
       - application/json
@@ -1313,16 +1287,11 @@ paths:
       responses: {}
       summary: 通过用户 Id 获得用户头像信息
       tags:
-      - 资源
-  /api/pods/:
+      - Media
+  /pods/:
     delete:
       description: 停止并删除容器
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: PodRemoveRequest
         in: body
         name: input
@@ -1332,17 +1301,14 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 停止并删除容器
       tags:
-      - 实例
+      - Pod
     get:
       description: 实例查询
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - in: query
         name: challenge_id
         type: integer
@@ -1370,19 +1336,16 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 实例查询
       tags:
-      - 实例
+      - Pod
     post:
       consumes:
       - application/json
       description: 创建实例
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: PodCreateRequest
         in: body
         name: input
@@ -1392,17 +1355,14 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 创建实例
       tags:
-      - 实例
+      - Pod
     put:
       description: 容器续期
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: PodRenewRequest
         in: body
         name: input
@@ -1412,10 +1372,12 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 容器续期
       tags:
-      - 实例
-  /api/pods/{id}:
+      - Pod
+  /pods/{id}:
     get:
       description: 实例查询
       parameters:
@@ -1429,17 +1391,12 @@ paths:
       responses: {}
       summary: 实例查询
       tags:
-      - 实例
-  /api/submissions/:
+      - Pod
+  /submissions/:
     get:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: 题目 Id
         in: query
         name: challenge_id
@@ -1482,18 +1439,15 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 提交记录查询
       tags:
-      - 提交
+      - Submission
     post:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: SubmissionCreateRequest
         in: body
         name: 创建请求
@@ -1503,19 +1457,16 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 提交
       tags:
-      - 提交
-  /api/submissions/batch/:
+      - Submission
+  /submissions/batch/:
     get:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - collectionFormat: csv
         description: 题目 Id 数组
         in: query
@@ -1561,10 +1512,12 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 提交记录批量查询
       tags:
-      - 提交
-  /api/teams/:
+      - Submission
+  /teams/:
     delete:
       consumes:
       - application/json
@@ -1581,7 +1534,7 @@ paths:
       responses: {}
       summary: 删除团队
       tags:
-      - 团队
+      - Team
     get:
       consumes:
       - application/json
@@ -1607,7 +1560,7 @@ paths:
       responses: {}
       summary: 查找团队
       tags:
-      - 团队
+      - Team
     post:
       consumes:
       - application/json
@@ -1624,7 +1577,7 @@ paths:
       responses: {}
       summary: 创建团队
       tags:
-      - 团队
+      - Team
     put:
       consumes:
       - application/json
@@ -1641,8 +1594,8 @@ paths:
       responses: {}
       summary: 更新团队
       tags:
-      - 团队
-  /api/teams/batch/:
+      - Team
+  /teams/batch/:
     get:
       consumes:
       - application/json
@@ -1671,8 +1624,8 @@ paths:
       responses: {}
       summary: 批量查找团队
       tags:
-      - 团队
-  /api/teams/id/{id}:
+      - Team
+  /teams/id/{id}:
     get:
       consumes:
       - application/json
@@ -1688,8 +1641,8 @@ paths:
       responses: {}
       summary: 查找团队
       tags:
-      - 团队
-  /api/teams/members/:
+      - Team
+  /teams/members/:
     delete:
       consumes:
       - application/json
@@ -1706,7 +1659,7 @@ paths:
       responses: {}
       summary: 退出团队
       tags:
-      - 团队
+      - Team
     post:
       consumes:
       - application/json
@@ -1723,17 +1676,12 @@ paths:
       responses: {}
       summary: 加入团队
       tags:
-      - 团队
-  /api/users/:
+      - Team
+  /users/:
     delete:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: UserDeleteRequest
         in: body
         name: input
@@ -1743,9 +1691,11 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 用户删除（Role≤1 或 (Request)ID=(Authorization)ID）
       tags:
-      - 用户
+      - User
     get:
       consumes:
       - application/json
@@ -1779,16 +1729,11 @@ paths:
       responses: {}
       summary: 用户查询
       tags:
-      - 用户
+      - User
     post:
       consumes:
       - application/json
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: UserCreateRequest
         in: body
         name: 创建请求
@@ -1798,19 +1743,16 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 用户创建（Role<=1）
       tags:
-      - 用户
+      - User
     put:
       consumes:
       - application/json
       description: 若 Role>1，则自动忽略 UserUpdateRequest 中的 Role 属性
       parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: UserUpdateRequest
         in: body
         name: 更新请求
@@ -1820,10 +1762,12 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 用户更新（Role≤1 或 (Request)ID=(Authorization)ID）
       tags:
-      - 用户
-  /api/users/login:
+      - User
+  /users/login:
     post:
       consumes:
       - application/json
@@ -1839,24 +1783,20 @@ paths:
       responses: {}
       summary: 用户登录
       tags:
-      - 用户
-  /api/users/logout:
+      - User
+  /users/logout:
     post:
       consumes:
       - application/json
-      parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: 用户登出
       tags:
-      - 用户
-  /api/users/register:
+      - User
+  /users/register:
     post:
       consumes:
       - application/json
@@ -1872,8 +1812,8 @@ paths:
       responses: {}
       summary: 用户注册
       tags:
-      - 用户
-  /api/users/token/{token}:
+      - User
+  /users/token/{token}:
     get:
       parameters:
       - description: token
@@ -1886,5 +1826,5 @@ paths:
       responses: {}
       summary: Token 鉴定
       tags:
-      - 用户
+      - User
 swagger: "2.0"

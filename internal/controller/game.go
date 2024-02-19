@@ -32,9 +32,9 @@ func NewGameController(appService *service.Service) IGameController {
 
 // BroadCast
 // @Summary 广播消息
-// @Description 广播消息
-// @Tags 比赛
-// @Router /api/games/:id/broadcast [get]
+// @Description	广播消息
+// @Tags Game
+// @Router /games/:id/broadcast [get]
 func (g *GameController) BroadCast(ctx *gin.Context) {
 	id := convertor.ToInt64D(ctx.Param("id"), 0)
 	if id != 0 {
@@ -45,12 +45,12 @@ func (g *GameController) BroadCast(ctx *gin.Context) {
 // Create
 // @Summary 创建比赛（Role≤3）
 // @Description
-// @Tags 比赛
+// @Tags Game
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
+// @Security ApiKeyAuth
 // @Param 创建请求 body request.GameCreateRequest true "GameCreateRequest"
-// @Router /api/games/ [post]
+// @Router /games/ [post]
 func (g *GameController) Create(ctx *gin.Context) {
 	gameCreateRequest := request.GameCreateRequest{}
 	err := ctx.ShouldBindJSON(&gameCreateRequest)
@@ -105,12 +105,12 @@ func (g *GameController) Update(ctx *gin.Context) {
 // Find
 // @Summary 比赛查询
 // @Description
-// @Tags 比赛
+// @Tags Game
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
+// @Security ApiKeyAuth
 // @Param 查找请求 query request.GameFindRequest false "GameFindRequest"
-// @Router /api/games/ [get]
+// @Router /games/ [get]
 func (g *GameController) Find(ctx *gin.Context) {
 	isEnabled := func() int {
 		if ctx.GetInt64("UserLevel") < 3 && ctx.Query("is_enabled") == "-1" {

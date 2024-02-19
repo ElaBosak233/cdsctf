@@ -33,13 +33,13 @@ func NewUserController(appService *service.Service) IUserController {
 }
 
 // Login
-// @Summary 用户登录
+// @Summary	用户登录
 // @Description
-// @Tags 用户
+// @Tags User
 // @Accept json
-// @Produce json
+// @Produce	json
 // @Param 登录请求 body request.UserLoginRequest true "UserLoginRequest"
-// @Router /api/users/login [post]
+// @Router /users/login [post]
 func (c *UserController) Login(ctx *gin.Context) {
 	userLoginRequest := request.UserLoginRequest{}
 	err := ctx.ShouldBindJSON(&userLoginRequest)
@@ -75,12 +75,12 @@ func (c *UserController) Login(ctx *gin.Context) {
 }
 
 // VerifyToken
-// @Summary Token 鉴定
+// @Summary	Token 鉴定
 // @Description
-// @Tags 用户
-// @Produce json
-// @Param token path string true "token"
-// @Router /api/users/token/{token} [get]
+// @Tags User
+// @Produce	json
+// @Param token	path string	true "token"
+// @Router /users/token/{token} [get]
 func (c *UserController) VerifyToken(ctx *gin.Context) {
 	id, err := c.UserService.GetIdByJwtToken(ctx.Param("token"))
 	if err != nil {
@@ -103,13 +103,13 @@ func (c *UserController) VerifyToken(ctx *gin.Context) {
 }
 
 // Logout
-// @Summary 用户登出
+// @Summary	用户登出
 // @Description
-// @Tags 用户
+// @Tags User
 // @Accept json
-// @Produce json
-// @Param Authorization header string true "Authorization"
-// @Router /api/users/logout [post]
+// @Produce	json
+// @Security ApiKeyAuth
+// @Router /users/logout [post]
 func (c *UserController) Logout(ctx *gin.Context) {
 	id, err := c.UserService.GetIdByJwtToken(ctx.GetHeader("Authorization"))
 	if err != nil {
@@ -126,13 +126,13 @@ func (c *UserController) Logout(ctx *gin.Context) {
 }
 
 // Register
-// @Summary 用户注册
+// @Summary	用户注册
 // @Description
-// @Tags 用户
+// @Tags User
 // @Accept json
-// @Produce json
-// @Param input body request.UserRegisterRequest true "UserRegisterRequest"
-// @Router /api/users/register [post]
+// @Produce	json
+// @Param input	body request.UserRegisterRequest true "UserRegisterRequest"
+// @Router /users/register [post]
 func (c *UserController) Register(ctx *gin.Context) {
 	registerUserRequest := request.UserRegisterRequest{}
 	err := ctx.ShouldBindJSON(&registerUserRequest)
@@ -158,14 +158,14 @@ func (c *UserController) Register(ctx *gin.Context) {
 }
 
 // Create
-// @Summary 用户创建（Role<=1）
+// @Summary	用户创建（Role<=1）
 // @Description
-// @Tags 用户
+// @Tags User
 // @Accept json
-// @Produce json
-// @Param Authorization header string true "Authorization"
+// @Produce	json
+// @Security ApiKeyAuth
 // @Param 创建请求 body request.UserCreateRequest true "UserCreateRequest"
-// @Router /api/users/ [post]
+// @Router /users/ [post]
 func (c *UserController) Create(ctx *gin.Context) {
 	createUserRequest := request.UserCreateRequest{}
 	err := ctx.ShouldBindJSON(&createUserRequest)
@@ -190,14 +190,14 @@ func (c *UserController) Create(ctx *gin.Context) {
 }
 
 // Update
-// @Summary 用户更新（Role≤1 或 (Request)ID=(Authorization)ID）
-// @Description 若 Role>1，则自动忽略 UserUpdateRequest 中的 Role 属性
-// @Tags 用户
+// @Summary	用户更新（Role≤1 或 (Request)ID=(Authorization)ID）
+// @Description	若 Role>1，则自动忽略 UserUpdateRequest 中的 Role 属性
+// @Tags User
 // @Accept json
-// @Produce json
-// @Param Authorization header string true "Authorization"
+// @Produce	json
+// @Security ApiKeyAuth
 // @Param 更新请求 body request.UserUpdateRequest true "UserUpdateRequest"
-// @Router /api/users/ [put]
+// @Router /users/ [put]
 func (c *UserController) Update(ctx *gin.Context) {
 	updateUserRequest := request.UserUpdateRequest{}
 	err := ctx.ShouldBindJSON(&updateUserRequest)
@@ -235,14 +235,14 @@ func (c *UserController) Update(ctx *gin.Context) {
 }
 
 // Delete
-// @Summary 用户删除（Role≤1 或 (Request)ID=(Authorization)ID）
+// @Summary	用户删除（Role≤1 或 (Request)ID=(Authorization)ID）
 // @Description
-// @Tags 用户
+// @Tags User
 // @Accept json
-// @Produce json
-// @Param Authorization header string true "Authorization"
-// @Param input body request.UserDeleteRequest true "UserDeleteRequest"
-// @Router /api/users/ [delete]
+// @Produce	json
+// @Security ApiKeyAuth
+// @Param input	body request.UserDeleteRequest true "UserDeleteRequest"
+// @Router /users/ [delete]
 func (c *UserController) Delete(ctx *gin.Context) {
 	deleteUserRequest := request.UserDeleteRequest{}
 	err := ctx.ShouldBindJSON(&deleteUserRequest)
@@ -267,13 +267,13 @@ func (c *UserController) Delete(ctx *gin.Context) {
 }
 
 // Find
-// @Summary 用户查询
+// @Summary	用户查询
 // @Description
-// @Tags 用户
+// @Tags User
 // @Accept json
-// @Produce json
-// @Param input query request.UserFindRequest false "UserFindRequest"
-// @Router /api/users/ [get]
+// @Produce	json
+// @Param input	query request.UserFindRequest false	"UserFindRequest"
+// @Router /users/ [get]
 func (c *UserController) Find(ctx *gin.Context) {
 	userResponse, pageCount, total, _ := c.UserService.Find(request.UserFindRequest{
 		ID:     convertor.ToUintD(ctx.Query("id"), 0),

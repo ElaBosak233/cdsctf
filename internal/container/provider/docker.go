@@ -18,7 +18,7 @@ func DockerCli() *client.Client {
 	return dockerCli
 }
 
-func NewDockerProvider() {
+func InitDockerProvider() {
 	dockerUri := config.AppCfg().Container.Docker.URI
 	dockerClient, err := client.NewClientWithOpts(
 		client.FromEnv,

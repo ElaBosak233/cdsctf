@@ -29,13 +29,13 @@ func NewInstanceController(appService *service.Service) IPodController {
 
 // Create
 // @Summary 创建实例
-// @Description 创建实例
-// @Tags 实例
+// @Description	创建实例
+// @Tags Pod
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Authorization"
-// @Param input body request.PodCreateRequest true "PodCreateRequest"
-// @Router /api/pods/ [post]
+// @Security ApiKeyAuth
+// @Param input	body	request.PodCreateRequest	true	"PodCreateRequest"
+// @Router /pods/ [post]
 func (c *PodController) Create(ctx *gin.Context) {
 	instanceCreateRequest := request.PodCreateRequest{}
 	err := ctx.ShouldBindJSON(&instanceCreateRequest)
@@ -65,12 +65,12 @@ func (c *PodController) Create(ctx *gin.Context) {
 
 // Remove
 // @Summary 停止并删除容器
-// @Description 停止并删除容器
-// @Tags 实例
+// @Description	停止并删除容器
+// @Tags Pod
 // @Produce json
-// @Param Authorization header string true "Authorization"
-// @Param input body request.PodRemoveRequest true "PodRemoveRequest"
-// @Router /api/pods/ [delete]
+// @Security ApiKeyAuth
+// @Param input	body request.PodRemoveRequest true "PodRemoveRequest"
+// @Router /pods/ [delete]
 func (c *PodController) Remove(ctx *gin.Context) {
 	instanceRemoveRequest := request.PodRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
@@ -90,12 +90,12 @@ func (c *PodController) Remove(ctx *gin.Context) {
 
 // Renew
 // @Summary 容器续期
-// @Description 容器续期
-// @Tags 实例
+// @Description	容器续期
+// @Tags Pod
 // @Produce json
-// @Param Authorization header string true "Authorization"
-// @Param input body request.PodRenewRequest true "PodRenewRequest"
-// @Router /api/pods/ [put]
+// @Security ApiKeyAuth
+// @Param input	body request.PodRenewRequest true "PodRenewRequest"
+// @Router /pods/ [put]
 func (c *PodController) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.PodRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
@@ -116,11 +116,11 @@ func (c *PodController) Renew(ctx *gin.Context) {
 
 // FindById
 // @Summary 实例查询
-// @Description 实例查询
-// @Tags 实例
+// @Description	实例查询
+// @Tags Pod
 // @Produce json
 // @Param id path string true "id"
-// @Router /api/pods/{id} [get]
+// @Router /pods/{id} [get]
 func (c *PodController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
 	rep, err := c.PodService.FindById(convertor.ToUintD(id, 0))
@@ -139,12 +139,12 @@ func (c *PodController) FindById(ctx *gin.Context) {
 
 // Find
 // @Summary 实例查询
-// @Description 实例查询
-// @Tags 实例
+// @Description	实例查询
+// @Tags Pod
 // @Produce json
-// @Param Authorization header string true "Authorization"
-// @Param input query request.PodFindRequest false "PodFindRequest"
-// @Router /api/pods/ [get]
+// @Security ApiKeyAuth
+// @Param input	query request.PodFindRequest false "PodFindRequest"
+// @Router /pods/ [get]
 func (c *PodController) Find(ctx *gin.Context) {
 	podFindRequest := request.PodFindRequest{
 		UserID:      ctx.GetUint("UserID"),

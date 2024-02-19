@@ -32,12 +32,12 @@ func NewTeamController(appService *service.Service) ITeamController {
 
 // Create
 // @Summary 创建团队
-// @Description 创建团队
-// @Tags 团队
+// @Description	创建团队
+// @Tags Team
 // @Accept json
 // @Produce json
-// @Param input body request.TeamCreateRequest true "TeamCreateRequest"
-// @Router /api/teams/ [post]
+// @Param input	body	request.TeamCreateRequest	true	"TeamCreateRequest"
+// @Router /teams/ [post]
 func (c *TeamController) Create(ctx *gin.Context) {
 	createTeamRequest := request.TeamCreateRequest{}
 	err := ctx.ShouldBindJSON(&createTeamRequest)
@@ -63,12 +63,12 @@ func (c *TeamController) Create(ctx *gin.Context) {
 
 // Update
 // @Summary 更新团队
-// @Description 更新团队
-// @Tags 团队
+// @Description	更新团队
+// @Tags Team
 // @Accept json
 // @Produce json
-// @Param input body request.TeamUpdateRequest true "TeamUpdateRequest"
-// @Router /api/teams/ [put]
+// @Param input	body request.TeamUpdateRequest true "TeamUpdateRequest"
+// @Router /teams/ [put]
 func (c *TeamController) Update(ctx *gin.Context) {
 	updateTeamRequest := request.TeamUpdateRequest{}
 	err := ctx.ShouldBindJSON(&updateTeamRequest)
@@ -94,12 +94,12 @@ func (c *TeamController) Update(ctx *gin.Context) {
 
 // Delete
 // @Summary 删除团队
-// @Description 删除团队
-// @Tags 团队
+// @Description	删除团队
+// @Tags Team
 // @Accept json
 // @Produce json
-// @Param input body request.TeamDeleteRequest true "TeamDeleteRequest"
-// @Router /api/teams/ [delete]
+// @Param input	body	request.TeamDeleteRequest	true	"TeamDeleteRequest"
+// @Router /teams/ [delete]
 func (c *TeamController) Delete(ctx *gin.Context) {
 	deleteTeamRequest := request.TeamDeleteRequest{}
 	err := ctx.ShouldBindJSON(&deleteTeamRequest)
@@ -125,12 +125,12 @@ func (c *TeamController) Delete(ctx *gin.Context) {
 
 // Find
 // @Summary 查找团队
-// @Description 查找团队
-// @Tags 团队
+// @Description	查找团队
+// @Tags Team
 // @Accept json
 // @Produce json
-// @Param input query request.TeamFindRequest false "TeamFindRequest"
-// @Router /api/teams/ [get]
+// @Param input	query request.TeamFindRequest false	"TeamFindRequest"
+// @Router /teams/ [get]
 func (c *TeamController) Find(ctx *gin.Context) {
 	teamData, pageCount, total, _ := c.TeamService.Find(request.TeamFindRequest{
 		ID:        convertor.ToUintD(ctx.Query("id"), 0),
@@ -149,13 +149,12 @@ func (c *TeamController) Find(ctx *gin.Context) {
 
 // BatchFind
 // @Summary 批量查找团队
-// @Summary 批量查找团队
-// @Description 批量查找团队
-// @Tags 团队
+// @Description	批量查找团队
+// @Tags Team
 // @Accept json
 // @Produce json
-// @Param input query request.TeamBatchFindRequest false "TeamBatchFindRequest"
-// @Router /api/teams/batch/ [get]
+// @Param input	query request.TeamBatchFindRequest false "TeamBatchFindRequest"
+// @Router /teams/batch/ [get]
 func (c *TeamController) BatchFind(ctx *gin.Context) {
 	teams, _ := c.TeamService.BatchFind(request.TeamBatchFindRequest{
 		ID: convertor.ToInt64SliceD(ctx.QueryArray("id"), []int64{}),
@@ -168,12 +167,12 @@ func (c *TeamController) BatchFind(ctx *gin.Context) {
 
 // Join
 // @Summary 加入团队
-// @Description 加入团队
-// @Tags 团队
+// @Description	加入团队
+// @Tags Team
 // @Accept json
 // @Produce json
-// @Param input body request.TeamJoinRequest true "TeamJoinRequest"
-// @Router /api/teams/members/ [post]
+// @Param input	body	request.TeamJoinRequest	true	"TeamJoinRequest"
+// @Router /teams/members/ [post]
 func (c *TeamController) Join(ctx *gin.Context) {
 	joinTeamRequest := request.TeamJoinRequest{}
 	err := ctx.ShouldBindJSON(&joinTeamRequest)
@@ -199,12 +198,12 @@ func (c *TeamController) Join(ctx *gin.Context) {
 
 // Quit
 // @Summary 退出团队
-// @Description 退出团队
-// @Tags 团队
+// @Description	退出团队
+// @Tags Team
 // @Accept json
 // @Produce json
-// @Param input body request.TeamQuitRequest true "TeamQuitRequest"
-// @Router /api/teams/members/ [delete]
+// @Param input	body request.TeamQuitRequest true "TeamQuitRequest"
+// @Router /teams/members/ [delete]
 func (c *TeamController) Quit(ctx *gin.Context) {
 	quitTeamRequest := request.TeamQuitRequest{}
 	err := ctx.ShouldBindJSON(&quitTeamRequest)
@@ -230,12 +229,12 @@ func (c *TeamController) Quit(ctx *gin.Context) {
 
 // FindById
 // @Summary 查找团队
-// @Description 查找团队
-// @Tags 团队
+// @Description	查找团队
+// @Tags Team
 // @Accept json
 // @Produce json
 // @Param id path string true "id"
-// @Router /api/teams/id/{id} [get]
+// @Router /teams/id/{id} [get]
 func (c *TeamController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
 	res, err := c.TeamService.FindById(convertor.ToUintD(id, 0))
