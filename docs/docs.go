@@ -2758,6 +2758,9 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
+                "token": {
+                    "type": "string"
+                },
                 "username": {
                     "type": "string"
                 }

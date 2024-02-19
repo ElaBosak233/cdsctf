@@ -715,6 +715,8 @@ definitions:
         type: string
       password:
         type: string
+      token:
+        type: string
       username:
         type: string
     required:

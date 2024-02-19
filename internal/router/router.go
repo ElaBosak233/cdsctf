@@ -27,4 +27,5 @@ func NewRouter(
 	NewSubmissionRouter(router.Group("/submissions"), appController.SubmissionController, appMiddleware.AuthMiddleware)
 	NewGameRouter(router.Group("/games"), appController.GameController, appMiddleware.AuthMiddleware)
 	NewCategoryRouter(router.Group("/categories"), appController.CategoryController, appMiddleware.AuthMiddleware)
+	NewProxyRouter(router.Group("/proxies"), appController.ProxyController)
 }

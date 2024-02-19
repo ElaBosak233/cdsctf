@@ -38,7 +38,8 @@ func Debug() {
 
 func initDatabaseEngine() {
 	var err error
-	if config.AppCfg().Db.Provider == "postgres" {
+	switch config.AppCfg().Db.Provider {
+	case "postgres":
 		dbInfo = fmt.Sprintf(
 			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 			config.AppCfg().Db.Postgres.Host,
@@ -49,7 +50,7 @@ func initDatabaseEngine() {
 			config.AppCfg().Db.Postgres.Sslmode,
 		)
 		db, err = gorm.Open(postgres.Open(dbInfo), &gorm.Config{})
-	} else if config.AppCfg().Db.Provider == "mysql" {
+	case "mysql":
 		dbInfo = fmt.Sprintf(
 			"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			config.AppCfg().Db.MySQL.Username,
@@ -59,7 +60,7 @@ func initDatabaseEngine() {
 			config.AppCfg().Db.MySQL.Dbname,
 		)
 		db, err = gorm.Open(mysql.Open(dbInfo), &gorm.Config{})
-	} else if config.AppCfg().Db.Provider == "sqlite3" {
+	case "sqlite3":
 		dbInfo = config.AppCfg().Db.SQLite3.Filename
 		db, err = gorm.Open(sqlite.Open(dbInfo), &gorm.Config{})
 	}

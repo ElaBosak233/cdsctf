@@ -23,7 +23,7 @@ var (
 	}{m: make(map[uint]int64)}
 
 	// PodManagers is a mapping of PodID and manager pointer.
-	PodManagers = make(map[uint]manager.ContainerManager)
+	PodManagers = make(map[uint]manager.IContainerManager)
 )
 
 // GetUserInstanceRequestMap 返回用户上次请求的时间
@@ -183,7 +183,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 func (t *PodService) Status(podID uint) (rep response.PodStatusResponse, err error) {
 	rep = response.PodStatusResponse{}
 	instance, err := t.PodRepository.FindById(podID)
-	var ctn manager.ContainerManager
+	var ctn manager.IContainerManager
 	if PodManagers[podID] != nil {
 		ctn = PodManagers[podID]
 		rep.Status = "removed"

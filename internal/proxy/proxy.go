@@ -1,109 +1,47 @@
 package proxy
 
 import (
-	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/config"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
-	"github.com/google/gopacket/pcapgo"
-	"go.uber.org/zap"
-	"io"
-	"net"
-	"os"
-	"path"
-	"strings"
-	"time"
 )
 
-func Handle(clientConn net.Conn, target string) {
-	targetConn, err := net.Dial("tcp", target)
-	if err != nil {
-		zap.L().Error(fmt.Sprintf("Failed to connect to target %s", target), zap.Error(err))
-		_ = clientConn.Close()
-		return
-	}
-	defer func(targetConn net.Conn) {
-		_ = targetConn.Close()
-	}(targetConn)
-
-	go func() {
-		// Client -> Target
-		_, _ = io.Copy(targetConn, clientConn)
-		_ = targetConn.Close()
-	}()
-	// Target -> Client
-	_, _ = io.Copy(clientConn, targetConn)
-	_ = clientConn.Close()
+type IProxy interface {
+	Setup()
+	Close()
+	GetEntry() (entry string)
 }
 
-func HandleInTrafficCapture(clientConn net.Conn, target string) {
-	targetConn, err := net.Dial("tcp", target)
-	if err != nil {
-		zap.L().Error(fmt.Sprintf("Failed to connect to target %s", target), zap.Error(err))
-		_ = clientConn.Close()
-		return
+func NewProxy(target string) IProxy {
+	switch config.AppCfg().Container.Proxy.Type {
+	case "tcp":
+		return NewTCPProxy(target)
+	case "ws":
+		return NewWSProxy(target)
 	}
-	defer func(targetConn net.Conn) {
-		_ = targetConn.Close()
-	}(targetConn)
+	return nil
+}
 
-	clientAddr := strings.Split(clientConn.RemoteAddr().String(), ":")[0]
-	targetAddr := strings.Split(targetConn.RemoteAddr().String(), ":")[0]
-	targetPort := strings.Split(targetConn.RemoteAddr().String(), ":")[1]
-	zap.L().Info(fmt.Sprintf("Proxying from %s to %s:%s", clientAddr, targetAddr, targetPort))
-	// Create a new pcap writer
-	f, err := os.Create(
-		path.Join(config.AppCfg().Container.TrafficCapture.Path,
-			fmt.Sprintf(
-				"%s-%s-%s-%s.pcap",
-				clientAddr,
-				targetAddr,
-				targetPort,
-				time.Now().Format("2006-01-02-15-04-05"),
-			),
-		),
-	)
-	if err != nil {
-		zap.L().Error("Failed to create pcap file.", zap.Error(err))
-	}
-	w := pcapgo.NewWriter(f)
-	_ = w.WriteFileHeader(1024, layers.LinkTypeEthernet)
+type PodProxy struct {
+	Proxies []IProxy
+}
 
-	go func() {
-		// Client -> Target
-		buf := make([]byte, 1024)
-		for {
-			n, err := clientConn.Read(buf)
-			if err != nil {
-				break
-			}
-			_, _ = targetConn.Write(buf[:n])
-			_ = w.WritePacket(gopacket.CaptureInfo{
-				CaptureLength: n,
-				Length:        n,
-				Timestamp:     time.Now(),
-			}, buf[:n])
-			_ = f.Sync()
-		}
-		_ = targetConn.Close()
-	}()
-	// Target -> Client
-	buf := make([]byte, 1024)
-	for {
-		n, err := targetConn.Read(buf)
-		if err != nil {
-			break
-		}
-		_, _ = clientConn.Write(buf[:n])
-		_ = w.WritePacket(gopacket.CaptureInfo{
-			CaptureLength: n,
-			Length:        n,
-			Timestamp:     time.Now(),
-		}, buf[:n])
-		_ = f.Sync()
+func NewPodProxy(targets []string) *PodProxy {
+	instanceProxies := make([]IProxy, 0)
+	for _, target := range targets {
+		instanceProxies = append(instanceProxies, NewProxy(target))
 	}
-	_ = clientConn.Close()
-	defer func(f *os.File) {
-		_ = f.Close()
-	}(f)
+	return &PodProxy{
+		Proxies: instanceProxies,
+	}
+}
+
+func (p *PodProxy) Start() {
+	for _, instanceProxy := range p.Proxies {
+		instanceProxy.Setup()
+	}
+}
+
+func (p *PodProxy) Close() {
+	for _, instanceProxy := range p.Proxies {
+		instanceProxy.Close()
+	}
 }

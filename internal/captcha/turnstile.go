@@ -14,7 +14,7 @@ type CloudflareTurnstile struct {
 	SecretKey string
 }
 
-func NewCloudflareTurnstile() Captcha {
+func NewCloudflareTurnstile() ICaptcha {
 	return &CloudflareTurnstile{
 		URL:       config.AppCfg().Captcha.Turnstile.URL,
 		SiteKey:   config.AppCfg().Captcha.Turnstile.SiteKey,
