@@ -389,6 +389,35 @@ const docTemplate = `{
                 ],
                 "responses": {}
             },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "更新比赛",
+                "parameters": [
+                    {
+                        "description": "GameUpdateRequest",
+                        "name": "更新请求",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GameUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
             "post": {
                 "security": [
                     {
@@ -404,7 +433,7 @@ const docTemplate = `{
                 "tags": [
                     "Game"
                 ],
-                "summary": "创建比赛（Role≤3）",
+                "summary": "创建比赛",
                 "parameters": [
                     {
                         "description": "GameCreateRequest",
@@ -413,6 +442,35 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.GameCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "删除比赛",
+                "parameters": [
+                    {
+                        "description": "GameDeleteRequest",
+                        "name": "删除请求",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GameDeleteRequest"
                         }
                     }
                 ],
@@ -426,6 +484,16 @@ const docTemplate = `{
                     "Game"
                 ],
                 "summary": "广播消息",
+                "responses": {}
+            }
+        },
+        "/games/:id/scoreboard": {
+            "get": {
+                "description": "计分板",
+                "tags": [
+                    "Game"
+                ],
+                "summary": "计分板",
                 "responses": {}
             }
         },
@@ -2424,6 +2492,67 @@ const docTemplate = `{
                 },
                 "first_blood_reward_ratio": {
                     "type": "number"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "is_need_write_up": {
+                    "type": "boolean"
+                },
+                "is_public": {
+                    "type": "boolean"
+                },
+                "member_limit_max": {
+                    "type": "integer"
+                },
+                "member_limit_min": {
+                    "type": "integer"
+                },
+                "parallel_container_limit": {
+                    "type": "integer"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "second_blood_reward_ratio": {
+                    "type": "number"
+                },
+                "started_at": {
+                    "type": "integer"
+                },
+                "third_blood_reward_ratio": {
+                    "type": "number"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.GameDeleteRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.GameUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "ended_at": {
+                    "type": "integer"
+                },
+                "first_blood_reward_ratio": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "is_enabled": {
                     "type": "boolean"

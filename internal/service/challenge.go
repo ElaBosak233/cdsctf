@@ -57,8 +57,12 @@ func (t *ChallengeService) Update(req request.ChallengeUpdateRequest) (err error
 	}
 	challengeModel := model.Challenge{}
 	_ = mapstructure.Decode(req, &challengeModel)
-	_ = t.FlagRepository.DeleteByChallengeID([]uint{challengeModel.ID})
-	_ = t.ImageRepository.DeleteByChallengeID([]uint{challengeModel.ID})
+	if req.Images != nil {
+		_ = t.ImageRepository.DeleteByChallengeID([]uint{challengeModel.ID})
+	}
+	if req.Flags != nil {
+		_ = t.FlagRepository.DeleteByChallengeID([]uint{challengeModel.ID})
+	}
 	challengeModel, err = t.ChallengeRepository.Update(challengeModel)
 	return err
 }

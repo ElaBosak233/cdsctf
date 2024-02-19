@@ -14,8 +14,8 @@ type ChallengeCreateRequest struct {
 	Duration      int64          `json:"duration"`
 	Difficulty    int64          `json:"difficulty"`
 	PracticePts   int64          `json:"practice_pts"`
-	Images        *[]model.Image `json:"images"`
-	Flags         *[]model.Flag  `json:"flags"`
+	Images        []*model.Image `json:"images"`
+	Flags         []*model.Flag  `json:"flags"`
 }
 
 type ChallengeUpdateRequest struct {
@@ -28,8 +28,8 @@ type ChallengeUpdateRequest struct {
 	Duration      int64          `json:"duration"`
 	Difficulty    int64          `json:"difficulty"`
 	PracticePts   int64          `json:"practice_pts"`
-	Images        *[]model.Image `json:"images"`
-	Flags         *[]model.Flag  `json:"flags"`
+	Images        []*model.Image `json:"images"`
+	Flags         []*model.Flag  `json:"flags"`
 }
 
 type ChallengeDeleteRequest struct {

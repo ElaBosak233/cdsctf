@@ -10,7 +10,7 @@ import (
 type IGameRepository interface {
 	Insert(game model.Game) (g model.Game, err error)
 	Update(game model.Game) (err error)
-	Delete(id uint) (err error)
+	Delete(req request.GameDeleteRequest) (err error)
 	Find(req request.GameFindRequest) (games []response.GameResponse, count int64, err error)
 }
 
@@ -32,9 +32,9 @@ func (t *GameRepository) Update(game model.Game) (err error) {
 	return result.Error
 }
 
-func (t *GameRepository) Delete(id uint) (err error) {
+func (t *GameRepository) Delete(req request.GameDeleteRequest) (err error) {
 	result := t.Db.Table("game").Delete(&model.Game{
-		ID: id,
+		ID: req.ID,
 	})
 	return result.Error
 }
