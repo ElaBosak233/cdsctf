@@ -31,7 +31,7 @@ type DockerManager struct {
 	CancelFunc context.CancelFunc
 }
 
-func NewDockerManager(images []*model.Image, flag model.Flag, duration time.Duration) ContainerManager {
+func NewDockerManager(images []*model.Image, flag model.Flag, duration time.Duration) IContainerManager {
 	return &DockerManager{
 		Images:   images,
 		Duration: duration,
@@ -93,7 +93,7 @@ func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 
 		c.RespID = append(c.RespID, resp.ID)
 
-		// Start the container
+		// Handle the container
 		_ = provider.DockerCli().ContainerStart(
 			context.Background(),
 			c.RespID[len(c.RespID)-1],
@@ -108,8 +108,8 @@ func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 
 		nats := make([]*model.Nat, 0)
 
-		switch config.AppCfg().Container.Nat.Type {
-		case "proxy":
+		switch config.AppCfg().Container.Proxy.Enabled {
+		case true:
 			for port, bindings := range inspect.NetworkSettings.Ports {
 				entries := make([]string, 0)
 				for _, binding := range bindings {
@@ -126,11 +126,11 @@ func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 						SrcPort: port.Int(),
 						DstPort: convertor.ToIntD(strings.Split(entries[index], ":")[1], 0),
 						Proxy:   entries[index],
-						Entry:   pp.Listen,
+						Entry:   pp.GetEntry(),
 					})
 				}
 			}
-		case "direct":
+		case false:
 			for port, bindings := range inspect.NetworkSettings.Ports {
 				for _, binding := range bindings {
 					nats = append(nats, &model.Nat{

@@ -43,6 +43,7 @@ type ApplicationCfg struct {
 		} `yaml:"smtp" json:"smtp" mapstructure:"smtp"`
 	} `yaml:"email" json:"email" mapstructure:"email"`
 	Captcha struct {
+		Enabled   bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
 		Provider  string `yaml:"provider" json:"provider" mapstructure:"provider"`
 		ReCaptcha struct {
 			URL       string  `yaml:"url" json:"url" mapstructure:"url"`
@@ -82,6 +83,14 @@ type ApplicationCfg struct {
 		Nat      struct {
 			Type  string `yaml:"type" json:"type" mapstructure:"type"`
 			Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
+		}
+		Proxy struct {
+			Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
+			Type    string `yaml:"type" json:"type" mapstructure:"type"`
+			TCP     struct {
+				Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
+			}
+			WS struct{}
 		}
 		TrafficCapture struct {
 			Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
@@ -143,6 +152,10 @@ func NewApplicationCfg() {
 		zap.L().Fatal("Unable to parse configuration file to structure.")
 	}
 
+	Mkdirs()
+}
+
+func Mkdirs() {
 	if AppCfg().Container.TrafficCapture.Enabled {
 		if _, err := os.Stat(AppCfg().Container.TrafficCapture.Path); err != nil {
 			if _err := os.MkdirAll(AppCfg().Container.TrafficCapture.Path, os.ModePerm); _err != nil {
@@ -151,6 +164,23 @@ func NewApplicationCfg() {
 		}
 	}
 
+	if _, err := os.Stat(AppCfg().Gin.Paths.Assets); err != nil {
+		if _err := os.MkdirAll(AppCfg().Gin.Paths.Assets, os.ModePerm); _err != nil {
+			zap.L().Fatal("Unable to create directory for assets.")
+		}
+	}
+
+	if _, err := os.Stat(AppCfg().Gin.Paths.Media); err != nil {
+		if _err := os.MkdirAll(AppCfg().Gin.Paths.Media, os.ModePerm); _err != nil {
+			zap.L().Fatal("Unable to create directory for media.")
+		}
+	}
+
+	if _, err := os.Stat(AppCfg().Gin.Paths.Frontend); err != nil {
+		if _err := os.MkdirAll(AppCfg().Gin.Paths.Frontend, os.ModePerm); _err != nil {
+			zap.L().Fatal("Unable to create directory for frontend.")
+		}
+	}
 }
 
 func (a *ApplicationCfg) Save() (err error) {

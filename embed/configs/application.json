@@ -25,9 +25,13 @@
   },
   "container": {
     "provider": "docker",
-    "nat": {
-      "type": "direct",
-      "entry": "127.0.0.1"
+    "proxy": {
+      "enabled": false,
+      "type": "tcp",
+      "tcp": {
+        "entry": "127.0.0.1"
+      },
+      "ws": {}
     },
     "traffic_capture": {
         "enabled": false,
@@ -74,7 +78,7 @@
     }
   },
   "captcha": {
-    "enable": false,
+    "enabled": false,
     "provider": "turnstile",
     "turnstile": {
       "url": "https://challenges.cloudflare.com/turnstile/v0/siteverify",

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type ContainerManager interface {
+type IContainerManager interface {
 	Setup() (instances []*model.Instance, err error)
 	GetContainerStatus() (status string, err error)
 	RemoveAfterDuration() (success bool)
@@ -16,7 +16,7 @@ type ContainerManager interface {
 	GetDuration() (duration time.Duration)
 }
 
-func NewContainerManager(images []*model.Image, flag model.Flag, duration time.Duration) ContainerManager {
+func NewContainerManager(images []*model.Image, flag model.Flag, duration time.Duration) IContainerManager {
 	switch config.AppCfg().Container.Provider {
 	case "docker":
 		return NewDockerManager(images, flag, duration)

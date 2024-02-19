@@ -31,7 +31,7 @@ func ServeGameHub(w http.ResponseWriter, r *http.Request, gameID int64) {
 		go handleGameHub(g)
 	}
 	gameHubsLock.Unlock()
-	conn, _ := upgrader.Upgrade(w, r, nil)
+	conn, _ := Upgrader.Upgrade(w, r, nil)
 
 	defer func() {
 		gameHub.M.Lock()

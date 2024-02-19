@@ -12,6 +12,7 @@ type Controller struct {
 	SubmissionController ISubmissionController
 	GameController       IGameController
 	CategoryController   ICategoryController
+	ProxyController      IProxyController
 }
 
 func InitController(appService *service.Service) *Controller {
@@ -25,6 +26,7 @@ func InitController(appService *service.Service) *Controller {
 	submissionController := NewSubmissionController(appService)
 	gameController := NewGameController(appService)
 	categoryController := NewCategoryController(appService)
+	proxyController := NewProxyController()
 
 	return &Controller{
 		UserController:       userController,
@@ -36,5 +38,6 @@ func InitController(appService *service.Service) *Controller {
 		SubmissionController: submissionController,
 		GameController:       gameController,
 		CategoryController:   categoryController,
+		ProxyController:      proxyController,
 	}
 }

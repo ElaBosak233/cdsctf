@@ -33,7 +33,7 @@ type K8sManager struct {
 	CancelFunc context.CancelFunc
 }
 
-func NewK8sManager(images []*model.Image, flag model.Flag, duration time.Duration) ContainerManager {
+func NewK8sManager(images []*model.Image, flag model.Flag, duration time.Duration) IContainerManager {
 	namespace = config.AppCfg().Container.K8s.Namespace
 	return &K8sManager{
 		Images:   images,

@@ -15,7 +15,7 @@ type GoogleRecaptcha struct {
 	Threshold float64
 }
 
-func NewGoogleRecaptcha() Captcha {
+func NewGoogleRecaptcha() ICaptcha {
 	return &GoogleRecaptcha{
 		URL:       config.AppCfg().Captcha.ReCaptcha.URL,
 		SiteKey:   config.AppCfg().Captcha.ReCaptcha.SiteKey,
