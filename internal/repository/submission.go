@@ -3,7 +3,6 @@ package repository
 import (
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
 	"gorm.io/gorm"
 )
 
@@ -11,7 +10,7 @@ type ISubmissionRepository interface {
 	Insert(submission model.Submission) (err error)
 	Delete(id uint) (err error)
 	Find(req request.SubmissionFindRequest) (submissions []model.Submission, count int64, err error)
-	BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error)
+	FindByChallengeID(req request.SubmissionFindByChallengeIDRequest) (submissions []model.Submission, err error)
 }
 
 type SubmissionRepository struct {
@@ -88,7 +87,7 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 	return submissions, count, result.Error
 }
 
-func (t *SubmissionRepository) BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error) {
+func (t *SubmissionRepository) FindByChallengeID(req request.SubmissionFindByChallengeIDRequest) (submissions []model.Submission, err error) {
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.UserID != 0 {
 			q = q.Where("submissions.user_id = ?", req.UserID)

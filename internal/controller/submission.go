@@ -68,10 +68,10 @@ func (c *SubmissionController) Find(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param 查找请求 query request.SubmissionBatchFindRequest false "SubmissionBatchFindRequest"
+// @Param 查找请求 query request.SubmissionFindByChallengeIDRequest false "SubmissionFindByChallengeIDRequest"
 // @Router /submissions/batch/ [get]
 func (c *SubmissionController) BatchFind(ctx *gin.Context) {
-	submissions, err := c.SubmissionService.BatchFind(request.SubmissionBatchFindRequest{
+	submissions, err := c.SubmissionService.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
 		Size:             convertor.ToIntD(ctx.Query("size"), 1),
 		SizePerChallenge: convertor.ToIntD(ctx.Query("size_per_challenge"), 0),
 		UserID:           convertor.ToUintD(ctx.Query("user_id"), 0),

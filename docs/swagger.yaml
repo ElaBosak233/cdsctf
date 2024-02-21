@@ -875,8 +875,8 @@ paths:
       description: 只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息
       parameters:
       - in: query
-        name: category
-        type: string
+        name: category_id
+        type: integer
       - in: query
         name: difficulty
         type: integer
@@ -910,6 +910,9 @@ paths:
           type: string
         name: sort_by
         type: array
+      - in: query
+        name: submission_qty
+        type: integer
       - in: query
         name: team_id
         type: integer

@@ -40,8 +40,8 @@ func (t *ChallengeRepository) Update(challenge model.Challenge) (c model.Challen
 func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, count int64, err error) {
 	isGame := req.GameID != nil && req.TeamID != nil
 	applyFilter := func(q *gorm.DB) *gorm.DB {
-		if req.Category != "" {
-			q = q.Where("category = ?", req.Category)
+		if req.CategoryID != nil {
+			q = q.Where("category_id = ?", *(req.CategoryID))
 		}
 		if req.Title != "" {
 			q = q.Where("title LIKE ?", "%"+req.Title+"%")
@@ -89,6 +89,16 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 			return Db.
 				Preload("Ports").
 				Preload("Envs")
+		}).
+		Preload("Submissions", func(Db *gorm.DB) *gorm.DB {
+			return Db.
+				Preload("User", func(Db *gorm.DB) *gorm.DB {
+					return Db.Select([]string{"id", "username", "nickname", "email"})
+				}).
+				Preload("Team").
+				Preload("Game").
+				Order("submissions.created_at ASC").
+				Limit(req.SubmissionQty)
 		}).
 		Find(&challenges)
 	return challenges, count, result.Error

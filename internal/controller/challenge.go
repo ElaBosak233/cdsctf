@@ -50,17 +50,18 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 	}
 	challengeData, pageCount, total, _ := c.ChallengeService.Find(request.ChallengeFindRequest{
 		Title:         ctx.Query("title"),
-		Category:      ctx.Query("category"),
+		CategoryID:    convertor.ToUintP(ctx.Query("category_id")),
 		IsPracticable: isPracticable(),
 		IDs:           convertor.ToUintSliceD(ctx.QueryArray("id"), make([]uint, 0)),
 		IsDynamic:     convertor.ToBoolP(ctx.Query("is_dynamic")),
-		Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), -1),
-		UserID:        ctx.GetUint("ID"),
+		Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), 0),
+		UserID:        ctx.GetUint("UserID"),
 		GameID:        convertor.ToUintP(ctx.Query("game_id")),
 		TeamID:        convertor.ToUintP(ctx.Query("team_id")),
 		IsDetailed:    isDetailed(),
-		Page:          convertor.ToIntD(ctx.Query("page"), -1),
-		Size:          convertor.ToIntD(ctx.Query("size"), -1),
+		SubmissionQty: convertor.ToIntD(ctx.Query("submission_qty"), 0),
+		Page:          convertor.ToIntD(ctx.Query("page"), 0),
+		Size:          convertor.ToIntD(ctx.Query("size"), 0),
 		SortBy:        ctx.QueryArray("sort_by"),
 	})
 	ctx.JSON(http.StatusOK, gin.H{

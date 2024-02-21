@@ -125,6 +125,7 @@ func initCategory() {
 	var count int64
 	db.Model(&model.Category{}).Count(&count)
 	if count == 0 {
+		zap.L().Warn("Categories do not exist, will be created soon.")
 		defaultCategories := []model.Category{
 			{
 				Name:        "misc",
@@ -153,7 +154,7 @@ func initCategory() {
 			{
 				Name:        "reverse",
 				Description: "reverse",
-				Color:       "#009688",
+				Color:       "#6D4C41",
 				Icon:        "chevron-triple-left",
 			},
 		}
