@@ -89,14 +89,14 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 	}
 
 	gameChallengesMap := make(map[uint]model.GameChallenge)
-	submissionsMap := make(map[uint][]response.SubmissionResponse)
+	submissionsMap := make(map[uint][]model.Submission)
 	isGame := req.GameID != nil && req.TeamID != nil
 	if isGame {
 		gameChallenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(*(req.GameID), challengeIDs)
 		for _, gameChallenge := range gameChallenges {
 			gameChallengesMap[gameChallenge.ChallengeID] = gameChallenge
 		}
-		submissions, _ := t.SubmissionRepository.BatchFind(request.SubmissionBatchFindRequest{
+		submissions, _ := t.SubmissionRepository.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
 			GameID:      req.GameID,
 			TeamID:      req.TeamID,
 			Status:      2,
@@ -109,7 +109,7 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 
 	// Judge isSolved
 	if isGame {
-		submissions, _ := t.SubmissionRepository.BatchFind(request.SubmissionBatchFindRequest{
+		submissions, _ := t.SubmissionRepository.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
 			GameID:      req.GameID,
 			TeamID:      req.TeamID,
 			Status:      2,
@@ -121,7 +121,7 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 			challengeMap[submission.ChallengeID] = challenge
 		}
 	} else {
-		submissions, _ := t.SubmissionRepository.BatchFind(request.SubmissionBatchFindRequest{
+		submissions, _ := t.SubmissionRepository.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
 			UserID:      req.UserID,
 			Status:      2,
 			ChallengeID: challengeIDs,

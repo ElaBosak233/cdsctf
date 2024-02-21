@@ -69,6 +69,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
+		"data":  user,
 		"token": tokenString,
 	})
 	zap.L().Info(fmt.Sprintf("用户 %s 登录成功", user.Username), zap.Uint("user_id", user.ID))
@@ -88,18 +89,19 @@ func (c *UserController) VerifyToken(ctx *gin.Context) {
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
+		return
 	}
 	if id == 0 {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "Token 无效",
 		})
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
-			"id":   id,
-		})
+		return
 	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"id":   id,
+	})
 }
 
 // Logout

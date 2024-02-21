@@ -98,6 +98,7 @@ func (t *UserRepository) FindByUsername(username string) (user model.User, err e
 	result := t.Db.Table("users").
 		Where("username = ?", username).
 		Preload("Group").
+		Preload("Teams").
 		First(&user)
 	return user, result.Error
 }

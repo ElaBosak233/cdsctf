@@ -38,7 +38,7 @@ type ChallengeDeleteRequest struct {
 
 type ChallengeFindRequest struct {
 	IDs           []uint   `json:"id"`
-	Category      string   `json:"category"`
+	CategoryID    *uint    `json:"category_id"`
 	Title         string   `json:"title"`
 	IsPracticable *bool    `json:"is_practicable"`
 	IsDynamic     *bool    `json:"is_dynamic"`
@@ -48,6 +48,7 @@ type ChallengeFindRequest struct {
 	TeamID        *uint    `json:"team_id"`
 	IsDetailed    *bool    `json:"is_detailed"`
 	SortBy        []string `json:"sort_by"`
+	SubmissionQty int      `json:"submission_qty"`
 	Page          int      `json:"page"`
 	Size          int      `json:"size"`
 }

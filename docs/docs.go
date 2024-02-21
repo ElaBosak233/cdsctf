@@ -125,8 +125,8 @@ const docTemplate = `{
                 "summary": "题目查询",
                 "parameters": [
                     {
-                        "type": "string",
-                        "name": "category",
+                        "type": "integer",
+                        "name": "category_id",
                         "in": "query"
                     },
                     {
@@ -180,6 +180,11 @@ const docTemplate = `{
                         },
                         "collectionFormat": "csv",
                         "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "submission_qty",
                         "in": "query"
                     },
                     {

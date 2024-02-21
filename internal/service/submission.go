@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
@@ -18,7 +17,7 @@ type ISubmissionService interface {
 	Create(req request.SubmissionCreateRequest) (status int, pts int64, err error)
 	Delete(id uint) (err error)
 	Find(req request.SubmissionFindRequest) (submissions []model.Submission, pageCount int64, total int64, err error)
-	BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error)
+	FindByChallengeID(req request.SubmissionFindByChallengeIDRequest) (submissions []model.Submission, err error)
 }
 
 type SubmissionService struct {
@@ -45,7 +44,7 @@ func NewSubmissionService(appRepository *repository.Repository) ISubmissionServi
 func (t *SubmissionService) JudgeDynamicChallenge(req request.SubmissionCreateRequest) (status int, err error) {
 	perhapsPods, _, err := t.PodRepository.Find(request.PodFindRequest{
 		ChallengeID: req.ChallengeID,
-		GameID:      &req.GameID,
+		GameID:      req.GameID,
 		IsAvailable: convertor.TrueP(),
 	})
 	status = 1
@@ -61,7 +60,7 @@ func (t *SubmissionService) JudgeDynamicChallenge(req request.SubmissionCreateRe
 	}
 	for _, pod := range perhapsPods {
 		if req.Flag == flagMap[pod.ID] {
-			if (req.UserID == pod.UserID && req.UserID != 0) || (req.TeamID == pod.TeamID && req.TeamID != 0) {
+			if (req.UserID == pod.UserID && req.UserID != 0) || (*(req.TeamID) == pod.TeamID && req.TeamID != nil) {
 				status = 2
 			} else {
 				status = 3
@@ -108,18 +107,18 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 			UserID:      req.UserID,
 			Status:      2,
 			ChallengeID: req.ChallengeID,
-			TeamID:      &req.TeamID,
-			GameID:      &req.GameID,
+			TeamID:      req.TeamID,
+			GameID:      req.GameID,
 		})
 		if n > 0 {
 			status = 4
 		}
 	}
 	if status == 2 {
-		if req.GameID != 0 && req.TeamID != 0 {
-			chas, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(req.GameID, []uint{req.ChallengeID})
+		if req.GameID != nil && req.TeamID != nil {
+			chas, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(*(req.GameID), []uint{req.ChallengeID})
 			submissions, _, _ := t.SubmissionRepository.Find(request.SubmissionFindRequest{
-				GameID:      &req.GameID,
+				GameID:      req.GameID,
 				ChallengeID: req.ChallengeID,
 			})
 			pts = calculate.ChallengePts(chas[0].MaxPts, chas[0].MinPts, challenge.Difficulty, len(submissions))
@@ -127,12 +126,20 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 			pts = challenge.PracticePts
 		}
 	}
+	var teamID uint
+	if req.TeamID != nil {
+		teamID = *(req.TeamID)
+	}
+	var gameID uint
+	if req.GameID != nil {
+		gameID = *(req.GameID)
+	}
 	err = t.SubmissionRepository.Insert(model.Submission{
 		Flag:        req.Flag,
 		UserID:      req.UserID,
 		ChallengeID: req.ChallengeID,
-		TeamID:      req.TeamID,
-		GameID:      req.GameID,
+		TeamID:      teamID,
+		GameID:      gameID,
 		Status:      status,
 		Pts:         pts,
 	})
@@ -155,8 +162,8 @@ func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions
 	return submissions, pageCount, count, err
 }
 
-func (t *SubmissionService) BatchFind(req request.SubmissionBatchFindRequest) (submissions []response.SubmissionResponse, err error) {
-	result, err := t.SubmissionRepository.BatchFind(req)
+func (t *SubmissionService) FindByChallengeID(req request.SubmissionFindByChallengeIDRequest) (submissions []model.Submission, err error) {
+	result, err := t.SubmissionRepository.FindByChallengeID(req)
 	// SizePerChallenge 可以得出每个 IDs 对应的最多的 Submission
 	if req.SizePerChallenge != 0 {
 		submissionsPerChallenge := make(map[uint]int)
