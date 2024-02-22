@@ -105,7 +105,7 @@ func (c *ChallengeController) Create(ctx *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param request body request.ChallengeUpdateRequest true "ChallengeUpdateRequest"
-// @Router /challenges/ [put]
+// @Router /challenges/{id} [put]
 func (c *ChallengeController) Update(ctx *gin.Context) {
 	var updateChallengeRequest request.ChallengeUpdateRequest
 	err := ctx.ShouldBindJSON(&updateChallengeRequest)
@@ -116,6 +116,7 @@ func (c *ChallengeController) Update(ctx *gin.Context) {
 		})
 		return
 	}
+	updateChallengeRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = c.ChallengeService.Update(updateChallengeRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -136,18 +137,11 @@ func (c *ChallengeController) Update(ctx *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param request body request.ChallengeDeleteRequest true "ChallengeDeleteRequest"
-// @Router /challenges/ [delete]
+// @Router /challenges/{id} [delete]
 func (c *ChallengeController) Delete(ctx *gin.Context) {
 	deleteChallengeRequest := request.ChallengeDeleteRequest{}
-	err := ctx.ShouldBindJSON(&deleteChallengeRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &deleteChallengeRequest),
-		})
-		return
-	}
-	err = c.ChallengeService.Delete(deleteChallengeRequest.ID)
+	deleteChallengeRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
+	err := c.ChallengeService.Delete(deleteChallengeRequest.ID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,

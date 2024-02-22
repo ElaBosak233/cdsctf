@@ -48,6 +48,14 @@ func ToUintD(v string, d uint) uint {
 	return uint(ToInt64D(v, int64(d)))
 }
 
+func ToUintE(v string) (uint, error) {
+	result64, err := convertor.ToInt(v)
+	if err != nil {
+		return 0, err
+	}
+	return uint(result64), nil
+}
+
 func ToUintP(v string) *uint {
 	result64, err := convertor.ToInt(v)
 	if err != nil {

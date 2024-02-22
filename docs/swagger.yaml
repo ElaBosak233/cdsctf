@@ -463,11 +463,6 @@ definitions:
         type: string
     type: object
   request.ChallengeDeleteRequest:
-    properties:
-      id:
-        type: integer
-    required:
-    - id
     type: object
   request.ChallengeUpdateRequest:
     properties:
@@ -485,8 +480,6 @@ definitions:
         type: array
       has_attachment:
         type: boolean
-      id:
-        type: integer
       images:
         items:
           $ref: '#/definitions/model.Image'
@@ -851,24 +844,6 @@ paths:
       tags:
       - Category
   /challenges/:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: ChallengeDeleteRequest
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/request.ChallengeDeleteRequest'
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: 删除题目（Role≤2）
-      tags:
-      - Challenge
     get:
       consumes:
       - application/json
@@ -946,6 +921,25 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 创建题目（Role≤2）
+      tags:
+      - Challenge
+  /challenges/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ChallengeDeleteRequest
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ChallengeDeleteRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 删除题目（Role≤2）
       tags:
       - Challenge
     put:
@@ -1214,17 +1208,6 @@ paths:
       summary: 通过团队 Id 获取比赛 Writeup
       tags:
       - Media
-  /media/teams/avatar/:
-    get:
-      consumes:
-      - application/json
-      description: 获取拥有头像的团队列表
-      produces:
-      - application/json
-      responses: {}
-      summary: 获取拥有头像的团队列表
-      tags:
-      - Media
   /media/teams/avatar/{id}:
     delete:
       consumes:
@@ -1292,17 +1275,6 @@ paths:
       - application/json
       responses: {}
       summary: 通过团队 Id 获取团队头像信息
-      tags:
-      - Media
-  /media/users/avatar/:
-    get:
-      consumes:
-      - application/json
-      description: 获取拥有头像的用户列表
-      produces:
-      - application/json
-      responses: {}
-      summary: 获取拥有头像的用户列表
       tags:
       - Media
   /media/users/avatar/{id}:
