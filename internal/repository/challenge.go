@@ -9,7 +9,7 @@ import (
 type IChallengeRepository interface {
 	Insert(challenge model.Challenge) (c model.Challenge, err error)
 	Update(challenge model.Challenge) (c model.Challenge, err error)
-	Delete(id uint) error
+	Delete(id uint) (err error)
 	FindById(id uint, isDetailed int) (challenge model.Challenge, err error)
 	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, count int64, err error)
 }
@@ -27,7 +27,7 @@ func (t *ChallengeRepository) Insert(challenge model.Challenge) (c model.Challen
 	return challenge, result.Error
 }
 
-func (t *ChallengeRepository) Delete(id uint) error {
+func (t *ChallengeRepository) Delete(id uint) (err error) {
 	result := t.Db.Table("challenges").Delete(&model.Challenge{ID: id})
 	return result.Error
 }

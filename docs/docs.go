@@ -205,35 +205,6 @@ const docTemplate = `{
                 ],
                 "responses": {}
             },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Challenge"
-                ],
-                "summary": "更新题目（Role≤2）",
-                "parameters": [
-                    {
-                        "description": "ChallengeUpdateRequest",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.ChallengeUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            },
             "post": {
                 "security": [
                     {
@@ -258,6 +229,37 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.ChallengeCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/challenges/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "更新题目（Role≤2）",
+                "parameters": [
+                    {
+                        "description": "ChallengeUpdateRequest",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ChallengeUpdateRequest"
                         }
                     }
                 ],
@@ -670,22 +672,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/media/teams/avatar/": {
-            "get": {
-                "description": "获取拥有头像的团队列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "获取拥有头像的团队列表",
-                "responses": {}
-            }
-        },
         "/media/teams/avatar/{id}": {
             "get": {
                 "description": "通过团队 Id 获取团队头像",
@@ -783,22 +769,6 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/media/users/avatar/": {
-            "get": {
-                "description": "获取拥有头像的用户列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "获取拥有头像的用户列表",
                 "responses": {}
             }
         },
@@ -2401,15 +2371,7 @@ const docTemplate = `{
             }
         },
         "request.ChallengeDeleteRequest": {
-            "type": "object",
-            "required": [
-                "id"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                }
-            }
+            "type": "object"
         },
         "request.ChallengeUpdateRequest": {
             "type": "object",
@@ -2434,9 +2396,6 @@ const docTemplate = `{
                 },
                 "has_attachment": {
                     "type": "boolean"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "images": {
                     "type": "array",

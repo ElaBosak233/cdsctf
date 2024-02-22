@@ -19,7 +19,7 @@ type ChallengeCreateRequest struct {
 }
 
 type ChallengeUpdateRequest struct {
-	ID            uint           `json:"id"`
+	ID            uint           `json:"-"`
 	Title         string         `json:"title"`
 	Description   string         `json:"description"`
 	HasAttachment *bool          `json:"has_attachment"`
@@ -33,7 +33,7 @@ type ChallengeUpdateRequest struct {
 }
 
 type ChallengeDeleteRequest struct {
-	ID uint `json:"id" binding:"required"`
+	ID uint `json:"-"`
 }
 
 type ChallengeFindRequest struct {

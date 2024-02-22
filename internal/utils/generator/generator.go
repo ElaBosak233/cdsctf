@@ -12,8 +12,11 @@ func GenerateFlag(flagFmt string) (flag string) {
 	return flag
 }
 
-func GenerateWebSocketKey() string {
-	b := make([]byte, 16)
-	_, _ = rand.Read(b)
-	return base64.StdEncoding.EncodeToString(b)
+func GenerateWebSocketKey() (string, error) {
+	key := make([]byte, 16)
+	_, err := rand.Read(key)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(key), nil
 }

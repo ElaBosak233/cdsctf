@@ -13,12 +13,10 @@ import (
 )
 
 type IMediaController interface {
-	GetUserAvatarList(ctx *gin.Context)
 	SetUserAvatarByUserId(ctx *gin.Context)     // 设置用户头像
 	DeleteUserAvatarByUserId(ctx *gin.Context)  // 删除用户头像
 	GetUserAvatarByUserId(ctx *gin.Context)     // 获取用户头像
 	GetUserAvatarInfoByUserId(ctx *gin.Context) // 获取用户头像信息
-	GetTeamAvatarList(ctx *gin.Context)
 	SetTeamAvatarByTeamId(ctx *gin.Context)     // 设置团队头像
 	DeleteTeamAvatarByTeamId(ctx *gin.Context)  // 删除团队头像
 	GetTeamAvatarByTeamId(ctx *gin.Context)     // 获取团队头像
@@ -42,21 +40,6 @@ func NewMediaController(appService *service.Service) IMediaController {
 	}
 }
 
-// GetUserAvatarList
-// @Summary 获取拥有头像的用户列表
-// @Description 获取拥有头像的用户列表
-// @Tags Media
-// @Accept json
-// @Produce json
-// @Router /media/users/avatar/ [get]
-func (c *MediaController) GetUserAvatarList(ctx *gin.Context) {
-	res, _ := c.MediaService.GetUserAvatarList()
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": res,
-	})
-}
-
 // GetUserAvatarByUserId
 // @Summary 通过用户 Id 获取用户头像
 // @Description 通过用户 Id 获取用户头像
@@ -66,16 +49,15 @@ func (c *MediaController) GetUserAvatarList(ctx *gin.Context) {
 // @Param id path string true "用户 Id"
 // @Router /media/users/avatar/{id} [get]
 func (c *MediaController) GetUserAvatarByUserId(ctx *gin.Context) {
-	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Gin.Paths.Media, id)
-	_, err := os.Stat(path)
-	if err == nil {
-		ctx.File(path)
-	} else {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	dst, err := c.MediaService.GetUserAvatarByUserId(id)
+	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusNotFound,
 		})
+		return
 	}
+	ctx.File(dst)
 }
 
 // GetUserAvatarInfoByUserId
@@ -87,18 +69,19 @@ func (c *MediaController) GetUserAvatarByUserId(ctx *gin.Context) {
 // @Param id path string true "用户 Id"
 // @Router /media/users/avatar/{id}/info [get]
 func (c *MediaController) GetUserAvatarInfoByUserId(ctx *gin.Context) {
-	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Gin.Paths.Media, id)
-	_, err := os.Stat(path)
-	if err == nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
-		})
-	} else {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	fileName, fileSize, err := c.MediaService.GetUserAvatarInfoByUserId(id)
+	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusNotFound,
 		})
+		return
 	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":      http.StatusOK,
+		"file_name": fileName,
+		"file_size": fileSize,
+	})
 }
 
 // SetUserAvatarByUserId
@@ -110,21 +93,9 @@ func (c *MediaController) GetUserAvatarInfoByUserId(ctx *gin.Context) {
 // @Param avatar formData file true "头像文件"
 // @Router /media/users/avatar/{id} [post]
 func (c *MediaController) SetUserAvatarByUserId(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := convertor.ToUintD(ctx.Param("id"), 0)
 	file, err := ctx.FormFile("avatar")
-	if err != nil {
-		ctx.Status(http.StatusBadRequest)
-		return
-	}
-	mime, err := c.detectContentType(file)
-	if !mime.Is("image/jpeg") && !mime.Is("image/png") && !mime.Is("image/gif") {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  "格式不被允许",
-		})
-		return
-	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Gin.Paths.Media, id))
+	err = c.MediaService.SetUserAvatarByUserId(id, file)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -146,40 +117,17 @@ func (c *MediaController) SetUserAvatarByUserId(ctx *gin.Context) {
 // @Param id path string true "用户 Id"
 // @Router /media/users/avatar/{id} [delete]
 func (c *MediaController) DeleteUserAvatarByUserId(ctx *gin.Context) {
-	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/users/avatar/%s", config.AppCfg().Gin.Paths.Media, id)
-	_, err := os.Stat(path)
-	if err == nil {
-		err = os.Remove(path)
-		if err != nil {
-			ctx.JSON(http.StatusOK, gin.H{
-				"code": http.StatusInternalServerError,
-				"msg":  err.Error(),
-			})
-			return
-		}
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	err := c.MediaService.DeleteUserAvatarByUserId(id)
+	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
+			"code": http.StatusInternalServerError,
+			"msg":  err.Error(),
 		})
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusNotFound,
-		})
+		return
 	}
-}
-
-// GetTeamAvatarList
-// @Summary 获取拥有头像的团队列表
-// @Description 获取拥有头像的团队列表
-// @Tags Media
-// @Accept json
-// @Produce json
-// @Router /media/teams/avatar/ [get]
-func (c *MediaController) GetTeamAvatarList(ctx *gin.Context) {
-	res, _ := c.MediaService.GetTeamAvatarList()
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"data": res,
 	})
 }
 

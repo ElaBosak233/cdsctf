@@ -6,12 +6,10 @@ import (
 )
 
 func NewMediaRouter(mediaRouter *gin.RouterGroup, mediaController controller.IMediaController) {
-	mediaRouter.GET("/users/avatar", mediaController.GetUserAvatarList)
 	mediaRouter.GET("/users/avatar/:id", mediaController.GetUserAvatarByUserId)
 	mediaRouter.DELETE("/users/avatar/:id", mediaController.DeleteUserAvatarByUserId)
 	mediaRouter.GET("/users/avatar/:id/info", mediaController.GetUserAvatarInfoByUserId)
 	mediaRouter.POST("/users/avatar/:id", mediaController.SetUserAvatarByUserId)
-	mediaRouter.GET("/teams/avatar", mediaController.GetTeamAvatarList)
 	mediaRouter.GET("/teams/avatar/:id", mediaController.GetTeamAvatarByTeamId)
 	mediaRouter.GET("/teams/avatar/:id/info", mediaController.GetTeamAvatarInfoByTeamId)
 	mediaRouter.POST("/teams/avatar/:id", mediaController.SetTeamAvatarByTeamId)

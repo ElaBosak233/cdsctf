@@ -14,7 +14,7 @@ import (
 type IChallengeService interface {
 	Create(req request.ChallengeCreateRequest) (err error)
 	Update(req request.ChallengeUpdateRequest) (err error)
-	Delete(id uint) error
+	Delete(id uint) (err error)
 	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error)
 }
 
@@ -67,8 +67,10 @@ func (t *ChallengeService) Update(req request.ChallengeUpdateRequest) (err error
 	return err
 }
 
-func (t *ChallengeService) Delete(id uint) error {
-	err := t.ChallengeRepository.Delete(id)
+func (t *ChallengeService) Delete(id uint) (err error) {
+	_ = t.FlagRepository.DeleteByChallengeID([]uint{id})
+	_ = t.ImageRepository.DeleteByChallengeID([]uint{id})
+	err = t.ChallengeRepository.Delete(id)
 	return err
 }
 
