@@ -49,7 +49,6 @@ func (m *AuthMiddleware) BasicAuth(ctx *gin.Context) {
 			return
 		}
 		ctx.Set("UserGroupID", user.Group.ID)
-		ctx.Set("UserLevel", user.Group.Level)
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusUnauthorized,

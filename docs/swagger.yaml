@@ -191,9 +191,9 @@ definitions:
     properties:
       description:
         type: string
+      display_name:
+        type: string
       id:
-        type: integer
-      level:
         type: integer
       name:
         type: string

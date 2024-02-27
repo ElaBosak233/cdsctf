@@ -12,7 +12,7 @@ func NewRouter(
 	appController *controller.Controller,
 	appMiddleware *middleware.Middleware,
 ) {
-	router.GET("/", func(ctx *gin.Context) {
+	router.GET("/", appMiddleware.CasbinMiddleware.Casbin(), func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
 			"msg":  "This is the heart of Cloudsdale.",
