@@ -5,6 +5,7 @@ import (
 	"github.com/TwiN/go-color"
 	_ "github.com/elabosak233/cloudsdale/docs"
 	"github.com/elabosak233/cloudsdale/internal/assets"
+	"github.com/elabosak233/cloudsdale/internal/casbin"
 	"github.com/elabosak233/cloudsdale/internal/config"
 	"github.com/elabosak233/cloudsdale/internal/container/provider"
 	"github.com/elabosak233/cloudsdale/internal/controller"
@@ -41,6 +42,7 @@ func Run() {
 	config.InitConfig()
 	assets.InitAssets()
 	database.InitDatabase()
+	casbin.InitCasbin()
 	provider.InitContainerProvider()
 
 	// Debug mode

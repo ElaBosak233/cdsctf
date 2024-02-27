@@ -1972,10 +1972,10 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "integer"
+                "display_name": {
+                    "type": "string"
                 },
-                "level": {
+                "id": {
                     "type": "integer"
                 },
                 "name": {
