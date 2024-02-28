@@ -2,13 +2,12 @@ package router
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/controller"
-	"github.com/elabosak233/cloudsdale/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 
-func NewChallengeRouter(challengeRouter *gin.RouterGroup, challengeController controller.IChallengeController, authMiddleware middleware.IAuthMiddleware) {
-	challengeRouter.GET("/", authMiddleware.Auth(), challengeController.Find)
-	challengeRouter.POST("/", authMiddleware.AuthInRole(2), challengeController.Create)
-	challengeRouter.PUT("/:id", authMiddleware.AuthInRole(2), challengeController.Update)
-	challengeRouter.DELETE("/:id", authMiddleware.AuthInRole(2), challengeController.Delete)
+func NewChallengeRouter(challengeRouter *gin.RouterGroup, challengeController controller.IChallengeController) {
+	challengeRouter.GET("/", challengeController.Find)
+	challengeRouter.POST("/", challengeController.Create)
+	challengeRouter.PUT("/:id", challengeController.Update)
+	challengeRouter.DELETE("/:id", challengeController.Delete)
 }

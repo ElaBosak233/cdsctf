@@ -65,7 +65,7 @@ func (c *CategoryController) Create(ctx *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param req body request.CategoryUpdateRequest true "CategoryUpdateRequest"
-// @Router /categories/ [put]
+// @Router /categories/{id} [put]
 func (c *CategoryController) Update(ctx *gin.Context) {
 	req := model.Category{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -75,6 +75,7 @@ func (c *CategoryController) Update(ctx *gin.Context) {
 		})
 		return
 	}
+	req.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err := c.CategoryService.Update(req)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

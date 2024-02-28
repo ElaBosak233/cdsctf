@@ -7,7 +7,7 @@ type TeamCreateRequest struct {
 }
 
 type TeamUpdateRequest struct {
-	ID          uint   `binding:"required" json:"id"`
+	ID          uint   `json:"-"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	CaptainId   uint   `json:"captain_id"`
@@ -35,7 +35,7 @@ type TeamBatchFindByUserIdRequest struct {
 }
 
 type TeamDeleteRequest struct {
-	ID uint `binding:"required" json:"id"`
+	ID uint `json:"-"`
 }
 
 type TeamJoinRequest struct {

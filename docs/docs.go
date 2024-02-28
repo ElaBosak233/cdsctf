@@ -46,35 +46,6 @@ const docTemplate = `{
                 ],
                 "responses": {}
             },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Category"
-                ],
-                "summary": "update category",
-                "parameters": [
-                    {
-                        "description": "CategoryUpdateRequest",
-                        "name": "req",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CategoryUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            },
             "post": {
                 "security": [
                     {
@@ -99,6 +70,37 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.CategoryCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/categories/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Category"
+                ],
+                "summary": "update category",
+                "parameters": [
+                    {
+                        "description": "CategoryUpdateRequest",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CategoryUpdateRequest"
                         }
                     }
                 ],
@@ -396,35 +398,6 @@ const docTemplate = `{
                 ],
                 "responses": {}
             },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Game"
-                ],
-                "summary": "更新比赛",
-                "parameters": [
-                    {
-                        "description": "GameUpdateRequest",
-                        "name": "更新请求",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GameUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            },
             "post": {
                 "security": [
                     {
@@ -449,6 +422,37 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.GameCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/games/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "更新比赛",
+                "parameters": [
+                    {
+                        "description": "GameUpdateRequest",
+                        "name": "更新请求",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GameUpdateRequest"
                         }
                     }
                 ],
@@ -484,7 +488,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/games/:id/broadcast": {
+        "/games/{id}/broadcast": {
             "get": {
                 "description": "广播消息",
                 "tags": [
@@ -494,7 +498,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/games/:id/scoreboard": {
+        "/games/{id}/scoreboard": {
             "get": {
                 "description": "计分板",
                 "tags": [
@@ -930,33 +934,6 @@ const docTemplate = `{
                 ],
                 "responses": {}
             },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "容器续期",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Pod"
-                ],
-                "summary": "容器续期",
-                "parameters": [
-                    {
-                        "description": "PodRenewRequest",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.PodRenewRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            },
             "post": {
                 "security": [
                     {
@@ -986,6 +963,55 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            }
+        },
+        "/pods/{id}": {
+            "get": {
+                "description": "实例查询",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pod"
+                ],
+                "summary": "实例查询",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "容器续期",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pod"
+                ],
+                "summary": "容器续期",
+                "parameters": [
+                    {
+                        "description": "PodRenewRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.PodRenewRequest"
+                        }
+                    }
+                ],
+                "responses": {}
             },
             "delete": {
                 "security": [
@@ -1010,28 +1036,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.PodRemoveRequest"
                         }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/pods/{id}": {
-            "get": {
-                "description": "实例查询",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Pod"
-                ],
-                "summary": "实例查询",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {}
@@ -1146,8 +1150,8 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/submissions/batch/": {
-            "get": {
+        "/submissions/{id}": {
+            "delete": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -1162,69 +1166,16 @@ const docTemplate = `{
                 "tags": [
                     "Submission"
                 ],
-                "summary": "提交记录批量查询",
+                "summary": "delete submission",
                 "parameters": [
                     {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "题目 Id 数组",
-                        "name": "challenge_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "比赛 Id",
-                        "name": "game_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "是否详细",
-                        "name": "is_detailed",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小",
-                        "name": "size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每道题查询量",
-                        "name": "size_per_challenge",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "排序参数",
-                        "name": "sort_by",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "评估结果",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "团队 Id",
-                        "name": "team_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "用户 Id",
-                        "name": "user_id",
-                        "in": "query"
+                        "description": "SubmissionDeleteRequest",
+                        "name": "删除请求",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SubmissionDeleteRequest"
+                        }
                     }
                 ],
                 "responses": {}
@@ -1272,31 +1223,6 @@ const docTemplate = `{
                 ],
                 "responses": {}
             },
-            "put": {
-                "description": "更新团队",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Team"
-                ],
-                "summary": "更新团队",
-                "parameters": [
-                    {
-                        "description": "TeamUpdateRequest",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.TeamUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            },
             "post": {
                 "description": "创建团队",
                 "consumes": [
@@ -1318,103 +1244,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.TeamCreateRequest"
                         }
-                    }
-                ],
-                "responses": {}
-            },
-            "delete": {
-                "description": "删除团队",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Team"
-                ],
-                "summary": "删除团队",
-                "parameters": [
-                    {
-                        "description": "TeamDeleteRequest",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.TeamDeleteRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/teams/batch/": {
-            "get": {
-                "description": "批量查找团队",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Team"
-                ],
-                "summary": "批量查找团队",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "name": "captain_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "name": "size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/teams/id/{id}": {
-            "get": {
-                "description": "查找团队",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Team"
-                ],
-                "summary": "查找团队",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {}
@@ -1466,6 +1295,81 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.TeamQuitRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/teams/{id}": {
+            "get": {
+                "description": "查找团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team"
+                ],
+                "summary": "查找团队",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "put": {
+                "description": "更新团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team"
+                ],
+                "summary": "更新团队",
+                "parameters": [
+                    {
+                        "description": "TeamUpdateRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TeamUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "删除团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team"
+                ],
+                "summary": "删除团队",
+                "parameters": [
+                    {
+                        "description": "TeamDeleteRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TeamDeleteRequest"
                         }
                     }
                 ],
@@ -1527,36 +1431,6 @@ const docTemplate = `{
                 ],
                 "responses": {}
             },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "若 Role\u003e1，则自动忽略 UserUpdateRequest 中的 Role 属性",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "用户更新（Role≤1 或 (Request)ID=(Authorization)ID）",
-                "parameters": [
-                    {
-                        "description": "UserUpdateRequest",
-                        "name": "更新请求",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UserUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            },
             "post": {
                 "security": [
                     {
@@ -1581,35 +1455,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.UserCreateRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "用户删除（Role≤1 或 (Request)ID=(Authorization)ID）",
-                "parameters": [
-                    {
-                        "description": "UserDeleteRequest",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UserDeleteRequest"
                         }
                     }
                 ],
@@ -1704,6 +1549,67 @@ const docTemplate = `{
                         "name": "token",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/users/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "若 Role\u003e1，则自动忽略 UserUpdateRequest 中的 Role 属性",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "用户更新（Role≤1 或 (Request)ID=(Authorization)ID）",
+                "parameters": [
+                    {
+                        "description": "UserUpdateRequest",
+                        "name": "更新请求",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UserUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "用户删除（Role≤1 或 (Request)ID=(Authorization)ID）",
+                "parameters": [
+                    {
+                        "description": "UserDeleteRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UserDeleteRequest"
+                        }
                     }
                 ],
                 "responses": {}
@@ -2493,12 +2399,7 @@ const docTemplate = `{
             }
         },
         "request.GameDeleteRequest": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                }
-            }
+            "type": "object"
         },
         "request.GameUpdateRequest": {
             "type": "object",
@@ -2514,9 +2415,6 @@ const docTemplate = `{
                 },
                 "first_blood_reward_ratio": {
                     "type": "number"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "is_enabled": {
                     "type": "boolean"
@@ -2583,14 +2481,8 @@ const docTemplate = `{
         },
         "request.PodRemoveRequest": {
             "type": "object",
-            "required": [
-                "id"
-            ],
             "properties": {
                 "game_id": {
-                    "type": "integer"
-                },
-                "id": {
                     "type": "integer"
                 },
                 "team_id": {
@@ -2600,14 +2492,8 @@ const docTemplate = `{
         },
         "request.PodRenewRequest": {
             "type": "object",
-            "required": [
-                "id"
-            ],
             "properties": {
                 "game_id": {
-                    "type": "integer"
-                },
-                "id": {
                     "type": "integer"
                 },
                 "team_id": {
@@ -2640,6 +2526,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request.SubmissionDeleteRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.TeamCreateRequest": {
             "type": "object",
             "required": [
@@ -2659,15 +2556,7 @@ const docTemplate = `{
             }
         },
         "request.TeamDeleteRequest": {
-            "type": "object",
-            "required": [
-                "id"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                }
-            }
+            "type": "object"
         },
         "request.TeamJoinRequest": {
             "type": "object",
@@ -2701,18 +2590,12 @@ const docTemplate = `{
         },
         "request.TeamUpdateRequest": {
             "type": "object",
-            "required": [
-                "id"
-            ],
             "properties": {
                 "captain_id": {
                     "type": "integer"
                 },
                 "description": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "is_locked": {
                     "type": "boolean"
@@ -2764,15 +2647,7 @@ const docTemplate = `{
             }
         },
         "request.UserDeleteRequest": {
-            "type": "object",
-            "required": [
-                "id"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                }
-            }
+            "type": "object"
         },
         "request.UserLoginRequest": {
             "type": "object",
@@ -2817,9 +2692,6 @@ const docTemplate = `{
         },
         "request.UserUpdateRequest": {
             "type": "object",
-            "required": [
-                "id"
-            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -2828,9 +2700,6 @@ const docTemplate = `{
                     "type": "integer",
                     "maximum": 5,
                     "minimum": 1
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "nickname": {
                     "type": "string",

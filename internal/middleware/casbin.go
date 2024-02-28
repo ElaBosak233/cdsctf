@@ -24,49 +24,40 @@ func NewCasbinMiddleware(appService *service.Service) ICasbinMiddleware {
 	}
 }
 
+// Casbin
+// The first layer of access control
+// Default role is guest
+// If the user is logged in, the role will be the user's group
+// If the user's role has permission to access the resource, the request will be passed
+// By the way, the user's information will be set to the context
 func (m *CasbinMiddleware) Casbin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		token := ctx.GetHeader("Authorization")
-		pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-			return []byte(config.AppCfg().Gin.Jwt.SecretKey), nil
-		})
-		if err != nil {
-			ctx.JSON(http.StatusOK, gin.H{
-				"code": http.StatusUnauthorized,
-				"msg":  err.Error(),
-			})
-			ctx.Abort()
-			return
-		}
+		var sub string
 		var user response.UserResponse
-		if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
-			userId := uint(claims["user_id"].(float64))
-			ctx.Set("UserID", userId)
-			user, err = m.appService.UserService.FindById(userId)
-			if err != nil {
-				ctx.JSON(http.StatusOK, gin.H{
-					"code": http.StatusUnauthorized,
-					"msg":  "无效 Token",
-				})
-				ctx.Abort()
-				return
-			}
-			ctx.Set("UserGroupID", user.Group.ID)
-		} else {
-			ctx.JSON(http.StatusOK, gin.H{
-				"code": http.StatusUnauthorized,
-				"msg":  "无效 Token",
+		sub = "guest"
+
+		token := ctx.GetHeader("Authorization")
+		if token != "" {
+			pgsToken, _ := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+				return []byte(config.AppCfg().Gin.Jwt.SecretKey), nil
 			})
-			ctx.Abort()
-			return
+			if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
+				userID := uint(claims["user_id"].(float64))
+				user, _ = m.appService.UserService.FindById(userID)
+				sub = user.Group.Name
+			}
 		}
-		ok, err := casbin.Enforcer.Enforce(user.Group.Name, ctx.Request.URL.Path, ctx.Request.Method)
+
+		ok, _ := casbin.Enforcer.Enforce(sub, ctx.Request.URL.Path, ctx.Request.Method)
 		if ok {
+			ctx.Set("user", &user)
 			ctx.Next()
 			return
 		}
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"code": http.StatusUnauthorized,
+			"sub":  sub,
+			"msg":  "You have no permission to do that.",
 		})
 		ctx.Abort()
 	}

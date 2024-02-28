@@ -31,6 +31,11 @@ func initGroup() {
 				DisplayName: "Banned",
 				Description: "The banned user has no authority.",
 			},
+			{
+				Name:        "guest",
+				DisplayName: "Guest",
+				Description: "The guest is the unauthorized user.",
+			},
 		}
 		err := db.Create(&defaultGroups).Error
 		if err != nil {
