@@ -37,7 +37,7 @@ type UserLoginRequest struct {
 }
 
 type UserUpdateRequest struct {
-	ID       uint   `binding:"required" json:"id"`
+	ID       uint   `json:"-"`
 	Nickname string `binding:"omitempty,min=2" json:"nickname" msg:"昵称必须有 2 位"`
 	Username string `binding:"omitempty,max=20,min=3" json:"username,omitempty" msg:"用户名必须位于 3 ~ 20 位"`
 	Password string `binding:"omitempty,min=6" json:"password,omitempty" msg:"密码必须大于 6 位"`
@@ -46,5 +46,5 @@ type UserUpdateRequest struct {
 }
 
 type UserDeleteRequest struct {
-	ID uint `binding:"required" json:"id"`
+	ID uint `json:"-"`
 }

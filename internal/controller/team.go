@@ -14,7 +14,6 @@ type ITeamController interface {
 	Update(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 	Find(ctx *gin.Context)
-	BatchFind(ctx *gin.Context)
 	Join(ctx *gin.Context)
 	Quit(ctx *gin.Context)
 	FindById(ctx *gin.Context)
@@ -68,7 +67,7 @@ func (c *TeamController) Create(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param input	body request.TeamUpdateRequest true "TeamUpdateRequest"
-// @Router /teams/ [put]
+// @Router /teams/{id} [put]
 func (c *TeamController) Update(ctx *gin.Context) {
 	updateTeamRequest := request.TeamUpdateRequest{}
 	err := ctx.ShouldBindJSON(&updateTeamRequest)
@@ -79,6 +78,7 @@ func (c *TeamController) Update(ctx *gin.Context) {
 		})
 		return
 	}
+	updateTeamRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = c.TeamService.Update(updateTeamRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -98,19 +98,12 @@ func (c *TeamController) Update(ctx *gin.Context) {
 // @Tags Team
 // @Accept json
 // @Produce json
-// @Param input	body	request.TeamDeleteRequest	true	"TeamDeleteRequest"
-// @Router /teams/ [delete]
+// @Param input	body request.TeamDeleteRequest true "TeamDeleteRequest"
+// @Router /teams/{id} [delete]
 func (c *TeamController) Delete(ctx *gin.Context) {
 	deleteTeamRequest := request.TeamDeleteRequest{}
-	err := ctx.ShouldBindJSON(&deleteTeamRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &deleteTeamRequest),
-		})
-		return
-	}
-	err = c.TeamService.Delete(deleteTeamRequest.ID)
+	deleteTeamRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
+	err := c.TeamService.Delete(deleteTeamRequest.ID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -144,24 +137,6 @@ func (c *TeamController) Find(ctx *gin.Context) {
 		"pages": pageCount,
 		"total": total,
 		"data":  teamData,
-	})
-}
-
-// BatchFind
-// @Summary 批量查找团队
-// @Description	批量查找团队
-// @Tags Team
-// @Accept json
-// @Produce json
-// @Param input	query request.TeamBatchFindRequest false "TeamBatchFindRequest"
-// @Router /teams/batch/ [get]
-func (c *TeamController) BatchFind(ctx *gin.Context) {
-	teams, _ := c.TeamService.BatchFind(request.TeamBatchFindRequest{
-		ID: convertor.ToInt64SliceD(ctx.QueryArray("id"), []int64{}),
-	})
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": teams,
 	})
 }
 
@@ -234,7 +209,7 @@ func (c *TeamController) Quit(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "id"
-// @Router /teams/id/{id} [get]
+// @Router /teams/{id} [get]
 func (c *TeamController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
 	res, err := c.TeamService.FindById(convertor.ToUintD(id, 0))

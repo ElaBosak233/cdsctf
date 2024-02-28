@@ -199,7 +199,7 @@ func (c *UserController) Create(ctx *gin.Context) {
 // @Produce	json
 // @Security ApiKeyAuth
 // @Param 更新请求 body request.UserUpdateRequest true "UserUpdateRequest"
-// @Router /users/ [put]
+// @Router /users/{id} [put]
 func (c *UserController) Update(ctx *gin.Context) {
 	updateUserRequest := request.UserUpdateRequest{}
 	err := ctx.ShouldBindJSON(&updateUserRequest)
@@ -210,6 +210,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 		})
 		return
 	}
+	updateUserRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	if ctx.GetInt64("UserLevel") <= 1 || ctx.GetUint("UserID") == updateUserRequest.ID {
 		if ctx.GetInt64("UserLevel") > 1 {
 			updateUserRequest.GroupID = ctx.GetUint("UserGroupID")
@@ -244,17 +245,10 @@ func (c *UserController) Update(ctx *gin.Context) {
 // @Produce	json
 // @Security ApiKeyAuth
 // @Param input	body request.UserDeleteRequest true "UserDeleteRequest"
-// @Router /users/ [delete]
+// @Router /users/{id} [delete]
 func (c *UserController) Delete(ctx *gin.Context) {
 	deleteUserRequest := request.UserDeleteRequest{}
-	err := ctx.ShouldBindJSON(&deleteUserRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &deleteUserRequest),
-		})
-		return
-	}
+	deleteUserRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	if ctx.GetInt64("UserLevel") <= 1 || ctx.GetUint("UserID") == deleteUserRequest.ID {
 		_ = c.UserService.Delete(deleteUserRequest.ID)
 		ctx.JSON(http.StatusOK, gin.H{

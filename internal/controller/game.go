@@ -34,7 +34,7 @@ func NewGameController(appService *service.Service) IGameController {
 // @Summary 广播消息
 // @Description	广播消息
 // @Tags Game
-// @Router /games/:id/broadcast [get]
+// @Router /games/{id}/broadcast [get]
 func (g *GameController) BroadCast(ctx *gin.Context) {
 	id := convertor.ToInt64D(ctx.Param("id"), 0)
 	if id != 0 {
@@ -46,7 +46,7 @@ func (g *GameController) BroadCast(ctx *gin.Context) {
 // @Summary 计分板
 // @Description	计分板
 // @Tags Game
-// @Router /games/:id/scoreboard [get]
+// @Router /games/{id}/scoreboard [get]
 func (g *GameController) ScoreBoard(ctx *gin.Context) {
 	//TODO implement me
 	panic("implement me")
@@ -92,18 +92,11 @@ func (g *GameController) Create(ctx *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param 删除请求 body request.GameDeleteRequest true "GameDeleteRequest"
-// @Router /games/ [delete]
+// @Router /games/{id} [delete]
 func (g *GameController) Delete(ctx *gin.Context) {
 	gameDeleteRequest := request.GameDeleteRequest{}
-	err := ctx.ShouldBindJSON(&gameDeleteRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &gameDeleteRequest),
-		})
-		return
-	}
-	err = g.GameService.Delete(gameDeleteRequest)
+	gameDeleteRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
+	err := g.GameService.Delete(gameDeleteRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -124,7 +117,7 @@ func (g *GameController) Delete(ctx *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param 更新请求 body request.GameUpdateRequest true "GameUpdateRequest"
-// @Router /games/ [put]
+// @Router /games/{id} [put]
 func (g *GameController) Update(ctx *gin.Context) {
 	gameUpdateRequest := request.GameUpdateRequest{}
 	err := ctx.ShouldBindJSON(&gameUpdateRequest)
@@ -135,6 +128,7 @@ func (g *GameController) Update(ctx *gin.Context) {
 		})
 		return
 	}
+	gameUpdateRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = g.GameService.Update(gameUpdateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -165,7 +159,7 @@ func (g *GameController) Find(ctx *gin.Context) {
 		return 1
 	} // -1 代表忽略此条件，0 代表没被启用，1 代表被启用，默认状态下只查询被启用的比赛
 	games, pageCount, total, err := g.GameService.Find(request.GameFindRequest{
-		ID:        int64(convertor.ToIntD(ctx.Query("id"), 0)),
+		ID:        convertor.ToUintD(ctx.Query("id"), 0),
 		Title:     ctx.Query("title"),
 		IsEnabled: isEnabled(),
 		Size:      convertor.ToIntD(ctx.Query("size"), 0),

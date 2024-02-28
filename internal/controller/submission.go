@@ -12,7 +12,6 @@ import (
 type ISubmissionController interface {
 	Find(ctx *gin.Context)
 	Create(ctx *gin.Context)
-	BatchFind(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 }
 
@@ -61,40 +60,6 @@ func (c *SubmissionController) Find(ctx *gin.Context) {
 	})
 }
 
-// BatchFind
-// @Summary 提交记录批量查询
-// @Description
-// @Tags Submission
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Param 查找请求 query request.SubmissionFindByChallengeIDRequest false "SubmissionFindByChallengeIDRequest"
-// @Router /submissions/batch/ [get]
-func (c *SubmissionController) BatchFind(ctx *gin.Context) {
-	submissions, err := c.SubmissionService.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
-		Size:             convertor.ToIntD(ctx.Query("size"), 1),
-		SizePerChallenge: convertor.ToIntD(ctx.Query("size_per_challenge"), 0),
-		UserID:           convertor.ToUintD(ctx.Query("user_id"), 0),
-		ChallengeID:      convertor.ToUintSliceD(ctx.QueryArray("challenge_id"), []uint{}),
-		Status:           convertor.ToIntD(ctx.Query("status"), 0),
-		SortBy:           ctx.QueryArray("sort_by"),
-		IsDetailed:       ctx.Query("is_detailed") == "true",
-		TeamID:           convertor.ToUintP(ctx.Query("team_id")),
-		GameID:           convertor.ToUintP(ctx.Query("game_id")),
-	})
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusInternalServerError,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": submissions,
-	})
-}
-
 // Create
 // @Summary 提交
 // @Description
@@ -130,6 +95,15 @@ func (c *SubmissionController) Create(ctx *gin.Context) {
 	})
 }
 
+// Delete
+// @Summary delete submission
+// @Description
+// @Tags Submission
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param 删除请求 body request.SubmissionDeleteRequest true "SubmissionDeleteRequest"
+// @Router /submissions/{id} [delete]
 func (c *SubmissionController) Delete(ctx *gin.Context) {
 	deleteSubmissionRequest := request.SubmissionDeleteRequest{}
 	err := ctx.ShouldBindJSON(&deleteSubmissionRequest)

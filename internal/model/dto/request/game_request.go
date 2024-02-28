@@ -1,7 +1,7 @@
 package request
 
 type GameFindRequest struct {
-	ID        int64    `json:"id"`
+	ID        uint     `json:"id"`
 	Title     string   `json:"title"`
 	SortBy    []string `json:"sort_by"`
 	IsEnabled int      `json:"is_enabled"`
@@ -28,7 +28,7 @@ type GameCreateRequest struct {
 }
 
 type GameUpdateRequest struct {
-	ID                     int64   `json:"id"`
+	ID                     uint    `json:"-"`
 	Title                  string  `json:"title"`
 	Bio                    string  `json:"bio"`
 	Description            string  `json:"description"`
@@ -47,5 +47,5 @@ type GameUpdateRequest struct {
 }
 
 type GameDeleteRequest struct {
-	ID uint `json:"id"`
+	ID uint `json:"-"`
 }

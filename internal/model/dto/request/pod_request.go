@@ -19,14 +19,14 @@ type PodFindRequest struct {
 }
 
 type PodRemoveRequest struct {
-	ID     uint  `binding:"required" json:"id"`
+	ID     uint  `json:"-"`
 	TeamID *uint `json:"team_id"`
 	GameID *uint `json:"game_id"`
 	UserID uint  `json:"-"`
 }
 
 type PodRenewRequest struct {
-	ID     uint  `binding:"required" json:"id"`
+	ID     uint  `json:"-"`
 	TeamID *uint `json:"team_id"`
 	GameID *uint `json:"game_id"`
 	UserID uint  `json:"-"`

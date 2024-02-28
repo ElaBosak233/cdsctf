@@ -70,10 +70,11 @@ func (c *PodController) Create(ctx *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param input	body request.PodRemoveRequest true "PodRemoveRequest"
-// @Router /pods/ [delete]
+// @Router /pods/{id} [delete]
 func (c *PodController) Remove(ctx *gin.Context) {
 	instanceRemoveRequest := request.PodRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
+	instanceRemoveRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	instanceRemoveRequest.UserID = ctx.GetUint("ID")
 	err = c.PodService.Remove(instanceRemoveRequest)
 	if err != nil {
@@ -95,10 +96,11 @@ func (c *PodController) Remove(ctx *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param input	body request.PodRenewRequest true "PodRenewRequest"
-// @Router /pods/ [put]
+// @Router /pods/{id} [put]
 func (c *PodController) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.PodRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
+	instanceRenewRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	instanceRenewRequest.UserID = ctx.GetUint("ID")
 	removedAt, err := c.PodService.Renew(instanceRenewRequest)
 	if err != nil {

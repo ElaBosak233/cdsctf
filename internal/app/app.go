@@ -70,7 +70,7 @@ func Run() {
 	appService := service.InitService(appRepository)
 	appMiddleware := middleware.InitMiddleware(appService)
 	appController := controller.InitController(appService)
-	router.NewRouter(r.Group("/api"), appController, appMiddleware)
+	router.NewRouter(r.Group("/api", appMiddleware.CasbinMiddleware.Casbin()), appController)
 
 	if isDebug {
 		// Swagger docs
