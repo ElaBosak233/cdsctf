@@ -5,9 +5,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewChallengeRouter(challengeRouter *gin.RouterGroup, challengeController controller.IChallengeController) {
-	challengeRouter.GET("/", challengeController.Find)
-	challengeRouter.POST("/", challengeController.Create)
-	challengeRouter.PUT("/:id", challengeController.Update)
-	challengeRouter.DELETE("/:id", challengeController.Delete)
+type IChallengeRouter interface {
+	Register()
+}
+
+type ChallengeRouter struct {
+	router     *gin.RouterGroup
+	controller controller.IChallengeController
+}
+
+func NewChallengeRouter(challengeRouter *gin.RouterGroup, challengeController controller.IChallengeController) IChallengeRouter {
+	return &ChallengeRouter{
+		router:     challengeRouter,
+		controller: challengeController,
+	}
+}
+
+func (c *ChallengeRouter) Register() {
+	c.router.GET("/", c.controller.Find)
+	c.router.POST("/", c.controller.Create)
+	c.router.PUT("/:id", c.controller.Update)
+	c.router.DELETE("/:id", c.controller.Delete)
 }

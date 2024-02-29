@@ -5,7 +5,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewConfigRouter(configRouter *gin.RouterGroup, configController controller.IConfigController) {
-	configRouter.GET("/", configController.Find)
-	configRouter.PUT("/", configController.Update)
+type IConfigRouter interface {
+	Register()
+}
+
+type ConfigRouter struct {
+	router     *gin.RouterGroup
+	controller controller.IConfigController
+}
+
+func NewConfigRouter(configRouter *gin.RouterGroup, configController controller.IConfigController) IConfigRouter {
+	return &ConfigRouter{
+		router:     configRouter,
+		controller: configController,
+	}
+}
+
+func (c *ConfigRouter) Register() {
+	c.router.GET("/", c.controller.Find)
+	c.router.PUT("/", c.controller.Update)
 }

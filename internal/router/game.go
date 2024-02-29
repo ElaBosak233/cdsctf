@@ -5,12 +5,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewGameRouter(gameRouter *gin.RouterGroup, gameController controller.IGameController) {
-	gameRouter.GET("/", gameController.Find)
-	gameRouter.GET("/:id/challenges", gameController.GetChallengesByGameId)
-	gameRouter.GET("/:id/scoreboard", gameController.GetScoreboardByGameId)
-	gameRouter.GET("/:id/broadcast", gameController.BroadCast)
-	gameRouter.POST("/", gameController.Create)
-	gameRouter.PUT("/", gameController.Update)
-	gameRouter.DELETE("/", gameController.Delete)
+type IGameRouter interface {
+	Register()
+}
+
+type GameRouter struct {
+	router     *gin.RouterGroup
+	controller controller.IGameController
+}
+
+func NewGameRouter(gameRouter *gin.RouterGroup, gameController controller.IGameController) IGameRouter {
+	return &GameRouter{
+		router:     gameRouter,
+		controller: gameController,
+	}
+}
+
+func (g *GameRouter) Register() {
+	g.router.GET("/", g.controller.Find)
+	g.router.GET("/:id/challenges", g.controller.GetChallengesByGameId)
+	g.router.GET("/:id/scoreboard", g.controller.GetScoreboardByGameId)
+	g.router.GET("/:id/broadcast", g.controller.BroadCast)
+	g.router.POST("/", g.controller.Create)
+	g.router.PUT("/", g.controller.Update)
+	g.router.DELETE("/", g.controller.Delete)
 }

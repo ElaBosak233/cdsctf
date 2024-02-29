@@ -5,10 +5,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewPodRouter(podRouter *gin.RouterGroup, podController controller.IPodController) {
-	podRouter.GET("/", podController.Find)
-	podRouter.GET("/:id", podController.FindById)
-	podRouter.POST("/", podController.Create)
-	podRouter.DELETE("/:id", podController.Remove)
-	podRouter.PUT("/:id", podController.Renew)
+type IPodRouter interface {
+	Register()
+}
+
+type PodRouter struct {
+	router     *gin.RouterGroup
+	controller controller.IPodController
+}
+
+func NewPodRouter(podRouter *gin.RouterGroup, podController controller.IPodController) IPodRouter {
+	return &PodRouter{
+		router:     podRouter,
+		controller: podController,
+	}
+}
+
+func (p *PodRouter) Register() {
+	p.router.GET("/", p.controller.Find)
+	p.router.GET("/:id", p.controller.FindById)
+	p.router.POST("/", p.controller.Create)
+	p.router.DELETE("/:id", p.controller.Remove)
+	p.router.PUT("/:id", p.controller.Renew)
 }

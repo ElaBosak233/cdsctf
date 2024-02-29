@@ -5,20 +5,36 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewMediaRouter(mediaRouter *gin.RouterGroup, mediaController controller.IMediaController) {
-	mediaRouter.GET("/users/avatar/:id", mediaController.GetUserAvatarByUserId)
-	mediaRouter.DELETE("/users/avatar/:id", mediaController.DeleteUserAvatarByUserId)
-	mediaRouter.GET("/users/avatar/:id/info", mediaController.GetUserAvatarInfoByUserId)
-	mediaRouter.POST("/users/avatar/:id", mediaController.SetUserAvatarByUserId)
-	mediaRouter.GET("/teams/avatar/:id", mediaController.GetTeamAvatarByTeamId)
-	mediaRouter.GET("/teams/avatar/:id/info", mediaController.GetTeamAvatarInfoByTeamId)
-	mediaRouter.POST("/teams/avatar/:id", mediaController.SetTeamAvatarByTeamId)
-	mediaRouter.DELETE("/teams/avatar/:id", mediaController.DeleteTeamAvatarByTeamId)
-	mediaRouter.GET("/games/cover/:id", mediaController.GetGameCoverByGameId)
-	mediaRouter.POST("/games/cover/:id", mediaController.SetGameCoverByGameId)
-	mediaRouter.GET("/games/writeups/:id", mediaController.FindGameWriteUpByTeamId)
-	mediaRouter.GET("/challenges/attachments/:id", mediaController.GetChallengeAttachmentByChallengeId)
-	mediaRouter.GET("/challenges/attachments/:id/info", mediaController.GetChallengeAttachmentInfoByChallengeId)
-	mediaRouter.POST("/challenges/attachments/:id", mediaController.SetChallengeAttachmentByChallengeId)
-	mediaRouter.DELETE("/challenges/attachments/:id", mediaController.DeleteChallengeAttachmentByChallengeId)
+type IMediaRouter interface {
+	Register()
+}
+
+type MediaRouter struct {
+	router     *gin.RouterGroup
+	controller controller.IMediaController
+}
+
+func NewMediaRouter(mediaRouter *gin.RouterGroup, mediaController controller.IMediaController) IMediaRouter {
+	return &MediaRouter{
+		router:     mediaRouter,
+		controller: mediaController,
+	}
+}
+
+func (m *MediaRouter) Register() {
+	m.router.GET("/users/avatar/:id", m.controller.GetUserAvatarByUserId)
+	m.router.DELETE("/users/avatar/:id", m.controller.DeleteUserAvatarByUserId)
+	m.router.GET("/users/avatar/:id/info", m.controller.GetUserAvatarInfoByUserId)
+	m.router.POST("/users/avatar/:id", m.controller.SetUserAvatarByUserId)
+	m.router.GET("/teams/avatar/:id", m.controller.GetTeamAvatarByTeamId)
+	m.router.GET("/teams/avatar/:id/info", m.controller.GetTeamAvatarInfoByTeamId)
+	m.router.POST("/teams/avatar/:id", m.controller.SetTeamAvatarByTeamId)
+	m.router.DELETE("/teams/avatar/:id", m.controller.DeleteTeamAvatarByTeamId)
+	m.router.GET("/games/cover/:id", m.controller.GetGameCoverByGameId)
+	m.router.POST("/games/cover/:id", m.controller.SetGameCoverByGameId)
+	m.router.GET("/games/writeups/:id", m.controller.FindGameWriteUpByTeamId)
+	m.router.GET("/challenges/attachments/:id", m.controller.GetChallengeAttachmentByChallengeId)
+	m.router.GET("/challenges/attachments/:id/info", m.controller.GetChallengeAttachmentInfoByChallengeId)
+	m.router.POST("/challenges/attachments/:id", m.controller.SetChallengeAttachmentByChallengeId)
+	m.router.DELETE("/challenges/attachments/:id", m.controller.DeleteChallengeAttachmentByChallengeId)
 }

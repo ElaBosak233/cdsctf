@@ -5,8 +5,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewSubmissionRouter(submissionRouter *gin.RouterGroup, submissionController controller.ISubmissionController) {
-	submissionRouter.GET("/", submissionController.Find)
-	submissionRouter.POST("/", submissionController.Create)
-	submissionRouter.DELETE("/", submissionController.Delete)
+type ISubmissionRouter interface {
+	Register()
+}
+
+type SubmissionRouter struct {
+	router     *gin.RouterGroup
+	controller controller.ISubmissionController
+}
+
+func NewSubmissionRouter(submissionRouter *gin.RouterGroup, submissionController controller.ISubmissionController) ISubmissionRouter {
+	return &SubmissionRouter{
+		router:     submissionRouter,
+		controller: submissionController,
+	}
+}
+
+func (s *SubmissionRouter) Register() {
+	s.router.GET("/", s.controller.Find)
+	s.router.POST("/", s.controller.Create)
+	s.router.DELETE("/", s.controller.Delete)
 }
