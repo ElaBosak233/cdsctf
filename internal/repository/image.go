@@ -11,7 +11,6 @@ type IImageRepository interface {
 	Delete(image model.Image) (err error)
 	FindByID(IDs []uint) (images []model.Image, err error)
 	FindByChallengeID(challengeIDs []uint) (images []model.Image, err error)
-	DeleteByChallengeID(challengeIDs []uint) (err error)
 }
 
 type ImageRepository struct {
@@ -53,13 +52,4 @@ func (t *ImageRepository) FindByChallengeID(challengeIDs []uint) (images []model
 		Preload("Envs").
 		Find(&images)
 	return images, result.Error
-}
-
-func (t *ImageRepository) DeleteByChallengeID(challengeIDs []uint) (err error) {
-	result := t.Db.Table("images").
-		Where("challenge_id IN ?", challengeIDs).
-		Preload("Ports").
-		Preload("Envs").
-		Delete(&model.Image{})
-	return result.Error
 }

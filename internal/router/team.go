@@ -8,17 +8,33 @@ import (
 	"net/http"
 )
 
-func NewTeamRouter(teamRouter *gin.RouterGroup, teamController controller.ITeamController) {
-	teamRouter.GET("/", teamController.Find)
-	teamRouter.GET("/:id", teamController.FindById)
-	teamRouter.POST("/", teamController.Create)
-	teamRouter.DELETE("/:id", TeamSAuth(), teamController.Delete)
-	teamRouter.PUT("/:id", TeamSAuth(), teamController.Update)
-	teamRouter.POST("/members", teamController.Join)
-	teamRouter.DELETE("/members", teamController.Quit)
+type ITeamRouter interface {
+	Register()
 }
 
-func TeamSAuth() gin.HandlerFunc {
+type TeamRouter struct {
+	router     *gin.RouterGroup
+	controller controller.ITeamController
+}
+
+func NewTeamRouter(teamRouter *gin.RouterGroup, teamController controller.ITeamController) ITeamRouter {
+	return &TeamRouter{
+		router:     teamRouter,
+		controller: teamController,
+	}
+}
+
+func (t *TeamRouter) Register() {
+	t.router.GET("/", t.controller.Find)
+	t.router.GET("/:id", t.controller.FindById)
+	t.router.POST("/", t.controller.Create)
+	t.router.DELETE("/:id", t.SAuth(), t.controller.Delete)
+	t.router.PUT("/:id", t.SAuth(), t.controller.Update)
+	t.router.POST("/members", t.controller.Join)
+	t.router.DELETE("/members", t.controller.Quit)
+}
+
+func (t *TeamRouter) SAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var user *response.UserResponse
 		if u, ok := ctx.Get("user"); ok {

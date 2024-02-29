@@ -1,6 +1,7 @@
 package model
 
 import (
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -23,4 +24,11 @@ type Challenge struct {
 	Hints         []*Hint       `json:"hints,omitempty"`
 	Images        []*Image      `json:"images,omitempty"`
 	Submissions   []*Submission `json:"submissions,omitempty"`
+}
+
+func (c *Challenge) BeforeDelete(db *gorm.DB) {
+	db.Table("flags").Where("challenge_id = ?", c.ID).Delete(&Flag{})
+	db.Table("hints").Where("challenge_id = ?", c.ID).Delete(&Hint{})
+	db.Table("images").Where("challenge_id = ?", c.ID).Delete(&Image{})
+	db.Table("submissions").Where("challenge_id = ?", c.ID).Delete(&Submission{})
 }

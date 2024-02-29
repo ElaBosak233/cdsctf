@@ -8,18 +8,35 @@ import (
 	"net/http"
 )
 
-func NewUserRouter(userRouter *gin.RouterGroup, userController controller.IUserController) {
-	userRouter.GET("/", userController.Find)
-	userRouter.POST("/", userController.Create)
-	userRouter.PUT("/:id", UserSAuth(), userController.Update)
-	userRouter.DELETE("/:id", UserSAuth(), userController.Delete)
-	userRouter.POST("/login", userController.Login)
-	userRouter.POST("/logout", userController.Logout)
-	userRouter.POST("/register", userController.Register)
-	userRouter.GET("/token/:token", userController.VerifyToken)
+type IUserRouter interface {
+	Register()
+	SAuth() gin.HandlerFunc
 }
 
-func UserSAuth() gin.HandlerFunc {
+type UserRouter struct {
+	router     *gin.RouterGroup
+	controller controller.IUserController
+}
+
+func NewUserRouter(userRouter *gin.RouterGroup, userController controller.IUserController) IUserRouter {
+	return &UserRouter{
+		router:     userRouter,
+		controller: userController,
+	}
+}
+
+func (u *UserRouter) Register() {
+	u.router.GET("/", u.controller.Find)
+	u.router.POST("/", u.controller.Create)
+	u.router.PUT("/:id", u.SAuth(), u.controller.Update)
+	u.router.DELETE("/:id", u.SAuth(), u.controller.Delete)
+	u.router.POST("/login", u.controller.Login)
+	u.router.POST("/logout", u.controller.Logout)
+	u.router.POST("/register", u.controller.Register)
+	u.router.GET("/token/:token", u.controller.VerifyToken)
+}
+
+func (u *UserRouter) SAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var user *response.UserResponse
 		if u, ok := ctx.Get("user"); ok {

@@ -5,6 +5,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewProxyRouter(proxyRouter *gin.RouterGroup, proxyController controller.IProxyController) {
-	proxyRouter.GET("/:id", proxyController.Connect)
+type IProxyRouter interface {
+	Register()
+}
+
+type ProxyRouter struct {
+	router     *gin.RouterGroup
+	controller controller.IProxyController
+}
+
+func NewProxyRouter(proxyRouter *gin.RouterGroup, proxyController controller.IProxyController) IProxyRouter {
+	return &ProxyRouter{
+		router:     proxyRouter,
+		controller: proxyController,
+	}
+}
+
+func (p *ProxyRouter) Register() {
+	p.router.GET("/:id", p.controller.Connect)
 }

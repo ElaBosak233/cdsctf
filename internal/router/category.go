@@ -5,8 +5,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewCategoryRouter(categoryRouter *gin.RouterGroup, categoryController controller.ICategoryController) {
-	categoryRouter.POST("/", categoryController.Create)
-	categoryRouter.PUT("/:id", categoryController.Update)
-	categoryRouter.GET("/", categoryController.Find)
+type ICategoryRouter interface {
+	Register()
+}
+
+type CategoryRouter struct {
+	router     *gin.RouterGroup
+	controller controller.ICategoryController
+}
+
+func NewCategoryRouter(categoryRouter *gin.RouterGroup, categoryController controller.ICategoryController) ICategoryRouter {
+	return &CategoryRouter{
+		router:     categoryRouter,
+		controller: categoryController,
+	}
+}
+
+func (c *CategoryRouter) Register() {
+	c.router.POST("/", c.controller.Create)
+	c.router.PUT("/:id", c.controller.Update)
+	c.router.GET("/", c.controller.Find)
 }

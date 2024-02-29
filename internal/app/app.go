@@ -38,6 +38,7 @@ func init() {
 }
 
 func Run() {
+	// Initialize the application
 	logger.InitLogger()
 	config.InitConfig()
 	assets.InitAssets()
@@ -68,9 +69,11 @@ func Run() {
 	// Dependencies injection
 	appRepository := repository.InitRepository(database.Db())
 	appService := service.InitService(appRepository)
-	appMiddleware := middleware.InitMiddleware(appService)
 	appController := controller.InitController(appService)
-	router.NewRouter(r.Group("/api", appMiddleware.CasbinMiddleware.Casbin()), appController)
+	router.NewRouter(
+		r.Group("/api", middleware.NewCasbinMiddleware(appService).Casbin()),
+		appController,
+	)
 
 	if isDebug {
 		// Swagger docs
@@ -83,7 +86,7 @@ func Run() {
 	}
 
 	// Frontend resources
-	r.Use(appMiddleware.FrontendMiddleware.Frontend("/"))
+	r.Use(middleware.NewFrontendMiddleware().Frontend("/"))
 
 	s := &http.Server{
 		Addr:    config.AppCfg().Gin.Host + ":" + strconv.Itoa(config.AppCfg().Gin.Port),

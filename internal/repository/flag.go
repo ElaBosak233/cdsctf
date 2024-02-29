@@ -10,7 +10,6 @@ type IFlagRepository interface {
 	Update(flag model.Flag) (f model.Flag, err error)
 	Delete(flag model.Flag) (err error)
 	FindByChallengeID(challengeIDs []uint) (flags []model.Flag, err error)
-	DeleteByChallengeID(challengeIDs []uint) (err error)
 }
 
 type FlagRepository struct {
@@ -41,11 +40,4 @@ func (t *FlagRepository) FindByChallengeID(challengeIDs []uint) (flags []model.F
 		Where("challenge_id IN ?", challengeIDs).
 		Find(&flags)
 	return flags, result.Error
-}
-
-func (t *FlagRepository) DeleteByChallengeID(challengeIDs []uint) (err error) {
-	result := t.Db.Table("flags").
-		Where("challenge_id IN ?", challengeIDs).
-		Delete(&model.Flag{})
-	return result.Error
 }

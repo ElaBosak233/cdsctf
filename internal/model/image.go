@@ -1,5 +1,7 @@
 package model
 
+import "gorm.io/gorm"
+
 // Image is the image configuration for container platform.
 // Because of the image is only a subsidiary table, it doesn't need the creation time or updated time.
 type Image struct {
@@ -11,4 +13,9 @@ type Image struct {
 	Description string  `gorm:"type:text;" json:"description"`
 	Ports       []*Port `json:"ports,omitempty"`
 	Envs        []*Env  `json:"envs,omitempty"`
+}
+
+func (i *Image) BeforeDelete(db *gorm.DB) {
+	db.Table("ports").Where("image_id = ?", i.ID).Delete(&Port{})
+	db.Table("envs").Where("image_id = ?", i.ID).Delete(&Env{})
 }
