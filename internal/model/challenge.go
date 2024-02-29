@@ -26,9 +26,17 @@ type Challenge struct {
 	Submissions   []*Submission `json:"submissions,omitempty"`
 }
 
-func (c *Challenge) BeforeDelete(db *gorm.DB) {
+func (c *Challenge) BeforeDelete(db *gorm.DB) (err error) {
 	db.Table("flags").Where("challenge_id = ?", c.ID).Delete(&Flag{})
 	db.Table("hints").Where("challenge_id = ?", c.ID).Delete(&Hint{})
-	db.Table("images").Where("challenge_id = ?", c.ID).Delete(&Image{})
+
+	var images []*Image
+	db.Table("images").Where("challenge_id = ?", c.ID).Find(&images)
+	for _, image := range images {
+		db.Table("images").Delete(image)
+	}
+
 	db.Table("submissions").Where("challenge_id = ?", c.ID).Delete(&Submission{})
+	db.Table("game_challenges").Where("challenge_id = ?", c.ID).Delete(&GameChallenge{})
+	return nil
 }
