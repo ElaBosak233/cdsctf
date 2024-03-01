@@ -18,25 +18,25 @@ type ITeamRepository interface {
 }
 
 type TeamRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewTeamRepository(Db *gorm.DB) ITeamRepository {
-	return &TeamRepository{Db: Db}
+func NewTeamRepository(db *gorm.DB) ITeamRepository {
+	return &TeamRepository{db: db}
 }
 
 func (t *TeamRepository) Insert(team model.Team) (te model.Team, err error) {
-	result := t.Db.Table("teams").Create(&team)
+	result := t.db.Table("teams").Create(&team)
 	return team, result.Error
 }
 
 func (t *TeamRepository) Update(team model.Team) (err error) {
-	result := t.Db.Table("team").Model(&team).Updates(&team)
+	result := t.db.Table("team").Model(&team).Updates(&team)
 	return result.Error
 }
 
 func (t *TeamRepository) Delete(id uint) (err error) {
-	result := t.Db.Table("teams").Delete(&model.Team{
+	result := t.db.Table("teams").Delete(&model.Team{
 		ID: id,
 	})
 	return result.Error
@@ -55,7 +55,7 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []response.Tea
 		}
 		return q
 	}
-	db := applyFilters(t.Db.Table("teams"))
+	db := applyFilters(t.db.Table("teams"))
 
 	result := db.Model(&model.Team{}).Count(&count)
 	if req.Page != 0 && req.Size > 0 {
@@ -68,14 +68,14 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []response.Tea
 }
 
 func (t *TeamRepository) BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error) {
-	result := t.Db.Table("teams").
+	result := t.db.Table("teams").
 		Where("teams.id IN ?", req.ID).
 		Find(&teams)
 	return teams, result.Error
 }
 
 func (t *TeamRepository) BatchFindByUserId(req request.TeamBatchFindByUserIdRequest) (teams []response.TeamResponseWithUserId, err error) {
-	result := t.Db.Table("teams").
+	result := t.db.Table("teams").
 		Joins("INNER JOIN user_teams ON user_teams.team_id = teams.id").
 		Where("user_teams.user_id = ?", req.UserID).
 		Find(&teams)
@@ -83,6 +83,6 @@ func (t *TeamRepository) BatchFindByUserId(req request.TeamBatchFindByUserIdRequ
 }
 
 func (t *TeamRepository) FindById(id uint) (team model.Team, err error) {
-	result := t.Db.Table("teams").Where("id = ?", id).First(&team)
+	result := t.db.Table("teams").Where("id = ?", id).First(&team)
 	return team, result.Error
 }

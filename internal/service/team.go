@@ -21,30 +21,30 @@ type ITeamService interface {
 }
 
 type TeamService struct {
-	UserRepository     repository.IUserRepository
-	TeamRepository     repository.ITeamRepository
-	UserTeamRepository repository.IUserTeamRepository
+	userRepository     repository.IUserRepository
+	teamRepository     repository.ITeamRepository
+	userTeamRepository repository.IUserTeamRepository
 }
 
 func NewTeamService(appRepository *repository.Repository) ITeamService {
 	return &TeamService{
-		UserRepository:     appRepository.UserRepository,
-		TeamRepository:     appRepository.TeamRepository,
-		UserTeamRepository: appRepository.UserTeamRepository,
+		userRepository:     appRepository.UserRepository,
+		teamRepository:     appRepository.TeamRepository,
+		userTeamRepository: appRepository.UserTeamRepository,
 	}
 }
 
 func (t *TeamService) Create(req request.TeamCreateRequest) error {
-	user, err := t.UserRepository.FindById(req.CaptainId)
+	user, err := t.userRepository.FindById(req.CaptainId)
 	if user.ID != 0 && err == nil {
 		isLocked := false
-		team, err := t.TeamRepository.Insert(model.Team{
+		team, err := t.teamRepository.Insert(model.Team{
 			Name:        req.Name,
 			CaptainID:   req.CaptainId,
 			Description: req.Description,
 			IsLocked:    &isLocked,
 		})
-		err = t.UserTeamRepository.Insert(model.UserTeam{
+		err = t.userTeamRepository.Insert(model.UserTeam{
 			TeamID: team.ID,
 			UserID: req.CaptainId,
 		})
@@ -54,9 +54,9 @@ func (t *TeamService) Create(req request.TeamCreateRequest) error {
 }
 
 func (t *TeamService) Update(req request.TeamUpdateRequest) error {
-	user, err := t.UserRepository.FindById(req.CaptainId)
+	user, err := t.userRepository.FindById(req.CaptainId)
 	if user.ID != 0 && err == nil {
-		team, err := t.TeamRepository.FindById(req.ID)
+		team, err := t.teamRepository.FindById(req.ID)
 		if team.ID != 0 {
 			if team.ID != req.CaptainId {
 				err = t.Join(request.TeamJoinRequest{
@@ -64,7 +64,7 @@ func (t *TeamService) Update(req request.TeamUpdateRequest) error {
 					UserID: req.CaptainId,
 				})
 			}
-			err = t.TeamRepository.Update(model.Team{
+			err = t.teamRepository.Update(model.Team{
 				ID:          team.ID,
 				Name:        req.Name,
 				Description: req.Description,
@@ -80,10 +80,10 @@ func (t *TeamService) Update(req request.TeamUpdateRequest) error {
 }
 
 func (t *TeamService) Delete(id uint) error {
-	team, err := t.TeamRepository.FindById(id)
+	team, err := t.teamRepository.FindById(id)
 	if team.ID != 0 {
-		err = t.TeamRepository.Delete(id)
-		err = t.UserTeamRepository.DeleteByTeamId(id)
+		err = t.teamRepository.Delete(id)
+		err = t.userTeamRepository.DeleteByTeamId(id)
 		return err
 	} else {
 		return errors.New("团队不存在")
@@ -91,7 +91,7 @@ func (t *TeamService) Delete(id uint) error {
 }
 
 func (t *TeamService) Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, total int64, err error) {
-	teams, count, err := t.TeamRepository.Find(req)
+	teams, count, err := t.teamRepository.Find(req)
 	//teams, err = t.Mixin(teams)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
@@ -102,17 +102,17 @@ func (t *TeamService) Find(req request.TeamFindRequest) (teams []response.TeamRe
 }
 
 func (t *TeamService) BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error) {
-	teams, err = t.TeamRepository.BatchFind(req)
+	teams, err = t.teamRepository.BatchFind(req)
 	//teams, err = t.Mixin(teams)
 	return teams, err
 }
 
 func (t *TeamService) Join(req request.TeamJoinRequest) error {
-	user, err := t.UserRepository.FindById(req.UserID)
+	user, err := t.userRepository.FindById(req.UserID)
 	if user.ID != 0 && err == nil {
-		team, err := t.TeamRepository.FindById(req.TeamID)
+		team, err := t.teamRepository.FindById(req.TeamID)
 		if team.ID != 0 {
-			err = t.UserTeamRepository.Insert(model.UserTeam{
+			err = t.userTeamRepository.Insert(model.UserTeam{
 				TeamID: team.ID,
 				UserID: req.UserID,
 			})
@@ -125,11 +125,11 @@ func (t *TeamService) Join(req request.TeamJoinRequest) error {
 }
 
 func (t *TeamService) Quit(req request.TeamQuitRequest) (err error) {
-	user, err := t.UserRepository.FindById(req.UserID)
+	user, err := t.userRepository.FindById(req.UserID)
 	if user.ID != 0 && err == nil {
-		team, err := t.TeamRepository.FindById(req.TeamID)
+		team, err := t.teamRepository.FindById(req.TeamID)
 		if team.ID != 0 {
-			err = t.UserTeamRepository.Delete(model.UserTeam{
+			err = t.userTeamRepository.Delete(model.UserTeam{
 				TeamID: team.ID,
 				UserID: req.UserID,
 			})
@@ -142,7 +142,7 @@ func (t *TeamService) Quit(req request.TeamQuitRequest) (err error) {
 }
 
 func (t *TeamService) FindById(id uint) (team response.TeamResponse, err error) {
-	teams, _, err := t.TeamRepository.Find(request.TeamFindRequest{
+	teams, _, err := t.teamRepository.Find(request.TeamFindRequest{
 		ID: id,
 	})
 	if len(teams) > 0 {

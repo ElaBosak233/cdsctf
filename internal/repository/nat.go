@@ -11,19 +11,19 @@ type INatRepository interface {
 }
 
 type NatRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewNatRepository(Db *gorm.DB) INatRepository {
-	return &NatRepository{Db: Db}
+func NewNatRepository(db *gorm.DB) INatRepository {
+	return &NatRepository{db: db}
 }
 
 func (t *NatRepository) Insert(nat model.Nat) (n model.Nat, err error) {
-	result := t.Db.Table("nats").Create(&nat)
+	result := t.db.Table("nats").Create(&nat)
 	return nat, result.Error
 }
 
 func (t *NatRepository) FindByInstanceID(instanceIDs []uint) (nats []model.Nat, err error) {
-	result := t.Db.Table("nats").Where("instance_id IN ?", instanceIDs).Find(&nats)
+	result := t.db.Table("nats").Where("instance_id IN ?", instanceIDs).Find(&nats)
 	return nats, result.Error
 }

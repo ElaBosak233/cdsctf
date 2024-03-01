@@ -2,6 +2,8 @@ package router
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/controller"
+	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
+	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,7 +24,21 @@ func NewSubmissionRouter(submissionRouter *gin.RouterGroup, submissionController
 }
 
 func (s *SubmissionRouter) Register() {
-	s.router.GET("/", s.controller.Find)
+	s.router.GET("/", s.SAuth(), s.controller.Find)
 	s.router.POST("/", s.controller.Create)
 	s.router.DELETE("/", s.controller.Delete)
+}
+
+func (s *SubmissionRouter) SAuth() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		if convertor.ToBoolD(ctx.Query("is_detailed"), false) {
+			user, _ := ctx.Get("user")
+			if user.(*response.UserResponse).Group.Name == "admin" || user.(*response.UserResponse).Group.Name == "monitor" {
+				ctx.Set("is_detailed", true)
+			}
+		} else {
+			ctx.Set("is_detailed", false)
+		}
+		ctx.Next()
+	}
 }

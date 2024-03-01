@@ -11,21 +11,21 @@ type IEnvRepository interface {
 }
 
 type EnvRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewEnvRepository(Db *gorm.DB) IEnvRepository {
-	return &EnvRepository{Db: Db}
+func NewEnvRepository(db *gorm.DB) IEnvRepository {
+	return &EnvRepository{db: db}
 }
 
 func (t *EnvRepository) Insert(env model.Env) (e model.Env, err error) {
-	result := t.Db.Table("envs").
+	result := t.db.Table("envs").
 		Create(&env)
 	return env, result.Error
 }
 
 func (t *EnvRepository) FindByImageID(imageIDs []uint) (envs []model.Env, err error) {
-	result := t.Db.Table("envs").
+	result := t.db.Table("envs").
 		Where("image_id IN ?", imageIDs).
 		Find(&envs)
 	return envs, result.Error

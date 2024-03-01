@@ -14,34 +14,34 @@ type IPortRepository interface {
 }
 
 type PortRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewPortRepository(Db *gorm.DB) IPortRepository {
-	return &PortRepository{Db: Db}
+func NewPortRepository(db *gorm.DB) IPortRepository {
+	return &PortRepository{db: db}
 }
 
 func (t *PortRepository) Insert(port model.Port) (p model.Port, err error) {
-	result := t.Db.Table("ports").Create(&port)
+	result := t.db.Table("ports").Create(&port)
 	return port, result.Error
 }
 
 func (t *PortRepository) Update(port model.Port) (p model.Port, err error) {
-	result := t.Db.Table("ports").Model(&port).Updates(&port)
+	result := t.db.Table("ports").Model(&port).Updates(&port)
 	return port, result.Error
 }
 
 func (t *PortRepository) Delete(port model.Port) (err error) {
-	result := t.Db.Table("ports").Delete(&port)
+	result := t.db.Table("ports").Delete(&port)
 	return result.Error
 }
 
 func (t *PortRepository) FindByImageID(imageIDs []uint) (ports []model.Port, err error) {
-	result := t.Db.Table("ports").Where("image_id IN ?", imageIDs).Find(&ports)
+	result := t.db.Table("ports").Where("image_id IN ?", imageIDs).Find(&ports)
 	return ports, result.Error
 }
 
 func (t *PortRepository) DeleteByImageID(imageIDs []uint) (err error) {
-	result := t.Db.Table("ports").Where("image_id IN ?", imageIDs).Delete(&model.Port{})
+	result := t.db.Table("ports").Where("image_id IN ?", imageIDs).Delete(&model.Port{})
 	return result.Error
 }

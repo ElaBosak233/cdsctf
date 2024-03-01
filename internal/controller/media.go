@@ -31,12 +31,12 @@ type IMediaController interface {
 }
 
 type MediaController struct {
-	MediaService service.IMediaService
+	mediaService service.IMediaService
 }
 
 func NewMediaController(appService *service.Service) IMediaController {
 	return &MediaController{
-		MediaService: appService.MediaService,
+		mediaService: appService.MediaService,
 	}
 }
 
@@ -50,7 +50,7 @@ func NewMediaController(appService *service.Service) IMediaController {
 // @Router /media/users/avatar/{id} [get]
 func (c *MediaController) GetUserAvatarByUserId(ctx *gin.Context) {
 	id := convertor.ToUintD(ctx.Param("id"), 0)
-	dst, err := c.MediaService.GetUserAvatarByUserId(id)
+	dst, err := c.mediaService.GetUserAvatarByUserId(id)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusNotFound,
@@ -70,7 +70,7 @@ func (c *MediaController) GetUserAvatarByUserId(ctx *gin.Context) {
 // @Router /media/users/avatar/{id}/info [get]
 func (c *MediaController) GetUserAvatarInfoByUserId(ctx *gin.Context) {
 	id := convertor.ToUintD(ctx.Param("id"), 0)
-	fileName, fileSize, err := c.MediaService.GetUserAvatarInfoByUserId(id)
+	fileName, fileSize, err := c.mediaService.GetUserAvatarInfoByUserId(id)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusNotFound,
@@ -95,7 +95,7 @@ func (c *MediaController) GetUserAvatarInfoByUserId(ctx *gin.Context) {
 func (c *MediaController) SetUserAvatarByUserId(ctx *gin.Context) {
 	id := convertor.ToUintD(ctx.Param("id"), 0)
 	file, err := ctx.FormFile("avatar")
-	err = c.MediaService.SetUserAvatarByUserId(id, file)
+	err = c.mediaService.SetUserAvatarByUserId(id, file)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -118,7 +118,7 @@ func (c *MediaController) SetUserAvatarByUserId(ctx *gin.Context) {
 // @Router /media/users/avatar/{id} [delete]
 func (c *MediaController) DeleteUserAvatarByUserId(ctx *gin.Context) {
 	id := convertor.ToUintD(ctx.Param("id"), 0)
-	err := c.MediaService.DeleteUserAvatarByUserId(id)
+	err := c.mediaService.DeleteUserAvatarByUserId(id)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -336,8 +336,8 @@ func (c *MediaController) SetChallengeAttachmentByChallengeId(ctx *gin.Context) 
 		})
 		return
 	}
-	if _, fileSize, _ := c.MediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0))); fileSize != 0 {
-		err = c.MediaService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
+	if _, fileSize, _ := c.mediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0))); fileSize != 0 {
+		err = c.mediaService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 		if err != nil {
 			ctx.JSON(http.StatusOK, gin.H{
 				"code": http.StatusInternalServerError,
@@ -368,7 +368,7 @@ func (c *MediaController) SetChallengeAttachmentByChallengeId(ctx *gin.Context) 
 // @Router /media/challenges/attachments/{id}/info [get]
 func (c *MediaController) GetChallengeAttachmentInfoByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	fileName, fileSize, err := c.MediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
+	fileName, fileSize, err := c.mediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusNotFound,
@@ -391,7 +391,7 @@ func (c *MediaController) GetChallengeAttachmentInfoByChallengeId(ctx *gin.Conte
 // @Router /media/challenges/attachments/{id} [get]
 func (c *MediaController) GetChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	fileName, _, err := c.MediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
+	fileName, _, err := c.mediaService.CheckChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusNotFound,
@@ -410,7 +410,7 @@ func (c *MediaController) GetChallengeAttachmentByChallengeId(ctx *gin.Context) 
 // @Router /media/challenges/attachments/{id} [delete]
 func (c *MediaController) DeleteChallengeAttachmentByChallengeId(ctx *gin.Context) {
 	id := ctx.Param("id")
-	err := c.MediaService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
+	err := c.mediaService.DeleteChallengeAttachmentByChallengeId(int64(convertor.ToIntD(id, 0)))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,

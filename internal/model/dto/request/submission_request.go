@@ -18,7 +18,7 @@ type SubmissionFindRequest struct {
 	ChallengeID uint     `json:"challenge_id"` // 题目 Id
 	TeamID      *uint    `json:"team_id"`      // 团队 Id
 	GameID      *uint    `json:"game_id"`      // 比赛 Id
-	IsDetailed  int      `json:"is_detailed"`  // 是否详细
+	IsDetailed  bool     `json:"is_detailed"`  // 是否详细
 	SortBy      []string `json:"sort_by"`      // 排序参数
 	Page        int      `json:"page"`         // 页码
 	Size        int      `json:"size"`         // 每页大小

@@ -14,30 +14,30 @@ type IImageRepository interface {
 }
 
 type ImageRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewImageRepository(Db *gorm.DB) IImageRepository {
-	return &ImageRepository{Db: Db}
+func NewImageRepository(db *gorm.DB) IImageRepository {
+	return &ImageRepository{db: db}
 }
 
 func (t *ImageRepository) Insert(image model.Image) (i model.Image, err error) {
-	result := t.Db.Table("images").Create(&image)
+	result := t.db.Table("images").Create(&image)
 	return image, result.Error
 }
 
 func (t *ImageRepository) Update(image model.Image) (i model.Image, err error) {
-	result := t.Db.Table("images").Model(&image).Updates(&image)
+	result := t.db.Table("images").Model(&image).Updates(&image)
 	return image, result.Error
 }
 
 func (t *ImageRepository) Delete(image model.Image) (err error) {
-	result := t.Db.Table("images").Delete(&image)
+	result := t.db.Table("images").Delete(&image)
 	return result.Error
 }
 
 func (t *ImageRepository) FindByID(IDs []uint) (images []model.Image, err error) {
-	result := t.Db.Table("images").
+	result := t.db.Table("images").
 		Where("id IN ?", IDs).
 		Preload("Ports").
 		Preload("Envs").
@@ -46,7 +46,7 @@ func (t *ImageRepository) FindByID(IDs []uint) (images []model.Image, err error)
 }
 
 func (t *ImageRepository) FindByChallengeID(challengeIDs []uint) (images []model.Image, err error) {
-	result := t.Db.Table("images").
+	result := t.db.Table("images").
 		Where("challenge_id IN ?", challengeIDs).
 		Preload("Ports").
 		Preload("Envs").

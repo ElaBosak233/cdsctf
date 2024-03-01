@@ -18,12 +18,12 @@ type IPodController interface {
 }
 
 type PodController struct {
-	PodService service.IPodService
+	podService service.IPodService
 }
 
 func NewInstanceController(appService *service.Service) IPodController {
 	return &PodController{
-		PodService: appService.PodService,
+		podService: appService.PodService,
 	}
 }
 
@@ -47,7 +47,7 @@ func (c *PodController) Create(ctx *gin.Context) {
 		return
 	}
 	instanceCreateRequest.UserID = ctx.GetUint("UserID")
-	res, err := c.PodService.Create(instanceCreateRequest)
+	res, err := c.podService.Create(instanceCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -76,7 +76,7 @@ func (c *PodController) Remove(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
 	instanceRemoveRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	instanceRemoveRequest.UserID = ctx.GetUint("ID")
-	err = c.PodService.Remove(instanceRemoveRequest)
+	err = c.podService.Remove(instanceRemoveRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -102,7 +102,7 @@ func (c *PodController) Renew(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
 	instanceRenewRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	instanceRenewRequest.UserID = ctx.GetUint("ID")
-	removedAt, err := c.PodService.Renew(instanceRenewRequest)
+	removedAt, err := c.podService.Renew(instanceRenewRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -125,7 +125,7 @@ func (c *PodController) Renew(ctx *gin.Context) {
 // @Router /pods/{id} [get]
 func (c *PodController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	rep, err := c.PodService.FindById(convertor.ToUintD(id, 0))
+	rep, err := c.podService.FindById(convertor.ToUintD(id, 0))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -158,7 +158,7 @@ func (c *PodController) Find(ctx *gin.Context) {
 		Page:        convertor.ToIntD(ctx.Query("page"), 0),
 		Size:        convertor.ToIntD(ctx.Query("size"), 0),
 	}
-	pods, _ := c.PodService.Find(podFindRequest)
+	pods, _ := c.podService.Find(podFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"data": pods,

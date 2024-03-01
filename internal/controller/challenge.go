@@ -17,18 +17,18 @@ type IChallengeController interface {
 }
 
 type ChallengeController struct {
-	ChallengeService service.IChallengeService
+	challengeService service.IChallengeService
 }
 
 func NewChallengeController(appService *service.Service) IChallengeController {
 	return &ChallengeController{
-		ChallengeService: appService.ChallengeService,
+		challengeService: appService.ChallengeService,
 	}
 }
 
 // Find
 // @Summary 题目查询
-// @Description	只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息
+// @Description
 // @Tags Challenge
 // @Accept json
 // @Produce json
@@ -36,29 +36,19 @@ func NewChallengeController(appService *service.Service) IChallengeController {
 // @Param input	query request.ChallengeFindRequest false "ChallengeFindRequest"
 // @Router /challenges/ [get]
 func (c *ChallengeController) Find(ctx *gin.Context) {
-	isDetailed := func() *bool {
-		if ctx.GetInt64("UserLevel") <= 2 {
-			return convertor.ToBoolP(ctx.Query("is_detailed"))
-		}
-		return convertor.FalseP()
-	}
-	isPracticable := func() *bool {
-		if ctx.GetInt64("UserLevel") <= 2 {
-			return convertor.ToBoolP(ctx.Query("is_practicable"))
-		}
-		return convertor.TrueP()
-	}
-	challengeData, pageCount, total, _ := c.ChallengeService.Find(request.ChallengeFindRequest{
+	isDetailed := ctx.GetBool("is_detailed")
+	isPracticable := ctx.GetBool("is_practicable")
+	challenges, pageCount, total, _ := c.challengeService.Find(request.ChallengeFindRequest{
 		Title:         ctx.Query("title"),
 		CategoryID:    convertor.ToUintP(ctx.Query("category_id")),
-		IsPracticable: isPracticable(),
+		IsPracticable: &isPracticable,
 		IDs:           convertor.ToUintSliceD(ctx.QueryArray("id"), make([]uint, 0)),
 		IsDynamic:     convertor.ToBoolP(ctx.Query("is_dynamic")),
 		Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), 0),
 		UserID:        ctx.GetUint("UserID"),
 		GameID:        convertor.ToUintP(ctx.Query("game_id")),
 		TeamID:        convertor.ToUintP(ctx.Query("team_id")),
-		IsDetailed:    isDetailed(),
+		IsDetailed:    &isDetailed,
 		SubmissionQty: convertor.ToIntD(ctx.Query("submission_qty"), 0),
 		Page:          convertor.ToIntD(ctx.Query("page"), 0),
 		Size:          convertor.ToIntD(ctx.Query("size"), 0),
@@ -68,12 +58,12 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 		"code":  http.StatusOK,
 		"pages": pageCount,
 		"total": total,
-		"data":  challengeData,
+		"data":  challenges,
 	})
 }
 
 // Create
-// @Summary 创建题目（Role≤2）
+// @Summary 创建题目
 // @Description
 // @Tags Challenge
 // @Accept json
@@ -91,14 +81,14 @@ func (c *ChallengeController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	_ = c.ChallengeService.Create(createChallengeRequest)
+	_ = c.challengeService.Create(createChallengeRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
 }
 
 // Update
-// @Summary 更新题目（Role≤2）
+// @Summary 更新题目
 // @Description
 // @Tags Challenge
 // @Accept json
@@ -117,7 +107,7 @@ func (c *ChallengeController) Update(ctx *gin.Context) {
 		return
 	}
 	updateChallengeRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = c.ChallengeService.Update(updateChallengeRequest)
+	err = c.challengeService.Update(updateChallengeRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -130,7 +120,7 @@ func (c *ChallengeController) Update(ctx *gin.Context) {
 }
 
 // Delete
-// @Summary 删除题目（Role≤2）
+// @Summary 删除题目
 // @Description
 // @Tags Challenge
 // @Accept json
@@ -141,7 +131,7 @@ func (c *ChallengeController) Update(ctx *gin.Context) {
 func (c *ChallengeController) Delete(ctx *gin.Context) {
 	deleteChallengeRequest := request.ChallengeDeleteRequest{}
 	deleteChallengeRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	err := c.ChallengeService.Delete(deleteChallengeRequest.ID)
+	err := c.challengeService.Delete(deleteChallengeRequest.ID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,

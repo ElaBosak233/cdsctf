@@ -14,20 +14,20 @@ type ICategoryRepository interface {
 }
 
 type CategoryRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewCategoryRepositoryImpl(Db *gorm.DB) ICategoryRepository {
-	return &CategoryRepository{Db: Db}
+func NewCategoryRepositoryImpl(db *gorm.DB) ICategoryRepository {
+	return &CategoryRepository{db: db}
 }
 
 func (t *CategoryRepository) Create(category model.Category) (err error) {
-	result := t.Db.Table("categories").Create(&category)
+	result := t.db.Table("categories").Create(&category)
 	return result.Error
 }
 
 func (t *CategoryRepository) Update(category model.Category) (err error) {
-	result := t.Db.Table("categories").Updates(&category)
+	result := t.db.Table("categories").Updates(&category)
 	return result.Error
 }
 
@@ -41,11 +41,11 @@ func (t *CategoryRepository) Find(req request.CategoryFindRequest) (categories [
 		}
 		return db
 	}
-	result := applyFilters(t.Db.Table("categories")).Find(&categories)
+	result := applyFilters(t.db.Table("categories")).Find(&categories)
 	return categories, result.Error
 }
 
 func (t *CategoryRepository) FindByID(IDs []uint) (categories []model.Category, err error) {
-	result := t.Db.Table("categories").Where("id IN ?", IDs).Find(&categories)
+	result := t.db.Table("categories").Where("id IN ?", IDs).Find(&categories)
 	return categories, result.Error
 }

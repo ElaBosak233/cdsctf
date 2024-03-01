@@ -47,8 +47,8 @@ func (t *GameRepository) Find(req request.GameFindRequest) (games []response.Gam
 		if req.Title != "" {
 			q = q.Where("title LIKE ?", "%"+req.Title+"%")
 		}
-		if req.IsEnabled != -1 {
-			q = q.Where("is_enabled = ?", req.IsEnabled == 1)
+		if req.IsEnabled != nil {
+			q = q.Where("is_enabled = ?", *(req.IsEnabled))
 		}
 		return q
 	}

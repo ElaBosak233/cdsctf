@@ -9,27 +9,27 @@ type IInstanceService interface {
 	FindByPodID(podIDs []uint) (containers []model.Instance, err error)
 }
 
-type Instance struct {
-	ContainerRepository repository.IInstanceRepository
-	EnvRepository       repository.IEnvRepository
-	NatRepository       repository.INatRepository
-	ImageRepository     repository.IImageRepository
-	PodRepository       repository.IPodRepository
-	PortRepository      repository.IPortRepository
+type InstanceService struct {
+	containerRepository repository.IInstanceRepository
+	envRepository       repository.IEnvRepository
+	natRepository       repository.INatRepository
+	imageRepository     repository.IImageRepository
+	podRepository       repository.IPodRepository
+	portRepository      repository.IPortRepository
 }
 
 func NewInstanceService(appRepository *repository.Repository) IInstanceService {
-	return &Instance{
-		ContainerRepository: appRepository.ContainerRepository,
-		EnvRepository:       appRepository.EnvRepository,
-		NatRepository:       appRepository.NatRepository,
-		ImageRepository:     appRepository.ImageRepository,
-		PodRepository:       appRepository.PodRepository,
-		PortRepository:      appRepository.PortRepository,
+	return &InstanceService{
+		containerRepository: appRepository.ContainerRepository,
+		envRepository:       appRepository.EnvRepository,
+		natRepository:       appRepository.NatRepository,
+		imageRepository:     appRepository.ImageRepository,
+		podRepository:       appRepository.PodRepository,
+		portRepository:      appRepository.PortRepository,
 	}
 }
 
-func (c *Instance) FindByPodID(podIDs []uint) (containers []model.Instance, err error) {
-	ctns, err := c.ContainerRepository.FindByPodID(podIDs)
+func (c *InstanceService) FindByPodID(podIDs []uint) (containers []model.Instance, err error) {
+	ctns, err := c.containerRepository.FindByPodID(podIDs)
 	return ctns, err
 }

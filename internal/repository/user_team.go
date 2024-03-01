@@ -16,35 +16,35 @@ type IUserTeamRepository interface {
 }
 
 type UserTeamRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewUserTeamRepository(Db *gorm.DB) IUserTeamRepository {
-	return &UserTeamRepository{Db: Db}
+func NewUserTeamRepository(db *gorm.DB) IUserTeamRepository {
+	return &UserTeamRepository{db: db}
 }
 
 func (t *UserTeamRepository) Insert(userTeam model.UserTeam) error {
-	result := t.Db.Table("user_teams").Create(&userTeam)
+	result := t.db.Table("user_teams").Create(&userTeam)
 	return result.Error
 }
 
 func (t *UserTeamRepository) Delete(userTeam model.UserTeam) error {
-	result := t.Db.Table("user_teams").Delete(&userTeam)
+	result := t.db.Table("user_teams").Delete(&userTeam)
 	return result.Error
 }
 
 func (t *UserTeamRepository) DeleteByUserId(userId uint) error {
-	result := t.Db.Table("user_teams").Where("user_id = ?", userId).Delete(&model.UserTeam{})
+	result := t.db.Table("user_teams").Where("user_id = ?", userId).Delete(&model.UserTeam{})
 	return result.Error
 }
 
 func (t *UserTeamRepository) DeleteByTeamId(teamID uint) error {
-	result := t.Db.Table("user_teams").Where("team_id = ?", teamID).Delete(&model.UserTeam{})
+	result := t.db.Table("user_teams").Where("team_id = ?", teamID).Delete(&model.UserTeam{})
 	return result.Error
 }
 
 func (t *UserTeamRepository) FindByUserId(userId uint) (userTeams []model.UserTeam, err error) {
-	result := t.Db.Table("user_teams").
+	result := t.db.Table("user_teams").
 		Joins("INNER JOIN teams ON user_teams.team_id = teams.id").
 		Where("user_teams.user_id = ?", userId).
 		Find(&userTeams)
@@ -52,7 +52,7 @@ func (t *UserTeamRepository) FindByUserId(userId uint) (userTeams []model.UserTe
 }
 
 func (t *UserTeamRepository) FindByTeamId(teamId uint) (userTeams []model.UserTeam, err error) {
-	result := t.Db.Table("user_teams").
+	result := t.db.Table("user_teams").
 		Joins("INNER JOIN users ON user_teams.user_id = users.id").
 		Where("user_teams.team_id = ?", teamId).
 		Find(&userTeams)
@@ -60,6 +60,6 @@ func (t *UserTeamRepository) FindByTeamId(teamId uint) (userTeams []model.UserTe
 }
 
 func (t *UserTeamRepository) FindAll() (userTeams []model.UserTeam, err error) {
-	result := t.Db.Table("user_teams").Find(&userTeams)
+	result := t.db.Table("user_teams").Find(&userTeams)
 	return userTeams, result.Error
 }

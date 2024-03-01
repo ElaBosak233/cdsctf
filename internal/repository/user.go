@@ -18,27 +18,27 @@ type IUserRepository interface {
 }
 
 type UserRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewUserRepository(Db *gorm.DB) IUserRepository {
-	return &UserRepository{Db: Db}
+func NewUserRepository(db *gorm.DB) IUserRepository {
+	return &UserRepository{db: db}
 }
 
 func (t *UserRepository) Insert(user model.User) error {
-	result := t.Db.Table("users").Create(&user)
+	result := t.db.Table("users").Create(&user)
 	return result.Error
 }
 
 func (t *UserRepository) Delete(id uint) error {
-	result := t.Db.Table("users").Delete(&model.User{
+	result := t.db.Table("users").Delete(&model.User{
 		ID: id,
 	})
 	return result.Error
 }
 
 func (t *UserRepository) Update(user model.User) error {
-	result := t.Db.Table("users").Model(&user).Updates(&user)
+	result := t.db.Table("users").Model(&user).Updates(&user)
 	return result.Error
 }
 
@@ -55,7 +55,7 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("users"))
+	db := applyFilter(t.db.Table("users"))
 	result := db.Model(&model.User{}).Count(&count)
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
@@ -79,7 +79,7 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 }
 
 func (t *UserRepository) BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []model.User, err error) {
-	err = t.Db.Table("users").
+	err = t.db.Table("users").
 		Joins("INNER JOIN user_team ON users.id = user_team.user_id").
 		Where("user_team.team_id = ?", req.TeamID).
 		Find(&users).Error
@@ -87,7 +87,7 @@ func (t *UserRepository) BatchFindByTeamId(req request.UserBatchFindByTeamIdRequ
 }
 
 func (t *UserRepository) FindById(id uint) (user model.User, err error) {
-	result := t.Db.Table("users").
+	result := t.db.Table("users").
 		Where("id = ?", id).
 		Preload("Group").
 		First(&user)
@@ -95,7 +95,7 @@ func (t *UserRepository) FindById(id uint) (user model.User, err error) {
 }
 
 func (t *UserRepository) FindByUsername(username string) (user model.User, err error) {
-	result := t.Db.Table("users").
+	result := t.db.Table("users").
 		Where("username = ?", username).
 		Preload("Group").
 		Preload("Teams").
@@ -104,7 +104,7 @@ func (t *UserRepository) FindByUsername(username string) (user model.User, err e
 }
 
 func (t *UserRepository) FindByEmail(email string) (user model.User, err error) {
-	result := t.Db.Table("users").
+	result := t.db.Table("users").
 		Where("email = ?", email).
 		Preload("Group").
 		First(&user)

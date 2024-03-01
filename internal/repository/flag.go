@@ -13,30 +13,30 @@ type IFlagRepository interface {
 }
 
 type FlagRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewFlagRepository(Db *gorm.DB) IFlagRepository {
-	return &FlagRepository{Db: Db}
+func NewFlagRepository(db *gorm.DB) IFlagRepository {
+	return &FlagRepository{db: db}
 }
 
 func (t *FlagRepository) Insert(flag model.Flag) (f model.Flag, err error) {
-	result := t.Db.Table("flags").Create(&flag)
+	result := t.db.Table("flags").Create(&flag)
 	return flag, result.Error
 }
 
 func (t *FlagRepository) Update(flag model.Flag) (f model.Flag, err error) {
-	result := t.Db.Table("flags").Model(&flag).Updates(&flag)
+	result := t.db.Table("flags").Model(&flag).Updates(&flag)
 	return flag, result.Error
 }
 
 func (t *FlagRepository) Delete(flag model.Flag) (err error) {
-	result := t.Db.Table("flags").Delete(&flag)
+	result := t.db.Table("flags").Delete(&flag)
 	return result.Error
 }
 
 func (t *FlagRepository) FindByChallengeID(challengeIDs []uint) (flags []model.Flag, err error) {
-	result := t.Db.Table("flags").
+	result := t.db.Table("flags").
 		Where("challenge_id IN ?", challengeIDs).
 		Find(&flags)
 	return flags, result.Error

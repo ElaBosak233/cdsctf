@@ -373,9 +373,9 @@ definitions:
       group:
         allOf:
         - $ref: '#/definitions/model.Group'
-        description: The user's role.
+        description: The user's group.
       group_id:
-        description: The user's role.
+        description: The user's group.
         type: integer
       id:
         description: The user's id. As primary key.
@@ -824,7 +824,6 @@ paths:
     get:
       consumes:
       - application/json
-      description: 只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息
       parameters:
       - in: query
         name: category_id
@@ -897,7 +896,7 @@ paths:
       responses: {}
       security:
       - ApiKeyAuth: []
-      summary: 创建题目（Role≤2）
+      summary: 创建题目
       tags:
       - Challenge
   /challenges/{id}:
@@ -916,7 +915,7 @@ paths:
       responses: {}
       security:
       - ApiKeyAuth: []
-      summary: 删除题目（Role≤2）
+      summary: 删除题目
       tags:
       - Challenge
     put:
@@ -934,7 +933,7 @@ paths:
       responses: {}
       security:
       - ApiKeyAuth: []
-      summary: 更新题目（Role≤2）
+      summary: 更新题目
       tags:
       - Challenge
   /configs/:
@@ -977,7 +976,7 @@ paths:
         type: integer
       - in: query
         name: is_enabled
-        type: integer
+        type: boolean
       - in: query
         name: page
         type: integer
@@ -1061,13 +1060,6 @@ paths:
       description: 广播消息
       responses: {}
       summary: 广播消息
-      tags:
-      - Game
-  /games/{id}/scoreboard:
-    get:
-      description: 计分板
-      responses: {}
-      summary: 计分板
       tags:
       - Game
   /media/challenges/attachments/{id}:
@@ -1444,7 +1436,7 @@ paths:
       - description: 是否详细
         in: query
         name: is_detailed
-        type: integer
+        type: boolean
       - description: 页码
         in: query
         name: page
@@ -1697,7 +1689,7 @@ paths:
       responses: {}
       security:
       - ApiKeyAuth: []
-      summary: 用户创建（Role<=1）
+      summary: 用户创建
       tags:
       - User
   /users/{id}:
@@ -1716,13 +1708,12 @@ paths:
       responses: {}
       security:
       - ApiKeyAuth: []
-      summary: 用户删除（Role≤1 或 (Request)ID=(Authorization)ID）
+      summary: 用户删除
       tags:
       - User
     put:
       consumes:
       - application/json
-      description: 若 Role>1，则自动忽略 UserUpdateRequest 中的 Role 属性
       parameters:
       - description: UserUpdateRequest
         in: body
@@ -1735,7 +1726,7 @@ paths:
       responses: {}
       security:
       - ApiKeyAuth: []
-      summary: 用户更新（Role≤1 或 (Request)ID=(Authorization)ID）
+      summary: 用户更新
       tags:
       - User
   /users/login:

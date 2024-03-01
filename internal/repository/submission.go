@@ -14,20 +14,20 @@ type ISubmissionRepository interface {
 }
 
 type SubmissionRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewSubmissionRepository(Db *gorm.DB) ISubmissionRepository {
-	return &SubmissionRepository{Db: Db}
+func NewSubmissionRepository(db *gorm.DB) ISubmissionRepository {
+	return &SubmissionRepository{db: db}
 }
 
 func (t *SubmissionRepository) Insert(submission model.Submission) (err error) {
-	result := t.Db.Table("submissions").Create(&submission)
+	result := t.db.Table("submissions").Create(&submission)
 	return result.Error
 }
 
 func (t *SubmissionRepository) Delete(id uint) (err error) {
-	result := t.Db.Table("submissions").Delete(&model.Submission{ID: id})
+	result := t.db.Table("submissions").Delete(&model.Submission{ID: id})
 	return result.Error
 }
 
@@ -48,12 +48,9 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 		if req.Status != 0 {
 			q = q.Where("status = ?", req.Status)
 		}
-		if req.IsDetailed == 0 {
-			q = q.Omit("flag")
-		}
 		return q
 	}
-	db := applyFilters(t.Db.Table("submissions"))
+	db := applyFilters(t.db.Table("submissions"))
 
 	result := db.Model(&model.Submission{}).Count(&count)
 	if len(req.SortBy) > 0 {
@@ -103,7 +100,7 @@ func (t *SubmissionRepository) FindByChallengeID(req request.SubmissionFindByCha
 		}
 		return q
 	}
-	db := applyFilters(t.Db.Table("submissions"))
+	db := applyFilters(t.db.Table("submissions"))
 	if len(req.SortBy) > 0 {
 		sortKey := req.SortBy[0]
 		sortOrder := req.SortBy[1]
