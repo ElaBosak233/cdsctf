@@ -15,25 +15,25 @@ type IChallengeRepository interface {
 }
 
 type ChallengeRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewChallengeRepository(Db *gorm.DB) IChallengeRepository {
-	return &ChallengeRepository{Db: Db}
+func NewChallengeRepository(db *gorm.DB) IChallengeRepository {
+	return &ChallengeRepository{db: db}
 }
 
 func (t *ChallengeRepository) Insert(challenge model.Challenge) (c model.Challenge, err error) {
-	result := t.Db.Table("challenges").Create(&challenge)
+	result := t.db.Table("challenges").Create(&challenge)
 	return challenge, result.Error
 }
 
 func (t *ChallengeRepository) Delete(id uint) (err error) {
-	result := t.Db.Table("challenges").Delete(&model.Challenge{ID: id})
+	result := t.db.Table("challenges").Delete(&model.Challenge{ID: id})
 	return result.Error
 }
 
 func (t *ChallengeRepository) Update(challenge model.Challenge) (c model.Challenge, err error) {
-	result := t.Db.Table("challenges").Model(&challenge).Updates(&challenge)
+	result := t.db.Table("challenges").Model(&challenge).Updates(&challenge)
 	return challenge, result.Error
 }
 
@@ -63,7 +63,7 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("challenges"))
+	db := applyFilter(t.db.Table("challenges"))
 
 	result := db.Model(&model.Challenge{}).Count(&count)
 	if len(req.SortBy) > 0 {
@@ -105,7 +105,7 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 }
 
 func (t *ChallengeRepository) FindById(id uint, isDetailed int) (challenge model.Challenge, err error) {
-	result := t.Db.Table("challenges").
+	result := t.db.Table("challenges").
 		Where("id = ?", id).
 		First(&challenge)
 	return challenge, result.Error

@@ -10,15 +10,15 @@ type IGameChallengeRepository interface {
 }
 
 type GameChallengeRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewGameChallengeRepository(Db *gorm.DB) IGameChallengeRepository {
-	return &GameChallengeRepository{Db: Db}
+func NewGameChallengeRepository(db *gorm.DB) IGameChallengeRepository {
+	return &GameChallengeRepository{db: db}
 }
 
 func (t *GameChallengeRepository) BatchFindByGameIdAndChallengeId(gameID uint, challengeIDs []uint) (gameChallenges []model.GameChallenge, err error) {
-	result := t.Db.Table("game_challenges").
+	result := t.db.Table("game_challenges").
 		Where("game_id = ?", gameID).
 		Where("challenge_id IN ?", challengeIDs).
 		Find(&gameChallenges)

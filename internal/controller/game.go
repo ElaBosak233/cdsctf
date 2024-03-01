@@ -21,12 +21,12 @@ type IGameController interface {
 }
 
 type GameController struct {
-	GameService service.IGameService
+	gameService service.IGameService
 }
 
 func NewGameController(appService *service.Service) IGameController {
 	return &GameController{
-		GameService: appService.GameService,
+		gameService: appService.GameService,
 	}
 }
 
@@ -40,16 +40,6 @@ func (g *GameController) BroadCast(ctx *gin.Context) {
 	if id != 0 {
 		hub.ServeGameHub(ctx.Writer, ctx.Request, id)
 	}
-}
-
-// ScoreBoard
-// @Summary 计分板
-// @Description	计分板
-// @Tags Game
-// @Router /games/{id}/scoreboard [get]
-func (g *GameController) ScoreBoard(ctx *gin.Context) {
-	//TODO implement me
-	panic("implement me")
 }
 
 // Create
@@ -71,7 +61,7 @@ func (g *GameController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	err = g.GameService.Create(gameCreateRequest)
+	err = g.gameService.Create(gameCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -96,7 +86,7 @@ func (g *GameController) Create(ctx *gin.Context) {
 func (g *GameController) Delete(ctx *gin.Context) {
 	gameDeleteRequest := request.GameDeleteRequest{}
 	gameDeleteRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	err := g.GameService.Delete(gameDeleteRequest)
+	err := g.gameService.Delete(gameDeleteRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -129,7 +119,7 @@ func (g *GameController) Update(ctx *gin.Context) {
 		return
 	}
 	gameUpdateRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = g.GameService.Update(gameUpdateRequest)
+	err = g.gameService.Update(gameUpdateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -152,16 +142,11 @@ func (g *GameController) Update(ctx *gin.Context) {
 // @Param 查找请求 query request.GameFindRequest false "GameFindRequest"
 // @Router /games/ [get]
 func (g *GameController) Find(ctx *gin.Context) {
-	isEnabled := func() int {
-		if ctx.GetInt64("UserLevel") < 3 && ctx.Query("is_enabled") == "-1" {
-			return -1
-		}
-		return 1
-	} // -1 代表忽略此条件，0 代表没被启用，1 代表被启用，默认状态下只查询被启用的比赛
-	games, pageCount, total, err := g.GameService.Find(request.GameFindRequest{
+	isEnabled := ctx.GetBool("is_enabled")
+	games, pageCount, total, err := g.gameService.Find(request.GameFindRequest{
 		ID:        convertor.ToUintD(ctx.Query("id"), 0),
 		Title:     ctx.Query("title"),
-		IsEnabled: isEnabled(),
+		IsEnabled: &isEnabled,
 		Size:      convertor.ToIntD(ctx.Query("size"), 0),
 		Page:      convertor.ToIntD(ctx.Query("page"), 0),
 		SortBy:    ctx.QueryArray("sort_by"),

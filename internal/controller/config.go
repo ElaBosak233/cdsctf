@@ -14,12 +14,12 @@ type IConfigController interface {
 }
 
 type ConfigController struct {
-	ConfigService service.IConfigService
+	configService service.IConfigService
 }
 
 func NewConfigController(appService *service.Service) IConfigController {
 	return &ConfigController{
-		appService.ConfigService,
+		configService: appService.ConfigService,
 	}
 }
 
@@ -33,7 +33,7 @@ func NewConfigController(appService *service.Service) IConfigController {
 func (c *ConfigController) Find(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"data": c.ConfigService.FindAll(),
+		"data": c.configService.FindAll(),
 	})
 }
 
@@ -56,7 +56,7 @@ func (c *ConfigController) Update(ctx *gin.Context) {
 		})
 		return
 	}
-	if err := c.ConfigService.Update(configUpdateRequest); err != nil {
+	if err := c.configService.Update(configUpdateRequest); err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  err.Error(),

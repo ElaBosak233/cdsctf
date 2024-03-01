@@ -19,21 +19,17 @@ type IGameService interface {
 }
 
 type GameService struct {
-	GameRepository repository.IGameRepository
+	gameRepository repository.IGameRepository
 }
 
 func NewGameService(appRepository *repository.Repository) IGameService {
 	return &GameService{
-		GameRepository: appRepository.GameRepository,
+		gameRepository: appRepository.GameRepository,
 	}
 }
 
-func (g *GameService) Scoreboard(id uint) (err error) {
-	panic("implement me")
-}
-
 func (g *GameService) Find(req request.GameFindRequest) (games []response.GameResponse, pageCount int64, total int64, err error) {
-	games, count, err := g.GameRepository.Find(req)
+	games, count, err := g.gameRepository.Find(req)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
@@ -51,7 +47,7 @@ func (g *GameService) Create(req request.GameCreateRequest) (err error) {
 		hashBytes := hasher.Sum(nil)
 		game.Password = hex.EncodeToString(hashBytes)
 	}
-	_, err = g.GameRepository.Insert(game)
+	_, err = g.gameRepository.Insert(game)
 	return err
 }
 
@@ -64,10 +60,10 @@ func (g *GameService) Update(req request.GameUpdateRequest) (err error) {
 		hashBytes := hasher.Sum(nil)
 		game.Password = hex.EncodeToString(hashBytes)
 	}
-	err = g.GameRepository.Update(game)
+	err = g.gameRepository.Update(game)
 	return err
 }
 
 func (g *GameService) Delete(req request.GameDeleteRequest) (err error) {
-	return g.GameRepository.Delete(req)
+	return g.gameRepository.Delete(req)
 }

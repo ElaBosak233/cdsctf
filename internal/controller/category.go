@@ -17,12 +17,12 @@ type ICategoryController interface {
 }
 
 type CategoryController struct {
-	CategoryService service.ICategoryService
+	categoryService service.ICategoryService
 }
 
 func NewCategoryController(appService *service.Service) ICategoryController {
 	return &CategoryController{
-		CategoryService: appService.CategoryService,
+		categoryService: appService.CategoryService,
 	}
 }
 
@@ -44,7 +44,7 @@ func (c *CategoryController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	err := c.CategoryService.Create(req)
+	err := c.categoryService.Create(req)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -76,7 +76,7 @@ func (c *CategoryController) Update(ctx *gin.Context) {
 		return
 	}
 	req.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	err := c.CategoryService.Update(req)
+	err := c.categoryService.Update(req)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -103,7 +103,7 @@ func (c *CategoryController) Find(ctx *gin.Context) {
 		ID:   convertor.ToUintD(ctx.Query("id"), 0),
 		Name: ctx.Query("name"),
 	}
-	res, err := c.CategoryService.Find(req)
+	res, err := c.categoryService.Find(req)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,

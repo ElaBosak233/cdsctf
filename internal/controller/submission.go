@@ -16,12 +16,12 @@ type ISubmissionController interface {
 }
 
 type SubmissionController struct {
-	SubmissionService service.ISubmissionService
+	submissionService service.ISubmissionService
 }
 
 func NewSubmissionController(appService *service.Service) ISubmissionController {
 	return &SubmissionController{
-		SubmissionService: appService.SubmissionService,
+		submissionService: appService.SubmissionService,
 	}
 }
 
@@ -35,18 +35,12 @@ func NewSubmissionController(appService *service.Service) ISubmissionController 
 // @Param 查找请求 query	request.SubmissionFindRequest false "SubmissionFindRequest"
 // @Router /submissions/ [get]
 func (c *SubmissionController) Find(ctx *gin.Context) {
-	isDetailed := func() int {
-		if ctx.GetInt64("UserLevel") <= 3 && convertor.ToIntD(ctx.Query("is_detailed"), 0) == 1 {
-			return 1
-		}
-		return 0
-	}
-	submissions, pageCount, total, _ := c.SubmissionService.Find(request.SubmissionFindRequest{
+	submissions, pageCount, total, _ := c.submissionService.Find(request.SubmissionFindRequest{
 		UserID:      convertor.ToUintD(ctx.Query("user_id"), 0),
 		Status:      convertor.ToIntD(ctx.Query("status"), 0),
 		TeamID:      convertor.ToUintP(ctx.Query("team_id")),
 		GameID:      convertor.ToUintP(ctx.Query("game_id")),
-		IsDetailed:  isDetailed(),
+		IsDetailed:  ctx.GetBool("is_detailed"),
 		ChallengeID: convertor.ToUintD(ctx.Query("challenge_id"), 0),
 		SortBy:      ctx.QueryArray("sort_by"),
 		Page:        convertor.ToIntD(ctx.Query("page"), 0),
@@ -80,7 +74,7 @@ func (c *SubmissionController) Create(ctx *gin.Context) {
 		return
 	}
 	submissionCreateRequest.UserID = ctx.GetUint("UserID")
-	status, pts, err := c.SubmissionService.Create(submissionCreateRequest)
+	status, pts, err := c.submissionService.Create(submissionCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -114,7 +108,7 @@ func (c *SubmissionController) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	err = c.SubmissionService.Delete(deleteSubmissionRequest.SubmissionID)
+	err = c.submissionService.Delete(deleteSubmissionRequest.SubmissionID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,

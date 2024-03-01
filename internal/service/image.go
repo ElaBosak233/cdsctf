@@ -11,25 +11,25 @@ type IImageService interface {
 }
 
 type ImageServiceImpl struct {
-	ImageRepository repository.IImageRepository
-	PortRepository  repository.IPortRepository
-	EnvRepository   repository.IEnvRepository
+	imageRepository repository.IImageRepository
+	portRepository  repository.IPortRepository
+	envRepository   repository.IEnvRepository
 }
 
 func NewImageServiceImpl(appRepository *repository.Repository) IImageService {
 	return &ImageServiceImpl{
-		ImageRepository: appRepository.ImageRepository,
-		PortRepository:  appRepository.PortRepository,
-		EnvRepository:   appRepository.EnvRepository,
+		imageRepository: appRepository.ImageRepository,
+		portRepository:  appRepository.PortRepository,
+		envRepository:   appRepository.EnvRepository,
 	}
 }
 
 func (t *ImageServiceImpl) FindByID(IDs []uint) (images []model.Image, err error) {
-	images, err = t.ImageRepository.FindByID(IDs)
+	images, err = t.imageRepository.FindByID(IDs)
 	return images, err
 }
 
 func (t *ImageServiceImpl) FindByChallengeID(challengeIDs []uint) (images []model.Image, err error) {
-	images, err = t.ImageRepository.FindByChallengeID(challengeIDs)
+	images, err = t.imageRepository.FindByChallengeID(challengeIDs)
 	return images, err
 }

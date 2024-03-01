@@ -31,16 +31,16 @@ type IUserService interface {
 }
 
 type UserService struct {
-	UserRepository     repository.IUserRepository
-	TeamRepository     repository.ITeamRepository
-	UserTeamRepository repository.IUserTeamRepository
+	userRepository     repository.IUserRepository
+	teamRepository     repository.ITeamRepository
+	userTeamRepository repository.IUserTeamRepository
 }
 
 func NewUserService(appRepository *repository.Repository) IUserService {
 	return &UserService{
-		UserRepository:     appRepository.UserRepository,
-		TeamRepository:     appRepository.TeamRepository,
-		UserTeamRepository: appRepository.UserTeamRepository,
+		userRepository:     appRepository.UserRepository,
+		teamRepository:     appRepository.TeamRepository,
+		userTeamRepository: appRepository.UserTeamRepository,
 	}
 }
 
@@ -76,7 +76,7 @@ func (t *UserService) Create(req request.UserCreateRequest) (err error) {
 		GroupID:  req.GroupID,
 		Password: string(hashedPassword),
 	}
-	err = t.UserRepository.Insert(userModel)
+	err = t.userRepository.Insert(userModel)
 	return err
 }
 
@@ -92,7 +92,7 @@ func (t *UserService) Register(req request.UserRegisterRequest) (err error) {
 			GroupID:  3,
 			Password: string(hashedPassword),
 		}
-		err = t.UserRepository.Insert(userModel)
+		err = t.userRepository.Insert(userModel)
 	}
 	return err
 }
@@ -104,18 +104,18 @@ func (t *UserService) Update(req request.UserUpdateRequest) (err error) {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		userModel.Password = string(hashedPassword)
 	}
-	err = t.UserRepository.Update(userModel)
+	err = t.userRepository.Update(userModel)
 	return err
 }
 
 func (t *UserService) Delete(id uint) error {
-	err := t.UserRepository.Delete(id)
-	err = t.UserTeamRepository.DeleteByUserId(id)
+	err := t.userRepository.Delete(id)
+	err = t.userTeamRepository.DeleteByUserId(id)
 	return err
 }
 
 func (t *UserService) Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, total int64, err error) {
-	userResults, count, err := t.UserRepository.Find(req)
+	userResults, count, err := t.userRepository.Find(req)
 	for _, result := range userResults {
 		var userResponse response.UserResponse
 		_ = mapstructure.Decode(result, &userResponse)
@@ -130,14 +130,14 @@ func (t *UserService) Find(req request.UserFindRequest) (users []response.UserRe
 }
 
 func (t *UserService) FindById(id uint) (response.UserResponse, error) {
-	userData, err := t.UserRepository.FindById(id)
+	userData, err := t.userRepository.FindById(id)
 	userResp := response.UserResponse{}
 	_ = mapstructure.Decode(userData, &userResp)
 	return userResp, err
 }
 
 func (t *UserService) FindByUsername(username string) (response.UserResponse, error) {
-	userData, err := t.UserRepository.FindByUsername(username)
+	userData, err := t.userRepository.FindByUsername(username)
 	if err != nil {
 		return response.UserResponse{}, errors.New("用户不存在")
 	}
@@ -147,7 +147,7 @@ func (t *UserService) FindByUsername(username string) (response.UserResponse, er
 }
 
 func (t *UserService) FindByEmail(email string) (user response.UserResponse, err error) {
-	userData, err := t.UserRepository.FindByEmail(email)
+	userData, err := t.userRepository.FindByEmail(email)
 	if err != nil {
 		return user, errors.New("用户不存在")
 	}
@@ -156,7 +156,7 @@ func (t *UserService) FindByEmail(email string) (user response.UserResponse, err
 }
 
 func (t *UserService) VerifyPasswordById(id uint, password string) bool {
-	userData, err := t.UserRepository.FindById(id)
+	userData, err := t.userRepository.FindById(id)
 	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
 	if err != nil {
 		return false
@@ -165,7 +165,7 @@ func (t *UserService) VerifyPasswordById(id uint, password string) bool {
 }
 
 func (t *UserService) VerifyPasswordByUsername(username string, password string) bool {
-	userData, err := t.UserRepository.FindByUsername(username)
+	userData, err := t.userRepository.FindByUsername(username)
 	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
 	if err != nil {
 		return false

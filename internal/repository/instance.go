@@ -11,20 +11,20 @@ type IInstanceRepository interface {
 }
 
 type InstanceRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewInstanceRepository(Db *gorm.DB) IInstanceRepository {
-	return &InstanceRepository{Db: Db}
+func NewInstanceRepository(db *gorm.DB) IInstanceRepository {
+	return &InstanceRepository{db: db}
 }
 
 func (t *InstanceRepository) Insert(container model.Instance) (c model.Instance, err error) {
-	result := t.Db.Table("instances").Create(&container)
+	result := t.db.Table("instances").Create(&container)
 	return container, result.Error
 }
 
 func (t *InstanceRepository) FindByPodID(podIDs []uint) (containers []model.Instance, err error) {
-	result := t.Db.Table("instances").
+	result := t.db.Table("instances").
 		Where("pod_id IN ?", podIDs).
 		Preload("Image").
 		Preload("Nats").

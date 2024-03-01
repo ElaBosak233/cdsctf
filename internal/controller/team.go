@@ -20,12 +20,12 @@ type ITeamController interface {
 }
 
 type TeamController struct {
-	TeamService service.ITeamService
+	teamService service.ITeamService
 }
 
 func NewTeamController(appService *service.Service) ITeamController {
 	return &TeamController{
-		TeamService: appService.TeamService,
+		teamService: appService.TeamService,
 	}
 }
 
@@ -47,7 +47,7 @@ func (c *TeamController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	err = c.TeamService.Create(createTeamRequest)
+	err = c.teamService.Create(createTeamRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -79,7 +79,7 @@ func (c *TeamController) Update(ctx *gin.Context) {
 		return
 	}
 	updateTeamRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = c.TeamService.Update(updateTeamRequest)
+	err = c.teamService.Update(updateTeamRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -103,7 +103,7 @@ func (c *TeamController) Update(ctx *gin.Context) {
 func (c *TeamController) Delete(ctx *gin.Context) {
 	deleteTeamRequest := request.TeamDeleteRequest{}
 	deleteTeamRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	err := c.TeamService.Delete(deleteTeamRequest.ID)
+	err := c.teamService.Delete(deleteTeamRequest.ID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -125,7 +125,7 @@ func (c *TeamController) Delete(ctx *gin.Context) {
 // @Param input	query request.TeamFindRequest false	"TeamFindRequest"
 // @Router /teams/ [get]
 func (c *TeamController) Find(ctx *gin.Context) {
-	teamData, pageCount, total, _ := c.TeamService.Find(request.TeamFindRequest{
+	teamData, pageCount, total, _ := c.teamService.Find(request.TeamFindRequest{
 		ID:        convertor.ToUintD(ctx.Query("id"), 0),
 		TeamName:  ctx.Query("name"),
 		CaptainID: convertor.ToUintD(ctx.Query("captain_id"), 0),
@@ -158,7 +158,7 @@ func (c *TeamController) Join(ctx *gin.Context) {
 		})
 		return
 	}
-	err = c.TeamService.Join(joinTeamRequest)
+	err = c.teamService.Join(joinTeamRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -189,7 +189,7 @@ func (c *TeamController) Quit(ctx *gin.Context) {
 		})
 		return
 	}
-	err = c.TeamService.Quit(quitTeamRequest)
+	err = c.teamService.Quit(quitTeamRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -212,7 +212,7 @@ func (c *TeamController) Quit(ctx *gin.Context) {
 // @Router /teams/{id} [get]
 func (c *TeamController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	res, err := c.TeamService.FindById(convertor.ToUintD(id, 0))
+	res, err := c.teamService.FindById(convertor.ToUintD(id, 0))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,

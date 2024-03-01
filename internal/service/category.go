@@ -13,23 +13,23 @@ type ICategoryService interface {
 }
 
 type CategoryService struct {
-	CategoryRepository repository.ICategoryRepository
+	categoryRepository repository.ICategoryRepository
 }
 
 func NewCategoryService(appRepository *repository.Repository) ICategoryService {
 	return &CategoryService{
-		CategoryRepository: appRepository.CategoryRepository,
+		categoryRepository: appRepository.CategoryRepository,
 	}
 }
 
 func (c *CategoryService) Create(req model.Category) (err error) {
-	return c.CategoryRepository.Create(req)
+	return c.categoryRepository.Create(req)
 }
 
 func (c *CategoryService) Update(req model.Category) (err error) {
-	return c.CategoryRepository.Update(req)
+	return c.categoryRepository.Update(req)
 }
 
 func (c *CategoryService) Find(req request.CategoryFindRequest) (categories []model.Category, err error) {
-	return c.CategoryRepository.Find(req)
+	return c.categoryRepository.Find(req)
 }

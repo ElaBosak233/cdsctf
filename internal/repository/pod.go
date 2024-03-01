@@ -15,20 +15,20 @@ type IPodRepository interface {
 }
 
 type PodRepository struct {
-	Db *gorm.DB
+	db *gorm.DB
 }
 
-func NewPodRepository(Db *gorm.DB) IPodRepository {
-	return &PodRepository{Db: Db}
+func NewPodRepository(db *gorm.DB) IPodRepository {
+	return &PodRepository{db: db}
 }
 
 func (t *PodRepository) Insert(pod model.Pod) (i model.Pod, err error) {
-	result := t.Db.Table("pods").Create(&pod)
+	result := t.db.Table("pods").Create(&pod)
 	return pod, result.Error
 }
 
 func (t *PodRepository) Update(pod model.Pod) (err error) {
-	result := t.Db.Table("pods").Model(&pod).Updates(&pod)
+	result := t.db.Table("pods").Model(&pod).Updates(&pod)
 	return result.Error
 }
 
@@ -58,7 +58,7 @@ func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, coun
 		}
 		return q
 	}
-	db := applyFilter(t.Db.Table("pods"))
+	db := applyFilter(t.db.Table("pods"))
 
 	result := db.Model(&model.Pod{}).Count(&count)
 	if req.Page != 0 && req.Size != 0 {
@@ -81,6 +81,6 @@ func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, coun
 }
 
 func (t *PodRepository) FindById(id uint) (pod model.Pod, err error) {
-	result := t.Db.Table("pods").First(&model.Pod{ID: id})
+	result := t.db.Table("pods").First(&model.Pod{ID: id})
 	return pod, result.Error
 }

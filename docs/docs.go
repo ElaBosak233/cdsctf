@@ -114,7 +114,6 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "只有当 Role≤2 并且 IsDetailed=1 时，才会提供题目的关键信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -222,7 +221,7 @@ const docTemplate = `{
                 "tags": [
                     "Challenge"
                 ],
-                "summary": "创建题目（Role≤2）",
+                "summary": "创建题目",
                 "parameters": [
                     {
                         "description": "ChallengeCreateRequest",
@@ -253,7 +252,7 @@ const docTemplate = `{
                 "tags": [
                     "Challenge"
                 ],
-                "summary": "更新题目（Role≤2）",
+                "summary": "更新题目",
                 "parameters": [
                     {
                         "description": "ChallengeUpdateRequest",
@@ -282,7 +281,7 @@ const docTemplate = `{
                 "tags": [
                     "Challenge"
                 ],
-                "summary": "删除题目（Role≤2）",
+                "summary": "删除题目",
                 "parameters": [
                     {
                         "description": "ChallengeDeleteRequest",
@@ -367,7 +366,7 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
+                        "type": "boolean",
                         "name": "is_enabled",
                         "in": "query"
                     },
@@ -495,16 +494,6 @@ const docTemplate = `{
                     "Game"
                 ],
                 "summary": "广播消息",
-                "responses": {}
-            }
-        },
-        "/games/{id}/scoreboard": {
-            "get": {
-                "description": "计分板",
-                "tags": [
-                    "Game"
-                ],
-                "summary": "计分板",
                 "responses": {}
             }
         },
@@ -1072,7 +1061,7 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
+                        "type": "boolean",
                         "description": "是否详细",
                         "name": "is_detailed",
                         "in": "query"
@@ -1446,7 +1435,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "用户创建（Role\u003c=1）",
+                "summary": "用户创建",
                 "parameters": [
                     {
                         "description": "UserCreateRequest",
@@ -1561,7 +1550,6 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "若 Role\u003e1，则自动忽略 UserUpdateRequest 中的 Role 属性",
                 "consumes": [
                     "application/json"
                 ],
@@ -1571,7 +1559,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "用户更新（Role≤1 或 (Request)ID=(Authorization)ID）",
+                "summary": "用户更新",
                 "parameters": [
                     {
                         "description": "UserUpdateRequest",
@@ -1600,7 +1588,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "用户删除（Role≤1 或 (Request)ID=(Authorization)ID）",
+                "summary": "用户删除",
                 "parameters": [
                     {
                         "description": "UserDeleteRequest",
@@ -2142,7 +2130,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "group": {
-                    "description": "The user's role.",
+                    "description": "The user's group.",
                     "allOf": [
                         {
                             "$ref": "#/definitions/model.Group"
@@ -2150,7 +2138,7 @@ const docTemplate = `{
                     ]
                 },
                 "group_id": {
-                    "description": "The user's role.",
+                    "description": "The user's group.",
                     "type": "integer"
                 },
                 "id": {

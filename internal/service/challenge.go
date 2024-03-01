@@ -19,55 +19,55 @@ type IChallengeService interface {
 }
 
 type ChallengeService struct {
-	ChallengeRepository     repository.IChallengeRepository
-	FlagRepository          repository.IFlagRepository
-	ImageRepository         repository.IImageRepository
-	CategoryRepository      repository.ICategoryRepository
-	GameChallengeRepository repository.IGameChallengeRepository
-	SubmissionRepository    repository.ISubmissionRepository
-	PortRepository          repository.IPortRepository
-	EnvRepository           repository.IEnvRepository
+	challengeRepository     repository.IChallengeRepository
+	flagRepository          repository.IFlagRepository
+	imageRepository         repository.IImageRepository
+	categoryRepository      repository.ICategoryRepository
+	gameChallengeRepository repository.IGameChallengeRepository
+	submissionRepository    repository.ISubmissionRepository
+	portRepository          repository.IPortRepository
+	envRepository           repository.IEnvRepository
 }
 
 func NewChallengeService(appRepository *repository.Repository) IChallengeService {
 	return &ChallengeService{
-		ChallengeRepository:     appRepository.ChallengeRepository,
-		GameChallengeRepository: appRepository.GameChallengeRepository,
-		SubmissionRepository:    appRepository.SubmissionRepository,
-		CategoryRepository:      appRepository.CategoryRepository,
-		FlagRepository:          appRepository.FlagRepository,
-		ImageRepository:         appRepository.ImageRepository,
-		PortRepository:          appRepository.PortRepository,
-		EnvRepository:           appRepository.EnvRepository,
+		challengeRepository:     appRepository.ChallengeRepository,
+		gameChallengeRepository: appRepository.GameChallengeRepository,
+		submissionRepository:    appRepository.SubmissionRepository,
+		categoryRepository:      appRepository.CategoryRepository,
+		flagRepository:          appRepository.FlagRepository,
+		imageRepository:         appRepository.ImageRepository,
+		portRepository:          appRepository.PortRepository,
+		envRepository:           appRepository.EnvRepository,
 	}
 }
 
 func (t *ChallengeService) Create(req request.ChallengeCreateRequest) (err error) {
 	challengeModel := model.Challenge{}
 	_ = mapstructure.Decode(req, &challengeModel)
-	_, err = t.ChallengeRepository.Insert(challengeModel)
+	_, err = t.challengeRepository.Insert(challengeModel)
 
 	return err
 }
 
 func (t *ChallengeService) Update(req request.ChallengeUpdateRequest) (err error) {
-	challengeData, err := t.ChallengeRepository.FindById(req.ID, 1)
+	challengeData, err := t.challengeRepository.FindById(req.ID, 1)
 	if err != nil || challengeData.ID == 0 {
 		return errors.New("题目不存在")
 	}
 	challengeModel := model.Challenge{}
 	_ = mapstructure.Decode(req, &challengeModel)
-	challengeModel, err = t.ChallengeRepository.Update(challengeModel)
+	challengeModel, err = t.challengeRepository.Update(challengeModel)
 	return err
 }
 
 func (t *ChallengeService) Delete(id uint) (err error) {
-	err = t.ChallengeRepository.Delete(id)
+	err = t.challengeRepository.Delete(id)
 	return err
 }
 
 func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error) {
-	challengesData, count, err := t.ChallengeRepository.Find(req)
+	challengesData, count, err := t.challengeRepository.Find(req)
 
 	for _, challenge := range challengesData {
 		var cha response.ChallengeResponse
@@ -86,11 +86,11 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 	submissionsMap := make(map[uint][]model.Submission)
 	isGame := req.GameID != nil && req.TeamID != nil
 	if isGame {
-		gameChallenges, _ := t.GameChallengeRepository.BatchFindByGameIdAndChallengeId(*(req.GameID), challengeIDs)
+		gameChallenges, _ := t.gameChallengeRepository.BatchFindByGameIdAndChallengeId(*(req.GameID), challengeIDs)
 		for _, gameChallenge := range gameChallenges {
 			gameChallengesMap[gameChallenge.ChallengeID] = gameChallenge
 		}
-		submissions, _ := t.SubmissionRepository.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
+		submissions, _ := t.submissionRepository.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
 			GameID:      req.GameID,
 			TeamID:      req.TeamID,
 			Status:      2,
@@ -103,7 +103,7 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 
 	// Judge isSolved
 	if isGame {
-		submissions, _ := t.SubmissionRepository.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
+		submissions, _ := t.submissionRepository.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
 			GameID:      req.GameID,
 			TeamID:      req.TeamID,
 			Status:      2,
@@ -115,7 +115,7 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 			challengeMap[submission.ChallengeID] = challenge
 		}
 	} else {
-		submissions, _ := t.SubmissionRepository.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
+		submissions, _ := t.submissionRepository.FindByChallengeID(request.SubmissionFindByChallengeIDRequest{
 			UserID:      req.UserID,
 			Status:      2,
 			ChallengeID: challengeIDs,

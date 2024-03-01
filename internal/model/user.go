@@ -10,8 +10,8 @@ type User struct {
 	Nickname    string     `gorm:"column:nickname;type:varchar(36);not null" json:"nickname"`              // The user's nickname. Not unique.
 	Description string     `gorm:"column:description;type:text" json:"description"`                        // The user's description.
 	Email       string     `gorm:"column:email;varchar(64);unique;not null" json:"email"`                  // The user's email.
-	GroupID     uint       `json:"group_id"`                                                               // The user's role.
-	Group       *Group     `json:"group"`                                                                  // The user's role.
+	GroupID     uint       `json:"group_id"`                                                               // The user's group.
+	Group       *Group     `json:"group"`                                                                  // The user's group.
 	Password    string     `gorm:"column:password;type:varchar(255);not null" json:"password,omitempty"`   // The user's password. Crypt.
 	CreatedAt   *time.Time `json:"created_at"`                                                             // The user's creation time.
 	UpdatedAt   *time.Time `json:"updated_at"`                                                             // The user's last update time.

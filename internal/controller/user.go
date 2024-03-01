@@ -23,12 +23,12 @@ type IUserController interface {
 }
 
 type UserController struct {
-	UserService service.IUserService
+	userService service.IUserService
 }
 
 func NewUserController(appService *service.Service) IUserController {
 	return &UserController{
-		UserService: appService.UserService,
+		userService: appService.UserService,
 	}
 }
 
@@ -50,8 +50,8 @@ func (c *UserController) Login(ctx *gin.Context) {
 		})
 		return
 	}
-	user, _ := c.UserService.FindByUsername(userLoginRequest.Username)
-	if !c.UserService.VerifyPasswordByUsername(userLoginRequest.Username, userLoginRequest.Password) {
+	user, _ := c.userService.FindByUsername(userLoginRequest.Username)
+	if !c.userService.VerifyPasswordByUsername(userLoginRequest.Username, userLoginRequest.Password) {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusUnauthorized,
 			"msg":  "用户名或密码错误",
@@ -59,7 +59,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 		zap.L().Warn(fmt.Sprintf("用户 %s 登录失败", user.Username), zap.Uint("user_id", user.ID))
 		return
 	}
-	tokenString, err := c.UserService.GetJwtTokenById(user)
+	tokenString, err := c.userService.GetJwtTokenById(user)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
@@ -83,7 +83,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 // @Param token	path string	true "token"
 // @Router /users/token/{token} [get]
 func (c *UserController) VerifyToken(ctx *gin.Context) {
-	id, err := c.UserService.GetIdByJwtToken(ctx.Param("token"))
+	id, err := c.userService.GetIdByJwtToken(ctx.Param("token"))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -113,7 +113,7 @@ func (c *UserController) VerifyToken(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /users/logout [post]
 func (c *UserController) Logout(ctx *gin.Context) {
-	id, err := c.UserService.GetIdByJwtToken(ctx.GetHeader("Authorization"))
+	id, err := c.userService.GetIdByJwtToken(ctx.GetHeader("Authorization"))
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -146,7 +146,7 @@ func (c *UserController) Register(ctx *gin.Context) {
 		return
 	}
 	registerUserRequest.RemoteIP = ctx.RemoteIP()
-	err = c.UserService.Register(registerUserRequest)
+	err = c.userService.Register(registerUserRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -160,7 +160,7 @@ func (c *UserController) Register(ctx *gin.Context) {
 }
 
 // Create
-// @Summary	用户创建（Role<=1）
+// @Summary	用户创建
 // @Description
 // @Tags User
 // @Accept json
@@ -178,7 +178,7 @@ func (c *UserController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	err = c.UserService.Create(createUserRequest)
+	err = c.userService.Create(createUserRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -192,8 +192,8 @@ func (c *UserController) Create(ctx *gin.Context) {
 }
 
 // Update
-// @Summary	用户更新（Role≤1 或 (Request)ID=(Authorization)ID）
-// @Description	若 Role>1，则自动忽略 UserUpdateRequest 中的 Role 属性
+// @Summary	用户更新
+// @Description
 // @Tags User
 // @Accept json
 // @Produce	json
@@ -211,34 +211,21 @@ func (c *UserController) Update(ctx *gin.Context) {
 		return
 	}
 	updateUserRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	if ctx.GetInt64("UserLevel") <= 1 || ctx.GetUint("UserID") == updateUserRequest.ID {
-		if ctx.GetInt64("UserLevel") > 1 {
-			updateUserRequest.GroupID = ctx.GetUint("UserGroupID")
-			updateUserRequest.Username = ""
-		}
-		err = c.UserService.Update(updateUserRequest)
-		if err != nil {
-			ctx.JSON(http.StatusOK, gin.H{
-				"code": http.StatusBadRequest,
-				"msg":  err.Error(),
-			})
-			return
-		}
+	err = c.userService.Update(updateUserRequest)
+	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
-		})
-		return
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusForbidden,
-			"msg":  "权限不足",
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
 		})
 		return
 	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
 }
 
 // Delete
-// @Summary	用户删除（Role≤1 或 (Request)ID=(Authorization)ID）
+// @Summary	用户删除
 // @Description
 // @Tags User
 // @Accept json
@@ -249,17 +236,10 @@ func (c *UserController) Update(ctx *gin.Context) {
 func (c *UserController) Delete(ctx *gin.Context) {
 	deleteUserRequest := request.UserDeleteRequest{}
 	deleteUserRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	if ctx.GetInt64("UserLevel") <= 1 || ctx.GetUint("UserID") == deleteUserRequest.ID {
-		_ = c.UserService.Delete(deleteUserRequest.ID)
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
-		})
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusForbidden,
-			"msg":  "权限不足",
-		})
-	}
+	_ = c.userService.Delete(deleteUserRequest.ID)
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
 }
 
 // Find
@@ -271,7 +251,7 @@ func (c *UserController) Delete(ctx *gin.Context) {
 // @Param input	query request.UserFindRequest false	"UserFindRequest"
 // @Router /users/ [get]
 func (c *UserController) Find(ctx *gin.Context) {
-	userResponse, pageCount, total, _ := c.UserService.Find(request.UserFindRequest{
+	userResponse, pageCount, total, _ := c.userService.Find(request.UserFindRequest{
 		ID:     convertor.ToUintD(ctx.Query("id"), 0),
 		Email:  ctx.Query("email"),
 		Name:   ctx.Query("name"),

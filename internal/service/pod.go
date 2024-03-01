@@ -50,20 +50,20 @@ type IPodService interface {
 }
 
 type PodService struct {
-	ChallengeRepository repository.IChallengeRepository
-	PodRepository       repository.IPodRepository
-	NatRepository       repository.INatRepository
-	FlagGenRepository   repository.IFlagGenRepository
-	InstanceRepository  repository.IInstanceRepository
+	challengeRepository repository.IChallengeRepository
+	podRepository       repository.IPodRepository
+	natRepository       repository.INatRepository
+	flagGenRepository   repository.IFlagGenRepository
+	instanceRepository  repository.IInstanceRepository
 }
 
 func NewPodService(appRepository *repository.Repository) IPodService {
 	return &PodService{
-		ChallengeRepository: appRepository.ChallengeRepository,
-		InstanceRepository:  appRepository.ContainerRepository,
-		FlagGenRepository:   appRepository.FlagGenRepository,
-		PodRepository:       appRepository.PodRepository,
-		NatRepository:       appRepository.NatRepository,
+		challengeRepository: appRepository.ChallengeRepository,
+		instanceRepository:  appRepository.ContainerRepository,
+		flagGenRepository:   appRepository.FlagGenRepository,
+		podRepository:       appRepository.PodRepository,
+		natRepository:       appRepository.NatRepository,
 	}
 }
 
@@ -86,12 +86,12 @@ func (t *PodService) ParallelLimit(req request.PodCreateRequest) {
 		var availablePods []model.Pod
 		var count int64
 		if !isGame {
-			availablePods, count, _ = t.PodRepository.Find(request.PodFindRequest{
+			availablePods, count, _ = t.podRepository.Find(request.PodFindRequest{
 				UserID:      req.UserID,
 				IsAvailable: convertor.TrueP(),
 			})
 		} else {
-			availablePods, count, _ = t.PodRepository.Find(request.PodFindRequest{
+			availablePods, count, _ = t.podRepository.Find(request.PodFindRequest{
 				TeamID:      req.TeamID,
 				GameID:      req.GameID,
 				IsAvailable: convertor.TrueP(),
@@ -120,7 +120,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
 	SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
-	challenges, _, _ := t.ChallengeRepository.Find(request.ChallengeFindRequest{
+	challenges, _, _ := t.challengeRepository.Find(request.ChallengeFindRequest{
 		IDs:       []uint{req.ChallengeID},
 		IsDynamic: convertor.TrueP(),
 	})
@@ -151,7 +151,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 	instances, err := ctnManager.Setup()
 
 	// Insert Pod model, get Pod's ID
-	pod, _ := t.PodRepository.Insert(model.Pod{
+	pod, _ := t.podRepository.Insert(model.Pod{
 		ChallengeID: req.ChallengeID,
 		UserID:      req.UserID,
 		RemovedAt:   removedAt,
@@ -160,7 +160,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 	ctnManager.SetPodID(pod.ID)
 
-	_, _ = t.FlagGenRepository.Insert(model.FlagGen{
+	_, _ = t.flagGenRepository.Insert(model.FlagGen{
 		Flag:  flag.Value,
 		PodID: pod.ID,
 	})
@@ -182,7 +182,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 func (t *PodService) Status(podID uint) (rep response.PodStatusResponse, err error) {
 	rep = response.PodStatusResponse{}
-	instance, err := t.PodRepository.FindById(podID)
+	instance, err := t.podRepository.FindById(podID)
 	var ctn manager.IContainerManager
 	if PodManagers[podID] != nil {
 		ctn = PodManagers[podID]
@@ -204,14 +204,14 @@ func (t *PodService) Renew(req request.PodRenewRequest) (removedAt int64, err er
 		return 0, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
 	SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
-	pod, _ := t.PodRepository.FindById(req.ID)
+	pod, _ := t.podRepository.FindById(req.ID)
 	ctn, ok := PodManagers[req.ID]
 	if !ok {
 		return 0, errors.New("实例不存在")
 	}
 	ctn.Renew(ctn.Duration())
 	pod.RemovedAt = time.Now().Add(ctn.Duration()).Unix()
-	err = t.PodRepository.Update(pod)
+	err = t.podRepository.Update(pod)
 	return pod.RemovedAt, err
 }
 
@@ -220,7 +220,7 @@ func (t *PodService) Remove(req request.PodRemoveRequest) (err error) {
 	if remainder != 0 {
 		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
-	_ = t.PodRepository.Update(model.Pod{
+	_ = t.podRepository.Update(model.Pod{
 		ID:        req.ID,
 		RemovedAt: time.Now().Unix(),
 	})
@@ -234,7 +234,7 @@ func (t *PodService) Remove(req request.PodRemoveRequest) (err error) {
 }
 
 func (t *PodService) FindById(id uint) (rep response.PodResponse, err error) {
-	instance, _ := t.PodRepository.FindById(id)
+	instance, _ := t.podRepository.FindById(id)
 	if PodManagers[id] != nil {
 		ctn := PodManagers[id]
 		status, _ := ctn.Status()
@@ -253,7 +253,7 @@ func (t *PodService) Find(req request.PodFindRequest) (pods []response.PodRespon
 	if req.TeamID != nil && req.GameID != nil {
 		req.UserID = 0
 	}
-	podResponse, _, err := t.PodRepository.Find(req)
+	podResponse, _, err := t.podRepository.Find(req)
 	for _, pod := range podResponse {
 		status := "removed"
 		if PodManagers[pod.ID] != nil {

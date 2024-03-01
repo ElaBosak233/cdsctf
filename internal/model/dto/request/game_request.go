@@ -4,7 +4,7 @@ type GameFindRequest struct {
 	ID        uint     `json:"id"`
 	Title     string   `json:"title"`
 	SortBy    []string `json:"sort_by"`
-	IsEnabled int      `json:"is_enabled"`
+	IsEnabled *bool    `json:"is_enabled"`
 	Page      int      `json:"page"`
 	Size      int      `json:"size"`
 }
