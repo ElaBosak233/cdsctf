@@ -20,7 +20,7 @@ func SigCfg() *SignatureCfg {
 }
 
 func InitSignatureCfg() {
-	_, privateExists := os.Stat("signature")
+	_, privateExists := os.Stat("signature.pem")
 	_, publicExists := os.Stat("signature.pub")
 
 	var privateKey []byte
@@ -28,10 +28,10 @@ func InitSignatureCfg() {
 
 	if privateExists != nil || publicExists != nil {
 		publicKey, privateKey, _ = ed25519.GenerateKey(nil)
-		_ = os.WriteFile("signature", privateKey, 0600)
-		_ = os.WriteFile("signature.pub", publicKey, 0644)
+		_ = os.WriteFile("signature.pem", privateKey, 0600)
+		_ = os.WriteFile("signature.pub", publicKey, 0600)
 	} else {
-		privateKey, _ = os.ReadFile("signature")
+		privateKey, _ = os.ReadFile("signature.pem")
 		publicKey, _ = os.ReadFile("signature.pub")
 	}
 
