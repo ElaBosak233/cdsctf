@@ -2,6 +2,10 @@ package controller
 
 import "github.com/elabosak233/cloudsdale/internal/service"
 
+var (
+	c *Controller = nil
+)
+
 type Controller struct {
 	UserController       IUserController
 	ChallengeController  IChallengeController
@@ -15,7 +19,13 @@ type Controller struct {
 	ProxyController      IProxyController
 }
 
-func InitController(appService *service.Service) *Controller {
+func C() *Controller {
+	return c
+}
+
+func InitController() {
+
+	appService := service.S()
 
 	userController := NewUserController(appService)
 	challengeController := NewChallengeController(appService)
@@ -28,7 +38,7 @@ func InitController(appService *service.Service) *Controller {
 	categoryController := NewCategoryController(appService)
 	proxyController := NewProxyController()
 
-	return &Controller{
+	c = &Controller{
 		UserController:       userController,
 		ChallengeController:  challengeController,
 		InstanceController:   instanceController,

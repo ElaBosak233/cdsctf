@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 	"github.com/elabosak233/cloudsdale/internal/model"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
+	"github.com/elabosak233/cloudsdale/internal/model/request"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
 	"github.com/mitchellh/mapstructure"
@@ -12,10 +12,10 @@ import (
 )
 
 type IChallengeService interface {
+	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error)
 	Create(req request.ChallengeCreateRequest) (err error)
 	Update(req request.ChallengeUpdateRequest) (err error)
 	Delete(id uint) (err error)
-	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error)
 }
 
 type ChallengeService struct {
@@ -131,11 +131,11 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 		// Calculate pts
 		if isGame {
 			challengeID := challenge.ID
-			S := gameChallengesMap[challengeID].MaxPts
+			ss := gameChallengesMap[challengeID].MaxPts
 			R := gameChallengesMap[challengeID].MinPts
 			d := challenge.Difficulty
 			x := len(submissionsMap[challengeID])
-			pts := calculate.ChallengePts(S, R, d, x)
+			pts := calculate.ChallengePts(ss, R, d, x)
 			challenge.Pts = pts
 		} else {
 			challenge.Pts = challenge.PracticePts

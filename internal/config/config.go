@@ -5,8 +5,9 @@ import (
 )
 
 func InitConfig() {
-	NewApplicationCfg()
-	NewPlatformCfg()
+	InitApplicationCfg()
+	InitPlatformCfg()
+	InitSignatureCfg()
 }
 
 // SaveConfig is used to save(or sync) the configuration to the file

@@ -34,7 +34,7 @@ func PltCfg() *PlatformCfg {
 	return &pltCfg
 }
 
-func NewPlatformCfg() {
+func InitPlatformCfg() {
 	v2 = viper.New()
 	configFile := path.Join("platform.json")
 	v2.SetConfigType("json")

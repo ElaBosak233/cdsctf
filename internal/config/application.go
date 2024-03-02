@@ -113,7 +113,7 @@ func AppCfg() *ApplicationCfg {
 	return &appCfg
 }
 
-func NewApplicationCfg() {
+func InitApplicationCfg() {
 	v1 = viper.New()
 	configFile := path.Join("application.json")
 	v1.SetConfigType("json")

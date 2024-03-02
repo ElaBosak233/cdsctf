@@ -49,3 +49,16 @@ type GameUpdateRequest struct {
 type GameDeleteRequest struct {
 	ID uint `json:"-"`
 }
+
+type GameJoinRequest struct {
+	ID       uint   `json:"-"`
+	TeamID   uint   `json:"team_id"`
+	UserID   uint   `json:"user_id"`
+	Password string `json:"password"`
+}
+
+type GameAllowJoinRequest struct {
+	ID      uint  `json:"-"`
+	TeamID  uint  `json:"-"`
+	Allowed *bool `json:"allowed"`
+}

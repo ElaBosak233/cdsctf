@@ -16,8 +16,9 @@ type TeamUpdateRequest struct {
 
 type TeamFindRequest struct {
 	ID        uint   `json:"id"`
-	TeamName  string `json:"name"`
+	Name      string `json:"name"`
 	CaptainID uint   `json:"captain_id"`
+	GameID    *uint  `json:"game_id"`
 	Page      int    `json:"page"`
 	Size      int    `json:"size"`
 }

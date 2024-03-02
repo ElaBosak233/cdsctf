@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 	"github.com/elabosak233/cloudsdale/internal/model"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
+	"github.com/elabosak233/cloudsdale/internal/model/request"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"math"
 )
@@ -16,7 +16,6 @@ type ITeamService interface {
 	Join(req request.TeamJoinRequest) (err error)
 	Quit(req request.TeamQuitRequest) (err error)
 	Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, total int64, err error)
-	BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error)
 	FindById(id uint) (res response.TeamResponse, err error)
 }
 
@@ -92,19 +91,12 @@ func (t *TeamService) Delete(id uint) error {
 
 func (t *TeamService) Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, total int64, err error) {
 	teams, count, err := t.teamRepository.Find(req)
-	//teams, err = t.Mixin(teams)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
 		pageCount = 1
 	}
 	return teams, pageCount, count, err
-}
-
-func (t *TeamService) BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error) {
-	teams, err = t.teamRepository.BatchFind(req)
-	//teams, err = t.Mixin(teams)
-	return teams, err
 }
 
 func (t *TeamService) Join(req request.TeamJoinRequest) error {

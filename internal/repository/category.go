@@ -2,7 +2,7 @@ package repository
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/model"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
+	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"gorm.io/gorm"
 )
 

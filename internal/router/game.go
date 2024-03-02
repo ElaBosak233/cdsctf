@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/controller"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/gin-gonic/gin"
 )
@@ -24,13 +24,17 @@ func NewGameRouter(gameRouter *gin.RouterGroup, gameController controller.IGameC
 }
 
 func (g *GameRouter) Register() {
-	g.router.GET("/", g.controller.Find)
-	g.router.GET("/:id/challenges", g.controller.GetChallengesByGameId)
-	g.router.GET("/:id/scoreboard", g.controller.GetScoreboardByGameId)
-	g.router.GET("/:id/broadcast", g.controller.BroadCast)
+	g.router.GET("/", g.SAuth(), g.controller.Find)
 	g.router.POST("/", g.controller.Create)
-	g.router.PUT("/", g.controller.Update)
-	g.router.DELETE("/", g.controller.Delete)
+	g.router.PUT("/:id", g.controller.Update)
+	g.router.DELETE("/:id", g.controller.Delete)
+	g.router.GET("/:id/challenges", g.controller.FindChallenge)
+	g.router.POST("/:id/challenges")
+	g.router.GET("/:id/teams")
+	g.router.POST("/:id/teams", g.controller.CreateTeam)
+	g.router.PUT("/:id/teams/:team_id", g.controller.UpdateTeam)
+	g.router.GET("/:id/scoreboard", g.controller.Scoreboard)
+	g.router.GET("/:id/broadcast", g.controller.BroadCast)
 }
 
 func (g *GameRouter) SAuth() gin.HandlerFunc {

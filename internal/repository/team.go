@@ -2,8 +2,8 @@ package repository
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/model"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
+	"github.com/elabosak233/cloudsdale/internal/model/request"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"gorm.io/gorm"
 )
 
@@ -12,7 +12,6 @@ type ITeamRepository interface {
 	Update(team model.Team) (err error)
 	Delete(id uint) (err error)
 	Find(req request.TeamFindRequest) (teams []response.TeamResponse, count int64, err error)
-	BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error)
 	BatchFindByUserId(req request.TeamBatchFindByUserIdRequest) (teams []response.TeamResponseWithUserId, err error)
 	FindById(id uint) (team model.Team, err error)
 }
@@ -47,11 +46,15 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []response.Tea
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
 		}
-		if req.TeamName != "" {
-			q = q.Where("name LIKE ?", "%"+req.TeamName+"%")
+		if req.Name != "" {
+			q = q.Where("name LIKE ?", "%"+req.Name+"%")
 		}
 		if req.CaptainID != 0 {
 			q = q.Where("captain_id = ?", req.CaptainID)
+		}
+		if req.GameID != nil {
+			q = q.Joins("INNER JOIN game_teams ON game_teams.team_id = teams.id").
+				Where("game_teams.game_id = ?", *(req.GameID))
 		}
 		return q
 	}
@@ -65,13 +68,6 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []response.Tea
 
 	result = db.Find(&teams)
 	return teams, count, result.Error
-}
-
-func (t *TeamRepository) BatchFind(req request.TeamBatchFindRequest) (teams []response.TeamResponse, err error) {
-	result := t.db.Table("teams").
-		Where("teams.id IN ?", req.ID).
-		Find(&teams)
-	return teams, result.Error
 }
 
 func (t *TeamRepository) BatchFindByUserId(req request.TeamBatchFindByUserIdRequest) (teams []response.TeamResponseWithUserId, err error) {

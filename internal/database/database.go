@@ -84,6 +84,7 @@ func syncDatabase() {
 		&model.Pod{},
 		&model.Game{},
 		&model.GameChallenge{},
+		&model.GameTeam{},
 		&model.Image{},
 		&model.Flag{},
 		&model.FlagGen{},
@@ -107,13 +108,14 @@ func initAdmin() {
 	if count == 0 {
 		zap.L().Warn("Administrator account does not exist, will be created soon.")
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-		err := db.Create(&model.User{
+		admin := model.User{
 			Username: "admin",
 			Nickname: "Administrator",
 			GroupID:  1,
 			Password: string(hashedPassword),
 			Email:    "admin@admin.com",
-		}).Error
+		}
+		err := db.Create(&admin).Error
 		if err != nil {
 			zap.L().Fatal("Super administrator account creation failed.", zap.Error(err))
 			return

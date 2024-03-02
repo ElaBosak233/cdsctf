@@ -1,7 +1,11 @@
 package repository
 
 import (
-	"gorm.io/gorm"
+	"github.com/elabosak233/cloudsdale/internal/database"
+)
+
+var (
+	r *Repository = nil
 )
 
 type Repository struct {
@@ -21,10 +25,19 @@ type Repository struct {
 	ContainerRepository     IInstanceRepository
 	EnvRepository           IEnvRepository
 	FlagGenRepository       IFlagGenRepository
+	GameTeamRepository      IGameTeamRepository
+	HintRepository          IHintRepository
 }
 
-func InitRepository(db *gorm.DB) *Repository {
-	return &Repository{
+func R() *Repository {
+	return r
+}
+
+func InitRepository() {
+
+	db := database.Db()
+
+	r = &Repository{
 		UserRepository:          NewUserRepository(db),
 		ChallengeRepository:     NewChallengeRepository(db),
 		TeamRepository:          NewTeamRepository(db),
@@ -41,5 +54,7 @@ func InitRepository(db *gorm.DB) *Repository {
 		ContainerRepository:     NewInstanceRepository(db),
 		EnvRepository:           NewEnvRepository(db),
 		FlagGenRepository:       NewFlagGenRepository(db),
+		GameTeamRepository:      NewGameTeamRepository(db),
+		HintRepository:          NewHintRepository(db),
 	}
 }

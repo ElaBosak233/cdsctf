@@ -6,6 +6,8 @@ toolchain go1.21.3
 
 require (
 	github.com/TwiN/go-color v1.4.1
+	github.com/casbin/casbin/v2 v2.82.0
+	github.com/casbin/gorm-adapter/v3 v3.21.0
 	github.com/docker/docker v25.0.3+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/duke-git/lancet/v2 v2.2.9
@@ -39,8 +41,6 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/bytedance/sonic v1.11.0 // indirect
-	github.com/casbin/casbin/v2 v2.82.0 // indirect
-	github.com/casbin/gorm-adapter/v3 v3.21.0 // indirect
 	github.com/casbin/govaluate v1.1.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
@@ -71,7 +71,6 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/pprof v0.0.0-20221118152302-e6195bd50e26 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

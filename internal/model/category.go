@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 // Category is the category of the challenge.
 type Category struct {
@@ -11,4 +14,9 @@ type Category struct {
 	Icon        string     `gorm:"type:varchar(32);default:'fingerprint';" json:"icon"` // The category's icon. (Based on Material Design Icons, Reference site: https://pictogrammers.com/library/mdi/) (Such as "fingerprint": https://pictogrammers.com/library/mdi/icon/fingerprint/)
 	CreatedAt   *time.Time `json:"created_at"`                                          // The category's creation time.
 	UpdatedAt   *time.Time `json:"updated_at"`                                          // The category's last update time.
+}
+
+func (c *Category) BeforeDelete(db *gorm.DB) (err error) {
+	db.Table("challenges").Where("category_id = ?", c.ID).Delete(&Challenge{})
+	return nil
 }
