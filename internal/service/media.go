@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/config"
-	"github.com/elabosak233/cloudsdale/internal/repository"
 	"io"
 	"mime/multipart"
 	"os"
@@ -23,7 +22,7 @@ type IMediaService interface {
 
 type MediaService struct{}
 
-func NewMediaService(appRepository *repository.Repository) IMediaService {
+func NewMediaService() IMediaService {
 	return &MediaService{}
 }
 

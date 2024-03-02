@@ -40,7 +40,8 @@ test.go
 dist
 _PgsHub.exe
 _Cloudsdale.exe
-
+signature
+signature.pub
 config.json
 
 __pycache__

@@ -9,18 +9,7 @@ import (
 	"strings"
 )
 
-type IFrontendMiddleware interface {
-	Frontend(urlPrefix string) gin.HandlerFunc
-}
-
-type FrontendMiddleware struct {
-}
-
-func NewFrontendMiddleware() IFrontendMiddleware {
-	return &FrontendMiddleware{}
-}
-
-func (m *FrontendMiddleware) Frontend(urlPrefix string) gin.HandlerFunc {
+func Frontend(urlPrefix string) gin.HandlerFunc {
 	root := config.AppCfg().Gin.Paths.Frontend
 	fileServer := http.FileServer(http.Dir(root))
 	if !strings.HasSuffix(urlPrefix, "/") {

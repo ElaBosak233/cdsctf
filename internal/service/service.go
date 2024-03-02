@@ -2,6 +2,10 @@ package service
 
 import "github.com/elabosak233/cloudsdale/internal/repository"
 
+var (
+	s *Service = nil
+)
+
 type Service struct {
 	MediaService      IMediaService
 	UserService       IUserService
@@ -13,11 +17,20 @@ type Service struct {
 	GameService       IGameService
 	CategoryService   ICategoryService
 	ContainerService  IInstanceService
+	ImageService      IImageService
+	FlagService       IFlagService
+	HintService       IHintService
 }
 
-func InitService(appRepository *repository.Repository) *Service {
+func S() *Service {
+	return s
+}
 
-	mediaService := NewMediaService(appRepository)
+func InitService() {
+
+	appRepository := repository.R()
+
+	mediaService := NewMediaService()
 	userService := NewUserService(appRepository)
 	challengeService := NewChallengeService(appRepository)
 	podService := NewPodService(appRepository)
@@ -27,8 +40,11 @@ func InitService(appRepository *repository.Repository) *Service {
 	gameService := NewGameService(appRepository)
 	categoryService := NewCategoryService(appRepository)
 	containerService := NewInstanceService(appRepository)
+	imageService := NewImageService(appRepository)
+	flagService := NewFlagService(appRepository)
+	hintService := NewHintService(appRepository)
 
-	return &Service{
+	s = &Service{
 		MediaService:      mediaService,
 		UserService:       userService,
 		ChallengeService:  challengeService,
@@ -39,5 +55,8 @@ func InitService(appRepository *repository.Repository) *Service {
 		GameService:       gameService,
 		CategoryService:   categoryService,
 		ContainerService:  containerService,
+		ImageService:      imageService,
+		FlagService:       flagService,
+		HintService:       hintService,
 	}
 }

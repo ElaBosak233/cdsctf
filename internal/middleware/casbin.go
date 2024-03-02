@@ -3,26 +3,12 @@ package middleware
 import (
 	"github.com/elabosak233/cloudsdale/internal/casbin"
 	"github.com/elabosak233/cloudsdale/internal/config"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 )
-
-type ICasbinMiddleware interface {
-	Casbin() gin.HandlerFunc
-}
-
-type CasbinMiddleware struct {
-	appService *service.Service
-}
-
-func NewCasbinMiddleware(appService *service.Service) ICasbinMiddleware {
-	return &CasbinMiddleware{
-		appService: appService,
-	}
-}
 
 // Casbin
 // The first layer of access control
@@ -30,20 +16,23 @@ func NewCasbinMiddleware(appService *service.Service) ICasbinMiddleware {
 // If the user is logged in, the role will be the user's group
 // If the user's role has permission to access the resource, the request will be passed
 // By the way, the user's information will be set to the context
-func (m *CasbinMiddleware) Casbin() gin.HandlerFunc {
+func Casbin() gin.HandlerFunc {
+
+	appService := service.S()
+
 	return func(ctx *gin.Context) {
 		var sub string
 		var user response.UserResponse
 		sub = "guest"
 
-		token := ctx.GetHeader("Authorization")
-		if token != "" {
-			pgsToken, _ := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		userToken := ctx.GetHeader("Authorization")
+		if userToken != "" {
+			pgsToken, _ := jwt.Parse(userToken, func(token *jwt.Token) (interface{}, error) {
 				return []byte(config.AppCfg().Gin.Jwt.SecretKey), nil
 			})
 			if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
 				userID := uint(claims["user_id"].(float64))
-				user, _ = m.appService.UserService.FindById(userID)
+				user, _ = appService.UserService.FindById(userID)
 				sub = user.Group.Name
 			}
 		}
@@ -57,7 +46,6 @@ func (m *CasbinMiddleware) Casbin() gin.HandlerFunc {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"code": http.StatusUnauthorized,
 			"sub":  sub,
-			"msg":  "You have no permission to do that.",
 		})
 		ctx.Abort()
 	}

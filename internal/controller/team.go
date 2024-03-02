@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
+	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -127,7 +127,7 @@ func (c *TeamController) Delete(ctx *gin.Context) {
 func (c *TeamController) Find(ctx *gin.Context) {
 	teamData, pageCount, total, _ := c.teamService.Find(request.TeamFindRequest{
 		ID:        convertor.ToUintD(ctx.Query("id"), 0),
-		TeamName:  ctx.Query("name"),
+		Name:      ctx.Query("name"),
 		CaptainID: convertor.ToUintD(ctx.Query("captain_id"), 0),
 		Page:      convertor.ToIntD(ctx.Query("page"), 0),
 		Size:      convertor.ToIntD(ctx.Query("size"), 0),

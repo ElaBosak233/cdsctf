@@ -1,6 +1,7 @@
 package model
 
 import (
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -9,6 +10,8 @@ type Game struct {
 	Title                  string       `gorm:"type:varchar(64);not null" json:"title"`                 // The game's title.
 	Bio                    string       `gorm:"type:text" json:"bio"`                                   // The game's short description.
 	Description            string       `gorm:"type:text" json:"description"`                           // The game's description. (Markdown supported.)
+	PublicKey              string       `gorm:"type:varchar(255)" json:"public_key"`                    // The game's public key.
+	PrivateKey             string       `gorm:"type:varchar(255)" json:"-"`                             // The game's private key.
 	IsEnabled              *bool        `gorm:"not null;default:false" json:"is_enabled"`               // Whether the game is enabled.
 	IsPublic               *bool        `gorm:"not null;default:true" json:"is_public"`                 // Whether the game is public.
 	Password               string       `gorm:"type:varchar(255)" json:"password"`                      // The game's password. Only enabled when the game is private.
@@ -24,4 +27,10 @@ type Game struct {
 	CreatedAt              *time.Time   `json:"created_at,omitempty"`                                   // The game's creation time.
 	UpdatedAt              *time.Time   `json:"updated_at,omitempty"`                                   // The game's last update time.
 	Challenges             []*Challenge `gorm:"many2many:game_challenges;" json:"challenges,omitempty"` // The game's challenges.
+}
+
+func (g *Game) BeforeDelete(db *gorm.DB) (err error) {
+	db.Table("game_teams").Where("game_id = ?", g.ID).Delete(&GameTeam{})
+	db.Table("game_challenges").Where("game_id = ?", g.ID).Delete(&GameChallenge{})
+	return nil
 }

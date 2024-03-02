@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/config"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
+	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 )
 

@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/controller"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -50,7 +50,6 @@ func (u *UserRouter) SAuth() gin.HandlerFunc {
 
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"code": http.StatusUnauthorized,
-			"msg":  "You have no permission to do that.",
 		})
 		ctx.Abort()
 	}

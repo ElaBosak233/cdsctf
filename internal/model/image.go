@@ -15,6 +15,12 @@ type Image struct {
 	Envs        []*Env  `json:"envs,omitempty"`
 }
 
+func (i *Image) BeforeUpdate(db *gorm.DB) (err error) {
+	db.Table("ports").Where("image_id = ?", i.ID).Delete(&Port{})
+	db.Table("envs").Where("image_id = ?", i.ID).Delete(&Env{})
+	return nil
+}
+
 func (i *Image) BeforeDelete(db *gorm.DB) (err error) {
 	db.Table("ports").Where("image_id = ?", i.ID).Delete(&Port{})
 	db.Table("envs").Where("image_id = ?", i.ID).Delete(&Env{})

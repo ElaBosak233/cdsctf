@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
+	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"

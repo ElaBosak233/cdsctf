@@ -66,14 +66,11 @@ func Run() {
 	cor.AllowCredentials = true
 	r.Use(cors.New(cor))
 
-	// Dependencies injection
-	appRepository := repository.InitRepository(database.Db())
-	appService := service.InitService(appRepository)
-	appController := controller.InitController(appService)
-	router.NewRouter(
-		r.Group("/api", middleware.NewCasbinMiddleware(appService).Casbin()),
-		appController,
-	)
+	// Initialize the application
+	repository.InitRepository()
+	service.InitService()
+	controller.InitController()
+	router.InitRouter(r.Group("/api", middleware.Casbin()))
 
 	if isDebug {
 		// Swagger docs
@@ -86,14 +83,14 @@ func Run() {
 	}
 
 	// Frontend resources
-	r.Use(middleware.NewFrontendMiddleware().Frontend("/"))
+	r.Use(middleware.Frontend("/"))
 
 	s := &http.Server{
 		Addr:    config.AppCfg().Gin.Host + ":" + strconv.Itoa(config.AppCfg().Gin.Port),
 		Handler: r,
 	}
-	zap.L().Info("The Cloudsdale service is launching! Enjoy your hacking challenges!")
 	zap.L().Info(fmt.Sprintf("Here's the address! %s:%d", config.AppCfg().Gin.Host, config.AppCfg().Gin.Port))
+	zap.L().Info("The Cloudsdale service is running! Enjoy your hacking challenges!")
 	err := s.ListenAndServe()
 	if err != nil {
 		zap.L().Fatal("Err... It seems that the port for Cloudsdale is not available. Plz try again.")

@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/model"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/request"
+	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
@@ -17,7 +17,6 @@ type ISubmissionService interface {
 	Create(req request.SubmissionCreateRequest) (status int, pts int64, err error)
 	Delete(id uint) (err error)
 	Find(req request.SubmissionFindRequest) (submissions []model.Submission, pageCount int64, total int64, err error)
-	FindByChallengeID(req request.SubmissionFindByChallengeIDRequest) (submissions []model.Submission, err error)
 }
 
 type SubmissionService struct {
@@ -83,19 +82,34 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 	zap.L().Debug(fmt.Sprintf("req.Flag: %s", req.Flag))
 	for _, flag := range challenge.Flags {
 		zap.L().Debug(fmt.Sprintf("flag.Type: %s", flag.Type))
-		switch flag.Type {
-		case "static":
-			if flag.Value == req.Flag {
-				status = max(status, 2)
+		switch *(flag.Banned) {
+		case true:
+			switch flag.Type {
+			case "static":
+				if flag.Value == req.Flag {
+					status = 4
+				}
+			case "pattern":
+				re := regexp.MustCompile(flag.Value)
+				if re.Match([]byte(req.Flag)) {
+					status = 4
+				}
 			}
-		case "pattern":
-			re := regexp.MustCompile(flag.Value)
-			if re.Match([]byte(req.Flag)) {
-				status = max(status, 2)
+		case false:
+			switch flag.Type {
+			case "static":
+				if flag.Value == req.Flag {
+					status = max(status, 2)
+				}
+			case "pattern":
+				re := regexp.MustCompile(flag.Value)
+				if re.Match([]byte(req.Flag)) {
+					status = max(status, 2)
+				}
+			case "dynamic":
+				ss, _ := t.JudgeDynamicChallenge(req)
+				status = max(status, ss)
 			}
-		case "dynamic":
-			s, _ := t.JudgeDynamicChallenge(req)
-			status = max(status, s)
 		}
 	}
 	createSync.Lock()
@@ -166,26 +180,4 @@ func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions
 		pageCount = 1
 	}
 	return submissions, pageCount, count, err
-}
-
-func (t *SubmissionService) FindByChallengeID(req request.SubmissionFindByChallengeIDRequest) (submissions []model.Submission, err error) {
-	result, err := t.submissionRepository.FindByChallengeID(req)
-	// SizePerChallenge 可以得出每个 IDs 对应的最多的 Submission
-	if req.SizePerChallenge != 0 {
-		submissionsPerChallenge := make(map[uint]int)
-		for _, submission := range result {
-			if submissionsPerChallenge[submission.ChallengeID] < req.SizePerChallenge {
-				submissions = append(submissions, submission)
-				submissionsPerChallenge[submission.ChallengeID] += 1
-			}
-		}
-	} else {
-		submissions = result
-	}
-	if !req.IsDetailed {
-		for index := range submissions {
-			submissions[index].Flag = ""
-		}
-	}
-	return submissions, err
 }

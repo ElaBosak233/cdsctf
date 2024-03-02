@@ -296,6 +296,180 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/challenges/{id}/flags": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "创建 flag",
+                "responses": {}
+            }
+        },
+        "/challenges/{id}/flags/{flag_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "更新 flag",
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "删除 flag",
+                "responses": {}
+            }
+        },
+        "/challenges/{id}/hints": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "创建提示",
+                "responses": {}
+            }
+        },
+        "/challenges/{id}/hints/{hint_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "更新提示",
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "删除提示",
+                "responses": {}
+            }
+        },
+        "/challenges/{id}/images": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "创建镜像",
+                "responses": {}
+            }
+        },
+        "/challenges/{id}/images/{image_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "更新镜像",
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "删除镜像",
+                "responses": {}
+            }
+        },
         "/configs/": {
             "get": {
                 "description": "配置全部查询",
@@ -494,6 +668,182 @@ const docTemplate = `{
                     "Game"
                 ],
                 "summary": "广播消息",
+                "responses": {}
+            }
+        },
+        "/games/{id}/challenges": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "查询比赛的挑战",
+                "responses": {}
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "添加比赛的挑战",
+                "responses": {}
+            }
+        },
+        "/games/{id}/challenges/{challenge_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "更新比赛的挑战",
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "删除比赛的挑战",
+                "responses": {}
+            }
+        },
+        "/games/{id}/scoreboard": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "查询比赛的积分榜",
+                "responses": {}
+            }
+        },
+        "/games/{id}/teams": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "查询比赛的团队",
+                "responses": {}
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "加入比赛",
+                "parameters": [
+                    {
+                        "description": "GameJoinRequest",
+                        "name": "加入请求",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GameJoinRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/games/{id}/teams/{team_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "允许加入比赛",
+                "parameters": [
+                    {
+                        "description": "GameAllowJoinRequest",
+                        "name": "允许加入请求",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GameAllowJoinRequest"
+                        }
+                    }
+                ],
                 "responses": {}
             }
         },
@@ -1191,6 +1541,11 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "name": "game_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
                         "name": "id",
                         "in": "query"
                     },
@@ -1605,571 +1960,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "model.Category": {
-            "type": "object",
-            "properties": {
-                "color": {
-                    "description": "The category's theme color. (Such as Rainbow Dash's color is \"#60AEE4\")",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "The category's creation time.",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "The category's description.",
-                    "type": "string"
-                },
-                "icon": {
-                    "description": "The category's icon. (Based on Material Design Icons, Reference site: https://pictogrammers.com/library/mdi/) (Such as \"fingerprint\": https://pictogrammers.com/library/mdi/icon/fingerprint/)",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "The category's id. As primary key.",
-                    "type": "integer"
-                },
-                "name": {
-                    "description": "The category's name.",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "The category's last update time.",
-                    "type": "string"
-                }
-            }
-        },
-        "model.Challenge": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "description": "The challenge's category.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Category"
-                        }
-                    ]
-                },
-                "category_id": {
-                    "description": "The challenge's category.",
-                    "type": "integer"
-                },
-                "created_at": {
-                    "description": "The challenge's creation time.",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "The challenge's description.",
-                    "type": "string"
-                },
-                "difficulty": {
-                    "description": "The degree of difficulty. (From 1 to 5)",
-                    "type": "integer"
-                },
-                "duration": {
-                    "description": "The duration of container maintenance in the initial state. (Seconds)",
-                    "type": "integer"
-                },
-                "flags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Flag"
-                    }
-                },
-                "has_attachment": {
-                    "description": "Whether the challenge has attachment.",
-                    "type": "boolean"
-                },
-                "hints": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Hint"
-                    }
-                },
-                "id": {
-                    "description": "The challenge's id. As primary key.",
-                    "type": "integer"
-                },
-                "images": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Image"
-                    }
-                },
-                "is_dynamic": {
-                    "description": "Whether the challenge is based on dynamic container.",
-                    "type": "boolean"
-                },
-                "is_practicable": {
-                    "description": "Whether the challenge is practicable. (Is the practice field visible.)",
-                    "type": "boolean"
-                },
-                "practice_pts": {
-                    "description": "The points will be given when the challenge is solved in practice field.",
-                    "type": "integer"
-                },
-                "submissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Submission"
-                    }
-                },
-                "title": {
-                    "description": "The challenge's title.",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "The challenge's last update time.",
-                    "type": "string"
-                }
-            }
-        },
-        "model.Env": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "image": {
-                    "$ref": "#/definitions/model.Image"
-                },
-                "image_id": {
-                    "type": "integer"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.Flag": {
-            "type": "object",
-            "properties": {
-                "challenge": {
-                    "description": "The challenge which the flag belongs to.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Challenge"
-                        }
-                    ]
-                },
-                "challenge_id": {
-                    "description": "The challenge id. The flag belongs to.",
-                    "type": "integer"
-                },
-                "env": {
-                    "description": "The environment variable which is used to be injected with the flag.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "The flag id.",
-                    "type": "integer"
-                },
-                "type": {
-                    "description": "The flag type. (\"static\"/\"dynamic\"/\"pattern\")",
-                    "type": "string"
-                },
-                "value": {
-                    "description": "The flag content. Maybe a string or a regex, or the placeholder for dynamic challenges. (Such as \"flag{friendsh1p_1s_magic}\" or \"flag{[a-zA-Z]{5}}\" or \"flag{[UUID]}\")",
-                    "type": "string"
-                }
-            }
-        },
-        "model.Game": {
-            "type": "object",
-            "properties": {
-                "bio": {
-                    "description": "The game's short description.",
-                    "type": "string"
-                },
-                "challenges": {
-                    "description": "The game's challenges.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Challenge"
-                    }
-                },
-                "created_at": {
-                    "description": "The game's creation time.",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "The game's description. (Markdown supported.)",
-                    "type": "string"
-                },
-                "ended_at": {
-                    "description": "The game's end time. (Unix)",
-                    "type": "integer"
-                },
-                "first_blood_reward_ratio": {
-                    "description": "The prize ratio of first blood.",
-                    "type": "number"
-                },
-                "id": {
-                    "description": "The game's id. As primary key.",
-                    "type": "integer"
-                },
-                "is_enabled": {
-                    "description": "Whether the game is enabled.",
-                    "type": "boolean"
-                },
-                "is_need_write_up": {
-                    "description": "Whether the game need write up.",
-                    "type": "boolean"
-                },
-                "is_public": {
-                    "description": "Whether the game is public.",
-                    "type": "boolean"
-                },
-                "member_limit_max": {
-                    "description": "The maximum team member limit.",
-                    "type": "integer"
-                },
-                "member_limit_min": {
-                    "description": "The minimum team member limit.",
-                    "type": "integer"
-                },
-                "parallel_container_limit": {
-                    "description": "The maximum parallel container limit.",
-                    "type": "integer"
-                },
-                "password": {
-                    "description": "The game's password. Only enabled when the game is private.",
-                    "type": "string"
-                },
-                "second_blood_reward_ratio": {
-                    "description": "The prize ratio of second blood.",
-                    "type": "number"
-                },
-                "started_at": {
-                    "description": "The game's start time. (Unix)",
-                    "type": "integer"
-                },
-                "third_blood_reward_ratio": {
-                    "description": "The prize ratio of third blood.",
-                    "type": "number"
-                },
-                "title": {
-                    "description": "The game's title.",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "The game's last update time.",
-                    "type": "string"
-                }
-            }
-        },
-        "model.Group": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "display_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.User"
-                    }
-                }
-            }
-        },
-        "model.Hint": {
-            "type": "object",
-            "properties": {
-                "challenge": {
-                    "description": "The challenge which the hint belongs to.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Challenge"
-                        }
-                    ]
-                },
-                "challenge_id": {
-                    "description": "The challenge which the hint belongs to.",
-                    "type": "integer"
-                },
-                "content": {
-                    "description": "The content of the hint.",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "The hint's creation time.",
-                    "type": "string"
-                },
-                "game": {
-                    "description": "The game which the hint belongs to.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Game"
-                        }
-                    ]
-                },
-                "game_id": {
-                    "description": "The game which the hint belongs to. (If 0, it means the hint is visible in practice field.)",
-                    "type": "integer"
-                },
-                "id": {
-                    "description": "The hint's id.",
-                    "type": "integer"
-                },
-                "published_at": {
-                    "description": "When the hint will be published.",
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "description": "The hint's last update time.",
-                    "type": "string"
-                }
-            }
-        },
-        "model.Image": {
-            "type": "object",
-            "properties": {
-                "challenge_id": {
-                    "type": "integer"
-                },
-                "cpu_limit": {
-                    "type": "number"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "envs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Env"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "memory_limit": {
-                    "type": "integer"
-                },
-                "name": {
-                    "description": "A name of image is always repository + tag. (Such as \"nginx:latest\")",
-                    "type": "string"
-                },
-                "ports": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Port"
-                    }
-                }
-            }
-        },
-        "model.Port": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "description": "The port's description.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "The port's id. As primary key.",
-                    "type": "integer"
-                },
-                "image": {
-                    "description": "The JeopardyImage which the port belongs to.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Image"
-                        }
-                    ]
-                },
-                "image_id": {
-                    "description": "The JeopardyImage which the port belongs to.",
-                    "type": "integer"
-                },
-                "value": {
-                    "description": "The port number.",
-                    "type": "integer"
-                }
-            }
-        },
-        "model.Submission": {
-            "type": "object",
-            "properties": {
-                "challenge": {
-                    "description": "The challenge which is related to this submission.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Challenge"
-                        }
-                    ]
-                },
-                "challenge_id": {
-                    "description": "The challenge which is related to this submission.",
-                    "type": "integer"
-                },
-                "created_at": {
-                    "description": "The submission's creation time.",
-                    "type": "string"
-                },
-                "flag": {
-                    "description": "The flag which was submitted for judgement.",
-                    "type": "string"
-                },
-                "game": {
-                    "description": "The game which is related to this submission.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Game"
-                        }
-                    ]
-                },
-                "game_id": {
-                    "description": "The game which is related to this submission. (Must be set when TeamID is set)",
-                    "type": "integer"
-                },
-                "id": {
-                    "description": "The submission's id. As primary key.",
-                    "type": "integer"
-                },
-                "pts": {
-                    "description": "The points of the submission.",
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "The status of the submission. (0-meaningless, 1-accepted, 2-incorrect, 3-cheat, 4-duplicate)",
-                    "type": "integer"
-                },
-                "team": {
-                    "description": "The team which submitted the flag.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Team"
-                        }
-                    ]
-                },
-                "team_id": {
-                    "description": "The team which submitted the flag. (Must be set when GameID is set)",
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "description": "The submission's last update time.",
-                    "type": "string"
-                },
-                "user": {
-                    "description": "The user who submitted the flag.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.User"
-                        }
-                    ]
-                },
-                "user_id": {
-                    "description": "The user who submitted the flag.",
-                    "type": "integer"
-                }
-            }
-        },
-        "model.Team": {
-            "type": "object",
-            "properties": {
-                "captain_id": {
-                    "description": "The captain's id.",
-                    "type": "integer"
-                },
-                "created_at": {
-                    "description": "The team's creation time.",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "The team's description.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "The team's id. As primary key.",
-                    "type": "integer"
-                },
-                "is_locked": {
-                    "description": "Whether the team is locked. (true/false)",
-                    "type": "boolean"
-                },
-                "name": {
-                    "description": "The team's name.",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "The team's last update time.",
-                    "type": "string"
-                },
-                "users": {
-                    "description": "The team's users.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.User"
-                    }
-                }
-            }
-        },
-        "model.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "description": "The user's creation time.",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "The user's description.",
-                    "type": "string"
-                },
-                "email": {
-                    "description": "The user's email.",
-                    "type": "string"
-                },
-                "group": {
-                    "description": "The user's group.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Group"
-                        }
-                    ]
-                },
-                "group_id": {
-                    "description": "The user's group.",
-                    "type": "integer"
-                },
-                "id": {
-                    "description": "The user's id. As primary key.",
-                    "type": "integer"
-                },
-                "nickname": {
-                    "description": "The user's nickname. Not unique.",
-                    "type": "string"
-                },
-                "password": {
-                    "description": "The user's password. Crypt.",
-                    "type": "string"
-                },
-                "teams": {
-                    "description": "The user's teams.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Team"
-                    }
-                },
-                "updated_at": {
-                    "description": "The user's last update time.",
-                    "type": "string"
-                },
-                "username": {
-                    "description": "The user's username. As a unique identifier.",
-                    "type": "string"
-                }
-            }
-        },
         "request.CategoryCreateRequest": {
             "type": "object",
             "required": [
@@ -2235,20 +2025,8 @@ const docTemplate = `{
                 "duration": {
                     "type": "integer"
                 },
-                "flags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Flag"
-                    }
-                },
                 "has_attachment": {
                     "type": "boolean"
-                },
-                "images": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Image"
-                    }
                 },
                 "is_dynamic": {
                     "type": "boolean"
@@ -2282,20 +2060,8 @@ const docTemplate = `{
                 "duration": {
                     "type": "integer"
                 },
-                "flags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Flag"
-                    }
-                },
                 "has_attachment": {
                     "type": "boolean"
-                },
-                "images": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Image"
-                    }
                 },
                 "is_practicable": {
                     "type": "boolean"
@@ -2330,6 +2096,14 @@ const docTemplate = `{
                 },
                 "request_limit": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.GameAllowJoinRequest": {
+            "type": "object",
+            "properties": {
+                "allowed": {
+                    "type": "boolean"
                 }
             }
         },
@@ -2388,6 +2162,20 @@ const docTemplate = `{
         },
         "request.GameDeleteRequest": {
             "type": "object"
+        },
+        "request.GameJoinRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "team_id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
         },
         "request.GameUpdateRequest": {
             "type": "object",

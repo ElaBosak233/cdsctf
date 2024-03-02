@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/controller"
-	"github.com/elabosak233/cloudsdale/internal/model/dto/response"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/gin-gonic/gin"
 )
