@@ -23,8 +23,7 @@ type ChallengeResponse struct {
 	Hints         []*model.Hint       `json:"hints,omitempty"`
 	Images        []*model.Image      `json:"images,omitempty"`
 	Submissions   []*model.Submission `json:"submissions,omitempty"`
-	IsSolved      bool                `gorm:"-" json:"is_solved"`
-	Pts           int64               `gorm:"-" json:"pts"`
+	Solved        *model.Submission   `json:"solved"`
 }
 
 type ChallengeSimpleResponse struct {

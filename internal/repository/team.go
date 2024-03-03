@@ -11,7 +11,7 @@ type ITeamRepository interface {
 	Insert(team model.Team) (te model.Team, err error)
 	Update(team model.Team) (err error)
 	Delete(id uint) (err error)
-	Find(req request.TeamFindRequest) (teams []response.TeamResponse, count int64, err error)
+	Find(req request.TeamFindRequest) (teams []model.Team, count int64, err error)
 	BatchFindByUserId(req request.TeamBatchFindByUserIdRequest) (teams []response.TeamResponseWithUserId, err error)
 	FindById(id uint) (team model.Team, err error)
 }
@@ -41,7 +41,7 @@ func (t *TeamRepository) Delete(id uint) (err error) {
 	return result.Error
 }
 
-func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []response.TeamResponse, count int64, err error) {
+func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, count int64, err error) {
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
@@ -66,7 +66,10 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []response.Tea
 		db = db.Offset(offset).Limit(req.Size)
 	}
 
-	result = db.Find(&teams)
+	result = db.
+		Preload("Captain").
+		Preload("Users").
+		Find(&teams)
 	return teams, count, result.Error
 }
 

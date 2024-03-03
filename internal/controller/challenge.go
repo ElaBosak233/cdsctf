@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -65,6 +66,7 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 		}
 		return nil
 	}
+	user, _ := ctx.Get("user")
 	challenges, pageCount, total, _ := c.challengeService.Find(request.ChallengeFindRequest{
 		Title:         ctx.Query("title"),
 		CategoryID:    convertor.ToUintP(ctx.Query("category_id")),
@@ -72,7 +74,7 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 		IDs:           convertor.ToUintSliceD(ctx.QueryArray("id"), make([]uint, 0)),
 		IsDynamic:     convertor.ToBoolP(ctx.Query("is_dynamic")),
 		Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), 0),
-		UserID:        ctx.GetUint("UserID"),
+		UserID:        user.(*response.UserResponse).ID,
 		GameID:        convertor.ToUintP(ctx.Query("game_id")),
 		TeamID:        convertor.ToUintP(ctx.Query("team_id")),
 		IsDetailed:    &isDetailed,

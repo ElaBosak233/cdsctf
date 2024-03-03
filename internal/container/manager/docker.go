@@ -82,7 +82,7 @@ func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 			},
 		}
 
-		resp, _ := provider.DockerCli().ContainerCreate(
+		resp, _err := provider.DockerCli().ContainerCreate(
 			context.Background(),
 			containerConfig,
 			hostConfig,
@@ -91,14 +91,24 @@ func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
 			"",
 		)
 
+		if _err != nil {
+			zap.L().Error(fmt.Sprintf("[%s] Failed to create: %s", color.InCyan("DOCKER"), _err.Error()))
+			return nil, _err
+		}
+
 		c.RespID = append(c.RespID, resp.ID)
 
 		// Handle the container
-		_ = provider.DockerCli().ContainerStart(
+		_err = provider.DockerCli().ContainerStart(
 			context.Background(),
 			c.RespID[len(c.RespID)-1],
 			container.StartOptions{},
 		)
+
+		if _err != nil {
+			zap.L().Error(fmt.Sprintf("[%s] Failed to start: %s", color.InCyan("DOCKER"), _err.Error()))
+			return nil, _err
+		}
 
 		// Get the container's inspect information
 		inspect, _ := provider.DockerCli().ContainerInspect(

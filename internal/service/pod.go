@@ -137,8 +137,10 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 			flag = *f
 			flag.Value = generator.GenerateFlag(flag.Value)
 		} else if f.Type == "static" {
+			if f.Env == "" {
+				f.Env = "FLAG"
+			}
 			flag = *f
-			flag.Value = f.Value
 		}
 	}
 
@@ -150,7 +152,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 	instances, err := ctnManager.Setup()
 
-	// Insert Pod model, get Pod's ID
+	// Insert Pod model, get Pod's GameID
 	pod, _ := t.podRepository.Insert(model.Pod{
 		ChallengeID: req.ChallengeID,
 		UserID:      req.UserID,

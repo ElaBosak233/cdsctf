@@ -14,14 +14,14 @@ type User struct {
 	Username    string     `gorm:"column:username;type:varchar(16);unique;not null;index;" json:"username"` // The user's username. As a unique identifier.
 	Nickname    string     `gorm:"column:nickname;type:varchar(36);not null" json:"nickname"`               // The user's nickname. Not unique.
 	Description string     `gorm:"column:description;type:text" json:"description"`                         // The user's description.
-	Email       string     `gorm:"column:email;varchar(64);unique;not null" json:"email"`                   // The user's email.
-	Signature   string     `gorm:"column:signature;varchar(255);unique;" json:"signature"`                  // The user's signature.
-	GroupID     uint       `json:"group_id"`                                                                // The user's group.
-	Group       *Group     `json:"group"`                                                                   // The user's group.
+	Email       string     `gorm:"column:email;varchar(64);unique;not null" json:"email,omitempty"`         // The user's email.
+	Signature   string     `gorm:"column:signature;varchar(255);unique;" json:"signature,omitempty"`        // The user's signature.
+	GroupID     uint       `json:"group_id,omitempty"`                                                      // The user's group.
+	Group       *Group     `json:"group,omitempty"`                                                         // The user's group.
 	Password    string     `gorm:"column:password;type:varchar(255);not null" json:"password,omitempty"`    // The user's password. Crypt.
-	CreatedAt   *time.Time `json:"created_at"`                                                              // The user's creation time.
-	UpdatedAt   *time.Time `json:"updated_at"`                                                              // The user's last update time.
-	Teams       []*Team    `gorm:"many2many:user_teams;" json:"teams"`                                      // The user's teams.
+	CreatedAt   *time.Time `json:"created_at,omitempty"`                                                    // The user's creation time.
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`                                                    // The user's last update time.
+	Teams       []*Team    `gorm:"many2many:user_teams;" json:"teams,omitempty"`                            // The user's teams.
 }
 
 // AfterCreate Hook

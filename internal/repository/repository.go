@@ -2,10 +2,12 @@ package repository
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/database"
+	"sync"
 )
 
 var (
-	r *Repository = nil
+	r              *Repository = nil
+	onceRepository sync.Once
 )
 
 type Repository struct {
@@ -34,27 +36,28 @@ func R() *Repository {
 }
 
 func InitRepository() {
+	onceRepository.Do(func() {
+		db := database.Db()
 
-	db := database.Db()
-
-	r = &Repository{
-		UserRepository:          NewUserRepository(db),
-		ChallengeRepository:     NewChallengeRepository(db),
-		TeamRepository:          NewTeamRepository(db),
-		SubmissionRepository:    NewSubmissionRepository(db),
-		PodRepository:           NewPodRepository(db),
-		GameRepository:          NewGameRepository(db),
-		UserTeamRepository:      NewUserTeamRepository(db),
-		GameChallengeRepository: NewGameChallengeRepository(db),
-		CategoryRepository:      NewCategoryRepositoryImpl(db),
-		FlagRepository:          NewFlagRepository(db),
-		ImageRepository:         NewImageRepository(db),
-		PortRepository:          NewPortRepository(db),
-		NatRepository:           NewNatRepository(db),
-		ContainerRepository:     NewInstanceRepository(db),
-		EnvRepository:           NewEnvRepository(db),
-		FlagGenRepository:       NewFlagGenRepository(db),
-		GameTeamRepository:      NewGameTeamRepository(db),
-		HintRepository:          NewHintRepository(db),
-	}
+		r = &Repository{
+			UserRepository:          NewUserRepository(db),
+			ChallengeRepository:     NewChallengeRepository(db),
+			TeamRepository:          NewTeamRepository(db),
+			SubmissionRepository:    NewSubmissionRepository(db),
+			PodRepository:           NewPodRepository(db),
+			GameRepository:          NewGameRepository(db),
+			UserTeamRepository:      NewUserTeamRepository(db),
+			GameChallengeRepository: NewGameChallengeRepository(db),
+			CategoryRepository:      NewCategoryRepositoryImpl(db),
+			FlagRepository:          NewFlagRepository(db),
+			ImageRepository:         NewImageRepository(db),
+			PortRepository:          NewPortRepository(db),
+			NatRepository:           NewNatRepository(db),
+			ContainerRepository:     NewInstanceRepository(db),
+			EnvRepository:           NewEnvRepository(db),
+			FlagGenRepository:       NewFlagGenRepository(db),
+			GameTeamRepository:      NewGameTeamRepository(db),
+			HintRepository:          NewHintRepository(db),
+		}
+	})
 }

@@ -1,9 +1,13 @@
 package controller
 
-import "github.com/elabosak233/cloudsdale/internal/service"
+import (
+	"github.com/elabosak233/cloudsdale/internal/service"
+	"sync"
+)
 
 var (
-	c *Controller = nil
+	c              *Controller = nil
+	onceController sync.Once
 )
 
 type Controller struct {
@@ -24,30 +28,31 @@ func C() *Controller {
 }
 
 func InitController() {
+	onceController.Do(func() {
+		appService := service.S()
 
-	appService := service.S()
+		userController := NewUserController(appService)
+		challengeController := NewChallengeController(appService)
+		instanceController := NewInstanceController(appService)
+		configController := NewConfigController(appService)
+		mediaController := NewMediaController(appService)
+		teamController := NewTeamController(appService)
+		submissionController := NewSubmissionController(appService)
+		gameController := NewGameController(appService)
+		categoryController := NewCategoryController(appService)
+		proxyController := NewProxyController()
 
-	userController := NewUserController(appService)
-	challengeController := NewChallengeController(appService)
-	instanceController := NewInstanceController(appService)
-	configController := NewConfigController(appService)
-	mediaController := NewMediaController(appService)
-	teamController := NewTeamController(appService)
-	submissionController := NewSubmissionController(appService)
-	gameController := NewGameController(appService)
-	categoryController := NewCategoryController(appService)
-	proxyController := NewProxyController()
-
-	c = &Controller{
-		UserController:       userController,
-		ChallengeController:  challengeController,
-		InstanceController:   instanceController,
-		ConfigController:     configController,
-		MediaController:      mediaController,
-		TeamController:       teamController,
-		SubmissionController: submissionController,
-		GameController:       gameController,
-		CategoryController:   categoryController,
-		ProxyController:      proxyController,
-	}
+		c = &Controller{
+			UserController:       userController,
+			ChallengeController:  challengeController,
+			InstanceController:   instanceController,
+			ConfigController:     configController,
+			MediaController:      mediaController,
+			TeamController:       teamController,
+			SubmissionController: submissionController,
+			GameController:       gameController,
+			CategoryController:   categoryController,
+			ProxyController:      proxyController,
+		}
+	})
 }

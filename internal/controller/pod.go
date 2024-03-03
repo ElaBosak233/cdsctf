@@ -75,7 +75,7 @@ func (c *PodController) Remove(ctx *gin.Context) {
 	instanceRemoveRequest := request.PodRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
 	instanceRemoveRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	instanceRemoveRequest.UserID = ctx.GetUint("ID")
+	instanceRemoveRequest.UserID = ctx.GetUint("GameID")
 	err = c.podService.Remove(instanceRemoveRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -101,7 +101,7 @@ func (c *PodController) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.PodRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
 	instanceRenewRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	instanceRenewRequest.UserID = ctx.GetUint("ID")
+	instanceRenewRequest.UserID = ctx.GetUint("GameID")
 	removedAt, err := c.podService.Renew(instanceRenewRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
