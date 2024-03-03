@@ -12,3 +12,11 @@ type GameSimpleResponse struct {
 	ID    int64  `xorm:"'id'" json:"id"`
 	Title string `xorm:"'title'" json:"title"`
 }
+
+type GameChallengeResponse struct {
+	*model.Challenge
+	IsEnabled bool  `json:"is_enabled"`
+	MaxPts    int   `json:"max_pts"`
+	MinPts    int   `json:"min_pts"`
+	Pts       int64 `json:"pts"`
+}

@@ -1,9 +1,13 @@
 package service
 
-import "github.com/elabosak233/cloudsdale/internal/repository"
+import (
+	"github.com/elabosak233/cloudsdale/internal/repository"
+	"sync"
+)
 
 var (
-	s *Service = nil
+	s           *Service = nil
+	onceService sync.Once
 )
 
 type Service struct {
@@ -27,36 +31,37 @@ func S() *Service {
 }
 
 func InitService() {
+	onceService.Do(func() {
+		appRepository := repository.R()
 
-	appRepository := repository.R()
+		mediaService := NewMediaService()
+		userService := NewUserService(appRepository)
+		challengeService := NewChallengeService(appRepository)
+		podService := NewPodService(appRepository)
+		configService := NewConfigService(appRepository)
+		teamService := NewTeamService(appRepository)
+		submissionService := NewSubmissionService(appRepository)
+		gameService := NewGameService(appRepository)
+		categoryService := NewCategoryService(appRepository)
+		containerService := NewInstanceService(appRepository)
+		imageService := NewImageService(appRepository)
+		flagService := NewFlagService(appRepository)
+		hintService := NewHintService(appRepository)
 
-	mediaService := NewMediaService()
-	userService := NewUserService(appRepository)
-	challengeService := NewChallengeService(appRepository)
-	podService := NewPodService(appRepository)
-	configService := NewConfigService(appRepository)
-	teamService := NewTeamService(appRepository)
-	submissionService := NewSubmissionService(appRepository)
-	gameService := NewGameService(appRepository)
-	categoryService := NewCategoryService(appRepository)
-	containerService := NewInstanceService(appRepository)
-	imageService := NewImageService(appRepository)
-	flagService := NewFlagService(appRepository)
-	hintService := NewHintService(appRepository)
-
-	s = &Service{
-		MediaService:      mediaService,
-		UserService:       userService,
-		ChallengeService:  challengeService,
-		PodService:        podService,
-		ConfigService:     configService,
-		TeamService:       teamService,
-		SubmissionService: submissionService,
-		GameService:       gameService,
-		CategoryService:   categoryService,
-		ContainerService:  containerService,
-		ImageService:      imageService,
-		FlagService:       flagService,
-		HintService:       hintService,
-	}
+		s = &Service{
+			MediaService:      mediaService,
+			UserService:       userService,
+			ChallengeService:  challengeService,
+			PodService:        podService,
+			ConfigService:     configService,
+			TeamService:       teamService,
+			SubmissionService: submissionService,
+			GameService:       gameService,
+			CategoryService:   categoryService,
+			ContainerService:  containerService,
+			ImageService:      imageService,
+			FlagService:       flagService,
+			HintService:       hintService,
+		}
+	})
 }

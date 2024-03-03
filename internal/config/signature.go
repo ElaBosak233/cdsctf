@@ -3,16 +3,21 @@ package config
 import (
 	"crypto/ed25519"
 	"encoding/base64"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"os"
+	"path"
+	"reflect"
 )
 
 var (
+	v3     *viper.Viper
 	sigCfg SignatureCfg
 )
 
 type SignatureCfg struct {
-	PublicKey  string
-	PrivateKey string
+	PublicKey  string `yaml:"pub" json:"pub" mapstructure:"pub"`
+	PrivateKey string `yaml:"pem" json:"pem " mapstructure:"pem"`
 }
 
 func SigCfg() *SignatureCfg {
@@ -20,21 +25,35 @@ func SigCfg() *SignatureCfg {
 }
 
 func InitSignatureCfg() {
-	_, privateExists := os.Stat("signature.pem")
-	_, publicExists := os.Stat("signature.pub")
+	v3 = viper.New()
+	configFile := path.Join("signature.json")
+	v3.SetConfigType("json")
+	v3.SetConfigFile(configFile)
 
-	var privateKey []byte
-	var publicKey []byte
-
-	if privateExists != nil || publicExists != nil {
-		publicKey, privateKey, _ = ed25519.GenerateKey(nil)
-		_ = os.WriteFile("signature.pem", privateKey, 0600)
-		_ = os.WriteFile("signature.pub", publicKey, 0600)
-	} else {
-		privateKey, _ = os.ReadFile("signature.pem")
-		publicKey, _ = os.ReadFile("signature.pub")
+	if _, err := os.Stat(configFile); err != nil {
+		publicKey, privateKey, _ := ed25519.GenerateKey(nil)
+		sigCfg.PrivateKey = base64.StdEncoding.EncodeToString(privateKey)
+		sigCfg.PublicKey = base64.StdEncoding.EncodeToString(publicKey)
+		_ = sigCfg.Save()
+	}
+	if err := v3.ReadInConfig(); err != nil {
+		zap.L().Error("Unable to read configuration file.")
+		return
 	}
 
-	sigCfg.PrivateKey = base64.StdEncoding.EncodeToString(privateKey)
-	sigCfg.PublicKey = base64.StdEncoding.EncodeToString(publicKey)
+	if err := v3.Unmarshal(&sigCfg); err != nil {
+		zap.L().Error("Unable to parse configuration file to structure.")
+	}
+}
+
+func (s *SignatureCfg) Save() (err error) {
+	val := reflect.ValueOf(sigCfg)
+	typeOfCfg := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		v3.Set(typeOfCfg.Field(i).Tag.Get("mapstructure"), field.Interface())
+	}
+	err = v3.WriteConfig()
+	return err
 }

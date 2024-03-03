@@ -10,7 +10,6 @@ type IChallengeRepository interface {
 	Insert(challenge model.Challenge) (c model.Challenge, err error)
 	Update(challenge model.Challenge) (c model.Challenge, err error)
 	Delete(id uint) (err error)
-	FindById(id uint, isDetailed int) (challenge model.Challenge, err error)
 	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, count int64, err error)
 }
 
@@ -38,7 +37,6 @@ func (t *ChallengeRepository) Update(challenge model.Challenge) (c model.Challen
 }
 
 func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, count int64, err error) {
-	isGame := req.GameID != nil && req.TeamID != nil
 	applyFilter := func(q *gorm.DB) *gorm.DB {
 		if req.CategoryID != nil {
 			q = q.Where("category_id = ?", *(req.CategoryID))
@@ -54,9 +52,6 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 		}
 		if req.Difficulty > 0 {
 			q = q.Where("difficulty = ?", req.Difficulty)
-		}
-		if isGame {
-			q = q.Joins("INNER JOIN game_challenges ON game_challenges.challenge_id = challenges.id AND game_challenges.game_id = ?", *(req.GameID))
 		}
 		if len(req.IDs) > 0 {
 			q = q.Where("(challenges.id) IN ?", req.IDs)
@@ -83,30 +78,32 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 	}
 
 	result = db.
-		Preload("Category").
+		Preload("Category", func(db *gorm.DB) *gorm.DB {
+			return db.Omit("created_at", "updated_at")
+		}).
 		Preload("Flags").
-		Preload("Images", func(Db *gorm.DB) *gorm.DB {
-			return Db.
+		Preload("Images", func(db *gorm.DB) *gorm.DB {
+			return db.
 				Preload("Ports").
 				Preload("Envs")
 		}).
-		Preload("Submissions", func(Db *gorm.DB) *gorm.DB {
-			return Db.
-				Preload("User", func(Db *gorm.DB) *gorm.DB {
-					return Db.Select([]string{"id", "username", "nickname", "email"})
+		Preload("Submissions", func(db *gorm.DB) *gorm.DB {
+			return db.
+				Preload("User", func(db *gorm.DB) *gorm.DB {
+					return db.Select([]string{"id", "username", "nickname", "email"})
 				}).
 				Preload("Team").
 				Preload("Game").
 				Order("submissions.created_at ASC").
-				Limit(req.SubmissionQty)
+				Limit(req.SubmissionQty).
+				Omit("flag")
+		}).
+		Preload("Solved", func(db *gorm.DB) *gorm.DB {
+			return db.
+				Where("status = ?", 2).
+				Where("user_id = ?", req.UserID).
+				Omit("flag")
 		}).
 		Find(&challenges)
 	return challenges, count, result.Error
-}
-
-func (t *ChallengeRepository) FindById(id uint, isDetailed int) (challenge model.Challenge, err error) {
-	result := t.db.Table("challenges").
-		Where("id = ?", id).
-		First(&challenge)
-	return challenge, result.Error
 }

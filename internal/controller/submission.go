@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -73,7 +74,8 @@ func (c *SubmissionController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	submissionCreateRequest.UserID = ctx.GetUint("UserID")
+	user, _ := ctx.Get("user")
+	submissionCreateRequest.UserID = user.(*response.UserResponse).ID
 	status, pts, err := c.submissionService.Create(submissionCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

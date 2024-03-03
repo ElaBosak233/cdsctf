@@ -28,12 +28,12 @@ func (t *GameRepository) Insert(game model.Game) (g model.Game, err error) {
 }
 
 func (t *GameRepository) Update(game model.Game) (err error) {
-	result := t.Db.Table("game").Model(&game).Updates(&game)
+	result := t.Db.Table("games").Model(&game).Updates(&game)
 	return result.Error
 }
 
 func (t *GameRepository) Delete(req request.GameDeleteRequest) (err error) {
-	result := t.Db.Table("game").Delete(&model.Game{
+	result := t.Db.Table("games").Delete(&model.Game{
 		ID: req.ID,
 	})
 	return result.Error
@@ -64,7 +64,7 @@ func (t *GameRepository) Find(req request.GameFindRequest) (games []response.Gam
 			db = db.Order("games." + sortKey + " DESC")
 		}
 	} else {
-		db = db.Order("game.id DESC") // 默认采用 IDs 降序排列
+		db = db.Order("games.id DESC") // 默认采用 IDs 降序排列
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size

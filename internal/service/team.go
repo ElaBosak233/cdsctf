@@ -6,6 +6,7 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
+	"github.com/mitchellh/mapstructure"
 	"math"
 )
 
@@ -90,7 +91,12 @@ func (t *TeamService) Delete(id uint) error {
 }
 
 func (t *TeamService) Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, total int64, err error) {
-	teams, count, err := t.teamRepository.Find(req)
+	teamsData, count, err := t.teamRepository.Find(req)
+	for _, team := range teamsData {
+		var teamResponse response.TeamResponse
+		_ = mapstructure.Decode(team, &teamResponse)
+		teams = append(teams, teamResponse)
+	}
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
@@ -138,7 +144,9 @@ func (t *TeamService) FindById(id uint) (team response.TeamResponse, err error) 
 		ID: id,
 	})
 	if len(teams) > 0 {
-		team = teams[0]
+		var teamData response.TeamResponse
+		_ = mapstructure.Decode(teams[0], &teamData)
+		team = teamData
 	}
 	return team, err
 }
