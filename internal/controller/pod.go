@@ -148,16 +148,16 @@ func (c *PodController) FindById(ctx *gin.Context) {
 // @Param input	query request.PodFindRequest false "PodFindRequest"
 // @Router /pods/ [get]
 func (c *PodController) Find(ctx *gin.Context) {
-	podFindRequest := request.PodFindRequest{
-		UserID:      ctx.GetUint("UserID"),
-		IDs:         convertor.ToUintSliceD(ctx.QueryArray("id"), []uint{}),
-		ChallengeID: convertor.ToUintD(ctx.Query("challenge_id"), 0),
-		TeamID:      convertor.ToUintP(ctx.Query("team_id")),
-		GameID:      convertor.ToUintP(ctx.Query("game_id")),
-		IsAvailable: convertor.ToBoolP(ctx.Query("is_available")),
-		Page:        convertor.ToIntD(ctx.Query("page"), 0),
-		Size:        convertor.ToIntD(ctx.Query("size"), 0),
+	podFindRequest := request.PodFindRequest{}
+	err := ctx.ShouldBindQuery(&podFindRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &podFindRequest),
+		})
+		return
 	}
+	podFindRequest.UserID = ctx.GetUint("UserID")
 	pods, _ := c.podService.Find(podFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,

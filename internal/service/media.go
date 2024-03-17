@@ -80,8 +80,8 @@ func (a *MediaService) FindChallengeAttachmentByChallengeId(id int64) (err error
 }
 
 func (a *MediaService) CheckChallengeAttachmentByChallengeId(id int64) (fileName string, fileSize int64, err error) {
-	path := fmt.Sprintf("%s/challenges/attachments/%d", config.AppCfg().Gin.Paths.Media, id)
-	files, err := os.ReadDir(path)
+	p := fmt.Sprintf("%s/challenges/attachments/%d", config.AppCfg().Gin.Paths.Media, id)
+	files, err := os.ReadDir(p)
 	if len(files) == 0 {
 		return "", 0, errors.New("无附件")
 	} else {

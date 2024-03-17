@@ -55,14 +55,8 @@ func (t *GameRepository) Find(req request.GameFindRequest) (games []response.Gam
 	db := applyFilters(t.Db.Table("games"))
 
 	result := db.Model(&model.Submission{}).Count(&count)
-	if len(req.SortBy) > 0 {
-		sortKey := req.SortBy[0]
-		sortOrder := req.SortBy[1]
-		if sortOrder == "asc" {
-			db = db.Order("games." + sortKey + " ASC")
-		} else if sortOrder == "desc" {
-			db = db.Order("games." + sortKey + " DESC")
-		}
+	if req.SortKey != "" && req.SortOrder != "" {
+		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
 		db = db.Order("games.id DESC") // 默认采用 IDs 降序排列
 	}

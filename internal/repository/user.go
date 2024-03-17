@@ -57,16 +57,10 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 	}
 	db := applyFilter(t.db.Table("users"))
 	result := db.Model(&model.User{}).Count(&count)
-	if len(req.SortBy) > 0 {
-		sortKey := req.SortBy[0]
-		sortOrder := req.SortBy[1]
-		if sortOrder == "asc" {
-			db = db.Order("users." + sortKey + " ASC")
-		} else if sortOrder == "desc" {
-			db = db.Order("users." + sortKey + " DESC")
-		}
+	if req.SortKey != "" && req.SortOrder != "" {
+		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
-		db = db.Order("users.id ASC") // 默认采用 IDs 升序排列
+		db = db.Order("users.id ASC")
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size

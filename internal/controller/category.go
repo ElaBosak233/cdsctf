@@ -99,9 +99,14 @@ func (c *CategoryController) Update(ctx *gin.Context) {
 // @Param req query request.CategoryFindRequest	true "CategoryFindRequest"
 // @Router /categories/ [get]
 func (c *CategoryController) Find(ctx *gin.Context) {
-	req := request.CategoryFindRequest{
-		ID:   convertor.ToUintD(ctx.Query("id"), 0),
-		Name: ctx.Query("name"),
+	req := request.CategoryFindRequest{}
+	err := ctx.ShouldBindQuery(&req)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &req),
+		})
+		return
 	}
 	res, err := c.categoryService.Find(req)
 	if err != nil {

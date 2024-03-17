@@ -1,12 +1,13 @@
 package request
 
 type GameFindRequest struct {
-	ID        uint     `json:"id"`
-	Title     string   `json:"title"`
-	SortBy    []string `json:"sort_by"`
-	IsEnabled *bool    `json:"is_enabled"`
-	Page      int      `json:"page"`
-	Size      int      `json:"size"`
+	ID        uint   `json:"id" form:"id"`
+	Title     string `json:"title" form:"title"`
+	IsEnabled *bool  `json:"is_enabled" form:"is_enabled"`
+	Page      int    `json:"page" form:"page"`
+	Size      int    `json:"size" form:"size"`
+	SortKey   string `json:"sort_key" form:"sort_key"`
+	SortOrder string `json:"sort_order" form:"sort_order"`
 }
 
 type GameCreateRequest struct {

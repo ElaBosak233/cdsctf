@@ -4,7 +4,6 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
-	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -36,17 +35,17 @@ func NewSubmissionController(appService *service.Service) ISubmissionController 
 // @Param 查找请求 query	request.SubmissionFindRequest false "SubmissionFindRequest"
 // @Router /submissions/ [get]
 func (c *SubmissionController) Find(ctx *gin.Context) {
-	submissions, pageCount, total, _ := c.submissionService.Find(request.SubmissionFindRequest{
-		UserID:      convertor.ToUintD(ctx.Query("user_id"), 0),
-		Status:      convertor.ToIntD(ctx.Query("status"), 0),
-		TeamID:      convertor.ToUintP(ctx.Query("team_id")),
-		GameID:      convertor.ToUintP(ctx.Query("game_id")),
-		IsDetailed:  ctx.GetBool("is_detailed"),
-		ChallengeID: convertor.ToUintD(ctx.Query("challenge_id"), 0),
-		SortBy:      ctx.QueryArray("sort_by"),
-		Page:        convertor.ToIntD(ctx.Query("page"), 0),
-		Size:        convertor.ToIntD(ctx.Query("size"), 0),
-	})
+	submissionFindRequest := request.SubmissionFindRequest{}
+	err := ctx.ShouldBind(&submissionFindRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &submissionFindRequest),
+		})
+		return
+	}
+	submissionFindRequest.IsDetailed = ctx.GetBool("is_detailed")
+	submissions, pageCount, total, _ := c.submissionService.Find(submissionFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"pages": pageCount,

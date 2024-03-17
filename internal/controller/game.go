@@ -376,14 +376,17 @@ func (g *GameController) Update(ctx *gin.Context) {
 // @Router /games/ [get]
 func (g *GameController) Find(ctx *gin.Context) {
 	isEnabled := ctx.GetBool("is_enabled")
-	games, pageCount, total, err := g.gameService.Find(request.GameFindRequest{
-		ID:        convertor.ToUintD(ctx.Query("id"), 0),
-		Title:     ctx.Query("title"),
-		IsEnabled: &isEnabled,
-		Size:      convertor.ToIntD(ctx.Query("size"), 0),
-		Page:      convertor.ToIntD(ctx.Query("page"), 0),
-		SortBy:    ctx.QueryArray("sort_by"),
-	})
+	gameFindRequest := request.GameFindRequest{}
+	err := ctx.ShouldBindQuery(&gameFindRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &gameFindRequest),
+		})
+		return
+	}
+	gameFindRequest.IsEnabled = &isEnabled
+	games, pageCount, total, err := g.gameService.Find(gameFindRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,

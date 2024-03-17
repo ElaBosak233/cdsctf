@@ -15,12 +15,12 @@ type TeamUpdateRequest struct {
 }
 
 type TeamFindRequest struct {
-	ID        uint   `json:"id"`
-	Name      string `json:"name"`
-	CaptainID uint   `json:"captain_id"`
-	GameID    *uint  `json:"game_id"`
-	Page      int    `json:"page"`
-	Size      int    `json:"size"`
+	ID        uint   `json:"id" form:"id"`
+	Name      string `json:"name" form:"name"`
+	CaptainID uint   `json:"captain_id" form:"captain_id"`
+	GameID    *uint  `json:"game_id" form:"game_id"`
+	Page      int    `json:"page" form:"page"`
+	Size      int    `json:"size" form:"size"`
 }
 
 type TeamBatchFindRequest struct {

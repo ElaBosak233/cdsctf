@@ -66,23 +66,20 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 		}
 		return nil
 	}
+	challengeFindRequest := request.ChallengeFindRequest{}
+	err := ctx.ShouldBindQuery(&challengeFindRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &challengeFindRequest),
+		})
+		return
+	}
 	user, _ := ctx.Get("user")
-	challenges, pageCount, total, _ := c.challengeService.Find(request.ChallengeFindRequest{
-		Title:         ctx.Query("title"),
-		CategoryID:    convertor.ToUintP(ctx.Query("category_id")),
-		IsPracticable: isPracticable(),
-		IDs:           convertor.ToUintSliceD(ctx.QueryArray("id"), make([]uint, 0)),
-		IsDynamic:     convertor.ToBoolP(ctx.Query("is_dynamic")),
-		Difficulty:    convertor.ToInt64D(ctx.Query("difficulty"), 0),
-		UserID:        user.(*response.UserResponse).ID,
-		GameID:        convertor.ToUintP(ctx.Query("game_id")),
-		TeamID:        convertor.ToUintP(ctx.Query("team_id")),
-		IsDetailed:    &isDetailed,
-		SubmissionQty: convertor.ToIntD(ctx.Query("submission_qty"), 0),
-		Page:          convertor.ToIntD(ctx.Query("page"), 0),
-		Size:          convertor.ToIntD(ctx.Query("size"), 0),
-		SortBy:        ctx.QueryArray("sort_by"),
-	})
+	challengeFindRequest.UserID = user.(*response.UserResponse).ID
+	challengeFindRequest.IsDetailed = &isDetailed
+	challengeFindRequest.IsPracticable = isPracticable()
+	challenges, pageCount, total, _ := c.challengeService.Find(challengeFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"pages": pageCount,

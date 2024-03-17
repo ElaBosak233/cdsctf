@@ -1,13 +1,14 @@
 package request
 
 type UserFindRequest struct {
-	ID       uint     `json:"id"`
-	Username string   `json:"username"`
-	Name     string   `json:"name"`
-	Email    string   `json:"email"`
-	SortBy   []string `json:"sort_by"`
-	Page     int      `json:"page"`
-	Size     int      `json:"size"`
+	ID        uint   `json:"id" form:"id"`
+	Username  string `json:"username" form:"username"`
+	Name      string `json:"name" form:"name"`
+	Email     string `json:"email" form:"email"`
+	Page      int    `json:"page" form:"page"`
+	Size      int    `json:"size" form:"size"`
+	SortKey   string `json:"sort_key" form:"sort_key"`
+	SortOrder string `json:"sort_order" form:"sort_order"`
 }
 
 type UserBatchFindByTeamIdRequest struct {

@@ -53,14 +53,8 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 	db := applyFilters(t.db.Table("submissions"))
 
 	result := db.Model(&model.Submission{}).Count(&count)
-	if len(req.SortBy) > 0 {
-		sortKey := req.SortBy[0]
-		sortOrder := req.SortBy[1]
-		if sortOrder == "asc" {
-			db = db.Order("submissions." + sortKey + " ASC")
-		} else if sortOrder == "desc" {
-			db = db.Order("submissions." + sortKey + " DESC")
-		}
+	if req.SortKey != "" && req.SortOrder != "" {
+		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
 		db = db.Order("submissions.id DESC") // 默认采用 IDs 降序排列
 	}
