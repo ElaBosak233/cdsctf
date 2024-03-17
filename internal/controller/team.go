@@ -125,13 +125,16 @@ func (c *TeamController) Delete(ctx *gin.Context) {
 // @Param input	query request.TeamFindRequest false	"TeamFindRequest"
 // @Router /teams/ [get]
 func (c *TeamController) Find(ctx *gin.Context) {
-	teamData, pageCount, total, _ := c.teamService.Find(request.TeamFindRequest{
-		ID:        convertor.ToUintD(ctx.Query("id"), 0),
-		Name:      ctx.Query("name"),
-		CaptainID: convertor.ToUintD(ctx.Query("captain_id"), 0),
-		Page:      convertor.ToIntD(ctx.Query("page"), 0),
-		Size:      convertor.ToIntD(ctx.Query("size"), 0),
-	})
+	teamFindRequest := request.TeamFindRequest{}
+	err := ctx.ShouldBindQuery(&teamFindRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &teamFindRequest),
+		})
+		return
+	}
+	teamData, pageCount, total, _ := c.teamService.Find(teamFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"pages": pageCount,

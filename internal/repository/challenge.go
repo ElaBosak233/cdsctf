@@ -53,22 +53,16 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 		if req.Difficulty > 0 {
 			q = q.Where("difficulty = ?", req.Difficulty)
 		}
-		if len(req.IDs) > 0 {
-			q = q.Where("(challenges.id) IN ?", req.IDs)
+		if req.ID != 0 {
+			q = q.Where("id = ?", req.ID)
 		}
 		return q
 	}
 	db := applyFilter(t.db.Table("challenges"))
 
 	result := db.Model(&model.Challenge{}).Count(&count)
-	if len(req.SortBy) > 0 {
-		sortKey := req.SortBy[0]
-		sortOrder := req.SortBy[1]
-		if sortOrder == "asc" {
-			db = db.Order("challenges." + sortKey + " ASC")
-		} else if sortOrder == "desc" {
-			db = db.Order("challenges." + sortKey + " DESC")
-		}
+	if req.SortOrder != "" && req.SortKey != "" {
+		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
 		db = db.Order("challenges.id ASC")
 	}

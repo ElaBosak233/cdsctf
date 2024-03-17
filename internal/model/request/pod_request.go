@@ -8,14 +8,14 @@ type PodCreateRequest struct {
 }
 
 type PodFindRequest struct {
-	IDs         []uint `json:"id"`
-	ChallengeID uint   `json:"challenge_id"`
-	UserID      uint   `json:"-"`
-	TeamID      *uint  `json:"team_id"`
-	GameID      *uint  `json:"game_id"`
-	IsAvailable *bool  `json:"is_available"`
-	Page        int    `json:"page"`
-	Size        int    `json:"size"`
+	ID          uint  `json:"id" form:"id"`
+	ChallengeID uint  `json:"challenge_id" form:"challenge_id"`
+	UserID      uint  `json:"-" form:"-"`
+	TeamID      *uint `json:"team_id" form:"team_id"`
+	GameID      *uint `json:"game_id" form:"game_id"`
+	IsAvailable *bool `json:"is_available" form:"is_available"`
+	Page        int   `json:"page" form:"page"`
+	Size        int   `json:"size" form:"size"`
 }
 
 type PodRemoveRequest struct {

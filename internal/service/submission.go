@@ -75,7 +75,7 @@ var createSync = sync.RWMutex{}
 
 func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status int, pts int64, err error) {
 	challenges, _, err := t.challengeRepository.Find(request.ChallengeFindRequest{
-		IDs: []uint{req.ChallengeID},
+		ID: req.ChallengeID,
 	})
 	challenge := challenges[0]
 	status = 1

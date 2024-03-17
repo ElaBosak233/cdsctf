@@ -251,14 +251,16 @@ func (c *UserController) Delete(ctx *gin.Context) {
 // @Param input	query request.UserFindRequest false	"UserFindRequest"
 // @Router /users/ [get]
 func (c *UserController) Find(ctx *gin.Context) {
-	userResponse, pageCount, total, _ := c.userService.Find(request.UserFindRequest{
-		ID:     convertor.ToUintD(ctx.Query("id"), 0),
-		Email:  ctx.Query("email"),
-		Name:   ctx.Query("name"),
-		SortBy: ctx.QueryArray("sort_by"),
-		Page:   convertor.ToIntD(ctx.Query("page"), 0),
-		Size:   convertor.ToIntD(ctx.Query("size"), 0),
-	})
+	userFindRequest := request.UserFindRequest{}
+	err := ctx.ShouldBindQuery(&userFindRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &userFindRequest),
+		})
+		return
+	}
+	userResponse, pageCount, total, _ := c.userService.Find(userFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"data":  userResponse,

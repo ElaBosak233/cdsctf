@@ -34,6 +34,9 @@ func (t *PodRepository) Update(pod model.Pod) (err error) {
 
 func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, count int64, err error) {
 	applyFilter := func(q *gorm.DB) *gorm.DB {
+		if req.ID != 0 {
+			q = q.Where("id = ?", req.ID)
+		}
 		if req.ChallengeID != 0 {
 			q = q.Where("challenge_id = ?", req.ChallengeID)
 		}
@@ -52,9 +55,6 @@ func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, coun
 			} else if *(req.IsAvailable) == true {
 				q = q.Where("removed_at > ?", time.Now().Unix())
 			}
-		}
-		if len(req.IDs) > 0 {
-			q = q.Where("id IN ?", req.IDs)
 		}
 		return q
 	}

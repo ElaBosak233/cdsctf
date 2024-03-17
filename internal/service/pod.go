@@ -119,9 +119,9 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 	if remainder != 0 {
 		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
-	SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
+	SetUserInstanceRequestMap(req.UserID, time.Now().Unix())
 	challenges, _, _ := t.challengeRepository.Find(request.ChallengeFindRequest{
-		IDs:       []uint{req.ChallengeID},
+		ID:        req.ChallengeID,
 		IsDynamic: convertor.TrueP(),
 	})
 	challenge := challenges[0]
