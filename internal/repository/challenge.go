@@ -89,7 +89,7 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 				Preload("Team").
 				Preload("Game").
 				Order("submissions.created_at ASC").
-				Limit(req.SubmissionQty).
+				Where("submissions.status = ?", 2).
 				Omit("flag")
 		}).
 		Preload("Solved", func(db *gorm.DB) *gorm.DB {

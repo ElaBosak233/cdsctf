@@ -15,31 +15,31 @@ func initCategory() {
 				Name:        "misc",
 				Description: "misc",
 				Color:       "#3F51B5",
-				Icon:        "fingerprint",
+				Icon:        "Fingerprint",
 			},
 			{
 				Name:        "web",
 				Description: "web",
 				Color:       "#009688",
-				Icon:        "web",
+				Icon:        "Web",
 			},
 			{
 				Name:        "pwn",
 				Description: "pwn",
 				Color:       "#673AB7",
-				Icon:        "matrix",
+				Icon:        "Matrix",
 			},
 			{
 				Name:        "crypto",
 				Description: "crypto",
 				Color:       "#607D8B",
-				Icon:        "pound",
+				Icon:        "Pound",
 			},
 			{
 				Name:        "reverse",
 				Description: "reverse",
 				Color:       "#6D4C41",
-				Icon:        "chevron-triple-left",
+				Icon:        "ChevronTripleLeft",
 			},
 		}
 		err := db.Create(&defaultCategories).Error

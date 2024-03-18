@@ -70,6 +70,11 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 			challengeResponse.Flags = nil
 			challengeResponse.Images = nil
 		}
+		if req.SubmissionQty != 0 {
+			challengeResponse.Submissions = challengeResponse.Submissions[:min(req.SubmissionQty, len(challengeResponse.Submissions))]
+		} else {
+			challengeResponse.Submissions = nil
+		}
 		challenges = append(challenges, challengeResponse)
 	}
 

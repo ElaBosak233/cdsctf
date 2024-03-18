@@ -1,9 +1,5 @@
 package model
 
-import (
-	"time"
-)
-
 type Submission struct {
 	ID          uint       `json:"id"`                                               // The submission's id. As primary key.
 	Flag        string     `gorm:"type:varchar(128);not null" json:"flag,omitempty"` // The flag which was submitted for judgement.
@@ -17,6 +13,6 @@ type Submission struct {
 	GameID      uint       `json:"game_id,omitempty"`                                // The game which is related to this submission. (Must be set when TeamID is set)
 	Game        *Game      `json:"game,omitempty"`                                   // The game which is related to this submission.
 	Pts         int64      `gorm:"default:0" json:"pts"`                             // The points of the submission.
-	CreatedAt   *time.Time `gorm:"autoCreateTime" json:"created_at,omitempty"`       // The submission's creation time.
-	UpdatedAt   *time.Time `gorm:"autoUpdateTime" json:"updated_at,omitempty"`       // The submission's last update time.
+	CreatedAt   int64      `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"` // The submission's creation time.
+	UpdatedAt   int64      `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"` // The submission's last update time.
 }

@@ -2,7 +2,6 @@ package response
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/model"
-	"time"
 )
 
 type ChallengeResponse struct {
@@ -17,8 +16,8 @@ type ChallengeResponse struct {
 	Difficulty    int64               `gorm:"default:1" json:"difficulty"`                  // The degree of difficulty. (From 1 to 5)
 	PracticePts   int64               `gorm:"default:200" json:"practice_pts"`              // The points will be given when the challenge is solved in practice field.
 	Duration      int64               `gorm:"default:1800" json:"duration,omitempty"`       // The duration of container maintenance in the initial state. (Seconds)
-	CreatedAt     time.Time           `json:"created_at"`                                   // The challenge's creation time.
-	UpdatedAt     time.Time           `json:"updated_at"`                                   // The challenge's last update time.
+	CreatedAt     int64               `json:"created_at"`                                   // The challenge's creation time.
+	UpdatedAt     int64               `json:"updated_at"`                                   // The challenge's last update time.
 	Flags         []*model.Flag       `json:"flags,omitempty"`
 	Hints         []*model.Hint       `json:"hints,omitempty"`
 	Images        []*model.Image      `json:"images,omitempty"`

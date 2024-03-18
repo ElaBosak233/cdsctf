@@ -685,12 +685,12 @@ paths:
       - in: query
         name: size
         type: integer
-      - collectionFormat: csv
-        in: query
-        items:
-          type: string
-        name: sort_by
-        type: array
+      - in: query
+        name: sort_key
+        type: string
+      - in: query
+        name: sort_order
+        type: string
       - in: query
         name: title
         type: string
@@ -1135,12 +1135,9 @@ paths:
       - in: query
         name: game_id
         type: integer
-      - collectionFormat: csv
-        in: query
-        items:
-          type: integer
+      - in: query
         name: id
-        type: array
+        type: integer
       - in: query
         name: is_available
         type: boolean
@@ -1254,13 +1251,14 @@ paths:
         in: query
         name: size
         type: integer
-      - collectionFormat: csv
-        description: 排序参数
+      - description: 排序参数
         in: query
-        items:
-          type: string
-        name: sort_by
-        type: array
+        name: sort_key
+        type: string
+      - description: 排序方式
+        in: query
+        name: sort_order
+        type: string
       - description: 评判结果
         in: query
         name: status
@@ -1471,12 +1469,12 @@ paths:
       - in: query
         name: size
         type: integer
-      - collectionFormat: csv
-        in: query
-        items:
-          type: string
-        name: sort_by
-        type: array
+      - in: query
+        name: sort_key
+        type: string
+      - in: query
+        name: sort_order
+        type: string
       - in: query
         name: username
         type: string
