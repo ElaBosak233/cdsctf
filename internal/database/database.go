@@ -99,7 +99,7 @@ func syncDatabase() {
 
 func selfCheck() {
 	// 对于 pods 中的所有数据，若 removed_at 大于当前时间，则强制赋值为现在的时间，以免后续程序错误判断
-	db.Model(&model.Pod{}).Where("removed_at > ?", time.Now().Unix()).Update("removed_at", time.Now().Unix())
+	db.Model(&model.Pod{}).Where("removed_at > ?", time.Now().UnixMilli()).Update("removed_at", time.Now().UnixMilli())
 }
 
 func initAdmin() {

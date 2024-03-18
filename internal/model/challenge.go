@@ -2,7 +2,6 @@ package model
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 // Challenge is the challenge for Jeopardy-style CTF game.
@@ -18,8 +17,8 @@ type Challenge struct {
 	Difficulty    int64         `gorm:"default:1" json:"difficulty"`                            // The degree of difficulty. (From 1 to 5)
 	PracticePts   int64         `gorm:"default:200" json:"practice_pts,omitempty"`              // The points will be given when the challenge is solved in practice field.
 	Duration      int64         `gorm:"default:1800" json:"duration,omitempty"`                 // The duration of container maintenance in the initial state. (Seconds)
-	CreatedAt     *time.Time    `json:"created_at,omitempty"`                                   // The challenge's creation time.
-	UpdatedAt     *time.Time    `json:"updated_at,omitempty"`                                   // The challenge's last update time.
+	CreatedAt     int64         `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"`       // The challenge's creation time.
+	UpdatedAt     int64         `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"`       // The challenge's last update time.
 	Flags         []*Flag       `json:"flags,omitempty"`
 	Hints         []*Hint       `json:"hints,omitempty"`
 	Images        []*Image      `json:"images,omitempty"`

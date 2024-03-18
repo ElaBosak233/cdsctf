@@ -2,7 +2,6 @@ package response
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/model"
-	"time"
 )
 
 type UserResponse struct {
@@ -12,8 +11,8 @@ type UserResponse struct {
 	Email     string                `json:"email"`
 	GroupID   uint                  `json:"group_id"`
 	Group     *model.Group          `json:"group"`
-	CreatedAt *time.Time            `json:"created_at"`
-	UpdatedAt *time.Time            `json:"updated_at"`
+	CreatedAt int64                 `json:"created_at"`
+	UpdatedAt int64                 `json:"updated_at"`
 	Teams     []*TeamSimpleResponse `json:"teams,omitempty"`
 }
 
