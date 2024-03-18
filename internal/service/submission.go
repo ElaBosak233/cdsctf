@@ -59,7 +59,7 @@ func (t *SubmissionService) JudgeDynamicChallenge(req request.SubmissionCreateRe
 	}
 	for _, pod := range perhapsPods {
 		if req.Flag == flagMap[pod.ID] {
-			if (req.UserID == pod.UserID && req.UserID != 0) || (*(req.TeamID) == pod.TeamID && req.TeamID != nil) {
+			if (req.UserID == pod.UserID && req.UserID != 0) || (req.TeamID != nil && *(req.TeamID) == pod.TeamID) {
 				status = 2
 			} else {
 				status = 3
