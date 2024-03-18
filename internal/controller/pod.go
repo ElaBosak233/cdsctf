@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -46,7 +47,8 @@ func (c *PodController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	instanceCreateRequest.UserID = ctx.GetUint("UserID")
+	user, _ := ctx.Get("user")
+	instanceCreateRequest.UserID = user.(*response.UserResponse).ID
 	res, err := c.podService.Create(instanceCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
