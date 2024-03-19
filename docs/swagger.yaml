@@ -739,6 +739,39 @@ paths:
       summary: 删除比赛
       tags:
       - Game
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - in: query
+        name: id
+        type: integer
+      - in: query
+        name: is_enabled
+        type: boolean
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: size
+        type: integer
+      - in: query
+        name: sort_key
+        type: string
+      - in: query
+        name: sort_order
+        type: string
+      - in: query
+        name: title
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 比赛查询
+      tags:
+      - Game
     put:
       consumes:
       - application/json
