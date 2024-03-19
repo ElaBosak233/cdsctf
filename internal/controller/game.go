@@ -13,6 +13,7 @@ import (
 type IGameController interface {
 	Create(ctx *gin.Context)
 	Find(ctx *gin.Context)
+	FindByID(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 	Update(ctx *gin.Context)
 	BroadCast(ctx *gin.Context)
@@ -375,7 +376,7 @@ func (g *GameController) Update(ctx *gin.Context) {
 // @Param 查找请求 query request.GameFindRequest false "GameFindRequest"
 // @Router /games/ [get]
 func (g *GameController) Find(ctx *gin.Context) {
-	isEnabled := ctx.GetBool("is_enabled")
+	isEnabled, ok := ctx.Get("is_enabled")
 	gameFindRequest := request.GameFindRequest{}
 	err := ctx.ShouldBindQuery(&gameFindRequest)
 	if err != nil {
@@ -385,7 +386,9 @@ func (g *GameController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	gameFindRequest.IsEnabled = &isEnabled
+	if ok && isEnabled.(bool) {
+		gameFindRequest.IsEnabled = convertor.TrueP()
+	}
 	games, pageCount, total, err := g.gameService.Find(gameFindRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -399,5 +402,35 @@ func (g *GameController) Find(ctx *gin.Context) {
 		"data":  games,
 		"total": total,
 		"pages": pageCount,
+	})
+}
+
+// FindByID
+// @Summary 比赛查询
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param 查找请求 query request.GameFindRequest false "GameFindRequest"
+// @Router /games/{id} [get]
+func (g *GameController) FindByID(ctx *gin.Context) {
+	isEnabled, ok := ctx.Get("is_enabled")
+	gameFindRequest := request.GameFindRequest{}
+	if ok && isEnabled.(bool) {
+		gameFindRequest.IsEnabled = convertor.TrueP()
+	}
+	gameFindRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
+	games, _, _, err := g.gameService.Find(gameFindRequest)
+	if err != nil || len(games) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": games[0],
 	})
 }

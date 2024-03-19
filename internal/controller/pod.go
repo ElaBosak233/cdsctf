@@ -159,7 +159,8 @@ func (c *PodController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	podFindRequest.UserID = ctx.GetUint("UserID")
+	user, _ := ctx.Get("user")
+	podFindRequest.UserID = user.(*response.UserResponse).ID
 	pods, _ := c.podService.Find(podFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,

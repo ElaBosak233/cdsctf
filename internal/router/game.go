@@ -3,7 +3,6 @@ package router
 import (
 	"github.com/elabosak233/cloudsdale/internal/controller"
 	"github.com/elabosak233/cloudsdale/internal/model/response"
-	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,6 +24,7 @@ func NewGameRouter(gameRouter *gin.RouterGroup, gameController controller.IGameC
 
 func (g *GameRouter) Register() {
 	g.router.GET("/", g.SAuth(), g.controller.Find)
+	g.router.GET("/:id", g.SAuth(), g.controller.FindByID)
 	g.router.POST("/", g.controller.Create)
 	g.router.PUT("/:id", g.controller.Update)
 	g.router.DELETE("/:id", g.controller.Delete)
@@ -42,12 +42,8 @@ func (g *GameRouter) Register() {
 func (g *GameRouter) SAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user, _ := ctx.Get("user")
-		if user.(*response.UserResponse).Group.Name == "admin" || user.(*response.UserResponse).Group.Name == "monitor" {
-			if convertor.ToBoolD(ctx.Query("is_enabled"), false) {
-				ctx.Set("is_enabled", true)
-			}
-		} else {
-			ctx.Set("is_enabled", false)
+		if !(user.(*response.UserResponse).Group.Name == "admin" || user.(*response.UserResponse).Group.Name == "monitor") {
+			ctx.Set("is_enabled", true)
 		}
 		ctx.Next()
 	}
