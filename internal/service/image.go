@@ -4,6 +4,7 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
+	"github.com/mitchellh/mapstructure"
 )
 
 type IImageService interface {
@@ -29,18 +30,24 @@ func NewImageService(appRepository *repository.Repository) IImageService {
 }
 
 func (t *ImageService) Create(req request.ImageCreateRequest) (err error) {
-	//TODO implement me
-	panic("implement me")
+	var image model.Image
+	_ = mapstructure.Decode(req, &image)
+	_, err = t.imageRepository.Insert(image)
+	return err
 }
 
 func (t *ImageService) Update(req request.ImageUpdateRequest) (err error) {
-	//TODO implement me
-	panic("implement me")
+	var image model.Image
+	_ = mapstructure.Decode(req, &image)
+	_, err = t.imageRepository.Update(image)
+	return
 }
 
 func (t *ImageService) Delete(req request.ImageDeleteRequest) (err error) {
-	//TODO implement me
-	panic("implement me")
+	var image model.Image
+	_ = mapstructure.Decode(req, &image)
+	err = t.imageRepository.Delete(image)
+	return
 }
 
 func (t *ImageService) FindByID(IDs []uint) (images []model.Image, err error) {

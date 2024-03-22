@@ -26,7 +26,7 @@ func NewSubmissionRouter(submissionRouter *gin.RouterGroup, submissionController
 func (s *SubmissionRouter) Register() {
 	s.router.GET("/", s.SAuth(), s.controller.Find)
 	s.router.POST("/", s.controller.Create)
-	s.router.DELETE("/", s.controller.Delete)
+	s.router.DELETE("/:id", s.controller.Delete)
 }
 
 func (s *SubmissionRouter) SAuth() gin.HandlerFunc {
