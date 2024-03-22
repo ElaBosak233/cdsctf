@@ -2115,6 +2115,9 @@ const docTemplate = `{
                 "has_attachment": {
                     "type": "boolean"
                 },
+                "is_dynamic": {
+                    "type": "boolean"
+                },
                 "is_practicable": {
                     "type": "boolean"
                 },

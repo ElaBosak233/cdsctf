@@ -18,6 +18,7 @@ type ChallengeUpdateRequest struct {
 	Description   string `json:"description"`
 	HasAttachment *bool  `json:"has_attachment"`
 	IsPracticable *bool  `json:"is_practicable"`
+	IsDynamic     *bool  `json:"is_dynamic"`
 	CategoryID    int64  `json:"category_id"`
 	Duration      int64  `json:"duration"`
 	Difficulty    int64  `json:"difficulty"`
