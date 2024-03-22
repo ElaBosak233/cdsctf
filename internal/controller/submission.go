@@ -4,6 +4,7 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -101,15 +102,8 @@ func (c *SubmissionController) Create(ctx *gin.Context) {
 // @Router /submissions/{id} [delete]
 func (c *SubmissionController) Delete(ctx *gin.Context) {
 	deleteSubmissionRequest := request.SubmissionDeleteRequest{}
-	err := ctx.ShouldBindJSON(&deleteSubmissionRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &deleteSubmissionRequest),
-		})
-		return
-	}
-	err = c.submissionService.Delete(deleteSubmissionRequest.SubmissionID)
+	deleteSubmissionRequest.SubmissionID = convertor.ToUintD(ctx.Param("id"), 0)
+	err := c.submissionService.Delete(deleteSubmissionRequest.SubmissionID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusInternalServerError,
