@@ -16,6 +16,11 @@ definitions:
     - icon
     - name
     type: object
+  request.CategoryDeleteRequest:
+    properties:
+      id:
+        type: integer
+    type: object
   request.CategoryUpdateRequest:
     properties:
       color:
@@ -83,8 +88,8 @@ definitions:
     properties:
       container:
         $ref: '#/definitions/request.Container'
-      platform:
-        $ref: '#/definitions/request.Platform'
+      site:
+        $ref: '#/definitions/request.Site'
       user:
         $ref: '#/definitions/request.User'
     type: object
@@ -179,13 +184,6 @@ definitions:
       title:
         type: string
     type: object
-  request.Platform:
-    properties:
-      description:
-        type: string
-      title:
-        type: string
-    type: object
   request.PodCreateRequest:
     properties:
       challenge_id:
@@ -210,6 +208,13 @@ definitions:
         type: integer
       team_id:
         type: integer
+    type: object
+  request.Site:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
     type: object
   request.SubmissionCreateRequest:
     properties:
@@ -404,6 +409,24 @@ paths:
       tags:
       - Category
   /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: CategoryDeleteRequest
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request.CategoryDeleteRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: delete category
+      tags:
+      - Category
     put:
       consumes:
       - application/json

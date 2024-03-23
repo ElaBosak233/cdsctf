@@ -105,6 +105,35 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Category"
+                ],
+                "summary": "delete category",
+                "parameters": [
+                    {
+                        "description": "CategoryDeleteRequest",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CategoryDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {}
             }
         },
         "/challenges/": {
@@ -2035,6 +2064,14 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CategoryDeleteRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.CategoryUpdateRequest": {
             "type": "object",
             "required": [
@@ -2135,8 +2172,8 @@ const docTemplate = `{
                 "container": {
                     "$ref": "#/definitions/request.Container"
                 },
-                "platform": {
-                    "$ref": "#/definitions/request.Platform"
+                "site": {
+                    "$ref": "#/definitions/request.Site"
                 },
                 "user": {
                     "$ref": "#/definitions/request.User"
@@ -2282,17 +2319,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.Platform": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
         "request.PodCreateRequest": {
             "type": "object",
             "required": [
@@ -2329,6 +2355,17 @@ const docTemplate = `{
                 },
                 "team_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.Site": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },

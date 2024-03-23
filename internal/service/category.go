@@ -10,6 +10,7 @@ type ICategoryService interface {
 	Create(req model.Category) (err error)
 	Update(req model.Category) (err error)
 	Find(req request.CategoryFindRequest) (categories []model.Category, err error)
+	Delete(req request.CategoryDeleteRequest) (err error)
 }
 
 type CategoryService struct {
@@ -32,4 +33,8 @@ func (c *CategoryService) Update(req model.Category) (err error) {
 
 func (c *CategoryService) Find(req request.CategoryFindRequest) (categories []model.Category, err error) {
 	return c.categoryRepository.Find(req)
+}
+
+func (c *CategoryService) Delete(req request.CategoryDeleteRequest) (err error) {
+	return c.categoryRepository.Delete(req.ID)
 }

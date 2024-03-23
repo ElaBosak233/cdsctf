@@ -10,7 +10,7 @@ type ICategoryRepository interface {
 	Create(category model.Category) (err error)
 	Update(category model.Category) (err error)
 	Find(req request.CategoryFindRequest) (categories []model.Category, err error)
-	FindByID(IDs []uint) (categories []model.Category, err error)
+	Delete(id uint) (err error)
 }
 
 type CategoryRepository struct {
@@ -45,7 +45,9 @@ func (t *CategoryRepository) Find(req request.CategoryFindRequest) (categories [
 	return categories, result.Error
 }
 
-func (t *CategoryRepository) FindByID(IDs []uint) (categories []model.Category, err error) {
-	result := t.db.Table("categories").Where("id IN ?", IDs).Find(&categories)
-	return categories, result.Error
+func (t *CategoryRepository) Delete(id uint) (err error) {
+	result := t.db.Table("categories").Delete(&model.Category{
+		ID: id,
+	})
+	return result.Error
 }
