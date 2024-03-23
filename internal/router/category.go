@@ -25,4 +25,5 @@ func (c *CategoryRouter) Register() {
 	c.router.POST("/", c.controller.Create)
 	c.router.PUT("/:id", c.controller.Update)
 	c.router.GET("/", c.controller.Find)
+	c.router.DELETE("/:id", c.controller.Delete)
 }

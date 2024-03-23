@@ -14,6 +14,7 @@ type ICategoryController interface {
 	Create(ctx *gin.Context)
 	Update(ctx *gin.Context)
 	Find(ctx *gin.Context)
+	Delete(ctx *gin.Context)
 }
 
 type CategoryController struct {
@@ -119,5 +120,30 @@ func (c *CategoryController) Find(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"data": res,
+	})
+}
+
+// Delete
+// @Summary delete category
+// @Description
+// @Tags Category
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param req body request.CategoryDeleteRequest true "CategoryDeleteRequest"
+// @Router /categories/{id} [delete]
+func (c *CategoryController) Delete(ctx *gin.Context) {
+	req := request.CategoryDeleteRequest{}
+	req.ID = convertor.ToUintD(ctx.Param("id"), 0)
+	err := c.categoryService.Delete(req)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
 	})
 }

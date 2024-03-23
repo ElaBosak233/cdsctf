@@ -1,6 +1,6 @@
 package request
 
-type Platform struct {
+type Site struct {
 	Title       string `json:"title,omitempty"`
 	Description string `json:"description,omitempty"`
 }
@@ -15,7 +15,7 @@ type User struct {
 }
 
 type ConfigUpdateRequest struct {
-	Platform  Platform  `json:"platform,omitempty"`
+	Site      Site      `json:"site,omitempty"`
 	Container Container `json:"container,omitempty"`
 	User      User      `json:"user,omitempty"`
 }

@@ -23,8 +23,8 @@ func (c *ConfigService) FindAll() (cfg config.PlatformCfg) {
 }
 
 func (c *ConfigService) Update(req request.ConfigUpdateRequest) (err error) {
-	config.PltCfg().Site.Title = req.Platform.Title
-	config.PltCfg().Site.Description = req.Platform.Description
+	config.PltCfg().Site.Title = req.Site.Title
+	config.PltCfg().Site.Description = req.Site.Description
 	config.PltCfg().Container.ParallelLimit = int(req.Container.ParallelLimit)
 	config.PltCfg().Container.RequestLimit = int(req.Container.RequestLimit)
 	config.PltCfg().User.AllowRegistration = req.User.AllowRegistration
