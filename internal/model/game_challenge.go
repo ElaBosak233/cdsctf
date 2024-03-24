@@ -5,6 +5,7 @@ import "gorm.io/gorm"
 type GameChallenge struct {
 	ID          uint       `json:"id"`
 	GameID      uint       `gorm:"uniqueIndex:game_challenge_idx" json:"game_id"`
+	Game        *Game      `json:"game"`
 	ChallengeID uint       `gorm:"uniqueIndex:game_challenge_idx" json:"challenge_id"`
 	Challenge   *Challenge `json:"challenge"`
 	IsEnabled   *bool      `gorm:"default:false;not null;" json:"is_enabled"`

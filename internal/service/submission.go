@@ -26,6 +26,7 @@ type SubmissionService struct {
 	userRepository          repository.IUserRepository
 	gameChallengeRepository repository.IGameChallengeRepository
 	flagGenRepository       repository.IFlagGenRepository
+	gameRepository          repository.IGameRepository
 }
 
 func NewSubmissionService(appRepository *repository.Repository) ISubmissionService {
@@ -36,6 +37,7 @@ func NewSubmissionService(appRepository *repository.Repository) ISubmissionServi
 		userRepository:          appRepository.UserRepository,
 		gameChallengeRepository: appRepository.GameChallengeRepository,
 		flagGenRepository:       appRepository.FlagGenRepository,
+		gameRepository:          appRepository.GameRepository,
 	}
 }
 
@@ -134,7 +136,26 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 				GameID:      *(req.GameID),
 				ChallengeID: req.ChallengeID,
 			})
-			pts = calculate.ChallengePts(chas[0].MaxPts, chas[0].MinPts, challenge.Difficulty, len(chas[0].Challenge.Submissions))
+			games, _, _ := t.gameRepository.Find(request.GameFindRequest{
+				ID: *(req.GameID),
+			})
+			if len(chas) > 0 && len(games) > 0 {
+				cha := chas[0]
+				game := games[0]
+				ss := cha.MaxPts
+				R := cha.MinPts
+				d := cha.Challenge.Difficulty
+				x := len(cha.Challenge.Submissions)
+				pts = calculate.ChallengePts(ss, R, d, x)
+				switch x {
+				case 0:
+					pts = int64(math.Floor(((game.FirstBloodRewardRatio / 100) + 1) * float64(pts)))
+				case 1:
+					pts = int64(math.Floor(((game.SecondBloodRewardRatio / 100) + 1) * float64(pts)))
+				case 2:
+					pts = int64(math.Floor(((game.ThirdBloodRewardRatio / 100) + 1) * float64(pts)))
+				}
+			}
 		} else {
 			pts = challenge.PracticePts
 		}

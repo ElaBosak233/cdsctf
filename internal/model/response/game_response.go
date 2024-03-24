@@ -23,6 +23,9 @@ type GameChallengeResponse struct {
 
 type GameTeamResponse struct {
 	*model.Team
+	Solved    int    `json:"solved"`
+	Rank      int    `json:"rank"`
+	Pts       int64  `json:"pts"`
 	IsAllowed bool   `json:"is_allowed"`
 	Signature string `json:"signature"`
 }

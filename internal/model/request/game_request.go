@@ -96,6 +96,7 @@ type GameTeamUpdateRequest struct {
 
 type GameTeamFindRequest struct {
 	GameID uint `json:"game_id" form:"game_id"`
+	TeamID uint `json:"team_id" form:"team_id"`
 }
 
 type GameTeamDeleteRequest struct {

@@ -20,6 +20,7 @@ type IGameController interface {
 	BroadCast(ctx *gin.Context)
 	Scoreboard(ctx *gin.Context)
 	FindTeam(ctx *gin.Context)
+	FindTeamByID(ctx *gin.Context)
 	CreateTeam(ctx *gin.Context)
 	UpdateTeam(ctx *gin.Context)
 	DeleteTeam(ctx *gin.Context)
@@ -206,7 +207,7 @@ func (g *GameController) FindTeam(ctx *gin.Context) {
 		GameID: convertor.ToUintD(ctx.Param("id"), 0),
 	})
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 		})
 		return
@@ -214,6 +215,37 @@ func (g *GameController) FindTeam(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"data": teams,
+	})
+}
+
+// FindTeamByID
+// @Summary 查询比赛的团队
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /games/{id}/teams/{team_id} [get]
+func (g *GameController) FindTeamByID(ctx *gin.Context) {
+	teams, err := g.gameService.FindTeam(request.GameTeamFindRequest{
+		GameID: convertor.ToUintD(ctx.Param("id"), 0),
+		TeamID: convertor.ToUintD(ctx.Param("team_id"), 0),
+	})
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
+	}
+	if len(teams) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusOK,
+			"data": nil,
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": teams[0],
 	})
 }
 

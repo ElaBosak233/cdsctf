@@ -899,6 +899,24 @@ const docTemplate = `{
             }
         },
         "/games/{id}/teams/{team_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "查询比赛的团队",
+                "responses": {}
+            },
             "put": {
                 "security": [
                     {
