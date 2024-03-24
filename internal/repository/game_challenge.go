@@ -62,6 +62,7 @@ func (t *GameChallengeRepository) Find(req request.GameChallengeFindRequest) (ga
 				}).
 				Omit("flags", "images", "is_practicable", "practice_pts", "created_at", "updated_at")
 		}).
+		Preload("Game").
 		Find(&gameChallenges)
 	return gameChallenges, result.Error
 }

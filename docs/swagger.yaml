@@ -931,6 +931,17 @@ paths:
       summary: 删除比赛的团队
       tags:
       - Game
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 查询比赛的团队
+      tags:
+      - Game
     put:
       consumes:
       - application/json

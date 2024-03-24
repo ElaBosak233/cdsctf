@@ -137,6 +137,13 @@ func (g *GameService) FindChallenge(req request.GameChallengeFindRequest) (chall
 			pts = int64(math.Floor(((game.ThirdBloodRewardRatio / 100) + 1) * float64(pts)))
 		}
 		challenge.Pts = pts
+		for _, submission := range challenge.Submissions {
+			if req.TeamID != 0 && submission.TeamID == req.TeamID {
+				sub := submission
+				challenge.Solved = sub
+				break
+			}
+		}
 		switch x {
 		case 0:
 			challenge.Submissions = challenge.Submissions[:0]
@@ -175,12 +182,34 @@ func (g *GameService) DeleteChallenge(req request.GameChallengeDeleteRequest) (e
 func (g *GameService) FindTeam(req request.GameTeamFindRequest) (teams []response.GameTeamResponse, err error) {
 	gameTeams, err := g.gameTeamRepository.Find(model.GameTeam{
 		GameID: req.GameID,
+		TeamID: req.TeamID,
 	})
+	submissions, _, err := g.submissionRepository.Find(request.SubmissionFindRequest{
+		GameID: &req.GameID,
+		Status: 2,
+	})
+	for i := range gameTeams {
+		gameTeams[i].Rank = 1
+		gameTeams[i].Pts = 0
+		gameTeams[i].Solved = 0
+		for _, submission := range submissions {
+			if submission.TeamID == gameTeams[i].TeamID {
+				gameTeams[i].Pts += submission.Pts
+				gameTeams[i].Solved++
+			}
+		}
+	}
+	for i := range gameTeams {
+		for j := range gameTeams {
+			if gameTeams[i].Pts < gameTeams[j].Pts {
+				gameTeams[i].Rank++
+			}
+		}
+	}
 	for _, gameTeam := range gameTeams {
 		var team response.GameTeamResponse
+		_ = mapstructure.Decode(gameTeam, &team)
 		_ = mapstructure.Decode(*(gameTeam.Team), &team.Team)
-		team.IsAllowed = *gameTeam.IsAllowed
-		team.Signature = gameTeam.Signature
 		teams = append(teams, team)
 	}
 	return teams, err
