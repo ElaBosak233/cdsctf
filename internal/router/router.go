@@ -39,4 +39,5 @@ func InitRouter(
 	NewGameRouter(r.router.Group("/games"), r.controller.GameController).Register()
 	NewCategoryRouter(r.router.Group("/categories"), r.controller.CategoryController).Register()
 	NewProxyRouter(r.router.Group("/proxies"), r.controller.ProxyController).Register()
+	NewGroupRouter(r.router.Group("/groups"), r.controller.GroupController).Register()
 }

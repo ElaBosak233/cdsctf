@@ -51,7 +51,7 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 			q = q.Where("email LIKE ?", "%"+req.Email+"%")
 		}
 		if req.Name != "" {
-			q = q.Where("name LIKE ? OR username LIKE ?", "%"+req.Name+"%", "%"+req.Name+"%")
+			q = q.Where("nickname LIKE ? OR username LIKE ?", "%"+req.Name+"%", "%"+req.Name+"%")
 		}
 		return q
 	}

@@ -114,7 +114,7 @@ func (g *GameService) FindChallenge(req request.GameChallengeFindRequest) (chall
 		ID: req.GameID,
 	})
 	game := games[0]
-	gameChallenges, err := g.gameChallengeRepository.FindByGameID(req)
+	gameChallenges, err := g.gameChallengeRepository.Find(req)
 	for _, gameChallenge := range gameChallenges {
 		var challenge response.GameChallengeResponse
 		_ = mapstructure.Decode(gameChallenge, &challenge)

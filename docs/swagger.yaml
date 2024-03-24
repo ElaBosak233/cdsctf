@@ -184,6 +184,15 @@ definitions:
       title:
         type: string
     type: object
+  request.GroupUpdateRequest:
+    properties:
+      description:
+        type: string
+      display_name:
+        type: string
+      id:
+        type: integer
+    type: object
   request.PodCreateRequest:
     properties:
       challenge_id:
@@ -929,6 +938,45 @@ paths:
       summary: 允许加入比赛
       tags:
       - Game
+  /groups/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - in: query
+        name: id
+        type: integer
+      - in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Find groups
+      tags:
+      - Group
+  /groups/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: GroupUpdateRequest
+        in: body
+        name: 更新请求
+        required: true
+        schema:
+          $ref: '#/definitions/request.GroupUpdateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update group
+      tags:
+      - Group
   /media/challenges/attachments/{id}:
     delete:
       consumes:
