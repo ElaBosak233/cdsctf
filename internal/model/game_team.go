@@ -6,6 +6,6 @@ type GameTeam struct {
 	Team      *Team  `json:"team"`
 	GameID    uint   `gorm:"uniqueIndex:game_team_idx" json:"game_id"`
 	Game      *Game  `json:"game"`
-	Allowed   *bool  `gorm:"default:false;not null;" json:"allowed"`
+	IsAllowed *bool  `gorm:"default:false;not null;" json:"is_allowed"`
 	Signature string `gorm:"unique" json:"signature"`
 }

@@ -3,7 +3,6 @@ package repository
 import (
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"gorm.io/gorm"
 )
 
@@ -12,7 +11,6 @@ type ITeamRepository interface {
 	Update(team model.Team) (err error)
 	Delete(id uint) (err error)
 	Find(req request.TeamFindRequest) (teams []model.Team, count int64, err error)
-	BatchFindByUserId(req request.TeamBatchFindByUserIdRequest) (teams []response.TeamResponseWithUserId, err error)
 	FindById(id uint) (team model.Team, err error)
 }
 
@@ -30,7 +28,7 @@ func (t *TeamRepository) Insert(team model.Team) (te model.Team, err error) {
 }
 
 func (t *TeamRepository) Update(team model.Team) (err error) {
-	result := t.db.Table("team").Model(&team).Updates(&team)
+	result := t.db.Table("teams").Model(&team).Updates(&team)
 	return result.Error
 }
 
@@ -67,18 +65,14 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, 
 	}
 
 	result = db.
-		Preload("Captain").
-		Preload("Users").
+		Preload("Captain", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "nickname", "username", "email"})
+		}).
+		Preload("Users", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "nickname", "username", "email"})
+		}).
 		Find(&teams)
 	return teams, count, result.Error
-}
-
-func (t *TeamRepository) BatchFindByUserId(req request.TeamBatchFindByUserIdRequest) (teams []response.TeamResponseWithUserId, err error) {
-	result := t.db.Table("teams").
-		Joins("INNER JOIN user_teams ON user_teams.team_id = teams.id").
-		Where("user_teams.user_id = ?", req.UserID).
-		Find(&teams)
-	return teams, result.Error
 }
 
 func (t *TeamRepository) FindById(id uint) (team model.Team, err error) {

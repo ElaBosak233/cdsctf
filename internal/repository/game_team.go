@@ -40,7 +40,17 @@ func (g *GameTeamRepository) Update(gameTeam model.GameTeam) (err error) {
 }
 
 func (g *GameTeamRepository) Find(gameTeam model.GameTeam) (gameTeams []model.GameTeam, err error) {
-	result := g.db.Table("game_teams").Where(&gameTeam).Find(&gameTeams)
+	result := g.db.Table("game_teams").
+		Where(&gameTeam).
+		Preload("Team", func(db *gorm.DB) *gorm.DB {
+			return db.Preload("Captain", func(db *gorm.DB) *gorm.DB {
+				return db.Select([]string{"id", "nickname", "username", "email"})
+			}).Preload("Users", func(db *gorm.DB) *gorm.DB {
+				return db.Select([]string{"id", "nickname", "username", "email"})
+			})
+		}).
+		Preload("Game").
+		Find(&gameTeams)
 	return gameTeams, result.Error
 }
 

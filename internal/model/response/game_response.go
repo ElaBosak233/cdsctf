@@ -5,12 +5,12 @@ import (
 )
 
 type GameResponse struct {
-	model.Game `xorm:"extends"`
+	model.Game
 }
 
 type GameSimpleResponse struct {
-	ID    int64  `xorm:"'id'" json:"id"`
-	Title string `xorm:"'title'" json:"title"`
+	ID    int64  `json:"id"`
+	Title string `json:"title"`
 }
 
 type GameChallengeResponse struct {
@@ -19,4 +19,10 @@ type GameChallengeResponse struct {
 	MaxPts    int   `json:"max_pts"`
 	MinPts    int   `json:"min_pts"`
 	Pts       int64 `json:"pts"`
+}
+
+type GameTeamResponse struct {
+	*model.Team
+	IsAllowed bool   `json:"is_allowed"`
+	Signature string `json:"signature"`
 }

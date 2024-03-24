@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/elabosak233/cloudsdale/internal/hub"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -21,6 +22,7 @@ type IGameController interface {
 	FindTeam(ctx *gin.Context)
 	CreateTeam(ctx *gin.Context)
 	UpdateTeam(ctx *gin.Context)
+	DeleteTeam(ctx *gin.Context)
 	FindChallenge(ctx *gin.Context)
 	CreateChallenge(ctx *gin.Context)
 	UpdateChallenge(ctx *gin.Context)
@@ -200,8 +202,8 @@ func (g *GameController) DeleteChallenge(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /games/{id}/teams [get]
 func (g *GameController) FindTeam(ctx *gin.Context) {
-	teams, pageCount, total, err := g.teamService.Find(request.TeamFindRequest{
-		GameID: convertor.ToUintP(ctx.Param("id")),
+	teams, err := g.gameService.FindTeam(request.GameTeamFindRequest{
+		GameID: convertor.ToUintD(ctx.Param("id"), 0),
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -210,10 +212,8 @@ func (g *GameController) FindTeam(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":  http.StatusOK,
-		"data":  teams,
-		"total": total,
-		"pages": pageCount,
+		"code": http.StatusOK,
+		"data": teams,
 	})
 }
 
@@ -224,21 +224,22 @@ func (g *GameController) FindTeam(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param 加入请求 body request.GameJoinRequest true "GameJoinRequest"
+// @Param 加入请求 body request.GameTeamCreateRequest true "GameTeamCreateRequest"
 // @Router /games/{id}/teams [post]
 func (g *GameController) CreateTeam(ctx *gin.Context) {
-	gameJoinRequest := request.GameJoinRequest{}
-	err := ctx.ShouldBindJSON(&gameJoinRequest)
+	gameTeamCreateRequest := request.GameTeamCreateRequest{}
+	err := ctx.ShouldBindJSON(&gameTeamCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &gameJoinRequest),
+			"msg":  validator.GetValidMsg(err, &gameTeamCreateRequest),
 		})
 		return
 	}
-	gameJoinRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	gameJoinRequest.TeamID = convertor.ToUintD(ctx.Param("team_id"), 0)
-	err = g.gameService.Join(gameJoinRequest)
+	user, _ := ctx.Get("user")
+	gameTeamCreateRequest.UserID = user.(*response.UserResponse).ID
+	gameTeamCreateRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
+	err = g.gameService.CreateTeam(gameTeamCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
@@ -258,13 +259,39 @@ func (g *GameController) CreateTeam(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param 允许加入请求 body request.GameAllowJoinRequest true "GameAllowJoinRequest"
+// @Param 允许加入请求 body request.GameTeamUpdateRequest true "GameTeamUpdateRequest"
 // @Router /games/{id}/teams/{team_id} [put]
 func (g *GameController) UpdateTeam(ctx *gin.Context) {
-	gameAllowJoinRequest := request.GameAllowJoinRequest{}
+	gameAllowJoinRequest := request.GameTeamUpdateRequest{}
 	gameAllowJoinRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	gameAllowJoinRequest.TeamID = convertor.ToUintD(ctx.Param("team_id"), 0)
-	err := g.gameService.AllowJoin(gameAllowJoinRequest)
+	err := ctx.ShouldBindJSON(&gameAllowJoinRequest)
+	err = g.gameService.UpdateTeam(gameAllowJoinRequest)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// DeleteTeam
+// @Summary 删除比赛的团队
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /games/{id}/teams/{team_id} [delete]
+func (g *GameController) DeleteTeam(ctx *gin.Context) {
+	gameTeamDeleteRequest := request.GameTeamDeleteRequest{}
+	gameTeamDeleteRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
+	gameTeamDeleteRequest.TeamID = convertor.ToUintD(ctx.Param("team_id"), 0)
+	err := g.gameService.DeleteTeam(gameTeamDeleteRequest)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusBadRequest,
