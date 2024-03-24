@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
@@ -29,8 +30,10 @@ type IGameService interface {
 	CreateChallenge(req request.GameChallengeCreateRequest) (err error)
 	UpdateChallenge(req request.GameChallengeUpdateRequest) (err error)
 	DeleteChallenge(req request.GameChallengeDeleteRequest) (err error)
-	Join(req request.GameJoinRequest) (err error)
-	AllowJoin(req request.GameAllowJoinRequest) (err error)
+	FindTeam(req request.GameTeamFindRequest) (teams []response.GameTeamResponse, err error)
+	CreateTeam(req request.GameTeamCreateRequest) (err error)
+	UpdateTeam(req request.GameTeamUpdateRequest) (err error)
+	DeleteTeam(req request.GameTeamDeleteRequest) (err error)
 }
 
 type GameService struct {
@@ -40,6 +43,7 @@ type GameService struct {
 	submissionRepository    repository.ISubmissionRepository
 	challengeRepository     repository.IChallengeRepository
 	teamRepository          repository.ITeamRepository
+	userRepository          repository.IUserRepository
 }
 
 func NewGameService(appRepository *repository.Repository) IGameService {
@@ -50,6 +54,7 @@ func NewGameService(appRepository *repository.Repository) IGameService {
 		submissionRepository:    appRepository.SubmissionRepository,
 		challengeRepository:     appRepository.ChallengeRepository,
 		teamRepository:          appRepository.TeamRepository,
+		userRepository:          appRepository.UserRepository,
 	}
 }
 
@@ -167,7 +172,21 @@ func (g *GameService) DeleteChallenge(req request.GameChallengeDeleteRequest) (e
 	return err
 }
 
-func (g *GameService) Join(req request.GameJoinRequest) (err error) {
+func (g *GameService) FindTeam(req request.GameTeamFindRequest) (teams []response.GameTeamResponse, err error) {
+	gameTeams, err := g.gameTeamRepository.Find(model.GameTeam{
+		GameID: req.GameID,
+	})
+	for _, gameTeam := range gameTeams {
+		var team response.GameTeamResponse
+		_ = mapstructure.Decode(*(gameTeam.Team), &team.Team)
+		team.IsAllowed = *gameTeam.IsAllowed
+		team.Signature = gameTeam.Signature
+		teams = append(teams, team)
+	}
+	return teams, err
+}
+
+func (g *GameService) CreateTeam(req request.GameTeamCreateRequest) (err error) {
 	games, _, err := g.gameRepository.Find(request.GameFindRequest{
 		ID: req.ID,
 	})
@@ -176,26 +195,30 @@ func (g *GameService) Join(req request.GameJoinRequest) (err error) {
 		ID: req.TeamID,
 	})
 	team := teams[0]
-	if req.UserID != team.Captain.ID {
-		return
+	users, _, err := g.userRepository.Find(request.UserFindRequest{
+		ID: req.UserID,
+	})
+	user := users[0]
+	if req.UserID != team.Captain.ID && (user.Group.Name != "admin" && user.Group.Name != "monitor") {
+		return errors.New("invalid team captain")
 	}
 
 	allowed := convertor.FalseP()
 
-	if game.Password != "" {
+	if game.Password != "" && !(*(game.IsPublic)) {
 		hasher := crypto.SHA256.New()
 		hasher.Write([]byte(req.Password))
 		hashBytes := hasher.Sum(nil)
 		if hex.EncodeToString(hashBytes) != game.Password {
-			return
+			return errors.New("invalid password")
 		}
 		allowed = convertor.TrueP()
 	}
 
 	gameTeam := model.GameTeam{
-		TeamID:  team.ID,
-		GameID:  game.ID,
-		Allowed: allowed,
+		TeamID:    team.ID,
+		GameID:    game.ID,
+		IsAllowed: allowed,
 	}
 
 	sig, _ := signature.Sign(game.PrivateKey, strconv.Itoa(int(team.ID)))
@@ -205,13 +228,23 @@ func (g *GameService) Join(req request.GameJoinRequest) (err error) {
 	return err
 }
 
-func (g *GameService) AllowJoin(req request.GameAllowJoinRequest) (err error) {
+func (g *GameService) UpdateTeam(req request.GameTeamUpdateRequest) (err error) {
 	gameTeams, err := g.gameTeamRepository.Find(model.GameTeam{
-		ID:     req.ID,
+		GameID: req.ID,
 		TeamID: req.TeamID,
 	})
 	gameTeam := gameTeams[0]
-	gameTeam.Allowed = req.Allowed
+	gameTeam.IsAllowed = req.IsAllowed
 	err = g.gameTeamRepository.Update(gameTeam)
+	return err
+}
+
+func (g *GameService) DeleteTeam(req request.GameTeamDeleteRequest) (err error) {
+	gameTeams, err := g.gameTeamRepository.Find(model.GameTeam{
+		GameID: req.GameID,
+		TeamID: req.TeamID,
+	})
+	gameTeam := gameTeams[0]
+	err = g.gameTeamRepository.Delete(gameTeam)
 	return err
 }

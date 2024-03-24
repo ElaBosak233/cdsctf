@@ -12,9 +12,7 @@ type IUserRepository interface {
 	Delete(id uint) error
 	FindById(id uint) (user model.User, err error)
 	FindByUsername(username string) (user model.User, err error)
-	FindByEmail(email string) (user model.User, err error)
 	Find(req request.UserFindRequest) (user []model.User, count int64, err error)
-	BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []model.User, err error)
 }
 
 type UserRepository struct {
@@ -68,22 +66,16 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 	}
 	result = db.
 		Preload("Group").
+		Preload("Teams").
 		Find(&users)
 	return users, count, result.Error
-}
-
-func (t *UserRepository) BatchFindByTeamId(req request.UserBatchFindByTeamIdRequest) (users []model.User, err error) {
-	err = t.db.Table("users").
-		Joins("INNER JOIN user_team ON users.id = user_team.user_id").
-		Where("user_team.team_id = ?", req.TeamID).
-		Find(&users).Error
-	return users, err
 }
 
 func (t *UserRepository) FindById(id uint) (user model.User, err error) {
 	result := t.db.Table("users").
 		Where("id = ?", id).
 		Preload("Group").
+		Preload("Teams").
 		First(&user)
 	return user, result.Error
 }
@@ -93,14 +85,6 @@ func (t *UserRepository) FindByUsername(username string) (user model.User, err e
 		Where("username = ?", username).
 		Preload("Group").
 		Preload("Teams").
-		First(&user)
-	return user, result.Error
-}
-
-func (t *UserRepository) FindByEmail(email string) (user model.User, err error) {
-	result := t.db.Table("users").
-		Where("email = ?", email).
-		Preload("Group").
 		First(&user)
 	return user, result.Error
 }

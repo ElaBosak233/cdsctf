@@ -886,12 +886,12 @@ const docTemplate = `{
                 "summary": "加入比赛",
                 "parameters": [
                     {
-                        "description": "GameJoinRequest",
+                        "description": "GameTeamCreateRequest",
                         "name": "加入请求",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.GameJoinRequest"
+                            "$ref": "#/definitions/request.GameTeamCreateRequest"
                         }
                     }
                 ],
@@ -917,15 +917,33 @@ const docTemplate = `{
                 "summary": "允许加入比赛",
                 "parameters": [
                     {
-                        "description": "GameAllowJoinRequest",
+                        "description": "GameTeamUpdateRequest",
                         "name": "允许加入请求",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.GameAllowJoinRequest"
+                            "$ref": "#/definitions/request.GameTeamUpdateRequest"
                         }
                     }
                 ],
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "删除比赛的团队",
                 "responses": {}
             }
         },
@@ -2251,14 +2269,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.GameAllowJoinRequest": {
-            "type": "object",
-            "properties": {
-                "allowed": {
-                    "type": "boolean"
-                }
-            }
-        },
         "request.GameCreateRequest": {
             "type": "object",
             "required": [
@@ -2315,7 +2325,7 @@ const docTemplate = `{
         "request.GameDeleteRequest": {
             "type": "object"
         },
-        "request.GameJoinRequest": {
+        "request.GameTeamCreateRequest": {
             "type": "object",
             "properties": {
                 "password": {
@@ -2326,6 +2336,14 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.GameTeamUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "is_allowed": {
+                    "type": "boolean"
                 }
             }
         },

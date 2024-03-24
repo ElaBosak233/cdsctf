@@ -22,7 +22,6 @@ type IUserService interface {
 	Delete(id uint) error
 	FindById(id uint) (response.UserResponse, error)
 	FindByUsername(username string) (response.UserResponse, error)
-	FindByEmail(email string) (user response.UserResponse, err error)
 	VerifyPasswordById(id uint, password string) bool
 	VerifyPasswordByUsername(username string, password string) bool
 	GetJwtTokenById(user response.UserResponse) (tokenString string, err error)
@@ -144,15 +143,6 @@ func (t *UserService) FindByUsername(username string) (response.UserResponse, er
 	userResp := response.UserResponse{}
 	_ = mapstructure.Decode(userData, &userResp)
 	return userResp, nil
-}
-
-func (t *UserService) FindByEmail(email string) (user response.UserResponse, err error) {
-	userData, err := t.userRepository.FindByEmail(email)
-	if err != nil {
-		return user, errors.New("用户不存在")
-	}
-	_ = mapstructure.Decode(userData, &user)
-	return user, err
 }
 
 func (t *UserService) VerifyPasswordById(id uint, password string) bool {

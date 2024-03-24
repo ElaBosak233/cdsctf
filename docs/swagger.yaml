@@ -100,11 +100,6 @@ definitions:
       request_limit:
         type: integer
     type: object
-  request.GameAllowJoinRequest:
-    properties:
-      allowed:
-        type: boolean
-    type: object
   request.GameCreateRequest:
     properties:
       bio:
@@ -142,7 +137,7 @@ definitions:
     type: object
   request.GameDeleteRequest:
     type: object
-  request.GameJoinRequest:
+  request.GameTeamCreateRequest:
     properties:
       password:
         type: string
@@ -150,6 +145,11 @@ definitions:
         type: integer
       user_id:
         type: integer
+    type: object
+  request.GameTeamUpdateRequest:
+    properties:
+      is_allowed:
+        type: boolean
     type: object
   request.GameUpdateRequest:
     properties:
@@ -905,12 +905,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: GameJoinRequest
+      - description: GameTeamCreateRequest
         in: body
         name: 加入请求
         required: true
         schema:
-          $ref: '#/definitions/request.GameJoinRequest'
+          $ref: '#/definitions/request.GameTeamCreateRequest'
       produces:
       - application/json
       responses: {}
@@ -920,16 +920,27 @@ paths:
       tags:
       - Game
   /games/{id}/teams/{team_id}:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 删除比赛的团队
+      tags:
+      - Game
     put:
       consumes:
       - application/json
       parameters:
-      - description: GameAllowJoinRequest
+      - description: GameTeamUpdateRequest
         in: body
         name: 允许加入请求
         required: true
         schema:
-          $ref: '#/definitions/request.GameAllowJoinRequest'
+          $ref: '#/definitions/request.GameTeamUpdateRequest'
       produces:
       - application/json
       responses: {}
