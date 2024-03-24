@@ -130,12 +130,11 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 	}
 	if status == 2 {
 		if req.GameID != nil && req.TeamID != nil {
-			chas, _ := t.gameChallengeRepository.BatchFindByGameIdAndChallengeId(*(req.GameID), []uint{req.ChallengeID})
-			submissions, _, _ := t.submissionRepository.Find(request.SubmissionFindRequest{
-				GameID:      req.GameID,
+			chas, _ := t.gameChallengeRepository.Find(request.GameChallengeFindRequest{
+				GameID:      *(req.GameID),
 				ChallengeID: req.ChallengeID,
 			})
-			pts = calculate.ChallengePts(chas[0].MaxPts, chas[0].MinPts, challenge.Difficulty, len(submissions))
+			pts = calculate.ChallengePts(chas[0].MaxPts, chas[0].MinPts, challenge.Difficulty, len(chas[0].Challenge.Submissions))
 		} else {
 			pts = challenge.PracticePts
 		}

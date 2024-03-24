@@ -85,8 +85,9 @@ func (g *GameController) Scoreboard(ctx *gin.Context) {
 // @Router /games/{id}/challenges [get]
 func (g *GameController) FindChallenge(ctx *gin.Context) {
 	challenges, err := g.gameService.FindChallenge(request.GameChallengeFindRequest{
-		GameID: convertor.ToUintD(ctx.Param("id"), 0),
-		TeamID: convertor.ToUintD(ctx.Query("team_id"), 0),
+		GameID:    convertor.ToUintD(ctx.Param("id"), 0),
+		TeamID:    convertor.ToUintD(ctx.Query("team_id"), 0),
+		IsEnabled: convertor.ToBoolP(ctx.Query("is_enabled")),
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

@@ -7,11 +7,10 @@ import (
 )
 
 type IGameChallengeRepository interface {
-	FindByGameID(req request.GameChallengeFindRequest) (gameChallenges []model.GameChallenge, err error)
+	Find(req request.GameChallengeFindRequest) (gameChallenges []model.GameChallenge, err error)
 	Insert(gameChallenge model.GameChallenge) (err error)
 	Update(gameChallenge model.GameChallenge) (err error)
 	Delete(gameChallenge model.GameChallenge) (err error)
-	BatchFindByGameIdAndChallengeId(gameID uint, challengeIDs []uint) (gameChallenges []model.GameChallenge, err error)
 }
 
 type GameChallengeRepository struct {
@@ -22,9 +21,21 @@ func NewGameChallengeRepository(db *gorm.DB) IGameChallengeRepository {
 	return &GameChallengeRepository{db: db}
 }
 
-func (t *GameChallengeRepository) FindByGameID(req request.GameChallengeFindRequest) (gameChallenges []model.GameChallenge, err error) {
-	result := t.db.Table("game_challenges").
-		Where("game_id = ?", req.GameID).
+func (t *GameChallengeRepository) Find(req request.GameChallengeFindRequest) (gameChallenges []model.GameChallenge, err error) {
+	applyFilters := func(q *gorm.DB) *gorm.DB {
+		if req.GameID != 0 {
+			q = q.Where("game_id = ?", req.GameID)
+		}
+		if req.ChallengeID != 0 {
+			q = q.Where("challenge_id = ?", req.ChallengeID)
+		}
+		if req.IsEnabled != nil {
+			q = q.Where("is_enabled = ?", *(req.IsEnabled))
+		}
+		return q
+	}
+	db := applyFilters(t.db.Table("game_challenges"))
+	result := db.
 		Preload("Challenge", func(db *gorm.DB) *gorm.DB {
 			return db.
 				Preload("Category", func(dv *gorm.DB) *gorm.DB {
@@ -51,14 +62,6 @@ func (t *GameChallengeRepository) FindByGameID(req request.GameChallengeFindRequ
 				}).
 				Omit("flags", "images", "is_practicable", "practice_pts", "created_at", "updated_at")
 		}).
-		Find(&gameChallenges)
-	return gameChallenges, result.Error
-}
-
-func (t *GameChallengeRepository) BatchFindByGameIdAndChallengeId(gameID uint, challengeIDs []uint) (gameChallenges []model.GameChallenge, err error) {
-	result := t.db.Table("game_challenges").
-		Where("game_id = ?", gameID).
-		Where("challenge_id IN ?", challengeIDs).
 		Find(&gameChallenges)
 	return gameChallenges, result.Error
 }

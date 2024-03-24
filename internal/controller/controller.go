@@ -21,6 +21,7 @@ type Controller struct {
 	GameController       IGameController
 	CategoryController   ICategoryController
 	ProxyController      IProxyController
+	GroupController      IGroupController
 }
 
 func C() *Controller {
@@ -41,6 +42,7 @@ func InitController() {
 		gameController := NewGameController(appService)
 		categoryController := NewCategoryController(appService)
 		proxyController := NewProxyController()
+		groupController := NewGroupController(appService)
 
 		c = &Controller{
 			UserController:       userController,
@@ -53,6 +55,7 @@ func InitController() {
 			GameController:       gameController,
 			CategoryController:   categoryController,
 			ProxyController:      proxyController,
+			GroupController:      groupController,
 		}
 	})
 }
