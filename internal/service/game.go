@@ -1,11 +1,9 @@
 package service
 
 import (
-	"crypto"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/model"
@@ -13,7 +11,6 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
-	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/signature"
 	"github.com/mitchellh/mapstructure"
 	"math"
@@ -65,12 +62,6 @@ func (g *GameService) Create(req request.GameCreateRequest) (err error) {
 		PrivateKey: base64.StdEncoding.EncodeToString(privateKey),
 	}
 	err = mapstructure.Decode(req, &game)
-	if req.Password != "" {
-		hasher := crypto.SHA256.New()
-		hasher.Write([]byte(req.Password))
-		hashBytes := hasher.Sum(nil)
-		game.Password = hex.EncodeToString(hashBytes)
-	}
 	_, err = g.gameRepository.Insert(game)
 	return err
 }
@@ -78,12 +69,6 @@ func (g *GameService) Create(req request.GameCreateRequest) (err error) {
 func (g *GameService) Update(req request.GameUpdateRequest) (err error) {
 	game := model.Game{}
 	err = mapstructure.Decode(req, &game)
-	if req.Password != "" {
-		hasher := crypto.SHA256.New()
-		hasher.Write([]byte(req.Password))
-		hashBytes := hasher.Sum(nil)
-		game.Password = hex.EncodeToString(hashBytes)
-	}
 	err = g.gameRepository.Update(game)
 	return err
 }
@@ -234,22 +219,17 @@ func (g *GameService) CreateTeam(req request.GameTeamCreateRequest) (err error) 
 		return errors.New("invalid team captain")
 	}
 
-	allowed := convertor.FalseP()
-
-	if game.Password != "" && !(*(game.IsPublic)) {
-		hasher := crypto.SHA256.New()
-		hasher.Write([]byte(req.Password))
-		hashBytes := hasher.Sum(nil)
-		if hex.EncodeToString(hashBytes) != game.Password {
-			return errors.New("invalid password")
-		}
-		allowed = convertor.TrueP()
+	var isAllowed bool
+	if game.IsPublic != nil && *game.IsPublic {
+		isAllowed = true
+	} else {
+		isAllowed = false
 	}
 
 	gameTeam := model.GameTeam{
 		TeamID:    team.ID,
 		GameID:    game.ID,
-		IsAllowed: allowed,
+		IsAllowed: &isAllowed,
 	}
 
 	sig, _ := signature.Sign(game.PrivateKey, strconv.Itoa(int(team.ID)))

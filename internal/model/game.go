@@ -13,7 +13,6 @@ type Game struct {
 	PrivateKey             string  `gorm:"type:varchar(255)" json:"-"`                         // The game's private key.
 	IsEnabled              *bool   `gorm:"not null;default:false" json:"is_enabled"`           // Whether the game is enabled.
 	IsPublic               *bool   `gorm:"not null;default:true" json:"is_public"`             // Whether the game is public.
-	Password               string  `gorm:"type:varchar(255)" json:"password"`                  // The game's password. Only enabled when the game is private.
 	MemberLimitMin         int64   `gorm:"not null;default:1" json:"member_limit_min"`         // The minimum team member limit.
 	MemberLimitMax         int64   `gorm:"default:10" json:"member_limit_max"`                 // The maximum team member limit.
 	ParallelContainerLimit int64   `gorm:"not null;default:2" json:"parallel_container_limit"` // The maximum parallel container limit.

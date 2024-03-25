@@ -16,7 +16,6 @@ type GameCreateRequest struct {
 	Description            string  `json:"description"`
 	IsEnabled              *bool   `json:"is_enabled"`
 	IsPublic               *bool   `json:"is_public"`
-	Password               string  `json:"password"`
 	MemberLimitMin         int64   `json:"member_limit_min"`
 	MemberLimitMax         int64   `json:"member_limit_max"`
 	ParallelContainerLimit int64   `json:"parallel_container_limit"`
@@ -35,7 +34,6 @@ type GameUpdateRequest struct {
 	Description            string  `json:"description"`
 	IsEnabled              *bool   `json:"is_enabled"`
 	IsPublic               *bool   `json:"is_public"`
-	Password               string  `json:"password"`
 	MemberLimitMin         int64   `json:"member_limit_min"`
 	MemberLimitMax         int64   `json:"member_limit_max"`
 	ParallelContainerLimit int64   `json:"parallel_container_limit"`
