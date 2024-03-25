@@ -2316,9 +2316,6 @@
                 "parallel_container_limit": {
                     "type": "integer"
                 },
-                "password": {
-                    "type": "string"
-                },
                 "second_blood_reward_ratio": {
                     "type": "number"
                 },
@@ -2390,9 +2387,6 @@
                 },
                 "parallel_container_limit": {
                     "type": "integer"
-                },
-                "password": {
-                    "type": "string"
                 },
                 "second_blood_reward_ratio": {
                     "type": "number"

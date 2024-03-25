@@ -2323,9 +2323,6 @@ const docTemplate = `{
                 "parallel_container_limit": {
                     "type": "integer"
                 },
-                "password": {
-                    "type": "string"
-                },
                 "second_blood_reward_ratio": {
                     "type": "number"
                 },
@@ -2397,9 +2394,6 @@ const docTemplate = `{
                 },
                 "parallel_container_limit": {
                     "type": "integer"
-                },
-                "password": {
-                    "type": "string"
                 },
                 "second_blood_reward_ratio": {
                     "type": "number"
