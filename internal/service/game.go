@@ -182,7 +182,6 @@ func (g *GameService) DeleteChallenge(req request.GameChallengeDeleteRequest) (e
 func (g *GameService) FindTeam(req request.GameTeamFindRequest) (teams []response.GameTeamResponse, err error) {
 	gameTeams, err := g.gameTeamRepository.Find(model.GameTeam{
 		GameID: req.GameID,
-		TeamID: req.TeamID,
 	})
 	submissions, _, err := g.submissionRepository.Find(request.SubmissionFindRequest{
 		GameID: &req.GameID,
@@ -207,6 +206,9 @@ func (g *GameService) FindTeam(req request.GameTeamFindRequest) (teams []respons
 		}
 	}
 	for _, gameTeam := range gameTeams {
+		if req.TeamID != 0 && gameTeam.TeamID != req.TeamID {
+			continue
+		}
 		var team response.GameTeamResponse
 		_ = mapstructure.Decode(gameTeam, &team)
 		_ = mapstructure.Decode(*(gameTeam.Team), &team.Team)
