@@ -9,6 +9,7 @@ type Game struct {
 	Title                  string  `gorm:"type:varchar(64);not null" json:"title"`             // The game's title.
 	Bio                    string  `gorm:"type:text" json:"bio"`                               // The game's short description.
 	Description            string  `gorm:"type:text" json:"description"`                       // The game's description. (Markdown supported.)
+	CoverURL               string  `gorm:"type:varchar(255)" json:"cover_url"`                 // The game's cover image URL.
 	PublicKey              string  `gorm:"type:varchar(255)" json:"public_key"`                // The game's public key.
 	PrivateKey             string  `gorm:"type:varchar(255)" json:"-"`                         // The game's private key.
 	IsEnabled              *bool   `gorm:"not null;default:false" json:"is_enabled"`           // Whether the game is enabled.

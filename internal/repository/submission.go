@@ -67,12 +67,14 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 		Joins("INNER JOIN challenges ON submissions.challenge_id = challenges.id")
 
 	result = db.
-		Preload("User", func(Db *gorm.DB) *gorm.DB {
-			return Db.Select([]string{"id", "username", "nickname", "email"})
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "username", "nickname", "email"})
 		}).
 		Preload("Challenge").
 		Preload("Team").
-		Preload("Game").
+		Preload("Game", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "title", "bio"})
+		}).
 		Find(&submissions)
 	return submissions, count, result.Error
 }
