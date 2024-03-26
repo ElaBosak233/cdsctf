@@ -3,7 +3,7 @@ package model
 type Submission struct {
 	ID          uint       `json:"id"`                                               // The submission's id. As primary key.
 	Flag        string     `gorm:"type:varchar(128);not null" json:"flag,omitempty"` // The flag which was submitted for judgement.
-	Status      int        `gorm:"not null;default:0" json:"status"`                 // The status of the submission. (0-meaningless, 1-accepted, 2-incorrect, 3-cheat, 4-duplicate)
+	Status      int        `gorm:"not null;default:0" json:"status"`                 // The status of the submission. (0-meaningless, 1-accepted, 2-incorrect, 3-cheat, 4-invalid(duplicate, etc.))
 	UserID      uint       `gorm:"not null" json:"user_id"`                          // The user who submitted the flag.
 	User        *User      `json:"user"`                                             // The user who submitted the flag.
 	ChallengeID uint       `gorm:"not null;" json:"challenge_id"`                    // The challenge which is related to this submission.

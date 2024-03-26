@@ -12,6 +12,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/crypto/bcrypt"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -69,8 +70,8 @@ func (t *UserService) GetIdByJwtToken(token string) (id uint, err error) {
 func (t *UserService) Create(req request.UserCreateRequest) (err error) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	userModel := model.User{
-		Username: req.Username,
-		Email:    req.Email,
+		Username: strings.ToLower(req.Username),
+		Email:    strings.ToLower(req.Email),
 		Nickname: req.Nickname,
 		GroupID:  req.GroupID,
 		Password: string(hashedPassword),
@@ -85,8 +86,8 @@ func (t *UserService) Register(req request.UserRegisterRequest) (err error) {
 	success, err := capt.Verify(req.CaptchaToken, req.RemoteIP)
 	if success {
 		userModel := model.User{
-			Username: req.Username,
-			Email:    req.Email,
+			Username: strings.ToLower(req.Username),
+			Email:    strings.ToLower(req.Email),
 			Nickname: req.Nickname,
 			GroupID:  3,
 			Password: string(hashedPassword),
@@ -102,6 +103,12 @@ func (t *UserService) Update(req request.UserUpdateRequest) (err error) {
 	if req.Password != "" {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		userModel.Password = string(hashedPassword)
+	}
+	if req.Username != "" {
+		userModel.Username = strings.ToLower(req.Username)
+	}
+	if req.Email != "" {
+		userModel.Email = strings.ToLower(req.Email)
 	}
 	err = t.userRepository.Update(userModel)
 	return err
@@ -136,7 +143,7 @@ func (t *UserService) FindById(id uint) (response.UserResponse, error) {
 }
 
 func (t *UserService) FindByUsername(username string) (response.UserResponse, error) {
-	userData, err := t.userRepository.FindByUsername(username)
+	userData, err := t.userRepository.FindByUsername(strings.ToLower(username))
 	if err != nil {
 		return response.UserResponse{}, errors.New("用户不存在")
 	}
@@ -155,7 +162,7 @@ func (t *UserService) VerifyPasswordById(id uint, password string) bool {
 }
 
 func (t *UserService) VerifyPasswordByUsername(username string, password string) bool {
-	userData, err := t.userRepository.FindByUsername(username)
+	userData, err := t.userRepository.FindByUsername(strings.ToLower(username))
 	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
 	if err != nil {
 		return false

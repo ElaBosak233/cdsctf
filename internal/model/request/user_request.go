@@ -25,7 +25,7 @@ type UserRegisterRequest struct {
 }
 
 type UserCreateRequest struct {
-	Username string `binding:"required,max=20,min=3" json:"username" msg:"用户名必须位于 3 ~ 20 位"`
+	Username string `binding:"required,max=20,min=3,ascii" json:"username" msg:"用户名必须位于 3 ~ 20 位"`
 	Nickname string `binding:"required,min=2" json:"nickname" msg:"昵称必须有 2 位"`
 	Email    string `binding:"required,email" json:"email" msg:"邮箱必须有效"`
 	Password string `binding:"required,min=6" json:"password" msg:"密码必须大于 6 位"`
@@ -33,7 +33,7 @@ type UserCreateRequest struct {
 }
 
 type UserLoginRequest struct {
-	Username string `binding:"required" json:"username"`
+	Username string `binding:"required,ascii" json:"username"`
 	Password string `binding:"required" json:"password"`
 }
 
