@@ -129,16 +129,8 @@ func (g *GameService) FindChallenge(req request.GameChallengeFindRequest) (chall
 				break
 			}
 		}
-		switch x {
-		case 0:
-			break
-		case 1:
-			challenge.Submissions = challenge.Submissions[:1]
-		case 2:
-			challenge.Submissions = challenge.Submissions[:2]
-		case 3:
-		default:
-			challenge.Submissions = challenge.Submissions[:3]
+		if req.SubmissionQty > 0 {
+			challenge.Submissions = challenge.Submissions[:min(req.SubmissionQty, len(challenge.Submissions))]
 		}
 		challenges = append(challenges, challenge)
 	}

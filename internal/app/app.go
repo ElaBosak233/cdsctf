@@ -18,8 +18,11 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/router"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
+	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	v10 "github.com/go-playground/validator/v10"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
@@ -55,6 +58,10 @@ func Run() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.New()
+
+	if v, ok := binding.Validator.Engine().(*v10.Validate); ok {
+		_ = v.RegisterValidation("ascii", validator.IsASCII)
+	}
 
 	r.Use(adapter.GinLogger(), adapter.GinRecovery(true))
 

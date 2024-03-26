@@ -50,10 +50,11 @@ type GameDeleteRequest struct {
 }
 
 type GameChallengeFindRequest struct {
-	GameID      uint  `json:"game_id"`
-	ChallengeID uint  `json:"challenge_id"`
-	TeamID      uint  `json:"team_id"`
-	IsEnabled   *bool `json:"is_enabled"`
+	GameID        uint  `json:"game_id"`
+	ChallengeID   uint  `json:"challenge_id"`
+	TeamID        uint  `json:"team_id"`
+	IsEnabled     *bool `json:"is_enabled"`
+	SubmissionQty int   `json:"submission_qty"`
 }
 
 type GameChallengeCreateRequest struct {
