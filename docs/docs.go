@@ -1116,58 +1116,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/media/games/cover/{id}": {
-            "get": {
-                "description": "通过比赛 Id 获取比赛封面",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "通过比赛 Id 获取比赛封面",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "比赛 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "post": {
-                "description": "通过比赛 Id 设置比赛封面",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "通过比赛 Id 设置比赛封面",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "比赛 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "封面文件",
-                        "name": "avatar",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/media/games/writeups/{id}": {
             "get": {
                 "description": "通过团队 Id 获取比赛 Writeup",
@@ -2096,6 +2044,9 @@ const docTemplate = `{
                 "bio": {
                     "type": "string"
                 },
+                "cover_url": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -2166,6 +2117,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "bio": {
+                    "type": "string"
+                },
+                "cover_url": {
                     "type": "string"
                 },
                 "description": {

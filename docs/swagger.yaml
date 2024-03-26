@@ -104,6 +104,8 @@ definitions:
     properties:
       bio:
         type: string
+      cover_url:
+        type: string
       description:
         type: string
       ended_at:
@@ -152,6 +154,8 @@ definitions:
   request.GameUpdateRequest:
     properties:
       bio:
+        type: string
+      cover_url:
         type: string
       description:
         type: string
@@ -1060,42 +1064,6 @@ paths:
         type: string
       responses: {}
       summary: 通过题目 Id 查找题目附件信息
-      tags:
-      - Media
-  /media/games/cover/{id}:
-    get:
-      consumes:
-      - application/json
-      description: 通过比赛 Id 获取比赛封面
-      parameters:
-      - description: 比赛 Id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: 通过比赛 Id 获取比赛封面
-      tags:
-      - Media
-    post:
-      consumes:
-      - multipart/form-data
-      description: 通过比赛 Id 设置比赛封面
-      parameters:
-      - description: 比赛 Id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: 封面文件
-        in: formData
-        name: avatar
-        required: true
-        type: file
-      responses: {}
-      summary: 通过比赛 Id 设置比赛封面
       tags:
       - Media
   /media/games/writeups/{id}:

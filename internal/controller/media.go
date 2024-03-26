@@ -13,8 +13,6 @@ import (
 )
 
 type IMediaController interface {
-	GetGameCoverByGameId(ctx *gin.Context) // 获取比赛封面
-	SetGameCoverByGameId(ctx *gin.Context) // 设置比赛封面
 	FindGameWriteUpByTeamId(ctx *gin.Context)
 	SetChallengeAttachmentByChallengeId(ctx *gin.Context)     // 设置题目附件
 	DeleteChallengeAttachmentByChallengeId(ctx *gin.Context)  // 删除题目附件
@@ -30,63 +28,6 @@ func NewMediaController(appService *service.Service) IMediaController {
 	return &MediaController{
 		mediaService: appService.MediaService,
 	}
-}
-
-// GetGameCoverByGameId
-// @Summary 通过比赛 Id 获取比赛封面
-// @Description 通过比赛 Id 获取比赛封面
-// @Tags Media
-// @Accept json
-// @Produce json
-// @Param id path string true "比赛 Id"
-// @Router /media/games/cover/{id} [get]
-func (c *MediaController) GetGameCoverByGameId(ctx *gin.Context) {
-	id := ctx.Param("id")
-	path := fmt.Sprintf("%s/games/cover/%s", config.AppCfg().Gin.Paths.Media, id)
-	_, err := os.Stat(path)
-	if err == nil {
-		ctx.File(path)
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusNotFound,
-		})
-	}
-}
-
-// SetGameCoverByGameId
-// @Summary 通过比赛 Id 设置比赛封面
-// @Description 通过比赛 Id 设置比赛封面
-// @Tags Media
-// @Accept multipart/form-data
-// @Param id path string true "比赛 Id"
-// @Param avatar formData file true "封面文件"
-// @Router /media/games/cover/{id} [post]
-func (c *MediaController) SetGameCoverByGameId(ctx *gin.Context) {
-	id := ctx.Param("id")
-	file, err := ctx.FormFile("avatar")
-	if err != nil {
-		ctx.Status(http.StatusBadRequest)
-		return
-	}
-	mime, err := c.detectContentType(file)
-	if !mime.Is("image/jpeg") && !mime.Is("image/png") && !mime.Is("image/gif") {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  "格式不被允许",
-		})
-		return
-	}
-	err = ctx.SaveUploadedFile(file, fmt.Sprintf("%s/games/cover/%s", config.AppCfg().Gin.Paths.Media, id))
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusInternalServerError,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-	})
 }
 
 // FindGameWriteUpByTeamId
