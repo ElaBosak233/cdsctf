@@ -42,6 +42,7 @@ func (t *TeamService) Create(req request.TeamCreateRequest) error {
 			Name:        req.Name,
 			CaptainID:   req.CaptainId,
 			Description: req.Description,
+			Email:       req.Email,
 			IsLocked:    &isLocked,
 		})
 		_err = t.userTeamRepository.Insert(model.UserTeam{
@@ -67,6 +68,7 @@ func (t *TeamService) Update(req request.TeamUpdateRequest) error {
 			Name:        req.Name,
 			Description: req.Description,
 			CaptainID:   req.CaptainId,
+			Email:       req.Email,
 			IsLocked:    req.IsLocked,
 		})
 		return _err
@@ -104,13 +106,13 @@ func (t *TeamService) Find(req request.TeamFindRequest) (teams []response.TeamRe
 func (t *TeamService) Join(req request.TeamJoinRequest) error {
 	user, err := t.userRepository.FindById(req.UserID)
 	if user.ID != 0 && err == nil {
-		team, err := t.teamRepository.FindById(req.TeamID)
+		team, _err := t.teamRepository.FindById(req.TeamID)
 		if team.ID != 0 {
-			err = t.userTeamRepository.Insert(model.UserTeam{
+			_err = t.userTeamRepository.Insert(model.UserTeam{
 				TeamID: team.ID,
 				UserID: req.UserID,
 			})
-			return err
+			return _err
 		} else {
 			return errors.New("团队不存在")
 		}
@@ -121,13 +123,13 @@ func (t *TeamService) Join(req request.TeamJoinRequest) error {
 func (t *TeamService) Quit(req request.TeamQuitRequest) (err error) {
 	user, err := t.userRepository.FindById(req.UserID)
 	if user.ID != 0 && err == nil {
-		team, err := t.teamRepository.FindById(req.TeamID)
+		team, _err := t.teamRepository.FindById(req.TeamID)
 		if team.ID != 0 {
-			err = t.userTeamRepository.Delete(model.UserTeam{
+			_err = t.userTeamRepository.Delete(model.UserTeam{
 				TeamID: team.ID,
 				UserID: req.UserID,
 			})
-			return err
+			return _err
 		} else {
 			return errors.New("团队不存在")
 		}

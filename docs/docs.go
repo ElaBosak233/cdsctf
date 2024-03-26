@@ -2522,6 +2522,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "email": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -2567,6 +2570,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "email": {
                     "type": "string"
                 },
                 "is_locked": {
