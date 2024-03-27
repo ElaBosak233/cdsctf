@@ -42,6 +42,8 @@ definitions:
     type: object
   request.ChallengeCreateRequest:
     properties:
+      attachment_url:
+        type: string
       category_id:
         type: integer
       description:
@@ -65,6 +67,8 @@ definitions:
     type: object
   request.ChallengeUpdateRequest:
     properties:
+      attachment_url:
+        type: string
       category_id:
         type: integer
       description:
@@ -1003,69 +1007,6 @@ paths:
       summary: Update group
       tags:
       - Group
-  /media/challenges/attachments/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: 通过题目 Id 删除题目附件
-      parameters:
-      - description: 题目 Id
-        in: path
-        name: id
-        required: true
-        type: string
-      responses: {}
-      summary: 通过题目 Id 删除 题目附件
-      tags:
-      - Media
-    get:
-      consumes:
-      - application/json
-      description: 通过题目 Id 获取题目附件
-      parameters:
-      - description: 题目 Id
-        in: path
-        name: id
-        required: true
-        type: string
-      responses: {}
-      summary: 通过题目 Id 获取题目附件
-      tags:
-      - Media
-    post:
-      consumes:
-      - multipart/form-data
-      description: 通过题目 Id 设置题目附件
-      parameters:
-      - description: 题目 Id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: 附件文件
-        in: formData
-        name: attachment
-        required: true
-        type: file
-      responses: {}
-      summary: 通过题目 Id 设置题目附件
-      tags:
-      - Media
-  /media/challenges/attachments/{id}/info:
-    get:
-      consumes:
-      - application/json
-      description: 通过题目 Id 查找题目附件信息
-      parameters:
-      - description: 题目 Id
-        in: path
-        name: id
-        required: true
-        type: string
-      responses: {}
-      summary: 通过题目 Id 查找题目附件信息
-      tags:
-      - Media
   /media/games/writeups/{id}:
     get:
       consumes:

@@ -4,6 +4,7 @@ type ChallengeCreateRequest struct {
 	Title         string `json:"title"`
 	Description   string `json:"description"`
 	HasAttachment *bool  `json:"has_attachment"`
+	AttachmentURL string `json:"attachment_url"`
 	IsPracticable *bool  `json:"is_practicable"`
 	IsDynamic     *bool  `json:"is_dynamic"`
 	CategoryID    uint   `json:"category_id"`
@@ -17,6 +18,7 @@ type ChallengeUpdateRequest struct {
 	Title         string `json:"title"`
 	Description   string `json:"description"`
 	HasAttachment *bool  `json:"has_attachment"`
+	AttachmentURL string `json:"attachment_url"`
 	IsPracticable *bool  `json:"is_practicable"`
 	IsDynamic     *bool  `json:"is_dynamic"`
 	CategoryID    int64  `json:"category_id"`

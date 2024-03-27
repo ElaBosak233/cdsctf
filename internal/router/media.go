@@ -23,8 +23,4 @@ func NewMediaRouter(mediaRouter *gin.RouterGroup, mediaController controller.IMe
 
 func (m *MediaRouter) Register() {
 	m.router.GET("/games/writeups/:id", m.controller.FindGameWriteUpByTeamId)
-	m.router.GET("/challenges/attachments/:id", m.controller.GetChallengeAttachmentByChallengeId)
-	m.router.GET("/challenges/attachments/:id/info", m.controller.GetChallengeAttachmentInfoByChallengeId)
-	m.router.POST("/challenges/attachments/:id", m.controller.SetChallengeAttachmentByChallengeId)
-	m.router.DELETE("/challenges/attachments/:id", m.controller.DeleteChallengeAttachmentByChallengeId)
 }

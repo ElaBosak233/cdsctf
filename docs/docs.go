@@ -1025,97 +1025,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/media/challenges/attachments/{id}": {
-            "get": {
-                "description": "通过题目 Id 获取题目附件",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "通过题目 Id 获取题目附件",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "题目 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "post": {
-                "description": "通过题目 Id 设置题目附件",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "通过题目 Id 设置题目附件",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "题目 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "附件文件",
-                        "name": "attachment",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "delete": {
-                "description": "通过题目 Id 删除题目附件",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "通过题目 Id 删除 题目附件",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "题目 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/media/challenges/attachments/{id}/info": {
-            "get": {
-                "description": "通过题目 Id 查找题目附件信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Media"
-                ],
-                "summary": "通过题目 Id 查找题目附件信息",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "题目 Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/media/games/writeups/{id}": {
             "get": {
                 "description": "通过团队 Id 获取比赛 Writeup",
@@ -1946,6 +1855,9 @@ const docTemplate = `{
         "request.ChallengeCreateRequest": {
             "type": "object",
             "properties": {
+                "attachment_url": {
+                    "type": "string"
+                },
                 "category_id": {
                     "type": "integer"
                 },
@@ -1981,6 +1893,9 @@ const docTemplate = `{
         "request.ChallengeUpdateRequest": {
             "type": "object",
             "properties": {
+                "attachment_url": {
+                    "type": "string"
+                },
                 "category_id": {
                     "type": "integer"
                 },
