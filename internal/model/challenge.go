@@ -12,6 +12,7 @@ type Challenge struct {
 	CategoryID    uint          `gorm:"not null;" json:"category_id"`                           // The challenge's category.
 	Category      *Category     `json:"category,omitempty"`                                     // The challenge's category.
 	HasAttachment *bool         `gorm:"not null;default:false" json:"has_attachment"`           // Whether the challenge has attachment.
+	AttachmentURL string        `gorm:"type:varchar(255);" json:"attachment_url,omitempty"`     // The challenge's attachment URL.
 	IsPracticable *bool         `gorm:"not null;default:false" json:"is_practicable,omitempty"` // Whether the challenge is practicable. (Is the practice field visible.)
 	IsDynamic     *bool         `gorm:"default:false" json:"is_dynamic"`                        // Whether the challenge is based on dynamic container.
 	Difficulty    int64         `gorm:"default:1" json:"difficulty"`                            // The degree of difficulty. (From 1 to 5)
