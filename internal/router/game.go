@@ -37,6 +37,10 @@ func (g *GameRouter) Register() {
 	g.router.POST("/:id/teams", g.controller.CreateTeam)
 	g.router.PUT("/:id/teams/:team_id", g.controller.UpdateTeam)
 	g.router.DELETE("/:id/teams/:team_id", g.controller.DeleteTeam)
+	g.router.GET("/:id/notices", g.controller.FindNotice)
+	g.router.POST("/:id/notices", g.controller.CreateNotice)
+	g.router.PUT("/:id/notices/:notice_id", g.controller.UpdateNotice)
+	g.router.DELETE("/:id/notices/:notice_id", g.controller.DeleteNotice)
 	g.router.GET("/:id/scoreboard", g.controller.Scoreboard)
 	g.router.GET("/:id/broadcast", g.controller.BroadCast)
 }

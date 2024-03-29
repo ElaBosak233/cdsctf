@@ -113,6 +113,10 @@ func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) 
 		return errors.New("invalid team captain")
 	}
 
+	if int64(len(team.Users)) < game.MemberLimitMin || int64(len(team.Users)) > game.MemberLimitMax {
+		return errors.New("invalid team member count")
+	}
+
 	var isAllowed bool
 	if game.IsPublic != nil && *game.IsPublic {
 		isAllowed = true

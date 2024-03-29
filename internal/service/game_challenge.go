@@ -26,6 +26,7 @@ func NewGameChallengeService(appRepository *repository.Repository) IGameChalleng
 	return &GameChallengeService{
 		gameRepository:          appRepository.GameRepository,
 		gameChallengeRepository: appRepository.GameChallengeRepository,
+		noticeRepository:        appRepository.NoticeRepository,
 	}
 }
 
@@ -84,8 +85,12 @@ func (g *GameChallengeService) Update(req request.GameChallengeUpdateRequest) (e
 	var gameChallenge model.GameChallenge
 	err = mapstructure.Decode(req, &gameChallenge)
 	err = g.gameChallengeRepository.Update(gameChallenge)
-	if gameChallenge.IsEnabled != nil {
-
+	if gameChallenge.IsEnabled != nil && *(gameChallenge.IsEnabled) {
+		_, err = g.noticeRepository.Insert(model.Notice{
+			Type:        "new_challenge",
+			ChallengeID: &gameChallenge.ChallengeID,
+			GameID:      &gameChallenge.GameID,
+		})
 	}
 	return err
 }
