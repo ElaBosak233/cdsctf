@@ -28,6 +28,7 @@ func initDefaultPolicy() {
 		{"user", "/api/games/{id}/teams", "GET"},
 		{"user", "/api/games/{id}/teams", "POST"},
 		{"user", "/api/games/{id}/teams/{team_id}", "GET"},
+		{"user", "/api/games/{id}/notices", "GET"},
 		{"user", "/api/submissions/", "GET"},
 		{"user", "/api/submissions/", "POST"},
 		{"user", "/api/pods/", "GET"},

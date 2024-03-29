@@ -27,6 +27,7 @@ type Service struct {
 	FlagService          IFlagService
 	HintService          IHintService
 	GroupService         IGroupService
+	NoticeService        INoticeService
 }
 
 func S() *Service {
@@ -53,6 +54,7 @@ func InitService() {
 		flagService := NewFlagService(appRepository)
 		hintService := NewHintService(appRepository)
 		groupService := NewGroupService(appRepository)
+		noticeService := NewNoticeService(appRepository)
 
 		s = &Service{
 			MediaService:         mediaService,
@@ -71,6 +73,7 @@ func InitService() {
 			FlagService:          flagService,
 			HintService:          hintService,
 			GroupService:         groupService,
+			NoticeService:        noticeService,
 		}
 	})
 }

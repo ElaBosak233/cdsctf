@@ -880,6 +880,52 @@ paths:
       summary: 更新比赛的挑战
       tags:
       - Game
+  /games/{id}/notices:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 查询比赛的通知
+      tags:
+      - Game
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 添加比赛的通知
+      tags:
+      - Game
+  /games/{id}/notices/{notice_id}:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 删除比赛的通知
+      tags:
+      - Game
+    put:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 更新比赛的通知
+      tags:
+      - Game
   /games/{id}/scoreboard:
     get:
       consumes:

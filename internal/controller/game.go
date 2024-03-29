@@ -28,6 +28,10 @@ type IGameController interface {
 	CreateChallenge(ctx *gin.Context)
 	UpdateChallenge(ctx *gin.Context)
 	DeleteChallenge(ctx *gin.Context)
+	FindNotice(ctx *gin.Context)
+	CreateNotice(ctx *gin.Context)
+	UpdateNotice(ctx *gin.Context)
+	DeleteNotice(ctx *gin.Context)
 }
 
 type GameController struct {
@@ -36,6 +40,7 @@ type GameController struct {
 	gameTeamService      service.IGameTeamService
 	challengeService     service.IChallengeService
 	teamService          service.ITeamService
+	noticeService        service.INoticeService
 }
 
 func NewGameController(appService *service.Service) IGameController {
@@ -45,6 +50,7 @@ func NewGameController(appService *service.Service) IGameController {
 		gameTeamService:      appService.GameTeamService,
 		challengeService:     appService.ChallengeService,
 		teamService:          appService.TeamService,
+		noticeService:        appService.NoticeService,
 	}
 }
 
@@ -320,6 +326,112 @@ func (g *GameController) DeleteTeam(ctx *gin.Context) {
 	gameTeamDeleteRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
 	gameTeamDeleteRequest.TeamID = convertor.ToUintD(ctx.Param("team_id"), 0)
 	err := g.gameTeamService.Delete(gameTeamDeleteRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// FindNotice
+// @Summary 查询比赛的通知
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /games/{id}/notices [get]
+func (g *GameController) FindNotice(ctx *gin.Context) {
+	noticeFindRequest := request.NoticeFindRequest{}
+	_ = ctx.ShouldBindQuery(&noticeFindRequest)
+	notices, err := g.noticeService.Find(noticeFindRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": notices,
+	})
+}
+
+// CreateNotice
+// @Summary 添加比赛的通知
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /games/{id}/notices [post]
+func (g *GameController) CreateNotice(ctx *gin.Context) {
+	noticeCreateRequest := request.NoticeCreateRequest{}
+	err := ctx.ShouldBindJSON(&noticeCreateRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &noticeCreateRequest),
+		})
+		return
+	}
+	noticeCreateRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
+	err = g.noticeService.Create(noticeCreateRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// UpdateNotice
+// @Summary 更新比赛的通知
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /games/{id}/notices/{notice_id} [put]
+func (g *GameController) UpdateNotice(ctx *gin.Context) {
+	noticeUpdateRequest := request.NoticeUpdateRequest{}
+	noticeUpdateRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
+	noticeUpdateRequest.ID = convertor.ToUintD(ctx.Param("notice_id"), 0)
+	err := ctx.ShouldBindJSON(&noticeUpdateRequest)
+	err = g.noticeService.Update(noticeUpdateRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// DeleteNotice
+// @Summary 删除比赛的通知
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /games/{id}/notices/{notice_id} [delete]
+func (g *GameController) DeleteNotice(ctx *gin.Context) {
+	noticeDeleteRequest := request.NoticeDeleteRequest{}
+	noticeDeleteRequest.ID = convertor.ToUintD(ctx.Param("notice_id"), 0)
+	err := g.noticeService.Delete(noticeDeleteRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,

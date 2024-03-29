@@ -91,6 +91,7 @@ func syncDatabase() {
 		&model.Port{},
 		&model.Nat{},
 		&model.Env{},
+		&model.Notice{},
 	)
 	if err != nil {
 		zap.L().Fatal("Database sync failed.", zap.Error(err))

@@ -27,6 +27,7 @@ type SubmissionService struct {
 	gameChallengeRepository repository.IGameChallengeRepository
 	flagGenRepository       repository.IFlagGenRepository
 	gameRepository          repository.IGameRepository
+	noticeRepository        repository.INoticeRepository
 }
 
 func NewSubmissionService(appRepository *repository.Repository) ISubmissionService {
@@ -38,6 +39,7 @@ func NewSubmissionService(appRepository *repository.Repository) ISubmissionServi
 		gameChallengeRepository: appRepository.GameChallengeRepository,
 		flagGenRepository:       appRepository.FlagGenRepository,
 		gameRepository:          appRepository.GameRepository,
+		noticeRepository:        appRepository.NoticeRepository,
 	}
 }
 
@@ -142,6 +144,24 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 					status = 4
 				}
 				rank = int64(len(gameChallenge.Challenge.Submissions) + 1)
+				if rank <= 3 && rank != 0 {
+					var noticeType string
+					switch rank {
+					case 1:
+						noticeType = "first_blood"
+					case 2:
+						noticeType = "second_blood"
+					case 3:
+						noticeType = "third_blood"
+					}
+					_, err = t.noticeRepository.Insert(model.Notice{
+						Type:        noticeType,
+						GameID:      req.GameID,
+						UserID:      &req.UserID,
+						TeamID:      req.TeamID,
+						ChallengeID: &req.ChallengeID,
+					})
+				}
 				gameChallengeID = &gameChallenge.ID
 			}
 			if len(gameChallenges) == 0 {

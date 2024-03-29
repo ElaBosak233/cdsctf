@@ -2,10 +2,12 @@ package repository
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/model"
+	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"gorm.io/gorm"
 )
 
 type INoticeRepository interface {
+	Find(req request.NoticeFindRequest) (notices []model.Notice, count int64, err error)
 	Insert(notice model.Notice) (n model.Notice, err error)
 	Update(notice model.Notice) (n model.Notice, err error)
 	Delete(notice model.Notice) (err error)
@@ -17,6 +19,36 @@ type NoticeRepository struct {
 
 func NewNoticeRepository(db *gorm.DB) INoticeRepository {
 	return &NoticeRepository{db: db}
+}
+
+func (t *NoticeRepository) Find(req request.NoticeFindRequest) (notices []model.Notice, count int64, err error) {
+	applyFilters := func(q *gorm.DB) *gorm.DB {
+		if req.ID != 0 {
+			q = q.Where("id = ?", req.ID)
+		}
+		if req.GameID != 0 {
+			q = q.Where("game_id = ?", req.GameID)
+		}
+		if req.Type != "" {
+			q = q.Where("type = ?", req.Type)
+		}
+		return q
+	}
+	db := applyFilters(t.db.Table("notices"))
+	result := db.Model(&model.Notice{}).Count(&count)
+	db = db.Order("notices.id DESC")
+	result = db.
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "username", "nickname", "email"})
+		}).
+		Preload("Team", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "name", "email"})
+		}).
+		Preload("Challenge", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "title"})
+		}).
+		Find(&notices)
+	return notices, count, result.Error
 }
 
 func (t *NoticeRepository) Insert(notice model.Notice) (n model.Notice, err error) {
