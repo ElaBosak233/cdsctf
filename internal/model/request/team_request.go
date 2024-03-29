@@ -28,13 +28,3 @@ type TeamFindRequest struct {
 type TeamDeleteRequest struct {
 	ID uint `json:"-"`
 }
-
-type TeamJoinRequest struct {
-	TeamID uint `binding:"required" json:"team_id"`
-	UserID uint `binding:"required" json:"user_id"`
-}
-
-type TeamQuitRequest struct {
-	TeamID uint `binding:"required" json:"team_id"`
-	UserID uint `binding:"required" json:"user_id"`
-}

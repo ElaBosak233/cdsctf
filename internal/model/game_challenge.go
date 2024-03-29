@@ -3,17 +3,17 @@ package model
 import "gorm.io/gorm"
 
 type GameChallenge struct {
-	ID          uint       `json:"id"`
-	GameID      uint       `gorm:"uniqueIndex:game_challenge_idx" json:"game_id"`
-	Game        *Game      `json:"game"`
-	ChallengeID uint       `gorm:"uniqueIndex:game_challenge_idx" json:"challenge_id"`
-	Challenge   *Challenge `json:"challenge"`
-	IsEnabled   *bool      `gorm:"default:false;not null;" json:"is_enabled"`
-	MaxPts      int64      `gorm:"default:1000;not null;" json:"max_pts"`
-	MinPts      int64      `gorm:"default:200;not null;" json:"min_pts"`
+	ID          uint       `json:"id,omitempty"`
+	GameID      uint       `gorm:"uniqueIndex:game_challenge_idx" json:"game_id,omitempty"`
+	Game        *Game      `json:"game,omitempty"`
+	ChallengeID uint       `gorm:"uniqueIndex:game_challenge_idx" json:"challenge_id,omitempty"`
+	Challenge   *Challenge `json:"challenge,omitempty"`
+	IsEnabled   *bool      `gorm:"default:false;not null;" json:"is_enabled,omitempty"`
+	MaxPts      int64      `gorm:"default:1000;not null;" json:"max_pts,omitempty"`
+	MinPts      int64      `gorm:"default:200;not null;" json:"min_pts,omitempty"`
 }
 
 func (g *GameChallenge) BeforeDelete(db *gorm.DB) (err error) {
-	db.Table("submissions").Where("game_id = ?", g.ID).Where("challenge_id = ?", g.ChallengeID).Delete(&Submission{})
+	db.Table("submissions").Where("game_id = ?", g.GameID).Where("challenge_id = ?", g.ChallengeID).Delete(&Submission{})
 	return nil
 }

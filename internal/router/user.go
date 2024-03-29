@@ -33,7 +33,6 @@ func (u *UserRouter) Register() {
 	u.router.POST("/login", u.controller.Login)
 	u.router.POST("/logout", u.controller.Logout)
 	u.router.POST("/register", u.controller.Register)
-	u.router.GET("/token/:token", u.controller.VerifyToken)
 }
 
 func (u *UserRouter) SAuth() gin.HandlerFunc {

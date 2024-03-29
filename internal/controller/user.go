@@ -13,7 +13,6 @@ import (
 
 type IUserController interface {
 	Login(ctx *gin.Context)
-	VerifyToken(ctx *gin.Context)
 	Logout(ctx *gin.Context)
 	Register(ctx *gin.Context)
 	Create(ctx *gin.Context)
@@ -44,7 +43,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 	userLoginRequest := request.UserLoginRequest{}
 	err := ctx.ShouldBindJSON(&userLoginRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &userLoginRequest),
 		})
@@ -52,16 +51,16 @@ func (c *UserController) Login(ctx *gin.Context) {
 	}
 	user, _ := c.userService.FindByUsername(userLoginRequest.Username)
 	if !c.userService.VerifyPasswordByUsername(userLoginRequest.Username, userLoginRequest.Password) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusUnauthorized,
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
 			"msg":  "用户名或密码错误",
 		})
-		zap.L().Warn(fmt.Sprintf("用户 %s 登录失败", user.Username), zap.Uint("user_id", user.ID))
+		zap.L().Warn(fmt.Sprintf("User %s login failed", user.Username), zap.Uint("user_id", user.ID))
 		return
 	}
 	tokenString, err := c.userService.GetJwtTokenById(user)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
 			"msg":  err.Error(),
 		})
@@ -72,36 +71,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 		"data":  user,
 		"token": tokenString,
 	})
-	zap.L().Info(fmt.Sprintf("用户 %s 登录成功", user.Username), zap.Uint("user_id", user.ID))
-}
-
-// VerifyToken
-// @Summary	Token 鉴定
-// @Description
-// @Tags User
-// @Produce	json
-// @Param token	path string	true "token"
-// @Router /users/token/{token} [get]
-func (c *UserController) VerifyToken(ctx *gin.Context) {
-	id, err := c.userService.GetIdByJwtToken(ctx.Param("token"))
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	if id == 0 {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  "Token 无效",
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"id":   id,
-	})
+	zap.L().Info(fmt.Sprintf("User %s login successful", user.Username), zap.Uint("user_id", user.ID))
 }
 
 // Logout
@@ -115,7 +85,7 @@ func (c *UserController) VerifyToken(ctx *gin.Context) {
 func (c *UserController) Logout(ctx *gin.Context) {
 	id, err := c.userService.GetIdByJwtToken(ctx.GetHeader("Authorization"))
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -137,18 +107,16 @@ func (c *UserController) Logout(ctx *gin.Context) {
 // @Router /users/register [post]
 func (c *UserController) Register(ctx *gin.Context) {
 	registerUserRequest := request.UserRegisterRequest{}
-	err := ctx.ShouldBindJSON(&registerUserRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := ctx.ShouldBindJSON(&registerUserRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &registerUserRequest),
 		})
 		return
 	}
 	registerUserRequest.RemoteIP = ctx.RemoteIP()
-	err = c.userService.Register(registerUserRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := c.userService.Register(registerUserRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "用户名或邮箱重复",
 		})
@@ -170,17 +138,15 @@ func (c *UserController) Register(ctx *gin.Context) {
 // @Router /users/ [post]
 func (c *UserController) Create(ctx *gin.Context) {
 	createUserRequest := request.UserCreateRequest{}
-	err := ctx.ShouldBindJSON(&createUserRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := ctx.ShouldBindJSON(&createUserRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &createUserRequest),
 		})
 		return
 	}
-	err = c.userService.Create(createUserRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := c.userService.Create(createUserRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  "用户名或邮箱重复",
 		})
@@ -202,18 +168,16 @@ func (c *UserController) Create(ctx *gin.Context) {
 // @Router /users/{id} [put]
 func (c *UserController) Update(ctx *gin.Context) {
 	updateUserRequest := request.UserUpdateRequest{}
-	err := ctx.ShouldBindJSON(&updateUserRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := ctx.ShouldBindJSON(&updateUserRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &updateUserRequest),
 		})
 		return
 	}
 	updateUserRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = c.userService.Update(updateUserRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := c.userService.Update(updateUserRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -252,18 +216,17 @@ func (c *UserController) Delete(ctx *gin.Context) {
 // @Router /users/ [get]
 func (c *UserController) Find(ctx *gin.Context) {
 	userFindRequest := request.UserFindRequest{}
-	err := ctx.ShouldBindQuery(&userFindRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := ctx.ShouldBindQuery(&userFindRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &userFindRequest),
 		})
 		return
 	}
-	userResponse, pageCount, total, _ := c.userService.Find(userFindRequest)
+	users, pageCount, total, _ := c.userService.Find(userFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
-		"data":  userResponse,
+		"data":  users,
 		"pages": pageCount,
 		"total": total,
 	})

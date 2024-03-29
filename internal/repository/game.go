@@ -58,7 +58,7 @@ func (t *GameRepository) Find(req request.GameFindRequest) (games []response.Gam
 	if req.SortKey != "" && req.SortOrder != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
-		db = db.Order("games.id DESC") // 默认采用 IDs 降序排列
+		db = db.Order("games.id DESC")
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
