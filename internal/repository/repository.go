@@ -30,6 +30,7 @@ type Repository struct {
 	GameTeamRepository      IGameTeamRepository
 	HintRepository          IHintRepository
 	GroupRepository         IGroupRepository
+	NoticeRepository        INoticeRepository
 }
 
 func R() *Repository {
@@ -60,6 +61,7 @@ func InitRepository() {
 			GameTeamRepository:      NewGameTeamRepository(db),
 			HintRepository:          NewHintRepository(db),
 			GroupRepository:         NewGroupRepository(db),
+			NoticeRepository:        NewNoticeRepository(db),
 		}
 	})
 }

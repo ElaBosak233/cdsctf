@@ -270,26 +270,6 @@ definitions:
     type: object
   request.TeamDeleteRequest:
     type: object
-  request.TeamJoinRequest:
-    properties:
-      team_id:
-        type: integer
-      user_id:
-        type: integer
-    required:
-    - team_id
-    - user_id
-    type: object
-  request.TeamQuitRequest:
-    properties:
-      team_id:
-        type: integer
-      user_id:
-        type: integer
-    required:
-    - team_id
-    - user_id
-    type: object
   request.TeamUpdateRequest:
     properties:
       captain_id:
@@ -302,6 +282,21 @@ definitions:
         type: boolean
       name:
         type: string
+    type: object
+  request.TeamUserCreateRequest:
+    properties:
+      user_id:
+        type: integer
+    type: object
+  request.TeamUserDeleteRequest:
+    properties:
+      team_id:
+        type: integer
+      user_id:
+        type: integer
+    required:
+    - team_id
+    - user_id
     type: object
   request.User:
     properties:
@@ -1313,39 +1308,40 @@ paths:
       summary: 更新团队
       tags:
       - Team
-  /teams/members/:
-    delete:
-      consumes:
-      - application/json
-      description: 退出团队
-      parameters:
-      - description: TeamQuitRequest
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/request.TeamQuitRequest'
-      produces:
-      - application/json
-      responses: {}
-      summary: 退出团队
-      tags:
-      - Team
+  /teams/{id}/users/:
     post:
       consumes:
       - application/json
       description: 加入团队
       parameters:
-      - description: TeamJoinRequest
+      - description: TeamUserCreateRequest
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/request.TeamJoinRequest'
+          $ref: '#/definitions/request.TeamUserCreateRequest'
       produces:
       - application/json
       responses: {}
       summary: 加入团队
+      tags:
+      - Team
+  /teams/{id}/users/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: 退出团队
+      parameters:
+      - description: TeamUserDeleteRequest
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.TeamUserDeleteRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: 退出团队
       tags:
       - Team
   /users/:
@@ -1482,20 +1478,6 @@ paths:
       - application/json
       responses: {}
       summary: 用户注册
-      tags:
-      - User
-  /users/token/{token}:
-    get:
-      parameters:
-      - description: token
-        in: path
-        name: token
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: Token 鉴定
       tags:
       - User
 swagger: "2.0"

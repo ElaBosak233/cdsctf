@@ -10,11 +10,11 @@ import (
 	"go.uber.org/zap"
 	"math"
 	"regexp"
-	"sync"
+	"time"
 )
 
 type ISubmissionService interface {
-	Create(req request.SubmissionCreateRequest) (status int, pts int64, err error)
+	Create(req request.SubmissionCreateRequest) (status int, rank int64, err error)
 	Delete(id uint) (err error)
 	Find(req request.SubmissionFindRequest) (submissions []model.Submission, pageCount int64, total int64, err error)
 }
@@ -72,29 +72,26 @@ func (t *SubmissionService) JudgeDynamicChallenge(req request.SubmissionCreateRe
 	return status, err
 }
 
-// createSync 提交创建锁，可优化
-var createSync = sync.RWMutex{}
-
-func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status int, pts int64, err error) {
+func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status int, rank int64, err error) {
 	challenges, _, err := t.challengeRepository.Find(request.ChallengeFindRequest{
 		ID: req.ChallengeID,
 	})
 	challenge := challenges[0]
 	status = 1
-	zap.L().Debug(fmt.Sprintf("req.Flag: %s", req.Flag))
+	rank = 0
+	var gameChallengeID *uint = nil
 	for _, flag := range challenge.Flags {
-		zap.L().Debug(fmt.Sprintf("flag.Type: %s", flag.Type))
 		switch *(flag.Banned) {
 		case true:
 			switch flag.Type {
 			case "static":
 				if flag.Value == req.Flag {
-					status = 4
+					status = 3
 				}
 			case "pattern":
 				re := regexp.MustCompile(flag.Value)
 				if re.Match([]byte(req.Flag)) {
-					status = 4
+					status = 3
 				}
 			}
 		case false:
@@ -114,70 +111,55 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 			}
 		}
 	}
-	createSync.Lock()
-	defer createSync.Unlock()
 
-	// Determine duplicate submissions
 	if status == 2 {
-		_, n, _ := t.submissionRepository.Find(request.SubmissionFindRequest{
+		if _, n, _ := t.submissionRepository.Find(request.SubmissionFindRequest{
 			UserID:      req.UserID,
 			Status:      2,
 			ChallengeID: req.ChallengeID,
 			TeamID:      req.TeamID,
 			GameID:      req.GameID,
-		})
-		if n > 0 {
+		}); n > 0 {
 			status = 4
 		}
-	}
-	if status == 2 {
+		if status == 2 {
+			rank = int64(len(challenge.Submissions) + 1)
+		}
 		if req.GameID != nil && req.TeamID != nil {
-			chas, _ := t.gameChallengeRepository.Find(request.GameChallengeFindRequest{
+			isEnabled := true
+			gameChallenges, _ := t.gameChallengeRepository.Find(request.GameChallengeFindRequest{
 				GameID:      *(req.GameID),
 				ChallengeID: req.ChallengeID,
+				IsEnabled:   &isEnabled,
 			})
 			games, _, _ := t.gameRepository.Find(request.GameFindRequest{
 				ID: *(req.GameID),
 			})
-			if len(chas) > 0 && len(games) > 0 {
-				cha := chas[0]
+			if len(gameChallenges) > 0 && len(games) > 0 {
+				gameChallenge := gameChallenges[0]
 				game := games[0]
-				ss := cha.MaxPts
-				R := cha.MinPts
-				d := cha.Challenge.Difficulty
-				x := len(cha.Challenge.Submissions)
-				pts = calculate.ChallengePts(ss, R, d, x)
-				switch x {
-				case 0:
-					pts = int64(math.Floor(((game.FirstBloodRewardRatio / 100) + 1) * float64(pts)))
-				case 1:
-					pts = int64(math.Floor(((game.SecondBloodRewardRatio / 100) + 1) * float64(pts)))
-				case 2:
-					pts = int64(math.Floor(((game.ThirdBloodRewardRatio / 100) + 1) * float64(pts)))
+				if time.Now().Unix() < game.StartedAt || time.Now().Unix() > game.EndedAt {
+					status = 4
 				}
+				rank = int64(len(gameChallenge.Challenge.Submissions) + 1)
+				gameChallengeID = &gameChallenge.ID
 			}
-		} else {
-			pts = challenge.PracticePts
+			if len(gameChallenges) == 0 {
+				status = 4
+			}
 		}
 	}
-	var teamID uint
-	if req.TeamID != nil {
-		teamID = *(req.TeamID)
-	}
-	var gameID uint
-	if req.GameID != nil {
-		gameID = *(req.GameID)
-	}
 	err = t.submissionRepository.Insert(model.Submission{
-		Flag:        req.Flag,
-		UserID:      req.UserID,
-		ChallengeID: req.ChallengeID,
-		TeamID:      teamID,
-		GameID:      gameID,
-		Status:      status,
-		Pts:         pts,
+		Flag:            req.Flag,
+		UserID:          req.UserID,
+		ChallengeID:     req.ChallengeID,
+		GameChallengeID: gameChallengeID,
+		TeamID:          req.TeamID,
+		GameID:          req.GameID,
+		Status:          status,
+		Rank:            rank,
 	})
-	return status, pts, err
+	return status, rank, err
 }
 
 func (t *SubmissionService) Delete(id uint) (err error) {
@@ -188,10 +170,26 @@ func (t *SubmissionService) Delete(id uint) (err error) {
 func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions []model.Submission, pageCount int64, total int64, err error) {
 	submissions, count, err := t.submissionRepository.Find(req)
 
-	if !req.IsDetailed {
-		for index := range submissions {
+	for index, submission := range submissions {
+		if submission.Status == 2 {
+			if submission.GameID != nil && submission.GameChallengeID != nil {
+				submission.Pts = calculate.GameChallengePts(
+					submission.GameChallenge.MaxPts,
+					submission.GameChallenge.MinPts,
+					submission.Challenge.Difficulty,
+					int(submission.Rank-1),
+					submission.Game.FirstBloodRewardRatio,
+					submission.Game.SecondBloodRewardRatio,
+					submission.Game.ThirdBloodRewardRatio,
+				)
+			} else {
+				submission.Pts = submission.Challenge.PracticePts
+			}
+		}
+		if !req.IsDetailed {
 			submissions[index].Flag = ""
 		}
+		submissions[index] = submission
 	}
 
 	if req.Size >= 1 && req.Page >= 1 {

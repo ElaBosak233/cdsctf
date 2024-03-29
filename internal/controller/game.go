@@ -31,16 +31,20 @@ type IGameController interface {
 }
 
 type GameController struct {
-	gameService      service.IGameService
-	challengeService service.IChallengeService
-	teamService      service.ITeamService
+	gameService          service.IGameService
+	gameChallengeService service.IGameChallengeService
+	gameTeamService      service.IGameTeamService
+	challengeService     service.IChallengeService
+	teamService          service.ITeamService
 }
 
 func NewGameController(appService *service.Service) IGameController {
 	return &GameController{
-		gameService:      appService.GameService,
-		challengeService: appService.ChallengeService,
-		teamService:      appService.TeamService,
+		gameService:          appService.GameService,
+		gameChallengeService: appService.GameChallengeService,
+		gameTeamService:      appService.GameTeamService,
+		challengeService:     appService.ChallengeService,
+		teamService:          appService.TeamService,
 	}
 }
 
@@ -67,7 +71,7 @@ func (g *GameController) BroadCast(ctx *gin.Context) {
 func (g *GameController) Scoreboard(ctx *gin.Context) {
 	scoreboard, err := g.gameService.Scoreboard(convertor.ToUintD(ctx.Param("id"), 0))
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 		})
 		return
@@ -87,14 +91,14 @@ func (g *GameController) Scoreboard(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /games/{id}/challenges [get]
 func (g *GameController) FindChallenge(ctx *gin.Context) {
-	challenges, err := g.gameService.FindChallenge(request.GameChallengeFindRequest{
+	challenges, err := g.gameChallengeService.Find(request.GameChallengeFindRequest{
 		GameID:        convertor.ToUintD(ctx.Param("id"), 0),
 		TeamID:        convertor.ToUintD(ctx.Query("team_id"), 0),
 		IsEnabled:     convertor.ToBoolP(ctx.Query("is_enabled")),
 		SubmissionQty: convertor.ToIntD(ctx.Query("submission_qty"), 0),
 	})
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 		})
 		return
@@ -117,16 +121,16 @@ func (g *GameController) CreateChallenge(ctx *gin.Context) {
 	gameChallengeCreateRequest := request.GameChallengeCreateRequest{}
 	err := ctx.ShouldBindJSON(&gameChallengeCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &gameChallengeCreateRequest),
 		})
 		return
 	}
 	gameChallengeCreateRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = g.gameService.CreateChallenge(gameChallengeCreateRequest)
+	err = g.gameChallengeService.Create(gameChallengeCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -147,9 +151,8 @@ func (g *GameController) CreateChallenge(ctx *gin.Context) {
 // @Router /games/{id}/challenges/{challenge_id} [put]
 func (g *GameController) UpdateChallenge(ctx *gin.Context) {
 	gameChallengeUpdateRequest := request.GameChallengeUpdateRequest{}
-	err := ctx.ShouldBindJSON(&gameChallengeUpdateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := ctx.ShouldBindJSON(&gameChallengeUpdateRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &gameChallengeUpdateRequest),
 		})
@@ -157,9 +160,9 @@ func (g *GameController) UpdateChallenge(ctx *gin.Context) {
 	}
 	gameChallengeUpdateRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
 	gameChallengeUpdateRequest.ChallengeID = convertor.ToUintD(ctx.Param("challenge_id"), 0)
-	err = g.gameService.UpdateChallenge(gameChallengeUpdateRequest)
+	err := g.gameChallengeService.Update(gameChallengeUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -182,9 +185,9 @@ func (g *GameController) DeleteChallenge(ctx *gin.Context) {
 	gameChallengeDeleteRequest := request.GameChallengeDeleteRequest{}
 	gameChallengeDeleteRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
 	gameChallengeDeleteRequest.ChallengeID = convertor.ToUintD(ctx.Param("challenge_id"), 0)
-	err := g.gameService.DeleteChallenge(gameChallengeDeleteRequest)
+	err := g.gameChallengeService.Delete(gameChallengeDeleteRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -204,7 +207,7 @@ func (g *GameController) DeleteChallenge(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /games/{id}/teams [get]
 func (g *GameController) FindTeam(ctx *gin.Context) {
-	teams, err := g.gameService.FindTeam(request.GameTeamFindRequest{
+	teams, err := g.gameTeamService.Find(request.GameTeamFindRequest{
 		GameID: convertor.ToUintD(ctx.Param("id"), 0),
 	})
 	if err != nil {
@@ -228,7 +231,7 @@ func (g *GameController) FindTeam(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /games/{id}/teams/{team_id} [get]
 func (g *GameController) FindTeamByID(ctx *gin.Context) {
-	teams, err := g.gameService.FindTeam(request.GameTeamFindRequest{
+	team, err := g.gameTeamService.FindByID(request.GameTeamFindRequest{
 		GameID: convertor.ToUintD(ctx.Param("id"), 0),
 		TeamID: convertor.ToUintD(ctx.Param("team_id"), 0),
 	})
@@ -237,16 +240,9 @@ func (g *GameController) FindTeamByID(ctx *gin.Context) {
 			"code": http.StatusBadRequest,
 		})
 	}
-	if len(teams) == 0 {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusOK,
-			"data": nil,
-		})
-		return
-	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"data": teams[0],
+		"data": team,
 	})
 }
 
@@ -261,9 +257,8 @@ func (g *GameController) FindTeamByID(ctx *gin.Context) {
 // @Router /games/{id}/teams [post]
 func (g *GameController) CreateTeam(ctx *gin.Context) {
 	gameTeamCreateRequest := request.GameTeamCreateRequest{}
-	err := ctx.ShouldBindJSON(&gameTeamCreateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := ctx.ShouldBindJSON(&gameTeamCreateRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &gameTeamCreateRequest),
 		})
@@ -272,9 +267,9 @@ func (g *GameController) CreateTeam(ctx *gin.Context) {
 	user, _ := ctx.Get("user")
 	gameTeamCreateRequest.UserID = user.(*response.UserResponse).ID
 	gameTeamCreateRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = g.gameService.CreateTeam(gameTeamCreateRequest)
+	err := g.gameTeamService.Create(gameTeamCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -295,13 +290,13 @@ func (g *GameController) CreateTeam(ctx *gin.Context) {
 // @Param 允许加入请求 body request.GameTeamUpdateRequest true "GameTeamUpdateRequest"
 // @Router /games/{id}/teams/{team_id} [put]
 func (g *GameController) UpdateTeam(ctx *gin.Context) {
-	gameAllowJoinRequest := request.GameTeamUpdateRequest{}
-	gameAllowJoinRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	gameAllowJoinRequest.TeamID = convertor.ToUintD(ctx.Param("team_id"), 0)
-	err := ctx.ShouldBindJSON(&gameAllowJoinRequest)
-	err = g.gameService.UpdateTeam(gameAllowJoinRequest)
+	gameTeamUpdateRequest := request.GameTeamUpdateRequest{}
+	gameTeamUpdateRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
+	gameTeamUpdateRequest.TeamID = convertor.ToUintD(ctx.Param("team_id"), 0)
+	err := ctx.ShouldBindJSON(&gameTeamUpdateRequest)
+	err = g.gameTeamService.Update(gameTeamUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -324,9 +319,9 @@ func (g *GameController) DeleteTeam(ctx *gin.Context) {
 	gameTeamDeleteRequest := request.GameTeamDeleteRequest{}
 	gameTeamDeleteRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
 	gameTeamDeleteRequest.TeamID = convertor.ToUintD(ctx.Param("team_id"), 0)
-	err := g.gameService.DeleteTeam(gameTeamDeleteRequest)
+	err := g.gameTeamService.Delete(gameTeamDeleteRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -350,7 +345,7 @@ func (g *GameController) Create(ctx *gin.Context) {
 	gameCreateRequest := request.GameCreateRequest{}
 	err := ctx.ShouldBindJSON(&gameCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &gameCreateRequest),
 		})
@@ -358,7 +353,7 @@ func (g *GameController) Create(ctx *gin.Context) {
 	}
 	err = g.gameService.Create(gameCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -383,7 +378,7 @@ func (g *GameController) Delete(ctx *gin.Context) {
 	gameDeleteRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err := g.gameService.Delete(gameDeleteRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -407,7 +402,7 @@ func (g *GameController) Update(ctx *gin.Context) {
 	gameUpdateRequest := request.GameUpdateRequest{}
 	err := ctx.ShouldBindJSON(&gameUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &gameUpdateRequest),
 		})
@@ -416,7 +411,7 @@ func (g *GameController) Update(ctx *gin.Context) {
 	gameUpdateRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = g.gameService.Update(gameUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -441,7 +436,7 @@ func (g *GameController) Find(ctx *gin.Context) {
 	gameFindRequest := request.GameFindRequest{}
 	err := ctx.ShouldBindQuery(&gameFindRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &gameFindRequest),
 		})
@@ -452,7 +447,7 @@ func (g *GameController) Find(ctx *gin.Context) {
 	}
 	games, pageCount, total, err := g.gameService.Find(gameFindRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -484,7 +479,7 @@ func (g *GameController) FindByID(ctx *gin.Context) {
 	gameFindRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	games, _, _, err := g.gameService.Find(gameFindRequest)
 	if err != nil || len(games) == 0 {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})

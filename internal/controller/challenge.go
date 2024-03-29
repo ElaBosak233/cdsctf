@@ -60,8 +60,7 @@ func NewChallengeController(appService *service.Service) IChallengeController {
 func (c *ChallengeController) Find(ctx *gin.Context) {
 	isDetailed := ctx.GetBool("is_detailed")
 	isPracticable := func() *bool {
-		p, ok := ctx.Get("is_practicable")
-		if ok {
+		if p, ok := ctx.Get("is_practicable"); ok {
 			return p.(*bool)
 		}
 		return nil
@@ -69,7 +68,7 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 	challengeFindRequest := request.ChallengeFindRequest{}
 	err := ctx.ShouldBindQuery(&challengeFindRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &challengeFindRequest),
 		})
@@ -101,7 +100,7 @@ func (c *ChallengeController) Create(ctx *gin.Context) {
 	challengeCreateRequest := request.ChallengeCreateRequest{}
 	err := ctx.ShouldBindJSON(&challengeCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &challengeCreateRequest),
 		})
@@ -126,7 +125,7 @@ func (c *ChallengeController) Update(ctx *gin.Context) {
 	challengeUpdateRequest := request.ChallengeUpdateRequest{}
 	err := ctx.ShouldBindJSON(&challengeUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &challengeUpdateRequest),
 		})
@@ -135,7 +134,7 @@ func (c *ChallengeController) Update(ctx *gin.Context) {
 	challengeUpdateRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = c.challengeService.Update(challengeUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -159,9 +158,8 @@ func (c *ChallengeController) Delete(ctx *gin.Context) {
 	challengeDeleteRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err := c.challengeService.Delete(challengeDeleteRequest.ID)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  "删除失败",
 		})
 	}
 	ctx.JSON(http.StatusOK, gin.H{
@@ -181,7 +179,7 @@ func (c *ChallengeController) CreateHint(ctx *gin.Context) {
 	hintCreateRequest := request.HintCreateRequest{}
 	err := ctx.ShouldBindJSON(&hintCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &hintCreateRequest),
 		})
@@ -190,7 +188,7 @@ func (c *ChallengeController) CreateHint(ctx *gin.Context) {
 	hintCreateRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = c.hintService.Create(hintCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -213,7 +211,7 @@ func (c *ChallengeController) UpdateHint(ctx *gin.Context) {
 	hintUpdateRequest := request.HintUpdateRequest{}
 	err := ctx.ShouldBindJSON(&hintUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &hintUpdateRequest),
 		})
@@ -223,7 +221,7 @@ func (c *ChallengeController) UpdateHint(ctx *gin.Context) {
 	hintUpdateRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = c.hintService.Update(hintUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -247,7 +245,7 @@ func (c *ChallengeController) DeleteHint(ctx *gin.Context) {
 	hintDeleteRequest.ID = convertor.ToUintD(ctx.Param("hint_id"), 0)
 	err := c.hintService.Delete(hintDeleteRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -268,18 +266,17 @@ func (c *ChallengeController) DeleteHint(ctx *gin.Context) {
 // @Router /challenges/{id}/flags [post]
 func (c *ChallengeController) CreateFlag(ctx *gin.Context) {
 	flagCreateRequest := request.FlagCreateRequest{}
-	err := ctx.ShouldBindJSON(&flagCreateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := ctx.ShouldBindJSON(&flagCreateRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &flagCreateRequest),
 		})
 		return
 	}
 	flagCreateRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = c.flagService.Create(flagCreateRequest)
+	err := c.flagService.Create(flagCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -302,7 +299,7 @@ func (c *ChallengeController) UpdateFlag(ctx *gin.Context) {
 	flagUpdateRequest := request.FlagUpdateRequest{}
 	err := ctx.ShouldBindJSON(&flagUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &flagUpdateRequest),
 		})
@@ -312,7 +309,7 @@ func (c *ChallengeController) UpdateFlag(ctx *gin.Context) {
 	flagUpdateRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = c.flagService.Update(flagUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -336,7 +333,7 @@ func (c *ChallengeController) DeleteFlag(ctx *gin.Context) {
 	flagDeleteRequest.ID = convertor.ToUintD(ctx.Param("flag_id"), 0)
 	err := c.flagService.Delete(flagDeleteRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -359,7 +356,7 @@ func (c *ChallengeController) CreateImage(ctx *gin.Context) {
 	imageCreateRequest := request.ImageCreateRequest{}
 	err := ctx.ShouldBindJSON(&imageCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &imageCreateRequest),
 		})
@@ -368,7 +365,7 @@ func (c *ChallengeController) CreateImage(ctx *gin.Context) {
 	imageCreateRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = c.imageService.Create(imageCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -391,7 +388,7 @@ func (c *ChallengeController) UpdateImage(ctx *gin.Context) {
 	imageUpdateRequest := request.ImageUpdateRequest{}
 	err := ctx.ShouldBindJSON(&imageUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &imageUpdateRequest),
 		})
@@ -401,7 +398,7 @@ func (c *ChallengeController) UpdateImage(ctx *gin.Context) {
 	imageUpdateRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = c.imageService.Update(imageUpdateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -426,7 +423,7 @@ func (c *ChallengeController) DeleteImage(ctx *gin.Context) {
 	imageDeleteRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
 	err := c.imageService.Delete(imageDeleteRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})

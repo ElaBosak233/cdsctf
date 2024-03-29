@@ -14,18 +14,20 @@ type ITeamController interface {
 	Update(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 	Find(ctx *gin.Context)
-	Join(ctx *gin.Context)
-	Quit(ctx *gin.Context)
+	CreateUser(ctx *gin.Context)
+	DeleteUser(ctx *gin.Context)
 	FindById(ctx *gin.Context)
 }
 
 type TeamController struct {
-	teamService service.ITeamService
+	teamService     service.ITeamService
+	userTeamService service.IUserTeamService
 }
 
 func NewTeamController(appService *service.Service) ITeamController {
 	return &TeamController{
-		teamService: appService.TeamService,
+		teamService:     appService.TeamService,
+		userTeamService: appService.UserTeamService,
 	}
 }
 
@@ -70,18 +72,17 @@ func (c *TeamController) Create(ctx *gin.Context) {
 // @Router /teams/{id} [put]
 func (c *TeamController) Update(ctx *gin.Context) {
 	updateTeamRequest := request.TeamUpdateRequest{}
-	err := ctx.ShouldBindJSON(&updateTeamRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := ctx.ShouldBindJSON(&updateTeamRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &updateTeamRequest),
 		})
 		return
 	}
 	updateTeamRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = c.teamService.Update(updateTeamRequest)
+	err := c.teamService.Update(updateTeamRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -105,7 +106,7 @@ func (c *TeamController) Delete(ctx *gin.Context) {
 	deleteTeamRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err := c.teamService.Delete(deleteTeamRequest.ID)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -128,7 +129,7 @@ func (c *TeamController) Find(ctx *gin.Context) {
 	teamFindRequest := request.TeamFindRequest{}
 	err := ctx.ShouldBindQuery(&teamFindRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &teamFindRequest),
 		})
@@ -143,68 +144,6 @@ func (c *TeamController) Find(ctx *gin.Context) {
 	})
 }
 
-// Join
-// @Summary 加入团队
-// @Description	加入团队
-// @Tags Team
-// @Accept json
-// @Produce json
-// @Param input	body	request.TeamJoinRequest	true	"TeamJoinRequest"
-// @Router /teams/members/ [post]
-func (c *TeamController) Join(ctx *gin.Context) {
-	joinTeamRequest := request.TeamJoinRequest{}
-	err := ctx.ShouldBindJSON(&joinTeamRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &joinTeamRequest),
-		})
-		return
-	}
-	err = c.teamService.Join(joinTeamRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-	})
-}
-
-// Quit
-// @Summary 退出团队
-// @Description	退出团队
-// @Tags Team
-// @Accept json
-// @Produce json
-// @Param input	body request.TeamQuitRequest true "TeamQuitRequest"
-// @Router /teams/members/ [delete]
-func (c *TeamController) Quit(ctx *gin.Context) {
-	quitTeamRequest := request.TeamQuitRequest{}
-	err := ctx.ShouldBindJSON(&quitTeamRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &quitTeamRequest),
-		})
-		return
-	}
-	err = c.teamService.Quit(quitTeamRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-	})
-}
-
 // FindById
 // @Summary 查找团队
 // @Description	查找团队
@@ -215,9 +154,9 @@ func (c *TeamController) Quit(ctx *gin.Context) {
 // @Router /teams/{id} [get]
 func (c *TeamController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	res, err := c.teamService.FindById(convertor.ToUintD(id, 0))
+	team, err := c.teamService.FindById(convertor.ToUintD(id, 0))
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -225,6 +164,65 @@ func (c *TeamController) FindById(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"data": res,
+		"data": team,
+	})
+}
+
+// CreateUser
+// @Summary 加入团队
+// @Description	加入团队
+// @Tags Team
+// @Accept json
+// @Produce json
+// @Param input	body request.TeamUserCreateRequest true "TeamUserCreateRequest"
+// @Router /teams/{id}/users/ [post]
+func (c *TeamController) CreateUser(ctx *gin.Context) {
+	teamUserCreateRequest := request.TeamUserCreateRequest{
+		TeamID: convertor.ToUintD(ctx.Param("id"), 0),
+	}
+	err := ctx.ShouldBindJSON(&teamUserCreateRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &teamUserCreateRequest),
+		})
+		return
+	}
+	err = c.userTeamService.Create(teamUserCreateRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// DeleteUser
+// @Summary 退出团队
+// @Description	退出团队
+// @Tags Team
+// @Accept json
+// @Produce json
+// @Param input	body request.TeamUserDeleteRequest true "TeamUserDeleteRequest"
+// @Router /teams/{id}/users/{user_id} [delete]
+func (c *TeamController) DeleteUser(ctx *gin.Context) {
+	teamUserDeleteRequest := request.TeamUserDeleteRequest{
+		TeamID: convertor.ToUintD(ctx.Param("id"), 0),
+		UserID: convertor.ToUintD(ctx.Param("user_id"), 0),
+	}
+	err := c.userTeamService.Delete(teamUserDeleteRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
 	})
 }

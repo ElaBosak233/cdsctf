@@ -22,3 +22,19 @@ func (t *Team) BeforeDelete(db *gorm.DB) (err error) {
 	db.Table("game_teams").Where("team_id = ?", t.ID).Delete(&GameTeam{})
 	return nil
 }
+
+func (t *Team) AfterCreate(db *gorm.DB) (err error) {
+	db.Table("user_teams").Create(&UserTeam{
+		TeamID: t.ID,
+		UserID: t.CaptainID,
+	})
+	return nil
+}
+
+func (t *Team) AfterUpdate(db *gorm.DB) (err error) {
+	db.Table("user_teams").Create(&UserTeam{
+		TeamID: t.ID,
+		UserID: t.CaptainID,
+	})
+	return nil
+}

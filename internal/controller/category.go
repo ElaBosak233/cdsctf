@@ -39,7 +39,7 @@ func NewCategoryController(appService *service.Service) ICategoryController {
 func (c *CategoryController) Create(ctx *gin.Context) {
 	req := model.Category{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &req),
 		})
@@ -47,7 +47,7 @@ func (c *CategoryController) Create(ctx *gin.Context) {
 	}
 	err := c.categoryService.Create(req)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -70,7 +70,7 @@ func (c *CategoryController) Create(ctx *gin.Context) {
 func (c *CategoryController) Update(ctx *gin.Context) {
 	req := model.Category{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &req),
 		})
@@ -79,7 +79,7 @@ func (c *CategoryController) Update(ctx *gin.Context) {
 	req.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err := c.categoryService.Update(req)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -103,7 +103,7 @@ func (c *CategoryController) Find(ctx *gin.Context) {
 	req := request.CategoryFindRequest{}
 	err := ctx.ShouldBindQuery(&req)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &req),
 		})
@@ -111,7 +111,7 @@ func (c *CategoryController) Find(ctx *gin.Context) {
 	}
 	res, err := c.categoryService.Find(req)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -137,7 +137,7 @@ func (c *CategoryController) Delete(ctx *gin.Context) {
 	req.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err := c.categoryService.Delete(req)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})

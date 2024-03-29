@@ -56,7 +56,7 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 	if req.SortKey != "" && req.SortOrder != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
-		db = db.Order("submissions.id DESC") // 默认采用 IDs 降序排列
+		db = db.Order("submissions.id DESC")
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
@@ -71,9 +71,10 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 			return db.Select([]string{"id", "username", "nickname", "email"})
 		}).
 		Preload("Challenge").
+		Preload("GameChallenge").
 		Preload("Team").
 		Preload("Game", func(db *gorm.DB) *gorm.DB {
-			return db.Select([]string{"id", "title", "bio"})
+			return db.Select([]string{"id", "title", "bio", "first_blood_reward_ratio", "second_blood_reward_ratio", "third_blood_reward_ratio"})
 		}).
 		Find(&submissions)
 	return submissions, count, result.Error

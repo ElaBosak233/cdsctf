@@ -1426,58 +1426,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/teams/members/": {
-            "post": {
-                "description": "加入团队",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Team"
-                ],
-                "summary": "加入团队",
-                "parameters": [
-                    {
-                        "description": "TeamJoinRequest",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.TeamJoinRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            },
-            "delete": {
-                "description": "退出团队",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Team"
-                ],
-                "summary": "退出团队",
-                "parameters": [
-                    {
-                        "description": "TeamQuitRequest",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.TeamQuitRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/teams/{id}": {
             "get": {
                 "description": "查找团队",
@@ -1547,6 +1495,60 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.TeamDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/teams/{id}/users/": {
+            "post": {
+                "description": "加入团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team"
+                ],
+                "summary": "加入团队",
+                "parameters": [
+                    {
+                        "description": "TeamUserCreateRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TeamUserCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/teams/{id}/users/{user_id}": {
+            "delete": {
+                "description": "退出团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team"
+                ],
+                "summary": "退出团队",
+                "parameters": [
+                    {
+                        "description": "TeamUserDeleteRequest",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TeamUserDeleteRequest"
                         }
                     }
                 ],
@@ -1706,27 +1708,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.UserRegisterRequest"
                         }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/users/token/{token}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Token 鉴定",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {}
@@ -2202,36 +2183,6 @@ const docTemplate = `{
         "request.TeamDeleteRequest": {
             "type": "object"
         },
-        "request.TeamJoinRequest": {
-            "type": "object",
-            "required": [
-                "team_id",
-                "user_id"
-            ],
-            "properties": {
-                "team_id": {
-                    "type": "integer"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "request.TeamQuitRequest": {
-            "type": "object",
-            "required": [
-                "team_id",
-                "user_id"
-            ],
-            "properties": {
-                "team_id": {
-                    "type": "integer"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "request.TeamUpdateRequest": {
             "type": "object",
             "properties": {
@@ -2249,6 +2200,29 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "request.TeamUserCreateRequest": {
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.TeamUserDeleteRequest": {
+            "type": "object",
+            "required": [
+                "team_id",
+                "user_id"
+            ],
+            "properties": {
+                "team_id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },

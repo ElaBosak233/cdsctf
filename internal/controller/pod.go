@@ -39,9 +39,8 @@ func NewInstanceController(appService *service.Service) IPodController {
 // @Router /pods/ [post]
 func (c *PodController) Create(ctx *gin.Context) {
 	instanceCreateRequest := request.PodCreateRequest{}
-	err := ctx.ShouldBindJSON(&instanceCreateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := ctx.ShouldBindJSON(&instanceCreateRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &instanceCreateRequest),
 		})
@@ -49,9 +48,9 @@ func (c *PodController) Create(ctx *gin.Context) {
 	}
 	user, _ := ctx.Get("user")
 	instanceCreateRequest.UserID = user.(*response.UserResponse).ID
-	res, err := c.podService.Create(instanceCreateRequest)
+	pod, err := c.podService.Create(instanceCreateRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -59,9 +58,9 @@ func (c *PodController) Create(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":       http.StatusOK,
-		"id":         res.ID,
-		"instances":  res.Instances,
-		"removed_at": res.RemovedAt,
+		"id":         pod.ID,
+		"instances":  pod.Instances,
+		"removed_at": pod.RemovedAt,
 	})
 }
 
@@ -77,10 +76,12 @@ func (c *PodController) Remove(ctx *gin.Context) {
 	instanceRemoveRequest := request.PodRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
 	instanceRemoveRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	instanceRemoveRequest.UserID = ctx.GetUint("GameID")
+	if user, ok := ctx.Get("user"); ok {
+		instanceRemoveRequest.UserID = user.(*response.UserResponse).ID
+	}
 	err = c.podService.Remove(instanceRemoveRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -103,10 +104,12 @@ func (c *PodController) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.PodRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
 	instanceRenewRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	instanceRenewRequest.UserID = ctx.GetUint("GameID")
+	if user, ok := ctx.Get("user"); ok {
+		instanceRenewRequest.UserID = user.(*response.UserResponse).ID
+	}
 	removedAt, err := c.podService.Renew(instanceRenewRequest)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -127,9 +130,9 @@ func (c *PodController) Renew(ctx *gin.Context) {
 // @Router /pods/{id} [get]
 func (c *PodController) FindById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	rep, err := c.podService.FindById(convertor.ToUintD(id, 0))
+	pod, err := c.podService.FindById(convertor.ToUintD(id, 0))
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
@@ -137,7 +140,7 @@ func (c *PodController) FindById(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"data": rep,
+		"data": pod,
 	})
 }
 
@@ -151,9 +154,8 @@ func (c *PodController) FindById(ctx *gin.Context) {
 // @Router /pods/ [get]
 func (c *PodController) Find(ctx *gin.Context) {
 	podFindRequest := request.PodFindRequest{}
-	err := ctx.ShouldBindQuery(&podFindRequest)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
+	if err := ctx.ShouldBindQuery(&podFindRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &podFindRequest),
 		})
