@@ -9,12 +9,6 @@ func initDefaultPolicy() {
 		{"admin", "/api/*", "PUT"},
 		{"admin", "/api/*", "DELETE"},
 
-		{"monitor", "/api/games", "POST"},
-		{"monitor", "/api/games/{id}", "PUT"},
-		{"monitor", "/api/games/{id}", "DELETE"},
-		{"monitor", "/api/games/{id}/challenges", "POST"},
-		{"monitor", "/api/games/{id}/teams/{team_id}", "PUT"},
-
 		{"user", "/api/", "GET"},
 		{"user", "/api/users/logout", "POST"},
 		{"user", "/api/users/{id}", "PUT"},
@@ -40,7 +34,6 @@ func initDefaultPolicy() {
 		{"guest", "/api/", "GET"},
 		{"guest", "/api/configs/", "GET"},
 		{"guest", "/api/users/", "GET"},
-		{"guest", "/api/users/token/{token}", "GET"},
 		{"guest", "/api/users/register", "POST"},
 		{"guest", "/api/users/login", "POST"},
 		{"guest", "/api/games/{id}/broadcast", "GET"},
@@ -51,8 +44,7 @@ func initDefaultPolicy() {
 
 	_, err = Enforcer.AddGroupingPolicies([][]string{
 		{"user", "guest"},
-		{"monitor", "user"},
-		{"admin", "monitor"},
+		{"admin", "user"},
 	})
 
 	if err != nil {

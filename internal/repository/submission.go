@@ -10,7 +10,6 @@ type ISubmissionRepository interface {
 	Insert(submission model.Submission) (err error)
 	Delete(id uint) (err error)
 	Find(req request.SubmissionFindRequest) (submissions []model.Submission, count int64, err error)
-	FindByChallengeID(req request.SubmissionFindByChallengeIDRequest) (submissions []model.Submission, err error)
 }
 
 type SubmissionRepository struct {
@@ -70,46 +69,18 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Select([]string{"id", "username", "nickname", "email"})
 		}).
-		Preload("Challenge").
+		Preload("Challenge", func(db *gorm.DB) *gorm.DB {
+			return db.
+				Preload("Category").
+				Select([]string{"id", "title", "category_id", "difficulty", "practice_pts"})
+		}).
 		Preload("GameChallenge").
-		Preload("Team").
+		Preload("Team", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "name", "email"})
+		}).
 		Preload("Game", func(db *gorm.DB) *gorm.DB {
 			return db.Select([]string{"id", "title", "bio", "first_blood_reward_ratio", "second_blood_reward_ratio", "third_blood_reward_ratio"})
 		}).
 		Find(&submissions)
 	return submissions, count, result.Error
-}
-
-func (t *SubmissionRepository) FindByChallengeID(req request.SubmissionFindByChallengeIDRequest) (submissions []model.Submission, err error) {
-	applyFilters := func(q *gorm.DB) *gorm.DB {
-		if req.UserID != 0 {
-			q = q.Where("submissions.user_id = ?", req.UserID)
-		}
-		if req.TeamID != nil {
-			q = q.Where("submissions.team_id = ?", *(req.TeamID))
-		}
-		if req.GameID != nil {
-			q = q.Where("submissions.game_id = ?", *(req.GameID))
-		}
-		if req.Status != 0 {
-			q = q.Where("submissions.status = ?", req.Status)
-		}
-		return q
-	}
-	db := applyFilters(t.db.Table("submissions"))
-	if len(req.SortBy) > 0 {
-		sortKey := req.SortBy[0]
-		sortOrder := req.SortBy[1]
-		if sortOrder == "asc" {
-			db = db.Order("submissions." + sortKey + " ASC")
-		} else if sortOrder == "desc" {
-			db = db.Order("submissions." + sortKey + " DESC")
-		}
-	}
-	db = db.Joins("INNER JOIN users ON submissions.user_id = users.id").
-		Joins("LEFT JOIN teams ON submissions.team_id = teams.id").
-		Joins("LEFT JOIN challenges ON submissions.challenge_id = challenges.id").
-		Where("submissions.challenge_id IN ?", req.ChallengeID)
-	_ = db.Find(&submissions)
-	return submissions, err
 }

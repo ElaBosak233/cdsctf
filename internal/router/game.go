@@ -48,7 +48,7 @@ func (g *GameRouter) Register() {
 func (g *GameRouter) SAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user, _ := ctx.Get("user")
-		if !(user.(*response.UserResponse).Group.Name == "admin" || user.(*response.UserResponse).Group.Name == "monitor") {
+		if !(user.(*response.UserResponse).Group.Name == "admin") {
 			ctx.Set("is_enabled", true)
 		}
 		ctx.Next()

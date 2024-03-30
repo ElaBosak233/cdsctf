@@ -17,11 +17,6 @@ func initGroup() {
 				Description: "The administrator has the highest authority.",
 			},
 			{
-				Name:        "monitor",
-				DisplayName: "Monitor",
-				Description: "The monitor has the authority to control the games.",
-			},
-			{
 				Name:        "user",
 				DisplayName: "User",
 				Description: "The user is the default role.",

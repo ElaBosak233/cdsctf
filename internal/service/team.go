@@ -4,9 +4,7 @@ import (
 	"errors"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
-	"github.com/mitchellh/mapstructure"
 	"math"
 )
 
@@ -14,8 +12,8 @@ type ITeamService interface {
 	Create(req request.TeamCreateRequest) error
 	Update(req request.TeamUpdateRequest) error
 	Delete(id uint) error
-	Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, total int64, err error)
-	FindById(id uint) (res response.TeamResponse, err error)
+	Find(req request.TeamFindRequest) (teams []model.Team, pageCount int64, total int64, err error)
+	FindById(id uint) (team model.Team, err error)
 }
 
 type TeamService struct {
@@ -78,13 +76,8 @@ func (t *TeamService) Delete(id uint) error {
 	return err
 }
 
-func (t *TeamService) Find(req request.TeamFindRequest) (teams []response.TeamResponse, pageCount int64, total int64, err error) {
-	teamsData, count, err := t.teamRepository.Find(req)
-	for _, team := range teamsData {
-		var teamResponse response.TeamResponse
-		_ = mapstructure.Decode(team, &teamResponse)
-		teams = append(teams, teamResponse)
-	}
+func (t *TeamService) Find(req request.TeamFindRequest) (teams []model.Team, pageCount int64, total int64, err error) {
+	teams, count, err := t.teamRepository.Find(req)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
@@ -93,14 +86,12 @@ func (t *TeamService) Find(req request.TeamFindRequest) (teams []response.TeamRe
 	return teams, pageCount, count, err
 }
 
-func (t *TeamService) FindById(id uint) (team response.TeamResponse, err error) {
+func (t *TeamService) FindById(id uint) (team model.Team, err error) {
 	teams, _, err := t.teamRepository.Find(request.TeamFindRequest{
 		ID: id,
 	})
 	if len(teams) > 0 {
-		var teamData response.TeamResponse
-		_ = mapstructure.Decode(teams[0], &teamData)
-		team = teamData
+		team = teams[0]
 	}
 	return team, err
 }

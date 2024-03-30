@@ -43,7 +43,7 @@ func (t *TeamRouter) SAuth() gin.HandlerFunc {
 
 		isCaptain := func() bool {
 			for _, team := range user.Teams {
-				if team.ID == convertor.ToUintD(ctx.Param("id"), 0) && team.CaptainId == user.ID {
+				if team.ID == convertor.ToUintD(ctx.Param("id"), 0) && team.CaptainID == user.ID {
 					return true
 				}
 			}

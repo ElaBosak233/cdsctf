@@ -3,14 +3,13 @@ package service
 import (
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/mitchellh/mapstructure"
 	"math"
 )
 
 type IChallengeService interface {
-	Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error)
+	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pageCount int64, total int64, err error)
 	Create(req request.ChallengeCreateRequest) (err error)
 	Update(req request.ChallengeUpdateRequest) (err error)
 	Delete(id uint) (err error)
@@ -60,22 +59,20 @@ func (t *ChallengeService) Delete(id uint) (err error) {
 	return err
 }
 
-func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []response.ChallengeResponse, pageCount int64, total int64, err error) {
-	challengesData, count, err := t.challengeRepository.Find(req)
+func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pageCount int64, total int64, err error) {
+	challenges, count, err := t.challengeRepository.Find(req)
 
-	for _, challenge := range challengesData {
-		var challengeResponse response.ChallengeResponse
-		_ = mapstructure.Decode(challenge, &challengeResponse)
+	for index, challenge := range challenges {
 		if !*(req.IsDetailed) {
-			challengeResponse.Flags = nil
-			challengeResponse.Images = nil
+			challenge.Flags = nil
+			challenge.Images = nil
 		}
 		if req.SubmissionQty != 0 {
-			challengeResponse.Submissions = challengeResponse.Submissions[:min(req.SubmissionQty, len(challengeResponse.Submissions))]
+			challenge.Submissions = challenge.Submissions[:min(req.SubmissionQty, len(challenge.Submissions))]
 		} else {
-			challengeResponse.Submissions = nil
+			challenge.Submissions = nil
 		}
-		challenges = append(challenges, challengeResponse)
+		challenges[index] = challenge
 	}
 
 	if req.Size >= 1 && req.Page >= 1 {

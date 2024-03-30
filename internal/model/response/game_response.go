@@ -4,15 +4,6 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model"
 )
 
-type GameResponse struct {
-	model.Game
-}
-
-type GameSimpleResponse struct {
-	ID    int64  `json:"id"`
-	Title string `json:"title"`
-}
-
 type GameChallengeResponse struct {
 	*model.Challenge
 	IsEnabled bool  `json:"is_enabled"`

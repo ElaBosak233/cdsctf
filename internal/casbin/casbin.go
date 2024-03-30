@@ -14,13 +14,18 @@ var (
 )
 
 func InitCasbin() {
-	adapter, err := gormadapter.NewAdapterByDB(database.Db())
+	adapter, err := gormadapter.NewAdapterByDBWithCustomTable(
+		database.Db(),
+		&gormadapter.CasbinRule{},
+		"casbins",
+	)
 	cfg, err := embed.FS.ReadFile("configs/casbin.conf")
 	md, _ := model.NewModelFromString(string(cfg))
 	Enforcer, err = casbin.NewEnforcer(md, adapter)
 	if err != nil {
 		zap.L().Fatal("Casbin init failed", zap.Error(err))
 	}
-	_ = Enforcer.LoadPolicy()
+	Enforcer.ClearPolicy()
+	_ = Enforcer.SavePolicy()
 	initDefaultPolicy()
 }
