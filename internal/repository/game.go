@@ -3,7 +3,6 @@ package repository
 import (
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"gorm.io/gorm"
 )
 
@@ -11,7 +10,7 @@ type IGameRepository interface {
 	Insert(game model.Game) (g model.Game, err error)
 	Update(game model.Game) (err error)
 	Delete(req request.GameDeleteRequest) (err error)
-	Find(req request.GameFindRequest) (games []response.GameResponse, count int64, err error)
+	Find(req request.GameFindRequest) (games []model.Game, count int64, err error)
 }
 
 type GameRepository struct {
@@ -39,7 +38,7 @@ func (t *GameRepository) Delete(req request.GameDeleteRequest) (err error) {
 	return result.Error
 }
 
-func (t *GameRepository) Find(req request.GameFindRequest) (games []response.GameResponse, count int64, err error) {
+func (t *GameRepository) Find(req request.GameFindRequest) (games []model.Game, count int64, err error) {
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)

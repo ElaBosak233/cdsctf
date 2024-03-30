@@ -6,14 +6,13 @@ import (
 	"encoding/base64"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/mitchellh/mapstructure"
 	"math"
 )
 
 type IGameService interface {
-	Find(req request.GameFindRequest) (games []response.GameResponse, pageCount int64, total int64, err error)
+	Find(req request.GameFindRequest) (games []model.Game, pageCount int64, total int64, err error)
 	Create(req request.GameCreateRequest) (err error)
 	Update(req request.GameUpdateRequest) (err error)
 	Delete(req request.GameDeleteRequest) (err error)
@@ -64,7 +63,7 @@ func (g *GameService) Delete(req request.GameDeleteRequest) (err error) {
 	return g.gameRepository.Delete(req)
 }
 
-func (g *GameService) Find(req request.GameFindRequest) (games []response.GameResponse, pageCount int64, total int64, err error) {
+func (g *GameService) Find(req request.GameFindRequest) (games []model.Game, pageCount int64, total int64, err error) {
 	games, count, err := g.gameRepository.Find(req)
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))

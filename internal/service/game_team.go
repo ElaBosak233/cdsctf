@@ -52,7 +52,7 @@ func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []respons
 		gameTeams[i].Pts = 0
 		gameTeams[i].Solved = 0
 		for _, submission := range submissions {
-			if submission.TeamID != nil && *(submission.TeamID) == gameTeams[i].TeamID {
+			if submission.TeamID != nil && *(submission.TeamID) == gameTeams[i].TeamID && submission.GameChallenge != nil {
 				gameTeams[i].Pts += calculate.GameChallengePts(
 					submission.GameChallenge.MaxPts,
 					submission.GameChallenge.MinPts,
@@ -109,7 +109,7 @@ func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) 
 		ID: req.UserID,
 	})
 	user := users[0]
-	if req.UserID != team.Captain.ID && (user.Group.Name != "admin" && user.Group.Name != "monitor") {
+	if req.UserID != team.Captain.ID && (user.Group.Name != "admin") {
 		return errors.New("invalid team captain")
 	}
 

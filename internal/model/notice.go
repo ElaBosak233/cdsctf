@@ -1,5 +1,10 @@
 package model
 
+import (
+	"github.com/elabosak233/cloudsdale/internal/hub"
+	"gorm.io/gorm"
+)
+
 type Notice struct {
 	ID          uint       `json:"id"`                                                               // The game event's id.
 	Type        string     `gorm:"type:varchar(16);not null;default:'notice'" json:"type,omitempty"` // The game event's type. (Such as "first_blood", "second_blood", "third_blood", "new_challenge", "new_hint", "normal")
@@ -14,4 +19,20 @@ type Notice struct {
 	Content     string     `gorm:"type:text" json:"content,omitempty"`                               // The content of this event. (Only for "notice" type)
 	CreatedAt   int64      `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"`                 // The game event's creation time.
 	UpdatedAt   int64      `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"`                 // The game event's last update time.
+}
+
+func (n *Notice) AfterCreate(db *gorm.DB) (err error) {
+	result := db.Table("notices").
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "username", "nickname", "email"})
+		}).
+		Preload("Team", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "name", "email"})
+		}).
+		Preload("Challenge", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "title"})
+		}).
+		First(n, n.ID)
+	hub.SendGameMsg(*(n.GameID), n)
+	return result.Error
 }

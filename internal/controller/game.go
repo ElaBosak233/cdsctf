@@ -60,7 +60,7 @@ func NewGameController(appService *service.Service) IGameController {
 // @Tags Game
 // @Router /games/{id}/broadcast [get]
 func (g *GameController) BroadCast(ctx *gin.Context) {
-	id := convertor.ToInt64D(ctx.Param("id"), 0)
+	id := convertor.ToUintD(ctx.Param("id"), 0)
 	if id != 0 {
 		hub.ServeGameHub(ctx.Writer, ctx.Request, id)
 	}

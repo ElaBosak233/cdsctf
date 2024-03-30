@@ -15,5 +15,6 @@ type GameChallenge struct {
 
 func (g *GameChallenge) BeforeDelete(db *gorm.DB) (err error) {
 	db.Table("submissions").Where("game_id = ?", g.GameID).Where("challenge_id = ?", g.ChallengeID).Delete(&Submission{})
+	db.Table("notices").Where("game_id = ?", g.GameID).Where("challenge_id = ?", g.ChallengeID).Delete(&Notice{})
 	return nil
 }

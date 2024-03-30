@@ -14,10 +14,10 @@ type GameHub struct {
 	M         sync.RWMutex
 }
 
-var gameHubs = make(map[int64]*GameHub)
+var gameHubs = make(map[uint]*GameHub)
 var gameHubsLock sync.Mutex
 
-func ServeGameHub(w http.ResponseWriter, r *http.Request, gameID int64) {
+func ServeGameHub(w http.ResponseWriter, r *http.Request, gameID uint) {
 	gameHubsLock.Lock()
 	gameHub, ok := gameHubs[gameID]
 	if !ok {
@@ -72,7 +72,7 @@ func handleGameHub(gameHub *GameHub) {
 	}
 }
 
-func SendGameMsg(gameID int64, msg interface{}) {
+func SendGameMsg(gameID uint, msg interface{}) {
 	gameHubsLock.Lock()
 	gameHub, ok := gameHubs[gameID]
 	gameHubsLock.Unlock()

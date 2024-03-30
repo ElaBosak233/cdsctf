@@ -42,12 +42,12 @@ func (c *ChallengeRouter) Register() {
 func (c *ChallengeRouter) SAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user, _ := ctx.Get("user")
-		if user.(*response.UserResponse).Group.Name == "admin" || user.(*response.UserResponse).Group.Name == "monitor" {
+		if user.(*response.UserResponse).Group.Name == "admin" {
 			ctx.Set("is_detailed", convertor.ToBoolD(ctx.Query("is_detailed"), false))
 		} else {
 			ctx.Set("is_detailed", false)
 		}
-		if user.(*response.UserResponse).Group.Name == "admin" || user.(*response.UserResponse).Group.Name == "monitor" {
+		if user.(*response.UserResponse).Group.Name == "admin" {
 			ctx.Set("is_practicable", convertor.ToBoolP(ctx.Query("is_practicable")))
 		} else {
 			ctx.Set("is_practicable", convertor.TrueP())
