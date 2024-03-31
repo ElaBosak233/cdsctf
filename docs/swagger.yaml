@@ -285,6 +285,8 @@ definitions:
     type: object
   request.TeamUserCreateRequest:
     properties:
+      invite_token:
+        type: string
       user_id:
         type: integer
     type: object
@@ -1280,6 +1282,9 @@ paths:
       - in: query
         name: size
         type: integer
+      - in: query
+        name: user_id
+        type: integer
       produces:
       - application/json
       responses: {}
@@ -1354,6 +1359,73 @@ paths:
       summary: 更新团队
       tags:
       - Team
+  /teams/{id}/invite:
+    get:
+      consumes:
+      - application/json
+      description: 获取邀请码
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 获取邀请码
+      tags:
+      - Team
+    put:
+      consumes:
+      - application/json
+      description: 更新邀请码
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 更新邀请码
+      tags:
+      - Team
+  /teams/{id}/join:
+    post:
+      consumes:
+      - application/json
+      description: 加入团队
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 加入团队
+      tags:
+      - Team
+  /teams/{id}/leave:
+    delete:
+      consumes:
+      - application/json
+      description: 离开团队
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 离开团队
+      tags:
+      - Team
   /teams/{id}/users/:
     post:
       consumes:
@@ -1376,7 +1448,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: 退出团队
+      description: 踢出团队
       parameters:
       - description: TeamUserDeleteRequest
         in: body
@@ -1387,7 +1459,7 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: 退出团队
+      summary: 踢出团队
       tags:
       - Team
   /users/:

@@ -12,6 +12,7 @@ type Team struct {
 	CaptainID   uint    `gorm:"not null" json:"captain_id,omitempty"`              // The captain's id.
 	Captain     *User   `json:"captain,omitempty"`                                 // The captain's user.
 	IsLocked    *bool   `gorm:"not null;default:false" json:"is_locked,omitempty"` // Whether the team is locked. (true/false)
+	InviteToken string  `gorm:"type:varchar(32);" json:"invite_token,omitempty"`   // The team's invite token.
 	CreatedAt   int64   `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"`  // The team's creation time.
 	UpdatedAt   int64   `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"`  // The team's last update time.
 	Users       []*User `gorm:"many2many:user_teams;" json:"users,omitempty"`      // The team's users.

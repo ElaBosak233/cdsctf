@@ -5,6 +5,7 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
+	"github.com/google/uuid"
 	"math"
 )
 
@@ -14,6 +15,8 @@ type ITeamService interface {
 	Delete(id uint) error
 	Find(req request.TeamFindRequest) (teams []model.Team, pageCount int64, total int64, err error)
 	FindById(id uint) (team model.Team, err error)
+	GetInviteToken(req request.TeamGetInviteTokenRequest) (token string, err error)
+	UpdateInviteToken(req request.TeamUpdateInviteTokenRequest) (token string, err error)
 }
 
 type TeamService struct {
@@ -36,16 +39,14 @@ func (t *TeamService) Create(req request.TeamCreateRequest) error {
 		return errors.New("用户不存在")
 	}
 	isLocked := false
-	team, err := t.teamRepository.Insert(model.Team{
+	uid := uuid.NewString()
+	_, err = t.teamRepository.Insert(model.Team{
 		Name:        req.Name,
 		CaptainID:   req.CaptainId,
 		Description: req.Description,
 		Email:       req.Email,
 		IsLocked:    &isLocked,
-	})
-	err = t.userTeamRepository.Insert(model.UserTeam{
-		TeamID: team.ID,
-		UserID: req.CaptainId,
+		InviteToken: uid[:8] + uid[9:13] + uid[14:18] + uid[19:23] + uid[24:],
 	})
 	return err
 }
@@ -78,6 +79,10 @@ func (t *TeamService) Delete(id uint) error {
 
 func (t *TeamService) Find(req request.TeamFindRequest) (teams []model.Team, pageCount int64, total int64, err error) {
 	teams, count, err := t.teamRepository.Find(req)
+	for index, team := range teams {
+		team.InviteToken = ""
+		teams[index] = team
+	}
 	if req.Size >= 1 && req.Page >= 1 {
 		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
@@ -94,4 +99,26 @@ func (t *TeamService) FindById(id uint) (team model.Team, err error) {
 		team = teams[0]
 	}
 	return team, err
+}
+
+func (t *TeamService) GetInviteToken(req request.TeamGetInviteTokenRequest) (token string, err error) {
+	team, err := t.teamRepository.FindById(req.ID)
+	if err != nil || team.ID == 0 {
+		return "", errors.New("团队不存在")
+	}
+	return team.InviteToken, err
+}
+
+func (t *TeamService) UpdateInviteToken(req request.TeamUpdateInviteTokenRequest) (token string, err error) {
+	team, err := t.teamRepository.FindById(req.ID)
+	if err != nil || team.ID == 0 {
+		return "", errors.New("团队不存在")
+	}
+	uid := uuid.NewString()
+	token = uid[:8] + uid[9:13] + uid[14:18] + uid[19:23] + uid[24:]
+	err = t.teamRepository.Update(model.Team{
+		ID:          req.ID,
+		InviteToken: token,
+	})
+	return token, err
 }

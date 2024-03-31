@@ -32,7 +32,7 @@ func Casbin() gin.HandlerFunc {
 			})
 			if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
 				userID := uint(claims["user_id"].(float64))
-				user, _ = appService.UserService.FindById(userID)
+				user, _ = appService.UserService.FindByID(userID)
 				sub = user.Group.Name
 			}
 		}

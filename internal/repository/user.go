@@ -12,7 +12,7 @@ type IUserRepository interface {
 	Delete(id uint) error
 	FindById(id uint) (user model.User, err error)
 	FindByUsername(username string) (user model.User, err error)
-	Find(req request.UserFindRequest) (user []model.User, count int64, err error)
+	Find(req request.UserFindRequest) (user []model.User, total int64, err error)
 }
 
 type UserRepository struct {
@@ -40,7 +40,7 @@ func (t *UserRepository) Update(user model.User) error {
 	return result.Error
 }
 
-func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, count int64, err error) {
+func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, total int64, err error) {
 	applyFilter := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
@@ -54,7 +54,7 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 		return q
 	}
 	db := applyFilter(t.db.Table("users"))
-	result := db.Model(&model.User{}).Count(&count)
+	result := db.Model(&model.User{}).Count(&total)
 	if req.SortKey != "" && req.SortOrder != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
@@ -68,7 +68,7 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 		Preload("Group").
 		Preload("Teams").
 		Find(&users)
-	return users, count, result.Error
+	return users, total, result.Error
 }
 
 func (t *UserRepository) FindById(id uint) (user model.User, err error) {

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
+	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -17,6 +18,10 @@ type ITeamController interface {
 	CreateUser(ctx *gin.Context)
 	DeleteUser(ctx *gin.Context)
 	FindById(ctx *gin.Context)
+	GetInviteToken(ctx *gin.Context)
+	UpdateInviteToken(ctx *gin.Context)
+	Join(ctx *gin.Context)
+	Leave(ctx *gin.Context)
 }
 
 type TeamController struct {
@@ -202,8 +207,8 @@ func (c *TeamController) CreateUser(ctx *gin.Context) {
 }
 
 // DeleteUser
-// @Summary 退出团队
-// @Description	退出团队
+// @Summary 踢出团队
+// @Description	踢出团队
 // @Tags Team
 // @Accept json
 // @Produce json
@@ -221,6 +226,114 @@ func (c *TeamController) DeleteUser(ctx *gin.Context) {
 			"msg":  err.Error(),
 		})
 		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// GetInviteToken
+// @Summary 获取邀请码
+// @Description	获取邀请码
+// @Tags Team
+// @Accept json
+// @Produce json
+// @Param id path string true "id"
+// @Router /teams/{id}/invite [get]
+func (c *TeamController) GetInviteToken(ctx *gin.Context) {
+	id := ctx.Param("id")
+	token, err := c.teamService.GetInviteToken(request.TeamGetInviteTokenRequest{
+		ID: convertor.ToUintD(id, 0),
+	})
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":         http.StatusOK,
+		"invite_token": token,
+	})
+}
+
+// UpdateInviteToken
+// @Summary 更新邀请码
+// @Description	更新邀请码
+// @Tags Team
+// @Accept json
+// @Produce json
+// @Param id path string true "id"
+// @Router /teams/{id}/invite [put]
+func (c *TeamController) UpdateInviteToken(ctx *gin.Context) {
+	id := ctx.Param("id")
+	teamUpdateInviteTokenRequest := request.TeamUpdateInviteTokenRequest{}
+	teamUpdateInviteTokenRequest.ID = convertor.ToUintD(id, 0)
+	token, err := c.teamService.UpdateInviteToken(teamUpdateInviteTokenRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":         http.StatusOK,
+		"invite_token": token,
+	})
+}
+
+// Join
+// @Summary 加入团队
+// @Description	加入团队
+// @Tags Team
+// @Accept json
+// @Produce json
+// @Param id path string true "id"
+// @Router /teams/{id}/join [post]
+func (c *TeamController) Join(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if user, ok := ctx.Get("user"); ok {
+		err := c.userTeamService.Create(request.TeamUserCreateRequest{
+			TeamID: convertor.ToUintD(id, 0),
+			UserID: user.(*response.UserResponse).ID,
+		})
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+				"msg":  err.Error(),
+			})
+			return
+		}
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// Leave
+// @Summary 离开团队
+// @Description	离开团队
+// @Tags Team
+// @Accept json
+// @Produce json
+// @Param id path string true "id"
+// @Router /teams/{id}/leave [delete]
+func (c *TeamController) Leave(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if user, ok := ctx.Get("user"); ok {
+		err := c.userTeamService.Delete(request.TeamUserDeleteRequest{
+			TeamID: convertor.ToUintD(id, 0),
+			UserID: user.(*response.UserResponse).ID,
+		})
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+				"msg":  err.Error(),
+			})
+			return
+		}
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,

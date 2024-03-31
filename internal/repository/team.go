@@ -54,6 +54,10 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, 
 			q = q.Joins("INNER JOIN game_teams ON game_teams.team_id = teams.id").
 				Where("game_teams.game_id = ?", *(req.GameID))
 		}
+		if req.UserID != nil {
+			q = q.Joins("INNER JOIN user_teams ON user_teams.team_id = teams.id").
+				Where("user_teams.user_id = ?", *(req.UserID))
+		}
 		return q
 	}
 	db := applyFilters(t.db.Table("teams"))
