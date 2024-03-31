@@ -21,13 +21,13 @@ type IUserService interface {
 	Register(req request.UserRegisterRequest) (err error)
 	Update(req request.UserUpdateRequest) (err error)
 	Delete(id uint) error
-	FindById(id uint) (response.UserResponse, error)
+	FindByID(id uint) (response.UserResponse, error)
 	FindByUsername(username string) (response.UserResponse, error)
 	VerifyPasswordById(id uint, password string) bool
 	VerifyPasswordByUsername(username string, password string) bool
-	GetJwtTokenById(user response.UserResponse) (tokenString string, err error)
-	GetIdByJwtToken(token string) (id uint, err error)
-	Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, total int64, err error)
+	GetJwtTokenByID(user response.UserResponse) (tokenString string, err error)
+	GetIDByJwtToken(token string) (id uint, err error)
+	Find(req request.UserFindRequest) (users []response.UserResponse, pages int64, total int64, err error)
 }
 
 type UserService struct {
@@ -44,7 +44,7 @@ func NewUserService(appRepository *repository.Repository) IUserService {
 	}
 }
 
-func (t *UserService) GetJwtTokenById(user response.UserResponse) (tokenString string, err error) {
+func (t *UserService) GetJwtTokenByID(user response.UserResponse) (tokenString string, err error) {
 	jwtSecretKey := []byte(config.AppCfg().Gin.Jwt.SecretKey)
 	pgsToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
@@ -53,7 +53,7 @@ func (t *UserService) GetJwtTokenById(user response.UserResponse) (tokenString s
 	return pgsToken.SignedString(jwtSecretKey)
 }
 
-func (t *UserService) GetIdByJwtToken(token string) (id uint, err error) {
+func (t *UserService) GetIDByJwtToken(token string) (id uint, err error) {
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.AppCfg().Gin.Jwt.SecretKey), nil
 	})
@@ -120,7 +120,7 @@ func (t *UserService) Delete(id uint) error {
 	return err
 }
 
-func (t *UserService) Find(req request.UserFindRequest) (users []response.UserResponse, pageCount int64, total int64, err error) {
+func (t *UserService) Find(req request.UserFindRequest) (users []response.UserResponse, pages int64, total int64, err error) {
 	userResults, count, err := t.userRepository.Find(req)
 	for _, result := range userResults {
 		var userResponse response.UserResponse
@@ -128,14 +128,14 @@ func (t *UserService) Find(req request.UserFindRequest) (users []response.UserRe
 		users = append(users, userResponse)
 	}
 	if req.Size >= 1 && req.Page >= 1 {
-		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
+		pages = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
-		pageCount = 1
+		pages = 1
 	}
-	return users, pageCount, count, err
+	return users, pages, count, err
 }
 
-func (t *UserService) FindById(id uint) (response.UserResponse, error) {
+func (t *UserService) FindByID(id uint) (response.UserResponse, error) {
 	userData, err := t.userRepository.FindById(id)
 	userResp := response.UserResponse{}
 	_ = mapstructure.Decode(userData, &userResp)

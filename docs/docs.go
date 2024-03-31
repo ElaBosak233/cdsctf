@@ -1472,6 +1472,11 @@ const docTemplate = `{
                         "type": "integer",
                         "name": "size",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "user_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {}
@@ -1577,6 +1582,104 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/teams/{id}/invite": {
+            "get": {
+                "description": "获取邀请码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team"
+                ],
+                "summary": "获取邀请码",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "put": {
+                "description": "更新邀请码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team"
+                ],
+                "summary": "更新邀请码",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/teams/{id}/join": {
+            "post": {
+                "description": "加入团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team"
+                ],
+                "summary": "加入团队",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/teams/{id}/leave": {
+            "delete": {
+                "description": "离开团队",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team"
+                ],
+                "summary": "离开团队",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/teams/{id}/users/": {
             "post": {
                 "description": "加入团队",
@@ -1606,7 +1709,7 @@ const docTemplate = `{
         },
         "/teams/{id}/users/{user_id}": {
             "delete": {
-                "description": "退出团队",
+                "description": "踢出团队",
                 "consumes": [
                     "application/json"
                 ],
@@ -1616,7 +1719,7 @@ const docTemplate = `{
                 "tags": [
                     "Team"
                 ],
-                "summary": "退出团队",
+                "summary": "踢出团队",
                 "parameters": [
                     {
                         "description": "TeamUserDeleteRequest",
@@ -2282,6 +2385,9 @@ const docTemplate = `{
         "request.TeamUserCreateRequest": {
             "type": "object",
             "properties": {
+                "invite_token": {
+                    "type": "string"
+                },
                 "user_id": {
                     "type": "integer"
                 }

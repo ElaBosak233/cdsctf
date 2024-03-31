@@ -58,7 +58,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 		zap.L().Warn(fmt.Sprintf("User %s login failed", user.Username), zap.Uint("user_id", user.ID))
 		return
 	}
-	tokenString, err := c.userService.GetJwtTokenById(user)
+	tokenString, err := c.userService.GetJwtTokenByID(user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -83,7 +83,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /users/logout [post]
 func (c *UserController) Logout(ctx *gin.Context) {
-	id, err := c.userService.GetIdByJwtToken(ctx.GetHeader("Authorization"))
+	id, err := c.userService.GetIDByJwtToken(ctx.GetHeader("Authorization"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,

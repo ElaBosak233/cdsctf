@@ -31,7 +31,11 @@ func (t *TeamRouter) Register() {
 	t.router.DELETE("/:id", t.SAuth(), t.controller.Delete)
 	t.router.PUT("/:id", t.SAuth(), t.controller.Update)
 	t.router.POST("/:id/users", t.controller.CreateUser)
-	t.router.DELETE("/:id/users/:user_id", t.controller.DeleteUser)
+	t.router.DELETE("/:id/users/:user_id", t.SAuth(), t.controller.DeleteUser)
+	t.router.GET("/:id/invite", t.SAuth(), t.controller.GetInviteToken)
+	t.router.PUT("/:id/invite", t.SAuth(), t.controller.UpdateInviteToken)
+	t.router.POST("/:id/join", t.controller.Join)
+	t.router.POST("/:id/leave", t.controller.Leave)
 }
 
 func (t *TeamRouter) SAuth() gin.HandlerFunc {

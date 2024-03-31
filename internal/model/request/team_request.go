@@ -19,6 +19,7 @@ type TeamUpdateRequest struct {
 type TeamFindRequest struct {
 	ID        uint   `json:"id" form:"id"`
 	Name      string `json:"name" form:"name"`
+	UserID    *uint  `json:"user_id" form:"user_id"`
 	CaptainID uint   `json:"captain_id" form:"captain_id"`
 	GameID    *uint  `json:"game_id" form:"game_id"`
 	Page      int    `json:"page" form:"page"`
@@ -27,4 +28,14 @@ type TeamFindRequest struct {
 
 type TeamDeleteRequest struct {
 	ID uint `json:"-"`
+}
+
+type TeamGetInviteTokenRequest struct {
+	ID     uint `json:"-"`
+	UserID uint `json:"-"`
+}
+
+type TeamUpdateInviteTokenRequest struct {
+	ID     uint `json:"-"`
+	UserID uint `json:"-"`
 }
