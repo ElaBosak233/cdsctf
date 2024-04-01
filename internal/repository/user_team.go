@@ -29,7 +29,10 @@ func (t *UserTeamRepository) Insert(userTeam model.UserTeam) error {
 }
 
 func (t *UserTeamRepository) Delete(userTeam model.UserTeam) error {
-	result := t.db.Table("user_teams").Delete(&userTeam)
+	result := t.db.Table("user_teams").
+		Where("user_id = ?", userTeam.UserID).
+		Where("team_id = ?", userTeam.TeamID).
+		Delete(&userTeam)
 	return result.Error
 }
 
