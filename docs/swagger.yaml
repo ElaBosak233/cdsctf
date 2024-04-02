@@ -381,9 +381,7 @@ definitions:
     type: object
 info:
   contact: {}
-  description: Hack for fun not for profit.
-  title: Cloudsdale API
-  version: "1.0"
+  title: Cloudsdale
 paths:
   /categories/:
     get:
