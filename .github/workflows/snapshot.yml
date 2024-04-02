@@ -122,4 +122,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cloudsdale-macos
-          path: build/macos/cloudsdale-macos
+          path: build/macos/cloudsdale
