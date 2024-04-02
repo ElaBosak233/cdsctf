@@ -34,16 +34,15 @@ jobs:
       - name: Build for Linux
         run: |
           echo "Building for Linux..."
-          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/cloudsdale/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/cloudsdale/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/cloudsdale/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/cloudsdale/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/linux/cloudsdale ./cmd/cloudsdale || true
+          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/cloudsdale/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/cloudsdale/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/cloudsdale/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/cloudsdale/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/linux/cloudsdale ./ || true
           cd ./build/linux
-          mv cloudsdale cloudsdale-linux
           cd ../..
 
       - name: Upload Linux Binary
         uses: actions/upload-artifact@v4
         with:
           name: cloudsdale-linux
-          path: build/linux/cloudsdale-linux
+          path: build/linux/cloudsdale
 
   build_for_windows:
     runs-on: windows-latest
@@ -75,16 +74,15 @@ jobs:
       - name: Build for Windows
         run: |
           echo "Building for Windows..."
-          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/cloudsdale/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/cloudsdale/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/cloudsdale/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/cloudsdale/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/windows/cloudsdale.exe ./cmd/cloudsdale || true
+          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/cloudsdale/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/cloudsdale/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/cloudsdale/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/cloudsdale/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/windows/cloudsdale.exe ./ || true
           cd ./build/windows
-          mv cloudsdale.exe cloudsdale-windows.exe
           cd ../..
 
       - name: Upload Windows Binary
         uses: actions/upload-artifact@v4
         with:
           name: cloudsdale-windows
-          path: build/windows/cloudsdale-windows.exe
+          path: build/windows/cloudsdale.exe
 
   build_for_macos:
     runs-on: macos-latest
@@ -116,9 +114,8 @@ jobs:
       - name: Build for macOS
         run: |
           echo "Building for macOS..."
-          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/cloudsdale/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/cloudsdale/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/cloudsdale/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/cloudsdale/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/macos/cloudsdale ./cmd/cloudsdale || true
+          go build -ldflags "-linkmode external -w -s -X 'github.com/elabosak233/cloudsdale/internal/global.Version=${{ env.version }}' -X 'github.com/elabosak233/cloudsdale/internal/global.Branch=${{ env.branch }}' -X 'github.com/elabosak233/cloudsdale/internal/global.GitCommitID=${{ env.commit }}' -X 'github.com/elabosak233/cloudsdale/internal/global.BuildAt=${{ env.buildtime }}'" -o ./build/macos/cloudsdale ./ || true
           cd ./build/macos
-          mv cloudsdale cloudsdale-macos
           cd ../..
 
       - name: Upload macOS Binary
