@@ -30,9 +30,8 @@ uploads
 /media/
 /assets/
 /config/
-/application.json
+/configs/*
 /k8s-config.yml
-/platform.json
 /ca/
 /build/
 /captures/
@@ -40,7 +39,7 @@ test.go
 dist
 _PgsHub.exe
 _Cloudsdale.exe
-signature.json
+configs/signature.json
 config.json
 
 __pycache__

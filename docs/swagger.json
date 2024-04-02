@@ -1,10 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Hack for fun not for profit.",
-        "title": "Cloudsdale API",
-        "contact": {},
-        "version": "1.0"
+        "title": "Cloudsdale",
+        "contact": {}
     },
     "basePath": "/api",
     "paths": {

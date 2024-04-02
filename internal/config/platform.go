@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/elabosak233/cloudsdale/embed"
+	"github.com/elabosak233/cloudsdale/internal/embed"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"io"
@@ -36,7 +36,7 @@ func PltCfg() *PlatformCfg {
 
 func InitPlatformCfg() {
 	v2 = viper.New()
-	configFile := path.Join("platform.json")
+	configFile := path.Join("configs/platform.json")
 	v2.SetConfigType("json")
 	v2.SetConfigFile(configFile)
 	if _, err := os.Stat(configFile); err != nil {
