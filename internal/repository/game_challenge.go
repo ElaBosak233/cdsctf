@@ -8,7 +8,7 @@ import (
 
 type IGameChallengeRepository interface {
 	Find(req request.GameChallengeFindRequest) (gameChallenges []model.GameChallenge, err error)
-	Insert(gameChallenge model.GameChallenge) (err error)
+	Create(gameChallenge model.GameChallenge) (err error)
 	Update(gameChallenge model.GameChallenge) (err error)
 	Delete(gameChallenge model.GameChallenge) (err error)
 }
@@ -59,7 +59,7 @@ func (t *GameChallengeRepository) Find(req request.GameChallengeFindRequest) (ga
 	return gameChallenges, result.Error
 }
 
-func (t *GameChallengeRepository) Insert(gameChallenge model.GameChallenge) (err error) {
+func (t *GameChallengeRepository) Create(gameChallenge model.GameChallenge) (err error) {
 	result := t.db.Table("game_challenges").Create(&gameChallenge)
 	return result.Error
 }

@@ -7,7 +7,7 @@ import (
 )
 
 type ITeamRepository interface {
-	Insert(team model.Team) (te model.Team, err error)
+	Create(team model.Team) (te model.Team, err error)
 	Update(team model.Team) (err error)
 	Delete(id uint) (err error)
 	Find(req request.TeamFindRequest) (teams []model.Team, count int64, err error)
@@ -22,7 +22,7 @@ func NewTeamRepository(db *gorm.DB) ITeamRepository {
 	return &TeamRepository{db: db}
 }
 
-func (t *TeamRepository) Insert(team model.Team) (te model.Team, err error) {
+func (t *TeamRepository) Create(team model.Team) (te model.Team, err error) {
 	result := t.db.Table("teams").Create(&team)
 	return team, result.Error
 }

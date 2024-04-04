@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -72,9 +72,8 @@ func (c *SubmissionController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	if user, ok := ctx.Get("user"); ok {
-		submissionCreateRequest.UserID = user.(*response.UserResponse).ID
-	}
+	user := ctx.MustGet("user").(*model.User)
+	submissionCreateRequest.UserID = user.ID
 	status, rank, err := c.submissionService.Create(submissionCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{

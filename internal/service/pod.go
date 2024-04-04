@@ -152,8 +152,8 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 	instances, err := ctnManager.Setup()
 
-	// Insert Pod model, get Pod's GameID
-	pod, _ := t.podRepository.Insert(model.Pod{
+	// Create Pod model, get Pod's GameID
+	pod, _ := t.podRepository.Create(model.Pod{
 		ChallengeID: req.ChallengeID,
 		UserID:      req.UserID,
 		RemovedAt:   removedAt,
@@ -162,7 +162,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 	ctnManager.SetPodID(pod.ID)
 
-	_, _ = t.flagGenRepository.Insert(model.FlagGen{
+	_, _ = t.flagGenRepository.Create(model.FlagGen{
 		Flag:  flag.Value,
 		PodID: pod.ID,
 	})

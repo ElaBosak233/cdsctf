@@ -6,7 +6,7 @@ import (
 )
 
 type IPortRepository interface {
-	Insert(port model.Port) (p model.Port, err error)
+	Create(port model.Port) (p model.Port, err error)
 	Update(port model.Port) (p model.Port, err error)
 	Delete(port model.Port) (err error)
 	FindByImageID(imageIDs []uint) (ports []model.Port, err error)
@@ -21,7 +21,7 @@ func NewPortRepository(db *gorm.DB) IPortRepository {
 	return &PortRepository{db: db}
 }
 
-func (t *PortRepository) Insert(port model.Port) (p model.Port, err error) {
+func (t *PortRepository) Create(port model.Port) (p model.Port, err error) {
 	result := t.db.Table("ports").Create(&port)
 	return port, result.Error
 }

@@ -7,7 +7,7 @@ import (
 )
 
 type IChallengeRepository interface {
-	Insert(challenge model.Challenge) (c model.Challenge, err error)
+	Create(challenge model.Challenge) (c model.Challenge, err error)
 	Update(challenge model.Challenge) (c model.Challenge, err error)
 	Delete(id uint) (err error)
 	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, count int64, err error)
@@ -21,7 +21,7 @@ func NewChallengeRepository(db *gorm.DB) IChallengeRepository {
 	return &ChallengeRepository{db: db}
 }
 
-func (t *ChallengeRepository) Insert(challenge model.Challenge) (c model.Challenge, err error) {
+func (t *ChallengeRepository) Create(challenge model.Challenge) (c model.Challenge, err error) {
 	result := t.db.Table("challenges").Create(&challenge)
 	return challenge, result.Error
 }

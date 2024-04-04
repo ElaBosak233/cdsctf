@@ -10,7 +10,6 @@ import (
 )
 
 var (
-	// dockerCli Store Docker client pointers
 	dockerCli *client.Client
 )
 

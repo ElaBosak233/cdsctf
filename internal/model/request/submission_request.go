@@ -24,15 +24,3 @@ type SubmissionFindRequest struct {
 	SortKey     string `json:"sort_key" form:"sort_key"`         // 排序参数
 	SortOrder   string `json:"sort_order" form:"sort_order"`     // 排序方式
 }
-
-type SubmissionFindByChallengeIDRequest struct {
-	ChallengeID      []uint   `json:"challenge_id"`       // 题目 Id 数组
-	UserID           uint     `json:"user_id"`            // 用户 Id
-	Status           int      `json:"status"`             // 评估结果
-	SizePerChallenge int      `json:"size_per_challenge"` // 每道题查询量
-	TeamID           *uint    `json:"team_id"`            // 团队 Id
-	GameID           *uint    `json:"game_id"`            // 比赛 Id
-	IsDetailed       bool     `json:"is_detailed"`        // 是否详细
-	SortBy           []string `json:"sort_by"`            // 排序参数
-	Size             int      `json:"size"`               // 每页大小
-}

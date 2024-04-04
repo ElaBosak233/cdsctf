@@ -7,7 +7,7 @@ import (
 )
 
 type ISubmissionRepository interface {
-	Insert(submission model.Submission) (err error)
+	Create(submission model.Submission) (err error)
 	Delete(id uint) (err error)
 	Find(req request.SubmissionFindRequest) (submissions []model.Submission, count int64, err error)
 }
@@ -20,7 +20,7 @@ func NewSubmissionRepository(db *gorm.DB) ISubmissionRepository {
 	return &SubmissionRepository{db: db}
 }
 
-func (t *SubmissionRepository) Insert(submission model.Submission) (err error) {
+func (t *SubmissionRepository) Create(submission model.Submission) (err error) {
 	result := t.db.Table("submissions").Create(&submission)
 	return result.Error
 }

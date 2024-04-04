@@ -6,8 +6,7 @@ import (
 )
 
 type IFlagGenRepository interface {
-	Insert(flag model.FlagGen) (f model.FlagGen, err error)
-	FindByID(IDs []uint) (flags []model.FlagGen, err error)
+	Create(flag model.FlagGen) (f model.FlagGen, err error)
 	FindByPodID(podIDs []uint) (flags []model.FlagGen, err error)
 }
 
@@ -19,16 +18,9 @@ func NewFlagGenRepository(db *gorm.DB) IFlagGenRepository {
 	return &FlagGenRepository{db: db}
 }
 
-func (t *FlagGenRepository) Insert(flag model.FlagGen) (f model.FlagGen, err error) {
+func (t *FlagGenRepository) Create(flag model.FlagGen) (f model.FlagGen, err error) {
 	result := t.db.Table("flag_gens").Create(&flag)
 	return flag, result.Error
-}
-
-func (t *FlagGenRepository) FindByID(IDs []uint) (flags []model.FlagGen, err error) {
-	result := t.db.Table("flag_gens").
-		Where("id IN ?", IDs).
-		Find(&flags)
-	return flags, result.Error
 }
 
 func (t *FlagGenRepository) FindByPodID(podIDs []uint) (flags []model.FlagGen, err error) {

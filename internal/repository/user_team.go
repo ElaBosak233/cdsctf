@@ -6,7 +6,7 @@ import (
 )
 
 type IUserTeamRepository interface {
-	Insert(userTeam model.UserTeam) error
+	Create(userTeam model.UserTeam) error
 	Delete(userTeam model.UserTeam) error
 	DeleteByUserId(userID uint) error
 	DeleteByTeamId(teamID uint) error
@@ -23,7 +23,7 @@ func NewUserTeamRepository(db *gorm.DB) IUserTeamRepository {
 	return &UserTeamRepository{db: db}
 }
 
-func (t *UserTeamRepository) Insert(userTeam model.UserTeam) error {
+func (t *UserTeamRepository) Create(userTeam model.UserTeam) error {
 	result := t.db.Table("user_teams").Create(&userTeam)
 	return result.Error
 }

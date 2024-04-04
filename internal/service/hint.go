@@ -26,7 +26,7 @@ func NewHintService(appRepository *repository.Repository) IHintService {
 func (h *HintService) Create(req request.HintCreateRequest) (err error) {
 	var hint model.Hint
 	_ = mapstructure.Decode(req, &hint)
-	_, err = h.hintRepository.Insert(hint)
+	_, err = h.hintRepository.Create(hint)
 	return err
 }
 

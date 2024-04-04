@@ -13,9 +13,9 @@ func Frontend(urlPrefix string) gin.HandlerFunc {
 	root := config.AppCfg().Gin.Paths.Frontend
 	fileServer := http.FileServer(http.Dir(root))
 	if !strings.HasSuffix(urlPrefix, "/") {
-		urlPrefix = urlPrefix + "/" // 如果不是以 / 结尾的，需要添加 /
+		urlPrefix = urlPrefix + "/"
 	}
-	staticServerPrefix := strings.TrimRight(urlPrefix, "/") // 生成静态文件服务的前缀
+	staticServerPrefix := strings.TrimRight(urlPrefix, "/")
 	return func(ctx *gin.Context) {
 		if strings.HasPrefix(ctx.Request.URL.Path, "/api") || strings.HasPrefix(ctx.Request.URL.Path, "/docs") {
 			ctx.Next()

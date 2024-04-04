@@ -48,7 +48,7 @@ func (g *GameService) Create(req request.GameCreateRequest) (err error) {
 		PrivateKey: base64.StdEncoding.EncodeToString(privateKey),
 	}
 	err = mapstructure.Decode(req, &game)
-	_, err = g.gameRepository.Insert(game)
+	_, err = g.gameRepository.Create(game)
 	return err
 }
 

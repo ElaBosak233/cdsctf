@@ -11,8 +11,6 @@ type IImageService interface {
 	Create(req request.ImageCreateRequest) (err error)
 	Update(req request.ImageUpdateRequest) (err error)
 	Delete(req request.ImageDeleteRequest) (err error)
-	FindByID(IDs []uint) (images []model.Image, err error)
-	FindByChallengeID(challengeIDs []uint) (images []model.Image, err error)
 }
 
 type ImageService struct {
@@ -32,7 +30,7 @@ func NewImageService(appRepository *repository.Repository) IImageService {
 func (t *ImageService) Create(req request.ImageCreateRequest) (err error) {
 	var image model.Image
 	_ = mapstructure.Decode(req, &image)
-	_, err = t.imageRepository.Insert(image)
+	_, err = t.imageRepository.Create(image)
 	return err
 }
 
@@ -48,14 +46,4 @@ func (t *ImageService) Delete(req request.ImageDeleteRequest) (err error) {
 	_ = mapstructure.Decode(req, &image)
 	err = t.imageRepository.Delete(image)
 	return
-}
-
-func (t *ImageService) FindByID(IDs []uint) (images []model.Image, err error) {
-	images, err = t.imageRepository.FindByID(IDs)
-	return images, err
-}
-
-func (t *ImageService) FindByChallengeID(challengeIDs []uint) (images []model.Image, err error) {
-	images, err = t.imageRepository.FindByChallengeID(challengeIDs)
-	return images, err
 }

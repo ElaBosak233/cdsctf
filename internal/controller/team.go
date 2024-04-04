@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -294,18 +294,17 @@ func (c *TeamController) UpdateInviteToken(ctx *gin.Context) {
 // @Router /teams/{id}/join [post]
 func (c *TeamController) Join(ctx *gin.Context) {
 	id := ctx.Param("id")
-	if user, ok := ctx.Get("user"); ok {
-		err := c.userTeamService.Create(request.TeamUserCreateRequest{
-			TeamID: convertor.ToUintD(id, 0),
-			UserID: user.(*response.UserResponse).ID,
+	user := ctx.MustGet("user").(*model.User)
+	err := c.userTeamService.Create(request.TeamUserCreateRequest{
+		TeamID: convertor.ToUintD(id, 0),
+		UserID: user.ID,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
 		})
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"code": http.StatusBadRequest,
-				"msg":  err.Error(),
-			})
-			return
-		}
+		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
@@ -322,18 +321,17 @@ func (c *TeamController) Join(ctx *gin.Context) {
 // @Router /teams/{id}/leave [delete]
 func (c *TeamController) Leave(ctx *gin.Context) {
 	id := ctx.Param("id")
-	if user, ok := ctx.Get("user"); ok {
-		err := c.userTeamService.Delete(request.TeamUserDeleteRequest{
-			TeamID: convertor.ToUintD(id, 0),
-			UserID: user.(*response.UserResponse).ID,
+	user := ctx.MustGet("user").(*model.User)
+	err := c.userTeamService.Delete(request.TeamUserDeleteRequest{
+		TeamID: convertor.ToUintD(id, 0),
+		UserID: user.ID,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
 		})
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"code": http.StatusBadRequest,
-				"msg":  err.Error(),
-			})
-			return
-		}
+		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,

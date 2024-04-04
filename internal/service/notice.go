@@ -32,7 +32,7 @@ func (n *NoticeService) Find(req request.NoticeFindRequest) (notices []model.Not
 func (n *NoticeService) Create(req request.NoticeCreateRequest) (err error) {
 	var notice model.Notice
 	_ = mapstructure.Decode(req, &notice)
-	_, err = n.noticeRepository.Insert(notice)
+	_, err = n.noticeRepository.Create(notice)
 	return
 }
 

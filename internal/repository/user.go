@@ -7,7 +7,7 @@ import (
 )
 
 type IUserRepository interface {
-	Insert(user model.User) error
+	Create(user model.User) error
 	Update(user model.User) error
 	Delete(id uint) error
 	FindById(id uint) (user model.User, err error)
@@ -23,7 +23,7 @@ func NewUserRepository(db *gorm.DB) IUserRepository {
 	return &UserRepository{db: db}
 }
 
-func (t *UserRepository) Insert(user model.User) error {
+func (t *UserRepository) Create(user model.User) error {
 	result := t.db.Table("users").Create(&user)
 	return result.Error
 }

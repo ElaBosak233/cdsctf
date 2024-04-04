@@ -6,7 +6,7 @@ import (
 )
 
 type IInstanceRepository interface {
-	Insert(instance model.Instance) (i model.Instance, err error)
+	Create(instance model.Instance) (i model.Instance, err error)
 }
 
 type InstanceRepository struct {
@@ -17,7 +17,7 @@ func NewInstanceRepository(db *gorm.DB) IInstanceRepository {
 	return &InstanceRepository{db: db}
 }
 
-func (t *InstanceRepository) Insert(instance model.Instance) (i model.Instance, err error) {
+func (t *InstanceRepository) Create(instance model.Instance) (i model.Instance, err error) {
 	result := t.db.Table("instances").Create(&instance)
 	return instance, result.Error
 }
