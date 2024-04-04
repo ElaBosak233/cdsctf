@@ -144,7 +144,7 @@ func InitApplicationCfg() {
 	}
 
 	if err := v1.ReadInConfig(); err != nil {
-		zap.L().Fatal("Unable to read configuration file.")
+		zap.L().Fatal("Unable to read configuration file.", zap.Error(err))
 		return
 	}
 

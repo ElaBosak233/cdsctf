@@ -37,7 +37,7 @@ func InitSignatureCfg() {
 		_ = sigCfg.Save()
 	}
 	if err := v3.ReadInConfig(); err != nil {
-		zap.L().Error("Unable to read configuration file.")
+		zap.L().Fatal("Unable to read configuration file.", zap.Error(err))
 		return
 	}
 
