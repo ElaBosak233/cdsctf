@@ -65,7 +65,7 @@ func InitPlatformCfg() {
 	}
 
 	if err := v2.ReadInConfig(); err != nil {
-		zap.L().Error("Unable to read configuration file.")
+		zap.L().Fatal("Unable to read configuration file.", zap.Error(err))
 		return
 	}
 
