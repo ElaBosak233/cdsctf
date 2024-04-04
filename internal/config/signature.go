@@ -26,7 +26,7 @@ func SigCfg() *SignatureCfg {
 
 func InitSignatureCfg() {
 	v3 = viper.New()
-	configFile := path.Join("configs/signature.json")
+	configFile := path.Join("./configs/signature.json")
 	v3.SetConfigType("json")
 	v3.SetConfigFile(configFile)
 
