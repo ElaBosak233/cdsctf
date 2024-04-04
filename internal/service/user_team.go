@@ -36,7 +36,7 @@ func (t *UserTeamService) Join(req request.TeamUserJoinRequest) (err error) {
 	if team.InviteToken != req.InviteToken {
 		return errors.New("邀请码错误")
 	}
-	err = t.userTeamRepository.Insert(model.UserTeam{
+	err = t.userTeamRepository.Create(model.UserTeam{
 		TeamID: team.ID,
 		UserID: req.UserID,
 	})
@@ -49,7 +49,7 @@ func (t *UserTeamService) Create(req request.TeamUserCreateRequest) (err error) 
 	if err != nil || user.ID == 0 || team.ID == 0 {
 		return errors.New("用户或团队不存在")
 	}
-	err = t.userTeamRepository.Insert(model.UserTeam{
+	err = t.userTeamRepository.Create(model.UserTeam{
 		TeamID: team.ID,
 		UserID: req.UserID,
 	})

@@ -77,7 +77,7 @@ func (g *GameChallengeService) Find(req request.GameChallengeFindRequest) (chall
 func (g *GameChallengeService) Create(req request.GameChallengeCreateRequest) (err error) {
 	var gameChallenge model.GameChallenge
 	err = mapstructure.Decode(req, &gameChallenge)
-	err = g.gameChallengeRepository.Insert(gameChallenge)
+	err = g.gameChallengeRepository.Create(gameChallenge)
 	return err
 }
 
@@ -86,7 +86,7 @@ func (g *GameChallengeService) Update(req request.GameChallengeUpdateRequest) (e
 	err = mapstructure.Decode(req, &gameChallenge)
 	err = g.gameChallengeRepository.Update(gameChallenge)
 	if gameChallenge.IsEnabled != nil && *(gameChallenge.IsEnabled) {
-		_, err = g.noticeRepository.Insert(model.Notice{
+		_, err = g.noticeRepository.Create(model.Notice{
 			Type:        "new_challenge",
 			ChallengeID: &gameChallenge.ChallengeID,
 			GameID:      &gameChallenge.GameID,

@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/controller"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
+	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +24,7 @@ func NewChallengeRouter(challengeRouter *gin.RouterGroup, challengeController co
 }
 
 func (c *ChallengeRouter) Register() {
-	c.router.GET("/", c.SAuth(), c.controller.Find)
+	c.router.GET("/", c.PreProcess(), c.controller.Find)
 	c.router.POST("/", c.controller.Create)
 	c.router.PUT("/:id", c.controller.Update)
 	c.router.DELETE("/:id", c.controller.Delete)
@@ -39,15 +39,15 @@ func (c *ChallengeRouter) Register() {
 	c.router.DELETE("/:id/flags/:flag_id", c.controller.DeleteFlag)
 }
 
-func (c *ChallengeRouter) SAuth() gin.HandlerFunc {
+func (c *ChallengeRouter) PreProcess() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		user, _ := ctx.Get("user")
-		if user.(*response.UserResponse).Group.Name == "admin" {
+		user := ctx.MustGet("user").(*model.User)
+		if user.Group.Name == "admin" {
 			ctx.Set("is_detailed", convertor.ToBoolD(ctx.Query("is_detailed"), false))
 		} else {
 			ctx.Set("is_detailed", false)
 		}
-		if user.(*response.UserResponse).Group.Name == "admin" {
+		if user.Group.Name == "admin" {
 			ctx.Set("is_practicable", convertor.ToBoolP(ctx.Query("is_practicable")))
 		} else {
 			ctx.Set("is_practicable", convertor.TrueP())

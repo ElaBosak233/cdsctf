@@ -154,7 +154,7 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 					case 3:
 						noticeType = "third_blood"
 					}
-					_, err = t.noticeRepository.Insert(model.Notice{
+					_, err = t.noticeRepository.Create(model.Notice{
 						Type:        noticeType,
 						GameID:      req.GameID,
 						UserID:      &req.UserID,
@@ -169,7 +169,7 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 			}
 		}
 	}
-	err = t.submissionRepository.Insert(model.Submission{
+	err = t.submissionRepository.Create(model.Submission{
 		Flag:            req.Flag,
 		UserID:          req.UserID,
 		ChallengeID:     req.ChallengeID,

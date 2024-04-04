@@ -7,7 +7,7 @@ import (
 )
 
 type IGameRepository interface {
-	Insert(game model.Game) (g model.Game, err error)
+	Create(game model.Game) (g model.Game, err error)
 	Update(game model.Game) (err error)
 	Delete(req request.GameDeleteRequest) (err error)
 	Find(req request.GameFindRequest) (games []model.Game, count int64, err error)
@@ -21,7 +21,7 @@ func NewGameRepository(Db *gorm.DB) IGameRepository {
 	return &GameRepository{Db: Db}
 }
 
-func (t *GameRepository) Insert(game model.Game) (g model.Game, err error) {
+func (t *GameRepository) Create(game model.Game) (g model.Game, err error) {
 	result := t.Db.Table("games").Create(&game)
 	return game, result.Error
 }

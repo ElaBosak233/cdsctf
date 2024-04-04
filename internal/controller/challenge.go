@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -74,8 +74,8 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	user, _ := ctx.Get("user")
-	challengeFindRequest.UserID = user.(*response.UserResponse).ID
+	user := ctx.MustGet("user").(*model.User)
+	challengeFindRequest.UserID = user.ID
 	challengeFindRequest.IsDetailed = &isDetailed
 	challengeFindRequest.IsPracticable = isPracticable()
 	challenges, pageCount, total, _ := c.challengeService.Find(challengeFindRequest)

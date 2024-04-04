@@ -42,7 +42,7 @@ func NewChallengeService(appRepository *repository.Repository) IChallengeService
 func (t *ChallengeService) Create(req request.ChallengeCreateRequest) (err error) {
 	challengeModel := model.Challenge{}
 	_ = mapstructure.Decode(req, &challengeModel)
-	_, err = t.challengeRepository.Insert(challengeModel)
+	_, err = t.challengeRepository.Create(challengeModel)
 
 	return err
 }

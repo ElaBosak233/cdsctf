@@ -40,7 +40,7 @@ func (t *TeamService) Create(req request.TeamCreateRequest) error {
 	}
 	isLocked := false
 	uid := uuid.NewString()
-	_, err = t.teamRepository.Insert(model.Team{
+	_, err = t.teamRepository.Create(model.Team{
 		Name:        req.Name,
 		CaptainID:   req.CaptainId,
 		Description: req.Description,

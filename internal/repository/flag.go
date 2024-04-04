@@ -6,7 +6,7 @@ import (
 )
 
 type IFlagRepository interface {
-	Insert(flag model.Flag) (f model.Flag, err error)
+	Create(flag model.Flag) (f model.Flag, err error)
 	Update(flag model.Flag) (f model.Flag, err error)
 	Delete(flag model.Flag) (err error)
 	FindByChallengeID(challengeIDs []uint) (flags []model.Flag, err error)
@@ -20,7 +20,7 @@ func NewFlagRepository(db *gorm.DB) IFlagRepository {
 	return &FlagRepository{db: db}
 }
 
-func (t *FlagRepository) Insert(flag model.Flag) (f model.Flag, err error) {
+func (t *FlagRepository) Create(flag model.Flag) (f model.Flag, err error) {
 	result := t.db.Table("flags").Create(&flag)
 	return flag, result.Error
 }

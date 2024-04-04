@@ -8,7 +8,7 @@ import (
 
 type INoticeRepository interface {
 	Find(req request.NoticeFindRequest) (notices []model.Notice, count int64, err error)
-	Insert(notice model.Notice) (n model.Notice, err error)
+	Create(notice model.Notice) (n model.Notice, err error)
 	Update(notice model.Notice) (n model.Notice, err error)
 	Delete(notice model.Notice) (err error)
 }
@@ -51,7 +51,7 @@ func (t *NoticeRepository) Find(req request.NoticeFindRequest) (notices []model.
 	return notices, count, result.Error
 }
 
-func (t *NoticeRepository) Insert(notice model.Notice) (n model.Notice, err error) {
+func (t *NoticeRepository) Create(notice model.Notice) (n model.Notice, err error) {
 	result := t.db.Table("notices").Create(&notice)
 	return notice, result.Error
 }

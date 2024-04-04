@@ -6,7 +6,6 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/config"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/mitchellh/mapstructure"
@@ -21,13 +20,10 @@ type IUserService interface {
 	Register(req request.UserRegisterRequest) (err error)
 	Update(req request.UserUpdateRequest) (err error)
 	Delete(id uint) error
-	FindByID(id uint) (response.UserResponse, error)
-	FindByUsername(username string) (response.UserResponse, error)
-	VerifyPasswordById(id uint, password string) bool
 	VerifyPasswordByUsername(username string, password string) bool
-	GetJwtTokenByID(user response.UserResponse) (tokenString string, err error)
+	GetJwtTokenByID(user model.User) (tokenString string, err error)
 	GetIDByJwtToken(token string) (id uint, err error)
-	Find(req request.UserFindRequest) (users []response.UserResponse, pages int64, total int64, err error)
+	Find(req request.UserFindRequest) (users []model.User, pages int64, total int64, err error)
 }
 
 type UserService struct {
@@ -44,7 +40,7 @@ func NewUserService(appRepository *repository.Repository) IUserService {
 	}
 }
 
-func (t *UserService) GetJwtTokenByID(user response.UserResponse) (tokenString string, err error) {
+func (t *UserService) GetJwtTokenByID(user model.User) (tokenString string, err error) {
 	jwtSecretKey := []byte(config.AppCfg().Gin.Jwt.SecretKey)
 	pgsToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
@@ -76,7 +72,7 @@ func (t *UserService) Create(req request.UserCreateRequest) (err error) {
 		GroupID:  req.GroupID,
 		Password: string(hashedPassword),
 	}
-	err = t.userRepository.Insert(userModel)
+	err = t.userRepository.Create(userModel)
 	return err
 }
 
@@ -92,7 +88,7 @@ func (t *UserService) Register(req request.UserRegisterRequest) (err error) {
 			GroupID:  3,
 			Password: string(hashedPassword),
 		}
-		err = t.userRepository.Insert(userModel)
+		err = t.userRepository.Create(userModel)
 	}
 	return err
 }
@@ -120,12 +116,10 @@ func (t *UserService) Delete(id uint) error {
 	return err
 }
 
-func (t *UserService) Find(req request.UserFindRequest) (users []response.UserResponse, pages int64, total int64, err error) {
-	userResults, count, err := t.userRepository.Find(req)
-	for _, result := range userResults {
-		var userResponse response.UserResponse
-		_ = mapstructure.Decode(result, &userResponse)
-		users = append(users, userResponse)
+func (t *UserService) Find(req request.UserFindRequest) (users []model.User, pages int64, total int64, err error) {
+	users, count, err := t.userRepository.Find(req)
+	for index := range users {
+		users[index].Simplify()
 	}
 	if req.Size >= 1 && req.Page >= 1 {
 		pages = int64(math.Ceil(float64(count) / float64(req.Size)))
@@ -133,23 +127,6 @@ func (t *UserService) Find(req request.UserFindRequest) (users []response.UserRe
 		pages = 1
 	}
 	return users, pages, count, err
-}
-
-func (t *UserService) FindByID(id uint) (response.UserResponse, error) {
-	userData, err := t.userRepository.FindById(id)
-	userResp := response.UserResponse{}
-	_ = mapstructure.Decode(userData, &userResp)
-	return userResp, err
-}
-
-func (t *UserService) FindByUsername(username string) (response.UserResponse, error) {
-	userData, err := t.userRepository.FindByUsername(strings.ToLower(username))
-	if err != nil {
-		return response.UserResponse{}, errors.New("用户不存在")
-	}
-	userResp := response.UserResponse{}
-	_ = mapstructure.Decode(userData, &userResp)
-	return userResp, nil
 }
 
 func (t *UserService) VerifyPasswordById(id uint, password string) bool {

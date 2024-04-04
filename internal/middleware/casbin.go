@@ -3,7 +3,8 @@ package middleware
 import (
 	"github.com/elabosak233/cloudsdale/internal/casbin"
 	"github.com/elabosak233/cloudsdale/internal/config"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
+	"github.com/elabosak233/cloudsdale/internal/model"
+	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -22,7 +23,7 @@ func Casbin() gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
 		var sub string
-		var user response.UserResponse
+		var user model.User
 		sub = "guest"
 
 		userToken := ctx.GetHeader("Authorization")
@@ -31,22 +32,31 @@ func Casbin() gin.HandlerFunc {
 				return []byte(config.AppCfg().Gin.Jwt.SecretKey), nil
 			})
 			if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
-				userID := uint(claims["user_id"].(float64))
-				user, _ = appService.UserService.FindByID(userID)
+				if users, _, _, err := appService.UserService.Find(request.UserFindRequest{
+					ID: uint(claims["user_id"].(float64)),
+				}); err == nil && len(users) > 0 {
+					user = users[0]
+				}
 				sub = user.Group.Name
 			}
 		}
 
-		ok, _ := casbin.Enforcer.Enforce(sub, ctx.Request.URL.Path, ctx.Request.Method)
-		if ok {
-			ctx.Set("user", &user)
-			ctx.Next()
-			return
+		ok, err := casbin.Enforcer.Enforce(sub, ctx.Request.URL.Path, ctx.Request.Method)
+		if !ok || err != nil {
+			switch sub {
+			case "guest":
+				ctx.JSON(http.StatusUnauthorized, gin.H{
+					"code": http.StatusUnauthorized,
+				})
+			default:
+				ctx.JSON(http.StatusForbidden, gin.H{
+					"code": http.StatusForbidden,
+				})
+			}
+			ctx.Abort()
 		}
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"code": http.StatusUnauthorized,
-			"sub":  sub,
-		})
-		ctx.Abort()
+		ctx.Set("user", &user)
+		ctx.Next()
+		return
 	}
 }

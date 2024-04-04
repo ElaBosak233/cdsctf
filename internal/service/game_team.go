@@ -133,7 +133,7 @@ func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) 
 	sig, _ := signature.Sign(game.PrivateKey, strconv.Itoa(int(team.ID)))
 	gameTeam.Signature = fmt.Sprintf("%s:%s", strconv.Itoa(int(team.ID)), sig)
 
-	err = g.gameTeamRepository.Insert(gameTeam)
+	err = g.gameTeamRepository.Create(gameTeam)
 	return err
 }
 

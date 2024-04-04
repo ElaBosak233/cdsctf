@@ -8,7 +8,7 @@ import (
 )
 
 type IPodRepository interface {
-	Insert(pod model.Pod) (i model.Pod, err error)
+	Create(pod model.Pod) (i model.Pod, err error)
 	Update(pod model.Pod) (err error)
 	Find(req request.PodFindRequest) (pods []model.Pod, count int64, err error)
 	FindById(id uint) (pod model.Pod, err error)
@@ -22,7 +22,7 @@ func NewPodRepository(db *gorm.DB) IPodRepository {
 	return &PodRepository{db: db}
 }
 
-func (t *PodRepository) Insert(pod model.Pod) (i model.Pod, err error) {
+func (t *PodRepository) Create(pod model.Pod) (i model.Pod, err error) {
 	result := t.db.Table("pods").Create(&pod)
 	return pod, result.Error
 }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
@@ -41,15 +42,19 @@ func NewUserController(appService *service.Service) IUserController {
 // @Router /users/login [post]
 func (c *UserController) Login(ctx *gin.Context) {
 	userLoginRequest := request.UserLoginRequest{}
-	err := ctx.ShouldBindJSON(&userLoginRequest)
-	if err != nil {
+	if err := ctx.ShouldBindJSON(&userLoginRequest); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 			"msg":  validator.GetValidMsg(err, &userLoginRequest),
 		})
 		return
 	}
-	user, _ := c.userService.FindByUsername(userLoginRequest.Username)
+	var user model.User
+	if users, _, _, err := c.userService.Find(request.UserFindRequest{
+		Username: userLoginRequest.Username,
+	}); err == nil && len(users) > 0 {
+		user = users[0]
+	}
 	if !c.userService.VerifyPasswordByUsername(userLoginRequest.Username, userLoginRequest.Password) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,

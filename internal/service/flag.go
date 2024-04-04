@@ -26,7 +26,7 @@ func NewFlagService(appRepository *repository.Repository) IFlagService {
 func (f *FlagService) Create(req request.FlagCreateRequest) (err error) {
 	var flag model.Flag
 	_ = mapstructure.Decode(req, &flag)
-	_, err = f.flagRepository.Insert(flag)
+	_, err = f.flagRepository.Create(flag)
 	return err
 }
 

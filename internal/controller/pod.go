@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -46,8 +46,8 @@ func (c *PodController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	user, _ := ctx.Get("user")
-	instanceCreateRequest.UserID = user.(*response.UserResponse).ID
+	user := ctx.MustGet("user").(*model.User)
+	instanceCreateRequest.UserID = user.ID
 	pod, err := c.podService.Create(instanceCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -76,9 +76,8 @@ func (c *PodController) Remove(ctx *gin.Context) {
 	instanceRemoveRequest := request.PodRemoveRequest{}
 	err := ctx.ShouldBindJSON(&instanceRemoveRequest)
 	instanceRemoveRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	if user, ok := ctx.Get("user"); ok {
-		instanceRemoveRequest.UserID = user.(*response.UserResponse).ID
-	}
+	user := ctx.MustGet("user").(*model.User)
+	instanceRemoveRequest.UserID = user.ID
 	err = c.podService.Remove(instanceRemoveRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -104,9 +103,8 @@ func (c *PodController) Renew(ctx *gin.Context) {
 	instanceRenewRequest := request.PodRenewRequest{}
 	err := ctx.ShouldBindJSON(&instanceRenewRequest)
 	instanceRenewRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	if user, ok := ctx.Get("user"); ok {
-		instanceRenewRequest.UserID = user.(*response.UserResponse).ID
-	}
+	user := ctx.MustGet("user").(*model.User)
+	instanceRenewRequest.UserID = user.ID
 	removedAt, err := c.podService.Renew(instanceRenewRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -161,8 +159,8 @@ func (c *PodController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	user, _ := ctx.Get("user")
-	podFindRequest.UserID = user.(*response.UserResponse).ID
+	user := ctx.MustGet("user").(*model.User)
+	podFindRequest.UserID = user.ID
 	pods, _ := c.podService.Find(podFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,

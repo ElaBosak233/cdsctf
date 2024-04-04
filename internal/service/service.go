@@ -11,6 +11,7 @@ var (
 )
 
 type Service struct {
+	AuthService          IAuthService
 	MediaService         IMediaService
 	UserService          IUserService
 	ChallengeService     IChallengeService
@@ -38,6 +39,7 @@ func InitService() {
 	onceService.Do(func() {
 		appRepository := repository.R()
 
+		authService := NewAuthService(appRepository)
 		mediaService := NewMediaService()
 		userService := NewUserService(appRepository)
 		challengeService := NewChallengeService(appRepository)
@@ -57,6 +59,7 @@ func InitService() {
 		noticeService := NewNoticeService(appRepository)
 
 		s = &Service{
+			AuthService:          authService,
 			MediaService:         mediaService,
 			UserService:          userService,
 			ChallengeService:     challengeService,

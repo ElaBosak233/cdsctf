@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/hub"
+	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -270,8 +270,8 @@ func (g *GameController) CreateTeam(ctx *gin.Context) {
 		})
 		return
 	}
-	user, _ := ctx.Get("user")
-	gameTeamCreateRequest.UserID = user.(*response.UserResponse).ID
+	user := ctx.MustGet("user").(*model.User)
+	gameTeamCreateRequest.UserID = user.ID
 	gameTeamCreateRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err := g.gameTeamService.Create(gameTeamCreateRequest)
 	if err != nil {

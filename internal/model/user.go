@@ -23,6 +23,10 @@ type User struct {
 	Teams       []*Team `gorm:"many2many:user_teams;" json:"teams,omitempty"`                            // The user's teams.
 }
 
+func (u *User) Simplify() {
+	u.Password = ""
+}
+
 // AfterCreate Hook
 // Since the PrivateKey used here belongs to the entire Cloudsdale, it relies on GORM Hooks to write the Signature.
 func (u *User) AfterCreate(db *gorm.DB) (err error) {

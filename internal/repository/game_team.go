@@ -6,12 +6,10 @@ import (
 )
 
 type IGameTeamRepository interface {
-	Insert(gameTeam model.GameTeam) (err error)
+	Create(gameTeam model.GameTeam) (err error)
 	Update(gameTeam model.GameTeam) (err error)
 	Delete(gameTeam model.GameTeam) (err error)
 	Find(gameTeam model.GameTeam) (gameTeams []model.GameTeam, err error)
-	FindByGameID(gameID uint) (gameTeams []model.GameTeam, err error)
-	FindByTeamID(teamID uint) (gameTeams []model.GameTeam, err error)
 }
 
 type GameTeamRepository struct {
@@ -22,7 +20,7 @@ func NewGameTeamRepository(db *gorm.DB) IGameTeamRepository {
 	return &GameTeamRepository{db: db}
 }
 
-func (g *GameTeamRepository) Insert(gameTeam model.GameTeam) (err error) {
+func (g *GameTeamRepository) Create(gameTeam model.GameTeam) (err error) {
 	result := g.db.Table("game_teams").Create(&gameTeam)
 	return result.Error
 }
@@ -51,15 +49,5 @@ func (g *GameTeamRepository) Find(gameTeam model.GameTeam) (gameTeams []model.Ga
 		}).
 		Preload("Game").
 		Find(&gameTeams)
-	return gameTeams, result.Error
-}
-
-func (g *GameTeamRepository) FindByGameID(gameID uint) (gameTeams []model.GameTeam, err error) {
-	result := g.db.Table("game_teams").Where("game_id = ?", gameID).Find(&gameTeams)
-	return gameTeams, result.Error
-}
-
-func (g *GameTeamRepository) FindByTeamID(teamID uint) (gameTeams []model.GameTeam, err error) {
-	result := g.db.Table("game_teams").Where("team_id = ?", teamID).Find(&gameTeams)
 	return gameTeams, result.Error
 }
