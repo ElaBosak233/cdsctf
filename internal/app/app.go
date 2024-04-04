@@ -3,7 +3,7 @@ package app
 import (
 	"fmt"
 	"github.com/TwiN/go-color"
-	_ "github.com/elabosak233/cloudsdale/docs"
+	_ "github.com/elabosak233/cloudsdale/api"
 	"github.com/elabosak233/cloudsdale/internal/assets"
 	"github.com/elabosak233/cloudsdale/internal/casbin"
 	"github.com/elabosak233/cloudsdale/internal/config"

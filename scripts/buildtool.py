@@ -29,7 +29,7 @@ class Git:
 class Swag:
     @staticmethod
     def init():
-        subprocess.call("swag init -g ./cloudsdale.go -o ./docs", shell=True)
+        subprocess.call("swag init -g ./cloudsdale.go -o ./api", shell=True)
 
 
 class Go:
