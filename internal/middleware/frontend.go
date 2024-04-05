@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -20,20 +20,17 @@ func Frontend(urlPrefix string) gin.HandlerFunc {
 		if strings.HasPrefix(ctx.Request.URL.Path, "/api") || strings.HasPrefix(ctx.Request.URL.Path, "/docs") {
 			ctx.Next()
 		} else {
-			if ctx.Request.URL.Path == "/favicon.ico" {
-				if _, err := os.Stat(path.Join(config.AppCfg().Gin.Paths.Assets, "favicon.ico")); err == nil {
-					http.ServeFile(ctx.Writer, ctx.Request, path.Join(config.AppCfg().Gin.Paths.Assets, "favicon.ico"))
-					ctx.Abort()
-				}
-			}
-			filePath := path.Join(root, ctx.Request.URL.Path)
+			// 尝试匹配静态资源
+			filePath := filepath.Join(root, ctx.Request.URL.Path)
 			_, err := os.Stat(filePath)
-			if err != nil {
-				http.ServeFile(ctx.Writer, ctx.Request, path.Join(root, "404.html"))
-				ctx.Abort()
-			} else {
+			if err == nil {
 				http.StripPrefix(staticServerPrefix, fileServer).ServeHTTP(ctx.Writer, ctx.Request)
 				ctx.Abort()
+			} else if os.IsNotExist(err) {
+				http.ServeFile(ctx.Writer, ctx.Request, filepath.Join(root, "index.html"))
+				ctx.Abort()
+			} else {
+				ctx.Next()
 			}
 		}
 	}
