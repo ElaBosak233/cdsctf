@@ -33,6 +33,7 @@ uploads
 /configs/*
 /k8s-config.yml
 /ca/
+/db/
 /build/
 /captures/
 test.go

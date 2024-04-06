@@ -1,95 +1,88 @@
 {
-  "gin": {
-    "cors": {
-      "allow_methods": [
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE"
-      ],
-      "allow_origins": [
-        "*"
-      ]
-    },
-    "jwt": {
-      "expiration": 180,
-      "secret_key": "20101010"
-    },
-    "paths": {
-      "media": "./media",
-      "assets": "./assets",
-      "frontend": "./dist"
-    },
-    "host": "0.0.0.0",
-    "port": 8888
-  },
-  "container": {
-    "provider": "docker",
-    "proxy": {
-      "enabled": false,
-      "type": "tcp",
-      "tcp": {
-        "entry": "127.0.0.1"
-      },
-      "ws": {}
-    },
-    "traffic_capture": {
-        "enabled": false,
-        "path": "./captures"
-    },
-    "docker": {
-      "uri": "unix:///var/run/docker.sock",
-      "entry": "127.0.0.0"
-    },
-    "k8s": {
-      "namespace": "default",
-      "path": {
-        "config": "./k8s-config.yml"
-      }
-    }
-  },
-  "db": {
-    "provider": "sqlite3",
-    "postgres": {
-      "dbname": "cloudsdale",
-      "host": "127.0.0.1",
-      "username": "cloudsdale",
-      "password": "cloudsdale",
-      "port": 5432,
-      "sslmode": "disable"
-    },
-    "mysql": {
-      "dbname": "cloudsdale",
-      "host": "127.0.0.1",
-      "username": "cloudsdale",
-      "password": "cloudsdale",
-      "port": 3306
-    },
-    "sqlite3": {
-      "filename": "db.sqlite3"
-    }
-  },
-  "email": {
-    "address": "",
-    "password": "",
-    "smtp": {
-      "host": "",
-      "port": 0
-    }
-  },
-  "captcha": {
-    "enabled": false,
-    "provider": "turnstile",
-    "turnstile": {
-      "url": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      "site_key": "",
-      "secret_key": ""
-    },
-    "recaptcha": {
-      "url:": "https://www.google.com/recaptcha/api/siteverify",
-      "site_key": "",
-      "secret_key": "",
-      "threshold": 0.5
-    }
-  }
+	"gin": {
+		"cors": {
+			"allow_methods": ["GET", "POST", "PUT", "DELETE"],
+			"allow_origins": ["*"]
+		},
+		"jwt": {
+			"expiration": 180,
+			"secret_key": "20101010"
+		},
+		"paths": {
+			"media": "./media",
+			"assets": "./assets",
+			"frontend": "./dist"
+		},
+		"host": "0.0.0.0",
+		"port": 8888
+	},
+	"container": {
+		"provider": "docker",
+		"proxy": {
+			"enabled": false,
+			"type": "tcp",
+			"tcp": {
+				"entry": "127.0.0.1"
+			},
+			"ws": {}
+		},
+		"traffic_capture": {
+			"enabled": false,
+			"path": "./captures"
+		},
+		"docker": {
+			"uri": "unix:///var/run/docker.sock",
+			"entry": "127.0.0.0"
+		},
+		"k8s": {
+			"namespace": "default",
+			"path": {
+				"config": "./k8s-config.yml"
+			}
+		}
+	},
+	"db": {
+		"provider": "sqlite3",
+		"postgres": {
+			"dbname": "cloudsdale",
+			"host": "127.0.0.1",
+			"username": "cloudsdale",
+			"password": "cloudsdale",
+			"port": 5432,
+			"sslmode": "disable"
+		},
+		"mysql": {
+			"dbname": "cloudsdale",
+			"host": "127.0.0.1",
+			"username": "cloudsdale",
+			"password": "cloudsdale",
+			"port": 3306
+		},
+		"sqlite3": {
+			"filename": "./db/db.sqlite3"
+		}
+	},
+	"email": {
+		"address": "",
+		"password": "",
+		"smtp": {
+			"host": "",
+			"port": 0
+		}
+	},
+	"captcha": {
+		"enabled": false,
+		"provider": "turnstile",
+		"turnstile": {
+			"url": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+			"site_key": "",
+			"secret_key": ""
+		},
+		"recaptcha": {
+			"url:": "https://www.google.com/recaptcha/api/siteverify",
+			"site_key": "",
+			"secret_key": "",
+			"threshold": 0.5
+		}
+	}
 }
