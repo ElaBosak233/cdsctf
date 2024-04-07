@@ -36,7 +36,7 @@ func PltCfg() *PlatformCfg {
 
 func InitPlatformCfg() {
 	v2 = viper.New()
-	configFile := path.Join("./configs/platform.json")
+	configFile := path.Join("./application.json")
 	v2.SetConfigType("json")
 	v2.SetConfigFile(configFile)
 	if _, err := os.Stat(configFile); err != nil {

@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/config"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"time"
 )
@@ -17,11 +16,5 @@ type IContainerManager interface {
 }
 
 func NewContainerManager(images []*model.Image, flag model.Flag, duration time.Duration) IContainerManager {
-	switch config.AppCfg().Container.Provider {
-	case "docker":
-		return NewDockerManager(images, flag, duration)
-	case "k8s":
-		return NewK8sManager(images, flag, duration)
-	}
-	return nil
+	return NewDockerManager(images, flag, duration)
 }

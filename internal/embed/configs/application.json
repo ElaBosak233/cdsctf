@@ -17,7 +17,10 @@
 		"port": 8888
 	},
 	"container": {
-		"provider": "docker",
+		"docker": {
+			"uri": "unix:///var/run/docker.sock",
+			"entry": "127.0.0.0"
+		},
 		"proxy": {
 			"enabled": false,
 			"type": "tcp",
@@ -29,16 +32,6 @@
 		"traffic_capture": {
 			"enabled": false,
 			"path": "./captures"
-		},
-		"docker": {
-			"uri": "unix:///var/run/docker.sock",
-			"entry": "127.0.0.0"
-		},
-		"k8s": {
-			"namespace": "default",
-			"path": {
-				"config": "./k8s-config.yml"
-			}
 		}
 	},
 	"db": {
@@ -59,7 +52,7 @@
 			"port": 3306
 		},
 		"sqlite3": {
-			"filename": "./db/db.sqlite3"
+			"filename": "./db.sqlite3"
 		}
 	},
 	"email": {
