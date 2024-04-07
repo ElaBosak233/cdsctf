@@ -79,8 +79,7 @@ type ApplicationCfg struct {
 		} `yaml:"mysql" json:"mysql" mapstructure:"mysql"`
 	} `yaml:"db" json:"db" mapstructure:"db"`
 	Container struct {
-		Provider string `yaml:"provider" json:"provider" mapstructure:"provider"`
-		Nat      struct {
+		Nat struct {
 			Type  string `yaml:"type" json:"type" mapstructure:"type"`
 			Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
 		}
@@ -100,12 +99,6 @@ type ApplicationCfg struct {
 			URI   string `yaml:"uri" json:"uri" mapstructure:"uri"`
 			Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
 		} `yaml:"docker" json:"docker" mapstructure:"docker"`
-		K8s struct {
-			Namespace string `yaml:"namespace" json:"namespace" mapstructure:"namespace"`
-			Path      struct {
-				Config string `yaml:"config" json:"config" mapstructure:"config"`
-			} `yaml:"path" json:"path" mapstructure:"path"`
-		} `yaml:"k8s" json:"k8s" mapstructure:"k8s"`
 	} `yaml:"container" json:"container" mapstructure:"container"`
 }
 
@@ -115,7 +108,7 @@ func AppCfg() *ApplicationCfg {
 
 func InitApplicationCfg() {
 	v1 = viper.New()
-	configFile := path.Join("./configs/application.json")
+	configFile := path.Join("./application.json")
 	v1.SetConfigType("json")
 	v1.SetConfigFile(configFile)
 	if _, err := os.Stat(configFile); err != nil {
