@@ -7,7 +7,7 @@ type ICaptcha interface {
 }
 
 func NewCaptcha() ICaptcha {
-	switch config.AppCfg().Container.Provider {
+	switch config.AppCfg().Captcha.Provider {
 	case "recaptcha":
 		return NewGoogleRecaptcha()
 	case "turnstile":
