@@ -1,5 +1,433 @@
 basePath: /api
 definitions:
+  model.Category:
+    properties:
+      color:
+        description: The category's theme color. (Such as Rainbow Dash's color is
+          "#60AEE4")
+        type: string
+      created_at:
+        description: The category's creation time.
+        type: integer
+      description:
+        description: The category's description.
+        type: string
+      icon:
+        description: 'The category''s icon. (Based on Material Design Icons, Reference
+          site: https://pictogrammers.com/library/mdi/) (Such as "fingerprint": https://pictogrammers.com/library/mdi/icon/fingerprint/)'
+        type: string
+      id:
+        description: The category's id. As primary key.
+        type: integer
+      name:
+        description: The category's name.
+        type: string
+      updated_at:
+        description: The category's last update time.
+        type: integer
+    type: object
+  model.Challenge:
+    properties:
+      attachment_url:
+        description: The challenge's attachment URL.
+        type: string
+      category:
+        allOf:
+        - $ref: '#/definitions/model.Category'
+        description: The challenge's category.
+      category_id:
+        description: The challenge's category.
+        type: integer
+      cpu_limit:
+        description: The challenge's CPU limit. (0 means no limit)
+        type: integer
+      created_at:
+        description: The challenge's creation time.
+        type: integer
+      description:
+        description: The challenge's description.
+        type: string
+      difficulty:
+        description: The degree of difficulty. (From 1 to 5)
+        type: integer
+      duration:
+        description: The duration of container maintenance in the initial state. (Seconds)
+        type: integer
+      envs:
+        items:
+          $ref: '#/definitions/model.Env'
+        type: array
+      flags:
+        items:
+          $ref: '#/definitions/model.Flag'
+        type: array
+      has_attachment:
+        description: Whether the challenge has attachment.
+        type: boolean
+      hints:
+        items:
+          $ref: '#/definitions/model.Hint'
+        type: array
+      id:
+        description: The challenge's id. As primary key.
+        type: integer
+      image_name:
+        description: The challenge's image name.
+        type: string
+      is_dynamic:
+        description: Whether the challenge is based on dynamic container.
+        type: boolean
+      is_practicable:
+        description: Whether the challenge is practicable. (Is the practice field
+          visible.)
+        type: boolean
+      memory_limit:
+        description: The challenge's memory limit. (0 means no limit)
+        type: integer
+      ports:
+        items:
+          $ref: '#/definitions/model.Port'
+        type: array
+      practice_pts:
+        description: The points will be given when the challenge is solved in practice
+          field.
+        type: integer
+      solved:
+        $ref: '#/definitions/model.Submission'
+      submissions:
+        items:
+          $ref: '#/definitions/model.Submission'
+        type: array
+      title:
+        description: The challenge's title.
+        type: string
+      updated_at:
+        description: The challenge's last update time.
+        type: integer
+    type: object
+  model.Env:
+    properties:
+      challenge:
+        $ref: '#/definitions/model.Challenge'
+      challenge_id:
+        type: integer
+      id:
+        type: integer
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  model.Flag:
+    properties:
+      banned:
+        description: Whether the flag is banned. If banned, the user who submitted
+          the flag will be judged as cheating.
+        type: boolean
+      challenge:
+        allOf:
+        - $ref: '#/definitions/model.Challenge'
+        description: The challenge which the flag belongs to.
+      challenge_id:
+        description: The challenge id. The flag belongs to.
+        type: integer
+      env:
+        description: The environment variable which is used to be injected with the
+          flag.
+        type: string
+      id:
+        description: The flag id.
+        type: integer
+      type:
+        description: The flag type. ("static"/"dynamic"/"pattern")
+        type: string
+      value:
+        description: The flag content. Maybe a string or a regex, or the placeholder
+          for dynamic challenges. (Such as "flag{friendsh1p_1s_magic}" or "flag{[a-zA-Z]{5}}"
+          or "flag{[UUID]}")
+        type: string
+    type: object
+  model.Game:
+    properties:
+      bio:
+        description: The game's short description.
+        type: string
+      cover_url:
+        description: The game's cover image URL.
+        type: string
+      created_at:
+        description: The game's creation time.
+        type: integer
+      description:
+        description: The game's description. (Markdown supported.)
+        type: string
+      ended_at:
+        description: The game's end time. (Unix)
+        type: integer
+      first_blood_reward_ratio:
+        description: The prize ratio of first blood.
+        type: number
+      id:
+        description: The game's id. As primary key.
+        type: integer
+      is_enabled:
+        description: Whether the game is enabled.
+        type: boolean
+      is_need_write_up:
+        description: Whether the game need write up.
+        type: boolean
+      is_public:
+        description: Whether the game is public.
+        type: boolean
+      member_limit_max:
+        description: The maximum team member limit.
+        type: integer
+      member_limit_min:
+        description: The minimum team member limit.
+        type: integer
+      parallel_container_limit:
+        description: The maximum parallel container limit.
+        type: integer
+      public_key:
+        description: The game's public key.
+        type: string
+      second_blood_reward_ratio:
+        description: The prize ratio of second blood.
+        type: number
+      started_at:
+        description: The game's start time. (Unix)
+        type: integer
+      third_blood_reward_ratio:
+        description: The prize ratio of third blood.
+        type: number
+      title:
+        description: The game's title.
+        type: string
+      updated_at:
+        description: The game's last update time.
+        type: integer
+    type: object
+  model.GameChallenge:
+    properties:
+      challenge:
+        $ref: '#/definitions/model.Challenge'
+      challenge_id:
+        type: integer
+      game:
+        $ref: '#/definitions/model.Game'
+      game_id:
+        type: integer
+      id:
+        type: integer
+      is_enabled:
+        type: boolean
+      max_pts:
+        type: integer
+      min_pts:
+        type: integer
+    type: object
+  model.Group:
+    properties:
+      description:
+        type: string
+      display_name:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      users:
+        items:
+          $ref: '#/definitions/model.User'
+        type: array
+    type: object
+  model.Hint:
+    properties:
+      challenge:
+        allOf:
+        - $ref: '#/definitions/model.Challenge'
+        description: The challenge which the hint belongs to.
+      challenge_id:
+        description: The challenge which the hint belongs to.
+        type: integer
+      content:
+        description: The content of the hint.
+        type: string
+      created_at:
+        description: The hint's creation time.
+        type: integer
+      id:
+        description: The hint's id.
+        type: integer
+      published_at:
+        description: When the hint will be published.
+        type: integer
+      updated_at:
+        description: The hint's last update time.
+        type: integer
+    type: object
+  model.Port:
+    properties:
+      challenge:
+        allOf:
+        - $ref: '#/definitions/model.Challenge'
+        description: The JeopardyImage which the port belongs to.
+      challenge_id:
+        description: The JeopardyImage which the port belongs to.
+        type: integer
+      description:
+        description: The port's description.
+        type: string
+      id:
+        description: The port's id. As primary key.
+        type: integer
+      value:
+        description: The port number.
+        type: integer
+    type: object
+  model.Submission:
+    properties:
+      challenge:
+        allOf:
+        - $ref: '#/definitions/model.Challenge'
+        description: The challenge which is related to this submission.
+      challenge_id:
+        description: The challenge which is related to this submission.
+        type: integer
+      created_at:
+        description: The submission's creation time.
+        type: integer
+      flag:
+        description: The flag which was submitted for judgement.
+        type: string
+      game:
+        allOf:
+        - $ref: '#/definitions/model.Game'
+        description: The game which is related to this submission.
+      game_challenge:
+        allOf:
+        - $ref: '#/definitions/model.GameChallenge'
+        description: The game_challenge which is related to this submission.
+      game_challenge_id:
+        description: The game_challenge which is related to this submission.
+        type: integer
+      game_id:
+        description: The game which is related to this submission. (Must be set when
+          TeamID is set)
+        type: integer
+      id:
+        description: The submission's id. As primary key.
+        type: integer
+      pts:
+        description: The points of the submission.
+        type: integer
+      rank:
+        description: The rank of the submission.
+        type: integer
+      status:
+        description: The status of the submission. (0-meaningless, 1-accepted, 2-incorrect,
+          3-cheat, 4-invalid(duplicate, etc.))
+        type: integer
+      team:
+        allOf:
+        - $ref: '#/definitions/model.Team'
+        description: The team which submitted the flag.
+      team_id:
+        description: The team which submitted the flag. (Must be set when GameID is
+          set)
+        type: integer
+      updated_at:
+        description: The submission's last update time.
+        type: integer
+      user:
+        allOf:
+        - $ref: '#/definitions/model.User'
+        description: The user who submitted the flag.
+      user_id:
+        description: The user who submitted the flag.
+        type: integer
+    type: object
+  model.Team:
+    properties:
+      captain:
+        allOf:
+        - $ref: '#/definitions/model.User'
+        description: The captain's user.
+      captain_id:
+        description: The captain's id.
+        type: integer
+      created_at:
+        description: The team's creation time.
+        type: integer
+      description:
+        description: The team's description.
+        type: string
+      email:
+        description: The team's email.
+        type: string
+      id:
+        description: The team's id. As primary key.
+        type: integer
+      invite_token:
+        description: The team's invite token.
+        type: string
+      is_locked:
+        description: Whether the team is locked. (true/false)
+        type: boolean
+      name:
+        description: The team's name.
+        type: string
+      updated_at:
+        description: The team's last update time.
+        type: integer
+      users:
+        description: The team's users.
+        items:
+          $ref: '#/definitions/model.User'
+        type: array
+    type: object
+  model.User:
+    properties:
+      created_at:
+        description: The user's creation time.
+        type: integer
+      description:
+        description: The user's description.
+        type: string
+      email:
+        description: The user's email.
+        type: string
+      group:
+        allOf:
+        - $ref: '#/definitions/model.Group'
+        description: The user's group.
+      group_id:
+        description: The user's group.
+        type: integer
+      id:
+        description: The user's id. As primary key.
+        type: integer
+      nickname:
+        description: The user's nickname. Not unique.
+        type: string
+      password:
+        description: The user's password. Crypt.
+        type: string
+      signature:
+        description: The user's signature.
+        type: string
+      teams:
+        description: The user's teams.
+        items:
+          $ref: '#/definitions/model.Team'
+        type: array
+      updated_at:
+        description: The user's last update time.
+        type: integer
+      username:
+        description: The user's username. As a unique identifier.
+        type: string
+    type: object
   request.CategoryCreateRequest:
     properties:
       color:
@@ -46,18 +474,32 @@ definitions:
         type: string
       category_id:
         type: integer
+      cpu_limit:
+        type: integer
       description:
         type: string
       difficulty:
         type: integer
       duration:
         type: integer
+      envs:
+        items:
+          $ref: '#/definitions/model.Env'
+        type: array
       has_attachment:
         type: boolean
+      image_name:
+        type: string
       is_dynamic:
         type: boolean
       is_practicable:
         type: boolean
+      memory_limit:
+        type: integer
+      ports:
+        items:
+          $ref: '#/definitions/model.Port'
+        type: array
       practice_pts:
         type: integer
       title:
@@ -71,18 +513,32 @@ definitions:
         type: string
       category_id:
         type: integer
+      cpu_limit:
+        type: integer
       description:
         type: string
       difficulty:
         type: integer
       duration:
         type: integer
+      envs:
+        items:
+          $ref: '#/definitions/model.Env'
+        type: array
       has_attachment:
         type: boolean
+      image_name:
+        type: string
       is_dynamic:
         type: boolean
       is_practicable:
         type: boolean
+      memory_limit:
+        type: integer
+      ports:
+        items:
+          $ref: '#/definitions/model.Port'
+        type: array
       practice_pts:
         type: integer
       title:
@@ -638,41 +1094,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 更新提示
-      tags:
-      - Challenge
-  /challenges/{id}/images:
-    post:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: 创建镜像
-      tags:
-      - Challenge
-  /challenges/{id}/images/{image_id}:
-    delete:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: 删除镜像
-      tags:
-      - Challenge
-    put:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: 更新镜像
       tags:
       - Challenge
   /configs/:

@@ -21,10 +21,9 @@ type Repository struct {
 	GameChallengeRepository IGameChallengeRepository
 	CategoryRepository      ICategoryRepository
 	FlagRepository          IFlagRepository
-	ImageRepository         IImageRepository
 	PortRepository          IPortRepository
 	NatRepository           INatRepository
-	ContainerRepository     IInstanceRepository
+	ContainerRepository     IContainerRepository
 	EnvRepository           IEnvRepository
 	FlagGenRepository       IFlagGenRepository
 	GameTeamRepository      IGameTeamRepository
@@ -52,10 +51,9 @@ func InitRepository() {
 			GameChallengeRepository: NewGameChallengeRepository(db),
 			CategoryRepository:      NewCategoryRepositoryImpl(db),
 			FlagRepository:          NewFlagRepository(db),
-			ImageRepository:         NewImageRepository(db),
 			PortRepository:          NewPortRepository(db),
 			NatRepository:           NewNatRepository(db),
-			ContainerRepository:     NewInstanceRepository(db),
+			ContainerRepository:     NewContainerRepository(db),
 			EnvRepository:           NewEnvRepository(db),
 			FlagGenRepository:       NewFlagGenRepository(db),
 			GameTeamRepository:      NewGameTeamRepository(db),

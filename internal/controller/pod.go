@@ -22,7 +22,7 @@ type PodController struct {
 	podService service.IPodService
 }
 
-func NewInstanceController(appService *service.Service) IPodController {
+func NewPodController(appService *service.Service) IPodController {
 	return &PodController{
 		podService: appService.PodService,
 	}
@@ -59,7 +59,7 @@ func (c *PodController) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":       http.StatusOK,
 		"id":         pod.ID,
-		"instances":  pod.Instances,
+		"container":  pod.Container,
 		"removed_at": pod.RemovedAt,
 	})
 }

@@ -34,7 +34,7 @@ func InitController() {
 
 		userController := NewUserController(appService)
 		challengeController := NewChallengeController(appService)
-		instanceController := NewInstanceController(appService)
+		instanceController := NewPodController(appService)
 		configController := NewConfigController(appService)
 		mediaController := NewMediaController(appService)
 		teamController := NewTeamController(appService)

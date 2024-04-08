@@ -76,11 +76,8 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 			return db.Omit("created_at", "updated_at")
 		}).
 		Preload("Flags").
-		Preload("Images", func(db *gorm.DB) *gorm.DB {
-			return db.
-				Preload("Ports").
-				Preload("Envs")
-		}).
+		Preload("Ports").
+		Preload("Envs").
 		Preload("Submissions", func(db *gorm.DB) *gorm.DB {
 			return db.
 				Preload("User", func(db *gorm.DB) *gorm.DB {

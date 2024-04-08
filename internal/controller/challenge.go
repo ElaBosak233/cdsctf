@@ -27,14 +27,10 @@ type IChallengeController interface {
 	CreateFlag(ctx *gin.Context)
 	UpdateFlag(ctx *gin.Context)
 	DeleteFlag(ctx *gin.Context)
-	CreateImage(ctx *gin.Context)
-	UpdateImage(ctx *gin.Context)
-	DeleteImage(ctx *gin.Context)
 }
 
 type ChallengeController struct {
 	challengeService service.IChallengeService
-	imageService     service.IImageService
 	flagService      service.IFlagService
 	hintService      service.IHintService
 }
@@ -42,7 +38,6 @@ type ChallengeController struct {
 func NewChallengeController(appService *service.Service) IChallengeController {
 	return &ChallengeController{
 		challengeService: appService.ChallengeService,
-		imageService:     appService.ImageService,
 		flagService:      appService.FlagService,
 		hintService:      appService.HintService,
 	}
@@ -332,96 +327,6 @@ func (c *ChallengeController) DeleteFlag(ctx *gin.Context) {
 	flagDeleteRequest := request.FlagDeleteRequest{}
 	flagDeleteRequest.ID = convertor.ToUintD(ctx.Param("flag_id"), 0)
 	err := c.flagService.Delete(flagDeleteRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-	})
-}
-
-// CreateImage
-// @Summary 创建镜像
-// @Description
-// @Tags Challenge
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Router /challenges/{id}/images [post]
-func (c *ChallengeController) CreateImage(ctx *gin.Context) {
-	imageCreateRequest := request.ImageCreateRequest{}
-	err := ctx.ShouldBindJSON(&imageCreateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &imageCreateRequest),
-		})
-		return
-	}
-	imageCreateRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = c.imageService.Create(imageCreateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-	})
-}
-
-// UpdateImage
-// @Summary 更新镜像
-// @Description
-// @Tags Challenge
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Router /challenges/{id}/images/{image_id} [put]
-func (c *ChallengeController) UpdateImage(ctx *gin.Context) {
-	imageUpdateRequest := request.ImageUpdateRequest{}
-	err := ctx.ShouldBindJSON(&imageUpdateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &imageUpdateRequest),
-		})
-		return
-	}
-	imageUpdateRequest.ID = convertor.ToUintD(ctx.Param("image_id"), 0)
-	imageUpdateRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = c.imageService.Update(imageUpdateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-	})
-}
-
-// DeleteImage
-// @Summary 删除镜像
-// @Description
-// @Tags Challenge
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Router /challenges/{id}/images/{image_id} [delete]
-func (c *ChallengeController) DeleteImage(ctx *gin.Context) {
-	imageDeleteRequest := request.ImageDeleteRequest{}
-	imageDeleteRequest.ID = convertor.ToUintD(ctx.Param("image_id"), 0)
-	imageDeleteRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
-	err := c.imageService.Delete(imageDeleteRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,

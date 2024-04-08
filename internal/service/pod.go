@@ -54,7 +54,7 @@ type PodService struct {
 	podRepository       repository.IPodRepository
 	natRepository       repository.INatRepository
 	flagGenRepository   repository.IFlagGenRepository
-	instanceRepository  repository.IInstanceRepository
+	instanceRepository  repository.IContainerRepository
 }
 
 func NewPodService(appRepository *repository.Repository) IPodService {
@@ -145,19 +145,19 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 	}
 
 	ctnManager := manager.NewContainerManager(
-		challenge.Images,
+		challenge,
 		flag,
 		time.Duration(challenge.Duration)*time.Second,
 	)
 
-	instances, err := ctnManager.Setup()
+	container, err := ctnManager.Setup()
 
 	// Create Pod model, get Pod's GameID
 	pod, _ := t.podRepository.Create(model.Pod{
 		ChallengeID: req.ChallengeID,
 		UserID:      req.UserID,
 		RemovedAt:   removedAt,
-		Instances:   instances,
+		Container:   container,
 	})
 
 	ctnManager.SetPodID(pod.ID)
@@ -177,7 +177,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 	return response.PodStatusResponse{
 		ID:        pod.ID,
-		Instances: pod.Instances,
+		Container: pod.Container,
 		RemovedAt: removedAt,
 	}, err
 }
@@ -268,7 +268,7 @@ func (t *PodService) Find(req request.PodFindRequest) (pods []response.PodRespon
 		pods = append(pods, response.PodResponse{
 			ID:          pod.ID,
 			RemovedAt:   pod.RemovedAt,
-			Instances:   pod.Instances,
+			Container:   pod.Container,
 			ChallengeID: pod.ChallengeID,
 			Status:      status,
 		})

@@ -5,16 +5,16 @@ import (
 )
 
 type PodStatusResponse struct {
-	ID        uint              `json:"id"`
-	Instances []*model.Instance `json:"instances"`
-	RemovedAt int64             `json:"removed_at"`
-	Status    string            `json:"status"`
+	ID        uint             `json:"id"`
+	Container *model.Container `json:"container"`
+	RemovedAt int64            `json:"removed_at"`
+	Status    string           `json:"status"`
 }
 
 type PodResponse struct {
-	ID          uint              `json:"id"`
-	ChallengeID uint              `json:"challenge_id"`
-	Instances   []*model.Instance `json:"instances"`
-	RemovedAt   int64             `json:"removed_at"`
-	Status      string            `json:"status"`
+	ID          uint             `json:"id"`
+	ChallengeID uint             `json:"challenge_id"`
+	Container   *model.Container `json:"container"`
+	RemovedAt   int64            `json:"removed_at"`
+	Status      string           `json:"status"`
 }

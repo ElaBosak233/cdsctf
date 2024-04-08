@@ -19,7 +19,7 @@
 	"container": {
 		"docker": {
 			"uri": "unix:///var/run/docker.sock",
-			"entry": "127.0.0.0"
+			"entry": "127.0.0.1"
 		},
 		"proxy": {
 			"enabled": false,
@@ -38,7 +38,7 @@
 		"provider": "sqlite3",
 		"postgres": {
 			"dbname": "cloudsdale",
-			"host": "127.0.0.1",
+			"host": "db",
 			"username": "cloudsdale",
 			"password": "cloudsdale",
 			"port": 5432,
@@ -46,7 +46,7 @@
 		},
 		"mysql": {
 			"dbname": "cloudsdale",
-			"host": "127.0.0.1",
+			"host": "db",
 			"username": "cloudsdale",
 			"password": "cloudsdale",
 			"port": 3306

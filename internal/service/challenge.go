@@ -18,7 +18,6 @@ type IChallengeService interface {
 type ChallengeService struct {
 	challengeRepository     repository.IChallengeRepository
 	flagRepository          repository.IFlagRepository
-	imageRepository         repository.IImageRepository
 	categoryRepository      repository.ICategoryRepository
 	gameChallengeRepository repository.IGameChallengeRepository
 	submissionRepository    repository.ISubmissionRepository
@@ -33,17 +32,15 @@ func NewChallengeService(appRepository *repository.Repository) IChallengeService
 		submissionRepository:    appRepository.SubmissionRepository,
 		categoryRepository:      appRepository.CategoryRepository,
 		flagRepository:          appRepository.FlagRepository,
-		imageRepository:         appRepository.ImageRepository,
 		portRepository:          appRepository.PortRepository,
 		envRepository:           appRepository.EnvRepository,
 	}
 }
 
 func (t *ChallengeService) Create(req request.ChallengeCreateRequest) (err error) {
-	challengeModel := model.Challenge{}
-	_ = mapstructure.Decode(req, &challengeModel)
-	_, err = t.challengeRepository.Create(challengeModel)
-
+	challenge := model.Challenge{}
+	_ = mapstructure.Decode(req, &challenge)
+	_, err = t.challengeRepository.Create(challenge)
 	return err
 }
 
@@ -65,7 +62,7 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 	for index, challenge := range challenges {
 		if !*(req.IsDetailed) {
 			challenge.Flags = nil
-			challenge.Images = nil
+			challenge.ImageName = ""
 		}
 		if req.SubmissionQty != 0 {
 			challenge.Submissions = challenge.Submissions[:min(req.SubmissionQty, len(challenge.Submissions))]
