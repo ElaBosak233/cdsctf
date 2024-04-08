@@ -1,30 +1,42 @@
 package request
 
+import "github.com/elabosak233/cloudsdale/internal/model"
+
 type ChallengeCreateRequest struct {
-	Title         string `json:"title"`
-	Description   string `json:"description"`
-	HasAttachment *bool  `json:"has_attachment"`
-	AttachmentURL string `json:"attachment_url"`
-	IsPracticable *bool  `json:"is_practicable"`
-	IsDynamic     *bool  `json:"is_dynamic"`
-	CategoryID    uint   `json:"category_id"`
-	Duration      int64  `json:"duration"`
-	Difficulty    int64  `json:"difficulty"`
-	PracticePts   int64  `json:"practice_pts"`
+	Title         string        `json:"title"`
+	Description   string        `json:"description"`
+	HasAttachment *bool         `json:"has_attachment"`
+	AttachmentURL string        `json:"attachment_url"`
+	IsPracticable *bool         `json:"is_practicable"`
+	IsDynamic     *bool         `json:"is_dynamic"`
+	CategoryID    uint          `json:"category_id"`
+	Duration      int64         `json:"duration"`
+	Difficulty    int64         `json:"difficulty"`
+	PracticePts   int64         `json:"practice_pts"`
+	ImageName     string        `json:"image_name"`
+	CPULimit      *int64        `json:"cpu_limit"`
+	MemoryLimit   *int64        `json:"memory_limit"`
+	Ports         []*model.Port `json:"ports"`
+	Envs          []*model.Env  `json:"envs"`
 }
 
 type ChallengeUpdateRequest struct {
-	ID            uint   `json:"-"`
-	Title         string `json:"title"`
-	Description   string `json:"description"`
-	HasAttachment *bool  `json:"has_attachment"`
-	AttachmentURL string `json:"attachment_url"`
-	IsPracticable *bool  `json:"is_practicable"`
-	IsDynamic     *bool  `json:"is_dynamic"`
-	CategoryID    int64  `json:"category_id"`
-	Duration      int64  `json:"duration"`
-	Difficulty    int64  `json:"difficulty"`
-	PracticePts   int64  `json:"practice_pts"`
+	ID            uint          `json:"-"`
+	Title         string        `json:"title"`
+	Description   string        `json:"description"`
+	HasAttachment *bool         `json:"has_attachment"`
+	AttachmentURL string        `json:"attachment_url"`
+	IsPracticable *bool         `json:"is_practicable"`
+	IsDynamic     *bool         `json:"is_dynamic"`
+	CategoryID    int64         `json:"category_id"`
+	Duration      int64         `json:"duration"`
+	Difficulty    int64         `json:"difficulty"`
+	PracticePts   int64         `json:"practice_pts"`
+	ImageName     string        `json:"image_name"`
+	CPULimit      *int64        `json:"cpu_limit"`
+	MemoryLimit   *int64        `json:"memory_limit"`
+	Ports         []*model.Port `json:"ports"`
+	Envs          []*model.Env  `json:"envs"`
 }
 
 type ChallengeDeleteRequest struct {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/TwiN/go-color"
-	"github.com/docker/docker/api/types/container"
+	ctn "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/elabosak233/cloudsdale/internal/config"
@@ -19,23 +19,23 @@ import (
 )
 
 type DockerManager struct {
-	images   []*model.Image
-	flag     model.Flag
-	duration time.Duration
+	challenge model.Challenge
+	flag      model.Flag
+	duration  time.Duration
 
 	PodID      uint
 	RespID     []string
 	Proxy      proxy.IPodProxy
-	Instances  []*model.Instance
+	Container  *model.Container
 	CancelCtx  context.Context
 	CancelFunc context.CancelFunc
 }
 
-func NewDockerManager(images []*model.Image, flag model.Flag, duration time.Duration) IContainerManager {
+func NewDockerManager(challenge model.Challenge, flag model.Flag, duration time.Duration) IContainerManager {
 	return &DockerManager{
-		images:   images,
-		duration: duration,
-		flag:     flag,
+		challenge: challenge,
+		duration:  duration,
+		flag:      flag,
 	}
 }
 
@@ -47,124 +47,122 @@ func (c *DockerManager) Duration() (duration time.Duration) {
 	return c.duration
 }
 
-func (c *DockerManager) Setup() (instances []*model.Instance, err error) {
+func (c *DockerManager) Setup() (container *model.Container, err error) {
 
 	c.CancelCtx, c.CancelFunc = context.WithCancel(context.Background())
 
-	for _, image := range c.images {
-		envs := make([]string, 0)
-		for _, env := range image.Envs {
-			envs = append(envs, fmt.Sprintf("%s=%s", env.Key, env.Value))
-		}
-		envs = append(envs, fmt.Sprintf("%s=%s", c.flag.Env, c.flag.Value))
+	envs := make([]string, 0)
+	for _, env := range c.challenge.Envs {
+		envs = append(envs, fmt.Sprintf("%s=%s", env.Key, env.Value))
+	}
+	envs = append(envs, fmt.Sprintf("%s=%s", c.flag.Env, c.flag.Value))
 
-		containerConfig := &container.Config{
-			Image: image.Name,
-			Env:   envs,
-		}
+	containerConfig := &ctn.Config{
+		Image: c.challenge.ImageName,
+		Env:   envs,
+	}
 
-		portBindings := make(nat.PortMap)
-		for _, port := range image.Ports {
-			portStr := strconv.Itoa(port.Value) + "/tcp"
-			portBindings[nat.Port(portStr)] = []nat.PortBinding{
-				{
-					HostIP:   "0.0.0.0",
-					HostPort: "", // Let docker decide the port.
-				},
-			}
-		}
-
-		hostConfig := &container.HostConfig{
-			PortBindings: portBindings,
-			Resources: container.Resources{
-				Memory:   image.MemoryLimit * 1024 * 1024,
-				NanoCPUs: int64(image.CPULimit * 1e9),
+	portBindings := make(nat.PortMap)
+	for _, port := range c.challenge.Ports {
+		portStr := strconv.Itoa(port.Value) + "/tcp"
+		portBindings[nat.Port(portStr)] = []nat.PortBinding{
+			{
+				HostIP:   "0.0.0.0",
+				HostPort: "", // Let docker decide the port.
 			},
 		}
+	}
 
-		resp, _err := provider.DockerCli().ContainerCreate(
-			context.Background(),
-			containerConfig,
-			hostConfig,
-			nil,
-			nil,
-			"",
-		)
+	hostConfig := &ctn.HostConfig{
+		PortBindings: portBindings,
+		Resources: ctn.Resources{
+			Memory:   c.challenge.MemoryLimit * 1024 * 1024,
+			NanoCPUs: c.challenge.CPULimit * 1e9,
+		},
+	}
 
-		if _err != nil {
-			zap.L().Error(fmt.Sprintf("[%s] Failed to create: %s", color.InCyan("DOCKER"), _err.Error()))
-			return nil, _err
+	resp, _err := provider.DockerCli().ContainerCreate(
+		context.Background(),
+		containerConfig,
+		hostConfig,
+		nil,
+		nil,
+		"",
+	)
+
+	if _err != nil {
+		zap.L().Error(fmt.Sprintf("[%s] Failed to create: %s", color.InCyan("DOCKER"), _err.Error()))
+		return nil, _err
+	}
+
+	c.RespID = append(c.RespID, resp.ID)
+
+	// Handle the container
+	_err = provider.DockerCli().ContainerStart(
+		context.Background(),
+		c.RespID[len(c.RespID)-1],
+		ctn.StartOptions{},
+	)
+
+	if _err != nil {
+		zap.L().Error(fmt.Sprintf("[%s] Failed to start: %s", color.InCyan("DOCKER"), _err.Error()))
+		return nil, _err
+	}
+
+	// Get the container's inspect information
+	inspect, _ := provider.DockerCli().ContainerInspect(
+		context.Background(),
+		c.RespID[len(c.RespID)-1],
+	)
+
+	nats := make([]*model.Nat, 0)
+
+	switch config.AppCfg().Container.Proxy.Enabled {
+	case true:
+		for port, bindings := range inspect.NetworkSettings.Ports {
+			entries := make([]string, 0)
+			for _, binding := range bindings {
+				entries = append(entries, fmt.Sprintf(
+					"%s:%d",
+					config.AppCfg().Container.Docker.Entry,
+					convertor.ToIntD(binding.HostPort, 0),
+				))
+			}
+			c.Proxy = proxy.NewPodProxy(entries)
+			c.Proxy.Setup()
+			for index, pp := range c.Proxy.Proxies() {
+				nats = append(nats, &model.Nat{
+					SrcPort: port.Int(),
+					DstPort: convertor.ToIntD(strings.Split(entries[index], ":")[1], 0),
+					Proxy:   entries[index],
+					Entry:   pp.Entry(),
+				})
+			}
 		}
-
-		c.RespID = append(c.RespID, resp.ID)
-
-		// Handle the container
-		_err = provider.DockerCli().ContainerStart(
-			context.Background(),
-			c.RespID[len(c.RespID)-1],
-			container.StartOptions{},
-		)
-
-		if _err != nil {
-			zap.L().Error(fmt.Sprintf("[%s] Failed to start: %s", color.InCyan("DOCKER"), _err.Error()))
-			return nil, _err
-		}
-
-		// Get the container's inspect information
-		inspect, _ := provider.DockerCli().ContainerInspect(
-			context.Background(),
-			c.RespID[len(c.RespID)-1],
-		)
-
-		nats := make([]*model.Nat, 0)
-
-		switch config.AppCfg().Container.Proxy.Enabled {
-		case true:
-			for port, bindings := range inspect.NetworkSettings.Ports {
-				entries := make([]string, 0)
-				for _, binding := range bindings {
-					entries = append(entries, fmt.Sprintf(
+	case false:
+		for port, bindings := range inspect.NetworkSettings.Ports {
+			for _, binding := range bindings {
+				nats = append(nats, &model.Nat{
+					SrcPort: port.Int(),
+					DstPort: convertor.ToIntD(binding.HostPort, 0),
+					Entry: fmt.Sprintf(
 						"%s:%d",
 						config.AppCfg().Container.Docker.Entry,
 						convertor.ToIntD(binding.HostPort, 0),
-					))
-				}
-				c.Proxy = proxy.NewPodProxy(entries)
-				c.Proxy.Setup()
-				for index, pp := range c.Proxy.Proxies() {
-					nats = append(nats, &model.Nat{
-						SrcPort: port.Int(),
-						DstPort: convertor.ToIntD(strings.Split(entries[index], ":")[1], 0),
-						Proxy:   entries[index],
-						Entry:   pp.Entry(),
-					})
-				}
-			}
-		case false:
-			for port, bindings := range inspect.NetworkSettings.Ports {
-				for _, binding := range bindings {
-					nats = append(nats, &model.Nat{
-						SrcPort: port.Int(),
-						DstPort: convertor.ToIntD(binding.HostPort, 0),
-						Entry: fmt.Sprintf(
-							"%s:%d",
-							config.AppCfg().Container.Docker.Entry,
-							convertor.ToIntD(binding.HostPort, 0),
-						),
-					})
-				}
+					),
+				})
 			}
 		}
-
-		instances = append(instances, &model.Instance{
-			ImageID: image.ID,
-			Nats:    nats,
-		})
 	}
 
-	c.Instances = instances
+	container = &model.Container{
+		ChallengeID: c.challenge.ID,
+		Nats:        nats,
+	}
 
-	return instances, err
+	c.Container = container
+
+	return container, err
 }
 
 func (c *DockerManager) Status() (status string, err error) {
@@ -198,19 +196,19 @@ func (c *DockerManager) Remove() {
 			}
 
 			if info.State.Running {
-				_ = provider.DockerCli().ContainerStop(context.Background(), respID, container.StopOptions{})              // Stop the container
-				_, _ = provider.DockerCli().ContainerWait(context.Background(), respID, container.WaitConditionNotRunning) // Wait for the container to stop
+				_ = provider.DockerCli().ContainerStop(context.Background(), respID, ctn.StopOptions{})              // Stop the container
+				_, _ = provider.DockerCli().ContainerWait(context.Background(), respID, ctn.WaitConditionNotRunning) // Wait for the container to stop
 			}
 
 			// Check if the container still exists before removing it
 			_, err = provider.DockerCli().ContainerInspect(context.Background(), respID)
 			if err != nil && client.IsErrNotFound(err) {
-				return // Instance not found, it has been removed
+				return // Container not found, it has been removed
 			}
 			_ = provider.DockerCli().ContainerRemove(
 				context.Background(),
 				respID,
-				container.RemoveOptions{},
+				ctn.RemoveOptions{},
 			) // Remove the container
 		}(respID)
 	}

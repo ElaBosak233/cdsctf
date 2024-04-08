@@ -9,8 +9,6 @@ type IPortRepository interface {
 	Create(port model.Port) (p model.Port, err error)
 	Update(port model.Port) (p model.Port, err error)
 	Delete(port model.Port) (err error)
-	FindByImageID(imageIDs []uint) (ports []model.Port, err error)
-	DeleteByImageID(imageIDs []uint) (err error)
 }
 
 type PortRepository struct {
@@ -33,15 +31,5 @@ func (t *PortRepository) Update(port model.Port) (p model.Port, err error) {
 
 func (t *PortRepository) Delete(port model.Port) (err error) {
 	result := t.db.Table("ports").Delete(&port)
-	return result.Error
-}
-
-func (t *PortRepository) FindByImageID(imageIDs []uint) (ports []model.Port, err error) {
-	result := t.db.Table("ports").Where("image_id IN ?", imageIDs).Find(&ports)
-	return ports, result.Error
-}
-
-func (t *PortRepository) DeleteByImageID(imageIDs []uint) (err error) {
-	result := t.db.Table("ports").Where("image_id IN ?", imageIDs).Delete(&model.Port{})
 	return result.Error
 }

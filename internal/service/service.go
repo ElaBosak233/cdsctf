@@ -24,7 +24,6 @@ type Service struct {
 	GameChallengeService IGameChallengeService
 	GameTeamService      IGameTeamService
 	CategoryService      ICategoryService
-	ImageService         IImageService
 	FlagService          IFlagService
 	HintService          IHintService
 	GroupService         IGroupService
@@ -52,7 +51,6 @@ func InitService() {
 		gameChallengeService := NewGameChallengeService(appRepository)
 		gameTeamService := NewGameTeamService(appRepository)
 		categoryService := NewCategoryService(appRepository)
-		imageService := NewImageService(appRepository)
 		flagService := NewFlagService(appRepository)
 		hintService := NewHintService(appRepository)
 		groupService := NewGroupService(appRepository)
@@ -72,7 +70,6 @@ func InitService() {
 			GameChallengeService: gameChallengeService,
 			GameTeamService:      gameTeamService,
 			CategoryService:      categoryService,
-			ImageService:         imageService,
 			FlagService:          flagService,
 			HintService:          hintService,
 			GroupService:         groupService,

@@ -6,7 +6,7 @@ import (
 )
 
 type IContainerManager interface {
-	Setup() (instances []*model.Instance, err error)
+	Setup() (container *model.Container, err error)
 	Status() (status string, err error)
 	Duration() (duration time.Duration)
 	Remove()
@@ -15,6 +15,6 @@ type IContainerManager interface {
 	SetPodID(podID uint)
 }
 
-func NewContainerManager(images []*model.Image, flag model.Flag, duration time.Duration) IContainerManager {
-	return NewDockerManager(images, flag, duration)
+func NewContainerManager(challenge model.Challenge, flag model.Flag, duration time.Duration) IContainerManager {
+	return NewDockerManager(challenge, flag, duration)
 }
