@@ -207,7 +207,7 @@ func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions
 			}
 		}
 		if !req.IsDetailed {
-			submissions[index].Flag = ""
+			submission.Flag = ""
 		}
 		submissions[index] = submission
 	}
