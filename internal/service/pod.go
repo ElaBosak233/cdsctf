@@ -152,10 +152,22 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 	container, err := ctnManager.Setup()
 
+	var gameID uint
+	if req.GameID != nil {
+		gameID = *(req.GameID)
+	}
+
+	var teamID uint
+	if req.TeamID != nil {
+		teamID = *(req.TeamID)
+	}
+
 	// Create Pod model, get Pod's GameID
 	pod, _ := t.podRepository.Create(model.Pod{
 		ChallengeID: req.ChallengeID,
 		UserID:      req.UserID,
+		GameID:      gameID,
+		TeamID:      teamID,
 		RemovedAt:   removedAt,
 		Container:   container,
 	})
