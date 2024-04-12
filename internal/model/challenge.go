@@ -31,6 +31,15 @@ type Challenge struct {
 	Submissions   []*Submission `json:"submissions,omitempty"`
 }
 
+func (c *Challenge) Simplify() {
+	c.ImageName = ""
+	c.CPULimit = 0
+	c.MemoryLimit = 0
+	c.Flags = nil
+	c.Ports = nil
+	c.Envs = nil
+}
+
 func (c *Challenge) BeforeUpdate(db *gorm.DB) (err error) {
 	if c.Ports != nil {
 		db.Table("ports").Where("challenge_id = ?", c.ID).Delete(&Port{})

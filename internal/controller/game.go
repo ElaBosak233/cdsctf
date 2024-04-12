@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/hub"
+	"github.com/elabosak233/cloudsdale/internal/broadcast"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
@@ -62,7 +62,7 @@ func NewGameController(appService *service.Service) IGameController {
 func (g *GameController) BroadCast(ctx *gin.Context) {
 	id := convertor.ToUintD(ctx.Param("id"), 0)
 	if id != 0 {
-		hub.ServeGameHub(ctx.Writer, ctx.Request, id)
+		broadcast.ServeGameHub(ctx.Writer, ctx.Request, id)
 	}
 }
 
@@ -557,7 +557,7 @@ func (g *GameController) Find(ctx *gin.Context) {
 	if ok && isEnabled.(bool) {
 		gameFindRequest.IsEnabled = convertor.TrueP()
 	}
-	games, pageCount, total, err := g.gameService.Find(gameFindRequest)
+	games, pages, total, err := g.gameService.Find(gameFindRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
@@ -569,7 +569,7 @@ func (g *GameController) Find(ctx *gin.Context) {
 		"code":  http.StatusOK,
 		"data":  games,
 		"total": total,
-		"pages": pageCount,
+		"pages": pages,
 	})
 }
 

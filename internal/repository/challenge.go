@@ -64,7 +64,7 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 	if req.SortOrder != "" && req.SortKey != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
-		db = db.Order("challenges.id ASC")
+		db = db.Order("challenges.id DESC")
 	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size

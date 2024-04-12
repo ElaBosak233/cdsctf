@@ -16,7 +16,7 @@ import (
 type ISubmissionService interface {
 	Create(req request.SubmissionCreateRequest) (status int, rank int64, err error)
 	Delete(id uint) (err error)
-	Find(req request.SubmissionFindRequest) (submissions []model.Submission, pageCount int64, total int64, err error)
+	Find(req request.SubmissionFindRequest) (submissions []model.Submission, pages int64, total int64, err error)
 }
 
 type SubmissionService struct {
@@ -187,7 +187,7 @@ func (t *SubmissionService) Delete(id uint) (err error) {
 	return err
 }
 
-func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions []model.Submission, pageCount int64, total int64, err error) {
+func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions []model.Submission, pages int64, total int64, err error) {
 	submissions, count, err := t.submissionRepository.Find(req)
 
 	for index, submission := range submissions {
@@ -197,7 +197,8 @@ func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions
 					submission.GameChallenge.MaxPts,
 					submission.GameChallenge.MinPts,
 					submission.Challenge.Difficulty,
-					int(submission.Rank-1),
+					count,
+					submission.Rank-1,
 					submission.Game.FirstBloodRewardRatio,
 					submission.Game.SecondBloodRewardRatio,
 					submission.Game.ThirdBloodRewardRatio,
@@ -207,15 +208,15 @@ func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions
 			}
 		}
 		if !req.IsDetailed {
-			submission.Flag = ""
+			submission.Simplify()
 		}
 		submissions[index] = submission
 	}
 
 	if req.Size >= 1 && req.Page >= 1 {
-		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
+		pages = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
-		pageCount = 1
+		pages = 1
 	}
-	return submissions, pageCount, count, err
+	return submissions, pages, count, err
 }

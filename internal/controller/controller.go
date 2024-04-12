@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"go.uber.org/zap"
 	"sync"
 )
 
@@ -58,4 +59,5 @@ func InitController() {
 			GroupController:      groupController,
 		}
 	})
+	zap.L().Info("Controllers module init successfully.")
 }

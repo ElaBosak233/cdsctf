@@ -9,15 +9,15 @@ import (
 // "R" is the minimum points.
 // "d" is the degree of difficulty of the challenge.
 // "x" is the number of submissions.
-func ChallengePts(S, R, d int64, x int) int64 {
+func ChallengePts(S, R, d, x int64) int64 {
 	ratio := float64(R) / float64(S)
 	result := int64(math.Floor(float64(S) * (ratio + (1-ratio)*math.Exp((1-float64(x))/float64(d)))))
 	return min(result, S)
 }
 
-func GameChallengePts(S, R, d int64, x int, firstBloodRewardRatio, secondBloodRewardRatio, thirdBloodRewardRatio float64) int64 {
+func GameChallengePts(S, R, d, x, rank int64, firstBloodRewardRatio, secondBloodRewardRatio, thirdBloodRewardRatio float64) int64 {
 	pts := ChallengePts(S, R, d, x)
-	switch x {
+	switch rank {
 	case 0:
 		pts = int64(math.Floor(((firstBloodRewardRatio / 100) + 1) * float64(pts)))
 	case 1:

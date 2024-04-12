@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/hub"
+	"github.com/elabosak233/cloudsdale/internal/broadcast"
 	"gorm.io/gorm"
 )
 
@@ -33,6 +33,6 @@ func (n *Notice) AfterCreate(db *gorm.DB) (err error) {
 			return db.Select([]string{"id", "title"})
 		}).
 		First(n, n.ID)
-	hub.SendGameMsg(*(n.GameID), n)
+	broadcast.SendGameMsg(*(n.GameID), n)
 	return result.Error
 }

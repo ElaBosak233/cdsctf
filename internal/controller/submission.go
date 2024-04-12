@@ -45,10 +45,10 @@ func (c *SubmissionController) Find(ctx *gin.Context) {
 		return
 	}
 	submissionFindRequest.IsDetailed = ctx.GetBool("is_detailed")
-	submissions, pageCount, total, _ := c.submissionService.Find(submissionFindRequest)
+	submissions, pages, total, _ := c.submissionService.Find(submissionFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
-		"pages": pageCount,
+		"pages": pages,
 		"total": total,
 		"data":  submissions,
 	})

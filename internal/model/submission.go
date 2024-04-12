@@ -19,3 +19,7 @@ type Submission struct {
 	CreatedAt       int64          `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"` // The submission's creation time.
 	UpdatedAt       int64          `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"` // The submission's last update time.
 }
+
+func (s *Submission) Simplify() {
+	s.Flag = ""
+}

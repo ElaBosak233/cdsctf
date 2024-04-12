@@ -73,10 +73,10 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 	challengeFindRequest.UserID = user.ID
 	challengeFindRequest.IsDetailed = &isDetailed
 	challengeFindRequest.IsPracticable = isPracticable()
-	challenges, pageCount, total, _ := c.challengeService.Find(challengeFindRequest)
+	challenges, pages, total, _ := c.challengeService.Find(challengeFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
-		"pages": pageCount,
+		"pages": pages,
 		"total": total,
 		"data":  challenges,
 	})

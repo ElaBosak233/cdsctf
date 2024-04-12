@@ -9,7 +9,7 @@ import (
 )
 
 type IChallengeService interface {
-	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pageCount int64, total int64, err error)
+	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pages int64, total int64, err error)
 	Create(req request.ChallengeCreateRequest) (err error)
 	Update(req request.ChallengeUpdateRequest) (err error)
 	Delete(id uint) (err error)
@@ -56,26 +56,23 @@ func (t *ChallengeService) Delete(id uint) (err error) {
 	return err
 }
 
-func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pageCount int64, total int64, err error) {
+func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pages int64, total int64, err error) {
 	challenges, count, err := t.challengeRepository.Find(req)
 
 	for index, challenge := range challenges {
 		if !*(req.IsDetailed) {
-			challenge.Flags = nil
-			challenge.ImageName = ""
+			challenge.Simplify()
 		}
-		if req.SubmissionQty != 0 {
+		if req.SubmissionQty != 0 && challenge.Submissions != nil {
 			challenge.Submissions = challenge.Submissions[:min(req.SubmissionQty, len(challenge.Submissions))]
-		} else {
-			challenge.Submissions = nil
 		}
 		challenges[index] = challenge
 	}
 
 	if req.Size >= 1 && req.Page >= 1 {
-		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
+		pages = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
-		pageCount = 1
+		pages = 1
 	}
-	return challenges, pageCount, count, err
+	return challenges, pages, count, err
 }

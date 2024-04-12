@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/database"
+	"go.uber.org/zap"
 	"sync"
 )
 
@@ -62,4 +63,5 @@ func InitRepository() {
 			NoticeRepository:        NewNoticeRepository(db),
 		}
 	})
+	zap.L().Info("Repositories module init successfully.")
 }
