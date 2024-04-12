@@ -228,11 +228,11 @@ func (c *UserController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	users, pageCount, total, _ := c.userService.Find(userFindRequest)
+	users, pages, total, _ := c.userService.Find(userFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"data":  users,
-		"pages": pageCount,
+		"pages": pages,
 		"total": total,
 	})
 }

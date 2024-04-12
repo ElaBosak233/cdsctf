@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/repository"
+	"go.uber.org/zap"
 	"sync"
 )
 
@@ -76,4 +77,5 @@ func InitService() {
 			NoticeService:        noticeService,
 		}
 	})
+	zap.L().Info("Services module init successfully.")
 }

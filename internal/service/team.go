@@ -13,7 +13,7 @@ type ITeamService interface {
 	Create(req request.TeamCreateRequest) error
 	Update(req request.TeamUpdateRequest) error
 	Delete(id uint) error
-	Find(req request.TeamFindRequest) (teams []model.Team, pageCount int64, total int64, err error)
+	Find(req request.TeamFindRequest) (teams []model.Team, pages int64, total int64, err error)
 	FindById(id uint) (team model.Team, err error)
 	GetInviteToken(req request.TeamGetInviteTokenRequest) (token string, err error)
 	UpdateInviteToken(req request.TeamUpdateInviteTokenRequest) (token string, err error)
@@ -77,18 +77,18 @@ func (t *TeamService) Delete(id uint) error {
 	return err
 }
 
-func (t *TeamService) Find(req request.TeamFindRequest) (teams []model.Team, pageCount int64, total int64, err error) {
+func (t *TeamService) Find(req request.TeamFindRequest) (teams []model.Team, pages int64, total int64, err error) {
 	teams, count, err := t.teamRepository.Find(req)
 	for index, team := range teams {
 		team.InviteToken = ""
 		teams[index] = team
 	}
 	if req.Size >= 1 && req.Page >= 1 {
-		pageCount = int64(math.Ceil(float64(count) / float64(req.Size)))
+		pages = int64(math.Ceil(float64(count) / float64(req.Size)))
 	} else {
-		pageCount = 1
+		pages = 1
 	}
-	return teams, pageCount, count, err
+	return teams, pages, count, err
 }
 
 func (t *TeamService) FindById(id uint) (team model.Team, err error) {
