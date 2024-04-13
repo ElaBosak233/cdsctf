@@ -21,6 +21,7 @@ type SubmissionService struct {
 	podRepository           repository.IPodRepository
 	submissionRepository    repository.ISubmissionRepository
 	challengeRepository     repository.IChallengeRepository
+	teamRepository          repository.ITeamRepository
 	userRepository          repository.IUserRepository
 	gameChallengeRepository repository.IGameChallengeRepository
 	flagGenRepository       repository.IFlagGenRepository
@@ -33,6 +34,7 @@ func NewSubmissionService(appRepository *repository.Repository) ISubmissionServi
 		podRepository:           appRepository.PodRepository,
 		submissionRepository:    appRepository.SubmissionRepository,
 		challengeRepository:     appRepository.ChallengeRepository,
+		teamRepository:          appRepository.TeamRepository,
 		userRepository:          appRepository.UserRepository,
 		gameChallengeRepository: appRepository.GameChallengeRepository,
 		flagGenRepository:       appRepository.FlagGenRepository,
@@ -41,7 +43,6 @@ func NewSubmissionService(appRepository *repository.Repository) ISubmissionServi
 	}
 }
 
-// JudgeDynamicChallenge 动态题目判断
 func (t *SubmissionService) JudgeDynamicChallenge(req request.SubmissionCreateRequest) (status int, err error) {
 	perhapsPods, _, err := t.podRepository.Find(request.PodFindRequest{
 		ChallengeID: req.ChallengeID,
@@ -72,10 +73,31 @@ func (t *SubmissionService) JudgeDynamicChallenge(req request.SubmissionCreateRe
 }
 
 func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status int, rank int64, err error) {
-	challenges, _, err := t.challengeRepository.Find(request.ChallengeFindRequest{
+	var challenge model.Challenge
+	if challenges, total, _ := t.challengeRepository.Find(request.ChallengeFindRequest{
 		ID: req.ChallengeID,
-	})
-	challenge := challenges[0]
+	}); total > 0 {
+		challenge = challenges[0]
+	}
+
+	var team model.Team
+	if req.TeamID != nil {
+		if teams, total, _ := t.teamRepository.Find(request.TeamFindRequest{
+			ID: *(req.TeamID),
+		}); total > 0 {
+			team = teams[0]
+		}
+		isMember := false
+		for _, user := range team.Users {
+			if req.UserID == user.ID {
+				isMember = true
+			}
+		}
+		if !isMember {
+			status = 4
+		}
+	}
+
 	status = 1
 	rank = 0
 	var gameChallengeID *uint = nil

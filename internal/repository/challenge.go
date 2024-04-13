@@ -10,7 +10,7 @@ type IChallengeRepository interface {
 	Create(challenge model.Challenge) (c model.Challenge, err error)
 	Update(challenge model.Challenge) (c model.Challenge, err error)
 	Delete(id uint) (err error)
-	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, count int64, err error)
+	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, total int64, err error)
 }
 
 type ChallengeRepository struct {
@@ -36,7 +36,7 @@ func (t *ChallengeRepository) Update(challenge model.Challenge) (c model.Challen
 	return challenge, result.Error
 }
 
-func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, count int64, err error) {
+func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, total int64, err error) {
 	applyFilter := func(q *gorm.DB) *gorm.DB {
 		if req.CategoryID != nil {
 			q = q.Where("category_id = ?", *(req.CategoryID))
@@ -60,7 +60,7 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 	}
 	db := applyFilter(t.db.Table("challenges"))
 
-	result := db.Model(&model.Challenge{}).Count(&count)
+	result := db.Model(&model.Challenge{}).Count(&total)
 	if req.SortOrder != "" && req.SortKey != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
@@ -96,5 +96,5 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 				Omit("flag")
 		}).
 		Find(&challenges)
-	return challenges, count, result.Error
+	return challenges, total, result.Error
 }
