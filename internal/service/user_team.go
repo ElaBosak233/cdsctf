@@ -31,10 +31,10 @@ func (t *UserTeamService) Join(req request.TeamUserJoinRequest) (err error) {
 	user, err := t.userRepository.FindById(req.UserID)
 	team, err := t.teamRepository.FindById(req.TeamID)
 	if err != nil || user.ID == 0 || team.ID == 0 {
-		return errors.New("用户或团队不存在")
+		return errors.New("user_or_team_not_found")
 	}
 	if team.InviteToken != req.InviteToken {
-		return errors.New("邀请码错误")
+		return errors.New("invalid_invite_token")
 	}
 	err = t.userTeamRepository.Create(model.UserTeam{
 		TeamID: team.ID,
@@ -47,7 +47,7 @@ func (t *UserTeamService) Create(req request.TeamUserCreateRequest) (err error) 
 	user, err := t.userRepository.FindById(req.UserID)
 	team, err := t.teamRepository.FindById(req.TeamID)
 	if err != nil || user.ID == 0 || team.ID == 0 {
-		return errors.New("用户或团队不存在")
+		return errors.New("user_or_team_not_found")
 	}
 	err = t.userTeamRepository.Create(model.UserTeam{
 		TeamID: team.ID,
@@ -60,7 +60,7 @@ func (t *UserTeamService) Delete(req request.TeamUserDeleteRequest) (err error) 
 	user, err := t.userRepository.FindById(req.UserID)
 	team, err := t.teamRepository.FindById(req.TeamID)
 	if err != nil || user.ID == 0 || team.ID == 0 {
-		return errors.New("用户或团队不存在")
+		return errors.New("user_or_team_not_found")
 	}
 	err = t.userTeamRepository.Delete(model.UserTeam{
 		TeamID: team.ID,

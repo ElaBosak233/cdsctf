@@ -20,7 +20,7 @@ func Frontend(urlPrefix string) gin.HandlerFunc {
 		if strings.HasPrefix(ctx.Request.URL.Path, "/api") || strings.HasPrefix(ctx.Request.URL.Path, "/docs") {
 			ctx.Next()
 		} else {
-			// 尝试匹配静态资源
+			ctx.Set("skip_logging", true)
 			filePath := filepath.Join(root, ctx.Request.URL.Path)
 			_, err := os.Stat(filePath)
 			if err == nil {

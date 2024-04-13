@@ -29,7 +29,7 @@ func (t *UserRepository) Create(user model.User) error {
 }
 
 func (t *UserRepository) Delete(id uint) error {
-	result := t.db.Table("users").Delete(&model.User{
+	result := t.db.Table("users").Where("id = ?", id).Delete(&model.User{
 		ID: id,
 	})
 	return result.Error

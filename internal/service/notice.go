@@ -26,21 +26,21 @@ func NewNoticeService(appRepository *repository.Repository) INoticeService {
 
 func (n *NoticeService) Find(req request.NoticeFindRequest) (notices []model.Notice, err error) {
 	notices, _, err = n.noticeRepository.Find(req)
-	return
+	return notices, err
 }
 
 func (n *NoticeService) Create(req request.NoticeCreateRequest) (err error) {
 	var notice model.Notice
 	_ = mapstructure.Decode(req, &notice)
 	_, err = n.noticeRepository.Create(notice)
-	return
+	return err
 }
 
 func (n *NoticeService) Update(req request.NoticeUpdateRequest) (err error) {
 	var notice model.Notice
 	_ = mapstructure.Decode(req, &notice)
 	_, err = n.noticeRepository.Update(notice)
-	return
+	return err
 }
 
 func (n *NoticeService) Delete(req request.NoticeDeleteRequest) (err error) {

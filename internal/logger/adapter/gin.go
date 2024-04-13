@@ -30,6 +30,10 @@ func GinLogger() gin.HandlerFunc {
 		query := c.Request.URL.RawQuery
 		c.Next()
 		duration := time.Since(start)
+		if skip, exists := c.Get("skip_logging"); exists && skip.(bool) {
+			c.Next()
+			return
+		}
 		zap.L().Info(fmt.Sprintf(
 			"[%s] %s %s",
 			color.InCyan("GIN"),

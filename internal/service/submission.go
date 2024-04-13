@@ -1,13 +1,11 @@
 package service
 
 import (
-	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
-	"go.uber.org/zap"
 	"math"
 	"regexp"
 	"time"
@@ -55,7 +53,6 @@ func (t *SubmissionService) JudgeDynamicChallenge(req request.SubmissionCreateRe
 	for _, pod := range perhapsPods {
 		podIDs = append(podIDs, pod.ID)
 	}
-	zap.L().Debug(fmt.Sprintf("podIDs: %v", podIDs))
 	flags, err := t.flagGenRepository.FindByPodID(podIDs)
 	flagMap := make(map[uint]string)
 	for _, flag := range flags {

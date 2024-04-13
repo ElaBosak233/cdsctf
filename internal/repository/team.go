@@ -33,7 +33,7 @@ func (t *TeamRepository) Update(team model.Team) (err error) {
 }
 
 func (t *TeamRepository) Delete(id uint) (err error) {
-	result := t.db.Table("teams").Delete(&model.Team{
+	result := t.db.Table("teams").Where("id = ?", id).Delete(&model.Team{
 		ID: id,
 	})
 	return result.Error
