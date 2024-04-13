@@ -112,7 +112,6 @@ func (t *UserService) Update(req request.UserUpdateRequest) (err error) {
 
 func (t *UserService) Delete(id uint) error {
 	err := t.userRepository.Delete(id)
-	err = t.userTeamRepository.DeleteByUserId(id)
 	return err
 }
 

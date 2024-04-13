@@ -73,7 +73,6 @@ func (t *TeamService) Delete(id uint) error {
 		return errors.New("团队不存在")
 	}
 	err = t.teamRepository.Delete(id)
-	err = t.userTeamRepository.DeleteByTeamId(id)
 	return err
 }
 
