@@ -48,6 +48,9 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 		if req.Username != "" {
 			q = q.Where("username = ?", req.Username)
 		}
+		if req.Group != "" {
+			q = q.Where("group = ?", req.Group)
+		}
 		if req.Email != "" {
 			q = q.Where("email LIKE ?", "%"+req.Email+"%")
 		}
@@ -68,7 +71,6 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 		db = db.Offset(offset).Limit(req.Size)
 	}
 	result = db.
-		Preload("Group").
 		Preload("Teams").
 		Find(&users)
 	return users, total, result.Error
@@ -77,7 +79,6 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 func (t *UserRepository) FindById(id uint) (user model.User, err error) {
 	result := t.db.Table("users").
 		Where("id = ?", id).
-		Preload("Group").
 		Preload("Teams").
 		First(&user)
 	return user, result.Error
@@ -86,7 +87,6 @@ func (t *UserRepository) FindById(id uint) (user model.User, err error) {
 func (t *UserRepository) FindByUsername(username string) (user model.User, err error) {
 	result := t.db.Table("users").
 		Where("username = ?", username).
-		Preload("Group").
 		Preload("Teams").
 		First(&user)
 	return user, result.Error

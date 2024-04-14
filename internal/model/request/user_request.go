@@ -4,6 +4,7 @@ type UserFindRequest struct {
 	ID        uint   `json:"id" form:"id"`
 	Username  string `json:"username" form:"username"`
 	Name      string `json:"name" form:"name"`
+	Group     string `json:"group" from:"group"`
 	Email     string `json:"email" form:"email"`
 	Page      int    `json:"page" form:"page"`
 	Size      int    `json:"size" form:"size"`
@@ -25,7 +26,7 @@ type UserCreateRequest struct {
 	Nickname string `binding:"required,min=2" json:"nickname"`
 	Email    string `binding:"required,email" json:"email"`
 	Password string `binding:"required,min=6" json:"password"`
-	GroupID  uint   `binding:"required,min=1,max=5" json:"group_id"`
+	Group    string `json:"group"`
 }
 
 type UserLoginRequest struct {
@@ -39,7 +40,7 @@ type UserUpdateRequest struct {
 	Username string `binding:"omitempty,max=20,min=3" json:"username,omitempty"`
 	Password string `binding:"omitempty,min=6" json:"password,omitempty"`
 	Email    string `binding:"omitempty,email" json:"email,omitempty"`
-	GroupID  uint   `binding:"omitempty,min=1,max=5" json:"group_id,omitempty"`
+	Group    string `json:"group"`
 }
 
 type UserDeleteRequest struct {

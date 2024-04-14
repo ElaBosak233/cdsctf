@@ -48,7 +48,7 @@ func (g *GameRouter) Register() {
 func (g *GameRouter) PreProcess() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user := ctx.MustGet("user").(*model.User)
-		if !(user.Group.Name == "admin") {
+		if !(user.Group == "admin") {
 			ctx.Set("is_enabled", true)
 		}
 		ctx.Next()

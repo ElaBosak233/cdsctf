@@ -27,7 +27,6 @@ type Service struct {
 	CategoryService      ICategoryService
 	FlagService          IFlagService
 	HintService          IHintService
-	GroupService         IGroupService
 	NoticeService        INoticeService
 }
 
@@ -54,7 +53,6 @@ func InitService() {
 		categoryService := NewCategoryService(appRepository)
 		flagService := NewFlagService(appRepository)
 		hintService := NewHintService(appRepository)
-		groupService := NewGroupService(appRepository)
 		noticeService := NewNoticeService(appRepository)
 
 		s = &Service{
@@ -73,7 +71,6 @@ func InitService() {
 			CategoryService:      categoryService,
 			FlagService:          flagService,
 			HintService:          hintService,
-			GroupService:         groupService,
 			NoticeService:        noticeService,
 		}
 	})

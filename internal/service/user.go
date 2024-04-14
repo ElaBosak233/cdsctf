@@ -69,7 +69,7 @@ func (t *UserService) Create(req request.UserCreateRequest) (err error) {
 		Username: strings.ToLower(req.Username),
 		Email:    strings.ToLower(req.Email),
 		Nickname: req.Nickname,
-		GroupID:  req.GroupID,
+		Group:    req.Group,
 		Password: string(hashedPassword),
 	}
 	err = t.userRepository.Create(userModel)
@@ -85,7 +85,7 @@ func (t *UserService) Register(req request.UserRegisterRequest) (err error) {
 			Username: strings.ToLower(req.Username),
 			Email:    strings.ToLower(req.Email),
 			Nickname: req.Nickname,
-			GroupID:  3,
+			Group:    "user",
 			Password: string(hashedPassword),
 		}
 		err = t.userRepository.Create(userModel)
@@ -129,8 +129,8 @@ func (t *UserService) Find(req request.UserFindRequest) (users []model.User, pag
 }
 
 func (t *UserService) VerifyPasswordById(id uint, password string) bool {
-	userData, err := t.userRepository.FindById(id)
-	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
+	user, err := t.userRepository.FindById(id)
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return false
 	}
@@ -138,8 +138,8 @@ func (t *UserService) VerifyPasswordById(id uint, password string) bool {
 }
 
 func (t *UserService) VerifyPasswordByUsername(username string, password string) bool {
-	userData, err := t.userRepository.FindByUsername(strings.ToLower(username))
-	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
+	user, err := t.userRepository.FindByUsername(strings.ToLower(username))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return false
 	}

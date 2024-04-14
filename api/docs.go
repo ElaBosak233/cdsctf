@@ -983,66 +983,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/groups/": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Group"
-                ],
-                "summary": "Find groups",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "name",
-                        "in": "query"
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/groups/{id}": {
-            "put": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Group"
-                ],
-                "summary": "Update group",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "GroupUpdateRequest",
-                        "name": "更新请求",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GroupUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/media/games/writeups/{id}": {
             "get": {
                 "description": "通过团队 Id 获取比赛 Writeup",
@@ -1695,6 +1635,11 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "name": "group",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "name": "id",
                         "in": "query"
@@ -2206,29 +2151,6 @@ const docTemplate = `{
                 }
             }
         },
-        "model.Group": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "display_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.User"
-                    }
-                }
-            }
-        },
         "model.Hint": {
             "type": "object",
             "properties": {
@@ -2461,15 +2383,7 @@ const docTemplate = `{
                 },
                 "group": {
                     "description": "The user's group.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Group"
-                        }
-                    ]
-                },
-                "group_id": {
-                    "description": "The user's group.",
-                    "type": "integer"
+                    "type": "string"
                 },
                 "id": {
                     "description": "The user's id. As primary key.",
@@ -2830,20 +2744,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.GroupUpdateRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "display_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
         "request.PodCreateRequest": {
             "type": "object",
             "required": [
@@ -3012,7 +2912,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "group_id",
                 "nickname",
                 "password",
                 "username"
@@ -3021,10 +2920,8 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "group_id": {
-                    "type": "integer",
-                    "maximum": 5,
-                    "minimum": 1
+                "group": {
+                    "type": "string"
                 },
                 "nickname": {
                     "type": "string",
@@ -3091,10 +2988,8 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "group_id": {
-                    "type": "integer",
-                    "maximum": 5,
-                    "minimum": 1
+                "group": {
+                    "type": "string"
                 },
                 "nickname": {
                     "type": "string",

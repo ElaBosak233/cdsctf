@@ -33,7 +33,7 @@ func (s *SubmissionRouter) PreProcess() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if convertor.ToBoolD(ctx.Query("is_detailed"), false) {
 			user := ctx.MustGet("user").(*model.User)
-			if user.Group.Name == "admin" {
+			if user.Group == "admin" {
 				ctx.Set("is_detailed", true)
 			}
 		} else {
