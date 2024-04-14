@@ -37,7 +37,7 @@ func Casbin() gin.HandlerFunc {
 				}); err == nil && len(users) > 0 {
 					user = users[0]
 				}
-				sub = user.Group.Name
+				sub = user.Group
 			}
 		}
 

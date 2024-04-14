@@ -110,7 +110,7 @@ func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) 
 		ID: req.UserID,
 	})
 	user := users[0]
-	if req.UserID != team.Captain.ID && (user.Group.Name != "admin") {
+	if req.UserID != team.Captain.ID && (user.Group != "admin") {
 		return errors.New("invalid team captain")
 	}
 

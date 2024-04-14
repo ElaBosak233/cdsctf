@@ -226,21 +226,6 @@ definitions:
       min_pts:
         type: integer
     type: object
-  model.Group:
-    properties:
-      description:
-        type: string
-      display_name:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      users:
-        items:
-          $ref: '#/definitions/model.User'
-        type: array
-    type: object
   model.Hint:
     properties:
       challenge:
@@ -398,12 +383,8 @@ definitions:
         description: The user's email.
         type: string
       group:
-        allOf:
-        - $ref: '#/definitions/model.Group'
         description: The user's group.
-      group_id:
-        description: The user's group.
-        type: integer
+        type: string
       id:
         description: The user's id. As primary key.
         type: integer
@@ -644,15 +625,6 @@ definitions:
       title:
         type: string
     type: object
-  request.GroupUpdateRequest:
-    properties:
-      description:
-        type: string
-      display_name:
-        type: string
-      id:
-        type: integer
-    type: object
   request.PodCreateRequest:
     properties:
       challenge_id:
@@ -765,10 +737,8 @@ definitions:
     properties:
       email:
         type: string
-      group_id:
-        maximum: 5
-        minimum: 1
-        type: integer
+      group:
+        type: string
       nickname:
         minLength: 2
         type: string
@@ -781,7 +751,6 @@ definitions:
         type: string
     required:
     - email
-    - group_id
     - nickname
     - password
     - username
@@ -820,10 +789,8 @@ definitions:
     properties:
       email:
         type: string
-      group_id:
-        maximum: 5
-        minimum: 1
-        type: integer
+      group:
+        type: string
       nickname:
         minLength: 2
         type: string
@@ -1430,45 +1397,6 @@ paths:
       summary: 允许加入比赛
       tags:
       - Game
-  /groups/:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - in: query
-        name: id
-        type: integer
-      - in: query
-        name: name
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: Find groups
-      tags:
-      - Group
-  /groups/{id}:
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: GroupUpdateRequest
-        in: body
-        name: 更新请求
-        required: true
-        schema:
-          $ref: '#/definitions/request.GroupUpdateRequest'
-      produces:
-      - application/json
-      responses: {}
-      summary: Update group
-      tags:
-      - Group
   /media/games/writeups/{id}:
     get:
       consumes:
@@ -1888,6 +1816,9 @@ paths:
       parameters:
       - in: query
         name: email
+        type: string
+      - in: query
+        name: group
         type: string
       - in: query
         name: id

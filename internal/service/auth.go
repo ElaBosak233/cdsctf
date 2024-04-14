@@ -23,7 +23,7 @@ func NewAuthService(appRepository *repository.Repository) IAuthService {
 }
 
 func (a *AuthService) CanModifyUser(user *model.User, targetUserID uint) bool {
-	return user.Group.Name == "admin" || user.ID == targetUserID
+	return user.Group == "admin" || user.ID == targetUserID
 }
 
 func (a *AuthService) CanModifyTeam(user *model.User, targetTeamID uint) bool {
@@ -35,5 +35,5 @@ func (a *AuthService) CanModifyTeam(user *model.User, targetTeamID uint) bool {
 		}
 		return false
 	}
-	return user.Group.Name == "admin" || isCaptain()
+	return user.Group == "admin" || isCaptain()
 }

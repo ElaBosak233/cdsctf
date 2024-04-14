@@ -39,12 +39,12 @@ func (c *ChallengeRouter) Register() {
 func (c *ChallengeRouter) PreProcess() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user := ctx.MustGet("user").(*model.User)
-		if user.Group.Name == "admin" {
+		if user.Group == "admin" {
 			ctx.Set("is_detailed", convertor.ToBoolD(ctx.Query("is_detailed"), false))
 		} else {
 			ctx.Set("is_detailed", false)
 		}
-		if user.Group.Name == "admin" {
+		if user.Group == "admin" {
 			ctx.Set("is_practicable", convertor.ToBoolP(ctx.Query("is_practicable")))
 		} else {
 			ctx.Set("is_practicable", convertor.TrueP())

@@ -15,8 +15,7 @@ type User struct {
 	Description string  `gorm:"column:description;type:text" json:"description"`                         // The user's description.
 	Email       string  `gorm:"column:email;varchar(64);unique;not null" json:"email,omitempty"`         // The user's email.
 	Signature   string  `gorm:"column:signature;varchar(255);unique;" json:"signature,omitempty"`        // The user's signature.
-	GroupID     uint    `json:"group_id,omitempty"`                                                      // The user's group.
-	Group       *Group  `json:"group,omitempty"`                                                         // The user's group.
+	Group       string  `gorm:"column:group;varchar(16);not null;" json:"group,omitempty"`               // The user's group.
 	Password    string  `gorm:"column:password;type:varchar(255);not null" json:"password,omitempty"`    // The user's password. Crypt.
 	CreatedAt   int64   `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"`                        // The user's creation time.
 	UpdatedAt   int64   `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"`                        // The user's last update time.
