@@ -38,41 +38,24 @@ func InitService() {
 	onceService.Do(func() {
 		appRepository := repository.R()
 
-		authService := NewAuthService(appRepository)
-		mediaService := NewMediaService()
-		userService := NewUserService(appRepository)
-		challengeService := NewChallengeService(appRepository)
-		podService := NewPodService(appRepository)
-		configService := NewConfigService(appRepository)
-		teamService := NewTeamService(appRepository)
-		userTeamService := NewUserTeamService(appRepository)
-		submissionService := NewSubmissionService(appRepository)
-		gameService := NewGameService(appRepository)
-		gameChallengeService := NewGameChallengeService(appRepository)
-		gameTeamService := NewGameTeamService(appRepository)
-		categoryService := NewCategoryService(appRepository)
-		flagService := NewFlagService(appRepository)
-		hintService := NewHintService(appRepository)
-		noticeService := NewNoticeService(appRepository)
-
 		s = &Service{
-			AuthService:          authService,
-			MediaService:         mediaService,
-			UserService:          userService,
-			ChallengeService:     challengeService,
-			PodService:           podService,
-			ConfigService:        configService,
-			TeamService:          teamService,
-			UserTeamService:      userTeamService,
-			SubmissionService:    submissionService,
-			GameService:          gameService,
-			GameChallengeService: gameChallengeService,
-			GameTeamService:      gameTeamService,
-			CategoryService:      categoryService,
-			FlagService:          flagService,
-			HintService:          hintService,
-			NoticeService:        noticeService,
+			AuthService:          NewAuthService(appRepository),
+			MediaService:         NewMediaService(),
+			UserService:          NewUserService(appRepository),
+			ChallengeService:     NewChallengeService(appRepository),
+			PodService:           NewPodService(appRepository),
+			ConfigService:        NewConfigService(appRepository),
+			TeamService:          NewTeamService(appRepository),
+			UserTeamService:      NewUserTeamService(appRepository),
+			SubmissionService:    NewSubmissionService(appRepository),
+			GameService:          NewGameService(appRepository),
+			GameChallengeService: NewGameChallengeService(appRepository),
+			GameTeamService:      NewGameTeamService(appRepository),
+			CategoryService:      NewCategoryService(appRepository),
+			FlagService:          NewFlagService(appRepository),
+			HintService:          NewHintService(appRepository),
+			NoticeService:        NewNoticeService(appRepository),
 		}
 	})
-	zap.L().Info("Services module init successfully.")
+	zap.L().Info("Service layer inits successfully.")
 }

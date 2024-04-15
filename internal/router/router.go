@@ -31,7 +31,7 @@ func InitRouter(
 	})
 	NewUserRouter(r.router.Group("/users"), r.controller.UserController).Register()
 	NewChallengeRouter(r.router.Group("/challenges"), r.controller.ChallengeController).Register()
-	NewPodRouter(r.router.Group("/pods"), r.controller.InstanceController).Register()
+	NewPodRouter(r.router.Group("/pods"), r.controller.PodController).Register()
 	NewConfigRouter(r.router.Group("/configs"), r.controller.ConfigController).Register()
 	NewMediaRouter(r.router.Group("/media"), r.controller.MediaController).Register()
 	NewTeamRouter(r.router.Group("/teams"), r.controller.TeamController).Register()

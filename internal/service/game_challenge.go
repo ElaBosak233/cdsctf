@@ -3,14 +3,13 @@ package service
 import (
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
 	"github.com/mitchellh/mapstructure"
 )
 
 type IGameChallengeService interface {
-	Find(req request.GameChallengeFindRequest) (challenges []response.GameChallengeResponse, err error)
+	Find(req request.GameChallengeFindRequest) (challenges []model.GameChallenge, err error)
 	Create(req request.GameChallengeCreateRequest) (err error)
 	Update(req request.GameChallengeUpdateRequest) (err error)
 	Delete(req request.GameChallengeDeleteRequest) (err error)
@@ -30,32 +29,30 @@ func NewGameChallengeService(appRepository *repository.Repository) IGameChalleng
 	}
 }
 
-func (g *GameChallengeService) Find(req request.GameChallengeFindRequest) (challenges []response.GameChallengeResponse, err error) {
+func (g *GameChallengeService) Find(req request.GameChallengeFindRequest) (gameChallenges []model.GameChallenge, err error) {
 	games, _, _ := g.gameRepository.Find(request.GameFindRequest{
 		ID: req.GameID,
 	})
 	game := games[0]
-	gameChallenges, err := g.gameChallengeRepository.Find(req)
-	for _, gameChallenge := range gameChallenges {
-		var challenge response.GameChallengeResponse
-		_ = mapstructure.Decode(gameChallenge, &challenge)
+	gameChallenges, err = g.gameChallengeRepository.Find(req)
+	for i, gameChallenge := range gameChallenges {
 		pts := calculate.GameChallengePts(
 			gameChallenge.MaxPts,
 			gameChallenge.MinPts,
 			gameChallenge.Challenge.Difficulty,
-			int64(len(challenge.Submissions)),
-			int64(len(challenge.Submissions)),
+			int64(len(gameChallenge.Challenge.Submissions)),
+			int64(len(gameChallenge.Challenge.Submissions)),
 			game.FirstBloodRewardRatio,
 			game.SecondBloodRewardRatio,
 			game.ThirdBloodRewardRatio,
 		)
-		challenge.Pts = pts
-		for index, submission := range challenge.Submissions {
+		gameChallenge.Pts = pts
+		for index, submission := range gameChallenge.Challenge.Submissions {
 			submission.Pts = calculate.GameChallengePts(
 				gameChallenge.MaxPts,
 				gameChallenge.MinPts,
 				gameChallenge.Challenge.Difficulty,
-				int64(len(challenge.Submissions)),
+				int64(len(gameChallenge.Challenge.Submissions)),
 				int64(int(submission.Rank-1)),
 				game.FirstBloodRewardRatio,
 				game.SecondBloodRewardRatio,
@@ -63,17 +60,17 @@ func (g *GameChallengeService) Find(req request.GameChallengeFindRequest) (chall
 			)
 			if req.TeamID != 0 && submission.TeamID != nil && *(submission.TeamID) == req.TeamID {
 				sub := submission
-				challenge.Solved = sub
+				gameChallenge.Challenge.Solved = sub
 				break
 			}
-			challenge.Submissions[index] = submission
+			gameChallenge.Challenge.Submissions[index] = submission
 		}
 		if req.SubmissionQty > 0 {
-			challenge.Submissions = challenge.Submissions[:min(req.SubmissionQty, len(challenge.Submissions))]
+			gameChallenge.Challenge.Submissions = gameChallenge.Challenge.Submissions[:min(req.SubmissionQty, len(gameChallenge.Challenge.Submissions))]
 		}
-		challenges = append(challenges, challenge)
+		gameChallenges[i] = gameChallenge
 	}
-	return challenges, err
+	return gameChallenges, err
 }
 
 func (g *GameChallengeService) Create(req request.GameChallengeCreateRequest) (err error) {

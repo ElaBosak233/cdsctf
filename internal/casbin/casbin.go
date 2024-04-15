@@ -23,9 +23,10 @@ func InitCasbin() {
 	md, _ := model.NewModelFromString(string(cfg))
 	Enforcer, err = casbin.NewEnforcer(md, adapter)
 	if err != nil {
-		zap.L().Fatal("Casbin init failed", zap.Error(err))
+		zap.L().Fatal("Casbin module inits failed.", zap.Error(err))
 	}
 	Enforcer.ClearPolicy()
 	_ = Enforcer.SavePolicy()
 	initDefaultPolicy()
+	zap.L().Info("Casbin module inits successfully.")
 }

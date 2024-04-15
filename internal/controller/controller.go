@@ -14,7 +14,7 @@ var (
 type Controller struct {
 	UserController       IUserController
 	ChallengeController  IChallengeController
-	InstanceController   IPodController
+	PodController        IPodController
 	ConfigController     IConfigController
 	MediaController      IMediaController
 	TeamController       ITeamController
@@ -32,29 +32,18 @@ func InitController() {
 	onceController.Do(func() {
 		appService := service.S()
 
-		userController := NewUserController(appService)
-		challengeController := NewChallengeController(appService)
-		instanceController := NewPodController(appService)
-		configController := NewConfigController(appService)
-		mediaController := NewMediaController(appService)
-		teamController := NewTeamController(appService)
-		submissionController := NewSubmissionController(appService)
-		gameController := NewGameController(appService)
-		categoryController := NewCategoryController(appService)
-		proxyController := NewProxyController()
-
 		c = &Controller{
-			UserController:       userController,
-			ChallengeController:  challengeController,
-			InstanceController:   instanceController,
-			ConfigController:     configController,
-			MediaController:      mediaController,
-			TeamController:       teamController,
-			SubmissionController: submissionController,
-			GameController:       gameController,
-			CategoryController:   categoryController,
-			ProxyController:      proxyController,
+			UserController:       NewUserController(appService),
+			ChallengeController:  NewChallengeController(appService),
+			PodController:        NewPodController(appService),
+			ConfigController:     NewConfigController(appService),
+			MediaController:      NewMediaController(appService),
+			TeamController:       NewTeamController(appService),
+			SubmissionController: NewSubmissionController(appService),
+			GameController:       NewGameController(appService),
+			CategoryController:   NewCategoryController(appService),
+			ProxyController:      NewProxyController(),
 		}
 	})
-	zap.L().Info("Controllers module init successfully.")
+	zap.L().Info("Controller layer inits successfully.")
 }

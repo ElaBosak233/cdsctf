@@ -9,6 +9,7 @@ type GameChallenge struct {
 	ChallengeID uint       `gorm:"uniqueIndex:game_challenge_idx" json:"challenge_id,omitempty"`
 	Challenge   *Challenge `json:"challenge,omitempty"`
 	IsEnabled   *bool      `gorm:"default:false;not null;" json:"is_enabled,omitempty"`
+	Pts         int64      `gorm:"-" json:"pts,omitempty"`
 	MaxPts      int64      `gorm:"default:1000;not null;" json:"max_pts,omitempty"`
 	MinPts      int64      `gorm:"default:200;not null;" json:"min_pts,omitempty"`
 }
