@@ -46,7 +46,9 @@ func (t *GameChallengeRepository) Find(req request.GameChallengeFindRequest) (ga
 						Preload("User", func(db *gorm.DB) *gorm.DB {
 							return db.Select([]string{"id", "username", "nickname", "email"})
 						}).
-						Preload("Team").
+						Preload("Team", func(db *gorm.DB) *gorm.DB {
+							return db.Select([]string{"id", "name", "email"})
+						}).
 						Order("submissions.created_at ASC").
 						Where("status = ?", 2).
 						Where("game_id = ?", req.GameID).

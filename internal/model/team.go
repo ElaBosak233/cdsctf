@@ -18,6 +18,10 @@ type Team struct {
 	Users       []*User `gorm:"many2many:user_teams;" json:"users,omitempty"`      // The team's users.
 }
 
+func (t *Team) Simplify() {
+	t.InviteToken = ""
+}
+
 func (t *Team) BeforeDelete(db *gorm.DB) (err error) {
 	db.Table("user_teams").Where("team_id = ?", t.ID).Delete(&UserTeam{})
 	db.Table("game_teams").Where("team_id = ?", t.ID).Delete(&GameTeam{})
