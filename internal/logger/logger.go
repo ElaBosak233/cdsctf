@@ -9,14 +9,13 @@ import (
 )
 
 var (
-	lg      *zap.Logger
-	sugarLg *zap.SugaredLogger
+	lg *zap.Logger
 )
 
 type Cfg struct {
 	Level      string `json:"level"`
 	Filename   string `json:"filename"`
-	MaxSize    int    `json:"maxsize"`
+	MaxSize    int    `json:"max_size"`
 	MaxAge     int    `json:"max_age"`
 	MaxBackups int    `json:"max_backups"`
 }
@@ -56,14 +55,13 @@ func InitLogger() {
 	core := zapcore.NewCore(encoder, writeSyncer, l)
 	multiCore := zapcore.NewTee(core, consoleCore)
 	lg = zap.New(multiCore, zap.AddCaller())
-	sugarLg = lg.Sugar()
 	zap.ReplaceGlobals(lg)
 	if err != nil {
 		zap.L().Fatal("Failed to load logging system.",
 			zap.Error(err),
 		)
 	}
-	zap.L().Info("The logging system has started.")
+	zap.L().Info("Logging module inits successfully.")
 }
 
 func L() *zap.Logger {

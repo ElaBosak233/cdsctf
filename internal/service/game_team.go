@@ -5,17 +5,15 @@ import (
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
 	"github.com/elabosak233/cloudsdale/internal/utils/signature"
-	"github.com/mitchellh/mapstructure"
 	"strconv"
 )
 
 type IGameTeamService interface {
-	Find(req request.GameTeamFindRequest) (teams []response.GameTeamResponse, err error)
-	FindByID(req request.GameTeamFindRequest) (team response.GameTeamResponse, err error)
+	Find(req request.GameTeamFindRequest) (teams []model.GameTeam, err error)
+	FindByID(req request.GameTeamFindRequest) (team model.GameTeam, err error)
 	Create(req request.GameTeamCreateRequest) (err error)
 	Update(req request.GameTeamUpdateRequest) (err error)
 	Delete(req request.GameTeamDeleteRequest) (err error)
@@ -39,7 +37,7 @@ func NewGameTeamService(appRepository *repository.Repository) IGameTeamService {
 	}
 }
 
-func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []response.GameTeamResponse, err error) {
+func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []model.GameTeam, err error) {
 	gameTeams, err := g.gameTeamRepository.Find(model.GameTeam{
 		GameID: req.GameID,
 	})
@@ -74,25 +72,24 @@ func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []respons
 			}
 		}
 	}
-	for _, gameTeam := range gameTeams {
+	for index, gameTeam := range gameTeams {
 		if req.TeamID != 0 && gameTeam.TeamID != req.TeamID {
 			continue
 		}
-		var team response.GameTeamResponse
-		_ = mapstructure.Decode(gameTeam, &team)
-		_ = mapstructure.Decode(*(gameTeam.Team), &team.Team)
-		teams = append(teams, team)
+		gameTeams[index] = gameTeam
 	}
-	return teams, err
+	return gameTeams, err
 }
 
-func (g *GameTeamService) FindByID(req request.GameTeamFindRequest) (team response.GameTeamResponse, err error) {
+func (g *GameTeamService) FindByID(req request.GameTeamFindRequest) (team model.GameTeam, err error) {
 	teams, err := g.Find(request.GameTeamFindRequest{
-		TeamID: req.TeamID,
 		GameID: req.GameID,
 	})
-	if len(teams) > 0 {
-		team = teams[0]
+	for _, gameTeam := range teams {
+		if gameTeam.TeamID == req.TeamID {
+			team = gameTeam
+			break
+		}
 	}
 	return team, err
 }

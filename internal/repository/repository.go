@@ -61,5 +61,5 @@ func InitRepository() {
 			NoticeRepository:        NewNoticeRepository(db),
 		}
 	})
-	zap.L().Info("Repositories module init successfully.")
+	zap.L().Info("Repository layer inits successfully.")
 }

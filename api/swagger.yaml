@@ -225,6 +225,8 @@ definitions:
         type: integer
       min_pts:
         type: integer
+      pts:
+        type: integer
     type: object
   model.Hint:
     properties:

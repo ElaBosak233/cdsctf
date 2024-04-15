@@ -2148,6 +2148,9 @@ const docTemplate = `{
                 },
                 "min_pts": {
                     "type": "integer"
+                },
+                "pts": {
+                    "type": "integer"
                 }
             }
         },
