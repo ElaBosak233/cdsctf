@@ -22,5 +22,5 @@ func NewMediaRouter(mediaRouter *gin.RouterGroup, mediaController controller.IMe
 }
 
 func (m *MediaRouter) Register() {
-	m.router.GET("/games/writeups/:id", m.controller.FindGameWriteUpByTeamId)
+	m.router.GET("/*path", m.controller.GetFile)
 }

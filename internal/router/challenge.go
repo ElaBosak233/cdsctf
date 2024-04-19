@@ -34,6 +34,9 @@ func (c *ChallengeRouter) Register() {
 	c.router.POST("/:id/flags", c.controller.CreateFlag)
 	c.router.PUT("/:id/flags/:flag_id", c.controller.UpdateFlag)
 	c.router.DELETE("/:id/flags/:flag_id", c.controller.DeleteFlag)
+	c.router.GET("/:id/attachment", c.controller.FindAttachment)
+	c.router.POST("/:id/attachment", c.controller.SaveAttachment)
+	c.router.DELETE("/:id/attachment", c.controller.DeleteAttachment)
 }
 
 func (c *ChallengeRouter) PreProcess() gin.HandlerFunc {

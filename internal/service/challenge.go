@@ -45,9 +45,9 @@ func (t *ChallengeService) Create(req request.ChallengeCreateRequest) (err error
 }
 
 func (t *ChallengeService) Update(req request.ChallengeUpdateRequest) (err error) {
-	challengeModel := model.Challenge{}
-	_ = mapstructure.Decode(req, &challengeModel)
-	challengeModel, err = t.challengeRepository.Update(challengeModel)
+	challenge := model.Challenge{}
+	_ = mapstructure.Decode(req, &challenge)
+	challenge, err = t.challengeRepository.Update(challenge)
 	return err
 }
 

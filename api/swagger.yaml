@@ -995,6 +995,46 @@ paths:
       summary: 更新题目
       tags:
       - Challenge
+  /challenges/{id}/attachment:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 删除附件
+      tags:
+      - Challenge
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 查找附件
+      tags:
+      - Challenge
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: attachment
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 保存附件
+      tags:
+      - Challenge
   /challenges/{id}/flags:
     post:
       consumes:
@@ -1399,23 +1439,6 @@ paths:
       summary: 允许加入比赛
       tags:
       - Game
-  /media/games/writeups/{id}:
-    get:
-      consumes:
-      - application/json
-      description: 通过团队 Id 获取比赛 Writeup
-      parameters:
-      - description: 团队 Id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: 通过团队 Id 获取比赛 Writeup
-      tags:
-      - Media
   /pods/:
     get:
       description: 实例查询
