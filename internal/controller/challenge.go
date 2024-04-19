@@ -27,12 +27,16 @@ type IChallengeController interface {
 	CreateFlag(ctx *gin.Context)
 	UpdateFlag(ctx *gin.Context)
 	DeleteFlag(ctx *gin.Context)
+	FindAttachment(ctx *gin.Context)
+	SaveAttachment(ctx *gin.Context)
+	DeleteAttachment(ctx *gin.Context)
 }
 
 type ChallengeController struct {
 	challengeService service.IChallengeService
 	flagService      service.IFlagService
 	hintService      service.IHintService
+	mediaService     service.IMediaService
 }
 
 func NewChallengeController(appService *service.Service) IChallengeController {
@@ -40,6 +44,7 @@ func NewChallengeController(appService *service.Service) IChallengeController {
 		challengeService: appService.ChallengeService,
 		flagService:      appService.FlagService,
 		hintService:      appService.HintService,
+		mediaService:     appService.MediaService,
 	}
 }
 
@@ -327,6 +332,86 @@ func (c *ChallengeController) DeleteFlag(ctx *gin.Context) {
 	flagDeleteRequest := request.FlagDeleteRequest{}
 	flagDeleteRequest.ID = convertor.ToUintD(ctx.Param("flag_id"), 0)
 	err := c.flagService.Delete(flagDeleteRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// FindAttachment
+// @Summary 查找附件
+// @Description
+// @Tags Challenge
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /challenges/{id}/attachment [get]
+func (c *ChallengeController) FindAttachment(ctx *gin.Context) {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	filename, size, err := c.mediaService.FindChallengeAttachment(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":     http.StatusOK,
+		"filename": filename,
+		"size":     size,
+	})
+}
+
+// SaveAttachment
+// @Summary 保存附件
+// @Description
+// @Tags Challenge
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param file formData file true "attachment"
+// @Router /challenges/{id}/attachment [post]
+func (c *ChallengeController) SaveAttachment(ctx *gin.Context) {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	err = c.mediaService.SaveChallengeAttachment(id, fileHeader)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// DeleteAttachment
+// @Summary 删除附件
+// @Description
+// @Tags Challenge
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /challenges/{id}/attachment [delete]
+func (c *ChallengeController) DeleteAttachment(ctx *gin.Context) {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	err := c.mediaService.DeleteChallengeAttachment(id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
