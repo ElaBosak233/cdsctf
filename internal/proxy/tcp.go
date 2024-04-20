@@ -34,7 +34,7 @@ func (t *TCPProxy) Setup() {
 	if err != nil {
 		zap.L().Error("Failed to get free port for proxy.", zap.Error(err))
 	}
-	t.Listen = fmt.Sprintf("%s:%d", config.AppCfg().Container.Proxy.TCP.Entry, port)
+	t.Listen = fmt.Sprintf("%s:%d", config.AppCfg().Gin.Host, port)
 	t.listener, err = net.Listen("tcp", t.Listen)
 	if err != nil {
 		zap.L().Error(fmt.Sprintf("Failed to listen on %s: %v", t.Listen, err))

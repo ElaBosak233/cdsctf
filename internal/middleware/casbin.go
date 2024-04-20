@@ -29,7 +29,7 @@ func Casbin() gin.HandlerFunc {
 		userToken := ctx.GetHeader("Authorization")
 		if userToken != "" {
 			pgsToken, _ := jwt.Parse(userToken, func(token *jwt.Token) (interface{}, error) {
-				return []byte(config.AppCfg().Gin.Jwt.SecretKey), nil
+				return []byte(config.JwtSecretKey()), nil
 			})
 			if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
 				if users, _, _, err := appService.UserService.Find(request.UserFindRequest{
