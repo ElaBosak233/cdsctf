@@ -1,7 +1,7 @@
-// Package embed
+// Package files
 // Everything in this package is embedded.
 // Everything in this package is read-only.
-package embed
+package files
 
 import "embed"
 

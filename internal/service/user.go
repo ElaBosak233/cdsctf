@@ -41,7 +41,7 @@ func NewUserService(appRepository *repository.Repository) IUserService {
 }
 
 func (t *UserService) GetJwtTokenByID(user model.User) (tokenString string, err error) {
-	jwtSecretKey := []byte(config.AppCfg().Gin.Jwt.SecretKey)
+	jwtSecretKey := []byte(config.JwtSecretKey())
 	pgsToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
 		"exp":     time.Now().Add(time.Duration(config.AppCfg().Gin.Jwt.Expiration) * time.Minute).Unix(),
@@ -51,7 +51,7 @@ func (t *UserService) GetJwtTokenByID(user model.User) (tokenString string, err 
 
 func (t *UserService) GetIDByJwtToken(token string) (id uint, err error) {
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.AppCfg().Gin.Jwt.SecretKey), nil
+		return []byte(config.JwtSecretKey()), nil
 	})
 	if err != nil {
 		return 0, err

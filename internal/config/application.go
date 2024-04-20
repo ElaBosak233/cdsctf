@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/embed"
+	"github.com/elabosak233/cloudsdale/internal/files"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"io"
@@ -25,8 +25,7 @@ type ApplicationCfg struct {
 			AllowMethods []string `yaml:"allow_methods" json:"allow_methods" mapstructure:"allow_methods"`
 		} `yaml:"cors" json:"cors" mapstructure:"cors"`
 		Jwt struct {
-			SecretKey  string `yaml:"secret_key" json:"secret_key" mapstructure:"secret_key"`
-			Expiration int    `yaml:"expiration" json:"expiration" mapstructure:"expiration"`
+			Expiration int `yaml:"expiration" json:"expiration" mapstructure:"expiration"`
 		} `yaml:"jwt" json:"jwt" mapstructure:"jwt"`
 		Paths struct {
 			Assets   string `yaml:"assets" json:"assets" mapstructure:"assets"`
@@ -79,26 +78,19 @@ type ApplicationCfg struct {
 		} `yaml:"mysql" json:"mysql" mapstructure:"mysql"`
 	} `yaml:"db" json:"db" mapstructure:"db"`
 	Container struct {
-		Nat struct {
-			Type  string `yaml:"type" json:"type" mapstructure:"type"`
+		Provider string `yaml:"provider" json:"provider" mapstructure:"provider"`
+		Docker   struct {
+			URI   string `yaml:"uri" json:"uri" mapstructure:"uri"`
 			Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
-		}
+		} `yaml:"docker" json:"docker" mapstructure:"docker"`
 		Proxy struct {
 			Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
 			Type    string `yaml:"type" json:"type" mapstructure:"type"`
-			TCP     struct {
-				Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
-			}
-			WS struct{}
-		}
+		} `yaml:"proxy" json:"proxy" mapstructure:"proxy"`
 		TrafficCapture struct {
 			Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
 			Path    string `yaml:"path" json:"path" mapstructure:"path"`
 		} `yaml:"traffic_capture" json:"traffic_capture" mapstructure:"traffic_capture"`
-		Docker struct {
-			URI   string `yaml:"uri" json:"uri" mapstructure:"uri"`
-			Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
-		} `yaml:"docker" json:"docker" mapstructure:"docker"`
 	} `yaml:"container" json:"container" mapstructure:"container"`
 }
 
@@ -114,8 +106,8 @@ func InitApplicationCfg() {
 	if _, err := os.Stat(configFile); err != nil {
 		zap.L().Warn("No configuration file found, default configuration file will be created.")
 
-		// Read default configuration from embed
-		defaultConfig, _err := embed.FS.Open("configs/application.json")
+		// Read default configuration from files
+		defaultConfig, _err := files.FS.Open("configs/application.json")
 		if _err != nil {
 			zap.L().Error("Unable to read default configuration file.")
 			return

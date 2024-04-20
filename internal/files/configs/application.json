@@ -5,8 +5,7 @@
 			"allow_origins": ["*"]
 		},
 		"jwt": {
-			"expiration": 180,
-			"secret_key": "20101010"
+			"expiration": 180
 		},
 		"paths": {
 			"media": "./media",
@@ -17,17 +16,14 @@
 		"port": 8888
 	},
 	"container": {
+		"provider": "docker",
 		"docker": {
 			"uri": "unix:///var/run/docker.sock",
 			"entry": "127.0.0.1"
 		},
 		"proxy": {
 			"enabled": false,
-			"type": "tcp",
-			"tcp": {
-				"entry": "127.0.0.1"
-			},
-			"ws": {}
+			"type": "ws"
 		},
 		"traffic_capture": {
 			"enabled": false,

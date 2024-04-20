@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/embed"
+	"github.com/elabosak233/cloudsdale/internal/files"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"io"
@@ -42,8 +42,8 @@ func InitPlatformCfg() {
 	if _, err := os.Stat(configFile); err != nil {
 		zap.L().Warn("No configuration file found, default configuration file will be created.")
 
-		// Read default configuration from embed
-		defaultConfig, _err := embed.FS.Open("configs/platform.json")
+		// Read default configuration from files
+		defaultConfig, _err := files.FS.Open("configs/platform.json")
 		if _err != nil {
 			zap.L().Error("Unable to read default configuration file.")
 			return
