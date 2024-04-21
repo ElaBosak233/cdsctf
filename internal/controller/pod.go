@@ -38,17 +38,17 @@ func NewPodController(appService *service.Service) IPodController {
 // @Param input	body	request.PodCreateRequest	true	"PodCreateRequest"
 // @Router /pods/ [post]
 func (c *PodController) Create(ctx *gin.Context) {
-	instanceCreateRequest := request.PodCreateRequest{}
-	if err := ctx.ShouldBindJSON(&instanceCreateRequest); err != nil {
+	podCreateRequest := request.PodCreateRequest{}
+	if err := ctx.ShouldBindJSON(&podCreateRequest); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &instanceCreateRequest),
+			"msg":  validator.GetValidMsg(err, &podCreateRequest),
 		})
 		return
 	}
 	user := ctx.MustGet("user").(*model.User)
-	instanceCreateRequest.UserID = user.ID
-	pod, err := c.podService.Create(instanceCreateRequest)
+	podCreateRequest.UserID = user.ID
+	pod, err := c.podService.Create(podCreateRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
