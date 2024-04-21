@@ -26,7 +26,7 @@ type DockerManager struct {
 	PodID      uint
 	RespID     []string
 	Proxy      proxy.IPodProxy
-	Container  *model.Container
+	Nats       []*model.Nat
 	CancelCtx  context.Context
 	CancelFunc context.CancelFunc
 }
@@ -47,7 +47,7 @@ func (c *DockerManager) Duration() (duration time.Duration) {
 	return c.duration
 }
 
-func (c *DockerManager) Setup() (container *model.Container, err error) {
+func (c *DockerManager) Setup() (nats []*model.Nat, err error) {
 
 	c.CancelCtx, c.CancelFunc = context.WithCancel(context.Background())
 
@@ -115,7 +115,7 @@ func (c *DockerManager) Setup() (container *model.Container, err error) {
 		c.RespID[len(c.RespID)-1],
 	)
 
-	nats := make([]*model.Nat, 0)
+	nats = make([]*model.Nat, 0)
 
 	switch config.AppCfg().Container.Proxy.Enabled {
 	case true:
@@ -155,14 +155,9 @@ func (c *DockerManager) Setup() (container *model.Container, err error) {
 		}
 	}
 
-	container = &model.Container{
-		ChallengeID: c.challenge.ID,
-		Nats:        nats,
-	}
+	c.Nats = nats
 
-	c.Container = container
-
-	return container, err
+	return nats, err
 }
 
 func (c *DockerManager) Status() (status string, err error) {

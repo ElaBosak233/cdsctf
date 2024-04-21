@@ -78,7 +78,6 @@ func syncDatabase() {
 		&model.Submission{},
 		&model.Nat{},
 		&model.Hint{},
-		&model.Container{},
 		&model.Pod{},
 		&model.Game{},
 		&model.GameChallenge{},

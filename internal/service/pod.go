@@ -54,13 +54,11 @@ type PodService struct {
 	podRepository       repository.IPodRepository
 	natRepository       repository.INatRepository
 	flagGenRepository   repository.IFlagGenRepository
-	instanceRepository  repository.IContainerRepository
 }
 
 func NewPodService(appRepository *repository.Repository) IPodService {
 	return &PodService{
 		challengeRepository: appRepository.ChallengeRepository,
-		instanceRepository:  appRepository.ContainerRepository,
 		flagGenRepository:   appRepository.FlagGenRepository,
 		podRepository:       appRepository.PodRepository,
 		natRepository:       appRepository.NatRepository,
@@ -150,7 +148,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		time.Duration(challenge.Duration)*time.Second,
 	)
 
-	container, err := ctnManager.Setup()
+	nats, err := ctnManager.Setup()
 
 	var gameID uint
 	if req.GameID != nil {
@@ -169,7 +167,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		GameID:      gameID,
 		TeamID:      teamID,
 		RemovedAt:   removedAt,
-		Container:   container,
+		Nats:        nats,
 	})
 
 	ctnManager.SetPodID(pod.ID)
@@ -189,7 +187,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 	return response.PodStatusResponse{
 		ID:        pod.ID,
-		Container: pod.Container,
+		Nats:      nats,
 		RemovedAt: removedAt,
 	}, err
 }
@@ -248,15 +246,15 @@ func (t *PodService) Remove(req request.PodRemoveRequest) (err error) {
 }
 
 func (t *PodService) FindById(id uint) (rep response.PodResponse, err error) {
-	instance, _ := t.podRepository.FindById(id)
+	pod, _ := t.podRepository.FindById(id)
 	if PodManagers[id] != nil {
 		ctn := PodManagers[id]
 		status, _ := ctn.Status()
 		rep = response.PodResponse{
-			ID:          id,
-			RemovedAt:   instance.RemovedAt,
-			ChallengeID: instance.ChallengeID,
-			Status:      status,
+			ID:        id,
+			RemovedAt: pod.RemovedAt,
+			Challenge: pod.Challenge,
+			Status:    status,
 		}
 		return rep, nil
 	}
@@ -278,11 +276,11 @@ func (t *PodService) Find(req request.PodFindRequest) (pods []response.PodRespon
 			}
 		}
 		pods = append(pods, response.PodResponse{
-			ID:          pod.ID,
-			RemovedAt:   pod.RemovedAt,
-			Container:   pod.Container,
-			ChallengeID: pod.ChallengeID,
-			Status:      status,
+			ID:        pod.ID,
+			RemovedAt: pod.RemovedAt,
+			Nats:      pod.Nats,
+			Challenge: pod.Challenge,
+			Status:    status,
 		})
 	}
 	return pods, err

@@ -6,7 +6,7 @@ import (
 )
 
 type IContainerManager interface {
-	Setup() (container *model.Container, err error)
+	Setup() (nats []*model.Nat, err error)
 	Status() (status string, err error)
 	Duration() (duration time.Duration)
 	Remove()

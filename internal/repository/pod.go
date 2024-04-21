@@ -67,16 +67,13 @@ func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, coun
 	}
 
 	result = db.
-		Preload("Container", func(db *gorm.DB) *gorm.DB {
+		Preload("Challenge", func(db *gorm.DB) *gorm.DB {
 			return db.
-				Preload("Challenge", func(db *gorm.DB) *gorm.DB {
-					return db.
-						Preload("Ports").
-						Preload("Envs").
-						Select([]string{"id", "title"})
-				}).
-				Preload("Nats")
+				Preload("Ports").
+				Preload("Envs").
+				Select([]string{"id", "title"})
 		}).
+		Preload("Nats").
 		Find(&pods)
 	return pods, count, result.Error
 }
