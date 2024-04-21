@@ -59,7 +59,7 @@ func (c *PodController) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":       http.StatusOK,
 		"id":         pod.ID,
-		"container":  pod.Container,
+		"nats":       pod.Nats,
 		"removed_at": pod.RemovedAt,
 	})
 }
