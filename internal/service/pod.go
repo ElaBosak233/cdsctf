@@ -150,22 +150,12 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 	nats, err := ctnManager.Setup()
 
-	var gameID uint
-	if req.GameID != nil {
-		gameID = *(req.GameID)
-	}
-
-	var teamID uint
-	if req.TeamID != nil {
-		teamID = *(req.TeamID)
-	}
-
 	// Create Pod model, get Pod's GameID
 	pod, _ := t.podRepository.Create(model.Pod{
-		ChallengeID: req.ChallengeID,
-		UserID:      req.UserID,
-		GameID:      gameID,
-		TeamID:      teamID,
+		ChallengeID: &req.ChallengeID,
+		UserID:      &req.UserID,
+		GameID:      req.GameID,
+		TeamID:      req.TeamID,
 		RemovedAt:   removedAt,
 		Nats:        nats,
 	})
@@ -187,14 +177,14 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 	return response.PodStatusResponse{
 		ID:        pod.ID,
-		Nats:      nats,
+		Nats:      pod.Nats,
 		RemovedAt: removedAt,
 	}, err
 }
 
 func (t *PodService) Status(podID uint) (rep response.PodStatusResponse, err error) {
 	rep = response.PodStatusResponse{}
-	instance, err := t.podRepository.FindById(podID)
+	pod, err := t.podRepository.FindById(podID)
 	var ctn manager.IContainerManager
 	if PodManagers[podID] != nil {
 		ctn = PodManagers[podID]
@@ -204,7 +194,7 @@ func (t *PodService) Status(podID uint) (rep response.PodStatusResponse, err err
 			rep.Status = status
 		}
 		rep.ID = podID
-		rep.RemovedAt = instance.RemovedAt
+		rep.RemovedAt = pod.RemovedAt
 		return rep, nil
 	}
 	return rep, errors.New("获取失败")
