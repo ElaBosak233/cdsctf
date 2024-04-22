@@ -20,15 +20,19 @@ type IUserController interface {
 	Update(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 	Find(ctx *gin.Context)
+	SaveAvatar(ctx *gin.Context)
+	DeleteAvatar(ctx *gin.Context)
 }
 
 type UserController struct {
-	userService service.IUserService
+	userService  service.IUserService
+	mediaService service.IMediaService
 }
 
 func NewUserController(appService *service.Service) IUserController {
 	return &UserController{
-		userService: appService.UserService,
+		userService:  appService.UserService,
+		mediaService: appService.MediaService,
 	}
 }
 
@@ -234,5 +238,60 @@ func (c *UserController) Find(ctx *gin.Context) {
 		"data":  users,
 		"pages": pages,
 		"total": total,
+	})
+}
+
+// SaveAvatar
+// @Summary 保存头像
+// @Description
+// @Tags Challenge
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param file formData file true "avatar"
+// @Router /users/{id}/avatar [post]
+func (c *UserController) SaveAvatar(ctx *gin.Context) {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	err = c.mediaService.SaveUserAvatar(id, fileHeader)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// DeleteAvatar
+// @Summary 删除头像
+// @Description
+// @Tags Challenge
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /users/{id}/avatar [delete]
+func (c *UserController) DeleteAvatar(ctx *gin.Context) {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	err := c.mediaService.DeleteUserAvatar(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
 	})
 }

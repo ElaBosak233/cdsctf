@@ -33,6 +33,8 @@ func (u *UserRouter) Register() {
 	u.router.POST("/login", u.controller.Login)
 	u.router.POST("/logout", u.controller.Logout)
 	u.router.POST("/register", u.controller.Register)
+	u.router.POST("/:id/avatar", u.CanModifyUser(), u.controller.SaveAvatar)
+	u.router.DELETE("/:id/avatar", u.CanModifyUser(), u.controller.DeleteAvatar)
 }
 
 func (u *UserRouter) CanModifyUser() gin.HandlerFunc {

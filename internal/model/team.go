@@ -1,7 +1,11 @@
 package model
 
 import (
+	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/config"
 	"gorm.io/gorm"
+	"os"
+	"path"
 )
 
 type Team struct {
@@ -9,6 +13,7 @@ type Team struct {
 	Name        string  `gorm:"type:varchar(36);not null" json:"name"`             // The team's name.
 	Description string  `gorm:"type:text" json:"description"`                      // The team's description.
 	Email       string  `gorm:"type:varchar(64);" json:"email,omitempty"`          // The team's email.
+	Avatar      *File   `gorm:"-" json:"avatar"`                                   // The team's avatar.
 	CaptainID   uint    `gorm:"not null" json:"captain_id,omitempty"`              // The captain's id.
 	Captain     *User   `json:"captain,omitempty"`                                 // The captain's user.
 	IsLocked    *bool   `gorm:"not null;default:false" json:"is_locked,omitempty"` // Whether the team is locked. (true/false)
@@ -20,6 +25,26 @@ type Team struct {
 
 func (t *Team) Simplify() {
 	t.InviteToken = ""
+}
+
+func (t *Team) AfterFind(db *gorm.DB) (err error) {
+	p := path.Join(config.AppCfg().Gin.Paths.Media, "teams", fmt.Sprintf("%d", t.ID))
+	var name string
+	var size int64
+	if files, _err := os.ReadDir(p); _err == nil {
+		for _, file := range files {
+			name = file.Name()
+			info, _ := file.Info()
+			size = info.Size()
+			break
+		}
+	}
+	avatar := File{
+		Name: name,
+		Size: size,
+	}
+	t.Avatar = &avatar
+	return nil
 }
 
 func (t *Team) BeforeDelete(db *gorm.DB) (err error) {
