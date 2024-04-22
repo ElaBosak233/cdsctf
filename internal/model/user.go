@@ -5,6 +5,8 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/config"
 	"github.com/elabosak233/cloudsdale/internal/utils/signature"
 	"gorm.io/gorm"
+	"os"
+	"path"
 	"strconv"
 )
 
@@ -14,6 +16,7 @@ type User struct {
 	Nickname    string  `gorm:"column:nickname;type:varchar(36);not null" json:"nickname"`               // The user's nickname. Not unique.
 	Description string  `gorm:"column:description;type:text" json:"description"`                         // The user's description.
 	Email       string  `gorm:"column:email;varchar(64);unique;not null" json:"email,omitempty"`         // The user's email.
+	Avatar      *File   `gorm:"-" json:"avatar"`                                                         // The user's avatar.
 	Signature   string  `gorm:"column:signature;varchar(255);unique;" json:"signature,omitempty"`        // The user's signature.
 	Group       string  `gorm:"column:group;varchar(16);not null;" json:"group,omitempty"`               // The user's group.
 	Password    string  `gorm:"column:password;type:varchar(255);not null" json:"password,omitempty"`    // The user's password. Crypt.
@@ -24,6 +27,26 @@ type User struct {
 
 func (u *User) Simplify() {
 	u.Password = ""
+}
+
+func (u *User) AfterFind(db *gorm.DB) (err error) {
+	p := path.Join(config.AppCfg().Gin.Paths.Media, "users", fmt.Sprintf("%d", u.ID))
+	var name string
+	var size int64
+	if files, _err := os.ReadDir(p); _err == nil {
+		for _, file := range files {
+			name = file.Name()
+			info, _ := file.Info()
+			size = info.Size()
+			break
+		}
+	}
+	avatar := File{
+		Name: name,
+		Size: size,
+	}
+	u.Avatar = &avatar
+	return nil
 }
 
 // AfterCreate Hook

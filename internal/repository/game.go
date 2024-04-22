@@ -53,7 +53,7 @@ func (t *GameRepository) Find(req request.GameFindRequest) (games []model.Game, 
 	}
 	db := applyFilters(t.Db.Table("games"))
 
-	result := db.Model(&model.Submission{}).Count(&count)
+	result := db.Model(&model.Game{}).Count(&count)
 	if req.SortKey != "" && req.SortOrder != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {

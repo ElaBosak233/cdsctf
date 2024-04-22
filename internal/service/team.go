@@ -79,7 +79,7 @@ func (t *TeamService) Delete(id uint) error {
 func (t *TeamService) Find(req request.TeamFindRequest) (teams []model.Team, pages int64, total int64, err error) {
 	teams, count, err := t.teamRepository.Find(req)
 	for index, team := range teams {
-		team.InviteToken = ""
+		team.Simplify()
 		teams[index] = team
 	}
 	if req.Size >= 1 && req.Page >= 1 {

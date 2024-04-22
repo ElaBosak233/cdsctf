@@ -37,6 +37,8 @@ func (t *TeamRouter) Register() {
 	t.router.PUT("/:id/invite", t.CanModifyTeam(), t.controller.UpdateInviteToken)
 	t.router.POST("/:id/join", t.controller.Join)
 	t.router.POST("/:id/leave", t.controller.Leave)
+	t.router.POST("/:id/avatar", t.CanModifyTeam(), t.controller.SaveAvatar)
+	t.router.DELETE("/:id/avatar", t.CanModifyTeam(), t.controller.DeleteAvatar)
 }
 
 func (t *TeamRouter) CanModifyTeam() gin.HandlerFunc {

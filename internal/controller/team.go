@@ -22,17 +22,21 @@ type ITeamController interface {
 	UpdateInviteToken(ctx *gin.Context)
 	Join(ctx *gin.Context)
 	Leave(ctx *gin.Context)
+	SaveAvatar(ctx *gin.Context)
+	DeleteAvatar(ctx *gin.Context)
 }
 
 type TeamController struct {
 	teamService     service.ITeamService
 	userTeamService service.IUserTeamService
+	mediaService    service.IMediaService
 }
 
 func NewTeamController(appService *service.Service) ITeamController {
 	return &TeamController{
 		teamService:     appService.TeamService,
 		userTeamService: appService.UserTeamService,
+		mediaService:    appService.MediaService,
 	}
 }
 
@@ -326,6 +330,61 @@ func (c *TeamController) Leave(ctx *gin.Context) {
 		TeamID: convertor.ToUintD(id, 0),
 		UserID: user.ID,
 	})
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// SaveAvatar
+// @Summary 保存头像
+// @Description
+// @Tags Challenge
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param file formData file true "avatar"
+// @Router /teams/{id}/avatar [post]
+func (c *TeamController) SaveAvatar(ctx *gin.Context) {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	err = c.mediaService.SaveTeamAvatar(id, fileHeader)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// DeleteAvatar
+// @Summary 删除头像
+// @Description
+// @Tags Challenge
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /teams/{id}/avatar [delete]
+func (c *TeamController) DeleteAvatar(ctx *gin.Context) {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	err := c.mediaService.DeleteTeamAvatar(id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,

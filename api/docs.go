@@ -1504,6 +1504,53 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/teams/{id}/avatar": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "保存头像",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "avatar",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "删除头像",
+                "responses": {}
+            }
+        },
         "/teams/{id}/invite": {
             "get": {
                 "description": "获取邀请码",
@@ -1878,6 +1925,53 @@ const docTemplate = `{
                 ],
                 "responses": {}
             }
+        },
+        "/users/{id}/avatar": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "保存头像",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "avatar",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenge"
+                ],
+                "summary": "删除头像",
+                "responses": {}
+            }
         }
     },
     "definitions": {
@@ -1917,9 +2011,13 @@ const docTemplate = `{
         "model.Challenge": {
             "type": "object",
             "properties": {
-                "attachment_url": {
-                    "description": "The challenge's attachment URL.",
-                    "type": "string"
+                "attachment": {
+                    "description": "The challenge's attachment.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.File"
+                        }
+                    ]
                 },
                 "category": {
                     "description": "The challenge's category.",
@@ -1964,10 +2062,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/model.Flag"
                     }
-                },
-                "has_attachment": {
-                    "description": "Whether the challenge has attachment.",
-                    "type": "boolean"
                 },
                 "hints": {
                     "type": "array",
@@ -2044,6 +2138,17 @@ const docTemplate = `{
                 }
             }
         },
+        "model.File": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.Flag": {
             "type": "object",
             "properties": {
@@ -2086,10 +2191,6 @@ const docTemplate = `{
             "properties": {
                 "bio": {
                     "description": "The game's short description.",
-                    "type": "string"
-                },
-                "cover_url": {
-                    "description": "The game's cover image URL.",
                     "type": "string"
                 },
                 "created_at": {
@@ -2135,6 +2236,14 @@ const docTemplate = `{
                 "parallel_container_limit": {
                     "description": "The maximum parallel container limit.",
                     "type": "integer"
+                },
+                "poster": {
+                    "description": "The game's poster image.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.File"
+                        }
+                    ]
                 },
                 "public_key": {
                     "description": "The game's public key.",
@@ -2356,6 +2465,14 @@ const docTemplate = `{
         "model.Team": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "The team's avatar.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.File"
+                        }
+                    ]
+                },
                 "captain": {
                     "description": "The captain's user.",
                     "allOf": [
@@ -2412,6 +2529,14 @@ const docTemplate = `{
         "model.User": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "The user's avatar.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.File"
+                        }
+                    ]
+                },
                 "created_at": {
                     "description": "The user's creation time.",
                     "type": "integer"

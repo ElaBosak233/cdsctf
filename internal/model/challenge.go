@@ -1,7 +1,11 @@
 package model
 
 import (
+	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/config"
 	"gorm.io/gorm"
+	"os"
+	"path"
 )
 
 // Challenge is the challenge for Jeopardy-style CTF game.
@@ -11,8 +15,7 @@ type Challenge struct {
 	Description   string        `gorm:"type:text;not null;" json:"description"`                 // The challenge's description.
 	CategoryID    uint          `gorm:"not null;" json:"category_id"`                           // The challenge's category.
 	Category      *Category     `json:"category,omitempty"`                                     // The challenge's category.
-	HasAttachment *bool         `gorm:"not null;default:false" json:"has_attachment"`           // Whether the challenge has attachment.
-	AttachmentURL string        `gorm:"type:varchar(255);" json:"attachment_url,omitempty"`     // The challenge's attachment URL.
+	Attachment    *File         `gorm:"-" json:"attachment"`                                    // The challenge's attachment.
 	IsPracticable *bool         `gorm:"not null;default:false" json:"is_practicable,omitempty"` // Whether the challenge is practicable. (Is the practice field visible.)
 	IsDynamic     *bool         `gorm:"default:false" json:"is_dynamic"`                        // Whether the challenge is based on dynamic container.
 	Difficulty    int64         `gorm:"default:1" json:"difficulty"`                            // The degree of difficulty. (From 1 to 5)
@@ -21,14 +24,14 @@ type Challenge struct {
 	ImageName     string        `gorm:"type:varchar(255);" json:"image_name,omitempty"`         // The challenge's image name.
 	CPULimit      int64         `gorm:"default:1" json:"cpu_limit,omitempty"`                   // The challenge's CPU limit. (0 means no limit)
 	MemoryLimit   int64         `gorm:"default:64" json:"memory_limit,omitempty"`               // The challenge's memory limit. (0 means no limit)
-	CreatedAt     int64         `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"`       // The challenge's creation time.
-	UpdatedAt     int64         `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"`       // The challenge's last update time.
 	Flags         []*Flag       `json:"flags,omitempty"`
 	Hints         []*Hint       `json:"hints,omitempty"`
 	Ports         []*Port       `json:"ports,omitempty"`
 	Envs          []*Env        `json:"envs,omitempty"`
 	Solved        *Submission   `json:"solved,omitempty"`
 	Submissions   []*Submission `json:"submissions,omitempty"`
+	CreatedAt     int64         `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"` // The challenge's creation time.
+	UpdatedAt     int64         `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"` // The challenge's last update time.
 }
 
 func (c *Challenge) Simplify() {
@@ -38,6 +41,26 @@ func (c *Challenge) Simplify() {
 	c.Flags = nil
 	c.Ports = nil
 	c.Envs = nil
+}
+
+func (c *Challenge) AfterFind(db *gorm.DB) (err error) {
+	p := path.Join(config.AppCfg().Gin.Paths.Media, "challenges", fmt.Sprintf("%d", c.ID))
+	var name string
+	var size int64
+	if files, _err := os.ReadDir(p); _err == nil {
+		for _, file := range files {
+			name = file.Name()
+			info, _ := file.Info()
+			size = info.Size()
+			break
+		}
+	}
+	attachment := File{
+		Name: name,
+		Size: size,
+	}
+	c.Attachment = &attachment
+	return nil
 }
 
 func (c *Challenge) BeforeUpdate(db *gorm.DB) (err error) {

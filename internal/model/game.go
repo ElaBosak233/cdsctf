@@ -1,7 +1,11 @@
 package model
 
 import (
+	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/config"
 	"gorm.io/gorm"
+	"os"
+	"path"
 )
 
 type Game struct {
@@ -9,7 +13,7 @@ type Game struct {
 	Title                  string  `gorm:"type:varchar(64);not null" json:"title,omitempty"`             // The game's title.
 	Bio                    string  `gorm:"type:text" json:"bio,omitempty"`                               // The game's short description.
 	Description            string  `gorm:"type:text" json:"description,omitempty"`                       // The game's description. (Markdown supported.)
-	CoverURL               string  `gorm:"type:varchar(255)" json:"cover_url,omitempty"`                 // The game's cover image URL.
+	Poster                 *File   `gorm:"-" json:"poster"`                                              // The game's poster image.
 	PublicKey              string  `gorm:"type:varchar(255)" json:"public_key,omitempty"`                // The game's public key.
 	PrivateKey             string  `gorm:"type:varchar(255)" json:"-"`                                   // The game's private key.
 	IsEnabled              *bool   `gorm:"not null;default:false" json:"is_enabled,omitempty"`           // Whether the game is enabled.
@@ -25,6 +29,26 @@ type Game struct {
 	EndedAt                int64   `gorm:"not null" json:"ended_at,omitempty"`                           // The game's end time. (Unix)
 	CreatedAt              int64   `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"`             // The game's creation time.
 	UpdatedAt              int64   `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"`             // The game's last update time.
+}
+
+func (g *Game) AfterFind(db *gorm.DB) (err error) {
+	p := path.Join(config.AppCfg().Gin.Paths.Media, "games", fmt.Sprintf("%d", g.ID), "poster")
+	var name string
+	var size int64
+	if files, _err := os.ReadDir(p); _err == nil {
+		for _, file := range files {
+			name = file.Name()
+			info, _ := file.Info()
+			size = info.Size()
+			break
+		}
+	}
+	poster := File{
+		Name: name,
+		Size: size,
+	}
+	g.Poster = &poster
+	return nil
 }
 
 func (g *Game) BeforeDelete(db *gorm.DB) (err error) {

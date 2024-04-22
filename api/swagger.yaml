@@ -28,9 +28,10 @@ definitions:
     type: object
   model.Challenge:
     properties:
-      attachment_url:
-        description: The challenge's attachment URL.
-        type: string
+      attachment:
+        allOf:
+        - $ref: '#/definitions/model.File'
+        description: The challenge's attachment.
       category:
         allOf:
         - $ref: '#/definitions/model.Category'
@@ -61,9 +62,6 @@ definitions:
         items:
           $ref: '#/definitions/model.Flag'
         type: array
-      has_attachment:
-        description: Whether the challenge has attachment.
-        type: boolean
       hints:
         items:
           $ref: '#/definitions/model.Hint'
@@ -118,6 +116,13 @@ definitions:
       value:
         type: string
     type: object
+  model.File:
+    properties:
+      name:
+        type: string
+      size:
+        type: integer
+    type: object
   model.Flag:
     properties:
       banned:
@@ -152,9 +157,6 @@ definitions:
       bio:
         description: The game's short description.
         type: string
-      cover_url:
-        description: The game's cover image URL.
-        type: string
       created_at:
         description: The game's creation time.
         type: integer
@@ -188,6 +190,10 @@ definitions:
       parallel_container_limit:
         description: The maximum parallel container limit.
         type: integer
+      poster:
+        allOf:
+        - $ref: '#/definitions/model.File'
+        description: The game's poster image.
       public_key:
         description: The game's public key.
         type: string
@@ -336,6 +342,10 @@ definitions:
     type: object
   model.Team:
     properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/model.File'
+        description: The team's avatar.
       captain:
         allOf:
         - $ref: '#/definitions/model.User'
@@ -375,6 +385,10 @@ definitions:
     type: object
   model.User:
     properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/model.File'
+        description: The user's avatar.
       created_at:
         description: The user's creation time.
         type: integer
@@ -1731,6 +1745,35 @@ paths:
       summary: 更新团队
       tags:
       - Team
+  /teams/{id}/avatar:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 删除头像
+      tags:
+      - Challenge
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: avatar
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 保存头像
+      tags:
+      - Challenge
   /teams/{id}/invite:
     get:
       consumes:
@@ -1927,6 +1970,35 @@ paths:
       summary: 用户更新
       tags:
       - User
+  /users/{id}/avatar:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 删除头像
+      tags:
+      - Challenge
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: avatar
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 保存头像
+      tags:
+      - Challenge
   /users/login:
     post:
       consumes:
