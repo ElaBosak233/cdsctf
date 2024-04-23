@@ -43,6 +43,8 @@ func (g *GameRouter) Register() {
 	g.router.DELETE("/:id/notices/:notice_id", g.controller.DeleteNotice)
 	g.router.GET("/:id/scoreboard", g.controller.Scoreboard)
 	g.router.GET("/:id/broadcast", g.controller.BroadCast)
+	g.router.POST("/:id/poster", g.controller.SavePoster)
+	g.router.DELETE("/:id/poster", g.controller.DeletePoster)
 }
 
 func (g *GameRouter) PreProcess() gin.HandlerFunc {

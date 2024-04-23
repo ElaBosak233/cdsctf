@@ -1370,6 +1370,35 @@ paths:
       summary: 更新比赛的通知
       tags:
       - Game
+  /games/{id}/poster:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 删除海报
+      tags:
+      - Game
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: poster
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: 保存头图
+      tags:
+      - Game
   /games/{id}/scoreboard:
     get:
       consumes:

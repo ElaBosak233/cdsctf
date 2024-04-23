@@ -32,6 +32,8 @@ type IGameController interface {
 	CreateNotice(ctx *gin.Context)
 	UpdateNotice(ctx *gin.Context)
 	DeleteNotice(ctx *gin.Context)
+	SavePoster(ctx *gin.Context)
+	DeletePoster(ctx *gin.Context)
 }
 
 type GameController struct {
@@ -41,6 +43,7 @@ type GameController struct {
 	challengeService     service.IChallengeService
 	teamService          service.ITeamService
 	noticeService        service.INoticeService
+	mediaService         service.IMediaService
 }
 
 func NewGameController(appService *service.Service) IGameController {
@@ -51,6 +54,7 @@ func NewGameController(appService *service.Service) IGameController {
 		challengeService:     appService.ChallengeService,
 		teamService:          appService.TeamService,
 		noticeService:        appService.NoticeService,
+		mediaService:         appService.MediaService,
 	}
 }
 
@@ -600,5 +604,60 @@ func (g *GameController) FindByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"data": games[0],
+	})
+}
+
+// SavePoster
+// @Summary 保存头图
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param file formData file true "poster"
+// @Router /games/{id}/poster [post]
+func (g *GameController) SavePoster(ctx *gin.Context) {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	err = g.mediaService.SaveGamePoster(id, fileHeader)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+	})
+}
+
+// DeletePoster
+// @Summary 删除海报
+// @Description
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Router /games/{id}/poster [delete]
+func (g *GameController) DeletePoster(ctx *gin.Context) {
+	id := convertor.ToUintD(ctx.Param("id"), 0)
+	err := g.mediaService.DeleteGamePoster(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
 	})
 }

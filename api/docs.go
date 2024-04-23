@@ -912,6 +912,53 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/games/{id}/poster": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "保存头图",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "poster",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "删除海报",
+                "responses": {}
+            }
+        },
         "/games/{id}/scoreboard": {
             "get": {
                 "security": [
