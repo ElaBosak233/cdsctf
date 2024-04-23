@@ -24,7 +24,6 @@ func initDefaultPolicy() {
 		{"user", "/api/teams/{id}/join", "POST"},
 		{"user", "/api/teams/{id}/leave", "DELETE"},
 		{"user", "/api/challenges/*", "GET"},
-		{"user", "/api/categories/", "GET"},
 		{"user", "/api/games/", "GET"},
 		{"user", "/api/games/{id}", "GET"},
 		{"user", "/api/games/{id}/scoreboard", "GET"},
@@ -43,6 +42,7 @@ func initDefaultPolicy() {
 
 		{"guest", "/api/", "GET"},
 		{"guest", "/api/configs/", "GET"},
+		{"guest", "/api/categories/", "GET"},
 		{"guest", "/api/users/", "GET"},
 		{"guest", "/api/users/register", "POST"},
 		{"guest", "/api/users/login", "POST"},
