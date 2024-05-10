@@ -13,6 +13,8 @@ func initDefaultPolicy() {
 		{"user", "/api/users/logout", "POST"},
 		{"user", "/api/users/{id}", "PUT"},
 		{"user", "/api/users/{id}", "DELETE"},
+		{"user", "/api/users/{id}/avatar", "POST"},
+		{"user", "/api/users/{id}/avatar", "DELETE"},
 		{"user", "/api/teams/", "GET"},
 		{"user", "/api/teams/", "POST"},
 		{"user", "/api/teams/{id}", "PUT"},
