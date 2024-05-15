@@ -85,7 +85,7 @@ func (t *PodService) ParallelLimit(req request.PodCreateRequest) {
 		var count int64
 		if !isGame {
 			availablePods, count, _ = t.podRepository.Find(request.PodFindRequest{
-				UserID:      req.UserID,
+				UserID:      &req.UserID,
 				IsAvailable: convertor.TrueP(),
 			})
 		} else {
@@ -253,7 +253,7 @@ func (t *PodService) FindById(id uint) (rep response.PodResponse, err error) {
 
 func (t *PodService) Find(req request.PodFindRequest) (pods []response.PodResponse, err error) {
 	if req.TeamID != nil && req.GameID != nil {
-		req.UserID = 0
+		req.UserID = nil
 	}
 	podResponse, _, err := t.podRepository.Find(req)
 	for _, pod := range podResponse {

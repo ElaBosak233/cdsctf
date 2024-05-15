@@ -1507,6 +1507,9 @@ paths:
       - in: query
         name: team_id
         type: integer
+      - in: query
+        name: user_id
+        type: integer
       produces:
       - application/json
       responses: {}

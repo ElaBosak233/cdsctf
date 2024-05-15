@@ -1145,6 +1145,11 @@ const docTemplate = `{
                         "type": "integer",
                         "name": "team_id",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "user_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {}

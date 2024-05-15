@@ -57,10 +57,8 @@ func (c *PodController) Create(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":       http.StatusOK,
-		"id":         pod.ID,
-		"nats":       pod.Nats,
-		"removed_at": pod.RemovedAt,
+		"code": http.StatusOK,
+		"data": pod,
 	})
 }
 
@@ -159,8 +157,6 @@ func (c *PodController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	user := ctx.MustGet("user").(*model.User)
-	podFindRequest.UserID = user.ID
 	pods, _ := c.podService.Find(podFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,

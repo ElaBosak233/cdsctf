@@ -40,7 +40,7 @@ func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, coun
 		if req.ChallengeID != 0 {
 			q = q.Where("challenge_id = ?", req.ChallengeID)
 		}
-		if req.UserID != 0 {
+		if req.UserID != nil {
 			q = q.Where("user_id = ?", req.UserID)
 		}
 		if req.TeamID != nil {

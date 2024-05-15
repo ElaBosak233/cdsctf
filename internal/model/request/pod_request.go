@@ -10,7 +10,7 @@ type PodCreateRequest struct {
 type PodFindRequest struct {
 	ID          uint  `json:"id" form:"id"`
 	ChallengeID uint  `json:"challenge_id" form:"challenge_id"`
-	UserID      uint  `json:"-" form:"-"`
+	UserID      *uint `json:"user_id" form:"user_id"`
 	TeamID      *uint `json:"team_id" form:"team_id"`
 	GameID      *uint `json:"game_id" form:"game_id"`
 	IsAvailable *bool `json:"is_available" form:"is_available"`
