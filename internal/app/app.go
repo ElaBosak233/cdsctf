@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"github.com/TwiN/go-color"
 	_ "github.com/elabosak233/cloudsdale/api"
-	"github.com/elabosak233/cloudsdale/internal/assets"
-	"github.com/elabosak233/cloudsdale/internal/casbin"
-	"github.com/elabosak233/cloudsdale/internal/config"
-	"github.com/elabosak233/cloudsdale/internal/container/provider"
 	"github.com/elabosak233/cloudsdale/internal/controller"
-	"github.com/elabosak233/cloudsdale/internal/database"
+	"github.com/elabosak233/cloudsdale/internal/extension/assets"
+	"github.com/elabosak233/cloudsdale/internal/extension/casbin"
+	config2 "github.com/elabosak233/cloudsdale/internal/extension/config"
+	"github.com/elabosak233/cloudsdale/internal/extension/container/provider"
+	"github.com/elabosak233/cloudsdale/internal/extension/database"
+	"github.com/elabosak233/cloudsdale/internal/extension/logger"
+	"github.com/elabosak233/cloudsdale/internal/extension/logger/adapter"
 	"github.com/elabosak233/cloudsdale/internal/global"
-	"github.com/elabosak233/cloudsdale/internal/logger"
-	"github.com/elabosak233/cloudsdale/internal/logger/adapter"
 	"github.com/elabosak233/cloudsdale/internal/middleware"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/router"
@@ -43,7 +43,7 @@ func init() {
 func Run() {
 	// Initialize the application
 	logger.InitLogger()
-	config.InitConfig()
+	config2.InitConfig()
 	assets.InitAssets()
 	database.InitDatabase()
 	casbin.InitCasbin()
@@ -67,8 +67,8 @@ func Run() {
 
 	// Cors configurations
 	cor := cors.DefaultConfig()
-	cor.AllowOrigins = config.AppCfg().Gin.CORS.AllowOrigins
-	cor.AllowMethods = config.AppCfg().Gin.CORS.AllowMethods
+	cor.AllowOrigins = config2.AppCfg().Gin.CORS.AllowOrigins
+	cor.AllowMethods = config2.AppCfg().Gin.CORS.AllowMethods
 	cor.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	cor.AllowCredentials = true
 	r.Use(cors.New(cor))
@@ -93,10 +93,10 @@ func Run() {
 	r.Use(middleware.Frontend("/"))
 
 	s := &http.Server{
-		Addr:    config.AppCfg().Gin.Host + ":" + strconv.Itoa(config.AppCfg().Gin.Port),
+		Addr:    config2.AppCfg().Gin.Host + ":" + strconv.Itoa(config2.AppCfg().Gin.Port),
 		Handler: r,
 	}
-	zap.L().Info(fmt.Sprintf("Here's the address! %s:%d", config.AppCfg().Gin.Host, config.AppCfg().Gin.Port))
+	zap.L().Info(fmt.Sprintf("Here's the address! %s:%d", config2.AppCfg().Gin.Host, config2.AppCfg().Gin.Port))
 	zap.L().Info("The Cloudsdale service is running! Enjoy your hacking challenges!")
 	err := s.ListenAndServe()
 	if err != nil {

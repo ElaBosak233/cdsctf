@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/extension/config"
 	"gorm.io/gorm"
 	"os"
 	"path"

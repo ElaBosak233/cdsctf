@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/config"
+	config2 "github.com/elabosak233/cloudsdale/internal/extension/config"
 	"github.com/elabosak233/cloudsdale/internal/utils/signature"
 	"gorm.io/gorm"
 	"os"
@@ -30,7 +30,7 @@ func (u *User) Simplify() {
 }
 
 func (u *User) AfterFind(db *gorm.DB) (err error) {
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "users", fmt.Sprintf("%d", u.ID))
+	p := path.Join(config2.AppCfg().Gin.Paths.Media, "users", fmt.Sprintf("%d", u.ID))
 	var name string
 	var size int64
 	if files, _err := os.ReadDir(p); _err == nil {
@@ -52,7 +52,7 @@ func (u *User) AfterFind(db *gorm.DB) (err error) {
 // AfterCreate Hook
 // Since the PrivateKey used here belongs to the entire Cloudsdale, it relies on GORM Hooks to write the Signature.
 func (u *User) AfterCreate(db *gorm.DB) (err error) {
-	sig, _ := signature.Sign(config.SigCfg().PrivateKey, strconv.Itoa(int(u.ID)))
+	sig, _ := signature.Sign(config2.SigCfg().PrivateKey, strconv.Itoa(int(u.ID)))
 	u.Signature = fmt.Sprintf("%s:%s", strconv.Itoa(int(u.ID)), sig)
 	return db.Table("users").Updates(&u).Error
 }

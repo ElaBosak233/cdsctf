@@ -3,7 +3,7 @@ package captcha
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/elabosak233/cloudsdale/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/extension/config"
 	"io"
 	"net/http"
 )

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/extension/config"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"

@@ -1,7 +1,7 @@
 package proxy
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/extension/config"
 )
 
 type IProxy interface {

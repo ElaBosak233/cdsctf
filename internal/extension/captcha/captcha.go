@@ -1,6 +1,8 @@
 package captcha
 
-import "github.com/elabosak233/cloudsdale/internal/config"
+import (
+	"github.com/elabosak233/cloudsdale/internal/extension/config"
+)
 
 type ICaptcha interface {
 	Verify(token string, clientIP string) (success bool, err error)
