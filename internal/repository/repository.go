@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/database"
+	"github.com/elabosak233/cloudsdale/internal/extension/database"
 	"go.uber.org/zap"
 	"sync"
 )

@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/casbin"
-	"github.com/elabosak233/cloudsdale/internal/config"
+	"github.com/elabosak233/cloudsdale/internal/extension/casbin"
+	"github.com/elabosak233/cloudsdale/internal/extension/config"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"

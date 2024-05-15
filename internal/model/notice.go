@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/broadcast"
+	"github.com/elabosak233/cloudsdale/internal/extension/broadcast"
 	"gorm.io/gorm"
 )
 

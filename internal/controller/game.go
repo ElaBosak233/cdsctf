@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/broadcast"
+	"github.com/elabosak233/cloudsdale/internal/extension/broadcast"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"

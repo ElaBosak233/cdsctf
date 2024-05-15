@@ -2,8 +2,8 @@ package database
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/config"
-	"github.com/elabosak233/cloudsdale/internal/logger/adapter"
+	"github.com/elabosak233/cloudsdale/internal/extension/config"
+	"github.com/elabosak233/cloudsdale/internal/extension/logger/adapter"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
