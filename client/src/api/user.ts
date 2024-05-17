@@ -1,0 +1,80 @@
+import {
+	UserCreateRequest,
+	UserDeleteRequest,
+	UserFindRequest,
+	UserUpdateRequest,
+} from "@/types/user";
+import { useApi, useAuth } from "@/utils/axios";
+import { AxiosRequestConfig } from "axios";
+
+export function useUserApi() {
+	const api = useApi();
+	const auth = useAuth();
+
+	const login = (username: string, password: string) => {
+		return api.post("/users/login", {
+			username,
+			password,
+		});
+	};
+
+	const register = (
+		username: string,
+		nickname: string,
+		email: string,
+		password: string
+	) => {
+		return api.post("/users/register", {
+			username,
+			nickname,
+			email,
+			password,
+		});
+	};
+
+	const getUsers = (request: UserFindRequest) => {
+		return auth.get("/users/", { params: request });
+	};
+
+	const getUserByID = (id: number) => {
+		return auth.get(`/users/${id}`);
+	};
+
+	const updateUser = (request: UserUpdateRequest) => {
+		return auth.put(`/users/${request?.id}`, request);
+	};
+
+	const createUser = (request: UserCreateRequest) => {
+		return auth.post(`/users/`, request);
+	};
+
+	const deleteUser = (request: UserDeleteRequest) => {
+		return auth.delete(`/users/${request?.id}`);
+	};
+
+	const saveUserAvatar = (
+		id: number,
+		file: File,
+		config: AxiosRequestConfig<FormData>
+	) => {
+		const formData = new FormData();
+		formData.append("file", file);
+		return auth.post(`/users/${id}/avatar`, formData, config);
+	};
+
+	const deleteUserAvatar = (id: number) => {
+		return auth.delete(`/users/${id}/avatar`);
+	};
+
+	return {
+		login,
+		register,
+		getUsers,
+		getUserByID,
+		updateUser,
+		createUser,
+		deleteUser,
+		saveUserAvatar,
+		deleteUserAvatar,
+	};
+}
