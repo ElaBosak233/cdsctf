@@ -140,6 +140,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 			}
 			flag = *f
 		}
+		break
 	}
 
 	ctnManager := manager.NewContainerManager(
