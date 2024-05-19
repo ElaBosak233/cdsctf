@@ -27,6 +27,8 @@ export interface TeamFindRequest {
 	user_id?: number;
 	page?: number;
 	size?: number;
+	sort_key?: string;
+	sort_order?: string;
 }
 
 export interface TeamUpdateRequest {

@@ -1701,6 +1701,12 @@ paths:
         name: size
         type: integer
       - in: query
+        name: sort_key
+        type: string
+      - in: query
+        name: sort_order
+        type: string
+      - in: query
         name: user_id
         type: integer
       produces:

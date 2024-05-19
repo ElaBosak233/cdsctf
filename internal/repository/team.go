@@ -63,6 +63,11 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, 
 	db := applyFilters(t.db.Table("teams"))
 
 	result := db.Model(&model.Team{}).Count(&count)
+	if req.SortKey != "" && req.SortOrder != "" {
+		db = db.Order(req.SortKey + " " + req.SortOrder)
+	} else {
+		db = db.Order("teams.id ASC")
+	}
 	if req.Page != 0 && req.Size > 0 {
 		offset := (req.Page - 1) * req.Size
 		db = db.Offset(offset).Limit(req.Size)
