@@ -14,25 +14,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out main repository
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
           repository: elabosak233/cloudsdale
-          path: backend
-          ref: ${{ github.ref }}
-
-      - name: Check out ui repository
-        uses: actions/checkout@v4
-        with:
-          repository: cloudsda1e/ui
-          path: frontend
-          ref: ${{ github.ref }}
-
-      - name: Check out CI repository
-        uses: actions/checkout@v4
-        with:
-          repository: cloudsda1e/ci
-          path: ci
           ref: ${{ github.ref }}
 
       - name: Set up Docker Buildx
@@ -71,7 +56,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./
-          file: ./ci/Dockerfile
+          file: ./Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
