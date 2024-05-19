@@ -69,7 +69,7 @@ func (m *MediaService) SaveGamePoster(id uint, fileHeader *multipart.FileHeader)
 	}(file)
 	data, err := io.ReadAll(file)
 	p := path.Join(config.AppCfg().Gin.Paths.Media, "games", fmt.Sprintf("%d", id), "poster", fileHeader.Filename)
-	err = m.DeleteChallengeAttachment(id)
+	err = m.DeleteGamePoster(id)
 	dir := path.Dir(p)
 	if _, err = os.Stat(dir); os.IsNotExist(err) {
 		if err = os.MkdirAll(dir, 0755); err != nil {
@@ -92,7 +92,7 @@ func (m *MediaService) SaveUserAvatar(id uint, fileHeader *multipart.FileHeader)
 	}(file)
 	data, err := io.ReadAll(file)
 	p := path.Join(config.AppCfg().Gin.Paths.Media, "users", fmt.Sprintf("%d", id), fileHeader.Filename)
-	err = m.DeleteChallengeAttachment(id)
+	err = m.DeleteUserAvatar(id)
 	dir := path.Dir(p)
 	if _, err = os.Stat(dir); os.IsNotExist(err) {
 		if err = os.MkdirAll(dir, 0755); err != nil {
@@ -115,7 +115,7 @@ func (m *MediaService) SaveTeamAvatar(id uint, fileHeader *multipart.FileHeader)
 	}(file)
 	data, err := io.ReadAll(file)
 	p := path.Join(config.AppCfg().Gin.Paths.Media, "teams", fmt.Sprintf("%d", id), fileHeader.Filename)
-	err = m.DeleteChallengeAttachment(id)
+	err = m.DeleteTeamAvatar(id)
 	dir := path.Dir(p)
 	if _, err = os.Stat(dir); os.IsNotExist(err) {
 		if err = os.MkdirAll(dir, 0755); err != nil {

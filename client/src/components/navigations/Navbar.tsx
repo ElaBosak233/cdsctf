@@ -74,7 +74,7 @@ export default function Navbar() {
 				>
 					<Flex align={"center"}>
 						<Image
-							src="favicon.ico"
+							src="./favicon.ico"
 							alt=""
 							w={36}
 							h={36}
@@ -188,6 +188,18 @@ export default function Navbar() {
 							onClick={() => navigate("/admin/challenges")}
 						>
 							题库
+						</Button>
+						<Button
+							sx={{
+								backgroundColor: "transparent",
+								"&:hover": {
+									backgroundColor: "transparent",
+								},
+							}}
+							leftSection={<MDIcon>category</MDIcon>}
+							onClick={() => navigate("/admin/categories")}
+						>
+							分类
 						</Button>
 						<Button
 							sx={{

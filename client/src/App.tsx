@@ -12,6 +12,8 @@ import { useConfigApi } from "./api/config";
 import { useConfigStore } from "./stores/config";
 import { Notifications } from "@mantine/notifications";
 import { ModalsProvider } from "@mantine/modals";
+import { DatesProvider } from "@mantine/dates";
+import "dayjs/locale/zh-cn";
 
 function App() {
 	const { theme } = useTheme();
@@ -52,13 +54,23 @@ function App() {
 			>
 				<MantineEmotionProvider>
 					<ModalsProvider>
-						<Navbar />
-						<Box pt={64}>
-							<Suspense fallback={<Loading />}>
-								{useRoutes(routes)}
-							</Suspense>
-						</Box>
-						<Notifications zIndex={5000} />
+						<DatesProvider
+							settings={{
+								locale: "zh-cn",
+								firstDayOfWeek: 0,
+								weekendDays: [0, 6],
+								timezone: "UTC",
+								consistentWeeks: true,
+							}}
+						>
+							<Navbar />
+							<Box pt={64}>
+								<Suspense fallback={<Loading />}>
+									{useRoutes(routes)}
+								</Suspense>
+							</Box>
+							<Notifications zIndex={5000} />
+						</DatesProvider>
 					</ModalsProvider>
 				</MantineEmotionProvider>
 			</MantineProvider>
