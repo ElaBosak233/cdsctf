@@ -144,10 +144,9 @@ func (c *TeamController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	teams, pages, total, _ := c.teamService.Find(teamFindRequest)
+	teams, total, _ := c.teamService.Find(teamFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
-		"pages": pages,
 		"total": total,
 		"data":  teams,
 	})

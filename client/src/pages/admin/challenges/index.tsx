@@ -28,6 +28,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Page() {
 	const challengeApi = useChallengeApi();
@@ -44,6 +45,8 @@ export default function Page() {
 	const [search, setSearch] = useState<string>("");
 	const [searchInput, setSearchInput] = useState<string>("");
 	const [sort, setSort] = useState<string>("id_asc");
+
+	const navigate = useNavigate();
 
 	const [createOpened, { open: createOpen, close: createClose }] =
 		useDisclosure(false);
@@ -316,7 +319,11 @@ export default function Page() {
 											<Group justify="center">
 												<ActionIcon
 													variant="transparent"
-													onClick={() => {}}
+													onClick={() =>
+														navigate(
+															`/admin/challenges/${challenge?.id}`
+														)
+													}
 												>
 													<MDIcon>edit</MDIcon>
 												</ActionIcon>

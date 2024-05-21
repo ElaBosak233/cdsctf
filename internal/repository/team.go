@@ -39,7 +39,7 @@ func (t *TeamRepository) Delete(id uint) (err error) {
 	return result.Error
 }
 
-func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, count int64, err error) {
+func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, total int64, err error) {
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
@@ -62,7 +62,7 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, 
 	}
 	db := applyFilters(t.db.Table("teams"))
 
-	result := db.Model(&model.Team{}).Count(&count)
+	result := db.Model(&model.Team{}).Count(&total)
 	if req.SortKey != "" && req.SortOrder != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
@@ -81,7 +81,7 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, 
 			return db.Select([]string{"id", "nickname", "username", "email"})
 		}).
 		Find(&teams)
-	return teams, count, result.Error
+	return teams, total, result.Error
 }
 
 func (t *TeamRepository) FindById(id uint) (team model.Team, err error) {

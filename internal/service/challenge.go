@@ -5,11 +5,10 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/mitchellh/mapstructure"
-	"math"
 )
 
 type IChallengeService interface {
-	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pages int64, total int64, err error)
+	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, total int64, err error)
 	Create(req request.ChallengeCreateRequest) (err error)
 	Update(req request.ChallengeUpdateRequest) (err error)
 	Delete(id uint) (err error)
@@ -56,8 +55,8 @@ func (t *ChallengeService) Delete(id uint) (err error) {
 	return err
 }
 
-func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, pages int64, total int64, err error) {
-	challenges, count, err := t.challengeRepository.Find(req)
+func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, total int64, err error) {
+	challenges, total, err = t.challengeRepository.Find(req)
 
 	for index, challenge := range challenges {
 		if !*(req.IsDetailed) {
@@ -69,10 +68,5 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []
 		challenges[index] = challenge
 	}
 
-	if req.Size >= 1 && req.Page >= 1 {
-		pages = int64(math.Ceil(float64(count) / float64(req.Size)))
-	} else {
-		pages = 1
-	}
-	return challenges, pages, count, err
+	return challenges, total, err
 }

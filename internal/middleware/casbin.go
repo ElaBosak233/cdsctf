@@ -32,7 +32,7 @@ func Casbin() gin.HandlerFunc {
 				return []byte(config.JwtSecretKey()), nil
 			})
 			if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
-				if users, _, _, err := appService.UserService.Find(request.UserFindRequest{
+				if users, _, err := appService.UserService.Find(request.UserFindRequest{
 					ID: uint(claims["user_id"].(float64)),
 				}); err == nil && len(users) > 0 {
 					user = users[0]

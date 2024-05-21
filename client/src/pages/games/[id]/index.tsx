@@ -91,9 +91,7 @@ export default function Page() {
 							</Stack>
 						</Stack>
 						<BackgroundImage
-							src={
-								"https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/images/bg-6.png"
-							}
+							src={`${import.meta.env.VITE_BASE_API}/media/games/${game?.id}/poster/${game?.poster?.name}`}
 							radius={"md"}
 							h={250}
 							w={"45%"}

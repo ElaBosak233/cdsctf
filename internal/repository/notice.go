@@ -7,7 +7,7 @@ import (
 )
 
 type INoticeRepository interface {
-	Find(req request.NoticeFindRequest) (notices []model.Notice, count int64, err error)
+	Find(req request.NoticeFindRequest) (notices []model.Notice, total int64, err error)
 	Create(notice model.Notice) (n model.Notice, err error)
 	Update(notice model.Notice) (n model.Notice, err error)
 	Delete(notice model.Notice) (err error)
@@ -21,7 +21,7 @@ func NewNoticeRepository(db *gorm.DB) INoticeRepository {
 	return &NoticeRepository{db: db}
 }
 
-func (t *NoticeRepository) Find(req request.NoticeFindRequest) (notices []model.Notice, count int64, err error) {
+func (t *NoticeRepository) Find(req request.NoticeFindRequest) (notices []model.Notice, total int64, err error) {
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
@@ -35,7 +35,7 @@ func (t *NoticeRepository) Find(req request.NoticeFindRequest) (notices []model.
 		return q
 	}
 	db := applyFilters(t.db.Table("notices"))
-	result := db.Model(&model.Notice{}).Count(&count)
+	result := db.Model(&model.Notice{}).Count(&total)
 	db = db.Order("notices.id DESC")
 	result = db.
 		Preload("User", func(db *gorm.DB) *gorm.DB {
@@ -48,7 +48,7 @@ func (t *NoticeRepository) Find(req request.NoticeFindRequest) (notices []model.
 			return db.Select([]string{"id", "title"})
 		}).
 		Find(&notices)
-	return notices, count, result.Error
+	return notices, total, result.Error
 }
 
 func (t *NoticeRepository) Create(notice model.Notice) (n model.Notice, err error) {

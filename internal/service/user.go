@@ -10,7 +10,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/crypto/bcrypt"
-	"math"
 	"strings"
 	"time"
 )
@@ -23,7 +22,7 @@ type IUserService interface {
 	VerifyPasswordByUsername(username string, password string) bool
 	GetJwtTokenByID(user model.User) (tokenString string, err error)
 	GetIDByJwtToken(token string) (id uint, err error)
-	Find(req request.UserFindRequest) (users []model.User, pages int64, total int64, err error)
+	Find(req request.UserFindRequest) (users []model.User, total int64, err error)
 }
 
 type UserService struct {
@@ -118,17 +117,12 @@ func (t *UserService) Delete(id uint) error {
 	return err
 }
 
-func (t *UserService) Find(req request.UserFindRequest) (users []model.User, pages int64, total int64, err error) {
-	users, count, err := t.userRepository.Find(req)
+func (t *UserService) Find(req request.UserFindRequest) (users []model.User, total int64, err error) {
+	users, total, err = t.userRepository.Find(req)
 	for index := range users {
 		users[index].Simplify()
 	}
-	if req.Size >= 1 && req.Page >= 1 {
-		pages = int64(math.Ceil(float64(count) / float64(req.Size)))
-	} else {
-		pages = 1
-	}
-	return users, pages, count, err
+	return users, total, err
 }
 
 func (t *UserService) VerifyPasswordById(id uint, password string) bool {

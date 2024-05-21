@@ -1,15 +1,14 @@
 import { useRoutes } from "react-router";
 import Navbar from "@/components/navigations/Navbar";
 import routes from "~react-pages";
-import { Box, MantineProvider } from "@mantine/core";
+import { Box, LoadingOverlay, MantineProvider } from "@mantine/core";
 import { emotionTransform, MantineEmotionProvider } from "@mantine/emotion";
 import { Suspense, useEffect } from "react";
-import Loading from "@/components/ui/Loading";
 import useTheme from "@/composables/useTheme";
 import { useCategoryApi } from "@/api/category";
-import { useCategoryStore } from "./stores/category";
-import { useConfigApi } from "./api/config";
-import { useConfigStore } from "./stores/config";
+import { useCategoryStore } from "@/stores/category";
+import { useConfigApi } from "@/api/config";
+import { useConfigStore } from "@/stores/config";
 import { Notifications } from "@mantine/notifications";
 import { ModalsProvider } from "@mantine/modals";
 import { DatesProvider } from "@mantine/dates";
@@ -65,7 +64,7 @@ function App() {
 						>
 							<Navbar />
 							<Box pt={64}>
-								<Suspense fallback={<Loading />}>
+								<Suspense fallback={<LoadingOverlay />}>
 									{useRoutes(routes)}
 								</Suspense>
 							</Box>

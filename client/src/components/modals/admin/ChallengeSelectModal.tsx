@@ -1,6 +1,6 @@
-import { useUserApi } from "@/api/user";
+import { useChallengeApi } from "@/api/challenge";
 import MDIcon from "@/components/ui/MDIcon";
-import { User } from "@/types/user";
+import { Challenge } from "@/types/challenge";
 import {
 	Card,
 	Divider,
@@ -11,43 +11,43 @@ import {
 	ThemeIcon,
 	Text,
 	Stack,
-	Avatar,
 	Group,
 	ActionIcon,
 	Pagination,
+	Badge,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 
-interface UserSelectModalProps extends ModalProps {
-	setUser: (user: User) => void;
+interface ChallengeSelectModalProps extends ModalProps {
+	setChallenge: (challenge: Challenge) => void;
 }
 
-export default function UserSelectModal(props: UserSelectModalProps) {
-	const { setUser, ...modalProps } = props;
+export default function ChallengeSelectModal(props: ChallengeSelectModalProps) {
+	const { setChallenge, ...modalProps } = props;
 
-	const userApi = useUserApi();
-	const [users, setUsers] = useState<Array<User>>([]);
+	const challengeApi = useChallengeApi();
+	const [challenges, setChallenges] = useState<Array<Challenge>>([]);
 	const [search, setSearch] = useState<string>("");
 	const [page, setPage] = useState<number>(1);
 	const [total, setTotal] = useState<number>(0);
 	const [rowsPerPage, _] = useState<number>(10);
 
-	function getUsers() {
-		userApi
-			.getUsers({
+	function getChallenges() {
+		challengeApi
+			.getChallenges({
 				size: 10,
 				page: page,
-				name: search,
+				title: search,
 			})
 			.then((res) => {
 				const r = res.data;
-				setUsers(r.data);
+				setChallenges(r.data);
 				setTotal(r.total);
 			});
 	}
 
 	useEffect(() => {
-		getUsers();
+		getChallenges();
 	}, [search, page]);
 
 	return (
@@ -69,9 +69,9 @@ export default function UserSelectModal(props: UserSelectModalProps) {
 					>
 						<Flex gap={10} align={"center"}>
 							<ThemeIcon variant="transparent">
-								<MDIcon>person</MDIcon>
+								<MDIcon>collections_bookmark</MDIcon>
 							</ThemeIcon>
-							<Text fw={600}>选择用户</Text>
+							<Text fw={600}>选择题目</Text>
 						</Flex>
 						<Divider my={10} />
 						<Stack p={10} gap={20} align="center">
@@ -82,31 +82,32 @@ export default function UserSelectModal(props: UserSelectModalProps) {
 								w={"100%"}
 							/>
 							<Stack w={"100%"}>
-								{users?.map((user) => (
+								{challenges?.map((challenge) => (
 									<Flex
-										key={user?.id}
+										key={challenge?.id}
 										justify={"space-between"}
 										align={"center"}
 									>
 										<Group gap={15}>
-											<Avatar
-												color="brand"
-												src={`${import.meta.env.VITE_BASE_API}/media/users/${user?.id}/${user?.avatar?.name}`}
-												radius="xl"
+											<Badge>{challenge?.id}</Badge>
+											<ThemeIcon
+												variant="transparent"
+												color={
+													challenge?.category?.color
+												}
 											>
-												<MDIcon>person</MDIcon>
-											</Avatar>
+												<MDIcon>
+													{challenge?.category?.icon}
+												</MDIcon>
+											</ThemeIcon>
 											<Text fw={700} size="1rem">
-												{user?.username}
-											</Text>
-											<Text fw={500} size="1rem">
-												{user?.nickname}
+												{challenge?.title}
 											</Text>
 										</Group>
 										<ActionIcon
 											variant="transparent"
 											onClick={() => {
-												setUser(user);
+												setChallenge(challenge);
 												modalProps.onClose();
 											}}
 										>

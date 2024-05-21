@@ -134,7 +134,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 		if f.Type == "dynamic" {
 			flag = *f
 			flag.Value = generator.GenerateFlag(flag.Value)
-		} else if f.Type == "static" {
+		} else {
 			if f.Env == "" {
 				f.Env = "FLAG"
 			}

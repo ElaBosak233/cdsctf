@@ -126,25 +126,14 @@ export default function Page() {
 									h={49}
 									fullWidth
 									justify="center"
+									variant={
+										selectedCategory === 0
+											? "filled"
+											: "subtle"
+									}
 									leftSection={<MDIcon>extension</MDIcon>}
 									onClick={() => setSelectedCategory(0)}
-									sx={{
-										backgroundColor:
-											selectedCategory === 0
-												? "var(--mantine-color-brand-7) !important"
-												: "transparent",
-										color:
-											selectedCategory === 0
-												? "white !important"
-												: "var(--mantine-color-brand-7)",
-										"&:hover": {
-											backgroundColor: rgba(
-												"var(--mantine-color-brand-7)",
-												0.1
-											),
-											color: "var(--mantine-color-brand-7)",
-										},
-									}}
+									color="brand"
 								>
 									ALL
 								</Button>
@@ -156,31 +145,18 @@ export default function Page() {
 										h={49}
 										fullWidth
 										justify="center"
+										variant={
+											selectedCategory === category?.id
+												? "filled"
+												: "subtle"
+										}
 										leftSection={
 											<MDIcon>{category?.icon}</MDIcon>
 										}
 										onClick={() =>
 											setSelectedCategory(category?.id!)
 										}
-										sx={{
-											backgroundColor:
-												selectedCategory ===
-												category?.id
-													? `${category?.color} !important`
-													: "transparent",
-											color:
-												selectedCategory ===
-												category?.id
-													? "white !important"
-													: category?.color,
-											"&:hover": {
-												backgroundColor: rgba(
-													category?.color!,
-													0.1
-												),
-												color: category?.color,
-											},
-										}}
+										color={category?.color}
 									>
 										{category?.name?.toUpperCase()}
 									</Button>

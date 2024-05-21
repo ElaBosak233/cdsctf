@@ -30,7 +30,7 @@ func (t *SubmissionRepository) Delete(id uint) (err error) {
 	return result.Error
 }
 
-func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissions []model.Submission, count int64, err error) {
+func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissions []model.Submission, total int64, err error) {
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.UserID != 0 && req.TeamID == nil && req.GameID == nil {
 			q = q.Where("user_id = ?", req.UserID)
@@ -51,7 +51,7 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 	}
 	db := applyFilters(t.db.Table("submissions"))
 
-	result := db.Model(&model.Submission{}).Count(&count)
+	result := db.Model(&model.Submission{}).Count(&total)
 	if req.SortKey != "" && req.SortOrder != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
@@ -82,5 +82,5 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 			return db.Select([]string{"id", "title", "bio", "first_blood_reward_ratio", "second_blood_reward_ratio", "third_blood_reward_ratio"})
 		}).
 		Find(&submissions)
-	return submissions, count, result.Error
+	return submissions, total, result.Error
 }
