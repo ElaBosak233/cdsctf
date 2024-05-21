@@ -10,7 +10,7 @@ type IGameRepository interface {
 	Create(game model.Game) (g model.Game, err error)
 	Update(game model.Game) (err error)
 	Delete(req request.GameDeleteRequest) (err error)
-	Find(req request.GameFindRequest) (games []model.Game, count int64, err error)
+	Find(req request.GameFindRequest) (games []model.Game, total int64, err error)
 }
 
 type GameRepository struct {
@@ -38,7 +38,7 @@ func (t *GameRepository) Delete(req request.GameDeleteRequest) (err error) {
 	return result.Error
 }
 
-func (t *GameRepository) Find(req request.GameFindRequest) (games []model.Game, count int64, err error) {
+func (t *GameRepository) Find(req request.GameFindRequest) (games []model.Game, total int64, err error) {
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
@@ -53,7 +53,7 @@ func (t *GameRepository) Find(req request.GameFindRequest) (games []model.Game, 
 	}
 	db := applyFilters(t.Db.Table("games"))
 
-	result := db.Model(&model.Game{}).Count(&count)
+	result := db.Model(&model.Game{}).Count(&total)
 	if req.SortKey != "" && req.SortOrder != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
 	} else {
@@ -65,5 +65,5 @@ func (t *GameRepository) Find(req request.GameFindRequest) (games []model.Game, 
 	}
 
 	result = db.Find(&games)
-	return games, count, result.Error
+	return games, total, result.Error
 }

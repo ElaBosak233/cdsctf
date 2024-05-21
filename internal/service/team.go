@@ -6,14 +6,13 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/google/uuid"
-	"math"
 )
 
 type ITeamService interface {
 	Create(req request.TeamCreateRequest) error
 	Update(req request.TeamUpdateRequest) error
 	Delete(id uint) error
-	Find(req request.TeamFindRequest) (teams []model.Team, pages int64, total int64, err error)
+	Find(req request.TeamFindRequest) (teams []model.Team, total int64, err error)
 	FindById(id uint) (team model.Team, err error)
 	GetInviteToken(req request.TeamGetInviteTokenRequest) (token string, err error)
 	UpdateInviteToken(req request.TeamUpdateInviteTokenRequest) (token string, err error)
@@ -76,18 +75,13 @@ func (t *TeamService) Delete(id uint) error {
 	return err
 }
 
-func (t *TeamService) Find(req request.TeamFindRequest) (teams []model.Team, pages int64, total int64, err error) {
-	teams, count, err := t.teamRepository.Find(req)
+func (t *TeamService) Find(req request.TeamFindRequest) (teams []model.Team, total int64, err error) {
+	teams, total, err = t.teamRepository.Find(req)
 	for index, team := range teams {
 		team.Simplify()
 		teams[index] = team
 	}
-	if req.Size >= 1 && req.Page >= 1 {
-		pages = int64(math.Ceil(float64(count) / float64(req.Size)))
-	} else {
-		pages = 1
-	}
-	return teams, pages, count, err
+	return teams, total, err
 }
 
 func (t *TeamService) FindById(id uint) (team model.Team, err error) {

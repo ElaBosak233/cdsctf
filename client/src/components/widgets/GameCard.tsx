@@ -42,7 +42,7 @@ export default function GameCard({ game }: { game?: Game }) {
 					}}
 				>
 					<BackgroundImage
-						src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/images/bg-6.png"
+						src={`${import.meta.env.VITE_BASE_API}/media/games/${game?.id}/poster/${game?.poster?.name}`}
 						h={200}
 						w={"30%"}
 					></BackgroundImage>

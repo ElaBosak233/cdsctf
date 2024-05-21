@@ -9,7 +9,7 @@ type IGameTeamRepository interface {
 	Create(gameTeam model.GameTeam) (err error)
 	Update(gameTeam model.GameTeam) (err error)
 	Delete(gameTeam model.GameTeam) (err error)
-	Find(gameTeam model.GameTeam) (gameTeams []model.GameTeam, err error)
+	Find(gameTeam model.GameTeam) (gameTeams []model.GameTeam, total int64, err error)
 }
 
 type GameTeamRepository struct {
@@ -37,17 +37,23 @@ func (g *GameTeamRepository) Update(gameTeam model.GameTeam) (err error) {
 	return result.Error
 }
 
-func (g *GameTeamRepository) Find(gameTeam model.GameTeam) (gameTeams []model.GameTeam, err error) {
-	result := g.db.Table("game_teams").
-		Where(&gameTeam).
-		Preload("Team", func(db *gorm.DB) *gorm.DB {
-			return db.Preload("Captain", func(db *gorm.DB) *gorm.DB {
-				return db.Select([]string{"id", "nickname", "username", "email"})
-			}).Preload("Users", func(db *gorm.DB) *gorm.DB {
-				return db.Select([]string{"id", "nickname", "username", "email"})
-			})
+func (g *GameTeamRepository) Find(gameTeam model.GameTeam) (gameTeams []model.GameTeam, total int64, err error) {
+	db := g.db.Table("game_teams").
+		Where(&gameTeam)
+
+	result := db.Model(&model.GameTeam{}).Count(&total)
+
+	result = db.Preload("Team", func(db *gorm.DB) *gorm.DB {
+		return db.Preload("Captain", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "nickname", "username", "email"})
+		}).Preload("Users", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "nickname", "username", "email"})
+		})
+	}).
+		Preload("Game", func(db *gorm.DB) *gorm.DB {
+			return db.Select([]string{"id", "title", "started_at", "ended_at"})
 		}).
-		Preload("Game").
 		Find(&gameTeams)
-	return gameTeams, result.Error
+
+	return gameTeams, total, result.Error
 }

@@ -12,7 +12,7 @@ import (
 )
 
 type IGameTeamService interface {
-	Find(req request.GameTeamFindRequest) (teams []model.GameTeam, err error)
+	Find(req request.GameTeamFindRequest) (teams []model.GameTeam, total int64, err error)
 	FindByID(req request.GameTeamFindRequest) (team model.GameTeam, err error)
 	Create(req request.GameTeamCreateRequest) (err error)
 	Update(req request.GameTeamUpdateRequest) (err error)
@@ -37,8 +37,8 @@ func NewGameTeamService(appRepository *repository.Repository) IGameTeamService {
 	}
 }
 
-func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []model.GameTeam, err error) {
-	gameTeams, err := g.gameTeamRepository.Find(model.GameTeam{
+func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []model.GameTeam, total int64, err error) {
+	gameTeams, total, err := g.gameTeamRepository.Find(model.GameTeam{
 		GameID: req.GameID,
 	})
 	submissions, _, err := g.submissionRepository.Find(request.SubmissionFindRequest{
@@ -78,11 +78,11 @@ func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []model.G
 		}
 		gameTeams[index] = gameTeam
 	}
-	return gameTeams, err
+	return gameTeams, total, err
 }
 
 func (g *GameTeamService) FindByID(req request.GameTeamFindRequest) (team model.GameTeam, err error) {
-	teams, err := g.Find(request.GameTeamFindRequest{
+	teams, _, err := g.Find(request.GameTeamFindRequest{
 		GameID: req.GameID,
 	})
 	for _, gameTeam := range teams {
@@ -136,7 +136,7 @@ func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) 
 }
 
 func (g *GameTeamService) Update(req request.GameTeamUpdateRequest) (err error) {
-	gameTeams, err := g.gameTeamRepository.Find(model.GameTeam{
+	gameTeams, _, err := g.gameTeamRepository.Find(model.GameTeam{
 		GameID: req.ID,
 		TeamID: req.TeamID,
 	})
@@ -147,7 +147,7 @@ func (g *GameTeamService) Update(req request.GameTeamUpdateRequest) (err error) 
 }
 
 func (g *GameTeamService) Delete(req request.GameTeamDeleteRequest) (err error) {
-	gameTeams, err := g.gameTeamRepository.Find(model.GameTeam{
+	gameTeams, _, err := g.gameTeamRepository.Find(model.GameTeam{
 		GameID: req.GameID,
 		TeamID: req.TeamID,
 	})

@@ -175,6 +175,12 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 						form.reset();
 						break;
 				}
+			})
+			.catch((e) => {
+				showErrNotification({
+					title: "错误",
+					message: e.response.data.msg,
+				});
 			});
 	}
 
@@ -183,6 +189,10 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 			getPod();
 		}
 	}, []);
+
+	useEffect(() => {
+		form.reset();
+	}, [modalProps.opened]);
 
 	return (
 		<Modal.Root {...modalProps}>

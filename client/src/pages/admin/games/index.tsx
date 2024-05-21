@@ -31,17 +31,19 @@ import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import GameCreateModal from "@/components/modals/admin/GameCreateModal";
+import { useNavigate } from "react-router-dom";
 
 export default function Page() {
 	const gameApi = useGameApi();
 	const configStore = useConfigStore();
+	const navigate = useNavigate();
 
 	const [refresh, setRefresh] = useState<number>(0);
 
 	const [games, setGames] = useState<Array<Game>>([]);
 	const [page, setPage] = useState<number>(1);
 	const [total, setTotal] = useState<number>(0);
-	const [rowsPerPage, setRowsPerPage] = useState<number>(20);
+	const [rowsPerPage, setRowsPerPage] = useState<number>(5);
 	const [search, setSearch] = useState<string>("");
 	const [searchInput, setSearchInput] = useState<string>("");
 	const [sort, setSort] = useState<string>("id_asc");
@@ -145,7 +147,7 @@ export default function Page() {
 						description="选择每页显示的比赛数量"
 						value={String(rowsPerPage)}
 						allowDeselect={false}
-						data={["20", "25", "50", "100"]}
+						data={["5", "10", "20", "50"]}
 						onChange={(_, option) =>
 							setRowsPerPage(Number(option.value))
 						}
@@ -315,7 +317,14 @@ export default function Page() {
 											</Table.Th>
 											<Table.Th>
 												<Group justify="center">
-													<ActionIcon variant="transparent">
+													<ActionIcon
+														variant="transparent"
+														onClick={() => {
+															navigate(
+																`/admin/games/${game?.id}`
+															);
+														}}
+													>
 														<MDIcon>edit</MDIcon>
 													</ActionIcon>
 													<ActionIcon

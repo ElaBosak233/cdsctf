@@ -54,7 +54,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 		return
 	}
 	var user model.User
-	if users, _, _, err := c.userService.Find(request.UserFindRequest{
+	if users, _, err := c.userService.Find(request.UserFindRequest{
 		Username: userLoginRequest.Username,
 	}); err == nil && len(users) > 0 {
 		user = users[0]
@@ -232,11 +232,10 @@ func (c *UserController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	users, pages, total, _ := c.userService.Find(userFindRequest)
+	users, total, _ := c.userService.Find(userFindRequest)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"data":  users,
-		"pages": pages,
 		"total": total,
 	})
 }

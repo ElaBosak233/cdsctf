@@ -217,7 +217,7 @@ func (g *GameController) DeleteChallenge(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /games/{id}/teams [get]
 func (g *GameController) FindTeam(ctx *gin.Context) {
-	teams, err := g.gameTeamService.Find(request.GameTeamFindRequest{
+	teams, total, err := g.gameTeamService.Find(request.GameTeamFindRequest{
 		GameID: convertor.ToUintD(ctx.Param("id"), 0),
 	})
 	if err != nil {
@@ -227,8 +227,9 @@ func (g *GameController) FindTeam(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": teams,
+		"code":  http.StatusOK,
+		"data":  teams,
+		"total": total,
 	})
 }
 
@@ -561,7 +562,7 @@ func (g *GameController) Find(ctx *gin.Context) {
 	if ok && isEnabled.(bool) {
 		gameFindRequest.IsEnabled = convertor.TrueP()
 	}
-	games, pages, total, err := g.gameService.Find(gameFindRequest)
+	games, total, err := g.gameService.Find(gameFindRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
@@ -573,7 +574,6 @@ func (g *GameController) Find(ctx *gin.Context) {
 		"code":  http.StatusOK,
 		"data":  games,
 		"total": total,
-		"pages": pages,
 	})
 }
 
@@ -593,7 +593,7 @@ func (g *GameController) FindByID(ctx *gin.Context) {
 		gameFindRequest.IsEnabled = convertor.TrueP()
 	}
 	gameFindRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	games, _, _, err := g.gameService.Find(gameFindRequest)
+	games, _, err := g.gameService.Find(gameFindRequest)
 	if err != nil || len(games) == 0 {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,

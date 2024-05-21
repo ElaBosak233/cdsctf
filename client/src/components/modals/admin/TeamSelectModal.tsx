@@ -1,6 +1,6 @@
-import { useUserApi } from "@/api/user";
+import { useTeamApi } from "@/api/team";
 import MDIcon from "@/components/ui/MDIcon";
-import { User } from "@/types/user";
+import { Team } from "@/types/team";
 import {
 	Card,
 	Divider,
@@ -18,36 +18,36 @@ import {
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 
-interface UserSelectModalProps extends ModalProps {
-	setUser: (user: User) => void;
+interface TeamSelectModalProps extends ModalProps {
+	setTeam: (team: Team) => void;
 }
 
-export default function UserSelectModal(props: UserSelectModalProps) {
-	const { setUser, ...modalProps } = props;
+export default function TeamSelectModal(props: TeamSelectModalProps) {
+	const { setTeam, ...modalProps } = props;
 
-	const userApi = useUserApi();
-	const [users, setUsers] = useState<Array<User>>([]);
+	const teamApi = useTeamApi();
+	const [teams, setTeams] = useState<Array<Team>>([]);
 	const [search, setSearch] = useState<string>("");
 	const [page, setPage] = useState<number>(1);
 	const [total, setTotal] = useState<number>(0);
 	const [rowsPerPage, _] = useState<number>(10);
 
-	function getUsers() {
-		userApi
-			.getUsers({
+	function getTeams() {
+		teamApi
+			.getTeams({
 				size: 10,
 				page: page,
 				name: search,
 			})
 			.then((res) => {
 				const r = res.data;
-				setUsers(r.data);
+				setTeams(r.data);
 				setTotal(r.total);
 			});
 	}
 
 	useEffect(() => {
-		getUsers();
+		getTeams();
 	}, [search, page]);
 
 	return (
@@ -69,9 +69,9 @@ export default function UserSelectModal(props: UserSelectModalProps) {
 					>
 						<Flex gap={10} align={"center"}>
 							<ThemeIcon variant="transparent">
-								<MDIcon>person</MDIcon>
+								<MDIcon>people</MDIcon>
 							</ThemeIcon>
-							<Text fw={600}>选择用户</Text>
+							<Text fw={600}>选择团队</Text>
 						</Flex>
 						<Divider my={10} />
 						<Stack p={10} gap={20} align="center">
@@ -82,31 +82,28 @@ export default function UserSelectModal(props: UserSelectModalProps) {
 								w={"100%"}
 							/>
 							<Stack w={"100%"}>
-								{users?.map((user) => (
+								{teams?.map((team) => (
 									<Flex
-										key={user?.id}
+										key={team?.id}
 										justify={"space-between"}
 										align={"center"}
 									>
 										<Group gap={15}>
 											<Avatar
 												color="brand"
-												src={`${import.meta.env.VITE_BASE_API}/media/users/${user?.id}/${user?.avatar?.name}`}
+												src={`${import.meta.env.VITE_BASE_API}/media/teams/${team?.id}/${team?.avatar?.name}`}
 												radius="xl"
 											>
 												<MDIcon>person</MDIcon>
 											</Avatar>
 											<Text fw={700} size="1rem">
-												{user?.username}
-											</Text>
-											<Text fw={500} size="1rem">
-												{user?.nickname}
+												{team?.name}
 											</Text>
 										</Group>
 										<ActionIcon
 											variant="transparent"
 											onClick={() => {
-												setUser(user);
+												setTeam(team);
 												modalProps.onClose();
 											}}
 										>

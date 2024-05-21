@@ -6,7 +6,6 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
-	"math"
 	"regexp"
 	"time"
 )
@@ -14,7 +13,7 @@ import (
 type ISubmissionService interface {
 	Create(req request.SubmissionCreateRequest) (status int, rank int64, err error)
 	Delete(id uint) (err error)
-	Find(req request.SubmissionFindRequest) (submissions []model.Submission, pages int64, total int64, err error)
+	Find(req request.SubmissionFindRequest) (submissions []model.Submission, total int64, err error)
 }
 
 type SubmissionService struct {
@@ -104,26 +103,21 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 	for _, flag := range challenge.Flags {
 		switch *(flag.Banned) {
 		case true:
-			switch flag.Type {
-			case "static":
-				if flag.Value == req.Flag {
-					status = 3
-				}
-			case "pattern":
-				re := regexp.MustCompile(flag.Value)
-				if re.Match([]byte(req.Flag)) {
-					status = 3
-				}
+			re, regexErr := regexp.Compile(flag.Value)
+			if regexErr != nil {
+				return 0, 0, regexErr
+			}
+			if re != nil && re.Match([]byte(req.Flag)) {
+				status = 3
 			}
 		case false:
 			switch flag.Type {
-			case "static":
-				if flag.Value == req.Flag {
-					status = max(status, 2)
-				}
 			case "pattern":
-				re := regexp.MustCompile(flag.Value)
-				if re.Match([]byte(req.Flag)) {
+				re, regexErr := regexp.Compile(flag.Value)
+				if regexErr != nil {
+					return 0, 0, regexErr
+				}
+				if re != nil && re.Match([]byte(req.Flag)) {
 					status = max(status, 2)
 				}
 			case "dynamic":
@@ -206,8 +200,8 @@ func (t *SubmissionService) Delete(id uint) (err error) {
 	return err
 }
 
-func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions []model.Submission, pages int64, total int64, err error) {
-	submissions, count, err := t.submissionRepository.Find(req)
+func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions []model.Submission, total int64, err error) {
+	submissions, total, err = t.submissionRepository.Find(req)
 
 	for index, submission := range submissions {
 		if submission.Status == 2 {
@@ -216,7 +210,7 @@ func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions
 					submission.GameChallenge.MaxPts,
 					submission.GameChallenge.MinPts,
 					submission.Challenge.Difficulty,
-					count,
+					total,
 					submission.Rank-1,
 					submission.Game.FirstBloodRewardRatio,
 					submission.Game.SecondBloodRewardRatio,
@@ -231,11 +225,5 @@ func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions
 		}
 		submissions[index] = submission
 	}
-
-	if req.Size >= 1 && req.Page >= 1 {
-		pages = int64(math.Ceil(float64(count) / float64(req.Size)))
-	} else {
-		pages = 1
-	}
-	return submissions, pages, count, err
+	return submissions, total, err
 }
