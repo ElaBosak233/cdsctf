@@ -1,4 +1,5 @@
 import { useChallengeApi } from "@/api/challenge";
+import ChallengeCreateModal from "@/components/modals/admin/ChallengeCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
 import { useConfigStore } from "@/stores/config";
 import { Challenge } from "@/types/challenge";
@@ -267,7 +268,14 @@ export default function Page() {
 												{challenge?.title}
 											</Text>
 										</Table.Th>
-										<Table.Th maw={200}>
+										<Table.Th
+											maw={200}
+											sx={{
+												textWrap: "nowrap",
+												overflow: "hidden",
+												textOverflow: "ellipsis",
+											}}
+										>
 											{challenge?.description}
 										</Table.Th>
 										<Table.Th>
@@ -353,6 +361,12 @@ export default function Page() {
 					/>
 				</Stack>
 			</Flex>
+			<ChallengeCreateModal
+				opened={createOpened}
+				onClose={createClose}
+				setRefresh={() => setRefresh((prev) => prev + 1)}
+				centered
+			/>
 		</>
 	);
 }

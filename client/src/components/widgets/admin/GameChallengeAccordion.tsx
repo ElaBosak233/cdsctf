@@ -16,8 +16,10 @@ import {
 	Stack,
 	Badge,
 	Center,
+	Divider,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { modals } from "@mantine/modals";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -75,6 +77,52 @@ export default function GameChallengeAccordion({
 			});
 	}
 
+	function deleteGameChallenge(gameChallenge?: GameChallenge) {
+		if (gameChallenge) {
+			gameApi
+				.deleteGameChallenge({
+					game_id: gameChallenge?.game_id,
+					challenge_id: gameChallenge?.challenge_id,
+				})
+				.then(() => {
+					showSuccessNotification({
+						message: "题目已删除",
+					});
+					setRefresh();
+				});
+		}
+	}
+
+	const openDeleteGameChallengeModal = (gameChallenge?: GameChallenge) =>
+		modals.openConfirmModal({
+			centered: true,
+			children: (
+				<>
+					<Flex gap={10} align={"center"}>
+						<ThemeIcon variant="transparent">
+							<MDIcon>bookmark_remove</MDIcon>
+						</ThemeIcon>
+						<Text fw={600}>删除题目</Text>
+					</Flex>
+					<Divider my={10} />
+					<Text>
+						你确定要删除题目 {gameChallenge?.challenge?.title} 吗？
+					</Text>
+				</>
+			),
+			withCloseButton: false,
+			labels: {
+				confirm: "确定",
+				cancel: "取消",
+			},
+			confirmProps: {
+				color: "red",
+			},
+			onConfirm: () => {
+				deleteGameChallenge(gameChallenge);
+			},
+		});
+
 	useEffect(() => {
 		if (gameChallenge) {
 			form.setValues({
@@ -130,7 +178,13 @@ export default function GameChallengeAccordion({
 						</ActionIcon>
 					</Tooltip>
 					<Tooltip label="删除题目" withArrow>
-						<ActionIcon variant="transparent" color="red">
+						<ActionIcon
+							variant="transparent"
+							color="red"
+							onClick={() =>
+								openDeleteGameChallengeModal(gameChallenge)
+							}
+						>
 							<MDIcon>delete</MDIcon>
 						</ActionIcon>
 					</Tooltip>

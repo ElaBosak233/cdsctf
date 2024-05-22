@@ -1,0 +1,507 @@
+import { useGameApi } from "@/api/game";
+import { useSubmissionApi } from "@/api/submission";
+import { Game } from "@/types/game";
+import { Submission } from "@/types/submission";
+import {
+	Box,
+	Flex,
+	Stack,
+	useMantineColorScheme,
+	useMantineTheme,
+	Text,
+	Button,
+	Group,
+	LoadingOverlay,
+	Table,
+	Avatar,
+	Tooltip,
+	ThemeIcon,
+} from "@mantine/core";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import ReactECharts from "echarts-for-react";
+import withGame from "@/components/layouts/withGame";
+import { GameChallenge } from "@/types/game_challenge";
+import { Category } from "@/types/category";
+import { Challenge } from "@/types/challenge";
+import MDIcon from "@/components/ui/MDIcon";
+import { Team } from "@/types/team";
+import React from "react";
+import FirstBloodIcon from "@/components/icons/hexagons/FirstBloodIcon";
+import SecondBloodIcon from "@/components/icons/hexagons/SecondBloodIcon";
+import ThirdBloodIcon from "@/components/icons/hexagons/ThirdBloodIcon";
+
+interface ScoreSeries {
+	name: string;
+	data: [number, number][];
+	type: string;
+}
+
+interface Row {
+	id?: number;
+	team: Team;
+	submissions: Array<Submission>;
+	rank?: number;
+	totalScore: number;
+	solvedCount: number;
+}
+
+function Page() {
+	const { id } = useParams<{ id: string }>();
+	const { colorScheme } = useMantineColorScheme();
+	const theme = useMantineTheme();
+
+	const gameApi = useGameApi();
+	const submissionApi = useSubmissionApi();
+
+	const [game, setGame] = useState<Game>();
+	const [submissions, setSubmissions] = useState<Array<Submission>>([]);
+	const [gameChallenges, setGameChallenges] = useState<Array<GameChallenge>>(
+		[]
+	);
+	const [categoriedChallenges, setCategoriedChallenges] = useState<
+		Record<number, { category: Category; challenges: Array<Challenge> }>
+	>({});
+	const [rows, setRows] = useState<Array<Row>>([]);
+
+	const [series, setSeries] = useState<Array<ScoreSeries>>([]);
+
+	const [loading, setLoading] = useState(true);
+
+	function getGame() {
+		gameApi
+			.getGames({
+				id: Number(id),
+			})
+			.then((res) => {
+				const r = res.data;
+				setGame(r.data[0]);
+			});
+	}
+
+	function getSubmissions() {
+		setLoading(true);
+		submissionApi
+			.getSubmissions({
+				game_id: Number(id),
+				status: 2,
+				is_detailed: false,
+			})
+			.then((res) => {
+				const r = res.data;
+				setSubmissions(r.data);
+			})
+			.finally(() => {
+				setLoading(false);
+			});
+	}
+
+	function getGameChallenges() {
+		gameApi
+			.getGameChallenges({
+				game_id: Number(id),
+				is_enabled: true,
+				submission_qty: 0,
+			})
+			.then((res) => {
+				const r = res.data;
+				setGameChallenges(r.data);
+			});
+	}
+
+	// 用于表头
+	useEffect(() => {
+		if (!gameChallenges) return;
+
+		const categoriedChallenges: Record<
+			number,
+			{ category: Category; challenges: Array<Challenge> }
+		> = {};
+
+		gameChallenges?.forEach((gameChallenge) => {
+			const category_id = gameChallenge?.challenge?.category_id;
+			if (!category_id) return;
+
+			if (!categoriedChallenges[category_id]) {
+				categoriedChallenges[category_id] = {
+					category: gameChallenge?.challenge?.category as Category,
+					challenges: [],
+				};
+			}
+
+			categoriedChallenges[category_id].challenges.push(
+				gameChallenge?.challenge!
+			);
+		});
+		setCategoriedChallenges(categoriedChallenges);
+	}, [gameChallenges]);
+
+	// 用于表格
+	useEffect(() => {
+		if (!submissions) return;
+
+		// 初始化团队提交数据的对象
+		const teamSubmissions: Record<number, Row> = {};
+
+		submissions?.forEach((submission) => {
+			const { team_id, team, pts } = submission;
+			if (!teamSubmissions[Number(team_id)]) {
+				teamSubmissions[Number(team_id)] = {
+					team: team!,
+					submissions: [],
+					totalScore: 0,
+					solvedCount: 0,
+				};
+			}
+			teamSubmissions[Number(team_id)].submissions.push(submission);
+			teamSubmissions[Number(team_id)].totalScore += pts || 0;
+			teamSubmissions[Number(team_id)].solvedCount +=
+				pts || 0 > 0 ? 1 : 0;
+		});
+
+		// 将对象转换为数组并按总分降序排序
+		const rowsArray = Object.values(teamSubmissions).sort(
+			(a, b) => b.totalScore - a.totalScore
+		);
+
+		// 设置排名
+		rowsArray.forEach((row, index) => {
+			row.rank = index + 1;
+		});
+		setRows(rowsArray);
+	}, [submissions]);
+
+	// 用于折线图
+	useEffect(() => {
+		if (submissions) {
+			const teamScores: Record<number, [number, number][]> = {};
+			const teamMaps: Record<number, string> = {};
+
+			// 遍历数据，按照团队和时间戳进行分组
+			for (const submission of submissions) {
+				const { team, team_id, created_at, pts } = submission;
+				if (!teamScores[Number(team_id)]) {
+					teamMaps[Number(team_id)] = `${team?.name}`;
+					teamScores[Number(team_id)] = [];
+				}
+				teamScores[Number(team_id)].push([
+					Number(created_at),
+					Number(pts),
+				]);
+			}
+
+			// 对每个团队的得分进行汇总
+			for (const team_id in teamScores) {
+				teamScores[team_id].sort((a, b) => a[0] - b[0]); // 按照时间戳排序
+				let total = 0;
+				for (const score of teamScores[team_id]) {
+					total += score[1]; // 累加得分
+					score[1] = total; // 更新为累计得分
+				}
+			}
+
+			// 将字典转换为数组并按总分排序
+			const teamsArray: Array<ScoreSeries> = Object.keys(teamScores).map(
+				(team_id) => {
+					return {
+						name: teamMaps[Number(team_id)],
+						data: teamScores[Number(team_id)],
+						type: "line",
+					};
+				}
+			);
+
+			// 按照总分排序并获取前十名
+			teamsArray.sort((a, b) => {
+				return (
+					b.data[b.data.length - 1][1] - a.data[a.data.length - 1][1]
+				);
+			});
+			setSeries(teamsArray.slice(0, 10));
+		}
+	}, [submissions]);
+
+	useEffect(() => {
+		getGame();
+	}, []);
+
+	useEffect(() => {
+		getSubmissions();
+		getGameChallenges();
+	}, [game]);
+
+	useEffect(() => {
+		document.title = `积分榜 - ${game?.title}`;
+	}, [game]);
+
+	return (
+		<Stack m={36} gap={20} pos={"relative"}>
+			<LoadingOverlay visible={loading} />
+			<ReactECharts
+				theme={colorScheme}
+				option={{
+					backgroundColor: "transparent",
+					toolbox: {
+						show: true,
+						feature: {
+							dataZoom: {},
+							saveAsImage: {},
+						},
+					},
+					xAxis: {
+						name: "时间",
+						type: "time",
+						splitLine: {
+							show: true,
+						},
+					},
+					yAxis: {
+						name: "分数",
+						type: "value",
+					},
+					series: series,
+					grid: {
+						x: 70,
+						y: 50,
+						y2: 120,
+						x2: 90,
+					},
+					legend: {
+						orient: "horizontal",
+						bottom: 60,
+						textStyle: {
+							fontSize: 12,
+							color:
+								colorScheme === "dark"
+									? theme.colors.light[1]
+									: theme.colors.dark[5],
+						},
+					},
+					tooltip: {
+						trigger: "axis",
+						borderWidth: 0,
+						textStyle: {
+							fontSize: 10,
+							color:
+								colorScheme === "dark"
+									? theme.colors.light[1]
+									: theme.colors.dark[5],
+						},
+						backgroundColor:
+							colorScheme === "dark"
+								? theme.colors.gray[6]
+								: theme.colors.light[1],
+					},
+					dataZoom: [
+						{
+							type: "inside",
+							start: game?.started_at,
+							end: game?.ended_at,
+							xAxisIndex: 0,
+							filterMode: "none",
+						},
+						{
+							start: game?.started_at,
+							end: game?.ended_at,
+							xAxisIndex: 0,
+							showDetail: false,
+						},
+						{
+							type: "inside",
+							start: 0,
+							end: 100,
+							yAxisIndex: 0,
+							filterMode: "none",
+						},
+						{
+							start: 0,
+							end: 100,
+							yAxisIndex: 0,
+							showDetail: false,
+						},
+					],
+				}}
+				style={{
+					width: "100%",
+					height: "512px",
+					display: "flex",
+				}}
+				opts={{
+					renderer: "svg",
+				}}
+			/>
+
+			<Table stickyHeader horizontalSpacing={"md"}>
+				<Table.Thead>
+					<Table.Tr
+						sx={{
+							lineHeight: "2.5rem",
+						}}
+					>
+						<Table.Th colSpan={4}>
+							<Flex gap={20} justify={"center"}>
+								<Flex gap={10} align={"center"}>
+									<ThemeIcon variant="transparent">
+										<FirstBloodIcon />
+									</ThemeIcon>
+									<Text size="xs">
+										一血 +{game?.first_blood_reward_ratio}%
+									</Text>
+								</Flex>
+								<Flex gap={10} align={"center"}>
+									<ThemeIcon variant="transparent">
+										<SecondBloodIcon />
+									</ThemeIcon>
+									<Text size="xs">
+										二血 +{game?.second_blood_reward_ratio}%
+									</Text>
+								</Flex>
+								<Flex gap={10} align={"center"}>
+									<ThemeIcon variant="transparent">
+										<ThirdBloodIcon />
+									</ThemeIcon>
+									<Text size="xs">
+										三血 +{game?.third_blood_reward_ratio}%
+									</Text>
+								</Flex>
+							</Flex>
+						</Table.Th>
+						{Object.values(categoriedChallenges)?.map(
+							(categoriedChallenge) => (
+								<Table.Th
+									colSpan={
+										categoriedChallenge?.challenges?.length
+									}
+									sx={{
+										backgroundColor:
+											categoriedChallenge?.category
+												?.color,
+										color: "white",
+										whiteSpace: "nowrap",
+									}}
+									align={"center"}
+									key={categoriedChallenge.category.id}
+								>
+									<Group
+										gap={20}
+										align={"center"}
+										justify={"center"}
+									>
+										<MDIcon>
+											{
+												categoriedChallenge?.category
+													?.icon
+											}
+										</MDIcon>
+										<Text fw={700}>
+											{categoriedChallenge.category.name}
+										</Text>
+									</Group>
+								</Table.Th>
+							)
+						)}
+					</Table.Tr>
+					<Table.Tr>
+						<Table.Th>排名</Table.Th>
+						<Table.Th>队伍</Table.Th>
+						<Table.Th>总分</Table.Th>
+						<Table.Th>正解数量</Table.Th>
+						{Object.values(categoriedChallenges)?.map(
+							(categoriedChallenge) =>
+								categoriedChallenge.challenges?.map(
+									(challenge) => (
+										<Table.Th
+											key={challenge.id}
+											align="center"
+											sx={{
+												whiteSpace: "nowrap",
+											}}
+										>
+											<Flex justify={"center"}>
+												{challenge.title}
+											</Flex>
+										</Table.Th>
+									)
+								)
+						)}
+					</Table.Tr>
+				</Table.Thead>
+				<Table.Tbody>
+					{rows?.map((row, i) => (
+						<Table.Tr key={`${i}`}>
+							<Table.Td>{row?.rank}</Table.Td>
+							<Table.Td>
+								<Group>
+									<Avatar
+										color="brand"
+										src={`${import.meta.env.VITE_BASE_API}/media/teams/${id}/${row?.team?.avatar?.name}`}
+									>
+										<MDIcon>people</MDIcon>
+									</Avatar>
+									<Text>{row?.team?.name}</Text>
+								</Group>
+							</Table.Td>
+							<Table.Td>{row?.totalScore}</Table.Td>
+							<Table.Td>{row?.solvedCount}</Table.Td>
+							{Object.values(categoriedChallenges)?.map(
+								(categoriedChallenge, j) => (
+									<React.Fragment key={`${i}-${j}`}>
+										{categoriedChallenge?.challenges?.map(
+											(challenge, k) => {
+												const submission =
+													row?.submissions?.find(
+														(submission) =>
+															submission?.challenge_id ===
+															challenge.id
+													);
+												return (
+													<Table.Td
+														key={`${i}-${j}-${k}`}
+														align="center"
+													>
+														{submission?.pts && (
+															<>
+																<Tooltip
+																	label={` + ${submission?.pts} ${submission?.user?.nickname}`}
+																>
+																	<ThemeIcon
+																		size={
+																			25
+																		}
+																		variant="transparent"
+																		color="brand"
+																	>
+																		{submission?.rank ===
+																		1 ? (
+																			<FirstBloodIcon />
+																		) : submission?.rank ===
+																		  2 ? (
+																			<SecondBloodIcon />
+																		) : submission?.rank ===
+																		  3 ? (
+																			<ThirdBloodIcon />
+																		) : (
+																			<MDIcon>
+																				flag
+																			</MDIcon>
+																		)}
+																	</ThemeIcon>
+																</Tooltip>
+															</>
+														)}
+													</Table.Td>
+												);
+											}
+										)}
+									</React.Fragment>
+								)
+							)}
+						</Table.Tr>
+					))}
+				</Table.Tbody>
+			</Table>
+		</Stack>
+	);
+}
+
+export default withGame(Page);

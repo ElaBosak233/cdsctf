@@ -17,6 +17,7 @@ import {
 	ActionIcon,
 	ModalProps,
 	Modal,
+	LoadingOverlay,
 } from "@mantine/core";
 import MDIcon from "@/components/ui/MDIcon";
 import FirstBloodIcon from "@/components/icons/hexagons/FirstBloodIcon";
@@ -35,20 +36,29 @@ import {
 	showWarnNotification,
 } from "@/utils/notification";
 import { useForm } from "@mantine/form";
+import { useTeamStore } from "@/stores/team";
+import { useChallengeApi } from "@/api/challenge";
 
 interface ChallengeModalProps extends ModalProps {
-	challenge?: Challenge;
-	setSolved?: (solved: boolean) => void;
+	challengeID?: number;
+	gameID?: number;
+	setRefresh: () => void;
 	mode?: "practice" | "game";
 }
 
 export default function ChallengeModal(props: ChallengeModalProps) {
-	const { challenge, setSolved, mode, ...modalProps } = props;
+	const { challengeID, gameID, setRefresh, mode, ...modalProps } = props;
 
 	const { colorScheme } = useMantineColorScheme();
 	const podApi = usePodApi();
+	const challengeApi = useChallengeApi();
 	const submissionApi = useSubmissionApi();
 	const authStore = useAuthStore();
+	const teamStore = useTeamStore();
+
+	const [challenge, setChallenge] = useState<Challenge>();
+
+	const [loading, setLoading] = useState<boolean>(true);
 
 	const [pod, setPod] = useState<Pod>();
 	const [podCreateLoading, setPodCreateLoading] = useState(false);
@@ -60,11 +70,29 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 		},
 	});
 
+	function getChallenge() {
+		setLoading(true);
+		challengeApi
+			.getChallenges({
+				id: challengeID,
+			})
+			.then((res) => {
+				const r = res.data;
+				setChallenge(r.data?.[0]);
+			})
+			.finally(() => {
+				setLoading(false);
+			});
+	}
+
 	function getPod() {
 		podApi
 			.getPods({
-				challenge_id: challenge?.id,
+				challenge_id: challengeID,
 				user_id: mode === "practice" ? authStore?.user?.id : undefined,
+				team_id:
+					mode === "game" ? teamStore?.selectedTeamID : undefined,
+				game_id: mode === "game" ? gameID : undefined,
 				is_available: true,
 			})
 			.then((res) => {
@@ -80,6 +108,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 		podApi
 			.createPod({
 				challenge_id: challenge?.id,
+				team_id:
+					mode === "game" ? teamStore?.selectedTeamID : undefined,
+				game_id: mode === "game" ? gameID : undefined,
 			})
 			.then((res) => {
 				const r = res.data;
@@ -139,8 +170,11 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 
 		submissionApi
 			.createSubmission({
-				challenge_id: challenge?.id,
+				challenge_id: challengeID,
 				flag: flag,
+				team_id:
+					mode === "game" ? teamStore?.selectedTeamID : undefined,
+				game_id: mode === "game" ? gameID : undefined,
 			})
 			.then((res) => {
 				const r = res.data;
@@ -156,7 +190,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 							title: "正确",
 							message: "恭喜你，答对了！",
 						});
-						setSolved?.(true);
+						setRefresh();
 						form.reset();
 						break;
 					case 3:
@@ -171,7 +205,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 							title: "无效",
 							message: "提交入口已关闭或你已提交过正确的 Flag！",
 						});
-						setSolved?.(true);
+						setRefresh();
 						form.reset();
 						break;
 				}
@@ -188,10 +222,13 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 		if (challenge?.is_dynamic) {
 			getPod();
 		}
-	}, []);
+	}, [challenge]);
 
 	useEffect(() => {
 		form.reset();
+		if (modalProps.opened) {
+			getChallenge();
+		}
 	}, [modalProps.opened]);
 
 	return (
@@ -211,11 +248,13 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 					w={"40rem"}
 					mih={"20rem"}
 					sx={{
+						position: "relative",
 						display: "flex",
 						flexDirection: "column",
 						justifyContent: "space-between",
 					}}
 				>
+					<LoadingOverlay visible={loading} />
 					<Box>
 						<Box
 							sx={{
@@ -255,7 +294,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 								{(challenge?.submissions?.length as number) >
 									0 && (
 									<Tooltip
-										label={`一血 ${(challenge?.submissions)![0]?.user?.nickname}`}
+										label={`一血 ${challenge?.submissions?.[0]?.team?.name || challenge?.submissions?.[0]?.user?.nickname}`}
 										position={"top"}
 									>
 										<ThemeIcon variant="transparent">
@@ -266,7 +305,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 								{(challenge?.submissions?.length as number) >
 									1 && (
 									<Tooltip
-										label={`二血 ${(challenge?.submissions)![1]?.user?.nickname}`}
+										label={`二血 ${challenge?.submissions?.[1]?.team?.name || challenge?.submissions?.[1]?.user?.nickname}`}
 										position={"top"}
 									>
 										<Box
@@ -282,7 +321,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 								{(challenge?.submissions?.length as number) >
 									2 && (
 									<Tooltip
-										label={`三血 ${(challenge?.submissions)![2]?.user?.nickname}`}
+										label={`三血 ${challenge?.submissions?.[2]?.team?.name || challenge?.submissions?.[2]?.user?.nickname}`}
 										position={"top"}
 									>
 										<Box

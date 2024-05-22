@@ -28,7 +28,6 @@ import {
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { AxiosRequestConfig } from "axios";
-import { title } from "process";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { z } from "zod";
@@ -199,6 +198,12 @@ function Page() {
 										Number(value)
 									);
 								}}
+							/>
+							<NumberInput
+								label="难度"
+								description="题目难度系数"
+								key={form.key("difficulty")}
+								{...form.getInputProps("difficulty")}
 							/>
 						</Group>
 						<Textarea
