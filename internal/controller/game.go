@@ -354,7 +354,7 @@ func (g *GameController) DeleteTeam(ctx *gin.Context) {
 func (g *GameController) FindNotice(ctx *gin.Context) {
 	noticeFindRequest := request.NoticeFindRequest{}
 	_ = ctx.ShouldBindQuery(&noticeFindRequest)
-	notices, err := g.noticeService.Find(noticeFindRequest)
+	notices, total, err := g.noticeService.Find(noticeFindRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
@@ -362,8 +362,9 @@ func (g *GameController) FindNotice(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": notices,
+		"code":  http.StatusOK,
+		"data":  notices,
+		"total": total,
 	})
 }
 

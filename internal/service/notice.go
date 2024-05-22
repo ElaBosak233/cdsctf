@@ -8,7 +8,7 @@ import (
 )
 
 type INoticeService interface {
-	Find(req request.NoticeFindRequest) (notices []model.Notice, err error)
+	Find(req request.NoticeFindRequest) (notices []model.Notice, total int64, err error)
 	Create(req request.NoticeCreateRequest) (err error)
 	Update(req request.NoticeUpdateRequest) (err error)
 	Delete(req request.NoticeDeleteRequest) (err error)
@@ -24,9 +24,9 @@ func NewNoticeService(appRepository *repository.Repository) INoticeService {
 	}
 }
 
-func (n *NoticeService) Find(req request.NoticeFindRequest) (notices []model.Notice, err error) {
-	notices, _, err = n.noticeRepository.Find(req)
-	return notices, err
+func (n *NoticeService) Find(req request.NoticeFindRequest) (notices []model.Notice, total int64, err error) {
+	notices, total, err = n.noticeRepository.Find(req)
+	return notices, total, err
 }
 
 func (n *NoticeService) Create(req request.NoticeCreateRequest) (err error) {

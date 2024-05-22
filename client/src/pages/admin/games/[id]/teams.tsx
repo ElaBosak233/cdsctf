@@ -23,6 +23,7 @@ import {
 	Switch,
 	Pagination,
 	LoadingOverlay,
+	Table,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useEffect, useState } from "react";
@@ -150,62 +151,72 @@ function Page() {
 				</Stack>
 				<Stack mx={20} mih={"calc(100vh - 360px)"} pos={"relative"}>
 					<LoadingOverlay visible={loading} />
-					<Accordion variant="separated">
-						{displayedGameTeams?.map((gameTeam) => (
-							<Accordion.Item
-								key={gameTeam?.id}
-								value={String(gameTeam?.id)}
+					<Table stickyHeader horizontalSpacing={"md"} striped>
+						<Table.Thead>
+							<Table.Tr
+								sx={{
+									lineHeight: 3,
+								}}
 							>
-								<Flex
-									mx={20}
-									my={10}
-									align={"center"}
-									justify={"space-between"}
-								>
-									<Group gap={20} align="center">
-										<Switch
-											checked={gameTeam?.is_allowed}
-											onChange={() =>
-												switchIsAllowed(gameTeam)
-											}
-										/>
-										<Badge>{gameTeam?.team_id}</Badge>
-										<Avatar
-											color="brand"
-											src={`${import.meta.env.VITE_BASE_API}/media/teams/${gameTeam?.team_id}/${gameTeam?.team?.avatar?.name}`}
-										>
-											<MDIcon>people</MDIcon>
-										</Avatar>
-										<Text fw={700} size="1rem">
-											{gameTeam?.team?.name}
-										</Text>
-									</Group>
-									<Group gap={20}>
-										<Tooltip.Group>
-											<Avatar.Group spacing="sm">
-												{gameTeam?.team?.users?.map(
-													(user) => (
-														<Tooltip
-															key={user?.id}
-															label={
-																user?.nickname
-															}
-															withArrow
+								<Table.Th />
+								<Table.Th>团队名</Table.Th>
+								<Table.Th>成员</Table.Th>
+								<Table.Th>邮箱</Table.Th>
+								<Table.Th />
+							</Table.Tr>
+						</Table.Thead>
+						<Table.Tbody>
+							{displayedGameTeams?.map((gameTeam) => (
+								<Table.Tr key={gameTeam?.id}>
+									<Table.Td>
+										<Group>
+											<Switch
+												checked={gameTeam?.is_allowed}
+												onChange={() =>
+													switchIsAllowed(gameTeam)
+												}
+											/>
+											<Badge>{gameTeam?.team_id}</Badge>
+										</Group>
+									</Table.Td>
+									<Table.Td>
+										<Group gap={20} align="center">
+											<Avatar
+												color="brand"
+												src={`${import.meta.env.VITE_BASE_API}/media/teams/${gameTeam?.team_id}/${gameTeam?.team?.avatar?.name}`}
+											>
+												<MDIcon>people</MDIcon>
+											</Avatar>
+											<Text fw={700} size="1rem">
+												{gameTeam?.team?.name}
+											</Text>
+										</Group>
+									</Table.Td>
+									<Table.Td>
+										<Avatar.Group spacing="sm">
+											{gameTeam?.team?.users?.map(
+												(user) => (
+													<Tooltip
+														key={user?.id}
+														label={user?.nickname}
+														withArrow
+													>
+														<Avatar
+															color="brand"
+															src={`${import.meta.env.VITE_BASE_API}/media/users/${user?.id}/${user?.avatar?.name}`}
+															radius="xl"
 														>
-															<Avatar
-																color="brand"
-																src={`${import.meta.env.VITE_BASE_API}/media/users/${user?.id}/${user?.avatar?.name}`}
-																radius="xl"
-															>
-																<MDIcon>
-																	person
-																</MDIcon>
-															</Avatar>
-														</Tooltip>
-													)
-												)}
-											</Avatar.Group>
-										</Tooltip.Group>
+															<MDIcon>
+																person
+															</MDIcon>
+														</Avatar>
+													</Tooltip>
+												)
+											)}
+										</Avatar.Group>
+									</Table.Td>
+									<Table.Td>{gameTeam?.team?.email}</Table.Td>
+									<Table.Td>
 										<Tooltip label="移除团队" withArrow>
 											<ActionIcon
 												variant="transparent"
@@ -214,11 +225,11 @@ function Page() {
 												<MDIcon>delete</MDIcon>
 											</ActionIcon>
 										</Tooltip>
-									</Group>
-								</Flex>
-							</Accordion.Item>
-						))}
-					</Accordion>
+									</Table.Td>
+								</Table.Tr>
+							))}
+						</Table.Tbody>
+					</Table>
 				</Stack>
 				<Flex justify={"center"}>
 					<Pagination

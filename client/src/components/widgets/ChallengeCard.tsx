@@ -20,8 +20,10 @@ import { useEffect, useState } from "react";
 
 export default function ChallengeCard({
 	challenge,
+	pts,
 }: {
 	challenge?: Challenge;
+	pts?: number;
 }) {
 	const { colorScheme } = useMantineColorScheme();
 	const theme = useMantineTheme();
@@ -135,14 +137,14 @@ export default function ChallengeCard({
 			/>
 			<Flex justify={"space-between"} align={"center"} px={5}>
 				<Text size="lg" c={cardTextColor} fw={700}>
-					{challenge?.pts || challenge?.practice_pts || "?"} pts
+					{pts || challenge?.practice_pts || "?"} pts
 				</Text>
 				<Flex align={"center"}>
 					{challenge?.submissions && (
 						<>
 							{challenge?.submissions?.length > 0 && (
 								<Tooltip
-									label={`一血 ${challenge?.submissions?.[0]?.user?.nickname}`}
+									label={`一血 ${challenge?.submissions?.[0]?.team?.name || challenge?.submissions?.[0]?.user?.nickname}`}
 									withArrow
 									position="bottom"
 								>
@@ -153,7 +155,7 @@ export default function ChallengeCard({
 							)}
 							{challenge?.submissions?.length > 1 && (
 								<Tooltip
-									label={`二血 ${challenge?.submissions?.[1]?.user?.nickname}`}
+									label={`二血 ${challenge?.submissions?.[1]?.team?.name || challenge?.submissions?.[1]?.user?.nickname}`}
 									withArrow
 									position="bottom"
 								>
@@ -164,7 +166,7 @@ export default function ChallengeCard({
 							)}
 							{challenge?.submissions?.length > 2 && (
 								<Tooltip
-									label={`三血 ${challenge?.submissions?.[2]?.user?.nickname}`}
+									label={`三血 ${challenge?.submissions?.[2]?.team?.name || challenge?.submissions?.[2]?.user?.nickname}`}
 									withArrow
 									position="bottom"
 								>

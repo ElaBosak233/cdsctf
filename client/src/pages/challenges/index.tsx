@@ -5,6 +5,7 @@ import ChallengeCard from "@/components/widgets/ChallengeCard";
 import { useCategoryStore } from "@/stores/category";
 import { useConfigStore } from "@/stores/config";
 import { Challenge } from "@/types/challenge";
+import { showErrNotification } from "@/utils/notification";
 import {
 	ActionIcon,
 	Box,
@@ -12,20 +13,21 @@ import {
 	Flex,
 	Group,
 	Input,
+	LoadingOverlay,
 	Pagination,
 	Select,
 	Stack,
 	UnstyledButton,
-	rgba,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { showNotification } from "@mantine/notifications";
 import { useEffect, useState } from "react";
 
 export default function Page() {
 	const configStore = useConfigStore();
 	const categoryStore = useCategoryStore();
 	const challengeApi = useChallengeApi();
+
+	const [refresh, setRefresh] = useState<number>(0);
 
 	const [challenges, setChallenges] = useState<Array<Challenge>>([]);
 	const [search, setSearch] = useState<string>("");
@@ -36,6 +38,8 @@ export default function Page() {
 	const [selectedCategory, setSelectedCategory] = useState<number>(0);
 	const [sort, setSort] = useState<string>("id_desc");
 
+	const [loading, setLoading] = useState<boolean>(false);
+
 	const [opened, { open, close }] = useDisclosure(false);
 	const [selectedChallenge, setSelectedChallenge] = useState<Challenge>();
 
@@ -44,6 +48,7 @@ export default function Page() {
 	}, []);
 
 	function getChallenges() {
+		setLoading(true);
 		challengeApi
 			.getChallenges({
 				is_practicable: true,
@@ -66,18 +71,19 @@ export default function Page() {
 			})
 			.catch((err) => {
 				if (err?.response?.status === 400) {
-					showNotification({
-						title: "发生了错误",
+					showErrNotification({
 						message: `获取题目失败 ${err}`,
-						color: "red",
 					});
 				}
+			})
+			.finally(() => {
+				setLoading(false);
 			});
 	}
 
 	useEffect(() => {
 		getChallenges();
-	}, [page, rowsPerPage, search, selectedCategory, sort]);
+	}, [page, rowsPerPage, search, selectedCategory, sort, refresh]);
 
 	return (
 		<>
@@ -190,15 +196,9 @@ export default function Page() {
 							/>
 						</Box>
 					</Flex>
-					<Flex
-						justify={"space-between"}
-						direction={"column"}
-						w={"150%"}
-						sx={{
-							minHeight: "80vh",
-						}}
-					>
-						<Box>
+					<Stack w={"120%"}>
+						<Box mih={"calc(100vh - 260px)"} pos={"relative"}>
+							<LoadingOverlay visible={loading} />
 							<Group
 								gap={"lg"}
 								sx={{
@@ -227,23 +227,15 @@ export default function Page() {
 								withEdges
 							/>
 						</Flex>
-					</Flex>
+					</Stack>
 				</Flex>
 			</Stack>
 			<ChallengeModal
 				opened={opened}
 				onClose={close}
 				centered
-				challenge={selectedChallenge}
-				setSolved={(solved) => {
-					setChallenges(
-						challenges.map((c) =>
-							c.id === selectedChallenge?.id
-								? { ...c, solved: solved }
-								: c
-						)
-					);
-				}}
+				challengeID={selectedChallenge?.id}
+				setRefresh={() => setRefresh((prev) => prev + 1)}
 				mode="practice"
 			/>
 		</>

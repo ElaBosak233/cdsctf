@@ -17,15 +17,24 @@ import {
 	Button,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
+import { GameTeam } from "@/types/game_team";
+import { useTeamStore } from "@/stores/team";
+import { useAuthStore } from "@/stores/auth";
+import { showErrNotification } from "@/utils/notification";
 
 export default function Page() {
 	const { id } = useParams<{ id: string }>();
 	const gameApi = useGameApi();
 	const configStore = useConfigStore();
+	const navigate = useNavigate();
+
+	const teamStore = useTeamStore();
+	const authStore = useAuthStore();
 
 	const [game, setGame] = useState<Game>();
+	const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
 
 	const startedAt = dayjs(Number(game?.started_at) * 1000).format(
 		"YYYY/MM/DD HH:mm:ss"
@@ -50,8 +59,37 @@ export default function Page() {
 			});
 	}
 
+	function getGameTeams() {
+		gameApi
+			.getGameTeams({
+				game_id: Number(id),
+			})
+			.then((res) => {
+				const r = res.data;
+				setGameTeams(r.data);
+			});
+	}
+
+	function enter() {
+		for (const gameTeam of gameTeams) {
+			if (gameTeam?.is_allowed) {
+				for (const user of gameTeam?.team?.users || []) {
+					if (user?.id === authStore?.user?.id) {
+						teamStore.setSelectedTeamID(Number(gameTeam?.team?.id));
+						navigate(`/games/${game?.id}/challenges`);
+						return;
+					}
+				}
+			}
+		}
+		showErrNotification({
+			message: "你没有加入任何一个可参赛的队伍",
+		});
+	}
+
 	useEffect(() => {
 		getGame();
+		getGameTeams();
 	}, []);
 
 	useEffect(() => {
@@ -84,9 +122,19 @@ export default function Page() {
 									w={"100%"}
 								/>
 								<Group gap={20}>
-									<Button>查看榜单</Button>
+									<Button
+										onClick={() =>
+											navigate(
+												`/games/${game?.id}/scoreboard`
+											)
+										}
+									>
+										查看榜单
+									</Button>
 									<Button>报名参赛</Button>
-									<Button>进入比赛</Button>
+									<Button onClick={() => enter()}>
+										进入比赛
+									</Button>
 								</Group>
 							</Stack>
 						</Stack>

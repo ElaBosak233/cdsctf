@@ -202,6 +202,22 @@ func (t *SubmissionService) Delete(id uint) (err error) {
 
 func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions []model.Submission, total int64, err error) {
 	submissions, total, err = t.submissionRepository.Find(req)
+	challengeSolvesTotal := make(map[uint]int64)
+
+	extractChallengeTotal := func(challengeID uint) int64 {
+		var cTotal int64
+		if _, ok := challengeSolvesTotal[challengeID]; !ok {
+			for _, submission := range submissions {
+				if submission.ChallengeID == challengeID && submission.Status == 2 {
+					cTotal++
+				}
+			}
+			challengeSolvesTotal[challengeID] = cTotal
+		} else {
+			cTotal = challengeSolvesTotal[challengeID]
+		}
+		return cTotal
+	}
 
 	for index, submission := range submissions {
 		if submission.Status == 2 {
@@ -210,7 +226,7 @@ func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions
 					submission.GameChallenge.MaxPts,
 					submission.GameChallenge.MinPts,
 					submission.Challenge.Difficulty,
-					total,
+					extractChallengeTotal(submission.ChallengeID),
 					submission.Rank-1,
 					submission.Game.FirstBloodRewardRatio,
 					submission.Game.SecondBloodRewardRatio,

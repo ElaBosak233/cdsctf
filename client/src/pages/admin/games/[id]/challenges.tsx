@@ -3,8 +3,10 @@ import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import GameChallengeCreateModal from "@/components/modals/admin/GameChallengeCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
 import GameChallengeAccordion from "@/components/widgets/admin/GameChallengeAccordion";
+import { Challenge } from "@/types/challenge";
 import { Game } from "@/types/game";
 import { GameChallenge } from "@/types/game_challenge";
+import { showSuccessNotification } from "@/utils/notification";
 import {
 	Accordion,
 	ActionIcon,
@@ -18,6 +20,7 @@ import {
 	Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
