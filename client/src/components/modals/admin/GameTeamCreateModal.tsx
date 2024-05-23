@@ -77,7 +77,7 @@ export default function GameTeamCreateModal(props: GameTeamCreateModalProps) {
 			})
 			.catch((e) => {
 				showErrNotification({
-					message: e.response.data.error || "添加团队失败",
+					message: e.response.data.msg || "添加团队失败",
 				});
 			})
 			.finally(() => {

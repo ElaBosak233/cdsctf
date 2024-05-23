@@ -148,62 +148,52 @@ function Page() {
 		<>
 			<Stack my={10} mx={"2%"}>
 				<Flex justify={"space-between"}>
-					<Box>
-						<Stack mx={10}>
+					<Stack mx={10} miw={200} maw={200}>
+						<Button size="lg" leftSection={<MDIcon>upload</MDIcon>}>
+							上传题解
+						</Button>
+						<Divider />
+						<Stack gap={10}>
 							<Button
+								variant={
+									selectedCategory === 0 ? "filled" : "subtle"
+								}
 								size="lg"
-								leftSection={<MDIcon>upload</MDIcon>}
+								color="brand"
+								leftSection={<MDIcon>extension</MDIcon>}
+								onClick={() => {
+									setSelectedCategory(0);
+								}}
 							>
-								上传题解
+								All
 							</Button>
-							<Divider />
-							<Stack gap={10}>
-								<Button
-									variant={
-										selectedCategory === 0
-											? "filled"
-											: "subtle"
-									}
-									size="lg"
-									color="brand"
-									leftSection={<MDIcon>extension</MDIcon>}
-									onClick={() => {
-										setSelectedCategory(0);
-									}}
-								>
-									All
-								</Button>
-								{Object.entries(categories)?.map(
-									([_, category]) => (
-										<Button
-											key={category?.id}
-											variant={
-												selectedCategory ===
-												category?.id
-													? "filled"
-													: "subtle"
-											}
-											color={category?.color || "brand"}
-											size="lg"
-											leftSection={
-												<MDIcon>
-													{category?.icon}
-												</MDIcon>
-											}
-											onClick={() => {
-												setSelectedCategory(
-													category?.id as number
-												);
-											}}
-										>
-											{category?.name}
-										</Button>
-									)
-								)}
-							</Stack>
+							{Object.entries(categories)?.map(
+								([_, category]) => (
+									<Button
+										key={category?.id}
+										variant={
+											selectedCategory === category?.id
+												? "filled"
+												: "subtle"
+										}
+										color={category?.color || "brand"}
+										size="lg"
+										leftSection={
+											<MDIcon>{category?.icon}</MDIcon>
+										}
+										onClick={() => {
+											setSelectedCategory(
+												category?.id as number
+											);
+										}}
+									>
+										{category?.name}
+									</Button>
+								)
+							)}
 						</Stack>
-					</Box>
-					<Box mx={50} w={"100%"}>
+					</Stack>
+					<Box mx={20} w={"100%"}>
 						<ScrollArea h={"calc(100vh - 250px)"}>
 							<Group gap={"lg"} justify={"start"}>
 								{selectedGameChallenges?.map(
@@ -229,49 +219,47 @@ function Page() {
 							</Group>
 						</ScrollArea>
 					</Box>
-					<Box>
-						<Stack miw={275} maw={300} mx={20}>
-							<Card mih={200} shadow="md" p={25}>
-								<Group gap={20}>
-									<Avatar
-										color="brand"
-										size={72}
-										src={`${import.meta.env.VITE_BASE_API}/media/teams/${gameTeam?.team_id}/${gameTeam?.team?.avatar?.name}`}
-									>
-										<MDIcon size={36}>people</MDIcon>
-									</Avatar>
-									<Text fw={700} size="1rem">
-										{gameTeam?.team?.name}
+					<Stack miw={330} maw={330} mx={10}>
+						<Card mih={200} shadow="md" p={25}>
+							<Group gap={20}>
+								<Avatar
+									color="brand"
+									size={72}
+									src={`${import.meta.env.VITE_BASE_API}/media/teams/${gameTeam?.team_id}/${gameTeam?.team?.avatar?.name}`}
+								>
+									<MDIcon size={36}>people</MDIcon>
+								</Avatar>
+								<Text fw={700} size="1rem">
+									{gameTeam?.team?.name}
+								</Text>
+							</Group>
+							<Flex justify={"space-between"} mt={20} mx={36}>
+								<Stack align={"center"}>
+									<Text fw={700} size="1.2rem">
+										{gameTeam?.pts || 0}
 									</Text>
-								</Group>
-								<Flex justify={"space-between"} mt={20} mx={36}>
-									<Stack align={"center"}>
-										<Text fw={700} size="1.2rem">
-											{gameTeam?.pts || 0}
-										</Text>
-										<Text fw={700}>得分</Text>
-									</Stack>
-									<Stack align={"center"}>
-										<Text fw={700} size="1.2rem">
-											{(gameTeam?.pts as number) > 0
-												? gameTeam?.rank
-												: "无排名"}
-										</Text>
-										<Text fw={700}>排名</Text>
-									</Stack>
-									<Stack align={"center"}>
-										<Text fw={700} size="1.2rem">
-											{gameTeam?.solved || 0}
-										</Text>
-										<Text fw={700}>已解决</Text>
-									</Stack>
-								</Flex>
-							</Card>
-							<Card h={"calc(100vh - 450px)"} shadow="md">
-								<GameNoticeArea />
-							</Card>
-						</Stack>
-					</Box>
+									<Text fw={700}>得分</Text>
+								</Stack>
+								<Stack align={"center"}>
+									<Text fw={700} size="1.2rem">
+										{(gameTeam?.pts as number) > 0
+											? gameTeam?.rank
+											: "无排名"}
+									</Text>
+									<Text fw={700}>排名</Text>
+								</Stack>
+								<Stack align={"center"}>
+									<Text fw={700} size="1.2rem">
+										{gameTeam?.solved || 0}
+									</Text>
+									<Text fw={700}>已解决</Text>
+								</Stack>
+							</Flex>
+						</Card>
+						<Card h={"calc(100vh - 450px)"} shadow="md">
+							<GameNoticeArea />
+						</Card>
+					</Stack>
 				</Flex>
 			</Stack>
 			<ChallengeModal

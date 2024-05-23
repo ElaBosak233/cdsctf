@@ -1,9 +1,8 @@
 import { useGameApi } from "@/api/game";
 import withGameEdit from "@/components/layouts/admin/withGameEdit";
-import GameTeamCreateModal from "@/components/modals/admin/GameTeamCreateModal";
+import GameNoticeCreateModal from "@/components/modals/admin/GameNoticeCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
 import { Game } from "@/types/game";
-import { GameTeam } from "@/types/game_team";
 import { Notice } from "@/types/notice";
 import { showSuccessNotification } from "@/utils/notification";
 import {
@@ -15,14 +14,13 @@ import {
 	ThemeIcon,
 	Tooltip,
 	Text,
-	Avatar,
 	Badge,
-	Switch,
 	Pagination,
 	LoadingOverlay,
 	Table,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -79,9 +77,51 @@ function Page() {
 			});
 	}
 
+	function deleteGameNotice(notice?: Notice) {
+		gameApi
+			.deleteGameNotice({
+				game_id: notice?.game_id,
+				id: notice?.id,
+			})
+			.then((_) => {
+				showSuccessNotification({
+					message: "公告已删除",
+				});
+				setRefresh((prev) => prev + 1);
+			});
+	}
+
+	const openDeleteNoticeModal = (notice?: Notice) =>
+		modals.openConfirmModal({
+			centered: true,
+			children: (
+				<>
+					<Flex gap={10} align={"center"}>
+						<ThemeIcon variant="transparent">
+							<MDIcon>campaign</MDIcon>
+						</ThemeIcon>
+						<Text fw={600}>删除公告</Text>
+					</Flex>
+					<Divider my={10} />
+					<Text>你确定要删除公告 {notice?.id} 吗？</Text>
+				</>
+			),
+			withCloseButton: false,
+			labels: {
+				confirm: "确定",
+				cancel: "取消",
+			},
+			confirmProps: {
+				color: "red",
+			},
+			onConfirm: () => {
+				deleteGameNotice(notice);
+			},
+		});
+
 	useEffect(() => {
 		getGame();
-	}, [refresh]);
+	}, []);
 
 	useEffect(() => {
 		if (notices) {
@@ -95,7 +135,7 @@ function Page() {
 		if (game) {
 			getGameNotices();
 		}
-	}, [game]);
+	}, [game, refresh]);
 
 	useEffect(() => {
 		document.title = `公告管理 - ${game?.title}`;
@@ -161,6 +201,11 @@ function Page() {
 											<ActionIcon
 												variant="transparent"
 												color="red"
+												onClick={() =>
+													openDeleteNoticeModal(
+														notice
+													)
+												}
 											>
 												<MDIcon>delete</MDIcon>
 											</ActionIcon>
@@ -180,6 +225,12 @@ function Page() {
 					/>
 				</Flex>
 			</Stack>
+			<GameNoticeCreateModal
+				centered
+				opened={createOpened}
+				onClose={createClose}
+				setRefresh={() => setRefresh((prev) => prev + 1)}
+			/>
 		</>
 	);
 }
