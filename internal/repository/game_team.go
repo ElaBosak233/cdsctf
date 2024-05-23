@@ -31,9 +31,11 @@ func (g *GameTeamRepository) Delete(gameTeam model.GameTeam) (err error) {
 }
 
 func (g *GameTeamRepository) Update(gameTeam model.GameTeam) (err error) {
-	result := g.db.Table("game_teams").Where(
-		"game_id = ? AND team_id = ?", gameTeam.GameID, gameTeam.TeamID,
-	).Updates(&gameTeam)
+	result := g.db.Table("game_teams").
+		Where("game_id = ?", gameTeam.GameID).
+		Where("team_id = ?", gameTeam.TeamID).
+		Model(&gameTeam).
+		Updates(&gameTeam)
 	return result.Error
 }
 

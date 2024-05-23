@@ -149,7 +149,7 @@ func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) 
 
 func (g *GameTeamService) Update(req request.GameTeamUpdateRequest) (err error) {
 	gameTeams, _, err := g.gameTeamRepository.Find(model.GameTeam{
-		GameID: req.ID,
+		GameID: req.GameID,
 		TeamID: req.TeamID,
 	})
 	gameTeam := gameTeams[0]

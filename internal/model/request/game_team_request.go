@@ -8,7 +8,7 @@ type GameTeamCreateRequest struct {
 }
 
 type GameTeamUpdateRequest struct {
-	ID        uint  `json:"-"`
+	GameID    uint  `json:"-"`
 	TeamID    uint  `json:"-"`
 	IsAllowed *bool `json:"is_allowed"`
 }
