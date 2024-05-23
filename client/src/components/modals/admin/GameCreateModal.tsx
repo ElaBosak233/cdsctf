@@ -54,8 +54,8 @@ export default function GameCreateModal(props: GameCreateModalProps) {
 			.createGame({
 				title: form.getValues().title,
 				bio: form.getValues().bio,
-				started_at: form.getValues().started_at,
-				ended_at: form.getValues().ended_at,
+				started_at: Math.ceil(form.getValues().started_at),
+				ended_at: Math.ceil(form.getValues().ended_at),
 				is_enabled: false,
 			})
 			.then((_) => {

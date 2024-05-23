@@ -75,8 +75,8 @@ function Page() {
 				bio: form.getValues().bio,
 				description: form.getValues().description,
 				is_public: form.getValues().is_public,
-				started_at: form.getValues().started_at,
-				ended_at: form.getValues().ended_at,
+				started_at: Math.ceil(form.getValues().started_at),
+				ended_at: Math.ceil(form.getValues().ended_at),
 				member_limit_min: form.getValues().member_limit_min,
 				member_limit_max: form.getValues().member_limit_max,
 				parallel_container_limit:
