@@ -26,7 +26,10 @@ func (g *GameTeamRepository) Create(gameTeam model.GameTeam) (err error) {
 }
 
 func (g *GameTeamRepository) Delete(gameTeam model.GameTeam) (err error) {
-	result := g.db.Table("game_teams").Delete(&gameTeam)
+	result := g.db.Table("game_teams").
+		Where("game_id = ?", gameTeam.GameID).
+		Where("team_id = ?", gameTeam.TeamID).
+		Delete(&gameTeam)
 	return result.Error
 }
 
