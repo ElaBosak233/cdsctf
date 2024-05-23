@@ -337,11 +337,30 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 							</Box>
 						</Box>
 						<Divider my={10} />
-						<Box>
+						<Flex justify={"space-between"}>
 							<MarkdownRender
 								src={challenge?.description || ""}
 							/>
-						</Box>
+							{challenge?.attachment?.name && (
+								<Tooltip
+									label="下载附件"
+									withArrow
+									position={"bottom"}
+								>
+									<ActionIcon
+										variant="transparent"
+										color={challenge?.category?.color}
+										onClick={() => {
+											window.open(
+												`${import.meta.env.VITE_BASE_API}/media/challenges/${challenge?.id}/${challenge?.attachment?.name}`
+											);
+										}}
+									>
+										<MDIcon>download</MDIcon>
+									</ActionIcon>
+								</Tooltip>
+							)}
+						</Flex>
 					</Box>
 					<Box>
 						{challenge?.is_dynamic && (
