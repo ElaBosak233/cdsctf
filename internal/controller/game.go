@@ -302,7 +302,7 @@ func (g *GameController) CreateTeam(ctx *gin.Context) {
 // @Router /games/{id}/teams/{team_id} [put]
 func (g *GameController) UpdateTeam(ctx *gin.Context) {
 	gameTeamUpdateRequest := request.GameTeamUpdateRequest{}
-	gameTeamUpdateRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
+	gameTeamUpdateRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
 	gameTeamUpdateRequest.TeamID = convertor.ToUintD(ctx.Param("team_id"), 0)
 	err := ctx.ShouldBindJSON(&gameTeamUpdateRequest)
 	err = g.gameTeamService.Update(gameTeamUpdateRequest)

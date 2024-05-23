@@ -57,7 +57,7 @@ func (t *NoticeRepository) Create(notice model.Notice) (n model.Notice, err erro
 }
 
 func (t *NoticeRepository) Update(notice model.Notice) (n model.Notice, err error) {
-	result := t.db.Table("notices").Save(&notice)
+	result := t.db.Table("notices").Model(&notice).Updates(&notice)
 	return notice, result.Error
 }
 

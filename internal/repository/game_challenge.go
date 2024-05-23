@@ -70,6 +70,7 @@ func (t *GameChallengeRepository) Update(gameChallenge model.GameChallenge) (err
 	result := t.db.Table("game_challenges").
 		Where("challenge_id = ?", gameChallenge.ChallengeID).
 		Where("game_id = ?", gameChallenge.GameID).
+		Model(&gameChallenge).
 		Updates(&gameChallenge)
 	return result.Error
 }

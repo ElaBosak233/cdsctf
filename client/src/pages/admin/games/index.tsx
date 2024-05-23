@@ -87,6 +87,29 @@ export default function Page() {
 			});
 	}
 
+	function switchIsEnabled(game?: Game) {
+		gameApi
+			.updateGame({
+				id: Number(game?.id),
+				is_enabled: !game?.is_enabled,
+			})
+			.then((_) => {
+				showSuccessNotification({
+					message: !game?.is_enabled
+						? `比赛 ${game?.title} 已投放`
+						: `比赛 ${game?.title} 已下架`,
+				});
+			})
+			.catch((e) => {
+				showErrNotification({
+					message: e.response.data.message,
+				});
+			})
+			.finally(() => {
+				setRefresh((prev) => prev + 1);
+			});
+	}
+
 	const openDeleteGameModal = (game?: Game) =>
 		modals.openConfirmModal({
 			centered: true,
@@ -251,6 +274,11 @@ export default function Page() {
 													<Switch
 														checked={
 															game?.is_enabled
+														}
+														onChange={() =>
+															switchIsEnabled(
+																game
+															)
 														}
 													/>
 												</Group>

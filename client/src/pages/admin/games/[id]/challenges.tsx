@@ -20,7 +20,6 @@ import {
 	Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
