@@ -8,6 +8,7 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
 	"github.com/elabosak233/cloudsdale/internal/utils/signature"
+	"github.com/mitchellh/mapstructure"
 	"strconv"
 )
 
@@ -148,22 +149,15 @@ func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) 
 }
 
 func (g *GameTeamService) Update(req request.GameTeamUpdateRequest) (err error) {
-	gameTeams, _, err := g.gameTeamRepository.Find(model.GameTeam{
-		GameID: req.GameID,
-		TeamID: req.TeamID,
-	})
-	gameTeam := gameTeams[0]
-	gameTeam.IsAllowed = req.IsAllowed
+	var gameTeam model.GameTeam
+	err = mapstructure.Decode(req, &gameTeam)
 	err = g.gameTeamRepository.Update(gameTeam)
 	return err
 }
 
 func (g *GameTeamService) Delete(req request.GameTeamDeleteRequest) (err error) {
-	gameTeams, _, err := g.gameTeamRepository.Find(model.GameTeam{
-		GameID: req.GameID,
-		TeamID: req.TeamID,
-	})
-	gameTeam := gameTeams[0]
+	var gameTeam model.GameTeam
+	err = mapstructure.Decode(req, &gameTeam)
 	err = g.gameTeamRepository.Delete(gameTeam)
 	return err
 }
