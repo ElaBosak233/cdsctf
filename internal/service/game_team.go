@@ -115,6 +115,18 @@ func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) 
 		return errors.New("invalid team member count")
 	}
 
+	gameTeams, _, err := g.gameTeamRepository.Find(model.GameTeam{})
+	for _, gameTeam := range gameTeams {
+		if gameTeam.TeamID == team.ID && gameTeam.GameID == game.ID {
+			return errors.New("team already exists")
+		}
+		for _, u := range team.Users {
+			if u.ID == req.UserID {
+				return errors.New("user already exists")
+			}
+		}
+	}
+
 	var isAllowed bool
 	if game.IsPublic != nil && *game.IsPublic {
 		isAllowed = true

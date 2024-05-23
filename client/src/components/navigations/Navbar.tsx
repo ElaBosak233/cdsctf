@@ -7,6 +7,7 @@ import {
 	Image,
 	Title,
 	Group,
+	Text,
 	ActionIcon,
 	useMantineColorScheme,
 } from "@mantine/core";
@@ -291,7 +292,15 @@ export default function Navbar() {
 							</Avatar>
 						</Menu.Target>
 						<Menu.Dropdown>
-							<Menu.Item>个人资料</Menu.Item>
+							<Menu.Item
+								c={"brand"}
+								leftSection={<MDIcon>person</MDIcon>}
+								onClick={() => navigate("/profile")}
+							>
+								<Text fw={600}>
+									{authStore?.user?.nickname}
+								</Text>
+							</Menu.Item>
 							<Menu.Divider />
 							<Menu.Item
 								c={"red"}

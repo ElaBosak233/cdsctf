@@ -4,6 +4,7 @@ import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { Game } from "@/types/game";
 import { Submission } from "@/types/submission";
+import { showSuccessNotification } from "@/utils/notification";
 import {
 	Divider,
 	Group,
@@ -19,6 +20,7 @@ import {
 	Tooltip,
 	LoadingOverlay,
 } from "@mantine/core";
+import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -36,6 +38,8 @@ function Page() {
 	const [page, setPage] = useState<number>(1);
 
 	const [loading, setLoading] = useState<boolean>(false);
+
+	const [refresh, setRefresh] = useState<number>(0);
 
 	const statusMap = new Map<number, { color: string; label: string }>([
 		[
@@ -105,11 +109,54 @@ function Page() {
 			});
 	}
 
+	function deleteSubmission(submission?: Submission) {
+		if (submission) {
+			submissionApi
+				.deleteSubmission({
+					id: submission?.id,
+				})
+				.then(() => {
+					showSuccessNotification({
+						message: "提交记录已移除",
+					});
+					setRefresh((prev) => prev + 1);
+				});
+		}
+	}
+
+	const openDeleteSubmissionModal = (submission?: Submission) =>
+		modals.openConfirmModal({
+			centered: true,
+			children: (
+				<>
+					<Flex gap={10} align={"center"}>
+						<ThemeIcon variant="transparent">
+							<MDIcon>verified</MDIcon>
+						</ThemeIcon>
+						<Text fw={600}>删除提交记录</Text>
+					</Flex>
+					<Divider my={10} />
+					<Text>你确定要删除提交记录 {submission?.flag} 吗？</Text>
+				</>
+			),
+			withCloseButton: false,
+			labels: {
+				confirm: "确定",
+				cancel: "取消",
+			},
+			confirmProps: {
+				color: "red",
+			},
+			onConfirm: () => {
+				deleteSubmission(submission);
+			},
+		});
+
 	useEffect(() => {
 		if (game) {
 			getSubmissions();
 		}
-	}, [game, page, rowsPerPage]);
+	}, [game, page, rowsPerPage, refresh]);
 
 	useEffect(() => {
 		getGame();
@@ -222,6 +269,11 @@ function Page() {
 												<ActionIcon
 													variant="transparent"
 													color="red"
+													onClick={() =>
+														openDeleteSubmissionModal(
+															submission
+														)
+													}
 												>
 													<MDIcon>delete</MDIcon>
 												</ActionIcon>

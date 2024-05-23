@@ -26,6 +26,7 @@ import {
 	Table,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -102,6 +103,50 @@ function Page() {
 				);
 			});
 	}
+
+	function deleteGameTeam(gameTeam?: GameTeam) {
+		if (gameTeam) {
+			gameApi
+				.deleteGameTeam({
+					game_id: gameTeam?.game_id,
+					team_id: gameTeam?.team_id,
+				})
+				.then(() => {
+					showSuccessNotification({
+						message: "团队已移除",
+					});
+					setRefresh((prev) => prev + 1);
+				});
+		}
+	}
+
+	const openDeleteGameTeamModal = (gameTeam?: GameTeam) =>
+		modals.openConfirmModal({
+			centered: true,
+			children: (
+				<>
+					<Flex gap={10} align={"center"}>
+						<ThemeIcon variant="transparent">
+							<MDIcon>people</MDIcon>
+						</ThemeIcon>
+						<Text fw={600}>移除团队</Text>
+					</Flex>
+					<Divider my={10} />
+					<Text>你确定要移除团队 {gameTeam?.team?.name} 吗？</Text>
+				</>
+			),
+			withCloseButton: false,
+			labels: {
+				confirm: "确定",
+				cancel: "取消",
+			},
+			confirmProps: {
+				color: "red",
+			},
+			onConfirm: () => {
+				deleteGameTeam(gameTeam);
+			},
+		});
 
 	useEffect(() => {
 		getGame();
@@ -221,6 +266,11 @@ function Page() {
 											<ActionIcon
 												variant="transparent"
 												color="red"
+												onClick={() =>
+													openDeleteGameTeamModal(
+														gameTeam
+													)
+												}
 											>
 												<MDIcon>delete</MDIcon>
 											</ActionIcon>

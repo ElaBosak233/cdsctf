@@ -23,6 +23,8 @@ import { GameTeam } from "@/types/game_team";
 import { useTeamStore } from "@/stores/team";
 import { useAuthStore } from "@/stores/auth";
 import { showErrNotification } from "@/utils/notification";
+import { useDisclosure } from "@mantine/hooks";
+import GameTeamApplyModal from "@/components/modals/GameTeamApplyModal";
 
 export default function Page() {
 	const { id } = useParams<{ id: string }>();
@@ -47,6 +49,9 @@ export default function Page() {
 		((Math.floor(Date.now() / 1000) - Number(game?.started_at)) /
 			(Number(game?.ended_at) - Number(game?.started_at))) *
 		100;
+
+	const [applyOpened, { open: applyOpen, close: applyClose }] =
+		useDisclosure(false);
 
 	function getGame() {
 		gameApi
@@ -131,7 +136,9 @@ export default function Page() {
 									>
 										查看榜单
 									</Button>
-									<Button>报名参赛</Button>
+									<Button onClick={() => applyOpen()}>
+										报名参赛
+									</Button>
 									<Button onClick={() => enter()}>
 										进入比赛
 									</Button>
@@ -150,6 +157,11 @@ export default function Page() {
 					<MarkdownRender src={game?.description || ""} />
 				</Box>
 			</Box>
+			<GameTeamApplyModal
+				centered
+				opened={applyOpened}
+				onClose={applyClose}
+			/>
 		</>
 	);
 }
