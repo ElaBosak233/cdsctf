@@ -1,6 +1,9 @@
 package config
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"os"
+)
 
 var (
 	jwtSecretKey string
@@ -11,6 +14,11 @@ func JwtSecretKey() string {
 }
 
 func InitConfig() {
+	configPath := "configs"
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		_ = os.Mkdir(configPath, os.ModePerm)
+	}
+
 	InitApplicationCfg()
 	InitPlatformCfg()
 	InitSignatureCfg()

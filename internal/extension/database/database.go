@@ -59,8 +59,8 @@ func initDatabaseEngine() {
 			config.AppCfg().Db.MySQL.Dbname,
 		)
 		db, err = gorm.Open(mysql.Open(dbInfo), &gorm.Config{})
-	case "sqlite3":
-		dbInfo = config.AppCfg().Db.SQLite3.Filename
+	case "sqlite":
+		dbInfo = config.AppCfg().Db.SQLite.Filename
 		db, err = gorm.Open(sqlite.Open(dbInfo), &gorm.Config{})
 	}
 	if err != nil {
