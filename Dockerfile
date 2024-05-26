@@ -4,6 +4,9 @@ COPY ./ /app
 
 WORKDIR /app
 
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN go mod download
+
 RUN make build
 
 FROM node:20 AS frontend
