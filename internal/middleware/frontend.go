@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -10,7 +9,7 @@ import (
 )
 
 func Frontend(urlPrefix string) gin.HandlerFunc {
-	root := config.AppCfg().Gin.Paths.Frontend
+	root := "./dist"
 	fileServer := http.FileServer(http.Dir(root))
 	if !strings.HasSuffix(urlPrefix, "/") {
 		urlPrefix = urlPrefix + "/"
