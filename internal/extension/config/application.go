@@ -28,9 +28,8 @@ type ApplicationCfg struct {
 			Expiration int `yaml:"expiration" json:"expiration" mapstructure:"expiration"`
 		} `yaml:"jwt" json:"jwt" mapstructure:"jwt"`
 		Paths struct {
-			Assets   string `yaml:"assets" json:"assets" mapstructure:"assets"`
-			Media    string `yaml:"media" json:"media" mapstructure:"media"`
-			Frontend string `yaml:"frontend" json:"frontend" mapstructure:"frontend"`
+			Assets string `yaml:"assets" json:"assets" mapstructure:"assets"`
+			Media  string `yaml:"media" json:"media" mapstructure:"media"`
 		} `yaml:"paths" json:"paths" mapstructure:"paths"`
 	} `yaml:"gin" json:"gin" mapstructure:"gin"`
 	Email struct {
@@ -83,6 +82,11 @@ type ApplicationCfg struct {
 			URI   string `yaml:"uri" json:"uri" mapstructure:"uri"`
 			Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
 		} `yaml:"docker" json:"docker" mapstructure:"docker"`
+		K8s struct {
+			NameSpace string `yaml:"namespace" json:"namespace" mapstructure:"namespace"`
+			Config    string `yaml:"config" json:"config" mapstructure:"config"`
+			Entry     string `yaml:"entry" json:"entry" mapstructure:"entry"`
+		} `yaml:"k8s" json:"k8s" mapstructure:"k8s"`
 		Proxy struct {
 			Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
 			Type    string `yaml:"type" json:"type" mapstructure:"type"`
@@ -158,12 +162,6 @@ func Mkdirs() {
 	if _, err := os.Stat(AppCfg().Gin.Paths.Media); err != nil {
 		if _err := os.MkdirAll(AppCfg().Gin.Paths.Media, os.ModePerm); _err != nil {
 			zap.L().Fatal("Unable to create directory for media.")
-		}
-	}
-
-	if _, err := os.Stat(AppCfg().Gin.Paths.Frontend); err != nil {
-		if _err := os.MkdirAll(AppCfg().Gin.Paths.Frontend, os.ModePerm); _err != nil {
-			zap.L().Fatal("Unable to create directory for frontend.")
 		}
 	}
 }

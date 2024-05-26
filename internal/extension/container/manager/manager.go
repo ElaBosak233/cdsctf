@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"github.com/elabosak233/cloudsdale/internal/extension/config"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"time"
 )
@@ -16,5 +17,11 @@ type IContainerManager interface {
 }
 
 func NewContainerManager(challenge model.Challenge, flag model.Flag, duration time.Duration) IContainerManager {
-	return NewDockerManager(challenge, flag, duration)
+	switch config.AppCfg().Container.Provider {
+	case "docker":
+		return NewDockerManager(challenge, flag, duration)
+	case "k8s":
+		return NewK8sManager(challenge, flag, duration)
+	}
+	return nil
 }
