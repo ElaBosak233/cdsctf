@@ -8,9 +8,9 @@
 			"expiration": 180
 		},
 		"paths": {
-			"media": "./media",
-			"assets": "./assets",
-			"frontend": "./dist"
+			"media": "/media",
+			"assets": "/assets",
+			"frontend": "/dist"
 		},
 		"host": "0.0.0.0",
 		"port": 8888
@@ -27,7 +27,7 @@
 		},
 		"traffic_capture": {
 			"enabled": false,
-			"path": "./captures"
+			"path": "/captures"
 		}
 	},
 	"db": {
@@ -47,8 +47,8 @@
 			"password": "cloudsdale",
 			"port": 3306
 		},
-		"sqlite3": {
-			"filename": "./db.sqlite3"
+		"sqlite": {
+			"filename": "/db/cloudsdale.sqlite"
 		}
 	},
 	"email": {

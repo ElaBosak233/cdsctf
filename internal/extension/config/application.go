@@ -66,9 +66,9 @@ type ApplicationCfg struct {
 			Dbname   string `yaml:"dbname" json:"dbname" mapstructure:"dbname"`
 			Sslmode  string `yaml:"sslmode" json:"sslmode" mapstructure:"sslmode"`
 		} `yaml:"postgres" json:"postgres" mapstructure:"postgres"`
-		SQLite3 struct {
+		SQLite struct {
 			Filename string `yaml:"filename" json:"filename" mapstructure:"filename"`
-		} `yaml:"sqlite3" json:"sqlite3" mapstructure:"sqlite3"`
+		} `yaml:"sqlite" json:"sqlite" mapstructure:"sqlite"`
 		MySQL struct {
 			Host     string `yaml:"host" json:"host" mapstructure:"host"`
 			Port     int    `yaml:"port" json:"port" mapstructure:"port"`
@@ -100,7 +100,7 @@ func AppCfg() *ApplicationCfg {
 
 func InitApplicationCfg() {
 	v1 = viper.New()
-	configFile := path.Join("./application.json")
+	configFile := path.Join("configs", "application.json")
 	v1.SetConfigType("json")
 	v1.SetConfigFile(configFile)
 	if _, err := os.Stat(configFile); err != nil {

@@ -1,25 +1,24 @@
-FROM golang:1.22-alpine as builder
+FROM golang:latest AS backend
 
-RUN apk add --no-cache git python3 py3-pip gcc musl-dev nodejs npm
+COPY ./ /app
 
-COPY ./ /app/backend
-COPY ./client /app/frontend
+WORKDIR /app
 
-WORKDIR /app/backend
+RUN make build
 
-RUN python3 scripts/buildtool.py build
-RUN cp build/cloudsdale /go/bin/cloudsdale
+FROM node:20 AS frontend
 
-WORKDIR /app/frontend
+COPY ./client /app
+
+WORKDIR /app
 
 RUN npm install
 RUN npm run build
-RUN cp -r dist /go/dist
 
 FROM alpine:3.14
 
-COPY --from=builder /go/bin/cloudsdale /app/cloudsdale
-COPY --from=builder /go/dist /app/dist
+COPY --from=backend /app/build/cloudsdale /app/cloudsdale
+COPY --from=frontend /app/dist /app/dist
 
 WORKDIR /app
 

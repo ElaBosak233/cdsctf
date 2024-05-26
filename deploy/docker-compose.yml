@@ -1,0 +1,26 @@
+version: "3.0"
+services:
+  core:
+    image: elabosak233/cloudsdale:main
+    restart: always
+    ports:
+      - "8888:8888"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./configs:/app/configs"
+      - "./media:/app/media"
+      - "./logs:/app/logs"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: cloudsdale
+      POSTGRES_PASSWORD: cloudsdale
+      POSTGRES_DB: cloudsdale
+    volumes:
+      - "./db:/var/lib/postgresql/data"

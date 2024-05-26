@@ -35,9 +35,9 @@ func init() {
 	data, _ := assets.ReadStaticFile("banner.txt")
 	banner := string(data)
 	fmt.Printf("\n%s\n", banner)
-	fmt.Printf("%s %s\n", color.InBold("Commit IDs:"), color.InBold(global.GitCommitID))
-	fmt.Printf("%s %s\n", color.InBold("Build At:"), color.InBold(global.BuildAt))
-	fmt.Printf("%s %s\n\n", color.InBold("Issues:"), color.InBold("https://github.com/elabosak233/Cloudsdale/issues"))
+	fmt.Printf("%s %s\n", color.InBold("Git Commit:"), color.InBold(global.GitCommitID))
+	fmt.Printf("%s %s\n", color.InBold("Issues:"), color.InBold("https://github.com/elabosak233/Cloudsdale/issues"))
+	fmt.Printf("%s %s\n\n", color.InBold("License:"), color.InBold("GNU GENERAL PUBLIC LICENSE Version 3"))
 }
 
 func Run() {
