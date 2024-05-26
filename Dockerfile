@@ -1,4 +1,6 @@
-FROM golang:latest AS backend
+FROM golang:1.22-alpine AS backend
+
+RUN apk add --no-cache git gcc make musl-dev
 
 COPY ./ /app
 
