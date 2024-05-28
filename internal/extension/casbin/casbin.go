@@ -4,7 +4,7 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/elabosak233/cloudsdale/internal/extension/database"
+	"github.com/elabosak233/cloudsdale/internal/app/db"
 	"github.com/elabosak233/cloudsdale/internal/extension/files"
 	"go.uber.org/zap"
 )
@@ -15,7 +15,7 @@ var (
 
 func InitCasbin() {
 	adapter, err := gormadapter.NewAdapterByDBWithCustomTable(
-		database.Db(),
+		db.Db(),
 		&gormadapter.CasbinRule{},
 		"casbins",
 	)

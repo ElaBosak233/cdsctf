@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/TwiN/go-color"
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/extension/container/provider"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/utils/generator"

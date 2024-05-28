@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"go.uber.org/zap"
 )
 

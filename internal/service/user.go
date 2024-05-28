@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/extension/captcha"
-	config2 "github.com/elabosak233/cloudsdale/internal/extension/config"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
@@ -40,17 +40,17 @@ func NewUserService(appRepository *repository.Repository) IUserService {
 }
 
 func (t *UserService) GetJwtTokenByID(user model.User) (tokenString string, err error) {
-	jwtSecretKey := []byte(config2.JwtSecretKey())
+	jwtSecretKey := []byte(config.JwtSecretKey())
 	pgsToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Duration(config2.AppCfg().Gin.Jwt.Expiration) * time.Minute).Unix(),
+		"exp":     time.Now().Add(time.Duration(config.AppCfg().Gin.Jwt.Expiration) * time.Minute).Unix(),
 	})
 	return pgsToken.SignedString(jwtSecretKey)
 }
 
 func (t *UserService) GetIDByJwtToken(token string) (id uint, err error) {
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config2.JwtSecretKey()), nil
+		return []byte(config.JwtSecretKey()), nil
 	})
 	if err != nil {
 		return 0, err
@@ -78,7 +78,7 @@ func (t *UserService) Create(req request.UserCreateRequest) (err error) {
 func (t *UserService) Register(req request.UserRegisterRequest) (err error) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	success := true
-	if config2.AppCfg().Captcha.Enabled {
+	if config.AppCfg().Captcha.Enabled {
 		capt := captcha.NewCaptcha()
 		success, err = capt.Verify(req.CaptchaToken, req.RemoteIP)
 	}

@@ -3,7 +3,7 @@ package provider
 import (
 	"fmt"
 	"github.com/TwiN/go-color"
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"

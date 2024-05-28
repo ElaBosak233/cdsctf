@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"io"
 	"mime/multipart"
 	"os"

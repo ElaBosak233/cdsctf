@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
