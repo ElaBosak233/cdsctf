@@ -13,7 +13,7 @@ RUN make build
 
 FROM node:20 AS frontend
 
-COPY ./client /app
+COPY ./web /app
 
 WORKDIR /app
 
