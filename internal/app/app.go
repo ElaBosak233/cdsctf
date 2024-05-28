@@ -2,16 +2,15 @@ package app
 
 import (
 	"fmt"
-	"github.com/TwiN/go-color"
 	_ "github.com/elabosak233/cloudsdale/api"
+	"github.com/elabosak233/cloudsdale/internal/app/assets"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
+	"github.com/elabosak233/cloudsdale/internal/app/db"
+	"github.com/elabosak233/cloudsdale/internal/app/logger"
+	"github.com/elabosak233/cloudsdale/internal/app/logger/adapter"
 	"github.com/elabosak233/cloudsdale/internal/controller"
-	"github.com/elabosak233/cloudsdale/internal/extension/assets"
 	"github.com/elabosak233/cloudsdale/internal/extension/casbin"
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
 	"github.com/elabosak233/cloudsdale/internal/extension/container/provider"
-	"github.com/elabosak233/cloudsdale/internal/extension/database"
-	"github.com/elabosak233/cloudsdale/internal/extension/logger"
-	"github.com/elabosak233/cloudsdale/internal/extension/logger/adapter"
 	"github.com/elabosak233/cloudsdale/internal/global"
 	"github.com/elabosak233/cloudsdale/internal/middleware"
 	"github.com/elabosak233/cloudsdale/internal/repository"
@@ -26,6 +25,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
+	"html/template"
 	"net/http"
 	"os"
 	"strconv"
@@ -34,10 +34,14 @@ import (
 func init() {
 	data, _ := assets.ReadStaticFile("banner.txt")
 	banner := string(data)
-	fmt.Printf("\n%s\n", banner)
-	fmt.Printf("%s %s\n", color.InBold("Git Commit:"), color.InBold(global.GitCommitID))
-	fmt.Printf("%s %s\n", color.InBold("Issues:"), color.InBold("https://github.com/elabosak233/Cloudsdale/issues"))
-	fmt.Printf("%s %s\n\n", color.InBold("License:"), color.InBold("GNU GENERAL PUBLIC LICENSE Version 3"))
+	t, _ := template.New("cloudsdale").Parse(banner)
+	_ = t.Execute(os.Stdout, struct {
+		Version string
+		Commit  string
+	}{
+		Version: global.GitTag,
+		Commit:  global.GitCommitID,
+	})
 }
 
 func Run() {
@@ -45,14 +49,14 @@ func Run() {
 	logger.InitLogger()
 	config.InitConfig()
 	assets.InitAssets()
-	database.InitDatabase()
+	db.InitDatabase()
 	casbin.InitCasbin()
 	provider.InitContainerProvider()
 
 	// Debug mode
 	isDebug := convertor.ToBoolD(os.Getenv("DEBUG"), false)
 	if isDebug {
-		database.Debug()
+		db.Debug()
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)

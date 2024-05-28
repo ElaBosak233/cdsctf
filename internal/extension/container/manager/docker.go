@@ -7,7 +7,7 @@ import (
 	ctn "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/extension/container/provider"
 	"github.com/elabosak233/cloudsdale/internal/extension/proxy"
 	"github.com/elabosak233/cloudsdale/internal/model"

@@ -22,7 +22,7 @@ clean:
 
 swag:
 	@echo Generating swagger docs...
-	swag init -g ./cloudsdale.go -o ./api
+	swag init -g ./cmd/cloudsdale/main.go -o ./api
 	@echo Swagger docs generated.
 
 build: swag
@@ -32,5 +32,5 @@ build: swag
 
 run: swag
 	@echo Running $(PACKAGE)...
-	go run -ldflags "$(LDFLAGS)" $(PACKAGE)
+	go run -ldflags "$(LDFLAGS)" $(PACKAGE)/cmd/cloudsdale
 	@echo Run finished.

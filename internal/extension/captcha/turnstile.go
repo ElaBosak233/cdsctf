@@ -2,7 +2,7 @@ package captcha
 
 import (
 	"bytes"
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"io"
 	"k8s.io/apimachinery/pkg/util/json"
 	"net/http"

@@ -2,7 +2,7 @@ package assets
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/extension/files"
 	"os"
 )

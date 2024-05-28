@@ -1,9 +1,9 @@
-package database
+package db
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/extension/config"
-	"github.com/elabosak233/cloudsdale/internal/extension/logger/adapter"
+	"github.com/elabosak233/cloudsdale/internal/app/config"
+	"github.com/elabosak233/cloudsdale/internal/app/logger/adapter"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -17,24 +17,33 @@ import (
 var db *gorm.DB
 var dbInfo string
 
-func InitDatabase() {
-	initDatabaseEngine()
-	zap.L().Info(fmt.Sprintf("Database Connect Information: %s", dbInfo))
-	db.Logger = adapter.NewGORMAdapter(zap.L())
-	syncDatabase()
-	initAdmin()
-	initCategory()
-	selfCheck()
-}
-
 func Db() *gorm.DB {
 	return db
 }
 
+// InitDatabase initializes the database connection and performs the necessary migrations.
+func InitDatabase() {
+	initDatabaseEngine()
+	zap.L().Info(fmt.Sprintf("Database Connect Information: %s", dbInfo))
+	db.Logger = adapter.NewGORMAdapter(zap.L())
+	migrate()
+	initAdmin()
+	initDefaultCategories()
+	selfCheck()
+}
+
+// Debug enables the debug mode of the database connection.
 func Debug() {
 	db = db.Debug()
 }
 
+// initDatabaseEngine initializes the database connection engine.
+// It supports PostgreSQL, MySQL, and SQLite.
+// The connection information is read from the configuration file.
+// The connection information is formatted according to the database type.
+// The connection is established using the GORM library.
+// The database connection is stored in the global variable db.
+// If an error occurs during the connection, the program will exit.
 func initDatabaseEngine() {
 	var err error
 	switch config.AppCfg().Db.Provider {
@@ -68,7 +77,9 @@ func initDatabaseEngine() {
 	}
 }
 
-func syncDatabase() {
+// migrate performs the necessary migrations.
+// It creates the tables if they do not exist.
+func migrate() {
 	err := db.AutoMigrate(
 		&model.User{},
 		&model.Category{},
@@ -94,8 +105,11 @@ func syncDatabase() {
 	}
 }
 
+// selfCheck performs a self-check.
+// It updates the removed_at field of the Pod table.
+// If the removed_at field is greater than the current time, it is forcibly assigned the current time.
+// This is to prevent subsequent program errors in judgment.
 func selfCheck() {
-	// 对于 pods 中的所有数据，若 removed_at 大于当前时间，则强制赋值为现在的时间，以免后续程序错误判断
 	db.Model(&model.Pod{}).Where("removed_at > ?", time.Now().UnixMilli()).Update("removed_at", time.Now().UnixMilli())
 }
 
@@ -121,7 +135,9 @@ func initAdmin() {
 	}
 }
 
-func initCategory() {
+// initDefaultCategories initializes the default categories.
+// If the categories do not exist, they will be created.
+func initDefaultCategories() {
 	var count int64
 	db.Model(&model.Category{}).Count(&count)
 	if count == 0 {

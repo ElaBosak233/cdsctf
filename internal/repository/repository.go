@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/extension/database"
+	"github.com/elabosak233/cloudsdale/internal/app/db"
 	"go.uber.org/zap"
 	"sync"
 )
@@ -37,7 +37,7 @@ func R() *Repository {
 
 func InitRepository() {
 	onceRepository.Do(func() {
-		db := database.Db()
+		db := db.Db()
 
 		r = &Repository{
 			UserRepository:          NewUserRepository(db),
