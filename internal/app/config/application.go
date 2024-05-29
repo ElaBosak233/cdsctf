@@ -27,6 +27,15 @@ type ApplicationCfg struct {
 		Jwt struct {
 			Expiration int `yaml:"expiration" json:"expiration" mapstructure:"expiration"`
 		} `yaml:"jwt" json:"jwt" mapstructure:"jwt"`
+		Cache struct {
+			Provider string `yaml:"provider" json:"provider" mapstructure:"provider"`
+			Redis    struct {
+				Host     string `yaml:"host" json:"host" mapstructure:"host"`
+				Port     int    `yaml:"port" json:"port" mapstructure:"port"`
+				Password string `yaml:"password" json:"password" mapstructure:"password"`
+				DB       int    `yaml:"db" json:"db" mapstructure:"db"`
+			} `yaml:"redis" json:"redis" mapstructure:"redis"`
+		} `yaml:"cache" json:"cache" mapstructure:"cache"`
 		Paths struct {
 			Assets string `yaml:"assets" json:"assets" mapstructure:"assets"`
 			Media  string `yaml:"media" json:"media" mapstructure:"media"`
@@ -55,7 +64,7 @@ type ApplicationCfg struct {
 			SecretKey string `yaml:"secret_key" json:"secret_key" mapstructure:"secret_key"`
 		} `yaml:"turnstile" json:"turnstile" mapstructure:"turnstile"`
 	} `yaml:"captcha" json:"captcha" mapstructure:"captcha"`
-	Db struct {
+	DB struct {
 		Provider string `yaml:"provider" json:"provider" mapstructure:"provider"`
 		Postgres struct {
 			Host     string `yaml:"host" json:"host" mapstructure:"host"`

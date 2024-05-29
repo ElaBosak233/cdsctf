@@ -25,7 +25,6 @@ type Challenge struct {
 	CPULimit      int64         `gorm:"default:1" json:"cpu_limit,omitempty"`                   // The challenge's CPU limit. (0 means no limit)
 	MemoryLimit   int64         `gorm:"default:64" json:"memory_limit,omitempty"`               // The challenge's memory limit. (0 means no limit)
 	Flags         []*Flag       `json:"flags,omitempty"`
-	Hints         []*Hint       `json:"hints,omitempty"`
 	Ports         []*Port       `json:"ports,omitempty"`
 	Envs          []*Env        `json:"envs,omitempty"`
 	Solved        *Submission   `json:"solved,omitempty"`
@@ -73,7 +72,6 @@ func (c *Challenge) BeforeUpdate(db *gorm.DB) (err error) {
 
 func (c *Challenge) BeforeDelete(db *gorm.DB) (err error) {
 	db.Table("flags").Where("challenge_id = ?", c.ID).Delete(&Flag{})
-	db.Table("hints").Where("challenge_id = ?", c.ID).Delete(&Hint{})
 	db.Table("ports").Where("challenge_id = ?", c.ID).Delete(&Port{})
 	db.Table("envs").Where("challenge_id = ?", c.ID).Delete(&Env{})
 	db.Table("submissions").Where("challenge_id = ?", c.ID).Delete(&Submission{})

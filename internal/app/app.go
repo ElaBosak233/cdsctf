@@ -3,19 +3,20 @@ package app
 import (
 	"fmt"
 	_ "github.com/elabosak233/cloudsdale/api"
-	"github.com/elabosak233/cloudsdale/internal/app/assets"
 	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/app/db"
 	"github.com/elabosak233/cloudsdale/internal/app/logger"
 	"github.com/elabosak233/cloudsdale/internal/app/logger/adapter"
+	"github.com/elabosak233/cloudsdale/internal/cache"
 	"github.com/elabosak233/cloudsdale/internal/controller"
 	"github.com/elabosak233/cloudsdale/internal/extension/casbin"
 	"github.com/elabosak233/cloudsdale/internal/extension/container/provider"
-	"github.com/elabosak233/cloudsdale/internal/global"
+	"github.com/elabosak233/cloudsdale/internal/extension/files"
 	"github.com/elabosak233/cloudsdale/internal/middleware"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/router"
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-contrib/cors"
@@ -32,15 +33,15 @@ import (
 )
 
 func init() {
-	data, _ := assets.ReadStaticFile("banner.txt")
+	data, _ := files.FS.ReadFile("statics/banner.txt")
 	banner := string(data)
 	t, _ := template.New("cloudsdale").Parse(banner)
 	_ = t.Execute(os.Stdout, struct {
 		Version string
 		Commit  string
 	}{
-		Version: global.GitTag,
-		Commit:  global.GitCommitID,
+		Version: utils.GitTag,
+		Commit:  utils.GitCommitID,
 	})
 }
 
@@ -48,10 +49,10 @@ func Run() {
 	// Initialize the application
 	logger.InitLogger()
 	config.InitConfig()
-	assets.InitAssets()
 	db.InitDatabase()
 	casbin.InitCasbin()
 	provider.InitContainerProvider()
+	cache.InitCache()
 
 	// Debug mode
 	isDebug := convertor.ToBoolD(os.Getenv("DEBUG"), false)

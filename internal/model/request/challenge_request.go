@@ -1,6 +1,8 @@
 package request
 
-import "github.com/elabosak233/cloudsdale/internal/model"
+import (
+	"github.com/elabosak233/cloudsdale/internal/model"
+)
 
 type ChallengeCreateRequest struct {
 	Title         string        `json:"title"`

@@ -1,6 +1,6 @@
 package model
 
-// Port is the mapping between the JeopardyImage and the exposed port of the JeopardyImage.
+// Port is the mapping between the JeopardyImage and the exposed port of the image.
 // Because of the port is only a subsidiary table, it doesn't need the creation time or updated time.
 type Port struct {
 	ID          uint       `json:"id"`                                  // The port's id. As primary key.

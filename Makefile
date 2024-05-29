@@ -11,7 +11,7 @@ GIT_TAG := $(shell git describe --tags --always)
 GIT_COMMIT := $(shell git rev-parse HEAD)
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
-LDFLAGS := -X $(PACKAGE)/internal/global.GitTag=$(GIT_TAG) -X $(PACKAGE)/internal/global.GitCommitID=$(GIT_COMMIT) -X $(PACKAGE)/internal/global.GitBranch=$(GIT_BRANCH)
+LDFLAGS := -X $(PACKAGE)/internal/utils.GitTag=$(GIT_TAG) -X $(PACKAGE)/internal/utils.GitCommitID=$(GIT_COMMIT) -X $(PACKAGE)/internal/utils.GitBranch=$(GIT_BRANCH)
 
 .PHONY: all build run clean swag
 
@@ -27,7 +27,7 @@ swag:
 
 build: swag
 	@echo Building $(PACKAGE)...
-	@go build -ldflags "-linkmode external -w -s $(LDFLAGS)" -o ./build/$(BINARY)
+	@go build -ldflags "-linkmode external -w -s $(LDFLAGS)" -o ./build/$(BINARY) $(PACKAGE)/cmd/cloudsdale
 	@echo Build finished.
 
 run: swag

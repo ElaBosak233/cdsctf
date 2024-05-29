@@ -21,7 +21,5 @@ func InitConfig() {
 
 	InitApplicationCfg()
 	InitPlatformCfg()
-	InitSignatureCfg()
-
 	jwtSecretKey = uuid.NewString()
 }

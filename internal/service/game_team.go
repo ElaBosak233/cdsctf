@@ -6,8 +6,8 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
-	"github.com/elabosak233/cloudsdale/internal/utils/signature"
 	"github.com/mitchellh/mapstructure"
 	"strconv"
 )
@@ -141,8 +141,7 @@ func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) 
 		IsAllowed: &isAllowed,
 	}
 
-	sig, _ := signature.Sign(game.PrivateKey, strconv.Itoa(int(team.ID)))
-	gameTeam.Signature = fmt.Sprintf("%s:%s", strconv.Itoa(int(team.ID)), sig)
+	gameTeam.Signature = fmt.Sprintf("%s:%s", strconv.Itoa(int(team.ID)), utils.HyphenlessUUID())
 
 	err = g.gameTeamRepository.Create(gameTeam)
 	return err

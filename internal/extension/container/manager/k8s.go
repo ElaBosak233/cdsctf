@@ -8,7 +8,7 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/extension/container/provider"
 	"github.com/elabosak233/cloudsdale/internal/model"
-	"github.com/elabosak233/cloudsdale/internal/utils/generator"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -59,7 +59,7 @@ func (c *K8sManager) Setup() (nats []*model.Nat, err error) {
 	}
 	// Add the flag information to the environment variables
 	envs = append(envs, corev1.EnvVar{Name: c.flag.Env, Value: c.flag.Value})
-	uid := generator.HyphenlessUUID()
+	uid := utils.HyphenlessUUID()
 	containers = append(containers, corev1.Container{
 		Name:  uid,
 		Image: c.challenge.ImageName,

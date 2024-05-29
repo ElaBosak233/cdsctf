@@ -9,8 +9,9 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
-	"github.com/elabosak233/cloudsdale/internal/utils/generator"
+	"strings"
 	"sync"
 	"time"
 )
@@ -63,6 +64,11 @@ func NewPodService(appRepository *repository.Repository) IPodService {
 		podRepository:       appRepository.PodRepository,
 		natRepository:       appRepository.NatRepository,
 	}
+}
+
+func GenerateFlag(flagFmt string) (flag string) {
+	flag = strings.Replace(flagFmt, "[UUID]", utils.HyphenlessUUID(), -1)
+	return flag
 }
 
 func (t *PodService) IsLimited(userID uint, limit int64) (remainder int64) {
@@ -133,7 +139,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 	for _, f := range challenge.Flags {
 		if f.Type == "dynamic" {
 			flag = *f
-			flag.Value = generator.GenerateFlag(flag.Value)
+			flag.Value = GenerateFlag(flag.Value)
 		} else {
 			if f.Env == "" {
 				f.Env = "FLAG"
