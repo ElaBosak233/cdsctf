@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/app/config"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"gorm.io/gorm"
 	"os"
 	"path"
@@ -29,7 +29,7 @@ func (t *Team) Simplify() {
 }
 
 func (t *Team) AfterFind(db *gorm.DB) (err error) {
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "teams", fmt.Sprintf("%d", t.ID))
+	p := path.Join(utils.MediaPath, "teams", fmt.Sprintf("%d", t.ID))
 	var name string
 	var size int64
 	if files, _err := os.ReadDir(p); _err == nil {

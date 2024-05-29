@@ -6,3 +6,10 @@ var (
 	GitBranch   = "N/A"
 	GitTag      = "N/A"
 )
+
+const (
+	ConfigsPath  = "./configs"
+	MediaPath    = "./media"
+	FilesPath    = "./files"
+	CapturesPath = "./captures"
+)

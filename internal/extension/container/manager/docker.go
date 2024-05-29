@@ -124,7 +124,7 @@ func (c *DockerManager) Setup() (nats []*model.Nat, err error) {
 			for _, binding := range bindings {
 				entries = append(entries, fmt.Sprintf(
 					"%s:%d",
-					config.AppCfg().Container.Docker.Entry,
+					config.AppCfg().Container.Entry,
 					convertor.ToIntD(binding.HostPort, 0),
 				))
 			}
@@ -147,7 +147,7 @@ func (c *DockerManager) Setup() (nats []*model.Nat, err error) {
 					DstPort: convertor.ToIntD(binding.HostPort, 0),
 					Entry: fmt.Sprintf(
 						"%s:%d",
-						config.AppCfg().Container.Docker.Entry,
+						config.AppCfg().Container.Entry,
 						convertor.ToIntD(binding.HostPort, 0),
 					),
 				})

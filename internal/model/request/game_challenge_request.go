@@ -1,11 +1,11 @@
 package request
 
 type GameChallengeFindRequest struct {
-	GameID        uint  `json:"game_id"`
-	ChallengeID   uint  `json:"challenge_id"`
-	TeamID        uint  `json:"team_id"`
-	IsEnabled     *bool `json:"is_enabled"`
-	SubmissionQty int   `json:"submission_qty"`
+	GameID        uint  `json:"game_id" form:"game_id"`
+	ChallengeID   uint  `json:"challenge_id" form:"challenge_id"`
+	TeamID        uint  `json:"team_id" form:"team_id"`
+	IsEnabled     *bool `json:"is_enabled" form:"is_enabled"`
+	SubmissionQty int   `json:"submission_qty" form:"submission_qty"`
 }
 
 type GameChallengeCreateRequest struct {

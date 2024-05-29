@@ -29,11 +29,10 @@ import (
 	"html/template"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 func init() {
-	data, _ := files.FS.ReadFile("statics/banner.txt")
+	data, _ := files.F().ReadFile("statics/banner.txt")
 	banner := string(data)
 	t, _ := template.New("cloudsdale").Parse(banner)
 	_ = t.Execute(os.Stdout, struct {
@@ -97,13 +96,17 @@ func Run() {
 	// Frontend resources
 	r.Use(middleware.Frontend("/"))
 
-	s := &http.Server{
-		Addr:    config.AppCfg().Gin.Host + ":" + strconv.Itoa(config.AppCfg().Gin.Port),
+	srv := &http.Server{
+		Addr: fmt.Sprintf(
+			"%s:%d",
+			config.AppCfg().Gin.Host,
+			config.AppCfg().Gin.Port,
+		),
 		Handler: r,
 	}
 	zap.L().Info(fmt.Sprintf("Here's the address! %s:%d", config.AppCfg().Gin.Host, config.AppCfg().Gin.Port))
 	zap.L().Info("The Cloudsdale service is running! Enjoy your hacking challenges!")
-	err := s.ListenAndServe()
+	err := srv.ListenAndServe()
 	if err != nil {
 		zap.L().Fatal("Err... It seems that the port for Cloudsdale is not available. Plz try again.")
 	}

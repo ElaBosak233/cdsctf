@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/extension/files"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"io"
@@ -36,10 +37,6 @@ type ApplicationCfg struct {
 				DB       int    `yaml:"db" json:"db" mapstructure:"db"`
 			} `yaml:"redis" json:"redis" mapstructure:"redis"`
 		} `yaml:"cache" json:"cache" mapstructure:"cache"`
-		Paths struct {
-			Assets string `yaml:"assets" json:"assets" mapstructure:"assets"`
-			Media  string `yaml:"media" json:"media" mapstructure:"media"`
-		} `yaml:"paths" json:"paths" mapstructure:"paths"`
 	} `yaml:"gin" json:"gin" mapstructure:"gin"`
 	Email struct {
 		Address  string `yaml:"address" json:"address" mapstructure:"address"`
@@ -75,7 +72,7 @@ type ApplicationCfg struct {
 			Sslmode  string `yaml:"sslmode" json:"sslmode" mapstructure:"sslmode"`
 		} `yaml:"postgres" json:"postgres" mapstructure:"postgres"`
 		SQLite struct {
-			Filename string `yaml:"filename" json:"filename" mapstructure:"filename"`
+			Path string `yaml:"path" json:"path" mapstructure:"path"`
 		} `yaml:"sqlite" json:"sqlite" mapstructure:"sqlite"`
 		MySQL struct {
 			Host     string `yaml:"host" json:"host" mapstructure:"host"`
@@ -87,23 +84,24 @@ type ApplicationCfg struct {
 	} `yaml:"db" json:"db" mapstructure:"db"`
 	Container struct {
 		Provider string `yaml:"provider" json:"provider" mapstructure:"provider"`
+		Entry    string `yaml:"entry" json:"entry" mapstructure:"entry"`
 		Docker   struct {
-			URI   string `yaml:"uri" json:"uri" mapstructure:"uri"`
-			Entry string `yaml:"entry" json:"entry" mapstructure:"entry"`
+			URI string `yaml:"uri" json:"uri" mapstructure:"uri"`
 		} `yaml:"docker" json:"docker" mapstructure:"docker"`
 		K8s struct {
 			NameSpace string `yaml:"namespace" json:"namespace" mapstructure:"namespace"`
-			Config    string `yaml:"config" json:"config" mapstructure:"config"`
-			Entry     string `yaml:"entry" json:"entry" mapstructure:"entry"`
+			Config    struct {
+				Path string `yaml:"path" json:"path" mapstructure:"path"`
+			} `yaml:"config" json:"config" mapstructure:"config"`
 		} `yaml:"k8s" json:"k8s" mapstructure:"k8s"`
 		Proxy struct {
-			Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
-			Type    string `yaml:"type" json:"type" mapstructure:"type"`
+			Enabled        bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
+			Type           string `yaml:"type" json:"type" mapstructure:"type"`
+			TrafficCapture struct {
+				Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
+				Path    string `yaml:"path" json:"path" mapstructure:"path"`
+			} `yaml:"traffic_capture" json:"traffic_capture" mapstructure:"traffic_capture"`
 		} `yaml:"proxy" json:"proxy" mapstructure:"proxy"`
-		TrafficCapture struct {
-			Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
-			Path    string `yaml:"path" json:"path" mapstructure:"path"`
-		} `yaml:"traffic_capture" json:"traffic_capture" mapstructure:"traffic_capture"`
 	} `yaml:"container" json:"container" mapstructure:"container"`
 }
 
@@ -113,14 +111,14 @@ func AppCfg() *ApplicationCfg {
 
 func InitApplicationCfg() {
 	v1 = viper.New()
-	configFile := path.Join("configs", "application.json")
+	configFile := path.Join(utils.ConfigsPath, "application.json")
 	v1.SetConfigType("json")
 	v1.SetConfigFile(configFile)
 	if _, err := os.Stat(configFile); err != nil {
 		zap.L().Warn("No configuration file found, default configuration file will be created.")
 
 		// Read default configuration from files
-		defaultConfig, _err := files.FS.Open("configs/application.json")
+		defaultConfig, _err := files.F().Open("configs/application.json")
 		if _err != nil {
 			zap.L().Error("Unable to read default configuration file.")
 			return
@@ -154,22 +152,16 @@ func InitApplicationCfg() {
 }
 
 func Mkdirs() {
-	if AppCfg().Container.TrafficCapture.Enabled {
-		if _, err := os.Stat(AppCfg().Container.TrafficCapture.Path); err != nil {
-			if _err := os.MkdirAll(AppCfg().Container.TrafficCapture.Path, os.ModePerm); _err != nil {
+	if AppCfg().Container.Proxy.TrafficCapture.Enabled {
+		if _, err := os.Stat(utils.CapturesPath); err != nil {
+			if _err := os.MkdirAll(utils.CapturesPath, os.ModePerm); _err != nil {
 				zap.L().Fatal("Unable to create directory for traffic capture.")
 			}
 		}
 	}
 
-	if _, err := os.Stat(AppCfg().Gin.Paths.Assets); err != nil {
-		if _err := os.MkdirAll(AppCfg().Gin.Paths.Assets, os.ModePerm); _err != nil {
-			zap.L().Fatal("Unable to create directory for assets.")
-		}
-	}
-
-	if _, err := os.Stat(AppCfg().Gin.Paths.Media); err != nil {
-		if _err := os.MkdirAll(AppCfg().Gin.Paths.Media, os.ModePerm); _err != nil {
+	if _, err := os.Stat(utils.MediaPath); err != nil {
+		if _err := os.MkdirAll(utils.MediaPath, os.ModePerm); _err != nil {
 			zap.L().Fatal("Unable to create directory for media.")
 		}
 	}

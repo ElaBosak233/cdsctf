@@ -13,3 +13,9 @@ type Pod struct {
 	RemovedAt   int64      `json:"removed_at"`
 	Nats        []*Nat     `json:"nats,omitempty"`
 }
+
+func (p *Pod) Simplify() {
+	if p.Challenge != nil {
+		p.Challenge.Simplify()
+	}
+}

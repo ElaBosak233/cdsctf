@@ -69,7 +69,7 @@ func initDatabaseEngine() {
 		)
 		db, err = gorm.Open(mysql.Open(dbInfo), &gorm.Config{})
 	case "sqlite":
-		dbInfo = config.AppCfg().DB.SQLite.Filename
+		dbInfo = config.AppCfg().DB.SQLite.Path
 		db, err = gorm.Open(sqlite.Open(dbInfo), &gorm.Config{})
 	}
 	if err != nil {

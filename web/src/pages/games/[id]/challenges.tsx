@@ -18,7 +18,6 @@ import {
 	Card,
 	Divider,
 	Flex,
-	Grid,
 	Group,
 	ScrollArea,
 	Stack,
@@ -69,6 +68,7 @@ function Page() {
 		gameApi
 			.getGameChallenges({
 				game_id: Number(id),
+				team_id: teamStore?.selectedTeamID,
 				is_enabled: true,
 			})
 			.then((res) => {
@@ -187,7 +187,7 @@ function Page() {
 											);
 										}}
 									>
-										{category?.name}
+										{category?.name?.toUpperCase()}
 									</Button>
 								)
 							)}

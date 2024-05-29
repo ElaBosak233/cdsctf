@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/app/config"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"io"
 	"mime/multipart"
 	"os"
@@ -28,7 +28,7 @@ func NewMediaService() IMediaService {
 }
 
 func (m *MediaService) FindChallengeAttachment(id uint) (filename string, size int64, err error) {
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "challenges", fmt.Sprintf("%d", id))
+	p := path.Join(utils.MediaPath, "challenges", fmt.Sprintf("%d", id))
 	files, err := os.ReadDir(p)
 	for _, file := range files {
 		filename = file.Name()
@@ -45,7 +45,7 @@ func (m *MediaService) SaveChallengeAttachment(id uint, fileHeader *multipart.Fi
 		_ = file.Close()
 	}(file)
 	data, err := io.ReadAll(file)
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "challenges", fmt.Sprintf("%d", id), fileHeader.Filename)
+	p := path.Join(utils.MediaPath, "challenges", fmt.Sprintf("%d", id), fileHeader.Filename)
 	err = m.DeleteChallengeAttachment(id)
 	dir := path.Dir(p)
 	if _, err = os.Stat(dir); os.IsNotExist(err) {
@@ -58,7 +58,7 @@ func (m *MediaService) SaveChallengeAttachment(id uint, fileHeader *multipart.Fi
 }
 
 func (m *MediaService) DeleteChallengeAttachment(id uint) (err error) {
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "challenges", fmt.Sprintf("%d", id))
+	p := path.Join(utils.MediaPath, "challenges", fmt.Sprintf("%d", id))
 	return os.RemoveAll(p)
 }
 
@@ -68,7 +68,7 @@ func (m *MediaService) SaveGamePoster(id uint, fileHeader *multipart.FileHeader)
 		_ = file.Close()
 	}(file)
 	data, err := io.ReadAll(file)
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "games", fmt.Sprintf("%d", id), "poster", fileHeader.Filename)
+	p := path.Join(utils.MediaPath, "games", fmt.Sprintf("%d", id), "poster", fileHeader.Filename)
 	err = m.DeleteGamePoster(id)
 	dir := path.Dir(p)
 	if _, err = os.Stat(dir); os.IsNotExist(err) {
@@ -81,7 +81,7 @@ func (m *MediaService) SaveGamePoster(id uint, fileHeader *multipart.FileHeader)
 }
 
 func (m *MediaService) DeleteGamePoster(id uint) (err error) {
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "games", fmt.Sprintf("%d", id), "poster")
+	p := path.Join(utils.MediaPath, "games", fmt.Sprintf("%d", id), "poster")
 	return os.RemoveAll(p)
 }
 
@@ -91,7 +91,7 @@ func (m *MediaService) SaveUserAvatar(id uint, fileHeader *multipart.FileHeader)
 		_ = file.Close()
 	}(file)
 	data, err := io.ReadAll(file)
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "users", fmt.Sprintf("%d", id), fileHeader.Filename)
+	p := path.Join(utils.MediaPath, "users", fmt.Sprintf("%d", id), fileHeader.Filename)
 	err = m.DeleteUserAvatar(id)
 	dir := path.Dir(p)
 	if _, err = os.Stat(dir); os.IsNotExist(err) {
@@ -104,7 +104,7 @@ func (m *MediaService) SaveUserAvatar(id uint, fileHeader *multipart.FileHeader)
 }
 
 func (m *MediaService) DeleteUserAvatar(id uint) (err error) {
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "users", fmt.Sprintf("%d", id))
+	p := path.Join(utils.MediaPath, "users", fmt.Sprintf("%d", id))
 	return os.RemoveAll(p)
 }
 
@@ -114,7 +114,7 @@ func (m *MediaService) SaveTeamAvatar(id uint, fileHeader *multipart.FileHeader)
 		_ = file.Close()
 	}(file)
 	data, err := io.ReadAll(file)
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "teams", fmt.Sprintf("%d", id), fileHeader.Filename)
+	p := path.Join(utils.MediaPath, "teams", fmt.Sprintf("%d", id), fileHeader.Filename)
 	err = m.DeleteTeamAvatar(id)
 	dir := path.Dir(p)
 	if _, err = os.Stat(dir); os.IsNotExist(err) {
@@ -127,6 +127,6 @@ func (m *MediaService) SaveTeamAvatar(id uint, fileHeader *multipart.FileHeader)
 }
 
 func (m *MediaService) DeleteTeamAvatar(id uint) (err error) {
-	p := path.Join(config.AppCfg().Gin.Paths.Media, "teams", fmt.Sprintf("%d", id))
+	p := path.Join(utils.MediaPath, "teams", fmt.Sprintf("%d", id))
 	return os.RemoveAll(p)
 }

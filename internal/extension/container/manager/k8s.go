@@ -139,7 +139,7 @@ func (c *K8sManager) Setup() (nats []*model.Nat, err error) {
 			DstPort: int(servicePort.NodePort),
 			Entry: fmt.Sprintf(
 				"%s:%d",
-				config.AppCfg().Container.K8s.Entry,
+				config.AppCfg().Container.Entry,
 				servicePort.NodePort,
 			),
 		}

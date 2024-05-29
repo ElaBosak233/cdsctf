@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/google/uuid"
 	"os"
 )
@@ -14,11 +15,9 @@ func JwtSecretKey() string {
 }
 
 func InitConfig() {
-	configPath := "configs"
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		_ = os.Mkdir(configPath, os.ModePerm)
+	if _, err := os.Stat(utils.ConfigsPath); os.IsNotExist(err) {
+		_ = os.Mkdir(utils.ConfigsPath, os.ModePerm)
 	}
-
 	InitApplicationCfg()
 	InitPlatformCfg()
 	jwtSecretKey = uuid.NewString()

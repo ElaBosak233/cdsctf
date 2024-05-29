@@ -2,7 +2,6 @@ package provider
 
 import (
 	"fmt"
-	"github.com/TwiN/go-color"
 	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
@@ -20,7 +19,7 @@ func K8sCli() *kubernetes.Clientset {
 }
 
 func InitK8sProvider() {
-	k8sConfig := config.AppCfg().Container.K8s.Config
+	k8sConfig := config.AppCfg().Container.K8s.Config.Path
 	checkK8sConfig(k8sConfig)
 	cfg, err := clientcmd.BuildConfigFromFlags("", k8sConfig)
 	if err != nil {
@@ -35,7 +34,7 @@ func InitK8sProvider() {
 	if err != nil {
 		zap.L().Fatal("Kubernetes server connection failure.", zap.Error(err))
 	}
-	zap.L().Info(fmt.Sprintf("Kubernetes remote server connection successful, server version %s", color.InCyan(serverVersion)))
+	zap.L().Info(fmt.Sprintf("Kubernetes remote server connection successful, server version %s", serverVersion))
 }
 
 func checkK8sConfig(k8sConfig string) {
