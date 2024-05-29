@@ -3,6 +3,7 @@ package proxy
 import (
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/app/config"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcapgo"
@@ -44,7 +45,7 @@ func (w *WSProxy) Setup() {
 }
 
 func (w *WSProxy) Handle(conn *websocket.Conn) {
-	switch config.AppCfg().Container.TrafficCapture.Enabled {
+	switch config.AppCfg().Container.Proxy.TrafficCapture.Enabled {
 	case true:
 		w.handleInTrafficCapture(conn)
 	case false:
@@ -116,7 +117,7 @@ func (w *WSProxy) handleInTrafficCapture(conn *websocket.Conn) {
 	targetPort := strings.Split(w.Target, ":")[1]
 	f, err := os.Create(
 		path.Join(
-			config.AppCfg().Container.TrafficCapture.Path,
+			utils.CapturesPath,
 			fmt.Sprintf(
 				"%s-%s-%s-%s.pcap",
 				clientIP,

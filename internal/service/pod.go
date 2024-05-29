@@ -7,7 +7,6 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/extension/container/manager"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/model/response"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
@@ -42,12 +41,10 @@ func SetUserInstanceRequestMap(userID uint, t int64) {
 }
 
 type IPodService interface {
-	Create(req request.PodCreateRequest) (res response.PodStatusResponse, err error)
-	Status(id uint) (rep response.PodStatusResponse, err error)
-	Renew(req request.PodRenewRequest) (removedAt int64, err error)
-	Remove(req request.PodRemoveRequest) (err error)
-	FindById(id uint) (rep response.PodResponse, err error)
-	Find(req request.PodFindRequest) (rep []response.PodResponse, err error)
+	Create(req request.PodCreateRequest) (model.Pod, error)
+	Renew(req request.PodRenewRequest) error
+	Remove(req request.PodRemoveRequest) error
+	Find(req request.PodFindRequest) ([]model.Pod, int64, error)
 }
 
 type PodService struct {
@@ -118,10 +115,10 @@ func (t *PodService) ParallelLimit(req request.PodCreateRequest) {
 	}
 }
 
-func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatusResponse, err error) {
+func (t *PodService) Create(req request.PodCreateRequest) (model.Pod, error) {
 	remainder := t.IsLimited(req.UserID, int64(config.PltCfg().Container.RequestLimit))
 	if remainder != 0 {
-		return res, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
+		return model.Pod{}, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
 	SetUserInstanceRequestMap(req.UserID, time.Now().Unix())
 	challenges, _, _ := t.challengeRepository.Find(request.ChallengeFindRequest{
@@ -182,54 +179,34 @@ func (t *PodService) Create(req request.PodCreateRequest) (res response.PodStatu
 
 	PodManagers[pod.ID] = ctnManager
 
-	return response.PodStatusResponse{
-		ID:        pod.ID,
-		Nats:      pod.Nats,
-		RemovedAt: removedAt,
-	}, err
+	pod.Simplify()
+
+	return pod, err
 }
 
-func (t *PodService) Status(podID uint) (rep response.PodStatusResponse, err error) {
-	rep = response.PodStatusResponse{}
-	pod, err := t.podRepository.FindById(podID)
-	var ctn manager.IContainerManager
-	if PodManagers[podID] != nil {
-		ctn = PodManagers[podID]
-		rep.Status = "removed"
-		status, _ := ctn.Status()
-		if status != "removed" {
-			rep.Status = status
-		}
-		rep.ID = podID
-		rep.RemovedAt = pod.RemovedAt
-		return rep, nil
-	}
-	return rep, errors.New("获取失败")
-}
-
-func (t *PodService) Renew(req request.PodRenewRequest) (removedAt int64, err error) {
+func (t *PodService) Renew(req request.PodRenewRequest) error {
 	remainder := t.IsLimited(req.UserID, int64(config.PltCfg().Container.RequestLimit))
 	if remainder != 0 {
-		return 0, errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
+		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
 	SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
 	pod, _ := t.podRepository.FindById(req.ID)
 	ctn, ok := PodManagers[req.ID]
 	if !ok {
-		return 0, errors.New("实例不存在")
+		return errors.New("实例不存在")
 	}
 	ctn.Renew(ctn.Duration())
 	pod.RemovedAt = time.Now().Add(ctn.Duration()).Unix()
-	err = t.podRepository.Update(pod)
-	return pod.RemovedAt, err
+	err := t.podRepository.Update(pod)
+	return err
 }
 
-func (t *PodService) Remove(req request.PodRemoveRequest) (err error) {
+func (t *PodService) Remove(req request.PodRemoveRequest) error {
 	remainder := t.IsLimited(req.UserID, int64(config.PltCfg().Container.RequestLimit))
 	if remainder != 0 {
 		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
-	_ = t.podRepository.Update(model.Pod{
+	err := t.podRepository.Update(model.Pod{
 		ID:        req.ID,
 		RemovedAt: time.Now().Unix(),
 	})
@@ -242,43 +219,15 @@ func (t *PodService) Remove(req request.PodRemoveRequest) (err error) {
 	return err
 }
 
-func (t *PodService) FindById(id uint) (rep response.PodResponse, err error) {
-	pod, _ := t.podRepository.FindById(id)
-	if PodManagers[id] != nil {
-		ctn := PodManagers[id]
-		status, _ := ctn.Status()
-		rep = response.PodResponse{
-			ID:        id,
-			RemovedAt: pod.RemovedAt,
-			Challenge: pod.Challenge,
-			Status:    status,
-		}
-		return rep, nil
-	}
-	return rep, errors.New("获取失败")
-}
-
-func (t *PodService) Find(req request.PodFindRequest) (pods []response.PodResponse, err error) {
+func (t *PodService) Find(req request.PodFindRequest) ([]model.Pod, int64, error) {
 	if req.TeamID != nil && req.GameID != nil {
 		req.UserID = nil
 	}
-	podResponse, _, err := t.podRepository.Find(req)
-	for _, pod := range podResponse {
-		status := "removed"
-		if PodManagers[pod.ID] != nil {
-			ctn := PodManagers[pod.ID]
-			s, _ := ctn.Status()
-			if s == "running" {
-				status = s
-			}
-		}
-		pods = append(pods, response.PodResponse{
-			ID:        pod.ID,
-			RemovedAt: pod.RemovedAt,
-			Nats:      pod.Nats,
-			Challenge: pod.Challenge,
-			Status:    status,
-		})
+	pods, total, err := t.podRepository.Find(req)
+
+	for i, pod := range pods {
+		pod.Simplify()
+		pods[i] = pod
 	}
-	return pods, err
+	return pods, total, err
 }

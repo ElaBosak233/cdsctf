@@ -3,10 +3,8 @@ import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import GameChallengeCreateModal from "@/components/modals/admin/GameChallengeCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
 import GameChallengeAccordion from "@/components/widgets/admin/GameChallengeAccordion";
-import { Challenge } from "@/types/challenge";
 import { Game } from "@/types/game";
 import { GameChallenge } from "@/types/game_challenge";
-import { showSuccessNotification } from "@/utils/notification";
 import {
 	Accordion,
 	ActionIcon,

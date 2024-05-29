@@ -133,7 +133,7 @@ export default function GameChallengeAccordion({
 	}, [gameChallenge]);
 
 	return (
-		<Accordion.Item value={String(gameChallenge?.challenge?.title)}>
+		<Accordion.Item value={`${gameChallenge?.challenge_id}`}>
 			<Center mx={20}>
 				<Switch
 					checked={gameChallenge?.is_enabled}

@@ -19,7 +19,7 @@ func InitCasbin() {
 		&gormadapter.CasbinRule{},
 		"casbins",
 	)
-	cfg, err := files.FS.ReadFile("configs/casbin.conf")
+	cfg, err := files.F().ReadFile("configs/casbin.conf")
 	md, _ := model.NewModelFromString(string(cfg))
 	Enforcer, err = casbin.NewEnforcer(md, adapter)
 	if err != nil {

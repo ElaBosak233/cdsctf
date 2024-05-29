@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/app/config"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcapgo"
@@ -51,7 +52,7 @@ func (t *TCPProxy) Setup() {
 				zap.L().Error(fmt.Sprintf("Failed to accept connection: %v", err))
 				continue
 			}
-			switch config.AppCfg().Container.TrafficCapture.Enabled {
+			switch config.AppCfg().Container.Proxy.TrafficCapture.Enabled {
 			case true:
 				go t.HandleInTrafficCapture(conn, t.Target)
 			case false:
@@ -103,7 +104,8 @@ func (t *TCPProxy) HandleInTrafficCapture(clientConn net.Conn, target string) {
 	zap.L().Info(fmt.Sprintf("Proxying from %s to %s:%s", clientAddr, targetAddr, targetPort))
 	// Create a new pcap writer
 	f, err := os.Create(
-		path.Join(config.AppCfg().Container.TrafficCapture.Path,
+		path.Join(
+			utils.CapturesPath,
 			fmt.Sprintf(
 				"%s-%s-%s-%s.pcap",
 				clientAddr,

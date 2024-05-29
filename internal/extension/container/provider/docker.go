@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/TwiN/go-color"
 	"github.com/docker/docker/client"
 	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"go.uber.org/zap"
@@ -30,7 +29,7 @@ func InitDockerProvider() {
 	zap.L().Info(
 		fmt.Sprintf(
 			"Docker client inits successfully, client version %s.",
-			color.InCyan(dockerClient.ClientVersion()),
+			dockerClient.ClientVersion(),
 		),
 	)
 	dockerCli = dockerClient
@@ -43,7 +42,7 @@ func InitDockerProvider() {
 	zap.L().Info(
 		fmt.Sprintf(
 			"Docker remote server connects successfully, server version %s.",
-			color.InCyan(version.Version),
+			version.Version,
 		),
 	)
 }

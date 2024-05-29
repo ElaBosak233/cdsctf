@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/extension/files"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"io"
@@ -36,14 +37,14 @@ func PltCfg() *PlatformCfg {
 
 func InitPlatformCfg() {
 	v2 = viper.New()
-	configFile := path.Join("configs", "platform.json")
+	configFile := path.Join(utils.ConfigsPath, "platform.json")
 	v2.SetConfigType("json")
 	v2.SetConfigFile(configFile)
 	if _, err := os.Stat(configFile); err != nil {
 		zap.L().Warn("No configuration file found, default configuration file will be created.")
 
 		// Read default configuration from files
-		defaultConfig, _err := files.FS.Open("configs/platform.json")
+		defaultConfig, _err := files.F().Open("configs/platform.json")
 		if _err != nil {
 			zap.L().Error("Unable to read default configuration file.")
 			return

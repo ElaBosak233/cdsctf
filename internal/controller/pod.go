@@ -108,7 +108,7 @@ func (c *PodController) Renew(ctx *gin.Context) {
 	instanceRenewRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	user := ctx.MustGet("user").(*model.User)
 	instanceRenewRequest.UserID = user.ID
-	removedAt, err := c.podService.Renew(instanceRenewRequest)
+	err = c.podService.Renew(instanceRenewRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
@@ -118,8 +118,7 @@ func (c *PodController) Renew(ctx *gin.Context) {
 	}
 	cache.C().DeleteByPrefix("pods")
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":       http.StatusOK,
-		"removed_at": removedAt,
+		"code": http.StatusOK,
 	})
 }
 
@@ -142,15 +141,16 @@ func (c *PodController) Find(ctx *gin.Context) {
 	}
 	value, exist := cache.C().Get(fmt.Sprintf("pods:%s", utils.HashStruct(podFindRequest)))
 	if !exist {
-		pods, _ := c.podService.Find(podFindRequest)
+		pods, total, _ := c.podService.Find(podFindRequest)
 		value = gin.H{
-			"code": http.StatusOK,
-			"data": pods,
+			"code":  http.StatusOK,
+			"data":  pods,
+			"total": total,
 		}
 		cache.C().Set(
 			fmt.Sprintf("pods:%s", utils.HashStruct(podFindRequest)),
 			value,
-			5*time.Minute,
+			2*time.Minute,
 		)
 	}
 	ctx.JSON(http.StatusOK, value)

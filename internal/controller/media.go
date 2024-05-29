@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -25,7 +25,7 @@ func NewMediaController(appService *service.Service) IMediaController {
 
 func (m *MediaController) GetFile(ctx *gin.Context) {
 	a := ctx.Param("path")
-	p := path.Join(config.AppCfg().Gin.Paths.Media, a)
+	p := path.Join(utils.MediaPath, a)
 	_, err := os.Stat(p)
 	if os.IsNotExist(err) {
 		ctx.Status(http.StatusNotFound)
