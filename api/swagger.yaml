@@ -1153,39 +1153,6 @@ paths:
       summary: 删除比赛
       tags:
       - Game
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - in: query
-        name: id
-        type: integer
-      - in: query
-        name: is_enabled
-        type: boolean
-      - in: query
-        name: page
-        type: integer
-      - in: query
-        name: size
-        type: integer
-      - in: query
-        name: sort_key
-        type: string
-      - in: query
-        name: sort_order
-        type: string
-      - in: query
-        name: title
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: 比赛查询
-      tags:
-      - Game
     put:
       consumes:
       - application/json
@@ -1332,18 +1299,6 @@ paths:
       summary: 保存头图
       tags:
       - Game
-  /games/{id}/scoreboard:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: 查询比赛的积分榜
-      tags:
-      - Game
   /games/{id}/teams:
     get:
       consumes:
@@ -1486,20 +1441,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 停止并删除容器
-      tags:
-      - Pod
-    get:
-      description: 实例查询
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: 实例查询
       tags:
       - Pod
     put:
@@ -1681,22 +1622,6 @@ paths:
       - application/json
       responses: {}
       summary: 删除团队
-      tags:
-      - Team
-    get:
-      consumes:
-      - application/json
-      description: 查找团队
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: 查找团队
       tags:
       - Team
     put:

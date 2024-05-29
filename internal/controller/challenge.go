@@ -108,6 +108,7 @@ func (c *ChallengeController) Create(ctx *gin.Context) {
 		return
 	}
 	_ = c.challengeService.Create(challengeCreateRequest)
+	cache.C().DeleteByPrefix("challenges")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -134,6 +135,7 @@ func (c *ChallengeController) Update(ctx *gin.Context) {
 	}
 	challengeUpdateRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err = c.challengeService.Update(challengeUpdateRequest)
+	cache.C().DeleteByPrefix("challenges")
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
@@ -158,6 +160,7 @@ func (c *ChallengeController) Delete(ctx *gin.Context) {
 	challengeDeleteRequest := request.ChallengeDeleteRequest{}
 	challengeDeleteRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
 	err := c.challengeService.Delete(challengeDeleteRequest.ID)
+	cache.C().DeleteByPrefix("challenges")
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
@@ -194,6 +197,7 @@ func (c *ChallengeController) CreateFlag(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("challenges")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -227,6 +231,7 @@ func (c *ChallengeController) UpdateFlag(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("challenges")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -251,6 +256,7 @@ func (c *ChallengeController) DeleteFlag(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("challenges")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -308,6 +314,7 @@ func (c *ChallengeController) SaveAttachment(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("challenges")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -331,6 +338,7 @@ func (c *ChallengeController) DeleteAttachment(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("challenges")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})

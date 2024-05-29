@@ -27,7 +27,6 @@ func NewTeamRouter(teamRouter *gin.RouterGroup, teamController controller.ITeamC
 
 func (t *TeamRouter) Register() {
 	t.router.GET("/", t.controller.Find)
-	t.router.GET("/:id", t.controller.FindById)
 	t.router.POST("/", t.controller.Create)
 	t.router.DELETE("/:id", t.CanModifyTeam(), t.controller.Delete)
 	t.router.PUT("/:id", t.CanModifyTeam(), t.controller.Update)

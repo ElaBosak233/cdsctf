@@ -1,13 +1,17 @@
 package controller
 
 import (
+	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 type ITeamController interface {
@@ -17,7 +21,6 @@ type ITeamController interface {
 	Find(ctx *gin.Context)
 	CreateUser(ctx *gin.Context)
 	DeleteUser(ctx *gin.Context)
-	FindById(ctx *gin.Context)
 	GetInviteToken(ctx *gin.Context)
 	UpdateInviteToken(ctx *gin.Context)
 	Join(ctx *gin.Context)
@@ -66,6 +69,7 @@ func (c *TeamController) Create(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -97,6 +101,7 @@ func (c *TeamController) Update(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -121,6 +126,7 @@ func (c *TeamController) Delete(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -144,36 +150,21 @@ func (c *TeamController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	teams, total, _ := c.teamService.Find(teamFindRequest)
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":  http.StatusOK,
-		"total": total,
-		"data":  teams,
-	})
-}
-
-// FindById
-// @Summary 查找团队
-// @Description	查找团队
-// @Tags Team
-// @Accept json
-// @Produce json
-// @Param id path string true "id"
-// @Router /teams/{id} [get]
-func (c *TeamController) FindById(ctx *gin.Context) {
-	id := ctx.Param("id")
-	team, err := c.teamService.FindById(convertor.ToUintD(id, 0))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
+	value, exist := cache.C().Get(fmt.Sprintf("teams:%s", utils.HashStruct(teamFindRequest)))
+	if !exist {
+		teams, total, _ := c.teamService.Find(teamFindRequest)
+		value = gin.H{
+			"code":  http.StatusOK,
+			"total": total,
+			"data":  teams,
+		}
+		cache.C().Set(
+			fmt.Sprintf("teams:%s", utils.HashStruct(teamFindRequest)),
+			value,
+			5*time.Minute,
+		)
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": team,
-	})
+	ctx.JSON(http.StatusOK, value)
 }
 
 // CreateUser
@@ -204,6 +195,7 @@ func (c *TeamController) CreateUser(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -230,6 +222,7 @@ func (c *TeamController) DeleteUser(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -281,6 +274,7 @@ func (c *TeamController) UpdateInviteToken(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":         http.StatusOK,
 		"invite_token": token,
@@ -309,6 +303,7 @@ func (c *TeamController) Join(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -368,6 +363,7 @@ func (c *TeamController) SaveAvatar(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -391,6 +387,7 @@ func (c *TeamController) DeleteAvatar(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})

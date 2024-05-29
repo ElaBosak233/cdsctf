@@ -1,13 +1,17 @@
 package controller
 
 import (
+	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 type ICategoryController interface {
@@ -25,6 +29,48 @@ func NewCategoryController(appService *service.Service) ICategoryController {
 	return &CategoryController{
 		categoryService: appService.CategoryService,
 	}
+}
+
+// Find
+// @Summary get category
+// @Description
+// @Tags Category
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param req query request.CategoryFindRequest	true "CategoryFindRequest"
+// @Router /categories/ [get]
+func (c *CategoryController) Find(ctx *gin.Context) {
+	categoryFindRequest := request.CategoryFindRequest{}
+	err := ctx.ShouldBindQuery(&categoryFindRequest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  validator.GetValidMsg(err, &categoryFindRequest),
+		})
+		return
+	}
+	value, exist := cache.C().Get(fmt.Sprintf("categories:%s", utils.HashStruct(categoryFindRequest)))
+	if !exist {
+		categories, err := c.categoryService.Find(categoryFindRequest)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+				"msg":  err.Error(),
+			})
+			return
+		}
+		value = gin.H{
+			"code": http.StatusOK,
+			"data": categories,
+		}
+		cache.C().Set(
+			fmt.Sprintf("categories:%s", utils.HashStruct(categoryFindRequest)),
+			value,
+			5*time.Minute,
+		)
+	}
+	ctx.JSON(http.StatusOK, value)
 }
 
 // Create
@@ -53,6 +99,7 @@ func (c *CategoryController) Create(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("categories")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -85,41 +132,9 @@ func (c *CategoryController) Update(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("categories")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-	})
-}
-
-// Find
-// @Summary get category
-// @Description
-// @Tags Category
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Param req query request.CategoryFindRequest	true "CategoryFindRequest"
-// @Router /categories/ [get]
-func (c *CategoryController) Find(ctx *gin.Context) {
-	req := request.CategoryFindRequest{}
-	err := ctx.ShouldBindQuery(&req)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &req),
-		})
-		return
-	}
-	res, err := c.categoryService.Find(req)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": res,
 	})
 }
 
@@ -143,6 +158,7 @@ func (c *CategoryController) Delete(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("categories")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})

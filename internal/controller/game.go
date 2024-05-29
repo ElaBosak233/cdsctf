@@ -1,24 +1,26 @@
 package controller
 
 import (
+	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/cache"
 	"github.com/elabosak233/cloudsdale/internal/extension/broadcast"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 type IGameController interface {
 	Create(ctx *gin.Context)
 	Find(ctx *gin.Context)
-	FindByID(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 	Update(ctx *gin.Context)
 	BroadCast(ctx *gin.Context)
-	Scoreboard(ctx *gin.Context)
 	FindTeam(ctx *gin.Context)
 	FindTeamByID(ctx *gin.Context)
 	CreateTeam(ctx *gin.Context)
@@ -70,28 +72,6 @@ func (g *GameController) BroadCast(ctx *gin.Context) {
 	}
 }
 
-// Scoreboard
-// @Summary 查询比赛的积分榜
-// @Description
-// @Tags Game
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Router /games/{id}/scoreboard [get]
-func (g *GameController) Scoreboard(ctx *gin.Context) {
-	scoreboard, err := g.gameService.Scoreboard(convertor.ToUintD(ctx.Param("id"), 0))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": scoreboard,
-	})
-}
-
 // FindChallenge
 // @Summary 查询比赛的挑战
 // @Description
@@ -101,22 +81,29 @@ func (g *GameController) Scoreboard(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /games/{id}/challenges [get]
 func (g *GameController) FindChallenge(ctx *gin.Context) {
-	challenges, err := g.gameChallengeService.Find(request.GameChallengeFindRequest{
-		GameID:        convertor.ToUintD(ctx.Param("id"), 0),
-		TeamID:        convertor.ToUintD(ctx.Query("team_id"), 0),
-		IsEnabled:     convertor.ToBoolP(ctx.Query("is_enabled")),
-		SubmissionQty: convertor.ToIntD(ctx.Query("submission_qty"), 0),
-	})
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-		})
-		return
+	gameChallengeFindRequest := request.GameChallengeFindRequest{}
+	_ = ctx.ShouldBindQuery(&gameChallengeFindRequest)
+	gameChallengeFindRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
+	value, exist := cache.C().Get(fmt.Sprintf("game_challenges:%s", utils.HashStruct(gameChallengeFindRequest)))
+	if !exist {
+		challenges, err := g.gameChallengeService.Find(gameChallengeFindRequest)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+		value = gin.H{
+			"code": http.StatusOK,
+			"data": challenges,
+		}
+		cache.C().Set(
+			fmt.Sprintf("game_challenges:%s", utils.HashStruct(gameChallengeFindRequest)),
+			value,
+			5*time.Minute,
+		)
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": challenges,
-	})
+	ctx.JSON(http.StatusOK, value)
 }
 
 // CreateChallenge
@@ -146,6 +133,7 @@ func (g *GameController) CreateChallenge(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("game_challenges")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -178,6 +166,7 @@ func (g *GameController) UpdateChallenge(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("game_challenges")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -203,6 +192,7 @@ func (g *GameController) DeleteChallenge(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("game_challenges")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -217,20 +207,29 @@ func (g *GameController) DeleteChallenge(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /games/{id}/teams [get]
 func (g *GameController) FindTeam(ctx *gin.Context) {
-	teams, total, err := g.gameTeamService.Find(request.GameTeamFindRequest{
-		GameID: convertor.ToUintD(ctx.Param("id"), 0),
-	})
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-		})
-		return
+	gameTeamFindRequest := request.GameTeamFindRequest{}
+	gameTeamFindRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
+	value, exist := cache.C().Get(fmt.Sprintf("game_teams:%s", utils.HashStruct(gameTeamFindRequest)))
+	if !exist {
+		teams, total, err := g.gameTeamService.Find(gameTeamFindRequest)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+		value = gin.H{
+			"code":  http.StatusOK,
+			"data":  teams,
+			"total": total,
+		}
+		cache.C().Set(
+			fmt.Sprintf("game_teams:%s", utils.HashStruct(gameTeamFindRequest)),
+			value,
+			5*time.Minute,
+		)
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":  http.StatusOK,
-		"data":  teams,
-		"total": total,
-	})
+	ctx.JSON(http.StatusOK, value)
 }
 
 // FindTeamByID
@@ -242,19 +241,30 @@ func (g *GameController) FindTeam(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /games/{id}/teams/{team_id} [get]
 func (g *GameController) FindTeamByID(ctx *gin.Context) {
-	team, err := g.gameTeamService.FindByID(request.GameTeamFindRequest{
+	gameTeamFindRequest := request.GameTeamFindRequest{
 		GameID: convertor.ToUintD(ctx.Param("id"), 0),
 		TeamID: convertor.ToUintD(ctx.Param("team_id"), 0),
-	})
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-		})
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": team,
-	})
+	value, exist := cache.C().Get(fmt.Sprintf("game_teams:%s", utils.HashStruct(gameTeamFindRequest)))
+	if !exist {
+		team, err := g.gameTeamService.FindByID(gameTeamFindRequest)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+		value = gin.H{
+			"code": http.StatusOK,
+			"data": team,
+		}
+		cache.C().Set(
+			fmt.Sprintf("game_teams:%s", utils.HashStruct(gameTeamFindRequest)),
+			value,
+			5*time.Minute,
+		)
+	}
+	ctx.JSON(http.StatusOK, value)
 }
 
 // CreateTeam
@@ -286,6 +296,7 @@ func (g *GameController) CreateTeam(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("game_teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -313,6 +324,7 @@ func (g *GameController) UpdateTeam(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("game_teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -338,6 +350,7 @@ func (g *GameController) DeleteTeam(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("game_teams")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -353,19 +366,29 @@ func (g *GameController) DeleteTeam(ctx *gin.Context) {
 // @Router /games/{id}/notices [get]
 func (g *GameController) FindNotice(ctx *gin.Context) {
 	noticeFindRequest := request.NoticeFindRequest{}
+	noticeFindRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
 	_ = ctx.ShouldBindQuery(&noticeFindRequest)
-	notices, total, err := g.noticeService.Find(noticeFindRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-		})
-		return
+	value, exist := cache.C().Get(fmt.Sprintf("game_notices:%s", utils.HashStruct(noticeFindRequest)))
+	if !exist {
+		notices, total, err := g.noticeService.Find(noticeFindRequest)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+		value = gin.H{
+			"code":  http.StatusOK,
+			"data":  notices,
+			"total": total,
+		}
+		cache.C().Set(
+			fmt.Sprintf("game_notices:%s", utils.HashStruct(noticeFindRequest)),
+			value,
+			5*time.Minute,
+		)
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":  http.StatusOK,
-		"data":  notices,
-		"total": total,
-	})
+	ctx.JSON(http.StatusOK, value)
 }
 
 // CreateNotice
@@ -395,6 +418,7 @@ func (g *GameController) CreateNotice(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("game_notices")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -421,6 +445,7 @@ func (g *GameController) UpdateNotice(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("game_notices")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -445,6 +470,7 @@ func (g *GameController) DeleteNotice(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("game_notices")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -477,6 +503,7 @@ func (g *GameController) Create(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("games")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -502,6 +529,7 @@ func (g *GameController) Delete(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("games")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -535,6 +563,7 @@ func (g *GameController) Update(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("games")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -563,49 +592,27 @@ func (g *GameController) Find(ctx *gin.Context) {
 	if ok && isEnabled.(bool) {
 		gameFindRequest.IsEnabled = convertor.TrueP()
 	}
-	games, total, err := g.gameService.Find(gameFindRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
+	value, exist := cache.C().Get(fmt.Sprintf("games:%s", utils.HashStruct(gameFindRequest)))
+	if !exist {
+		games, total, err := g.gameService.Find(gameFindRequest)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+			})
+			return
+		}
+		value = gin.H{
+			"code":  http.StatusOK,
+			"data":  games,
+			"total": total,
+		}
+		cache.C().Set(
+			fmt.Sprintf("games:%s", utils.HashStruct(gameFindRequest)),
+			value,
+			5*time.Minute,
+		)
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":  http.StatusOK,
-		"data":  games,
-		"total": total,
-	})
-}
-
-// FindByID
-// @Summary 比赛查询
-// @Description
-// @Tags Game
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Param 查找请求 query request.GameFindRequest false "GameFindRequest"
-// @Router /games/{id} [get]
-func (g *GameController) FindByID(ctx *gin.Context) {
-	isEnabled, ok := ctx.Get("is_enabled")
-	gameFindRequest := request.GameFindRequest{}
-	if ok && isEnabled.(bool) {
-		gameFindRequest.IsEnabled = convertor.TrueP()
-	}
-	gameFindRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	games, _, err := g.gameService.Find(gameFindRequest)
-	if err != nil || len(games) == 0 {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": games[0],
-	})
+	ctx.JSON(http.StatusOK, value)
 }
 
 // SavePoster
@@ -635,6 +642,7 @@ func (g *GameController) SavePoster(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("games")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -658,6 +666,7 @@ func (g *GameController) DeletePoster(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("games")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})

@@ -1,13 +1,17 @@
 package controller
 
 import (
+	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 type IPodController interface {
@@ -15,7 +19,6 @@ type IPodController interface {
 	Remove(ctx *gin.Context)
 	Renew(ctx *gin.Context)
 	Find(ctx *gin.Context)
-	FindById(ctx *gin.Context)
 }
 
 type PodController struct {
@@ -56,6 +59,7 @@ func (c *PodController) Create(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("pods")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"data": pod,
@@ -84,6 +88,7 @@ func (c *PodController) Remove(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("pods")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -111,32 +116,10 @@ func (c *PodController) Renew(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("pods")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":       http.StatusOK,
 		"removed_at": removedAt,
-	})
-}
-
-// FindById
-// @Summary 实例查询
-// @Description	实例查询
-// @Tags Pod
-// @Produce json
-// @Param id path string true "id"
-// @Router /pods/{id} [get]
-func (c *PodController) FindById(ctx *gin.Context) {
-	id := ctx.Param("id")
-	pod, err := c.podService.FindById(convertor.ToUintD(id, 0))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": pod,
 	})
 }
 
@@ -157,9 +140,18 @@ func (c *PodController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	pods, _ := c.podService.Find(podFindRequest)
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-		"data": pods,
-	})
+	value, exist := cache.C().Get(fmt.Sprintf("pods:%s", utils.HashStruct(podFindRequest)))
+	if !exist {
+		pods, _ := c.podService.Find(podFindRequest)
+		value = gin.H{
+			"code": http.StatusOK,
+			"data": pods,
+		}
+		cache.C().Set(
+			fmt.Sprintf("pods:%s", utils.HashStruct(podFindRequest)),
+			value,
+			5*time.Minute,
+		)
+	}
+	ctx.JSON(http.StatusOK, value)
 }

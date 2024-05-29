@@ -1,13 +1,17 @@
 package controller
 
 import (
+	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 type ISubmissionController interface {
@@ -45,12 +49,28 @@ func (c *SubmissionController) Find(ctx *gin.Context) {
 		return
 	}
 	submissionFindRequest.IsDetailed = ctx.GetBool("is_detailed")
-	submissions, total, _ := c.submissionService.Find(submissionFindRequest)
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":  http.StatusOK,
-		"total": total,
-		"data":  submissions,
-	})
+	value, exist := cache.C().Get(fmt.Sprintf("submissions:%s", utils.HashStruct(submissionFindRequest)))
+	if !exist {
+		submissions, total, err := c.submissionService.Find(submissionFindRequest)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"code": http.StatusInternalServerError,
+				"msg":  err.Error(),
+			})
+			return
+		}
+		value = gin.H{
+			"code":  http.StatusOK,
+			"total": total,
+			"data":  submissions,
+		}
+		cache.C().Set(
+			fmt.Sprintf("submissions:%s", utils.HashStruct(submissionFindRequest)),
+			value,
+			5*time.Minute,
+		)
+	}
+	ctx.JSON(http.StatusOK, value)
 }
 
 // Create
@@ -81,6 +101,7 @@ func (c *SubmissionController) Create(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("submissions")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":   http.StatusOK,
 		"rank":   rank,
@@ -107,6 +128,7 @@ func (c *SubmissionController) Delete(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("submissions")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
