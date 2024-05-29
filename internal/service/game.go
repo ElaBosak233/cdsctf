@@ -15,7 +15,6 @@ type IGameService interface {
 	Create(req request.GameCreateRequest) (err error)
 	Update(req request.GameUpdateRequest) (err error)
 	Delete(req request.GameDeleteRequest) (err error)
-	Scoreboard(id uint) (submissions []model.Submission, err error)
 }
 
 type GameService struct {
@@ -65,16 +64,4 @@ func (g *GameService) Delete(req request.GameDeleteRequest) (err error) {
 func (g *GameService) Find(req request.GameFindRequest) (games []model.Game, total int64, err error) {
 	games, total, err = g.gameRepository.Find(req)
 	return games, total, err
-}
-
-func (g *GameService) Scoreboard(id uint) (submissions []model.Submission, err error) {
-	submissions, _, err = g.submissionRepository.Find(request.SubmissionFindRequest{
-		GameID: &id,
-		Status: 2,
-	})
-	for i := range submissions {
-		submissions[i].Flag = ""
-		submissions[i].Game = nil
-	}
-	return
 }

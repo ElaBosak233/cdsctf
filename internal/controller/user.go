@@ -2,14 +2,17 @@ package controller
 
 import (
 	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
+	"time"
 )
 
 type IUserController interface {
@@ -131,6 +134,7 @@ func (c *UserController) Register(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("users")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -161,6 +165,7 @@ func (c *UserController) Create(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("users")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -192,6 +197,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("users")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -209,7 +215,15 @@ func (c *UserController) Update(ctx *gin.Context) {
 func (c *UserController) Delete(ctx *gin.Context) {
 	deleteUserRequest := request.UserDeleteRequest{}
 	deleteUserRequest.ID = convertor.ToUintD(ctx.Param("id"), 0)
-	_ = c.userService.Delete(deleteUserRequest.ID)
+	err := c.userService.Delete(deleteUserRequest.ID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	cache.C().DeleteByPrefix("users")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -232,12 +246,28 @@ func (c *UserController) Find(ctx *gin.Context) {
 		})
 		return
 	}
-	users, total, _ := c.userService.Find(userFindRequest)
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":  http.StatusOK,
-		"data":  users,
-		"total": total,
-	})
+	value, exist := cache.C().Get(fmt.Sprintf("users:%s", utils.HashStruct(userFindRequest)))
+	if !exist {
+		users, total, err := c.userService.Find(userFindRequest)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"code": http.StatusBadRequest,
+				"msg":  err.Error(),
+			})
+			return
+		}
+		value = gin.H{
+			"code":  http.StatusOK,
+			"data":  users,
+			"total": total,
+		}
+		cache.C().Set(
+			fmt.Sprintf("users:%s", utils.HashStruct(userFindRequest)),
+			value,
+			5*time.Minute,
+		)
+	}
+	ctx.JSON(http.StatusOK, value)
 }
 
 // SaveAvatar
@@ -267,6 +297,7 @@ func (c *UserController) SaveAvatar(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("users")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})
@@ -290,6 +321,7 @@ func (c *UserController) DeleteAvatar(ctx *gin.Context) {
 		})
 		return
 	}
+	cache.C().DeleteByPrefix("users")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 	})

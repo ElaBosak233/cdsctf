@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	cache     ICache
+	cache     ICache = nil
 	onceCache sync.Once
 )
 

@@ -24,7 +24,6 @@ func NewGameRouter(gameRouter *gin.RouterGroup, gameController controller.IGameC
 
 func (g *GameRouter) Register() {
 	g.router.GET("/", g.PreProcess(), g.controller.Find)
-	g.router.GET("/:id", g.PreProcess(), g.controller.FindByID)
 	g.router.POST("/", g.controller.Create)
 	g.router.PUT("/:id", g.controller.Update)
 	g.router.DELETE("/:id", g.controller.Delete)
@@ -41,7 +40,6 @@ func (g *GameRouter) Register() {
 	g.router.POST("/:id/notices", g.controller.CreateNotice)
 	g.router.PUT("/:id/notices/:notice_id", g.controller.UpdateNotice)
 	g.router.DELETE("/:id/notices/:notice_id", g.controller.DeleteNotice)
-	g.router.GET("/:id/scoreboard", g.controller.Scoreboard)
 	g.router.GET("/:id/broadcast", g.controller.BroadCast)
 	g.router.POST("/:id/poster", g.controller.SavePoster)
 	g.router.DELETE("/:id/poster", g.controller.DeletePoster)

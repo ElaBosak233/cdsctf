@@ -27,10 +27,6 @@ export function useGameApi() {
 		return auth.get("/games/", { params: request });
 	};
 
-	const getGameByID = (id: number) => {
-		return auth.get(`/games/${id}`);
-	};
-
 	const createGame = (request: GameCreateRequest) => {
 		return auth.post("/games/", request);
 	};
@@ -130,7 +126,6 @@ export function useGameApi() {
 
 	return {
 		getGames,
-		getGameByID,
 		getGameChallenges,
 		createGame,
 		updateGame,

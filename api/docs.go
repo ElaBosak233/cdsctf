@@ -578,61 +578,6 @@ const docTemplate = `{
             }
         },
         "/games/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Game"
-                ],
-                "summary": "比赛查询",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "name": "is_enabled",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "name": "size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "sort_key",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "sort_order",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "title",
-                        "in": "query"
-                    }
-                ],
-                "responses": {}
-            },
             "put": {
                 "security": [
                     {
@@ -901,26 +846,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/games/{id}/scoreboard": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Game"
-                ],
-                "summary": "查询比赛的积分榜",
-                "responses": {}
-            }
-        },
         "/games/{id}/teams": {
             "get": {
                 "security": [
@@ -1128,26 +1053,6 @@ const docTemplate = `{
             }
         },
         "/pods/{id}": {
-            "get": {
-                "description": "实例查询",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Pod"
-                ],
-                "summary": "实例查询",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
             "put": {
                 "security": [
                     {
@@ -1434,29 +1339,6 @@ const docTemplate = `{
             }
         },
         "/teams/{id}": {
-            "get": {
-                "description": "查找团队",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Team"
-                ],
-                "summary": "查找团队",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
             "put": {
                 "description": "更新团队",
                 "consumes": [

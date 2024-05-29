@@ -23,7 +23,6 @@ func NewPodRouter(podRouter *gin.RouterGroup, podController controller.IPodContr
 
 func (p *PodRouter) Register() {
 	p.router.GET("/", p.controller.Find)
-	p.router.GET("/:id", p.controller.FindById)
 	p.router.POST("/", p.controller.Create)
 	p.router.DELETE("/:id", p.controller.Remove)
 	p.router.PUT("/:id", p.controller.Renew)
