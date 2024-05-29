@@ -7,10 +7,10 @@ import (
 )
 
 type IChallengeRepository interface {
-	Create(challenge model.Challenge) (c model.Challenge, err error)
-	Update(challenge model.Challenge) (c model.Challenge, err error)
-	Delete(id uint) (err error)
-	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, total int64, err error)
+	Create(challenge model.Challenge) (model.Challenge, error)
+	Update(challenge model.Challenge) (model.Challenge, error)
+	Delete(id uint) error
+	Find(req request.ChallengeFindRequest) ([]model.Challenge, int64, error)
 }
 
 type ChallengeRepository struct {

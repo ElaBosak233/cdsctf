@@ -46,30 +46,30 @@ func Debug() {
 // If an error occurs during the connection, the program will exit.
 func initDatabaseEngine() {
 	var err error
-	switch config.AppCfg().Db.Provider {
+	switch config.AppCfg().DB.Provider {
 	case "postgres":
 		dbInfo = fmt.Sprintf(
 			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-			config.AppCfg().Db.Postgres.Host,
-			config.AppCfg().Db.Postgres.Port,
-			config.AppCfg().Db.Postgres.Username,
-			config.AppCfg().Db.Postgres.Password,
-			config.AppCfg().Db.Postgres.Dbname,
-			config.AppCfg().Db.Postgres.Sslmode,
+			config.AppCfg().DB.Postgres.Host,
+			config.AppCfg().DB.Postgres.Port,
+			config.AppCfg().DB.Postgres.Username,
+			config.AppCfg().DB.Postgres.Password,
+			config.AppCfg().DB.Postgres.Dbname,
+			config.AppCfg().DB.Postgres.Sslmode,
 		)
 		db, err = gorm.Open(postgres.Open(dbInfo), &gorm.Config{})
 	case "mysql":
 		dbInfo = fmt.Sprintf(
 			"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-			config.AppCfg().Db.MySQL.Username,
-			config.AppCfg().Db.MySQL.Password,
-			config.AppCfg().Db.MySQL.Host,
-			config.AppCfg().Db.MySQL.Port,
-			config.AppCfg().Db.MySQL.Dbname,
+			config.AppCfg().DB.MySQL.Username,
+			config.AppCfg().DB.MySQL.Password,
+			config.AppCfg().DB.MySQL.Host,
+			config.AppCfg().DB.MySQL.Port,
+			config.AppCfg().DB.MySQL.Dbname,
 		)
 		db, err = gorm.Open(mysql.Open(dbInfo), &gorm.Config{})
 	case "sqlite":
-		dbInfo = config.AppCfg().Db.SQLite.Filename
+		dbInfo = config.AppCfg().DB.SQLite.Filename
 		db, err = gorm.Open(sqlite.Open(dbInfo), &gorm.Config{})
 	}
 	if err != nil {
@@ -88,7 +88,6 @@ func migrate() {
 		&model.UserTeam{},
 		&model.Submission{},
 		&model.Nat{},
-		&model.Hint{},
 		&model.Pod{},
 		&model.Game{},
 		&model.GameChallenge{},

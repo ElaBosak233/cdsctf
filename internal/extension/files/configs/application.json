@@ -7,6 +7,15 @@
 		"jwt": {
 			"expiration": 180
 		},
+		"cache": {
+			"provider": "memory",
+			"redis": {
+				"host": "cache",
+				"port": 6379,
+				"password": "",
+				"db": 0
+			}
+		},
 		"paths": {
 			"media": "./media",
 			"assets": "./assets"

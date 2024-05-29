@@ -26,7 +26,6 @@ type Service struct {
 	GameTeamService      IGameTeamService
 	CategoryService      ICategoryService
 	FlagService          IFlagService
-	HintService          IHintService
 	NoticeService        INoticeService
 }
 
@@ -53,7 +52,6 @@ func InitService() {
 			GameTeamService:      NewGameTeamService(appRepository),
 			CategoryService:      NewCategoryService(appRepository),
 			FlagService:          NewFlagService(appRepository),
-			HintService:          NewHintService(appRepository),
 			NoticeService:        NewNoticeService(appRepository),
 		}
 	})

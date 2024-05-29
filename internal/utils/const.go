@@ -1,4 +1,4 @@
-package global
+package utils
 
 // Need to be injected by -ldflags
 var (

@@ -1,10 +1,34 @@
 package cache
 
+import (
+	"github.com/elabosak233/cloudsdale/internal/app/config"
+	"sync"
+	"time"
+)
+
+var (
+	cache     ICache
+	onceCache sync.Once
+)
+
 type ICache interface {
-	Get(key string) (value string, err error)
-	Set(key string, value string, expire int) (err error)
+	Get(key string) (interface{}, bool)
+	Set(key string, value interface{}, expiration time.Duration)
+	Delete(key string)
+	DeleteByPrefix(prefix string)
 }
 
-func NewCache() ICache {
-	return nil
+func C() ICache {
+	return cache
+}
+
+func InitCache() {
+	onceCache.Do(func() {
+		switch config.AppCfg().Gin.Cache.Provider {
+		case "memory":
+			cache = NewMemoryCache()
+		case "redis":
+			cache = NewRedisCache()
+		}
+	})
 }

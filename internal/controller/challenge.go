@@ -1,29 +1,24 @@
 package controller
 
 import (
+	"fmt"
+	"github.com/elabosak233/cloudsdale/internal/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
-
-type IHintController interface {
-	Create(ctx *gin.Context)
-	Update(ctx *gin.Context)
-	Delete(ctx *gin.Context)
-}
 
 type IChallengeController interface {
 	Find(ctx *gin.Context)
 	Create(ctx *gin.Context)
 	Update(ctx *gin.Context)
 	Delete(ctx *gin.Context)
-	CreateHint(ctx *gin.Context)
-	UpdateHint(ctx *gin.Context)
-	DeleteHint(ctx *gin.Context)
 	CreateFlag(ctx *gin.Context)
 	UpdateFlag(ctx *gin.Context)
 	DeleteFlag(ctx *gin.Context)
@@ -35,7 +30,6 @@ type IChallengeController interface {
 type ChallengeController struct {
 	challengeService service.IChallengeService
 	flagService      service.IFlagService
-	hintService      service.IHintService
 	mediaService     service.IMediaService
 }
 
@@ -43,7 +37,6 @@ func NewChallengeController(appService *service.Service) IChallengeController {
 	return &ChallengeController{
 		challengeService: appService.ChallengeService,
 		flagService:      appService.FlagService,
-		hintService:      appService.HintService,
 		mediaService:     appService.MediaService,
 	}
 }
@@ -78,12 +71,21 @@ func (c *ChallengeController) Find(ctx *gin.Context) {
 	challengeFindRequest.UserID = user.ID
 	challengeFindRequest.IsDetailed = &isDetailed
 	challengeFindRequest.IsPracticable = isPracticable()
-	challenges, total, _ := c.challengeService.Find(challengeFindRequest)
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":  http.StatusOK,
-		"total": total,
-		"data":  challenges,
-	})
+	value, exist := cache.C().Get(fmt.Sprintf("challenges:%s", utils.HashStruct(challengeFindRequest)))
+	if !exist {
+		challenges, total, _ := c.challengeService.Find(challengeFindRequest)
+		value = gin.H{
+			"code":  http.StatusOK,
+			"total": total,
+			"data":  challenges,
+		}
+		cache.C().Set(
+			fmt.Sprintf("challenges:%s", utils.HashStruct(challengeFindRequest)),
+			value,
+			5*time.Minute,
+		)
+	}
+	ctx.JSON(http.StatusOK, value)
 }
 
 // Create
@@ -160,95 +162,6 @@ func (c *ChallengeController) Delete(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
 		})
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-	})
-}
-
-// CreateHint
-// @Summary 创建提示
-// @Description
-// @Tags Challenge
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Router /challenges/{id}/hints [post]
-func (c *ChallengeController) CreateHint(ctx *gin.Context) {
-	hintCreateRequest := request.HintCreateRequest{}
-	err := ctx.ShouldBindJSON(&hintCreateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &hintCreateRequest),
-		})
-		return
-	}
-	hintCreateRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = c.hintService.Create(hintCreateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-	})
-}
-
-// UpdateHint
-// @Summary 更新提示
-// @Description
-// @Tags Challenge
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Router /challenges/{id}/hints/{hint_id} [put]
-func (c *ChallengeController) UpdateHint(ctx *gin.Context) {
-	hintUpdateRequest := request.HintUpdateRequest{}
-	err := ctx.ShouldBindJSON(&hintUpdateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  validator.GetValidMsg(err, &hintUpdateRequest),
-		})
-		return
-	}
-	hintUpdateRequest.ID = convertor.ToUintD(ctx.Param("hint_id"), 0)
-	hintUpdateRequest.ChallengeID = convertor.ToUintD(ctx.Param("id"), 0)
-	err = c.hintService.Update(hintUpdateRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-	})
-}
-
-// DeleteHint
-// @Summary 删除提示
-// @Description
-// @Tags Challenge
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Router /challenges/{id}/hints/{hint_id} [delete]
-func (c *ChallengeController) DeleteHint(ctx *gin.Context) {
-	hintDeleteRequest := request.HintDeleteRequest{}
-	hintDeleteRequest.ID = convertor.ToUintD(ctx.Param("hint_id"), 0)
-	err := c.hintService.Delete(hintDeleteRequest)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,

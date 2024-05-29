@@ -8,9 +8,9 @@ import (
 )
 
 type IUserTeamService interface {
-	Join(req request.TeamUserJoinRequest) (err error)
-	Create(req request.TeamUserCreateRequest) (err error)
-	Delete(req request.TeamUserDeleteRequest) (err error)
+	Join(req request.TeamUserJoinRequest) error
+	Create(req request.TeamUserCreateRequest) error
+	Delete(req request.TeamUserDeleteRequest) error
 }
 
 type UserTeamService struct {
@@ -27,7 +27,7 @@ func NewUserTeamService(appRepository *repository.Repository) IUserTeamService {
 	}
 }
 
-func (t *UserTeamService) Join(req request.TeamUserJoinRequest) (err error) {
+func (t *UserTeamService) Join(req request.TeamUserJoinRequest) error {
 	user, err := t.userRepository.FindById(req.UserID)
 	team, err := t.teamRepository.FindById(req.TeamID)
 	if err != nil || user.ID == 0 || team.ID == 0 {
@@ -43,7 +43,7 @@ func (t *UserTeamService) Join(req request.TeamUserJoinRequest) (err error) {
 	return err
 }
 
-func (t *UserTeamService) Create(req request.TeamUserCreateRequest) (err error) {
+func (t *UserTeamService) Create(req request.TeamUserCreateRequest) error {
 	user, err := t.userRepository.FindById(req.UserID)
 	team, err := t.teamRepository.FindById(req.TeamID)
 	if err != nil || user.ID == 0 || team.ID == 0 {
@@ -56,7 +56,7 @@ func (t *UserTeamService) Create(req request.TeamUserCreateRequest) (err error) 
 	return err
 }
 
-func (t *UserTeamService) Delete(req request.TeamUserDeleteRequest) (err error) {
+func (t *UserTeamService) Delete(req request.TeamUserDeleteRequest) error {
 	user, err := t.userRepository.FindById(req.UserID)
 	team, err := t.teamRepository.FindById(req.TeamID)
 	if err != nil || user.ID == 0 || team.ID == 0 {

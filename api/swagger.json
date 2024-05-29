@@ -436,64 +436,6 @@
                 "responses": {}
             }
         },
-        "/challenges/{id}/hints": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Challenge"
-                ],
-                "summary": "创建提示",
-                "responses": {}
-            }
-        },
-        "/challenges/{id}/hints/{hint_id}": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Challenge"
-                ],
-                "summary": "更新提示",
-                "responses": {}
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Challenge"
-                ],
-                "summary": "删除提示",
-                "responses": {}
-            }
-        },
         "/configs/": {
             "get": {
                 "description": "配置全部查询",
@@ -2116,12 +2058,6 @@
                         "$ref": "#/definitions/model.Flag"
                     }
                 },
-                "hints": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Hint"
-                    }
-                },
                 "id": {
                     "description": "The challenge's id. As primary key.",
                     "type": "integer"
@@ -2356,43 +2292,6 @@
                 }
             }
         },
-        "model.Hint": {
-            "type": "object",
-            "properties": {
-                "challenge": {
-                    "description": "The challenge which the hint belongs to.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Challenge"
-                        }
-                    ]
-                },
-                "challenge_id": {
-                    "description": "The challenge which the hint belongs to.",
-                    "type": "integer"
-                },
-                "content": {
-                    "description": "The content of the hint.",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "The hint's creation time.",
-                    "type": "integer"
-                },
-                "id": {
-                    "description": "The hint's id.",
-                    "type": "integer"
-                },
-                "published_at": {
-                    "description": "When the hint will be published.",
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "description": "The hint's last update time.",
-                    "type": "integer"
-                }
-            }
-        },
         "model.Port": {
             "type": "object",
             "properties": {
@@ -2616,10 +2515,6 @@
                 },
                 "password": {
                     "description": "The user's password. Crypt.",
-                    "type": "string"
-                },
-                "signature": {
-                    "description": "The user's signature.",
                     "type": "string"
                 },
                 "teams": {

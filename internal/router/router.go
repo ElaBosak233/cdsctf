@@ -29,6 +29,7 @@ func InitRouter(
 			"msg":  "This is the heart of Cloudsdale.",
 		})
 	})
+
 	NewUserRouter(r.router.Group("/users"), r.controller.UserController).Register()
 	NewChallengeRouter(r.router.Group("/challenges"), r.controller.ChallengeController).Register()
 	NewPodRouter(r.router.Group("/pods"), r.controller.PodController).Register()

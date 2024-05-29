@@ -25,6 +25,7 @@ type Team struct {
 
 func (t *Team) Simplify() {
 	t.InviteToken = ""
+	t.Description = ""
 }
 
 func (t *Team) AfterFind(db *gorm.DB) (err error) {

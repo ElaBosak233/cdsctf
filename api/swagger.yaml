@@ -62,10 +62,6 @@ definitions:
         items:
           $ref: '#/definitions/model.Flag'
         type: array
-      hints:
-        items:
-          $ref: '#/definitions/model.Hint'
-        type: array
       id:
         description: The challenge's id. As primary key.
         type: integer
@@ -234,31 +230,6 @@ definitions:
       pts:
         type: integer
     type: object
-  model.Hint:
-    properties:
-      challenge:
-        allOf:
-        - $ref: '#/definitions/model.Challenge'
-        description: The challenge which the hint belongs to.
-      challenge_id:
-        description: The challenge which the hint belongs to.
-        type: integer
-      content:
-        description: The content of the hint.
-        type: string
-      created_at:
-        description: The hint's creation time.
-        type: integer
-      id:
-        description: The hint's id.
-        type: integer
-      published_at:
-        description: When the hint will be published.
-        type: integer
-      updated_at:
-        description: The hint's last update time.
-        type: integer
-    type: object
   model.Port:
     properties:
       challenge:
@@ -409,9 +380,6 @@ definitions:
         type: string
       password:
         description: The user's password. Crypt.
-        type: string
-      signature:
-        description: The user's signature.
         type: string
       teams:
         description: The user's teams.
@@ -1082,41 +1050,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 更新 flag
-      tags:
-      - Challenge
-  /challenges/{id}/hints:
-    post:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: 创建提示
-      tags:
-      - Challenge
-  /challenges/{id}/hints/{hint_id}:
-    delete:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: 删除提示
-      tags:
-      - Challenge
-    put:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: 更新提示
       tags:
       - Challenge
   /configs/:

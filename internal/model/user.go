@@ -3,11 +3,9 @@ package model
 import (
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/app/config"
-	"github.com/elabosak233/cloudsdale/internal/utils/signature"
 	"gorm.io/gorm"
 	"os"
 	"path"
-	"strconv"
 )
 
 type User struct {
@@ -17,7 +15,6 @@ type User struct {
 	Description string  `gorm:"column:description;type:text" json:"description"`                         // The user's description.
 	Email       string  `gorm:"column:email;varchar(64);unique;not null" json:"email,omitempty"`         // The user's email.
 	Avatar      *File   `gorm:"-" json:"avatar"`                                                         // The user's avatar.
-	Signature   string  `gorm:"column:signature;varchar(255);unique;" json:"signature,omitempty"`        // The user's signature.
 	Group       string  `gorm:"column:group;varchar(16);not null;" json:"group,omitempty"`               // The user's group.
 	Password    string  `gorm:"column:password;type:varchar(255);not null" json:"password,omitempty"`    // The user's password. Crypt.
 	CreatedAt   int64   `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"`                        // The user's creation time.
@@ -27,6 +24,7 @@ type User struct {
 
 func (u *User) Simplify() {
 	u.Password = ""
+	u.Description = ""
 }
 
 func (u *User) AfterFind(db *gorm.DB) (err error) {
@@ -47,14 +45,6 @@ func (u *User) AfterFind(db *gorm.DB) (err error) {
 	}
 	u.Avatar = &avatar
 	return nil
-}
-
-// AfterCreate Hook
-// Since the PrivateKey used here belongs to the entire Cloudsdale, it relies on GORM Hooks to write the Signature.
-func (u *User) AfterCreate(db *gorm.DB) (err error) {
-	sig, _ := signature.Sign(config.SigCfg().PrivateKey, strconv.Itoa(int(u.ID)))
-	u.Signature = fmt.Sprintf("%s:%s", strconv.Itoa(int(u.ID)), sig)
-	return db.Table("users").Updates(&u).Error
 }
 
 func (u *User) BeforeDelete(db *gorm.DB) (err error) {
