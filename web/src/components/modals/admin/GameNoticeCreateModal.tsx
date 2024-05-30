@@ -11,7 +11,6 @@ import {
 	ModalProps,
 	Stack,
 	TextInput,
-	ThemeIcon,
 	Text,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";

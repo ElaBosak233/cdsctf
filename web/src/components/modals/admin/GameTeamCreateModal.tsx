@@ -15,7 +15,6 @@ import {
 	Modal,
 	ModalProps,
 	Stack,
-	ThemeIcon,
 	Text,
 	Avatar,
 } from "@mantine/core";

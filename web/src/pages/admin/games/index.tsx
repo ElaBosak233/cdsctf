@@ -72,7 +72,7 @@ export default function Page() {
 			.deleteGame({
 				id: Number(game?.id),
 			})
-			.then((res) => {
+			.then((_) => {
 				showSuccessNotification({
 					message: `比赛 ${game?.title} 已被删除`,
 				});

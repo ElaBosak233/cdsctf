@@ -21,7 +21,6 @@ import {
 	Table,
 	Text,
 	TextInput,
-	ThemeIcon,
 	Tooltip,
 	lighten,
 	useMantineColorScheme,
@@ -74,7 +73,7 @@ export default function Page() {
 				id: Number(challenge?.id),
 				is_practicable: !challenge?.is_practicable,
 			})
-			.then((res) => {
+			.then((_) => {
 				showSuccessNotification({
 					message: !challenge?.is_practicable
 						? `题目 ${challenge?.title} 已投放进练习场`
@@ -91,7 +90,7 @@ export default function Page() {
 			.deleteChallenge({
 				id: Number(challenge?.id),
 			})
-			.then((res) => {
+			.then((_) => {
 				showSuccessNotification({
 					message: `题目 ${challenge?.title} 已被删除`,
 				});
@@ -229,7 +228,21 @@ export default function Page() {
 									</Table.Th>
 									<Table.Th>标题</Table.Th>
 									<Table.Th>描述</Table.Th>
-									<Table.Th>分类</Table.Th>
+									<Table.Th>
+										<Flex align={"center"}>
+											分类
+											<ActionIcon
+												variant="transparent"
+												onClick={() =>
+													navigate(
+														"/admin/categories"
+													)
+												}
+											>
+												<MDIcon>tune</MDIcon>
+											</ActionIcon>
+										</Flex>
+									</Table.Th>
 									<Table.Th>
 										<Flex justify={"center"}>
 											<ActionIcon

@@ -22,7 +22,6 @@ import {
 	Table,
 	Text,
 	TextInput,
-	ThemeIcon,
 	Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";

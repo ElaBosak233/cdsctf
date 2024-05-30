@@ -16,6 +16,10 @@ type Category struct {
 }
 
 func (c *Category) BeforeDelete(db *gorm.DB) (err error) {
-	db.Table("challenges").Where("category_id = ?", c.ID).Delete(&Challenge{})
+	var challenges []Challenge
+	db.Table("challenges").Where("category_id = ?", c.ID).Find(&challenges)
+	for _, challenge := range challenges {
+		db.Table("challenges").Delete(&challenge)
+	}
 	return nil
 }

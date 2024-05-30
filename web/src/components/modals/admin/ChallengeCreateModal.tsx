@@ -1,4 +1,3 @@
-import { useGameApi } from "@/api/game";
 import MDIcon from "@/components/ui/MDIcon";
 import { showSuccessNotification } from "@/utils/notification";
 import {
@@ -13,7 +12,6 @@ import {
 	Text,
 	Card,
 	Textarea,
-	ThemeIcon,
 	SimpleGrid,
 	Select,
 } from "@mantine/core";
