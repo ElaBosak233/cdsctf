@@ -17,6 +17,7 @@ type User struct {
 	Avatar      *File   `gorm:"-" json:"avatar"`                                                         // The user's avatar.
 	Group       string  `gorm:"column:group;varchar(16);not null;" json:"group,omitempty"`               // The user's group.
 	Password    string  `gorm:"column:password;type:varchar(255);not null" json:"password,omitempty"`    // The user's password. Crypt.
+	RemoteIP    string  `gorm:"column:remote_ip;type:varchar(32)" json:"remote_ip,omitempty"`            // The user's remote ip.
 	CreatedAt   int64   `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"`                        // The user's creation time.
 	UpdatedAt   int64   `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"`                        // The user's last update time.
 	Teams       []*Team `gorm:"many2many:user_teams;" json:"teams,omitempty"`                            // The user's teams.

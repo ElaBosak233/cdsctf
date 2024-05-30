@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"github.com/elabosak233/cloudsdale/internal/app/config"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -8,9 +10,26 @@ import (
 	"strings"
 )
 
+func index(ctx *gin.Context) {
+	filePath := filepath.Join(utils.FrontendPath, "index.html")
+	indexContent, err := os.ReadFile(filePath)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+			"msg":  "Error reading index.html",
+		})
+		ctx.Abort()
+		return
+	}
+	indexContentStr := string(indexContent)
+	indexContentStr = strings.ReplaceAll(indexContentStr, "{{ Cloudsdale.Title }}", config.PltCfg().Site.Title)
+	ctx.Header("Content-Type", "text/html; charset=utf-8")
+	ctx.String(http.StatusOK, indexContentStr)
+	ctx.Abort()
+}
+
 func Frontend(urlPrefix string) gin.HandlerFunc {
-	root := "./dist"
-	fileServer := http.FileServer(http.Dir(root))
+	fileServer := http.FileServer(http.Dir(utils.FrontendPath))
 	if !strings.HasSuffix(urlPrefix, "/") {
 		urlPrefix = urlPrefix + "/"
 	}
@@ -20,14 +39,17 @@ func Frontend(urlPrefix string) gin.HandlerFunc {
 			ctx.Next()
 		} else {
 			ctx.Set("skip_logging", true)
-			filePath := filepath.Join(root, ctx.Request.URL.Path)
+			filePath := filepath.Join(utils.FrontendPath, ctx.Request.URL.Path)
 			_, err := os.Stat(filePath)
 			if err == nil {
-				http.StripPrefix(staticServerPrefix, fileServer).ServeHTTP(ctx.Writer, ctx.Request)
-				ctx.Abort()
+				if ctx.Request.URL.Path == "/" || ctx.Request.URL.Path == "/index.html" {
+					index(ctx)
+				} else {
+					http.StripPrefix(staticServerPrefix, fileServer).ServeHTTP(ctx.Writer, ctx.Request)
+					ctx.Abort()
+				}
 			} else if os.IsNotExist(err) {
-				http.ServeFile(ctx.Writer, ctx.Request, filepath.Join(root, "index.html"))
-				ctx.Abort()
+				index(ctx)
 			} else {
 				ctx.Next()
 			}

@@ -41,6 +41,7 @@ type UserUpdateRequest struct {
 	Password string `binding:"omitempty,min=6" json:"password,omitempty"`
 	Email    string `binding:"omitempty,email" json:"email,omitempty"`
 	Group    string `json:"group"`
+	RemoteIP string `json:"-"`
 }
 
 type UserDeleteRequest struct {

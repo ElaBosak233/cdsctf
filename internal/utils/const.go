@@ -12,4 +12,5 @@ const (
 	MediaPath    = "./media"
 	FilesPath    = "./files"
 	CapturesPath = "./captures"
+	FrontendPath = "./dist"
 )

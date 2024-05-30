@@ -7,7 +7,6 @@ import (
 )
 
 type IConfigService interface {
-	FindAll() (cfg config.PlatformCfg)
 	Update(req request.ConfigUpdateRequest) (err error)
 }
 
@@ -16,10 +15,6 @@ type ConfigService struct {
 
 func NewConfigService(appRepository *repository.Repository) IConfigService {
 	return &ConfigService{}
-}
-
-func (c *ConfigService) FindAll() (cfg config.PlatformCfg) {
-	return *(config.PltCfg())
 }
 
 func (c *ConfigService) Update(req request.ConfigUpdateRequest) (err error) {

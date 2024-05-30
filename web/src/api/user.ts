@@ -2,6 +2,8 @@ import {
 	UserCreateRequest,
 	UserDeleteRequest,
 	UserFindRequest,
+	UserLoginRequest,
+	UserRegisterRequest,
 	UserUpdateRequest,
 } from "@/types/user";
 import { useApi, useAuth } from "@/utils/axios";
@@ -11,25 +13,12 @@ export function useUserApi() {
 	const api = useApi();
 	const auth = useAuth();
 
-	const login = (username: string, password: string) => {
-		return api.post("/users/login", {
-			username,
-			password,
-		});
+	const login = (request: UserLoginRequest) => {
+		return api.post("/users/login", request);
 	};
 
-	const register = (
-		username: string,
-		nickname: string,
-		email: string,
-		password: string
-	) => {
-		return api.post("/users/register", {
-			username,
-			nickname,
-			email,
-			password,
-		});
+	const register = (request: UserRegisterRequest) => {
+		return api.post("/users/register", request);
 	};
 
 	const getUsers = (request: UserFindRequest) => {

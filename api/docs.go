@@ -491,6 +491,22 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/configs/captcha": {
+            "get": {
+                "description": "Captcha 配置查询",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Config"
+                ],
+                "summary": "Captcha 配置查询",
+                "responses": {}
+            }
+        },
         "/games/": {
             "get": {
                 "security": [
@@ -2406,6 +2422,10 @@ const docTemplate = `{
                 },
                 "password": {
                     "description": "The user's password. Crypt.",
+                    "type": "string"
+                },
+                "remote_ip": {
+                    "description": "The user's remote ip.",
                     "type": "string"
                 },
                 "teams": {

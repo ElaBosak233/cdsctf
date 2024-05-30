@@ -54,7 +54,7 @@ type ApplicationCfg struct {
 			SiteKey   string  `yaml:"site_key" json:"site_key" mapstructure:"site_key"`
 			SecretKey string  `yaml:"secret_key" json:"secret_key" mapstructure:"secret_key"`
 			Threshold float64 `yaml:"threshold" json:"threshold" mapstructure:"threshold"`
-		} `yaml:"re_captcha" json:"re_captcha" mapstructure:"re_captcha"`
+		} `yaml:"recaptcha" json:"recaptcha" mapstructure:"recaptcha"`
 		Turnstile struct {
 			URL       string `yaml:"url" json:"url" mapstructure:"url"`
 			SiteKey   string `yaml:"site_key" json:"site_key" mapstructure:"site_key"`

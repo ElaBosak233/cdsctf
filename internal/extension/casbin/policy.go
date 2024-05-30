@@ -43,7 +43,7 @@ func initDefaultPolicy() {
 		{"user", "/api/pods/{id}", "DELETE"},
 
 		{"guest", "/api/", "GET"},
-		{"guest", "/api/configs/", "GET"},
+		{"guest", "/api/configs/*", "GET"},
 		{"guest", "/api/categories/", "GET"},
 		{"guest", "/api/users/", "GET"},
 		{"guest", "/api/users/register", "POST"},

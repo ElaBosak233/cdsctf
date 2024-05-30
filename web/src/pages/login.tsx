@@ -25,7 +25,7 @@ export default function Page() {
 	const [loginLoading, setLoginLoading] = useState(false);
 
 	const form = useForm({
-		mode: "uncontrolled",
+		mode: "controlled",
 		initialValues: {
 			username: "",
 			password: "",
@@ -47,10 +47,13 @@ export default function Page() {
 		},
 	});
 
-	function login(username: string, password: string) {
+	function login() {
 		setLoginLoading(true);
 		userApi
-			.login(username, password)
+			.login({
+				username: form.getValues().username,
+				password: form.getValues().password,
+			})
 			.then((res) => {
 				const r = res.data;
 				authStore.setPgsToken(r.token as string);
@@ -100,11 +103,7 @@ export default function Page() {
 						marginTop: "2rem",
 					}}
 				>
-					<form
-						onSubmit={form.onSubmit((values) =>
-							login(values.username, values.password)
-						)}
-					>
+					<form onSubmit={form.onSubmit((_) => login())}>
 						<TextInput
 							label="用户名"
 							size="lg"

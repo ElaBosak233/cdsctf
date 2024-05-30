@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -11,6 +12,7 @@ import (
 type IConfigController interface {
 	Find(ctx *gin.Context)
 	Update(ctx *gin.Context)
+	FindCaptcha(ctx *gin.Context)
 }
 
 type ConfigController struct {
@@ -33,7 +35,7 @@ func NewConfigController(appService *service.Service) IConfigController {
 func (c *ConfigController) Find(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-		"data": c.configService.FindAll(),
+		"data": *(config.PltCfg()),
 	})
 }
 
@@ -67,4 +69,27 @@ func (c *ConfigController) Update(ctx *gin.Context) {
 			"msg":  "更新成功",
 		})
 	}
+}
+
+// FindCaptcha
+// @Summary Captcha 配置查询
+// @Description	Captcha 配置查询
+// @Tags Config
+// @Accept json
+// @Produce json
+// @Router /configs/captcha [get]
+func (c *ConfigController) FindCaptcha(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": map[string]any{
+			"enabled":  config.AppCfg().Captcha.Enabled,
+			"provider": config.AppCfg().Captcha.Provider,
+			"turnstile": map[string]any{
+				"site_key": config.AppCfg().Captcha.Turnstile.SiteKey,
+			},
+			"recaptcha": map[string]any{
+				"site_key": config.AppCfg().Captcha.ReCaptcha.SiteKey,
+			},
+		},
+	})
 }
