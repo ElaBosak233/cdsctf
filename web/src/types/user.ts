@@ -51,3 +51,11 @@ export interface UserLoginRequest {
 	username: string;
 	password: string;
 }
+
+export interface UserRegisterRequest {
+	username: string;
+	nickname: string;
+	email: string;
+	password: string;
+	token?: string;
+}

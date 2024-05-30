@@ -34,6 +34,14 @@ function App() {
 			});
 	}, [configStore.refresh]);
 
+	// Get captcha config
+	useEffect(() => {
+		configApi.getCaptchaCfg().then((res) => {
+			const r = res.data;
+			configStore.setCaptchaCfg(r.data);
+		});
+	}, []);
+
 	// Get exists categories
 	useEffect(() => {
 		categoryApi.getCategories().then((res) => {

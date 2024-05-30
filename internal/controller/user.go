@@ -70,6 +70,10 @@ func (c *UserController) Login(ctx *gin.Context) {
 		zap.L().Warn(fmt.Sprintf("User %s login failed", user.Username), zap.Uint("user_id", user.ID))
 		return
 	}
+	_ = c.userService.Update(request.UserUpdateRequest{
+		ID:       user.ID,
+		RemoteIP: ctx.RemoteIP(),
+	})
 	tokenString, err := c.userService.GetJwtTokenByID(user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{

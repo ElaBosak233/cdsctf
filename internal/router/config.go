@@ -24,4 +24,5 @@ func NewConfigRouter(configRouter *gin.RouterGroup, configController controller.
 func (c *ConfigRouter) Register() {
 	c.router.GET("/", c.controller.Find)
 	c.router.PUT("/", c.controller.Update)
+	c.router.GET("/captcha", c.controller.FindCaptcha)
 }

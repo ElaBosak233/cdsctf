@@ -381,6 +381,9 @@ definitions:
       password:
         description: The user's password. Crypt.
         type: string
+      remote_ip:
+        description: The user's remote ip.
+        type: string
       teams:
         description: The user's teams.
         items:
@@ -1080,6 +1083,17 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 更新配置
+      tags:
+      - Config
+  /configs/captcha:
+    get:
+      consumes:
+      - application/json
+      description: Captcha 配置查询
+      produces:
+      - application/json
+      responses: {}
+      summary: Captcha 配置查询
       tags:
       - Config
   /games/:

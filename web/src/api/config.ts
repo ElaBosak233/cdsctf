@@ -12,8 +12,13 @@ export function useConfigApi() {
 		return auth.put("/configs/", request);
 	};
 
+	const getCaptchaCfg = () => {
+		return auth.get("/configs/captcha");
+	};
+
 	return {
 		getPltCfg,
 		updatePltCfg,
+		getCaptchaCfg,
 	};
 }

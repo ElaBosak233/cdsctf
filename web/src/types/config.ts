@@ -37,3 +37,14 @@ export interface ConfigUpdateRequest {
 		};
 	};
 }
+
+export interface CaptchaConfig {
+	enabled?: boolean;
+	provider?: string;
+	turnstile?: {
+		site_key?: string;
+	};
+	recaptcha?: {
+		site_key?: string;
+	};
+}
