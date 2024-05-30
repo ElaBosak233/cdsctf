@@ -111,7 +111,9 @@ export default function Page() {
 								<ActionIcon
 									onClick={() => setSearch(searchInput)}
 								>
-									<MDIcon size={15}>search</MDIcon>
+									<MDIcon size={15} c={"white"}>
+										search
+									</MDIcon>
 								</ActionIcon>
 							</Flex>
 							<Select
@@ -137,7 +139,17 @@ export default function Page() {
 											? "filled"
 											: "subtle"
 									}
-									leftSection={<MDIcon>extension</MDIcon>}
+									leftSection={
+										<MDIcon
+											c={
+												selectedCategory === 0
+													? "white"
+													: "brand"
+											}
+										>
+											extension
+										</MDIcon>
+									}
 									onClick={() => setSelectedCategory(0)}
 									color="brand"
 								>
@@ -157,7 +169,16 @@ export default function Page() {
 												: "subtle"
 										}
 										leftSection={
-											<MDIcon>{category?.icon}</MDIcon>
+											<MDIcon
+												c={
+													selectedCategory ===
+													category?.id
+														? "white"
+														: category?.color
+												}
+											>
+												{category?.icon}
+											</MDIcon>
 										}
 										onClick={() =>
 											setSelectedCategory(category?.id!)

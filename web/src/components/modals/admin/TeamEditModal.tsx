@@ -189,9 +189,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>person_remove</MDIcon>
-						</ThemeIcon>
+						<MDIcon>person_remove</MDIcon>
 						<Text fw={600}>踢出成员</Text>
 					</Flex>
 					<Divider my={10} />
@@ -217,9 +215,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent" color="orange">
-							<MDIcon>star</MDIcon>
-						</ThemeIcon>
+						<MDIcon color={"orange"}>star</MDIcon>
 						<Text fw={600}>转让队长</Text>
 					</Flex>
 					<Divider my={10} />
@@ -277,9 +273,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 						w={"40rem"}
 					>
 						<Flex gap={10} align={"center"}>
-							<ThemeIcon variant="transparent">
-								<MDIcon>group_add</MDIcon>
-							</ThemeIcon>
+							<MDIcon>group_add</MDIcon>
 							<Text fw={600}>团队详情</Text>
 						</Flex>
 						<Divider my={10} />
@@ -418,14 +412,11 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 														label="队长"
 														withArrow
 													>
-														<ThemeIcon
-															variant="transparent"
-															color="yellow"
+														<MDIcon
+															color={"yellow"}
 														>
-															<MDIcon>
-																star
-															</MDIcon>
-														</ThemeIcon>
+															star
+														</MDIcon>
 													</Tooltip>
 												)}
 												{user?.id !==
@@ -476,7 +467,9 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 								<Flex mt={20} justify={"end"} gap={10}>
 									<Button
 										type="submit"
-										leftSection={<MDIcon>check</MDIcon>}
+										leftSection={
+											<MDIcon c={"white"}>check</MDIcon>
+										}
 									>
 										更新
 									</Button>

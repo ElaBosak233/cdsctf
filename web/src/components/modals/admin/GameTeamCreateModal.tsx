@@ -109,9 +109,7 @@ export default function GameTeamCreateModal(props: GameTeamCreateModalProps) {
 						w={"40rem"}
 					>
 						<Flex gap={10} align={"center"}>
-							<ThemeIcon variant="transparent">
-								<MDIcon>people</MDIcon>
-							</ThemeIcon>
+							<MDIcon>people</MDIcon>
 							<Text fw={600}>添加团队</Text>
 						</Flex>
 						<Divider my={10} />
@@ -158,7 +156,9 @@ export default function GameTeamCreateModal(props: GameTeamCreateModalProps) {
 								<Flex mt={20} justify={"end"}>
 									<Button
 										type="submit"
-										leftSection={<MDIcon>check</MDIcon>}
+										leftSection={
+											<MDIcon c={"white"}>check</MDIcon>
+										}
 									>
 										创建
 									</Button>

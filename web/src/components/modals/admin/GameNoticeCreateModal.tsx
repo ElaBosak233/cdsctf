@@ -73,9 +73,7 @@ export default function GameNoticeCreateModal(
 					w={"40rem"}
 				>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>campaign</MDIcon>
-						</ThemeIcon>
+						<MDIcon>campaign</MDIcon>
 						<Text fw={600}>创建公告</Text>
 					</Flex>
 					<Divider my={10} />
@@ -94,7 +92,9 @@ export default function GameNoticeCreateModal(
 							<Flex mt={20} justify={"end"}>
 								<Button
 									type="submit"
-									leftSection={<MDIcon>check</MDIcon>}
+									leftSection={
+										<MDIcon c={"white"}>check</MDIcon>
+									}
 								>
 									创建
 								</Button>

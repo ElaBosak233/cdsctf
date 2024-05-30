@@ -107,7 +107,11 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={<MDIcon>collections_bookmark</MDIcon>}
+							leftSection={
+								<MDIcon color={"white"}>
+									collections_bookmark
+								</MDIcon>
+							}
 							onClick={() => navigate("/challenges")}
 						>
 							题库
@@ -119,7 +123,7 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={<MDIcon>flag</MDIcon>}
+							leftSection={<MDIcon color={"white"}>flag</MDIcon>}
 							onClick={() => navigate("/games")}
 						>
 							比赛
@@ -131,7 +135,9 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={<MDIcon>people</MDIcon>}
+							leftSection={
+								<MDIcon color={"white"}>people</MDIcon>
+							}
 							onClick={() => navigate("/teams")}
 						>
 							团队
@@ -144,7 +150,9 @@ export default function Navbar() {
 										backgroundColor: "transparent",
 									},
 								}}
-								leftSection={<MDIcon>settings</MDIcon>}
+								leftSection={
+									<MDIcon color={"white"}>settings</MDIcon>
+								}
 								onClick={() => navigate("/admin")}
 							>
 								管理
@@ -161,7 +169,9 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={<MDIcon>keyboard_return</MDIcon>}
+							leftSection={
+								<MDIcon color={"white"}>keyboard_return</MDIcon>
+							}
 							onClick={() => navigate("/")}
 						>
 							返回
@@ -173,7 +183,9 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={<MDIcon>settings</MDIcon>}
+							leftSection={
+								<MDIcon color={"white"}>settings</MDIcon>
+							}
 							onClick={() => navigate("/admin/global")}
 						>
 							全局
@@ -185,7 +197,11 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={<MDIcon>collections_bookmark</MDIcon>}
+							leftSection={
+								<MDIcon color={"white"}>
+									collections_bookmark
+								</MDIcon>
+							}
 							onClick={() => navigate("/admin/challenges")}
 						>
 							题库
@@ -197,7 +213,9 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={<MDIcon>category</MDIcon>}
+							leftSection={
+								<MDIcon color={"white"}>category</MDIcon>
+							}
 							onClick={() => navigate("/admin/categories")}
 						>
 							分类
@@ -209,7 +227,7 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={<MDIcon>flag</MDIcon>}
+							leftSection={<MDIcon color={"white"}>flag</MDIcon>}
 							onClick={() => navigate("/admin/games")}
 						>
 							比赛
@@ -221,7 +239,9 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={<MDIcon>people</MDIcon>}
+							leftSection={
+								<MDIcon color={"white"}>people</MDIcon>
+							}
 							onClick={() => navigate("/admin/teams")}
 						>
 							团队
@@ -233,7 +253,9 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={<MDIcon>person</MDIcon>}
+							leftSection={
+								<MDIcon color={"white"}>person</MDIcon>
+							}
 							onClick={() => navigate("/admin/users")}
 						>
 							用户
@@ -253,7 +275,7 @@ export default function Navbar() {
 						);
 					}}
 				>
-					<MDIcon>
+					<MDIcon color={"white"}>
 						{colorScheme === "dark" ? "light_mode" : "dark_mode"}
 					</MDIcon>
 				</ActionIcon>
@@ -304,7 +326,9 @@ export default function Navbar() {
 							<Menu.Divider />
 							<Menu.Item
 								c={"red"}
-								leftSection={<MDIcon>logout</MDIcon>}
+								leftSection={
+									<MDIcon color={"red"}>logout</MDIcon>
+								}
 								onClick={logout}
 							>
 								退出

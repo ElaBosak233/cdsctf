@@ -68,9 +68,7 @@ export default function UserSelectModal(props: UserSelectModalProps) {
 						w={"40rem"}
 					>
 						<Flex gap={10} align={"center"}>
-							<ThemeIcon variant="transparent">
-								<MDIcon>person</MDIcon>
-							</ThemeIcon>
+							<MDIcon>person</MDIcon>
 							<Text fw={600}>选择用户</Text>
 						</Flex>
 						<Divider my={10} />

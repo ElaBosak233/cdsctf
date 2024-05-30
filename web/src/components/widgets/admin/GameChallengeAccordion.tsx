@@ -99,9 +99,7 @@ export default function GameChallengeAccordion({
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>bookmark_remove</MDIcon>
-						</ThemeIcon>
+						<MDIcon>bookmark_remove</MDIcon>
 						<Text fw={600}>删除题目</Text>
 					</Flex>
 					<Divider my={10} />
@@ -143,16 +141,13 @@ export default function GameChallengeAccordion({
 					<Flex justify={"space-between"}>
 						<Group gap={15}>
 							<Badge>{gameChallenge?.challenge?.id}</Badge>
-							<ThemeIcon
-								variant="transparent"
+							<MDIcon
 								color={
 									gameChallenge?.challenge?.category?.color
 								}
 							>
-								<MDIcon>
-									{gameChallenge?.challenge?.category?.icon}
-								</MDIcon>
-							</ThemeIcon>
+								{gameChallenge?.challenge?.category?.icon}
+							</MDIcon>
 							<Text fw={700} size="1rem">
 								{gameChallenge?.challenge?.title}
 							</Text>
@@ -180,12 +175,11 @@ export default function GameChallengeAccordion({
 					<Tooltip label="删除题目" withArrow>
 						<ActionIcon
 							variant="transparent"
-							color="red"
 							onClick={() =>
 								openDeleteGameChallengeModal(gameChallenge)
 							}
 						>
-							<MDIcon>delete</MDIcon>
+							<MDIcon color={"red"}>delete</MDIcon>
 						</ActionIcon>
 					</Tooltip>
 				</Flex>
@@ -209,7 +203,7 @@ export default function GameChallengeAccordion({
 						</Group>
 						<Button
 							type="submit"
-							leftSection={<MDIcon>check</MDIcon>}
+							leftSection={<MDIcon c={"white"}>check</MDIcon>}
 						>
 							保存
 						</Button>

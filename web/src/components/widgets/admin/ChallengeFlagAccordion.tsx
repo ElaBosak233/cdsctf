@@ -83,9 +83,7 @@ export default function ChallengeFlagAccordion(
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>flag</MDIcon>
-						</ThemeIcon>
+						<MDIcon>flag</MDIcon>
 						<Text fw={600}>删除 Flag</Text>
 					</Flex>
 					<Divider my={10} />
@@ -132,10 +130,9 @@ export default function ChallengeFlagAccordion(
 					<Tooltip label="删除 Flag" withArrow>
 						<ActionIcon
 							variant="transparent"
-							color="red"
 							onClick={() => openDeleteFlagModal()}
 						>
-							<MDIcon>delete</MDIcon>
+							<MDIcon color="red">delete</MDIcon>
 						</ActionIcon>
 					</Tooltip>
 				</Flex>
@@ -188,7 +185,7 @@ export default function ChallengeFlagAccordion(
 						<Flex justify={"end"}>
 							<Button
 								type="submit"
-								leftSection={<MDIcon>check</MDIcon>}
+								leftSection={<MDIcon c={"white"}>check</MDIcon>}
 							>
 								保存
 							</Button>

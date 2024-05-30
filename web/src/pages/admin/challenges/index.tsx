@@ -112,9 +112,7 @@ export default function Page() {
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>bookmark_remove</MDIcon>
-						</ThemeIcon>
+						<MDIcon>bookmark_remove</MDIcon>
 						<Text fw={600}>删除题目</Text>
 					</Flex>
 					<Divider my={10} />
@@ -158,7 +156,9 @@ export default function Page() {
 							}}
 						/>
 						<ActionIcon onClick={() => setSearch(searchInput)}>
-							<MDIcon size={15}>search</MDIcon>
+							<MDIcon size={15} c={"white"}>
+								search
+							</MDIcon>
 						</ActionIcon>
 					</Flex>
 					<Select
@@ -221,11 +221,9 @@ export default function Page() {
 									<Table.Th>
 										<Flex justify={"start"}>
 											<Tooltip label="投放到题库">
-												<ThemeIcon variant="transparent">
-													<MDIcon>
-														collections_bookmark
-													</MDIcon>
-												</ThemeIcon>
+												<MDIcon>
+													collections_bookmark
+												</MDIcon>
 											</Tooltip>
 										</Flex>
 									</Table.Th>
@@ -280,8 +278,7 @@ export default function Page() {
 										</Table.Th>
 										<Table.Th>
 											<Group gap={10}>
-												<ThemeIcon
-													variant="transparent"
+												<MDIcon
 													color={
 														colorScheme === "dark"
 															? lighten(
@@ -296,13 +293,8 @@ export default function Page() {
 																	?.color
 													}
 												>
-													<MDIcon>
-														{
-															challenge?.category
-																?.icon
-														}
-													</MDIcon>
-												</ThemeIcon>
+													{challenge?.category?.icon}
+												</MDIcon>
 												<Text
 													c={
 														colorScheme === "dark"
@@ -337,14 +329,15 @@ export default function Page() {
 												</ActionIcon>
 												<ActionIcon
 													variant="transparent"
-													color="red"
 													onClick={() =>
 														openDeleteChallengeModal(
 															challenge
 														)
 													}
 												>
-													<MDIcon>delete</MDIcon>
+													<MDIcon color={"red"}>
+														delete
+													</MDIcon>
 												</ActionIcon>
 											</Group>
 										</Table.Th>

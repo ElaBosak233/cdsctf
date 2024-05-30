@@ -163,9 +163,7 @@ export default function UserEditModal(props: UserEditModalProps) {
 						pos={"relative"}
 					>
 						<Flex gap={10} align={"center"}>
-							<ThemeIcon variant="transparent">
-								<MDIcon>person_add</MDIcon>
-							</ThemeIcon>
+							<MDIcon>person_add</MDIcon>
 							<Text fw={600}>更新用户</Text>
 						</Flex>
 						<Divider my={10} />
@@ -286,7 +284,9 @@ export default function UserEditModal(props: UserEditModalProps) {
 								<Flex mt={20} justify={"end"}>
 									<Button
 										type="submit"
-										leftSection={<MDIcon>check</MDIcon>}
+										leftSection={
+											<MDIcon c={"white"}>check</MDIcon>
+										}
 									>
 										更新
 									</Button>

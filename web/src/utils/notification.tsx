@@ -16,7 +16,7 @@ export function showErrNotification({
 			title: title || "发生了错误",
 			message: message,
 			color: "red",
-			icon: <MDIcon>close</MDIcon>,
+			icon: <MDIcon c={"white"}>close</MDIcon>,
 			autoClose: 2000,
 			withCloseButton: true,
 			loading: false,
@@ -27,7 +27,7 @@ export function showErrNotification({
 		title: title || "发生了错误",
 		message: message,
 		color: "red",
-		icon: <MDIcon>close</MDIcon>,
+		icon: <MDIcon c={"white"}>close</MDIcon>,
 	});
 }
 
@@ -46,7 +46,7 @@ export function showSuccessNotification({
 			title: title || "成功",
 			message: message,
 			color: "green",
-			icon: <MDIcon>check</MDIcon>,
+			icon: <MDIcon c={"white"}>check</MDIcon>,
 			autoClose: 2000,
 			withCloseButton: true,
 			loading: false,
@@ -57,7 +57,7 @@ export function showSuccessNotification({
 		title: title || "成功",
 		message: message,
 		color: "green",
-		icon: <MDIcon>check</MDIcon>,
+		icon: <MDIcon c={"white"}>check</MDIcon>,
 	});
 }
 
@@ -76,7 +76,7 @@ export function showInfoNotification({
 			title: title || "信息",
 			message: message,
 			color: "blue",
-			icon: <MDIcon>info_i</MDIcon>,
+			icon: <MDIcon c={"white"}>info_i</MDIcon>,
 			autoClose: 2000,
 			withCloseButton: true,
 			loading: false,
@@ -87,7 +87,7 @@ export function showInfoNotification({
 		title: title || "信息",
 		message: message,
 		color: "blue",
-		icon: <MDIcon>info_i</MDIcon>,
+		icon: <MDIcon c={"white"}>info_i</MDIcon>,
 	});
 }
 
@@ -106,7 +106,7 @@ export function showWarnNotification({
 			title: title || "警告",
 			message: message,
 			color: "orange",
-			icon: <MDIcon>exclamation</MDIcon>,
+			icon: <MDIcon c={"white"}>exclamation</MDIcon>,
 			autoClose: 2000,
 			withCloseButton: true,
 			loading: false,
@@ -117,7 +117,7 @@ export function showWarnNotification({
 		title: title || "警告",
 		message: message,
 		color: "orange",
-		icon: <MDIcon>exclamation</MDIcon>,
+		icon: <MDIcon c={"white"}>exclamation</MDIcon>,
 	});
 }
 

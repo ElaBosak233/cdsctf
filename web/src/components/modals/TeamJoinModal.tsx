@@ -81,9 +81,7 @@ export default function TeamJoinModal(props: TeamJoinModalProps) {
 						w={"40rem"}
 					>
 						<Flex gap={10} align={"center"}>
-							<ThemeIcon variant="transparent">
-								<MDIcon>waving_hand</MDIcon>
-							</ThemeIcon>
+							<MDIcon>waving_hand</MDIcon>
 							<Text fw={600}>加入团队</Text>
 						</Flex>
 						<Divider my={10} />
@@ -103,7 +101,9 @@ export default function TeamJoinModal(props: TeamJoinModalProps) {
 								<Flex mt={20} justify={"end"}>
 									<Button
 										type="submit"
-										leftSection={<MDIcon>check</MDIcon>}
+										leftSection={
+											<MDIcon c={"white"}>check</MDIcon>
+										}
 									>
 										加入
 									</Button>

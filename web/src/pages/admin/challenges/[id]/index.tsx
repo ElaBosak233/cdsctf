@@ -155,9 +155,7 @@ function Page() {
 			<Stack m={36}>
 				<Stack gap={10}>
 					<Group>
-						<ThemeIcon variant="transparent">
-							<MDIcon>info</MDIcon>
-						</ThemeIcon>
+						<MDIcon>info</MDIcon>
 						<Text fw={700} size="xl">
 							基本信息
 						</Text>
@@ -240,11 +238,10 @@ function Page() {
 							<Tooltip label="清除附件" withArrow>
 								<ActionIcon
 									variant="transparent"
-									color="red"
 									my={7}
 									onClick={() => deleteAttachment()}
 								>
-									<MDIcon>delete</MDIcon>
+									<MDIcon color={"red"}>delete</MDIcon>
 								</ActionIcon>
 							</Tooltip>
 						</Group>
@@ -281,7 +278,7 @@ function Page() {
 							<Button
 								type="submit"
 								size="md"
-								leftSection={<MDIcon>check</MDIcon>}
+								leftSection={<MDIcon c={"white"}>check</MDIcon>}
 							>
 								保存
 							</Button>

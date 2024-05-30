@@ -64,7 +64,7 @@ export default function Page() {
 					<Button
 						w={"10%"}
 						size="lg"
-						leftSection={<MDIcon>search</MDIcon>}
+						leftSection={<MDIcon c={"white"}>search</MDIcon>}
 					>
 						搜索
 					</Button>

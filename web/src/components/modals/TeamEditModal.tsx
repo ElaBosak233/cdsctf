@@ -177,9 +177,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>person_remove</MDIcon>
-						</ThemeIcon>
+						<MDIcon>person_remove</MDIcon>
 						<Text fw={600}>踢出成员</Text>
 					</Flex>
 					<Divider my={10} />
@@ -205,9 +203,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent" color="orange">
-							<MDIcon>star</MDIcon>
-						</ThemeIcon>
+						<MDIcon>star</MDIcon>
 						<Text fw={600}>转让队长</Text>
 					</Flex>
 					<Divider my={10} />
@@ -232,9 +228,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent" color="red">
-							<MDIcon>swap_horiz</MDIcon>
-						</ThemeIcon>
+						<MDIcon color={"red"}>swap_horiz</MDIcon>
 						<Text fw={600}>解散团队</Text>
 					</Flex>
 					<Divider my={10} />
@@ -285,9 +279,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 						w={"40rem"}
 					>
 						<Flex gap={10} align={"center"}>
-							<ThemeIcon variant="transparent">
-								<MDIcon>group_add</MDIcon>
-							</ThemeIcon>
+							<MDIcon>group_add</MDIcon>
 							<Text fw={600}>团队详情</Text>
 						</Flex>
 						<Divider my={10} />
@@ -442,14 +434,11 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 														label="队长"
 														withArrow
 													>
-														<ThemeIcon
-															variant="transparent"
-															color="yellow"
+														<MDIcon
+															color={"yellow"}
 														>
-															<MDIcon>
-																star
-															</MDIcon>
-														</ThemeIcon>
+															star
+														</MDIcon>
 													</Tooltip>
 												)}
 												{isCaptain &&
@@ -511,7 +500,11 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 										</Button>
 										<Button
 											type="submit"
-											leftSection={<MDIcon>check</MDIcon>}
+											leftSection={
+												<MDIcon c={"white"}>
+													check
+												</MDIcon>
+											}
 										>
 											更新
 										</Button>

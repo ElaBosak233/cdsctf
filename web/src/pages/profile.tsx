@@ -139,9 +139,7 @@ export default function Page() {
 					w={"50rem"}
 				>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>person</MDIcon>
-						</ThemeIcon>
+						<MDIcon>person</MDIcon>
 						<Text fw={600}>个人资料</Text>
 					</Flex>
 					<Divider my={10} />
@@ -251,7 +249,9 @@ export default function Page() {
 							<Flex mt={20} justify={"end"}>
 								<Button
 									type="submit"
-									leftSection={<MDIcon>check</MDIcon>}
+									leftSection={
+										<MDIcon c={"white"}>check</MDIcon>
+									}
 								>
 									更新
 								</Button>

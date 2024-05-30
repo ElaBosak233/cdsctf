@@ -116,9 +116,7 @@ export default function Page() {
 							<Stack my={20}>
 								<Group gap={5}>
 									<Badge>{startedAt}</Badge>
-									<ThemeIcon variant="transparent">
-										<MDIcon>arrow_right_alt</MDIcon>
-									</ThemeIcon>
+									<MDIcon>arrow_right_alt</MDIcon>
 									<Badge>{endedAt}</Badge>
 								</Group>
 								<Progress

@@ -130,9 +130,7 @@ function Page() {
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>verified</MDIcon>
-						</ThemeIcon>
+						<MDIcon>verified</MDIcon>
 						<Text fw={600}>删除提交记录</Text>
 					</Flex>
 					<Divider my={10} />
@@ -171,9 +169,7 @@ function Page() {
 			<Stack m={36}>
 				<Stack gap={10}>
 					<Group>
-						<ThemeIcon variant="transparent">
-							<MDIcon>verified</MDIcon>
-						</ThemeIcon>
+						<MDIcon>verified</MDIcon>
 						<Text fw={700} size="xl">
 							提交记录
 						</Text>
@@ -268,14 +264,15 @@ function Page() {
 											>
 												<ActionIcon
 													variant="transparent"
-													color="red"
 													onClick={() =>
 														openDeleteSubmissionModal(
 															submission
 														)
 													}
 												>
-													<MDIcon>delete</MDIcon>
+													<MDIcon color={"red"}>
+														delete
+													</MDIcon>
 												</ActionIcon>
 											</Tooltip>
 										</Group>
