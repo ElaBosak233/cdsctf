@@ -3,7 +3,6 @@ package service
 import (
 	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
-	"github.com/elabosak233/cloudsdale/internal/repository"
 )
 
 type IConfigService interface {
@@ -13,16 +12,18 @@ type IConfigService interface {
 type ConfigService struct {
 }
 
-func NewConfigService(appRepository *repository.Repository) IConfigService {
+func NewConfigService() IConfigService {
 	return &ConfigService{}
 }
 
 func (c *ConfigService) Update(req request.ConfigUpdateRequest) (err error) {
 	config.PltCfg().Site.Title = req.Site.Title
 	config.PltCfg().Site.Description = req.Site.Description
-	config.PltCfg().Container.ParallelLimit = int(req.Container.ParallelLimit)
-	config.PltCfg().Container.RequestLimit = int(req.Container.RequestLimit)
-	config.PltCfg().User.AllowRegistration = req.User.AllowRegistration
+	config.PltCfg().Container.ParallelLimit = req.Container.ParallelLimit
+	config.PltCfg().Container.RequestLimit = req.Container.RequestLimit
+	config.PltCfg().User.Register.Enabled = req.User.Register.Enabled
+	config.PltCfg().User.Register.Captcha.Enabled = req.User.Register.Captcha.Enabled
+	config.PltCfg().User.Register.Email.Enabled = req.User.Register.Email.Enabled
 	err = config.PltCfg().Save()
 	return err
 }
