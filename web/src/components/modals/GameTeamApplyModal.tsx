@@ -152,7 +152,7 @@ export default function GameTeamApplyModal(props: GameTeamApplyModalProps) {
 												createGameTeam(team);
 											}}
 										>
-											<MDIcon c={"white"}>check</MDIcon>
+											<MDIcon>check</MDIcon>
 										</ActionIcon>
 									</Flex>
 								))}

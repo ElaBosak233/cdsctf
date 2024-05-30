@@ -336,7 +336,7 @@ function Page() {
 							lineHeight: "2.5rem",
 						}}
 					>
-						<Table.Th colSpan={4}>
+						<Table.Th colSpan={4} w={"25%"}>
 							<Flex gap={20} justify={"center"}>
 								<Flex gap={10} align={"center"}>
 									<ThemeIcon variant="transparent">
@@ -385,7 +385,7 @@ function Page() {
 										align={"center"}
 										justify={"center"}
 									>
-										<MDIcon>
+										<MDIcon c={"white"}>
 											{
 												categoriedChallenge?.category
 													?.icon
