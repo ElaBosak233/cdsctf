@@ -102,6 +102,10 @@ func (c *SubmissionController) Create(ctx *gin.Context) {
 		return
 	}
 	cache.C().DeleteByPrefix("submissions")
+	if status == 2 {
+		cache.C().DeleteByPrefix("challenges")
+		cache.C().DeleteByPrefix("game_challenges")
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":   http.StatusOK,
 		"rank":   rank,
