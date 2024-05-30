@@ -213,20 +213,6 @@ export default function Navbar() {
 									backgroundColor: "transparent",
 								},
 							}}
-							leftSection={
-								<MDIcon color={"white"}>category</MDIcon>
-							}
-							onClick={() => navigate("/admin/categories")}
-						>
-							分类
-						</Button>
-						<Button
-							sx={{
-								backgroundColor: "transparent",
-								"&:hover": {
-									backgroundColor: "transparent",
-								},
-							}}
 							leftSection={<MDIcon color={"white"}>flag</MDIcon>}
 							onClick={() => navigate("/admin/games")}
 						>

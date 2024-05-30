@@ -11,11 +11,9 @@ import {
 	ModalProps,
 	Stack,
 	TextInput,
-	ThemeIcon,
 	Text,
 	Switch,
 	Select,
-	Group,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
