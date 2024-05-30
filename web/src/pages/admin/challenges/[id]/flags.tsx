@@ -56,9 +56,7 @@ function Page() {
 				<Stack gap={10}>
 					<Flex justify={"space-between"} align={"center"}>
 						<Group>
-							<ThemeIcon variant="transparent">
-								<MDIcon>flag</MDIcon>
-							</ThemeIcon>
+							<MDIcon>flag</MDIcon>
 							<Text fw={700} size="xl">
 								Flags
 							</Text>

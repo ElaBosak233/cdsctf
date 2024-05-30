@@ -264,25 +264,20 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 							}}
 						>
 							<Group gap={6}>
-								<Box
-									sx={{
-										color:
-											colorScheme === "light"
-												? challenge?.category?.color ||
-													"#3F51B5"
-												: lighten(
-														challenge?.category
-															?.color ||
-															"#3F51B5",
-														0.15
-													),
-										display: "flex",
-										alignItems: "center",
-									}}
-									className="no-select"
+								<MDIcon
+									color={
+										colorScheme === "light"
+											? challenge?.category?.color ||
+												"#3F51B5"
+											: lighten(
+													challenge?.category
+														?.color || "#3F51B5",
+													0.15
+												)
+									}
 								>
-									<MDIcon>{challenge?.category?.icon}</MDIcon>
-								</Box>
+									{challenge?.category?.icon}
+								</MDIcon>
 								<Text fw={700}>{challenge?.title}</Text>
 							</Group>
 							<Box
@@ -388,8 +383,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 													px={10}
 													gap={10}
 												>
-													<ThemeIcon
-														variant="transparent"
+													<MDIcon
 														c={
 															colorScheme ===
 															"light"
@@ -397,8 +391,8 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 																: "gray.3"
 														}
 													>
-														<MDIcon>lan</MDIcon>
-													</ThemeIcon>
+														lan
+													</MDIcon>
 
 													<Flex
 														align={"center"}
@@ -412,8 +406,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 														<Text>
 															{nat.src_port}
 														</Text>
-														<ThemeIcon
-															variant="transparent"
+														<MDIcon
 															c={
 																colorScheme ===
 																"light"
@@ -421,10 +414,8 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 																	: "gray.3"
 															}
 														>
-															<MDIcon>
-																arrow_right_alt
-															</MDIcon>
-														</ThemeIcon>
+															arrow_right_alt
+														</MDIcon>
 													</Flex>
 												</Flex>
 											}
@@ -530,7 +521,13 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 									variant="filled"
 									placeholder="Flag"
 									w={"85%"}
-									leftSection={<MDIcon>flag</MDIcon>}
+									leftSection={
+										<MDIcon
+											color={challenge?.category?.color}
+										>
+											flag
+										</MDIcon>
+									}
 									sx={{
 										input: {
 											"&:focus": {

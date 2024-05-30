@@ -162,7 +162,9 @@ export default function Page() {
 							}}
 						/>
 						<ActionIcon onClick={() => setSearch(searchInput)}>
-							<MDIcon size={15}>search</MDIcon>
+							<MDIcon size={15} c={"white"}>
+								search
+							</MDIcon>
 						</ActionIcon>
 					</Flex>
 					<Select
@@ -357,14 +359,15 @@ export default function Page() {
 													</ActionIcon>
 													<ActionIcon
 														variant="transparent"
-														color="red"
 														onClick={() =>
 															openDeleteGameModal(
 																game
 															)
 														}
 													>
-														<MDIcon>delete</MDIcon>
+														<MDIcon color={"red"}>
+															delete
+														</MDIcon>
 													</ActionIcon>
 												</Group>
 											</Table.Th>

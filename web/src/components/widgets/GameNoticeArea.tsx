@@ -72,9 +72,7 @@ export default function GameNoticeArea() {
 							}}
 						>
 							{notice?.type === "normal" && (
-								<ThemeIcon variant="transparent" color="brand">
-									<MDIcon>campaign</MDIcon>
-								</ThemeIcon>
+								<MDIcon>campaign</MDIcon>
 							)}
 							{notice?.type === "first_blood" && (
 								<FirstBloodIcon />
@@ -86,9 +84,7 @@ export default function GameNoticeArea() {
 								<ThirdBloodIcon />
 							)}
 							{notice?.type === "new_challenge" && (
-								<ThemeIcon variant="transparent" color="green">
-									<MDIcon>add</MDIcon>
-								</ThemeIcon>
+								<MDIcon color={"green"}>add</MDIcon>
 							)}
 						</Box>
 						<Box

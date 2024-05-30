@@ -126,9 +126,7 @@ function Page() {
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>people</MDIcon>
-						</ThemeIcon>
+						<MDIcon>people</MDIcon>
 						<Text fw={600}>移除团队</Text>
 					</Flex>
 					<Divider my={10} />
@@ -176,9 +174,7 @@ function Page() {
 				<Stack gap={10}>
 					<Flex justify={"space-between"} align={"center"}>
 						<Group>
-							<ThemeIcon variant="transparent">
-								<MDIcon>people</MDIcon>
-							</ThemeIcon>
+							<MDIcon>people</MDIcon>
 							<Text fw={700} size="xl">
 								参赛团队
 							</Text>
@@ -265,14 +261,15 @@ function Page() {
 										<Tooltip label="移除团队" withArrow>
 											<ActionIcon
 												variant="transparent"
-												color="red"
 												onClick={() =>
 													openDeleteGameTeamModal(
 														gameTeam
 													)
 												}
 											>
-												<MDIcon>delete</MDIcon>
+												<MDIcon color={"red"}>
+													delete
+												</MDIcon>
 											</ActionIcon>
 										</Tooltip>
 									</Table.Td>

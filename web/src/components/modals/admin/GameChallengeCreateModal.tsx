@@ -137,9 +137,7 @@ export default function GameChallengeCreateModal(
 						w={"40rem"}
 					>
 						<Flex gap={10} align={"center"}>
-							<ThemeIcon variant="transparent">
-								<MDIcon>collections_bookmark</MDIcon>
-							</ThemeIcon>
+							<MDIcon>collections_bookmark</MDIcon>
 							<Text fw={600}>添加题目</Text>
 						</Flex>
 						<Divider my={10} />
@@ -161,22 +159,19 @@ export default function GameChallengeCreateModal(
 											{challenge && (
 												<>
 													<Group gap={15}>
-														<ThemeIcon
-															variant="transparent"
+														<MDIcon
 															color={
 																challenge
 																	?.category
 																	?.color
 															}
 														>
-															<MDIcon>
-																{
-																	challenge
-																		?.category
-																		?.icon
-																}
-															</MDIcon>
-														</ThemeIcon>
+															{
+																challenge
+																	?.category
+																	?.icon
+															}
+														</MDIcon>
 														<Text
 															fw={700}
 															size="1rem"
@@ -209,7 +204,9 @@ export default function GameChallengeCreateModal(
 								<Flex mt={20} justify={"end"}>
 									<Button
 										type="submit"
-										leftSection={<MDIcon>check</MDIcon>}
+										leftSection={
+											<MDIcon c={"white"}>check</MDIcon>
+										}
 									>
 										创建
 									</Button>

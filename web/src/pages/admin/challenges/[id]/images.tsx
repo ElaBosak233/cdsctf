@@ -95,9 +95,7 @@ function Page() {
 				<Stack>
 					<Stack gap={10}>
 						<Group>
-							<ThemeIcon variant="transparent">
-								<MDIcon>deployed_code_update</MDIcon>
-							</ThemeIcon>
+							<MDIcon>deployed_code_update</MDIcon>
 							<Text fw={700} size="xl">
 								镜像参数
 							</Text>
@@ -129,9 +127,7 @@ function Page() {
 					<Stack gap={10}>
 						<Flex justify={"space-between"} align="center">
 							<Group>
-								<ThemeIcon variant="transparent">
-									<MDIcon>upgrade</MDIcon>
-								</ThemeIcon>
+								<MDIcon>upgrade</MDIcon>
 								<Text fw={700} size="xl">
 									端口映射
 								</Text>
@@ -206,11 +202,8 @@ function Page() {
 										setPorts(newPorts);
 									}}
 								>
-									<ActionIcon
-										variant="transparent"
-										color="red"
-									>
-										<MDIcon>delete</MDIcon>
+									<ActionIcon variant="transparent">
+										<MDIcon color={"red"}>delete</MDIcon>
 									</ActionIcon>
 								</Tooltip>
 							</Flex>
@@ -219,9 +212,7 @@ function Page() {
 					<Stack gap={10}>
 						<Flex justify={"space-between"} align="center">
 							<Group>
-								<ThemeIcon variant="transparent">
-									<MDIcon>language</MDIcon>
-								</ThemeIcon>
+								<MDIcon>language</MDIcon>
 								<Text fw={700} size="xl">
 									环境变量
 								</Text>
@@ -294,11 +285,8 @@ function Page() {
 										setEnvs(newEnvs);
 									}}
 								>
-									<ActionIcon
-										variant="transparent"
-										color="red"
-									>
-										<MDIcon>delete</MDIcon>
+									<ActionIcon variant="transparent">
+										<MDIcon color={"red"}>delete</MDIcon>
 									</ActionIcon>
 								</Tooltip>
 							</Flex>
@@ -307,7 +295,7 @@ function Page() {
 					<Flex justify="end">
 						<Button
 							type="submit"
-							leftSection={<MDIcon>check</MDIcon>}
+							leftSection={<MDIcon c={"white"}>check</MDIcon>}
 						>
 							保存
 						</Button>

@@ -125,9 +125,7 @@ export default function GameTeamApplyModal(props: GameTeamApplyModalProps) {
 						w={"40rem"}
 					>
 						<Flex gap={10} align={"center"}>
-							<ThemeIcon variant="transparent">
-								<MDIcon>people</MDIcon>
-							</ThemeIcon>
+							<MDIcon>people</MDIcon>
 							<Text fw={600}>选择团队</Text>
 						</Flex>
 						<Divider my={10} />
@@ -157,7 +155,7 @@ export default function GameTeamApplyModal(props: GameTeamApplyModalProps) {
 												createGameTeam(team);
 											}}
 										>
-											<MDIcon>check</MDIcon>
+											<MDIcon c={"white"}>check</MDIcon>
 										</ActionIcon>
 									</Flex>
 								))}

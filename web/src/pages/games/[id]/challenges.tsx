@@ -149,7 +149,10 @@ function Page() {
 			<Stack my={10} mx={"2%"}>
 				<Flex justify={"space-between"}>
 					<Stack mx={10} miw={200} maw={200}>
-						<Button size="lg" leftSection={<MDIcon>upload</MDIcon>}>
+						<Button
+							size="lg"
+							leftSection={<MDIcon c={"white"}>upload</MDIcon>}
+						>
 							上传题解
 						</Button>
 						<Divider />
@@ -160,7 +163,17 @@ function Page() {
 								}
 								size="lg"
 								color="brand"
-								leftSection={<MDIcon>extension</MDIcon>}
+								leftSection={
+									<MDIcon
+										c={
+											selectedCategory === 0
+												? "white"
+												: "brand"
+										}
+									>
+										extension
+									</MDIcon>
+								}
 								onClick={() => {
 									setSelectedCategory(0);
 								}}
@@ -179,7 +192,17 @@ function Page() {
 										color={category?.color || "brand"}
 										size="lg"
 										leftSection={
-											<MDIcon>{category?.icon}</MDIcon>
+											<MDIcon
+												c={
+													selectedCategory ===
+													category?.id
+														? "white"
+														: category?.color ||
+															"brand"
+												}
+											>
+												{category?.icon}
+											</MDIcon>
 										}
 										onClick={() => {
 											setSelectedCategory(

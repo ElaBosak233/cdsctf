@@ -48,7 +48,17 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
 							<Group>
 								<Button
 									size="md"
-									leftSection={<MDIcon>flag</MDIcon>}
+									leftSection={
+										<MDIcon
+											c={
+												path === "/challenges"
+													? "white"
+													: "brand"
+											}
+										>
+											flag
+										</MDIcon>
+									}
 									variant={
 										path === "/challenges"
 											? "filled"
@@ -62,7 +72,17 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
 								</Button>
 								<Button
 									size="md"
-									leftSection={<MDIcon>trending_up</MDIcon>}
+									leftSection={
+										<MDIcon
+											c={
+												path === "/scoreboard"
+													? "white"
+													: "brand"
+											}
+										>
+											trending_up
+										</MDIcon>
+									}
 									variant={
 										path === "/scoreboard"
 											? "filled"

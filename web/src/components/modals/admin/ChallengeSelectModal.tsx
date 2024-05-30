@@ -68,9 +68,7 @@ export default function ChallengeSelectModal(props: ChallengeSelectModalProps) {
 						w={"40rem"}
 					>
 						<Flex gap={10} align={"center"}>
-							<ThemeIcon variant="transparent">
-								<MDIcon>collections_bookmark</MDIcon>
-							</ThemeIcon>
+							<MDIcon>collections_bookmark</MDIcon>
 							<Text fw={600}>选择题目</Text>
 						</Flex>
 						<Divider my={10} />
@@ -90,16 +88,13 @@ export default function ChallengeSelectModal(props: ChallengeSelectModalProps) {
 									>
 										<Group gap={15}>
 											<Badge>{challenge?.id}</Badge>
-											<ThemeIcon
-												variant="transparent"
+											<MDIcon
 												color={
 													challenge?.category?.color
 												}
 											>
-												<MDIcon>
-													{challenge?.category?.icon}
-												</MDIcon>
-											</ThemeIcon>
+												{challenge?.category?.icon}
+											</MDIcon>
 											<Text fw={700} size="1rem">
 												{challenge?.title}
 											</Text>

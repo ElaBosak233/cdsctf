@@ -127,9 +127,7 @@ function Page() {
 			<Stack m={36}>
 				<Stack gap={10}>
 					<Group>
-						<ThemeIcon variant="transparent">
-							<MDIcon>verified</MDIcon>
-						</ThemeIcon>
+						<MDIcon>verified</MDIcon>
 						<Text fw={700} size="xl">
 							提交记录
 						</Text>
@@ -226,11 +224,10 @@ function Page() {
 												withArrow
 												label="删除提交记录"
 											>
-												<ActionIcon
-													variant="transparent"
-													color="red"
-												>
-													<MDIcon>delete</MDIcon>
+												<ActionIcon variant="transparent">
+													<MDIcon color={"red"}>
+														delete
+													</MDIcon>
 												</ActionIcon>
 											</Tooltip>
 										</Group>

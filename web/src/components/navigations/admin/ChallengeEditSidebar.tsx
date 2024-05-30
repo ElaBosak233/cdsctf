@@ -16,7 +16,7 @@ export default function ChallengeEditSidebar(props: ChallengeEditSidebarProps) {
 		<Stack w={150} {...stackProps}>
 			<Button
 				size="md"
-				leftSection={<MDIcon>arrow_back</MDIcon>}
+				leftSection={<MDIcon c={"white"}>arrow_back</MDIcon>}
 				onClick={() => navigate(`/admin/challenges`)}
 			>
 				返回上级
@@ -26,21 +26,33 @@ export default function ChallengeEditSidebar(props: ChallengeEditSidebarProps) {
 				<Button
 					variant={path === "" ? "filled" : "subtle"}
 					onClick={() => navigate(`/admin/challenges/${id}`)}
-					leftSection={<MDIcon>info</MDIcon>}
+					leftSection={
+						<MDIcon c={path === "" ? "white" : "brand"}>
+							info
+						</MDIcon>
+					}
 				>
 					基本信息
 				</Button>
 				<Button
 					variant={path === "/flags" ? "filled" : "subtle"}
 					onClick={() => navigate(`/admin/challenges/${id}/flags`)}
-					leftSection={<MDIcon>flag</MDIcon>}
+					leftSection={
+						<MDIcon c={path === "/flags" ? "white" : "brand"}>
+							flag
+						</MDIcon>
+					}
 				>
 					Flags
 				</Button>
 				<Button
 					variant={path === "/images" ? "filled" : "subtle"}
 					onClick={() => navigate(`/admin/challenges/${id}/images`)}
-					leftSection={<MDIcon>package_2</MDIcon>}
+					leftSection={
+						<MDIcon c={path === "/images" ? "white" : "brand"}>
+							package_2
+						</MDIcon>
+					}
 				>
 					镜像
 				</Button>
@@ -49,7 +61,11 @@ export default function ChallengeEditSidebar(props: ChallengeEditSidebarProps) {
 					onClick={() =>
 						navigate(`/admin/challenges/${id}/submissions`)
 					}
-					leftSection={<MDIcon>verified</MDIcon>}
+					leftSection={
+						<MDIcon c={path === "/submissions" ? "white" : "brand"}>
+							verified
+						</MDIcon>
+					}
 				>
 					提交记录
 				</Button>

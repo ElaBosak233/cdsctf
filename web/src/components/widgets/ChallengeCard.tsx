@@ -84,14 +84,16 @@ export default function ChallengeCard({
 		>
 			<Box
 				pos={"absolute"}
-				right={-15}
-				bottom={-22.5}
+				right={0}
+				bottom={-20}
 				sx={{
 					opacity: 0.2,
 					color: cardTextColor,
 				}}
 			>
-				<MDIcon size={180}>{challenge?.category?.icon}</MDIcon>
+				<MDIcon color={cardTextColor} size={180}>
+					{challenge?.category?.icon}
+				</MDIcon>
 			</Box>
 			{challenge?.solved && (
 				<Box
@@ -103,9 +105,9 @@ export default function ChallengeCard({
 					}}
 				>
 					<Tooltip label="已解决">
-						<ThemeIcon variant="transparent" c={"#FFF"}>
-							<MDIcon size={30}>done</MDIcon>
-						</ThemeIcon>
+						<MDIcon size={30} color={"#FFF"}>
+							done
+						</MDIcon>
 					</Tooltip>
 				</Box>
 			)}

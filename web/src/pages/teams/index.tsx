@@ -55,14 +55,14 @@ export default function Page() {
 				<Flex justify={"end"} gap={15}>
 					<Button
 						size="lg"
-						leftSection={<MDIcon>waving_hand</MDIcon>}
+						leftSection={<MDIcon c={"white"}>waving_hand</MDIcon>}
 						onClick={joinOpen}
 					>
 						加入团队
 					</Button>
 					<Button
 						size="lg"
-						leftSection={<MDIcon>group_add</MDIcon>}
+						leftSection={<MDIcon c={"white"}>group_add</MDIcon>}
 						onClick={createOpen}
 					>
 						创建团队

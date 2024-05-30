@@ -91,9 +91,7 @@ export default function Page() {
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>person_remove</MDIcon>
-						</ThemeIcon>
+						<MDIcon>person_remove</MDIcon>
 						<Text fw={600}>删除团队</Text>
 					</Flex>
 					<Divider my={10} />
@@ -137,7 +135,9 @@ export default function Page() {
 							}}
 						/>
 						<ActionIcon onClick={() => setSearch(searchInput)}>
-							<MDIcon size={15}>search</MDIcon>
+							<MDIcon size={15} c={"white"}>
+								search
+							</MDIcon>
 						</ActionIcon>
 					</Flex>
 					<Select
@@ -276,14 +276,15 @@ export default function Page() {
 												</ActionIcon>
 												<ActionIcon
 													variant="transparent"
-													color="red"
 													onClick={() =>
 														openDeleteTeamModal(
 															team
 														)
 													}
 												>
-													<MDIcon>delete</MDIcon>
+													<MDIcon color={"red"}>
+														delete
+													</MDIcon>
 												</ActionIcon>
 											</Group>
 										</Table.Th>

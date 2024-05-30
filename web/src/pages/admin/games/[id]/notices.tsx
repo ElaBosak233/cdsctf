@@ -97,9 +97,7 @@ function Page() {
 			children: (
 				<>
 					<Flex gap={10} align={"center"}>
-						<ThemeIcon variant="transparent">
-							<MDIcon>campaign</MDIcon>
-						</ThemeIcon>
+						<MDIcon>campaign</MDIcon>
 						<Text fw={600}>删除公告</Text>
 					</Flex>
 					<Divider my={10} />
@@ -147,9 +145,7 @@ function Page() {
 				<Stack gap={10}>
 					<Flex justify={"space-between"} align={"center"}>
 						<Group>
-							<ThemeIcon variant="transparent">
-								<MDIcon>campaign</MDIcon>
-							</ThemeIcon>
+							<MDIcon>campaign</MDIcon>
 							<Text fw={700} size="xl">
 								公告
 							</Text>
@@ -200,14 +196,15 @@ function Page() {
 										<Tooltip label="删除公告" withArrow>
 											<ActionIcon
 												variant="transparent"
-												color="red"
 												onClick={() =>
 													openDeleteNoticeModal(
 														notice
 													)
 												}
 											>
-												<MDIcon>delete</MDIcon>
+												<MDIcon color={"red"}>
+													delete
+												</MDIcon>
 											</ActionIcon>
 										</Tooltip>
 									</Table.Td>

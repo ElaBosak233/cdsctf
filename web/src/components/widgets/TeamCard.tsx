@@ -32,9 +32,7 @@ export default function TeamCard({ team }: { team?: Team }) {
 					size={"xl"}
 					color="brand"
 				>
-					<ThemeIcon variant="transparent">
-						<MDIcon size={40}>people</MDIcon>
-					</ThemeIcon>
+					<MDIcon size={40}>people</MDIcon>
 				</Avatar>
 				<Stack gap={5}>
 					<Text size="2rem" fw={600}>
@@ -73,16 +71,16 @@ export default function TeamCard({ team }: { team?: Team }) {
 			<Box
 				sx={{
 					position: "absolute",
-					right: 70,
+					right: 50,
 					bottom: 10,
 				}}
 			>
-				<ThemeIcon
-					variant="transparent"
-					c={alpha("var(--mantine-color-gray-1)", 0.1)}
+				<MDIcon
+					c={alpha("var(--mantine-color-gray-1)", 0.2)}
+					size={120}
 				>
-					<MDIcon size={120}>people</MDIcon>
-				</ThemeIcon>
+					people
+				</MDIcon>
 			</Box>
 		</Card>
 	);

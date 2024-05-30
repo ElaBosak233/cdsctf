@@ -105,9 +105,7 @@ export default function UserCreateModal(props: UserCreateModalProps) {
 						w={"40rem"}
 					>
 						<Flex gap={10} align={"center"}>
-							<ThemeIcon variant="transparent">
-								<MDIcon>person_add</MDIcon>
-							</ThemeIcon>
+							<MDIcon>person_add</MDIcon>
 							<Text fw={600}>创建用户</Text>
 						</Flex>
 						<Divider my={10} />
@@ -158,7 +156,9 @@ export default function UserCreateModal(props: UserCreateModalProps) {
 								<Flex mt={20} justify={"end"}>
 									<Button
 										type="submit"
-										leftSection={<MDIcon>check</MDIcon>}
+										leftSection={
+											<MDIcon c={"white"}>check</MDIcon>
+										}
 									>
 										创建
 									</Button>

@@ -83,9 +83,7 @@ function Page() {
 				<Stack gap={10}>
 					<Flex justify={"space-between"} align={"center"}>
 						<Group>
-							<ThemeIcon variant="transparent">
-								<MDIcon>collections_bookmark</MDIcon>
-							</ThemeIcon>
+							<MDIcon>collections_bookmark</MDIcon>
 							<Text fw={700} size="xl">
 								题目
 							</Text>
