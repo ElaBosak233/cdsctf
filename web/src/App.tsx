@@ -36,11 +36,13 @@ function App() {
 
 	// Get captcha config
 	useEffect(() => {
-		configApi.getCaptchaCfg().then((res) => {
-			const r = res.data;
-			configStore.setCaptchaCfg(r.data);
-		});
-	}, []);
+		if (configStore?.pltCfg?.user?.register?.captcha?.enabled) {
+			configApi.getCaptchaCfg().then((res) => {
+				const r = res.data;
+				configStore.setCaptchaCfg(r.data);
+			});
+		}
+	}, [configStore?.pltCfg]);
 
 	// Get exists categories
 	useEffect(() => {

@@ -427,13 +427,17 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 															`http://${nat?.entry}`
 														);
 													}}
-													c={
-														colorScheme === "light"
-															? "gray.5"
-															: "gray.3"
-													}
 												>
-													<MDIcon>open_in_new</MDIcon>
+													<MDIcon
+														c={
+															colorScheme ===
+															"light"
+																? "gray.5"
+																: "gray.3"
+														}
+													>
+														open_in_new
+													</MDIcon>
 												</ActionIcon>
 											}
 										/>

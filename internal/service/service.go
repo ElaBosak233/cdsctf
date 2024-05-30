@@ -43,7 +43,7 @@ func InitService() {
 			UserService:          NewUserService(appRepository),
 			ChallengeService:     NewChallengeService(appRepository),
 			PodService:           NewPodService(appRepository),
-			ConfigService:        NewConfigService(appRepository),
+			ConfigService:        NewConfigService(),
 			TeamService:          NewTeamService(appRepository),
 			UserTeamService:      NewUserTeamService(appRepository),
 			SubmissionService:    NewSubmissionService(appRepository),

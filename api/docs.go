@@ -2622,24 +2622,64 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "container": {
-                    "$ref": "#/definitions/request.Container"
+                    "type": "object",
+                    "properties": {
+                        "parallel_limit": {
+                            "type": "integer"
+                        },
+                        "request_limit": {
+                            "type": "integer"
+                        }
+                    }
                 },
                 "site": {
-                    "$ref": "#/definitions/request.Site"
+                    "type": "object",
+                    "properties": {
+                        "color": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "title": {
+                            "type": "string"
+                        }
+                    }
                 },
                 "user": {
-                    "$ref": "#/definitions/request.User"
-                }
-            }
-        },
-        "request.Container": {
-            "type": "object",
-            "properties": {
-                "parallel_limit": {
-                    "type": "integer"
-                },
-                "request_limit": {
-                    "type": "integer"
+                    "type": "object",
+                    "properties": {
+                        "register": {
+                            "type": "object",
+                            "properties": {
+                                "captcha": {
+                                    "type": "object",
+                                    "properties": {
+                                        "enabled": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "email": {
+                                    "type": "object",
+                                    "properties": {
+                                        "domains": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "enabled": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -2810,17 +2850,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.Site": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
         "request.SubmissionCreateRequest": {
             "type": "object",
             "required": [
@@ -2924,14 +2953,6 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "integer"
-                }
-            }
-        },
-        "request.User": {
-            "type": "object",
-            "properties": {
-                "allow_registration": {
-                    "type": "boolean"
                 }
             }
         },

@@ -1,18 +1,22 @@
 {
   "site": {
+    "title": "Cloudsdale",
     "description": "Hack for fun not for profit.",
-    "title": "Cloudsdale"
+    "color": "#0C4497"
   },
   "container": {
     "parallel_limit": 1,
     "request_limit": 0
   },
   "user": {
-    "registration": {
+    "register": {
       "enabled": true,
+      "captcha": {
+        "enabled": false
+      },
       "email": {
-        "domain": [],
-        "verification": false
+        "domains": [],
+        "enabled": false
       }
     }
   }

@@ -515,18 +515,43 @@ definitions:
   request.ConfigUpdateRequest:
     properties:
       container:
-        $ref: '#/definitions/request.Container'
+        properties:
+          parallel_limit:
+            type: integer
+          request_limit:
+            type: integer
+        type: object
       site:
-        $ref: '#/definitions/request.Site'
+        properties:
+          color:
+            type: string
+          description:
+            type: string
+          title:
+            type: string
+        type: object
       user:
-        $ref: '#/definitions/request.User'
-    type: object
-  request.Container:
-    properties:
-      parallel_limit:
-        type: integer
-      request_limit:
-        type: integer
+        properties:
+          register:
+            properties:
+              captcha:
+                properties:
+                  enabled:
+                    type: boolean
+                type: object
+              email:
+                properties:
+                  domains:
+                    items:
+                      type: string
+                    type: array
+                  enabled:
+                    type: boolean
+                type: object
+              enabled:
+                type: boolean
+            type: object
+        type: object
     type: object
   request.GameCreateRequest:
     properties:
@@ -637,13 +662,6 @@ definitions:
       team_id:
         type: integer
     type: object
-  request.Site:
-    properties:
-      description:
-        type: string
-      title:
-        type: string
-    type: object
   request.SubmissionCreateRequest:
     properties:
       challenge_id:
@@ -714,11 +732,6 @@ definitions:
     required:
     - team_id
     - user_id
-    type: object
-  request.User:
-    properties:
-      allow_registration:
-        type: boolean
     type: object
   request.UserCreateRequest:
     properties:

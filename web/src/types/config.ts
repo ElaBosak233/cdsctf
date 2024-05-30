@@ -2,17 +2,21 @@ export interface Config {
 	site?: {
 		title?: string;
 		description?: string;
+		color?: string;
 	};
 	container?: {
 		parallel_limit?: number;
 		request_limit?: number;
 	};
 	user?: {
-		registration?: {
+		register?: {
 			enabled?: boolean;
+			captcha?: {
+				enabled?: boolean;
+			};
 			email?: {
-				domain?: Array<string>;
-				verification?: boolean;
+				domains?: Array<string>;
+				enabled?: boolean;
 			};
 		};
 	};
@@ -22,17 +26,21 @@ export interface ConfigUpdateRequest {
 	site?: {
 		title?: string;
 		description?: string;
+		color?: string;
 	};
 	container?: {
 		parallel_limit?: number;
 		request_limit?: number;
 	};
 	user?: {
-		registration?: {
+		register?: {
 			enabled?: boolean;
+			captcha?: {
+				enabled?: boolean;
+			};
 			email?: {
-				domain?: Array<string>;
-				verification?: boolean;
+				domains?: Array<string>;
+				enabled?: boolean;
 			};
 		};
 	};

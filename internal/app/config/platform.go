@@ -21,13 +21,23 @@ type PlatformCfg struct {
 	Site struct {
 		Title       string `yaml:"title" json:"title" mapstructure:"title"`
 		Description string `yaml:"description" json:"description" mapstructure:"description"`
+		Color       string `yaml:"color" json:"color" mapstructure:"color"`
 	} `yaml:"site" json:"site" mapstructure:"site"`
 	Container struct {
 		ParallelLimit int `yaml:"parallel_limit" json:"parallel_limit" mapstructure:"parallel_limit"`
 		RequestLimit  int `yaml:"request_limit" json:"request_limit" mapstructure:"request_limit"`
 	} `yaml:"container" json:"container" mapstructure:"container"`
 	User struct {
-		AllowRegistration bool `yaml:"allow_registration" json:"allow_registration" mapstructure:"allow_registration"`
+		Register struct {
+			Enabled bool `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
+			Captcha struct {
+				Enabled bool `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
+			} `yaml:"captcha" json:"captcha" mapstructure:"captcha"`
+			Email struct {
+				Domains []string `yaml:"domains" json:"domains" mapstructure:"domains"`
+				Enabled bool     `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
+			}
+		} `yaml:"register" json:"register" mapstructure:"register"`
 	} `yaml:"user" json:"user" mapstructure:"user"`
 }
 
