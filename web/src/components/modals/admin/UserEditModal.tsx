@@ -3,7 +3,6 @@ import {
 	Flex,
 	Modal,
 	ModalProps,
-	ThemeIcon,
 	Text,
 	Divider,
 	TextInput,

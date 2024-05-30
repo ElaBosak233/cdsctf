@@ -17,7 +17,6 @@ import {
 	Switch,
 	Text,
 	TextInput,
-	ThemeIcon,
 	Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
@@ -32,7 +31,7 @@ interface ChallengeFlagAccordionProps {
 export default function ChallengeFlagAccordion(
 	props: ChallengeFlagAccordionProps
 ) {
-	const { flag, setRefresh, ...otherProps } = props;
+	const { flag, setRefresh } = props;
 	const challengeApi = useChallengeApi();
 
 	const form = useForm({

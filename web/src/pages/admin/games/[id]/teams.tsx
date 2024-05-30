@@ -4,7 +4,6 @@ import GameTeamCreateModal from "@/components/modals/admin/GameTeamCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
 import { Game } from "@/types/game";
 import { GameTeam } from "@/types/game_team";
-import { Team } from "@/types/team";
 import { showSuccessNotification } from "@/utils/notification";
 import {
 	ActionIcon,
@@ -12,13 +11,9 @@ import {
 	Flex,
 	Group,
 	Stack,
-	ThemeIcon,
 	Tooltip,
 	Text,
-	Accordion,
-	Center,
 	Avatar,
-	Box,
 	Badge,
 	Switch,
 	Pagination,
@@ -39,7 +34,7 @@ function Page() {
 	const [game, setGame] = useState<Game>();
 	const [refresh, setRefresh] = useState<number>(0);
 	const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
-	const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+	const [rowsPerPage, _] = useState<number>(10);
 	const [page, setPage] = useState<number>(1);
 
 	const [displayedGameTeams, setDisplayedGameTeams] = useState<

@@ -16,7 +16,6 @@ import {
 	Stack,
 	Text,
 	TextInput,
-	ThemeIcon,
 	Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";

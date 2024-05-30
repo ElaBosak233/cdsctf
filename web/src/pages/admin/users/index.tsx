@@ -22,7 +22,6 @@ import {
 	Table,
 	Text,
 	TextInput,
-	ThemeIcon,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
@@ -69,7 +68,7 @@ export default function Page() {
 			.deleteUser({
 				id: Number(user?.id),
 			})
-			.then((res) => {
+			.then((_) => {
 				showSuccessNotification({
 					message: `用户 ${user?.nickname} 已被删除`,
 				});

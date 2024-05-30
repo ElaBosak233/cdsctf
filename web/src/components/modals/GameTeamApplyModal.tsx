@@ -9,10 +9,7 @@ import {
 	Group,
 	Modal,
 	ModalProps,
-	Pagination,
 	Stack,
-	TextInput,
-	ThemeIcon,
 	Text,
 } from "@mantine/core";
 import { useState, useEffect } from "react";

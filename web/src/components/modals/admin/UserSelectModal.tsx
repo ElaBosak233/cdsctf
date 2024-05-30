@@ -8,7 +8,6 @@ import {
 	Modal,
 	ModalProps,
 	TextInput,
-	ThemeIcon,
 	Text,
 	Stack,
 	Avatar,

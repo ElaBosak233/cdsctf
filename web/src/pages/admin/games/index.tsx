@@ -8,10 +8,6 @@ import {
 } from "@/utils/notification";
 import {
 	ActionIcon,
-	Avatar,
-	BackgroundImage,
-	Image,
-	Divider,
 	Flex,
 	Group,
 	Pagination,
@@ -25,6 +21,8 @@ import {
 	Badge,
 	Switch,
 	Tooltip,
+	Image,
+	Divider,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";

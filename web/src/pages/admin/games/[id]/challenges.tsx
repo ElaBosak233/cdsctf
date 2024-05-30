@@ -14,7 +14,6 @@ import {
 	LoadingOverlay,
 	Stack,
 	Text,
-	ThemeIcon,
 	Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";

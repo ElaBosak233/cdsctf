@@ -11,7 +11,6 @@ import {
 	Flex,
 	Group,
 	Stack,
-	ThemeIcon,
 	Tooltip,
 	Text,
 	Badge,
@@ -33,7 +32,7 @@ function Page() {
 	const [game, setGame] = useState<Game>();
 	const [refresh, setRefresh] = useState<number>(0);
 	const [notices, setNotices] = useState<Array<Notice>>();
-	const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+	const [rowsPerPage, _] = useState<number>(10);
 	const [page, setPage] = useState<number>(1);
 
 	const [displayedNotices, setDisplayedNotices] = useState<Array<Notice>>([]);

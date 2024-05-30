@@ -4,7 +4,6 @@ import GameCard from "@/components/widgets/GameCard";
 import { useConfigStore } from "@/stores/config";
 import { Game } from "@/types/game";
 import {
-	Box,
 	Button,
 	Flex,
 	Pagination,

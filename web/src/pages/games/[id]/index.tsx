@@ -12,7 +12,6 @@ import {
 	Stack,
 	Group,
 	Badge,
-	ThemeIcon,
 	Progress,
 	Button,
 } from "@mantine/core";

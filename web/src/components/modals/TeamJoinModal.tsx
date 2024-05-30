@@ -10,7 +10,6 @@ import {
 	Flex,
 	Modal,
 	ModalProps,
-	ThemeIcon,
 	Text,
 	TextInput,
 	Button,
@@ -52,7 +51,7 @@ export default function TeamJoinModal(props: TeamJoinModalProps) {
 					message: "加入团队成功",
 				});
 			})
-			.catch((e) => {
+			.catch((_) => {
 				showErrNotification({
 					message: "邀请码无效或团队已被锁定",
 				});
