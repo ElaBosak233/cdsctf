@@ -1,17 +1,13 @@
 import { useChallengeApi } from "@/api/challenge";
-import { useGameApi } from "@/api/game";
 import { useSubmissionApi } from "@/api/submission";
 import withChallengeEdit from "@/components/layouts/admin/withChallengeEdit";
-import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { Challenge } from "@/types/challenge";
-import { Game } from "@/types/game";
 import { Submission } from "@/types/submission";
 import {
 	Divider,
 	Group,
 	Stack,
-	ThemeIcon,
 	Text,
 	Table,
 	Pagination,
@@ -35,7 +31,7 @@ function Page() {
 	const [submissions, setSubmissions] = useState<Array<Submission>>([]);
 
 	const [total, setTotal] = useState<number>(0);
-	const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+	const [rowsPerPage, _] = useState<number>(10);
 	const [page, setPage] = useState<number>(1);
 
 	const [loading, setLoading] = useState<boolean>(false);

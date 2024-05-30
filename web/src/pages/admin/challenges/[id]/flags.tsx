@@ -6,11 +6,9 @@ import ChallengeFlagAccordion from "@/components/widgets/admin/ChallengeFlagAcco
 import { Challenge } from "@/types/challenge";
 import {
 	Accordion,
-	Button,
 	Flex,
 	Group,
 	Stack,
-	ThemeIcon,
 	Text,
 	Divider,
 	ActionIcon,

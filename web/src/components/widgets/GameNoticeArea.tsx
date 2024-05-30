@@ -1,6 +1,6 @@
 import { useGameApi } from "@/api/game";
 import { Notice } from "@/types/notice";
-import { Box, Flex, ScrollArea, ThemeIcon } from "@mantine/core";
+import { Box, Flex, ScrollArea } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import MDIcon from "@/components/ui/MDIcon";

@@ -13,11 +13,9 @@ import {
 	Center,
 	Divider,
 	Flex,
-	Select,
 	Stack,
 	Text,
 	TextInput,
-	ThemeIcon,
 	Image,
 } from "@mantine/core";
 import { Dropzone } from "@mantine/dropzone";

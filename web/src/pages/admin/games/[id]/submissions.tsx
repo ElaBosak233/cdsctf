@@ -9,7 +9,6 @@ import {
 	Divider,
 	Group,
 	Stack,
-	ThemeIcon,
 	Text,
 	Table,
 	Pagination,
@@ -34,7 +33,7 @@ function Page() {
 	const [submissions, setSubmissions] = useState<Array<Submission>>([]);
 
 	const [total, setTotal] = useState<number>(0);
-	const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+	const [rowsPerPage, _] = useState<number>(10);
 	const [page, setPage] = useState<number>(1);
 
 	const [loading, setLoading] = useState<boolean>(false);

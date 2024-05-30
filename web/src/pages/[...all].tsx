@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useConfigStore } from "@/stores/config";
 import { Box, Text } from "@mantine/core";
 

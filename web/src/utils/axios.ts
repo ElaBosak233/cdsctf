@@ -2,13 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "@/stores/auth";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import { showNotification } from "@mantine/notifications";
-import {
-	showErrNotification,
-	showInfoNotification,
-	showSuccessNotification,
-	showWarnNotification,
-} from "./notification";
+import { showInfoNotification } from "./notification";
 
 export const useApi = () => {
 	return useMemo(() => {

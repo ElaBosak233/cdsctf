@@ -23,7 +23,6 @@ import {
 	Switch,
 	TextInput,
 	Textarea,
-	ThemeIcon,
 	Tooltip,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";

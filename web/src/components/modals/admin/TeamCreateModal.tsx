@@ -3,7 +3,6 @@ import {
 	Flex,
 	Modal,
 	ModalProps,
-	ThemeIcon,
 	Text,
 	Divider,
 	TextInput,
@@ -12,7 +11,6 @@ import {
 	Button,
 	Box,
 	Input,
-	Avatar,
 	Group,
 } from "@mantine/core";
 import MDIcon from "@/components/ui/MDIcon";

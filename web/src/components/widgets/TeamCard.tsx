@@ -4,7 +4,6 @@ import {
 	Box,
 	Card,
 	Flex,
-	ThemeIcon,
 	alpha,
 	Text,
 	Stack,

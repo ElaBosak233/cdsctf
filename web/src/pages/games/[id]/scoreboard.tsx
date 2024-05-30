@@ -3,13 +3,11 @@ import { useSubmissionApi } from "@/api/submission";
 import { Game } from "@/types/game";
 import { Submission } from "@/types/submission";
 import {
-	Box,
 	Flex,
 	Stack,
 	useMantineColorScheme,
 	useMantineTheme,
 	Text,
-	Button,
 	Group,
 	LoadingOverlay,
 	Table,

@@ -21,7 +21,6 @@ import {
 	Button,
 	Group,
 	Divider,
-	ThemeIcon,
 } from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
 import { Dropzone } from "@mantine/dropzone";
