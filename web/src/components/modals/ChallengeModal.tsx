@@ -283,7 +283,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 												alignItems: "center",
 											}}
 										>
-											<SecondBloodIcon />
+											<ThemeIcon variant="transparent">
+												<SecondBloodIcon />
+											</ThemeIcon>
 										</Box>
 									</Tooltip>
 								)}
@@ -299,7 +301,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 												alignItems: "center",
 											}}
 										>
-											<ThirdBloodIcon />
+											<ThemeIcon variant="transparent">
+												<ThirdBloodIcon />
+											</ThemeIcon>
 										</Box>
 									</Tooltip>
 								)}
