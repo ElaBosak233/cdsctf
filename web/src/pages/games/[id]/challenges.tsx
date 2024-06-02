@@ -127,9 +127,10 @@ function Page() {
 	useEffect(() => {
 		if (gameTeam) {
 			const rows = calculateAndSort(submissions);
+			console.log(rows);
 			if (rows) {
 				rows?.forEach((row) => {
-					if (row.team.id === gameTeam?.team_id) {
+					if (row?.team?.id === gameTeam?.team_id) {
 						setScore(row.totalScore);
 						setRank(row.rank as number);
 						setSolves(row.solvedCount);

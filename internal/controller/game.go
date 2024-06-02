@@ -207,6 +207,7 @@ func (g *GameController) DeleteChallenge(ctx *gin.Context) {
 // @Router /games/{id}/teams [get]
 func (g *GameController) FindTeam(ctx *gin.Context) {
 	gameTeamFindRequest := request.GameTeamFindRequest{}
+	_ = ctx.ShouldBindQuery(&gameTeamFindRequest)
 	gameTeamFindRequest.GameID = convertor.ToUintD(ctx.Param("id"), 0)
 	value, exist := cache.C().Get(fmt.Sprintf("game_teams:%s", utils.HashStruct(gameTeamFindRequest)))
 	if !exist {
