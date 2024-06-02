@@ -75,7 +75,7 @@ export default function Navbar() {
 				>
 					<Flex align={"center"}>
 						<Image
-							src="./favicon.ico"
+							src="/favicon.ico"
 							alt=""
 							w={36}
 							h={36}
