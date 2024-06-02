@@ -290,7 +290,7 @@ function Page() {
 				onClose={close}
 				centered
 				setRefresh={() => setRefresh((prev) => prev + 1)}
-				challengeID={selectedChallenge?.challenge_id}
+				challenge={selectedChallenge?.challenge}
 				gameID={selectedChallenge?.game_id}
 				mode="game"
 			/>

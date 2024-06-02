@@ -490,7 +490,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 									<Flex mt={20} justify={"end"} gap={10}>
 										<Button
 											leftSection={
-												<MDIcon color="red">
+												<MDIcon c={"white"}>
 													swap_horiz
 												</MDIcon>
 											}
