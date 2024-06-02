@@ -318,14 +318,15 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 								>
 									<ActionIcon
 										variant="transparent"
-										color={challenge?.category?.color}
 										onClick={() => {
 											window.open(
 												`${import.meta.env.VITE_BASE_API}/media/challenges/${challenge?.id}/${challenge?.attachment?.name}`
 											);
 										}}
 									>
-										<MDIcon>download</MDIcon>
+										<MDIcon c={challenge?.category?.color}>
+											download
+										</MDIcon>
 									</ActionIcon>
 								</Tooltip>
 							)}
