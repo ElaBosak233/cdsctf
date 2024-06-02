@@ -69,7 +69,6 @@
 		}
 	},
 	"captcha": {
-		"enabled": false,
 		"provider": "turnstile",
 		"turnstile": {
 			"url": "https://challenges.cloudflare.com/turnstile/v0/siteverify",

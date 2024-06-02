@@ -11,7 +11,7 @@ import {
 	showErrNotification,
 	showSuccessNotification,
 } from "@/utils/notification";
-import Turnstile, { useTurnstile } from "react-turnstile";
+import Turnstile from "react-turnstile";
 import ReCAPTCHA from "react-google-recaptcha";
 
 export default function Page() {
@@ -19,8 +19,6 @@ export default function Page() {
 	const navigate = useNavigate();
 	const userApi = useUserApi();
 	const authStore = useAuthStore();
-
-	const turnstile = useTurnstile();
 
 	useEffect(() => {
 		document.title = `注册 - ${configStore?.pltCfg?.site?.title}`;
@@ -143,7 +141,8 @@ export default function Page() {
 								{...form.getInputProps("password")}
 							/>
 							<Flex justify={"center"}>
-								{configStore?.captchaCfg?.enabled && (
+								{configStore?.pltCfg?.user?.register?.captcha
+									?.enabled && (
 									<>
 										{configStore?.captchaCfg?.provider ===
 											"turnstile" && (
