@@ -432,7 +432,7 @@ function Page() {
 								<Group>
 									<Avatar
 										color="brand"
-										src={`${import.meta.env.VITE_BASE_API}/media/teams/${id}/${row?.team?.avatar?.name}`}
+										src={`${import.meta.env.VITE_BASE_API}/media/teams/${row?.team?.id}/${row?.team?.avatar?.name}`}
 									>
 										<MDIcon>people</MDIcon>
 									</Avatar>
