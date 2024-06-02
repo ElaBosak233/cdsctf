@@ -51,7 +51,7 @@ export default function Page() {
 		setLoginLoading(true);
 		userApi
 			.login({
-				username: form.getValues().username,
+				username: form.getValues().username?.toLocaleLowerCase(),
 				password: form.getValues().password,
 			})
 			.then((res) => {

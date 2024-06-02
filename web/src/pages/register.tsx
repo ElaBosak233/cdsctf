@@ -3,7 +3,7 @@ import MDIcon from "@/components/ui/MDIcon";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
 import { Box, Button, Flex, Group, Stack, TextInput } from "@mantine/core";
-import { useForm } from "@mantine/form";
+import { useForm, zodResolver } from "@mantine/form";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@/types/user";
@@ -13,6 +13,7 @@ import {
 } from "@/utils/notification";
 import Turnstile from "react-turnstile";
 import ReCAPTCHA from "react-google-recaptcha";
+import { z } from "zod";
 
 export default function Page() {
 	const configStore = useConfigStore();
@@ -36,20 +37,17 @@ export default function Page() {
 			token: "",
 		},
 
-		validate: {
-			username: (value) => {
-				if (value === "") {
-					return "用户名不能为空";
-				}
-				return null;
-			},
-			password: (value) => {
-				if (value === "") {
-					return "密码不能为空";
-				}
-				return null;
-			},
-		},
+		validate: zodResolver(
+			z.object({
+				username: z.string().regex(/^[a-z0-9_]{4,16}$/, {
+					message:
+						"用户名只能包含小写字母、数字和下划线，长度为 4-16 位",
+				}),
+				nickname: z.string().min(1, { message: "昵称不能为空" }),
+				email: z.string().email({ message: "邮箱格式不正确" }),
+				password: z.string().min(6, { message: "密码长度至少为 6 位" }),
+			})
+		),
 	});
 
 	function register() {
@@ -66,7 +64,7 @@ export default function Page() {
 		setRegisterLoading(true);
 		userApi
 			.register({
-				username: form.getValues().username,
+				username: form.getValues().username?.toLocaleLowerCase(),
 				nickname: form.getValues().nickname,
 				password: form.getValues().password,
 				email: form.getValues().email,
