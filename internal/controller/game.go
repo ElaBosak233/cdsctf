@@ -22,7 +22,6 @@ type IGameController interface {
 	Update(ctx *gin.Context)
 	BroadCast(ctx *gin.Context)
 	FindTeam(ctx *gin.Context)
-	FindTeamByID(ctx *gin.Context)
 	CreateTeam(ctx *gin.Context)
 	UpdateTeam(ctx *gin.Context)
 	DeleteTeam(ctx *gin.Context)
@@ -222,41 +221,6 @@ func (g *GameController) FindTeam(ctx *gin.Context) {
 			"code":  http.StatusOK,
 			"data":  teams,
 			"total": total,
-		}
-		cache.C().Set(
-			fmt.Sprintf("game_teams:%s", utils.HashStruct(gameTeamFindRequest)),
-			value,
-			5*time.Minute,
-		)
-	}
-	ctx.JSON(http.StatusOK, value)
-}
-
-// FindTeamByID
-// @Summary 查询比赛的团队
-// @Description
-// @Tags Game
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Router /games/{id}/teams/{team_id} [get]
-func (g *GameController) FindTeamByID(ctx *gin.Context) {
-	gameTeamFindRequest := request.GameTeamFindRequest{
-		GameID: convertor.ToUintD(ctx.Param("id"), 0),
-		TeamID: convertor.ToUintD(ctx.Param("team_id"), 0),
-	}
-	value, exist := cache.C().Get(fmt.Sprintf("game_teams:%s", utils.HashStruct(gameTeamFindRequest)))
-	if !exist {
-		team, err := g.gameTeamService.FindByID(gameTeamFindRequest)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"code": http.StatusBadRequest,
-			})
-			return
-		}
-		value = gin.H{
-			"code": http.StatusOK,
-			"data": team,
 		}
 		cache.C().Set(
 			fmt.Sprintf("game_teams:%s", utils.HashStruct(gameTeamFindRequest)),

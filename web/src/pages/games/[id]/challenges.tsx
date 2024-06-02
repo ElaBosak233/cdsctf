@@ -1,4 +1,5 @@
 import { useGameApi } from "@/api/game";
+import { useSubmissionApi } from "@/api/submission";
 import withGame from "@/components/layouts/withGame";
 import ChallengeModal from "@/components/modals/ChallengeModal";
 import MDIcon from "@/components/ui/MDIcon";
@@ -10,6 +11,8 @@ import { Category } from "@/types/category";
 import { Game } from "@/types/game";
 import { GameChallenge } from "@/types/game_challenge";
 import { GameTeam } from "@/types/game_team";
+import { Submission } from "@/types/submission";
+import { calculateAndSort } from "@/utils/game";
 import { showErrNotification } from "@/utils/notification";
 import {
 	Avatar,
@@ -19,6 +22,7 @@ import {
 	Divider,
 	Flex,
 	Group,
+	LoadingOverlay,
 	ScrollArea,
 	Stack,
 	Text,
@@ -31,6 +35,7 @@ import { useNavigate, useParams } from "react-router-dom";
 function Page() {
 	const { id } = useParams<{ id: string }>();
 	const gameApi = useGameApi();
+	const submissionApi = useSubmissionApi();
 	const configStore = useConfigStore();
 	const teamStore = useTeamStore();
 
@@ -45,13 +50,36 @@ function Page() {
 		Array<GameChallenge>
 	>([]);
 	const [selectedCategory, setSelectedCategory] = useState<number>(0);
+	const [gameTeam, setGameTeam] = useState<GameTeam>();
+	const [submissions, setSubmissions] = useState<Array<Submission>>([]);
+
+	const [loadingTeamStatus, setLoadingTeamStatus] = useState<boolean>(false);
 
 	const [opened, { open, close }] = useDisclosure(false);
 	const [selectedChallenge, setSelectedChallenge] = useState<GameChallenge>();
 
 	const [refresh, setRefresh] = useState<number>(0);
 
-	const [gameTeam, setGameTeam] = useState<GameTeam>();
+	const [score, setScore] = useState<number>(0);
+	const [rank, setRank] = useState<number>(0);
+	const [solves, setSolves] = useState<number>(0);
+
+	function getSubmissions() {
+		setLoadingTeamStatus(true);
+		submissionApi
+			.getSubmissions({
+				game_id: Number(id),
+				status: 2,
+				is_detailed: false,
+			})
+			.then((res) => {
+				const r = res.data;
+				setSubmissions(r.data);
+			})
+			.finally(() => {
+				setLoadingTeamStatus(false);
+			});
+	}
 
 	function getGame() {
 		gameApi
@@ -79,7 +107,7 @@ function Page() {
 
 	function getTeam() {
 		gameApi
-			.getGameTeamByID({
+			.getGameTeams({
 				game_id: Number(id),
 				team_id: teamStore?.selectedTeamID,
 			})
@@ -92,9 +120,24 @@ function Page() {
 					});
 					navigate(`/games/${id}`);
 				}
-				setGameTeam(r.data);
+				setGameTeam(r.data[0]);
 			});
 	}
+
+	useEffect(() => {
+		if (gameTeam) {
+			const rows = calculateAndSort(submissions);
+			if (rows) {
+				rows?.forEach((row) => {
+					if (row.team.id === gameTeam?.team_id) {
+						setScore(row.totalScore);
+						setRank(row.rank as number);
+						setSolves(row.solvedCount);
+					}
+				});
+			}
+		}
+	}, [submissions, gameTeam]);
 
 	useEffect(() => {
 		if (selectedCategory != 0) {
@@ -134,6 +177,7 @@ function Page() {
 	useEffect(() => {
 		getGame();
 		getTeam();
+		getSubmissions();
 	}, [teamStore?.selectedTeamID]);
 
 	useEffect(() => {
@@ -243,7 +287,11 @@ function Page() {
 						</ScrollArea>
 					</Box>
 					<Stack miw={330} maw={330} mx={10}>
-						<Card mih={200} shadow="md" p={25}>
+						<Card mih={200} shadow="md" p={25} pos={"relative"}>
+							<LoadingOverlay
+								visible={loadingTeamStatus}
+								zIndex={2}
+							/>
 							<Group gap={20}>
 								<Avatar
 									color="brand"
@@ -259,21 +307,19 @@ function Page() {
 							<Flex justify={"space-between"} mt={20} mx={36}>
 								<Stack align={"center"}>
 									<Text fw={700} size="1.2rem">
-										{gameTeam?.pts || 0}
+										{score || 0}
 									</Text>
 									<Text fw={700}>得分</Text>
 								</Stack>
 								<Stack align={"center"}>
 									<Text fw={700} size="1.2rem">
-										{(gameTeam?.pts as number) > 0
-											? gameTeam?.rank
-											: "无排名"}
+										{rank > 0 ? rank : "无排名"}
 									</Text>
 									<Text fw={700}>排名</Text>
 								</Stack>
 								<Stack align={"center"}>
 									<Text fw={700} size="1.2rem">
-										{gameTeam?.solved || 0}
+										{solves || 0}
 									</Text>
 									<Text fw={700}>已解决</Text>
 								</Stack>

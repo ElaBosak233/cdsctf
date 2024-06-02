@@ -68,10 +68,6 @@ export function useGameApi() {
 		});
 	};
 
-	const getGameTeamByID = (request: GameTeamFindRequest) => {
-		return auth.get(`/games/${request?.game_id}/teams/${request?.team_id}`);
-	};
-
 	const createGameTeam = (request: GameTeamCreateRequest) => {
 		return auth.post(`/games/${request?.game_id}/teams`, request);
 	};
@@ -134,7 +130,6 @@ export function useGameApi() {
 		createGameChallenge,
 		deleteGameChallenge,
 		getGameTeams,
-		getGameTeamByID,
 		createGameTeam,
 		updateGameTeam,
 		deleteGameTeam,
