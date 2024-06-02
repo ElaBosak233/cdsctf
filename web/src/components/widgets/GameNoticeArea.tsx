@@ -48,7 +48,7 @@ export default function GameNoticeArea() {
 		socket.onmessage = (event) => {
 			const n = JSON.parse(event.data);
 			setNotices((notices) => {
-				return [...notices, n];
+				return [n, ...notices];
 			});
 		};
 
