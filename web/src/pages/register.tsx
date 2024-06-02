@@ -53,7 +53,10 @@ export default function Page() {
 	});
 
 	function register() {
-		if (configStore?.captchaCfg?.enabled && !form.getValues().token) {
+		if (
+			configStore?.pltCfg?.user?.register?.captcha?.enabled &&
+			!form.getValues().token
+		) {
 			showErrNotification({
 				title: "注册失败",
 				message: "请完成验证码验证",

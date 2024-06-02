@@ -348,6 +348,7 @@ func (c *TeamController) Leave(ctx *gin.Context) {
 func (c *TeamController) SaveAvatar(ctx *gin.Context) {
 	id := convertor.ToUintD(ctx.Param("id"), 0)
 	fileHeader, err := ctx.FormFile("file")
+	fmt.Println("coming!!!!!!!!!!!!!!!!!!!!!")
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,

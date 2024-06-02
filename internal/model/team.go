@@ -23,11 +23,6 @@ type Team struct {
 	Users       []*User `gorm:"many2many:user_teams;" json:"users,omitempty"`      // The team's users.
 }
 
-func (t *Team) Simplify() {
-	t.InviteToken = ""
-	t.Description = ""
-}
-
 func (t *Team) AfterFind(db *gorm.DB) (err error) {
 	p := path.Join(utils.MediaPath, "teams", fmt.Sprintf("%d", t.ID))
 	var name string
