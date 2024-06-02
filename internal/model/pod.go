@@ -1,5 +1,7 @@
 package model
 
+import "gorm.io/gorm"
+
 type Pod struct {
 	ID          uint       `json:"id"`
 	GameID      *uint      `gorm:"index;null;default:null" json:"game_id"`
@@ -18,4 +20,10 @@ func (p *Pod) Simplify() {
 	if p.Challenge != nil {
 		p.Challenge.Simplify()
 	}
+}
+
+func (p *Pod) BeforeDelete(db *gorm.DB) error {
+	db.Table("nats").Where("pod_id = ?", p.ID).Delete(&Nat{})
+	db.Table("flag_gens").Where("pod_id = ?", p.ID).Delete(&FlagGen{})
+	return nil
 }
