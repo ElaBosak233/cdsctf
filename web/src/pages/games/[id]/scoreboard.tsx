@@ -23,25 +23,16 @@ import { GameChallenge } from "@/types/game_challenge";
 import { Category } from "@/types/category";
 import { Challenge } from "@/types/challenge";
 import MDIcon from "@/components/ui/MDIcon";
-import { Team } from "@/types/team";
 import React from "react";
 import FirstBloodIcon from "@/components/icons/hexagons/FirstBloodIcon";
 import SecondBloodIcon from "@/components/icons/hexagons/SecondBloodIcon";
 import ThirdBloodIcon from "@/components/icons/hexagons/ThirdBloodIcon";
+import { Row, calculateAndSort } from "@/utils/game";
 
 interface ScoreSeries {
 	name: string;
 	data: [number, number][];
 	type: string;
-}
-
-interface Row {
-	id?: number;
-	team: Team;
-	submissions: Array<Submission>;
-	rank?: number;
-	totalScore: number;
-	solvedCount: number;
 }
 
 function Page() {
@@ -60,7 +51,7 @@ function Page() {
 	const [categoriedChallenges, setCategoriedChallenges] = useState<
 		Record<number, { category: Category; challenges: Array<Challenge> }>
 	>({});
-	const [rows, setRows] = useState<Array<Row>>([]);
+	const [rows, setRows] = useState<Array<Row> | undefined>([]);
 
 	const [series, setSeries] = useState<Array<ScoreSeries>>([]);
 
@@ -136,37 +127,7 @@ function Page() {
 
 	// 用于表格
 	useEffect(() => {
-		if (!submissions) return;
-
-		// 初始化团队提交数据的对象
-		const teamSubmissions: Record<number, Row> = {};
-
-		submissions?.forEach((submission) => {
-			const { team_id, team, pts } = submission;
-			if (!teamSubmissions[Number(team_id)]) {
-				teamSubmissions[Number(team_id)] = {
-					team: team!,
-					submissions: [],
-					totalScore: 0,
-					solvedCount: 0,
-				};
-			}
-			teamSubmissions[Number(team_id)].submissions.push(submission);
-			teamSubmissions[Number(team_id)].totalScore += pts || 0;
-			teamSubmissions[Number(team_id)].solvedCount +=
-				pts || 0 > 0 ? 1 : 0;
-		});
-
-		// 将对象转换为数组并按总分降序排序
-		const rowsArray = Object.values(teamSubmissions).sort(
-			(a, b) => b.totalScore - a.totalScore
-		);
-
-		// 设置排名
-		rowsArray.forEach((row, index) => {
-			row.rank = index + 1;
-		});
-		setRows(rowsArray);
+		setRows(calculateAndSort(submissions));
 	}, [submissions]);
 
 	// 用于折线图

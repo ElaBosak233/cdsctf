@@ -7,14 +7,12 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils"
-	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
 	"github.com/mitchellh/mapstructure"
 	"strconv"
 )
 
 type IGameTeamService interface {
 	Find(req request.GameTeamFindRequest) (teams []model.GameTeam, total int64, err error)
-	FindByID(req request.GameTeamFindRequest) (team model.GameTeam, err error)
 	Create(req request.GameTeamCreateRequest) (err error)
 	Update(req request.GameTeamUpdateRequest) (err error)
 	Delete(req request.GameTeamDeleteRequest) (err error)
@@ -42,37 +40,6 @@ func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []model.G
 	gameTeams, total, err := g.gameTeamRepository.Find(model.GameTeam{
 		GameID: req.GameID,
 	})
-	submissions, _, err := g.submissionRepository.Find(request.SubmissionFindRequest{
-		GameID: &req.GameID,
-		Status: 2,
-	})
-	for i := range gameTeams {
-		gameTeams[i].Rank = 1
-		gameTeams[i].Pts = 0
-		gameTeams[i].Solved = 0
-		for _, submission := range submissions {
-			if submission.TeamID != nil && *(submission.TeamID) == gameTeams[i].TeamID && submission.GameChallenge != nil {
-				gameTeams[i].Pts += calculate.GameChallengePts(
-					submission.GameChallenge.MaxPts,
-					submission.GameChallenge.MinPts,
-					submission.Challenge.Difficulty,
-					int64(len(submissions)),
-					submission.Rank-1,
-					submission.Game.FirstBloodRewardRatio,
-					submission.Game.SecondBloodRewardRatio,
-					submission.Game.ThirdBloodRewardRatio,
-				)
-				gameTeams[i].Solved++
-			}
-		}
-	}
-	for i := range gameTeams {
-		for j := range gameTeams {
-			if gameTeams[i].Pts < gameTeams[j].Pts {
-				gameTeams[i].Rank++
-			}
-		}
-	}
 	for index, gameTeam := range gameTeams {
 		if req.TeamID != 0 && gameTeam.TeamID != req.TeamID {
 			continue
@@ -80,19 +47,6 @@ func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []model.G
 		gameTeams[index] = gameTeam
 	}
 	return gameTeams, total, err
-}
-
-func (g *GameTeamService) FindByID(req request.GameTeamFindRequest) (team model.GameTeam, err error) {
-	teams, _, err := g.Find(request.GameTeamFindRequest{
-		GameID: req.GameID,
-	})
-	for _, gameTeam := range teams {
-		if gameTeam.TeamID == req.TeamID {
-			team = gameTeam
-			break
-		}
-	}
-	return team, err
 }
 
 func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) {
