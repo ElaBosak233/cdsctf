@@ -74,6 +74,7 @@ func (c *Challenge) BeforeDelete(db *gorm.DB) (err error) {
 	db.Table("flags").Where("challenge_id = ?", c.ID).Delete(&Flag{})
 	db.Table("ports").Where("challenge_id = ?", c.ID).Delete(&Port{})
 	db.Table("envs").Where("challenge_id = ?", c.ID).Delete(&Env{})
+	db.Table("pods").Where("challenge_id = ?", c.ID).Delete(&Pod{})
 	db.Table("submissions").Where("challenge_id = ?", c.ID).Delete(&Submission{})
 	db.Table("game_challenges").Where("challenge_id = ?", c.ID).Delete(&GameChallenge{})
 	return nil
