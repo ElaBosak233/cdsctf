@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -57,10 +58,16 @@ func (c *UserController) Login(ctx *gin.Context) {
 		return
 	}
 	var user model.User
-	if users, _, err := c.userService.Find(request.UserFindRequest{
-		Username: userLoginRequest.Username,
-	}); err == nil && len(users) > 0 {
+	users, total, err := c.userService.Find(request.UserFindRequest{
+		Username: strings.ToLower(userLoginRequest.Username),
+	})
+	if err == nil && total > 0 {
 		user = users[0]
+	} else {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code": http.StatusInternalServerError,
+		})
+		return
 	}
 	if !c.userService.VerifyPasswordByUsername(userLoginRequest.Username, userLoginRequest.Password) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
