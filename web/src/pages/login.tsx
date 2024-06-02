@@ -130,26 +130,28 @@ export default function Page() {
 							登录
 						</Button>
 					</form>
-					<Box
-						sx={{
-							display: "flex",
-							marginTop: "1rem",
-							justifyContent: "end",
-						}}
-					>
-						没有帐号？
+					{configStore?.pltCfg?.user?.register?.enabled && (
 						<Box
-							onClick={() => navigate("/register")}
 							sx={{
-								fontStyle: "italic",
-								":hover": {
-									cursor: "pointer",
-								},
+								display: "flex",
+								marginTop: "1rem",
+								justifyContent: "end",
 							}}
 						>
-							注册
+							没有帐号？
+							<Box
+								onClick={() => navigate("/register")}
+								sx={{
+									fontStyle: "italic",
+									":hover": {
+										cursor: "pointer",
+									},
+								}}
+							>
+								注册
+							</Box>
 						</Box>
-					</Box>
+					)}
 				</Box>
 			</Box>
 		</>

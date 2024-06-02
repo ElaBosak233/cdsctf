@@ -78,7 +78,7 @@ func (t *UserService) Create(req request.UserCreateRequest) (err error) {
 func (t *UserService) Register(req request.UserRegisterRequest) (err error) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	success := true
-	if config.AppCfg().Captcha.Enabled {
+	if config.PltCfg().User.Register.Captcha.Enabled {
 		capt := captcha.NewCaptcha()
 		success, err = capt.Verify(req.CaptchaToken, req.RemoteIP)
 	}
