@@ -99,11 +99,13 @@ export default function Page() {
 					for (const user of gameTeam?.team?.users || []) {
 						if (user?.id === authStore?.user?.id) {
 							setCanEnter(true);
+							return;
 						}
 					}
 				}
 			}
 		}
+		setCanEnter(false);
 	}, [gameTeams]);
 
 	useEffect(() => {
