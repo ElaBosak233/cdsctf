@@ -22,7 +22,7 @@ func (p *Pod) Simplify() {
 	}
 }
 
-func (p *Pod) BeforeDelete(db *gorm.DB) error {
+func (p *Pod) BeforeDelete(db *gorm.DB) (err error) {
 	db.Table("nats").Where("pod_id = ?", p.ID).Delete(&Nat{})
 	db.Table("flag_gens").Where("pod_id = ?", p.ID).Delete(&FlagGen{})
 	return nil
