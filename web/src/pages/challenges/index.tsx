@@ -219,7 +219,7 @@ export default function Page() {
 					</Flex>
 					<Stack w={"120%"}>
 						<Box mih={"calc(100vh - 260px)"} pos={"relative"}>
-							<LoadingOverlay visible={loading} />
+							<LoadingOverlay visible={loading} zIndex={2} />
 							<Group
 								gap={"lg"}
 								sx={{
