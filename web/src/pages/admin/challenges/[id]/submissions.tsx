@@ -4,6 +4,7 @@ import withChallengeEdit from "@/components/layouts/admin/withChallengeEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { Challenge } from "@/types/challenge";
 import { Submission } from "@/types/submission";
+import { showSuccessNotification } from "@/utils/notification";
 import {
 	Divider,
 	Group,
@@ -18,6 +19,7 @@ import {
 	Tooltip,
 	LoadingOverlay,
 } from "@mantine/core";
+import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -33,6 +35,8 @@ function Page() {
 	const [total, setTotal] = useState<number>(0);
 	const [rowsPerPage, _] = useState<number>(10);
 	const [page, setPage] = useState<number>(1);
+
+	const [refresh, setRefresh] = useState<number>(0);
 
 	const [loading, setLoading] = useState<boolean>(false);
 
@@ -104,11 +108,52 @@ function Page() {
 			});
 	}
 
+	function deleteSubmission(submission?: Submission) {
+		if (submission) {
+			submissionApi
+				.deleteSubmission({
+					id: submission?.id,
+				})
+				.then(() => {
+					showSuccessNotification({
+						message: "提交记录已移除",
+					});
+					setRefresh((prev) => prev + 1);
+				});
+		}
+	}
+
+	const openDeleteSubmissionModal = (submission?: Submission) =>
+		modals.openConfirmModal({
+			centered: true,
+			children: (
+				<>
+					<Flex gap={10} align={"center"}>
+						<MDIcon>verified</MDIcon>
+						<Text fw={600}>删除提交记录</Text>
+					</Flex>
+					<Divider my={10} />
+					<Text>你确定要删除提交记录 {submission?.flag} 吗？</Text>
+				</>
+			),
+			withCloseButton: false,
+			labels: {
+				confirm: "确定",
+				cancel: "取消",
+			},
+			confirmProps: {
+				color: "red",
+			},
+			onConfirm: () => {
+				deleteSubmission(submission);
+			},
+		});
+
 	useEffect(() => {
 		if (challenge) {
 			getSubmissions();
 		}
-	}, [challenge, page, rowsPerPage]);
+	}, [challenge, page, rowsPerPage, refresh]);
 
 	useEffect(() => {
 		getChallenge();
@@ -220,7 +265,14 @@ function Page() {
 												withArrow
 												label="删除提交记录"
 											>
-												<ActionIcon variant="transparent">
+												<ActionIcon
+													variant="transparent"
+													onClick={() =>
+														openDeleteSubmissionModal(
+															submission
+														)
+													}
+												>
 													<MDIcon color={"red"}>
 														delete
 													</MDIcon>
