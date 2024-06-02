@@ -17,7 +17,6 @@ import {
 	ActionIcon,
 	ModalProps,
 	Modal,
-	LoadingOverlay,
 } from "@mantine/core";
 import MDIcon from "@/components/ui/MDIcon";
 import FirstBloodIcon from "@/components/icons/hexagons/FirstBloodIcon";
@@ -37,28 +36,22 @@ import {
 } from "@/utils/notification";
 import { useForm } from "@mantine/form";
 import { useTeamStore } from "@/stores/team";
-import { useChallengeApi } from "@/api/challenge";
 
 interface ChallengeModalProps extends ModalProps {
-	challengeID?: number;
+	challenge?: Challenge;
 	gameID?: number;
 	setRefresh: () => void;
 	mode?: "practice" | "game";
 }
 
 export default function ChallengeModal(props: ChallengeModalProps) {
-	const { challengeID, gameID, setRefresh, mode, ...modalProps } = props;
+	const { challenge, gameID, setRefresh, mode, ...modalProps } = props;
 
 	const { colorScheme } = useMantineColorScheme();
 	const podApi = usePodApi();
-	const challengeApi = useChallengeApi();
 	const submissionApi = useSubmissionApi();
 	const authStore = useAuthStore();
 	const teamStore = useTeamStore();
-
-	const [challenge, setChallenge] = useState<Challenge>();
-
-	const [loading, setLoading] = useState<boolean>(true);
 
 	const [pod, setPod] = useState<Pod>();
 	const [podCreateLoading, setPodCreateLoading] = useState(false);
@@ -70,25 +63,10 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 		},
 	});
 
-	function getChallenge() {
-		setLoading(true);
-		challengeApi
-			.getChallenges({
-				id: challengeID,
-			})
-			.then((res) => {
-				const r = res.data;
-				setChallenge(r.data?.[0]);
-			})
-			.finally(() => {
-				setLoading(false);
-			});
-	}
-
 	function getPod() {
 		podApi
 			.getPods({
-				challenge_id: challengeID,
+				challenge_id: challenge?.id,
 				user_id: mode === "practice" ? authStore?.user?.id : undefined,
 				team_id:
 					mode === "game" ? teamStore?.selectedTeamID : undefined,
@@ -170,7 +148,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 
 		submissionApi
 			.createSubmission({
-				challenge_id: challengeID,
+				challenge_id: challenge?.id,
 				flag: flag,
 				team_id:
 					mode === "game" ? teamStore?.selectedTeamID : undefined,
@@ -226,9 +204,6 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 
 	useEffect(() => {
 		form.reset();
-		if (modalProps.opened) {
-			getChallenge();
-		}
 	}, [modalProps.opened]);
 
 	return (
@@ -254,7 +229,6 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 						justifyContent: "space-between",
 					}}
 				>
-					<LoadingOverlay visible={loading} />
 					<Box>
 						<Box
 							sx={{

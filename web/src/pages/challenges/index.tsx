@@ -255,7 +255,7 @@ export default function Page() {
 				opened={opened}
 				onClose={close}
 				centered
-				challengeID={selectedChallenge?.id}
+				challenge={selectedChallenge}
 				setRefresh={() => setRefresh((prev) => prev + 1)}
 				mode="practice"
 			/>
