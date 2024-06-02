@@ -39,6 +39,7 @@ func NewGameTeamService(appRepository *repository.Repository) IGameTeamService {
 func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []model.GameTeam, total int64, err error) {
 	gameTeams, total, err := g.gameTeamRepository.Find(model.GameTeam{
 		GameID: req.GameID,
+		TeamID: req.TeamID,
 	})
 	for index, gameTeam := range gameTeams {
 		if req.TeamID != 0 && gameTeam.TeamID != req.TeamID {
