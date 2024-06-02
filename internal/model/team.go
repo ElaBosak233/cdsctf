@@ -58,9 +58,21 @@ func (t *Team) AfterCreate(db *gorm.DB) (err error) {
 }
 
 func (t *Team) AfterUpdate(db *gorm.DB) (err error) {
-	db.Table("user_teams").Create(&UserTeam{
-		TeamID: t.ID,
-		UserID: t.CaptainID,
-	})
+	var userTeams []UserTeam
+	db.Table("user_teams").Where("team_id = ?", t.ID).Find(&userTeams)
+
+	flag := true
+	for _, userTeam := range userTeams {
+		if userTeam.UserID == t.CaptainID {
+			flag = false
+		}
+	}
+
+	if flag {
+		db.Table("user_teams").Create(&UserTeam{
+			TeamID: t.ID,
+			UserID: t.CaptainID,
+		})
+	}
 	return nil
 }

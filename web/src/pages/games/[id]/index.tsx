@@ -36,6 +36,7 @@ export default function Page() {
 
 	const [game, setGame] = useState<Game>();
 	const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
+	const [canEnter, setCanEnter] = useState(false);
 
 	const startedAt = dayjs(Number(game?.started_at) * 1000).format(
 		"YYYY/MM/DD HH:mm:ss"
@@ -92,6 +93,20 @@ export default function Page() {
 	}
 
 	useEffect(() => {
+		if (gameTeams) {
+			for (const gameTeam of gameTeams) {
+				if (gameTeam?.is_allowed) {
+					for (const user of gameTeam?.team?.users || []) {
+						if (user?.id === authStore?.user?.id) {
+							setCanEnter(true);
+						}
+					}
+				}
+			}
+		}
+	}, [gameTeams]);
+
+	useEffect(() => {
 		getGame();
 		getGameTeams();
 	}, []);
@@ -133,12 +148,16 @@ export default function Page() {
 									>
 										查看榜单
 									</Button>
-									<Button onClick={() => applyOpen()}>
-										报名参赛
-									</Button>
-									<Button onClick={() => enter()}>
-										进入比赛
-									</Button>
+									{!canEnter && (
+										<Button onClick={() => applyOpen()}>
+											报名参赛
+										</Button>
+									)}
+									{canEnter && (
+										<Button onClick={() => enter()}>
+											进入比赛
+										</Button>
+									)}
 								</Group>
 							</Stack>
 						</Stack>
