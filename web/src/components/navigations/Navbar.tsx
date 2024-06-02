@@ -16,10 +16,12 @@ import MDIcon from "@/components/ui/MDIcon";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
 import { useEffect, useState } from "react";
+import { useTeamStore } from "@/stores/team";
 
 export default function Navbar() {
 	const authStore = useAuthStore();
 	const configStore = useConfigStore();
+	const teamStore = useTeamStore();
 	const navigate = useNavigate();
 	const { colorScheme, setColorScheme } = useMantineColorScheme({
 		keepTransitions: true,
@@ -31,6 +33,7 @@ export default function Navbar() {
 	function logout() {
 		authStore.setPgsToken("");
 		authStore.setUser(undefined);
+		teamStore.setSelectedTeamID(0);
 		navigate("/login");
 	}
 
