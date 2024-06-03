@@ -157,7 +157,7 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 					status = 4
 				}
 				rank = int64(len(gameChallenge.Challenge.Submissions) + 1)
-				if rank <= 3 && rank != 0 {
+				if rank <= 3 && rank != 0 && status == 2 {
 					var noticeType string
 					switch rank {
 					case 1:
