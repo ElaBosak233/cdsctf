@@ -30,6 +30,7 @@ build: swag
 	@go build -ldflags "-linkmode external -w -s $(LDFLAGS)" -o ./build/$(BINARY) $(PACKAGE)/cmd/cloudsdale
 	@echo Build finished.
 
+run: export DEBUG = true
 run: swag
 	@echo Running $(PACKAGE)...
 	go run -ldflags "$(LDFLAGS)" $(PACKAGE)/cmd/cloudsdale

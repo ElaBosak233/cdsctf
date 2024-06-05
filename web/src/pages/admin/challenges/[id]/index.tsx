@@ -56,7 +56,8 @@ function Page() {
 	}
 
 	function saveAttachment() {
-		const notificationID = showLoadingNotification({
+		showLoadingNotification({
+			id: "upload-attachment",
 			message: "正在上传附件",
 		});
 		const config: AxiosRequestConfig<FormData> = {};
@@ -64,8 +65,9 @@ function Page() {
 			.saveChallengeAttachment(Number(id), attachment!, config)
 			.then((_) => {
 				showSuccessNotification({
-					id: notificationID,
+					id: "upload-attachment",
 					message: "附件上传成功",
+					update: true,
 				});
 				setRefresh((prev) => prev + 1);
 			});
