@@ -16,6 +16,7 @@ import { calculateAndSort } from "@/utils/game";
 import { showErrNotification } from "@/utils/notification";
 import {
 	Avatar,
+	Badge,
 	Box,
 	Button,
 	Card,
@@ -26,6 +27,8 @@ import {
 	ScrollArea,
 	Stack,
 	Text,
+	Title,
+	Transition,
 	UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -54,6 +57,7 @@ function Page() {
 	const [submissions, setSubmissions] = useState<Array<Submission>>([]);
 
 	const [loadingTeamStatus, setLoadingTeamStatus] = useState<boolean>(false);
+	const [loadingChallenges, setLoadingChallenges] = useState<boolean>(false);
 
 	const [opened, { open, close }] = useDisclosure(false);
 	const [selectedChallenge, setSelectedChallenge] = useState<GameChallenge>();
@@ -93,6 +97,7 @@ function Page() {
 	}
 
 	function getGameChallenges() {
+		setLoadingChallenges(true);
 		gameApi
 			.getGameChallenges({
 				game_id: Number(id),
@@ -102,6 +107,9 @@ function Page() {
 			.then((res) => {
 				const r = res.data;
 				setGameChallenges(r.data);
+			})
+			.finally(() => {
+				setLoadingChallenges(false);
 			});
 	}
 
@@ -263,6 +271,7 @@ function Page() {
 					</Stack>
 					<Box mx={20} w={"100%"}>
 						<ScrollArea h={"calc(100vh - 250px)"}>
+							<LoadingOverlay visible={loadingChallenges} />
 							<Group gap={"lg"} justify={"start"}>
 								{selectedGameChallenges?.map(
 									(gameChallenge) => (
@@ -288,43 +297,54 @@ function Page() {
 						</ScrollArea>
 					</Box>
 					<Stack miw={330} maw={330} mx={10}>
-						<Card mih={200} shadow="md" p={25} pos={"relative"}>
+						<Card mih={185} shadow="md" p={25} pos={"relative"}>
 							<LoadingOverlay
 								visible={loadingTeamStatus}
 								zIndex={2}
 							/>
-							<Group gap={20}>
-								<Avatar
-									color="brand"
-									size={72}
-									src={`${import.meta.env.VITE_BASE_API}/media/teams/${gameTeam?.team_id}/${gameTeam?.team?.avatar?.name}`}
-								>
-									<MDIcon size={36}>people</MDIcon>
-								</Avatar>
-								<Text fw={700} size="1rem">
-									{gameTeam?.team?.name}
-								</Text>
-							</Group>
-							<Flex justify={"space-between"} mt={20} mx={36}>
-								<Stack align={"center"}>
-									<Text fw={700} size="1.2rem">
-										{score || 0}
-									</Text>
-									<Text fw={700}>得分</Text>
-								</Stack>
-								<Stack align={"center"}>
-									<Text fw={700} size="1.2rem">
-										{rank > 0 ? rank : "无排名"}
-									</Text>
-									<Text fw={700}>排名</Text>
-								</Stack>
-								<Stack align={"center"}>
-									<Text fw={700} size="1.2rem">
-										{solves || 0}
-									</Text>
-									<Text fw={700}>已解决</Text>
-								</Stack>
-							</Flex>
+							<Stack>
+								<Flex gap={20} align={"center"}>
+									<Avatar
+										color="brand"
+										size={64}
+										src={`${import.meta.env.VITE_BASE_API}/media/teams/${gameTeam?.team_id}/${gameTeam?.team?.avatar?.name}`}
+									>
+										<MDIcon size={36}>people</MDIcon>
+									</Avatar>
+									<Title
+										fw={700}
+										size={"1.25rem"}
+										sx={{
+											overflow: "hidden",
+											textOverflow: "ellipsis",
+											whiteSpace: "nowrap",
+											flexGrow: 1,
+										}}
+									>
+										{gameTeam?.team?.name}
+									</Title>
+								</Flex>
+								<Flex justify={"space-between"} mx={36}>
+									<Stack align={"center"} gap={10}>
+										<Text fw={700} size="1.2rem">
+											{rank > 0 ? rank : "无排名"}
+										</Text>
+										<Badge>排名</Badge>
+									</Stack>
+									<Stack align={"center"} gap={10}>
+										<Text fw={700} size="1.2rem">
+											{score || 0}
+										</Text>
+										<Badge>得分</Badge>
+									</Stack>
+									<Stack align={"center"} gap={10}>
+										<Text fw={700} size="1.2rem">
+											{solves || 0}
+										</Text>
+										<Badge>已解决</Badge>
+									</Stack>
+								</Flex>
+							</Stack>
 						</Card>
 						<Card h={"calc(100vh - 450px)"} shadow="md">
 							<GameNoticeArea />

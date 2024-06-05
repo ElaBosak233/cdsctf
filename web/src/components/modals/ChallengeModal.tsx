@@ -36,6 +36,8 @@ import {
 } from "@/utils/notification";
 import { useForm } from "@mantine/form";
 import { useTeamStore } from "@/stores/team";
+import { useInterval } from "@mantine/hooks";
+import { set } from "zod";
 
 interface ChallengeModalProps extends ModalProps {
 	challenge?: Challenge;
@@ -54,7 +56,11 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 	const teamStore = useTeamStore();
 
 	const [pod, setPod] = useState<Pod>();
+	const [podTime, setPodTime] = useState<number>(0);
+	const interval = useInterval(() => setPodTime((s) => s - 1), 1000);
 	const [podCreateLoading, setPodCreateLoading] = useState(false);
+	const [podRemoveLoading, setPodRemoveLoading] = useState(false);
+	const [podRenewLoading, setPodRenewLoading] = useState(false);
 
 	const form = useForm({
 		mode: "uncontrolled",
@@ -108,23 +114,26 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 	}
 
 	function removePod() {
+		setPodRemoveLoading(true);
 		podApi
 			.removePod({
 				id: pod?.id as number,
 			})
-			.then((res) => {
-				const r = res.data;
-				if (r?.code === 200) {
-					setPod(undefined);
-				}
+			.then((_) => {
+				setPod(undefined);
+				setPodTime(0);
 				showSuccessNotification({
 					title: "操作成功",
 					message: "实例已销毁！",
 				});
+			})
+			.finally(() => {
+				setPodRemoveLoading(false);
 			});
 	}
 
 	function renewPod() {
+		setPodRenewLoading(true);
 		podApi
 			.renewPod({
 				id: pod?.id!,
@@ -134,6 +143,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 				if (r?.code === 200) {
 					getPod();
 				}
+			})
+			.finally(() => {
+				setPodRenewLoading(false);
 			});
 	}
 
@@ -197,13 +209,30 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 	}
 
 	useEffect(() => {
+		if (podTime > 0) {
+			interval.start();
+			return interval.stop;
+		}
+	}, [podTime]);
+
+	useEffect(() => {
+		if (pod) {
+			setPodTime(
+				Math.ceil(pod?.removed_at - new Date().getTime() / 1000)
+			);
+		}
+	}, [pod]);
+
+	useEffect(() => {
 		if (challenge?.is_dynamic) {
 			getPod();
 		}
-	}, [challenge]);
+	}, [challenge, modalProps.opened]);
 
 	useEffect(() => {
 		form.reset();
+		setPodTime(0);
+		setPod(undefined);
 	}, [modalProps.opened]);
 
 	return (
@@ -238,18 +267,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 							}}
 						>
 							<Group gap={6}>
-								<MDIcon
-									color={
-										colorScheme === "light"
-											? challenge?.category?.color ||
-												"#3F51B5"
-											: lighten(
-													challenge?.category
-														?.color || "#3F51B5",
-													0.15
-												)
-									}
-								>
+								<MDIcon color={challenge?.category?.color}>
 									{challenge?.category?.icon}
 								</MDIcon>
 								<Text fw={700}>{challenge?.title}</Text>
@@ -345,16 +363,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 											key={nat?.id}
 											value={nat?.entry}
 											readOnly
-											sx={{
-												input: {
-													"&:focus": {
-														borderColor:
-															challenge?.category
-																?.color ||
-															"#3F51B5",
-													},
-												},
-											}}
+											color={challenge?.category?.color}
 											leftSectionWidth={135}
 											leftSection={
 												<Flex
@@ -431,36 +440,23 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 											本题为动态容器题目，解题需开启容器实例
 										</Text>
 										<Text size="0.8rem" c="secondary">
-											本题容器时间 {challenge?.duration}s
+											本题容器时间{" "}
+											{podTime || challenge?.duration}s
 										</Text>
 									</Stack>
 									<Flex gap={10}>
 										{pod?.id && (
 											<>
 												<Button
-													sx={{
-														backgroundColor:
-															"#3b81f5",
-														"&:hover": {
-															backgroundColor:
-																"#3b81f5",
-														},
-														color: "#FFF",
-													}}
+													loading={podRenewLoading}
+													color={"blue"}
 													onClick={renewPod}
 												>
 													实例续期
 												</Button>
 												<Button
-													sx={{
-														backgroundColor:
-															"#d22e2d",
-														"&:hover": {
-															backgroundColor:
-																"#d22e2d",
-														},
-														color: "#FFF",
-													}}
+													loading={podRemoveLoading}
+													color={"red"}
 													onClick={removePod}
 												>
 													销毁实例
@@ -470,18 +466,8 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 										{!pod?.id && (
 											<Button
 												size="sm"
-												bg={
-													colorScheme === "light"
-														? challenge?.category
-																?.color ||
-															"#3F51B5"
-														: darken(
-																challenge
-																	?.category
-																	?.color ||
-																	"#3F51B5",
-																0.25
-															)
+												color={
+													challenge?.category?.color
 												}
 												loading={podCreateLoading}
 												onClick={createPod}
@@ -523,16 +509,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 									{...form.getInputProps("flag")}
 								/>
 								<Button
-									bg={
-										colorScheme === "light"
-											? challenge?.category?.color ||
-												"#3F51B5"
-											: darken(
-													challenge?.category
-														?.color || "#3F51B5",
-													0.25
-												)
-									}
+									color={challenge?.category?.color}
 									w={"15%"}
 									type="submit"
 								>

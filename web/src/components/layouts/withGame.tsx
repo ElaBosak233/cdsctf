@@ -40,7 +40,7 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
 								flexShrink: 0,
 							}}
 						>
-							<Text fw={700} size="1.5rem">
+							<Text fw={700} size="2rem">
 								{game?.title}
 							</Text>
 						</Box>

@@ -6,6 +6,7 @@ import { Game } from "@/types/game";
 import {
 	Button,
 	Flex,
+	LoadingOverlay,
 	Pagination,
 	Stack,
 	TextInput,
@@ -22,10 +23,16 @@ export default function Page() {
 	const [games, setGames] = useState<Array<Game>>([]);
 	const [page, setPage] = useState<number>(1);
 	const [total, setTotal] = useState<number>(0);
+	const [search, setSearch] = useState<string>("");
+	const [searchInput, setSearchInput] = useState<string>("");
+
+	const [loading, setLoading] = useState<boolean>(true);
 
 	function getGames() {
+		setLoading(true);
 		gameApi
 			.getGames({
+				title: search,
 				page: page,
 				is_enabled: true,
 			})
@@ -33,12 +40,15 @@ export default function Page() {
 				const r = res.data;
 				setGames(r.data);
 				setTotal(r.total);
+			})
+			.finally(() => {
+				setLoading(false);
 			});
 	}
 
 	useEffect(() => {
 		getGames();
-	}, [page]);
+	}, [page, search]);
 
 	useEffect(() => {
 		document.title = `比赛 - ${configStore?.pltCfg?.site?.title}`;
@@ -59,11 +69,16 @@ export default function Page() {
 						size="lg"
 						w={"90%"}
 						placeholder={"搜索比赛"}
+						value={searchInput}
+						onChange={(e) => setSearchInput(e.currentTarget.value)}
 					/>
 					<Button
 						w={"10%"}
 						size="lg"
 						leftSection={<MDIcon c={"white"}>search</MDIcon>}
+						onClick={() => {
+							setSearch(searchInput);
+						}}
 					>
 						搜索
 					</Button>
@@ -73,7 +88,9 @@ export default function Page() {
 					sx={{
 						flexGrow: 1,
 					}}
+					pos={"relative"}
 				>
+					<LoadingOverlay visible={loading} />
 					{games.map((game) => (
 						<UnstyledButton
 							key={game?.id}

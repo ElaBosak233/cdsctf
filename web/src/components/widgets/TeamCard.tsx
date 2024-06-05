@@ -9,6 +9,7 @@ import {
 	Stack,
 	Tooltip,
 	Divider,
+	Title,
 } from "@mantine/core";
 import MDIcon from "@/components/ui/MDIcon";
 
@@ -34,10 +35,28 @@ export default function TeamCard({ team }: { team?: Team }) {
 					<MDIcon size={40}>people</MDIcon>
 				</Avatar>
 				<Stack gap={5}>
-					<Text size="2rem" fw={600}>
+					<Title
+						size="2rem"
+						fw={600}
+						maw={200}
+						sx={{
+							overflow: "hidden",
+							textOverflow: "ellipsis",
+							whiteSpace: "nowrap",
+						}}
+					>
 						{team?.name}
+					</Title>
+					<Text
+						maw={200}
+						sx={{
+							overflow: "hidden",
+							textOverflow: "ellipsis",
+							whiteSpace: "nowrap",
+						}}
+					>
+						{team?.description}
 					</Text>
-					<Text>{team?.description}</Text>
 				</Stack>
 			</Flex>
 			<Divider my={15} />
