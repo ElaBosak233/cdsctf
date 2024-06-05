@@ -304,7 +304,7 @@ export default function Navbar() {
 						</Menu.Target>
 						<Menu.Dropdown>
 							<Menu.Item
-								c={"brand"}
+								color={"brand"}
 								leftSection={<MDIcon>person</MDIcon>}
 								onClick={() => navigate("/profile")}
 							>
@@ -314,7 +314,7 @@ export default function Navbar() {
 							</Menu.Item>
 							<Menu.Divider />
 							<Menu.Item
-								c={"red"}
+								color={"red"}
 								leftSection={
 									<MDIcon color={"red"}>logout</MDIcon>
 								}

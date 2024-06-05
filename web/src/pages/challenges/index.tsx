@@ -38,7 +38,7 @@ export default function Page() {
 	const [selectedCategory, setSelectedCategory] = useState<number>(0);
 	const [sort, setSort] = useState<string>("id_desc");
 
-	const [loading, setLoading] = useState<boolean>(false);
+	const [loading, setLoading] = useState<boolean>(true);
 
 	const [opened, { open, close }] = useDisclosure(false);
 	const [selectedChallenge, setSelectedChallenge] = useState<Challenge>();

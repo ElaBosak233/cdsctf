@@ -53,6 +53,15 @@ export default function useTheme() {
 			],
 		},
 		primaryColor: "brand",
+		components: {
+			LoadingOverlay: {
+				defaultProps: {
+					transitionProps: {
+						exitDuration: 250,
+					},
+				},
+			},
+		},
 	});
 	return { theme: theme };
 }

@@ -7,7 +7,15 @@ import TeamCard from "@/components/widgets/TeamCard";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
 import { Team } from "@/types/team";
-import { Button, Flex, Group, Stack, UnstyledButton } from "@mantine/core";
+import {
+	Box,
+	Button,
+	Flex,
+	Group,
+	LoadingOverlay,
+	Stack,
+	UnstyledButton,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 
@@ -20,6 +28,8 @@ export default function Page() {
 
 	const [teams, setTeams] = useState<Array<Team>>([]);
 
+	const [loading, setLoading] = useState<boolean>(true);
+
 	const [createOpened, { open: createOpen, close: createClose }] =
 		useDisclosure(false);
 
@@ -31,6 +41,7 @@ export default function Page() {
 		useDisclosure(false);
 
 	function getTeams() {
+		setLoading(true);
 		teamApi
 			.getTeams({
 				user_id: authStore?.user?.id,
@@ -38,6 +49,9 @@ export default function Page() {
 			.then((res) => {
 				const r = res.data;
 				setTeams(r.data);
+			})
+			.finally(() => {
+				setLoading(false);
 			});
 	}
 
@@ -68,19 +82,22 @@ export default function Page() {
 						创建团队
 					</Button>
 				</Flex>
-				<Group gap={20} my={20}>
-					{teams?.map((team) => (
-						<UnstyledButton
-							key={team?.id}
-							onClick={() => {
-								editOpen();
-								setEditTeam(team);
-							}}
-						>
-							<TeamCard team={team} />
-						</UnstyledButton>
-					))}
-				</Group>
+				<Box mih={"calc(100vh - 250px)"} pos={"relative"} my={20}>
+					<LoadingOverlay visible={loading} />
+					<Group gap={20}>
+						{teams?.map((team) => (
+							<UnstyledButton
+								key={team?.id}
+								onClick={() => {
+									editOpen();
+									setEditTeam(team);
+								}}
+							>
+								<TeamCard team={team} />
+							</UnstyledButton>
+						))}
+					</Group>
+				</Box>
 			</Stack>
 			<TeamCreateModal
 				setRefresh={() => {
