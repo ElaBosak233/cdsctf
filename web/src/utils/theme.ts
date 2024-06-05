@@ -1,6 +1,6 @@
 import { createTheme } from "@mantine/core";
 
-export default function useTheme() {
+export function useTheme() {
 	const theme = createTheme({
 		colors: {
 			brand: [

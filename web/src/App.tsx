@@ -4,7 +4,7 @@ import routes from "~react-pages";
 import { Box, LoadingOverlay, MantineProvider } from "@mantine/core";
 import { emotionTransform, MantineEmotionProvider } from "@mantine/emotion";
 import { Suspense, useEffect } from "react";
-import useTheme from "@/composables/useTheme";
+import { useTheme } from "@/utils/theme";
 import { useCategoryApi } from "@/api/category";
 import { useCategoryStore } from "@/stores/category";
 import { useConfigApi } from "@/api/config";

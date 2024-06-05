@@ -38,6 +38,7 @@ export const useAuth = () => {
 					authStore.setUser(undefined);
 					navigate("/login");
 					showInfoNotification({
+						id: "auth-expired",
 						message: "登录凭据已过期，请重新登录",
 					});
 				}

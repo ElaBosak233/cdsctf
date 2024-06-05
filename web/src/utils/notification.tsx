@@ -1,97 +1,131 @@
-import { notifications, showNotification } from "@mantine/notifications";
+import {
+	NotificationData,
+	showNotification,
+	updateNotification,
+} from "@mantine/notifications";
 import MDIcon from "@/components/ui/MDIcon";
 
 export function showErrNotification({
 	id,
 	title,
 	message,
+	update,
 }: {
 	id?: string;
 	title?: string;
 	message?: string;
+	update?: boolean;
 }) {
-	if (id) {
-		notifications.update({
-			id: id,
-			title: title || "发生了错误",
-			message: message,
-			color: "red",
-			icon: <MDIcon c={"white"}>close</MDIcon>,
+	const notificationData: NotificationData = {
+		id: id,
+		title: title || "错误",
+		message: message,
+		color: "red",
+		icon: <MDIcon c={"white"}>exclamation</MDIcon>,
+	};
+	if (update) {
+		updateNotification({
+			...notificationData,
 			autoClose: 2000,
 			withCloseButton: true,
 			loading: false,
 		});
-		return;
+	} else {
+		showNotification(notificationData);
 	}
-	showNotification({
-		title: title || "发生了错误",
-		message: message,
-		color: "red",
-		icon: <MDIcon c={"white"}>close</MDIcon>,
-	});
 }
 
 export function showSuccessNotification({
 	id,
 	title,
 	message,
+	update,
 }: {
 	id?: string;
 	title?: string;
 	message?: string;
+	update?: boolean;
 }) {
-	if (id) {
-		notifications.update({
-			id: id,
-			title: title || "成功",
-			message: message,
-			color: "green",
-			icon: <MDIcon c={"white"}>check</MDIcon>,
-			autoClose: 2000,
-			withCloseButton: true,
-			loading: false,
-		});
-		return;
-	}
-	showNotification({
+	const notificationData: NotificationData = {
+		id: id,
 		title: title || "成功",
 		message: message,
 		color: "green",
 		icon: <MDIcon c={"white"}>check</MDIcon>,
-	});
+	};
+	if (update) {
+		updateNotification({
+			...notificationData,
+			autoClose: 2000,
+			withCloseButton: true,
+			loading: false,
+		});
+	} else {
+		showNotification(notificationData);
+	}
 }
 
 export function showInfoNotification({
 	id,
 	title,
 	message,
+	update,
 }: {
 	id?: string;
 	title?: string;
 	message?: string;
+	update?: boolean;
 }) {
-	if (id) {
-		notifications.update({
-			id: id,
-			title: title || "信息",
-			message: message,
-			color: "blue",
-			icon: <MDIcon c={"white"}>info_i</MDIcon>,
-			autoClose: 2000,
-			withCloseButton: true,
-			loading: false,
-		});
-		return;
-	}
-	showNotification({
+	const notificationData: NotificationData = {
+		id: id,
 		title: title || "信息",
 		message: message,
 		color: "blue",
 		icon: <MDIcon c={"white"}>info_i</MDIcon>,
-	});
+	};
+	if (update) {
+		updateNotification({
+			...notificationData,
+			autoClose: 2000,
+			withCloseButton: true,
+			loading: false,
+		});
+	} else {
+		showNotification(notificationData);
+	}
 }
 
 export function showWarnNotification({
+	id,
+	title,
+	message,
+	update,
+}: {
+	id?: string;
+	title?: string;
+	message?: string;
+	update?: boolean;
+}) {
+	const notificationData: NotificationData = {
+		id: id,
+		title: title || "警告",
+		message: message,
+		color: "orange",
+		icon: <MDIcon c={"white"}>exclamation</MDIcon>,
+	};
+	if (update) {
+		updateNotification({
+			...notificationData,
+			autoClose: 2000,
+			withCloseButton: true,
+			loading: false,
+		});
+	} else {
+		showNotification(notificationData);
+	}
+}
+
+export function showLoadingNotification({
 	id,
 	title,
 	message,
@@ -100,35 +134,8 @@ export function showWarnNotification({
 	title?: string;
 	message?: string;
 }) {
-	if (id) {
-		notifications.update({
-			id: id,
-			title: title || "警告",
-			message: message,
-			color: "orange",
-			icon: <MDIcon c={"white"}>exclamation</MDIcon>,
-			autoClose: 2000,
-			withCloseButton: true,
-			loading: false,
-		});
-		return;
-	}
 	showNotification({
-		title: title || "警告",
-		message: message,
-		color: "orange",
-		icon: <MDIcon c={"white"}>exclamation</MDIcon>,
-	});
-}
-
-export function showLoadingNotification({
-	title,
-	message,
-}: {
-	title?: string;
-	message?: string;
-}): string {
-	const id = notifications.show({
+		id: id,
 		title: title || "请稍后",
 		loading: true,
 		message: message,
@@ -136,5 +143,4 @@ export function showLoadingNotification({
 		autoClose: false,
 		withCloseButton: false,
 	});
-	return id;
 }
