@@ -22,5 +22,5 @@ func NewProxyRouter(proxyRouter *gin.RouterGroup, proxyController controller.IPr
 }
 
 func (p *ProxyRouter) Register() {
-	p.router.Any("/:id", p.controller.Connect)
+	p.router.GET("/:id", p.controller.Connect)
 }

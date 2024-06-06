@@ -23,8 +23,6 @@ func NewProxyController() IProxyController {
 
 // Connect
 // TCP over WebSocket in Cloudsdale requires a complete Websocket header to establish a connection.
-// It's not Ela's fault, it's just how Websocket works.
-// Unfortunately, WebsocketReflectorX by XDSEC is not supported by Cloudsdale.
 func (p *ProxyController) Connect(ctx *gin.Context) {
 	id := ctx.Param("id")
 	upgrade := websocket.Upgrader{
@@ -32,6 +30,7 @@ func (p *ProxyController) Connect(ctx *gin.Context) {
 			return true
 		},
 	}
+
 	conn, err := upgrade.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		zap.L().Error("Failed to upgrade to WebSocket", zap.Error(err))

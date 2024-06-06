@@ -52,10 +52,9 @@ func initDefaultPolicy() {
 		{"guest", "/api/users/login", "POST"},
 		{"guest", "/api/games/{id}/broadcast", "GET"},
 		{"guest", "/api/proxies/{id}", "GET"},
-		{"guest", "/api/proxies/{id}", "OPTIONS"},
-		{"guest", "/api/proxies/{id}", "POST"},
 		{"guest", "/api/media/*", "GET"},
 		{"guest", "/api/groups/", "GET"},
+		{"guest", "/api/*", "OPTIONS"},
 	})
 
 	_, err = Enforcer.AddGroupingPolicies([][]string{
