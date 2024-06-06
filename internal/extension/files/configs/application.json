@@ -33,14 +33,13 @@
 		},
 		"proxy": {
 			"enabled": false,
-			"type": "ws",
 			"traffic_capture": {
 				"enabled": false
 			}
 		}
 	},
 	"db": {
-		"provider": "sqlite",
+		"provider": "postgres",
 		"postgres": {
 			"dbname": "cloudsdale",
 			"host": "db",
