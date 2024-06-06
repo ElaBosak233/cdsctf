@@ -8,6 +8,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./configs:/app/configs"
+      - "./captures:/app/captures"
       - "./media:/app/media"
       - "./logs:/app/logs"
     depends_on:
