@@ -77,6 +77,10 @@ func Run() {
 	cor.AllowCredentials = true
 	r.Use(cors.New(cor))
 
+	r.OPTIONS("/*path", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+
 	// Initialize the application
 	repository.InitRepository()
 	service.InitService()
