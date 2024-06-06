@@ -95,7 +95,7 @@ func (w *WSProxy) handle(conn *websocket.Conn) {
 			zap.L().Debug("TCP connection read error.", zap.Error(err))
 			return
 		}
-		if err := conn.WriteMessage(websocket.TextMessage, buf[:n]); err != nil {
+		if err := conn.WriteMessage(websocket.BinaryMessage, buf[:n]); err != nil {
 			zap.L().Debug("WebSocket write error.", zap.Error(err))
 			return
 		}
@@ -175,7 +175,7 @@ func (w *WSProxy) handleInTrafficCapture(conn *websocket.Conn) {
 			zap.L().Debug("TCP connection read error.", zap.Error(_err))
 			return
 		}
-		_err = conn.WriteMessage(websocket.TextMessage, buf[:n])
+		_err = conn.WriteMessage(websocket.BinaryMessage, buf[:n])
 		if _err != nil {
 			zap.L().Debug("WebSocket write error.", zap.Error(_err))
 			return
