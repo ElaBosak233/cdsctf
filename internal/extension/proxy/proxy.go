@@ -1,9 +1,5 @@
 package proxy
 
-import (
-	"github.com/elabosak233/cloudsdale/internal/app/config"
-)
-
 type IProxy interface {
 	Setup()
 	Close()
@@ -11,11 +7,5 @@ type IProxy interface {
 }
 
 func NewProxy(target string) IProxy {
-	switch config.AppCfg().Container.Proxy.Type {
-	case "tcp":
-		return NewTCPProxy(target)
-	case "ws":
-		return NewWSProxy(target)
-	}
-	return nil
+	return NewWSProxy(target)
 }

@@ -95,8 +95,7 @@ type ApplicationCfg struct {
 			} `yaml:"config" json:"config" mapstructure:"config"`
 		} `yaml:"k8s" json:"k8s" mapstructure:"k8s"`
 		Proxy struct {
-			Enabled        bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
-			Type           string `yaml:"type" json:"type" mapstructure:"type"`
+			Enabled        bool `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
 			TrafficCapture struct {
 				Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
 				Path    string `yaml:"path" json:"path" mapstructure:"path"`
