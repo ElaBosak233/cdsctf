@@ -21,11 +21,11 @@ type GameChallengeService struct {
 	noticeRepository        repository.INoticeRepository
 }
 
-func NewGameChallengeService(appRepository *repository.Repository) IGameChallengeService {
+func NewGameChallengeService(r *repository.Repository) IGameChallengeService {
 	return &GameChallengeService{
-		gameRepository:          appRepository.GameRepository,
-		gameChallengeRepository: appRepository.GameChallengeRepository,
-		noticeRepository:        appRepository.NoticeRepository,
+		gameRepository:          r.GameRepository,
+		gameChallengeRepository: r.GameChallengeRepository,
+		noticeRepository:        r.NoticeRepository,
 	}
 }
 

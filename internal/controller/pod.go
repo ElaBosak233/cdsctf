@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/cache"
+	"github.com/elabosak233/cloudsdale/internal/extension/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
@@ -25,9 +25,9 @@ type PodController struct {
 	podService service.IPodService
 }
 
-func NewPodController(appService *service.Service) IPodController {
+func NewPodController(s *service.Service) IPodController {
 	return &PodController{
-		podService: appService.PodService,
+		podService: s.PodService,
 	}
 }
 

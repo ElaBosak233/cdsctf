@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/cache"
+	"github.com/elabosak233/cloudsdale/internal/extension/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
@@ -24,9 +24,9 @@ type SubmissionController struct {
 	submissionService service.ISubmissionService
 }
 
-func NewSubmissionController(appService *service.Service) ISubmissionController {
+func NewSubmissionController(s *service.Service) ISubmissionController {
 	return &SubmissionController{
-		submissionService: appService.SubmissionService,
+		submissionService: s.SubmissionService,
 	}
 }
 

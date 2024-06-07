@@ -2,8 +2,8 @@ package controller
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/cache"
 	"github.com/elabosak233/cloudsdale/internal/extension/broadcast"
+	"github.com/elabosak233/cloudsdale/internal/extension/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
@@ -47,15 +47,15 @@ type GameController struct {
 	mediaService         service.IMediaService
 }
 
-func NewGameController(appService *service.Service) IGameController {
+func NewGameController(s *service.Service) IGameController {
 	return &GameController{
-		gameService:          appService.GameService,
-		gameChallengeService: appService.GameChallengeService,
-		gameTeamService:      appService.GameTeamService,
-		challengeService:     appService.ChallengeService,
-		teamService:          appService.TeamService,
-		noticeService:        appService.NoticeService,
-		mediaService:         appService.MediaService,
+		gameService:          s.GameService,
+		gameChallengeService: s.GameChallengeService,
+		gameTeamService:      s.GameTeamService,
+		challengeService:     s.ChallengeService,
+		teamService:          s.TeamService,
+		noticeService:        s.NoticeService,
+		mediaService:         s.MediaService,
 	}
 }
 

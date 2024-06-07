@@ -54,12 +54,12 @@ type PodService struct {
 	flagGenRepository   repository.IFlagGenRepository
 }
 
-func NewPodService(appRepository *repository.Repository) IPodService {
+func NewPodService(r *repository.Repository) IPodService {
 	return &PodService{
-		challengeRepository: appRepository.ChallengeRepository,
-		flagGenRepository:   appRepository.FlagGenRepository,
-		podRepository:       appRepository.PodRepository,
-		natRepository:       appRepository.NatRepository,
+		challengeRepository: r.ChallengeRepository,
+		flagGenRepository:   r.FlagGenRepository,
+		podRepository:       r.PodRepository,
+		natRepository:       r.NatRepository,
 	}
 }
 

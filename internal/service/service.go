@@ -30,29 +30,32 @@ type Service struct {
 }
 
 func S() *Service {
+	if s == nil {
+		InitService()
+	}
 	return s
 }
 
 func InitService() {
 	onceService.Do(func() {
-		appRepository := repository.R()
+		r := repository.R()
 
 		s = &Service{
-			AuthService:          NewAuthService(appRepository),
+			AuthService:          NewAuthService(r),
 			MediaService:         NewMediaService(),
-			UserService:          NewUserService(appRepository),
-			ChallengeService:     NewChallengeService(appRepository),
-			PodService:           NewPodService(appRepository),
+			UserService:          NewUserService(r),
+			ChallengeService:     NewChallengeService(r),
+			PodService:           NewPodService(r),
 			ConfigService:        NewConfigService(),
-			TeamService:          NewTeamService(appRepository),
-			UserTeamService:      NewUserTeamService(appRepository),
-			SubmissionService:    NewSubmissionService(appRepository),
-			GameService:          NewGameService(appRepository),
-			GameChallengeService: NewGameChallengeService(appRepository),
-			GameTeamService:      NewGameTeamService(appRepository),
-			CategoryService:      NewCategoryService(appRepository),
-			FlagService:          NewFlagService(appRepository),
-			NoticeService:        NewNoticeService(appRepository),
+			TeamService:          NewTeamService(r),
+			UserTeamService:      NewUserTeamService(r),
+			SubmissionService:    NewSubmissionService(r),
+			GameService:          NewGameService(r),
+			GameChallengeService: NewGameChallengeService(r),
+			GameTeamService:      NewGameTeamService(r),
+			CategoryService:      NewCategoryService(r),
+			FlagService:          NewFlagService(r),
+			NoticeService:        NewNoticeService(r),
 		}
 	})
 	zap.L().Info("Service layer inits successfully.")

@@ -25,23 +25,26 @@ type Controller struct {
 }
 
 func C() *Controller {
+	if c == nil {
+		InitController()
+	}
 	return c
 }
 
 func InitController() {
 	onceController.Do(func() {
-		appService := service.S()
+		s := service.S()
 
 		c = &Controller{
-			UserController:       NewUserController(appService),
-			ChallengeController:  NewChallengeController(appService),
-			PodController:        NewPodController(appService),
-			ConfigController:     NewConfigController(appService),
-			MediaController:      NewMediaController(appService),
-			TeamController:       NewTeamController(appService),
-			SubmissionController: NewSubmissionController(appService),
-			GameController:       NewGameController(appService),
-			CategoryController:   NewCategoryController(appService),
+			UserController:       NewUserController(s),
+			ChallengeController:  NewChallengeController(s),
+			PodController:        NewPodController(s),
+			ConfigController:     NewConfigController(s),
+			MediaController:      NewMediaController(s),
+			TeamController:       NewTeamController(s),
+			SubmissionController: NewSubmissionController(s),
+			GameController:       NewGameController(s),
+			CategoryController:   NewCategoryController(s),
 			ProxyController:      NewProxyController(),
 		}
 	})

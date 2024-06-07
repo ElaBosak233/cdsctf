@@ -7,15 +7,12 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/app/db"
 	"github.com/elabosak233/cloudsdale/internal/app/logger"
 	"github.com/elabosak233/cloudsdale/internal/app/logger/adapter"
-	"github.com/elabosak233/cloudsdale/internal/cache"
-	"github.com/elabosak233/cloudsdale/internal/controller"
+	"github.com/elabosak233/cloudsdale/internal/extension/cache"
 	"github.com/elabosak233/cloudsdale/internal/extension/casbin"
 	"github.com/elabosak233/cloudsdale/internal/extension/container/provider"
 	"github.com/elabosak233/cloudsdale/internal/files"
 	"github.com/elabosak233/cloudsdale/internal/middleware"
-	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/router"
-	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
@@ -94,10 +91,6 @@ func Run() {
 		c.Status(http.StatusOK)
 	})
 
-	// Initialize the application
-	repository.InitRepository()
-	service.InitService()
-	controller.InitController()
 	router.InitRouter(r.Group("/api", middleware.Casbin()))
 
 	if isDebug {

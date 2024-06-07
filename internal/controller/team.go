@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/cache"
+	"github.com/elabosak233/cloudsdale/internal/extension/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
@@ -35,11 +35,11 @@ type TeamController struct {
 	mediaService    service.IMediaService
 }
 
-func NewTeamController(appService *service.Service) ITeamController {
+func NewTeamController(s *service.Service) ITeamController {
 	return &TeamController{
-		teamService:     appService.TeamService,
-		userTeamService: appService.UserTeamService,
-		mediaService:    appService.MediaService,
+		teamService:     s.TeamService,
+		userTeamService: s.UserTeamService,
+		mediaService:    s.MediaService,
 	}
 }
 

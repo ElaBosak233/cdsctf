@@ -15,10 +15,10 @@ type AuthService struct {
 	teamRepository repository.ITeamRepository
 }
 
-func NewAuthService(appRepository *repository.Repository) IAuthService {
+func NewAuthService(r *repository.Repository) IAuthService {
 	return &AuthService{
-		userRepository: appRepository.UserRepository,
-		teamRepository: appRepository.TeamRepository,
+		userRepository: r.UserRepository,
+		teamRepository: r.TeamRepository,
 	}
 }
 

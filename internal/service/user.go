@@ -31,11 +31,11 @@ type UserService struct {
 	userTeamRepository repository.IUserTeamRepository
 }
 
-func NewUserService(appRepository *repository.Repository) IUserService {
+func NewUserService(r *repository.Repository) IUserService {
 	return &UserService{
-		userRepository:     appRepository.UserRepository,
-		teamRepository:     appRepository.TeamRepository,
-		userTeamRepository: appRepository.UserTeamRepository,
+		userRepository:     r.UserRepository,
+		teamRepository:     r.TeamRepository,
+		userTeamRepository: r.UserTeamRepository,
 	}
 }
 

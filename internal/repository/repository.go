@@ -31,30 +31,33 @@ type Repository struct {
 }
 
 func R() *Repository {
+	if r == nil {
+		InitRepository()
+	}
 	return r
 }
 
 func InitRepository() {
 	onceRepository.Do(func() {
-		db := db.Db()
+		d := db.Db()
 
 		r = &Repository{
-			UserRepository:          NewUserRepository(db),
-			ChallengeRepository:     NewChallengeRepository(db),
-			TeamRepository:          NewTeamRepository(db),
-			SubmissionRepository:    NewSubmissionRepository(db),
-			PodRepository:           NewPodRepository(db),
-			GameRepository:          NewGameRepository(db),
-			UserTeamRepository:      NewUserTeamRepository(db),
-			GameChallengeRepository: NewGameChallengeRepository(db),
-			CategoryRepository:      NewCategoryRepository(db),
-			FlagRepository:          NewFlagRepository(db),
-			PortRepository:          NewPortRepository(db),
-			NatRepository:           NewNatRepository(db),
-			EnvRepository:           NewEnvRepository(db),
-			FlagGenRepository:       NewFlagGenRepository(db),
-			GameTeamRepository:      NewGameTeamRepository(db),
-			NoticeRepository:        NewNoticeRepository(db),
+			UserRepository:          NewUserRepository(d),
+			ChallengeRepository:     NewChallengeRepository(d),
+			TeamRepository:          NewTeamRepository(d),
+			SubmissionRepository:    NewSubmissionRepository(d),
+			PodRepository:           NewPodRepository(d),
+			GameRepository:          NewGameRepository(d),
+			UserTeamRepository:      NewUserTeamRepository(d),
+			GameChallengeRepository: NewGameChallengeRepository(d),
+			CategoryRepository:      NewCategoryRepository(d),
+			FlagRepository:          NewFlagRepository(d),
+			PortRepository:          NewPortRepository(d),
+			NatRepository:           NewNatRepository(d),
+			EnvRepository:           NewEnvRepository(d),
+			FlagGenRepository:       NewFlagGenRepository(d),
+			GameTeamRepository:      NewGameTeamRepository(d),
+			NoticeRepository:        NewNoticeRepository(d),
 		}
 	})
 	zap.L().Info("Repository layer inits successfully.")

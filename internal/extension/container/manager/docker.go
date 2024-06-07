@@ -24,8 +24,8 @@ type DockerManager struct {
 	duration  time.Duration
 
 	PodID      uint
-	RespID     []string
-	Proxy      proxy.IPodProxy
+	RespID     string
+	Proxies    []proxy.IProxy
 	Nats       []*model.Nat
 	CancelCtx  context.Context
 	CancelFunc context.CancelFunc
@@ -36,6 +36,7 @@ func NewDockerManager(challenge model.Challenge, flag model.Flag, duration time.
 		challenge: challenge,
 		duration:  duration,
 		flag:      flag,
+		Proxies:   make([]proxy.IProxy, 0),
 	}
 }
 
@@ -95,12 +96,12 @@ func (c *DockerManager) Setup() (nats []*model.Nat, err error) {
 		return nil, _err
 	}
 
-	c.RespID = append(c.RespID, resp.ID)
+	c.RespID = resp.ID
 
 	// Handle the container
 	_err = provider.DockerCli().ContainerStart(
 		context.Background(),
-		c.RespID[len(c.RespID)-1],
+		c.RespID,
 		ctn.StartOptions{},
 	)
 
@@ -112,7 +113,7 @@ func (c *DockerManager) Setup() (nats []*model.Nat, err error) {
 	// Get the container's inspect information
 	inspect, _ := provider.DockerCli().ContainerInspect(
 		context.Background(),
-		c.RespID[len(c.RespID)-1],
+		c.RespID,
 	)
 
 	nats = make([]*model.Nat, 0)
@@ -122,20 +123,21 @@ func (c *DockerManager) Setup() (nats []*model.Nat, err error) {
 		for port, bindings := range inspect.NetworkSettings.Ports {
 			entries := make([]string, 0)
 			for _, binding := range bindings {
-				entries = append(entries, fmt.Sprintf(
+				entry := fmt.Sprintf(
 					"%s:%d",
 					config.AppCfg().Container.Entry,
 					convertor.ToIntD(binding.HostPort, 0),
-				))
+				)
+				entries = append(entries, entry)
+				c.Proxies = append(c.Proxies, proxy.NewProxy(entry))
 			}
-			c.Proxy = proxy.NewPodProxy(entries)
-			c.Proxy.Setup()
-			for index, pp := range c.Proxy.Proxies() {
+			for index, p := range c.Proxies {
+				p.Setup()
 				nats = append(nats, &model.Nat{
 					SrcPort: port.Int(),
 					DstPort: convertor.ToIntD(strings.Split(entries[index], ":")[1], 0),
 					Proxy:   entries[index],
-					Entry:   pp.Entry(),
+					Entry:   p.Entry(),
 				})
 			}
 		}
@@ -162,10 +164,9 @@ func (c *DockerManager) Setup() (nats []*model.Nat, err error) {
 
 func (c *DockerManager) Status() (status string, err error) {
 	status = "removed"
-	for _, respID := range c.RespID {
-		if resp, err := provider.DockerCli().ContainerInspect(context.Background(), respID); err == nil {
-			status = resp.State.Status
-		}
+	resp, err := provider.DockerCli().ContainerInspect(context.Background(), c.RespID)
+	if err == nil {
+		status = resp.State.Status
 	}
 	return status, err
 }
@@ -182,33 +183,35 @@ func (c *DockerManager) RemoveAfterDuration() (success bool) {
 }
 
 func (c *DockerManager) Remove() {
-	for _, respID := range c.RespID {
-		go func(respID string) {
-			// Check if the container is running before stopping it
-			info, err := provider.DockerCli().ContainerInspect(context.Background(), respID)
-			if err != nil {
-				return
-			}
+	go func(respID string) {
+		// Check if the container is running before stopping it
+		info, err := provider.DockerCli().ContainerInspect(context.Background(), respID)
+		if err != nil {
+			return
+		}
 
-			if info.State.Running {
-				_ = provider.DockerCli().ContainerStop(context.Background(), respID, ctn.StopOptions{})              // Stop the container
-				_, _ = provider.DockerCli().ContainerWait(context.Background(), respID, ctn.WaitConditionNotRunning) // Wait for the container to stop
-			}
+		if info.State.Running {
+			_ = provider.DockerCli().ContainerStop(context.Background(), respID, ctn.StopOptions{})              // Stop the container
+			_, _ = provider.DockerCli().ContainerWait(context.Background(), respID, ctn.WaitConditionNotRunning) // Wait for the container to stop
+		}
 
-			// Check if the container still exists before removing it
-			_, err = provider.DockerCli().ContainerInspect(context.Background(), respID)
-			if err != nil && client.IsErrNotFound(err) {
-				return // Container not found, it has been removed
-			}
-			_ = provider.DockerCli().ContainerRemove(
-				context.Background(),
-				respID,
-				ctn.RemoveOptions{},
-			) // Remove the container
-		}(respID)
-	}
-	if c.Proxy != nil {
-		c.Proxy.Close()
+		// Check if the container still exists before removing it
+		_, err = provider.DockerCli().ContainerInspect(context.Background(), respID)
+		if err != nil && client.IsErrNotFound(err) {
+			return // Container not found, it has been removed
+		}
+		_ = provider.DockerCli().ContainerRemove(
+			context.Background(),
+			respID,
+			ctn.RemoveOptions{},
+		) // Remove the container
+	}(c.RespID)
+
+	// Close the proxies if they exist
+	if len(c.Proxies) > 0 {
+		for _, p := range c.Proxies {
+			p.Close()
+		}
 	}
 }
 
