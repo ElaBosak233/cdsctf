@@ -5,7 +5,7 @@ import (
 	"github.com/casbin/casbin/v2/model"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/elabosak233/cloudsdale/internal/app/db"
-	"github.com/elabosak233/cloudsdale/internal/extension/files"
+	"github.com/elabosak233/cloudsdale/internal/files"
 	"go.uber.org/zap"
 )
 

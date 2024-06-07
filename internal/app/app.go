@@ -11,7 +11,7 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/controller"
 	"github.com/elabosak233/cloudsdale/internal/extension/casbin"
 	"github.com/elabosak233/cloudsdale/internal/extension/container/provider"
-	"github.com/elabosak233/cloudsdale/internal/extension/files"
+	"github.com/elabosak233/cloudsdale/internal/files"
 	"github.com/elabosak233/cloudsdale/internal/middleware"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/router"
@@ -20,13 +20,16 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
 	"github.com/gin-contrib/cors"
+	ginI18n "github.com/gin-contrib/i18n"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	v10 "github.com/go-playground/validator/v10"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
+	"golang.org/x/text/language"
 	"html/template"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	"net/http"
 	"os"
 )
@@ -68,6 +71,16 @@ func Run() {
 	}
 
 	r.Use(adapter.GinLogger(), adapter.GinRecovery(true))
+
+	// I18n configurations
+	r.Use(ginI18n.Localize(ginI18n.WithBundle(&ginI18n.BundleCfg{
+		RootPath:         "./i18n",
+		AcceptLanguage:   []language.Tag{language.English, language.SimplifiedChinese},
+		DefaultLanguage:  language.English,
+		UnmarshalFunc:    yaml.Unmarshal,
+		FormatBundleFile: "yaml",
+		Loader:           &ginI18n.EmbedLoader{FS: files.F()},
+	})))
 
 	// Cors configurations
 	cor := cors.DefaultConfig()
