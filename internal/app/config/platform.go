@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/elabosak233/cloudsdale/internal/extension/files"
+	"github.com/elabosak233/cloudsdale/internal/files"
 	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"

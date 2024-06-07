@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/elabosak233/cloudsdale/internal/controller"
+	ginI18n "github.com/gin-contrib/i18n"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -26,7 +27,7 @@ func InitRouter(
 	r.router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": http.StatusOK,
-			"msg":  "This is the heart of Cloudsdale.",
+			"msg":  ginI18n.MustGetMessage(ctx, "welcome"),
 		})
 	})
 

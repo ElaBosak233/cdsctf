@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	//go:embed * statics/* templates/*
+	//go:embed * statics/* templates/* i18n/*
 	fs embed.FS
 )
 
