@@ -36,11 +36,15 @@ markdown_extensions:
 
 nav:
   - 简介: index.md
-  - 快速上手: quick-start/index.md
   - 部署:
+    - Docker: deploy/docker.md
     - Docker + K8s: deploy/docker-k8s.md
     - K8s: deploy/k8s.md
-  - 配置文件:
+  - 配置:
     - config/index.md
-  - 代理与流量捕获:
-    - proxy/index.md
+    - 数据库: config/database.md
+    - 缓存: config/cache.md
+    - 代理与流量捕获: config/proxy/index.md
+  - 题目: challenge/index.md
+  - 比赛: game/index.md
+  - FAQ: faq/index.md
