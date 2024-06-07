@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/cache"
+	"github.com/elabosak233/cloudsdale/internal/extension/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
@@ -33,10 +33,10 @@ type UserController struct {
 	mediaService service.IMediaService
 }
 
-func NewUserController(appService *service.Service) IUserController {
+func NewUserController(s *service.Service) IUserController {
 	return &UserController{
-		userService:  appService.UserService,
-		mediaService: appService.MediaService,
+		userService:  s.UserService,
+		mediaService: s.MediaService,
 	}
 }
 

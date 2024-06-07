@@ -17,9 +17,9 @@ type MediaController struct {
 	mediaService service.IMediaService
 }
 
-func NewMediaController(appService *service.Service) IMediaController {
+func NewMediaController(s *service.Service) IMediaController {
 	return &MediaController{
-		mediaService: appService.MediaService,
+		mediaService: s.MediaService,
 	}
 }
 

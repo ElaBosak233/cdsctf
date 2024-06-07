@@ -26,13 +26,13 @@ type GameTeamService struct {
 	userRepository       repository.IUserRepository
 }
 
-func NewGameTeamService(appRepository *repository.Repository) IGameTeamService {
+func NewGameTeamService(r *repository.Repository) IGameTeamService {
 	return &GameTeamService{
-		submissionRepository: appRepository.SubmissionRepository,
-		gameTeamRepository:   appRepository.GameTeamRepository,
-		gameRepository:       appRepository.GameRepository,
-		teamRepository:       appRepository.TeamRepository,
-		userRepository:       appRepository.UserRepository,
+		submissionRepository: r.SubmissionRepository,
+		gameTeamRepository:   r.GameTeamRepository,
+		gameRepository:       r.GameRepository,
+		teamRepository:       r.TeamRepository,
+		userRepository:       r.UserRepository,
 	}
 }
 

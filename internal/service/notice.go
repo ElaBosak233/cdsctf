@@ -18,9 +18,9 @@ type NoticeService struct {
 	noticeRepository repository.INoticeRepository
 }
 
-func NewNoticeService(appRepository *repository.Repository) INoticeService {
+func NewNoticeService(r *repository.Repository) INoticeService {
 	return &NoticeService{
-		noticeRepository: appRepository.NoticeRepository,
+		noticeRepository: r.NoticeRepository,
 	}
 }
 

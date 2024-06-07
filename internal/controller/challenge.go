@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/cache"
+	"github.com/elabosak233/cloudsdale/internal/extension/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
@@ -33,11 +33,11 @@ type ChallengeController struct {
 	mediaService     service.IMediaService
 }
 
-func NewChallengeController(appService *service.Service) IChallengeController {
+func NewChallengeController(s *service.Service) IChallengeController {
 	return &ChallengeController{
-		challengeService: appService.ChallengeService,
-		flagService:      appService.FlagService,
-		mediaService:     appService.MediaService,
+		challengeService: s.ChallengeService,
+		flagService:      s.FlagService,
+		mediaService:     s.MediaService,
 	}
 }
 

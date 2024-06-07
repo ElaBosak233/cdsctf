@@ -19,9 +19,9 @@ type ConfigController struct {
 	configService service.IConfigService
 }
 
-func NewConfigController(appService *service.Service) IConfigController {
+func NewConfigController(s *service.Service) IConfigController {
 	return &ConfigController{
-		configService: appService.ConfigService,
+		configService: s.ConfigService,
 	}
 }
 

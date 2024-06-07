@@ -28,17 +28,17 @@ type SubmissionService struct {
 	noticeRepository        repository.INoticeRepository
 }
 
-func NewSubmissionService(appRepository *repository.Repository) ISubmissionService {
+func NewSubmissionService(r *repository.Repository) ISubmissionService {
 	return &SubmissionService{
-		podRepository:           appRepository.PodRepository,
-		submissionRepository:    appRepository.SubmissionRepository,
-		challengeRepository:     appRepository.ChallengeRepository,
-		teamRepository:          appRepository.TeamRepository,
-		userRepository:          appRepository.UserRepository,
-		gameChallengeRepository: appRepository.GameChallengeRepository,
-		flagGenRepository:       appRepository.FlagGenRepository,
-		gameRepository:          appRepository.GameRepository,
-		noticeRepository:        appRepository.NoticeRepository,
+		podRepository:           r.PodRepository,
+		submissionRepository:    r.SubmissionRepository,
+		challengeRepository:     r.ChallengeRepository,
+		teamRepository:          r.TeamRepository,
+		userRepository:          r.UserRepository,
+		gameChallengeRepository: r.GameChallengeRepository,
+		flagGenRepository:       r.FlagGenRepository,
+		gameRepository:          r.GameRepository,
+		noticeRepository:        r.NoticeRepository,
 	}
 }
 

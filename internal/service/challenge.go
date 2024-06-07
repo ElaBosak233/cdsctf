@@ -24,15 +24,15 @@ type ChallengeService struct {
 	envRepository           repository.IEnvRepository
 }
 
-func NewChallengeService(appRepository *repository.Repository) IChallengeService {
+func NewChallengeService(r *repository.Repository) IChallengeService {
 	return &ChallengeService{
-		challengeRepository:     appRepository.ChallengeRepository,
-		gameChallengeRepository: appRepository.GameChallengeRepository,
-		submissionRepository:    appRepository.SubmissionRepository,
-		categoryRepository:      appRepository.CategoryRepository,
-		flagRepository:          appRepository.FlagRepository,
-		portRepository:          appRepository.PortRepository,
-		envRepository:           appRepository.EnvRepository,
+		challengeRepository:     r.ChallengeRepository,
+		gameChallengeRepository: r.GameChallengeRepository,
+		submissionRepository:    r.SubmissionRepository,
+		categoryRepository:      r.CategoryRepository,
+		flagRepository:          r.FlagRepository,
+		portRepository:          r.PortRepository,
+		envRepository:           r.EnvRepository,
 	}
 }
 

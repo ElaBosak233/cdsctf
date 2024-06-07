@@ -7,6 +7,7 @@ import (
 	"github.com/TwiN/go-color"
 	"github.com/elabosak233/cloudsdale/internal/app/config"
 	"github.com/elabosak233/cloudsdale/internal/extension/container/provider"
+	"github.com/elabosak233/cloudsdale/internal/extension/proxy"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/utils"
 	"go.uber.org/zap"
@@ -29,6 +30,7 @@ type K8sManager struct {
 	PodID      uint
 	RespID     string
 	Nats       []*model.Nat
+	Proxies    []proxy.IProxy
 	Inspect    corev1.Pod
 	CancelCtx  context.Context
 	CancelFunc context.CancelFunc
@@ -40,6 +42,7 @@ func NewK8sManager(challenge model.Challenge, flag model.Flag, duration time.Dur
 		challenge: challenge,
 		duration:  duration,
 		flag:      flag,
+		Proxies:   make([]proxy.IProxy, 0),
 	}
 }
 
@@ -132,19 +135,47 @@ func (c *K8sManager) Setup() (nats []*model.Nat, err error) {
 		return nil, err
 	}
 
-	// Extract the assigned NodePorts from the service's information
-	for _, servicePort := range createdService.Spec.Ports {
-		nat := &model.Nat{
-			SrcPort: int(servicePort.Port),
-			DstPort: int(servicePort.NodePort),
-			Entry: fmt.Sprintf(
+	switch config.AppCfg().Container.Proxy.Enabled {
+	case true:
+		srcPorts := make([]int, 0)
+		dstPorts := make([]int, 0)
+		entries := make([]string, 0)
+		for _, servicePort := range createdService.Spec.Ports {
+			entry := fmt.Sprintf(
 				"%s:%d",
 				config.AppCfg().Container.Entry,
-				servicePort.NodePort,
-			),
+				int(servicePort.NodePort),
+			)
+			srcPorts = append(srcPorts, int(servicePort.Port))
+			dstPorts = append(dstPorts, int(servicePort.NodePort))
+			entries = append(entries, entry)
+			c.Proxies = append(c.Proxies, proxy.NewProxy(entry))
 		}
-		nats = append(nats, nat)
+		for index, p := range c.Proxies {
+			p.Setup()
+			nats = append(nats, &model.Nat{
+				SrcPort: srcPorts[index],
+				DstPort: dstPorts[index],
+				Proxy:   entries[index],
+				Entry:   p.Entry(),
+			})
+		}
+	case false:
+		for _, servicePort := range createdService.Spec.Ports {
+			nat := &model.Nat{
+				SrcPort: int(servicePort.Port),
+				DstPort: int(servicePort.NodePort),
+				Entry: fmt.Sprintf(
+					"%s:%d",
+					config.AppCfg().Container.Entry,
+					servicePort.NodePort,
+				),
+			}
+			nats = append(nats, nat)
+		}
 	}
+
+	c.Nats = nats
 
 	return nats, nil
 }

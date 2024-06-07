@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/elabosak233/cloudsdale/internal/cache"
+	"github.com/elabosak233/cloudsdale/internal/extension/cache"
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
@@ -25,9 +25,9 @@ type CategoryController struct {
 	categoryService service.ICategoryService
 }
 
-func NewCategoryController(appService *service.Service) ICategoryController {
+func NewCategoryController(s *service.Service) ICategoryController {
 	return &CategoryController{
-		categoryService: appService.CategoryService,
+		categoryService: s.CategoryService,
 	}
 }
 

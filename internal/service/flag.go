@@ -17,9 +17,9 @@ type FlagService struct {
 	flagRepository repository.IFlagRepository
 }
 
-func NewFlagService(appRepository *repository.Repository) IFlagService {
+func NewFlagService(r *repository.Repository) IFlagService {
 	return &FlagService{
-		flagRepository: appRepository.FlagRepository,
+		flagRepository: r.FlagRepository,
 	}
 }
 

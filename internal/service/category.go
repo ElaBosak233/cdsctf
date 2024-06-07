@@ -17,9 +17,9 @@ type CategoryService struct {
 	categoryRepository repository.ICategoryRepository
 }
 
-func NewCategoryService(appRepository *repository.Repository) ICategoryService {
+func NewCategoryService(r *repository.Repository) ICategoryService {
 	return &CategoryService{
-		categoryRepository: appRepository.CategoryRepository,
+		categoryRepository: r.CategoryRepository,
 	}
 }
 

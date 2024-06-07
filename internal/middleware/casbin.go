@@ -19,7 +19,7 @@ import (
 // By the way, the user's information will be set to the context
 func Casbin() gin.HandlerFunc {
 
-	appService := service.S()
+	s := service.S()
 
 	return func(ctx *gin.Context) {
 		var sub string
@@ -32,7 +32,7 @@ func Casbin() gin.HandlerFunc {
 				return []byte(config.JwtSecretKey()), nil
 			})
 			if claims, ok := pgsToken.Claims.(jwt.MapClaims); ok && pgsToken.Valid {
-				if users, _, err := appService.UserService.Find(request.UserFindRequest{
+				if users, _, err := s.UserService.Find(request.UserFindRequest{
 					ID: uint(claims["user_id"].(float64)),
 				}); err == nil && len(users) > 0 {
 					user = users[0]
