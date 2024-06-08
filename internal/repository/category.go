@@ -7,10 +7,10 @@ import (
 )
 
 type ICategoryRepository interface {
-	Create(category model.Category) (err error)
-	Update(category model.Category) (err error)
-	Find(req request.CategoryFindRequest) (categories []model.Category, err error)
-	Delete(id uint) (err error)
+	Create(category model.Category) error
+	Update(category model.Category) error
+	Find(req request.CategoryFindRequest) ([]model.Category, error)
+	Delete(id uint) error
 }
 
 type CategoryRepository struct {
@@ -31,7 +31,8 @@ func (t *CategoryRepository) Update(category model.Category) (err error) {
 	return result.Error
 }
 
-func (t *CategoryRepository) Find(req request.CategoryFindRequest) (categories []model.Category, err error) {
+func (t *CategoryRepository) Find(req request.CategoryFindRequest) ([]model.Category, error) {
+	var categories []model.Category
 	applyFilters := func(db *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			db = db.Where("id = ?", req.ID)

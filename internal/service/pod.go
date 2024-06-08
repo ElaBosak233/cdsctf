@@ -9,7 +9,6 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
 	"github.com/elabosak233/cloudsdale/internal/utils"
-	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"strings"
 	"sync"
 	"time"
@@ -89,13 +88,13 @@ func (t *PodService) ParallelLimit(req request.PodCreateRequest) {
 		if !isGame {
 			availablePods, count, _ = t.podRepository.Find(request.PodFindRequest{
 				UserID:      &req.UserID,
-				IsAvailable: convertor.TrueP(),
+				IsAvailable: &utils.True,
 			})
 		} else {
 			availablePods, count, _ = t.podRepository.Find(request.PodFindRequest{
 				TeamID:      req.TeamID,
 				GameID:      req.GameID,
-				IsAvailable: convertor.TrueP(),
+				IsAvailable: &utils.True,
 			})
 		}
 		needToBeDeactivated := count - int64(config.PltCfg().Container.ParallelLimit) + 1
@@ -123,7 +122,7 @@ func (t *PodService) Create(req request.PodCreateRequest) (model.Pod, error) {
 	SetUserInstanceRequestMap(req.UserID, time.Now().Unix())
 	challenges, _, _ := t.challengeRepository.Find(request.ChallengeFindRequest{
 		ID:        req.ChallengeID,
-		IsDynamic: convertor.TrueP(),
+		IsDynamic: &utils.True,
 	})
 	challenge := challenges[0]
 
@@ -190,7 +189,13 @@ func (t *PodService) Renew(req request.PodRenewRequest) error {
 		return errors.New(fmt.Sprintf("请等待 %d 秒后再次请求", remainder))
 	}
 	SetUserInstanceRequestMap(req.UserID, time.Now().Unix()) // 保存用户请求时间
-	pod, _ := t.podRepository.FindById(req.ID)
+	pods, total, _ := t.podRepository.Find(request.PodFindRequest{
+		ID: req.ID,
+	})
+	if total == 0 {
+		return errors.New("实例不存在")
+	}
+	pod := pods[0]
 	ctn, ok := PodManagers[req.ID]
 	if !ok {
 		return errors.New("实例不存在")

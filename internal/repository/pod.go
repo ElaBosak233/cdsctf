@@ -8,10 +8,9 @@ import (
 )
 
 type IPodRepository interface {
-	Create(pod model.Pod) (i model.Pod, err error)
-	Update(pod model.Pod) (err error)
-	Find(req request.PodFindRequest) (pods []model.Pod, total int64, err error)
-	FindById(id uint) (pod model.Pod, err error)
+	Create(pod model.Pod) (model.Pod, error)
+	Update(pod model.Pod) error
+	Find(req request.PodFindRequest) ([]model.Pod, int64, error)
 }
 
 type PodRepository struct {
@@ -22,17 +21,18 @@ func NewPodRepository(db *gorm.DB) IPodRepository {
 	return &PodRepository{db: db}
 }
 
-func (t *PodRepository) Create(pod model.Pod) (i model.Pod, err error) {
+func (t *PodRepository) Create(pod model.Pod) (model.Pod, error) {
 	result := t.db.Table("pods").Create(&pod)
 	return pod, result.Error
 }
 
-func (t *PodRepository) Update(pod model.Pod) (err error) {
+func (t *PodRepository) Update(pod model.Pod) error {
 	result := t.db.Table("pods").Model(&pod).Updates(&pod)
 	return result.Error
 }
 
-func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, total int64, err error) {
+func (t *PodRepository) Find(req request.PodFindRequest) ([]model.Pod, int64, error) {
+	var pods []model.Pod
 	applyFilter := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
@@ -59,7 +59,7 @@ func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, tota
 		return q
 	}
 	db := applyFilter(t.db.Table("pods"))
-
+	var total int64 = 0
 	result := db.Model(&model.Pod{}).Count(&total)
 	if req.Page != 0 && req.Size != 0 {
 		offset := (req.Page - 1) * req.Size
@@ -76,9 +76,4 @@ func (t *PodRepository) Find(req request.PodFindRequest) (pods []model.Pod, tota
 		Preload("Nats").
 		Find(&pods)
 	return pods, total, result.Error
-}
-
-func (t *PodRepository) FindById(id uint) (pod model.Pod, err error) {
-	result := t.db.Table("pods").First(&model.Pod{ID: id})
-	return pod, result.Error
 }

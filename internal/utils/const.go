@@ -14,3 +14,8 @@ const (
 	CapturesPath = "./captures"
 	FrontendPath = "./dist"
 )
+
+var (
+	True  = true
+	False = false
+)

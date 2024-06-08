@@ -15,14 +15,26 @@ import (
 )
 
 type IUserService interface {
-	Create(req request.UserCreateRequest) (err error)
-	Register(req request.UserRegisterRequest) (err error)
-	Update(req request.UserUpdateRequest) (err error)
+	// Create will create a new user with the given request.
+	Create(req request.UserCreateRequest) error
+
+	// Update will update the user with the given request.
+	Update(req request.UserUpdateRequest) error
+
+	// Delete will delete the user with the given id.
 	Delete(id uint) error
-	VerifyPasswordByUsername(username string, password string) bool
-	GetJwtTokenByID(user model.User) (tokenString string, err error)
-	GetIDByJwtToken(token string) (id uint, err error)
-	Find(req request.UserFindRequest) (users []model.User, total int64, err error)
+
+	// Find will return the users, total count and error.
+	Find(req request.UserFindRequest) ([]model.User, int64, error)
+
+	// Register will create a new user with the given request, but the default group is user.
+	Register(req request.UserRegisterRequest) error
+
+	// Login will verify the user login request and return the user and jwt token.
+	Login(req request.UserLoginRequest) (model.User, string, error)
+
+	// Logout will log out the user with the given token.
+	Logout(token string) (uint, error)
 }
 
 type UserService struct {
@@ -48,7 +60,7 @@ func (t *UserService) GetJwtTokenByID(user model.User) (tokenString string, err 
 	return pgsToken.SignedString(jwtSecretKey)
 }
 
-func (t *UserService) GetIDByJwtToken(token string) (id uint, err error) {
+func (t *UserService) Logout(token string) (uint, error) {
 	pgsToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.JwtSecretKey()), nil
 	})
@@ -62,7 +74,7 @@ func (t *UserService) GetIDByJwtToken(token string) (id uint, err error) {
 	}
 }
 
-func (t *UserService) Create(req request.UserCreateRequest) (err error) {
+func (t *UserService) Create(req request.UserCreateRequest) error {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	userModel := model.User{
 		Username: strings.ToLower(req.Username),
@@ -71,11 +83,12 @@ func (t *UserService) Create(req request.UserCreateRequest) (err error) {
 		Group:    req.Group,
 		Password: string(hashedPassword),
 	}
-	err = t.userRepository.Create(userModel)
+	err := t.userRepository.Create(userModel)
 	return err
 }
 
-func (t *UserService) Register(req request.UserRegisterRequest) (err error) {
+func (t *UserService) Register(req request.UserRegisterRequest) error {
+	var err error
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	success := true
 	if config.PltCfg().User.Register.Captcha.Enabled {
@@ -95,20 +108,20 @@ func (t *UserService) Register(req request.UserRegisterRequest) (err error) {
 	return err
 }
 
-func (t *UserService) Update(req request.UserUpdateRequest) (err error) {
-	userModel := model.User{}
-	_ = mapstructure.Decode(req, &userModel)
+func (t *UserService) Update(req request.UserUpdateRequest) error {
+	user := model.User{}
+	_ = mapstructure.Decode(req, &user)
 	if req.Password != "" {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-		userModel.Password = string(hashedPassword)
+		user.Password = string(hashedPassword)
 	}
 	if req.Username != "" {
-		userModel.Username = strings.ToLower(req.Username)
+		user.Username = strings.ToLower(req.Username)
 	}
 	if req.Email != "" {
-		userModel.Email = strings.ToLower(req.Email)
+		user.Email = strings.ToLower(req.Email)
 	}
-	err = t.userRepository.Update(userModel)
+	err := t.userRepository.Update(user)
 	return err
 }
 
@@ -117,28 +130,23 @@ func (t *UserService) Delete(id uint) error {
 	return err
 }
 
-func (t *UserService) Find(req request.UserFindRequest) (users []model.User, total int64, err error) {
-	users, total, err = t.userRepository.Find(req)
+func (t *UserService) Find(req request.UserFindRequest) ([]model.User, int64, error) {
+	users, total, err := t.userRepository.Find(req)
 	for index := range users {
 		users[index].Simplify()
 	}
 	return users, total, err
 }
 
-func (t *UserService) VerifyPasswordById(id uint, password string) bool {
-	user, err := t.userRepository.FindById(id)
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+func (t *UserService) Login(req request.UserLoginRequest) (model.User, string, error) {
+	user, err := t.userRepository.FindByUsername(strings.ToLower(req.Username))
 	if err != nil {
-		return false
+		return user, "", errors.New("user.not_found")
 	}
-	return true
-}
-
-func (t *UserService) VerifyPasswordByUsername(username string, password string) bool {
-	user, err := t.userRepository.FindByUsername(strings.ToLower(username))
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return false
+		return user, "", errors.New("user.login.password_incorrect")
 	}
-	return true
+	token, err := t.GetJwtTokenByID(user)
+	return user, token, err
 }

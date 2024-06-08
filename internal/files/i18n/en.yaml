@@ -1,1 +1,9 @@
-welcome: welcome
+welcome: "welcome"
+
+user:
+  not_found: "user not found"
+  login:
+    password_incorrect: "password incorrect"
+
+team:
+  not_found: "team not found"

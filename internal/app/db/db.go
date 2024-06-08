@@ -11,7 +11,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"time"
 )
 
 var db *gorm.DB
@@ -105,11 +104,8 @@ func migrate() {
 }
 
 // selfCheck performs a self-check.
-// It updates the removed_at field of the Pod table.
-// If the removed_at field is greater than the current time, it is forcibly assigned the current time.
-// This is to prevent subsequent program errors in judgment.
 func selfCheck() {
-	db.Model(&model.Pod{}).Where("removed_at > ?", time.Now().UnixMilli()).Update("removed_at", time.Now().UnixMilli())
+	db.Exec("DELETE FROM pods")
 }
 
 func initAdmin() {

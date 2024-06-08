@@ -58,7 +58,9 @@ func (g *GameService) Update(req request.GameUpdateRequest) (err error) {
 }
 
 func (g *GameService) Delete(req request.GameDeleteRequest) (err error) {
-	return g.gameRepository.Delete(req)
+	return g.gameRepository.Delete(model.Game{
+		ID: req.ID,
+	})
 }
 
 func (g *GameService) Find(req request.GameFindRequest) (games []model.Game, total int64, err error) {

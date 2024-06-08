@@ -12,10 +12,10 @@ import (
 )
 
 type IGameTeamService interface {
-	Find(req request.GameTeamFindRequest) (teams []model.GameTeam, total int64, err error)
-	Create(req request.GameTeamCreateRequest) (err error)
-	Update(req request.GameTeamUpdateRequest) (err error)
-	Delete(req request.GameTeamDeleteRequest) (err error)
+	Find(req request.GameTeamFindRequest) ([]model.GameTeam, int64, error)
+	Create(req request.GameTeamCreateRequest) error
+	Update(req request.GameTeamUpdateRequest) error
+	Delete(req request.GameTeamDeleteRequest) error
 }
 
 type GameTeamService struct {
@@ -36,7 +36,7 @@ func NewGameTeamService(r *repository.Repository) IGameTeamService {
 	}
 }
 
-func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []model.GameTeam, total int64, err error) {
+func (g *GameTeamService) Find(req request.GameTeamFindRequest) ([]model.GameTeam, int64, error) {
 	gameTeams, total, err := g.gameTeamRepository.Find(model.GameTeam{
 		GameID: req.GameID,
 		TeamID: req.TeamID,
@@ -50,7 +50,7 @@ func (g *GameTeamService) Find(req request.GameTeamFindRequest) (teams []model.G
 	return gameTeams, total, err
 }
 
-func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) {
+func (g *GameTeamService) Create(req request.GameTeamCreateRequest) error {
 	games, _, err := g.gameRepository.Find(request.GameFindRequest{
 		ID: req.ID,
 	})
@@ -106,16 +106,16 @@ func (g *GameTeamService) Create(req request.GameTeamCreateRequest) (err error) 
 	return err
 }
 
-func (g *GameTeamService) Update(req request.GameTeamUpdateRequest) (err error) {
+func (g *GameTeamService) Update(req request.GameTeamUpdateRequest) error {
 	var gameTeam model.GameTeam
-	err = mapstructure.Decode(req, &gameTeam)
+	err := mapstructure.Decode(req, &gameTeam)
 	err = g.gameTeamRepository.Update(gameTeam)
 	return err
 }
 
-func (g *GameTeamService) Delete(req request.GameTeamDeleteRequest) (err error) {
+func (g *GameTeamService) Delete(req request.GameTeamDeleteRequest) error {
 	var gameTeam model.GameTeam
-	err = mapstructure.Decode(req, &gameTeam)
+	err := mapstructure.Decode(req, &gameTeam)
 	err = g.gameTeamRepository.Delete(gameTeam)
 	return err
 }

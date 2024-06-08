@@ -1005,17 +1005,6 @@ paths:
       summary: 删除附件
       tags:
       - Challenge
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: 查找附件
-      tags:
-      - Challenge
     post:
       consumes:
       - application/json

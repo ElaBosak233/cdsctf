@@ -7,9 +7,9 @@ import (
 )
 
 type ISubmissionRepository interface {
-	Create(submission model.Submission) (err error)
-	Delete(id uint) (err error)
-	Find(req request.SubmissionFindRequest) (submissions []model.Submission, count int64, err error)
+	Create(submission model.Submission) error
+	Delete(id uint) error
+	Find(req request.SubmissionFindRequest) ([]model.Submission, int64, error)
 }
 
 type SubmissionRepository struct {
@@ -20,17 +20,18 @@ func NewSubmissionRepository(db *gorm.DB) ISubmissionRepository {
 	return &SubmissionRepository{db: db}
 }
 
-func (t *SubmissionRepository) Create(submission model.Submission) (err error) {
+func (t *SubmissionRepository) Create(submission model.Submission) error {
 	result := t.db.Table("submissions").Create(&submission)
 	return result.Error
 }
 
-func (t *SubmissionRepository) Delete(id uint) (err error) {
+func (t *SubmissionRepository) Delete(id uint) error {
 	result := t.db.Table("submissions").Delete(&model.Submission{ID: id})
 	return result.Error
 }
 
-func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissions []model.Submission, total int64, err error) {
+func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) ([]model.Submission, int64, error) {
+	var submissions []model.Submission
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.UserID != 0 && req.TeamID == nil && req.GameID == nil {
 			q = q.Where("user_id = ?", req.UserID)
@@ -50,7 +51,7 @@ func (t *SubmissionRepository) Find(req request.SubmissionFindRequest) (submissi
 		return q
 	}
 	db := applyFilters(t.db.Table("submissions"))
-
+	var total int64 = 0
 	result := db.Model(&model.Submission{}).Count(&total)
 	if req.SortKey != "" && req.SortOrder != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
