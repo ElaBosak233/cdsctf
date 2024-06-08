@@ -258,7 +258,7 @@ export default function Page() {
 								{challenges?.map((challenge) => (
 									<Table.Tr key={challenge?.id}>
 										<Table.Th>
-											<Group>
+											<Group wrap={"nowrap"}>
 												<Badge>{challenge?.id}</Badge>
 												<Switch
 													size="sm"
@@ -289,7 +289,7 @@ export default function Page() {
 											{challenge?.description}
 										</Table.Th>
 										<Table.Th>
-											<Group gap={10}>
+											<Group gap={10} wrap={"nowrap"}>
 												<MDIcon
 													color={
 														colorScheme === "dark"
@@ -328,7 +328,10 @@ export default function Page() {
 											</Group>
 										</Table.Th>
 										<Table.Th>
-											<Group justify="center">
+											<Group
+												justify="center"
+												wrap={"nowrap"}
+											>
 												<ActionIcon
 													onClick={() =>
 														navigate(

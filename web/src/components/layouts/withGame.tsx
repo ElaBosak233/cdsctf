@@ -34,7 +34,9 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
 			<>
 				<Stack m={36}>
 					<Flex justify={"space-between"} align={"center"}>
-						<Box w={"50%"}></Box>
+						<Box w={"50%"}>
+							<Text fw={700}>距离结束还剩</Text>
+						</Box>
 						<Box
 							sx={{
 								flexShrink: 0,

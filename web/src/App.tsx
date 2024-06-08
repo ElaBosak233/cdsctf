@@ -1,25 +1,34 @@
 import { useRoutes } from "react-router";
-import Navbar from "@/components/navigations/Navbar";
+import Navbar, {
+	NavItems,
+	AdminNavItems,
+} from "@/components/navigations/Navbar";
 import routes from "~react-pages";
-import { Box, LoadingOverlay, MantineProvider } from "@mantine/core";
-import { emotionTransform, MantineEmotionProvider } from "@mantine/emotion";
-import { Suspense, useEffect } from "react";
-import { useTheme } from "@/utils/theme";
+import {
+	AppShell,
+	Button,
+	LoadingOverlay,
+	UnstyledButton,
+} from "@mantine/core";
+import { Suspense, useEffect, useState } from "react";
 import { useCategoryApi } from "@/api/category";
 import { useCategoryStore } from "@/stores/category";
 import { useConfigApi } from "@/api/config";
 import { useConfigStore } from "@/stores/config";
-import { Notifications } from "@mantine/notifications";
-import { ModalsProvider } from "@mantine/modals";
-import { DatesProvider } from "@mantine/dates";
 import "dayjs/locale/zh-cn";
+import { useDisclosure } from "@mantine/hooks";
+import { Link, useLocation } from "react-router-dom";
+import MDIcon from "./components/ui/MDIcon";
 
 function App() {
-	const { theme } = useTheme();
 	const categoryApi = useCategoryApi();
 	const categoryStore = useCategoryStore();
 	const configApi = useConfigApi();
 	const configStore = useConfigStore();
+
+	const [opened, { toggle }] = useDisclosure();
+	const [adminMode, setAdminMode] = useState<boolean>(false);
+	const location = useLocation();
 
 	// Get platform config
 	useEffect(() => {
@@ -54,35 +63,60 @@ function App() {
 		});
 	}, [categoryStore.refresh]);
 
+	useEffect(() => {
+		setAdminMode(false);
+		if (location.pathname.startsWith("/admin")) {
+			setAdminMode(true);
+		}
+	}, [location.pathname]);
+
 	return (
 		<>
-			<MantineProvider
-				stylesTransform={emotionTransform}
-				theme={theme}
-				defaultColorScheme="light"
+			<AppShell
+				header={{ height: 64 }}
+				navbar={{
+					width: 300,
+					breakpoint: "md",
+					collapsed: { desktop: true, mobile: !opened },
+				}}
 			>
-				<MantineEmotionProvider>
-					<ModalsProvider>
-						<DatesProvider
-							settings={{
-								locale: "zh-cn",
-								firstDayOfWeek: 0,
-								weekendDays: [0, 6],
-								timezone: "UTC",
-								consistentWeeks: true,
-							}}
-						>
-							<Navbar />
-							<Box pt={64}>
-								<Suspense fallback={<LoadingOverlay />}>
-									{useRoutes(routes)}
-								</Suspense>
-							</Box>
-							<Notifications zIndex={5000} />
-						</DatesProvider>
-					</ModalsProvider>
-				</MantineEmotionProvider>
-			</MantineProvider>
+				<AppShell.Header>
+					<Navbar
+						burger={{
+							opened: opened,
+							toggle: toggle,
+						}}
+						adminMode={adminMode}
+					/>
+				</AppShell.Header>
+				<AppShell.Navbar py={"md"}>
+					{!adminMode && (
+						<>
+							{NavItems?.map((item) => (
+								<Button
+									key={item.path}
+									variant={"subtle"}
+									h={50}
+									px={20}
+									radius={0}
+									justify={"start"}
+									component={Link}
+									to={item.path}
+									leftSection={<MDIcon>{item?.icon}</MDIcon>}
+									onClick={toggle}
+								>
+									{item.name}
+								</Button>
+							))}
+						</>
+					)}
+				</AppShell.Navbar>
+				<AppShell.Main>
+					<Suspense fallback={<LoadingOverlay />}>
+						{useRoutes(routes)}
+					</Suspense>
+				</AppShell.Main>
+			</AppShell>
 		</>
 	);
 }

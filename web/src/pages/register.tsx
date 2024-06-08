@@ -102,7 +102,6 @@ export default function Page() {
 					position: "fixed",
 					top: "50%",
 					left: "50%",
-					zIndex: -1,
 					transform: "translate(-50%, -50%)",
 				}}
 				className={"no-select"}

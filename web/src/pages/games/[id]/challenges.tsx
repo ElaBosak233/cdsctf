@@ -28,7 +28,6 @@ import {
 	Stack,
 	Text,
 	Title,
-	Transition,
 	UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -204,7 +203,18 @@ function Page() {
 					<Stack mx={10} miw={200} maw={200}>
 						<Button
 							size="lg"
-							leftSection={<MDIcon c={"white"}>upload</MDIcon>}
+							leftSection={
+								<MDIcon
+									c={
+										!game?.is_need_write_up
+											? "gray.5"
+											: "white"
+									}
+								>
+									upload
+								</MDIcon>
+							}
+							disabled={!game?.is_need_write_up}
 						>
 							上传题解
 						</Button>

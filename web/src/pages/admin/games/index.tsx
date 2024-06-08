@@ -147,7 +147,7 @@ export default function Page() {
 	return (
 		<>
 			<Flex my={36} mx={"10%"} justify={"space-between"} gap={36}>
-				<Stack w={"15%"} gap={0}>
+				<Stack w={"15%"} gap={0} visibleFrom={"lg"}>
 					<Flex justify={"space-between"} align={"center"}>
 						<TextInput
 							variant="filled"
@@ -269,7 +269,7 @@ export default function Page() {
 									return (
 										<Table.Tr key={game?.id}>
 											<Table.Th>
-												<Group>
+												<Group wrap={"nowrap"}>
 													<Badge>{game?.id}</Badge>
 													<Switch
 														checked={
@@ -284,7 +284,7 @@ export default function Page() {
 												</Group>
 											</Table.Th>
 											<Table.Th p={0}>
-												<Group gap={15}>
+												<Group gap={15} wrap={"nowrap"}>
 													{game?.poster?.name && (
 														<Image
 															src={`${import.meta.env.VITE_BASE_API}/media/games/${game?.id}/poster/${game?.poster?.name}`}
@@ -344,7 +344,10 @@ export default function Page() {
 												</Badge>
 											</Table.Th>
 											<Table.Th>
-												<Group justify="center">
+												<Group
+													justify="center"
+													wrap={"nowrap"}
+												>
 													<ActionIcon
 														onClick={() => {
 															navigate(
