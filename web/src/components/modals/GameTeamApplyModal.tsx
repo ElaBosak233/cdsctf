@@ -13,7 +13,7 @@ import {
 	Text,
 } from "@mantine/core";
 import { useState, useEffect } from "react";
-import MDIcon from "../ui/MDIcon";
+import MDIcon from "@/components/ui/MDIcon";
 import { useGameApi } from "@/api/game";
 import { useParams } from "react-router-dom";
 import {
@@ -147,7 +147,6 @@ export default function GameTeamApplyModal(props: GameTeamApplyModalProps) {
 											</Text>
 										</Group>
 										<ActionIcon
-											variant="transparent"
 											onClick={() => {
 												createGameTeam(team);
 											}}

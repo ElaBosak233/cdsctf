@@ -60,10 +60,7 @@ function Page() {
 							</Text>
 						</Group>
 						<Tooltip label="创建 Flag" withArrow>
-							<ActionIcon
-								variant="transparent"
-								onClick={() => createOpen()}
-							>
+							<ActionIcon onClick={() => createOpen()}>
 								<MDIcon>add</MDIcon>
 							</ActionIcon>
 						</Tooltip>

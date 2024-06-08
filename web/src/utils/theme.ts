@@ -1,4 +1,4 @@
-import { createTheme } from "@mantine/core";
+import { ActionIcon, createTheme } from "@mantine/core";
 
 export function useTheme() {
 	const theme = createTheme({
@@ -59,6 +59,11 @@ export function useTheme() {
 					transitionProps: {
 						exitDuration: 250,
 					},
+				},
+			},
+			ActionIcon: {
+				defaultProps: {
+					variant: "transparent",
 				},
 			},
 		},

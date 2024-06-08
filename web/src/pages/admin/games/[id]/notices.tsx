@@ -150,10 +150,7 @@ function Page() {
 							</Text>
 						</Group>
 						<Tooltip label="添加公告" withArrow>
-							<ActionIcon
-								variant="transparent"
-								onClick={() => createOpen()}
-							>
+							<ActionIcon onClick={() => createOpen()}>
 								<MDIcon>add</MDIcon>
 							</ActionIcon>
 						</Tooltip>
@@ -194,7 +191,6 @@ function Page() {
 									<Table.Td>
 										<Tooltip label="删除公告" withArrow>
 											<ActionIcon
-												variant="transparent"
 												onClick={() =>
 													openDeleteNoticeModal(
 														notice

@@ -88,10 +88,7 @@ function Page() {
 							</Text>
 						</Group>
 						<Tooltip label="添加题目" withArrow>
-							<ActionIcon
-								variant="transparent"
-								onClick={() => createOpen()}
-							>
+							<ActionIcon onClick={() => createOpen()}>
 								<MDIcon>add</MDIcon>
 							</ActionIcon>
 						</Tooltip>

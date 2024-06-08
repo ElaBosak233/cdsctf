@@ -154,7 +154,10 @@ export default function Page() {
 								flexGrow: 1,
 							}}
 						/>
-						<ActionIcon onClick={() => setSearch(searchInput)}>
+						<ActionIcon
+							variant={"filled"}
+							onClick={() => setSearch(searchInput)}
+						>
 							<MDIcon size={15} c={"white"}>
 								search
 							</MDIcon>
@@ -232,7 +235,6 @@ export default function Page() {
 										<Flex align={"center"}>
 											分类
 											<ActionIcon
-												variant="transparent"
 												onClick={() =>
 													navigate(
 														"/admin/categories"
@@ -245,10 +247,7 @@ export default function Page() {
 									</Table.Th>
 									<Table.Th>
 										<Flex justify={"center"}>
-											<ActionIcon
-												variant="transparent"
-												onClick={createOpen}
-											>
+											<ActionIcon onClick={createOpen}>
 												<MDIcon>add</MDIcon>
 											</ActionIcon>
 										</Flex>
@@ -331,7 +330,6 @@ export default function Page() {
 										<Table.Th>
 											<Group justify="center">
 												<ActionIcon
-													variant="transparent"
 													onClick={() =>
 														navigate(
 															`/admin/challenges/${challenge?.id}`
@@ -341,7 +339,6 @@ export default function Page() {
 													<MDIcon>edit</MDIcon>
 												</ActionIcon>
 												<ActionIcon
-													variant="transparent"
 													onClick={() =>
 														openDeleteChallengeModal(
 															challenge

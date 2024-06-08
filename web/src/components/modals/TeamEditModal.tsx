@@ -317,7 +317,6 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 													readOnly
 													rightSection={
 														<ActionIcon
-															variant="transparent"
 															onClick={
 																updateTeamInviteToken
 															}
@@ -449,7 +448,6 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 																withArrow
 															>
 																<ActionIcon
-																	variant="transparent"
 																	color="grey"
 																	onClick={() => {
 																		openTransferCaptainModal(
@@ -467,7 +465,6 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 																withArrow
 															>
 																<ActionIcon
-																	variant="transparent"
 																	color="red"
 																	onClick={() => {
 																		openDeleteTeamUserModal(

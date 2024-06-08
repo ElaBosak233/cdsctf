@@ -10,9 +10,6 @@ import {
 	Flex,
 	TextInput,
 	Button,
-	useMantineColorScheme,
-	lighten,
-	darken,
 	Stack,
 	ActionIcon,
 	ModalProps,
@@ -36,8 +33,7 @@ import {
 } from "@/utils/notification";
 import { useForm } from "@mantine/form";
 import { useTeamStore } from "@/stores/team";
-import { useInterval } from "@mantine/hooks";
-import { set } from "zod";
+import { useClipboard, useInterval } from "@mantine/hooks";
 
 interface ChallengeModalProps extends ModalProps {
 	challenge?: Challenge;
@@ -49,7 +45,7 @@ interface ChallengeModalProps extends ModalProps {
 export default function ChallengeModal(props: ChallengeModalProps) {
 	const { challenge, gameID, setRefresh, mode, ...modalProps } = props;
 
-	const { colorScheme } = useMantineColorScheme();
+	const clipboard = useClipboard({ timeout: 500 });
 	const podApi = usePodApi();
 	const submissionApi = useSubmissionApi();
 	const authStore = useAuthStore();
@@ -339,7 +335,6 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 									position={"bottom"}
 								>
 									<ActionIcon
-										variant="transparent"
 										onClick={() => {
 											window.open(
 												`${import.meta.env.VITE_BASE_API}/media/challenges/${challenge?.id}/${challenge?.attachment?.name}`
@@ -363,7 +358,15 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 											key={nat?.id}
 											value={nat?.entry}
 											readOnly
-											color={challenge?.category?.color}
+											sx={{
+												input: {
+													"&:focus": {
+														borderColor:
+															challenge?.category
+																?.color,
+													},
+												},
+											}}
 											leftSectionWidth={135}
 											leftSection={
 												<Flex
@@ -371,17 +374,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 													px={10}
 													gap={10}
 												>
-													<MDIcon
-														c={
-															colorScheme ===
-															"light"
-																? "gray.5"
-																: "gray.3"
-														}
-													>
+													<MDIcon c={"gray"}>
 														lan
 													</MDIcon>
-
 													<Flex
 														align={"center"}
 														justify={
@@ -394,39 +389,56 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 														<Text>
 															{nat.src_port}
 														</Text>
-														<MDIcon
-															c={
-																colorScheme ===
-																"light"
-																	? "gray.5"
-																	: "gray.3"
-															}
-														>
+														<MDIcon c={"gray"}>
 															arrow_right_alt
 														</MDIcon>
 													</Flex>
 												</Flex>
 											}
+											rightSectionWidth={100}
 											rightSection={
-												<ActionIcon
-													variant="transparent"
-													onClick={() => {
-														window.open(
-															`http://${nat?.entry}`
-														);
-													}}
-												>
-													<MDIcon
-														c={
-															colorScheme ===
-															"light"
-																? "gray.5"
-																: "gray.3"
+												<Flex>
+													<Divider
+														mx={10}
+														orientation={"vertical"}
+													/>
+													<Tooltip
+														withArrow
+														label={
+															clipboard.copied
+																? "已复制"
+																: "复制到剪贴板"
 														}
 													>
-														open_in_new
-													</MDIcon>
-												</ActionIcon>
+														<ActionIcon
+															onClick={() =>
+																clipboard.copy(
+																	nat?.entry
+																)
+															}
+														>
+															<MDIcon c={"gray"}>
+																content_copy
+															</MDIcon>
+														</ActionIcon>
+													</Tooltip>
+													<Tooltip
+														withArrow
+														label={"在浏览器中打开"}
+													>
+														<ActionIcon
+															onClick={() => {
+																window.open(
+																	`http://${nat?.entry}`
+																);
+															}}
+														>
+															<MDIcon c={"gray"}>
+																open_in_new
+															</MDIcon>
+														</ActionIcon>
+													</Tooltip>
+												</Flex>
 											}
 										/>
 									))}
