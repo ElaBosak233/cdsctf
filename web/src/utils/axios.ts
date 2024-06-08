@@ -8,6 +8,9 @@ export const useApi = () => {
 	return useMemo(() => {
 		const api = axios.create({
 			baseURL: import.meta.env.VITE_BASE_API as string,
+			headers: {
+				"Accept-Language": "zh-Hans",
+			},
 		});
 		return api;
 	}, []);
@@ -21,11 +24,10 @@ export const useAuth = () => {
 	return useMemo(() => {
 		const auth = axios.create({
 			baseURL: import.meta.env.VITE_BASE_API as string,
-			headers: pgsToken
-				? {
-						Authorization: `${pgsToken}`,
-					}
-				: {},
+			headers: {
+				Authorization: pgsToken ? `${pgsToken}` : undefined,
+				"Accept-Language": "zh-Hans",
+			},
 		});
 
 		auth.interceptors.response.use(

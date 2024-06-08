@@ -4,8 +4,8 @@ import (
 	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/repository"
+	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/calculate"
-	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"regexp"
 	"time"
 )
@@ -13,7 +13,7 @@ import (
 type ISubmissionService interface {
 	Create(req request.SubmissionCreateRequest) (status int, rank int64, err error)
 	Delete(id uint) (err error)
-	Find(req request.SubmissionFindRequest) (submissions []model.Submission, total int64, err error)
+	Find(req request.SubmissionFindRequest) ([]model.Submission, int64, error)
 }
 
 type SubmissionService struct {
@@ -46,7 +46,7 @@ func (t *SubmissionService) JudgeDynamicChallenge(req request.SubmissionCreateRe
 	perhapsPods, _, err := t.podRepository.Find(request.PodFindRequest{
 		ChallengeID: req.ChallengeID,
 		GameID:      req.GameID,
-		IsAvailable: convertor.TrueP(),
+		IsAvailable: &utils.True,
 	})
 	status = 1
 	podIDs := make([]uint, 0)
@@ -195,13 +195,13 @@ func (t *SubmissionService) Create(req request.SubmissionCreateRequest) (status 
 	return status, rank, err
 }
 
-func (t *SubmissionService) Delete(id uint) (err error) {
-	err = t.submissionRepository.Delete(id)
+func (t *SubmissionService) Delete(id uint) error {
+	err := t.submissionRepository.Delete(id)
 	return err
 }
 
-func (t *SubmissionService) Find(req request.SubmissionFindRequest) (submissions []model.Submission, total int64, err error) {
-	submissions, total, err = t.submissionRepository.Find(req)
+func (t *SubmissionService) Find(req request.SubmissionFindRequest) ([]model.Submission, int64, error) {
+	submissions, total, err := t.submissionRepository.Find(req)
 	challengeSolvesTotal := make(map[uint]int64)
 
 	extractChallengeTotal := func(challengeID uint) int64 {

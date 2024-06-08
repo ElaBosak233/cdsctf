@@ -3,16 +3,15 @@ package controller
 import (
 	"fmt"
 	"github.com/elabosak233/cloudsdale/internal/extension/cache"
-	"github.com/elabosak233/cloudsdale/internal/model"
 	"github.com/elabosak233/cloudsdale/internal/model/request"
 	"github.com/elabosak233/cloudsdale/internal/service"
 	"github.com/elabosak233/cloudsdale/internal/utils"
 	"github.com/elabosak233/cloudsdale/internal/utils/convertor"
 	"github.com/elabosak233/cloudsdale/internal/utils/validator"
+	ginI18n "github.com/gin-contrib/i18n"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -57,31 +56,18 @@ func (c *UserController) Login(ctx *gin.Context) {
 		})
 		return
 	}
-	var user model.User
-	users, total, err := c.userService.Find(request.UserFindRequest{
-		Username: strings.ToLower(userLoginRequest.Username),
-	})
-	if err == nil && total > 0 {
-		user = users[0]
-	} else {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code": http.StatusInternalServerError,
-		})
-		return
-	}
-	if !c.userService.VerifyPasswordByUsername(userLoginRequest.Username, userLoginRequest.Password) {
+	user, token, err := c.userService.Login(userLoginRequest)
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  "用户名或密码错误",
+			"msg":  ginI18n.MustGetMessage(ctx, err.Error()),
 		})
-		zap.L().Warn(fmt.Sprintf("User %s login failed", user.Username), zap.Uint("user_id", user.ID))
 		return
 	}
-	_ = c.userService.Update(request.UserUpdateRequest{
+	err = c.userService.Update(request.UserUpdateRequest{
 		ID:       user.ID,
 		RemoteIP: ctx.RemoteIP(),
 	})
-	tokenString, err := c.userService.GetJwtTokenByID(user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": http.StatusInternalServerError,
@@ -92,7 +78,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":  http.StatusOK,
 		"data":  user,
-		"token": tokenString,
+		"token": token,
 	})
 	zap.L().Info(fmt.Sprintf("User %s login successful", user.Username), zap.Uint("user_id", user.ID))
 }
@@ -106,7 +92,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /users/logout [post]
 func (c *UserController) Logout(ctx *gin.Context) {
-	id, err := c.userService.GetIDByJwtToken(ctx.GetHeader("Authorization"))
+	id, err := c.userService.Logout(ctx.GetHeader("Authorization"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,

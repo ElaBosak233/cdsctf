@@ -8,10 +8,10 @@ import (
 )
 
 type IChallengeService interface {
-	Find(req request.ChallengeFindRequest) (challenges []model.Challenge, total int64, err error)
-	Create(req request.ChallengeCreateRequest) (err error)
-	Update(req request.ChallengeUpdateRequest) (err error)
-	Delete(id uint) (err error)
+	Find(req request.ChallengeFindRequest) ([]model.Challenge, int64, error)
+	Create(req request.ChallengeCreateRequest) error
+	Update(req request.ChallengeUpdateRequest) error
+	Delete(id uint) error
 }
 
 type ChallengeService struct {
@@ -36,27 +36,27 @@ func NewChallengeService(r *repository.Repository) IChallengeService {
 	}
 }
 
-func (t *ChallengeService) Create(req request.ChallengeCreateRequest) (err error) {
+func (t *ChallengeService) Create(req request.ChallengeCreateRequest) error {
 	challenge := model.Challenge{}
 	_ = mapstructure.Decode(req, &challenge)
-	_, err = t.challengeRepository.Create(challenge)
+	_, err := t.challengeRepository.Create(challenge)
 	return err
 }
 
-func (t *ChallengeService) Update(req request.ChallengeUpdateRequest) (err error) {
+func (t *ChallengeService) Update(req request.ChallengeUpdateRequest) error {
 	challenge := model.Challenge{}
 	_ = mapstructure.Decode(req, &challenge)
-	challenge, err = t.challengeRepository.Update(challenge)
+	challenge, err := t.challengeRepository.Update(challenge)
 	return err
 }
 
-func (t *ChallengeService) Delete(id uint) (err error) {
-	err = t.challengeRepository.Delete(id)
+func (t *ChallengeService) Delete(id uint) error {
+	err := t.challengeRepository.Delete(id)
 	return err
 }
 
-func (t *ChallengeService) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, total int64, err error) {
-	challenges, total, err = t.challengeRepository.Find(req)
+func (t *ChallengeService) Find(req request.ChallengeFindRequest) ([]model.Challenge, int64, error) {
+	challenges, total, err := t.challengeRepository.Find(req)
 
 	for index, challenge := range challenges {
 		if !*(req.IsDetailed) {

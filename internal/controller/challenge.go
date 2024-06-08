@@ -22,7 +22,6 @@ type IChallengeController interface {
 	CreateFlag(ctx *gin.Context)
 	UpdateFlag(ctx *gin.Context)
 	DeleteFlag(ctx *gin.Context)
-	FindAttachment(ctx *gin.Context)
 	SaveAttachment(ctx *gin.Context)
 	DeleteAttachment(ctx *gin.Context)
 }
@@ -259,31 +258,6 @@ func (c *ChallengeController) DeleteFlag(ctx *gin.Context) {
 	cache.C().DeleteByPrefix("challenges")
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
-	})
-}
-
-// FindAttachment
-// @Summary 查找附件
-// @Description
-// @Tags Challenge
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Router /challenges/{id}/attachment [get]
-func (c *ChallengeController) FindAttachment(ctx *gin.Context) {
-	id := convertor.ToUintD(ctx.Param("id"), 0)
-	filename, size, err := c.mediaService.FindChallengeAttachment(id)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
-			"msg":  err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":     http.StatusOK,
-		"filename": filename,
-		"size":     size,
 	})
 }
 

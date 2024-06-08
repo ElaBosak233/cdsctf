@@ -48,10 +48,6 @@ export function useChallengeApi() {
 		);
 	};
 
-	const getChallengeAttachment = (id: number) => {
-		return auth.get(`/challenges/${id}/attachment`);
-	};
-
 	const saveChallengeAttachment = (
 		id: number,
 		file: File,
@@ -74,7 +70,6 @@ export function useChallengeApi() {
 		updateChallengeFlag,
 		createChallengeFlag,
 		deleteChallengeFlag,
-		getChallengeAttachment,
 		saveChallengeAttachment,
 		deleteChallengeAttachment,
 	};

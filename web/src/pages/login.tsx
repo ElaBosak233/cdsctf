@@ -65,19 +65,10 @@ export default function Page() {
 				navigate("/");
 			})
 			.catch((err) => {
-				switch (err?.response?.status) {
-					case 400:
-						showErrNotification({
-							message: "用户名或密码错误",
-						});
-						break;
-					default:
-						showErrNotification({
-							title: "发生了错误",
-							message: `登录失败 ${err}`,
-						});
-						break;
-				}
+				showErrNotification({
+					title: "发生了错误",
+					message: `登录失败 ${err.response?.data?.msg}`,
+				});
 			})
 			.finally(() => {
 				setLoginLoading(false);

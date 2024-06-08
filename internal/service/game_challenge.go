@@ -9,10 +9,10 @@ import (
 )
 
 type IGameChallengeService interface {
-	Find(req request.GameChallengeFindRequest) (challenges []model.GameChallenge, err error)
-	Create(req request.GameChallengeCreateRequest) (err error)
-	Update(req request.GameChallengeUpdateRequest) (err error)
-	Delete(req request.GameChallengeDeleteRequest) (err error)
+	Find(req request.GameChallengeFindRequest) ([]model.GameChallenge, error)
+	Create(req request.GameChallengeCreateRequest) error
+	Update(req request.GameChallengeUpdateRequest) error
+	Delete(req request.GameChallengeDeleteRequest) error
 }
 
 type GameChallengeService struct {
@@ -29,12 +29,12 @@ func NewGameChallengeService(r *repository.Repository) IGameChallengeService {
 	}
 }
 
-func (g *GameChallengeService) Find(req request.GameChallengeFindRequest) (gameChallenges []model.GameChallenge, err error) {
+func (g *GameChallengeService) Find(req request.GameChallengeFindRequest) ([]model.GameChallenge, error) {
 	games, _, _ := g.gameRepository.Find(request.GameFindRequest{
 		ID: req.GameID,
 	})
 	game := games[0]
-	gameChallenges, err = g.gameChallengeRepository.Find(req)
+	gameChallenges, err := g.gameChallengeRepository.Find(req)
 	for i, gameChallenge := range gameChallenges {
 		pts := calculate.GameChallengePts(
 			gameChallenge.MaxPts,
@@ -73,16 +73,16 @@ func (g *GameChallengeService) Find(req request.GameChallengeFindRequest) (gameC
 	return gameChallenges, err
 }
 
-func (g *GameChallengeService) Create(req request.GameChallengeCreateRequest) (err error) {
+func (g *GameChallengeService) Create(req request.GameChallengeCreateRequest) error {
 	var gameChallenge model.GameChallenge
-	err = mapstructure.Decode(req, &gameChallenge)
+	err := mapstructure.Decode(req, &gameChallenge)
 	err = g.gameChallengeRepository.Create(gameChallenge)
 	return err
 }
 
-func (g *GameChallengeService) Update(req request.GameChallengeUpdateRequest) (err error) {
+func (g *GameChallengeService) Update(req request.GameChallengeUpdateRequest) error {
 	var gameChallenge model.GameChallenge
-	err = mapstructure.Decode(req, &gameChallenge)
+	err := mapstructure.Decode(req, &gameChallenge)
 	err = g.gameChallengeRepository.Update(gameChallenge)
 	if gameChallenge.IsEnabled != nil && *(gameChallenge.IsEnabled) {
 		_, err = g.noticeRepository.Create(model.Notice{
@@ -94,9 +94,9 @@ func (g *GameChallengeService) Update(req request.GameChallengeUpdateRequest) (e
 	return err
 }
 
-func (g *GameChallengeService) Delete(req request.GameChallengeDeleteRequest) (err error) {
+func (g *GameChallengeService) Delete(req request.GameChallengeDeleteRequest) error {
 	var gameChallenge model.GameChallenge
-	err = mapstructure.Decode(req, &gameChallenge)
+	err := mapstructure.Decode(req, &gameChallenge)
 	err = g.gameChallengeRepository.Delete(gameChallenge)
 	return err
 }

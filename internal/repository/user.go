@@ -10,9 +10,9 @@ type IUserRepository interface {
 	Create(user model.User) error
 	Update(user model.User) error
 	Delete(id uint) error
-	FindById(id uint) (user model.User, err error)
-	FindByUsername(username string) (user model.User, err error)
-	Find(req request.UserFindRequest) (user []model.User, total int64, err error)
+	FindById(id uint) (model.User, error)
+	FindByUsername(username string) (model.User, error)
+	Find(req request.UserFindRequest) ([]model.User, int64, error)
 }
 
 type UserRepository struct {
@@ -40,7 +40,8 @@ func (t *UserRepository) Update(user model.User) error {
 	return result.Error
 }
 
-func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, total int64, err error) {
+func (t *UserRepository) Find(req request.UserFindRequest) ([]model.User, int64, error) {
+	var users []model.User
 	applyFilter := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
@@ -60,6 +61,7 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 		return q
 	}
 	db := applyFilter(t.db.Table("users"))
+	var total int64 = 0
 	result := db.Model(&model.User{}).Count(&total)
 	if req.SortKey != "" && req.SortOrder != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
@@ -76,7 +78,8 @@ func (t *UserRepository) Find(req request.UserFindRequest) (users []model.User, 
 	return users, total, result.Error
 }
 
-func (t *UserRepository) FindById(id uint) (user model.User, err error) {
+func (t *UserRepository) FindById(id uint) (model.User, error) {
+	var user model.User
 	result := t.db.Table("users").
 		Where("id = ?", id).
 		Preload("Teams").
@@ -84,7 +87,8 @@ func (t *UserRepository) FindById(id uint) (user model.User, err error) {
 	return user, result.Error
 }
 
-func (t *UserRepository) FindByUsername(username string) (user model.User, err error) {
+func (t *UserRepository) FindByUsername(username string) (model.User, error) {
+	var user model.User
 	result := t.db.Table("users").
 		Where("username = ?", username).
 		Preload("Teams").

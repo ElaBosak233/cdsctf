@@ -6,7 +6,7 @@ import (
 )
 
 type INatRepository interface {
-	Create(nat model.Nat) (n model.Nat, err error)
+	Create(nat model.Nat) (model.Nat, error)
 }
 
 type NatRepository struct {
@@ -17,7 +17,7 @@ func NewNatRepository(db *gorm.DB) INatRepository {
 	return &NatRepository{db: db}
 }
 
-func (t *NatRepository) Create(nat model.Nat) (n model.Nat, err error) {
+func (t *NatRepository) Create(nat model.Nat) (model.Nat, error) {
 	result := t.db.Table("nats").Create(&nat)
 	return nat, result.Error
 }

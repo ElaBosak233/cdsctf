@@ -6,7 +6,7 @@ import (
 )
 
 type IEnvRepository interface {
-	Create(env model.Env) (e model.Env, err error)
+	Create(env model.Env) (model.Env, error)
 }
 
 type EnvRepository struct {
@@ -17,7 +17,7 @@ func NewEnvRepository(db *gorm.DB) IEnvRepository {
 	return &EnvRepository{db: db}
 }
 
-func (t *EnvRepository) Create(env model.Env) (e model.Env, err error) {
+func (t *EnvRepository) Create(env model.Env) (model.Env, error) {
 	result := t.db.Table("envs").
 		Create(&env)
 	return env, result.Error

@@ -7,10 +7,10 @@ import (
 )
 
 type IGameChallengeRepository interface {
-	Find(req request.GameChallengeFindRequest) (gameChallenges []model.GameChallenge, err error)
-	Create(gameChallenge model.GameChallenge) (err error)
-	Update(gameChallenge model.GameChallenge) (err error)
-	Delete(gameChallenge model.GameChallenge) (err error)
+	Find(req request.GameChallengeFindRequest) ([]model.GameChallenge, error)
+	Create(gameChallenge model.GameChallenge) error
+	Update(gameChallenge model.GameChallenge) error
+	Delete(gameChallenge model.GameChallenge) error
 }
 
 type GameChallengeRepository struct {
@@ -21,7 +21,8 @@ func NewGameChallengeRepository(db *gorm.DB) IGameChallengeRepository {
 	return &GameChallengeRepository{db: db}
 }
 
-func (t *GameChallengeRepository) Find(req request.GameChallengeFindRequest) (gameChallenges []model.GameChallenge, err error) {
+func (t *GameChallengeRepository) Find(req request.GameChallengeFindRequest) ([]model.GameChallenge, error) {
+	var gameChallenges []model.GameChallenge
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.GameID != 0 {
 			q = q.Where("game_id = ?", req.GameID)
@@ -61,12 +62,12 @@ func (t *GameChallengeRepository) Find(req request.GameChallengeFindRequest) (ga
 	return gameChallenges, result.Error
 }
 
-func (t *GameChallengeRepository) Create(gameChallenge model.GameChallenge) (err error) {
+func (t *GameChallengeRepository) Create(gameChallenge model.GameChallenge) error {
 	result := t.db.Table("game_challenges").Create(&gameChallenge)
 	return result.Error
 }
 
-func (t *GameChallengeRepository) Update(gameChallenge model.GameChallenge) (err error) {
+func (t *GameChallengeRepository) Update(gameChallenge model.GameChallenge) error {
 	result := t.db.Table("game_challenges").
 		Where("challenge_id = ?", gameChallenge.ChallengeID).
 		Where("game_id = ?", gameChallenge.GameID).
@@ -75,7 +76,7 @@ func (t *GameChallengeRepository) Update(gameChallenge model.GameChallenge) (err
 	return result.Error
 }
 
-func (t *GameChallengeRepository) Delete(gameChallenge model.GameChallenge) (err error) {
+func (t *GameChallengeRepository) Delete(gameChallenge model.GameChallenge) error {
 	result := t.db.Table("game_challenges").
 		Where("game_id = ?", gameChallenge.GameID).
 		Where("challenge_id = ?", gameChallenge.ChallengeID).

@@ -7,10 +7,10 @@ import (
 )
 
 type INoticeRepository interface {
-	Find(req request.NoticeFindRequest) (notices []model.Notice, total int64, err error)
-	Create(notice model.Notice) (n model.Notice, err error)
-	Update(notice model.Notice) (n model.Notice, err error)
-	Delete(notice model.Notice) (err error)
+	Find(req request.NoticeFindRequest) ([]model.Notice, int64, error)
+	Create(notice model.Notice) (model.Notice, error)
+	Update(notice model.Notice) (model.Notice, error)
+	Delete(notice model.Notice) error
 }
 
 type NoticeRepository struct {
@@ -21,7 +21,8 @@ func NewNoticeRepository(db *gorm.DB) INoticeRepository {
 	return &NoticeRepository{db: db}
 }
 
-func (t *NoticeRepository) Find(req request.NoticeFindRequest) (notices []model.Notice, total int64, err error) {
+func (t *NoticeRepository) Find(req request.NoticeFindRequest) ([]model.Notice, int64, error) {
+	var notices []model.Notice
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
@@ -35,6 +36,7 @@ func (t *NoticeRepository) Find(req request.NoticeFindRequest) (notices []model.
 		return q
 	}
 	db := applyFilters(t.db.Table("notices"))
+	var total int64 = 0
 	result := db.Model(&model.Notice{}).Count(&total)
 	db = db.Order("notices.id DESC")
 	result = db.
@@ -51,17 +53,17 @@ func (t *NoticeRepository) Find(req request.NoticeFindRequest) (notices []model.
 	return notices, total, result.Error
 }
 
-func (t *NoticeRepository) Create(notice model.Notice) (n model.Notice, err error) {
+func (t *NoticeRepository) Create(notice model.Notice) (model.Notice, error) {
 	result := t.db.Table("notices").Create(&notice)
 	return notice, result.Error
 }
 
-func (t *NoticeRepository) Update(notice model.Notice) (n model.Notice, err error) {
+func (t *NoticeRepository) Update(notice model.Notice) (model.Notice, error) {
 	result := t.db.Table("notices").Model(&notice).Updates(&notice)
 	return notice, result.Error
 }
 
-func (t *NoticeRepository) Delete(notice model.Notice) (err error) {
+func (t *NoticeRepository) Delete(notice model.Notice) error {
 	result := t.db.Table("notices").Delete(&notice)
 	return result.Error
 }

@@ -21,7 +21,7 @@ func NewChallengeRepository(db *gorm.DB) IChallengeRepository {
 	return &ChallengeRepository{db: db}
 }
 
-func (t *ChallengeRepository) Create(challenge model.Challenge) (c model.Challenge, err error) {
+func (t *ChallengeRepository) Create(challenge model.Challenge) (model.Challenge, error) {
 	result := t.db.Table("challenges").Create(&challenge)
 	return challenge, result.Error
 }
@@ -31,12 +31,13 @@ func (t *ChallengeRepository) Delete(id uint) (err error) {
 	return result.Error
 }
 
-func (t *ChallengeRepository) Update(challenge model.Challenge) (c model.Challenge, err error) {
+func (t *ChallengeRepository) Update(challenge model.Challenge) (model.Challenge, error) {
 	result := t.db.Table("challenges").Model(&challenge).Updates(&challenge)
 	return challenge, result.Error
 }
 
-func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges []model.Challenge, total int64, err error) {
+func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) ([]model.Challenge, int64, error) {
+	var challenges []model.Challenge
 	applyFilter := func(q *gorm.DB) *gorm.DB {
 		if req.CategoryID != nil {
 			q = q.Where("category_id = ?", *(req.CategoryID))
@@ -59,7 +60,7 @@ func (t *ChallengeRepository) Find(req request.ChallengeFindRequest) (challenges
 		return q
 	}
 	db := applyFilter(t.db.Table("challenges"))
-
+	var total int64 = 0
 	result := db.Model(&model.Challenge{}).Count(&total)
 	if req.SortOrder != "" && req.SortKey != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)

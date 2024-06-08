@@ -555,7 +555,7 @@ func (g *GameController) Find(ctx *gin.Context) {
 		return
 	}
 	if ok && isEnabled.(bool) {
-		gameFindRequest.IsEnabled = convertor.TrueP()
+		gameFindRequest.IsEnabled = &utils.True
 	}
 	value, exist := cache.C().Get(fmt.Sprintf("games:%s", utils.HashStruct(gameFindRequest)))
 	if !exist {

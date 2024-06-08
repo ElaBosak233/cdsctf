@@ -7,11 +7,11 @@ import (
 )
 
 type ITeamRepository interface {
-	Create(team model.Team) (te model.Team, err error)
-	Update(team model.Team) (err error)
-	Delete(id uint) (err error)
-	Find(req request.TeamFindRequest) (teams []model.Team, count int64, err error)
-	FindById(id uint) (team model.Team, err error)
+	Create(team model.Team) (model.Team, error)
+	Update(team model.Team) error
+	Delete(id uint) error
+	Find(req request.TeamFindRequest) ([]model.Team, int64, error)
+	FindById(id uint) (model.Team, error)
 }
 
 type TeamRepository struct {
@@ -22,24 +22,25 @@ func NewTeamRepository(db *gorm.DB) ITeamRepository {
 	return &TeamRepository{db: db}
 }
 
-func (t *TeamRepository) Create(team model.Team) (te model.Team, err error) {
+func (t *TeamRepository) Create(team model.Team) (model.Team, error) {
 	result := t.db.Table("teams").Create(&team)
 	return team, result.Error
 }
 
-func (t *TeamRepository) Update(team model.Team) (err error) {
+func (t *TeamRepository) Update(team model.Team) error {
 	result := t.db.Table("teams").Model(&team).Updates(&team)
 	return result.Error
 }
 
-func (t *TeamRepository) Delete(id uint) (err error) {
+func (t *TeamRepository) Delete(id uint) error {
 	result := t.db.Table("teams").Where("id = ?", id).Delete(&model.Team{
 		ID: id,
 	})
 	return result.Error
 }
 
-func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, total int64, err error) {
+func (t *TeamRepository) Find(req request.TeamFindRequest) ([]model.Team, int64, error) {
+	var teams []model.Team
 	applyFilters := func(q *gorm.DB) *gorm.DB {
 		if req.ID != 0 {
 			q = q.Where("id = ?", req.ID)
@@ -61,7 +62,7 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, 
 		return q
 	}
 	db := applyFilters(t.db.Table("teams"))
-
+	var total int64 = 0
 	result := db.Model(&model.Team{}).Count(&total)
 	if req.SortKey != "" && req.SortOrder != "" {
 		db = db.Order(req.SortKey + " " + req.SortOrder)
@@ -84,7 +85,8 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) (teams []model.Team, 
 	return teams, total, result.Error
 }
 
-func (t *TeamRepository) FindById(id uint) (team model.Team, err error) {
+func (t *TeamRepository) FindById(id uint) (model.Team, error) {
+	var team model.Team
 	result := t.db.Table("teams").Where("id = ?", id).First(&team)
 	return team, result.Error
 }

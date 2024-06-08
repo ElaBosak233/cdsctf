@@ -6,9 +6,9 @@ import (
 )
 
 type IPortRepository interface {
-	Create(port model.Port) (p model.Port, err error)
-	Update(port model.Port) (p model.Port, err error)
-	Delete(port model.Port) (err error)
+	Create(port model.Port) (model.Port, error)
+	Update(port model.Port) (model.Port, error)
+	Delete(port model.Port) error
 }
 
 type PortRepository struct {
@@ -19,17 +19,17 @@ func NewPortRepository(db *gorm.DB) IPortRepository {
 	return &PortRepository{db: db}
 }
 
-func (t *PortRepository) Create(port model.Port) (p model.Port, err error) {
+func (t *PortRepository) Create(port model.Port) (model.Port, error) {
 	result := t.db.Table("ports").Create(&port)
 	return port, result.Error
 }
 
-func (t *PortRepository) Update(port model.Port) (p model.Port, err error) {
+func (t *PortRepository) Update(port model.Port) (model.Port, error) {
 	result := t.db.Table("ports").Model(&port).Updates(&port)
 	return port, result.Error
 }
 
-func (t *PortRepository) Delete(port model.Port) (err error) {
+func (t *PortRepository) Delete(port model.Port) error {
 	result := t.db.Table("ports").Delete(&port)
 	return result.Error
 }

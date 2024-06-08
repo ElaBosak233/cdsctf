@@ -323,24 +323,6 @@ const docTemplate = `{
             }
         },
         "/challenges/{id}/attachment": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Challenge"
-                ],
-                "summary": "查找附件",
-                "responses": {}
-            },
             "post": {
                 "security": [
                     {

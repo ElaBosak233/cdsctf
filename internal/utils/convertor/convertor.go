@@ -5,16 +5,6 @@ import (
 	"strconv"
 )
 
-func TrueP() *bool {
-	i := true
-	return &i
-}
-
-func FalseP() *bool {
-	i := false
-	return &i
-}
-
 func ToInt64D(v string, d int64) int64 {
 	result, err := convertor.ToInt(v)
 	if err != nil {

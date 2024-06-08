@@ -9,13 +9,23 @@ import (
 )
 
 type ITeamService interface {
+	// Create will create a team with the given request.
 	Create(req request.TeamCreateRequest) error
+
+	// Update will update a team with the given id.
 	Update(req request.TeamUpdateRequest) error
+
+	// Delete will delete a team with the given id.
 	Delete(id uint) error
-	Find(req request.TeamFindRequest) (teams []model.Team, total int64, err error)
-	FindById(id uint) (team model.Team, err error)
-	GetInviteToken(req request.TeamGetInviteTokenRequest) (token string, err error)
-	UpdateInviteToken(req request.TeamUpdateInviteTokenRequest) (token string, err error)
+
+	// Find will return the teams, total count and error.
+	Find(req request.TeamFindRequest) ([]model.Team, int64, error)
+
+	// GetInviteToken will return the invite token of the team.
+	GetInviteToken(req request.TeamGetInviteTokenRequest) (string, error)
+
+	// UpdateInviteToken will update the invite token of the team.
+	UpdateInviteToken(req request.TeamUpdateInviteTokenRequest) (string, error)
 }
 
 type TeamService struct {
@@ -35,7 +45,7 @@ func NewTeamService(r *repository.Repository) ITeamService {
 func (t *TeamService) Create(req request.TeamCreateRequest) error {
 	user, err := t.userRepository.FindById(req.CaptainId)
 	if err != nil || user.ID == 0 {
-		return errors.New("用户不存在")
+		return errors.New("user.not_found")
 	}
 	isLocked := false
 	uid := uuid.NewString()
@@ -53,7 +63,7 @@ func (t *TeamService) Create(req request.TeamCreateRequest) error {
 func (t *TeamService) Update(req request.TeamUpdateRequest) error {
 	team, err := t.teamRepository.FindById(req.ID)
 	if err != nil || team.ID == 0 {
-		return errors.New("团队不存在")
+		return errors.New("team.not_found")
 	}
 	err = t.teamRepository.Update(model.Team{
 		ID:          team.ID,
@@ -69,14 +79,14 @@ func (t *TeamService) Update(req request.TeamUpdateRequest) error {
 func (t *TeamService) Delete(id uint) error {
 	team, err := t.teamRepository.FindById(id)
 	if err != nil || team.ID == 0 {
-		return errors.New("团队不存在")
+		return errors.New("team.not_found")
 	}
 	err = t.teamRepository.Delete(id)
 	return err
 }
 
-func (t *TeamService) Find(req request.TeamFindRequest) (teams []model.Team, total int64, err error) {
-	teams, total, err = t.teamRepository.Find(req)
+func (t *TeamService) Find(req request.TeamFindRequest) ([]model.Team, int64, error) {
+	teams, total, err := t.teamRepository.Find(req)
 	for index, team := range teams {
 		team.InviteToken = ""
 		teams[index] = team
@@ -84,20 +94,10 @@ func (t *TeamService) Find(req request.TeamFindRequest) (teams []model.Team, tot
 	return teams, total, err
 }
 
-func (t *TeamService) FindById(id uint) (team model.Team, err error) {
-	teams, _, err := t.teamRepository.Find(request.TeamFindRequest{
-		ID: id,
-	})
-	if len(teams) > 0 {
-		team = teams[0]
-	}
-	return team, err
-}
-
 func (t *TeamService) GetInviteToken(req request.TeamGetInviteTokenRequest) (token string, err error) {
 	team, err := t.teamRepository.FindById(req.ID)
 	if err != nil || team.ID == 0 {
-		return "", errors.New("团队不存在")
+		return "", errors.New("team.not_found")
 	}
 	return team.InviteToken, err
 }
@@ -105,7 +105,7 @@ func (t *TeamService) GetInviteToken(req request.TeamGetInviteTokenRequest) (tok
 func (t *TeamService) UpdateInviteToken(req request.TeamUpdateInviteTokenRequest) (token string, err error) {
 	team, err := t.teamRepository.FindById(req.ID)
 	if err != nil || team.ID == 0 {
-		return "", errors.New("团队不存在")
+		return "", errors.New("team.not_found")
 	}
 	uid := uuid.NewString()
 	token = uid[:8] + uid[9:13] + uid[14:18] + uid[19:23] + uid[24:]

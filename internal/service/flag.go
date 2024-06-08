@@ -8,9 +8,9 @@ import (
 )
 
 type IFlagService interface {
-	Create(req request.FlagCreateRequest) (err error)
-	Update(req request.FlagUpdateRequest) (err error)
-	Delete(req request.FlagDeleteRequest) (err error)
+	Create(req request.FlagCreateRequest) error
+	Update(req request.FlagUpdateRequest) error
+	Delete(req request.FlagDeleteRequest) error
 }
 
 type FlagService struct {
@@ -23,23 +23,23 @@ func NewFlagService(r *repository.Repository) IFlagService {
 	}
 }
 
-func (f *FlagService) Create(req request.FlagCreateRequest) (err error) {
+func (f *FlagService) Create(req request.FlagCreateRequest) error {
 	var flag model.Flag
 	_ = mapstructure.Decode(req, &flag)
-	_, err = f.flagRepository.Create(flag)
+	_, err := f.flagRepository.Create(flag)
 	return err
 }
 
-func (f *FlagService) Update(req request.FlagUpdateRequest) (err error) {
+func (f *FlagService) Update(req request.FlagUpdateRequest) error {
 	var flag model.Flag
 	_ = mapstructure.Decode(req, &flag)
-	_, err = f.flagRepository.Update(flag)
-	return
+	_, err := f.flagRepository.Update(flag)
+	return err
 }
 
-func (f *FlagService) Delete(req request.FlagDeleteRequest) (err error) {
+func (f *FlagService) Delete(req request.FlagDeleteRequest) error {
 	var flag model.Flag
 	_ = mapstructure.Decode(req, &flag)
-	err = f.flagRepository.Delete(flag)
-	return
+	err := f.flagRepository.Delete(flag)
+	return err
 }
