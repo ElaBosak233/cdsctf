@@ -10,15 +10,70 @@ import {
 	Text,
 	ActionIcon,
 	useMantineColorScheme,
+	Burger,
 } from "@mantine/core";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MDIcon from "@/components/ui/MDIcon";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
-import { useEffect, useState } from "react";
 import { useTeamStore } from "@/stores/team";
 
-export default function Navbar() {
+export const NavItems = [
+	{
+		name: "题库",
+		path: "/challenges",
+		icon: "collections_bookmark",
+	},
+	{
+		name: "比赛",
+		path: "/games",
+		icon: "flag",
+	},
+	{
+		name: "团队",
+		path: "/teams",
+		icon: "people",
+	},
+];
+
+export const AdminNavItems = [
+	{
+		name: "全局",
+		path: "/admin/global",
+		icon: "settings",
+	},
+	{
+		name: "题库",
+		path: "/admin/challenges",
+		icon: "collections_bookmark",
+	},
+	{
+		name: "比赛",
+		path: "/admin/games",
+		icon: "flag",
+	},
+	{
+		name: "团队",
+		path: "/admin/teams",
+		icon: "people",
+	},
+	{
+		name: "用户",
+		path: "/admin/users",
+		icon: "person",
+	},
+];
+
+interface NavbarProps {
+	burger?: {
+		opened: boolean;
+		toggle: () => void;
+	};
+	adminMode?: boolean;
+}
+
+export default function Navbar(props: NavbarProps) {
+	const { burger, adminMode } = props;
 	const authStore = useAuthStore();
 	const configStore = useConfigStore();
 	const teamStore = useTeamStore();
@@ -27,22 +82,12 @@ export default function Navbar() {
 		keepTransitions: true,
 	});
 
-	const [adminMode, setAdminMode] = useState<boolean>(false);
-	const location = useLocation();
-
 	function logout() {
 		authStore.setPgsToken("");
 		authStore.setUser(undefined);
 		teamStore.setSelectedTeamID(0);
 		navigate("/login");
 	}
-
-	useEffect(() => {
-		setAdminMode(false);
-		if (location.pathname.startsWith("/admin")) {
-			setAdminMode(true);
-		}
-	}, [location.pathname]);
 
 	return (
 		<Flex
@@ -59,22 +104,20 @@ export default function Navbar() {
 				zIndex: 2,
 			}}
 		>
-			<Box
-				w={"50%"}
-				sx={{
-					display: "flex",
-					justifyContent: "start",
-				}}
-			>
+			<Group w={"50%"} wrap={"nowrap"} gap={0}>
+				<Burger
+					opened={burger?.opened}
+					onClick={burger?.toggle}
+					hiddenFrom={"md"}
+					size={"sm"}
+					color={"white"}
+				/>
 				<Button
 					h={48}
-					sx={{
-						backgroundColor: "transparent",
-						"&:hover": {
-							backgroundColor: "transparent",
-						},
-					}}
-					onClick={() => navigate("/")}
+					component={Link}
+					variant={"transparent"}
+					to={"/"}
+					draggable={false}
 				>
 					<Flex align={"center"}>
 						<Image
@@ -95,163 +138,83 @@ export default function Navbar() {
 						</Title>
 					</Flex>
 				</Button>
-			</Box>
-			<Group
-				sx={{
-					flexShrink: 0,
-				}}
-			>
-				{!adminMode && (
-					<>
-						<Button
-							sx={{
-								backgroundColor: "transparent",
-								"&:hover": {
-									backgroundColor: "transparent",
-								},
-							}}
-							leftSection={
-								<MDIcon color={"white"}>
-									collections_bookmark
-								</MDIcon>
-							}
-							onClick={() => navigate("/challenges")}
-						>
-							题库
-						</Button>
-						<Button
-							sx={{
-								backgroundColor: "transparent",
-								"&:hover": {
-									backgroundColor: "transparent",
-								},
-							}}
-							leftSection={<MDIcon color={"white"}>flag</MDIcon>}
-							onClick={() => navigate("/games")}
-						>
-							比赛
-						</Button>
-						<Button
-							sx={{
-								backgroundColor: "transparent",
-								"&:hover": {
-									backgroundColor: "transparent",
-								},
-							}}
-							leftSection={
-								<MDIcon color={"white"}>people</MDIcon>
-							}
-							onClick={() => navigate("/teams")}
-						>
-							团队
-						</Button>
-						{authStore?.user?.group === "admin" && (
-							<Button
-								sx={{
-									backgroundColor: "transparent",
-									"&:hover": {
-										backgroundColor: "transparent",
-									},
-								}}
-								leftSection={
-									<MDIcon color={"white"}>settings</MDIcon>
-								}
-								onClick={() => navigate("/admin")}
-							>
-								管理
-							</Button>
-						)}
-					</>
-				)}
-				{adminMode && (
-					<>
-						<Button
-							sx={{
-								backgroundColor: "transparent",
-								"&:hover": {
-									backgroundColor: "transparent",
-								},
-							}}
-							leftSection={
-								<MDIcon color={"white"}>keyboard_return</MDIcon>
-							}
-							onClick={() => navigate("/")}
-						>
-							返回
-						</Button>
-						<Button
-							sx={{
-								backgroundColor: "transparent",
-								"&:hover": {
-									backgroundColor: "transparent",
-								},
-							}}
-							leftSection={
-								<MDIcon color={"white"}>settings</MDIcon>
-							}
-							onClick={() => navigate("/admin/global")}
-						>
-							全局
-						</Button>
-						<Button
-							sx={{
-								backgroundColor: "transparent",
-								"&:hover": {
-									backgroundColor: "transparent",
-								},
-							}}
-							leftSection={
-								<MDIcon color={"white"}>
-									collections_bookmark
-								</MDIcon>
-							}
-							onClick={() => navigate("/admin/challenges")}
-						>
-							题库
-						</Button>
-						<Button
-							sx={{
-								backgroundColor: "transparent",
-								"&:hover": {
-									backgroundColor: "transparent",
-								},
-							}}
-							leftSection={<MDIcon color={"white"}>flag</MDIcon>}
-							onClick={() => navigate("/admin/games")}
-						>
-							比赛
-						</Button>
-						<Button
-							sx={{
-								backgroundColor: "transparent",
-								"&:hover": {
-									backgroundColor: "transparent",
-								},
-							}}
-							leftSection={
-								<MDIcon color={"white"}>people</MDIcon>
-							}
-							onClick={() => navigate("/admin/teams")}
-						>
-							团队
-						</Button>
-						<Button
-							sx={{
-								backgroundColor: "transparent",
-								"&:hover": {
-									backgroundColor: "transparent",
-								},
-							}}
-							leftSection={
-								<MDIcon color={"white"}>person</MDIcon>
-							}
-							onClick={() => navigate("/admin/users")}
-						>
-							用户
-						</Button>
-					</>
-				)}
 			</Group>
+			<Box sx={{ flexShrink: 0 }}>
+				<Group visibleFrom={"md"}>
+					{!adminMode && (
+						<>
+							{NavItems?.map((item) => (
+								<Button
+									key={item?.name}
+									component={Link}
+									variant={"transparent"}
+									c={"white"}
+									leftSection={
+										<MDIcon color={"white"}>
+											{item?.icon}
+										</MDIcon>
+									}
+									draggable={false}
+									to={item?.path}
+								>
+									{item?.name}
+								</Button>
+							))}
+							{authStore?.user?.group === "admin" && (
+								<Button
+									variant={"transparent"}
+									c={"white"}
+									component={Link}
+									leftSection={
+										<MDIcon color={"white"}>
+											settings
+										</MDIcon>
+									}
+									draggable={false}
+									to={"/admin"}
+								>
+									管理
+								</Button>
+							)}
+						</>
+					)}
+					{adminMode && (
+						<>
+							<Button
+								component={Link}
+								variant={"transparent"}
+								c={"white"}
+								leftSection={
+									<MDIcon color={"white"}>
+										keyboard_return
+									</MDIcon>
+								}
+								draggable={false}
+								to={"/"}
+							>
+								返回
+							</Button>
+							{AdminNavItems?.map((item) => (
+								<Button
+									key={item?.name}
+									component={Link}
+									variant={"transparent"}
+									c={"white"}
+									leftSection={
+										<MDIcon color={"white"}>
+											{item?.icon}
+										</MDIcon>
+									}
+									draggable={false}
+									to={item?.path}
+								>
+									{item?.name}
+								</Button>
+							))}
+						</>
+					)}
+				</Group>
+			</Box>
 			<Flex w={"50%"} justify={"end"} align={"center"}>
 				<ActionIcon
 					aria-label="Settings"

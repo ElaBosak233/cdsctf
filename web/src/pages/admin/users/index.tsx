@@ -219,7 +219,7 @@ export default function Page() {
 											<Badge>{user?.id}</Badge>
 										</Table.Th>
 										<Table.Th>
-											<Group gap={15}>
+											<Group gap={15} wrap={"nowrap"}>
 												<Avatar
 													color="brand"
 													src={`${import.meta.env.VITE_BASE_API}/media/users/${user?.id}/${user?.avatar?.name}`}
@@ -236,7 +236,10 @@ export default function Page() {
 										<Table.Th>{user?.email}</Table.Th>
 										<Table.Th>{user?.group}</Table.Th>
 										<Table.Th>
-											<Group justify="center">
+											<Group
+												justify="center"
+												wrap={"nowrap"}
+											>
 												<ActionIcon
 													onClick={() => {
 														setSelectedUser(user);

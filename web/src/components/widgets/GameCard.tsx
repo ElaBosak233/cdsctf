@@ -87,6 +87,7 @@ export default function GameCard({ game }: { game?: Game }) {
 										? "red"
 										: undefined
 							}
+							zIndex={3}
 							processing={status === 1 ? true : false}
 							sx={{
 								position: "absolute",

@@ -220,7 +220,7 @@ export default function Page() {
 											<Badge>{team?.id}</Badge>
 										</Table.Th>
 										<Table.Th>
-											<Group gap={15}>
+											<Group gap={15} wrap={"nowrap"}>
 												<Avatar
 													color="brand"
 													src={`${import.meta.env.VITE_BASE_API}/media/teams/${team?.id}/${team?.avatar?.name}`}
@@ -263,7 +263,10 @@ export default function Page() {
 										<Table.Th>{team?.email}</Table.Th>
 										<Table.Th>{team?.description}</Table.Th>
 										<Table.Th>
-											<Group justify="center">
+											<Group
+												justify="center"
+												wrap={"nowrap"}
+											>
 												<ActionIcon
 													onClick={() => {
 														setSelectedTeam(team);
