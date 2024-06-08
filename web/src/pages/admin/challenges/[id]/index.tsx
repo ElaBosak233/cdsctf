@@ -238,7 +238,6 @@ function Page() {
 							/>
 							<Tooltip label="清除附件" withArrow>
 								<ActionIcon
-									variant="transparent"
 									my={7}
 									onClick={() => deleteAttachment()}
 								>

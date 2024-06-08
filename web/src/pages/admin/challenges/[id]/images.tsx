@@ -133,7 +133,6 @@ function Page() {
 							</Group>
 							<Tooltip label="添加端口映射" withArrow>
 								<ActionIcon
-									variant="transparent"
 									onClick={() =>
 										setPorts([
 											...ports,
@@ -201,7 +200,7 @@ function Page() {
 										setPorts(newPorts);
 									}}
 								>
-									<ActionIcon variant="transparent">
+									<ActionIcon>
 										<MDIcon color={"red"}>delete</MDIcon>
 									</ActionIcon>
 								</Tooltip>
@@ -218,7 +217,6 @@ function Page() {
 							</Group>
 							<Tooltip label="添加环境变量" withArrow>
 								<ActionIcon
-									variant="transparent"
 									onClick={() => {
 										setEnvs([
 											...envs,
@@ -284,7 +282,7 @@ function Page() {
 										setEnvs(newEnvs);
 									}}
 								>
-									<ActionIcon variant="transparent">
+									<ActionIcon>
 										<MDIcon color={"red"}>delete</MDIcon>
 									</ActionIcon>
 								</Tooltip>

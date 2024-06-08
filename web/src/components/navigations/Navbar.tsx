@@ -254,7 +254,6 @@ export default function Navbar() {
 			</Group>
 			<Flex w={"50%"} justify={"end"} align={"center"}>
 				<ActionIcon
-					variant="transparent"
 					aria-label="Settings"
 					c={"white"}
 					mx={10}

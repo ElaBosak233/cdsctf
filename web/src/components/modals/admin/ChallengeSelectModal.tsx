@@ -99,7 +99,6 @@ export default function ChallengeSelectModal(props: ChallengeSelectModalProps) {
 											</Text>
 										</Group>
 										<ActionIcon
-											variant="transparent"
 											onClick={() => {
 												setChallenge(challenge);
 												modalProps.onClose();

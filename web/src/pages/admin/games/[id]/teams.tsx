@@ -175,10 +175,7 @@ function Page() {
 							</Text>
 						</Group>
 						<Tooltip label="添加团队" withArrow>
-							<ActionIcon
-								variant="transparent"
-								onClick={() => createOpen()}
-							>
+							<ActionIcon onClick={() => createOpen()}>
 								<MDIcon>add</MDIcon>
 							</ActionIcon>
 						</Tooltip>
@@ -255,7 +252,6 @@ function Page() {
 									<Table.Td>
 										<Tooltip label="移除团队" withArrow>
 											<ActionIcon
-												variant="transparent"
 												onClick={() =>
 													openDeleteGameTeamModal(
 														gameTeam

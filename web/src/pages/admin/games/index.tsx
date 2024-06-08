@@ -159,7 +159,10 @@ export default function Page() {
 								flexGrow: 1,
 							}}
 						/>
-						<ActionIcon onClick={() => setSearch(searchInput)}>
+						<ActionIcon
+							variant={"filled"}
+							onClick={() => setSearch(searchInput)}
+						>
 							<MDIcon size={15} c={"white"}>
 								search
 							</MDIcon>
@@ -236,10 +239,7 @@ export default function Page() {
 									<Table.Th>状态</Table.Th>
 									<Table.Th>
 										<Flex justify={"center"}>
-											<ActionIcon
-												variant="transparent"
-												onClick={createOpen}
-											>
+											<ActionIcon onClick={createOpen}>
 												<MDIcon>add</MDIcon>
 											</ActionIcon>
 										</Flex>
@@ -346,7 +346,6 @@ export default function Page() {
 											<Table.Th>
 												<Group justify="center">
 													<ActionIcon
-														variant="transparent"
 														onClick={() => {
 															navigate(
 																`/admin/games/${game?.id}`
@@ -356,7 +355,6 @@ export default function Page() {
 														<MDIcon>edit</MDIcon>
 													</ActionIcon>
 													<ActionIcon
-														variant="transparent"
 														onClick={() =>
 															openDeleteGameModal(
 																game

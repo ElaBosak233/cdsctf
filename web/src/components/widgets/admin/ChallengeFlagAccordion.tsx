@@ -127,10 +127,7 @@ export default function ChallengeFlagAccordion(
 				</Accordion.Control>
 				<Flex gap={10}>
 					<Tooltip label="删除 Flag" withArrow>
-						<ActionIcon
-							variant="transparent"
-							onClick={() => openDeleteFlagModal()}
-						>
+						<ActionIcon onClick={() => openDeleteFlagModal()}>
 							<MDIcon color="red">delete</MDIcon>
 						</ActionIcon>
 					</Tooltip>

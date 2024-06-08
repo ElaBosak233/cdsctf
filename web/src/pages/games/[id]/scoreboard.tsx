@@ -14,6 +14,8 @@ import {
 	Avatar,
 	Tooltip,
 	ThemeIcon,
+	alpha,
+	lighten,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -33,6 +35,7 @@ interface ScoreSeries {
 	name: string;
 	data: [number, number][];
 	type: string;
+	step: string;
 }
 
 function Page() {
@@ -166,6 +169,7 @@ function Page() {
 						name: teamMaps[Number(team_id)],
 						data: teamScores[Number(team_id)],
 						type: "line",
+						step: "end",
 					};
 				}
 			);
@@ -292,11 +296,7 @@ function Page() {
 
 			<Table stickyHeader horizontalSpacing={"md"}>
 				<Table.Thead>
-					<Table.Tr
-						sx={{
-							lineHeight: "2.5rem",
-						}}
-					>
+					<Table.Tr h={50}>
 						<Table.Th colSpan={4} w={"25%"}>
 							<Flex gap={20} justify={"center"}>
 								<Flex gap={10} align={"center"}>
@@ -331,11 +331,13 @@ function Page() {
 									colSpan={
 										categoriedChallenge?.challenges?.length
 									}
+									bg={alpha(
+										categoriedChallenge?.category?.color ||
+											"#FFF",
+										0.3
+									)}
+									variant={"subtle"}
 									sx={{
-										backgroundColor:
-											categoriedChallenge?.category
-												?.color,
-										color: "white",
 										whiteSpace: "nowrap",
 									}}
 									align={"center"}
@@ -346,13 +348,26 @@ function Page() {
 										align={"center"}
 										justify={"center"}
 									>
-										<MDIcon c={"white"}>
+										<MDIcon
+											color={
+												categoriedChallenge?.category
+													?.color
+											}
+										>
 											{
 												categoriedChallenge?.category
 													?.icon
 											}
 										</MDIcon>
-										<Text fw={700}>
+										<Text
+											fw={700}
+											c={
+												colorScheme === "dark"
+													? "#FFF"
+													: categoriedChallenge
+															?.category?.color
+											}
+										>
 											{categoriedChallenge.category.name}
 										</Text>
 									</Group>
@@ -364,7 +379,7 @@ function Page() {
 						<Table.Th>排名</Table.Th>
 						<Table.Th>队伍</Table.Th>
 						<Table.Th>总分</Table.Th>
-						<Table.Th>正解数量</Table.Th>
+						<Table.Th>攻克</Table.Th>
 						{Object.values(categoriedChallenges)?.map(
 							(categoriedChallenge) =>
 								categoriedChallenge.challenges?.map(
@@ -390,7 +405,7 @@ function Page() {
 						<Table.Tr key={`${i}`}>
 							<Table.Td>{row?.rank}</Table.Td>
 							<Table.Td>
-								<Group>
+								<Group wrap={"nowrap"}>
 									<Avatar
 										color="brand"
 										src={`${import.meta.env.VITE_BASE_API}/media/teams/${row?.team?.id}/${row?.team?.avatar?.name}`}

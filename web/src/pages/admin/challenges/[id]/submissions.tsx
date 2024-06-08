@@ -266,7 +266,6 @@ function Page() {
 												label="删除提交记录"
 											>
 												<ActionIcon
-													variant="transparent"
 													onClick={() =>
 														openDeleteSubmissionModal(
 															submission

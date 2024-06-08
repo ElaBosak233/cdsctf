@@ -109,6 +109,7 @@ export default function Page() {
 									}}
 								/>
 								<ActionIcon
+									variant={"filled"}
 									onClick={() => setSearch(searchInput)}
 								>
 									<MDIcon size={15} c={"white"}>
