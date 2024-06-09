@@ -4,10 +4,8 @@ import {
 	Box,
 	Text,
 	Card,
-	rgba,
 	Divider,
 	Flex,
-	useMantineColorScheme,
 	Tooltip,
 	ThemeIcon,
 	useMantineTheme,
@@ -19,6 +17,7 @@ import SecondBloodIcon from "@/components/icons/hexagons/SecondBloodIcon";
 import ThirdBloodIcon from "@/components/icons/hexagons/ThirdBloodIcon";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
+import styles from "./ChallengeCard.module.css";
 
 export default function ChallengeCard({
 	challenge,
@@ -27,14 +26,9 @@ export default function ChallengeCard({
 	challenge?: Challenge;
 	pts?: number;
 }) {
-	const { colorScheme } = useMantineColorScheme();
 	const theme = useMantineTheme();
 
 	const [color, setColor] = useState<string>(theme.colors.brand[6]);
-
-	const [cardBgColor, setCardBgColor] = useState<string>();
-	const [cardHoverBgColor, setCardHoverBgColor] = useState<string>();
-	const [cardTextColor, setCardTextColor] = useState<string>();
 
 	const bloodMap = [
 		{
@@ -51,36 +45,15 @@ export default function ChallengeCard({
 		},
 	];
 
+	function getClassName(clazzName: string) {
+		return challenge?.solved
+			? styles[`${clazzName}Solved`]
+			: styles[clazzName];
+	}
+
 	useEffect(() => {
 		setColor(challenge?.category?.color || theme.colors.brand[6]);
 	}, []);
-
-	useEffect(() => {
-		switch (colorScheme) {
-			case "dark":
-				if (challenge?.solved) {
-					setCardBgColor(rgba(color, 0.65));
-					setCardHoverBgColor(rgba(color, 0.7));
-					setCardTextColor("#FFF");
-				} else {
-					setCardBgColor(rgba(color, 0.3));
-					setCardHoverBgColor(rgba(color, 0.35));
-					setCardTextColor("#FFF");
-				}
-				break;
-			case "light":
-				if (challenge?.solved) {
-					setCardBgColor(rgba(color, 1));
-					setCardHoverBgColor(rgba(color, 0.95));
-					setCardTextColor("#FFF");
-				} else {
-					setCardBgColor(rgba(color, 0.15));
-					setCardHoverBgColor(rgba(color, 0.2));
-					setCardTextColor(rgba(color, 1));
-				}
-				break;
-		}
-	}, [challenge?.solved, colorScheme, color]);
 
 	return (
 		<Card
@@ -88,39 +61,18 @@ export default function ChallengeCard({
 			h={150}
 			w={275}
 			pos={"relative"}
-			sx={{
-				backgroundColor: cardBgColor,
-				"&:hover": {
-					backgroundColor: cardHoverBgColor,
-				},
-				transitionTimingFunction: "ease-out",
-				transitionProperty: "background",
-				transitionDuration: "0.3s",
+			className={getClassName("card")}
+			__vars={{
+				"--color": color,
 			}}
-			className="no-select"
 		>
-			<Box
-				pos={"absolute"}
-				right={0}
-				bottom={-20}
-				sx={{
-					opacity: 0.2,
-					color: cardTextColor,
-				}}
-			>
-				<MDIcon color={cardTextColor} size={180}>
+			<Box pos={"absolute"} right={0} bottom={-20}>
+				<MDIcon size={180} className={getClassName("bIcon")}>
 					{challenge?.category?.icon}
 				</MDIcon>
 			</Box>
 			{challenge?.solved && (
-				<Box
-					pos={"absolute"}
-					right={20}
-					top={20}
-					sx={{
-						color: "#FFF",
-					}}
-				>
+				<Box pos={"absolute"} right={20} top={20}>
 					<Tooltip label="已解决">
 						<MDIcon size={30} color={"#FFF"}>
 							done
@@ -129,14 +81,14 @@ export default function ChallengeCard({
 				</Box>
 			)}
 			<Box>
-				<Badge variant="light" color={cardTextColor}>
+				<Badge variant="light" className={getClassName("badge")}>
 					{challenge?.category?.name}
 				</Badge>
 			</Box>
 			<Box py={10}>
 				<Text
 					size="lg"
-					c={cardTextColor}
+					className={getClassName("text")}
 					fw={700}
 					sx={{
 						width: 200,
@@ -148,12 +100,7 @@ export default function ChallengeCard({
 					{challenge?.title}
 				</Text>
 			</Box>
-			<Divider
-				py={5}
-				sx={{
-					borderColor: cardTextColor,
-				}}
-			/>
+			<Divider py={5} className={getClassName("divider")} />
 			<Flex justify={"space-between"} align={"center"} px={5}>
 				<Tooltip
 					label={
@@ -164,7 +111,13 @@ export default function ChallengeCard({
 					withArrow
 					position="bottom"
 				>
-					<Text size="lg" c={cardTextColor} fw={700}>
+					<Text
+						size="lg"
+						fw={700}
+						className={
+							challenge?.solved ? styles.textSolved : styles.text
+						}
+					>
 						{pts || challenge?.practice_pts || "?"} pts
 					</Text>
 				</Tooltip>
@@ -191,9 +144,7 @@ export default function ChallengeCard({
 								withArrow
 								position="bottom"
 							>
-								<ThemeIcon variant="transparent">
-									{bloodMap[index]?.icon}
-								</ThemeIcon>
+								<ThemeIcon>{bloodMap[index]?.icon}</ThemeIcon>
 							</Tooltip>
 						))}
 				</Flex>

@@ -37,7 +37,7 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
 					(Number(game?.ended_at) - Number(game?.started_at))) *
 					100
 			);
-		}, [seconds]);
+		}, [game, seconds]);
 
 		useEffect(() => {
 			interval.start();
