@@ -29,7 +29,8 @@ type Challenge struct {
 	Envs          []*Env        `json:"envs,omitempty"`
 	Solved        *Submission   `json:"solved,omitempty"`
 	SolvedTimes   int           `gorm:"-" json:"solved_times"`
-	Submissions   []*Submission `json:"submissions,omitempty"`
+	Submissions   []*Submission `json:"-"`
+	Bloods        []*Submission `gorm:"-" json:"bloods,omitempty"`
 	CreatedAt     int64         `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"` // The challenge's creation time.
 	UpdatedAt     int64         `gorm:"autoUpdateTime:milli" json:"updated_at,omitempty"` // The challenge's last update time.
 }

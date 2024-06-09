@@ -56,7 +56,6 @@ type ChallengeFindRequest struct {
 	GameID        *uint  `json:"game_id" form:"game_id"`
 	TeamID        *uint  `json:"team_id" form:"team_id"`
 	IsDetailed    *bool  `json:"is_detailed" form:"is_detailed"`
-	SubmissionQty int    `json:"submission_qty" form:"submission_qty"`
 	Page          int    `json:"page" form:"page"`
 	Size          int    `json:"size" form:"size"`
 	SortKey       string `json:"sort_key" form:"sort_key"`

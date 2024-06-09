@@ -55,6 +55,12 @@ func (t *GameChallengeRepository) Find(req request.GameChallengeFindRequest) ([]
 						Where("game_id = ?", req.GameID).
 						Omit("flag")
 				}).
+				Preload("Solved", func(db *gorm.DB) *gorm.DB {
+					return db.
+						Where("status = ?", 2).
+						Where("team_id = ?", req.TeamID).
+						Omit("flag")
+				}).
 				Omit("flags", "images", "is_practicable", "practice_pts", "created_at", "updated_at")
 		}).
 		Preload("Game").

@@ -211,11 +211,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "name": "submission_qty",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
                         "name": "team_id",
                         "in": "query"
                     },
@@ -1885,6 +1880,12 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "bloods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Submission"
+                    }
+                },
                 "category": {
                     "description": "The challenge's category.",
                     "allOf": [
@@ -1962,11 +1963,8 @@ const docTemplate = `{
                 "solved": {
                     "$ref": "#/definitions/model.Submission"
                 },
-                "submissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Submission"
-                    }
+                "solved_times": {
+                    "type": "integer"
                 },
                 "title": {
                     "description": "The challenge's title.",

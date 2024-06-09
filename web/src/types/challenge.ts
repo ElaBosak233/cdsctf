@@ -28,7 +28,7 @@ export interface Challenge {
 	hints?: Array<Hint>;
 	solved?: Submission | boolean;
 	solved_times?: number;
-	submissions?: Array<Submission>;
+	bloods?: Array<Submission>;
 	is_enabled?: boolean;
 	min_pts?: number;
 	max_pts?: number;
@@ -45,7 +45,6 @@ export interface ChallengeFindRequest {
 	difficulty?: number;
 	page?: number;
 	size?: number;
-	submission_qty?: number;
 	sort_key?: string;
 	sort_order?: string;
 }

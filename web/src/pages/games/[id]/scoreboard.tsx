@@ -93,7 +93,6 @@ function Page() {
 			.getGameChallenges({
 				game_id: Number(id),
 				is_enabled: true,
-				submission_qty: 0,
 			})
 			.then((res) => {
 				const r = res.data;
