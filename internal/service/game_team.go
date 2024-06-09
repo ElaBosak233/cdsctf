@@ -12,9 +12,16 @@ import (
 )
 
 type IGameTeamService interface {
+	// Find will find the game team with the given request.
 	Find(req request.GameTeamFindRequest) ([]model.GameTeam, int64, error)
+
+	// Create will create a new game team with the given request.
 	Create(req request.GameTeamCreateRequest) error
+
+	// Update will update the game team with the given request.
 	Update(req request.GameTeamUpdateRequest) error
+
+	// Delete will delete the game team with the given request.
 	Delete(req request.GameTeamDeleteRequest) error
 }
 

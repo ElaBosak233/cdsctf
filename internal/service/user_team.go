@@ -28,13 +28,16 @@ func NewUserTeamService(r *repository.Repository) IUserTeamService {
 }
 
 func (t *UserTeamService) Join(req request.TeamUserJoinRequest) error {
-	user, err := t.userRepository.FindById(req.UserID)
-	team, err := t.teamRepository.FindById(req.TeamID)
-	if err != nil || user.ID == 0 || team.ID == 0 {
-		return errors.New("user_or_team_not_found")
+	user, err := t.userRepository.FindByID(req.UserID)
+	if err != nil || user.ID == 0 {
+		return errors.New("user.not_found")
+	}
+	team, err := t.teamRepository.FindByID(req.TeamID)
+	if err != nil || team.ID == 0 {
+		return errors.New("team.not_found")
 	}
 	if team.InviteToken != req.InviteToken {
-		return errors.New("invalid_invite_token")
+		return errors.New("team.join.invalid_token")
 	}
 	err = t.userTeamRepository.Create(model.UserTeam{
 		TeamID: team.ID,
@@ -44,10 +47,13 @@ func (t *UserTeamService) Join(req request.TeamUserJoinRequest) error {
 }
 
 func (t *UserTeamService) Create(req request.TeamUserCreateRequest) error {
-	user, err := t.userRepository.FindById(req.UserID)
-	team, err := t.teamRepository.FindById(req.TeamID)
-	if err != nil || user.ID == 0 || team.ID == 0 {
-		return errors.New("user_or_team_not_found")
+	user, err := t.userRepository.FindByID(req.UserID)
+	if err != nil || user.ID == 0 {
+		return errors.New("user.not_found")
+	}
+	team, err := t.teamRepository.FindByID(req.TeamID)
+	if err != nil || team.ID == 0 {
+		return errors.New("team.not_found")
 	}
 	err = t.userTeamRepository.Create(model.UserTeam{
 		TeamID: team.ID,
@@ -57,10 +63,13 @@ func (t *UserTeamService) Create(req request.TeamUserCreateRequest) error {
 }
 
 func (t *UserTeamService) Delete(req request.TeamUserDeleteRequest) error {
-	user, err := t.userRepository.FindById(req.UserID)
-	team, err := t.teamRepository.FindById(req.TeamID)
-	if err != nil || user.ID == 0 || team.ID == 0 {
-		return errors.New("user_or_team_not_found")
+	user, err := t.userRepository.FindByID(req.UserID)
+	if err != nil || user.ID == 0 {
+		return errors.New("user.not_found")
+	}
+	team, err := t.teamRepository.FindByID(req.TeamID)
+	if err != nil || team.ID == 0 {
+		return errors.New("team.not_found")
 	}
 	err = t.userTeamRepository.Delete(model.UserTeam{
 		TeamID: team.ID,

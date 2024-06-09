@@ -43,7 +43,7 @@ func NewTeamService(r *repository.Repository) ITeamService {
 }
 
 func (t *TeamService) Create(req request.TeamCreateRequest) error {
-	user, err := t.userRepository.FindById(req.CaptainId)
+	user, err := t.userRepository.FindByID(req.CaptainId)
 	if err != nil || user.ID == 0 {
 		return errors.New("user.not_found")
 	}
@@ -61,7 +61,7 @@ func (t *TeamService) Create(req request.TeamCreateRequest) error {
 }
 
 func (t *TeamService) Update(req request.TeamUpdateRequest) error {
-	team, err := t.teamRepository.FindById(req.ID)
+	team, err := t.teamRepository.FindByID(req.ID)
 	if err != nil || team.ID == 0 {
 		return errors.New("team.not_found")
 	}
@@ -77,7 +77,7 @@ func (t *TeamService) Update(req request.TeamUpdateRequest) error {
 }
 
 func (t *TeamService) Delete(id uint) error {
-	team, err := t.teamRepository.FindById(id)
+	team, err := t.teamRepository.FindByID(id)
 	if err != nil || team.ID == 0 {
 		return errors.New("team.not_found")
 	}
@@ -95,7 +95,7 @@ func (t *TeamService) Find(req request.TeamFindRequest) ([]model.Team, int64, er
 }
 
 func (t *TeamService) GetInviteToken(req request.TeamGetInviteTokenRequest) (token string, err error) {
-	team, err := t.teamRepository.FindById(req.ID)
+	team, err := t.teamRepository.FindByID(req.ID)
 	if err != nil || team.ID == 0 {
 		return "", errors.New("team.not_found")
 	}
@@ -103,7 +103,7 @@ func (t *TeamService) GetInviteToken(req request.TeamGetInviteTokenRequest) (tok
 }
 
 func (t *TeamService) UpdateInviteToken(req request.TeamUpdateInviteTokenRequest) (token string, err error) {
-	team, err := t.teamRepository.FindById(req.ID)
+	team, err := t.teamRepository.FindByID(req.ID)
 	if err != nil || team.ID == 0 {
 		return "", errors.New("team.not_found")
 	}

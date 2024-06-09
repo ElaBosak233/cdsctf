@@ -145,7 +145,7 @@ func (t *UserService) Login(req request.UserLoginRequest) (model.User, string, e
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return user, "", errors.New("user.login.password_incorrect")
+		return user, "", errors.New("user.login.invalid_password")
 	}
 	token, err := t.GetJwtTokenByID(user)
 	return user, token, err

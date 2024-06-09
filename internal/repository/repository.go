@@ -25,7 +25,6 @@ type Repository struct {
 	PortRepository          IPortRepository
 	NatRepository           INatRepository
 	EnvRepository           IEnvRepository
-	FlagGenRepository       IFlagGenRepository
 	GameTeamRepository      IGameTeamRepository
 	NoticeRepository        INoticeRepository
 }
@@ -55,7 +54,6 @@ func InitRepository() {
 			PortRepository:          NewPortRepository(d),
 			NatRepository:           NewNatRepository(d),
 			EnvRepository:           NewEnvRepository(d),
-			FlagGenRepository:       NewFlagGenRepository(d),
 			GameTeamRepository:      NewGameTeamRepository(d),
 			NoticeRepository:        NewNoticeRepository(d),
 		}

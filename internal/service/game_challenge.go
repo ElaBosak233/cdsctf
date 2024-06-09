@@ -9,9 +9,16 @@ import (
 )
 
 type IGameChallengeService interface {
+	// Find will find the challenges in game with the given request.
 	Find(req request.GameChallengeFindRequest) ([]model.GameChallenge, error)
+
+	// Create will create a new game challenge with the given request.
 	Create(req request.GameChallengeCreateRequest) error
+
+	// Update will update the game challenge with the given request.
 	Update(req request.GameChallengeUpdateRequest) error
+
+	// Delete will delete the game challenge with the given request.
 	Delete(req request.GameChallengeDeleteRequest) error
 }
 

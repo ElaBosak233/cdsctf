@@ -11,10 +11,17 @@ import (
 )
 
 type IGameService interface {
-	Find(req request.GameFindRequest) (games []model.Game, total int64, err error)
-	Create(req request.GameCreateRequest) (err error)
-	Update(req request.GameUpdateRequest) (err error)
-	Delete(req request.GameDeleteRequest) (err error)
+	// Find will find games with the given request, and return the games and total count.
+	Find(req request.GameFindRequest) ([]model.Game, int64, error)
+
+	// Create will create a new game with the given request.
+	Create(req request.GameCreateRequest) error
+
+	// Update will update the game with the given request.
+	Update(req request.GameUpdateRequest) error
+
+	// Delete will delete the game with the given request.
+	Delete(req request.GameDeleteRequest) error
 }
 
 type GameService struct {
@@ -39,7 +46,7 @@ func NewGameService(r *repository.Repository) IGameService {
 	}
 }
 
-func (g *GameService) Create(req request.GameCreateRequest) (err error) {
+func (g *GameService) Create(req request.GameCreateRequest) error {
 	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	game := model.Game{
 		PublicKey:  base64.StdEncoding.EncodeToString(publicKey),
@@ -50,20 +57,20 @@ func (g *GameService) Create(req request.GameCreateRequest) (err error) {
 	return err
 }
 
-func (g *GameService) Update(req request.GameUpdateRequest) (err error) {
+func (g *GameService) Update(req request.GameUpdateRequest) error {
 	game := model.Game{}
-	err = mapstructure.Decode(req, &game)
+	err := mapstructure.Decode(req, &game)
 	err = g.gameRepository.Update(game)
 	return err
 }
 
-func (g *GameService) Delete(req request.GameDeleteRequest) (err error) {
+func (g *GameService) Delete(req request.GameDeleteRequest) error {
 	return g.gameRepository.Delete(model.Game{
 		ID: req.ID,
 	})
 }
 
-func (g *GameService) Find(req request.GameFindRequest) (games []model.Game, total int64, err error) {
-	games, total, err = g.gameRepository.Find(req)
+func (g *GameService) Find(req request.GameFindRequest) ([]model.Game, int64, error) {
+	games, total, err := g.gameRepository.Find(req)
 	return games, total, err
 }

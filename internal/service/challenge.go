@@ -8,9 +8,16 @@ import (
 )
 
 type IChallengeService interface {
+	// Find will find the challenge with the given request, and return the challenges and the total number of challenges.
 	Find(req request.ChallengeFindRequest) ([]model.Challenge, int64, error)
+
+	// Create will create a new challenge with the given request.
 	Create(req request.ChallengeCreateRequest) error
+
+	// Update will update the challenge with the given request.
 	Update(req request.ChallengeUpdateRequest) error
+
+	// Delete will delete the challenge with the given request.
 	Delete(id uint) error
 }
 

@@ -12,11 +12,14 @@ type Pod struct {
 	Team        *Team      `gorm:"foreignkey:TeamID;association_foreignkey:ID" json:"team,omitempty"`
 	ChallengeID *uint      `gorm:"index;null;default:null" json:"challenge_id"`
 	Challenge   *Challenge `gorm:"foreignkey:ChallengeID;association_foreignkey:ID" json:"challenge,omitempty"`
+	Flag        string     `json:"flag,omitempty"` // The generated flag, which will be injected into the container.
 	RemovedAt   int64      `json:"removed_at"`
+	CreatedAt   int64      `gorm:"autoUpdateTime:milli" json:"created_at,omitempty"`
 	Nats        []*Nat     `json:"nats,omitempty"`
 }
 
 func (p *Pod) Simplify() {
+	p.Flag = ""
 	if p.Challenge != nil {
 		p.Challenge.Simplify()
 	}
@@ -24,6 +27,5 @@ func (p *Pod) Simplify() {
 
 func (p *Pod) BeforeDelete(db *gorm.DB) (err error) {
 	db.Table("nats").Where("pod_id = ?", p.ID).Delete(&Nat{})
-	db.Table("flag_gens").Where("pod_id = ?", p.ID).Delete(&FlagGen{})
 	return nil
 }

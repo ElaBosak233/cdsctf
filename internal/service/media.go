@@ -10,13 +10,28 @@ import (
 )
 
 type IMediaService interface {
+	// SaveGamePoster will save the game poster to the media folder with the game id as the folder name.
 	SaveGamePoster(id uint, fileHeader *multipart.FileHeader) error
+
+	// DeleteGamePoster will delete the game poster from the media folder with the game id as the folder name.
 	DeleteGamePoster(id uint) error
+
+	// SaveUserAvatar will save the user avatar to the media folder with the user id as the folder name.
 	SaveUserAvatar(id uint, fileHeader *multipart.FileHeader) error
+
+	// DeleteUserAvatar will delete the user avatar from the media folder with the user id as the folder name.
 	DeleteUserAvatar(id uint) error
+
+	// SaveTeamAvatar will save the team avatar to the media folder with the team id as the folder name.
 	SaveTeamAvatar(id uint, fileHeader *multipart.FileHeader) error
+
+	// DeleteTeamAvatar will delete the team avatar from the media folder with the team id as the folder name.
 	DeleteTeamAvatar(id uint) error
+
+	// SaveChallengeAttachment will save the challenge attachment to the media folder with the challenge id as the folder name.
 	SaveChallengeAttachment(id uint, fileHeader *multipart.FileHeader) error
+
+	// DeleteChallengeAttachment will delete the challenge attachment from the media folder with the challenge id as the folder name.
 	DeleteChallengeAttachment(id uint) error
 }
 

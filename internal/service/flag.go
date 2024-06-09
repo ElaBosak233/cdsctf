@@ -8,8 +8,13 @@ import (
 )
 
 type IFlagService interface {
+	// Create will create a new flag with the given request.
 	Create(req request.FlagCreateRequest) error
+
+	// Update will update the flag with the given request.
 	Update(req request.FlagUpdateRequest) error
+
+	// Delete will delete the flag with the given request.
 	Delete(req request.FlagDeleteRequest) error
 }
 
