@@ -43,7 +43,8 @@ func (g *GameChallengeService) Find(req request.GameChallengeFindRequest) ([]mod
 	game := games[0]
 	gameChallenges, err := g.gameChallengeRepository.Find(req)
 	for i, gameChallenge := range gameChallenges {
-		pts := calculate.GameChallengePts(
+		// Calculate the challenge pts.
+		gameChallenge.Pts = calculate.GameChallengePts(
 			gameChallenge.MaxPts,
 			gameChallenge.MinPts,
 			gameChallenge.Challenge.Difficulty,
@@ -53,28 +54,13 @@ func (g *GameChallengeService) Find(req request.GameChallengeFindRequest) ([]mod
 			game.SecondBloodRewardRatio,
 			game.ThirdBloodRewardRatio,
 		)
-		gameChallenge.Pts = pts
-		for index, submission := range gameChallenge.Challenge.Submissions {
-			submission.Pts = calculate.GameChallengePts(
-				gameChallenge.MaxPts,
-				gameChallenge.MinPts,
-				gameChallenge.Challenge.Difficulty,
-				int64(len(gameChallenge.Challenge.Submissions)),
-				int64(int(submission.Rank-1)),
-				game.FirstBloodRewardRatio,
-				game.SecondBloodRewardRatio,
-				game.ThirdBloodRewardRatio,
-			)
-			if req.TeamID != 0 && submission.TeamID != nil && *(submission.TeamID) == req.TeamID {
-				sub := submission
-				gameChallenge.Challenge.Solved = sub
-				break
-			}
-			gameChallenge.Challenge.Submissions[index] = submission
+
+		// Calculate the solved times and bloods.
+		gameChallenge.Challenge.SolvedTimes = len(gameChallenge.Challenge.Submissions)
+		if gameChallenge.Challenge.Submissions != nil {
+			gameChallenge.Challenge.Bloods = gameChallenge.Challenge.Submissions[:min(3, len(gameChallenge.Challenge.Submissions))]
 		}
-		if req.SubmissionQty > 0 {
-			gameChallenge.Challenge.Submissions = gameChallenge.Challenge.Submissions[:min(req.SubmissionQty, len(gameChallenge.Challenge.Submissions))]
-		}
+
 		gameChallenges[i] = gameChallenge
 	}
 	return gameChallenges, err

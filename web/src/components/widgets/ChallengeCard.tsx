@@ -169,7 +169,7 @@ export default function ChallengeCard({
 					</Text>
 				</Tooltip>
 				<Flex align={"center"}>
-					{challenge?.submissions
+					{challenge?.bloods
 						?.slice(0, 3)
 						?.map((submission, index) => (
 							<Tooltip

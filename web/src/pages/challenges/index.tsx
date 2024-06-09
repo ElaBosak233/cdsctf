@@ -55,7 +55,6 @@ export default function Page() {
 				is_detailed: false,
 				page: page,
 				size: rowsPerPage,
-				submission_qty: 3,
 				title: search,
 				category_id:
 					selectedCategory === 0 ? undefined : selectedCategory,

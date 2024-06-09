@@ -69,10 +69,13 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) ([]model.Chall
 		if !*(req.IsDetailed) {
 			challenge.Simplify()
 		}
+
+		// Calculate the solved times and bloods.
 		challenge.SolvedTimes = len(challenge.Submissions)
-		if req.SubmissionQty != 0 && challenge.Submissions != nil {
-			challenge.Submissions = challenge.Submissions[:min(req.SubmissionQty, len(challenge.Submissions))]
+		if challenge.Submissions != nil {
+			challenge.Bloods = challenge.Submissions[:min(3, len(challenge.Submissions))]
 		}
+
 		challenges[index] = challenge
 	}
 

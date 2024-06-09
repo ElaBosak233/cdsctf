@@ -32,6 +32,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/model.File'
         description: The challenge's attachment.
+      bloods:
+        items:
+          $ref: '#/definitions/model.Submission'
+        type: array
       category:
         allOf:
         - $ref: '#/definitions/model.Category'
@@ -88,10 +92,8 @@ definitions:
         type: integer
       solved:
         $ref: '#/definitions/model.Submission'
-      submissions:
-        items:
-          $ref: '#/definitions/model.Submission'
-        type: array
+      solved_times:
+        type: integer
       title:
         description: The challenge's title.
         type: string
@@ -918,9 +920,6 @@ paths:
       - in: query
         name: sort_order
         type: string
-      - in: query
-        name: submission_qty
-        type: integer
       - in: query
         name: team_id
         type: integer

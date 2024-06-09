@@ -263,10 +263,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 								<Text fw={700}>{challenge?.title}</Text>
 							</Group>
 							<Group gap={0}>
-								{(challenge?.submissions?.length as number) >
-									0 && (
+								{(challenge?.bloods?.length as number) > 0 && (
 									<Tooltip
-										label={`一血 ${challenge?.submissions?.[0]?.team?.name || challenge?.submissions?.[0]?.user?.nickname}`}
+										label={`一血 ${challenge?.bloods?.[0]?.team?.name || challenge?.bloods?.[0]?.user?.nickname}`}
 										position={"top"}
 									>
 										<ThemeIcon variant="transparent">
@@ -274,10 +273,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 										</ThemeIcon>
 									</Tooltip>
 								)}
-								{(challenge?.submissions?.length as number) >
-									1 && (
+								{(challenge?.bloods?.length as number) > 1 && (
 									<Tooltip
-										label={`二血 ${challenge?.submissions?.[1]?.team?.name || challenge?.submissions?.[1]?.user?.nickname}`}
+										label={`二血 ${challenge?.bloods?.[1]?.team?.name || challenge?.bloods?.[1]?.user?.nickname}`}
 										position={"top"}
 									>
 										<Box
@@ -292,10 +290,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 										</Box>
 									</Tooltip>
 								)}
-								{(challenge?.submissions?.length as number) >
-									2 && (
+								{(challenge?.bloods?.length as number) > 2 && (
 									<Tooltip
-										label={`三血 ${challenge?.submissions?.[2]?.team?.name || challenge?.submissions?.[2]?.user?.nickname}`}
+										label={`三血 ${challenge?.bloods?.[2]?.team?.name || challenge?.bloods?.[2]?.user?.nickname}`}
 										position={"top"}
 									>
 										<Box

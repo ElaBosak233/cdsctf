@@ -202,11 +202,6 @@
                     },
                     {
                         "type": "integer",
-                        "name": "submission_qty",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
                         "name": "team_id",
                         "in": "query"
                     },
@@ -1876,6 +1871,12 @@
                         }
                     ]
                 },
+                "bloods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Submission"
+                    }
+                },
                 "category": {
                     "description": "The challenge's category.",
                     "allOf": [
@@ -1953,11 +1954,8 @@
                 "solved": {
                     "$ref": "#/definitions/model.Submission"
                 },
-                "submissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Submission"
-                    }
+                "solved_times": {
+                    "type": "integer"
                 },
                 "title": {
                     "description": "The challenge's title.",
