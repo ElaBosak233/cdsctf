@@ -59,6 +59,9 @@ export function useTheme() {
 					transitionProps: {
 						exitDuration: 250,
 					},
+					overlayProps: {
+						backgroundOpacity: 0,
+					},
 				},
 			},
 			ActionIcon: {
