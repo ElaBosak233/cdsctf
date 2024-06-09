@@ -89,7 +89,7 @@ export default function Page() {
 		<>
 			<Stack m={56}>
 				<Flex align={"start"}>
-					<Flex w={360} mx={36}>
+					<Flex w={360} mx={36} visibleFrom={"md"}>
 						<Box
 							sx={{
 								flexGrow: 1,

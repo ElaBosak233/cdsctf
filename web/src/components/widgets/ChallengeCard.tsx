@@ -11,12 +11,14 @@ import {
 	Tooltip,
 	ThemeIcon,
 	useMantineTheme,
+	Stack,
 } from "@mantine/core";
 import MDIcon from "@/components/ui/MDIcon";
 import FirstBloodIcon from "@/components/icons/hexagons/FirstBloodIcon";
 import SecondBloodIcon from "@/components/icons/hexagons/SecondBloodIcon";
 import ThirdBloodIcon from "@/components/icons/hexagons/ThirdBloodIcon";
 import { useEffect, useState } from "react";
+import dayjs from "dayjs";
 
 export default function ChallengeCard({
 	challenge,
@@ -33,6 +35,21 @@ export default function ChallengeCard({
 	const [cardBgColor, setCardBgColor] = useState<string>();
 	const [cardHoverBgColor, setCardHoverBgColor] = useState<string>();
 	const [cardTextColor, setCardTextColor] = useState<string>();
+
+	const bloodMap = [
+		{
+			name: "一血",
+			icon: <FirstBloodIcon size={24} />,
+		},
+		{
+			name: "二血",
+			icon: <SecondBloodIcon size={24} />,
+		},
+		{
+			name: "三血",
+			icon: <ThirdBloodIcon size={24} />,
+		},
+	];
 
 	useEffect(() => {
 		setColor(challenge?.category?.color || theme.colors.brand[6]);
@@ -142,43 +159,30 @@ export default function ChallengeCard({
 					{pts || challenge?.practice_pts || "?"} pts
 				</Text>
 				<Flex align={"center"}>
-					{challenge?.submissions && (
-						<>
-							{challenge?.submissions?.length > 0 && (
-								<Tooltip
-									label={`一血 ${challenge?.submissions?.[0]?.team?.name || challenge?.submissions?.[0]?.user?.nickname}`}
-									withArrow
-									position="bottom"
-								>
-									<ThemeIcon variant="transparent">
-										<FirstBloodIcon size={24} />
-									</ThemeIcon>
-								</Tooltip>
-							)}
-							{challenge?.submissions?.length > 1 && (
-								<Tooltip
-									label={`二血 ${challenge?.submissions?.[1]?.team?.name || challenge?.submissions?.[1]?.user?.nickname}`}
-									withArrow
-									position="bottom"
-								>
-									<ThemeIcon variant="transparent">
-										<SecondBloodIcon size={24} />
-									</ThemeIcon>
-								</Tooltip>
-							)}
-							{challenge?.submissions?.length > 2 && (
-								<Tooltip
-									label={`三血 ${challenge?.submissions?.[2]?.team?.name || challenge?.submissions?.[2]?.user?.nickname}`}
-									withArrow
-									position="bottom"
-								>
-									<ThemeIcon variant="transparent">
-										<ThirdBloodIcon size={24} />
-									</ThemeIcon>
-								</Tooltip>
-							)}
-						</>
-					)}
+					{challenge?.submissions?.map((submission, index) => (
+						<Tooltip
+							multiline
+							label={
+								<Stack gap={0}>
+									<Text size={"sm"} fw={600}>
+										{submission?.team?.name ||
+											submission?.user?.nickname}
+									</Text>
+									<Text size={"xs"}>
+										{dayjs(submission?.created_at).format(
+											"YYYY/MM/DD HH:mm:ss"
+										)}
+									</Text>
+								</Stack>
+							}
+							withArrow
+							position="bottom"
+						>
+							<ThemeIcon variant="transparent">
+								{bloodMap[index]?.icon}
+							</ThemeIcon>
+						</Tooltip>
+					))}
 				</Flex>
 			</Flex>
 		</Card>

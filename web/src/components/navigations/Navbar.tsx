@@ -133,6 +133,7 @@ export default function Navbar(props: NavbarProps) {
 							sx={{
 								color: "white",
 							}}
+							visibleFrom={"xs"}
 						>
 							{configStore?.pltCfg?.site?.title}
 						</Title>

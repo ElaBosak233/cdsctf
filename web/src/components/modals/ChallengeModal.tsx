@@ -255,25 +255,14 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 					}}
 				>
 					<Box>
-						<Box
-							sx={{
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "space-between",
-							}}
-						>
+						<Group justify={"space-between"}>
 							<Group gap={6}>
 								<MDIcon color={challenge?.category?.color}>
 									{challenge?.category?.icon}
 								</MDIcon>
 								<Text fw={700}>{challenge?.title}</Text>
 							</Group>
-							<Box
-								sx={{
-									display: "flex",
-									alignItems: "center",
-								}}
-							>
+							<Group gap={0}>
 								{(challenge?.submissions?.length as number) >
 									0 && (
 									<Tooltip
@@ -321,8 +310,8 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 										</Box>
 									</Tooltip>
 								)}
-							</Box>
-						</Box>
+							</Group>
+						</Group>
 						<Divider my={10} />
 						<Flex justify={"space-between"}>
 							<MarkdownRender
@@ -330,9 +319,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 							/>
 							{challenge?.attachment?.name && (
 								<Tooltip
-									label="下载附件"
+									label={`下载附件 ${challenge?.attachment?.name}`}
 									withArrow
-									position={"bottom"}
+									position={"top"}
 								>
 									<ActionIcon
 										onClick={() => {
