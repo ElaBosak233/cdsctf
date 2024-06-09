@@ -1,4 +1,4 @@
-import { ActionIcon, createTheme } from "@mantine/core";
+import { ActionIcon, Avatar, ThemeIcon, createTheme } from "@mantine/core";
 
 export function useTheme() {
 	const theme = createTheme({
@@ -67,6 +67,18 @@ export function useTheme() {
 			ActionIcon: {
 				defaultProps: {
 					variant: "transparent",
+				},
+			},
+			ThemeIcon: {
+				defaultProps: {
+					variant: "transparent",
+				},
+			},
+			Avatar: {
+				defaultProps: {
+					imageProps: {
+						draggable: false,
+					},
 				},
 			},
 		},

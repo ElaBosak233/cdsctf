@@ -1,0 +1,74 @@
+.card {
+	background-color: light-dark(
+		alpha(var(--color), 0.15),
+		alpha(var(--color), 0.3)
+	);
+	transition: 0.3s ease-out;
+	position: relative;
+	height: 150px;
+	width: 275px;
+
+	&:hover {
+		background-color: light-dark(
+			alpha(var(--color), 0.15),
+			alpha(var(--color), 0.35)
+		);
+	}
+}
+
+.cardSolved {
+	background-color: light-dark(
+		alpha(var(--color), 1),
+		alpha(var(--color), 0.75)
+	);
+	transition: 0.3s ease-out;
+	position: relative;
+	height: 150px;
+	width: 275px;
+
+	&:hover {
+		background-color: light-dark(
+			alpha(var(--color), 0.95),
+			alpha(var(--color), 0.7)
+		);
+	}
+}
+
+.bIcon {
+	opacity: 0.2;
+	color: light-dark(var(--color), var(--mantine-color-white));
+}
+
+.bIconSolved {
+	opacity: 0.2;
+	color: var(--mantine-color-white);
+}
+
+.text {
+	color: light-dark(var(--color), var(--mantine-color-white));
+}
+
+.textSolved {
+	color: var(--mantine-color-white);
+}
+
+.divider {
+	border-color: light-dark(var(--color), var(--mantine-color-white));
+}
+
+.dividerSolved {
+	border-color: var(--mantine-color-white);
+}
+
+.badge {
+	color: light-dark(var(--color), var(--mantine-color-white));
+	background-color: light-dark(
+		alpha(var(--color), 0.15),
+		alpha(var(--mantine-color-white), 0.1)
+	);
+}
+
+.badgeSolved {
+	color: var(--mantine-color-white);
+	background-color: alpha(var(--mantine-color-white), 0.1);
+}
