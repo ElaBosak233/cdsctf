@@ -63,10 +63,8 @@ export default function Page() {
 			})
 			.then((res) => {
 				const r = res.data;
-				if (r.code === 200) {
-					setChallenges(r.data as Array<Challenge>);
-					setTotal(r.total as number);
-				}
+				setChallenges(r?.data);
+				setTotal(r?.total);
 			})
 			.catch((err) => {
 				if (err?.response?.status === 400) {

@@ -57,9 +57,7 @@ function App() {
 	useEffect(() => {
 		categoryApi.getCategories().then((res) => {
 			const r = res.data;
-			if (r.code === 200) {
-				categoryStore.setCategories(r.data);
-			}
+			categoryStore.setCategories(r.data);
 		});
 	}, [categoryStore.refresh]);
 
