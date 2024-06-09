@@ -3,10 +3,6 @@
 		alpha(var(--color), 0.15),
 		alpha(var(--color), 0.3)
 	);
-	transition: 0.3s ease-out;
-	position: relative;
-	height: 150px;
-	width: 275px;
 
 	&:hover {
 		background-color: light-dark(
@@ -21,10 +17,6 @@
 		alpha(var(--color), 1),
 		alpha(var(--color), 0.75)
 	);
-	transition: 0.3s ease-out;
-	position: relative;
-	height: 150px;
-	width: 275px;
 
 	&:hover {
 		background-color: light-dark(

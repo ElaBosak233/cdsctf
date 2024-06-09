@@ -36,6 +36,7 @@ export default function Page() {
 
 	const [game, setGame] = useState<Game>();
 	const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
+	const [gameTeam, setGameTeam] = useState<GameTeam>();
 	const [canEnter, setCanEnter] = useState(false);
 
 	const startedAt = dayjs(Number(game?.started_at) * 1000).format(
@@ -95,12 +96,13 @@ export default function Page() {
 	useEffect(() => {
 		if (gameTeams) {
 			for (const gameTeam of gameTeams) {
-				if (gameTeam?.is_allowed) {
-					for (const user of gameTeam?.team?.users || []) {
-						if (user?.id === authStore?.user?.id) {
+				for (const user of gameTeam?.team?.users || []) {
+					if (user?.id === authStore?.user?.id) {
+						setGameTeam(gameTeam);
+						if (gameTeam?.is_allowed) {
 							setCanEnter(true);
-							return;
 						}
+						return;
 					}
 				}
 			}
@@ -150,16 +152,20 @@ export default function Page() {
 									>
 										查看榜单
 									</Button>
-									{!canEnter && (
-										<Button onClick={() => applyOpen()}>
-											报名参赛
-										</Button>
-									)}
-									{canEnter && (
-										<Button onClick={() => enter()}>
-											进入比赛
-										</Button>
-									)}
+									<Button
+										onClick={() => applyOpen()}
+										disabled={gameTeam !== undefined}
+									>
+										{!gameTeam
+											? "报名参赛"
+											: `已报名：${gameTeam?.team?.name}`}
+									</Button>
+									<Button
+										onClick={() => enter()}
+										disabled={!canEnter}
+									>
+										进入比赛
+									</Button>
 								</Group>
 							</Stack>
 						</Stack>

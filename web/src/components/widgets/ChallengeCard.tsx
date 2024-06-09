@@ -28,7 +28,7 @@ export default function ChallengeCard({
 }) {
 	const theme = useMantineTheme();
 
-	const [color, setColor] = useState<string>(theme.colors.brand[6]);
+	const [color, setColor] = useState<string>("transparent");
 
 	const bloodMap = [
 		{
@@ -52,7 +52,7 @@ export default function ChallengeCard({
 	}
 
 	useEffect(() => {
-		setColor(challenge?.category?.color || theme.colors.brand[6]);
+		setColor(challenge?.category?.color || theme.colors.brand[5]);
 	}, []);
 
 	return (
