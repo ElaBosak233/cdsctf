@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import Pages from "vite-plugin-pages";
+import { prismjsPlugin } from "vite-plugin-prismjs";
 import path from "path";
 
 export default defineConfig({
@@ -13,6 +14,10 @@ export default defineConfig({
 					baseRoute: "",
 				},
 			],
+		}),
+		prismjsPlugin({
+			languages: "all",
+			css: true,
 		}),
 	],
 	resolve: {

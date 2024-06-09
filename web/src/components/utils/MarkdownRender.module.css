@@ -73,7 +73,6 @@
 	& pre {
 		padding: 10px;
 		& code {
-			font-family: var(--mantine-font-family-monospace);
 			font-weight: 500;
 			text-align: left;
 			white-space: pre-wrap;
@@ -88,10 +87,7 @@
 				var(--mantine-color-gray-7),
 				var(--mantine-color-light-2)
 			);
-			background-color: light-dark(
-				var(--mantine-color-light-2),
-				var(--mantine-color-dark-6)
-			);
+			background-color: transparent;
 
 			& :global(.namespace) {
 				opacity: 0.8;
