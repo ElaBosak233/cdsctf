@@ -27,6 +27,7 @@ export interface Challenge {
 	flags?: Array<Flag>;
 	hints?: Array<Hint>;
 	solved?: Submission | boolean;
+	solved_times?: number;
 	submissions?: Array<Submission>;
 	is_enabled?: boolean;
 	min_pts?: number;

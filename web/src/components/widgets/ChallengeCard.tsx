@@ -155,34 +155,47 @@ export default function ChallengeCard({
 				}}
 			/>
 			<Flex justify={"space-between"} align={"center"} px={5}>
-				<Text size="lg" c={cardTextColor} fw={700}>
-					{pts || challenge?.practice_pts || "?"} pts
-				</Text>
+				<Tooltip
+					label={
+						<Text size={"xs"}>
+							{challenge?.solved_times || 0} 次解决
+						</Text>
+					}
+					withArrow
+					position="bottom"
+				>
+					<Text size="lg" c={cardTextColor} fw={700}>
+						{pts || challenge?.practice_pts || "?"} pts
+					</Text>
+				</Tooltip>
 				<Flex align={"center"}>
-					{challenge?.submissions?.map((submission, index) => (
-						<Tooltip
-							multiline
-							label={
-								<Stack gap={0}>
-									<Text size={"sm"} fw={600}>
-										{submission?.team?.name ||
-											submission?.user?.nickname}
-									</Text>
-									<Text size={"xs"}>
-										{dayjs(submission?.created_at).format(
-											"YYYY/MM/DD HH:mm:ss"
-										)}
-									</Text>
-								</Stack>
-							}
-							withArrow
-							position="bottom"
-						>
-							<ThemeIcon variant="transparent">
-								{bloodMap[index]?.icon}
-							</ThemeIcon>
-						</Tooltip>
-					))}
+					{challenge?.submissions
+						?.slice(0, 3)
+						?.map((submission, index) => (
+							<Tooltip
+								key={submission?.id}
+								multiline
+								label={
+									<Stack gap={0}>
+										<Text size={"sm"} fw={600}>
+											{submission?.team?.name ||
+												submission?.user?.nickname}
+										</Text>
+										<Text size={"xs"}>
+											{dayjs(
+												submission?.created_at
+											).format("YYYY/MM/DD HH:mm:ss")}
+										</Text>
+									</Stack>
+								}
+								withArrow
+								position="bottom"
+							>
+								<ThemeIcon variant="transparent">
+									{bloodMap[index]?.icon}
+								</ThemeIcon>
+							</Tooltip>
+						))}
 				</Flex>
 			</Flex>
 		</Card>

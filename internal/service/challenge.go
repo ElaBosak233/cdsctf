@@ -69,6 +69,7 @@ func (t *ChallengeService) Find(req request.ChallengeFindRequest) ([]model.Chall
 		if !*(req.IsDetailed) {
 			challenge.Simplify()
 		}
+		challenge.SolvedTimes = len(challenge.Submissions)
 		if req.SubmissionQty != 0 && challenge.Submissions != nil {
 			challenge.Submissions = challenge.Submissions[:min(req.SubmissionQty, len(challenge.Submissions))]
 		}
