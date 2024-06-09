@@ -77,9 +77,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 			})
 			.then((res) => {
 				const r = res.data;
-				if (r.code === 200) {
-					setPod(r.data?.[0] as Pod);
-				}
+				setPod(r.data?.[0] as Pod);
 			});
 	}
 
@@ -94,9 +92,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 			})
 			.then((res) => {
 				const r = res.data;
-				if (r?.code === 200) {
-					setPod(r?.data as Pod);
-				}
+				setPod(r?.data);
 			})
 			.catch((e) => {
 				showErrNotification({
@@ -134,11 +130,8 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 			.renewPod({
 				id: pod?.id!,
 			})
-			.then((res) => {
-				const r = res.data;
-				if (r?.code === 200) {
-					getPod();
-				}
+			.then((_) => {
+				getPod();
 			})
 			.finally(() => {
 				setPodRenewLoading(false);
