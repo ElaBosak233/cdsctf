@@ -8,9 +8,16 @@ import (
 )
 
 type INoticeService interface {
+	// Find will find the notice with the given request.
 	Find(req request.NoticeFindRequest) ([]model.Notice, int64, error)
+
+	// Create will create a new notice with the given request.
 	Create(req request.NoticeCreateRequest) error
+
+	// Update will update the notice with the given request.
 	Update(req request.NoticeUpdateRequest) error
+
+	// Delete will delete the notice with the given request.
 	Delete(req request.NoticeDeleteRequest) error
 }
 

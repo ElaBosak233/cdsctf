@@ -11,8 +11,13 @@ import (
 )
 
 type ISubmissionService interface {
+	// Create will create a new submission with the given request, and return the status and rank.
 	Create(req request.SubmissionCreateRequest) (status int, rank int64, err error)
-	Delete(id uint) (err error)
+
+	// Delete will delete the submission with the given id.
+	Delete(id uint) error
+
+	// Find will find the submissions with the given request.
 	Find(req request.SubmissionFindRequest) ([]model.Submission, int64, error)
 }
 
@@ -23,7 +28,6 @@ type SubmissionService struct {
 	teamRepository          repository.ITeamRepository
 	userRepository          repository.IUserRepository
 	gameChallengeRepository repository.IGameChallengeRepository
-	flagGenRepository       repository.IFlagGenRepository
 	gameRepository          repository.IGameRepository
 	noticeRepository        repository.INoticeRepository
 }
@@ -36,7 +40,6 @@ func NewSubmissionService(r *repository.Repository) ISubmissionService {
 		teamRepository:          r.TeamRepository,
 		userRepository:          r.UserRepository,
 		gameChallengeRepository: r.GameChallengeRepository,
-		flagGenRepository:       r.FlagGenRepository,
 		gameRepository:          r.GameRepository,
 		noticeRepository:        r.NoticeRepository,
 	}
@@ -53,13 +56,8 @@ func (t *SubmissionService) JudgeDynamicChallenge(req request.SubmissionCreateRe
 	for _, pod := range perhapsPods {
 		podIDs = append(podIDs, pod.ID)
 	}
-	flags, err := t.flagGenRepository.FindByPodID(podIDs)
-	flagMap := make(map[uint]string)
-	for _, flag := range flags {
-		flagMap[flag.PodID] = flag.Flag
-	}
 	for _, pod := range perhapsPods {
-		if req.Flag == flagMap[pod.ID] {
+		if req.Flag == pod.Flag {
 			if (pod.UserID != nil && req.UserID == *(pod.UserID) && req.UserID != 0) || (pod.TeamID != nil && req.TeamID != nil && *(req.TeamID) == *(pod.TeamID)) {
 				status = 2
 			} else {

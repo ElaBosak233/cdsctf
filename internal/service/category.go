@@ -7,10 +7,17 @@ import (
 )
 
 type ICategoryService interface {
-	Create(req model.Category) (err error)
-	Update(req model.Category) (err error)
-	Find(req request.CategoryFindRequest) (categories []model.Category, err error)
-	Delete(req request.CategoryDeleteRequest) (err error)
+	// Create will create a new category with the given request.
+	Create(req model.Category) error
+
+	// Update will update the category with the given request.
+	Update(req model.Category) error
+
+	// Find will find the category with the given request, and return the categories.
+	Find(req request.CategoryFindRequest) ([]model.Category, error)
+
+	// Delete will delete the category with the given request.
+	Delete(req request.CategoryDeleteRequest) error
 }
 
 type CategoryService struct {
@@ -23,18 +30,18 @@ func NewCategoryService(r *repository.Repository) ICategoryService {
 	}
 }
 
-func (c *CategoryService) Create(req model.Category) (err error) {
+func (c *CategoryService) Create(req model.Category) error {
 	return c.categoryRepository.Create(req)
 }
 
-func (c *CategoryService) Update(req model.Category) (err error) {
+func (c *CategoryService) Update(req model.Category) error {
 	return c.categoryRepository.Update(req)
 }
 
-func (c *CategoryService) Find(req request.CategoryFindRequest) (categories []model.Category, err error) {
+func (c *CategoryService) Find(req request.CategoryFindRequest) ([]model.Category, error) {
 	return c.categoryRepository.Find(req)
 }
 
-func (c *CategoryService) Delete(req request.CategoryDeleteRequest) (err error) {
+func (c *CategoryService) Delete(req request.CategoryDeleteRequest) error {
 	return c.categoryRepository.Delete(req.ID)
 }

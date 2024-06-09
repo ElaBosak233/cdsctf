@@ -11,7 +11,7 @@ type ITeamRepository interface {
 	Update(team model.Team) error
 	Delete(id uint) error
 	Find(req request.TeamFindRequest) ([]model.Team, int64, error)
-	FindById(id uint) (model.Team, error)
+	FindByID(id uint) (model.Team, error)
 }
 
 type TeamRepository struct {
@@ -85,7 +85,7 @@ func (t *TeamRepository) Find(req request.TeamFindRequest) ([]model.Team, int64,
 	return teams, total, result.Error
 }
 
-func (t *TeamRepository) FindById(id uint) (model.Team, error) {
+func (t *TeamRepository) FindByID(id uint) (model.Team, error) {
 	var team model.Team
 	result := t.db.Table("teams").Where("id = ?", id).First(&team)
 	return team, result.Error

@@ -6,7 +6,10 @@ import (
 )
 
 type IAuthService interface {
+	// CanModifyUser will check if the user can modify the target user.
 	CanModifyUser(user *model.User, targetUserID uint) bool
+
+	// CanModifyTeam will check if the user can modify the target team.
 	CanModifyTeam(user *model.User, targetTeamID uint) bool
 }
 

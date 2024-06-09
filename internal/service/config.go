@@ -6,6 +6,7 @@ import (
 )
 
 type IConfigService interface {
+	// Update will update the config with the given request.
 	Update(req request.ConfigUpdateRequest) error
 }
 

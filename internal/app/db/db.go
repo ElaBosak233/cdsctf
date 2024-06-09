@@ -92,7 +92,6 @@ func migrate() {
 		&model.GameChallenge{},
 		&model.GameTeam{},
 		&model.Flag{},
-		&model.FlagGen{},
 		&model.Port{},
 		&model.Nat{},
 		&model.Env{},

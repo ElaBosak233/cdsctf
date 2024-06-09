@@ -10,7 +10,7 @@ type IUserRepository interface {
 	Create(user model.User) error
 	Update(user model.User) error
 	Delete(id uint) error
-	FindById(id uint) (model.User, error)
+	FindByID(id uint) (model.User, error)
 	FindByUsername(username string) (model.User, error)
 	Find(req request.UserFindRequest) ([]model.User, int64, error)
 }
@@ -78,7 +78,7 @@ func (t *UserRepository) Find(req request.UserFindRequest) ([]model.User, int64,
 	return users, total, result.Error
 }
 
-func (t *UserRepository) FindById(id uint) (model.User, error) {
+func (t *UserRepository) FindByID(id uint) (model.User, error) {
 	var user model.User
 	result := t.db.Table("users").
 		Where("id = ?", id).

@@ -50,20 +50,19 @@ type PodService struct {
 	challengeRepository repository.IChallengeRepository
 	podRepository       repository.IPodRepository
 	natRepository       repository.INatRepository
-	flagGenRepository   repository.IFlagGenRepository
 }
 
 func NewPodService(r *repository.Repository) IPodService {
 	return &PodService{
 		challengeRepository: r.ChallengeRepository,
-		flagGenRepository:   r.FlagGenRepository,
 		podRepository:       r.PodRepository,
 		natRepository:       r.NatRepository,
 	}
 }
 
-func GenerateFlag(flagFmt string) (flag string) {
-	flag = strings.Replace(flagFmt, "[UUID]", utils.HyphenlessUUID(), -1)
+func GenerateFlag(flag string) string {
+	flag = strings.Replace(flag, "[UUID]", utils.HyphenlessUUID(), -1)
+	flag = strings.Replace(flag, "[uuid]", utils.HyphenlessUUID(), -1)
 	return flag
 }
 
@@ -130,24 +129,22 @@ func (t *PodService) Create(req request.PodCreateRequest) (model.Pod, error) {
 
 	removedAt := time.Now().Add(time.Duration(challenge.Duration) * time.Second).Unix()
 
-	// Select the first one as the target flag which will be injected
-	var flag model.Flag
-	for _, f := range challenge.Flags {
-		if f.Type == "dynamic" {
-			flag = *f
-			flag.Value = GenerateFlag(flag.Value)
-		} else {
-			if f.Env == "" {
-				f.Env = "FLAG"
-			}
-			flag = *f
+	// Select the first one as the target flag which will be injected into the container.
+	generatedFlag := model.Flag{}
+	for _, flag := range challenge.Flags {
+		generatedFlag = *flag
+		if flag.Type == "dynamic" {
+			generatedFlag.Value = GenerateFlag(flag.Value)
+		}
+		if flag.Env == "" {
+			generatedFlag.Env = "FLAG"
 		}
 		break
 	}
 
 	ctnManager := manager.NewContainerManager(
 		challenge,
-		flag,
+		generatedFlag,
 		time.Duration(challenge.Duration)*time.Second,
 	)
 
@@ -161,14 +158,10 @@ func (t *PodService) Create(req request.PodCreateRequest) (model.Pod, error) {
 		TeamID:      req.TeamID,
 		RemovedAt:   removedAt,
 		Nats:        nats,
+		Flag:        generatedFlag.Value,
 	})
 
 	ctnManager.SetPodID(pod.ID)
-
-	_, _ = t.flagGenRepository.Create(model.FlagGen{
-		Flag:  flag.Value,
-		PodID: pod.ID,
-	})
 
 	go func() {
 		if ctnManager.RemoveAfterDuration() {
@@ -193,12 +186,12 @@ func (t *PodService) Renew(req request.PodRenewRequest) error {
 		ID: req.ID,
 	})
 	if total == 0 {
-		return errors.New("实例不存在")
+		return errors.New("pod.not_found")
 	}
 	pod := pods[0]
 	ctn, ok := PodManagers[req.ID]
 	if !ok {
-		return errors.New("实例不存在")
+		return errors.New("pod.not_found")
 	}
 	ctn.Renew(ctn.Duration())
 	pod.RemovedAt = time.Now().Add(ctn.Duration()).Unix()
