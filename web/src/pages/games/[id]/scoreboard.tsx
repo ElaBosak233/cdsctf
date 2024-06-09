@@ -15,7 +15,6 @@ import {
 	Tooltip,
 	ThemeIcon,
 	alpha,
-	lighten,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
