@@ -19,7 +19,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import { GameTeam } from "@/types/game_team";
-import { useTeamStore } from "@/stores/team";
 import { useAuthStore } from "@/stores/auth";
 import { showErrNotification } from "@/utils/notification";
 import { useDisclosure } from "@mantine/hooks";
@@ -30,8 +29,6 @@ export default function Page() {
 	const gameApi = useGameApi();
 	const configStore = useConfigStore();
 	const navigate = useNavigate();
-
-	const teamStore = useTeamStore();
 	const authStore = useAuthStore();
 
 	const [game, setGame] = useState<Game>();
@@ -81,7 +78,6 @@ export default function Page() {
 			if (gameTeam?.is_allowed) {
 				for (const user of gameTeam?.team?.users || []) {
 					if (user?.id === authStore?.user?.id) {
-						teamStore.setSelectedTeamID(Number(gameTeam?.team?.id));
 						navigate(`/games/${game?.id}/challenges`);
 						return;
 					}

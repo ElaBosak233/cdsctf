@@ -1,6 +1,6 @@
 import { Box, Button, Flex, Group, Progress, Stack, Text } from "@mantine/core";
 import MDIcon from "@/components/ui/MDIcon";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useGameApi } from "@/api/game";
 import { Game } from "@/types/game";
 import { useEffect, useState } from "react";
@@ -12,7 +12,6 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
 		const gameApi = useGameApi();
 		const location = useLocation();
 		const path = location.pathname.split(`/games/${id}`)[1];
-		const navigate = useNavigate();
 
 		const [game, setGame] = useState<Game>();
 
@@ -74,6 +73,7 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
 						<Flex w={"50%"} justify={"end"}>
 							<Group wrap={"nowrap"}>
 								<Button
+									component={Link}
 									size="md"
 									leftSection={
 										<MDIcon
@@ -91,13 +91,12 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
 											? "filled"
 											: "outline"
 									}
-									onClick={() =>
-										navigate(`/games/${id}/challenges`)
-									}
+									to={`/games/${id}/challenges`}
 								>
 									题目
 								</Button>
 								<Button
+									component={Link}
 									size="md"
 									leftSection={
 										<MDIcon
@@ -115,9 +114,7 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
 											? "filled"
 											: "outline"
 									}
-									onClick={() =>
-										navigate(`/games/${id}/scoreboard`)
-									}
+									to={`/games/${id}/scoreboard`}
 								>
 									积分榜
 								</Button>
