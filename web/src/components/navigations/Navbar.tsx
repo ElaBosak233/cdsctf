@@ -16,7 +16,6 @@ import { Link, useNavigate } from "react-router-dom";
 import MDIcon from "@/components/ui/MDIcon";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
-import { useTeamStore } from "@/stores/team";
 
 export const NavItems = [
 	{
@@ -76,7 +75,6 @@ export default function Navbar(props: NavbarProps) {
 	const { burger, adminMode } = props;
 	const authStore = useAuthStore();
 	const configStore = useConfigStore();
-	const teamStore = useTeamStore();
 	const navigate = useNavigate();
 	const { colorScheme, setColorScheme } = useMantineColorScheme({
 		keepTransitions: true,
@@ -85,7 +83,6 @@ export default function Navbar(props: NavbarProps) {
 	function logout() {
 		authStore.setPgsToken("");
 		authStore.setUser(undefined);
-		teamStore.setSelectedTeamID(0);
 		navigate("/login");
 	}
 

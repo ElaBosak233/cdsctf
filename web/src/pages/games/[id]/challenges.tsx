@@ -5,6 +5,7 @@ import ChallengeModal from "@/components/modals/ChallengeModal";
 import MDIcon from "@/components/ui/MDIcon";
 import ChallengeCard from "@/components/widgets/ChallengeCard";
 import GameNoticeArea from "@/components/widgets/GameNoticeArea";
+import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
 import { useTeamStore } from "@/stores/team";
 import { Category } from "@/types/category";
@@ -39,6 +40,7 @@ function Page() {
 	const gameApi = useGameApi();
 	const submissionApi = useSubmissionApi();
 	const configStore = useConfigStore();
+	const authStore = useAuthStore();
 	const teamStore = useTeamStore();
 
 	const navigate = useNavigate();
@@ -52,7 +54,9 @@ function Page() {
 		Array<GameChallenge>
 	>([]);
 	const [selectedCategory, setSelectedCategory] = useState<number>(0);
+
 	const [gameTeam, setGameTeam] = useState<GameTeam>();
+	const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
 	const [submissions, setSubmissions] = useState<Array<Submission>>([]);
 
 	const [loadingTeamStatus, setLoadingTeamStatus] = useState<boolean>(false);
@@ -100,7 +104,7 @@ function Page() {
 		gameApi
 			.getGameChallenges({
 				game_id: Number(id),
-				team_id: teamStore?.selectedTeamID,
+				team_id: gameTeam?.team_id,
 				is_enabled: true,
 			})
 			.then((res) => {
@@ -112,29 +116,20 @@ function Page() {
 			});
 	}
 
-	function getTeam() {
+	function getGameTeams() {
 		gameApi
 			.getGameTeams({
 				game_id: Number(id),
-				team_id: teamStore?.selectedTeamID,
 			})
 			.then((res) => {
 				const r = res.data;
-				if (!r.data) {
-					showErrNotification({
-						title: "获取队伍信息失败",
-						message: "请检查是否已加入可参赛的队伍",
-					});
-					navigate(`/games/${id}`);
-				}
-				setGameTeam(r.data[0]);
+				setGameTeams(r.data);
 			});
 	}
 
 	useEffect(() => {
 		if (gameTeam) {
 			const rows = calculateAndSort(submissions);
-			console.log(rows);
 			if (rows) {
 				rows?.forEach((row) => {
 					if (row?.team?.id === gameTeam?.team_id) {
@@ -146,6 +141,27 @@ function Page() {
 			}
 		}
 	}, [submissions, gameTeam]);
+
+	useEffect(() => {
+		if (gameTeams && gameTeams?.length) {
+			for (const gameTeam of gameTeams) {
+				for (const user of gameTeam?.team?.users || []) {
+					if (user?.id === authStore?.user?.id) {
+						setGameTeam(gameTeam);
+						teamStore.setSelectedTeamID(gameTeam?.team_id!);
+						if (gameTeam?.is_allowed) {
+							return;
+						}
+					}
+				}
+			}
+			showErrNotification({
+				title: "获取队伍信息失败",
+				message: "请检查是否已加入可参赛的队伍",
+			});
+			navigate(`/games/${id}`);
+		}
+	}, [gameTeams]);
 
 	useEffect(() => {
 		if (selectedCategory != 0) {
@@ -184,13 +200,15 @@ function Page() {
 
 	useEffect(() => {
 		getGame();
-		getTeam();
+		getGameTeams();
 		getSubmissions();
-	}, [teamStore?.selectedTeamID]);
+	}, []);
 
 	useEffect(() => {
-		getGameChallenges();
-	}, [refresh]);
+		if (gameTeam) {
+			getGameChallenges();
+		}
+	}, [gameTeam, refresh]);
 
 	useEffect(() => {
 		document.title = `${game?.title} - ${configStore?.pltCfg?.site?.title}`;
