@@ -96,6 +96,7 @@ func migrate() {
 		&model.Nat{},
 		&model.Env{},
 		&model.Notice{},
+		&model.Webhook{},
 	)
 	if err != nil {
 		zap.L().Fatal("Database sync failed.", zap.Error(err))

@@ -27,6 +27,7 @@ type Repository struct {
 	EnvRepository           IEnvRepository
 	GameTeamRepository      IGameTeamRepository
 	NoticeRepository        INoticeRepository
+	WebhookRepository       IWebhookRepository
 }
 
 func R() *Repository {
@@ -56,6 +57,7 @@ func InitRepository() {
 			EnvRepository:           NewEnvRepository(d),
 			GameTeamRepository:      NewGameTeamRepository(d),
 			NoticeRepository:        NewNoticeRepository(d),
+			WebhookRepository:       NewWebhookRepository(d),
 		}
 	})
 	zap.L().Info("Repository layer inits successfully.")
