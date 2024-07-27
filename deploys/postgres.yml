@@ -6,8 +6,8 @@ services:
         ports:
             - "8888:8888"
         volumes:
+            - "./application.yml:/app/application.yml:ro"
             - "/var/run/docker.sock:/var/run/docker.sock"
-            - "./application.yml:/app/application.yml"
             - "./captures:/app/captures"
             - "./media:/app/media"
             - "./logs:/app/logs"
@@ -17,8 +17,6 @@ services:
     db:
         image: postgres:alpine
         restart: always
-        ports:
-            - "5432:5432"
         environment:
             POSTGRES_USER: cloudsdale
             POSTGRES_PASSWORD: cloudsdale
