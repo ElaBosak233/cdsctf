@@ -2,9 +2,10 @@ import { useChallengeApi } from "@/api/challenge";
 import ChallengeModal from "@/components/modals/ChallengeModal";
 import MDIcon from "@/components/ui/MDIcon";
 import ChallengeCard from "@/components/widgets/ChallengeCard";
+import { useAuthStore } from "@/stores/auth";
 import { useCategoryStore } from "@/stores/category";
 import { useConfigStore } from "@/stores/config";
-import { Challenge } from "@/types/challenge";
+import { Challenge, ChallengeStatus } from "@/types/challenge";
 import { showErrNotification } from "@/utils/notification";
 import {
 	ActionIcon,
@@ -23,6 +24,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 
 export default function Page() {
+	const authStore = useAuthStore();
 	const configStore = useConfigStore();
 	const categoryStore = useCategoryStore();
 	const challengeApi = useChallengeApi();
@@ -30,6 +32,10 @@ export default function Page() {
 	const [refresh, setRefresh] = useState<number>(0);
 
 	const [challenges, setChallenges] = useState<Array<Challenge>>([]);
+	const [challengeStatus, setChallengeStatus] = useState<
+		Record<number, ChallengeStatus>
+	>([]);
+
 	const [search, setSearch] = useState<string>("");
 	const [searchInput, setSearchInput] = useState<string>("");
 	const [rowsPerPage, setRowsPerPage] = useState<number>(20);
@@ -78,10 +84,25 @@ export default function Page() {
 			});
 	}
 
+	function getChallengeStatus() {
+		challengeApi
+			.getChallengeStatus({
+				cids: challenges.map((c) => Number(c?.id)),
+				user_id: authStore.user?.id,
+			})
+			.then((res) => {
+				const r = res.data;
+				setChallengeStatus(r?.data);
+			});
+	}
+
 	useEffect(() => {
 		getChallenges();
 	}, [page, rowsPerPage, search, selectedCategory, sort, refresh]);
 
+	useEffect(() => {
+		getChallengeStatus();
+	}, [challenges]);
 	return (
 		<>
 			<Stack m={56}>
@@ -232,7 +253,14 @@ export default function Page() {
 										}}
 										key={challenge?.id}
 									>
-										<ChallengeCard challenge={challenge} />
+										<ChallengeCard
+											challenge={challenge}
+											status={
+												challengeStatus?.[
+													Number(challenge?.id)
+												]
+											}
+										/>
 									</UnstyledButton>
 								))}
 							</Group>

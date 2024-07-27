@@ -34,6 +34,9 @@ import {
 import { useForm } from "@mantine/form";
 import { useTeamStore } from "@/stores/team";
 import { useClipboard, useInterval } from "@mantine/hooks";
+import { Metadata } from "@/types/media";
+import { useChallengeApi } from "@/api/challenge";
+import { useCategoryStore } from "@/stores/category";
 
 interface ChallengeModalProps extends ModalProps {
 	challenge?: Challenge;
@@ -47,9 +50,13 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 
 	const clipboard = useClipboard({ timeout: 500 });
 	const podApi = usePodApi();
+	const challengeApi = useChallengeApi();
 	const submissionApi = useSubmissionApi();
 	const authStore = useAuthStore();
 	const teamStore = useTeamStore();
+	const categoryStore = useCategoryStore();
+
+	const [attachmentMetadata, setAttachmentMetadata] = useState<Metadata>();
 
 	const [pod, setPod] = useState<Pod>();
 	const [podTime, setPodTime] = useState<number>(0);
@@ -58,12 +65,23 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 	const [podRemoveLoading, setPodRemoveLoading] = useState(false);
 	const [podRenewLoading, setPodRenewLoading] = useState(false);
 
+	const category = categoryStore.getCategory(Number(challenge?.category_id));
+
 	const form = useForm({
 		mode: "uncontrolled",
 		initialValues: {
 			flag: "",
 		},
 	});
+
+	function getAttachmentMetadata() {
+		challengeApi
+			.getChallengeAttachmentMetadata(Number(challenge?.id))
+			.then((res) => {
+				const r = res.data;
+				setAttachmentMetadata(r?.data);
+			});
+	}
 
 	function getPod() {
 		podApi
@@ -157,7 +175,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 			})
 			.then((res) => {
 				const r = res.data;
-				switch (r?.status) {
+				switch (r?.data?.status) {
 					case 1:
 						showWarnNotification({
 							title: "错误",
@@ -216,12 +234,16 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 		if (challenge?.is_dynamic) {
 			getPod();
 		}
+		if (challenge?.has_attachment) {
+			getAttachmentMetadata();
+		}
 	}, [challenge, modalProps.opened]);
 
 	useEffect(() => {
 		form.reset();
 		setPodTime(0);
 		setPod(undefined);
+		setAttachmentMetadata(undefined);
 	}, [modalProps.opened]);
 
 	return (
@@ -250,8 +272,8 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 					<Box>
 						<Group justify={"space-between"}>
 							<Group gap={6}>
-								<MDIcon color={challenge?.category?.color}>
-									{challenge?.category?.icon}
+								<MDIcon color={category?.color}>
+									{category?.icon}
 								</MDIcon>
 								<Text fw={700}>{challenge?.title}</Text>
 							</Group>
@@ -307,20 +329,20 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 							<MarkdownRender
 								src={challenge?.description || ""}
 							/>
-							{challenge?.attachment?.name && (
+							{attachmentMetadata?.filename && (
 								<Tooltip
-									label={`下载附件 ${challenge?.attachment?.name}`}
+									label={`下载附件 ${attachmentMetadata?.filename}`}
 									withArrow
 									position={"top"}
 								>
 									<ActionIcon
 										onClick={() => {
 											window.open(
-												`${import.meta.env.VITE_BASE_API}/media/challenges/${challenge?.id}/${challenge?.attachment?.name}`
+												`${import.meta.env.VITE_BASE_API}/challenges/${challenge?.id}/attachment`
 											);
 										}}
 									>
-										<MDIcon c={challenge?.category?.color}>
+										<MDIcon c={category?.color}>
 											download
 										</MDIcon>
 									</ActionIcon>
@@ -334,15 +356,13 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 								<Stack gap={5}>
 									{pod?.nats?.map((nat) => (
 										<TextInput
-											key={nat?.id}
 											value={nat?.entry}
 											readOnly
 											sx={{
 												input: {
 													"&:focus": {
 														borderColor:
-															challenge?.category
-																?.color,
+															category?.color,
 													},
 												},
 											}}
@@ -365,9 +385,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 															flexGrow: 1,
 														}}
 													>
-														<Text>
-															{nat.src_port}
-														</Text>
+														<Text>{nat.src}</Text>
 														<MDIcon c={"gray"}>
 															arrow_right_alt
 														</MDIcon>
@@ -457,9 +475,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 										{!pod?.id && (
 											<Button
 												size="sm"
-												color={
-													challenge?.category?.color
-												}
+												color={category?.color}
 												loading={podCreateLoading}
 												onClick={createPod}
 											>
@@ -482,17 +498,14 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 									placeholder="Flag"
 									w={"85%"}
 									leftSection={
-										<MDIcon
-											color={challenge?.category?.color}
-										>
+										<MDIcon color={category?.color}>
 											flag
 										</MDIcon>
 									}
 									sx={{
 										input: {
 											"&:focus": {
-												borderColor:
-													challenge?.category?.color,
+												borderColor: category?.color,
 											},
 										},
 									}}
@@ -500,7 +513,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 									{...form.getInputProps("flag")}
 								/>
 								<Button
-									color={challenge?.category?.color}
+									color={category?.color}
 									w={"15%"}
 									type="submit"
 								>

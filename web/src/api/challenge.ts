@@ -2,13 +2,9 @@ import {
 	ChallengeCreateRequest,
 	ChallengeDeleteRequest,
 	ChallengeFindRequest,
+	ChallengeStatusRequest,
 	ChallengeUpdateRequest,
 } from "@/types/challenge";
-import {
-	FlagCreateRequest,
-	FlagDeleteRequest,
-	FlagUpdateRequest,
-} from "@/types/flag";
 import { useAuth } from "@/utils/axios";
 import { AxiosRequestConfig } from "axios";
 
@@ -16,11 +12,11 @@ export function useChallengeApi() {
 	const auth = useAuth();
 
 	const getChallenges = (request: ChallengeFindRequest) => {
-		return auth.get("/challenges/", { params: request });
+		return auth.get("/challenges", { params: request });
 	};
 
 	const createChallenge = (request: ChallengeCreateRequest) => {
-		return auth.post("/challenges/", request);
+		return auth.post("/challenges", request);
 	};
 
 	const updateChallenge = (request: ChallengeUpdateRequest) => {
@@ -31,21 +27,12 @@ export function useChallengeApi() {
 		return auth.delete(`/challenges/${request.id}`);
 	};
 
-	const updateChallengeFlag = (request: FlagUpdateRequest) => {
-		return auth.put(
-			`/challenges/${request.challenge_id}/flags/${request.id}`,
-			request
-		);
+	const getChallengeStatus = (request: ChallengeStatusRequest) => {
+		return auth.post(`/challenges/status`, request);
 	};
 
-	const createChallengeFlag = (request: FlagCreateRequest) => {
-		return auth.post(`/challenges/${request.challenge_id}/flags`, request);
-	};
-
-	const deleteChallengeFlag = (request: FlagDeleteRequest) => {
-		return auth.delete(
-			`/challenges/${request.challenge_id}/flags/${request.id}`
-		);
+	const getChallengeAttachmentMetadata = (id: number) => {
+		return auth.get(`/challenges/${id}/attachment/metadata`);
 	};
 
 	const saveChallengeAttachment = (
@@ -67,9 +54,8 @@ export function useChallengeApi() {
 		createChallenge,
 		updateChallenge,
 		deleteChallenge,
-		updateChallengeFlag,
-		createChallengeFlag,
-		deleteChallengeFlag,
+		getChallengeStatus,
+		getChallengeAttachmentMetadata,
 		saveChallengeAttachment,
 		deleteChallengeAttachment,
 	};

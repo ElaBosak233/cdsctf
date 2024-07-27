@@ -132,7 +132,7 @@ export default function GameTeamCreateModal(props: GameTeamCreateModalProps) {
 													<Group gap={15}>
 														<Avatar
 															color="brand"
-															src={`${import.meta.env.VITE_BASE_API}/media/teams/${team?.id}/${team?.avatar?.name}`}
+															src={`${import.meta.env.VITE_BASE_API}/teams/${team?.id}/avatar`}
 															radius="xl"
 														>
 															<MDIcon>

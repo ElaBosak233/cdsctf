@@ -24,11 +24,11 @@ export function useGameApi() {
 	const auth = useAuth();
 
 	const getGames = (request: GameFindRequest) => {
-		return auth.get("/games/", { params: request });
+		return auth.get("/games", { params: request });
 	};
 
 	const createGame = (request: GameCreateRequest) => {
-		return auth.post("/games/", request);
+		return auth.post("/games", request);
 	};
 
 	const updateGame = (request: GameUpdateRequest) => {
@@ -106,6 +106,10 @@ export function useGameApi() {
 		return auth.delete(`/games/${request?.game_id}/notices/${request?.id}`);
 	};
 
+	const getGamePosterMetadata = (id: number) => {
+		return auth.get(`/games/${id}/poster/metadata`);
+	};
+
 	const saveGamePoster = (
 		id: number,
 		file: File,
@@ -122,10 +126,10 @@ export function useGameApi() {
 
 	return {
 		getGames,
-		getGameChallenges,
 		createGame,
 		updateGame,
 		deleteGame,
+		getGameChallenges,
 		updateGameChallenge,
 		createGameChallenge,
 		deleteGameChallenge,
@@ -137,6 +141,7 @@ export function useGameApi() {
 		createGameNotice,
 		updateGameNotice,
 		deleteGameNotice,
+		getGamePosterMetadata,
 		saveGamePoster,
 		deleteGamePoster,
 	};

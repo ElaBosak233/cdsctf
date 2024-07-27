@@ -29,6 +29,7 @@ import FirstBloodIcon from "@/components/icons/hexagons/FirstBloodIcon";
 import SecondBloodIcon from "@/components/icons/hexagons/SecondBloodIcon";
 import ThirdBloodIcon from "@/components/icons/hexagons/ThirdBloodIcon";
 import { Row, calculateAndSort } from "@/utils/game";
+import { useCategoryStore } from "@/stores/category";
 
 interface ScoreSeries {
 	name: string;
@@ -44,6 +45,8 @@ function Page() {
 
 	const gameApi = useGameApi();
 	const submissionApi = useSubmissionApi();
+
+	const categoryStore = useCategoryStore();
 
 	const [game, setGame] = useState<Game>();
 	const [submissions, setSubmissions] = useState<Array<Submission>>([]);
@@ -114,7 +117,9 @@ function Page() {
 
 			if (!categoriedChallenges[category_id]) {
 				categoriedChallenges[category_id] = {
-					category: gameChallenge?.challenge?.category as Category,
+					category: categoryStore.getCategory(
+						Number(gameChallenge?.challenge?.category_id)
+					) as Category,
 					challenges: [],
 				};
 			}
@@ -406,7 +411,7 @@ function Page() {
 								<Group wrap={"nowrap"}>
 									<Avatar
 										color="brand"
-										src={`${import.meta.env.VITE_BASE_API}/media/teams/${row?.team?.id}/${row?.team?.avatar?.name}`}
+										src={`${import.meta.env.VITE_BASE_API}/teams/${row?.team?.id}/avatar`}
 									>
 										<MDIcon>people</MDIcon>
 									</Avatar>

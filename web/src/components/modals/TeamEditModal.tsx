@@ -31,6 +31,7 @@ import { modals } from "@mantine/modals";
 import { User } from "@/types/user";
 import { AxiosRequestConfig } from "axios";
 import { Dropzone } from "@mantine/dropzone";
+import { Metadata } from "@/types/media";
 
 interface TeamEditModalProps extends ModalProps {
 	setRefresh: () => void;
@@ -46,6 +47,8 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 	const [isCaptain, setIsCaptain] = useState<boolean>(false);
 	const [inviteToken, setInviteToken] = useState<string>("");
 	const [users, setUsers] = useState<Array<User> | undefined>([]);
+
+	const [avatarMetadata, setAvatarMetadata] = useState<Metadata>();
 
 	const form = useForm({
 		mode: "uncontrolled",
@@ -71,6 +74,13 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 		},
 	});
 
+	function getTeamAvatarMetadata() {
+		teamApi.getTeamAvatarMetadata(Number(team?.id)).then((res) => {
+			const r = res.data;
+			setAvatarMetadata(r.data);
+		});
+	}
+
 	function saveTeamAvatar(file?: File) {
 		const config: AxiosRequestConfig<FormData> = {};
 		teamApi
@@ -93,7 +103,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 			})
 			.then((res) => {
 				const r = res.data;
-				setInviteToken(r.invite_token);
+				setInviteToken(r.token);
 			});
 	}
 
@@ -104,7 +114,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 			})
 			.then((res) => {
 				const r = res.data;
-				setInviteToken(r.invite_token);
+				setInviteToken(r.token);
 				showSuccessNotification({
 					message: `团队 ${team?.name} 邀请码更新成功`,
 				});
@@ -248,16 +258,19 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 		});
 
 	useEffect(() => {
-		setIsCaptain(authStore?.user?.id === team?.captain_id);
-		if (authStore?.user?.id === team?.captain_id) {
-			getTeamInviteToken();
+		if (team) {
+			setIsCaptain(authStore?.user?.id === team?.captain_id);
+			if (authStore?.user?.id === team?.captain_id) {
+				getTeamInviteToken();
+			}
+			setUsers(team?.users);
+			form.setValues({
+				name: team?.name,
+				description: team?.description,
+				email: team?.email,
+			});
+			getTeamAvatarMetadata();
 		}
-		setUsers(team?.users);
-		form.setValues({
-			name: team?.name,
-			description: team?.description,
-			email: team?.email,
-		});
 	}, [team]);
 
 	return (
@@ -356,13 +369,13 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 													pointerEvents: "none",
 												}}
 											>
-												{team?.avatar?.name ? (
+												{avatarMetadata?.filename ? (
 													<Center>
 														<Image
 															w={120}
 															h={120}
 															fit="contain"
-															src={`${import.meta.env.VITE_BASE_API}/media/teams/${team?.id}/${team?.avatar?.name}`}
+															src={`${import.meta.env.VITE_BASE_API}/teams/${team?.id}/avatar`}
 														/>
 													</Center>
 												) : (
@@ -417,7 +430,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 												<Flex align={"center"} gap={10}>
 													<Avatar
 														color="brand"
-														src={`${import.meta.env.VITE_BASE_API}/media/users/${user?.id}/${user?.avatar?.name}`}
+														src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar`}
 														radius="xl"
 													>
 														<MDIcon>person</MDIcon>

@@ -1,7 +1,6 @@
 export interface Category {
 	id?: number;
 	name?: string;
-	description?: string;
 	color?: string;
 	icon?: string;
 	created_at?: number;
@@ -10,7 +9,6 @@ export interface Category {
 
 export interface CategoryCreateRequest {
 	name?: string;
-	description?: string;
 	color?: string;
 	icon?: string;
 }
@@ -18,7 +16,6 @@ export interface CategoryCreateRequest {
 export interface CategoryUpdateRequest {
 	id?: number;
 	name?: string;
-	description?: string;
 	color?: string;
 	icon?: string;
 }

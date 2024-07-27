@@ -1,22 +1,14 @@
 import { useRoutes } from "react-router";
-import Navbar, {
-	NavItems,
-	AdminNavItems,
-} from "@/components/navigations/Navbar";
+import Navbar, { NavItems } from "@/components/navigations/Navbar";
 import routes from "~react-pages";
-import {
-	AppShell,
-	Button,
-	LoadingOverlay,
-	UnstyledButton,
-} from "@mantine/core";
+import { AppShell, Button, LoadingOverlay } from "@mantine/core";
 import { Suspense, useEffect, useState } from "react";
 import { useCategoryApi } from "@/api/category";
 import { useCategoryStore } from "@/stores/category";
 import { useConfigApi } from "@/api/config";
 import { useConfigStore } from "@/stores/config";
 import "dayjs/locale/zh-cn";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useFavicon } from "@mantine/hooks";
 import { Link, useLocation } from "react-router-dom";
 import MDIcon from "./components/ui/MDIcon";
 
@@ -25,6 +17,9 @@ function App() {
 	const categoryStore = useCategoryStore();
 	const configApi = useConfigApi();
 	const configStore = useConfigStore();
+
+	const [favicon, setFavicon] = useState("./favicon.ico");
+	useFavicon(favicon);
 
 	const [opened, { toggle }] = useDisclosure();
 	const [adminMode, setAdminMode] = useState<boolean>(false);
@@ -43,16 +38,6 @@ function App() {
 			});
 	}, [configStore.refresh]);
 
-	// Get captcha config
-	useEffect(() => {
-		if (configStore?.pltCfg?.user?.register?.captcha?.enabled) {
-			configApi.getCaptchaCfg().then((res) => {
-				const r = res.data;
-				configStore.setCaptchaCfg(r.data);
-			});
-		}
-	}, [configStore?.pltCfg]);
-
 	// Get exists categories
 	useEffect(() => {
 		categoryApi.getCategories().then((res) => {
@@ -60,6 +45,12 @@ function App() {
 			categoryStore.setCategories(r.data);
 		});
 	}, [categoryStore.refresh]);
+
+	useEffect(() => {
+		if (configStore.pltCfg?.site?.favicon) {
+			setFavicon(`${import.meta.env.VITE_BASE_API}/configs/favicon`);
+		}
+	}, [configStore.pltCfg]);
 
 	useEffect(() => {
 		setAdminMode(false);

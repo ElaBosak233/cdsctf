@@ -22,11 +22,7 @@ export function useUserApi() {
 	};
 
 	const getUsers = (request: UserFindRequest) => {
-		return auth.get("/users/", { params: request });
-	};
-
-	const getUserByID = (id: number) => {
-		return auth.get(`/users/${id}`);
+		return auth.get("/users", { params: request });
 	};
 
 	const updateUser = (request: UserUpdateRequest) => {
@@ -34,11 +30,15 @@ export function useUserApi() {
 	};
 
 	const createUser = (request: UserCreateRequest) => {
-		return auth.post(`/users/`, request);
+		return auth.post(`/users`, request);
 	};
 
 	const deleteUser = (request: UserDeleteRequest) => {
 		return auth.delete(`/users/${request?.id}`);
+	};
+
+	const getUserAvatarMetadata = (id: number) => {
+		return auth.get(`/users/${id}/avatar/metadata`);
 	};
 
 	const saveUserAvatar = (
@@ -59,10 +59,10 @@ export function useUserApi() {
 		login,
 		register,
 		getUsers,
-		getUserByID,
 		updateUser,
 		createUser,
 		deleteUser,
+		getUserAvatarMetadata,
 		saveUserAvatar,
 		deleteUserAvatar,
 	};

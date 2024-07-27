@@ -44,7 +44,7 @@ export default function TeamJoinModal(props: TeamJoinModalProps) {
 		teamApi
 			.joinTeam({
 				id: Number(form.getValues().inviteToken.split(":")[0]),
-				invite_token: form.getValues().inviteToken.split(":")[1],
+				token: form.getValues().inviteToken.split(":")[1],
 			})
 			.then((_) => {
 				showSuccessNotification({

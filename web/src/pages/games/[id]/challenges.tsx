@@ -6,6 +6,7 @@ import MDIcon from "@/components/ui/MDIcon";
 import ChallengeCard from "@/components/widgets/ChallengeCard";
 import GameNoticeArea from "@/components/widgets/GameNoticeArea";
 import { useAuthStore } from "@/stores/auth";
+import { useCategoryStore } from "@/stores/category";
 import { useConfigStore } from "@/stores/config";
 import { useTeamStore } from "@/stores/team";
 import { Category } from "@/types/category";
@@ -40,6 +41,7 @@ function Page() {
 	const gameApi = useGameApi();
 	const submissionApi = useSubmissionApi();
 	const configStore = useConfigStore();
+	const categoryStore = useCategoryStore();
 	const authStore = useAuthStore();
 	const teamStore = useTeamStore();
 
@@ -190,7 +192,11 @@ function Page() {
 						return {
 							...categories,
 							[gameChallenge?.challenge?.category_id as number]:
-								gameChallenge?.challenge?.category as Category,
+								categoryStore.getCategory(
+									Number(
+										gameChallenge?.challenge?.category_id
+									)
+								) as Category,
 						};
 					});
 				}
@@ -335,7 +341,7 @@ function Page() {
 									<Avatar
 										color="brand"
 										size={64}
-										src={`${import.meta.env.VITE_BASE_API}/media/teams/${gameTeam?.team_id}/${gameTeam?.team?.avatar?.name}`}
+										src={`${import.meta.env.VITE_BASE_API}/teams/${gameTeam?.team_id}/avatar`}
 									>
 										<MDIcon size={36}>people</MDIcon>
 									</Avatar>

@@ -1,6 +1,6 @@
-import { useChallengeApi } from "@/api/challenge";
 import MDIcon from "@/components/ui/MDIcon";
-import { showSuccessNotification } from "@/utils/notification";
+import { Challenge } from "@/types/challenge";
+import { Flag } from "@/types/flag";
 import {
 	Box,
 	Button,
@@ -17,19 +17,15 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
 
 interface ChallengeFlagCreateModalProps extends ModalProps {
-	setRefresh: () => void;
+	addFlag: (flag: Flag) => void;
 }
 
 export default function ChallengeFlagCreateModal(
 	props: ChallengeFlagCreateModalProps
 ) {
-	const { setRefresh, ...modalProps } = props;
-
-	const challengeApi = useChallengeApi();
-	const { id } = useParams<{ id: string }>();
+	const { addFlag, ...modalProps } = props;
 
 	const form = useForm({
 		mode: "controlled",
@@ -40,24 +36,6 @@ export default function ChallengeFlagCreateModal(
 			type: "pattern",
 		},
 	});
-
-	function createChallengeFlag() {
-		challengeApi
-			.createChallengeFlag({
-				challenge_id: Number(id),
-				value: form.getValues().value,
-				env: form.getValues().env,
-				type: form.getValues().type,
-				banned: form.getValues().banned,
-			})
-			.then((_) => {
-				showSuccessNotification({
-					message: "Flag 创建成功",
-				});
-				setRefresh();
-				modalProps.onClose();
-			});
-	}
 
 	useEffect(() => {
 		form.reset();
@@ -86,9 +64,10 @@ export default function ChallengeFlagCreateModal(
 					<Divider my={10} />
 					<Box p={10}>
 						<form
-							onSubmit={form.onSubmit((_) =>
-								createChallengeFlag()
-							)}
+							onSubmit={form.onSubmit((_) => {
+								addFlag(form.values);
+								modalProps.onClose();
+							})}
 						>
 							<Stack gap={10}>
 								<TextInput

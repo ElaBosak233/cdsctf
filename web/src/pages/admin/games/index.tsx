@@ -285,14 +285,13 @@ export default function Page() {
 											</Table.Th>
 											<Table.Th p={0}>
 												<Group gap={15} wrap={"nowrap"}>
-													{game?.poster?.name && (
-														<Image
-															src={`${import.meta.env.VITE_BASE_API}/media/games/${game?.id}/poster/${game?.poster?.name}`}
-															mih={150}
-															mah={150}
-															w={200}
-														/>
-													)}
+													<Image
+														src={`${import.meta.env.VITE_BASE_API}/games/${game?.id}/poster`}
+														fallbackSrc="https://placehold.co/600x400?text=Placeholder"
+														mih={150}
+														mah={150}
+														w={200}
+													/>
 													<Text fw={700} size="1rem">
 														{game?.title}
 													</Text>

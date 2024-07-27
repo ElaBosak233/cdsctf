@@ -1,4 +1,4 @@
-import { Challenge } from "@/types/challenge";
+import { Challenge, ChallengeStatus } from "@/types/challenge";
 import {
 	Badge,
 	Box,
@@ -18,15 +18,19 @@ import ThirdBloodIcon from "@/components/icons/hexagons/ThirdBloodIcon";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import styles from "./ChallengeCard.module.css";
+import { useCategoryStore } from "@/stores/category";
 
 export default function ChallengeCard({
 	challenge,
+	status,
 	pts,
 }: {
 	challenge?: Challenge;
+	status?: ChallengeStatus;
 	pts?: number;
 }) {
 	const theme = useMantineTheme();
+	const categoryStore = useCategoryStore();
 
 	const [color, setColor] = useState<string>("transparent");
 
@@ -46,13 +50,16 @@ export default function ChallengeCard({
 	];
 
 	function getClassName(clazzName: string) {
-		return challenge?.solved
+		return status?.is_solved
 			? styles[`${clazzName}Solved`]
 			: styles[clazzName];
 	}
 
 	useEffect(() => {
-		setColor(challenge?.category?.color || theme.colors.brand[5]);
+		setColor(
+			categoryStore.getCategory(Number(challenge?.category_id))?.color ||
+				theme.colors.brand[5]
+		);
 	}, []);
 
 	return (
@@ -68,10 +75,14 @@ export default function ChallengeCard({
 		>
 			<Box pos={"absolute"} right={0} bottom={-20}>
 				<MDIcon size={180} className={getClassName("bIcon")}>
-					{challenge?.category?.icon}
+					{
+						categoryStore.getCategory(
+							Number(challenge?.category_id)
+						)?.icon
+					}
 				</MDIcon>
 			</Box>
-			{challenge?.solved && (
+			{status?.is_solved && (
 				<Box pos={"absolute"} right={20} top={20}>
 					<Tooltip label="已解决">
 						<MDIcon size={30} color={"#FFF"}>
@@ -82,7 +93,11 @@ export default function ChallengeCard({
 			)}
 			<Box>
 				<Badge variant="light" className={getClassName("badge")}>
-					{challenge?.category?.name}
+					{
+						categoryStore.getCategory(
+							Number(challenge?.category_id)
+						)?.name
+					}
 				</Badge>
 			</Box>
 			<Box py={10}>
@@ -105,7 +120,7 @@ export default function ChallengeCard({
 				<Tooltip
 					label={
 						<Text size={"xs"}>
-							{challenge?.solved_times || 0} 次解决
+							{status?.solved_times || 0} 次解决
 						</Text>
 					}
 					withArrow
@@ -115,38 +130,36 @@ export default function ChallengeCard({
 						size="lg"
 						fw={700}
 						className={
-							challenge?.solved ? styles.textSolved : styles.text
+							status?.is_solved ? styles.textSolved : styles.text
 						}
 					>
 						{pts || challenge?.practice_pts || "?"} pts
 					</Text>
 				</Tooltip>
 				<Flex align={"center"}>
-					{challenge?.bloods
-						?.slice(0, 3)
-						?.map((submission, index) => (
-							<Tooltip
-								key={submission?.id}
-								multiline
-								label={
-									<Stack gap={0}>
-										<Text size={"sm"} fw={600}>
-											{submission?.team?.name ||
-												submission?.user?.nickname}
-										</Text>
-										<Text size={"xs"}>
-											{dayjs(
-												submission?.created_at
-											).format("YYYY/MM/DD HH:mm:ss")}
-										</Text>
-									</Stack>
-								}
-								withArrow
-								position="bottom"
-							>
-								<ThemeIcon>{bloodMap[index]?.icon}</ThemeIcon>
-							</Tooltip>
-						))}
+					{status?.bloods?.slice(0, 3)?.map((submission, index) => (
+						<Tooltip
+							key={submission?.id}
+							multiline
+							label={
+								<Stack gap={0}>
+									<Text size={"sm"} fw={600}>
+										{submission?.team?.name ||
+											submission?.user?.nickname}
+									</Text>
+									<Text size={"xs"}>
+										{dayjs(submission?.created_at).format(
+											"YYYY/MM/DD HH:mm:ss"
+										)}
+									</Text>
+								</Stack>
+							}
+							withArrow
+							position="bottom"
+						>
+							<ThemeIcon>{bloodMap[index]?.icon}</ThemeIcon>
+						</Tooltip>
+					))}
 				</Flex>
 			</Flex>
 		</Card>

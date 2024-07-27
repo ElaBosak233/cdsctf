@@ -1,21 +1,17 @@
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
-*.out
+# Project
+/target
+/.idea
+/.vscode
 
-go.work
-.idea
-config.yml
-logs
-plugins
-uploads
-/media/
-/configs/
-/db/
-/build/
-/captures/
-test.go
-/dist/
+*.lock
+
+# Cloudsdale
+/application.yml
+/favicon.webp
+/k8s-config.yml
+/configs
+/db
+/media
+/caputres
+/logs
+/dist

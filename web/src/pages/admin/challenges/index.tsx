@@ -1,6 +1,7 @@
 import { useChallengeApi } from "@/api/challenge";
 import ChallengeCreateModal from "@/components/modals/admin/ChallengeCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
+import { useCategoryStore } from "@/stores/category";
 import { useConfigStore } from "@/stores/config";
 import { Challenge } from "@/types/challenge";
 import {
@@ -33,6 +34,7 @@ import { useNavigate } from "react-router-dom";
 export default function Page() {
 	const challengeApi = useChallengeApi();
 	const configStore = useConfigStore();
+	const categoryStore = useCategoryStore();
 
 	const { colorScheme } = useMantineColorScheme();
 
@@ -294,36 +296,56 @@ export default function Page() {
 													color={
 														colorScheme === "dark"
 															? lighten(
-																	challenge
-																		?.category
-																		?.color ||
+																	categoryStore.getCategory(
+																		Number(
+																			challenge?.category_id
+																		)
+																	)?.color ||
 																		"#3F51B5",
 																	0.2
 																)
-															: challenge
-																	?.category
-																	?.color
+															: categoryStore.getCategory(
+																	Number(
+																		challenge?.category_id
+																	)
+																)?.color
 													}
 												>
-													{challenge?.category?.icon}
+													{
+														categoryStore.getCategory(
+															Number(
+																challenge?.category_id
+															)
+														)?.icon
+													}
 												</MDIcon>
 												<Text
 													c={
 														colorScheme === "dark"
 															? lighten(
-																	challenge
-																		?.category
-																		?.color ||
+																	categoryStore.getCategory(
+																		Number(
+																			challenge?.category_id
+																		)
+																	)?.color ||
 																		"#3F51B5",
 																	0.1
 																)
-															: challenge
-																	?.category
-																	?.color
+															: categoryStore.getCategory(
+																	Number(
+																		challenge?.category_id
+																	)
+																)?.color
 													}
 													fw={600}
 												>
-													{challenge?.category?.name?.toUpperCase()}
+													{categoryStore
+														.getCategory(
+															Number(
+																challenge?.category_id
+															)
+														)
+														?.name?.toUpperCase()}
 												</Text>
 											</Group>
 										</Table.Th>

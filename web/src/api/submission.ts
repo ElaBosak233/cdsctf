@@ -9,11 +9,11 @@ export function useSubmissionApi() {
 	const auth = useAuth();
 
 	const createSubmission = (request: SubmissionCreateRequest) => {
-		return auth.post("/submissions/", { ...request });
+		return auth.post("/submissions", { ...request });
 	};
 
 	const getSubmissions = (request: SubmissionFindRequest) => {
-		return auth.get("/submissions/", { params: request });
+		return auth.get("/submissions", { params: request });
 	};
 
 	const deleteSubmission = (request: SubmissionDeleteRequest) => {
