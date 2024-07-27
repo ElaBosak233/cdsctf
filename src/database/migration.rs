@@ -1,6 +1,14 @@
 use sea_orm::{ConnectionTrait, DbConn, EntityTrait, Schema};
 use tracing::error;
 
+macro_rules! create_tables {
+    ($db:expr, $($entity:expr),*) => {
+        $(
+            create_table($db, $entity).await;
+        )*
+    };
+}
+
 async fn create_table<E>(db: &DbConn, entity: E)
 where
     E: EntityTrait,
@@ -16,14 +24,17 @@ where
 }
 
 pub async fn migrate(db: &DbConn) {
-    create_table(db, crate::model::user::Entity).await;
-    create_table(db, crate::model::team::Entity).await;
-    create_table(db, crate::model::user_team::Entity).await;
-    create_table(db, crate::model::category::Entity).await;
-    create_table(db, crate::model::challenge::Entity).await;
-    create_table(db, crate::model::submission::Entity).await;
-    create_table(db, crate::model::game::Entity).await;
-    create_table(db, crate::model::pod::Entity).await;
-    create_table(db, crate::model::game_challenge::Entity).await;
-    create_table(db, crate::model::game_team::Entity).await;
+    create_tables!(
+        db,
+        crate::model::user::Entity,
+        crate::model::team::Entity,
+        crate::model::user_team::Entity,
+        crate::model::category::Entity,
+        crate::model::challenge::Entity,
+        crate::model::submission::Entity,
+        crate::model::game::Entity,
+        crate::model::pod::Entity,
+        crate::model::game_challenge::Entity,
+        crate::model::game_team::Entity
+    );
 }

@@ -32,12 +32,13 @@ pub async fn init() {
             crate::config::get_app_config().db.mysql.dbname,
         ),
         "postgres" => format!(
-            "postgres://{}:{}@{}:{}/{}",
+            "postgres://{}:{}@{}:{}/{}?currentSchema={}",
             crate::config::get_app_config().db.postgres.username,
             crate::config::get_app_config().db.postgres.password,
             crate::config::get_app_config().db.postgres.host,
             crate::config::get_app_config().db.postgres.port,
             crate::config::get_app_config().db.postgres.dbname,
+            crate::config::get_app_config().db.postgres.schema,
         ),
         _ => {
             error!("Unsupported database provider");
