@@ -18,8 +18,10 @@ const BANNER: &str = r#"
  / __| |/ _ \| | | |/ _` / __|/ _` |/ _` | |/ _ \
 | (__| | (_) | |_| | (_| \__ \ (_| | (_| | |  __/
  \___|_|\___/ \__,_|\__,_|___/\__,_|\__,_|_|\___|
-                                    Version {{.Version}}
-Commit: {{.Commit}}
+                                    Version {{version}}
+
+Commit: {{commit}}
+Build At: {{build_at}}
 GitHub: https://github.com/elabosak233/cloudsdale
 "#;
 
@@ -27,7 +29,10 @@ GitHub: https://github.com/elabosak233/cloudsdale
 async fn main() {
     println!(
         "{}",
-        BANNER.replace("{{.Version}}", env!("CARGO_PKG_VERSION"))
+        BANNER
+            .replace("{{version}}", env!("CARGO_PKG_VERSION"))
+            .replace("{{commit}}", env!("GIT_COMMIT_ID"))
+            .replace("{{build_at}}", env!("BUILD_AT"))
     );
 
     server::bootstrap().await;
