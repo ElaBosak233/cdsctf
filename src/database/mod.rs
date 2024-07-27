@@ -10,6 +10,8 @@ use std::{process, time::Duration};
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
+use crate::config;
+
 static DB: Lazy<RwLock<Option<DatabaseConnection>>> = Lazy::new(|| RwLock::new(None));
 
 pub async fn init() {
@@ -53,7 +55,7 @@ pub async fn init() {
         .idle_timeout(Duration::from_secs(8))
         .max_lifetime(Duration::from_secs(8))
         .sqlx_logging(false)
-        .set_schema_search_path("cloudsdale");
+        .set_schema_search_path(config::get_app_config().db.postgres.schema.as_str());
 
     let db: DatabaseConnection = Database::connect(opt).await.unwrap();
     {
