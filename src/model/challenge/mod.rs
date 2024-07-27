@@ -28,11 +28,11 @@ pub struct Model {
     pub memory_limit: i64,
     #[sea_orm(default_value = 1800)]
     pub duration: i64,
-    #[sea_orm(column_type = "Json", default_value = "[]")]
+    #[sea_orm(column_type = "Json")]
     pub ports: Vec<Port>,
-    #[sea_orm(column_type = "Json", default_value = "[]")]
+    #[sea_orm(column_type = "Json")]
     pub envs: Vec<Env>,
-    #[sea_orm(column_type = "Json", default_value = "[]")]
+    #[sea_orm(column_type = "Json")]
     pub flags: Vec<Flag>,
     pub created_at: i64,
     pub updated_at: i64,
