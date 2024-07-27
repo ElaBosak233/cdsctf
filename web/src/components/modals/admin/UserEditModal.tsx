@@ -238,7 +238,7 @@ export default function UserEditModal(props: UserEditModalProps) {
 															w={120}
 															h={120}
 															fit="contain"
-															src={`${import.meta.env.VITE_BASE_API}/media/users/${user?.id}/${user?.avatar?.name}`}
+															src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar`}
 														/>
 													</Center>
 												) : (

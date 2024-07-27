@@ -3,6 +3,7 @@ import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { useConfigStore } from "@/stores/config";
 import { Game } from "@/types/game";
+import { Metadata } from "@/types/media";
 import {
 	showErrNotification,
 	showSuccessNotification,
@@ -35,6 +36,8 @@ function Page() {
 	const gameApi = useGameApi();
 
 	const [game, setGame] = useState<Game>();
+
+	const [gamePosterMetadata, setGamePosterMetadata] = useState<Metadata>();
 
 	const form = useForm({
 		mode: "controlled",
@@ -95,6 +98,13 @@ function Page() {
 			});
 	}
 
+	function getGamePosterMetadata() {
+		gameApi.getGamePosterMetadata(Number(game?.id)).then((res) => {
+			const r = res.data;
+			setGamePosterMetadata(r.data);
+		});
+	}
+
 	function saveGamePoster(file?: File) {
 		const config: AxiosRequestConfig<FormData> = {};
 		gameApi
@@ -130,6 +140,7 @@ function Page() {
 				third_blood_reward_ratio: game?.third_blood_reward_ratio,
 				is_need_write_up: game?.is_need_write_up,
 			});
+			getGamePosterMetadata();
 		}
 	}, [game]);
 
@@ -282,13 +293,13 @@ function Page() {
 										pointerEvents: "none",
 									}}
 								>
-									{game?.poster?.name ? (
+									{gamePosterMetadata?.filename ? (
 										<Center>
 											<Image
 												mah={160}
 												w={310}
 												fit="contain"
-												src={`${import.meta.env.VITE_BASE_API}/media/games/${game?.id}/poster/${game?.poster?.name}`}
+												src={`${import.meta.env.VITE_BASE_API}/games/${game?.id}/poster`}
 											/>
 										</Center>
 									) : (

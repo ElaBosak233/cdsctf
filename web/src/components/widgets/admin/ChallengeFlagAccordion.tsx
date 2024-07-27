@@ -20,19 +20,20 @@ import {
 	Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { randomId } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { useEffect } from "react";
 
 interface ChallengeFlagAccordionProps {
 	flag?: Flag;
-	setRefresh: () => void;
+	updateFlag: (flag: Flag) => void;
+	deleteFlag: () => void;
 }
 
 export default function ChallengeFlagAccordion(
 	props: ChallengeFlagAccordionProps
 ) {
-	const { flag, setRefresh } = props;
-	const challengeApi = useChallengeApi();
+	const { flag, updateFlag, deleteFlag } = props;
 
 	const form = useForm({
 		mode: "controlled",
@@ -43,38 +44,6 @@ export default function ChallengeFlagAccordion(
 			type: "pattern",
 		},
 	});
-
-	function updateChallengeFlag() {
-		challengeApi
-			.updateChallengeFlag({
-				id: Number(flag?.id),
-				challenge_id: Number(flag?.challenge_id),
-				value: form.getValues().value,
-				env: form.getValues().env,
-				banned: form.getValues().banned,
-				type: form.getValues().type,
-			})
-			.then((_) => {
-				showSuccessNotification({
-					message: "Flag 更新成功",
-				});
-				setRefresh();
-			});
-	}
-
-	function deleteChallengeFlag() {
-		challengeApi
-			.deleteChallengeFlag({
-				id: Number(flag?.id),
-				challenge_id: Number(flag?.challenge_id),
-			})
-			.then((_) => {
-				showSuccessNotification({
-					message: "Flag 已删除",
-				});
-				setRefresh();
-			});
-	}
 
 	const openDeleteFlagModal = () =>
 		modals.openConfirmModal({
@@ -98,7 +67,7 @@ export default function ChallengeFlagAccordion(
 				color: "red",
 			},
 			onConfirm: () => {
-				deleteChallengeFlag();
+				deleteFlag();
 			},
 		});
 
@@ -114,7 +83,7 @@ export default function ChallengeFlagAccordion(
 	}, [flag]);
 
 	return (
-		<Accordion.Item value={String(flag?.id)}>
+		<Accordion.Item value={randomId()}>
 			<Center mr={20}>
 				<Accordion.Control>
 					<Group>
@@ -134,7 +103,7 @@ export default function ChallengeFlagAccordion(
 				</Flex>
 			</Center>
 			<Accordion.Panel>
-				<form onSubmit={form.onSubmit((_) => updateChallengeFlag())}>
+				<form onSubmit={form.onSubmit((_) => updateFlag(form.values))}>
 					<Stack>
 						<SimpleGrid cols={3}>
 							<TextInput

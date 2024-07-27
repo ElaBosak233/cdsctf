@@ -1,12 +1,8 @@
-import { File } from "./file";
-
 export interface Game {
 	id?: number;
 	title?: string;
 	bio?: string;
 	description?: string;
-	poster?: File;
-	public_key?: string;
 	is_enabled?: boolean;
 	is_public?: boolean;
 	member_limit_min?: number;

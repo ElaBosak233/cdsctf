@@ -16,11 +16,11 @@ export function useTeamApi() {
 	const auth = useAuth();
 
 	const getTeams = (request?: TeamFindRequest) => {
-		return auth.get("/teams/", { params: request });
+		return auth.get("/teams", { params: request });
 	};
 
 	const createTeam = (request?: TeamCreateRequest) => {
-		return auth.post("/teams/", request);
+		return auth.post("/teams", request);
 	};
 
 	const updateTeam = (request: TeamUpdateRequest) => {
@@ -51,6 +51,10 @@ export function useTeamApi() {
 		return auth.delete(`/teams/${request?.id}/leave`);
 	};
 
+	const getTeamAvatarMetadata = (id: number) => {
+		return auth.get(`/teams/${id}/avatar/metadata`);
+	};
+
 	const saveTeamAvatar = (
 		id: number,
 		file: File,
@@ -75,6 +79,7 @@ export function useTeamApi() {
 		leaveTeam,
 		getTeamInviteToken,
 		updateTeamInviteToken,
+		getTeamAvatarMetadata,
 		saveTeamAvatar,
 		deleteTeamAvatar,
 	};

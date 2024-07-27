@@ -37,11 +37,6 @@ export const NavItems = [
 
 export const AdminNavItems = [
 	{
-		name: "全局",
-		path: "/admin/global",
-		icon: "settings",
-	},
-	{
 		name: "题库",
 		path: "/admin/challenges",
 		icon: "collections_bookmark",
@@ -118,7 +113,8 @@ export default function Navbar(props: NavbarProps) {
 				>
 					<Flex align={"center"}>
 						<Image
-							src="/favicon.ico"
+							src={`${import.meta.env.VITE_BASE_API}/configs/favicon`}
+							fallbackSrc="/favicon.ico"
 							alt=""
 							w={36}
 							h={36}
@@ -245,11 +241,7 @@ export default function Navbar(props: NavbarProps) {
 					<Menu shadow="md" width={200} offset={20} withArrow>
 						<Menu.Target>
 							<Avatar
-								src={
-									authStore.user?.avatar?.name
-										? `${import.meta.env.VITE_BASE_API}/media/users/${authStore?.user?.id}/${authStore?.user?.avatar?.name}`
-										: undefined
-								}
+								src={`${import.meta.env.VITE_BASE_API}/users/${authStore?.user?.id}/avatar`}
 								color="white"
 								sx={{
 									"&:hover": {

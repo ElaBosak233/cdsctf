@@ -1,12 +1,10 @@
 import { Team } from "@/types/team";
-import { File } from "./file";
 
 export interface User {
 	id?: number;
 	username?: string;
 	nickname?: string;
 	email?: string;
-	avatar?: File;
 	group?: string;
 	teams?: Array<Team>;
 	created_at?: string;

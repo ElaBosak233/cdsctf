@@ -9,11 +9,11 @@ export function useCategoryApi() {
 	const auth = useAuth();
 
 	const getCategories = () => {
-		return auth.get("/categories/");
+		return auth.get("/categories");
 	};
 
 	const createCategory = (request: CategoryCreateRequest) => {
-		return auth.post("/categories/", request);
+		return auth.post("/categories", request);
 	};
 
 	const updateCategory = (request: CategoryUpdateRequest) => {

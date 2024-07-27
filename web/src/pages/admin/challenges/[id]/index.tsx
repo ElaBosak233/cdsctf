@@ -4,6 +4,7 @@ import MDIcon from "@/components/ui/MDIcon";
 import { useCategoryStore } from "@/stores/category";
 import { useConfigStore } from "@/stores/config";
 import { Challenge } from "@/types/challenge";
+import { Metadata } from "@/types/media";
 import {
 	showLoadingNotification,
 	showSuccessNotification,
@@ -41,6 +42,8 @@ function Page() {
 	const [refresh, setRefresh] = useState<number>(0);
 
 	const [challenge, setChallenge] = useState<Challenge>();
+	const [attachmentMetadata, setAttachmentMetadata] = useState<Metadata>();
+
 	const [attachment, setAttachment] = useState<File | null>(null);
 
 	function getChallenge() {
@@ -53,6 +56,13 @@ function Page() {
 				const r = res.data;
 				setChallenge(r.data[0]);
 			});
+	}
+
+	function getAttachmentMetadata() {
+		challengeApi.getChallengeAttachmentMetadata(Number(id)).then((res) => {
+			const r = res.data;
+			setAttachmentMetadata(r.data);
+		});
 	}
 
 	function saveAttachment() {
@@ -95,9 +105,7 @@ function Page() {
 			description: "",
 			category_id: 0,
 			is_dynamic: false,
-			practice_pts: 200,
 			duration: 0,
-			difficulty: 0,
 		},
 		validate: zodResolver(
 			z.object({
@@ -116,9 +124,7 @@ function Page() {
 				description: form.getValues().description,
 				category_id: form.getValues().category_id,
 				is_dynamic: form.getValues().is_dynamic,
-				practice_pts: form.getValues().practice_pts,
 				duration: form.getValues().duration,
-				difficulty: form.getValues().difficulty,
 			})
 			.then((_) => {
 				showSuccessNotification({
@@ -140,10 +146,9 @@ function Page() {
 				description: challenge.description,
 				category_id: challenge.category_id,
 				is_dynamic: challenge.is_dynamic,
-				practice_pts: challenge.practice_pts,
 				duration: challenge.duration,
-				difficulty: challenge.difficulty,
 			});
+			getAttachmentMetadata();
 		}
 	}, [challenge]);
 
@@ -198,12 +203,6 @@ function Page() {
 									);
 								}}
 							/>
-							<NumberInput
-								label="难度"
-								description="题目难度系数"
-								key={form.key("difficulty")}
-								{...form.getInputProps("difficulty")}
-							/>
 						</Group>
 						<Textarea
 							label="描述"
@@ -217,15 +216,14 @@ function Page() {
 						/>
 						<Group align={"end"} gap={10}>
 							<TextInput
-								label="附件链接"
-								description="题目附件链接"
+								label="附件名/大小"
 								disabled
 								sx={{
 									flexGrow: 1,
 								}}
 								value={
-									challenge?.attachment?.name
-										? `${import.meta.env.VITE_BASE_API}/media/challenges/${challenge?.id}/${challenge?.attachment?.name}`
+									attachmentMetadata?.filename
+										? `${attachmentMetadata?.filename} / ${attachmentMetadata?.size} bytes`
 										: ""
 								}
 							/>

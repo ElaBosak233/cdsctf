@@ -1,23 +1,17 @@
-import { Category } from "./category";
 import { Flag } from "./flag";
 import { Hint } from "./hint";
-import { Submission } from "./submission";
 import { Port } from "./port";
 import { Env } from "./env";
-import { File } from "./file";
+import { Submission } from "./submission";
 
 export interface Challenge {
 	id?: number;
 	title?: string;
 	description?: string;
 	category_id?: number;
-	category?: Category;
-	attachment?: File;
+	has_attachment?: boolean;
 	is_practicable?: boolean;
 	is_dynamic?: boolean;
-	difficulty?: number;
-	practice_pts?: number;
-	pts?: number;
 	duration?: number;
 	image_name?: string;
 	memory_limit?: number;
@@ -26,10 +20,6 @@ export interface Challenge {
 	envs?: Array<Env>;
 	flags?: Array<Flag>;
 	hints?: Array<Hint>;
-	solved?: Submission | boolean;
-	solved_times?: number;
-	bloods?: Array<Submission>;
-	is_enabled?: boolean;
 	min_pts?: number;
 	max_pts?: number;
 }
@@ -65,6 +55,7 @@ export interface ChallengeUpdateRequest {
 	cpu_limit?: number;
 	ports?: Array<Port>;
 	envs?: Array<Env>;
+	flags?: Array<Flag>;
 }
 
 export interface ChallengeCreateRequest {
@@ -85,4 +76,17 @@ export interface ChallengeCreateRequest {
 
 export interface ChallengeDeleteRequest {
 	id?: number;
+}
+
+export interface ChallengeStatus {
+	is_solved?: boolean;
+	solved_times?: number;
+	bloods?: Array<Submission>;
+}
+
+export interface ChallengeStatusRequest {
+	cids: Array<number>;
+	user_id?: number;
+	team_id?: number;
+	game_id?: number;
 }

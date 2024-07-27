@@ -9,6 +9,7 @@ export interface GameChallenge {
 	game?: Game;
 	is_enabled?: boolean;
 	pts?: number;
+	difficulty?: number;
 	max_pts?: number;
 	min_pts?: number;
 }

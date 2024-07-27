@@ -9,6 +9,7 @@ export interface Submission {
 	status?: number;
 	user_id?: number;
 	user?: User;
+	rank?: number;
 	challenge_id?: number;
 	challenge?: Challenge;
 	team_id?: number;
@@ -18,12 +19,6 @@ export interface Submission {
 	pts?: number;
 	created_at?: number;
 	updated_at?: number;
-	rank?: number;
-
-	// Frontend only
-	first_blood?: boolean;
-	second_blood?: boolean;
-	third_blood?: boolean;
 }
 
 export interface SubmissionCreateRequest {

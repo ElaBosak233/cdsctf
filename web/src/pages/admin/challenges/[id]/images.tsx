@@ -12,6 +12,7 @@ import {
 	Flex,
 	Group,
 	NumberInput,
+	Select,
 	SimpleGrid,
 	Stack,
 	Text,
@@ -136,7 +137,7 @@ function Page() {
 									onClick={() =>
 										setPorts([
 											...ports,
-											{ value: 0, description: "" },
+											{ value: 0, protocol: "TCP" },
 										])
 									}
 								>
@@ -153,44 +154,45 @@ function Page() {
 								align={"center"}
 								justify={"space-between"}
 							>
-								<Group gap={10}>
+								<Flex gap={15}>
 									<NumberInput
 										label="端口"
-										value={port?.value}
+										value={port.value}
 										onChange={(e) =>
 											setPorts(
 												ports.map((p, i) =>
 													i === index
 														? {
-																...p,
 																value: Number(
 																	e
 																),
+																protocol:
+																	p.protocol,
 															}
 														: p
 												)
 											)
 										}
 									/>
-									<TextInput
-										label="描述"
-										value={port?.description}
+									<Select
+										label="协议"
+										data={["TCP", "UDP"]}
+										value={port.protocol}
 										onChange={(e) =>
 											setPorts(
 												ports.map((p, i) =>
 													i === index
 														? {
-																...p,
-																description:
-																	e.target
-																		.value,
+																value: p.value,
+																protocol:
+																	String(e),
 															}
 														: p
 												)
 											)
 										}
 									/>
-								</Group>
+								</Flex>
 								<Tooltip
 									label="删除端口映射"
 									withArrow

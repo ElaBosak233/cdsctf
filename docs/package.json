@@ -1,9 +1,10 @@
 {
-    "name": "cloudsdale.docs",
-    "version": "1.0.0",
-    "private": true,
-    "scripts": {
-        "dev": "mkdocs serve",
-        "build": "mkdocs build -d public"
-    }
+	"scripts": {
+		"dev": "vitepress dev",
+		"build": "vitepress build",
+		"preview": "vitepress preview"
+	},
+	"devDependencies": {
+		"vitepress": "^1.3.1"
+	}
 }

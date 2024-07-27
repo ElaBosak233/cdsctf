@@ -9,11 +9,11 @@ export function usePodApi() {
 	const auth = useAuth();
 
 	const getPods = (request: PodFindRequest) => {
-		return auth.get("/pods/", { params: { ...request } });
+		return auth.get("/pods", { params: { ...request } });
 	};
 
 	const createPod = (request: PodCreateRequest) => {
-		return auth.post("/pods/", { ...request });
+		return auth.post("/pods", { ...request });
 	};
 
 	const removePod = (request: PodRemoveRequest) => {

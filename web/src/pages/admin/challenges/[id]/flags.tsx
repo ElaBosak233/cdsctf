@@ -4,6 +4,8 @@ import ChallengeFlagCreateModal from "@/components/modals/admin/ChallengeFlagCre
 import MDIcon from "@/components/ui/MDIcon";
 import ChallengeFlagAccordion from "@/components/widgets/admin/ChallengeFlagAccordion";
 import { Challenge } from "@/types/challenge";
+import { Flag } from "@/types/flag";
+import { showSuccessNotification } from "@/utils/notification";
 import {
 	Accordion,
 	Flex,
@@ -13,6 +15,14 @@ import {
 	Divider,
 	ActionIcon,
 	Tooltip,
+	Button,
+	Select,
+	SimpleGrid,
+	Switch,
+	TextInput,
+	Card,
+	Badge,
+	Center,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useEffect, useState } from "react";
@@ -22,8 +32,8 @@ function Page() {
 	const { id } = useParams<{ id: string }>();
 	const challengeApi = useChallengeApi();
 
-	const [refresh, setRefresh] = useState<number>(0);
 	const [challenge, setChallenge] = useState<Challenge>();
+	const [flags, setFlags] = useState<Array<Flag>>();
 
 	const [createOpened, { open: createOpen, close: createClose }] =
 		useDisclosure(false);
@@ -40,9 +50,26 @@ function Page() {
 			});
 	}
 
+	function updateChallengeFlag() {
+		challengeApi
+			.updateChallenge({
+				id: Number(id),
+				flags: flags,
+			})
+			.then((_) => {
+				showSuccessNotification({
+					message: "题目 Flag 更新成功",
+				});
+			});
+	}
+
 	useEffect(() => {
 		getChallenge();
-	}, [refresh]);
+	}, []);
+
+	useEffect(() => {
+		setFlags(challenge?.flags);
+	}, [challenge]);
 
 	useEffect(() => {
 		document.title = `Flags - ${challenge?.title}`;
@@ -68,25 +95,74 @@ function Page() {
 					<Divider />
 				</Stack>
 				<Stack mx={20}>
-					<Accordion variant="separated">
-						{challenge?.flags?.map((flag) => (
-							<ChallengeFlagAccordion
-								key={flag?.id}
-								flag={flag}
-								setRefresh={() => {
-									setRefresh((prev) => prev + 1);
-								}}
-							/>
-						))}
-					</Accordion>
+					{flags?.map((flag, index) => (
+						<Card shadow={"xs"} key={index}>
+							<Flex gap={15}>
+								<Center>
+									<Badge
+										color={flag?.banned ? "red" : "brand"}
+									>
+										{index + 1}
+									</Badge>
+								</Center>
+								<TextInput
+									label="Flag 值"
+									disabled
+									value={flag.value}
+								/>
+								<Select
+									label="Flag 类型"
+									disabled
+									data={[
+										{
+											label: "正则表达式",
+											value: "pattern",
+										},
+										{
+											label: "动态",
+											value: "dynamic",
+										},
+									]}
+									allowDeselect={false}
+									value={flag.type}
+								/>
+								<TextInput
+									label="环境变量"
+									disabled
+									value={flag.env}
+								/>
+								<Flex justify={"end"} align={"center"} flex={1}>
+									<ActionIcon
+										onClick={() => {
+											const newFlags = flags?.filter(
+												(_, i) => i !== index
+											);
+											setFlags(newFlags);
+										}}
+									>
+										<MDIcon c={"red"}>delete</MDIcon>
+									</ActionIcon>
+								</Flex>
+							</Flex>
+						</Card>
+					))}
 				</Stack>
+				<Flex justify="end">
+					<Button
+						leftSection={<MDIcon c={"white"}>check</MDIcon>}
+						onClick={() => updateChallengeFlag()}
+					>
+						保存
+					</Button>
+				</Flex>
 			</Stack>
 			<ChallengeFlagCreateModal
 				centered
 				opened={createOpened}
 				onClose={createClose}
-				setRefresh={() => {
-					setRefresh((prev) => prev + 1);
+				addFlag={(flag) => {
+					const newFlags = flags?.concat(flag);
+					setFlags(newFlags);
 				}}
 			/>
 		</>

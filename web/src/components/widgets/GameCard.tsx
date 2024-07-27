@@ -42,7 +42,7 @@ export default function GameCard({ game }: { game?: Game }) {
 					}}
 				>
 					<BackgroundImage
-						src={`${import.meta.env.VITE_BASE_API}/media/games/${game?.id}/poster/${game?.poster?.name}`}
+						src={`${import.meta.env.VITE_BASE_API}/games/${game?.id}/poster`}
 						h={200}
 						w={"30%"}
 					></BackgroundImage>

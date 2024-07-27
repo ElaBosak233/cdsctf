@@ -1,6 +1,7 @@
 import { useUserApi } from "@/api/user";
 import MDIcon from "@/components/ui/MDIcon";
 import { useAuthStore } from "@/stores/auth";
+import { Metadata } from "@/types/media";
 import { User } from "@/types/user";
 import {
 	showErrNotification,
@@ -29,6 +30,7 @@ export default function Page() {
 	const authStore = useAuthStore();
 
 	const [user, setUser] = useState<User>();
+	const [avatarMetadata, setAvatarMetadata] = useState<Metadata>();
 
 	const [refresh, setRefresh] = useState<number>(0);
 
@@ -90,6 +92,12 @@ export default function Page() {
 			});
 	}
 
+	function getUserAvatarMetadata() {
+		userApi.getUserAvatarMetadata(Number(user?.id)).then((res) => {
+			setAvatarMetadata(res.data);
+		});
+	}
+
 	function saveUserAvatar(file?: File) {
 		const config: AxiosRequestConfig<FormData> = {};
 		userApi
@@ -116,6 +124,7 @@ export default function Page() {
 				nickname: user.nickname,
 				password: "",
 			});
+			getUserAvatarMetadata();
 		}
 	}, [user]);
 
@@ -207,13 +216,13 @@ export default function Page() {
 												pointerEvents: "none",
 											}}
 										>
-											{user?.avatar?.name ? (
+											{avatarMetadata ? (
 												<Center>
 													<Image
 														w={120}
 														h={120}
 														fit="contain"
-														src={`${import.meta.env.VITE_BASE_API}/media/users/${user?.id}/${user?.avatar?.name}`}
+														src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar?refresh=${refresh}`}
 													/>
 												</Center>
 											) : (

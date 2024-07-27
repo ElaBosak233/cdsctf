@@ -101,7 +101,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 			})
 			.then((res) => {
 				const r = res.data;
-				setInviteToken(r.invite_token);
+				setInviteToken(r.token);
 			});
 	}
 
@@ -112,7 +112,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 			})
 			.then((res) => {
 				const r = res.data;
-				setInviteToken(r.invite_token);
+				setInviteToken(r.token);
 				showSuccessNotification({
 					message: `团队 ${team?.name} 邀请码更新成功`,
 				});
@@ -342,7 +342,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 															w={120}
 															h={120}
 															fit="contain"
-															src={`${import.meta.env.VITE_BASE_API}/media/teams/${team?.id}/${team?.avatar?.name}`}
+															src={`${import.meta.env.VITE_BASE_API}/teams/${team?.id}/avatar`}
 														/>
 													</Center>
 												) : (
@@ -395,7 +395,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
 												<Flex align={"center"} gap={10}>
 													<Avatar
 														color="brand"
-														src={`${import.meta.env.VITE_BASE_API}/media/users/${user?.id}/${user?.avatar?.name}`}
+														src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar`}
 														radius="xl"
 													>
 														<MDIcon>person</MDIcon>

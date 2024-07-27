@@ -1,23 +1,16 @@
 import { User } from "@/types/user";
-import { File } from "./file";
 
 export interface Team {
 	id?: number;
 	name?: string;
 	description?: string;
 	email?: string;
-	avatar?: File;
 	captain_id?: number;
 	captain?: User;
 	is_locked?: boolean;
 	created_at?: string;
 	updated_at?: string;
 	users?: Array<User>;
-	is_allowed?: boolean;
-	signature?: string;
-	pts?: number;
-	rank?: number;
-	solved?: number;
 }
 
 export interface TeamFindRequest {
@@ -53,7 +46,7 @@ export interface TeamDeleteRequest {
 
 export interface TeamJoinRequest {
 	id: number;
-	invite_token: string;
+	token: string;
 }
 
 export interface TeamLeaveRequest {
