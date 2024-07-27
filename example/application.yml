@@ -53,7 +53,7 @@ container:
   provider: "docker"  # The container provider, can be "docker" or "k8s".
   entry: "127.0.0.1"  # The public entry of containers.
   docker:
-    uri: "unix://var/run/docker.sock"  # DO NOT EDIT if you are using docker-compose.
+    uri: "unix:///var/run/docker.sock"  # DO NOT EDIT if you are using docker-compose.
   k8s:
     namespace: "cloudsdale"  # The namespace of k8s cluster.
     path: "./k8s-config.yml"  # The k8s config file's path, such as "./k8s-config.yml".
@@ -73,6 +73,7 @@ db:
     password: "cloudsdale"
     port: 5432
     sslmode: "disable"
+    schema: "public"
   mysql:
     dbname: "cloudsdale"
     host: "db"
