@@ -9,9 +9,7 @@ use crate::config;
 static SECRET: Lazy<Mutex<String>> = Lazy::new(|| {
     let mut secret_key = config::get_app_config().auth.jwt.secret_key.clone();
     let re = Regex::new(r"\[([Uu][Ii][Dd])\]").unwrap();
-    secret_key = re
-        .replace_all(&secret_key, uuid::Uuid::new_v4().simple().to_string())
-        .to_string();
+    secret_key = re.replace_all(&secret_key, uuid::Uuid::new_v4().simple().to_string()).to_string();
     return Mutex::new(secret_key);
 });
 
@@ -53,12 +51,7 @@ pub async fn generate_jwt_token(user_id: i64) -> String {
         exp: (chrono::Utc::now() + chrono::Duration::seconds(3600)).timestamp() as usize,
     };
 
-    let token = encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )
-    .unwrap();
+    let token = encode(&Header::default(), &claims, &EncodingKey::from_secret(secret.as_bytes())).unwrap();
 
     return token;
 }

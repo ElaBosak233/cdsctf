@@ -1,13 +1,8 @@
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter, TryIntoModel,
-};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter, TryIntoModel};
 
 use crate::database::get_db;
 
-pub async fn find(
-    user_id: Option<i64>,
-    team_id: Option<i64>,
-) -> Result<(Vec<crate::model::user_team::Model>, u64), DbErr> {
+pub async fn find(user_id: Option<i64>, team_id: Option<i64>) -> Result<(Vec<crate::model::user_team::Model>, u64), DbErr> {
     let mut query = crate::model::user_team::Entity::find();
 
     if let Some(user_id) = user_id {
@@ -25,15 +20,11 @@ pub async fn find(
     Ok((user_teams, total))
 }
 
-pub async fn create(
-    user_team: crate::model::user_team::ActiveModel,
-) -> Result<crate::model::user_team::Model, DbErr> {
+pub async fn create(user_team: crate::model::user_team::ActiveModel) -> Result<crate::model::user_team::Model, DbErr> {
     user_team.insert(&get_db().await).await?.try_into_model()
 }
 
-pub async fn update(
-    user_team: crate::model::user_team::ActiveModel,
-) -> Result<crate::model::user_team::Model, DbErr> {
+pub async fn update(user_team: crate::model::user_team::ActiveModel) -> Result<crate::model::user_team::Model, DbErr> {
     user_team.update(&get_db().await).await?.try_into_model()
 }
 

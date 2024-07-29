@@ -3,20 +3,11 @@ use std::error::Error;
 
 use sea_orm::TryIntoModel;
 
-pub async fn find(
-    req: crate::model::challenge::request::FindRequest,
-) -> Result<(Vec<crate::model::challenge::Model>, u64), ()> {
-    let (mut challenges, total) = crate::repository::challenge::find(
-        req.id,
-        req.title,
-        req.category_id,
-        req.is_practicable,
-        req.is_dynamic,
-        req.page,
-        req.size,
-    )
-    .await
-    .unwrap();
+pub async fn find(req: crate::model::challenge::request::FindRequest) -> Result<(Vec<crate::model::challenge::Model>, u64), ()> {
+    let (mut challenges, total) =
+        crate::repository::challenge::find(req.id, req.title, req.category_id, req.is_practicable, req.is_dynamic, req.page, req.size)
+            .await
+            .unwrap();
 
     for challenge in challenges.iter_mut() {
         let is_detailed = req.is_detailed.unwrap_or(false);
@@ -31,21 +22,16 @@ pub async fn find(
 pub async fn status(
     req: crate::model::challenge::request::StatusRequest,
 ) -> Result<HashMap<i64, crate::model::challenge::response::StatusResponse>, Box<dyn Error>> {
-    let mut submissions = crate::repository::submission::find_by_challenge_ids(req.cids.clone())
-        .await
-        .unwrap();
+    let mut submissions = crate::repository::submission::find_by_challenge_ids(req.cids.clone()).await.unwrap();
 
-    let mut result: HashMap<i64, crate::model::challenge::response::StatusResponse> =
-        HashMap::new();
+    let mut result: HashMap<i64, crate::model::challenge::response::StatusResponse> = HashMap::new();
 
     for cid in req.cids {
-        result
-            .entry(cid)
-            .or_insert_with(|| crate::model::challenge::response::StatusResponse {
-                is_solved: false,
-                solved_times: 0,
-                bloods: Vec::new(),
-            });
+        result.entry(cid).or_insert_with(|| crate::model::challenge::response::StatusResponse {
+            is_solved: false,
+            solved_times: 0,
+            bloods: Vec::new(),
+        });
     }
 
     for submission in submissions.iter_mut() {
@@ -75,17 +61,13 @@ pub async fn status(
         status_response.solved_times += 1;
         if status_response.bloods.len() < 3 {
             status_response.bloods.push(submission.clone());
-            status_response
-                .bloods
-                .sort_by(|a, b| a.created_at.cmp(&b.created_at));
+            status_response.bloods.sort_by(|a, b| a.created_at.cmp(&b.created_at));
         } else {
             let last_submission = status_response.bloods.last().unwrap();
             if submission.created_at < last_submission.created_at {
                 status_response.bloods.pop();
                 status_response.bloods.push(submission.clone());
-                status_response
-                    .bloods
-                    .sort_by(|a, b| a.created_at.cmp(&b.created_at));
+                status_response.bloods.sort_by(|a, b| a.created_at.cmp(&b.created_at));
             }
         }
     }
@@ -93,18 +75,14 @@ pub async fn status(
     return Ok(result);
 }
 
-pub async fn create(
-    req: crate::model::challenge::request::CreateRequest,
-) -> Result<crate::model::challenge::Model, Box<dyn Error>> {
+pub async fn create(req: crate::model::challenge::request::CreateRequest) -> Result<crate::model::challenge::Model, Box<dyn Error>> {
     match crate::repository::challenge::create(req.into()).await {
         Ok(challenge) => return Ok(challenge.try_into_model().unwrap()),
         Err(err) => return Err(Box::new(err)),
     }
 }
 
-pub async fn update(
-    req: crate::model::challenge::request::UpdateRequest,
-) -> Result<(), Box<dyn Error>> {
+pub async fn update(req: crate::model::challenge::request::UpdateRequest) -> Result<(), Box<dyn Error>> {
     match crate::repository::challenge::update(req.into()).await {
         Ok(_) => return Ok(()),
         Err(err) => return Err(Box::new(err)),

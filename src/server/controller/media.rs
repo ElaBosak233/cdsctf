@@ -10,10 +10,7 @@ pub async fn get_file(Path(path): Path<String>) -> impl IntoResponse {
         Ok(buffer) => {
             return Response::builder()
                 .header(header::CONTENT_TYPE, "application/octet-stream")
-                .header(
-                    header::CONTENT_DISPOSITION,
-                    format!("attachment; filename=\"{}\"", filename),
-                )
+                .header(header::CONTENT_DISPOSITION, format!("attachment; filename=\"{}\"", filename))
                 .body(buffer.into())
                 .unwrap();
         }

@@ -2,20 +2,15 @@ use std::error::Error;
 
 use sea_orm::TryIntoModel;
 
-pub async fn find(
-    req: crate::model::game::request::FindRequest,
-) -> Result<(Vec<crate::model::game::Model>, u64), Box<dyn Error>> {
-    let (games, total) =
-        crate::repository::game::find(req.id, req.title, req.is_enabled, req.page, req.size)
-            .await
-            .unwrap();
+pub async fn find(req: crate::model::game::request::FindRequest) -> Result<(Vec<crate::model::game::Model>, u64), Box<dyn Error>> {
+    let (games, total) = crate::repository::game::find(req.id, req.title, req.is_enabled, req.page, req.size)
+        .await
+        .unwrap();
 
     return Ok((games, total));
 }
 
-pub async fn create(
-    req: crate::model::game::request::CreateRequest,
-) -> Result<crate::model::game::Model, Box<dyn Error>> {
+pub async fn create(req: crate::model::game::request::CreateRequest) -> Result<crate::model::game::Model, Box<dyn Error>> {
     match crate::repository::game::create(req.into()).await {
         Ok(game) => return Ok(game.try_into_model().unwrap()),
         Err(err) => return Err(Box::new(err)),

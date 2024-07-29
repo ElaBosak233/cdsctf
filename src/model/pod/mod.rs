@@ -50,22 +50,10 @@ pub enum Relation {
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
-            Self::Challenge => Entity::belongs_to(challenge::Entity)
-                .from(Column::ChallengeId)
-                .to(challenge::Column::Id)
-                .into(),
-            Self::User => Entity::belongs_to(user::Entity)
-                .from(Column::UserId)
-                .to(user::Column::Id)
-                .into(),
-            Self::Team => Entity::belongs_to(team::Entity)
-                .from(Column::TeamId)
-                .to(team::Column::Id)
-                .into(),
-            Self::Game => Entity::belongs_to(game::Entity)
-                .from(Column::GameId)
-                .to(game::Column::Id)
-                .into(),
+            Self::Challenge => Entity::belongs_to(challenge::Entity).from(Column::ChallengeId).to(challenge::Column::Id).into(),
+            Self::User => Entity::belongs_to(user::Entity).from(Column::UserId).to(user::Column::Id).into(),
+            Self::Team => Entity::belongs_to(team::Entity).from(Column::TeamId).to(team::Column::Id).into(),
+            Self::Game => Entity::belongs_to(game::Entity).from(Column::GameId).to(game::Column::Id).into(),
         }
     }
 }

@@ -20,10 +20,7 @@ use crate::util::validate;
 /// - `200`: find successfully.
 /// - `403`: operator does not have permission to find challenges.
 /// - `400`: find failed.
-pub async fn find(
-    Extension(ext): Extension<Ext>,
-    Query(params): Query<crate::model::challenge::request::FindRequest>,
-) -> impl IntoResponse {
+pub async fn find(Extension(ext): Extension<Ext>, Query(params): Query<crate::model::challenge::request::FindRequest>) -> impl IntoResponse {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && params.is_detailed.unwrap_or(false) {
         return (
@@ -52,9 +49,7 @@ pub async fn find(
     }
 }
 
-pub async fn status(
-    Json(body): Json<crate::model::challenge::request::StatusRequest>,
-) -> impl IntoResponse {
+pub async fn status(Json(body): Json<crate::model::challenge::request::StatusRequest>) -> impl IntoResponse {
     match service::challenge::status(body).await {
         Ok(status) => (
             StatusCode::OK,
@@ -72,9 +67,7 @@ pub async fn status(
     }
 }
 
-pub async fn create(
-    Json(body): Json<crate::model::challenge::request::CreateRequest>,
-) -> impl IntoResponse {
+pub async fn create(Json(body): Json<crate::model::challenge::request::CreateRequest>) -> impl IntoResponse {
     match service::challenge::create(body).await {
         Ok(challenge) => (
             StatusCode::OK,
@@ -93,10 +86,7 @@ pub async fn create(
     }
 }
 
-pub async fn update(
-    Path(id): Path<i64>,
-    validate::Json(mut body): validate::Json<crate::model::challenge::request::UpdateRequest>,
-) -> impl IntoResponse {
+pub async fn update(Path(id): Path<i64>, validate::Json(mut body): validate::Json<crate::model::challenge::request::UpdateRequest>) -> impl IntoResponse {
     body.id = Some(id);
     match service::challenge::update(body).await {
         Ok(()) => (
@@ -138,10 +128,7 @@ pub async fn find_attachment(Path(id): Path<i64>) -> impl IntoResponse {
             let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
             return Response::builder()
                 .header(header::CONTENT_TYPE, "application/octet-stream")
-                .header(
-                    header::CONTENT_DISPOSITION,
-                    format!("attachment; filename=\"{}\"", filename),
-                )
+                .header(header::CONTENT_DISPOSITION, format!("attachment; filename=\"{}\"", filename))
                 .body(buffer.into())
                 .unwrap();
         }

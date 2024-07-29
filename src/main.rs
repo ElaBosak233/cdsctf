@@ -1,3 +1,4 @@
+mod assets;
 mod captcha;
 mod config;
 mod container;
@@ -12,24 +13,13 @@ mod server;
 mod traits;
 mod util;
 
-const BANNER: &str = r#"
-      _                 _         _       _
-  ___/ | ___  _   _  __| |___  __| | __ _/ | ___
- / __| |/ _ \| | | |/ _` / __|/ _` |/ _` | |/ _ \
-| (__| | (_) | |_| | (_| \__ \ (_| | (_| | |  __/
- \___|_|\___/ \__,_|\__,_|___/\__,_|\__,_|_|\___|
-                                    Version {{version}}
-
-Commit: {{commit}}
-Build At: {{build_at}}
-GitHub: https://github.com/elabosak233/cloudsdale
-"#;
-
 #[tokio::main]
 async fn main() {
+    let banner = assets::Assets::get("banner.txt").unwrap();
     println!(
         "{}",
-        BANNER
+        std::str::from_utf8(banner.data.as_ref())
+            .unwrap()
             .replace("{{version}}", env!("CARGO_PKG_VERSION"))
             .replace("{{commit}}", env!("GIT_COMMIT_ID"))
             .replace("{{build_at}}", env!("BUILD_AT"))

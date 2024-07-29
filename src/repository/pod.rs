@@ -1,22 +1,11 @@
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, LoaderTrait, PaginatorTrait, QueryFilter,
-    TryIntoModel,
-};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, LoaderTrait, PaginatorTrait, QueryFilter, TryIntoModel};
 
 use crate::database::get_db;
 
-async fn preload(
-    mut pods: Vec<crate::model::pod::Model>,
-) -> Result<Vec<crate::model::pod::Model>, DbErr> {
-    let users = pods
-        .load_one(crate::model::user::Entity, &get_db().await)
-        .await?;
-    let teams = pods
-        .load_one(crate::model::team::Entity, &get_db().await)
-        .await?;
-    let challenges = pods
-        .load_one(crate::model::challenge::Entity, &get_db().await)
-        .await?;
+async fn preload(mut pods: Vec<crate::model::pod::Model>) -> Result<Vec<crate::model::pod::Model>, DbErr> {
+    let users = pods.load_one(crate::model::user::Entity, &get_db().await).await?;
+    let teams = pods.load_one(crate::model::team::Entity, &get_db().await).await?;
+    let challenges = pods.load_one(crate::model::challenge::Entity, &get_db().await).await?;
 
     for i in 0..pods.len() {
         let mut pod = pods[i].clone();
@@ -30,12 +19,7 @@ async fn preload(
 }
 
 pub async fn find(
-    id: Option<i64>,
-    name: Option<String>,
-    user_id: Option<i64>,
-    team_id: Option<i64>,
-    game_id: Option<i64>,
-    challenge_id: Option<i64>,
+    id: Option<i64>, name: Option<String>, user_id: Option<i64>, team_id: Option<i64>, game_id: Option<i64>, challenge_id: Option<i64>,
     is_available: Option<bool>,
 ) -> Result<(Vec<crate::model::pod::Model>, u64), DbErr> {
     let mut query = crate::model::pod::Entity::find();
@@ -65,16 +49,8 @@ pub async fn find(
 
     if let Some(is_available) = is_available {
         match is_available {
-            true => {
-                query = query.filter(
-                    crate::model::pod::Column::RemovedAt.gte(chrono::Utc::now().timestamp()),
-                )
-            }
-            false => {
-                query = query.filter(
-                    crate::model::pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp()),
-                )
-            }
+            true => query = query.filter(crate::model::pod::Column::RemovedAt.gte(chrono::Utc::now().timestamp())),
+            false => query = query.filter(crate::model::pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp())),
         }
     }
 
@@ -87,26 +63,17 @@ pub async fn find(
     return Ok((pods, total));
 }
 
-pub async fn create(
-    pod: crate::model::pod::ActiveModel,
-) -> Result<crate::model::pod::Model, DbErr> {
+pub async fn create(pod: crate::model::pod::ActiveModel) -> Result<crate::model::pod::Model, DbErr> {
     return pod.insert(&get_db().await).await?.try_into_model();
 }
 
-pub async fn update(
-    pod: crate::model::pod::ActiveModel,
-) -> Result<crate::model::pod::Model, DbErr> {
+pub async fn update(pod: crate::model::pod::ActiveModel) -> Result<crate::model::pod::Model, DbErr> {
     return pod.update(&get_db().await).await?.try_into_model();
 }
 
 pub async fn delete(id: i64) -> Result<(), DbErr> {
-    let result = crate::model::pod::Entity::delete_by_id(id)
-        .exec(&get_db().await)
-        .await?;
+    let result = crate::model::pod::Entity::delete_by_id(id).exec(&get_db().await).await?;
     return Ok(if result.rows_affected == 0 {
-        return Err(DbErr::RecordNotFound(format!(
-            "Pod with id {} not found",
-            id
-        )));
+        return Err(DbErr::RecordNotFound(format!("Pod with id {} not found", id)));
     });
 }

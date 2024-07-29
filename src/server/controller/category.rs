@@ -72,10 +72,7 @@ pub async fn create(validate::Json(body): validate::Json<CreateRequest>) -> impl
 /// ## Returns
 /// - `200`: update successfully.
 /// - `400`: update failed.
-pub async fn update(
-    Path(id): Path<i64>,
-    validate::Json(mut body): validate::Json<UpdateRequest>,
-) -> impl IntoResponse {
+pub async fn update(Path(id): Path<i64>, validate::Json(mut body): validate::Json<UpdateRequest>) -> impl IntoResponse {
     body.id = Some(id);
     match service::category::update(body).await {
         Ok(()) => (

@@ -1,0 +1,12 @@
+merge_derives = true
+fn_params_layout = "Compressed"
+max_width = 160
+tab_spaces = 4
+reorder_imports = true
+
+# unstable_features = true
+# hex_literal_case = "Upper"
+# condense_wildcard_suffixes = true
+# imports_granularity = "Crate"
+# brace_style = "PreferSameLine"
+# group_imports = "StdExternalCrate"

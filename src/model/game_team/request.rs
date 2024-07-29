@@ -11,10 +11,7 @@ pub struct FindRequest {
 
 impl Default for FindRequest {
     fn default() -> Self {
-        FindRequest {
-            game_id: None,
-            team_id: None,
-        }
+        FindRequest { game_id: None, team_id: None }
     }
 }
 

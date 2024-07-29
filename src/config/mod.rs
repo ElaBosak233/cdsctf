@@ -28,9 +28,7 @@ pub async fn init() {
     let target_path = Path::new("application.yml");
     if target_path.exists() {
         let content = fs::read_to_string("application.yml").await.unwrap();
-        APP_CONFIG
-            .set(serde_yaml::from_str(&content).unwrap())
-            .unwrap();
+        APP_CONFIG.set(serde_yaml::from_str(&content).unwrap()).unwrap();
     } else {
         error!("Configuration application.yml not found.");
         process::exit(1);

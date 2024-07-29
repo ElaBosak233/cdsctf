@@ -1,17 +1,9 @@
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect,
-    TryIntoModel,
-};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect, TryIntoModel};
 
 use crate::database::get_db;
 
 pub async fn find(
-    id: Option<i64>,
-    title: Option<String>,
-    category_id: Option<i64>,
-    is_practicable: Option<bool>,
-    is_dynamic: Option<bool>,
-    page: Option<u64>,
+    id: Option<i64>, title: Option<String>, category_id: Option<i64>, is_practicable: Option<bool>, is_dynamic: Option<bool>, page: Option<u64>,
     size: Option<u64>,
 ) -> Result<(Vec<crate::model::challenge::Model>, u64), DbErr> {
     let mut query = crate::model::challenge::Entity::find();
@@ -59,26 +51,17 @@ pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<crate::model::challenge::M
     return Ok(challenges);
 }
 
-pub async fn create(
-    challenge: crate::model::challenge::ActiveModel,
-) -> Result<crate::model::challenge::Model, DbErr> {
+pub async fn create(challenge: crate::model::challenge::ActiveModel) -> Result<crate::model::challenge::Model, DbErr> {
     challenge.insert(&get_db().await).await?.try_into_model()
 }
 
-pub async fn update(
-    challenge: crate::model::challenge::ActiveModel,
-) -> Result<crate::model::challenge::Model, DbErr> {
+pub async fn update(challenge: crate::model::challenge::ActiveModel) -> Result<crate::model::challenge::Model, DbErr> {
     challenge.update(&get_db().await).await?.try_into_model()
 }
 
 pub async fn delete(id: i64) -> Result<(), DbErr> {
-    let result = crate::model::challenge::Entity::delete_by_id(id)
-        .exec(&get_db().await)
-        .await?;
+    let result = crate::model::challenge::Entity::delete_by_id(id).exec(&get_db().await).await?;
     Ok(if result.rows_affected == 0 {
-        return Err(DbErr::RecordNotFound(format!(
-            "Challenge with id {} not found",
-            id
-        )));
+        return Err(DbErr::RecordNotFound(format!("Challenge with id {} not found", id)));
     })
 }

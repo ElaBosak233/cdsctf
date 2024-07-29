@@ -1,16 +1,9 @@
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect,
-    TryIntoModel,
-};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect, TryIntoModel};
 
 use crate::database::get_db;
 
 pub async fn find(
-    id: Option<i64>,
-    title: Option<String>,
-    is_enabled: Option<bool>,
-    page: Option<u64>,
-    size: Option<u64>,
+    id: Option<i64>, title: Option<String>, is_enabled: Option<bool>, page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<crate::model::game::Model>, u64), DbErr> {
     let mut query = crate::model::game::Entity::find();
 
@@ -40,26 +33,17 @@ pub async fn find(
     return Ok((games, total));
 }
 
-pub async fn create(
-    game: crate::model::game::ActiveModel,
-) -> Result<crate::model::game::Model, DbErr> {
+pub async fn create(game: crate::model::game::ActiveModel) -> Result<crate::model::game::Model, DbErr> {
     game.insert(&get_db().await).await?.try_into_model()
 }
 
-pub async fn update(
-    game: crate::model::game::ActiveModel,
-) -> Result<crate::model::game::Model, DbErr> {
+pub async fn update(game: crate::model::game::ActiveModel) -> Result<crate::model::game::Model, DbErr> {
     game.update(&get_db().await).await?.try_into_model()
 }
 
 pub async fn delete(id: i64) -> Result<(), DbErr> {
-    let result = crate::model::game::Entity::delete_by_id(id)
-        .exec(&get_db().await)
-        .await?;
+    let result = crate::model::game::Entity::delete_by_id(id).exec(&get_db().await).await?;
     Ok(if result.rows_affected == 0 {
-        return Err(DbErr::RecordNotFound(format!(
-            "Game with id {} not found",
-            id
-        )));
+        return Err(DbErr::RecordNotFound(format!("Game with id {} not found", id)));
     })
 }

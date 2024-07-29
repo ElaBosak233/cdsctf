@@ -21,16 +21,8 @@ struct TurnstileRequest {
 impl ICaptcha for Turnstile {
     fn new() -> Self {
         return Turnstile {
-            url: crate::config::get_app_config()
-                .captcha
-                .turnstile
-                .url
-                .clone(),
-            secret_key: crate::config::get_app_config()
-                .captcha
-                .turnstile
-                .secret_key
-                .clone(),
+            url: crate::config::get_app_config().captcha.turnstile.url.clone(),
+            secret_key: crate::config::get_app_config().captcha.turnstile.secret_key.clone(),
         };
     }
 
@@ -42,12 +34,7 @@ impl ICaptcha for Turnstile {
         };
 
         let client = Client::new();
-        let resp = client
-            .post(&self.url)
-            .json(&request_body)
-            .send()
-            .await
-            .unwrap();
+        let resp = client.post(&self.url).json(&request_body).send().await.unwrap();
 
         let response: serde_json::Value = resp.json().await.unwrap();
 

@@ -12,16 +12,10 @@ use mime::Mime;
 use serde_json::json;
 
 fn can_modify_team(user: crate::model::user::Model, team_id: i64) -> bool {
-    return user.group == "admin"
-        || user
-            .teams
-            .iter()
-            .any(|team| team.id == team_id && team.captain_id == user.id);
+    return user.group == "admin" || user.teams.iter().any(|team| team.id == team_id && team.captain_id == user.id);
 }
 
-pub async fn find(
-    Query(params): Query<crate::model::team::request::FindRequest>,
-) -> impl IntoResponse {
+pub async fn find(Query(params): Query<crate::model::team::request::FindRequest>) -> impl IntoResponse {
     match team_service::find(params).await {
         Ok((teams, total)) => (
             StatusCode::OK,
@@ -41,9 +35,7 @@ pub async fn find(
     }
 }
 
-pub async fn create(
-    Json(body): Json<crate::model::team::request::CreateRequest>,
-) -> impl IntoResponse {
+pub async fn create(Json(body): Json<crate::model::team::request::CreateRequest>) -> impl IntoResponse {
     match team_service::create(body).await {
         Ok(team) => (
             StatusCode::OK,
@@ -63,9 +55,7 @@ pub async fn create(
 }
 
 pub async fn update(
-    Extension(ext): Extension<Ext>,
-    Path(id): Path<i64>,
-    Json(mut body): Json<crate::model::team::request::UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<crate::model::team::request::UpdateRequest>,
 ) -> impl IntoResponse {
     if !can_modify_team(ext.operator.unwrap(), id) {
         return (
@@ -121,9 +111,7 @@ pub async fn delete(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> impl
     }
 }
 
-pub async fn create_user(
-    Json(body): Json<crate::model::user_team::request::CreateRequest>,
-) -> impl IntoResponse {
+pub async fn create_user(Json(body): Json<crate::model::user_team::request::CreateRequest>) -> impl IntoResponse {
     match user_team_service::create(body).await {
         Ok(()) => (
             StatusCode::OK,
@@ -159,10 +147,7 @@ pub async fn delete_user(Path((id, user_id)): Path<(i64, i64)>) -> impl IntoResp
     }
 }
 
-pub async fn get_invite_token(
-    Extension(ext): Extension<Ext>,
-    Path(id): Path<i64>,
-) -> impl IntoResponse {
+pub async fn get_invite_token(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> impl IntoResponse {
     if !can_modify_team(ext.operator.unwrap(), id) {
         return (
             StatusCode::FORBIDDEN,
@@ -194,10 +179,7 @@ pub async fn get_invite_token(
     }
 }
 
-pub async fn update_invite_token(
-    Extension(ext): Extension<Ext>,
-    Path(id): Path<i64>,
-) -> impl IntoResponse {
+pub async fn update_invite_token(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> impl IntoResponse {
     if !can_modify_team(ext.operator.unwrap(), id) {
         return (
             StatusCode::FORBIDDEN,
@@ -229,9 +211,7 @@ pub async fn update_invite_token(
     }
 }
 
-pub async fn join(
-    Json(body): Json<crate::model::user_team::request::JoinRequest>,
-) -> impl IntoResponse {
+pub async fn join(Json(body): Json<crate::model::user_team::request::JoinRequest>) -> impl IntoResponse {
     match user_team_service::join(body).await {
         Ok(()) => {
             return (
@@ -294,11 +274,7 @@ pub async fn find_avatar(Path(id): Path<i64>) -> impl IntoResponse {
     }
 }
 
-pub async fn save_avatar(
-    Extension(ext): Extension<Ext>,
-    Path(id): Path<i64>,
-    mut multipart: Multipart,
-) -> impl IntoResponse {
+pub async fn save_avatar(Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart) -> impl IntoResponse {
     if !can_modify_team(ext.operator.unwrap(), id) {
         return (
             StatusCode::FORBIDDEN,
@@ -363,10 +339,7 @@ pub async fn save_avatar(
     }
 }
 
-pub async fn delete_avatar(
-    Extension(ext): Extension<Ext>,
-    Path(id): Path<i64>,
-) -> impl IntoResponse {
+pub async fn delete_avatar(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> impl IntoResponse {
     if !can_modify_team(ext.operator.unwrap(), id) {
         return (
             StatusCode::FORBIDDEN,

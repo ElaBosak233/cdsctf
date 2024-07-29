@@ -6,20 +6,10 @@ use uuid::Uuid;
 
 use crate::container::traits::Container;
 
-pub async fn find(
-    req: crate::model::pod::request::FindRequest,
-) -> Result<(Vec<crate::model::pod::Model>, u64), ()> {
-    let (mut pods, total) = crate::repository::pod::find(
-        req.id,
-        req.name,
-        req.user_id,
-        req.team_id,
-        req.game_id,
-        req.challenge_id,
-        req.is_available,
-    )
-    .await
-    .unwrap();
+pub async fn find(req: crate::model::pod::request::FindRequest) -> Result<(Vec<crate::model::pod::Model>, u64), ()> {
+    let (mut pods, total) = crate::repository::pod::find(req.id, req.name, req.user_id, req.team_id, req.game_id, req.challenge_id, req.is_available)
+        .await
+        .unwrap();
 
     if let Some(is_detailed) = req.is_detailed {
         if !is_detailed {
@@ -31,20 +21,10 @@ pub async fn find(
     return Ok((pods, total));
 }
 
-pub async fn create(
-    req: crate::model::pod::request::CreateRequest,
-) -> Result<crate::model::pod::Model, Box<dyn Error>> {
-    let (challenges, _) = crate::repository::challenge::find(
-        Some(req.challenge_id.clone()),
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-    .await
-    .unwrap();
+pub async fn create(req: crate::model::pod::request::CreateRequest) -> Result<crate::model::pod::Model, Box<dyn Error>> {
+    let (challenges, _) = crate::repository::challenge::find(Some(req.challenge_id.clone()), None, None, None, None, None, None)
+        .await
+        .unwrap();
 
     let challenge = challenges.get(0).unwrap();
 
@@ -58,12 +38,7 @@ pub async fn create(
 
     let re = Regex::new(r"\[([Uu][Ii][Dd])\]").unwrap();
     if injected_flag.type_.to_ascii_lowercase() == "dynamic" {
-        injected_flag.value = re
-            .replace_all(
-                &injected_flag.value,
-                uuid::Uuid::new_v4().simple().to_string(),
-            )
-            .to_string();
+        injected_flag.value = re.replace_all(&injected_flag.value, uuid::Uuid::new_v4().simple().to_string()).to_string();
     }
 
     let nats = crate::container::get_container()
@@ -90,22 +65,12 @@ pub async fn create(
 }
 
 pub async fn update(id: i64) -> Result<(), Box<dyn Error>> {
-    let (pods, total) =
-        crate::repository::pod::find(Some(id), None, None, None, None, None, None).await?;
+    let (pods, total) = crate::repository::pod::find(Some(id), None, None, None, None, None, None).await?;
     if total == 0 {
         return Err("No pod found".into());
     }
     let pod = pods.get(0).unwrap();
-    let (challenges, _) = crate::repository::challenge::find(
-        Some(pod.challenge_id.clone()),
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-    .await?;
+    let (challenges, _) = crate::repository::challenge::find(Some(pod.challenge_id.clone()), None, None, None, None, None, None).await?;
     let challenge = challenges.get(0).unwrap();
 
     let mut pod = pod.clone().into_active_model();
@@ -115,16 +80,12 @@ pub async fn update(id: i64) -> Result<(), Box<dyn Error>> {
 }
 
 pub async fn delete(id: i64) -> Result<(), Box<dyn Error>> {
-    let (pods, total) =
-        crate::repository::pod::find(Some(id), None, None, None, None, None, None).await?;
+    let (pods, total) = crate::repository::pod::find(Some(id), None, None, None, None, None, None).await?;
     if total == 0 {
         return Err("No pod found".into());
     }
     let pod = pods.get(0).unwrap();
-    crate::container::get_container()
-        .await
-        .delete(pod.name.clone())
-        .await;
+    crate::container::get_container().await.delete(pod.name.clone()).await;
 
     let mut pod = pod.clone().into_active_model();
     pod.removed_at = Set(chrono::Utc::now().timestamp());

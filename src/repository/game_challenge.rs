@@ -1,16 +1,9 @@
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, LoaderTrait, PaginatorTrait, QueryFilter,
-    TryIntoModel,
-};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, LoaderTrait, PaginatorTrait, QueryFilter, TryIntoModel};
 
 use crate::database::get_db;
 
-async fn preload(
-    mut game_challenges: Vec<crate::model::game_challenge::Model>,
-) -> Result<Vec<crate::model::game_challenge::Model>, DbErr> {
-    let challenges = game_challenges
-        .load_one(crate::model::challenge::Entity, &get_db().await)
-        .await?;
+async fn preload(mut game_challenges: Vec<crate::model::game_challenge::Model>) -> Result<Vec<crate::model::game_challenge::Model>, DbErr> {
+    let challenges = game_challenges.load_one(crate::model::challenge::Entity, &get_db().await).await?;
 
     for i in 0..game_challenges.len() {
         game_challenges[i].challenge = challenges[i].clone();
@@ -19,10 +12,7 @@ async fn preload(
     return Ok(game_challenges);
 }
 
-pub async fn find(
-    game_id: Option<i64>,
-    challenge_id: Option<i64>,
-) -> Result<(Vec<crate::model::game_challenge::Model>, u64), DbErr> {
+pub async fn find(game_id: Option<i64>, challenge_id: Option<i64>) -> Result<(Vec<crate::model::game_challenge::Model>, u64), DbErr> {
     let mut query = crate::model::game_challenge::Entity::find();
 
     if let Some(game_id) = game_id {
@@ -42,22 +32,12 @@ pub async fn find(
     Ok((game_challenges, total))
 }
 
-pub async fn create(
-    game_challenge: crate::model::game_challenge::ActiveModel,
-) -> Result<crate::model::game_challenge::Model, DbErr> {
-    game_challenge
-        .insert(&get_db().await)
-        .await?
-        .try_into_model()
+pub async fn create(game_challenge: crate::model::game_challenge::ActiveModel) -> Result<crate::model::game_challenge::Model, DbErr> {
+    game_challenge.insert(&get_db().await).await?.try_into_model()
 }
 
-pub async fn update(
-    game_challenge: crate::model::game_challenge::ActiveModel,
-) -> Result<crate::model::game_challenge::Model, DbErr> {
-    game_challenge
-        .update(&get_db().await)
-        .await?
-        .try_into_model()
+pub async fn update(game_challenge: crate::model::game_challenge::ActiveModel) -> Result<crate::model::game_challenge::Model, DbErr> {
+    game_challenge.update(&get_db().await).await?.try_into_model()
 }
 
 pub async fn delete(game_id: i64, challenge_id: i64) -> Result<(), DbErr> {
