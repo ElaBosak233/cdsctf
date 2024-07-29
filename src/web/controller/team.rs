@@ -1,15 +1,13 @@
-use crate::{
-    server::service::{team as team_service, user_team as user_team_service},
-    traits::Ext,
-};
+use crate::traits::Ext;
 use axum::{
+    Extension,
     extract::{Multipart, Path, Query},
     http::{Response, StatusCode},
-    response::IntoResponse,
-    Extension, Json,
+    Json, response::IntoResponse,
 };
 use mime::Mime;
 use serde_json::json;
+use crate::web::service::{team as team_service, user_team as user_team_service};
 
 fn can_modify_team(user: crate::model::user::Model, team_id: i64) -> bool {
     return user.group == "admin" || user.teams.iter().any(|team| team.id == team_id && team.captain_id == user.id);

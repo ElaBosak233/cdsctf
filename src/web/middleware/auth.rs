@@ -11,7 +11,7 @@ use serde_json::json;
 use std::future::Future;
 use std::pin::Pin;
 
-use crate::server::service::user as user_service;
+use crate::web::service::user as user_service;
 use crate::{traits::Ext, util};
 
 pub fn jwt(group: util::jwt::Group) -> impl Fn(Request<axum::body::Body>, Next) -> Pin<Box<dyn Future<Output = Result<Response, StatusCode>> + Send>> + Clone {
