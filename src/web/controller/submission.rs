@@ -1,12 +1,13 @@
 use axum::{
+    Extension,
     extract::{Path, Query},
     http::StatusCode,
-    response::IntoResponse,
-    Extension, Json,
+    Json, response::IntoResponse,
 };
 use serde_json::json;
 
-use crate::{server::service::submission as submission_service, traits::Ext};
+use crate::traits::Ext;
+use crate::web::service::submission as submission_service;
 
 /// **Find** can be used to find submissions.
 ///

@@ -1,11 +1,11 @@
 use axum::{
     extract::DefaultBodyLimit,
     middleware::from_fn,
-    routing::{delete, get, post, put},
     Router,
+    routing::{delete, get, post, put},
 };
-
-use crate::server::{controller, middleware::auth};
+use crate::web::controller;
+use crate::web::middleware::auth;
 use crate::util::jwt::Group;
 
 pub fn router() -> Router {

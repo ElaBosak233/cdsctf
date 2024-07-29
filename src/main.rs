@@ -9,9 +9,11 @@ mod media;
 mod model;
 mod proxy;
 mod repository;
-mod server;
 mod traits;
 mod util;
+mod web;
+
+use tracing::info;
 
 #[tokio::main]
 async fn main() {
@@ -25,5 +27,18 @@ async fn main() {
             .replace("{{build_at}}", env!("BUILD_AT"))
     );
 
-    server::bootstrap().await;
+    logger::init();
+    config::init().await;
+    database::init().await;
+    container::init().await;
+    web::init();
+
+    info!("{:?}", util::jwt::get_secret().await);
+
+    let addr = format!("{}:{}", config::get_app_config().axum.host, config::get_app_config().axum.port);
+    let listener = tokio::net::TcpListener::bind(&addr).await;
+
+    info!("Cloudsdale service has been started at {}. Enjoy your hacking challenges!", &addr);
+
+    axum::serve(listener.unwrap(), web::get_app()).await.unwrap();
 }

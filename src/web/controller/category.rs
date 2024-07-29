@@ -7,7 +7,7 @@ use axum::{
 use serde_json::json;
 
 use crate::model::category::request::{CreateRequest, FindRequest, UpdateRequest};
-use crate::server::service;
+use crate::web::service;
 use crate::util::validate;
 
 /// **Find** can find categories.

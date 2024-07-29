@@ -1,13 +1,13 @@
 use axum::{
+    Extension,
     extract::{Multipart, Path, Query},
     http::{header, Response, StatusCode},
-    response::IntoResponse,
-    Extension, Json,
+    Json, response::IntoResponse,
 };
 use serde_json::json;
 
-use crate::{server::service, traits::Ext};
-
+use crate::traits::Ext;
+use crate::web::service;
 use crate::util::validate;
 
 /// **Find** can be used to find challenges.
