@@ -10,14 +10,6 @@ COPY . .
 
 RUN rustup target add x86_64-unknown-linux-musl
 
-RUN apt update && apt install -y musl-tools musl-dev pkg-config libssl-dev ca-certificates
-
-ENV OPENSSL_DIR=/usr
-ENV OPENSSL_INCLUDE_DIR=/usr/include
-ENV OPENSSL_LIB_DIR=/usr/lib/x86_64-linux-gnu
-ENV PKG_CONFIG_ALLOW_CROSS=1
-ENV PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
-
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
 FROM node:20 AS frontend
