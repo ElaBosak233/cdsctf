@@ -8,10 +8,7 @@ use axum::{
 use mime::Mime;
 use serde_json::json;
 
-pub async fn find(
-    Extension(ext): Extension<Ext>,
-    Query(params): Query<crate::model::game::request::FindRequest>,
-) -> impl IntoResponse {
+pub async fn find(Extension(ext): Extension<Ext>, Query(params): Query<crate::model::game::request::FindRequest>) -> impl IntoResponse {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && !params.is_enabled.unwrap_or(true) {
         return (
@@ -44,9 +41,7 @@ pub async fn find(
     }
 }
 
-pub async fn create(
-    Json(body): Json<crate::model::game::request::CreateRequest>,
-) -> impl IntoResponse {
+pub async fn create(Json(body): Json<crate::model::game::request::CreateRequest>) -> impl IntoResponse {
     match service::game::create(body).await {
         Ok(challenge) => {
             return (
@@ -69,10 +64,7 @@ pub async fn create(
     }
 }
 
-pub async fn update(
-    Path(id): Path<i64>,
-    Json(mut body): Json<crate::model::game::request::UpdateRequest>,
-) -> impl IntoResponse {
+pub async fn update(Path(id): Path<i64>, Json(mut body): Json<crate::model::game::request::UpdateRequest>) -> impl IntoResponse {
     body.id = Some(id);
     match service::game::update(body).await {
         Ok(()) => {
@@ -115,9 +107,7 @@ pub async fn delete(Path(id): Path<i64>) -> impl IntoResponse {
     }
 }
 
-pub async fn find_challenge(
-    Query(params): Query<crate::model::game_challenge::request::FindRequest>,
-) -> impl IntoResponse {
+pub async fn find_challenge(Query(params): Query<crate::model::game_challenge::request::FindRequest>) -> impl IntoResponse {
     match service::game_challenge::find(params).await {
         Ok((game_challenges, total)) => {
             return (
@@ -140,9 +130,7 @@ pub async fn find_challenge(
     }
 }
 
-pub async fn create_challenge(
-    Json(body): Json<crate::model::game_challenge::request::CreateRequest>,
-) -> impl IntoResponse {
+pub async fn create_challenge(Json(body): Json<crate::model::game_challenge::request::CreateRequest>) -> impl IntoResponse {
     match service::game_challenge::create(body).await {
         Ok(()) => {
             return (
@@ -164,8 +152,7 @@ pub async fn create_challenge(
 }
 
 pub async fn update_challenge(
-    Path((id, challenge_id)): Path<(i64, i64)>,
-    Json(mut body): Json<crate::model::game_challenge::request::UpdateRequest>,
+    Path((id, challenge_id)): Path<(i64, i64)>, Json(mut body): Json<crate::model::game_challenge::request::UpdateRequest>,
 ) -> impl IntoResponse {
     body.game_id = Some(id);
     body.challenge_id = Some(challenge_id);
@@ -210,9 +197,7 @@ pub async fn delete_challenge(Path((id, challenge_id)): Path<(i64, i64)>) -> imp
     }
 }
 
-pub async fn find_team(
-    Query(params): Query<crate::model::game_team::request::FindRequest>,
-) -> impl IntoResponse {
+pub async fn find_team(Query(params): Query<crate::model::game_team::request::FindRequest>) -> impl IntoResponse {
     match service::game_team::find(params).await {
         Ok((game_teams, total)) => {
             return (
@@ -235,9 +220,7 @@ pub async fn find_team(
     }
 }
 
-pub async fn create_team(
-    Json(body): Json<crate::model::game_team::request::CreateRequest>,
-) -> impl IntoResponse {
+pub async fn create_team(Json(body): Json<crate::model::game_team::request::CreateRequest>) -> impl IntoResponse {
     match service::game_team::create(body).await {
         Ok(()) => {
             return (
@@ -258,10 +241,7 @@ pub async fn create_team(
     }
 }
 
-pub async fn update_team(
-    Path((id, team_id)): Path<(i64, i64)>,
-    Json(mut body): Json<crate::model::game_team::request::UpdateRequest>,
-) -> impl IntoResponse {
+pub async fn update_team(Path((id, team_id)): Path<(i64, i64)>, Json(mut body): Json<crate::model::game_team::request::UpdateRequest>) -> impl IntoResponse {
     body.game_id = Some(id);
     body.team_id = Some(team_id);
     match service::game_team::update(body).await {

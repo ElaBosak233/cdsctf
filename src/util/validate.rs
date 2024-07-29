@@ -26,11 +26,7 @@ where
         // provide a better error message.
         //
         // Have to run that first since `Json` extraction consumes the request.
-        let path = parts
-            .extract::<MatchedPath>()
-            .await
-            .map(|path| path.as_str().to_owned())
-            .ok();
+        let path = parts.extract::<MatchedPath>().await.map(|path| path.as_str().to_owned()).ok();
 
         let req = Request::from_parts(parts, body);
 

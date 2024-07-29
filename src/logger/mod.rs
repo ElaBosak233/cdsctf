@@ -9,9 +9,7 @@ pub fn init() {
         .add_directive(Level::DEBUG.into())
         .add_directive("docker_api=info".parse().unwrap());
 
-    let fmt_layer = tracing_subscriber::fmt::layer()
-        .with_target(false)
-        .with_filter(filter);
+    let fmt_layer = tracing_subscriber::fmt::layer().with_target(false).with_filter(filter);
 
     // let file_layer = tracing_subscriber::fmt::layer()
     //     .with_ansi(false)

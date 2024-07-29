@@ -5,23 +5,17 @@ use axum::http::StatusCode;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use sea_orm::Set;
 
-pub async fn find(
-    req: crate::model::user::request::FindRequest,
-) -> Result<(Vec<crate::model::user::Model>, u64), ()> {
-    let (mut users, total) = crate::repository::user::find(
-        req.id, req.name, None, req.group, req.email, req.page, req.size,
-    )
-    .await
-    .unwrap();
+pub async fn find(req: crate::model::user::request::FindRequest) -> Result<(Vec<crate::model::user::Model>, u64), ()> {
+    let (mut users, total) = crate::repository::user::find(req.id, req.name, None, req.group, req.email, req.page, req.size)
+        .await
+        .unwrap();
     for user in users.iter_mut() {
         user.simplify();
     }
     return Ok((users, total));
 }
 
-pub async fn create(
-    mut req: crate::model::user::request::CreateRequest,
-) -> Result<crate::model::user::Model, Box<dyn Error>> {
+pub async fn create(mut req: crate::model::user::request::CreateRequest) -> Result<crate::model::user::Model, Box<dyn Error>> {
     let hashed_password = hash(req.password, DEFAULT_COST);
     req.password = hashed_password.unwrap();
     match crate::repository::user::create(req.into()).await {
@@ -33,9 +27,7 @@ pub async fn create(
     }
 }
 
-pub async fn update(
-    mut req: crate::model::user::request::UpdateRequest,
-) -> Result<(), Box<dyn Error>> {
+pub async fn update(mut req: crate::model::user::request::UpdateRequest) -> Result<(), Box<dyn Error>> {
     if let Some(password) = req.password {
         let hashed_password = hash(password, DEFAULT_COST);
         req.password = Some(hashed_password.unwrap());
@@ -53,13 +45,10 @@ pub async fn delete(id: i64) -> Result<(), Box<dyn Error>> {
     }
 }
 
-pub async fn login(
-    req: crate::model::user::request::LoginRequest,
-) -> Result<(crate::model::user::Model, String), Box<dyn Error>> {
-    let (users, total) =
-        crate::repository::user::find(None, None, Some(req.username), None, None, None, None)
-            .await
-            .unwrap();
+pub async fn login(req: crate::model::user::request::LoginRequest) -> Result<(crate::model::user::Model, String), Box<dyn Error>> {
+    let (users, total) = crate::repository::user::find(None, None, Some(req.username), None, None, None, None)
+        .await
+        .unwrap();
 
     if total == 0 {
         return Err("user_not_found".into());
@@ -79,20 +68,8 @@ pub async fn login(
     return Ok((user, token));
 }
 
-pub async fn register(
-    req: crate::model::user::request::RegisterRequest,
-) -> Result<crate::model::user::Model, StatusCode> {
-    match crate::repository::user::find(
-        None,
-        None,
-        Some(req.clone().username),
-        None,
-        None,
-        None,
-        None,
-    )
-    .await
-    {
+pub async fn register(req: crate::model::user::request::RegisterRequest) -> Result<crate::model::user::Model, StatusCode> {
+    match crate::repository::user::find(None, None, Some(req.clone().username), None, None, None, None).await {
         Ok((_, total)) => {
             if total != 0 {
                 return Err(StatusCode::CONFLICT);

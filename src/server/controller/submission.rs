@@ -18,10 +18,7 @@ use crate::{server::service::submission as submission_service, traits::Ext};
 /// - `200`: find successfully.
 /// - `403`: operator does not have permission to find submissions.
 /// - `400`: find failed.
-pub async fn find(
-    Extension(ext): Extension<Ext>,
-    Query(params): Query<crate::model::submission::request::FindRequest>,
-) -> impl IntoResponse {
+pub async fn find(Extension(ext): Extension<Ext>, Query(params): Query<crate::model::submission::request::FindRequest>) -> impl IntoResponse {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && params.is_detailed.unwrap_or(false) {
         return (
@@ -50,10 +47,7 @@ pub async fn find(
     }
 }
 
-pub async fn create(
-    Extension(ext): Extension<Ext>,
-    Json(mut body): Json<crate::model::submission::request::CreateRequest>,
-) -> impl IntoResponse {
+pub async fn create(Extension(ext): Extension<Ext>, Json(mut body): Json<crate::model::submission::request::CreateRequest>) -> impl IntoResponse {
     let operator = ext.operator.unwrap();
     body.user_id = Some(operator.id);
     match submission_service::create(body).await {

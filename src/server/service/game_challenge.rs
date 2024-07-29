@@ -1,19 +1,12 @@
 use std::error::Error;
 
-pub async fn find(
-    req: crate::model::game_challenge::request::FindRequest,
-) -> Result<(Vec<crate::model::game_challenge::Model>, u64), Box<dyn Error>> {
-    let (game_challenges, total) =
-        crate::repository::game_challenge::find(req.game_id, req.challenge_id)
-            .await
-            .unwrap();
+pub async fn find(req: crate::model::game_challenge::request::FindRequest) -> Result<(Vec<crate::model::game_challenge::Model>, u64), Box<dyn Error>> {
+    let (game_challenges, total) = crate::repository::game_challenge::find(req.game_id, req.challenge_id).await.unwrap();
 
     return Ok((game_challenges, total));
 }
 
-pub async fn create(
-    req: crate::model::game_challenge::request::CreateRequest,
-) -> Result<(), Box<dyn Error>> {
+pub async fn create(req: crate::model::game_challenge::request::CreateRequest) -> Result<(), Box<dyn Error>> {
     match crate::repository::game_challenge::create(req.into()).await {
         Ok(_) => {
             return Ok(());
@@ -24,9 +17,7 @@ pub async fn create(
     };
 }
 
-pub async fn update(
-    req: crate::model::game_challenge::request::UpdateRequest,
-) -> Result<(), Box<dyn Error>> {
+pub async fn update(req: crate::model::game_challenge::request::UpdateRequest) -> Result<(), Box<dyn Error>> {
     match crate::repository::game_challenge::update(req.into()).await {
         Ok(_) => {
             return Ok(());

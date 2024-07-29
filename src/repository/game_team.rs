@@ -1,33 +1,20 @@
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter, TryIntoModel,
-};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter, TryIntoModel};
 
 use crate::database::get_db;
 
-async fn preload(
-    mut game_teams: Vec<crate::model::game_team::Model>,
-) -> Result<Vec<crate::model::game_team::Model>, DbErr> {
-    let team_ids: Vec<i64> = game_teams
-        .iter()
-        .map(|game_team| game_team.team_id)
-        .collect();
+async fn preload(mut game_teams: Vec<crate::model::game_team::Model>) -> Result<Vec<crate::model::game_team::Model>, DbErr> {
+    let team_ids: Vec<i64> = game_teams.iter().map(|game_team| game_team.team_id).collect();
 
     let teams = super::team::find_by_ids(team_ids).await?;
 
     for game_team in game_teams.iter_mut() {
-        game_team.team = teams
-            .iter()
-            .find(|team| team.id == game_team.team_id)
-            .cloned();
+        game_team.team = teams.iter().find(|team| team.id == game_team.team_id).cloned();
     }
 
     return Ok(game_teams);
 }
 
-pub async fn find(
-    game_id: Option<i64>,
-    team_id: Option<i64>,
-) -> Result<(Vec<crate::model::game_team::Model>, u64), DbErr> {
+pub async fn find(game_id: Option<i64>, team_id: Option<i64>) -> Result<(Vec<crate::model::game_team::Model>, u64), DbErr> {
     let mut query = crate::model::game_team::Entity::find();
 
     if let Some(game_id) = game_id {
@@ -47,15 +34,11 @@ pub async fn find(
     Ok((game_teams, total))
 }
 
-pub async fn create(
-    user: crate::model::game_team::ActiveModel,
-) -> Result<crate::model::game_team::Model, DbErr> {
+pub async fn create(user: crate::model::game_team::ActiveModel) -> Result<crate::model::game_team::Model, DbErr> {
     user.insert(&get_db().await).await?.try_into_model()
 }
 
-pub async fn update(
-    user: crate::model::game_team::ActiveModel,
-) -> Result<crate::model::game_team::Model, DbErr> {
+pub async fn update(user: crate::model::game_team::ActiveModel) -> Result<crate::model::game_team::Model, DbErr> {
     user.update(&get_db().await).await?.try_into_model()
 }
 

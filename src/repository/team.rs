@@ -1,19 +1,10 @@
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, LoaderTrait, PaginatorTrait, QueryFilter,
-    QuerySelect, TryIntoModel,
-};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, LoaderTrait, PaginatorTrait, QueryFilter, QuerySelect, TryIntoModel};
 
 use crate::database::get_db;
 
-async fn preload(
-    mut teams: Vec<crate::model::team::Model>,
-) -> Result<Vec<crate::model::team::Model>, DbErr> {
+async fn preload(mut teams: Vec<crate::model::team::Model>) -> Result<Vec<crate::model::team::Model>, DbErr> {
     let users = teams
-        .load_many_to_many(
-            crate::model::user::Entity,
-            crate::model::user_team::Entity,
-            &get_db().await,
-        )
+        .load_many_to_many(crate::model::user::Entity, crate::model::user_team::Entity, &get_db().await)
         .await?;
 
     for i in 0..teams.len() {
@@ -34,11 +25,7 @@ async fn preload(
 }
 
 pub async fn find(
-    id: Option<i64>,
-    name: Option<String>,
-    email: Option<String>,
-    page: Option<u64>,
-    size: Option<u64>,
+    id: Option<i64>, name: Option<String>, email: Option<String>, page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<crate::model::team::Model>, u64), DbErr> {
     let mut query = crate::model::team::Entity::find();
 
@@ -81,26 +68,17 @@ pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<crate::model::team::Model>
     return Ok(teams);
 }
 
-pub async fn create(
-    team: crate::model::team::ActiveModel,
-) -> Result<crate::model::team::Model, DbErr> {
+pub async fn create(team: crate::model::team::ActiveModel) -> Result<crate::model::team::Model, DbErr> {
     return team.insert(&get_db().await).await?.try_into_model();
 }
 
-pub async fn update(
-    team: crate::model::team::ActiveModel,
-) -> Result<crate::model::team::Model, DbErr> {
+pub async fn update(team: crate::model::team::ActiveModel) -> Result<crate::model::team::Model, DbErr> {
     return team.update(&get_db().await).await?.try_into_model();
 }
 
 pub async fn delete(id: i64) -> Result<(), DbErr> {
-    let result = crate::model::team::Entity::delete_by_id(id)
-        .exec(&get_db().await)
-        .await?;
+    let result = crate::model::team::Entity::delete_by_id(id).exec(&get_db().await).await?;
     return Ok(if result.rows_affected == 0 {
-        return Err(DbErr::RecordNotFound(format!(
-            "Team with id {} not found",
-            id
-        )));
+        return Err(DbErr::RecordNotFound(format!("Team with id {} not found", id)));
     });
 }
