@@ -10,6 +10,8 @@ COPY . .
 
 RUN rustup target add x86_64-unknown-linux-musl
 
+RUN apt update && apt install -y musl-tools musl-dev pkg-config
+
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
 FROM node:20 AS frontend
