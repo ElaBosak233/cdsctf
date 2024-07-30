@@ -1,5 +1,5 @@
 use super::traits::Container;
-use crate::{database::get_db, repository};
+use crate::{database::get_db, model::pod};
 use async_trait::async_trait;
 use bollard::{
     container::{Config, CreateContainerOptions, StartContainerOptions},
@@ -7,7 +7,7 @@ use bollard::{
     Docker as DockerClient,
 };
 use core::time;
-use sea_orm::EntityTrait;
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use std::{collections::HashMap, env, error::Error, process, sync::OnceLock};
 use tracing::{error, info};
 
@@ -22,11 +22,22 @@ async fn daemon() {
     tokio::spawn(async {
         let interval = time::Duration::from_secs(10);
         loop {
-            let (pods, _) = repository::pod::find(None, None, None, None, None, None, Some(false)).await.unwrap();
+            let pods = pod::Entity::find()
+                .filter(pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp()))
+                .all(&get_db().await)
+                .await
+                .unwrap();
             for pod in pods {
-                let _ = get_docker_client().stop_container(pod.name.clone().as_str(), None).await;
-                let _ = get_docker_client().remove_container(pod.name.clone().as_str(), None).await;
-                crate::model::pod::Entity::delete_by_id(pod.id).exec(&get_db().await).await.unwrap();
+                let _ = get_docker_client()
+                    .stop_container(pod.name.clone().as_str(), None)
+                    .await;
+                let _ = get_docker_client()
+                    .remove_container(pod.name.clone().as_str(), None)
+                    .await;
+                crate::model::pod::Entity::delete_by_id(pod.id)
+                    .exec(&get_db().await)
+                    .await
+                    .unwrap();
                 info!("Cleaned up expired container: {0}", pod.name);
             }
             tokio::time::sleep(interval).await;
@@ -63,7 +74,8 @@ impl Container for Docker {
     }
 
     async fn create(
-        &self, name: String, challenge: crate::model::challenge::Model, injected_flag: crate::model::challenge::Flag,
+        &self, name: String, challenge: crate::model::challenge::Model,
+        injected_flag: crate::model::challenge::Flag,
     ) -> Result<Vec<crate::model::pod::Nat>, Box<dyn Error>> {
         let port_bindings: HashMap<String, Option<Vec<PortBinding>>> = challenge
             .ports
@@ -79,9 +91,17 @@ impl Container for Docker {
             })
             .collect();
 
-        let mut env_bindings: Vec<String> = challenge.envs.into_iter().map(|env| format!("{}:{}", env.key, env.value)).collect();
+        let mut env_bindings: Vec<String> = challenge
+            .envs
+            .into_iter()
+            .map(|env| format!("{}:{}", env.key, env.value))
+            .collect();
 
-        env_bindings.push(format!("{}:{}", injected_flag.env.unwrap_or("FLAG".to_string()), injected_flag.value));
+        env_bindings.push(format!(
+            "{}:{}",
+            injected_flag.env.unwrap_or("FLAG".to_string()),
+            injected_flag.value
+        ));
 
         let cfg = Config {
             image: challenge.image_name.clone(),
@@ -132,7 +152,11 @@ impl Container for Docker {
     }
 
     async fn delete(&self, name: String) {
-        let _ = get_docker_client().stop_container(name.clone().as_str(), None).await;
-        let _ = get_docker_client().remove_container(name.clone().as_str(), None).await;
+        let _ = get_docker_client()
+            .stop_container(name.clone().as_str(), None)
+            .await;
+        let _ = get_docker_client()
+            .remove_container(name.clone().as_str(), None)
+            .await;
     }
 }

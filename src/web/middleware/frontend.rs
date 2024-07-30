@@ -18,7 +18,11 @@ pub async fn serve(req: Request, next: Next) -> Result<axum::response::Response,
 
     async fn index() -> Result<axum::response::Response, StatusCode> {
         if let Ok(index_content) = fs::read_to_string(PathBuf::from("dist").join("index.html")) {
-            return Ok(Response::builder().status(StatusCode::OK).body(index_content).unwrap().into_response());
+            return Ok(Response::builder()
+                .status(StatusCode::OK)
+                .body(index_content)
+                .unwrap()
+                .into_response());
         } else {
             return Ok(Response::builder()
                 .status(StatusCode::NOT_FOUND)
@@ -33,7 +37,11 @@ pub async fn serve(req: Request, next: Next) -> Result<axum::response::Response,
     }
 
     if let Ok(content) = fs::read_to_string(&filepath) {
-        return Ok(Response::builder().status(StatusCode::OK).body(content).unwrap().into_response());
+        return Ok(Response::builder()
+            .status(StatusCode::OK)
+            .body(content)
+            .unwrap()
+            .into_response());
     } else {
         return index().await;
     }

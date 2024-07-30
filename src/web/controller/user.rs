@@ -1,14 +1,14 @@
 use axum::{
-    Extension,
     extract::{Multipart, Path, Query},
     http::{Response, StatusCode},
-    Json, response::IntoResponse,
+    response::IntoResponse,
+    Extension, Json,
 };
 use mime::Mime;
 use serde_json::json;
 
-use crate::{traits::Ext, util::validate};
 use crate::web::service::user as user_service;
+use crate::{traits::Ext, util::validate};
 
 /// **Find** can find user's information.
 ///
@@ -18,7 +18,9 @@ use crate::web::service::user as user_service;
 /// ## Returns
 /// - `200`: find successfully.
 /// - `400`: find failed.
-pub async fn find(Query(params): Query<crate::model::user::request::FindRequest>) -> impl IntoResponse {
+pub async fn find(
+    Query(params): Query<crate::model::user::request::FindRequest>,
+) -> impl IntoResponse {
     match user_service::find(params).await {
         Ok((users, total)) => (
             StatusCode::OK,
@@ -46,7 +48,9 @@ pub async fn find(Query(params): Query<crate::model::user::request::FindRequest>
 /// ## Returns
 /// - `200`: create successfully.
 /// - `400`: create failed.
-pub async fn create(validate::Json(body): validate::Json<crate::model::user::request::CreateRequest>) -> impl IntoResponse {
+pub async fn create(
+    validate::Json(body): validate::Json<crate::model::user::request::CreateRequest>,
+) -> impl IntoResponse {
     match user_service::create(body).await {
         Ok(user) => (
             StatusCode::OK,
@@ -80,12 +84,15 @@ pub async fn create(validate::Json(body): validate::Json<crate::model::user::req
 /// - If operator's group is "admin", operator can update any user's information.
 /// - If operator's group is not "admin", operator can update his own information, but can not update group.
 pub async fn update(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, validate::Json(mut body): validate::Json<crate::model::user::request::UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    validate::Json(mut body): validate::Json<crate::model::user::request::UpdateRequest>,
 ) -> impl IntoResponse {
     let operator = ext.clone().operator.unwrap();
     body.id = Some(id);
     if operator.group == "admin"
-        || (operator.id == body.id.unwrap_or(0) && (body.group.clone().is_none() || operator.group == body.group.clone().unwrap_or("".to_string())))
+        || (operator.id == body.id.unwrap_or(0)
+            && (body.group.clone().is_none()
+                || operator.group == body.group.clone().unwrap_or("".to_string())))
     {
         match user_service::update(body).await {
             Ok(()) => {
@@ -155,7 +162,9 @@ pub async fn delete(Path(id): Path<i64>) -> impl IntoResponse {
 /// ## Returns
 /// - `200`: login successfully, with token and user information.
 /// - `400`: login failed.
-pub async fn login(Json(body): Json<crate::model::user::request::LoginRequest>) -> impl IntoResponse {
+pub async fn login(
+    Json(body): Json<crate::model::user::request::LoginRequest>,
+) -> impl IntoResponse {
     match user_service::login(body).await {
         Ok((user, token)) => {
             return (
@@ -189,7 +198,9 @@ pub async fn login(Json(body): Json<crate::model::user::request::LoginRequest>) 
 /// - `400`: register failed.
 /// - `409`: username or email has been registered.
 /// - `500`: internal server error(most likely database error).
-pub async fn register(validate::Json(body): validate::Json<crate::model::user::request::RegisterRequest>) -> impl IntoResponse {
+pub async fn register(
+    validate::Json(body): validate::Json<crate::model::user::request::RegisterRequest>,
+) -> impl IntoResponse {
     match user_service::register(body).await {
         Ok(user) => {
             return (
@@ -266,7 +277,9 @@ pub async fn find_avatar_metadata(Path(id): Path<i64>) -> impl IntoResponse {
     }
 }
 
-pub async fn save_avatar(Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart) -> impl IntoResponse {
+pub async fn save_avatar(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
+) -> impl IntoResponse {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && operator.id != id {
         return (
@@ -331,7 +344,9 @@ pub async fn save_avatar(Extension(ext): Extension<Ext>, Path(id): Path<i64>, mu
     }
 }
 
-pub async fn delete_avatar(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn delete_avatar(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> impl IntoResponse {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && operator.id != id {
         return (

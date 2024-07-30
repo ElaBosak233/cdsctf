@@ -2,7 +2,10 @@ mod migration;
 
 use bcrypt::{hash, DEFAULT_COST};
 use once_cell::sync::Lazy;
-use sea_orm::{ActiveModelTrait, ConnectOptions, Database, DatabaseConnection, EntityTrait, PaginatorTrait, Set};
+use sea_orm::{
+    ActiveModelTrait, ConnectOptions, Database, DatabaseConnection, EntityTrait, PaginatorTrait,
+    Set,
+};
 use std::{process, time::Duration};
 use tokio::sync::RwLock;
 use tracing::{error, info};
@@ -12,8 +15,16 @@ use crate::config;
 static DB: Lazy<RwLock<Option<DatabaseConnection>>> = Lazy::new(|| RwLock::new(None));
 
 pub async fn init() {
-    let url = match crate::config::get_app_config().db.provider.to_lowercase().as_str() {
-        "sqlite" => format!("sqlite://{}?mode=rwc", crate::config::get_app_config().db.sqlite.path.clone()),
+    let url = match crate::config::get_app_config()
+        .db
+        .provider
+        .to_lowercase()
+        .as_str()
+    {
+        "sqlite" => format!(
+            "sqlite://{}?mode=rwc",
+            crate::config::get_app_config().db.sqlite.path.clone()
+        ),
         "mysql" => format!(
             "mysql://{}:{}@{}:{}/{}",
             crate::config::get_app_config().db.mysql.username,
@@ -63,7 +74,10 @@ pub async fn get_db() -> DatabaseConnection {
 }
 
 pub async fn init_admin() {
-    let total = crate::model::user::Entity::find().count(&get_db().await).await.unwrap();
+    let total = crate::model::user::Entity::find()
+        .count(&get_db().await)
+        .await
+        .unwrap();
     if total == 0 {
         let hashed_password = hash("123456".to_string(), DEFAULT_COST).unwrap();
         let user = crate::model::user::ActiveModel {
@@ -80,7 +94,10 @@ pub async fn init_admin() {
 }
 
 pub async fn init_category() {
-    let total = crate::model::category::Entity::find().count(&get_db().await).await.unwrap();
+    let total = crate::model::category::Entity::find()
+        .count(&get_db().await)
+        .await
+        .unwrap();
     if total == 0 {
         let default_categories = vec![
             crate::model::category::ActiveModel {

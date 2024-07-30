@@ -1,6 +1,6 @@
 merge_derives = true
 fn_params_layout = "Compressed"
-max_width = 160
+max_width = 100
 tab_spaces = 4
 reorder_imports = true
 
