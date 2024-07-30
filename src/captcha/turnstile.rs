@@ -23,12 +23,12 @@ struct TurnstileRequest {
 impl Turnstile {
     pub fn new() -> Self {
         return Turnstile {
-            url: crate::config::get_app_config()
+            url: crate::config::get_config()
                 .captcha
                 .turnstile
                 .url
                 .clone(),
-            secret_key: crate::config::get_app_config()
+            secret_key: crate::config::get_config()
                 .captcha
                 .turnstile
                 .secret_key

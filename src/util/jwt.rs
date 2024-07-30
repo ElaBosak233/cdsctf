@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 use crate::config;
 
 static SECRET: Lazy<Mutex<String>> = Lazy::new(|| {
-    let mut secret_key = config::get_app_config().auth.jwt.secret_key.clone();
+    let mut secret_key = config::get_config().auth.jwt.secret_key.clone();
     let re = Regex::new(r"\[([Uu][Ii][Dd])\]").unwrap();
     secret_key = re
         .replace_all(&secret_key, uuid::Uuid::new_v4().simple().to_string())

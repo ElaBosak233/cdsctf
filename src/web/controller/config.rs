@@ -8,7 +8,7 @@ use axum::{
 use serde_json::json;
 use tokio::{fs::File, io::AsyncReadExt};
 
-use crate::config::get_app_config;
+use crate::config::get_config;
 
 pub async fn find() -> impl IntoResponse {
     return (
@@ -16,21 +16,21 @@ pub async fn find() -> impl IntoResponse {
         Json(json!({
             "code": StatusCode::OK.as_u16(),
             "data": {
-                "site": get_app_config().site,
+                "site": get_config().site,
                 "auth": {
-                    "registration": get_app_config().auth.registration,
+                    "registration": get_config().auth.registration,
                 },
                 "container": {
-                    "parallel_limit": get_app_config().container.strategy.parallel_limit,
-                    "request_limit": get_app_config().container.strategy.request_limit,
+                    "parallel_limit": get_config().container.strategy.parallel_limit,
+                    "request_limit": get_config().container.strategy.request_limit,
                 },
                 "captcha": {
-                    "provider": get_app_config().captcha.provider,
+                    "provider": get_config().captcha.provider,
                     "turnstile": {
-                        "site_key": get_app_config().captcha.turnstile.site_key
+                        "site_key": get_config().captcha.turnstile.site_key
                     },
                     "recaptcha": {
-                        "site_key": get_app_config().captcha.recaptcha.site_key
+                        "site_key": get_config().captcha.recaptcha.site_key
                     }
                 }
             }
@@ -39,7 +39,7 @@ pub async fn find() -> impl IntoResponse {
 }
 
 pub async fn get_favicon() -> impl IntoResponse {
-    let path = PathBuf::from(get_app_config().site.favicon.clone());
+    let path = PathBuf::from(get_config().site.favicon.clone());
 
     match File::open(&path).await {
         Ok(mut file) => {

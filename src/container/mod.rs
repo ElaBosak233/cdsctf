@@ -9,12 +9,12 @@ use tokio::sync::Mutex;
 use tracing::error;
 use traits::Container;
 
-use crate::config::get_app_config;
+use crate::config::get_config;
 
 static PROVIDER: Lazy<Mutex<Option<Arc<dyn Container>>>> = Lazy::new(|| Mutex::new(None));
 
 pub async fn init() {
-    let provider: Arc<dyn Container> = match get_app_config().container.provider.as_str() {
+    let provider: Arc<dyn Container> = match get_config().container.provider.as_str() {
         "docker" => Arc::new(docker::Docker::new()),
         "k8s" => Arc::new(k8s::K8s::new()),
         _ => {

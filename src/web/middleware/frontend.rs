@@ -7,6 +7,8 @@ use axum::{
     response::IntoResponse,
 };
 
+use crate::config;
+
 pub async fn serve(req: Request, next: Next) -> Result<axum::response::Response, StatusCode> {
     let path: String = req.uri().path().to_string();
 
@@ -18,6 +20,8 @@ pub async fn serve(req: Request, next: Next) -> Result<axum::response::Response,
 
     async fn index() -> Result<axum::response::Response, StatusCode> {
         if let Ok(index_content) = fs::read_to_string(PathBuf::from("dist").join("index.html")) {
+            let index_content =
+                index_content.replace("{{title}}", config::get_config().site.title.as_str());
             return Ok(Response::builder()
                 .status(StatusCode::OK)
                 .body(index_content)
@@ -36,12 +40,18 @@ pub async fn serve(req: Request, next: Next) -> Result<axum::response::Response,
         return index().await;
     }
 
-    if let Ok(content) = fs::read_to_string(&filepath) {
+    println!("{:?}", filepath);
+
+    if let Ok(content) = fs::read(&filepath) {
+        let mime = mime_guess::from_path(&filepath).first_or_octet_stream();
+
+        let body = axum::body::Body::from(content);
+
         return Ok(Response::builder()
             .status(StatusCode::OK)
-            .body(content)
-            .unwrap()
-            .into_response());
+            .header("Content-Type", mime.as_ref())
+            .body(body)
+            .unwrap());
     } else {
         return index().await;
     }

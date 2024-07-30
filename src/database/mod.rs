@@ -15,7 +15,7 @@ use crate::config;
 static DB: Lazy<RwLock<Option<DatabaseConnection>>> = Lazy::new(|| RwLock::new(None));
 
 pub async fn init() {
-    let url = match crate::config::get_app_config()
+    let url = match crate::config::get_config()
         .db
         .provider
         .to_lowercase()
@@ -23,24 +23,24 @@ pub async fn init() {
     {
         "sqlite" => format!(
             "sqlite://{}?mode=rwc",
-            crate::config::get_app_config().db.sqlite.path.clone()
+            crate::config::get_config().db.sqlite.path.clone()
         ),
         "mysql" => format!(
             "mysql://{}:{}@{}:{}/{}",
-            crate::config::get_app_config().db.mysql.username,
-            crate::config::get_app_config().db.mysql.password,
-            crate::config::get_app_config().db.mysql.host,
-            crate::config::get_app_config().db.mysql.port,
-            crate::config::get_app_config().db.mysql.dbname,
+            crate::config::get_config().db.mysql.username,
+            crate::config::get_config().db.mysql.password,
+            crate::config::get_config().db.mysql.host,
+            crate::config::get_config().db.mysql.port,
+            crate::config::get_config().db.mysql.dbname,
         ),
         "postgres" => format!(
             "postgres://{}:{}@{}:{}/{}?currentSchema={}",
-            crate::config::get_app_config().db.postgres.username,
-            crate::config::get_app_config().db.postgres.password,
-            crate::config::get_app_config().db.postgres.host,
-            crate::config::get_app_config().db.postgres.port,
-            crate::config::get_app_config().db.postgres.dbname,
-            crate::config::get_app_config().db.postgres.schema,
+            crate::config::get_config().db.postgres.username,
+            crate::config::get_config().db.postgres.password,
+            crate::config::get_config().db.postgres.host,
+            crate::config::get_config().db.postgres.port,
+            crate::config::get_config().db.postgres.dbname,
+            crate::config::get_config().db.postgres.schema,
         ),
         _ => {
             error!("Unsupported database provider");
@@ -55,7 +55,7 @@ pub async fn init() {
         .idle_timeout(Duration::from_secs(8))
         .max_lifetime(Duration::from_secs(8))
         .sqlx_logging(false)
-        .set_schema_search_path(config::get_app_config().db.postgres.schema.as_str());
+        .set_schema_search_path(config::get_config().db.postgres.schema.as_str());
 
     let db: DatabaseConnection = Database::connect(opt).await.unwrap();
     {
