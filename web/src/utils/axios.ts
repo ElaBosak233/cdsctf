@@ -5,49 +5,49 @@ import { useNavigate } from "react-router";
 import { showInfoNotification } from "./notification";
 
 export const useApi = () => {
-	return useMemo(() => {
-		const api = axios.create({
-			baseURL: import.meta.env.VITE_BASE_API as string,
-			headers: {
-				"Accept-Language": "zh-Hans",
-			},
-		});
-		return api;
-	}, []);
+    return useMemo(() => {
+        const api = axios.create({
+            baseURL: import.meta.env.VITE_BASE_API as string,
+            headers: {
+                "Accept-Language": "zh-Hans",
+            },
+        });
+        return api;
+    }, []);
 };
 
 export const useAuth = () => {
-	const authStore = useAuthStore();
-	const { pgsToken } = useAuthStore();
-	const navigate = useNavigate();
+    const authStore = useAuthStore();
+    const { pgsToken } = useAuthStore();
+    const navigate = useNavigate();
 
-	return useMemo(() => {
-		const auth = axios.create({
-			baseURL: import.meta.env.VITE_BASE_API as string,
-			headers: {
-				Authorization: pgsToken ? `${pgsToken}` : undefined,
-				"Accept-Language": "zh-Hans",
-			},
-		});
+    return useMemo(() => {
+        const auth = axios.create({
+            baseURL: import.meta.env.VITE_BASE_API as string,
+            headers: {
+                Authorization: pgsToken ? `${pgsToken}` : undefined,
+                "Accept-Language": "zh-Hans",
+            },
+        });
 
-		auth.interceptors.response.use(
-			(response) => {
-				return response;
-			},
-			(error) => {
-				if (error.response?.status === 401) {
-					authStore.setPgsToken("");
-					authStore.setUser(undefined);
-					navigate("/login");
-					showInfoNotification({
-						id: "auth-expired",
-						message: "登录凭据已过期，请重新登录",
-					});
-				}
-				return Promise.reject(error);
-			}
-		);
+        auth.interceptors.response.use(
+            (response) => {
+                return response;
+            },
+            (error) => {
+                if (error.response?.status === 401) {
+                    authStore.setPgsToken("");
+                    authStore.setUser(undefined);
+                    navigate("/login");
+                    showInfoNotification({
+                        id: "auth-expired",
+                        message: "登录凭据已过期，请重新登录",
+                    });
+                }
+                return Promise.reject(error);
+            }
+        );
 
-		return auth;
-	}, [pgsToken, navigate]);
+        return auth;
+    }, [pgsToken, navigate]);
 };

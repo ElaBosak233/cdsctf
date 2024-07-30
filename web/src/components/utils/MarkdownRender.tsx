@@ -8,122 +8,122 @@ import { forwardRef } from "react";
 import classes from "./MarkdownRender.module.css";
 
 export interface MarkdownProps extends React.ComponentPropsWithoutRef<"div"> {
-	src: string;
-	withRightIcon?: boolean;
+    src: string;
+    withRightIcon?: boolean;
 }
 
 interface InlineMarkdownProps extends TextProps {
-	source: string;
+    source: string;
 }
 
 const RenderReplacer = (func: any, replacer: (text: string) => string) => {
-	const original = func;
-	return (...args: any[]) => {
-		args[0] = replacer(args[0]);
-		return original(args);
-	};
+    const original = func;
+    return (...args: any[]) => {
+        args[0] = replacer(args[0]);
+        return original(args);
+    };
 };
 
 const InlineRegex = /\$([\s\S]+?)\$/g;
 const BlockRegex = /\$\$([\s\S]+?)\$\$/g;
 
 export const InlineMarkdownRender = forwardRef<
-	HTMLParagraphElement,
-	InlineMarkdownProps
+    HTMLParagraphElement,
+    InlineMarkdownProps
 >((props, ref) => {
-	const { source, ...others } = props;
-	const marked = new Marked();
+    const { source, ...others } = props;
+    const marked = new Marked();
 
-	const renderer = new marked.Renderer();
+    const renderer = new marked.Renderer();
 
-	const replacer = (text: string) =>
-		text.replace(InlineRegex, (_, expression) => {
-			return katex.renderToString(expression, {
-				displayMode: false,
-				throwOnError: false,
-			});
-		});
+    const replacer = (text: string) =>
+        text.replace(InlineRegex, (_, expression) => {
+            return katex.renderToString(expression, {
+                displayMode: false,
+                throwOnError: false,
+            });
+        });
 
-	renderer.text = RenderReplacer(renderer.text, replacer);
+    renderer.text = RenderReplacer(renderer.text, replacer);
 
-	marked.setOptions({
-		renderer,
-		silent: true,
-	});
+    marked.setOptions({
+        renderer,
+        silent: true,
+    });
 
-	return (
-		<Text
-			ref={ref}
-			{...others}
-			className={classes.inline}
-			dangerouslySetInnerHTML={{
-				__html: marked.parseInline(source) ?? "",
-			}}
-		/>
-	);
+    return (
+        <Text
+            ref={ref}
+            {...others}
+            className={classes.inline}
+            dangerouslySetInnerHTML={{
+                __html: marked.parseInline(source) ?? "",
+            }}
+        />
+    );
 });
 
 export const MarkdownRender = forwardRef<HTMLDivElement, MarkdownProps>(
-	(props, ref) => {
-		const { src, ...others } = props;
+    (props, ref) => {
+        const { src, ...others } = props;
 
-		Prism.manual = true;
+        Prism.manual = true;
 
-		const marked = new Marked(
-			markedHighlight({
-				highlight(code, lang) {
-					if (lang && Prism.languages[lang]) {
-						return Prism.highlight(
-							code,
-							Prism.languages[lang],
-							lang
-						);
-					} else {
-						return code;
-					}
-				},
-			})
-		);
+        const marked = new Marked(
+            markedHighlight({
+                highlight(code, lang) {
+                    if (lang && Prism.languages[lang]) {
+                        return Prism.highlight(
+                            code,
+                            Prism.languages[lang],
+                            lang
+                        );
+                    } else {
+                        return code;
+                    }
+                },
+            })
+        );
 
-		const renderer = new marked.Renderer();
+        const renderer = new marked.Renderer();
 
-		const replacer = (text: string) => {
-			text = text.replace(BlockRegex, (_, expression) => {
-				return katex.renderToString(expression, {
-					displayMode: true,
-					throwOnError: false,
-				});
-			});
+        const replacer = (text: string) => {
+            text = text.replace(BlockRegex, (_, expression) => {
+                return katex.renderToString(expression, {
+                    displayMode: true,
+                    throwOnError: false,
+                });
+            });
 
-			text = text.replace(InlineRegex, (_, expression) => {
-				return katex.renderToString(expression, {
-					displayMode: false,
-					throwOnError: false,
-				});
-			});
+            text = text.replace(InlineRegex, (_, expression) => {
+                return katex.renderToString(expression, {
+                    displayMode: false,
+                    throwOnError: false,
+                });
+            });
 
-			return text;
-		};
+            return text;
+        };
 
-		renderer.paragraph = RenderReplacer(renderer.paragraph, replacer);
-		renderer.text = RenderReplacer(renderer.text, replacer);
+        renderer.paragraph = RenderReplacer(renderer.paragraph, replacer);
+        renderer.text = RenderReplacer(renderer.text, replacer);
 
-		marked.setOptions({
-			renderer,
-			silent: true,
-		});
+        marked.setOptions({
+            renderer,
+            silent: true,
+        });
 
-		return (
-			<TypographyStylesProvider
-				ref={ref}
-				{...others}
-				data-with-right-icon={props.withRightIcon || undefined}
-				className={classes.root}
-			>
-				<div dangerouslySetInnerHTML={{ __html: marked.parse(src) }} />
-			</TypographyStylesProvider>
-		);
-	}
+        return (
+            <TypographyStylesProvider
+                ref={ref}
+                {...others}
+                data-with-right-icon={props.withRightIcon || undefined}
+                className={classes.root}
+            >
+                <div dangerouslySetInnerHTML={{ __html: marked.parse(src) }} />
+            </TypographyStylesProvider>
+        );
+    }
 );
 
 export default MarkdownRender;

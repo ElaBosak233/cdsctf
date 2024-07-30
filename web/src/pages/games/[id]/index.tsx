@@ -4,16 +4,16 @@ import MarkdownRender from "@/components/utils/MarkdownRender";
 import { useConfigStore } from "@/stores/config";
 import { Game } from "@/types/game";
 import {
-	Text,
-	Box,
-	Flex,
-	Paper,
-	BackgroundImage,
-	Stack,
-	Group,
-	Badge,
-	Progress,
-	Button,
+    Text,
+    Box,
+    Flex,
+    Paper,
+    BackgroundImage,
+    Stack,
+    Group,
+    Badge,
+    Progress,
+    Button,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -25,163 +25,163 @@ import { useDisclosure } from "@mantine/hooks";
 import GameTeamApplyModal from "@/components/modals/GameTeamApplyModal";
 
 export default function Page() {
-	const { id } = useParams<{ id: string }>();
-	const gameApi = useGameApi();
-	const configStore = useConfigStore();
-	const navigate = useNavigate();
-	const authStore = useAuthStore();
+    const { id } = useParams<{ id: string }>();
+    const gameApi = useGameApi();
+    const configStore = useConfigStore();
+    const navigate = useNavigate();
+    const authStore = useAuthStore();
 
-	const [game, setGame] = useState<Game>();
-	const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
-	const [gameTeam, setGameTeam] = useState<GameTeam>();
-	const [canEnter, setCanEnter] = useState(false);
+    const [game, setGame] = useState<Game>();
+    const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
+    const [gameTeam, setGameTeam] = useState<GameTeam>();
+    const [canEnter, setCanEnter] = useState(false);
 
-	const startedAt = dayjs(Number(game?.started_at) * 1000).format(
-		"YYYY/MM/DD HH:mm:ss"
-	);
-	const endedAt = dayjs(Number(game?.ended_at) * 1000).format(
-		"YYYY/MM/DD HH:mm:ss"
-	);
+    const startedAt = dayjs(Number(game?.started_at) * 1000).format(
+        "YYYY/MM/DD HH:mm:ss"
+    );
+    const endedAt = dayjs(Number(game?.ended_at) * 1000).format(
+        "YYYY/MM/DD HH:mm:ss"
+    );
 
-	const progress =
-		((Math.floor(Date.now() / 1000) - Number(game?.started_at)) /
-			(Number(game?.ended_at) - Number(game?.started_at))) *
-		100;
+    const progress =
+        ((Math.floor(Date.now() / 1000) - Number(game?.started_at)) /
+            (Number(game?.ended_at) - Number(game?.started_at))) *
+        100;
 
-	const [applyOpened, { open: applyOpen, close: applyClose }] =
-		useDisclosure(false);
+    const [applyOpened, { open: applyOpen, close: applyClose }] =
+        useDisclosure(false);
 
-	function getGame() {
-		gameApi
-			.getGames({
-				id: Number(id),
-			})
-			.then((res) => {
-				const r = res.data;
-				setGame(r.data[0]);
-			});
-	}
+    function getGame() {
+        gameApi
+            .getGames({
+                id: Number(id),
+            })
+            .then((res) => {
+                const r = res.data;
+                setGame(r.data[0]);
+            });
+    }
 
-	function getGameTeams() {
-		gameApi
-			.getGameTeams({
-				game_id: Number(id),
-			})
-			.then((res) => {
-				const r = res.data;
-				setGameTeams(r.data);
-			});
-	}
+    function getGameTeams() {
+        gameApi
+            .getGameTeams({
+                game_id: Number(id),
+            })
+            .then((res) => {
+                const r = res.data;
+                setGameTeams(r.data);
+            });
+    }
 
-	function enter() {
-		for (const gameTeam of gameTeams) {
-			if (gameTeam?.is_allowed) {
-				for (const user of gameTeam?.team?.users || []) {
-					if (user?.id === authStore?.user?.id) {
-						navigate(`/games/${game?.id}/challenges`);
-						return;
-					}
-				}
-			}
-		}
-		showErrNotification({
-			message: "你没有加入任何一个可参赛的队伍",
-		});
-	}
+    function enter() {
+        for (const gameTeam of gameTeams) {
+            if (gameTeam?.is_allowed) {
+                for (const user of gameTeam?.team?.users || []) {
+                    if (user?.id === authStore?.user?.id) {
+                        navigate(`/games/${game?.id}/challenges`);
+                        return;
+                    }
+                }
+            }
+        }
+        showErrNotification({
+            message: "你没有加入任何一个可参赛的队伍",
+        });
+    }
 
-	useEffect(() => {
-		if (gameTeams) {
-			for (const gameTeam of gameTeams) {
-				for (const user of gameTeam?.team?.users || []) {
-					if (user?.id === authStore?.user?.id) {
-						setGameTeam(gameTeam);
-						if (gameTeam?.is_allowed) {
-							setCanEnter(true);
-						}
-						return;
-					}
-				}
-			}
-		}
-		setCanEnter(false);
-	}, [gameTeams]);
+    useEffect(() => {
+        if (gameTeams) {
+            for (const gameTeam of gameTeams) {
+                for (const user of gameTeam?.team?.users || []) {
+                    if (user?.id === authStore?.user?.id) {
+                        setGameTeam(gameTeam);
+                        if (gameTeam?.is_allowed) {
+                            setCanEnter(true);
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+        setCanEnter(false);
+    }, [gameTeams]);
 
-	useEffect(() => {
-		getGame();
-		getGameTeams();
-	}, []);
+    useEffect(() => {
+        getGame();
+        getGameTeams();
+    }, []);
 
-	useEffect(() => {
-		document.title = `${game?.title} - ${configStore?.pltCfg?.site?.title}`;
-	}, [game]);
+    useEffect(() => {
+        document.title = `${game?.title} - ${configStore?.pltCfg?.site?.title}`;
+    }, [game]);
 
-	return (
-		<>
-			<Box>
-				<Paper mih={"22rem"} px={"25%"} py={"5rem"} shadow="md">
-					<Flex justify={"space-between"} gap={50}>
-						<Stack w={"55%"} justify={"space-between"}>
-							<Stack>
-								<Text fw={700} size="2.5rem">
-									{game?.title}
-								</Text>
-								<Text>{game?.bio}</Text>
-							</Stack>
-							<Stack my={20}>
-								<Group gap={5}>
-									<Badge>{startedAt}</Badge>
-									<MDIcon>arrow_right_alt</MDIcon>
-									<Badge>{endedAt}</Badge>
-								</Group>
-								<Progress
-									value={progress}
-									animated
-									w={"100%"}
-								/>
-								<Group gap={20}>
-									<Button
-										onClick={() =>
-											navigate(
-												`/games/${game?.id}/scoreboard`
-											)
-										}
-									>
-										查看榜单
-									</Button>
-									<Button
-										onClick={() => applyOpen()}
-										disabled={gameTeam !== undefined}
-									>
-										{!gameTeam
-											? "报名参赛"
-											: `已报名：${gameTeam?.team?.name}`}
-									</Button>
-									<Button
-										onClick={() => enter()}
-										disabled={!canEnter}
-									>
-										进入比赛
-									</Button>
-								</Group>
-							</Stack>
-						</Stack>
-						<BackgroundImage
-							src={`${import.meta.env.VITE_BASE_API}/games/${game?.id}/poster`}
-							radius={"md"}
-							h={250}
-							w={"45%"}
-						/>
-					</Flex>
-				</Paper>
-				<Box mx={"25%"} my={50}>
-					<MarkdownRender src={game?.description || ""} />
-				</Box>
-			</Box>
-			<GameTeamApplyModal
-				centered
-				opened={applyOpened}
-				onClose={applyClose}
-			/>
-		</>
-	);
+    return (
+        <>
+            <Box>
+                <Paper mih={"22rem"} px={"25%"} py={"5rem"} shadow="md">
+                    <Flex justify={"space-between"} gap={50}>
+                        <Stack w={"55%"} justify={"space-between"}>
+                            <Stack>
+                                <Text fw={700} size="2.5rem">
+                                    {game?.title}
+                                </Text>
+                                <Text>{game?.bio}</Text>
+                            </Stack>
+                            <Stack my={20}>
+                                <Group gap={5}>
+                                    <Badge>{startedAt}</Badge>
+                                    <MDIcon>arrow_right_alt</MDIcon>
+                                    <Badge>{endedAt}</Badge>
+                                </Group>
+                                <Progress
+                                    value={progress}
+                                    animated
+                                    w={"100%"}
+                                />
+                                <Group gap={20}>
+                                    <Button
+                                        onClick={() =>
+                                            navigate(
+                                                `/games/${game?.id}/scoreboard`
+                                            )
+                                        }
+                                    >
+                                        查看榜单
+                                    </Button>
+                                    <Button
+                                        onClick={() => applyOpen()}
+                                        disabled={gameTeam !== undefined}
+                                    >
+                                        {!gameTeam
+                                            ? "报名参赛"
+                                            : `已报名：${gameTeam?.team?.name}`}
+                                    </Button>
+                                    <Button
+                                        onClick={() => enter()}
+                                        disabled={!canEnter}
+                                    >
+                                        进入比赛
+                                    </Button>
+                                </Group>
+                            </Stack>
+                        </Stack>
+                        <BackgroundImage
+                            src={`${import.meta.env.VITE_BASE_API}/games/${game?.id}/poster`}
+                            radius={"md"}
+                            h={250}
+                            w={"45%"}
+                        />
+                    </Flex>
+                </Paper>
+                <Box mx={"25%"} my={50}>
+                    <MarkdownRender src={game?.description || ""} />
+                </Box>
+            </Box>
+            <GameTeamApplyModal
+                centered
+                opened={applyOpened}
+                onClose={applyClose}
+            />
+        </>
+    );
 }
