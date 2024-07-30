@@ -59,7 +59,10 @@ impl Container for K8s {
                     daemon().await;
                 }
                 Err(e) => {
-                    error!("Failed to create Kubernetes client from custom config: {:?}", e);
+                    error!(
+                        "Failed to create Kubernetes client from custom config: {:?}",
+                        e
+                    );
                     process::exit(1);
                 }
             },
@@ -71,7 +74,8 @@ impl Container for K8s {
     }
 
     async fn create(
-        &self, name: String, challenge: crate::model::challenge::Model, injected_flag: crate::model::challenge::Flag,
+        &self, name: String, challenge: crate::model::challenge::Model,
+        injected_flag: crate::model::challenge::Flag,
     ) -> Result<Vec<crate::model::pod::Nat>, Box<dyn Error>> {
         let client = get_k8s_client().clone();
         let pods: Api<Pod> = Api::namespaced(client, "default");

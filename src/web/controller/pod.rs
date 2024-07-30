@@ -1,15 +1,17 @@
 use axum::{
-    Extension,
     extract::{Path, Query},
     http::StatusCode,
-    Json, response::IntoResponse,
+    response::IntoResponse,
+    Extension, Json,
 };
 use serde_json::json;
 
 use crate::traits::Ext;
 use crate::web::service;
 
-pub async fn find(Query(params): Query<crate::model::pod::request::FindRequest>) -> impl IntoResponse {
+pub async fn find(
+    Query(params): Query<crate::model::pod::request::FindRequest>,
+) -> impl IntoResponse {
     match service::pod::find(params).await {
         Ok((pods, total)) => (
             StatusCode::OK,
@@ -29,7 +31,9 @@ pub async fn find(Query(params): Query<crate::model::pod::request::FindRequest>)
     }
 }
 
-pub async fn create(Extension(ext): Extension<Ext>, Json(mut body): Json<crate::model::pod::request::CreateRequest>) -> impl IntoResponse {
+pub async fn create(
+    Extension(ext): Extension<Ext>, Json(mut body): Json<crate::model::pod::request::CreateRequest>,
+) -> impl IntoResponse {
     let operator = ext.operator.clone().unwrap();
     body.user_id = Some(operator.id);
 
@@ -72,7 +76,13 @@ pub async fn update(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> impl
         })
         .unwrap();
 
-    if operator.group == "admin" || operator.id == pod.user_id || operator.teams.iter().any(|team| Some(team.id) == pod.team_id) {
+    if operator.group == "admin"
+        || operator.id == pod.user_id
+        || operator
+            .teams
+            .iter()
+            .any(|team| Some(team.id) == pod.team_id)
+    {
         match service::pod::update(id).await {
             Ok(_) => (
                 StatusCode::OK,
@@ -117,7 +127,13 @@ pub async fn delete(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> impl
 
     let pod = pods.get(0).unwrap();
 
-    if operator.group == "admin" || operator.id == pod.user_id || operator.teams.iter().any(|team| Some(team.id) == pod.team_id) {
+    if operator.group == "admin"
+        || operator.id == pod.user_id
+        || operator
+            .teams
+            .iter()
+            .any(|team| Some(team.id) == pod.team_id)
+    {
         match service::pod::delete(id).await {
             Ok(_) => {
                 return (

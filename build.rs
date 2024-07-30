@@ -14,5 +14,10 @@ fn main() {
         .trim()
     );
 
-    println!("cargo:rustc-env=BUILD_AT={}", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string());
+    println!(
+        "cargo:rustc-env=BUILD_AT={}",
+        chrono::Utc::now()
+            .format("%Y-%m-%d %H:%M:%S UTC")
+            .to_string()
+    );
 }

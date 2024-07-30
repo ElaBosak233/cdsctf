@@ -22,8 +22,16 @@ struct RecaptchaRequest {
 impl ICaptcha for Recaptcha {
     fn new() -> Self {
         return Recaptcha {
-            url: crate::config::get_app_config().captcha.recaptcha.url.clone(),
-            secret_key: crate::config::get_app_config().captcha.recaptcha.secret_key.clone(),
+            url: crate::config::get_app_config()
+                .captcha
+                .recaptcha
+                .url
+                .clone(),
+            secret_key: crate::config::get_app_config()
+                .captcha
+                .recaptcha
+                .secret_key
+                .clone(),
             threshold: crate::config::get_app_config().captcha.recaptcha.threshold,
         };
     }
@@ -36,7 +44,12 @@ impl ICaptcha for Recaptcha {
         };
 
         let client = Client::new();
-        let resp = client.post(&self.url).json(&request_body).send().await.unwrap();
+        let resp = client
+            .post(&self.url)
+            .json(&request_body)
+            .send()
+            .await
+            .unwrap();
 
         let response: serde_json::Value = resp.json().await.unwrap();
 
