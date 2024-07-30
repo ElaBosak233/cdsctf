@@ -1,8 +1,10 @@
+use async_trait::async_trait;
 use reqwest::Client;
 use serde::Serialize;
 
-use super::traits::ICaptcha;
+use super::traits::Captcha;
 
+#[derive(Clone)]
 pub struct Recaptcha {
     secret_key: String,
     url: String,
@@ -19,8 +21,8 @@ struct RecaptchaRequest {
     remote_ip: String,
 }
 
-impl ICaptcha for Recaptcha {
-    fn new() -> Self {
+impl Recaptcha {
+    pub fn new() -> Self {
         return Recaptcha {
             url: crate::config::get_app_config()
                 .captcha
@@ -35,7 +37,10 @@ impl ICaptcha for Recaptcha {
             threshold: crate::config::get_app_config().captcha.recaptcha.threshold,
         };
     }
+}
 
+#[async_trait]
+impl Captcha for Recaptcha {
     async fn verify(&self, token: String, client_ip: String) -> bool {
         let request_body = RecaptchaRequest {
             secret_key: self.secret_key.clone(),

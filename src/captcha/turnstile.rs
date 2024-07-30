@@ -1,8 +1,10 @@
+use async_trait::async_trait;
 use reqwest::Client;
 use serde::Serialize;
 
-use super::traits::ICaptcha;
+use super::traits::Captcha;
 
+#[derive(Clone)]
 pub struct Turnstile {
     url: String,
     secret_key: String,
@@ -18,8 +20,8 @@ struct TurnstileRequest {
     remote_ip: String,
 }
 
-impl ICaptcha for Turnstile {
-    fn new() -> Self {
+impl Turnstile {
+    pub fn new() -> Self {
         return Turnstile {
             url: crate::config::get_app_config()
                 .captcha
@@ -33,7 +35,10 @@ impl ICaptcha for Turnstile {
                 .clone(),
         };
     }
+}
 
+#[async_trait]
+impl Captcha for Turnstile {
     async fn verify(&self, token: String, client_ip: String) -> bool {
         let request_body = TurnstileRequest {
             secret_key: self.secret_key.clone(),
