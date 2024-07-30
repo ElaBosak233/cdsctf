@@ -6,19 +6,19 @@ import { Game } from "@/types/game";
 import { GameTeam } from "@/types/game_team";
 import { showSuccessNotification } from "@/utils/notification";
 import {
-	ActionIcon,
-	Divider,
-	Flex,
-	Group,
-	Stack,
-	Tooltip,
-	Text,
-	Avatar,
-	Badge,
-	Switch,
-	Pagination,
-	LoadingOverlay,
-	Table,
+    ActionIcon,
+    Divider,
+    Flex,
+    Group,
+    Stack,
+    Tooltip,
+    Text,
+    Avatar,
+    Badge,
+    Switch,
+    Pagination,
+    LoadingOverlay,
+    Table,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
@@ -26,266 +26,266 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 function Page() {
-	const gameApi = useGameApi();
-	const { id } = useParams<{ id: string }>();
+    const gameApi = useGameApi();
+    const { id } = useParams<{ id: string }>();
 
-	const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(true);
 
-	const [game, setGame] = useState<Game>();
-	const [refresh, setRefresh] = useState<number>(0);
-	const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
-	const [rowsPerPage, _] = useState<number>(10);
-	const [page, setPage] = useState<number>(1);
+    const [game, setGame] = useState<Game>();
+    const [refresh, setRefresh] = useState<number>(0);
+    const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
+    const [rowsPerPage, _] = useState<number>(10);
+    const [page, setPage] = useState<number>(1);
 
-	const [displayedGameTeams, setDisplayedGameTeams] = useState<
-		Array<GameTeam>
-	>([]);
+    const [displayedGameTeams, setDisplayedGameTeams] = useState<
+        Array<GameTeam>
+    >([]);
 
-	const [createOpened, { open: createOpen, close: createClose }] =
-		useDisclosure(false);
+    const [createOpened, { open: createOpen, close: createClose }] =
+        useDisclosure(false);
 
-	const [total, setTotal] = useState<number>(0);
+    const [total, setTotal] = useState<number>(0);
 
-	function getGame() {
-		gameApi
-			.getGames({
-				id: Number(id),
-			})
-			.then((res) => {
-				const r = res.data;
-				setGame(r.data[0]);
-			});
-	}
+    function getGame() {
+        gameApi
+            .getGames({
+                id: Number(id),
+            })
+            .then((res) => {
+                const r = res.data;
+                setGame(r.data[0]);
+            });
+    }
 
-	function getGameTeams() {
-		setLoading(true);
-		gameApi
-			.getGameTeams({
-				game_id: Number(id),
-			})
-			.then((res) => {
-				const r = res.data;
-				setGameTeams(r.data);
-				setTotal(r.total);
-			})
-			.finally(() => {
-				setLoading(false);
-			});
-	}
+    function getGameTeams() {
+        setLoading(true);
+        gameApi
+            .getGameTeams({
+                game_id: Number(id),
+            })
+            .then((res) => {
+                const r = res.data;
+                setGameTeams(r.data);
+                setTotal(r.total);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }
 
-	function switchIsAllowed(gameTeam?: GameTeam) {
-		gameApi
-			.updateGameTeam({
-				game_id: Number(id),
-				team_id: gameTeam?.team_id,
-				is_allowed: !gameTeam?.is_allowed,
-			})
-			.then((_) => {
-				showSuccessNotification({
-					message: !gameTeam?.is_allowed
-						? `已允许队伍 ${gameTeam?.team?.name} 参赛`
-						: `已禁止队伍 ${gameTeam?.team?.name} 参赛`,
-				});
-				setGameTeams(
-					gameTeams?.map((gt) =>
-						gt.id === gameTeam?.id
-							? {
-									...gt,
-									is_allowed: !gameTeam?.is_allowed,
-								}
-							: gt
-					)
-				);
-			});
-	}
+    function switchIsAllowed(gameTeam?: GameTeam) {
+        gameApi
+            .updateGameTeam({
+                game_id: Number(id),
+                team_id: gameTeam?.team_id,
+                is_allowed: !gameTeam?.is_allowed,
+            })
+            .then((_) => {
+                showSuccessNotification({
+                    message: !gameTeam?.is_allowed
+                        ? `已允许队伍 ${gameTeam?.team?.name} 参赛`
+                        : `已禁止队伍 ${gameTeam?.team?.name} 参赛`,
+                });
+                setGameTeams(
+                    gameTeams?.map((gt) =>
+                        gt.id === gameTeam?.id
+                            ? {
+                                  ...gt,
+                                  is_allowed: !gameTeam?.is_allowed,
+                              }
+                            : gt
+                    )
+                );
+            });
+    }
 
-	function deleteGameTeam(gameTeam?: GameTeam) {
-		if (gameTeam) {
-			gameApi
-				.deleteGameTeam({
-					game_id: gameTeam?.game_id,
-					team_id: gameTeam?.team_id,
-				})
-				.then(() => {
-					showSuccessNotification({
-						message: "团队已移除",
-					});
-					setRefresh((prev) => prev + 1);
-				});
-		}
-	}
+    function deleteGameTeam(gameTeam?: GameTeam) {
+        if (gameTeam) {
+            gameApi
+                .deleteGameTeam({
+                    game_id: gameTeam?.game_id,
+                    team_id: gameTeam?.team_id,
+                })
+                .then(() => {
+                    showSuccessNotification({
+                        message: "团队已移除",
+                    });
+                    setRefresh((prev) => prev + 1);
+                });
+        }
+    }
 
-	const openDeleteGameTeamModal = (gameTeam?: GameTeam) =>
-		modals.openConfirmModal({
-			centered: true,
-			children: (
-				<>
-					<Flex gap={10} align={"center"}>
-						<MDIcon>people</MDIcon>
-						<Text fw={600}>移除团队</Text>
-					</Flex>
-					<Divider my={10} />
-					<Text>你确定要移除团队 {gameTeam?.team?.name} 吗？</Text>
-				</>
-			),
-			withCloseButton: false,
-			labels: {
-				confirm: "确定",
-				cancel: "取消",
-			},
-			confirmProps: {
-				color: "red",
-			},
-			onConfirm: () => {
-				deleteGameTeam(gameTeam);
-			},
-		});
+    const openDeleteGameTeamModal = (gameTeam?: GameTeam) =>
+        modals.openConfirmModal({
+            centered: true,
+            children: (
+                <>
+                    <Flex gap={10} align={"center"}>
+                        <MDIcon>people</MDIcon>
+                        <Text fw={600}>移除团队</Text>
+                    </Flex>
+                    <Divider my={10} />
+                    <Text>你确定要移除团队 {gameTeam?.team?.name} 吗？</Text>
+                </>
+            ),
+            withCloseButton: false,
+            labels: {
+                confirm: "确定",
+                cancel: "取消",
+            },
+            confirmProps: {
+                color: "red",
+            },
+            onConfirm: () => {
+                deleteGameTeam(gameTeam);
+            },
+        });
 
-	useEffect(() => {
-		getGame();
-	}, [refresh]);
+    useEffect(() => {
+        getGame();
+    }, [refresh]);
 
-	useEffect(() => {
-		if (gameTeams) {
-			setDisplayedGameTeams(
-				gameTeams.slice((page - 1) * rowsPerPage, page * rowsPerPage)
-			);
-		}
-	}, [page, gameTeams]);
+    useEffect(() => {
+        if (gameTeams) {
+            setDisplayedGameTeams(
+                gameTeams.slice((page - 1) * rowsPerPage, page * rowsPerPage)
+            );
+        }
+    }, [page, gameTeams]);
 
-	useEffect(() => {
-		if (game) {
-			getGameTeams();
-		}
-	}, [game]);
+    useEffect(() => {
+        if (game) {
+            getGameTeams();
+        }
+    }, [game]);
 
-	useEffect(() => {
-		document.title = `团队管理 - ${game?.title}`;
-	}, [game]);
+    useEffect(() => {
+        document.title = `团队管理 - ${game?.title}`;
+    }, [game]);
 
-	return (
-		<>
-			<Stack m={36}>
-				<Stack gap={10}>
-					<Flex justify={"space-between"} align={"center"}>
-						<Group>
-							<MDIcon>people</MDIcon>
-							<Text fw={700} size="xl">
-								参赛团队
-							</Text>
-						</Group>
-						<Tooltip label="添加团队" withArrow>
-							<ActionIcon onClick={() => createOpen()}>
-								<MDIcon>add</MDIcon>
-							</ActionIcon>
-						</Tooltip>
-					</Flex>
-					<Divider />
-				</Stack>
-				<Stack mx={20} mih={"calc(100vh - 360px)"} pos={"relative"}>
-					<LoadingOverlay visible={loading} />
-					<Table stickyHeader horizontalSpacing={"md"} striped>
-						<Table.Thead>
-							<Table.Tr
-								sx={{
-									lineHeight: 3,
-								}}
-							>
-								<Table.Th />
-								<Table.Th>团队名</Table.Th>
-								<Table.Th>成员</Table.Th>
-								<Table.Th>邮箱</Table.Th>
-								<Table.Th />
-							</Table.Tr>
-						</Table.Thead>
-						<Table.Tbody>
-							{displayedGameTeams?.map((gameTeam) => (
-								<Table.Tr key={gameTeam?.id}>
-									<Table.Td>
-										<Group>
-											<Switch
-												checked={gameTeam?.is_allowed}
-												onChange={() =>
-													switchIsAllowed(gameTeam)
-												}
-											/>
-											<Badge>{gameTeam?.team_id}</Badge>
-										</Group>
-									</Table.Td>
-									<Table.Td>
-										<Group gap={20} align="center">
-											<Avatar
-												color="brand"
-												src={`${import.meta.env.VITE_BASE_API}/teams/${gameTeam?.team_id}/avatar`}
-											>
-												<MDIcon>people</MDIcon>
-											</Avatar>
-											<Text fw={700} size="1rem">
-												{gameTeam?.team?.name}
-											</Text>
-										</Group>
-									</Table.Td>
-									<Table.Td>
-										<Avatar.Group spacing="sm">
-											{gameTeam?.team?.users?.map(
-												(user) => (
-													<Tooltip
-														key={user?.id}
-														label={user?.nickname}
-														withArrow
-													>
-														<Avatar
-															color="brand"
-															src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar`}
-															radius="xl"
-														>
-															<MDIcon>
-																person
-															</MDIcon>
-														</Avatar>
-													</Tooltip>
-												)
-											)}
-										</Avatar.Group>
-									</Table.Td>
-									<Table.Td>{gameTeam?.team?.email}</Table.Td>
-									<Table.Td>
-										<Tooltip label="移除团队" withArrow>
-											<ActionIcon
-												onClick={() =>
-													openDeleteGameTeamModal(
-														gameTeam
-													)
-												}
-											>
-												<MDIcon color={"red"}>
-													delete
-												</MDIcon>
-											</ActionIcon>
-										</Tooltip>
-									</Table.Td>
-								</Table.Tr>
-							))}
-						</Table.Tbody>
-					</Table>
-				</Stack>
-				<Flex justify={"center"}>
-					<Pagination
-						total={Math.ceil(total / rowsPerPage)}
-						value={page}
-						onChange={setPage}
-						withEdges
-					/>
-				</Flex>
-			</Stack>
-			<GameTeamCreateModal
-				opened={createOpened}
-				onClose={createClose}
-				setRefresh={() => setRefresh((prev) => prev + 1)}
-				centered
-			/>
-		</>
-	);
+    return (
+        <>
+            <Stack m={36}>
+                <Stack gap={10}>
+                    <Flex justify={"space-between"} align={"center"}>
+                        <Group>
+                            <MDIcon>people</MDIcon>
+                            <Text fw={700} size="xl">
+                                参赛团队
+                            </Text>
+                        </Group>
+                        <Tooltip label="添加团队" withArrow>
+                            <ActionIcon onClick={() => createOpen()}>
+                                <MDIcon>add</MDIcon>
+                            </ActionIcon>
+                        </Tooltip>
+                    </Flex>
+                    <Divider />
+                </Stack>
+                <Stack mx={20} mih={"calc(100vh - 360px)"} pos={"relative"}>
+                    <LoadingOverlay visible={loading} />
+                    <Table stickyHeader horizontalSpacing={"md"} striped>
+                        <Table.Thead>
+                            <Table.Tr
+                                sx={{
+                                    lineHeight: 3,
+                                }}
+                            >
+                                <Table.Th />
+                                <Table.Th>团队名</Table.Th>
+                                <Table.Th>成员</Table.Th>
+                                <Table.Th>邮箱</Table.Th>
+                                <Table.Th />
+                            </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                            {displayedGameTeams?.map((gameTeam) => (
+                                <Table.Tr key={gameTeam?.id}>
+                                    <Table.Td>
+                                        <Group>
+                                            <Switch
+                                                checked={gameTeam?.is_allowed}
+                                                onChange={() =>
+                                                    switchIsAllowed(gameTeam)
+                                                }
+                                            />
+                                            <Badge>{gameTeam?.team_id}</Badge>
+                                        </Group>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <Group gap={20} align="center">
+                                            <Avatar
+                                                color="brand"
+                                                src={`${import.meta.env.VITE_BASE_API}/teams/${gameTeam?.team_id}/avatar`}
+                                            >
+                                                <MDIcon>people</MDIcon>
+                                            </Avatar>
+                                            <Text fw={700} size="1rem">
+                                                {gameTeam?.team?.name}
+                                            </Text>
+                                        </Group>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <Avatar.Group spacing="sm">
+                                            {gameTeam?.team?.users?.map(
+                                                (user) => (
+                                                    <Tooltip
+                                                        key={user?.id}
+                                                        label={user?.nickname}
+                                                        withArrow
+                                                    >
+                                                        <Avatar
+                                                            color="brand"
+                                                            src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar`}
+                                                            radius="xl"
+                                                        >
+                                                            <MDIcon>
+                                                                person
+                                                            </MDIcon>
+                                                        </Avatar>
+                                                    </Tooltip>
+                                                )
+                                            )}
+                                        </Avatar.Group>
+                                    </Table.Td>
+                                    <Table.Td>{gameTeam?.team?.email}</Table.Td>
+                                    <Table.Td>
+                                        <Tooltip label="移除团队" withArrow>
+                                            <ActionIcon
+                                                onClick={() =>
+                                                    openDeleteGameTeamModal(
+                                                        gameTeam
+                                                    )
+                                                }
+                                            >
+                                                <MDIcon color={"red"}>
+                                                    delete
+                                                </MDIcon>
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    </Table.Td>
+                                </Table.Tr>
+                            ))}
+                        </Table.Tbody>
+                    </Table>
+                </Stack>
+                <Flex justify={"center"}>
+                    <Pagination
+                        total={Math.ceil(total / rowsPerPage)}
+                        value={page}
+                        onChange={setPage}
+                        withEdges
+                    />
+                </Flex>
+            </Stack>
+            <GameTeamCreateModal
+                opened={createOpened}
+                onClose={createClose}
+                setRefresh={() => setRefresh((prev) => prev + 1)}
+                centered
+            />
+        </>
+    );
 }
 
 export default withGameEdit(Page);

@@ -1,148 +1,148 @@
 import {
-	GameChallengeCreateRequest,
-	GameChallengeFindRequest,
-	GameChallengeUpdateRequest,
-	GameCreateRequest,
-	GameDeleteRequest,
-	GameFindRequest,
-	GameTeamCreateRequest,
-	GameTeamDeleteRequest,
-	GameTeamFindRequest,
-	GameTeamUpdateRequest,
-	GameUpdateRequest,
+    GameChallengeCreateRequest,
+    GameChallengeFindRequest,
+    GameChallengeUpdateRequest,
+    GameCreateRequest,
+    GameDeleteRequest,
+    GameFindRequest,
+    GameTeamCreateRequest,
+    GameTeamDeleteRequest,
+    GameTeamFindRequest,
+    GameTeamUpdateRequest,
+    GameUpdateRequest,
 } from "@/types/game";
 import {
-	NoticeCreateRequest,
-	NoticeDeleteRequest,
-	NoticeFindRequest,
-	NoticeUpdateRequest,
+    NoticeCreateRequest,
+    NoticeDeleteRequest,
+    NoticeFindRequest,
+    NoticeUpdateRequest,
 } from "@/types/notice";
 import { useAuth } from "@/utils/axios";
 import { AxiosRequestConfig } from "axios";
 
 export function useGameApi() {
-	const auth = useAuth();
+    const auth = useAuth();
 
-	const getGames = (request: GameFindRequest) => {
-		return auth.get("/games", { params: request });
-	};
+    const getGames = (request: GameFindRequest) => {
+        return auth.get("/games", { params: request });
+    };
 
-	const createGame = (request: GameCreateRequest) => {
-		return auth.post("/games", request);
-	};
+    const createGame = (request: GameCreateRequest) => {
+        return auth.post("/games", request);
+    };
 
-	const updateGame = (request: GameUpdateRequest) => {
-		return auth.put(`/games/${request?.id}`, request);
-	};
+    const updateGame = (request: GameUpdateRequest) => {
+        return auth.put(`/games/${request?.id}`, request);
+    };
 
-	const deleteGame = (request: GameDeleteRequest) => {
-		return auth.delete(`/games/${request?.id}`);
-	};
+    const deleteGame = (request: GameDeleteRequest) => {
+        return auth.delete(`/games/${request?.id}`);
+    };
 
-	const getGameChallenges = (request: GameChallengeFindRequest) => {
-		return auth.get(`/games/${request?.game_id}/challenges`, {
-			params: request,
-		});
-	};
+    const getGameChallenges = (request: GameChallengeFindRequest) => {
+        return auth.get(`/games/${request?.game_id}/challenges`, {
+            params: request,
+        });
+    };
 
-	const createGameChallenge = (request: GameChallengeCreateRequest) => {
-		return auth.post(`/games/${request?.game_id}/challenges`, request);
-	};
+    const createGameChallenge = (request: GameChallengeCreateRequest) => {
+        return auth.post(`/games/${request?.game_id}/challenges`, request);
+    };
 
-	const updateGameChallenge = (request: GameChallengeUpdateRequest) => {
-		return auth.put(
-			`/games/${request?.game_id}/challenges/${request?.challenge_id}`,
-			request
-		);
-	};
+    const updateGameChallenge = (request: GameChallengeUpdateRequest) => {
+        return auth.put(
+            `/games/${request?.game_id}/challenges/${request?.challenge_id}`,
+            request
+        );
+    };
 
-	const deleteGameChallenge = (request: GameChallengeUpdateRequest) => {
-		return auth.delete(
-			`/games/${request?.game_id}/challenges/${request?.challenge_id}`
-		);
-	};
+    const deleteGameChallenge = (request: GameChallengeUpdateRequest) => {
+        return auth.delete(
+            `/games/${request?.game_id}/challenges/${request?.challenge_id}`
+        );
+    };
 
-	const getGameTeams = (request: GameTeamFindRequest) => {
-		return auth.get(`/games/${request?.game_id}/teams`, {
-			params: request,
-		});
-	};
+    const getGameTeams = (request: GameTeamFindRequest) => {
+        return auth.get(`/games/${request?.game_id}/teams`, {
+            params: request,
+        });
+    };
 
-	const createGameTeam = (request: GameTeamCreateRequest) => {
-		return auth.post(`/games/${request?.game_id}/teams`, request);
-	};
+    const createGameTeam = (request: GameTeamCreateRequest) => {
+        return auth.post(`/games/${request?.game_id}/teams`, request);
+    };
 
-	const updateGameTeam = (request: GameTeamUpdateRequest) => {
-		return auth.put(
-			`/games/${request?.game_id}/teams/${request?.team_id}`,
-			request
-		);
-	};
+    const updateGameTeam = (request: GameTeamUpdateRequest) => {
+        return auth.put(
+            `/games/${request?.game_id}/teams/${request?.team_id}`,
+            request
+        );
+    };
 
-	const deleteGameTeam = (request: GameTeamDeleteRequest) => {
-		return auth.delete(
-			`/games/${request?.game_id}/teams/${request?.team_id}`
-		);
-	};
+    const deleteGameTeam = (request: GameTeamDeleteRequest) => {
+        return auth.delete(
+            `/games/${request?.game_id}/teams/${request?.team_id}`
+        );
+    };
 
-	const getGameNotices = (request: NoticeFindRequest) => {
-		return auth.get(`/games/${request?.game_id}/notices`, {
-			params: request,
-		});
-	};
+    const getGameNotices = (request: NoticeFindRequest) => {
+        return auth.get(`/games/${request?.game_id}/notices`, {
+            params: request,
+        });
+    };
 
-	const createGameNotice = (request: NoticeCreateRequest) => {
-		return auth.post(`/games/${request?.game_id}/notices`, request);
-	};
+    const createGameNotice = (request: NoticeCreateRequest) => {
+        return auth.post(`/games/${request?.game_id}/notices`, request);
+    };
 
-	const updateGameNotice = (request: NoticeUpdateRequest) => {
-		return auth.put(
-			`/games/${request?.game_id}/notices/${request?.id}`,
-			request
-		);
-	};
+    const updateGameNotice = (request: NoticeUpdateRequest) => {
+        return auth.put(
+            `/games/${request?.game_id}/notices/${request?.id}`,
+            request
+        );
+    };
 
-	const deleteGameNotice = (request: NoticeDeleteRequest) => {
-		return auth.delete(`/games/${request?.game_id}/notices/${request?.id}`);
-	};
+    const deleteGameNotice = (request: NoticeDeleteRequest) => {
+        return auth.delete(`/games/${request?.game_id}/notices/${request?.id}`);
+    };
 
-	const getGamePosterMetadata = (id: number) => {
-		return auth.get(`/games/${id}/poster/metadata`);
-	};
+    const getGamePosterMetadata = (id: number) => {
+        return auth.get(`/games/${id}/poster/metadata`);
+    };
 
-	const saveGamePoster = (
-		id: number,
-		file: File,
-		config: AxiosRequestConfig<FormData>
-	) => {
-		const formData = new FormData();
-		formData.append("file", file);
-		return auth.post(`/games/${id}/poster`, formData, config);
-	};
+    const saveGamePoster = (
+        id: number,
+        file: File,
+        config: AxiosRequestConfig<FormData>
+    ) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        return auth.post(`/games/${id}/poster`, formData, config);
+    };
 
-	const deleteGamePoster = (id: number) => {
-		return auth.delete(`/games/${id}/poster`);
-	};
+    const deleteGamePoster = (id: number) => {
+        return auth.delete(`/games/${id}/poster`);
+    };
 
-	return {
-		getGames,
-		createGame,
-		updateGame,
-		deleteGame,
-		getGameChallenges,
-		updateGameChallenge,
-		createGameChallenge,
-		deleteGameChallenge,
-		getGameTeams,
-		createGameTeam,
-		updateGameTeam,
-		deleteGameTeam,
-		getGameNotices,
-		createGameNotice,
-		updateGameNotice,
-		deleteGameNotice,
-		getGamePosterMetadata,
-		saveGamePoster,
-		deleteGamePoster,
-	};
+    return {
+        getGames,
+        createGame,
+        updateGame,
+        deleteGame,
+        getGameChallenges,
+        updateGameChallenge,
+        createGameChallenge,
+        deleteGameChallenge,
+        getGameTeams,
+        createGameTeam,
+        updateGameTeam,
+        deleteGameTeam,
+        getGameNotices,
+        createGameNotice,
+        updateGameNotice,
+        deleteGameNotice,
+        getGamePosterMetadata,
+        saveGamePoster,
+        deleteGamePoster,
+    };
 }

@@ -1,4 +1,4 @@
 export interface Port {
-	value: number;
-	protocol: string;
+    value: number;
+    protocol: string;
 }

@@ -5,25 +5,25 @@ import { prismjsPlugin } from "vite-plugin-prismjs";
 import path from "path";
 
 export default defineConfig({
-	plugins: [
-		react(),
-		Pages({
-			dirs: [
-				{
-					dir: "./src/pages",
-					baseRoute: "",
-				},
-			],
-		}),
-		prismjsPlugin({
-			languages: "all",
-			css: true,
-		}),
-	],
-	resolve: {
-		alias: {
-			"@": path.resolve(__dirname, "src"),
-			"#": path.resolve(__dirname, "."),
-		},
-	},
+    plugins: [
+        react(),
+        Pages({
+            dirs: [
+                {
+                    dir: "./src/pages",
+                    baseRoute: "",
+                },
+            ],
+        }),
+        prismjsPlugin({
+            languages: "all",
+            css: true,
+        }),
+    ],
+    resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "src"),
+            "#": path.resolve(__dirname, "."),
+        },
+    },
 });

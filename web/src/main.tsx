@@ -17,30 +17,30 @@ import { Notifications } from "@mantine/notifications";
 const { theme } = useTheme();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-	<React.StrictMode>
-		<Router>
-			<MantineProvider
-				stylesTransform={emotionTransform}
-				theme={theme}
-				defaultColorScheme="light"
-			>
-				<MantineEmotionProvider>
-					<ModalsProvider>
-						<DatesProvider
-							settings={{
-								locale: "zh-cn",
-								firstDayOfWeek: 0,
-								weekendDays: [0, 6],
-								timezone: "UTC",
-								consistentWeeks: true,
-							}}
-						>
-							<App />
-							<Notifications zIndex={5000} />
-						</DatesProvider>
-					</ModalsProvider>
-				</MantineEmotionProvider>
-			</MantineProvider>
-		</Router>
-	</React.StrictMode>
+    <React.StrictMode>
+        <Router>
+            <MantineProvider
+                stylesTransform={emotionTransform}
+                theme={theme}
+                defaultColorScheme="light"
+            >
+                <MantineEmotionProvider>
+                    <ModalsProvider>
+                        <DatesProvider
+                            settings={{
+                                locale: "zh-cn",
+                                firstDayOfWeek: 0,
+                                weekendDays: [0, 6],
+                                timezone: "UTC",
+                                consistentWeeks: true,
+                            }}
+                        >
+                            <App />
+                            <Notifications zIndex={5000} />
+                        </DatesProvider>
+                    </ModalsProvider>
+                </MantineEmotionProvider>
+            </MantineProvider>
+        </Router>
+    </React.StrictMode>
 );
