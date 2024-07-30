@@ -16,10 +16,10 @@ use tracing::info;
 
 #[tokio::main]
 async fn main() {
-    let banner = assets::Assets::get("banner.txt").unwrap();
+    let banner = assets::get("banner.txt").unwrap();
     println!(
         "{}",
-        std::str::from_utf8(banner.data.as_ref())
+        std::str::from_utf8(&banner)
             .unwrap()
             .replace("{{version}}", env!("CARGO_PKG_VERSION"))
             .replace("{{commit}}", env!("GIT_COMMIT_ID"))
