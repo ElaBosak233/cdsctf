@@ -1,6 +1,6 @@
-pub trait ICaptcha {
-    fn new() -> Self;
-    fn verify(
-        &self, token: String, client_ip: String,
-    ) -> impl std::future::Future<Output = bool> + Send;
+use async_trait::async_trait;
+
+#[async_trait]
+pub trait Captcha {
+    async fn verify(&self, token: String, client_ip: String) -> bool;
 }
