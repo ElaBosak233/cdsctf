@@ -12,7 +12,7 @@ pub mod traits;
 pub mod turnstile;
 
 pub fn new() -> Option<Box<dyn Captcha>> {
-    match config::get_app_config()
+    match config::get_config()
         .captcha
         .provider
         .to_lowercase()

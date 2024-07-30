@@ -24,17 +24,13 @@ struct RecaptchaRequest {
 impl Recaptcha {
     pub fn new() -> Self {
         return Recaptcha {
-            url: crate::config::get_app_config()
-                .captcha
-                .recaptcha
-                .url
-                .clone(),
-            secret_key: crate::config::get_app_config()
+            url: crate::config::get_config().captcha.recaptcha.url.clone(),
+            secret_key: crate::config::get_config()
                 .captcha
                 .recaptcha
                 .secret_key
                 .clone(),
-            threshold: crate::config::get_app_config().captcha.recaptcha.threshold,
+            threshold: crate::config::get_config().captcha.recaptcha.threshold,
         };
     }
 }

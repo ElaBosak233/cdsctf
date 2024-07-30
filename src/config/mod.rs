@@ -37,6 +37,6 @@ pub async fn init() {
     }
 }
 
-pub fn get_app_config() -> &'static Config {
+pub fn get_config() -> &'static Config {
     return APP_CONFIG.get().unwrap();
 }

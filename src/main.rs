@@ -40,8 +40,8 @@ async fn bootstrap() {
 
     let addr = format!(
         "{}:{}",
-        config::get_app_config().axum.host,
-        config::get_app_config().axum.port
+        config::get_config().axum.host,
+        config::get_config().axum.port
     );
     let listener = tokio::net::TcpListener::bind(&addr).await;
 

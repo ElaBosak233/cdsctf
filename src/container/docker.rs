@@ -57,7 +57,7 @@ impl Docker {
 #[async_trait]
 impl Container for Docker {
     async fn init(&self) {
-        let docker_uri = &crate::config::get_app_config().container.docker.uri;
+        let docker_uri = &crate::config::get_config().container.docker.uri;
         env::set_var("DOCKER_HOST", docker_uri);
         let docker = DockerClient::connect_with_defaults().unwrap();
         match docker.ping().await {
@@ -142,7 +142,7 @@ impl Container for Docker {
                             dst: port_binding.host_port.unwrap(),
                             protocol: protocol.to_string(),
                             ..Default::default()
-                        })
+                        });
                     }
                 }
             }

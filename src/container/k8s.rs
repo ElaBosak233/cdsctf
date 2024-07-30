@@ -50,7 +50,7 @@ impl K8s {
 #[async_trait]
 impl Container for K8s {
     async fn init(&self) {
-        match Kubeconfig::read_from(crate::config::get_app_config().container.k8s.path.clone()) {
+        match Kubeconfig::read_from(crate::config::get_config().container.k8s.path.clone()) {
             Ok(config) => match Config::from_custom_kubeconfig(config, &Default::default()).await {
                 Ok(config) => {
                     let client = K8sClient::try_from(config).unwrap();
