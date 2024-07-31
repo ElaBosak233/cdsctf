@@ -1,4 +1,5 @@
 pub mod request;
+pub mod status;
 
 use axum::async_trait;
 use sea_orm::{entity::prelude::*, QuerySelect, Set, TryIntoModel};
@@ -7,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::database::get_db;
 
 use super::{challenge, game, team, user};
+pub use status::Status;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "submissions")]
@@ -14,7 +16,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub flag: String,
-    pub status: i64,
+    pub status: Status,
     pub rank: i64,
     pub user_id: i64,
     pub team_id: Option<i64>,

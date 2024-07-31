@@ -24,12 +24,6 @@ pub struct Model {
     pub member_limit_max: i64,
     #[sea_orm(default_value = 2)]
     pub parallel_container_limit: i64,
-    #[sea_orm(default_value = 5)]
-    pub first_blood_reward_ratio: i64,
-    #[sea_orm(default_value = 3)]
-    pub second_blood_reward_ratio: i64,
-    #[sea_orm(default_value = 1)]
-    pub third_blood_reward_ratio: i64,
     #[sea_orm(default_value = false)]
     pub is_need_write_up: bool,
     pub started_at: i64,

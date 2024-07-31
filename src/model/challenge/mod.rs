@@ -1,13 +1,19 @@
+pub mod env;
+pub mod flag;
+pub mod port;
 pub mod request;
 pub mod response;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, FromJsonQueryResult, QuerySelect, Set, TryIntoModel};
+use sea_orm::{entity::prelude::*, QuerySelect, Set, TryIntoModel};
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
 
 use super::{category, game, game_challenge, pod, submission};
+pub use env::Env;
+pub use flag::Flag;
+pub use port::Port;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "challenges")]
@@ -38,27 +44,6 @@ pub struct Model {
     pub flags: Vec<Flag>,
     pub created_at: i64,
     pub updated_at: i64,
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-pub struct Env {
-    pub key: String,
-    pub value: String,
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-pub struct Port {
-    pub value: i64,
-    pub protocol: String,
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-pub struct Flag {
-    #[serde(rename = "type")]
-    pub type_: String,
-    pub banned: bool,
-    pub env: Option<String>,
-    pub value: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

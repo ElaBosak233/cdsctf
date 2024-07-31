@@ -1,12 +1,14 @@
+pub mod nat;
 pub mod request;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, FromJsonQueryResult, Set, TryIntoModel};
+use sea_orm::{entity::prelude::*, Set, TryIntoModel};
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
 
 use super::{challenge, game, team, user};
+pub use nat::Nat;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "pods")]
@@ -30,15 +32,6 @@ pub struct Model {
     pub team: Option<team::Model>,
     #[sea_orm(ignore)]
     pub challenge: Option<challenge::Model>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, Default)]
-pub struct Nat {
-    pub src: String,
-    pub dst: String,
-    pub protocol: String,
-    pub proxy: Option<String>,
-    pub entry: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

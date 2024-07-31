@@ -4,6 +4,8 @@ use regex::Regex;
 use sea_orm::{IntoActiveModel, Set};
 use uuid::Uuid;
 
+use crate::model::challenge::flag;
+
 pub async fn find(
     req: crate::model::pod::request::FindRequest,
 ) -> Result<(Vec<crate::model::pod::Model>, u64), ()> {
@@ -55,7 +57,7 @@ pub async fn create(
     let mut injected_flag = challenge.flags.clone().into_iter().next().unwrap();
 
     let re = Regex::new(r"\[([Uu][Ii][Dd])\]").unwrap();
-    if injected_flag.type_.to_ascii_lowercase() == "dynamic" {
+    if injected_flag.type_ == flag::Type::Dynamic {
         injected_flag.value = re
             .replace_all(
                 &injected_flag.value,
