@@ -30,7 +30,7 @@ async fn main() {
 }
 
 async fn bootstrap() {
-    logger::init();
+    logger::init().await;
     config::init().await;
     database::init().await;
     container::init().await;
@@ -53,4 +53,7 @@ async fn bootstrap() {
     axum::serve(listener.unwrap(), web::get_app())
         .await
         .unwrap();
+
+    // drop(console_guard);
+    // drop(file_guard);
 }
