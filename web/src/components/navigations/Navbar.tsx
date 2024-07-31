@@ -113,8 +113,8 @@ export default function Navbar(props: NavbarProps) {
                 >
                     <Flex align={"center"}>
                         <Image
-                            src={`${import.meta.env.VITE_BASE_API}/configs/favicon`}
-                            fallbackSrc="/favicon.ico"
+                            src={"/api/configs/favicon"}
+                            fallbackSrc={"/favicon.ico"}
                             alt=""
                             w={36}
                             h={36}
@@ -241,7 +241,7 @@ export default function Navbar(props: NavbarProps) {
                     <Menu shadow="md" width={200} offset={20} withArrow>
                         <Menu.Target>
                             <Avatar
-                                src={`${import.meta.env.VITE_BASE_API}/users/${authStore?.user?.id}/avatar`}
+                                src={`/api/users/${authStore?.user?.id}/avatar`}
                                 color="white"
                                 sx={{
                                     "&:hover": {

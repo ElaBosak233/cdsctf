@@ -88,7 +88,7 @@ export default function TeamSelectModal(props: TeamSelectModalProps) {
                                         <Group gap={15}>
                                             <Avatar
                                                 color="brand"
-                                                src={`${import.meta.env.VITE_BASE_API}/teams/${team?.id}/avatar`}
+                                                src={`/api/teams/${team?.id}/avatar`}
                                                 radius="xl"
                                             >
                                                 <MDIcon>person</MDIcon>

@@ -88,7 +88,7 @@ export default function UserSelectModal(props: UserSelectModalProps) {
                                         <Group gap={15}>
                                             <Avatar
                                                 color="brand"
-                                                src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar`}
+                                                src={`/api/users/${user?.id}/avatar`}
                                                 radius="xl"
                                             >
                                                 <MDIcon>person</MDIcon>

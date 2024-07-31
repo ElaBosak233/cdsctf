@@ -299,7 +299,7 @@ function Page() {
                                                 mah={160}
                                                 w={310}
                                                 fit="contain"
-                                                src={`${import.meta.env.VITE_BASE_API}/games/${game?.id}/poster`}
+                                                src={`/api/games/${game?.id}/poster`}
                                             />
                                         </Center>
                                     ) : (

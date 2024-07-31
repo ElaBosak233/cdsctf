@@ -223,7 +223,7 @@ export default function Page() {
                                             <Group gap={15} wrap={"nowrap"}>
                                                 <Avatar
                                                     color="brand"
-                                                    src={`${import.meta.env.VITE_BASE_API}/teams/${team?.id}/avatar`}
+                                                    src={`/api/teams/${team?.id}/avatar`}
                                                     radius="xl"
                                                 >
                                                     <MDIcon>people</MDIcon>
@@ -247,7 +247,7 @@ export default function Page() {
                                                             >
                                                                 <Avatar
                                                                     color="brand"
-                                                                    src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar`}
+                                                                    src={`/api/users/${user?.id}/avatar`}
                                                                     radius="xl"
                                                                 >
                                                                     <MDIcon>

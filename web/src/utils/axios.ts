@@ -7,7 +7,7 @@ import { showInfoNotification } from "./notification";
 export const useApi = () => {
     return useMemo(() => {
         const api = axios.create({
-            baseURL: import.meta.env.VITE_BASE_API as string,
+            baseURL: "/api",
             headers: {
                 "Accept-Language": "zh-Hans",
             },
@@ -23,7 +23,7 @@ export const useAuth = () => {
 
     return useMemo(() => {
         const auth = axios.create({
-            baseURL: import.meta.env.VITE_BASE_API as string,
+            baseURL: "/api",
             headers: {
                 Authorization: pgsToken ? `${pgsToken}` : undefined,
                 "Accept-Language": "zh-Hans",

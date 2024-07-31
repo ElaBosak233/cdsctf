@@ -40,17 +40,13 @@ pub async fn serve(req: Request, next: Next) -> Result<axum::response::Response,
         return index().await;
     }
 
-    println!("{:?}", filepath);
-
     if let Ok(content) = fs::read(&filepath) {
         let mime = mime_guess::from_path(&filepath).first_or_octet_stream();
-
-        let body = axum::body::Body::from(content);
 
         return Ok(Response::builder()
             .status(StatusCode::OK)
             .header("Content-Type", mime.as_ref())
-            .body(body)
+            .body(axum::body::Body::from(content))
             .unwrap());
     } else {
         return index().await;

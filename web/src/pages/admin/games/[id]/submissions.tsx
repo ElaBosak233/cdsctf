@@ -228,7 +228,7 @@ function Page() {
                                         <Group gap={15}>
                                             <Avatar
                                                 color="brand"
-                                                src={`${import.meta.env.VITE_BASE_API}/teams/${submission?.team?.id}/avatar`}
+                                                src={`/api/teams/${submission?.team?.id}/avatar`}
                                                 radius="xl"
                                             >
                                                 <MDIcon>people</MDIcon>
@@ -240,7 +240,7 @@ function Page() {
                                         <Group gap={15}>
                                             <Avatar
                                                 color="brand"
-                                                src={`${import.meta.env.VITE_BASE_API}/users/${submission?.user?.id}/avatar`}
+                                                src={`/api/users/${submission?.user?.id}/avatar`}
                                                 radius="xl"
                                             >
                                                 <MDIcon>person</MDIcon>
