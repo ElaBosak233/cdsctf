@@ -6,5 +6,6 @@ use super::submission;
 pub struct StatusResponse {
     pub is_solved: bool,
     pub solved_times: i64,
+    pub pts: i64,
     pub bloods: Vec<submission::Model>,
 }

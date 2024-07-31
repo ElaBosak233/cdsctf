@@ -1,4 +1,9 @@
 export interface Port {
     value: number;
-    protocol: string;
+    protocol: Protocol;
+}
+
+enum Protocol {
+    TCP = 0,
+    UDP = 1,
 }

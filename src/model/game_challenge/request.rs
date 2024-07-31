@@ -30,6 +30,9 @@ pub struct CreateRequest {
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
+    pub first_blood_reward_ratio: Option<i64>,
+    pub second_blood_reward_ratio: Option<i64>,
+    pub third_blood_reward_ratio: Option<i64>,
 }
 
 impl From<CreateRequest> for ActiveModel {
@@ -41,6 +44,9 @@ impl From<CreateRequest> for ActiveModel {
             is_enabled: req.is_enabled.map_or(NotSet, |v| Set(v)),
             max_pts: req.max_pts.map_or(NotSet, |v| Set(v)),
             min_pts: req.min_pts.map_or(NotSet, |v| Set(v)),
+            first_blood_reward_ratio: req.first_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
+            second_blood_reward_ratio: req.second_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
+            third_blood_reward_ratio: req.third_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
         }
     }
 }
@@ -53,6 +59,9 @@ pub struct UpdateRequest {
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
+    pub first_blood_reward_ratio: Option<i64>,
+    pub second_blood_reward_ratio: Option<i64>,
+    pub third_blood_reward_ratio: Option<i64>,
 }
 
 impl From<UpdateRequest> for ActiveModel {
@@ -64,6 +73,9 @@ impl From<UpdateRequest> for ActiveModel {
             is_enabled: req.is_enabled.map_or(NotSet, |v| Set(v)),
             max_pts: req.max_pts.map_or(NotSet, |v| Set(v)),
             min_pts: req.min_pts.map_or(NotSet, |v| Set(v)),
+            first_blood_reward_ratio: req.first_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
+            second_blood_reward_ratio: req.second_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
+            third_blood_reward_ratio: req.third_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
         }
     }
 }

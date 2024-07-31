@@ -2,6 +2,8 @@ use std::error::Error;
 
 use sea_orm::{IntoActiveModel, Set};
 
+use crate::model::submission::Status;
+
 pub async fn find(
     req: crate::model::submission::request::FindRequest,
 ) -> Result<(Vec<crate::model::submission::Model>, u64), Box<dyn Error>> {
@@ -58,7 +60,7 @@ pub async fn create(
     .await
     .unwrap();
 
-    let mut status: i64 = 1; // Wrong answer
+    let mut status: Status = Status::Incorrect;
 
     match challenge.is_dynamic {
         true => {
@@ -78,10 +80,10 @@ pub async fn create(
             for pod in pods {
                 if pod.flag == Some(req.clone().flag) {
                     if Some(pod.user_id) == req.user_id || req.team_id == pod.team_id {
-                        status = 2; // Accept
+                        status = Status::Correct;
                         break;
                     } else {
-                        status = 3; // Cheat
+                        status = Status::Cheat;
                         break;
                     }
                 }
@@ -92,10 +94,10 @@ pub async fn create(
             for flag in challenge.flags.clone() {
                 if flag.value == req.flag {
                     if flag.banned {
-                        status = 3; // Cheat
+                        status = Status::Cheat;
                         break;
                     } else {
-                        status = 2; // Accept
+                        status = Status::Correct;
                     }
                 }
             }
@@ -106,13 +108,13 @@ pub async fn create(
         if Some(exist_submission.user_id) == req.user_id
             || (req.game_id.is_some() && exist_submission.team_id == req.team_id)
         {
-            status = 4; // Invalid
+            status = Status::Invalid;
             break;
         }
     }
 
-    submission.status = Set(status);
-    if status == 1 {
+    submission.status = Set(status.clone());
+    if status == Status::Correct {
         submission.rank = Set((total + 1).try_into().unwrap());
     }
 

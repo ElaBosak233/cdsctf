@@ -19,6 +19,12 @@ pub struct Model {
     pub difficulty: i64,
     #[sea_orm(default_value = false)]
     pub is_enabled: bool,
+    #[sea_orm(default_value = 5)]
+    pub first_blood_reward_ratio: i64,
+    #[sea_orm(default_value = 3)]
+    pub second_blood_reward_ratio: i64,
+    #[sea_orm(default_value = 1)]
+    pub third_blood_reward_ratio: i64,
     #[sea_orm(default_value = 2000)]
     pub max_pts: i64,
     #[sea_orm(default_value = 200)]

@@ -35,9 +35,6 @@ pub struct CreateRequest {
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
     pub parallel_container_limit: Option<i64>,
-    pub first_blood_reward_ratio: Option<i64>,
-    pub second_blood_reward_ratio: Option<i64>,
-    pub third_blood_reward_ratio: Option<i64>,
     pub is_need_write_up: Option<bool>,
     pub started_at: Option<i64>,
     pub ended_at: Option<i64>,
@@ -55,10 +52,6 @@ impl From<CreateRequest> for ActiveModel {
             member_limit_min: req.member_limit_min.map_or(NotSet, |v| Set(v)),
             member_limit_max: req.member_limit_max.map_or(NotSet, |v| Set(v)),
             parallel_container_limit: req.parallel_container_limit.map_or(NotSet, |v| Set(v)),
-
-            first_blood_reward_ratio: req.first_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
-            second_blood_reward_ratio: req.second_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
-            third_blood_reward_ratio: req.third_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
 
             is_need_write_up: Set(req.is_need_write_up.unwrap_or(false)),
             started_at: req.started_at.map_or(NotSet, |v| Set(v)),
@@ -79,9 +72,6 @@ pub struct UpdateRequest {
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
     pub parallel_container_limit: Option<i64>,
-    pub first_blood_reward_ratio: Option<i64>,
-    pub second_blood_reward_ratio: Option<i64>,
-    pub third_blood_reward_ratio: Option<i64>,
     pub is_need_write_up: Option<bool>,
     pub started_at: Option<i64>,
     pub ended_at: Option<i64>,
@@ -100,10 +90,6 @@ impl From<UpdateRequest> for ActiveModel {
             member_limit_min: req.member_limit_min.map_or(NotSet, |v| Set(v)),
             member_limit_max: req.member_limit_max.map_or(NotSet, |v| Set(v)),
             parallel_container_limit: req.parallel_container_limit.map_or(NotSet, |v| Set(v)),
-
-            first_blood_reward_ratio: req.first_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
-            second_blood_reward_ratio: req.second_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
-            third_blood_reward_ratio: req.third_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
 
             is_need_write_up: req.is_need_write_up.map_or(NotSet, |v| Set(v)),
             started_at: req.started_at.map_or(NotSet, |v| Set(v)),

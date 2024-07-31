@@ -3,6 +3,9 @@ use std::error::Error;
 
 use sea_orm::TryIntoModel;
 
+use crate::model::submission::Status;
+use crate::util;
+
 pub async fn find(
     req: crate::model::challenge::request::FindRequest,
 ) -> Result<(Vec<crate::model::challenge::Model>, u64), ()> {
@@ -44,6 +47,7 @@ pub async fn status(
             .or_insert_with(|| crate::model::challenge::response::StatusResponse {
                 is_solved: false,
                 solved_times: 0,
+                pts: 0,
                 bloods: Vec::new(),
             });
     }
@@ -52,7 +56,11 @@ pub async fn status(
         submission.simplify();
         submission.challenge = None;
 
-        if submission.status != 2 {
+        if req.game_id.is_some() {
+            submission.game = None;
+        }
+
+        if submission.status != Status::Correct {
             continue;
         }
 
@@ -86,6 +94,28 @@ pub async fn status(
                 status_response
                     .bloods
                     .sort_by(|a, b| a.created_at.cmp(&b.created_at));
+            }
+        }
+    }
+
+    if let Some(game_id) = req.game_id {
+        let (game_challenges, _) = crate::model::game_challenge::find(Some(game_id), None)
+            .await
+            .unwrap();
+
+        for game_challenge in game_challenges {
+            let status_response = result.get_mut(&game_challenge.challenge_id).unwrap();
+            status_response.pts = util::math::curve(
+                game_challenge.max_pts,
+                game_challenge.min_pts,
+                game_challenge.difficulty,
+                status_response.solved_times,
+            );
+            status_response.pts = match status_response.solved_times {
+                0 => status_response.pts * (100 + game_challenge.first_blood_reward_ratio) / 100,
+                1 => status_response.pts * (100 + game_challenge.second_blood_reward_ratio) / 100,
+                2 => status_response.pts * (100 + game_challenge.third_blood_reward_ratio) / 100,
+                _ => status_response.pts,
             }
         }
     }

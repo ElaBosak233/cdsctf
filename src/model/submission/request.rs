@@ -2,7 +2,7 @@ use sea_orm::{ActiveValue::NotSet, Set};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use super::ActiveModel;
+use super::{ActiveModel, Status};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FindRequest {
@@ -34,7 +34,7 @@ impl From<CreateRequest> for super::ActiveModel {
             team_id: req.team_id.map_or(NotSet, |v| Set(Some(v))),
             game_id: req.game_id.map_or(NotSet, |v| Set(Some(v))),
             challenge_id: req.challenge_id.map_or(NotSet, |v| Set(v)),
-            status: Set(0),
+            status: Set(Status::Pending),
             rank: Set(0),
             ..Default::default()
         }
@@ -50,7 +50,7 @@ pub struct UpdateRequest {
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
     pub rank: Option<i64>,
-    pub status: Option<i64>,
+    pub status: Option<Status>,
 }
 
 impl From<UpdateRequest> for ActiveModel {

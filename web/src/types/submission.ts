@@ -6,7 +6,7 @@ import { User } from "@/types/user";
 export interface Submission {
     id?: number;
     flag?: string;
-    status?: number;
+    status?: Status;
     user_id?: number;
     user?: User;
     rank?: number;
@@ -19,6 +19,14 @@ export interface Submission {
     pts?: number;
     created_at?: number;
     updated_at?: number;
+}
+
+enum Status {
+    Pending = 0,
+    Correct = 1,
+    Incorrect = 2,
+    Cheat = 3,
+    Invalid = 4,
 }
 
 export interface SubmissionCreateRequest {

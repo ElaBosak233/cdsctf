@@ -82,7 +82,7 @@ impl Container for Docker {
             .into_iter()
             .map(|port| {
                 (
-                    format!("{}/{}", port.value, port.protocol.to_lowercase()),
+                    format!("{}/{}", port.value, port.protocol.as_str()),
                     Some(vec![PortBinding {
                         host_ip: Some("0.0.0.0".to_string()),
                         host_port: None,

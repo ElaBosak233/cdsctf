@@ -101,7 +101,7 @@ impl Container for K8s {
             .iter()
             .map(|port| ContainerPort {
                 container_port: port.value as i32,
-                protocol: Some(port.protocol.to_uppercase()),
+                protocol: Some(port.protocol.as_str().to_uppercase()),
                 ..Default::default()
             })
             .collect();
@@ -140,7 +140,7 @@ impl Container for K8s {
                     nats.push(crate::model::pod::Nat {
                         src: port.value.to_string(),
                         dst: pod_ip.clone(),
-                        protocol: port.protocol.to_uppercase(),
+                        protocol: port.protocol.as_str().to_uppercase(),
                         ..Default::default()
                     });
                 }
