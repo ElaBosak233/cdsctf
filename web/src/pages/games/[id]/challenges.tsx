@@ -341,7 +341,7 @@ function Page() {
                                     <Avatar
                                         color="brand"
                                         size={64}
-                                        src={`${import.meta.env.VITE_BASE_API}/teams/${gameTeam?.team_id}/avatar`}
+                                        src={`/api/teams/${gameTeam?.team_id}/avatar`}
                                     >
                                         <MDIcon size={36}>people</MDIcon>
                                     </Avatar>

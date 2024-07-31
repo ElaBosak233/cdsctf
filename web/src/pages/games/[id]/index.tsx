@@ -166,7 +166,7 @@ export default function Page() {
                             </Stack>
                         </Stack>
                         <BackgroundImage
-                            src={`${import.meta.env.VITE_BASE_API}/games/${game?.id}/poster`}
+                            src={`/api/games/${game?.id}/poster`}
                             radius={"md"}
                             h={250}
                             w={"45%"}

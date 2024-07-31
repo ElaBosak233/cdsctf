@@ -411,7 +411,7 @@ function Page() {
                                 <Group wrap={"nowrap"}>
                                     <Avatar
                                         color="brand"
-                                        src={`${import.meta.env.VITE_BASE_API}/teams/${row?.team?.id}/avatar`}
+                                        src={`/api/teams/${row?.team?.id}/avatar`}
                                     >
                                         <MDIcon>people</MDIcon>
                                     </Avatar>

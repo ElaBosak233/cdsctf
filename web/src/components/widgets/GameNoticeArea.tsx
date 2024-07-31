@@ -31,17 +31,9 @@ export default function GameNoticeArea() {
     }, []);
 
     useEffect(() => {
-        let wsURL = "";
-
-        if (import.meta.env.VITE_BASE_API === "/api") {
-            const protocol = window.location.protocol;
-            const host = window.location.host;
-            wsURL = `${protocol === "https:" ? "wss" : "ws"}://${host}/api/games/${id}/broadcast`;
-        } else {
-            const regex = /^(https?:\/\/)([\w\.-]+:\d+)/;
-            const match = import.meta.env.VITE_BASE_API.match(regex);
-            wsURL = `${match?.[1] === "https" ? "wss" : "ws"}://${match?.[2]}/api/games/${id}/broadcast`;
-        }
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const wsURL = `${protocol === "https:" ? "wss" : "ws"}://${host}/api/games/${id}/broadcast`;
 
         const socket = new WebSocket(wsURL);
 

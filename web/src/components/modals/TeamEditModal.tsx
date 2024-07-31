@@ -375,7 +375,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
                                                             w={120}
                                                             h={120}
                                                             fit="contain"
-                                                            src={`${import.meta.env.VITE_BASE_API}/teams/${team?.id}/avatar`}
+                                                            src={`/api/teams/${team?.id}/avatar`}
                                                         />
                                                     </Center>
                                                 ) : (
@@ -430,7 +430,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
                                                 <Flex align={"center"} gap={10}>
                                                     <Avatar
                                                         color="brand"
-                                                        src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar`}
+                                                        src={`/api/users/${user?.id}/avatar`}
                                                         radius="xl"
                                                     >
                                                         <MDIcon>person</MDIcon>

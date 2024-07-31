@@ -222,7 +222,7 @@ export default function Page() {
                                                         w={120}
                                                         h={120}
                                                         fit="contain"
-                                                        src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar?refresh=${refresh}`}
+                                                        src={`/api/users/${user?.id}/avatar?refresh=${refresh}`}
                                                     />
                                                 </Center>
                                             ) : (

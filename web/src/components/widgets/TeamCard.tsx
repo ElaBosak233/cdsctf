@@ -28,7 +28,7 @@ export default function TeamCard({ team }: { team?: Team }) {
         >
             <Flex gap={15} align={"center"}>
                 <Avatar
-                    src={`${import.meta.env.VITE_BASE_API}/teams/${team?.id}/avatar`}
+                    src={`/api/teams/${team?.id}/avatar`}
                     size={"xl"}
                     color="brand"
                 >
@@ -76,7 +76,7 @@ export default function TeamCard({ team }: { team?: Team }) {
                             >
                                 <Avatar
                                     color="brand"
-                                    src={`${import.meta.env.VITE_BASE_API}/users/${user?.id}/avatar`}
+                                    src={`/api/users/${user?.id}/avatar`}
                                     radius="xl"
                                 >
                                     <MDIcon>person</MDIcon>

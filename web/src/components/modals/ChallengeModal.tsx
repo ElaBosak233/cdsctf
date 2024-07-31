@@ -338,7 +338,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                                     <ActionIcon
                                         onClick={() => {
                                             window.open(
-                                                `${import.meta.env.VITE_BASE_API}/challenges/${challenge?.id}/attachment`
+                                                `/api/challenges/${challenge?.id}/attachment`
                                             );
                                         }}
                                     >

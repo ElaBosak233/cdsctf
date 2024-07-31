@@ -48,7 +48,7 @@ function App() {
 
     useEffect(() => {
         if (configStore.pltCfg?.site?.favicon) {
-            setFavicon(`${import.meta.env.VITE_BASE_API}/configs/favicon`);
+            setFavicon("/api/configs/favicon");
         }
     }, [configStore.pltCfg]);
 
