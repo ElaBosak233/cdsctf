@@ -21,9 +21,10 @@ pub async fn find(
     .unwrap();
 
     let is_detailed = req.is_detailed.unwrap_or(false);
-    if !is_detailed {
-        for submission in submissions.iter_mut() {
-            submission.flag.clear();
+    for submission in submissions.iter_mut() {
+        submission.simplify();
+        if !is_detailed {
+            submission.blur();
         }
     }
 
@@ -48,6 +49,29 @@ pub async fn find(
         .await
         .unwrap();
 
+    // Calculate rank, only for game submissions
+    for game_id in submissions
+        .iter()
+        .map(|s| s.game_id)
+        .collect::<Vec<Option<i64>>>()
+    {
+        if let Some(game_id) = game_id {
+            let mut game_submissions = submissions
+                .iter_mut()
+                .filter(|s| s.game_id == Some(game_id))
+                .collect::<Vec<&mut crate::model::submission::Model>>();
+
+            game_submissions.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+
+            for (i, submission) in game_submissions.iter_mut().enumerate() {
+                if submission.status == Status::Correct {
+                    submission.rank = Some(i as i64 + 1);
+                }
+            }
+        }
+    }
+
+    // Calculate pts
     for submission in submissions.iter_mut() {
         if submission.game_id.is_some() {
             let game_challenge = game_challenges.iter().find(|gc| {
@@ -56,21 +80,23 @@ pub async fn find(
             });
 
             if let Some(gc) = game_challenge {
-                submission.pts = Some(util::math::curve(
-                    gc.max_pts,
-                    gc.min_pts,
-                    gc.difficulty,
-                    submission.rank,
-                ));
+                if let Some(rank) = submission.rank {
+                    submission.pts = Some(util::math::curve(
+                        gc.max_pts,
+                        gc.min_pts,
+                        gc.difficulty,
+                        rank,
+                    ));
 
-                if let Some(mut pts) = submission.pts {
-                    pts = match submission.rank {
-                        1 => pts * (100 + gc.first_blood_reward_ratio) / 100,
-                        2 => pts * (100 + gc.second_blood_reward_ratio) / 100,
-                        3 => pts * (100 + gc.third_blood_reward_ratio) / 100,
-                        _ => pts,
-                    };
-                    submission.pts = Some(pts);
+                    if let Some(mut pts) = submission.pts {
+                        pts = match rank {
+                            1 => pts * (100 + gc.first_blood_reward_ratio) / 100,
+                            2 => pts * (100 + gc.second_blood_reward_ratio) / 100,
+                            3 => pts * (100 + gc.third_blood_reward_ratio) / 100,
+                            _ => pts,
+                        };
+                        submission.pts = Some(pts);
+                    }
                 }
             }
         }
@@ -96,7 +122,7 @@ pub async fn create(
         .unwrap()
         .into_active_model();
 
-    let (exist_submissions, total) = crate::model::submission::find(
+    let (exist_submissions, _) = crate::model::submission::find(
         None,
         None,
         None,
@@ -163,9 +189,6 @@ pub async fn create(
     }
 
     submission.status = Set(status.clone());
-    if status == Status::Correct {
-        submission.rank = Set((total + 1).try_into().unwrap());
-    }
 
     let submission = crate::model::submission::update(submission).await.unwrap();
 

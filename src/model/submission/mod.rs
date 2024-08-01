@@ -17,13 +17,17 @@ pub struct Model {
     pub id: i64,
     pub flag: String,
     pub status: Status,
-    pub rank: i64,
     pub user_id: i64,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: i64,
     pub created_at: i64,
     pub updated_at: i64,
+
+    #[sea_orm(ignore)]
+    pub pts: Option<i64>,
+    #[sea_orm(ignore)]
+    pub rank: Option<i64>,
 
     #[sea_orm(ignore)]
     pub user: Option<user::Model>,
@@ -33,22 +37,23 @@ pub struct Model {
     pub game: Option<game::Model>,
     #[sea_orm(ignore)]
     pub challenge: Option<challenge::Model>,
-    #[sea_orm(ignore)]
-    pub pts: Option<i64>,
 }
 
 impl Model {
     pub fn simplify(&mut self) {
-        self.flag = "".to_string();
         if let Some(user) = &mut self.user {
             user.simplify();
         }
         if let Some(team) = &mut self.team {
             team.simplify();
         }
-        // if let Some(game) = &mut self.game {
-        //     game.simplify();
-        // }
+        if let Some(challenge) = &mut self.challenge {
+            challenge.simplify();
+        }
+    }
+
+    pub fn blur(&mut self) {
+        self.flag.clear();
     }
 }
 
