@@ -24,6 +24,7 @@ import { useGameApi } from "@/api/game";
 import { Challenge } from "@/types/challenge";
 import ChallengeSelectModal from "./ChallengeSelectModal";
 import { useParams } from "react-router-dom";
+import { useCategoryStore } from "@/stores/category";
 
 interface GameChallengeCreateModalProps extends ModalProps {
     setRefresh: () => void;
@@ -37,6 +38,7 @@ export default function GameChallengeCreateModal(
     const { id } = useParams<{ id: string }>();
 
     const gameApi = useGameApi();
+    const categoryStore = useCategoryStore();
 
     const [challenge, setChallenge] = useState<Challenge>();
 
@@ -159,15 +161,15 @@ export default function GameChallengeCreateModal(
                                                     <Group gap={15}>
                                                         <MDIcon
                                                             color={
-                                                                challenge
-                                                                    ?.category
-                                                                    ?.color
+                                                                categoryStore.getCategory(
+                                                                    challenge?.category_id!
+                                                                )?.color
                                                             }
                                                         >
                                                             {
-                                                                challenge
-                                                                    ?.category
-                                                                    ?.icon
+                                                                categoryStore.getCategory(
+                                                                    challenge?.category_id!
+                                                                )?.icon
                                                             }
                                                         </MDIcon>
                                                         <Text

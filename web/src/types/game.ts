@@ -8,9 +8,6 @@ export interface Game {
     member_limit_min?: number;
     member_limit_max?: number;
     parallel_container_limit?: number;
-    first_blood_reward_ratio?: number;
-    second_blood_reward_ratio?: number;
-    third_blood_reward_ratio?: number;
     is_need_write_up?: boolean;
     started_at?: number;
     ended_at?: number;
@@ -43,9 +40,6 @@ export interface GameCreateRequest {
     member_limit_min?: number;
     member_limit_max?: number;
     parallel_container_limit?: number;
-    first_blood_reward_ratio?: number;
-    second_blood_reward_ratio?: number;
-    third_blood_reward_ratio?: number;
     is_need_write_up?: boolean;
     started_at?: number;
     ended_at?: number;
@@ -62,9 +56,6 @@ export interface GameUpdateRequest {
     member_limit_min?: number;
     member_limit_max?: number;
     parallel_container_limit?: number;
-    first_blood_reward_ratio?: number;
-    second_blood_reward_ratio?: number;
-    third_blood_reward_ratio?: number;
     is_need_write_up?: boolean;
     started_at?: number;
     ended_at?: number;
@@ -72,23 +63,6 @@ export interface GameUpdateRequest {
 
 export interface GameDeleteRequest {
     id?: number;
-}
-
-export interface GameChallengeUpdateRequest {
-    id?: number;
-    challenge_id?: number;
-    game_id?: number;
-    is_enabled?: boolean;
-    max_pts?: number;
-    min_pts?: number;
-}
-
-export interface GameChallengeCreateRequest {
-    game_id?: number;
-    challenge_id?: number;
-    is_enabled?: boolean;
-    max_pts?: number;
-    min_pts?: number;
 }
 
 export interface GameTeamFindRequest {

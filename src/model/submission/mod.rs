@@ -33,6 +33,8 @@ pub struct Model {
     pub game: Option<game::Model>,
     #[sea_orm(ignore)]
     pub challenge: Option<challenge::Model>,
+    #[sea_orm(ignore)]
+    pub pts: Option<i64>,
 }
 
 impl Model {
@@ -157,7 +159,7 @@ async fn preload(
 
 pub async fn find(
     id: Option<i64>, user_id: Option<i64>, team_id: Option<i64>, game_id: Option<i64>,
-    challenge_id: Option<i64>, status: Option<i64>, page: Option<u64>, size: Option<u64>,
+    challenge_id: Option<i64>, status: Option<Status>, page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<crate::model::submission::Model>, u64), DbErr> {
     let mut query = crate::model::submission::Entity::find();
 

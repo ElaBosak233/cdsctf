@@ -1,7 +1,5 @@
 import {
-    GameChallengeCreateRequest,
     GameChallengeFindRequest,
-    GameChallengeUpdateRequest,
     GameCreateRequest,
     GameDeleteRequest,
     GameFindRequest,
@@ -11,6 +9,11 @@ import {
     GameTeamUpdateRequest,
     GameUpdateRequest,
 } from "@/types/game";
+import {
+    GameChallengeCreateRequest,
+    GameChallengeDeleteRequest,
+    GameChallengeUpdateRequest,
+} from "@/types/game_challenge";
 import {
     NoticeCreateRequest,
     NoticeDeleteRequest,
@@ -56,7 +59,7 @@ export function useGameApi() {
         );
     };
 
-    const deleteGameChallenge = (request: GameChallengeUpdateRequest) => {
+    const deleteGameChallenge = (request: GameChallengeDeleteRequest) => {
         return auth.delete(
             `/games/${request?.game_id}/challenges/${request?.challenge_id}`
         );

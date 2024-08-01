@@ -53,7 +53,4 @@ async fn bootstrap() {
     axum::serve(listener.unwrap(), web::get_app())
         .await
         .unwrap();
-
-    // drop(console_guard);
-    // drop(file_guard);
 }

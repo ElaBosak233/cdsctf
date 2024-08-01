@@ -1,8 +1,8 @@
 use std::error::Error;
 
-use sea_orm::{IntoActiveModel, Set};
+use sea_orm::{ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
 
-use crate::model::submission::Status;
+use crate::{database::get_db, model::submission::Status, util};
 
 pub async fn find(
     req: crate::model::submission::request::FindRequest,
@@ -24,6 +24,55 @@ pub async fn find(
     if !is_detailed {
         for submission in submissions.iter_mut() {
             submission.flag.clear();
+        }
+    }
+
+    let game_challenges = crate::model::game_challenge::Entity::find()
+        .filter(
+            crate::model::game_challenge::Column::GameId.is_in(
+                submissions
+                    .iter()
+                    .map(|s| s.game_id)
+                    .collect::<Vec<Option<i64>>>(),
+            ),
+        )
+        .filter(
+            crate::model::game_challenge::Column::ChallengeId.is_in(
+                submissions
+                    .iter()
+                    .map(|s| s.challenge_id)
+                    .collect::<Vec<i64>>(),
+            ),
+        )
+        .all(&get_db().await)
+        .await
+        .unwrap();
+
+    for submission in submissions.iter_mut() {
+        if submission.game_id.is_some() {
+            let game_challenge = game_challenges.iter().find(|gc| {
+                gc.game_id == submission.game_id.unwrap()
+                    && gc.challenge_id == submission.challenge_id
+            });
+
+            if let Some(gc) = game_challenge {
+                submission.pts = Some(util::math::curve(
+                    gc.max_pts,
+                    gc.min_pts,
+                    gc.difficulty,
+                    submission.rank,
+                ));
+
+                if let Some(mut pts) = submission.pts {
+                    pts = match submission.rank {
+                        1 => pts * (100 + gc.first_blood_reward_ratio) / 100,
+                        2 => pts * (100 + gc.second_blood_reward_ratio) / 100,
+                        3 => pts * (100 + gc.third_blood_reward_ratio) / 100,
+                        _ => pts,
+                    };
+                    submission.pts = Some(pts);
+                }
+            }
         }
     }
 
@@ -53,7 +102,7 @@ pub async fn create(
         None,
         req.game_id,
         req.challenge_id,
-        Some(2),
+        Some(Status::Correct),
         None,
         None,
     )
