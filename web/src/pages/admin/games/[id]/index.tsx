@@ -83,12 +83,6 @@ function Page() {
                 member_limit_max: form.getValues().member_limit_max,
                 parallel_container_limit:
                     form.getValues().parallel_container_limit,
-                first_blood_reward_ratio:
-                    form.getValues().first_blood_reward_ratio,
-                second_blood_reward_ratio:
-                    form.getValues().second_blood_reward_ratio,
-                third_blood_reward_ratio:
-                    form.getValues().third_blood_reward_ratio,
                 is_need_write_up: form.getValues().is_need_write_up,
             })
             .then((_) => {
@@ -135,9 +129,6 @@ function Page() {
                 member_limit_min: game?.member_limit_min,
                 member_limit_max: game?.member_limit_max,
                 parallel_container_limit: game?.parallel_container_limit,
-                first_blood_reward_ratio: game?.first_blood_reward_ratio,
-                second_blood_reward_ratio: game?.second_blood_reward_ratio,
-                third_blood_reward_ratio: game?.third_blood_reward_ratio,
                 is_need_write_up: game?.is_need_write_up,
             });
             getGamePosterMetadata();
@@ -262,92 +253,62 @@ function Page() {
                                     }}
                                 />
                             </SimpleGrid>
-                            <Dropzone
-                                onDrop={(files: any) =>
-                                    saveGamePoster(files[0])
-                                }
-                                onReject={() => {
-                                    showErrNotification({
-                                        message: "文件上传失败",
-                                    });
-                                }}
-                                w={350}
-                                mah={256}
-                                accept={[
-                                    "image/png",
-                                    "image/gif",
-                                    "image/jpeg",
-                                    "image/webp",
-                                    "image/avif",
-                                    "image/heic",
-                                ]}
-                                styles={{
-                                    root: {
-                                        height: "200px",
-                                        padding: 20,
-                                    },
-                                }}
-                            >
-                                <Center
-                                    style={{
-                                        pointerEvents: "none",
+                            <Center>
+                                <Dropzone
+                                    onDrop={(files: any) =>
+                                        saveGamePoster(files[0])
+                                    }
+                                    onReject={() => {
+                                        showErrNotification({
+                                            message: "文件上传失败",
+                                        });
                                     }}
+                                    w={"15vw"}
+                                    mah={"20vh"}
+                                    accept={[
+                                        "image/png",
+                                        "image/gif",
+                                        "image/jpeg",
+                                        "image/webp",
+                                        "image/avif",
+                                        "image/heic",
+                                    ]}
                                 >
-                                    {gamePosterMetadata?.filename ? (
-                                        <Center>
-                                            <Image
-                                                mah={160}
-                                                w={310}
-                                                fit="contain"
-                                                src={`/api/games/${game?.id}/poster`}
-                                            />
-                                        </Center>
-                                    ) : (
-                                        <Center h={200}>
-                                            <Stack gap={0}>
-                                                <Text size="xl" inline>
-                                                    拖拽或点击上传头像
-                                                </Text>
-                                                <Text
-                                                    size="sm"
-                                                    c="dimmed"
-                                                    inline
-                                                    mt={7}
-                                                >
-                                                    图片大小不超过 3MB
-                                                </Text>
-                                            </Stack>
-                                        </Center>
-                                    )}
-                                </Center>
-                            </Dropzone>
+                                    <Center
+                                        style={{
+                                            pointerEvents: "none",
+                                        }}
+                                    >
+                                        {gamePosterMetadata?.filename ? (
+                                            <Center>
+                                                <Image
+                                                    mah={"20vh"}
+                                                    w={"15vw"}
+                                                    fit="contain"
+                                                    src={`/api/games/${game?.id}/poster`}
+                                                />
+                                            </Center>
+                                        ) : (
+                                            <Center h={"20vh"}>
+                                                <Stack gap={0}>
+                                                    <Text size="xl" inline>
+                                                        拖拽或点击上传头图
+                                                    </Text>
+                                                    <Text
+                                                        size="sm"
+                                                        c="dimmed"
+                                                        inline
+                                                        mt={7}
+                                                    >
+                                                        图片大小不超过 3MB
+                                                    </Text>
+                                                </Stack>
+                                            </Center>
+                                        )}
+                                    </Center>
+                                </Dropzone>
+                            </Center>
                         </Flex>
-                        <SimpleGrid cols={3}>
-                            <NumberInput
-                                label="一血奖励（%）"
-                                description="每道题目做出来的第一支队伍，奖励此时分值的百分比"
-                                key={form.key("first_blood_reward_ratio")}
-                                {...form.getInputProps(
-                                    "first_blood_reward_ratio"
-                                )}
-                            />
-                            <NumberInput
-                                label="二血奖励（%）"
-                                key={form.key("second_blood_reward_ratio")}
-                                description="每道题目做出来的第二支队伍，奖励此时分值的百分比"
-                                {...form.getInputProps(
-                                    "second_blood_reward_ratio"
-                                )}
-                            />
-                            <NumberInput
-                                label="三血奖励（%）"
-                                key={form.key("third_blood_reward_ratio")}
-                                description="每道题目做出来的第三支队伍，奖励此时分值的百分比"
-                                {...form.getInputProps(
-                                    "third_blood_reward_ratio"
-                                )}
-                            />
-                        </SimpleGrid>
                         <Textarea
                             label="简介"
                             description="展示在比赛页面的简短介绍"

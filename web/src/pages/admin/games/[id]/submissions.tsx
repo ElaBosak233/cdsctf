@@ -3,7 +3,7 @@ import { useSubmissionApi } from "@/api/submission";
 import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { Game } from "@/types/game";
-import { Submission } from "@/types/submission";
+import { Status, Submission } from "@/types/submission";
 import { showSuccessNotification } from "@/utils/notification";
 import {
     Divider,
@@ -42,35 +42,35 @@ function Page() {
 
     const statusMap = new Map<number, { color: string; label: string }>([
         [
-            0,
+            Status.Pending,
             {
                 color: "gray",
-                label: "Unjudged",
+                label: "Pending",
             },
         ],
         [
-            1,
-            {
-                color: "red",
-                label: "Wrong",
-            },
-        ],
-        [
-            2,
+            Status.Correct,
             {
                 color: "green",
                 label: "Accpet",
             },
         ],
         [
-            3,
+            Status.Incorrect,
+            {
+                color: "red",
+                label: "Wrong",
+            },
+        ],
+        [
+            Status.Cheat,
             {
                 color: "orange",
                 label: "Cheat",
             },
         ],
         [
-            4,
+            Status.Invalid,
             {
                 color: "blue",
                 label: "Invalid",
@@ -251,7 +251,7 @@ function Page() {
                                     <Table.Td>
                                         <Badge>
                                             {dayjs(
-                                                Number(submission?.created_at)
+                                                Number(submission?.created_at) * 1000
                                             ).format("YYYY/MM/DD HH:mm:ss")}
                                         </Badge>
                                     </Table.Td>

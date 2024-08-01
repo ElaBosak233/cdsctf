@@ -1,4 +1,4 @@
-import { Challenge } from "@/types/challenge";
+import { Challenge, ChallengeStatus } from "@/types/challenge";
 import {
     Box,
     Card,
@@ -37,16 +37,17 @@ import { useClipboard, useInterval } from "@mantine/hooks";
 import { Metadata } from "@/types/media";
 import { useChallengeApi } from "@/api/challenge";
 import { useCategoryStore } from "@/stores/category";
+import { Status } from "@/types/submission";
 
 interface ChallengeModalProps extends ModalProps {
     challenge?: Challenge;
     gameID?: number;
     setRefresh: () => void;
-    mode?: "practice" | "game";
+    status?: ChallengeStatus;
 }
 
 export default function ChallengeModal(props: ChallengeModalProps) {
-    const { challenge, gameID, setRefresh, mode, ...modalProps } = props;
+    const { challenge, gameID, setRefresh, status, ...modalProps } = props;
 
     const clipboard = useClipboard({ timeout: 500 });
     const podApi = usePodApi();
@@ -87,10 +88,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
         podApi
             .getPods({
                 challenge_id: challenge?.id,
-                user_id: mode === "practice" ? authStore?.user?.id : undefined,
-                team_id:
-                    mode === "game" ? teamStore?.selectedTeamID : undefined,
-                game_id: mode === "game" ? gameID : undefined,
+                user_id: !gameID ? authStore?.user?.id : undefined,
+                team_id: gameID ? teamStore?.selectedTeamID : undefined,
+                game_id: gameID ? gameID : undefined,
                 is_available: true,
             })
             .then((res) => {
@@ -104,9 +104,8 @@ export default function ChallengeModal(props: ChallengeModalProps) {
         podApi
             .createPod({
                 challenge_id: challenge?.id,
-                team_id:
-                    mode === "game" ? teamStore?.selectedTeamID : undefined,
-                game_id: mode === "game" ? gameID : undefined,
+                team_id: gameID ? teamStore?.selectedTeamID : undefined,
+                game_id: gameID ? gameID : undefined,
             })
             .then((res) => {
                 const r = res.data;
@@ -169,20 +168,19 @@ export default function ChallengeModal(props: ChallengeModalProps) {
             .createSubmission({
                 challenge_id: challenge?.id,
                 flag: flag,
-                team_id:
-                    mode === "game" ? teamStore?.selectedTeamID : undefined,
-                game_id: mode === "game" ? gameID : undefined,
+                team_id: gameID ? teamStore?.selectedTeamID : undefined,
+                game_id: gameID ? gameID : undefined,
             })
             .then((res) => {
                 const r = res.data;
                 switch (r?.data?.status) {
-                    case 1:
+                    case Status.Incorrect:
                         showWarnNotification({
                             title: "错误",
                             message: "再试试，你可以的！",
                         });
                         break;
-                    case 2:
+                    case Status.Correct:
                         showSuccessNotification({
                             title: "正确",
                             message: "恭喜你，答对了！",
@@ -190,14 +188,14 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                         setRefresh();
                         form.reset();
                         break;
-                    case 3:
+                    case Status.Cheat:
                         showErrNotification({
                             title: "作弊",
                             message:
                                 "你提交了禁止提交的 Flag 或者他人的 Flag，该行为已记录！",
                         });
                         break;
-                    case 4:
+                    case Status.Invalid:
                         showInfoNotification({
                             title: "无效",
                             message: "提交入口已关闭或你已提交过正确的 Flag！",
@@ -260,7 +258,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                     padding="lg"
                     radius="md"
                     withBorder
-                    w={"40rem"}
+                    miw={"40vw"}
                     mih={"20rem"}
                     sx={{
                         position: "relative",
@@ -278,9 +276,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                                 <Text fw={700}>{challenge?.title}</Text>
                             </Group>
                             <Group gap={0}>
-                                {(challenge?.bloods?.length as number) > 0 && (
+                                {(status?.bloods?.length as number) > 0 && (
                                     <Tooltip
-                                        label={`一血 ${challenge?.bloods?.[0]?.team?.name || challenge?.bloods?.[0]?.user?.nickname}`}
+                                        label={`一血 ${status?.bloods?.[0]?.team?.name || status?.bloods?.[0]?.user?.nickname}`}
                                         position={"top"}
                                     >
                                         <ThemeIcon variant="transparent">
@@ -288,9 +286,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                                         </ThemeIcon>
                                     </Tooltip>
                                 )}
-                                {(challenge?.bloods?.length as number) > 1 && (
+                                {(status?.bloods?.length as number) > 1 && (
                                     <Tooltip
-                                        label={`二血 ${challenge?.bloods?.[1]?.team?.name || challenge?.bloods?.[1]?.user?.nickname}`}
+                                        label={`二血 ${status?.bloods?.[1]?.team?.name || status?.bloods?.[1]?.user?.nickname}`}
                                         position={"top"}
                                     >
                                         <Box
@@ -305,9 +303,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                                         </Box>
                                     </Tooltip>
                                 )}
-                                {(challenge?.bloods?.length as number) > 2 && (
+                                {(status?.bloods?.length as number) > 2 && (
                                     <Tooltip
-                                        label={`三血 ${challenge?.bloods?.[2]?.team?.name || challenge?.bloods?.[2]?.user?.nickname}`}
+                                        label={`三血 ${status?.bloods?.[2]?.team?.name || status?.bloods?.[2]?.user?.nickname}`}
                                         position={"top"}
                                     >
                                         <Box

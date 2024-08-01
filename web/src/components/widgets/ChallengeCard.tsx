@@ -23,11 +23,9 @@ import { useCategoryStore } from "@/stores/category";
 export default function ChallengeCard({
     challenge,
     status,
-    pts,
 }: {
     challenge?: Challenge;
     status?: ChallengeStatus;
-    pts?: number;
 }) {
     const theme = useMantineTheme();
     const categoryStore = useCategoryStore();
@@ -93,11 +91,7 @@ export default function ChallengeCard({
             )}
             <Box>
                 <Badge variant="light" className={getClassName("badge")}>
-                    {
-                        categoryStore.getCategory(
-                            Number(challenge?.category_id)
-                        )?.name
-                    }
+                    {categoryStore.getCategory(challenge?.category_id!)?.name}
                 </Badge>
             </Box>
             <Box py={10}>
@@ -117,15 +111,29 @@ export default function ChallengeCard({
             </Box>
             <Divider py={5} className={getClassName("divider")} />
             <Flex justify={"space-between"} align={"center"} px={5}>
-                <Tooltip
-                    label={
-                        <Text size={"xs"}>
-                            {status?.solved_times || 0} 次解决
+                {status?.pts ? (
+                    <Tooltip
+                        label={
+                            <Text size={"xs"}>
+                                {status?.solved_times || 0} 次解决
+                            </Text>
+                        }
+                        withArrow
+                        position="bottom"
+                    >
+                        <Text
+                            size="lg"
+                            fw={700}
+                            className={
+                                status?.is_solved
+                                    ? styles.textSolved
+                                    : styles.text
+                            }
+                        >
+                            {status?.pts} pts
                         </Text>
-                    }
-                    withArrow
-                    position="bottom"
-                >
+                    </Tooltip>
+                ) : (
                     <Text
                         size="lg"
                         fw={700}
@@ -133,9 +141,9 @@ export default function ChallengeCard({
                             status?.is_solved ? styles.textSolved : styles.text
                         }
                     >
-                        {pts || challenge?.practice_pts || "?"} pts
+                        {status?.solved_times || 0} 次解决
                     </Text>
-                </Tooltip>
+                )}
                 <Flex align={"center"}>
                     {status?.bloods?.slice(0, 3)?.map((submission, index) => (
                         <Tooltip
@@ -148,9 +156,10 @@ export default function ChallengeCard({
                                             submission?.user?.nickname}
                                     </Text>
                                     <Text size={"xs"}>
-                                        {dayjs(submission?.created_at).format(
-                                            "YYYY/MM/DD HH:mm:ss"
-                                        )}
+                                        {dayjs(
+                                            Number(submission?.created_at) *
+                                                1000
+                                        ).format("YYYY/MM/DD HH:mm:ss")}
                                     </Text>
                                 </Stack>
                             }

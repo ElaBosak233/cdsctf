@@ -1,7 +1,7 @@
 import { useGameApi } from "@/api/game";
 import { useSubmissionApi } from "@/api/submission";
 import { Game } from "@/types/game";
-import { Submission } from "@/types/submission";
+import { Status, Submission } from "@/types/submission";
 import {
     Flex,
     Stack,
@@ -78,7 +78,7 @@ function Page() {
         submissionApi
             .getSubmissions({
                 game_id: Number(id),
-                status: 2,
+                status: Status.Correct,
                 is_detailed: false,
             })
             .then((res) => {
@@ -301,32 +301,7 @@ function Page() {
                 <Table.Thead>
                     <Table.Tr h={50}>
                         <Table.Th colSpan={4} w={"25%"}>
-                            <Flex gap={20} justify={"center"}>
-                                <Flex gap={10} align={"center"}>
-                                    <ThemeIcon variant="transparent">
-                                        <FirstBloodIcon />
-                                    </ThemeIcon>
-                                    <Text size="xs">
-                                        一血 +{game?.first_blood_reward_ratio}%
-                                    </Text>
-                                </Flex>
-                                <Flex gap={10} align={"center"}>
-                                    <ThemeIcon variant="transparent">
-                                        <SecondBloodIcon />
-                                    </ThemeIcon>
-                                    <Text size="xs">
-                                        二血 +{game?.second_blood_reward_ratio}%
-                                    </Text>
-                                </Flex>
-                                <Flex gap={10} align={"center"}>
-                                    <ThemeIcon variant="transparent">
-                                        <ThirdBloodIcon />
-                                    </ThemeIcon>
-                                    <Text size="xs">
-                                        三血 +{game?.third_blood_reward_ratio}%
-                                    </Text>
-                                </Flex>
-                            </Flex>
+                            <Flex gap={20} justify={"center"}></Flex>
                         </Table.Th>
                         {Object.values(categoriedChallenges)?.map(
                             (categoriedChallenge) => (

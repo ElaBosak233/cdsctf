@@ -87,7 +87,7 @@ async fn preload(
 }
 
 pub async fn find(
-    game_id: Option<i64>, challenge_id: Option<i64>,
+    game_id: Option<i64>, challenge_id: Option<i64>, is_enabled: Option<bool>,
 ) -> Result<(Vec<crate::model::game_challenge::Model>, u64), DbErr> {
     let mut query = crate::model::game_challenge::Entity::find();
 
@@ -97,6 +97,10 @@ pub async fn find(
 
     if let Some(challenge_id) = challenge_id {
         query = query.filter(crate::model::game_challenge::Column::ChallengeId.eq(challenge_id));
+    }
+
+    if let Some(is_enabled) = is_enabled {
+        query = query.filter(crate::model::game_challenge::Column::IsEnabled.eq(is_enabled));
     }
 
     let total = query.clone().count(&get_db().await).await?;

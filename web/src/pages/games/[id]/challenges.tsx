@@ -1,3 +1,4 @@
+import { useChallengeApi } from "@/api/challenge";
 import { useGameApi } from "@/api/game";
 import { useSubmissionApi } from "@/api/submission";
 import withGame from "@/components/layouts/withGame";
@@ -10,10 +11,11 @@ import { useCategoryStore } from "@/stores/category";
 import { useConfigStore } from "@/stores/config";
 import { useTeamStore } from "@/stores/team";
 import { Category } from "@/types/category";
+import { ChallengeStatus } from "@/types/challenge";
 import { Game } from "@/types/game";
 import { GameChallenge } from "@/types/game_challenge";
 import { GameTeam } from "@/types/game_team";
-import { Submission } from "@/types/submission";
+import { Status, Submission } from "@/types/submission";
 import { calculateAndSort } from "@/utils/game";
 import { showErrNotification } from "@/utils/notification";
 import {
@@ -40,6 +42,7 @@ function Page() {
     const { id } = useParams<{ id: string }>();
     const gameApi = useGameApi();
     const submissionApi = useSubmissionApi();
+    const challengeApi = useChallengeApi();
     const configStore = useConfigStore();
     const categoryStore = useCategoryStore();
     const authStore = useAuthStore();
@@ -51,6 +54,8 @@ function Page() {
     const [gameChallenges, setGameChallenges] = useState<Array<GameChallenge>>(
         []
     );
+    const [status, setStatus] = useState<Record<number, ChallengeStatus>>();
+
     const [categories, setCategories] = useState<Record<number, Category>>({});
     const [selectedGameChallenges, setSelectedGameChallenges] = useState<
         Array<GameChallenge>
@@ -78,7 +83,7 @@ function Page() {
         submissionApi
             .getSubmissions({
                 game_id: Number(id),
-                status: 2,
+                status: Status.Correct,
                 is_detailed: false,
             })
             .then((res) => {
@@ -115,6 +120,19 @@ function Page() {
             })
             .finally(() => {
                 setLoadingChallenges(false);
+            });
+    }
+
+    function getChallengeStatus() {
+        challengeApi
+            .getChallengeStatus({
+                game_id: Number(id),
+                cids: gameChallenges.map((c) => c.challenge_id!),
+                team_id: gameTeam?.team_id,
+            })
+            .then((res) => {
+                const r = res.data;
+                setStatus(r.data);
             });
     }
 
@@ -181,7 +199,7 @@ function Page() {
     }, [gameChallenges, selectedCategory]);
 
     useEffect(() => {
-        if (gameChallenges) {
+        if (gameChallenges.length) {
             gameChallenges.forEach((gameChallenge) => {
                 if (
                     !(categories as Record<number, Category>)[
@@ -201,6 +219,7 @@ function Page() {
                     });
                 }
             });
+            getChallengeStatus();
         }
     }, [gameChallenges]);
 
@@ -316,13 +335,18 @@ function Page() {
                                                     gameChallenge
                                                 );
                                             }}
-                                            key={gameChallenge?.id}
+                                            key={gameChallenge?.challenge_id}
                                         >
                                             <ChallengeCard
                                                 challenge={
                                                     gameChallenge?.challenge
                                                 }
-                                                pts={gameChallenge?.pts}
+                                                status={
+                                                    status?.[
+                                                        gameChallenge
+                                                            ?.challenge_id!
+                                                    ]
+                                                }
                                             />
                                         </UnstyledButton>
                                     )
@@ -393,7 +417,6 @@ function Page() {
                 setRefresh={() => setRefresh((prev) => prev + 1)}
                 challenge={selectedChallenge?.challenge}
                 gameID={selectedChallenge?.game_id}
-                mode="game"
             />
         </>
     );

@@ -4,7 +4,7 @@ pub async fn find(
     req: crate::model::game_challenge::request::FindRequest,
 ) -> Result<(Vec<crate::model::game_challenge::Model>, u64), Box<dyn Error>> {
     let (game_challenges, total) =
-        crate::model::game_challenge::find(req.game_id, req.challenge_id)
+        crate::model::game_challenge::find(req.game_id, req.challenge_id, req.is_enabled)
             .await
             .unwrap();
 

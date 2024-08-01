@@ -21,7 +21,7 @@ export interface Submission {
     updated_at?: number;
 }
 
-enum Status {
+export enum Status {
     Pending = 0,
     Correct = 1,
     Incorrect = 2,

@@ -81,6 +81,7 @@ export interface ChallengeDeleteRequest {
 export interface ChallengeStatus {
     is_solved?: boolean;
     solved_times?: number;
+    pts?: number;
     bloods?: Array<Submission>;
 }
 

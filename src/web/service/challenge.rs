@@ -58,6 +58,9 @@ pub async fn status(
 
         if req.game_id.is_some() {
             submission.game = None;
+            if submission.game_id != req.game_id {
+                continue;
+            }
         }
 
         if submission.status != Status::Correct {
@@ -99,7 +102,7 @@ pub async fn status(
     }
 
     if let Some(game_id) = req.game_id {
-        let (game_challenges, _) = crate::model::game_challenge::find(Some(game_id), None)
+        let (game_challenges, _) = crate::model::game_challenge::find(Some(game_id), None, None)
             .await
             .unwrap();
 

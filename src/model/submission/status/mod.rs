@@ -1,7 +1,7 @@
 use sea_orm::{DeriveActiveEnum, EnumIter};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, EnumIter, DeriveActiveEnum)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "u8", db_type = "Integer")]
 #[repr(u8)]
 pub enum Status {
@@ -26,5 +26,25 @@ impl Serialize for Status {
             Status::Invalid => 4,
         };
         return serializer.serialize_u8(value);
+    }
+}
+
+impl<'de> Deserialize<'de> for Status {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = u8::deserialize(deserializer)?;
+        match value {
+            0 => Ok(Status::Pending),
+            1 => Ok(Status::Correct),
+            2 => Ok(Status::Incorrect),
+            3 => Ok(Status::Cheat),
+            4 => Ok(Status::Invalid),
+            _ => Err(serde::de::Error::custom(format!(
+                "Unknown status type: {}",
+                value
+            ))),
+        }
     }
 }

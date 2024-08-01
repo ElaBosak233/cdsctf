@@ -32,9 +32,8 @@ export default function Page() {
     const [refresh, setRefresh] = useState<number>(0);
 
     const [challenges, setChallenges] = useState<Array<Challenge>>([]);
-    const [challengeStatus, setChallengeStatus] = useState<
-        Record<number, ChallengeStatus>
-    >([]);
+    const [challengeStatus, setChallengeStatus] =
+        useState<Record<number, ChallengeStatus>>();
 
     const [search, setSearch] = useState<string>("");
     const [searchInput, setSearchInput] = useState<string>("");
@@ -87,7 +86,7 @@ export default function Page() {
     function getChallengeStatus() {
         challengeApi
             .getChallengeStatus({
-                cids: challenges.map((c) => Number(c?.id)),
+                cids: challenges.map((c) => c?.id!),
                 user_id: authStore.user?.id,
             })
             .then((res) => {
@@ -257,7 +256,7 @@ export default function Page() {
                                             challenge={challenge}
                                             status={
                                                 challengeStatus?.[
-                                                    Number(challenge?.id)
+                                                    challenge?.id!
                                                 ]
                                             }
                                         />
@@ -283,7 +282,6 @@ export default function Page() {
                 centered
                 challenge={selectedChallenge}
                 setRefresh={() => setRefresh((prev) => prev + 1)}
-                mode="practice"
             />
         </>
     );

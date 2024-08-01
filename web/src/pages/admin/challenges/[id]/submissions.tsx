@@ -51,15 +51,15 @@ function Page() {
         [
             1,
             {
-                color: "red",
-                label: "Wrong",
+                color: "green",
+                label: "Accpet",
             },
         ],
         [
             2,
             {
-                color: "green",
-                label: "Accpet",
+                color: "red",
+                label: "Wrong",
             },
         ],
         [

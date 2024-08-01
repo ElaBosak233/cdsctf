@@ -11,7 +11,7 @@ pub struct FindRequest {
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
-    pub status: Option<i64>,
+    pub status: Option<Status>,
     pub is_detailed: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
