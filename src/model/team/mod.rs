@@ -104,18 +104,14 @@ async fn preload(
         )
         .await?;
 
-    for i in 0..teams.len() {
-        let mut team = teams[i].clone();
+    for (i, team) in teams.iter_mut().enumerate() {
         team.users = users[i].clone();
-        for j in 0..team.users.len() {
-            let mut user = team.users[j].clone();
+        for user in team.users.iter_mut() {
             user.simplify();
             if user.id == team.captain_id {
-                team.captain = Some(team.users[j].clone());
+                team.captain = Some(user.clone());
             }
-            team.users[j] = user;
         }
-        teams[i] = team;
     }
 
     return Ok(teams);

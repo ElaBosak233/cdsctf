@@ -79,8 +79,8 @@ async fn preload(
         .load_one(crate::model::challenge::Entity, &get_db().await)
         .await?;
 
-    for i in 0..game_challenges.len() {
-        game_challenges[i].challenge = challenges[i].clone();
+    for (i, game_challenge) in game_challenges.iter_mut().enumerate() {
+        game_challenge.challenge = challenges[i].clone();
     }
 
     return Ok(game_challenges);

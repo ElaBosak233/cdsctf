@@ -41,18 +41,6 @@ pub struct Model {
 
 impl Model {
     pub fn simplify(&mut self) {
-        if let Some(user) = &mut self.user {
-            user.simplify();
-        }
-        if let Some(team) = &mut self.team {
-            team.simplify();
-        }
-        if let Some(challenge) = &mut self.challenge {
-            challenge.simplify();
-        }
-    }
-
-    pub fn blur(&mut self) {
         self.flag.clear();
     }
 }
@@ -151,13 +139,23 @@ async fn preload(
         .load_one(crate::model::game::Entity, &get_db().await)
         .await?;
 
-    for i in 0..submissions.len() {
-        let mut submission = submissions[i].clone();
+    for (i, submission) in submissions.iter_mut().enumerate() {
         submission.user = users[i].clone();
+        if let Some(user) = submission.user.as_mut() {
+            user.simplify();
+        }
         submission.challenge = challenges[i].clone();
+        if let Some(challenge) = submission.challenge.as_mut() {
+            challenge.simplify();
+        }
         submission.team = teams[i].clone();
+        if let Some(team) = submission.team.as_mut() {
+            team.simplify();
+        }
         submission.game = games[i].clone();
-        submissions[i] = submission;
+        // if let Some(game) = submission.game.as_mut() {
+        //     game.simplify();
+        // }
     }
     return Ok(submissions);
 }
