@@ -35,7 +35,6 @@ impl From<CreateRequest> for super::ActiveModel {
             game_id: req.game_id.map_or(NotSet, |v| Set(Some(v))),
             challenge_id: req.challenge_id.map_or(NotSet, |v| Set(v)),
             status: Set(Status::Pending),
-            rank: Set(0),
             ..Default::default()
         }
     }
@@ -62,7 +61,6 @@ impl From<UpdateRequest> for ActiveModel {
             team_id: req.team_id.map_or(NotSet, |v| Set(Some(v))),
             game_id: req.game_id.map_or(NotSet, |v| Set(Some(v))),
             challenge_id: req.challenge_id.map_or(NotSet, |v| Set(v)),
-            rank: req.rank.map_or(NotSet, |v| Set(v)),
             status: req.status.map_or(NotSet, |v| Set(v)),
             ..Default::default()
         }

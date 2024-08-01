@@ -46,6 +46,14 @@ pub struct Model {
     pub updated_at: i64,
 }
 
+impl Model {
+    pub fn simplify(&mut self) {
+        self.envs.clear();
+        self.ports.clear();
+        self.flags.clear();
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Category,
