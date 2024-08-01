@@ -17,7 +17,6 @@ export interface TeamFindRequest {
     id?: number;
     name?: string;
     captain_id?: number;
-    user_id?: number;
     page?: number;
     size?: number;
     sort_key?: string;

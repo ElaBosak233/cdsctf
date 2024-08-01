@@ -1,17 +1,24 @@
 use std::error::Error;
 
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+
+use crate::database::get_db;
+
 pub async fn join(
     req: crate::model::user_team::request::JoinRequest,
 ) -> Result<(), Box<dyn Error>> {
-    let (_, user_total) =
-        crate::model::user::find(Some(req.user_id), None, None, None, None, None, None)
-            .await
-            .unwrap();
-    let (teams, team_total) = crate::model::team::find(Some(req.team_id), None, None, None, None)
+    let users = crate::model::user::Entity::find()
+        .filter(crate::model::user::Column::Id.eq(req.user_id))
+        .all(&get_db().await)
+        .await
+        .unwrap();
+    let teams = crate::model::team::Entity::find()
+        .filter(crate::model::team::Column::Id.eq(req.team_id))
+        .all(&get_db().await)
         .await
         .unwrap();
 
-    if user_total == 0 || team_total == 0 {
+    if users.is_empty() || teams.is_empty() {
         return Err("invalid_user_or_team".into());
     }
 

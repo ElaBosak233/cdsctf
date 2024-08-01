@@ -1,7 +1,7 @@
 pub mod request;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, QuerySelect, Set, TryIntoModel};
+use sea_orm::{entity::prelude::*, Iterable, JoinType, QuerySelect, Set, TryIntoModel};
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
@@ -160,6 +160,25 @@ pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<crate::model::team::Model>
         .filter(crate::model::team::Column::Id.is_in(ids))
         .all(&get_db().await)
         .await?;
+
+    teams = preload(teams).await?;
+
+    return Ok(teams);
+}
+
+pub async fn find_by_user_id(id: i64) -> Result<Vec<crate::model::team::Model>, DbErr> {
+    let mut teams = crate::model::user_team::Entity::find()
+        .select_only()
+        .columns(crate::model::team::Column::iter())
+        .filter(crate::model::user_team::Column::UserId.eq(id))
+        .join(
+            JoinType::InnerJoin,
+            crate::model::user_team::Relation::Team.def(),
+        )
+        .into_model::<crate::model::team::Model>()
+        .all(&get_db().await)
+        .await
+        .unwrap();
 
     teams = preload(teams).await?;
 

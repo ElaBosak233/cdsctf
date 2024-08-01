@@ -12,7 +12,7 @@ pub fn router() -> Router {
     return Router::new()
         .route(
             "/",
-            get(controller::user::find).layer(from_fn(auth::jwt(Group::Guest))),
+            get(controller::user::get).layer(from_fn(auth::jwt(Group::Guest))),
         )
         .route(
             "/",
@@ -26,12 +26,16 @@ pub fn router() -> Router {
             "/:id",
             delete(controller::user::delete).layer(from_fn(auth::jwt(Group::Admin))),
         )
+        .route(
+            "/:id/teams",
+            get(controller::user::get_teams).layer(from_fn(auth::jwt(Group::User))),
+        )
         .route("/login", post(controller::user::login))
         .route("/register", post(controller::user::register))
-        .route("/:id/avatar", get(controller::user::find_avatar))
+        .route("/:id/avatar", get(controller::user::get_avatar))
         .route(
             "/:id/avatar/metadata",
-            get(controller::user::find_avatar_metadata),
+            get(controller::user::get_avatar_metadata),
         )
         .route(
             "/:id/avatar",

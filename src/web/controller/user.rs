@@ -10,7 +10,7 @@ use serde_json::json;
 use crate::web::service::user as user_service;
 use crate::{traits::Ext, util::validate};
 
-/// **Find** can find user's information.
+/// **Get** can find user's information.
 ///
 /// ## Arguments
 /// - `params`: user's information.
@@ -18,7 +18,7 @@ use crate::{traits::Ext, util::validate};
 /// ## Returns
 /// - `200`: find successfully.
 /// - `400`: find failed.
-pub async fn find(
+pub async fn get(
     Query(params): Query<crate::model::user::request::FindRequest>,
 ) -> impl IntoResponse {
     match user_service::find(params).await {
@@ -154,6 +154,31 @@ pub async fn delete(Path(id): Path<i64>) -> impl IntoResponse {
     }
 }
 
+/// **FindTeams** can find user's teams.
+///
+///
+/// ## Returns
+/// - `200`: find successfully.
+/// - `400`: find failed.
+pub async fn get_teams(Path(id): Path<i64>) -> impl IntoResponse {
+    match crate::web::service::team::find_by_user_id(id).await {
+        Ok(teams) => (
+            StatusCode::OK,
+            Json(json!({
+                "code": StatusCode::OK.as_u16(),
+                "data": json!(teams),
+            })),
+        ),
+        Err(e) => (
+            StatusCode::BAD_REQUEST,
+            Json(json!({
+                "code": StatusCode::BAD_REQUEST.as_u16(),
+                "msg": format!("{:?}", e),
+            })),
+        ),
+    }
+}
+
 /// **Login** can be used to login with username and password.
 ///
 /// ## Arguments
@@ -240,7 +265,7 @@ pub async fn register(
     }
 }
 
-pub async fn find_avatar(Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn get_avatar(Path(id): Path<i64>) -> impl IntoResponse {
     let path = format!("users/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
@@ -251,7 +276,7 @@ pub async fn find_avatar(Path(id): Path<i64>) -> impl IntoResponse {
     }
 }
 
-pub async fn find_avatar_metadata(Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn get_avatar_metadata(Path(id): Path<i64>) -> impl IntoResponse {
     let path = format!("users/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {

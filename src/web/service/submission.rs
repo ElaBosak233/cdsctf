@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{collections::HashMap, error::Error};
 
 use sea_orm::{ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
 
@@ -72,32 +72,34 @@ pub async fn find(
     }
 
     // Calculate pts
+    let mut correct_submissions_count = HashMap::new();
+    for submission in &submissions {
+        if submission.status == Status::Correct {
+            *correct_submissions_count
+                .entry((submission.game_id, submission.challenge_id))
+                .or_insert(0) += 1;
+        }
+    }
+
     for submission in submissions.iter_mut() {
-        if submission.game_id.is_some() {
-            let game_challenge = game_challenges.iter().find(|gc| {
-                gc.game_id == submission.game_id.unwrap()
-                    && gc.challenge_id == submission.challenge_id
-            });
+        if let (Some(game_id), Some(rank)) = (submission.game_id, submission.rank) {
+            if let Some(gc) = game_challenges
+                .iter()
+                .find(|gc| gc.game_id == game_id && gc.challenge_id == submission.challenge_id)
+            {
+                let x = *correct_submissions_count
+                    .get(&(Some(game_id), submission.challenge_id))
+                    .unwrap_or(&0) as i64;
 
-            if let Some(gc) = game_challenge {
-                if let Some(rank) = submission.rank {
-                    submission.pts = Some(util::math::curve(
-                        gc.max_pts,
-                        gc.min_pts,
-                        gc.difficulty,
-                        rank,
-                    ));
+                let base_points = util::math::curve(gc.max_pts, gc.min_pts, gc.difficulty, x);
+                let bonus_multiplier = match rank {
+                    1 => 100 + gc.first_blood_reward_ratio,
+                    2 => 100 + gc.second_blood_reward_ratio,
+                    3 => 100 + gc.third_blood_reward_ratio,
+                    _ => 100,
+                };
 
-                    if let Some(mut pts) = submission.pts {
-                        pts = match rank {
-                            1 => pts * (100 + gc.first_blood_reward_ratio) / 100,
-                            2 => pts * (100 + gc.second_blood_reward_ratio) / 100,
-                            3 => pts * (100 + gc.third_blood_reward_ratio) / 100,
-                            _ => pts,
-                        };
-                        submission.pts = Some(pts);
-                    }
-                }
+                submission.pts = Some(base_points * bonus_multiplier / 100);
             }
         }
     }

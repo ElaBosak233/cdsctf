@@ -1,6 +1,8 @@
 use std::error::Error;
 
-use sea_orm::{IntoActiveModel, Set};
+use sea_orm::{ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
+
+use crate::database::get_db;
 
 pub async fn find(
     req: crate::model::team::request::FindRequest,
@@ -9,6 +11,14 @@ pub async fn find(
         .await
         .unwrap();
     return Ok((teams, total));
+}
+
+pub async fn find_by_user_id(id: i64) -> Result<Vec<crate::model::team::Model>, Box<dyn Error>> {
+    let mut teams = crate::model::team::find_by_user_id(id).await.unwrap();
+    for team in teams.iter_mut() {
+        team.simplify();
+    }
+    return Ok(teams);
 }
 
 pub async fn create(req: crate::model::team::request::CreateRequest) -> Result<(), Box<dyn Error>> {
@@ -45,11 +55,13 @@ pub async fn delete(id: i64) -> Result<(), Box<dyn Error>> {
 }
 
 pub async fn get_invite_token(id: i64) -> Result<String, Box<dyn Error>> {
-    let (teams, total) = crate::model::team::find(Some(id), None, None, None, None)
+    let teams = crate::model::team::Entity::find()
+        .filter(crate::model::team::Column::Id.eq(id))
+        .all(&get_db().await)
         .await
         .unwrap();
 
-    if total == 0 {
+    if teams.is_empty() {
         return Err("team_not_found".into());
     }
 
@@ -59,11 +71,13 @@ pub async fn get_invite_token(id: i64) -> Result<String, Box<dyn Error>> {
 }
 
 pub async fn update_invite_token(id: i64) -> Result<String, Box<dyn Error>> {
-    let (teams, total) = crate::model::team::find(Some(id), None, None, None, None)
+    let teams = crate::model::team::Entity::find()
+        .filter(crate::model::team::Column::Id.eq(id))
+        .all(&get_db().await)
         .await
         .unwrap();
 
-    if total == 0 {
+    if teams.is_empty() {
         return Err("team_not_found".into());
     }
 

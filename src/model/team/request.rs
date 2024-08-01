@@ -4,25 +4,14 @@ use validator::Validate;
 
 use super::ActiveModel;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct FindRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
+    pub user_id: Option<i64>,
     pub page: Option<u64>,
     pub size: Option<u64>,
-}
-
-impl Default for FindRequest {
-    fn default() -> Self {
-        FindRequest {
-            id: None,
-            name: None,
-            email: None,
-            page: None,
-            size: None,
-        }
-    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
