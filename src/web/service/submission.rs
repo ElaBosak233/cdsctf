@@ -22,9 +22,8 @@ pub async fn find(
 
     let is_detailed = req.is_detailed.unwrap_or(false);
     for submission in submissions.iter_mut() {
-        submission.simplify();
         if !is_detailed {
-            submission.blur();
+            submission.simplify();
         }
     }
 

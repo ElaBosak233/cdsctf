@@ -112,12 +112,10 @@ async fn preload(
         .load_one(crate::model::challenge::Entity, &get_db().await)
         .await?;
 
-    for i in 0..pods.len() {
-        let mut pod = pods[i].clone();
+    for (i, pod) in pods.iter_mut().enumerate() {
         pod.user = users[i].clone();
         pod.team = teams[i].clone();
         pod.challenge = challenges[i].clone();
-        pods[i] = pod;
     }
 
     return Ok(pods);
