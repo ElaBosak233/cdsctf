@@ -1,4 +1,5 @@
 import { useTeamApi } from "@/api/team";
+import { useUserApi } from "@/api/user";
 import TeamCreateModal from "@/components/modals/TeamCreateModal";
 import TeamEditModal from "@/components/modals/TeamEditModal";
 import TeamJoinModal from "@/components/modals/TeamJoinModal";
@@ -22,7 +23,7 @@ import { useEffect, useState } from "react";
 export default function Page() {
     const configStore = useConfigStore();
     const authStore = useAuthStore();
-    const teamApi = useTeamApi();
+    const userApi = useUserApi();
 
     const [refresh, setRefresh] = useState<number>(0);
 
@@ -42,10 +43,8 @@ export default function Page() {
 
     function getTeams() {
         setLoading(true);
-        teamApi
-            .getTeams({
-                user_id: authStore?.user?.id,
-            })
+        userApi
+            .getUserTeams(Number(authStore?.user?.id))
             .then((res) => {
                 const r = res.data;
                 setTeams(r.data);

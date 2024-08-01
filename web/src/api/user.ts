@@ -25,6 +25,10 @@ export function useUserApi() {
         return auth.get("/users", { params: request });
     };
 
+    const getUserTeams = (id: number) => {
+        return auth.get(`/users/${id}/teams`);
+    };
+
     const updateUser = (request: UserUpdateRequest) => {
         return auth.put(`/users/${request?.id}`, request);
     };
@@ -59,6 +63,7 @@ export function useUserApi() {
         login,
         register,
         getUsers,
+        getUserTeams,
         updateUser,
         createUser,
         deleteUser,
