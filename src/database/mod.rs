@@ -1,18 +1,18 @@
 mod migration;
 
 use bcrypt::{hash, DEFAULT_COST};
-use once_cell::sync::Lazy;
+use once_cell::sync::OnceCell;
 use sea_orm::{
     ActiveModelTrait, ConnectOptions, Database, DatabaseConnection, EntityTrait, PaginatorTrait,
     Set,
 };
 use std::{process, time::Duration};
-use tokio::sync::RwLock;
 use tracing::{error, info};
 
 use crate::config;
 
-static DB: Lazy<RwLock<Option<DatabaseConnection>>> = Lazy::new(|| RwLock::new(None));
+// static DB: Lazy<RwLock<Option<DatabaseConnection>>> = Lazy::new(|| RwLock::new(None));
+static DB: OnceCell<DatabaseConnection> = OnceCell::new();
 
 pub async fn init() {
     let url = match crate::config::get_config()
@@ -58,24 +58,26 @@ pub async fn init() {
         .set_schema_search_path(config::get_config().db.postgres.schema.as_str());
 
     let db: DatabaseConnection = Database::connect(opt).await.unwrap();
+    DB.set(db).unwrap();
     {
-        let mut db_lock = DB.write().await;
-        *db_lock = Some(db);
+        // let mut db_lock = DB.write().await;
+        // *db_lock = Some(db);
     }
-    migration::migrate(&get_db().await).await;
+    migration::migrate(&get_db()).await;
     info!("Database connection established successfully.");
     init_admin().await;
     init_category().await;
 }
 
-pub async fn get_db() -> DatabaseConnection {
-    let db_lock = DB.read().await;
-    return db_lock.clone().expect("Database not initialized");
+pub fn get_db() -> DatabaseConnection {
+    // let db_lock = DB.read().await;
+    // return db_lock.clone().expect("Database not initialized");
+    return DB.get().unwrap().clone();
 }
 
 pub async fn init_admin() {
     let total = crate::model::user::Entity::find()
-        .count(&get_db().await)
+        .count(&get_db())
         .await
         .unwrap();
     if total == 0 {
@@ -88,14 +90,14 @@ pub async fn init_admin() {
             password: Set(Some(hashed_password)),
             ..Default::default()
         };
-        user.insert(&get_db().await).await.unwrap();
+        user.insert(&get_db()).await.unwrap();
         info!("Admin user created successfully.");
     }
 }
 
 pub async fn init_category() {
     let total = crate::model::category::Entity::find()
-        .count(&get_db().await)
+        .count(&get_db())
         .await
         .unwrap();
     if total == 0 {
@@ -132,7 +134,7 @@ pub async fn init_category() {
             },
         ];
         for categ0ry in default_categories {
-            categ0ry.insert(&get_db().await).await.unwrap();
+            categ0ry.insert(&get_db()).await.unwrap();
         }
         info!("Default category created successfully.");
     }

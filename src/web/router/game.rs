@@ -12,7 +12,7 @@ pub fn router() -> Router {
     return Router::new()
         .route(
             "/",
-            get(controller::game::find).layer(from_fn(auth::jwt(Group::User))),
+            get(controller::game::get).layer(from_fn(auth::jwt(Group::User))),
         )
         .route(
             "/",
@@ -28,7 +28,7 @@ pub fn router() -> Router {
         )
         .route(
             "/:id/challenges",
-            get(controller::game::find_challenge).layer(from_fn(auth::jwt(Group::User))),
+            get(controller::game::get_challenge).layer(from_fn(auth::jwt(Group::User))),
         )
         .route(
             "/:id/challenges",
@@ -44,7 +44,7 @@ pub fn router() -> Router {
         )
         .route(
             "/:id/teams",
-            get(controller::game::find_team).layer(from_fn(auth::jwt(Group::User))),
+            get(controller::game::get_team).layer(from_fn(auth::jwt(Group::User))),
         )
         .route(
             "/:id/teams",
@@ -60,7 +60,7 @@ pub fn router() -> Router {
         )
         .route(
             "/:id/notices",
-            get(controller::game::find_notice).layer(from_fn(auth::jwt(Group::User))),
+            get(controller::game::get_notice).layer(from_fn(auth::jwt(Group::User))),
         )
         .route(
             "/:id/notices",

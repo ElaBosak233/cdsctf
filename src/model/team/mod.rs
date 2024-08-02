@@ -100,7 +100,7 @@ async fn preload(
         .load_many_to_many(
             crate::model::user::Entity,
             crate::model::user_team::Entity,
-            &get_db().await,
+            &get_db(),
         )
         .await?;
 
@@ -135,7 +135,7 @@ pub async fn find(
         query = query.filter(crate::model::team::Column::Email.eq(email));
     }
 
-    let total = query.clone().count(&get_db().await).await?;
+    let total = query.clone().count(&get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
@@ -144,7 +144,7 @@ pub async fn find(
         }
     }
 
-    let mut teams = query.all(&get_db().await).await?;
+    let mut teams = query.all(&get_db()).await?;
 
     teams = preload(teams).await?;
 
@@ -154,7 +154,7 @@ pub async fn find(
 pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<crate::model::team::Model>, DbErr> {
     let mut teams = crate::model::team::Entity::find()
         .filter(crate::model::team::Column::Id.is_in(ids))
-        .all(&get_db().await)
+        .all(&get_db())
         .await?;
 
     teams = preload(teams).await?;
@@ -172,7 +172,7 @@ pub async fn find_by_user_id(id: i64) -> Result<Vec<crate::model::team::Model>, 
             crate::model::user_team::Relation::Team.def(),
         )
         .into_model::<crate::model::team::Model>()
-        .all(&get_db().await)
+        .all(&get_db())
         .await
         .unwrap();
 
@@ -184,18 +184,18 @@ pub async fn find_by_user_id(id: i64) -> Result<Vec<crate::model::team::Model>, 
 pub async fn create(
     team: crate::model::team::ActiveModel,
 ) -> Result<crate::model::team::Model, DbErr> {
-    return team.insert(&get_db().await).await?.try_into_model();
+    return team.insert(&get_db()).await?.try_into_model();
 }
 
 pub async fn update(
     team: crate::model::team::ActiveModel,
 ) -> Result<crate::model::team::Model, DbErr> {
-    return team.update(&get_db().await).await?.try_into_model();
+    return team.update(&get_db()).await?.try_into_model();
 }
 
 pub async fn delete(id: i64) -> Result<(), DbErr> {
     let result = crate::model::team::Entity::delete_by_id(id)
-        .exec(&get_db().await)
+        .exec(&get_db())
         .await?;
     return Ok(if result.rows_affected == 0 {
         return Err(DbErr::RecordNotFound(format!(

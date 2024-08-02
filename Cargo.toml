@@ -52,6 +52,7 @@ serde_repr = { version = "0.1" }
 
 # Error Handling
 thiserror = { version = "1.0" }
+anyhow = { version = "1.0" }
 
 # Tracing
 tracing = { version = "0.1" }

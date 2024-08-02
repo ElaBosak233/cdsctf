@@ -1,35 +1,8 @@
 use std::collections::HashMap;
 use std::error::Error;
 
-use sea_orm::TryIntoModel;
-
 use crate::model::submission::Status;
 use crate::util;
-
-pub async fn find(
-    req: crate::model::challenge::request::FindRequest,
-) -> Result<(Vec<crate::model::challenge::Model>, u64), ()> {
-    let (mut challenges, total) = crate::model::challenge::find(
-        req.id,
-        req.title,
-        req.category_id,
-        req.is_practicable,
-        req.is_dynamic,
-        req.page,
-        req.size,
-    )
-    .await
-    .unwrap();
-
-    for challenge in challenges.iter_mut() {
-        let is_detailed = req.is_detailed.unwrap_or(false);
-        if !is_detailed {
-            challenge.flags.clear();
-        }
-    }
-
-    return Ok((challenges, total));
-}
 
 pub async fn status(
     req: crate::model::challenge::request::StatusRequest,
@@ -124,29 +97,4 @@ pub async fn status(
     }
 
     return Ok(result);
-}
-
-pub async fn create(
-    req: crate::model::challenge::request::CreateRequest,
-) -> Result<crate::model::challenge::Model, Box<dyn Error>> {
-    match crate::model::challenge::create(req.into()).await {
-        Ok(challenge) => return Ok(challenge.try_into_model().unwrap()),
-        Err(err) => return Err(Box::new(err)),
-    }
-}
-
-pub async fn update(
-    req: crate::model::challenge::request::UpdateRequest,
-) -> Result<(), Box<dyn Error>> {
-    match crate::model::challenge::update(req.into()).await {
-        Ok(_) => return Ok(()),
-        Err(err) => return Err(Box::new(err)),
-    }
-}
-
-pub async fn delete(id: i64) -> Result<(), Box<dyn Error>> {
-    match crate::model::challenge::delete(id).await {
-        Ok(_) => return Ok(()),
-        Err(err) => return Err(Box::new(err)),
-    }
 }

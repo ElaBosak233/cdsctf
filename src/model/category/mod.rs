@@ -50,26 +50,26 @@ pub async fn find(
     if let Some(name) = name {
         query = query.filter(crate::model::category::Column::Name.eq(name));
     }
-    let total = query.clone().count(&get_db().await).await?;
-    let categories = query.all(&get_db().await).await?;
+    let total = query.clone().count(&get_db()).await?;
+    let categories = query.all(&get_db()).await?;
     Ok((categories, total))
 }
 
 pub async fn create(
     category: crate::model::category::ActiveModel,
 ) -> Result<crate::model::category::Model, DbErr> {
-    category.insert(&get_db().await).await?.try_into_model()
+    category.insert(&get_db()).await?.try_into_model()
 }
 
 pub async fn update(
     category: crate::model::category::ActiveModel,
 ) -> Result<crate::model::category::Model, DbErr> {
-    category.update(&get_db().await).await?.try_into_model()
+    category.update(&get_db()).await?.try_into_model()
 }
 
 pub async fn delete(id: i64) -> Result<(), DbErr> {
     let result = crate::model::category::Entity::delete_by_id(id)
-        .exec(&get_db().await)
+        .exec(&get_db())
         .await?;
     Ok(if result.rows_affected == 0 {
         return Err(DbErr::RecordNotFound(format!(

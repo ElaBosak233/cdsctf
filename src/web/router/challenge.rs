@@ -12,7 +12,7 @@ pub fn router() -> Router {
     return Router::new()
         .route(
             "/",
-            get(controller::challenge::find).layer(from_fn(auth::jwt(Group::User))),
+            get(controller::challenge::get).layer(from_fn(auth::jwt(Group::User))),
         )
         .route(
             "/",
@@ -20,7 +20,7 @@ pub fn router() -> Router {
         )
         .route(
             "/status",
-            post(controller::challenge::status).layer(from_fn(auth::jwt(Group::User))),
+            post(controller::challenge::get_status).layer(from_fn(auth::jwt(Group::User))),
         )
         .route(
             "/:id",
@@ -32,11 +32,11 @@ pub fn router() -> Router {
         )
         .route(
             "/:id/attachment",
-            get(controller::challenge::find_attachment),
+            get(controller::challenge::get_attachment),
         )
         .route(
             "/:id/attachment/metadata",
-            get(controller::challenge::find_attachment_metadata),
+            get(controller::challenge::get_attachment_metadata),
         )
         .route(
             "/:id/attachment",

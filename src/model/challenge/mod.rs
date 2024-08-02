@@ -145,7 +145,7 @@ pub async fn find(
         query = query.filter(crate::model::challenge::Column::IsDynamic.eq(is_dynamic));
     }
 
-    let total = query.clone().count(&get_db().await).await?;
+    let total = query.clone().count(&get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
@@ -154,7 +154,7 @@ pub async fn find(
         }
     }
 
-    let challenges = query.all(&get_db().await).await?;
+    let challenges = query.all(&get_db()).await?;
 
     return Ok((challenges, total));
 }
@@ -162,7 +162,7 @@ pub async fn find(
 pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<crate::model::challenge::Model>, DbErr> {
     let challenges = crate::model::challenge::Entity::find()
         .filter(crate::model::challenge::Column::Id.is_in(ids))
-        .all(&get_db().await)
+        .all(&get_db())
         .await?;
 
     return Ok(challenges);
@@ -171,18 +171,18 @@ pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<crate::model::challenge::M
 pub async fn create(
     challenge: crate::model::challenge::ActiveModel,
 ) -> Result<crate::model::challenge::Model, DbErr> {
-    challenge.insert(&get_db().await).await?.try_into_model()
+    challenge.insert(&get_db()).await?.try_into_model()
 }
 
 pub async fn update(
     challenge: crate::model::challenge::ActiveModel,
 ) -> Result<crate::model::challenge::Model, DbErr> {
-    challenge.update(&get_db().await).await?.try_into_model()
+    challenge.update(&get_db()).await?.try_into_model()
 }
 
 pub async fn delete(id: i64) -> Result<(), DbErr> {
     let result = crate::model::challenge::Entity::delete_by_id(id)
-        .exec(&get_db().await)
+        .exec(&get_db())
         .await?;
     Ok(if result.rows_affected == 0 {
         return Err(DbErr::RecordNotFound(format!(

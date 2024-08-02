@@ -7,8 +7,9 @@ use axum::{
 use mime::Mime;
 use serde_json::json;
 
+use crate::util::validate;
 use crate::web::service::user as user_service;
-use crate::{traits::Ext, util::validate};
+use crate::web::traits::Ext;
 
 /// **Get** can find user's information.
 ///

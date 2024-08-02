@@ -12,7 +12,7 @@ use std::future::Future;
 use std::pin::Pin;
 
 use crate::web::service::user as user_service;
-use crate::{traits::Ext, util};
+use crate::{util, web::traits::Ext};
 
 pub fn jwt(
     group: util::jwt::Group,

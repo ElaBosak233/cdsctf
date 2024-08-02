@@ -32,7 +32,7 @@ pub async fn link(
 
     let pod = crate::model::pod::Entity::find()
         .filter(crate::model::pod::Column::Name.eq(token))
-        .one(&get_db().await)
+        .one(&get_db())
         .await
         .unwrap();
 
