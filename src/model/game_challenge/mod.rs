@@ -115,27 +115,11 @@ pub async fn find(
 pub async fn create(
     game_challenge: crate::model::game_challenge::ActiveModel,
 ) -> Result<crate::model::game_challenge::Model, DbErr> {
-    game_challenge
-        .insert(&get_db())
-        .await?
-        .try_into_model()
+    game_challenge.insert(&get_db()).await?.try_into_model()
 }
 
 pub async fn update(
     game_challenge: crate::model::game_challenge::ActiveModel,
 ) -> Result<crate::model::game_challenge::Model, DbErr> {
-    game_challenge
-        .update(&get_db())
-        .await?
-        .try_into_model()
-}
-
-pub async fn delete(game_id: i64, challenge_id: i64) -> Result<(), DbErr> {
-    let _result = crate::model::game_challenge::Entity::delete_many()
-        .filter(crate::model::game_challenge::Column::GameId.eq(game_id))
-        .filter(crate::model::game_challenge::Column::ChallengeId.eq(challenge_id))
-        .exec(&get_db())
-        .await?;
-
-    return Ok(());
+    game_challenge.update(&get_db()).await?.try_into_model()
 }

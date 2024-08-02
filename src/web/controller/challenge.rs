@@ -6,10 +6,11 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
+use sea_orm::EntityTrait;
 use serde_json::json;
 
-use crate::web::service;
 use crate::web::traits::Ext;
+use crate::{database::get_db, web::service};
 use crate::{util::validate, web::traits::Error};
 
 pub async fn get(
@@ -106,7 +107,8 @@ pub async fn update(
 }
 
 pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
-    let _ = crate::model::challenge::delete(id)
+    let _ = crate::model::challenge::Entity::delete_by_id(id)
+        .exec(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 

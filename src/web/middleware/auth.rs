@@ -1,4 +1,4 @@
-use crate::{database::get_db, model::user::request::FindRequest, web::traits::Error};
+use crate::database::get_db;
 use axum::{
     extract::Request,
     http::StatusCode,

@@ -74,13 +74,3 @@ pub async fn update(
 ) -> Result<crate::model::user_team::Model, DbErr> {
     user_team.update(&get_db()).await?.try_into_model()
 }
-
-pub async fn delete(user_id: i64, team_id: i64) -> Result<(), DbErr> {
-    let _result: sea_orm::DeleteResult = crate::model::user_team::Entity::delete_many()
-        .filter(crate::model::user_team::Column::UserId.eq(user_id))
-        .filter(crate::model::user_team::Column::TeamId.eq(team_id))
-        .exec(&get_db())
-        .await?;
-
-    return Ok(());
-}
