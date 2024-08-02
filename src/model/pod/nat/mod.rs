@@ -13,6 +13,7 @@ impl Nat {
     pub fn simplify(&mut self) {
         if self.proxy {
             self.dst = None;
+            self.entry = None;
         }
     }
 }

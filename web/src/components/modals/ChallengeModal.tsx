@@ -352,95 +352,106 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                         {challenge?.is_dynamic && (
                             <Stack mt={50}>
                                 <Stack gap={5}>
-                                    {pod?.nats?.map((nat) => (
-                                        <TextInput
-                                            value={
-                                                nat?.proxy
-                                                    ? `ws://${window.location.host}/api/proxies/${pod.name}?port=${nat.src}`
-                                                    : nat.entry
-                                            }
-                                            readOnly
-                                            sx={{
-                                                input: {
-                                                    "&:focus": {
-                                                        borderColor:
-                                                            category?.color,
+                                    {pod?.nats?.map((nat) => {
+                                        const url = nat?.proxy
+                                            ? `ws://${window.location.host}/api/proxies/${pod.name}?port=${nat.src}`
+                                            : nat.entry;
+                                        return (
+                                            <TextInput
+                                                value={url}
+                                                readOnly
+                                                sx={{
+                                                    input: {
+                                                        "&:focus": {
+                                                            borderColor:
+                                                                category?.color,
+                                                        },
                                                     },
-                                                },
-                                            }}
-                                            leftSectionWidth={135}
-                                            leftSection={
-                                                <Flex
-                                                    w={"100%"}
-                                                    px={10}
-                                                    gap={10}
-                                                >
-                                                    <MDIcon c={"gray"}>
-                                                        lan
-                                                    </MDIcon>
+                                                }}
+                                                leftSectionWidth={135}
+                                                leftSection={
                                                     <Flex
-                                                        align={"center"}
-                                                        justify={
-                                                            "space-between"
-                                                        }
-                                                        sx={{
-                                                            flexGrow: 1,
-                                                        }}
+                                                        w={"100%"}
+                                                        px={10}
+                                                        gap={10}
                                                     >
-                                                        <Text>{nat.src}</Text>
                                                         <MDIcon c={"gray"}>
-                                                            arrow_right_alt
+                                                            lan
                                                         </MDIcon>
-                                                    </Flex>
-                                                </Flex>
-                                            }
-                                            rightSectionWidth={100}
-                                            rightSection={
-                                                <Flex>
-                                                    <Divider
-                                                        mx={10}
-                                                        orientation={"vertical"}
-                                                    />
-                                                    <Tooltip
-                                                        withArrow
-                                                        label={
-                                                            clipboard.copied
-                                                                ? "已复制"
-                                                                : "复制到剪贴板"
-                                                        }
-                                                    >
-                                                        <ActionIcon
-                                                            onClick={() =>
-                                                                clipboard.copy(
-                                                                    nat?.entry
-                                                                )
+                                                        <Flex
+                                                            align={"center"}
+                                                            justify={
+                                                                "space-between"
                                                             }
-                                                        >
-                                                            <MDIcon c={"gray"}>
-                                                                content_copy
-                                                            </MDIcon>
-                                                        </ActionIcon>
-                                                    </Tooltip>
-                                                    <Tooltip
-                                                        withArrow
-                                                        label={"在浏览器中打开"}
-                                                    >
-                                                        <ActionIcon
-                                                            onClick={() => {
-                                                                window.open(
-                                                                    `http://${nat?.entry}`
-                                                                );
+                                                            sx={{
+                                                                flexGrow: 1,
                                                             }}
                                                         >
+                                                            <Text>
+                                                                {nat.src}
+                                                            </Text>
                                                             <MDIcon c={"gray"}>
-                                                                open_in_new
+                                                                arrow_right_alt
                                                             </MDIcon>
-                                                        </ActionIcon>
-                                                    </Tooltip>
-                                                </Flex>
-                                            }
-                                        />
-                                    ))}
+                                                        </Flex>
+                                                    </Flex>
+                                                }
+                                                rightSectionWidth={100}
+                                                rightSection={
+                                                    <Flex>
+                                                        <Divider
+                                                            mx={10}
+                                                            orientation={
+                                                                "vertical"
+                                                            }
+                                                        />
+                                                        <Tooltip
+                                                            withArrow
+                                                            label={
+                                                                clipboard.copied
+                                                                    ? "已复制"
+                                                                    : "复制到剪贴板"
+                                                            }
+                                                        >
+                                                            <ActionIcon
+                                                                onClick={() =>
+                                                                    clipboard.copy(
+                                                                        url
+                                                                    )
+                                                                }
+                                                            >
+                                                                <MDIcon
+                                                                    c={"gray"}
+                                                                >
+                                                                    content_copy
+                                                                </MDIcon>
+                                                            </ActionIcon>
+                                                        </Tooltip>
+                                                        <Tooltip
+                                                            withArrow
+                                                            label={
+                                                                "在浏览器中打开"
+                                                            }
+                                                        >
+                                                            <ActionIcon
+                                                                onClick={() => {
+                                                                    window.open(
+                                                                        `http://${nat?.entry}`
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <MDIcon
+                                                                    c={"gray"}
+                                                                >
+                                                                    open_in_new
+                                                                </MDIcon>
+                                                            </ActionIcon>
+                                                        </Tooltip>
+                                                    </Flex>
+                                                }
+                                            />
+                                        );
+                                    })}
                                 </Stack>
                                 <Flex
                                     justify={"space-between"}
