@@ -11,7 +11,7 @@ pub fn router() -> Router {
     return Router::new()
         .route(
             "/",
-            get(controller::submission::find).layer(from_fn(auth::jwt(Group::User))),
+            get(controller::submission::get).layer(from_fn(auth::jwt(Group::User))),
         )
         .route(
             "/",

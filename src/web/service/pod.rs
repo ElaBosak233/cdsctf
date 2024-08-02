@@ -6,31 +6,6 @@ use uuid::Uuid;
 
 use crate::model::challenge::flag;
 
-pub async fn find(
-    req: crate::model::pod::request::FindRequest,
-) -> Result<(Vec<crate::model::pod::Model>, u64), ()> {
-    let (mut pods, total) = crate::model::pod::find(
-        req.id,
-        req.name,
-        req.user_id,
-        req.team_id,
-        req.game_id,
-        req.challenge_id,
-        req.is_available,
-    )
-    .await
-    .unwrap();
-
-    if let Some(is_detailed) = req.is_detailed {
-        if !is_detailed {
-            for pod in pods.iter_mut() {
-                pod.flag = None;
-            }
-        }
-    }
-    return Ok((pods, total));
-}
-
 pub async fn create(
     req: crate::model::pod::request::CreateRequest,
 ) -> Result<crate::model::pod::Model, Box<dyn Error>> {

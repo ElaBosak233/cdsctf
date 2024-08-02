@@ -1,4 +1,4 @@
-use crate::model::user::request::FindRequest;
+use crate::{database::get_db, model::user::request::FindRequest, web::traits::Error};
 use axum::{
     extract::Request,
     http::StatusCode,
@@ -7,11 +7,11 @@ use axum::{
     Json,
 };
 use jsonwebtoken::{decode, DecodingKey, Validation};
+use sea_orm::EntityTrait;
 use serde_json::json;
 use std::future::Future;
 use std::pin::Pin;
 
-use crate::web::service::user as user_service;
 use crate::{util, web::traits::Ext};
 
 pub fn jwt(
@@ -38,14 +38,24 @@ pub fn jwt(
 
                 match decode::<util::jwt::Claims>(token, &decoding_key, &validation) {
                     Ok(token_data) => {
-                        let (users, total) = user_service::find(FindRequest {
-                            id: Some(token_data.claims.id),
-                            ..Default::default()
-                        })
-                        .await
-                        .unwrap();
+                        let result = crate::model::user::Entity::find_by_id(token_data.claims.id)
+                            .one(&get_db())
+                            .await;
 
-                        if total == 0 {
+                        if let Err(_err) = result {
+                            return Ok((
+                                StatusCode::INTERNAL_SERVER_ERROR,
+                                Json(json!({
+                                    "code": StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+                                    "msg": "internal_server_error"
+                                })),
+                            )
+                                .into_response());
+                        }
+
+                        let user = result.unwrap();
+
+                        if user.is_none() {
                             return Ok((
                                 StatusCode::UNAUTHORIZED,
                                 Json(json!({
@@ -56,7 +66,8 @@ pub fn jwt(
                                 .into_response());
                         }
 
-                        let user = users.get(0).unwrap();
+                        let user = user.unwrap();
+
                         req.extensions_mut().insert(Ext {
                             operator: Some(user.clone()),
                         });

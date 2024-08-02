@@ -1,6 +1,5 @@
 use crate::web::traits::Error;
 use crate::web::traits::Ext;
-use anyhow::anyhow;
 use axum::body::Body;
 use axum::{
     extract::{Multipart, Path, Query},
@@ -16,23 +15,18 @@ pub async fn get(
 ) -> Result<impl IntoResponse, Error> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && !params.is_enabled.unwrap_or(true) {
-        return Err(Error::Forbidden(String::from("")));
+        return Err(Error::Forbidden(String::new()));
     }
 
-    let result = crate::model::game::find(
+    let (challenges, total) = crate::model::game::find(
         params.id,
         params.title,
         params.is_enabled,
         params.page,
         params.size,
     )
-    .await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let (challenges, total) = result.unwrap();
+    .await
+    .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -47,13 +41,9 @@ pub async fn get(
 pub async fn create(
     Json(body): Json<crate::model::game::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::game::create(body.into()).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let challenge = result.unwrap();
+    let challenge = crate::model::game::create(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -69,13 +59,9 @@ pub async fn update(
 ) -> Result<impl IntoResponse, Error> {
     body.id = Some(id);
 
-    let result = crate::model::game::update(body.into()).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let challenge = result.unwrap();
+    let challenge = crate::model::game::update(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -87,11 +73,9 @@ pub async fn update(
 }
 
 pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::game::delete(id).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
+    let _ = crate::model::game::delete(id)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -104,21 +88,16 @@ pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
 pub async fn get_challenge(
     Query(params): Query<crate::model::game_challenge::request::FindRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let result =
+    let (challenges, _) =
         crate::model::game_challenge::find(params.game_id, params.challenge_id, params.is_enabled)
-            .await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let challenge = result.unwrap();
+            .await
+            .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
         Json(json!({
             "code": StatusCode::OK.as_u16(),
-            "data": json!(challenge),
+            "data": json!(challenges),
         })),
     ));
 }
@@ -126,13 +105,9 @@ pub async fn get_challenge(
 pub async fn create_challenge(
     Json(body): Json<crate::model::game_challenge::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::game_challenge::create(body.into()).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let game_challenge = result.unwrap();
+    let game_challenge = crate::model::game_challenge::create(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -150,13 +125,9 @@ pub async fn update_challenge(
     body.game_id = Some(id);
     body.challenge_id = Some(challenge_id);
 
-    let result = crate::model::game_challenge::update(body.into()).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let game_challenge = result.unwrap();
+    let game_challenge = crate::model::game_challenge::update(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -170,11 +141,9 @@ pub async fn update_challenge(
 pub async fn delete_challenge(
     Path((id, challenge_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::game_challenge::delete(id, challenge_id).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
+    let _ = crate::model::game_challenge::delete(id, challenge_id)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -187,13 +156,9 @@ pub async fn delete_challenge(
 pub async fn get_team(
     Query(params): Query<crate::model::game_team::request::FindRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::game_team::find(params.game_id, params.team_id).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let (game_teams, total) = result.unwrap();
+    let (game_teams, total) = crate::model::game_team::find(params.game_id, params.team_id)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -208,13 +173,9 @@ pub async fn get_team(
 pub async fn create_team(
     Json(body): Json<crate::model::game_team::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::game_team::create(body.into()).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let game_team = result.unwrap();
+    let game_team = crate::model::game_team::create(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -232,13 +193,9 @@ pub async fn update_team(
     body.game_id = Some(id);
     body.team_id = Some(team_id);
 
-    let result = crate::model::game_team::update(body.into()).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let game_team = result.unwrap();
+    let game_team = crate::model::game_team::update(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -252,11 +209,9 @@ pub async fn update_team(
 pub async fn delete_team(
     Path((id, team_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::game_team::delete(id, team_id).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
+    let _ = crate::model::game_team::delete(id, team_id)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -289,7 +244,7 @@ pub async fn find_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, Error
             let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
             return Ok(Response::builder().body(Body::from(buffer)).unwrap());
         }
-        None => return Err(Error::NotFound(String::from(""))),
+        None => return Err(Error::NotFound(String::new())),
     }
 }
 
@@ -318,11 +273,9 @@ pub async fn save_poster(
 
     crate::media::delete(path.clone()).await.unwrap();
 
-    let result = crate::media::save(path, filename, data).await;
-
-    if let Err(err) = result {
-        return Err(Error::OtherError(anyhow!("{}", err)));
-    }
+    let _ = crate::media::save(path, filename, data)
+        .await
+        .map_err(|_| Error::InternalServerError(String::new()))?;
 
     return Ok((
         StatusCode::OK,
@@ -335,11 +288,9 @@ pub async fn save_poster(
 pub async fn delete_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     let path = format!("games/{}/poster", id);
 
-    let result = crate::media::delete(path).await;
-
-    if let Err(err) = result {
-        return Err(Error::OtherError(anyhow!("{}", err)));
-    }
+    let _ = crate::media::delete(path)
+        .await
+        .map_err(|_| Error::InternalServerError(String::new()))?;
 
     return Ok((
         StatusCode::OK,
