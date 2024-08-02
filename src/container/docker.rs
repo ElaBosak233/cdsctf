@@ -1,5 +1,5 @@
 use super::traits::Container;
-use crate::{database::get_db, model::pod};
+use crate::{config, database::get_db, model::pod};
 use async_trait::async_trait;
 use bollard::{
     container::{Config, CreateContainerOptions, StartContainerOptions},
@@ -79,10 +79,11 @@ impl Container for Docker {
     ) -> Result<Vec<crate::model::pod::Nat>, Box<dyn Error>> {
         let port_bindings: HashMap<String, Option<Vec<PortBinding>>> = challenge
             .ports
+            .0
             .into_iter()
             .map(|port| {
                 (
-                    format!("{}/{}", port.value, port.protocol.as_str()),
+                    format!("{}/{}", port, "tcp"),
                     Some(vec![PortBinding {
                         host_ip: Some("0.0.0.0".to_string()),
                         host_port: None,
@@ -136,11 +137,16 @@ impl Container for Docker {
         for (port, bindings) in port_mappings {
             if let Some(binding) = bindings {
                 for port_binding in binding {
-                    if let Some((src, protocol)) = port.split_once("/") {
+                    if let Some((src, _)) = port.split_once("/") {
                         nats.push(crate::model::pod::Nat {
                             src: src.to_string(),
-                            dst: port_binding.host_port.unwrap(),
-                            protocol: protocol.to_string(),
+                            dst: port_binding.host_port.clone(),
+                            proxy: config::get_config().container.proxy.enabled,
+                            entry: Some(format!(
+                                "{}:{}",
+                                config::get_config().container.entry,
+                                port_binding.host_port.unwrap_or("0".to_string())
+                            )),
                             ..Default::default()
                         });
                     }

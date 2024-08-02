@@ -6,6 +6,7 @@ import { Nat } from "./nat";
 
 export interface Pod {
     id: number;
+    name: string;
     game_id: number;
     game: Game;
     user_id: number;

@@ -1,6 +1,5 @@
 import { Flag } from "./flag";
 import { Hint } from "./hint";
-import { Port } from "./port";
 import { Env } from "./env";
 import { Submission } from "./submission";
 
@@ -16,7 +15,7 @@ export interface Challenge {
     image_name?: string;
     memory_limit?: number;
     cpu_limit?: number;
-    ports?: Array<Port>;
+    ports?: Array<number>;
     envs?: Array<Env>;
     flags?: Array<Flag>;
     hints?: Array<Hint>;
@@ -53,7 +52,7 @@ export interface ChallengeUpdateRequest {
     image_name?: string;
     memory_limit?: number;
     cpu_limit?: number;
-    ports?: Array<Port>;
+    ports?: Array<number>;
     envs?: Array<Env>;
     flags?: Array<Flag>;
 }
@@ -70,7 +69,7 @@ export interface ChallengeCreateRequest {
     image_name?: string;
     memory_limit?: number;
     cpu_limit?: number;
-    ports?: Array<Port>;
+    ports?: Array<number>;
     envs?: Array<Env>;
 }
 

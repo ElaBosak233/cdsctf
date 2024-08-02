@@ -354,7 +354,11 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                                 <Stack gap={5}>
                                     {pod?.nats?.map((nat) => (
                                         <TextInput
-                                            value={nat?.entry}
+                                            value={
+                                                nat?.proxy
+                                                    ? `ws://${window.location.host}/api/proxies/${pod.name}?port=${nat.src}`
+                                                    : nat.entry
+                                            }
                                             readOnly
                                             sx={{
                                                 input: {

@@ -3,7 +3,6 @@ import withChallengeEdit from "@/components/layouts/admin/withChallengeEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { Challenge } from "@/types/challenge";
 import { Env } from "@/types/env";
-import { Port } from "@/types/port";
 import { showSuccessNotification } from "@/utils/notification";
 import {
     ActionIcon,
@@ -31,7 +30,7 @@ function Page() {
     const [challenge, setChallenge] = useState<Challenge>();
 
     const [envs, setEnvs] = useState<Array<Env>>([]);
-    const [ports, setPorts] = useState<Array<Port>>([]);
+    const [ports, setPorts] = useState<Array<number>>([]);
 
     const form = useForm({
         initialValues: {
@@ -134,12 +133,7 @@ function Page() {
                             </Group>
                             <Tooltip label="添加端口映射" withArrow>
                                 <ActionIcon
-                                    onClick={() =>
-                                        setPorts([
-                                            ...ports,
-                                            { value: 0, protocol: "TCP" },
-                                        ])
-                                    }
+                                    onClick={() => setPorts([...ports, 0])}
                                 >
                                     <MDIcon>add</MDIcon>
                                 </ActionIcon>
@@ -157,35 +151,11 @@ function Page() {
                                 <Flex gap={15}>
                                     <NumberInput
                                         label="端口"
-                                        value={port.value}
+                                        value={port}
                                         onChange={(e) =>
                                             setPorts(
                                                 ports.map((p, i) =>
-                                                    i === index
-                                                        ? {
-                                                              value: Number(e),
-                                                              protocol:
-                                                                  p.protocol,
-                                                          }
-                                                        : p
-                                                )
-                                            )
-                                        }
-                                    />
-                                    <Select
-                                        label="协议"
-                                        data={["TCP", "UDP"]}
-                                        value={port.protocol}
-                                        onChange={(e) =>
-                                            setPorts(
-                                                ports.map((p, i) =>
-                                                    i === index
-                                                        ? {
-                                                              value: p.value,
-                                                              protocol:
-                                                                  String(e),
-                                                          }
-                                                        : p
+                                                    i === index ? Number(e) : p
                                                 )
                                             )
                                         }
