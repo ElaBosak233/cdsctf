@@ -1,11 +1,10 @@
 pub mod env;
 pub mod flag;
-pub mod port;
 pub mod request;
 pub mod response;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, QuerySelect, Set, TryIntoModel};
+use sea_orm::{entity::prelude::*, FromJsonQueryResult, QuerySelect, Set, TryIntoModel};
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
@@ -13,7 +12,6 @@ use crate::database::get_db;
 use super::{category, game, game_challenge, pod, submission};
 pub use env::Env;
 pub use flag::Flag;
-pub use port::Port;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "challenges")]
@@ -37,7 +35,7 @@ pub struct Model {
     #[sea_orm(default_value = 1800)]
     pub duration: i64,
     #[sea_orm(column_type = "Json")]
-    pub ports: Vec<Port>,
+    pub ports: Ports,
     #[sea_orm(column_type = "Json")]
     pub envs: Vec<Env>,
     #[sea_orm(column_type = "Json")]
@@ -46,10 +44,13 @@ pub struct Model {
     pub updated_at: i64,
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+pub struct Ports(pub Vec<i64>);
+
 impl Model {
     pub fn simplify(&mut self) {
         self.envs.clear();
-        self.ports.clear();
+        self.ports.0.clear();
         self.flags.clear();
     }
 }

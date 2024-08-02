@@ -26,6 +26,7 @@ pub fn router() -> Router {
         )
         .nest("/configs", config::router())
         .nest("/media", media::router())
+        .nest("/proxies", proxy::router())
         .nest("/categories", category::router())
         .nest("/users", user::router())
         .nest("/teams", team::router())

@@ -1,12 +1,18 @@
+use crate::config;
+
 use super::traits::Container;
 use async_trait::async_trait;
-use k8s_openapi::api::core::v1::{Container as K8sContainer, ContainerPort, EnvVar, Pod, PodSpec};
+use k8s_openapi::api::core::v1::{
+    Container as K8sContainer, ContainerPort, EnvVar, Pod, PodSpec, Service, ServicePort,
+    ServiceSpec,
+};
 use kube::config::Kubeconfig;
-use kube::runtime::wait::{await_condition, conditions};
+use kube::runtime::wait::conditions;
 use kube::{
     api::{Api, DeleteParams, ListParams, PostParams, ResourceExt},
     Client as K8sClient, Config,
 };
+use std::collections::BTreeMap;
 use std::{error::Error, process, sync::OnceLock};
 use tokio::time::Duration;
 use tracing::{error, info};
@@ -22,7 +28,10 @@ async fn daemon() {
     tokio::spawn(async {
         let interval = Duration::from_secs(10);
         loop {
-            let pods: Api<Pod> = Api::namespaced(get_k8s_client().clone(), "default");
+            let pods: Api<Pod> = Api::namespaced(
+                get_k8s_client().clone(),
+                config::get_config().container.k8s.namespace.as_str(),
+            );
             let lp = ListParams::default().labels("expired=true");
 
             if let Ok(pod_list) = pods.list(&lp).await {
@@ -78,7 +87,10 @@ impl Container for K8s {
         injected_flag: crate::model::challenge::Flag,
     ) -> Result<Vec<crate::model::pod::Nat>, Box<dyn Error>> {
         let client = get_k8s_client().clone();
-        let pods: Api<Pod> = Api::namespaced(client, "default");
+        let pods: Api<Pod> = Api::namespaced(
+            client.clone(),
+            config::get_config().container.k8s.namespace.as_str(),
+        );
 
         let mut env_vars: Vec<EnvVar> = challenge
             .envs
@@ -98,51 +110,102 @@ impl Container for K8s {
 
         let container_ports: Vec<ContainerPort> = challenge
             .ports
+            .0
             .iter()
             .map(|port| ContainerPort {
-                container_port: port.value as i32,
-                protocol: Some(port.protocol.as_str().to_uppercase()),
+                container_port: *port as i32,
+                protocol: Some("TCP".to_string()),
                 ..Default::default()
             })
             .collect();
 
-        let container = K8sContainer {
-            name: name.clone(),
-            image: challenge.image_name.clone(),
-            env: Some(env_vars),
-            ports: Some(container_ports),
-            ..Default::default()
-        };
-
-        let pod_spec = PodSpec {
-            containers: vec![container],
-            ..Default::default()
-        };
-
         let pod = Pod {
             metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
                 name: Some(name.clone()),
+                labels: Some(BTreeMap::from([(
+                    String::from("cds/resource_id"),
+                    name.clone(),
+                )])),
                 ..Default::default()
             },
-            spec: Some(pod_spec),
+            spec: Some(PodSpec {
+                containers: vec![K8sContainer {
+                    name: name.clone(),
+                    image: challenge.image_name.clone(),
+                    env: Some(env_vars),
+                    ports: Some(container_ports),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }),
             ..Default::default()
         };
 
         pods.create(&PostParams::default(), &pod).await?;
 
-        await_condition(pods.clone(), &name, conditions::is_pod_running()).await?;
+        kube::runtime::wait::await_condition(pods.clone(), &name, conditions::is_pod_running())
+            .await?;
 
-        let pod = pods.get(&name).await?;
+        // let pod = pods.get(&name).await?;
+
+        let services: Api<Service> = Api::namespaced(
+            client.clone(),
+            config::get_config().container.k8s.namespace.as_str(),
+        );
+
+        let service = Service {
+            metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
+                name: Some(name.clone()),
+                labels: Some(BTreeMap::from([(
+                    String::from("cds/resource_id"),
+                    name.clone(),
+                )])),
+                ..Default::default()
+            },
+            spec: Some(ServiceSpec {
+                selector: Some(BTreeMap::from([(
+                    String::from("cds/resource_id"),
+                    name.clone(),
+                )])),
+                ports: Some(
+                    challenge
+                        .ports
+                        .0
+                        .iter()
+                        .map(|port| ServicePort {
+                            port: *port as i32,
+                            target_port: None,
+                            protocol: Some("TCP".to_string()),
+                            ..Default::default()
+                        })
+                        .collect(),
+                ),
+                type_: Some("NodePort".to_string()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        services.create(&PostParams::default(), &service).await?;
+
+        let service = services.get(&name).await?;
+
         let mut nats: Vec<crate::model::pod::Nat> = Vec::new();
-        if let Some(status) = pod.status {
-            if let Some(pod_ip) = status.pod_ip {
-                for port in challenge.ports {
-                    nats.push(crate::model::pod::Nat {
-                        src: port.value.to_string(),
-                        dst: pod_ip.clone(),
-                        protocol: port.protocol.as_str().to_uppercase(),
-                        ..Default::default()
-                    });
+        if let Some(spec) = service.spec {
+            if let Some(ports) = spec.ports {
+                for port in ports {
+                    if let Some(node_port) = port.node_port {
+                        nats.push(crate::model::pod::Nat {
+                            src: format!("{}", port.port),
+                            dst: Some(format!("{}", node_port)),
+                            proxy: config::get_config().container.proxy.enabled,
+                            entry: Some(format!(
+                                "{}:{}",
+                                config::get_config().container.entry,
+                                node_port
+                            )),
+                        });
+                    }
                 }
             }
         }
@@ -151,7 +214,10 @@ impl Container for K8s {
     }
 
     async fn delete(&self, name: String) {
-        let pods: Api<Pod> = Api::namespaced(get_k8s_client().clone(), "default");
+        let pods: Api<Pod> = Api::namespaced(
+            get_k8s_client().clone(),
+            config::get_config().container.k8s.namespace.as_str(),
+        );
         let _ = pods.delete(&name, &DeleteParams::default()).await;
     }
 }

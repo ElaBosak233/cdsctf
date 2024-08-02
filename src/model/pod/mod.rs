@@ -34,6 +34,14 @@ pub struct Model {
     pub challenge: Option<challenge::Model>,
 }
 
+impl Model {
+    pub fn simplify(&mut self) {
+        for nat in self.nats.iter_mut() {
+            nat.simplify();
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Challenge,

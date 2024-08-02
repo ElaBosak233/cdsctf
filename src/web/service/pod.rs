@@ -85,6 +85,7 @@ pub async fn create(
     .await?;
 
     pod.flag = None;
+    pod.simplify();
 
     return Ok(pod);
 }
