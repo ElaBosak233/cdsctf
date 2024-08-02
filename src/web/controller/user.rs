@@ -1,287 +1,206 @@
 use axum::{
+    body::Body,
     extract::{Multipart, Path, Query},
     http::{Response, StatusCode},
     response::IntoResponse,
     Extension, Json,
 };
+use bcrypt::{hash, DEFAULT_COST};
 use mime::Mime;
+use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, Set};
 use serde_json::json;
 
-use crate::util::validate;
-use crate::web::service::user as user_service;
-use crate::web::traits::Ext;
+use crate::database::get_db;
+use crate::{util::jwt, web::traits::Ext};
+use crate::{util::validate, web::traits::Error};
 
-/// **Get** can find user's information.
-///
-/// ## Arguments
-/// - `params`: user's information.
-///
-/// ## Returns
-/// - `200`: find successfully.
-/// - `400`: find failed.
 pub async fn get(
     Query(params): Query<crate::model::user::request::FindRequest>,
-) -> impl IntoResponse {
-    match user_service::find(params).await {
-        Ok((users, total)) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-                "data": json!(users),
-                "total": total,
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
+) -> Result<impl IntoResponse, Error> {
+    let (mut users, total) = crate::model::user::find(
+        params.id,
+        params.name,
+        None,
+        params.group,
+        params.email,
+        params.page,
+        params.size,
+    )
+    .await
+    .map_err(|err| Error::DatabaseError(err))?;
+
+    for user in users.iter_mut() {
+        user.simplify();
     }
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(users),
+            "total": total,
+        })),
+    ));
 }
 
-/// **Create** can create a new user.
-///
-/// ## Arguments
-/// - `body`: user's information(validated).
-///
-/// ## Returns
-/// - `200`: create successfully.
-/// - `400`: create failed.
 pub async fn create(
-    validate::Json(body): validate::Json<crate::model::user::request::CreateRequest>,
-) -> impl IntoResponse {
-    match user_service::create(body).await {
-        Ok(user) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-                "data": json!(user),
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
-    }
+    validate::Json(mut body): validate::Json<crate::model::user::request::CreateRequest>,
+) -> Result<impl IntoResponse, Error> {
+    let hashed_password = hash(body.password, DEFAULT_COST);
+    body.password = hashed_password.unwrap();
+
+    let mut user = crate::model::user::create(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    user.simplify();
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(user),
+        })),
+    ));
 }
 
-/// **Update** can update user's information.
-///
-/// ## Arguments
-/// - `id`: user's id.
-/// - `body`: user's information(validated).
-/// - `ext`: extension from middleware.
-///
-/// ## Returns
-/// - `200`: update successfully.
-/// - `400`: update failed.
-///
-/// There are some restrictions:
-/// - If operator's group is "admin", operator can update any user's information.
-/// - If operator's group is not "admin", operator can update his own information, but can not update group.
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
     validate::Json(mut body): validate::Json<crate::model::user::request::UpdateRequest>,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, Error> {
     let operator = ext.clone().operator.unwrap();
     body.id = Some(id);
-    if operator.group == "admin"
+    if !(operator.group == "admin"
         || (operator.id == body.id.unwrap_or(0)
             && (body.group.clone().is_none()
-                || operator.group == body.group.clone().unwrap_or("".to_string())))
+                || operator.group == body.group.clone().unwrap_or("".to_string()))))
     {
-        match user_service::update(body).await {
-            Ok(()) => {
-                return (
-                    StatusCode::OK,
-                    Json(json!({
-                        "code": StatusCode::OK.as_u16()
-                    })),
-                )
-            }
-            Err(e) => {
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(json!({
-                        "code": StatusCode::BAD_REQUEST.as_u16(),
-                        "msg": format!("{:?}", e),
-                    })),
-                )
-            }
-        }
-    } else {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-                "msg": format!("{:?}", "forbidden"),
-            })),
-        );
+        return Err(Error::Forbidden(String::new()));
     }
+
+    if let Some(password) = body.password {
+        let hashed_password = hash(password, DEFAULT_COST);
+        body.password = Some(hashed_password.unwrap());
+    }
+
+    let _ = crate::model::user::update(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
-/// **Delete** can be used to delete user.
-///
-/// ## Arguments
-/// - `id`: user's id.
-///
-/// ## Returns
-/// - `200`: delete successfully.
-/// - `400`: delete failed.
-pub async fn delete(Path(id): Path<i64>) -> impl IntoResponse {
-    match user_service::delete(id).await {
-        Ok(()) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16()
-                })),
-            )
-        }
-        Err(e) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(json!({
-                        "code": StatusCode::BAD_REQUEST.as_u16(),
-                        "msg": format!("{:?}", e),
-                })),
-            )
-        }
-    }
+pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+    let _ = crate::model::user::Entity::delete_by_id(id)
+        .exec(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
-/// **FindTeams** can find user's teams.
-///
-///
-/// ## Returns
-/// - `200`: find successfully.
-/// - `400`: find failed.
-pub async fn get_teams(Path(id): Path<i64>) -> impl IntoResponse {
-    match crate::web::service::team::find_by_user_id(id).await {
-        Ok(teams) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-                "data": json!(teams),
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
-    }
+pub async fn get_teams(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+    let teams = crate::model::team::find_by_user_id(id)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(teams),
+        })),
+    ));
 }
 
-/// **Login** can be used to login with username and password.
-///
-/// ## Arguments
-/// - `body`: username and password.
-///
-/// ## Returns
-/// - `200`: login successfully, with token and user information.
-/// - `400`: login failed.
 pub async fn login(
     Json(body): Json<crate::model::user::request::LoginRequest>,
-) -> impl IntoResponse {
-    match user_service::login(body).await {
-        Ok((user, token)) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                    "data": json!(user),
-                    "token": token,
-                })),
-            )
-        }
-        Err(e) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(json!({
-                    "code": StatusCode::BAD_REQUEST.as_u16(),
-                    "msg": format!("{:?}", e),
-                })),
-            )
-        }
+) -> Result<impl IntoResponse, Error> {
+    let mut user = crate::model::user::Entity::find()
+        .filter(crate::model::user::Column::Username.eq(body.username))
+        .one(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?
+        .ok_or_else(|| Error::BadRequest(String::from("invalid")))?;
+
+    let hashed_password = user.password.clone().unwrap();
+    let is_match = bcrypt::verify(&body.password, &hashed_password).unwrap();
+
+    if !is_match {
+        return Err(Error::BadRequest(String::from("invalid")));
     }
+
+    let token = jwt::generate_jwt_token(user.id.clone()).await;
+    user.simplify();
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(user),
+            "token": token,
+        })),
+    ));
 }
 
-/// **Register** can be used to register with username, nickname, email and password.
-///
-/// ## Arguments
-/// - `body`: username, nickname, email and password.
-///
-/// ## Returns
-/// - `200`: register successfully, with user information.
-/// - `400`: register failed.
-/// - `409`: username or email has been registered.
-/// - `500`: internal server error(most likely database error).
 pub async fn register(
     validate::Json(body): validate::Json<crate::model::user::request::RegisterRequest>,
-) -> impl IntoResponse {
-    match user_service::register(body).await {
-        Ok(user) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                    "data": json!(user),
-                })),
-            )
-        }
-        Err(err) => match err {
-            StatusCode::CONFLICT => {
-                return (
-                    StatusCode::CONFLICT,
-                    Json(json!({
-                        "code": StatusCode::CONFLICT.as_u16(),
-                    })),
-                )
-            }
-            StatusCode::INTERNAL_SERVER_ERROR => {
-                return (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(json!({
-                        "code": StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
-                    })),
-                )
-            }
-            _ => {
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(json!({
-                        "code": StatusCode::BAD_REQUEST.as_u16(),
-                    })),
-                )
-            }
-        },
+) -> Result<impl IntoResponse, Error> {
+    let is_conflict = crate::model::user::Entity::find()
+        .filter(crate::model::user::Column::Username.eq(body.username.clone()))
+        .count(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?
+        > 0;
+
+    if is_conflict {
+        return Err(Error::Conflict(String::new()));
     }
+
+    let hashed_password = hash(body.password.clone(), DEFAULT_COST).unwrap();
+    let mut user = crate::model::user::ActiveModel::from(body);
+    user.password = Set(Some(hashed_password));
+    user.group = Set(String::from("user"));
+
+    let user = crate::model::user::create(user)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(user),
+        })),
+    ));
 }
 
-pub async fn get_avatar(Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     let path = format!("users/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
             let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
-            return Response::builder().body(buffer.into()).unwrap();
+            return Ok(Response::builder().body(Body::from(buffer)).unwrap());
         }
-        None => return (StatusCode::NOT_FOUND).into_response(),
+        None => return Err(Error::NotFound(String::new())),
     }
 }
 
-pub async fn get_avatar_metadata(Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     let path = format!("users/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {
-            return (
+            return Ok((
                 StatusCode::OK,
                 Json(json!({
                     "code": StatusCode::OK.as_u16(),
@@ -290,30 +209,20 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> impl IntoResponse {
                         "size": size,
                     },
                 })),
-            )
+            ));
         }
         None => {
-            return (
-                StatusCode::NOT_FOUND,
-                Json(json!({
-                        "code": StatusCode::NOT_FOUND.as_u16(),
-                })),
-            )
+            return Err(Error::NotFound(String::new()));
         }
     }
 }
 
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, Error> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && operator.id != id {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-            })),
-        );
+        return Err(Error::Forbidden(String::new()));
     }
 
     let path = format!("users/{}/avatar", id);
@@ -325,24 +234,12 @@ pub async fn save_avatar(
             let content_type = field.content_type().unwrap().to_string();
             let mime: Mime = content_type.parse().unwrap();
             if mime.type_() != mime::IMAGE {
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(json!({
-                        "code": StatusCode::BAD_REQUEST.as_u16(),
-                        "msg": "forbidden_file_type",
-                    })),
-                );
+                return Err(Error::BadRequest(String::from("forbidden_file_type")));
             }
             data = match field.bytes().await {
                 Ok(bytes) => bytes.to_vec(),
                 Err(_err) => {
-                    return (
-                        StatusCode::BAD_REQUEST,
-                        Json(json!({
-                            "code": StatusCode::BAD_REQUEST.as_u16(),
-                            "msg": "size_too_large",
-                        })),
-                    );
+                    return Err(Error::BadRequest(String::from("size_too_large")));
                 }
             };
         }
@@ -350,57 +247,36 @@ pub async fn save_avatar(
 
     crate::media::delete(path.clone()).await.unwrap();
 
-    match crate::media::save(path, filename, data).await {
-        Ok(_) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                })),
-            )
-        }
-        Err(_err) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(json!({
-                    "code": StatusCode::BAD_REQUEST.as_u16(),
-                })),
-            )
-        }
-    }
+    let _ = crate::media::save(path, filename, data)
+        .await
+        .map_err(|_| Error::InternalServerError(String::new()));
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, Error> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && operator.id != id {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-            })),
-        );
+        return Err(Error::Forbidden(String::new()));
     }
 
     let path = format!("users/{}/avatar", id);
 
-    match crate::media::delete(path).await {
-        Ok(_) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                })),
-            )
-        }
-        Err(_err) => {
-            return (
-                StatusCode::NOT_FOUND,
-                Json(json!({
-                    "code": StatusCode::NOT_FOUND.as_u16(),
-                })),
-            )
-        }
-    }
+    let _ = crate::media::delete(path)
+        .await
+        .map_err(|_| Error::InternalServerError(String::new()));
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }

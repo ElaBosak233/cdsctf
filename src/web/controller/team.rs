@@ -1,5 +1,6 @@
-use crate::web::service::{team as team_service, user_team as user_team_service};
-use crate::web::traits::Ext;
+use crate::database::get_db;
+use crate::web::traits::{Error, Ext};
+use axum::body::Body;
 use axum::{
     extract::{Multipart, Path, Query},
     http::{Response, StatusCode},
@@ -7,6 +8,7 @@ use axum::{
     Extension, Json,
 };
 use mime::Mime;
+use sea_orm::{ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect, Set};
 use serde_json::json;
 
 fn can_modify_team(user: crate::model::user::Model, team_id: i64) -> bool {
@@ -17,246 +19,235 @@ fn can_modify_team(user: crate::model::user::Model, team_id: i64) -> bool {
             .any(|team| team.id == team_id && team.captain_id == user.id);
 }
 
-pub async fn find(
+pub async fn get(
     Query(params): Query<crate::model::team::request::FindRequest>,
-) -> impl IntoResponse {
-    match team_service::find(params).await {
-        Ok((teams, total)) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-                "data": json!(teams),
-                "total": total,
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
-    }
+) -> Result<impl IntoResponse, Error> {
+    let (teams, total) = crate::model::team::find(
+        params.id,
+        params.name,
+        params.email,
+        params.page,
+        params.size,
+    )
+    .await
+    .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(teams),
+            "total": total,
+        })),
+    ));
 }
 
 pub async fn create(
-    Json(body): Json<crate::model::team::request::CreateRequest>,
-) -> impl IntoResponse {
-    match team_service::create(body).await {
-        Ok(team) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-                "data": json!(team),
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
+    Extension(ext): Extension<Ext>, Json(body): Json<crate::model::team::request::CreateRequest>,
+) -> Result<impl IntoResponse, Error> {
+    let operator = ext.operator.unwrap();
+    if !(operator.group == "admin" || operator.id == body.captain_id) {
+        return Err(Error::Forbidden(String::new()));
     }
+
+    let team = crate::model::team::create(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    let _ = crate::model::user_team::create(crate::model::user_team::ActiveModel {
+        user_id: Set(operator.id),
+        team_id: Set(team.id),
+        ..Default::default()
+    })
+    .await
+    .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(team),
+        })),
+    ));
 }
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
     Json(mut body): Json<crate::model::team::request::UpdateRequest>,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, Error> {
     if !can_modify_team(ext.operator.unwrap(), id) {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-                "msg": "forbidden",
-            })),
-        );
+        return Err(Error::Forbidden(String::new()));
     }
     body.id = Some(id);
-    match team_service::update(body).await {
-        Ok(()) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
-    }
+
+    let _ = crate::model::team::update(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
-pub async fn delete(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn delete(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, Error> {
     if !can_modify_team(ext.operator.unwrap(), id) {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-                "msg": "forbidden",
-            })),
-        );
+        return Err(Error::Forbidden(String::new()));
     }
-    match team_service::delete(id).await {
-        Ok(()) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
-    }
+
+    let _ = crate::model::team::Entity::delete_by_id(id)
+        .exec(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
 pub async fn create_user(
     Json(body): Json<crate::model::user_team::request::CreateRequest>,
-) -> impl IntoResponse {
-    match user_team_service::create(body).await {
-        Ok(()) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
-    }
+) -> Result<impl IntoResponse, Error> {
+    let _ = crate::model::user_team::create(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
-pub async fn delete_user(Path((id, user_id)): Path<(i64, i64)>) -> impl IntoResponse {
-    match user_team_service::delete(user_id, id).await {
-        Ok(()) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
+pub async fn delete_user(
+    Extension(ext): Extension<Ext>, Path((id, user_id)): Path<(i64, i64)>,
+) -> Result<impl IntoResponse, Error> {
+    let operator = ext.operator.unwrap();
+    if !can_modify_team(operator.clone(), id) && operator.id != user_id {
+        return Err(Error::Forbidden(String::new()));
     }
+
+    let _ = crate::model::user_team::Entity::delete_many()
+        .filter(crate::model::user_team::Column::UserId.eq(user_id))
+        .filter(crate::model::user_team::Column::TeamId.eq(id))
+        .exec(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
 pub async fn get_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> impl IntoResponse {
-    if !can_modify_team(ext.operator.unwrap(), id) {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-                "msg": "forbidden",
-            })),
-        );
+) -> Result<impl IntoResponse, Error> {
+    let operator = ext.operator.unwrap();
+
+    if !can_modify_team(operator, id) {
+        return Err(Error::Forbidden(String::new()));
     }
-    match team_service::get_invite_token(id).await {
-        Ok(token) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                    "token": token,
-                })),
-            )
-        }
-        Err(e) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(json!({
-                    "code": StatusCode::BAD_REQUEST.as_u16(),
-                    "msg": format!("{:?}", e),
-                })),
-            )
-        }
-    }
+
+    let team = crate::model::team::Entity::find_by_id(id)
+        .select_only()
+        .column(crate::model::team::Column::InviteToken)
+        .one(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?
+        .ok_or_else(|| Error::NotFound(String::new()))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "token": team.invite_token,
+        })),
+    ));
 }
 
 pub async fn update_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> impl IntoResponse {
-    if !can_modify_team(ext.operator.unwrap(), id) {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-                "msg": "forbidden",
-            })),
-        );
+) -> Result<impl IntoResponse, Error> {
+    let operator = ext.operator.unwrap();
+    if !can_modify_team(operator, id) {
+        return Err(Error::Forbidden(String::new()));
     }
-    match team_service::update_invite_token(id).await {
-        Ok(token) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                    "token": token,
-                })),
-            )
-        }
-        Err(e) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(json!({
-                    "code": StatusCode::BAD_REQUEST.as_u16(),
-                    "msg": format!("{:?}", e),
-                })),
-            )
-        }
-    }
+
+    let mut team = crate::model::team::Entity::find_by_id(id)
+        .one(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?
+        .ok_or_else(|| Error::NotFound(String::new()))?
+        .into_active_model();
+
+    let token = uuid::Uuid::new_v4().simple().to_string();
+    team.invite_token = Set(Some(token.clone()));
+
+    let _ = crate::model::team::update(team)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "token": token,
+        })),
+    ));
 }
 
 pub async fn join(
     Json(body): Json<crate::model::user_team::request::JoinRequest>,
-) -> impl IntoResponse {
-    match user_team_service::join(body).await {
-        Ok(()) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                })),
-            )
-        }
-        Err(e) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(json!({
-                    "code": StatusCode::BAD_REQUEST.as_u16(),
-                    "msg": format!("{:?}", e),
-                })),
-            )
-        }
+) -> Result<impl IntoResponse, Error> {
+    let _ = crate::model::user::Entity::find_by_id(body.user_id)
+        .one(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?
+        .ok_or_else(|| Error::NotFound(String::from("invalid_user_or_team")))?;
+
+    let team = crate::model::team::Entity::find_by_id(body.team_id)
+        .one(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?
+        .ok_or_else(|| Error::NotFound(String::from("invalid_user_or_team")))?;
+
+    if Some(body.invite_token.clone()) != team.invite_token {
+        return Err(Error::BadRequest(String::from("invalid_invite_token")));
     }
+
+    let user_team = crate::model::user_team::create(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": user_team,
+        })),
+    ));
 }
 
 pub async fn leave() -> impl IntoResponse {
     todo!()
 }
 
-pub async fn find_avatar_metadata(Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     let path = format!("teams/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {
-            return (
+            return Ok((
                 StatusCode::OK,
                 Json(json!({
                     "code": StatusCode::OK.as_u16(),
@@ -265,41 +256,29 @@ pub async fn find_avatar_metadata(Path(id): Path<i64>) -> impl IntoResponse {
                         "size": size,
                     },
                 })),
-            )
+            ));
         }
-        None => {
-            return (
-                StatusCode::NOT_FOUND,
-                Json(json!({
-                        "code": StatusCode::NOT_FOUND.as_u16(),
-                })),
-            )
-        }
+        None => return Err(Error::NotFound(String::new())),
     }
 }
 
-pub async fn find_avatar(Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     let path = format!("teams/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
             let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
-            return Response::builder().body(buffer.into()).unwrap();
+            return Ok(Response::builder().body(Body::from(buffer)).unwrap());
         }
-        None => return (StatusCode::NOT_FOUND).into_response(),
+        None => return Err(Error::NotFound(String::new())),
     }
 }
 
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
-) -> impl IntoResponse {
-    if !can_modify_team(ext.operator.unwrap(), id) {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-                "msg": "forbidden",
-            })),
-        );
+) -> Result<impl IntoResponse, Error> {
+    let operator = ext.operator.unwrap();
+    if !can_modify_team(operator, id) {
+        return Err(Error::Forbidden(String::new()));
     }
 
     let path = format!("teams/{}/avatar", id);
@@ -311,24 +290,12 @@ pub async fn save_avatar(
             let content_type = field.content_type().unwrap().to_string();
             let mime: Mime = content_type.parse().unwrap();
             if mime.type_() != mime::IMAGE {
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(json!({
-                        "code": StatusCode::BAD_REQUEST.as_u16(),
-                        "msg": "forbidden_file_type",
-                    })),
-                );
+                return Err(Error::BadRequest(String::from("forbidden_file_type")));
             }
             data = match field.bytes().await {
                 Ok(bytes) => bytes.to_vec(),
                 Err(_err) => {
-                    return (
-                        StatusCode::BAD_REQUEST,
-                        Json(json!({
-                            "code": StatusCode::BAD_REQUEST.as_u16(),
-                            "msg": "size_too_large",
-                        })),
-                    );
+                    return Err(Error::BadRequest(String::from("size_too_large")));
                 }
             };
         }
@@ -336,57 +303,36 @@ pub async fn save_avatar(
 
     crate::media::delete(path.clone()).await.unwrap();
 
-    match crate::media::save(path, filename, data).await {
-        Ok(_) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                })),
-            )
-        }
-        Err(_err) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(json!({
-                    "code": StatusCode::BAD_REQUEST.as_u16(),
-                })),
-            )
-        }
-    }
+    let _ = crate::media::save(path, filename, data)
+        .await
+        .map_err(|_| Error::InternalServerError(String::new()))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> impl IntoResponse {
-    if !can_modify_team(ext.operator.unwrap(), id) {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-                "msg": "forbidden",
-            })),
-        );
+    let operator = ext.operator.unwrap();
+    if !can_modify_team(operator, id) {
+        return Err(Error::Forbidden(String::new()));
     }
 
     let path = format!("teams/{}/avatar", id);
 
-    match crate::media::delete(path).await {
-        Ok(_) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                })),
-            )
-        }
-        Err(_err) => {
-            return (
-                StatusCode::NOT_FOUND,
-                Json(json!({
-                    "code": StatusCode::NOT_FOUND.as_u16(),
-                })),
-            )
-        }
-    }
+    let _ = crate::media::delete(path)
+        .await
+        .map_err(|_| Error::InternalServerError(String::new()))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }

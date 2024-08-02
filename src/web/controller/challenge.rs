@@ -18,10 +18,10 @@ pub async fn get(
 ) -> Result<impl IntoResponse, Error> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && params.is_detailed.unwrap_or(false) {
-        return Err(Error::Forbidden(String::from("")));
+        return Err(Error::Forbidden(String::new()));
     }
 
-    let result = crate::model::challenge::find(
+    let (mut challenges, total) = crate::model::challenge::find(
         params.id,
         params.title,
         params.category_id,
@@ -30,13 +30,8 @@ pub async fn get(
         params.page,
         params.size,
     )
-    .await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let (mut challenges, total) = result.unwrap();
+    .await
+    .map_err(|err| Error::DatabaseError(err))?;
 
     for challenge in challenges.iter_mut() {
         let is_detailed = params.is_detailed.unwrap_or(false);
@@ -61,10 +56,7 @@ pub async fn get_status(
     let result = service::challenge::status(body).await;
 
     if let Err(err) = result {
-        return Err(Error::OtherError(anyhow!(
-            "something went wrong: {:?}",
-            err
-        )));
+        return Err(Error::OtherError(anyhow!("{:?}", err)));
     }
 
     let status = result.unwrap();
@@ -81,13 +73,9 @@ pub async fn get_status(
 pub async fn create(
     Json(body): Json<crate::model::challenge::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::challenge::create(body.into()).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let challenge = result.unwrap();
+    let challenge = crate::model::challenge::create(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -104,13 +92,9 @@ pub async fn update(
 ) -> Result<impl IntoResponse, Error> {
     body.id = Some(id);
 
-    let result = crate::model::challenge::update(body.into()).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let challenge = result.unwrap();
+    let challenge = crate::model::challenge::update(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -122,11 +106,9 @@ pub async fn update(
 }
 
 pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::challenge::delete(id).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
+    let _ = crate::model::challenge::delete(id)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -150,7 +132,7 @@ pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, Er
                 .body(Body::from(buffer))
                 .unwrap());
         }
-        None => return Err(Error::NotFound(String::from(""))),
+        None => return Err(Error::NotFound(String::new())),
     }
 }
 
@@ -169,7 +151,7 @@ pub async fn get_attachment_metadata(Path(id): Path<i64>) -> Result<impl IntoRes
                 })),
             ));
         }
-        None => return Err(Error::NotFound(String::from(""))),
+        None => return Err(Error::NotFound(String::new())),
     }
 }
 
@@ -193,11 +175,9 @@ pub async fn save_attachment(
 
     crate::media::delete(path.clone()).await.unwrap();
 
-    let result = crate::media::save(path, filename, data).await;
-
-    if let Err(err) = result {
-        return Err(Error::InternalServerError(err.to_string()));
-    }
+    let _ = crate::media::save(path, filename, data)
+        .await
+        .map_err(|_| Error::InternalServerError(String::new()))?;
 
     return Ok((
         StatusCode::OK,
@@ -210,11 +190,9 @@ pub async fn save_attachment(
 pub async fn delete_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     let path = format!("challenges/{}/attachment", id);
 
-    let result = crate::media::delete(path).await;
-
-    if let Err(err) = result {
-        return Err(Error::InternalServerError(err.to_string()));
-    }
+    let _ = crate::media::delete(path)
+        .await
+        .map_err(|_| Error::InternalServerError(String::new()))?;
 
     return Ok((
         StatusCode::OK,

@@ -195,10 +195,3 @@ pub async fn create(
 
     return Ok(submission);
 }
-
-pub async fn delete(id: i64) -> Result<(), Box<dyn Error>> {
-    match crate::model::submission::delete(id).await {
-        Ok(_) => return Ok(()),
-        Err(err) => return Err(Box::new(err)),
-    }
-}

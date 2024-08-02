@@ -11,7 +11,7 @@ pub fn router() -> Router {
     return Router::new()
         .route(
             "/",
-            get(controller::pod::find).layer(from_fn(auth::jwt(Group::User))),
+            get(controller::pod::get).layer(from_fn(auth::jwt(Group::User))),
         )
         .route(
             "/",

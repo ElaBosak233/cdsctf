@@ -11,13 +11,10 @@ use crate::util::validate;
 use crate::web::traits::Error;
 
 pub async fn get(Query(params): Query<FindRequest>) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::category::find(params.id, params.name).await;
+    let (categories, total) = crate::model::category::find(params.id, params.name)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let (categories, total) = result.unwrap();
     return Ok((
         StatusCode::OK,
         Json(json!({
@@ -31,13 +28,10 @@ pub async fn get(Query(params): Query<FindRequest>) -> Result<impl IntoResponse,
 pub async fn create(
     validate::Json(body): validate::Json<CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::category::create(body.into()).await;
+    let category = crate::model::category::create(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let category = result.unwrap();
     return Ok((
         StatusCode::OK,
         Json(json!({
@@ -51,13 +45,10 @@ pub async fn update(
     Path(id): Path<i64>, validate::Json(mut body): validate::Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, Error> {
     body.id = Some(id);
-    let result = crate::model::category::create(body.into()).await;
+    let category = crate::model::category::create(body.into())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
-
-    let category = result.unwrap();
     return Ok((
         StatusCode::OK,
         Json(json!({
@@ -68,11 +59,9 @@ pub async fn update(
 }
 
 pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
-    let result = crate::model::category::delete(id).await;
-
-    if let Err(err) = result {
-        return Err(Error::DatabaseError(err));
-    }
+    let _ = crate::model::category::delete(id)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,

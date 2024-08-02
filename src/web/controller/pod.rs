@@ -1,163 +1,139 @@
+use anyhow::anyhow;
 use axum::{
     extract::{Path, Query},
     http::StatusCode,
     response::IntoResponse,
     Extension, Json,
 };
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde_json::json;
 
-use crate::web::service;
-use crate::web::traits::Ext;
+use crate::web::{service, traits::Error};
+use crate::{database::get_db, web::traits::Ext};
 
-pub async fn find(
+pub async fn get(
     Query(params): Query<crate::model::pod::request::FindRequest>,
-) -> impl IntoResponse {
-    match service::pod::find(params).await {
-        Ok((pods, total)) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-                "data": json!(pods),
-                "total": total,
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
+) -> Result<impl IntoResponse, Error> {
+    let (mut pods, total) = crate::model::pod::find(
+        params.id,
+        params.name,
+        params.user_id,
+        params.team_id,
+        params.game_id,
+        params.challenge_id,
+        params.is_available,
+    )
+    .await
+    .map_err(|err| Error::DatabaseError(err))?;
+
+    if let Some(is_detailed) = params.is_detailed {
+        if !is_detailed {
+            for pod in pods.iter_mut() {
+                pod.flag = None;
+            }
+        }
     }
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(pods),
+            "total": total,
+        })),
+    ));
 }
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<crate::model::pod::request::CreateRequest>,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, Error> {
     let operator = ext.operator.clone().unwrap();
     body.user_id = Some(operator.id);
 
-    match service::pod::create(body).await {
-        Ok(pod) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-                "data": json!(pod),
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
+    let result = service::pod::create(body).await;
+
+    if let Err(err) = result {
+        return Err(Error::OtherError(anyhow!("{:?}", err)));
     }
+
+    let pod = result.unwrap();
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(pod),
+        })),
+    ));
 }
 
-pub async fn update(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn update(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, Error> {
     let operator = ext.operator.clone().unwrap();
-    let (pods, total) = service::pod::find(crate::model::pod::request::FindRequest {
-        id: Some(operator.id),
-        ..Default::default()
-    })
-    .await
-    .unwrap();
 
-    let pod = pods
-        .get(0)
-        .ok_or_else(|| {
-            (
-                StatusCode::NOT_FOUND,
-                Json(json!({
-                    "code": StatusCode::NOT_FOUND.as_u16(),
-                })),
-            )
-        })
-        .unwrap();
+    let pod = crate::model::pod::Entity::find()
+        .filter(crate::model::pod::Column::Id.eq(id))
+        .one(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?
+        .ok_or_else(|| Error::NotFound(String::new()))?;
 
-    if operator.group == "admin"
+    if !(operator.group == "admin"
         || operator.id == pod.user_id
         || operator
             .teams
             .iter()
-            .any(|team| Some(team.id) == pod.team_id)
+            .any(|team| Some(team.id) == pod.team_id))
     {
-        match service::pod::update(id).await {
-            Ok(_) => (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                })),
-            ),
-            Err(e) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({
-                    "code": StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
-                })),
-            ),
-        }
-    } else {
-        (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-            })),
-        )
+        return Err(Error::Forbidden(String::new()));
     }
+
+    let result = service::pod::update(id).await;
+
+    if let Err(err) = result {
+        return Err(Error::OtherError(anyhow!("{:?}", err)));
+    }
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
-pub async fn delete(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn delete(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, Error> {
     let operator = ext.operator.clone().unwrap();
-    let (pods, total) = service::pod::find(crate::model::pod::request::FindRequest {
-        id: Some(id),
-        ..Default::default()
-    })
-    .await
-    .unwrap();
+    let pod = crate::model::pod::Entity::find()
+        .filter(crate::model::pod::Column::Id.eq(id))
+        .one(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?
+        .ok_or_else(|| Error::NotFound(String::new()))?;
 
-    if total == 0 {
-        return (
-            StatusCode::NOT_FOUND,
-            Json(json!({
-                "code": StatusCode::NOT_FOUND.as_u16(),
-            })),
-        );
-    }
-
-    let pod = pods.get(0).unwrap();
-
-    if operator.group == "admin"
+    if !(operator.group == "admin"
         || operator.id == pod.user_id
         || operator
             .teams
             .iter()
-            .any(|team| Some(team.id) == pod.team_id)
+            .any(|team| Some(team.id) == pod.team_id))
     {
-        match service::pod::delete(id).await {
-            Ok(_) => {
-                return (
-                    StatusCode::OK,
-                    Json(json!({
-                        "code": StatusCode::OK.as_u16(),
-                    })),
-                )
-            }
-            Err(e) => {
-                return (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(json!({
-                        "code": StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
-                    })),
-                )
-            }
-        }
-    } else {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-            })),
-        );
+        return Err(Error::Forbidden(String::new()));
     }
+
+    let result = service::pod::delete(id).await;
+
+    if let Err(err) = result {
+        return Err(Error::OtherError(anyhow!("{:?}", err)));
+    }
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
