@@ -56,9 +56,9 @@ pub async fn find(
         query = query.filter(crate::model::user_team::Column::TeamId.eq(team_id));
     }
 
-    let total = query.clone().count(&get_db().await).await?;
+    let total = query.clone().count(&get_db()).await?;
 
-    let user_teams = query.all(&get_db().await).await?;
+    let user_teams = query.all(&get_db()).await?;
 
     Ok((user_teams, total))
 }
@@ -66,20 +66,20 @@ pub async fn find(
 pub async fn create(
     user_team: crate::model::user_team::ActiveModel,
 ) -> Result<crate::model::user_team::Model, DbErr> {
-    user_team.insert(&get_db().await).await?.try_into_model()
+    user_team.insert(&get_db()).await?.try_into_model()
 }
 
 pub async fn update(
     user_team: crate::model::user_team::ActiveModel,
 ) -> Result<crate::model::user_team::Model, DbErr> {
-    user_team.update(&get_db().await).await?.try_into_model()
+    user_team.update(&get_db()).await?.try_into_model()
 }
 
 pub async fn delete(user_id: i64, team_id: i64) -> Result<(), DbErr> {
     let _result: sea_orm::DeleteResult = crate::model::user_team::Entity::delete_many()
         .filter(crate::model::user_team::Column::UserId.eq(user_id))
         .filter(crate::model::user_team::Column::TeamId.eq(team_id))
-        .exec(&get_db().await)
+        .exec(&get_db())
         .await?;
 
     return Ok(());

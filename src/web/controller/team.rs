@@ -1,5 +1,5 @@
-use crate::traits::Ext;
 use crate::web::service::{team as team_service, user_team as user_team_service};
+use crate::web::traits::Ext;
 use axum::{
     extract::{Multipart, Path, Query},
     http::{Response, StatusCode},

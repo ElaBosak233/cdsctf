@@ -44,7 +44,7 @@ pub async fn find(
                     .collect::<Vec<i64>>(),
             ),
         )
-        .all(&get_db().await)
+        .all(&get_db())
         .await
         .unwrap();
 

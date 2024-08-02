@@ -1,4 +1,6 @@
+use anyhow::anyhow;
 use axum::{
+    body::Body,
     extract::{Multipart, Path, Query},
     http::{header, Response, StatusCode},
     response::IntoResponse,
@@ -6,154 +8,157 @@ use axum::{
 };
 use serde_json::json;
 
-use crate::traits::Ext;
-use crate::util::validate;
 use crate::web::service;
+use crate::web::traits::Ext;
+use crate::{util::validate, web::traits::Error};
 
-/// **Find** can be used to find challenges.
-///
-/// ## Arguments
-/// - `params`: A `FindRequest` struct containing the parameters for the find operation.
-/// - `ext`: An `Ext` struct containing the current operator.
-///
-/// ## Returns
-/// - `200`: find successfully.
-/// - `403`: operator does not have permission to find challenges.
-/// - `400`: find failed.
-pub async fn find(
+pub async fn get(
     Extension(ext): Extension<Ext>,
     Query(params): Query<crate::model::challenge::request::FindRequest>,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, Error> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && params.is_detailed.unwrap_or(false) {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(json!({
-                "code": StatusCode::FORBIDDEN.as_u16(),
-            })),
-        );
+        return Err(Error::Forbidden(String::from("")));
     }
 
-    match service::challenge::find(params).await {
-        Ok((challenges, total)) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-                "data": json!(challenges),
-                "total": total,
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-            })),
-        ),
+    let result = crate::model::challenge::find(
+        params.id,
+        params.title,
+        params.category_id,
+        params.is_practicable,
+        params.is_dynamic,
+        params.page,
+        params.size,
+    )
+    .await;
+
+    if let Err(err) = result {
+        return Err(Error::DatabaseError(err));
     }
+
+    let (mut challenges, total) = result.unwrap();
+
+    for challenge in challenges.iter_mut() {
+        let is_detailed = params.is_detailed.unwrap_or(false);
+        if !is_detailed {
+            challenge.flags.clear();
+        }
+    }
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(challenges),
+            "total": total,
+        })),
+    ));
 }
 
-pub async fn status(
+pub async fn get_status(
     Json(body): Json<crate::model::challenge::request::StatusRequest>,
-) -> impl IntoResponse {
-    match service::challenge::status(body).await {
-        Ok(status) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-                "data": json!(status),
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-            })),
-        ),
+) -> Result<impl IntoResponse, Error> {
+    let result = service::challenge::status(body).await;
+
+    if let Err(err) = result {
+        return Err(Error::OtherError(anyhow!(
+            "something went wrong: {:?}",
+            err
+        )));
     }
+
+    let status = result.unwrap();
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(status),
+        })),
+    ));
 }
 
 pub async fn create(
     Json(body): Json<crate::model::challenge::request::CreateRequest>,
-) -> impl IntoResponse {
-    match service::challenge::create(body).await {
-        Ok(challenge) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-                "data": json!(challenge),
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-                "msg": format!("{:?}", e),
-            })),
-        ),
+) -> Result<impl IntoResponse, Error> {
+    let result = crate::model::challenge::create(body.into()).await;
+
+    if let Err(err) = result {
+        return Err(Error::DatabaseError(err));
     }
+
+    let challenge = result.unwrap();
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(challenge),
+        })),
+    ));
 }
 
 pub async fn update(
     Path(id): Path<i64>,
     validate::Json(mut body): validate::Json<crate::model::challenge::request::UpdateRequest>,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, Error> {
     body.id = Some(id);
-    match service::challenge::update(body).await {
-        Ok(()) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16(),
-            })),
-        ),
-        Err(_err) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-            })),
-        ),
+
+    let result = crate::model::challenge::update(body.into()).await;
+
+    if let Err(err) = result {
+        return Err(Error::DatabaseError(err));
     }
+
+    let challenge = result.unwrap();
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(challenge),
+        })),
+    ));
 }
 
-pub async fn delete(Path(id): Path<i64>) -> impl IntoResponse {
-    match service::challenge::delete(id).await {
-        Ok(()) => (
-            StatusCode::OK,
-            Json(json!({
-                "code": StatusCode::OK.as_u16()
-            })),
-        ),
-        Err(e) => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({
-                "code": StatusCode::BAD_REQUEST.as_u16(),
-            })),
-        ),
+pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+    let result = crate::model::challenge::delete(id).await;
+
+    if let Err(err) = result {
+        return Err(Error::DatabaseError(err));
     }
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
-pub async fn find_attachment(Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
             let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
-            return Response::builder()
+            return Ok(Response::builder()
                 .header(header::CONTENT_TYPE, "application/octet-stream")
                 .header(
                     header::CONTENT_DISPOSITION,
                     format!("attachment; filename=\"{}\"", filename),
                 )
-                .body(buffer.into())
-                .unwrap();
+                .body(Body::from(buffer))
+                .unwrap());
         }
-        None => return (StatusCode::NOT_FOUND).into_response(),
+        None => return Err(Error::NotFound(String::from(""))),
     }
 }
 
-pub async fn find_attachment_metadata(Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn get_attachment_metadata(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {
-            return (
+            return Ok((
                 StatusCode::OK,
                 Json(json!({
                     "code": StatusCode::OK.as_u16(),
@@ -162,20 +167,15 @@ pub async fn find_attachment_metadata(Path(id): Path<i64>) -> impl IntoResponse 
                         "size": size,
                     },
                 })),
-            )
+            ));
         }
-        None => {
-            return (
-                StatusCode::NOT_FOUND,
-                Json(json!({
-                        "code": StatusCode::NOT_FOUND.as_u16(),
-                })),
-            )
-        }
+        None => return Err(Error::NotFound(String::from(""))),
     }
 }
 
-pub async fn save_attachment(Path(id): Path<i64>, mut multipart: Multipart) -> impl IntoResponse {
+pub async fn save_attachment(
+    Path(id): Path<i64>, mut multipart: Multipart,
+) -> Result<impl IntoResponse, Error> {
     let path = format!("challenges/{}/attachment", id);
     let mut filename = String::new();
     let mut data = Vec::<u8>::new();
@@ -185,13 +185,7 @@ pub async fn save_attachment(Path(id): Path<i64>, mut multipart: Multipart) -> i
             data = match field.bytes().await {
                 Ok(bytes) => bytes.to_vec(),
                 Err(_err) => {
-                    return (
-                        StatusCode::BAD_REQUEST,
-                        Json(json!({
-                            "code": StatusCode::BAD_REQUEST.as_u16(),
-                            "msg": "size_too_large",
-                        })),
-                    );
+                    return Err(Error::BadRequest(String::from("size_too_large")));
                 }
             };
         }
@@ -199,45 +193,33 @@ pub async fn save_attachment(Path(id): Path<i64>, mut multipart: Multipart) -> i
 
     crate::media::delete(path.clone()).await.unwrap();
 
-    match crate::media::save(path, filename, data).await {
-        Ok(_) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                })),
-            );
-        }
-        Err(_err) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(json!({
-                    "code": StatusCode::BAD_REQUEST.as_u16(),
-                })),
-            )
-        }
+    let result = crate::media::save(path, filename, data).await;
+
+    if let Err(err) = result {
+        return Err(Error::InternalServerError(err.to_string()));
     }
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }
 
-pub async fn delete_attachment(Path(id): Path<i64>) -> impl IntoResponse {
+pub async fn delete_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     let path = format!("challenges/{}/attachment", id);
 
-    match crate::media::delete(path).await {
-        Ok(_) => {
-            return (
-                StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                })),
-            )
-        }
-        Err(_err) => {
-            return (
-                StatusCode::NOT_FOUND,
-                Json(json!({
-                    "code": StatusCode::NOT_FOUND.as_u16(),
-                })),
-            )
-        }
+    let result = crate::media::delete(path).await;
+
+    if let Err(err) = result {
+        return Err(Error::InternalServerError(err.to_string()));
     }
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+        })),
+    ));
 }

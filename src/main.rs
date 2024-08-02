@@ -8,7 +8,6 @@ mod logger;
 mod media;
 mod model;
 mod proxy;
-mod traits;
 mod util;
 mod web;
 

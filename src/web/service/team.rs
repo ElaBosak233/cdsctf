@@ -57,7 +57,7 @@ pub async fn delete(id: i64) -> Result<(), Box<dyn Error>> {
 pub async fn get_invite_token(id: i64) -> Result<String, Box<dyn Error>> {
     let teams = crate::model::team::Entity::find()
         .filter(crate::model::team::Column::Id.eq(id))
-        .all(&get_db().await)
+        .all(&get_db())
         .await
         .unwrap();
 
@@ -73,7 +73,7 @@ pub async fn get_invite_token(id: i64) -> Result<String, Box<dyn Error>> {
 pub async fn update_invite_token(id: i64) -> Result<String, Box<dyn Error>> {
     let teams = crate::model::team::Entity::find()
         .filter(crate::model::team::Column::Id.eq(id))
-        .all(&get_db().await)
+        .all(&get_db())
         .await
         .unwrap();
 

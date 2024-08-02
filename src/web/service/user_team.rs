@@ -9,12 +9,12 @@ pub async fn join(
 ) -> Result<(), Box<dyn Error>> {
     let users = crate::model::user::Entity::find()
         .filter(crate::model::user::Column::Id.eq(req.user_id))
-        .all(&get_db().await)
+        .all(&get_db())
         .await
         .unwrap();
     let teams = crate::model::team::Entity::find()
         .filter(crate::model::team::Column::Id.eq(req.team_id))
-        .all(&get_db().await)
+        .all(&get_db())
         .await
         .unwrap();
 

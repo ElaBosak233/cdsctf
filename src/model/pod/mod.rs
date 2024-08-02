@@ -110,14 +110,10 @@ impl ActiveModelBehavior for ActiveModel {
 async fn preload(
     mut pods: Vec<crate::model::pod::Model>,
 ) -> Result<Vec<crate::model::pod::Model>, DbErr> {
-    let users = pods
-        .load_one(crate::model::user::Entity, &get_db().await)
-        .await?;
-    let teams = pods
-        .load_one(crate::model::team::Entity, &get_db().await)
-        .await?;
+    let users = pods.load_one(crate::model::user::Entity, &get_db()).await?;
+    let teams = pods.load_one(crate::model::team::Entity, &get_db()).await?;
     let challenges = pods
-        .load_one(crate::model::challenge::Entity, &get_db().await)
+        .load_one(crate::model::challenge::Entity, &get_db())
         .await?;
 
     for (i, pod) in pods.iter_mut().enumerate() {
@@ -173,9 +169,9 @@ pub async fn find(
         }
     }
 
-    let total = query.clone().count(&get_db().await).await?;
+    let total = query.clone().count(&get_db()).await?;
 
-    let mut pods = query.all(&get_db().await).await?;
+    let mut pods = query.all(&get_db()).await?;
 
     pods = preload(pods).await?;
 
@@ -185,18 +181,18 @@ pub async fn find(
 pub async fn create(
     pod: crate::model::pod::ActiveModel,
 ) -> Result<crate::model::pod::Model, DbErr> {
-    return pod.insert(&get_db().await).await?.try_into_model();
+    return pod.insert(&get_db()).await?.try_into_model();
 }
 
 pub async fn update(
     pod: crate::model::pod::ActiveModel,
 ) -> Result<crate::model::pod::Model, DbErr> {
-    return pod.update(&get_db().await).await?.try_into_model();
+    return pod.update(&get_db()).await?.try_into_model();
 }
 
 pub async fn delete(id: i64) -> Result<(), DbErr> {
     let result = crate::model::pod::Entity::delete_by_id(id)
-        .exec(&get_db().await)
+        .exec(&get_db())
         .await?;
     return Ok(if result.rows_affected == 0 {
         return Err(DbErr::RecordNotFound(format!(

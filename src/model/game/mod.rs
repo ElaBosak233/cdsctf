@@ -104,7 +104,7 @@ pub async fn find(
         query = query.filter(crate::model::game::Column::IsEnabled.eq(is_enabled));
     }
 
-    let total = query.clone().count(&get_db().await).await?;
+    let total = query.clone().count(&get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
@@ -113,7 +113,7 @@ pub async fn find(
         }
     }
 
-    let games = query.all(&get_db().await).await?;
+    let games = query.all(&get_db()).await?;
 
     return Ok((games, total));
 }
@@ -121,18 +121,18 @@ pub async fn find(
 pub async fn create(
     game: crate::model::game::ActiveModel,
 ) -> Result<crate::model::game::Model, DbErr> {
-    game.insert(&get_db().await).await?.try_into_model()
+    game.insert(&get_db()).await?.try_into_model()
 }
 
 pub async fn update(
     game: crate::model::game::ActiveModel,
 ) -> Result<crate::model::game::Model, DbErr> {
-    game.update(&get_db().await).await?.try_into_model()
+    game.update(&get_db()).await?.try_into_model()
 }
 
 pub async fn delete(id: i64) -> Result<(), DbErr> {
     let result = crate::model::game::Entity::delete_by_id(id)
-        .exec(&get_db().await)
+        .exec(&get_db())
         .await?;
     Ok(if result.rows_affected == 0 {
         return Err(DbErr::RecordNotFound(format!(

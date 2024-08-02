@@ -76,7 +76,7 @@ async fn preload(
     mut game_challenges: Vec<crate::model::game_challenge::Model>,
 ) -> Result<Vec<crate::model::game_challenge::Model>, DbErr> {
     let challenges = game_challenges
-        .load_one(crate::model::challenge::Entity, &get_db().await)
+        .load_one(crate::model::challenge::Entity, &get_db())
         .await?;
 
     for (i, game_challenge) in game_challenges.iter_mut().enumerate() {
@@ -103,9 +103,9 @@ pub async fn find(
         query = query.filter(crate::model::game_challenge::Column::IsEnabled.eq(is_enabled));
     }
 
-    let total = query.clone().count(&get_db().await).await?;
+    let total = query.clone().count(&get_db()).await?;
 
-    let mut game_challenges = query.all(&get_db().await).await?;
+    let mut game_challenges = query.all(&get_db()).await?;
 
     game_challenges = preload(game_challenges).await?;
 
@@ -116,7 +116,7 @@ pub async fn create(
     game_challenge: crate::model::game_challenge::ActiveModel,
 ) -> Result<crate::model::game_challenge::Model, DbErr> {
     game_challenge
-        .insert(&get_db().await)
+        .insert(&get_db())
         .await?
         .try_into_model()
 }
@@ -125,7 +125,7 @@ pub async fn update(
     game_challenge: crate::model::game_challenge::ActiveModel,
 ) -> Result<crate::model::game_challenge::Model, DbErr> {
     game_challenge
-        .update(&get_db().await)
+        .update(&get_db())
         .await?
         .try_into_model()
 }
@@ -134,7 +134,7 @@ pub async fn delete(game_id: i64, challenge_id: i64) -> Result<(), DbErr> {
     let _result = crate::model::game_challenge::Entity::delete_many()
         .filter(crate::model::game_challenge::Column::GameId.eq(game_id))
         .filter(crate::model::game_challenge::Column::ChallengeId.eq(challenge_id))
-        .exec(&get_db().await)
+        .exec(&get_db())
         .await?;
 
     return Ok(());

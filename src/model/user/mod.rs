@@ -87,7 +87,7 @@ async fn preload(
         .load_many_to_many(
             crate::model::team::Entity,
             crate::model::user_team::Entity,
-            &get_db().await,
+            &get_db(),
         )
         .await?;
 
@@ -128,7 +128,7 @@ pub async fn find(
         query = query.filter(crate::model::user::Column::Email.eq(email));
     }
 
-    let total = query.clone().count(&get_db().await).await?;
+    let total = query.clone().count(&get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
@@ -137,7 +137,7 @@ pub async fn find(
         }
     }
 
-    let mut users = query.all(&get_db().await).await?;
+    let mut users = query.all(&get_db()).await?;
 
     users = preload(users).await?;
 
@@ -147,18 +147,18 @@ pub async fn find(
 pub async fn create(
     user: crate::model::user::ActiveModel,
 ) -> Result<crate::model::user::Model, DbErr> {
-    user.insert(&get_db().await).await?.try_into_model()
+    user.insert(&get_db()).await?.try_into_model()
 }
 
 pub async fn update(
     user: crate::model::user::ActiveModel,
 ) -> Result<crate::model::user::Model, DbErr> {
-    user.update(&get_db().await).await?.try_into_model()
+    user.update(&get_db()).await?.try_into_model()
 }
 
 pub async fn delete(id: i64) -> Result<(), DbErr> {
     let result = crate::model::user::Entity::delete_by_id(id)
-        .exec(&get_db().await)
+        .exec(&get_db())
         .await?;
     Ok(if result.rows_affected == 0 {
         return Err(DbErr::RecordNotFound(format!(

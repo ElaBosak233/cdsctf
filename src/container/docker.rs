@@ -24,7 +24,7 @@ async fn daemon() {
         loop {
             let pods = pod::Entity::find()
                 .filter(pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp()))
-                .all(&get_db().await)
+                .all(&get_db())
                 .await
                 .unwrap();
             for pod in pods {
@@ -35,7 +35,7 @@ async fn daemon() {
                     .remove_container(pod.name.clone().as_str(), None)
                     .await;
                 crate::model::pod::Entity::delete_by_id(pod.id)
-                    .exec(&get_db().await)
+                    .exec(&get_db())
                     .await
                     .unwrap();
                 info!("Cleaned up expired container: {0}", pod.name);

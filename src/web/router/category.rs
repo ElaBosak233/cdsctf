@@ -9,7 +9,7 @@ use axum::{
 
 pub fn router() -> Router {
     return Router::new()
-        .route("/", get(controller::category::find))
+        .route("/", get(controller::category::get))
         .route(
             "/",
             post(controller::category::create).layer(from_fn(auth::jwt(Group::Admin))),
