@@ -1,3 +1,4 @@
+use crate::database::get_db;
 use crate::web::traits::Error;
 use crate::web::traits::Ext;
 use axum::body::Body;
@@ -8,6 +9,9 @@ use axum::{
     Extension, Json,
 };
 use mime::Mime;
+use sea_orm::ColumnTrait;
+use sea_orm::EntityTrait;
+use sea_orm::QueryFilter;
 use serde_json::json;
 
 pub async fn get(
@@ -73,7 +77,8 @@ pub async fn update(
 }
 
 pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
-    let _ = crate::model::game::delete(id)
+    let _ = crate::model::game::Entity::delete_by_id(id)
+        .exec(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -141,7 +146,10 @@ pub async fn update_challenge(
 pub async fn delete_challenge(
     Path((id, challenge_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, Error> {
-    let _ = crate::model::game_challenge::delete(id, challenge_id)
+    let _ = crate::model::game_challenge::Entity::delete_many()
+        .filter(crate::model::game_challenge::Column::GameId.eq(id))
+        .filter(crate::model::game_challenge::Column::ChallengeId.eq(challenge_id))
+        .exec(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -209,7 +217,10 @@ pub async fn update_team(
 pub async fn delete_team(
     Path((id, team_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, Error> {
-    let _ = crate::model::game_team::delete(id, team_id)
+    let _ = crate::model::game_team::Entity::delete_many()
+        .filter(crate::model::game_team::Column::GameId.eq(id))
+        .filter(crate::model::game_team::Column::TeamId.eq(team_id))
+        .exec(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 

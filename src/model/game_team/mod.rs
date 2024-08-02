@@ -103,13 +103,3 @@ pub async fn update(
 ) -> Result<crate::model::game_team::Model, DbErr> {
     user.update(&get_db()).await?.try_into_model()
 }
-
-pub async fn delete(game_id: i64, team_id: i64) -> Result<(), DbErr> {
-    let _result = crate::model::game_team::Entity::delete_many()
-        .filter(crate::model::game_team::Column::GameId.eq(game_id))
-        .filter(crate::model::game_team::Column::TeamId.eq(team_id))
-        .exec(&get_db())
-        .await?;
-
-    return Ok(());
-}

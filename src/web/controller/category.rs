@@ -4,11 +4,15 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use sea_orm::EntityTrait;
 use serde_json::json;
 
-use crate::model::category::request::{CreateRequest, FindRequest, UpdateRequest};
 use crate::util::validate;
 use crate::web::traits::Error;
+use crate::{
+    database::get_db,
+    model::category::request::{CreateRequest, FindRequest, UpdateRequest},
+};
 
 pub async fn get(Query(params): Query<FindRequest>) -> Result<impl IntoResponse, Error> {
     let (categories, total) = crate::model::category::find(params.id, params.name)
@@ -59,7 +63,8 @@ pub async fn update(
 }
 
 pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
-    let _ = crate::model::category::delete(id)
+    let _ = crate::model::category::Entity::delete_by_id(id)
+        .exec(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 

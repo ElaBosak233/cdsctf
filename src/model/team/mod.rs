@@ -192,15 +192,3 @@ pub async fn update(
 ) -> Result<crate::model::team::Model, DbErr> {
     return team.update(&get_db()).await?.try_into_model();
 }
-
-pub async fn delete(id: i64) -> Result<(), DbErr> {
-    let result = crate::model::team::Entity::delete_by_id(id)
-        .exec(&get_db())
-        .await?;
-    return Ok(if result.rows_affected == 0 {
-        return Err(DbErr::RecordNotFound(format!(
-            "Team with id {} not found",
-            id
-        )));
-    });
-}

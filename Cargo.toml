@@ -65,7 +65,7 @@ tracing-appender = "0.2"
 tracing-error = { version = "0.2" }
 
 # Database
-sea-orm = { version = "0.12", features = [
+sea-orm = { version = "1.0", features = [
     "sqlx-mysql",
     "sqlx-postgres",
     "sqlx-sqlite",
@@ -75,7 +75,7 @@ sea-orm = { version = "0.12", features = [
     "with-json",
     "runtime-tokio-rustls",
 ] }
-sea-orm-migration = { version = "0.12" }
+sea-orm-migration = { version = "1.0" }
 
 # Containerization & Orchestration
 bollard = { version = "*" }

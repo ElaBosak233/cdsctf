@@ -179,15 +179,3 @@ pub async fn update(
 ) -> Result<crate::model::challenge::Model, DbErr> {
     challenge.update(&get_db()).await?.try_into_model()
 }
-
-pub async fn delete(id: i64) -> Result<(), DbErr> {
-    let result = crate::model::challenge::Entity::delete_by_id(id)
-        .exec(&get_db())
-        .await?;
-    Ok(if result.rows_affected == 0 {
-        return Err(DbErr::RecordNotFound(format!(
-            "Challenge with id {} not found",
-            id
-        )));
-    })
-}
