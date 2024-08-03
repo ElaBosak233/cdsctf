@@ -9,6 +9,7 @@ use axum::{
     Extension, Json,
 };
 use mime::Mime;
+use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -45,7 +46,8 @@ pub async fn get(
 pub async fn create(
     Json(body): Json<crate::model::game::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let challenge = crate::model::game::create(body.into())
+    let challenge = crate::model::game::ActiveModel::from(body)
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -63,7 +65,8 @@ pub async fn update(
 ) -> Result<impl IntoResponse, Error> {
     body.id = Some(id);
 
-    let challenge = crate::model::game::update(body.into())
+    let challenge = crate::model::game::ActiveModel::from(body)
+        .update(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -110,7 +113,8 @@ pub async fn get_challenge(
 pub async fn create_challenge(
     Json(body): Json<crate::model::game_challenge::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let game_challenge = crate::model::game_challenge::create(body.into())
+    let game_challenge = crate::model::game_challenge::ActiveModel::from(body)
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -130,7 +134,8 @@ pub async fn update_challenge(
     body.game_id = Some(id);
     body.challenge_id = Some(challenge_id);
 
-    let game_challenge = crate::model::game_challenge::update(body.into())
+    let game_challenge = crate::model::game_challenge::ActiveModel::from(body)
+        .update(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -181,7 +186,8 @@ pub async fn get_team(
 pub async fn create_team(
     Json(body): Json<crate::model::game_team::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let game_team = crate::model::game_team::create(body.into())
+    let game_team = crate::model::game_team::ActiveModel::from(body)
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -201,7 +207,8 @@ pub async fn update_team(
     body.game_id = Some(id);
     body.team_id = Some(team_id);
 
-    let game_team = crate::model::game_team::update(body.into())
+    let game_team = crate::model::game_team::ActiveModel::from(body)
+        .update(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 

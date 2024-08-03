@@ -7,7 +7,7 @@ use axum::{
 };
 use bcrypt::{hash, DEFAULT_COST};
 use mime::Mime;
-use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, Set};
 use serde_json::json;
 
 use crate::database::get_db;
@@ -49,7 +49,8 @@ pub async fn create(
     let hashed_password = hash(body.password, DEFAULT_COST);
     body.password = hashed_password.unwrap();
 
-    let mut user = crate::model::user::create(body.into())
+    let mut user = crate::model::user::ActiveModel::from(body)
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -83,7 +84,8 @@ pub async fn update(
         body.password = Some(hashed_password.unwrap());
     }
 
-    let _ = crate::model::user::update(body.into())
+    let user = crate::model::user::ActiveModel::from(body)
+        .update(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -91,6 +93,7 @@ pub async fn update(
         StatusCode::OK,
         Json(json!({
             "code": StatusCode::OK.as_u16(),
+            "data": json!(user),
         })),
     ));
 }
@@ -172,7 +175,8 @@ pub async fn register(
     user.password = Set(Some(hashed_password));
     user.group = Set(String::from("user"));
 
-    let user = crate::model::user::create(user)
+    let user = user
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 

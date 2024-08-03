@@ -5,7 +5,7 @@ export interface Flag {
     env: string;
 }
 
-enum Type {
+export enum Type {
     Static = 0,
     Pattern = 1,
     Dynamic = 2,

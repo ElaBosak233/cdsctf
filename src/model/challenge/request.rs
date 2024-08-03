@@ -30,7 +30,8 @@ pub struct CreateRequest {
     pub cpu_limit: Option<i64>,
     pub memory_limit: Option<i64>,
     pub duration: Option<i64>,
-    pub ports: Option<super::Ports>,
+    // pub ports: Option<super::Ports>,
+    pub ports: Option<Vec<i64>>,
     pub envs: Option<Vec<super::Env>>,
     pub flags: Option<Vec<super::Flag>>,
 }
@@ -48,7 +49,7 @@ impl From<CreateRequest> for super::ActiveModel {
             cpu_limit: Set(req.cpu_limit.unwrap_or(0)),
             memory_limit: Set(req.memory_limit.unwrap_or(0)),
             duration: Set(req.duration.unwrap_or(1800)),
-            ports: Set(req.ports.unwrap_or(super::Ports::default())),
+            ports: Set(req.ports.unwrap_or(vec![])),
             envs: Set(req.envs.unwrap_or(vec![])),
             flags: Set(req.flags.unwrap_or(vec![])),
             ..Default::default()
@@ -70,7 +71,7 @@ pub struct UpdateRequest {
     pub cpu_limit: Option<i64>,
     pub memory_limit: Option<i64>,
     pub duration: Option<i64>,
-    pub ports: Option<super::Ports>,
+    pub ports: Option<Vec<i64>>,
     pub envs: Option<Vec<super::Env>>,
     pub flags: Option<Vec<super::Flag>>,
 }

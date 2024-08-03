@@ -1,10 +1,10 @@
 use std::error::Error;
 
 use regex::Regex;
-use sea_orm::{IntoActiveModel, Set};
+use sea_orm::{ActiveModelTrait, IntoActiveModel, Set};
 use uuid::Uuid;
 
-use crate::model::challenge::flag;
+use crate::{database::get_db, model::challenge::flag};
 
 pub async fn create(
     req: crate::model::pod::request::CreateRequest,
@@ -46,7 +46,7 @@ pub async fn create(
         .create(ctn_name.clone(), challenge.clone(), injected_flag.clone())
         .await?;
 
-    let mut pod = crate::model::pod::create(crate::model::pod::ActiveModel {
+    let mut pod = crate::model::pod::ActiveModel {
         name: Set(ctn_name),
         user_id: Set(req.user_id.clone().unwrap()),
         team_id: Set(req.team_id.clone()),
@@ -56,7 +56,8 @@ pub async fn create(
         removed_at: Set(chrono::Utc::now().timestamp() + challenge.duration),
         nats: Set(nats),
         ..Default::default()
-    })
+    }
+    .insert(&get_db())
     .await?;
 
     pod.flag = None;
@@ -86,7 +87,7 @@ pub async fn update(id: i64) -> Result<(), Box<dyn Error>> {
 
     let mut pod = pod.clone().into_active_model();
     pod.removed_at = Set(chrono::Utc::now().timestamp() + challenge.duration);
-    let _ = crate::model::pod::update(pod).await;
+    let _ = pod.update(&get_db()).await;
     return Ok(());
 }
 
@@ -105,6 +106,6 @@ pub async fn delete(id: i64) -> Result<(), Box<dyn Error>> {
     let mut pod = pod.clone().into_active_model();
     pod.removed_at = Set(chrono::Utc::now().timestamp());
 
-    let _ = crate::model::pod::update(pod).await;
+    let _ = pod.update(&get_db()).await?;
     return Ok(());
 }

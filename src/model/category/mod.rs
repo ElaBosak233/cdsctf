@@ -1,7 +1,7 @@
 pub mod request;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, TryIntoModel};
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
@@ -53,16 +53,4 @@ pub async fn find(
     let total = query.clone().count(&get_db()).await?;
     let categories = query.all(&get_db()).await?;
     Ok((categories, total))
-}
-
-pub async fn create(
-    category: crate::model::category::ActiveModel,
-) -> Result<crate::model::category::Model, DbErr> {
-    category.insert(&get_db()).await?.try_into_model()
-}
-
-pub async fn update(
-    category: crate::model::category::ActiveModel,
-) -> Result<crate::model::category::Model, DbErr> {
-    category.update(&get_db()).await?.try_into_model()
 }

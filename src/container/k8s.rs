@@ -110,7 +110,6 @@ impl Container for K8s {
 
         let container_ports: Vec<ContainerPort> = challenge
             .ports
-            .0
             .iter()
             .map(|port| ContainerPort {
                 container_port: *port as i32,
@@ -170,7 +169,6 @@ impl Container for K8s {
                 ports: Some(
                     challenge
                         .ports
-                        .0
                         .iter()
                         .map(|port| ServicePort {
                             port: *port as i32,

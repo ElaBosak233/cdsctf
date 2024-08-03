@@ -91,15 +91,3 @@ pub async fn find(
 
     Ok((game_teams, total))
 }
-
-pub async fn create(
-    user: crate::model::game_team::ActiveModel,
-) -> Result<crate::model::game_team::Model, DbErr> {
-    user.insert(&get_db()).await?.try_into_model()
-}
-
-pub async fn update(
-    user: crate::model::game_team::ActiveModel,
-) -> Result<crate::model::game_team::Model, DbErr> {
-    user.update(&get_db()).await?.try_into_model()
-}

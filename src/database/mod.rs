@@ -6,47 +6,22 @@ use sea_orm::{
     ActiveModelTrait, ConnectOptions, Database, DatabaseConnection, EntityTrait, PaginatorTrait,
     Set,
 };
-use std::{process, time::Duration};
-use tracing::{error, info};
+use std::time::Duration;
+use tracing::info;
 
 use crate::config;
 
-// static DB: Lazy<RwLock<Option<DatabaseConnection>>> = Lazy::new(|| RwLock::new(None));
 static DB: OnceCell<DatabaseConnection> = OnceCell::new();
 
 pub async fn init() {
-    let url = match crate::config::get_config()
-        .db
-        .provider
-        .to_lowercase()
-        .as_str()
-    {
-        "sqlite" => format!(
-            "sqlite://{}?mode=rwc",
-            crate::config::get_config().db.sqlite.path.clone()
-        ),
-        "mysql" => format!(
-            "mysql://{}:{}@{}:{}/{}",
-            crate::config::get_config().db.mysql.username,
-            crate::config::get_config().db.mysql.password,
-            crate::config::get_config().db.mysql.host,
-            crate::config::get_config().db.mysql.port,
-            crate::config::get_config().db.mysql.dbname,
-        ),
-        "postgres" => format!(
-            "postgres://{}:{}@{}:{}/{}?currentSchema={}",
-            crate::config::get_config().db.postgres.username,
-            crate::config::get_config().db.postgres.password,
-            crate::config::get_config().db.postgres.host,
-            crate::config::get_config().db.postgres.port,
-            crate::config::get_config().db.postgres.dbname,
-            crate::config::get_config().db.postgres.schema,
-        ),
-        _ => {
-            error!("Unsupported database provider");
-            process::exit(1);
-        }
-    };
+    let url = format!(
+        "postgres://{}:{}@{}:{}/{}",
+        crate::config::get_config().db.username,
+        crate::config::get_config().db.password,
+        crate::config::get_config().db.host,
+        crate::config::get_config().db.port,
+        crate::config::get_config().db.dbname,
+    );
     let mut opt = ConnectOptions::new(url);
     opt.max_connections(100)
         .min_connections(5)
@@ -55,7 +30,7 @@ pub async fn init() {
         .idle_timeout(Duration::from_secs(8))
         .max_lifetime(Duration::from_secs(8))
         .sqlx_logging(false)
-        .set_schema_search_path(config::get_config().db.postgres.schema.as_str());
+        .set_schema_search_path(&config::get_config().db.schema);
 
     let db: DatabaseConnection = Database::connect(opt).await.unwrap();
     DB.set(db).unwrap();

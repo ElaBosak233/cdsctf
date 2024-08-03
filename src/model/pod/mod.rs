@@ -2,7 +2,7 @@ pub mod nat;
 pub mod request;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, Set, TryIntoModel};
+use sea_orm::{entity::prelude::*, Set};
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
@@ -176,16 +176,4 @@ pub async fn find(
     pods = preload(pods).await?;
 
     return Ok((pods, total));
-}
-
-pub async fn create(
-    pod: crate::model::pod::ActiveModel,
-) -> Result<crate::model::pod::Model, DbErr> {
-    return pod.insert(&get_db()).await?.try_into_model();
-}
-
-pub async fn update(
-    pod: crate::model::pod::ActiveModel,
-) -> Result<crate::model::pod::Model, DbErr> {
-    return pod.update(&get_db()).await?.try_into_model();
 }
