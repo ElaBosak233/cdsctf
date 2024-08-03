@@ -4,7 +4,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use sea_orm::EntityTrait;
+use sea_orm::{ActiveModelTrait, EntityTrait};
 use serde_json::json;
 
 use crate::util::validate;
@@ -32,7 +32,8 @@ pub async fn get(Query(params): Query<FindRequest>) -> Result<impl IntoResponse,
 pub async fn create(
     validate::Json(body): validate::Json<CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let category = crate::model::category::create(body.into())
+    let category = crate::model::category::ActiveModel::from(body)
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -49,7 +50,8 @@ pub async fn update(
     Path(id): Path<i64>, validate::Json(mut body): validate::Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, Error> {
     body.id = Some(id);
-    let category = crate::model::category::create(body.into())
+    let category = crate::model::category::ActiveModel::from(body)
+        .update(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 

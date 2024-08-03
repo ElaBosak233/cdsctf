@@ -216,15 +216,3 @@ pub async fn find_by_challenge_ids(
     submissions = preload(submissions).await?;
     return Ok(submissions);
 }
-
-pub async fn create(
-    submission: crate::model::submission::ActiveModel,
-) -> Result<crate::model::submission::Model, DbErr> {
-    return submission.insert(&get_db()).await?.try_into_model();
-}
-
-pub async fn update(
-    submission: crate::model::submission::ActiveModel,
-) -> Result<crate::model::submission::Model, DbErr> {
-    return submission.update(&get_db()).await?.try_into_model();
-}

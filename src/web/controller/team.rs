@@ -8,7 +8,9 @@ use axum::{
     Extension, Json,
 };
 use mime::Mime;
-use sea_orm::{ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect, Set};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect, Set,
+};
 use serde_json::json;
 
 fn can_modify_team(user: crate::model::user::Model, team_id: i64) -> bool {
@@ -50,15 +52,17 @@ pub async fn create(
         return Err(Error::Forbidden(String::new()));
     }
 
-    let team = crate::model::team::create(body.into())
+    let team = crate::model::team::ActiveModel::from(body)
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
-    let _ = crate::model::user_team::create(crate::model::user_team::ActiveModel {
+    let _ = crate::model::user_team::ActiveModel {
         user_id: Set(operator.id),
         team_id: Set(team.id),
         ..Default::default()
-    })
+    }
+    .insert(&get_db())
     .await
     .map_err(|err| Error::DatabaseError(err))?;
 
@@ -80,7 +84,8 @@ pub async fn update(
     }
     body.id = Some(id);
 
-    let _ = crate::model::team::update(body.into())
+    let team = crate::model::team::ActiveModel::from(body)
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -88,6 +93,7 @@ pub async fn update(
         StatusCode::OK,
         Json(json!({
             "code": StatusCode::OK.as_u16(),
+            "data": json!(team),
         })),
     ));
 }
@@ -115,7 +121,8 @@ pub async fn delete(
 pub async fn create_user(
     Json(body): Json<crate::model::user_team::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let _ = crate::model::user_team::create(body.into())
+    let _ = crate::model::user_team::ActiveModel::from(body)
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -194,7 +201,8 @@ pub async fn update_invite_token(
     let token = uuid::Uuid::new_v4().simple().to_string();
     team.invite_token = Set(Some(token.clone()));
 
-    let _ = crate::model::team::update(team)
+    let _ = team
+        .update(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -226,7 +234,8 @@ pub async fn join(
         return Err(Error::BadRequest(String::from("invalid_invite_token")));
     }
 
-    let user_team = crate::model::user_team::create(body.into())
+    let user_team = crate::model::user_team::ActiveModel::from(body)
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 

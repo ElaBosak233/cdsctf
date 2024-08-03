@@ -1,7 +1,7 @@
 pub mod request;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, TryIntoModel};
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
@@ -110,16 +110,4 @@ pub async fn find(
     game_challenges = preload(game_challenges).await?;
 
     Ok((game_challenges, total))
-}
-
-pub async fn create(
-    game_challenge: crate::model::game_challenge::ActiveModel,
-) -> Result<crate::model::game_challenge::Model, DbErr> {
-    game_challenge.insert(&get_db()).await?.try_into_model()
-}
-
-pub async fn update(
-    game_challenge: crate::model::game_challenge::ActiveModel,
-) -> Result<crate::model::game_challenge::Model, DbErr> {
-    game_challenge.update(&get_db()).await?.try_into_model()
 }

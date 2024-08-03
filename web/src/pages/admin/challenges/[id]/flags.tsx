@@ -2,12 +2,10 @@ import { useChallengeApi } from "@/api/challenge";
 import withChallengeEdit from "@/components/layouts/admin/withChallengeEdit";
 import ChallengeFlagCreateModal from "@/components/modals/admin/ChallengeFlagCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
-import ChallengeFlagAccordion from "@/components/widgets/admin/ChallengeFlagAccordion";
 import { Challenge } from "@/types/challenge";
-import { Flag } from "@/types/flag";
+import { Flag, Type } from "@/types/flag";
 import { showSuccessNotification } from "@/utils/notification";
 import {
-    Accordion,
     Flex,
     Group,
     Stack,
@@ -17,8 +15,6 @@ import {
     Tooltip,
     Button,
     Select,
-    SimpleGrid,
-    Switch,
     TextInput,
     Card,
     Badge,
@@ -116,15 +112,15 @@ function Page() {
                                     data={[
                                         {
                                             label: "正则表达式",
-                                            value: "pattern",
+                                            value: Type.Pattern.toString(),
                                         },
                                         {
                                             label: "动态",
-                                            value: "dynamic",
+                                            value: Type.Dynamic.toString(),
                                         },
                                     ]}
                                     allowDeselect={false}
-                                    value={flag.type}
+                                    value={flag.type.toString()}
                                 />
                                 <TextInput
                                     label="环境变量"

@@ -6,7 +6,7 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
-use sea_orm::EntityTrait;
+use sea_orm::{ActiveModelTrait, EntityTrait};
 use serde_json::json;
 
 use crate::web::traits::Ext;
@@ -74,7 +74,8 @@ pub async fn get_status(
 pub async fn create(
     Json(body): Json<crate::model::challenge::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let challenge = crate::model::challenge::create(body.into())
+    let challenge = crate::model::challenge::ActiveModel::from(body)
+        .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
@@ -93,7 +94,8 @@ pub async fn update(
 ) -> Result<impl IntoResponse, Error> {
     body.id = Some(id);
 
-    let challenge = crate::model::challenge::update(body.into())
+    let challenge = crate::model::challenge::ActiveModel::from(body)
+        .update(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 

@@ -65,23 +65,13 @@ container:
     request_limit: 0
 
 db:
-  provider: "sqlite"  # The database provider, can be "postgres", "mysql" or "sqlite".
-  postgres:
-    dbname: "cloudsdale"
-    host: "db"
-    username: "cloudsdale"
-    password: "cloudsdale"
-    port: 5432
-    sslmode: "disable"
-    schema: "public"
-  mysql:
-    dbname: "cloudsdale"
-    host: "db"
-    username: "cloudsdale"
-    password: "cloudsdale"
-    port: 3306
-  sqlite:
-    path: "./db/cds.sqlite"
+  dbname: "cloudsdale"
+  host: "db"
+  username: "cloudsdale"
+  password: "cloudsdale"
+  port: 5432
+  sslmode: "disable"
+  schema: "public"
 
 email:
   address: ""  # The email address that will be used to send emails.

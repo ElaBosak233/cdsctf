@@ -1,7 +1,7 @@
 pub mod request;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, TryIntoModel};
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
@@ -61,16 +61,4 @@ pub async fn find(
     let user_teams = query.all(&get_db()).await?;
 
     Ok((user_teams, total))
-}
-
-pub async fn create(
-    user_team: crate::model::user_team::ActiveModel,
-) -> Result<crate::model::user_team::Model, DbErr> {
-    user_team.insert(&get_db()).await?.try_into_model()
-}
-
-pub async fn update(
-    user_team: crate::model::user_team::ActiveModel,
-) -> Result<crate::model::user_team::Model, DbErr> {
-    user_team.update(&get_db()).await?.try_into_model()
 }

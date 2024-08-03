@@ -180,15 +180,3 @@ pub async fn find_by_user_id(id: i64) -> Result<Vec<crate::model::team::Model>, 
 
     return Ok(teams);
 }
-
-pub async fn create(
-    team: crate::model::team::ActiveModel,
-) -> Result<crate::model::team::Model, DbErr> {
-    return team.insert(&get_db()).await?.try_into_model();
-}
-
-pub async fn update(
-    team: crate::model::team::ActiveModel,
-) -> Result<crate::model::team::Model, DbErr> {
-    return team.update(&get_db()).await?.try_into_model();
-}

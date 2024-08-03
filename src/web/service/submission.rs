@@ -1,6 +1,6 @@
 use std::{collections::HashMap, error::Error};
 
-use sea_orm::{ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
 
 use crate::{database::get_db, model::submission::Status, util};
 
@@ -118,7 +118,8 @@ pub async fn create(
     let challenge = challenges.first().unwrap();
 
     // Default submission record
-    let mut submission = crate::model::submission::create(req.clone().into())
+    let mut submission = crate::model::submission::ActiveModel::from(req.clone())
+        .insert(&get_db())
         .await
         .unwrap()
         .into_active_model();
@@ -191,7 +192,10 @@ pub async fn create(
 
     submission.status = Set(status.clone());
 
-    let submission = crate::model::submission::update(submission).await.unwrap();
+    let submission = crate::model::submission::ActiveModel::from(submission)
+        .update(&get_db())
+        .await
+        .unwrap();
 
     return Ok(submission);
 }

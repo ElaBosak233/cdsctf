@@ -143,15 +143,3 @@ pub async fn find(
 
     Ok((users, total))
 }
-
-pub async fn create(
-    user: crate::model::user::ActiveModel,
-) -> Result<crate::model::user::Model, DbErr> {
-    user.insert(&get_db()).await?.try_into_model()
-}
-
-pub async fn update(
-    user: crate::model::user::ActiveModel,
-) -> Result<crate::model::user::Model, DbErr> {
-    user.update(&get_db()).await?.try_into_model()
-}

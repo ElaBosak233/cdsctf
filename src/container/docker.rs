@@ -79,7 +79,6 @@ impl Container for Docker {
     ) -> Result<Vec<crate::model::pod::Nat>, Box<dyn Error>> {
         let port_bindings: HashMap<String, Option<Vec<PortBinding>>> = challenge
             .ports
-            .0
             .into_iter()
             .map(|port| {
                 (

@@ -1,6 +1,5 @@
 import MDIcon from "@/components/ui/MDIcon";
-import { Challenge } from "@/types/challenge";
-import { Flag } from "@/types/flag";
+import { Flag, Type } from "@/types/flag";
 import {
     Box,
     Button,
@@ -33,7 +32,7 @@ export default function ChallengeFlagCreateModal(
             value: "",
             env: "",
             banned: false,
-            type: "pattern",
+            type: Type.Pattern,
         },
     });
 
@@ -84,15 +83,21 @@ export default function ChallengeFlagCreateModal(
                                     data={[
                                         {
                                             label: "正则表达式",
-                                            value: "pattern",
+                                            value: Type.Pattern.toString(),
                                         },
                                         {
                                             label: "动态",
-                                            value: "dynamic",
+                                            value: Type.Dynamic.toString(),
                                         },
                                     ]}
                                     key={form.key("type")}
-                                    {...form.getInputProps("type")}
+                                    value={form.values.type.toString()}
+                                    onChange={(value) =>
+                                        form.setFieldValue(
+                                            "type",
+                                            Number(value)
+                                        )
+                                    }
                                     allowDeselect={false}
                                 />
                                 <Flex gap={20} align={"center"}>

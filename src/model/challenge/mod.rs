@@ -1,10 +1,11 @@
 pub mod env;
 pub mod flag;
+pub mod port;
 pub mod request;
 pub mod response;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, FromJsonQueryResult, QuerySelect, Set, TryIntoModel};
+use sea_orm::{entity::prelude::*, FromJsonQueryResult, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
@@ -34,8 +35,7 @@ pub struct Model {
     pub memory_limit: i64,
     #[sea_orm(default_value = 1800)]
     pub duration: i64,
-    #[sea_orm(column_type = "Json")]
-    pub ports: Ports,
+    pub ports: Vec<i64>,
     #[sea_orm(column_type = "Json")]
     pub envs: Vec<Env>,
     #[sea_orm(column_type = "Json")]
@@ -50,7 +50,7 @@ pub struct Ports(pub Vec<i64>);
 impl Model {
     pub fn simplify(&mut self) {
         self.envs.clear();
-        self.ports.0.clear();
+        self.ports.clear();
         self.flags.clear();
     }
 }
@@ -166,16 +166,4 @@ pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<crate::model::challenge::M
         .await?;
 
     return Ok(challenges);
-}
-
-pub async fn create(
-    challenge: crate::model::challenge::ActiveModel,
-) -> Result<crate::model::challenge::Model, DbErr> {
-    challenge.insert(&get_db()).await?.try_into_model()
-}
-
-pub async fn update(
-    challenge: crate::model::challenge::ActiveModel,
-) -> Result<crate::model::challenge::Model, DbErr> {
-    challenge.update(&get_db()).await?.try_into_model()
 }

@@ -117,15 +117,3 @@ pub async fn find(
 
     return Ok((games, total));
 }
-
-pub async fn create(
-    game: crate::model::game::ActiveModel,
-) -> Result<crate::model::game::Model, DbErr> {
-    game.insert(&get_db()).await?.try_into_model()
-}
-
-pub async fn update(
-    game: crate::model::game::ActiveModel,
-) -> Result<crate::model::game::Model, DbErr> {
-    game.update(&get_db()).await?.try_into_model()
-}
