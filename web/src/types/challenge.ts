@@ -46,8 +46,6 @@ export interface ChallengeUpdateRequest {
     attachment_url?: string;
     is_practicable?: boolean;
     is_dynamic?: boolean;
-    difficulty?: number;
-    practice_pts?: number;
     duration?: number;
     image_name?: string;
     memory_limit?: number;
@@ -63,8 +61,6 @@ export interface ChallengeCreateRequest {
     category_id?: number;
     is_practicable?: boolean;
     is_dynamic?: boolean;
-    difficulty?: number;
-    practice_pts?: number;
     duration?: number;
     image_name?: string;
     memory_limit?: number;

@@ -38,8 +38,8 @@ wsrx = { version = "0.2", features = ["server"] }
 # Security
 rustls = { version = "0.23", features = ["ring"] }
 ring = { version = "0.17" }
-bcrypt = { version = "0.15" }
 jsonwebtoken = { version = "9.3.0" }
+argon2 = { version = "0.5" }
 
 # Data Handling
 uuid = { version = "1.8", features = ["v4", "fast-rng", "macro-diagnostics"] }

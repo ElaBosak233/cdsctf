@@ -30,8 +30,7 @@ pub struct CreateRequest {
     pub cpu_limit: Option<i64>,
     pub memory_limit: Option<i64>,
     pub duration: Option<i64>,
-    // pub ports: Option<super::Ports>,
-    pub ports: Option<Vec<i64>>,
+    pub ports: Option<Vec<i32>>,
     pub envs: Option<Vec<super::Env>>,
     pub flags: Option<Vec<super::Flag>>,
 }
@@ -71,7 +70,7 @@ pub struct UpdateRequest {
     pub cpu_limit: Option<i64>,
     pub memory_limit: Option<i64>,
     pub duration: Option<i64>,
-    pub ports: Option<Vec<i64>>,
+    pub ports: Option<Vec<i32>>,
     pub envs: Option<Vec<super::Env>>,
     pub flags: Option<Vec<super::Flag>>,
 }

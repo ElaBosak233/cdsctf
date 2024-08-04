@@ -1,6 +1,9 @@
 mod migration;
 
-use bcrypt::{hash, DEFAULT_COST};
+use argon2::{
+    password_hash::{rand_core::OsRng, SaltString},
+    Argon2, PasswordHasher,
+};
 use once_cell::sync::OnceCell;
 use sea_orm::{
     ActiveModelTrait, ConnectOptions, Database, DatabaseConnection, EntityTrait, PaginatorTrait,
@@ -56,7 +59,10 @@ pub async fn init_admin() {
         .await
         .unwrap();
     if total == 0 {
-        let hashed_password = hash("123456".to_string(), DEFAULT_COST).unwrap();
+        let hashed_password = Argon2::default()
+            .hash_password("123456".as_bytes(), &SaltString::generate(&mut OsRng))
+            .unwrap()
+            .to_string();
         let user = crate::model::user::ActiveModel {
             username: Set("admin".to_string()),
             nickname: Set("Administrator".to_string()),

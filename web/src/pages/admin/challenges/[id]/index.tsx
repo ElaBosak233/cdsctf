@@ -243,7 +243,7 @@ function Page() {
                                 </ActionIcon>
                             </Tooltip>
                         </Group>
-                        <SimpleGrid cols={3}>
+                        <SimpleGrid cols={2}>
                             <Switch
                                 my={"auto"}
                                 label="是否需要动态容器"
@@ -263,12 +263,6 @@ function Page() {
                                 description="动态容器持续时间（秒）"
                                 key={form.key("duration")}
                                 {...form.getInputProps("duration")}
-                            />
-                            <NumberInput
-                                label="练习场奖励分数"
-                                description="用户在练习场可得的分数"
-                                key={form.key("practice_pts")}
-                                {...form.getInputProps("practice_pts")}
                             />
                         </SimpleGrid>
 

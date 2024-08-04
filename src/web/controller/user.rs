@@ -1,3 +1,7 @@
+use argon2::{
+    password_hash::{rand_core::OsRng, SaltString},
+    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
+};
 use axum::{
     body::Body,
     extract::{Multipart, Path, Query},
@@ -5,7 +9,6 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
-use bcrypt::{hash, DEFAULT_COST};
 use mime::Mime;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, Set};
 use serde_json::json;
@@ -46,8 +49,12 @@ pub async fn get(
 pub async fn create(
     validate::Json(mut body): validate::Json<crate::model::user::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let hashed_password = hash(body.password, DEFAULT_COST);
-    body.password = hashed_password.unwrap();
+    let hashed_password = Argon2::default()
+        .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
+        .unwrap()
+        .to_string();
+
+    body.password = hashed_password;
 
     let mut user = crate::model::user::ActiveModel::from(body)
         .insert(&get_db())
@@ -80,8 +87,11 @@ pub async fn update(
     }
 
     if let Some(password) = body.password {
-        let hashed_password = hash(password, DEFAULT_COST);
-        body.password = Some(hashed_password.unwrap());
+        let hashed_password = Argon2::default()
+            .hash_password(password.as_bytes(), &SaltString::generate(&mut OsRng))
+            .unwrap()
+            .to_string();
+        body.password = Some(hashed_password);
     }
 
     let user = crate::model::user::ActiveModel::from(body)
@@ -137,9 +147,14 @@ pub async fn login(
         .ok_or_else(|| Error::BadRequest(String::from("invalid")))?;
 
     let hashed_password = user.password.clone().unwrap();
-    let is_match = bcrypt::verify(&body.password, &hashed_password).unwrap();
 
-    if !is_match {
+    if Argon2::default()
+        .verify_password(
+            body.password.as_bytes(),
+            &PasswordHash::new(&hashed_password).unwrap(),
+        )
+        .is_err()
+    {
         return Err(Error::BadRequest(String::from("invalid")));
     }
 
@@ -170,7 +185,10 @@ pub async fn register(
         return Err(Error::Conflict(String::new()));
     }
 
-    let hashed_password = hash(body.password.clone(), DEFAULT_COST).unwrap();
+    let hashed_password = Argon2::default()
+        .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
+        .unwrap()
+        .to_string();
     let mut user = crate::model::user::ActiveModel::from(body);
     user.password = Set(Some(hashed_password));
     user.group = Set(String::from("user"));
