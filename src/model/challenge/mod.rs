@@ -1,6 +1,5 @@
 pub mod env;
 pub mod flag;
-pub mod port;
 pub mod request;
 pub mod response;
 
@@ -35,7 +34,7 @@ pub struct Model {
     pub memory_limit: i64,
     #[sea_orm(default_value = 1800)]
     pub duration: i64,
-    pub ports: Vec<i64>,
+    pub ports: Vec<i32>,
     #[sea_orm(column_type = "Json")]
     pub envs: Vec<Env>,
     #[sea_orm(column_type = "Json")]
