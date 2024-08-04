@@ -11,11 +11,15 @@ import {
     ActionIcon,
     useMantineColorScheme,
     Burger,
+    Stack,
+    Indicator,
+    Tooltip,
 } from "@mantine/core";
 import { Link, useNavigate } from "react-router-dom";
 import MDIcon from "@/components/ui/MDIcon";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
+import { useWsrxStore } from "@/stores/wsrx";
 
 export const NavItems = [
     {
@@ -238,7 +242,13 @@ export default function Navbar(props: NavbarProps) {
                     </Avatar>
                 )}
                 {authStore?.user && (
-                    <Menu shadow="md" width={200} offset={20} withArrow>
+                    <Menu
+                        shadow="md"
+                        width={250}
+                        offset={20}
+                        withArrow
+                        radius={"md"}
+                    >
                         <Menu.Target>
                             <Avatar
                                 src={`/api/users/${authStore?.user?.id}/avatar`}
@@ -249,31 +259,80 @@ export default function Navbar(props: NavbarProps) {
                                     },
                                 }}
                             >
-                                <span className="material-symbols-rounded">
-                                    person
-                                </span>
+                                <MDIcon color={"white"}>person</MDIcon>
                             </Avatar>
                         </Menu.Target>
                         <Menu.Dropdown>
                             <Menu.Item
-                                color={"brand"}
-                                leftSection={<MDIcon>person</MDIcon>}
-                                onClick={() => navigate("/profile")}
+                                h={75}
+                                leftSection={
+                                    <Avatar
+                                        color={"brand"}
+                                        size={50}
+                                        src={`/api/users/${authStore?.user?.id}/avatar`}
+                                    >
+                                        <MDIcon size={30}>person</MDIcon>
+                                    </Avatar>
+                                }
+                                onClick={() => {}}
                             >
-                                <Text fw={600}>
-                                    {authStore?.user?.nickname}
-                                </Text>
+                                <Stack gap={0}>
+                                    <Text fw={600}>
+                                        {authStore?.user?.nickname}
+                                    </Text>
+                                    <Text fz={"xs"} c={"gray"}>
+                                        {authStore?.user?.username} #
+                                        {authStore?.user?.id}
+                                    </Text>
+                                </Stack>
                             </Menu.Item>
                             <Menu.Divider />
                             <Menu.Item
-                                color={"red"}
-                                leftSection={
-                                    <MDIcon color={"red"}>logout</MDIcon>
-                                }
-                                onClick={logout}
+                                leftSection={<MDIcon>link</MDIcon>}
+                                onClick={() => navigate("/wsrx")}
+                                pos={"relative"}
                             >
-                                退出
+                                连接器设置
+                                <Tooltip label={"离线"} withArrow offset={10}>
+                                    <Indicator
+                                        color={
+                                            useWsrxStore.getState().status ===
+                                            "online"
+                                                ? "green"
+                                                : useWsrxStore.getState()
+                                                        .status === "offline"
+                                                  ? "red"
+                                                  : "orange"
+                                        }
+                                        processing
+                                        sx={{
+                                            position: "absolute",
+                                            right: 20,
+                                            top: "50%",
+                                        }}
+                                    />
+                                </Tooltip>
                             </Menu.Item>
+                            <Menu.Divider />
+                            <Flex>
+                                <Menu.Item
+                                    leftSection={
+                                        <MDIcon>manage_accounts</MDIcon>
+                                    }
+                                    onClick={() => navigate("/profile")}
+                                >
+                                    个人设置
+                                </Menu.Item>
+                                <Menu.Item
+                                    color={"red"}
+                                    leftSection={
+                                        <MDIcon color={"red"}>logout</MDIcon>
+                                    }
+                                    onClick={logout}
+                                >
+                                    退出登录
+                                </Menu.Item>
+                            </Flex>
                         </Menu.Dropdown>
                     </Menu>
                 )}
