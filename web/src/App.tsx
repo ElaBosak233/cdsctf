@@ -11,12 +11,14 @@ import "dayjs/locale/zh-cn";
 import { useDisclosure, useFavicon } from "@mantine/hooks";
 import { Link, useLocation } from "react-router-dom";
 import MDIcon from "./components/ui/MDIcon";
+import { useWsrxStore } from "./stores/wsrx";
 
 function App() {
     const categoryApi = useCategoryApi();
     const categoryStore = useCategoryStore();
     const configApi = useConfigApi();
     const configStore = useConfigStore();
+    const wsrxStore = useWsrxStore();
 
     const [favicon, setFavicon] = useState("./favicon.ico");
     useFavicon(favicon);
@@ -45,6 +47,19 @@ function App() {
             categoryStore.setCategories(r.data);
         });
     }, [categoryStore.refresh]);
+
+    useEffect(() => {
+        wsrxStore.setStatus("offline");
+        const interval = setInterval(() => {
+            if (useWsrxStore.getState().isEnabled) {
+                wsrxStore.ping();
+            }
+        }, 10000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
 
     useEffect(() => {
         if (configStore.pltCfg?.site?.favicon) {
