@@ -27,14 +27,14 @@ export default function Page() {
     const form = useForm({
         mode: "controlled",
         initialValues: {
-            username: "",
+            account: "",
             password: "",
         },
 
         validate: {
-            username: (value) => {
+            account: (value) => {
                 if (value === "") {
-                    return "用户名不能为空";
+                    return "账号不能为空";
                 }
                 return null;
             },
@@ -51,7 +51,7 @@ export default function Page() {
         setLoginLoading(true);
         userApi
             .login({
-                username: form.getValues().username?.toLocaleLowerCase(),
+                account: form.getValues().account?.toLocaleLowerCase(),
                 password: form.getValues().password,
             })
             .then((res) => {
@@ -95,11 +95,11 @@ export default function Page() {
                 >
                     <form onSubmit={form.onSubmit((_) => login())}>
                         <TextInput
-                            label="用户名"
+                            label="用户名/邮箱"
                             size="lg"
                             leftSection={<MDIcon>person</MDIcon>}
-                            key={form.key("username")}
-                            {...form.getInputProps("username")}
+                            key={form.key("account")}
+                            {...form.getInputProps("account")}
                         />
                         <TextInput
                             label="密码"

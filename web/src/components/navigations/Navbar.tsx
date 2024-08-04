@@ -293,7 +293,19 @@ export default function Navbar(props: NavbarProps) {
                                 pos={"relative"}
                             >
                                 连接器设置
-                                <Tooltip label={"离线"} withArrow offset={10}>
+                                <Tooltip
+                                    label={
+                                        useWsrxStore.getState().status ===
+                                        "online"
+                                            ? "在线"
+                                            : useWsrxStore.getState().status ===
+                                                "offline"
+                                              ? "离线"
+                                              : "连接中"
+                                    }
+                                    withArrow
+                                    offset={10}
+                                >
                                     <Indicator
                                         color={
                                             useWsrxStore.getState().status ===
