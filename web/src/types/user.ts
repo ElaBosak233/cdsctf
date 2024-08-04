@@ -46,7 +46,7 @@ export interface UserDeleteRequest {
 }
 
 export interface UserLoginRequest {
-    username: string;
+    account: string;
     password: string;
 }
 

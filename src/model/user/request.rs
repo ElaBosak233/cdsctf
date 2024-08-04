@@ -41,8 +41,8 @@ impl From<CreateRequest> for ActiveModel {
         Self {
             username: Set(req.username),
             nickname: Set(req.nickname),
-            email: Set(Some(req.email)),
-            password: Set(Some(req.password)),
+            email: Set(req.email),
+            password: Set(req.password),
             group: Set(req.group),
             ..Default::default()
         }
@@ -67,8 +67,8 @@ impl From<UpdateRequest> for ActiveModel {
             id: req.id.map_or(NotSet, |v| Set(v)),
             username: req.username.map_or(NotSet, |v| Set(v)),
             nickname: req.nickname.map_or(NotSet, |v| Set(v)),
-            email: req.email.map_or(NotSet, |v| Set(Some(v))),
-            password: req.password.map_or(NotSet, |v| Set(Some(v))),
+            email: req.email.map_or(NotSet, |v| Set(v)),
+            password: req.password.map_or(NotSet, |v| Set(v)),
             group: req.group.map_or(NotSet, |v| Set(v)),
             ..Default::default()
         }
@@ -82,7 +82,7 @@ pub struct DeleteRequest {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LoginRequest {
-    pub username: String,
+    pub account: String,
     pub password: String,
 }
 
@@ -101,8 +101,8 @@ impl From<RegisterRequest> for ActiveModel {
         Self {
             username: Set(req.username),
             nickname: Set(req.nickname),
-            email: Set(Some(req.email)),
-            password: Set(Some(req.password)),
+            email: Set(req.email),
+            password: Set(req.password),
             ..Default::default()
         }
     }

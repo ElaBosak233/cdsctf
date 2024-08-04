@@ -37,10 +37,6 @@ pub async fn init() {
 
     let db: DatabaseConnection = Database::connect(opt).await.unwrap();
     DB.set(db).unwrap();
-    {
-        // let mut db_lock = DB.write().await;
-        // *db_lock = Some(db);
-    }
     migration::migrate(&get_db()).await;
     info!("Database connection established successfully.");
     init_admin().await;
@@ -48,8 +44,6 @@ pub async fn init() {
 }
 
 pub fn get_db() -> DatabaseConnection {
-    // let db_lock = DB.read().await;
-    // return db_lock.clone().expect("Database not initialized");
     return DB.get().unwrap().clone();
 }
 
@@ -64,11 +58,11 @@ pub async fn init_admin() {
             .unwrap()
             .to_string();
         let user = crate::model::user::ActiveModel {
-            username: Set("admin".to_string()),
-            nickname: Set("Administrator".to_string()),
-            email: Set(Some("admin@admin.com".to_string())),
-            group: Set("admin".to_string()),
-            password: Set(Some(hashed_password)),
+            username: Set(String::from("admin")),
+            nickname: Set(String::from("Administrator")),
+            email: Set(String::from("admin@admin.com")),
+            group: Set(String::from("admin")),
+            password: Set(hashed_password),
             ..Default::default()
         };
         user.insert(&get_db()).await.unwrap();

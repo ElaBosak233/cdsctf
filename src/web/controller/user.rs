@@ -10,7 +10,10 @@ use axum::{
     Extension, Json,
 };
 use mime::Mime;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{
+    prelude::Expr, sea_query::Func, ActiveModelTrait, Condition, EntityTrait, PaginatorTrait,
+    QueryFilter, Set,
+};
 use serde_json::json;
 
 use crate::database::get_db;
@@ -49,6 +52,9 @@ pub async fn get(
 pub async fn create(
     validate::Json(mut body): validate::Json<crate::model::user::request::CreateRequest>,
 ) -> Result<impl IntoResponse, Error> {
+    body.email = body.email.to_lowercase();
+    body.username = body.username.to_lowercase();
+
     let hashed_password = Argon2::default()
         .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
         .unwrap()
@@ -137,16 +143,28 @@ pub async fn get_teams(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> 
 }
 
 pub async fn login(
-    Json(body): Json<crate::model::user::request::LoginRequest>,
+    Json(mut body): Json<crate::model::user::request::LoginRequest>,
 ) -> Result<impl IntoResponse, Error> {
+    body.account = body.account.to_lowercase();
+
     let mut user = crate::model::user::Entity::find()
-        .filter(crate::model::user::Column::Username.eq(body.username))
+        .filter(
+            Condition::any()
+                .add(
+                    Expr::expr(Func::lower(Expr::col(crate::model::user::Column::Username)))
+                        .eq(body.account.clone()),
+                )
+                .add(
+                    Expr::expr(Func::lower(Expr::col(crate::model::user::Column::Email)))
+                        .eq(body.account.clone()),
+                ),
+        )
         .one(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?
         .ok_or_else(|| Error::BadRequest(String::from("invalid")))?;
 
-    let hashed_password = user.password.clone().unwrap();
+    let hashed_password = user.password.clone();
 
     if Argon2::default()
         .verify_password(
@@ -172,10 +190,23 @@ pub async fn login(
 }
 
 pub async fn register(
-    validate::Json(body): validate::Json<crate::model::user::request::RegisterRequest>,
+    validate::Json(mut body): validate::Json<crate::model::user::request::RegisterRequest>,
 ) -> Result<impl IntoResponse, Error> {
+    body.email = body.email.to_lowercase();
+    body.username = body.username.to_lowercase();
+
     let is_conflict = crate::model::user::Entity::find()
-        .filter(crate::model::user::Column::Username.eq(body.username.clone()))
+        .filter(
+            Condition::any()
+                .add(
+                    Expr::expr(Func::lower(Expr::col(crate::model::user::Column::Username)))
+                        .eq(body.username.clone()),
+                )
+                .add(
+                    Expr::expr(Func::lower(Expr::col(crate::model::user::Column::Email)))
+                        .eq(body.email.clone()),
+                ),
+        )
         .count(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?
@@ -190,7 +221,7 @@ pub async fn register(
         .unwrap()
         .to_string();
     let mut user = crate::model::user::ActiveModel::from(body);
-    user.password = Set(Some(hashed_password));
+    user.password = Set(hashed_password);
     user.group = Set(String::from("user"));
 
     let user = user

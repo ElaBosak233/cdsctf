@@ -17,9 +17,9 @@ pub struct Model {
     pub username: String,
     pub nickname: String,
     #[sea_orm(unique)]
-    pub email: Option<String>,
+    pub email: String,
     pub group: String,
-    pub password: Option<String>,
+    pub password: String,
     pub created_at: i64,
     pub updated_at: i64,
 
@@ -29,7 +29,7 @@ pub struct Model {
 
 impl Model {
     pub fn simplify(&mut self) {
-        self.password = None;
+        self.password.clear();
         for team in self.teams.iter_mut() {
             team.simplify();
         }
