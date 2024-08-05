@@ -1,7 +1,6 @@
 import { useGameApi } from "@/api/game";
-import { useSubmissionApi } from "@/api/submission";
 import { Game } from "@/types/game";
-import { Status, Submission } from "@/types/submission";
+import { GameSubmission, Status } from "@/types/submission";
 import {
     Flex,
     Stack,
@@ -44,12 +43,11 @@ function Page() {
     const theme = useMantineTheme();
 
     const gameApi = useGameApi();
-    const submissionApi = useSubmissionApi();
 
     const categoryStore = useCategoryStore();
 
     const [game, setGame] = useState<Game>();
-    const [submissions, setSubmissions] = useState<Array<Submission>>([]);
+    const [submissions, setSubmissions] = useState<Array<GameSubmission>>([]);
     const [gameChallenges, setGameChallenges] = useState<Array<GameChallenge>>(
         []
     );
@@ -75,11 +73,10 @@ function Page() {
 
     function getSubmissions() {
         setLoading(true);
-        submissionApi
-            .getSubmissions({
-                game_id: Number(id),
+        gameApi
+            .getGameSubmissions({
+                id: Number(id),
                 status: Status.Correct,
-                is_detailed: false,
             })
             .then((res) => {
                 const r = res.data;

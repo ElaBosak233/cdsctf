@@ -74,6 +74,10 @@ pub fn router() -> Router {
             "/:id/notices/:notice_id",
             delete(controller::game::delete_notice).layer(from_fn(auth::jwt(Group::Admin))),
         )
+        .route(
+            "/:id/submissions",
+            get(controller::game::get_submission).layer(from_fn(auth::jwt(Group::User))),
+        )
         .route("/:id/poster", get(controller::game::find_poster))
         .route(
             "/:id/poster",

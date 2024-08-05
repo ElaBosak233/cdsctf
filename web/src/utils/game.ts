@@ -1,17 +1,17 @@
-import { Submission } from "@/types/submission";
+import { GameSubmission, Status } from "@/types/submission";
 import { Team } from "@/types/team";
 
 export interface Row {
     id?: number;
     team: Team;
-    submissions: Array<Submission>;
+    submissions: Array<GameSubmission>;
     rank?: number;
     totalScore: number;
     solvedCount: number;
 }
 
 export function calculateAndSort(
-    submissions?: Array<Submission>
+    submissions?: Array<GameSubmission>
 ): Array<Row> | undefined {
     if (!submissions) return;
 
@@ -19,7 +19,8 @@ export function calculateAndSort(
     const teamSubmissions: Record<number, Row> = {};
 
     submissions?.forEach((submission) => {
-        const { team_id, team, pts } = submission;
+        const { team_id, team, pts, status } = submission;
+        if (status !== Status.Correct) return;
         if (!teamSubmissions[Number(team_id)]) {
             teamSubmissions[Number(team_id)] = {
                 team: team!,

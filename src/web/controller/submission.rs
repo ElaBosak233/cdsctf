@@ -1,4 +1,3 @@
-use anyhow::anyhow;
 use axum::{
     extract::{Path, Query},
     http::StatusCode,
@@ -8,10 +7,7 @@ use axum::{
 use sea_orm::{ActiveModelTrait, EntityTrait};
 use serde_json::json;
 
-use crate::{
-    checker,
-    web::{service::submission as submission_service, traits::Error},
-};
+use crate::{checker, web::traits::Error};
 use crate::{database::get_db, web::traits::Ext};
 
 pub async fn get(
@@ -23,13 +19,25 @@ pub async fn get(
         return Err(Error::Forbidden(String::new()));
     }
 
-    let result = submission_service::find(params).await;
+    let (mut submissions, total) = crate::model::submission::find(
+        params.id,
+        params.user_id,
+        params.team_id,
+        params.game_id,
+        params.challenge_id,
+        params.status,
+        params.page,
+        params.size,
+    )
+    .await
+    .map_err(|err| Error::DatabaseError(err))?;
 
-    if let Err(err) = result {
-        return Err(Error::OtherError(anyhow!("{:?}", err)));
+    let is_detailed = params.is_detailed.unwrap_or(false);
+    for submission in submissions.iter_mut() {
+        if !is_detailed {
+            submission.simplify();
+        }
     }
-
-    let (submissions, total) = result.unwrap();
 
     return Ok((
         StatusCode::OK,

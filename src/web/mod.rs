@@ -1,7 +1,6 @@
 pub mod controller;
 pub mod middleware;
 pub mod router;
-pub mod service;
 pub mod traits;
 
 use std::sync::OnceLock;

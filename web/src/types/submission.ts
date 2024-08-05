@@ -9,16 +9,19 @@ export interface Submission {
     status?: Status;
     user_id?: number;
     user?: User;
-    rank?: number;
     challenge_id?: number;
     challenge?: Challenge;
     team_id?: number;
     team?: Team;
     game_id?: number;
     game?: Game;
-    pts?: number;
     created_at?: number;
     updated_at?: number;
+}
+
+export interface GameSubmission extends Submission {
+    pts?: number;
+    rank?: number;
 }
 
 export enum Status {

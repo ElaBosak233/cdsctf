@@ -3,6 +3,7 @@ import {
     GameCreateRequest,
     GameDeleteRequest,
     GameFindRequest,
+    GameSubmissionGetRequest,
     GameTeamCreateRequest,
     GameTeamDeleteRequest,
     GameTeamFindRequest,
@@ -109,6 +110,12 @@ export function useGameApi() {
         return auth.delete(`/games/${request?.game_id}/notices/${request?.id}`);
     };
 
+    const getGameSubmissions = (request: GameSubmissionGetRequest) => {
+        return auth.get(`/games/${request?.id}/submissions`, {
+            params: request,
+        });
+    };
+
     const getGamePosterMetadata = (id: number) => {
         return auth.get(`/games/${id}/poster/metadata`);
     };
@@ -144,6 +151,7 @@ export function useGameApi() {
         createGameNotice,
         updateGameNotice,
         deleteGameNotice,
+        getGameSubmissions,
         getGamePosterMetadata,
         saveGamePoster,
         deleteGamePoster,

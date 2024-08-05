@@ -1,3 +1,5 @@
+import { Status } from "./submission";
+
 export interface Game {
     id?: number;
     title?: string;
@@ -23,6 +25,11 @@ export interface GameFindRequest {
     size?: number;
     sort_key?: string;
     sort_order?: string;
+}
+
+export interface GameSubmissionGetRequest {
+    id?: number;
+    status?: Status;
 }
 
 export interface GameChallengeFindRequest {
