@@ -5,10 +5,13 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
-use sea_orm::EntityTrait;
+use sea_orm::{ActiveModelTrait, EntityTrait};
 use serde_json::json;
 
-use crate::web::{service::submission as submission_service, traits::Error};
+use crate::{
+    checker,
+    web::{service::submission as submission_service, traits::Error},
+};
 use crate::{database::get_db, web::traits::Ext};
 
 pub async fn get(
@@ -38,6 +41,28 @@ pub async fn get(
     ));
 }
 
+pub async fn get_by_id(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+    let submission = crate::model::submission::Entity::find_by_id(id)
+        .one(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    if submission.is_none() {
+        return Err(Error::NotFound(String::from("")));
+    }
+
+    let mut submission = submission.unwrap();
+    submission.simplify();
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(submission),
+        })),
+    ));
+}
+
 pub async fn create(
     Extension(ext): Extension<Ext>,
     Json(mut body): Json<crate::model::submission::request::CreateRequest>,
@@ -45,13 +70,45 @@ pub async fn create(
     let operator = ext.operator.unwrap();
     body.user_id = Some(operator.id);
 
-    let result = submission_service::create(body).await;
+    if let Some(challenge_id) = body.challenge_id {
+        let challenge = crate::model::challenge::Entity::find_by_id(challenge_id)
+            .one(&get_db())
+            .await
+            .unwrap();
 
-    if let Err(err) = result {
-        return Err(Error::OtherError(anyhow!("{:?}", err)));
+        if challenge.is_none() {
+            return Err(Error::BadRequest(String::from("challenge_not_found")));
+        }
     }
 
-    let submission = result.unwrap();
+    if let Some(game_id) = body.game_id {
+        let game = crate::model::game::Entity::find_by_id(game_id)
+            .one(&get_db())
+            .await
+            .unwrap();
+
+        if game.is_none() {
+            return Err(Error::BadRequest(String::from("game_not_found")));
+        }
+    }
+
+    if let Some(team_id) = body.team_id {
+        let team = crate::model::team::Entity::find_by_id(team_id)
+            .one(&get_db())
+            .await
+            .unwrap();
+
+        if team.is_none() {
+            return Err(Error::BadRequest(String::from("team_not_found")));
+        }
+    }
+
+    let submission = crate::model::submission::ActiveModel::from(body)
+        .insert(&get_db())
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    checker::get_tx().send(submission.id.clone()).unwrap();
 
     return Ok((
         StatusCode::OK,

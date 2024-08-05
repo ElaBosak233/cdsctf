@@ -1,18 +1,16 @@
+use crate::config;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use tokio::sync::Mutex;
 
-use crate::config;
-
-static SECRET: Lazy<Mutex<String>> = Lazy::new(|| {
+static SECRET: Lazy<String> = Lazy::new(|| {
     let mut secret_key = config::get_config().auth.jwt.secret_key.clone();
-    let re = Regex::new(r"\[([Uu][Ii][Dd])\]").unwrap();
+    let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])\]").unwrap();
     secret_key = re
         .replace_all(&secret_key, uuid::Uuid::new_v4().simple().to_string())
         .to_string();
-    return Mutex::new(secret_key);
+    return secret_key;
 });
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -43,7 +41,7 @@ impl Group {
 }
 
 pub async fn get_secret() -> String {
-    return SECRET.lock().await.clone();
+    return SECRET.clone();
 }
 
 pub async fn generate_jwt_token(user_id: i64) -> String {

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, error::Error};
 
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
 use crate::{database::get_db, model::submission::Status, util};
 
@@ -104,98 +104,4 @@ pub async fn find(
     }
 
     return Ok((submissions, total));
-}
-
-pub async fn create(
-    req: crate::model::submission::request::CreateRequest,
-) -> Result<crate::model::submission::Model, Box<dyn Error>> {
-    // Get related challenge
-    let (challenges, _) =
-        crate::model::challenge::find(req.challenge_id, None, None, None, None, None, None)
-            .await
-            .unwrap();
-
-    let challenge = challenges.first().unwrap();
-
-    // Default submission record
-    let mut submission = crate::model::submission::ActiveModel::from(req.clone())
-        .insert(&get_db())
-        .await
-        .unwrap()
-        .into_active_model();
-
-    let (exist_submissions, _) = crate::model::submission::find(
-        None,
-        None,
-        None,
-        req.game_id,
-        req.challenge_id,
-        Some(Status::Correct),
-        None,
-        None,
-    )
-    .await
-    .unwrap();
-
-    let mut status: Status = Status::Incorrect;
-
-    match challenge.is_dynamic {
-        true => {
-            // Dynamic challenge, verify flag correctness from pods
-            let (pods, _) = crate::model::pod::find(
-                None,
-                None,
-                None,
-                None,
-                req.game_id,
-                Some(challenge.id),
-                Some(true),
-            )
-            .await
-            .unwrap();
-
-            for pod in pods {
-                if pod.flag == Some(req.clone().flag) {
-                    if Some(pod.user_id) == req.user_id || req.team_id == pod.team_id {
-                        status = Status::Correct;
-                        break;
-                    } else {
-                        status = Status::Cheat;
-                        break;
-                    }
-                }
-            }
-        }
-        false => {
-            // Static challenge
-            for flag in challenge.flags.clone() {
-                if flag.value == req.flag {
-                    if flag.banned {
-                        status = Status::Cheat;
-                        break;
-                    } else {
-                        status = Status::Correct;
-                    }
-                }
-            }
-        }
-    }
-
-    for exist_submission in exist_submissions {
-        if Some(exist_submission.user_id) == req.user_id
-            || (req.game_id.is_some() && exist_submission.team_id == req.team_id)
-        {
-            status = Status::Invalid;
-            break;
-        }
-    }
-
-    submission.status = Set(status.clone());
-
-    let submission = crate::model::submission::ActiveModel::from(submission)
-        .update(&get_db())
-        .await
-        .unwrap();
-
-    return Ok(submission);
 }

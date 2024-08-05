@@ -18,10 +18,13 @@ pub fn router() -> Router {
         .route(
             "/",
             axum::routing::any(|| async {
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                    "msg": format!("{:?}", "This is the heart of Cloudsdale!")
-                }))
+                return (
+                    StatusCode::OK,
+                    Json(json!({
+                        "code": StatusCode::OK.as_u16(),
+                        "msg": format!("{:?}", "This is the heart of Cloudsdale!")
+                    })),
+                );
             }),
         )
         .nest("/configs", config::router())

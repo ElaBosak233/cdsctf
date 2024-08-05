@@ -1,5 +1,6 @@
 mod assets;
 mod captcha;
+mod checker;
 mod config;
 mod container;
 mod database;
@@ -7,7 +8,6 @@ mod email;
 mod logger;
 mod media;
 mod model;
-mod proxy;
 mod util;
 mod web;
 
@@ -33,6 +33,7 @@ async fn bootstrap() {
     config::init().await;
     database::init().await;
     container::init().await;
+    checker::init().await;
     web::init();
 
     info!("{:?}", util::jwt::get_secret().await);

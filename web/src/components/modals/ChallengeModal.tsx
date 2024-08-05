@@ -28,6 +28,7 @@ import { useSubmissionApi } from "@/api/submission";
 import {
     showErrNotification,
     showInfoNotification,
+    showLoadingNotification,
     showSuccessNotification,
     showWarnNotification,
 } from "@/utils/notification";
@@ -155,7 +156,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
             });
     }
 
-    function submitFlag(flag?: string) {
+    async function submitFlag(flag?: string) {
         if (!flag?.trim()) {
             showErrNotification({
                 title: "错误",
@@ -164,7 +165,9 @@ export default function ChallengeModal(props: ChallengeModalProps) {
             return;
         }
 
-        submissionApi
+        let submissionID = 0;
+
+        await submissionApi
             .createSubmission({
                 challenge_id: challenge?.id,
                 flag: flag,
@@ -173,37 +176,12 @@ export default function ChallengeModal(props: ChallengeModalProps) {
             })
             .then((res) => {
                 const r = res.data;
-                switch (r?.data?.status) {
-                    case Status.Incorrect:
-                        showWarnNotification({
-                            title: "错误",
-                            message: "再试试，你可以的！",
-                        });
-                        break;
-                    case Status.Correct:
-                        showSuccessNotification({
-                            title: "正确",
-                            message: "恭喜你，答对了！",
-                        });
-                        setRefresh();
-                        form.reset();
-                        break;
-                    case Status.Cheat:
-                        showErrNotification({
-                            title: "作弊",
-                            message:
-                                "你提交了禁止提交的 Flag 或者他人的 Flag，该行为已记录！",
-                        });
-                        break;
-                    case Status.Invalid:
-                        showInfoNotification({
-                            title: "无效",
-                            message: "提交入口已关闭或你已提交过正确的 Flag！",
-                        });
-                        setRefresh();
-                        form.reset();
-                        break;
-                }
+                submissionID = r?.data?.id;
+                showLoadingNotification({
+                    id: "flag_check",
+                    title: "请稍候",
+                    message: "正在检查 Flag...",
+                });
             })
             .catch((e) => {
                 showErrNotification({
@@ -211,6 +189,44 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                     message: e.response.data.msg,
                 });
             });
+
+        const interval = setInterval(() => {
+            submissionApi.getSubmissionByID(submissionID).then((res) => {
+                const r = res.data;
+                if (r?.data?.status !== Status.Pending) {
+                    clearInterval(interval);
+                }
+                if (r?.data?.status === Status.Correct) {
+                    showSuccessNotification({
+                        id: "flag_check",
+                        title: "恭喜",
+                        message: "Flag 正确",
+                        update: true,
+                    });
+                } else if (r?.data?.status === Status.Incorrect) {
+                    showErrNotification({
+                        id: "flag_check",
+                        title: "错误",
+                        message: "Flag 错误",
+                        update: true,
+                    });
+                } else if (r?.data?.status === Status.Cheat) {
+                    showWarnNotification({
+                        id: "flag_check",
+                        title: "作弊",
+                        message: "Flag 被判定为作弊",
+                        update: true,
+                    });
+                } else if (r?.data?.status === Status.Invalid) {
+                    showInfoNotification({
+                        id: "flag_check",
+                        title: "无效",
+                        message: "Flag 无效",
+                        update: true,
+                    });
+                }
+            });
+        }, 1000);
     }
 
     useEffect(() => {
