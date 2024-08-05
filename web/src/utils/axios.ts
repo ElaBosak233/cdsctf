@@ -17,7 +17,6 @@ export const useApi = () => {
 };
 
 export const useAuth = () => {
-    const authStore = useAuthStore();
     const { pgsToken } = useAuthStore();
     const navigate = useNavigate();
 
@@ -36,8 +35,7 @@ export const useAuth = () => {
             },
             (error) => {
                 if (error.response?.status === 401) {
-                    authStore.setPgsToken("");
-                    authStore.setUser(undefined);
+                    useAuthStore.setState({ user: undefined, pgsToken: "" });
                     navigate("/login");
                     showInfoNotification({
                         id: "auth-expired",
