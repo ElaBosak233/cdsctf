@@ -12,8 +12,8 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
     EnumIter,
     DeriveActiveEnum,
 )]
-#[sea_orm(rs_type = "u8", db_type = "Integer")]
-#[repr(u8)]
+#[sea_orm(rs_type = "i32", db_type = "Integer")]
+#[repr(i32)]
 pub enum Status {
     #[default]
     Pending = 0,

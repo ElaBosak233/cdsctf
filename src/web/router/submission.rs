@@ -14,6 +14,10 @@ pub fn router() -> Router {
             get(controller::submission::get).layer(from_fn(auth::jwt(Group::User))),
         )
         .route(
+            "/:id",
+            get(controller::submission::get_by_id).layer(from_fn(auth::jwt(Group::User))),
+        )
+        .route(
             "/",
             post(controller::submission::create).layer(from_fn(auth::jwt(Group::User))),
         )

@@ -16,6 +16,10 @@ export function useSubmissionApi() {
         return auth.get("/submissions", { params: request });
     };
 
+    const getSubmissionByID = (id: number) => {
+        return auth.get(`/submissions/${id}`);
+    };
+
     const deleteSubmission = (request: SubmissionDeleteRequest) => {
         return auth.delete(`/submissions/${request.id}`);
     };
@@ -24,5 +28,6 @@ export function useSubmissionApi() {
         getSubmissions,
         createSubmission,
         deleteSubmission,
+        getSubmissionByID,
     };
 }

@@ -31,7 +31,7 @@ pub async fn create(
 
     let mut injected_flag = challenge.flags.clone().into_iter().next().unwrap();
 
-    let re = Regex::new(r"\[([Uu][Ii][Dd])\]").unwrap();
+    let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])\]").unwrap();
     if injected_flag.type_ == flag::Type::Dynamic {
         injected_flag.value = re
             .replace_all(

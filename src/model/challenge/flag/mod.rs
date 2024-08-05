@@ -22,8 +22,8 @@ pub struct Flag {
     EnumIter,
     DeriveActiveEnum,
 )]
-#[sea_orm(rs_type = "u8", db_type = "Integer")]
-#[repr(u8)]
+#[sea_orm(rs_type = "i32", db_type = "Integer")]
+#[repr(i32)]
 pub enum Type {
     #[default]
     Static = 0,
