@@ -1,6 +1,7 @@
 use once_cell::sync::Lazy;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter, Set,
+    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter,
+    QueryOrder, Set,
 };
 use tokio::sync::{mpsc, Mutex};
 use tracing::info;
@@ -71,7 +72,9 @@ async fn check(id: i64) {
         .filter(
             Condition::all()
                 .add(crate::model::submission::Column::ChallengeId.eq(submission.challenge_id))
-                .add(crate::model::submission::Column::GameId.eq(submission.game_id))
+                .add(submission.game_id.map_or(Condition::all(), |game_id| {
+                    Condition::all().add(crate::model::pod::Column::GameId.eq(game_id))
+                }))
                 .add(crate::model::submission::Column::Status.eq(Status::Correct)),
         )
         .all(&get_db())
@@ -83,17 +86,21 @@ async fn check(id: i64) {
     match challenge.is_dynamic {
         true => {
             // Dynamic challenge, verify flag correctness from pods
-            let (pods, _) = crate::model::pod::find(
-                None,
-                None,
-                None,
-                None,
-                submission.game_id,
-                Some(challenge.id),
-                Some(true),
-            )
-            .await
-            .unwrap();
+            let pods = crate::model::pod::Entity::find()
+                .filter(
+                    Condition::all()
+                        .add(
+                            crate::model::pod::Column::RemovedAt
+                                .gte(chrono::Utc::now().timestamp()),
+                        )
+                        .add(crate::model::pod::Column::ChallengeId.eq(submission.challenge_id))
+                        .add(submission.game_id.map_or(Condition::all(), |game_id| {
+                            Condition::all().add(crate::model::pod::Column::GameId.eq(game_id))
+                        })),
+                )
+                .all(&get_db())
+                .await
+                .unwrap();
 
             for pod in pods {
                 if pod.flag == Some(submission.flag.clone()) {
@@ -145,6 +152,7 @@ async fn check(id: i64) {
 async fn recover() {
     let unchecked_submissions = crate::model::submission::Entity::find()
         .filter(crate::model::submission::Column::Status.eq(Status::Pending))
+        .order_by_asc(crate::model::submission::Column::CreatedAt)
         .all(&get_db())
         .await
         .unwrap();
