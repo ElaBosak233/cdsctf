@@ -1,8 +1,9 @@
 pub mod request;
+pub mod response;
 pub mod status;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, QuerySelect, Set, TryIntoModel};
+use sea_orm::{entity::prelude::*, Condition, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
@@ -23,11 +24,6 @@ pub struct Model {
     pub challenge_id: i64,
     pub created_at: i64,
     pub updated_at: i64,
-
-    #[sea_orm(ignore)]
-    pub pts: Option<i64>,
-    #[sea_orm(ignore)]
-    pub rank: Option<i64>,
 
     #[sea_orm(ignore)]
     pub user: Option<user::Model>,
@@ -214,5 +210,63 @@ pub async fn find_by_challenge_ids(
         .all(&get_db())
         .await?;
     submissions = preload(submissions).await?;
+    return Ok(submissions);
+}
+
+pub async fn get_game_submission_model(
+    game_id: i64, status: Option<Status>,
+) -> Result<Vec<crate::model::submission::response::GameSubmissionModel>, DbErr> {
+    let mut submissions = crate::model::submission::Entity::find()
+        .filter(
+            Condition::all()
+                .add(crate::model::submission::Column::GameId.eq(game_id))
+                .add(status.map_or(Condition::all(), |status| {
+                    Condition::all().add(crate::model::submission::Column::Status.eq(status))
+                })),
+        )
+        .all(&get_db())
+        .await?;
+
+    submissions = preload(submissions).await?;
+
+    let mut submissions = submissions
+        .into_iter()
+        .map(|submission| crate::model::submission::response::GameSubmissionModel::from(submission))
+        .collect::<Vec<crate::model::submission::response::GameSubmissionModel>>();
+
+    let game_challenges = crate::model::game_challenge::Entity::find()
+        .filter(Condition::all().add(crate::model::game_challenge::Column::GameId.eq(game_id)))
+        .all(&get_db())
+        .await?;
+
+    for game_challenge in game_challenges {
+        let mut submissions = submissions
+            .iter_mut()
+            .filter(|submission| {
+                submission.challenge_id == game_challenge.challenge_id
+                    && submission.status == Status::Correct
+            })
+            .collect::<Vec<&mut crate::model::submission::response::GameSubmissionModel>>();
+        submissions.sort_by_key(|submission| submission.created_at);
+
+        let base_points = crate::util::math::curve(
+            game_challenge.max_pts,
+            game_challenge.min_pts,
+            game_challenge.difficulty,
+            submissions.len() as i64,
+        );
+
+        for (i, submission) in submissions.iter_mut().enumerate() {
+            submission.rank = i as i64 + 1;
+            let bonus_multiplier = match submission.rank {
+                1 => 100 + game_challenge.first_blood_reward_ratio,
+                2 => 100 + game_challenge.second_blood_reward_ratio,
+                3 => 100 + game_challenge.third_blood_reward_ratio,
+                _ => 100,
+            };
+            submission.pts = base_points * bonus_multiplier / 100;
+        }
+    }
+
     return Ok(submissions);
 }

@@ -73,7 +73,7 @@ async fn check(id: i64) {
             Condition::all()
                 .add(crate::model::submission::Column::ChallengeId.eq(submission.challenge_id))
                 .add(submission.game_id.map_or(Condition::all(), |game_id| {
-                    Condition::all().add(crate::model::pod::Column::GameId.eq(game_id))
+                    Condition::all().add(crate::model::submission::Column::GameId.eq(game_id))
                 }))
                 .add(crate::model::submission::Column::Status.eq(Status::Correct)),
         )

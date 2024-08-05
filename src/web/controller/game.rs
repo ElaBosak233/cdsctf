@@ -1,4 +1,5 @@
 use crate::database::get_db;
+use crate::model::game::request::GetSubmissionRequest;
 use crate::web::traits::Error;
 use crate::web::traits::Ext;
 use axum::body::Body;
@@ -11,8 +12,12 @@ use axum::{
 use mime::Mime;
 use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
+use sea_orm::Condition;
 use sea_orm::EntityTrait;
+use sea_orm::LoaderTrait;
 use sea_orm::QueryFilter;
+use sea_orm::QueryOrder;
+use sea_orm::QuerySelect;
 use serde_json::json;
 
 pub async fn get(
@@ -253,6 +258,23 @@ pub async fn update_notice() -> Result<impl IntoResponse, Error> {
 
 pub async fn delete_notice() -> Result<impl IntoResponse, Error> {
     Ok(todo!())
+}
+
+/// get submissions by game id will calculate rank, pts of each submissoin.
+pub async fn get_submission(
+    Path(id): Path<i64>, Query(params): Query<GetSubmissionRequest>,
+) -> Result<impl IntoResponse, Error> {
+    let submissions = crate::model::submission::get_game_submission_model(id, params.status)
+        .await
+        .map_err(|err| Error::DatabaseError(err))?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": json!(submissions),
+        })),
+    ));
 }
 
 pub async fn find_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {

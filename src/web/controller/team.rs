@@ -52,13 +52,13 @@ pub async fn create(
         return Err(Error::Forbidden(String::new()));
     }
 
-    let team = crate::model::team::ActiveModel::from(body)
+    let team = crate::model::team::ActiveModel::from(body.clone())
         .insert(&get_db())
         .await
         .map_err(|err| Error::DatabaseError(err))?;
 
     let _ = crate::model::user_team::ActiveModel {
-        user_id: Set(operator.id),
+        user_id: Set(body.captain_id),
         team_id: Set(team.id),
         ..Default::default()
     }

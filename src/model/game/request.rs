@@ -98,3 +98,8 @@ impl From<UpdateRequest> for ActiveModel {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GetSubmissionRequest {
+    pub status: Option<crate::model::submission::Status>,
+}

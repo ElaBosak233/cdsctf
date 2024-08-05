@@ -36,6 +36,7 @@ pub struct Model {
 
 impl Model {
     pub fn simplify(&mut self) {
+        self.flag = None;
         for nat in self.nats.iter_mut() {
             nat.simplify();
         }

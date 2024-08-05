@@ -1,6 +1,5 @@
 import { useChallengeApi } from "@/api/challenge";
 import { useGameApi } from "@/api/game";
-import { useSubmissionApi } from "@/api/submission";
 import withGame from "@/components/layouts/withGame";
 import ChallengeModal from "@/components/modals/ChallengeModal";
 import MDIcon from "@/components/ui/MDIcon";
@@ -15,7 +14,7 @@ import { ChallengeStatus } from "@/types/challenge";
 import { Game } from "@/types/game";
 import { GameChallenge } from "@/types/game_challenge";
 import { GameTeam } from "@/types/game_team";
-import { Status, Submission } from "@/types/submission";
+import { GameSubmission, Status } from "@/types/submission";
 import { calculateAndSort } from "@/utils/game";
 import { showErrNotification } from "@/utils/notification";
 import {
@@ -41,7 +40,7 @@ import { useNavigate, useParams } from "react-router-dom";
 function Page() {
     const { id } = useParams<{ id: string }>();
     const gameApi = useGameApi();
-    const submissionApi = useSubmissionApi();
+
     const challengeApi = useChallengeApi();
     const configStore = useConfigStore();
     const categoryStore = useCategoryStore();
@@ -64,7 +63,7 @@ function Page() {
 
     const [gameTeam, setGameTeam] = useState<GameTeam>();
     const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
-    const [submissions, setSubmissions] = useState<Array<Submission>>([]);
+    const [submissions, setSubmissions] = useState<Array<GameSubmission>>([]);
 
     const [loadingTeamStatus, setLoadingTeamStatus] = useState<boolean>(false);
     const [loadingChallenges, setLoadingChallenges] = useState<boolean>(false);
@@ -80,11 +79,10 @@ function Page() {
 
     function getSubmissions() {
         setLoadingTeamStatus(true);
-        submissionApi
-            .getSubmissions({
-                game_id: Number(id),
+        gameApi
+            .getGameSubmissions({
+                id: Number(id),
                 status: Status.Correct,
-                is_detailed: false,
             })
             .then((res) => {
                 const r = res.data;
