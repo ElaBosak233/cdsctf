@@ -1,24 +1,11 @@
-use once_cell::sync::Lazy;
+use futures::StreamExt;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter,
     QueryOrder, Set,
 };
-use tokio::sync::{mpsc, Mutex};
 use tracing::info;
 
 use crate::{database::get_db, model::submission::Status};
-
-static CHANNEL: Lazy<(
-    mpsc::UnboundedSender<i64>,
-    Mutex<mpsc::UnboundedReceiver<i64>>,
-)> = Lazy::new(|| {
-    let (tx, rx) = mpsc::unbounded_channel();
-    return (tx, Mutex::new(rx));
-});
-
-pub fn get_tx() -> mpsc::UnboundedSender<i64> {
-    return CHANNEL.0.clone();
-}
 
 async fn check(id: i64) {
     let submission = crate::model::submission::Entity::find()
@@ -159,15 +146,22 @@ async fn recover() {
 
     for submission in unchecked_submissions {
         let id = submission.id;
-        get_tx().send(id).unwrap();
+        crate::queue::publish("checker", id).await.unwrap();
     }
 }
 
 pub async fn init() {
     tokio::spawn(async move {
-        let mut rx = CHANNEL.1.lock().await;
-        while let Some(id) = rx.recv().await {
+        let mut messages = crate::queue::subscribe("checker").await.unwrap();
+        while let Some(result) = messages.next().await {
+            if result.is_err() {
+                continue;
+            }
+            let message = result.unwrap();
+            let payload = String::from_utf8(message.payload.to_vec()).unwrap();
+            let id = payload.parse::<i64>().unwrap();
             check(id).await;
+            message.ack().await.unwrap();
         }
     });
     recover().await;

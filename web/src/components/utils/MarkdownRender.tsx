@@ -87,26 +87,26 @@ export const MarkdownRender = forwardRef<HTMLDivElement, MarkdownProps>(
 
         const renderer = new marked.Renderer();
 
-        const replacer = (text: string) => {
-            text = text.replace(BlockRegex, (_, expression) => {
-                return katex.renderToString(expression, {
-                    displayMode: true,
-                    throwOnError: false,
-                });
-            });
+        // const replacer = (text: string) => {
+        //     text = text.replace(BlockRegex, (_, expression) => {
+        //         return katex.renderToString(expression, {
+        //             displayMode: true,
+        //             throwOnError: false,
+        //         });
+        //     });
 
-            text = text.replace(InlineRegex, (_, expression) => {
-                return katex.renderToString(expression, {
-                    displayMode: false,
-                    throwOnError: false,
-                });
-            });
+        //     text = text.replace(InlineRegex, (_, expression) => {
+        //         return katex.renderToString(expression, {
+        //             displayMode: false,
+        //             throwOnError: false,
+        //         });
+        //     });
 
-            return text;
-        };
+        //     return text;
+        // };
 
-        renderer.paragraph = RenderReplacer(renderer.paragraph, replacer);
-        renderer.text = RenderReplacer(renderer.text, replacer);
+        // renderer.paragraph = RenderReplacer(renderer.paragraph, replacer);
+        // renderer.text = RenderReplacer(renderer.text, replacer);
 
         marked.setOptions({
             renderer,

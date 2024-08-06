@@ -10,12 +10,12 @@ use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, Query
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::web::traits::Error;
+use crate::web::traits::WebError;
 use crate::{database::get_db, web::traits::Ext};
 
 pub async fn get(
     Query(params): Query<crate::model::pod::request::FindRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let (mut pods, total) = crate::model::pod::find(
         params.id,
         params.name,
@@ -26,7 +26,7 @@ pub async fn get(
         params.is_available,
     )
     .await
-    .map_err(|err| Error::DatabaseError(err))?;
+    .map_err(|err| WebError::DatabaseError(err))?;
 
     if let Some(is_detailed) = params.is_detailed {
         if !is_detailed {
@@ -48,7 +48,7 @@ pub async fn get(
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<crate::model::pod::request::CreateRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.clone().unwrap();
     body.user_id = Some(operator.id);
 
@@ -61,7 +61,7 @@ pub async fn create(
     let ctn_name = format!("cds-{}", Uuid::new_v4().simple().to_string());
 
     if challenge.flags.clone().into_iter().next().is_none() {
-        return Err(Error::BadRequest(String::from("no_flag")));
+        return Err(WebError::BadRequest(String::from("no_flag")));
     }
 
     let mut injected_flag = challenge.flags.clone().into_iter().next().unwrap();
@@ -80,7 +80,7 @@ pub async fn create(
         .await
         .create(ctn_name.clone(), challenge.clone(), injected_flag.clone())
         .await
-        .map_err(|err| Error::OtherError(anyhow!("{:?}", err)))?;
+        .map_err(|err| WebError::OtherError(anyhow!("{:?}", err)))?;
 
     let mut pod = crate::model::pod::ActiveModel {
         name: Set(ctn_name),
@@ -109,15 +109,15 @@ pub async fn create(
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.clone().unwrap();
 
     let pod = crate::model::pod::Entity::find()
         .filter(crate::model::pod::Column::Id.eq(id))
         .one(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?
-        .ok_or_else(|| Error::NotFound(String::new()))?;
+        .map_err(|err| WebError::DatabaseError(err))?
+        .ok_or_else(|| WebError::NotFound(String::new()))?;
 
     if !(operator.group == "admin"
         || operator.id == pod.user_id
@@ -126,7 +126,7 @@ pub async fn update(
             .iter()
             .any(|team| Some(team.id) == pod.team_id))
     {
-        return Err(Error::Forbidden(String::new()));
+        return Err(WebError::Forbidden(String::new()));
     }
 
     let challenge = crate::model::challenge::Entity::find_by_id(pod.challenge_id)
@@ -148,13 +148,13 @@ pub async fn update(
 
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.clone().unwrap();
     let pod = crate::model::pod::Entity::find_by_id(id)
         .one(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?
-        .ok_or_else(|| Error::NotFound(String::new()))?;
+        .map_err(|err| WebError::DatabaseError(err))?
+        .ok_or_else(|| WebError::NotFound(String::new()))?;
 
     if !(operator.group == "admin"
         || operator.id == pod.user_id
@@ -163,7 +163,7 @@ pub async fn delete(
             .iter()
             .any(|team| Some(team.id) == pod.team_id))
     {
-        return Err(Error::Forbidden(String::new()));
+        return Err(WebError::Forbidden(String::new()));
     }
 
     crate::container::get_container()

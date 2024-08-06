@@ -8,16 +8,16 @@ use sea_orm::{ActiveModelTrait, EntityTrait};
 use serde_json::json;
 
 use crate::util::validate;
-use crate::web::traits::Error;
+use crate::web::traits::WebError;
 use crate::{
     database::get_db,
     model::category::request::{CreateRequest, FindRequest, UpdateRequest},
 };
 
-pub async fn get(Query(params): Query<FindRequest>) -> Result<impl IntoResponse, Error> {
+pub async fn get(Query(params): Query<FindRequest>) -> Result<impl IntoResponse, WebError> {
     let (categories, total) = crate::model::category::find(params.id, params.name)
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -31,11 +31,11 @@ pub async fn get(Query(params): Query<FindRequest>) -> Result<impl IntoResponse,
 
 pub async fn create(
     validate::Json(body): validate::Json<CreateRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let category = crate::model::category::ActiveModel::from(body)
         .insert(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -48,12 +48,12 @@ pub async fn create(
 
 pub async fn update(
     Path(id): Path<i64>, validate::Json(mut body): validate::Json<UpdateRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     body.id = Some(id);
     let category = crate::model::category::ActiveModel::from(body)
         .update(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -64,11 +64,11 @@ pub async fn update(
     ));
 }
 
-pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let _ = crate::model::category::Entity::delete_by_id(id)
         .exec(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,

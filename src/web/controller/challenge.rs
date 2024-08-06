@@ -13,15 +13,15 @@ use serde_json::json;
 
 use crate::database::get_db;
 use crate::{model::submission::Status, web::traits::Ext};
-use crate::{util::validate, web::traits::Error};
+use crate::{util::validate, web::traits::WebError};
 
 pub async fn get(
     Extension(ext): Extension<Ext>,
     Query(params): Query<crate::model::challenge::request::FindRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && params.is_detailed.unwrap_or(false) {
-        return Err(Error::Forbidden(String::new()));
+        return Err(WebError::Forbidden(String::new()));
     }
 
     let (mut challenges, total) = crate::model::challenge::find(
@@ -34,7 +34,7 @@ pub async fn get(
         params.size,
     )
     .await
-    .map_err(|err| Error::DatabaseError(err))?;
+    .map_err(|err| WebError::DatabaseError(err))?;
 
     for challenge in challenges.iter_mut() {
         let is_detailed = params.is_detailed.unwrap_or(false);
@@ -55,7 +55,7 @@ pub async fn get(
 
 pub async fn get_status(
     Json(body): Json<crate::model::challenge::request::StatusRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let mut submissions = crate::model::submission::find_by_challenge_ids(body.cids.clone())
         .await
         .unwrap();
@@ -156,11 +156,11 @@ pub async fn get_status(
 
 pub async fn create(
     Json(body): Json<crate::model::challenge::request::CreateRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let challenge = crate::model::challenge::ActiveModel::from(body)
         .insert(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -174,13 +174,13 @@ pub async fn create(
 pub async fn update(
     Path(id): Path<i64>,
     validate::Json(mut body): validate::Json<crate::model::challenge::request::UpdateRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     body.id = Some(id);
 
     let challenge = crate::model::challenge::ActiveModel::from(body)
         .update(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -191,11 +191,11 @@ pub async fn update(
     ));
 }
 
-pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let _ = crate::model::challenge::Entity::delete_by_id(id)
         .exec(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -205,7 +205,7 @@ pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     ));
 }
 
-pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
@@ -219,11 +219,11 @@ pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, Er
                 .body(Body::from(buffer))
                 .unwrap());
         }
-        None => return Err(Error::NotFound(String::new())),
+        None => return Err(WebError::NotFound(String::new())),
     }
 }
 
-pub async fn get_attachment_metadata(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn get_attachment_metadata(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {
@@ -238,13 +238,13 @@ pub async fn get_attachment_metadata(Path(id): Path<i64>) -> Result<impl IntoRes
                 })),
             ));
         }
-        None => return Err(Error::NotFound(String::new())),
+        None => return Err(WebError::NotFound(String::new())),
     }
 }
 
 pub async fn save_attachment(
     Path(id): Path<i64>, mut multipart: Multipart,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let path = format!("challenges/{}/attachment", id);
     let mut filename = String::new();
     let mut data = Vec::<u8>::new();
@@ -254,7 +254,7 @@ pub async fn save_attachment(
             data = match field.bytes().await {
                 Ok(bytes) => bytes.to_vec(),
                 Err(_err) => {
-                    return Err(Error::BadRequest(String::from("size_too_large")));
+                    return Err(WebError::BadRequest(String::from("size_too_large")));
                 }
             };
         }
@@ -264,7 +264,7 @@ pub async fn save_attachment(
 
     let _ = crate::media::save(path, filename, data)
         .await
-        .map_err(|_| Error::InternalServerError(String::new()))?;
+        .map_err(|_| WebError::InternalServerError(String::new()))?;
 
     return Ok((
         StatusCode::OK,
@@ -274,12 +274,12 @@ pub async fn save_attachment(
     ));
 }
 
-pub async fn delete_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn delete_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("challenges/{}/attachment", id);
 
     let _ = crate::media::delete(path)
         .await
-        .map_err(|_| Error::InternalServerError(String::new()))?;
+        .map_err(|_| WebError::InternalServerError(String::new()))?;
 
     return Ok((
         StatusCode::OK,

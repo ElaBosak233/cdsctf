@@ -7,16 +7,16 @@ use axum::{
 use sea_orm::{ActiveModelTrait, EntityTrait};
 use serde_json::json;
 
-use crate::{checker, web::traits::Error};
+use crate::web::traits::WebError;
 use crate::{database::get_db, web::traits::Ext};
 
 pub async fn get(
     Extension(ext): Extension<Ext>,
     Query(params): Query<crate::model::submission::request::FindRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && params.is_detailed.unwrap_or(false) {
-        return Err(Error::Forbidden(String::new()));
+        return Err(WebError::Forbidden(String::new()));
     }
 
     let (mut submissions, total) = crate::model::submission::find(
@@ -30,7 +30,7 @@ pub async fn get(
         params.size,
     )
     .await
-    .map_err(|err| Error::DatabaseError(err))?;
+    .map_err(|err| WebError::DatabaseError(err))?;
 
     let is_detailed = params.is_detailed.unwrap_or(false);
     for submission in submissions.iter_mut() {
@@ -49,14 +49,14 @@ pub async fn get(
     ));
 }
 
-pub async fn get_by_id(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn get_by_id(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let submission = crate::model::submission::Entity::find_by_id(id)
         .one(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     if submission.is_none() {
-        return Err(Error::NotFound(String::from("")));
+        return Err(WebError::NotFound(String::from("")));
     }
 
     let mut submission = submission.unwrap();
@@ -74,7 +74,7 @@ pub async fn get_by_id(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> 
 pub async fn create(
     Extension(ext): Extension<Ext>,
     Json(mut body): Json<crate::model::submission::request::CreateRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.unwrap();
     body.user_id = Some(operator.id);
 
@@ -85,7 +85,7 @@ pub async fn create(
             .unwrap();
 
         if challenge.is_none() {
-            return Err(Error::BadRequest(String::from("challenge_not_found")));
+            return Err(WebError::BadRequest(String::from("challenge_not_found")));
         }
     }
 
@@ -96,7 +96,7 @@ pub async fn create(
             .unwrap();
 
         if game.is_none() {
-            return Err(Error::BadRequest(String::from("game_not_found")));
+            return Err(WebError::BadRequest(String::from("game_not_found")));
         }
     }
 
@@ -107,16 +107,16 @@ pub async fn create(
             .unwrap();
 
         if team.is_none() {
-            return Err(Error::BadRequest(String::from("team_not_found")));
+            return Err(WebError::BadRequest(String::from("team_not_found")));
         }
     }
 
     let submission = crate::model::submission::ActiveModel::from(body)
         .insert(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
-    checker::get_tx().send(submission.id.clone()).unwrap();
+    crate::queue::publish("checker", submission.id).await?;
 
     return Ok((
         StatusCode::OK,
@@ -127,11 +127,11 @@ pub async fn create(
     ));
 }
 
-pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let _ = crate::model::submission::Entity::delete_by_id(id)
         .exec(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
