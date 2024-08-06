@@ -1,4 +1,3 @@
-import { useGameApi } from "@/api/game";
 import MDIcon from "@/components/ui/MDIcon";
 import {
     showSuccessNotification,
@@ -24,6 +23,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Team } from "@/types/team";
 import TeamSelectModal from "./TeamSelectModal";
+import { createGameTeam } from "@/api/game";
 
 interface GameTeamCreateModalProps extends ModalProps {
     setRefresh: () => void;
@@ -33,8 +33,6 @@ export default function GameTeamCreateModal(props: GameTeamCreateModalProps) {
     const { setRefresh, ...modalProps } = props;
 
     const { id } = useParams<{ id: string }>();
-
-    const gameApi = useGameApi();
 
     const [team, setTeam] = useState<Team>();
 
@@ -62,12 +60,11 @@ export default function GameTeamCreateModal(props: GameTeamCreateModalProps) {
         }
     }, [team]);
 
-    function createGameTeam() {
-        gameApi
-            .createGameTeam({
-                game_id: Number(id),
-                team_id: form.getValues().team_id,
-            })
+    function handleCreateGameTeam() {
+        createGameTeam({
+            game_id: Number(id),
+            team_id: form.getValues().team_id,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `团队 ${team?.name} 添加成功`,
@@ -115,7 +112,7 @@ export default function GameTeamCreateModal(props: GameTeamCreateModalProps) {
                         <Box p={10}>
                             <form
                                 onSubmit={form.onSubmit((_) =>
-                                    createGameTeam()
+                                    handleCreateGameTeam()
                                 )}
                             >
                                 <Stack gap={10}>

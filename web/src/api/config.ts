@@ -1,13 +1,8 @@
-import { useAuth } from "@/utils/axios";
+import { api } from "@/utils/axios";
 
-export function useConfigApi() {
-    const auth = useAuth();
-
-    const getPltCfg = () => {
-        return auth.get("/configs");
-    };
-
-    return {
-        getPltCfg,
-    };
+export async function getConfig() {
+    return api().get<{
+        code: number;
+        data: any;
+    }>("/configs");
 }

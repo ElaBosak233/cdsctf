@@ -1,4 +1,4 @@
-import { useUserApi } from "@/api/user";
+import { deleteUser, getUsers } from "@/api/user";
 import UserCreateModal from "@/components/modals/admin/UserCreateModal";
 import UserEditModal from "@/components/modals/admin/UserEditModal";
 import MDIcon from "@/components/ui/MDIcon";
@@ -28,7 +28,6 @@ import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
 
 export default function Page() {
-    const userApi = useUserApi();
     const configStore = useConfigStore();
 
     const [refresh, setRefresh] = useState<number>(0);
@@ -47,27 +46,24 @@ export default function Page() {
         useDisclosure(false);
     const [selectedUser, setSelectedUser] = useState<User>();
 
-    function getUsers() {
-        userApi
-            .getUsers({
-                page: page,
-                size: rowsPerPage,
-                name: search,
-                sort_key: sort.split("_")[0],
-                sort_order: sort.split("_")[1],
-            })
-            .then((res) => {
-                const r = res.data;
-                setUsers(r.data);
-                setTotal(r.total);
-            });
+    function handleGetUsers() {
+        getUsers({
+            page: page,
+            size: rowsPerPage,
+            name: search,
+            sort_key: sort.split("_")[0],
+            sort_order: sort.split("_")[1],
+        }).then((res) => {
+            const r = res.data;
+            setUsers(r.data);
+            setTotal(r.total);
+        });
     }
 
-    function deleteUser(user?: User) {
-        userApi
-            .deleteUser({
-                id: Number(user?.id),
-            })
+    function handleDeleteUser(user?: User) {
+        deleteUser({
+            id: Number(user?.id),
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `用户 ${user?.nickname} 已被删除`,
@@ -105,12 +101,12 @@ export default function Page() {
                 color: "red",
             },
             onConfirm: () => {
-                deleteUser(user);
+                handleDeleteUser(user);
             },
         });
 
     useEffect(() => {
-        getUsers();
+        handleGetUsers();
     }, [search, page, rowsPerPage, sort, refresh]);
 
     useEffect(() => {

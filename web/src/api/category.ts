@@ -1,33 +1,34 @@
 import {
+    Category,
     CategoryCreateRequest,
     CategoryDeleteRequest,
     CategoryUpdateRequest,
 } from "@/types/category";
-import { useAuth } from "@/utils/axios";
+import { api } from "@/utils/axios";
 
-export function useCategoryApi() {
-    const auth = useAuth();
+export async function getCategories() {
+    return await api().get<{
+        code: number;
+        data: Array<Category>;
+    }>("/categories");
+}
 
-    const getCategories = () => {
-        return auth.get("/categories");
-    };
+export async function createCategory(request: CategoryCreateRequest) {
+    return await api().post<{
+        code: number;
+        data: Category;
+    }>("/categories", request);
+}
 
-    const createCategory = (request: CategoryCreateRequest) => {
-        return auth.post("/categories", request);
-    };
+export async function updateCategory(request: CategoryUpdateRequest) {
+    return await api().put<{
+        code: number;
+        data: Category;
+    }>(`/categories/${request.id}`, request);
+}
 
-    const updateCategory = (request: CategoryUpdateRequest) => {
-        return auth.put(`/categories/${request.id}`, request);
-    };
-
-    const deleteCategory = (request: CategoryDeleteRequest) => {
-        return auth.delete(`/categories/${request.id}`);
-    };
-
-    return {
-        getCategories,
-        createCategory,
-        updateCategory,
-        deleteCategory,
-    };
+export async function deleteCategory(request: CategoryDeleteRequest) {
+    return await api().delete<{
+        code: number;
+    }>(`/categories/${request.id}`);
 }

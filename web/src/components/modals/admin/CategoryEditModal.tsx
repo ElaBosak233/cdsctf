@@ -1,4 +1,4 @@
-import { useCategoryApi } from "@/api/category";
+import { getCategories, updateCategory } from "@/api/category";
 import MDIcon from "@/components/ui/MDIcon";
 import { Category } from "@/types/category";
 import { showSuccessNotification } from "@/utils/notification";
@@ -26,7 +26,6 @@ interface CategoryEditModalProps extends ModalProps {
 
 export default function CategoryEditModal(props: CategoryEditModalProps) {
     const { setRefresh, categoryID, ...modalProps } = props;
-    const categoryApi = useCategoryApi();
 
     const [category, setCategory] = useState<Category>();
 
@@ -44,34 +43,32 @@ export default function CategoryEditModal(props: CategoryEditModalProps) {
         ),
     });
 
-    function getCategory() {
-        categoryApi.getCategories().then((res) => {
+    function handleGetCategory() {
+        getCategories().then((res) => {
             const r = res.data;
             setCategory(r?.data?.find((c: Category) => c.id === categoryID));
         });
     }
 
-    function updateCategory() {
-        categoryApi
-            .updateCategory({
-                id: categoryID,
-                name: form.getValues().name,
-                icon: form.getValues().icon,
-                color: form.getValues().color,
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: `分类 ${form.getValues().name} 更新成功`,
-                });
-                setRefresh();
-                modalProps.onClose();
+    function handleUpdateCategory() {
+        updateCategory({
+            id: categoryID,
+            name: form.getValues().name,
+            icon: form.getValues().icon,
+            color: form.getValues().color,
+        }).then((_) => {
+            showSuccessNotification({
+                message: `分类 ${form.getValues().name} 更新成功`,
             });
+            setRefresh();
+            modalProps.onClose();
+        });
     }
 
     useEffect(() => {
         form.reset();
         if (modalProps.opened) {
-            getCategory();
+            handleGetCategory();
         }
     }, [modalProps.opened]);
 
@@ -110,7 +107,7 @@ export default function CategoryEditModal(props: CategoryEditModalProps) {
                         <Box p={10}>
                             <form
                                 onSubmit={form.onSubmit((_) =>
-                                    updateCategory()
+                                    handleUpdateCategory()
                                 )}
                             >
                                 <Stack gap={10}>

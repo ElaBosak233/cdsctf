@@ -1,4 +1,3 @@
-import { useTeamApi } from "@/api/team";
 import { Team } from "@/types/team";
 import {
     ActionIcon,
@@ -14,7 +13,6 @@ import {
 } from "@mantine/core";
 import { useState, useEffect } from "react";
 import MDIcon from "@/components/ui/MDIcon";
-import { useGameApi } from "@/api/game";
 import { useParams } from "react-router-dom";
 import {
     showErrNotification,
@@ -22,14 +20,14 @@ import {
 } from "@/utils/notification";
 import { useAuthStore } from "@/stores/auth";
 import { GameTeam } from "@/types/game_team";
+import { createGameTeam, getGameTeams } from "@/api/game";
+import { getUserTeams } from "@/api/user";
 
 interface GameTeamApplyModalProps extends ModalProps {}
 
 export default function GameTeamApplyModal(props: GameTeamApplyModalProps) {
     const { ...modalProps } = props;
 
-    const teamApi = useTeamApi();
-    const gameApi = useGameApi();
     const authStore = useAuthStore();
 
     const { id } = useParams<{ id: string }>();
@@ -37,45 +35,36 @@ export default function GameTeamApplyModal(props: GameTeamApplyModalProps) {
     const [teams, setTeams] = useState<Array<Team>>([]);
     const [gameTeams, setGameTeams] = useState<Array<GameTeam>>([]);
 
-    function getGameTeams() {
-        gameApi
-            .getGameTeams({
-                game_id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGameTeams(r.data);
-            });
+    function handleGetGameTeams() {
+        getGameTeams({
+            game_id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGameTeams(r.data);
+        });
     }
 
-    function getTeams() {
-        teamApi
-            .getTeams({
-                user_id: authStore?.user?.id,
-            })
-            .then((res) => {
-                const r = res.data;
-                const t = r.data as Array<Team>;
-                t?.map((team) => {
-                    // 判断是否是队长且未加入比赛
-                    if (
-                        team?.captain_id === authStore?.user?.id &&
-                        !gameTeams?.find(
-                            (gameTeam) => gameTeam.team_id === team.id
-                        )
-                    ) {
-                        setTeams([...teams, team]);
-                    }
-                });
+    function handleGetTeams() {
+        getUserTeams(Number(authStore?.user?.id)).then((res) => {
+            const r = res.data;
+            const t = r.data as Array<Team>;
+            t?.map((team) => {
+                // 判断是否是队长且未加入比赛
+                if (
+                    team?.captain_id === authStore?.user?.id &&
+                    !gameTeams?.find((gameTeam) => gameTeam.team_id === team.id)
+                ) {
+                    setTeams([...teams, team]);
+                }
             });
+        });
     }
 
-    function createGameTeam(team?: Team) {
-        gameApi
-            .createGameTeam({
-                game_id: Number(id),
-                team_id: team?.id,
-            })
+    function handleCreateGameTeam(team?: Team) {
+        createGameTeam({
+            game_id: Number(id),
+            team_id: team?.id,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: "已递交申请",
@@ -93,14 +82,14 @@ export default function GameTeamApplyModal(props: GameTeamApplyModalProps) {
 
     useEffect(() => {
         if (gameTeams) {
-            getTeams();
+            handleGetTeams();
         }
     }, [gameTeams]);
 
     useEffect(() => {
         if (modalProps.opened) {
             setTeams([]);
-            getGameTeams();
+            handleGetGameTeams();
         }
     }, [modalProps.opened]);
 
@@ -148,7 +137,7 @@ export default function GameTeamApplyModal(props: GameTeamApplyModalProps) {
                                         </Group>
                                         <ActionIcon
                                             onClick={() => {
-                                                createGameTeam(team);
+                                                handleCreateGameTeam(team);
                                             }}
                                         >
                                             <MDIcon>check</MDIcon>

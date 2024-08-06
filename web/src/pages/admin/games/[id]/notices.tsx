@@ -1,4 +1,4 @@
-import { useGameApi } from "@/api/game";
+import { deleteGameNotice, getGameNotices, getGames } from "@/api/game";
 import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import GameNoticeCreateModal from "@/components/modals/admin/GameNoticeCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
@@ -24,7 +24,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 function Page() {
-    const gameApi = useGameApi();
     const { id } = useParams<{ id: string }>();
 
     const [loading, setLoading] = useState<boolean>(true);
@@ -49,23 +48,20 @@ function Page() {
         ["third_blood", "三血"],
     ]);
 
-    function getGame() {
-        gameApi
-            .getGames({
-                id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGame(r.data[0]);
-            });
+    function handleGetGame() {
+        getGames({
+            id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGame(r.data[0]);
+        });
     }
 
-    function getGameNotices() {
+    function handleGetGameNotices() {
         setLoading(true);
-        gameApi
-            .getGameNotices({
-                game_id: Number(id),
-            })
+        getGameNotices({
+            game_id: Number(id),
+        })
             .then((res) => {
                 const r = res.data;
                 setNotices(r.data);
@@ -76,18 +72,16 @@ function Page() {
             });
     }
 
-    function deleteGameNotice(notice?: Notice) {
-        gameApi
-            .deleteGameNotice({
-                game_id: notice?.game_id,
-                id: notice?.id,
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: "公告已删除",
-                });
-                setRefresh((prev) => prev + 1);
+    function handleDeleteGameNotice(notice?: Notice) {
+        deleteGameNotice({
+            game_id: notice?.game_id,
+            id: notice?.id,
+        }).then((_) => {
+            showSuccessNotification({
+                message: "公告已删除",
             });
+            setRefresh((prev) => prev + 1);
+        });
     }
 
     const openDeleteNoticeModal = (notice?: Notice) =>
@@ -112,12 +106,12 @@ function Page() {
                 color: "red",
             },
             onConfirm: () => {
-                deleteGameNotice(notice);
+                handleDeleteGameNotice(notice);
             },
         });
 
     useEffect(() => {
-        getGame();
+        handleGetGame();
     }, []);
 
     useEffect(() => {
@@ -130,7 +124,7 @@ function Page() {
 
     useEffect(() => {
         if (game) {
-            getGameNotices();
+            handleGetGameNotices();
         }
     }, [game, refresh]);
 

@@ -1,4 +1,3 @@
-import { useTeamApi } from "@/api/team";
 import TeamEditModal from "@/components/modals/admin/TeamEditModal";
 import TeamCreateModal from "@/components/modals/admin/TeamCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
@@ -27,9 +26,9 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
+import { deleteTeam, getTeams } from "@/api/team";
 
 export default function Page() {
-    const teamApi = useTeamApi();
     const configStore = useConfigStore();
 
     const [refresh, setRefresh] = useState<number>(0);
@@ -48,27 +47,24 @@ export default function Page() {
         useDisclosure(false);
     const [selectedTeam, setSelectedTeam] = useState<Team>();
 
-    function getTeams() {
-        teamApi
-            .getTeams({
-                page: page,
-                size: rowsPerPage,
-                name: search,
-                sort_key: sort.split("_")[0],
-                sort_order: sort.split("_")[1],
-            })
-            .then((res) => {
-                const r = res.data;
-                setTeams(r.data);
-                setTotal(r.total);
-            });
+    function handleGetTeams() {
+        getTeams({
+            page: page,
+            size: rowsPerPage,
+            name: search,
+            sort_key: sort.split("_")[0],
+            sort_order: sort.split("_")[1],
+        }).then((res) => {
+            const r = res.data;
+            setTeams(r.data);
+            setTotal(r.total);
+        });
     }
 
-    function deleteTeam(team?: Team) {
-        teamApi
-            .deleteTeam({
-                id: Number(team?.id),
-            })
+    function handleDeleteTeam(team?: Team) {
+        deleteTeam({
+            id: Number(team?.id),
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `团队 ${team?.name} 已被删除`,
@@ -106,12 +102,12 @@ export default function Page() {
                 color: "red",
             },
             onConfirm: () => {
-                deleteTeam(team);
+                handleDeleteTeam(team);
             },
         });
 
     useEffect(() => {
-        getTeams();
+        handleGetTeams();
     }, [search, page, rowsPerPage, sort, refresh]);
 
     useEffect(() => {

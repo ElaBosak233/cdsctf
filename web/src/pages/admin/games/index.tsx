@@ -1,4 +1,3 @@
-import { useGameApi } from "@/api/game";
 import MDIcon from "@/components/ui/MDIcon";
 import { useConfigStore } from "@/stores/config";
 import { Game } from "@/types/game";
@@ -30,9 +29,9 @@ import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import GameCreateModal from "@/components/modals/admin/GameCreateModal";
 import { useNavigate } from "react-router-dom";
+import { deleteGame, getGames, updateGame } from "@/api/game";
 
 export default function Page() {
-    const gameApi = useGameApi();
     const configStore = useConfigStore();
     const navigate = useNavigate();
 
@@ -49,27 +48,24 @@ export default function Page() {
     const [createOpened, { open: createOpen, close: createClose }] =
         useDisclosure(false);
 
-    function getGames() {
-        gameApi
-            .getGames({
-                page: page,
-                size: rowsPerPage,
-                title: search,
-                sort_key: sort.split("_")[0],
-                sort_order: sort.split("_")[1],
-            })
-            .then((res) => {
-                const r = res.data;
-                setGames(r.data);
-                setTotal(r.total);
-            });
+    function handleGetGames() {
+        getGames({
+            page: page,
+            size: rowsPerPage,
+            title: search,
+            sort_key: sort.split("_")[0],
+            sort_order: sort.split("_")[1],
+        }).then((res) => {
+            const r = res.data;
+            setGames(r.data);
+            setTotal(r.total);
+        });
     }
 
-    function deleteGame(game?: Game) {
-        gameApi
-            .deleteGame({
-                id: Number(game?.id),
-            })
+    function handleDeleteGame(game?: Game) {
+        deleteGame({
+            id: Number(game?.id),
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `比赛 ${game?.title} 已被删除`,
@@ -86,11 +82,10 @@ export default function Page() {
     }
 
     function switchIsEnabled(game?: Game) {
-        gameApi
-            .updateGame({
-                id: Number(game?.id),
-                is_enabled: !game?.is_enabled,
-            })
+        updateGame({
+            id: Number(game?.id),
+            is_enabled: !game?.is_enabled,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: !game?.is_enabled
@@ -132,12 +127,12 @@ export default function Page() {
                 color: "red",
             },
             onConfirm: () => {
-                deleteGame(game);
+                handleDeleteGame(game);
             },
         });
 
     useEffect(() => {
-        getGames();
+        handleGetGames();
     }, [search, page, rowsPerPage, sort, refresh]);
 
     useEffect(() => {

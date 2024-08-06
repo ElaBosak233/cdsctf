@@ -1,4 +1,3 @@
-import { useTeamApi } from "@/api/team";
 import {
     showErrNotification,
     showSuccessNotification,
@@ -16,6 +15,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import MDIcon from "@/components/ui/MDIcon";
+import { joinTeam } from "@/api/team";
 
 interface TeamJoinModalProps extends ModalProps {
     setRefresh: () => void;
@@ -23,8 +23,6 @@ interface TeamJoinModalProps extends ModalProps {
 
 export default function TeamJoinModal(props: TeamJoinModalProps) {
     const { setRefresh, ...modalProps } = props;
-
-    const teamApi = useTeamApi();
 
     const form = useForm({
         initialValues: {
@@ -40,12 +38,11 @@ export default function TeamJoinModal(props: TeamJoinModalProps) {
         },
     });
 
-    function joinTeam() {
-        teamApi
-            .joinTeam({
-                id: Number(form.getValues().inviteToken.split(":")[0]),
-                token: form.getValues().inviteToken.split(":")[1],
-            })
+    function handleJoinTeam() {
+        joinTeam({
+            id: Number(form.getValues().inviteToken.split(":")[0]),
+            token: form.getValues().inviteToken.split(":")[1],
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: "加入团队成功",
@@ -87,7 +84,7 @@ export default function TeamJoinModal(props: TeamJoinModalProps) {
                         <Box p={10}>
                             <form
                                 onSubmit={form.onSubmit((_) => {
-                                    joinTeam();
+                                    handleJoinTeam();
                                 })}
                             >
                                 <TextInput

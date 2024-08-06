@@ -74,10 +74,11 @@ export default function Navbar(props: NavbarProps) {
     const { burger, adminMode } = props;
     const authStore = useAuthStore();
     const configStore = useConfigStore();
-    const navigate = useNavigate();
     const { colorScheme, setColorScheme } = useMantineColorScheme({
         keepTransitions: true,
     });
+
+    const navigate = useNavigate();
 
     function logout() {
         authStore.setPgsToken("");

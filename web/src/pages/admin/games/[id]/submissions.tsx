@@ -1,5 +1,5 @@
-import { useGameApi } from "@/api/game";
-import { useSubmissionApi } from "@/api/submission";
+import { getGames } from "@/api/game";
+import { deleteSubmission, getSubmissions } from "@/api/submission";
 import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { Game } from "@/types/game";
@@ -26,8 +26,6 @@ import { useParams } from "react-router-dom";
 
 function Page() {
     const { id } = useParams<{ id: string }>();
-    const submissionApi = useSubmissionApi();
-    const gameApi = useGameApi();
 
     const [game, setGame] = useState<Game>();
     const [submissions, setSubmissions] = useState<Array<Submission>>([]);
@@ -78,26 +76,23 @@ function Page() {
         ],
     ]);
 
-    function getGame() {
-        gameApi
-            .getGames({
-                id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGame(r.data[0]);
-            });
+    function handleGetGame() {
+        getGames({
+            id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGame(r.data[0]);
+        });
     }
 
-    function getSubmissions() {
+    function handleGetSubmissions() {
         setLoading(true);
-        submissionApi
-            .getSubmissions({
-                game_id: Number(id),
-                page: page,
-                size: rowsPerPage,
-                is_detailed: true,
-            })
+        getSubmissions({
+            game_id: Number(id),
+            page: page,
+            size: rowsPerPage,
+            is_detailed: true,
+        })
             .then((res) => {
                 const r = res.data;
                 setSubmissions(r.data);
@@ -108,18 +103,16 @@ function Page() {
             });
     }
 
-    function deleteSubmission(submission?: Submission) {
+    function handleDeleteSubmission(submission?: Submission) {
         if (submission) {
-            submissionApi
-                .deleteSubmission({
-                    id: submission?.id,
-                })
-                .then(() => {
-                    showSuccessNotification({
-                        message: "提交记录已移除",
-                    });
-                    setRefresh((prev) => prev + 1);
+            deleteSubmission({
+                id: submission?.id,
+            }).then(() => {
+                showSuccessNotification({
+                    message: "提交记录已移除",
                 });
+                setRefresh((prev) => prev + 1);
+            });
         }
     }
 
@@ -145,18 +138,18 @@ function Page() {
                 color: "red",
             },
             onConfirm: () => {
-                deleteSubmission(submission);
+                handleDeleteSubmission(submission);
             },
         });
 
     useEffect(() => {
         if (game) {
-            getSubmissions();
+            handleGetSubmissions();
         }
     }, [game, page, rowsPerPage, refresh]);
 
     useEffect(() => {
-        getGame();
+        handleGetGame();
     }, []);
 
     useEffect(() => {
@@ -251,7 +244,8 @@ function Page() {
                                     <Table.Td>
                                         <Badge>
                                             {dayjs(
-                                                Number(submission?.created_at) * 1000
+                                                Number(submission?.created_at) *
+                                                    1000
                                             ).format("YYYY/MM/DD HH:mm:ss")}
                                         </Badge>
                                     </Table.Td>

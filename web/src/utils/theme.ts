@@ -1,4 +1,4 @@
-import { ActionIcon, Avatar, ThemeIcon, createTheme } from "@mantine/core";
+import { createTheme } from "@mantine/core";
 
 export function useTheme() {
     const theme = createTheme({

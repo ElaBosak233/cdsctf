@@ -19,8 +19,8 @@ import {
     showErrNotification,
     showSuccessNotification,
 } from "@/utils/notification";
-import { useUserApi } from "@/api/user";
 import { useEffect } from "react";
+import { createUser } from "@/api/user";
 
 interface UserCreateModalProps extends ModalProps {
     setRefresh: () => void;
@@ -28,8 +28,6 @@ interface UserCreateModalProps extends ModalProps {
 
 export default function UserCreateModal(props: UserCreateModalProps) {
     const { setRefresh, ...modalProps } = props;
-
-    const userApi = useUserApi();
 
     const form = useForm({
         mode: "controlled",
@@ -56,15 +54,14 @@ export default function UserCreateModal(props: UserCreateModalProps) {
         ),
     });
 
-    function createUser() {
-        userApi
-            .createUser({
-                username: form.getValues().username,
-                nickname: form.getValues().nickname,
-                email: form.getValues().email,
-                password: form.getValues().password,
-                group: form.getValues().group,
-            })
+    function handleCreateUser() {
+        createUser({
+            username: form.getValues().username,
+            nickname: form.getValues().nickname,
+            email: form.getValues().email,
+            password: form.getValues().password,
+            group: form.getValues().group,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `用户 ${form.getValues().username} 创建成功`,
@@ -109,7 +106,11 @@ export default function UserCreateModal(props: UserCreateModalProps) {
                         </Flex>
                         <Divider my={10} />
                         <Box p={10}>
-                            <form onSubmit={form.onSubmit((_) => createUser())}>
+                            <form
+                                onSubmit={form.onSubmit((_) =>
+                                    handleCreateUser()
+                                )}
+                            >
                                 <Stack gap={10}>
                                     <Flex gap={10} w={"100%"}>
                                         <TextInput

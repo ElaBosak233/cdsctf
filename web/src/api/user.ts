@@ -1,4 +1,6 @@
+import { Team } from "@/types/team";
 import {
+    User,
     UserCreateRequest,
     UserDeleteRequest,
     UserFindRequest,
@@ -6,69 +8,87 @@ import {
     UserRegisterRequest,
     UserUpdateRequest,
 } from "@/types/user";
-import { useApi, useAuth } from "@/utils/axios";
+import { api } from "@/utils/axios";
 import { AxiosRequestConfig } from "axios";
 
-export function useUserApi() {
-    const api = useApi();
-    const auth = useAuth();
+export async function login(request: UserLoginRequest) {
+    return await api().post<{
+        code: number;
+        data: User;
+        token: string;
+    }>("/users/login", request);
+}
 
-    const login = (request: UserLoginRequest) => {
-        return api.post("/users/login", request);
-    };
+export async function register(request: UserRegisterRequest) {
+    return await api().post<{
+        code: number;
+        data: User;
+    }>("/users/register", request);
+}
 
-    const register = (request: UserRegisterRequest) => {
-        return api.post("/users/register", request);
-    };
+export async function getUsers(request: UserFindRequest) {
+    return await api().get<{
+        code: number;
+        data: Array<User>;
+        total: number;
+    }>("/users", { params: request });
+}
 
-    const getUsers = (request: UserFindRequest) => {
-        return auth.get("/users", { params: request });
-    };
+export async function getUserTeams(id: number) {
+    return await api().get<{
+        code: number;
+        data: Array<Team>;
+    }>(`/users/${id}/teams`);
+}
 
-    const getUserTeams = (id: number) => {
-        return auth.get(`/users/${id}/teams`);
-    };
+export async function updateUser(request: UserUpdateRequest) {
+    return await api().put<{
+        code: number;
+        data: User;
+    }>(`/users/${request?.id}`, request);
+}
 
-    const updateUser = (request: UserUpdateRequest) => {
-        return auth.put(`/users/${request?.id}`, request);
-    };
+export async function createUser(request: UserCreateRequest) {
+    return await api().post<{
+        code: number;
+        data: User;
+    }>("/users", request);
+}
 
-    const createUser = (request: UserCreateRequest) => {
-        return auth.post(`/users`, request);
-    };
+export async function deleteUser(request: UserDeleteRequest) {
+    return await api().delete<{
+        code: number;
+    }>(`/users/${request?.id}`);
+}
 
-    const deleteUser = (request: UserDeleteRequest) => {
-        return auth.delete(`/users/${request?.id}`);
-    };
+export async function getUserAvatarMetadata(id: number) {
+    return await api().get<{
+        code: number;
+        data: {
+            filename: string;
+            size: number;
+        };
+    }>(`/users/${id}/avatar/metadata`);
+}
 
-    const getUserAvatarMetadata = (id: number) => {
-        return auth.get(`/users/${id}/avatar/metadata`);
-    };
+export async function saveUserAvatar(
+    id: number,
+    file: File,
+    config: AxiosRequestConfig<FormData>
+) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return await api().post<{
+        code: number;
+        data: {
+            filename: string;
+            size: number;
+        };
+    }>(`/users/${id}/avatar`, formData, config);
+}
 
-    const saveUserAvatar = (
-        id: number,
-        file: File,
-        config: AxiosRequestConfig<FormData>
-    ) => {
-        const formData = new FormData();
-        formData.append("file", file);
-        return auth.post(`/users/${id}/avatar`, formData, config);
-    };
-
-    const deleteUserAvatar = (id: number) => {
-        return auth.delete(`/users/${id}/avatar`);
-    };
-
-    return {
-        login,
-        register,
-        getUsers,
-        getUserTeams,
-        updateUser,
-        createUser,
-        deleteUser,
-        getUserAvatarMetadata,
-        saveUserAvatar,
-        deleteUserAvatar,
-    };
+export async function deleteUserAvatar(id: number) {
+    return await api().delete<{
+        code: number;
+    }>(`/users/${id}/avatar`);
 }

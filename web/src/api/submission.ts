@@ -1,33 +1,35 @@
 import {
+    Submission,
     SubmissionCreateRequest,
     SubmissionDeleteRequest,
     SubmissionFindRequest,
 } from "@/types/submission";
-import { useAuth } from "@/utils/axios";
+import { api } from "@/utils/axios";
 
-export function useSubmissionApi() {
-    const auth = useAuth();
+export async function createSubmission(request: SubmissionCreateRequest) {
+    return api().post<{
+        code: number;
+        data: Submission;
+    }>("/submissions", request);
+}
 
-    const createSubmission = (request: SubmissionCreateRequest) => {
-        return auth.post("/submissions", { ...request });
-    };
+export async function getSubmissions(request: SubmissionFindRequest) {
+    return api().get<{
+        code: number;
+        data: Array<Submission>;
+        total: number;
+    }>("/submissions", { params: request });
+}
 
-    const getSubmissions = (request: SubmissionFindRequest) => {
-        return auth.get("/submissions", { params: request });
-    };
+export async function getSubmissionByID(id: number) {
+    return api().get<{
+        code: number;
+        data: Submission;
+    }>(`/submissions/${id}`);
+}
 
-    const getSubmissionByID = (id: number) => {
-        return auth.get(`/submissions/${id}`);
-    };
-
-    const deleteSubmission = (request: SubmissionDeleteRequest) => {
-        return auth.delete(`/submissions/${request.id}`);
-    };
-
-    return {
-        getSubmissions,
-        createSubmission,
-        deleteSubmission,
-        getSubmissionByID,
-    };
+export async function deleteSubmission(request: SubmissionDeleteRequest) {
+    return api().delete<{
+        code: number;
+    }>(`/submissions/${request.id}`);
 }

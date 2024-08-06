@@ -1,4 +1,9 @@
-import { useGameApi } from "@/api/game";
+import {
+    getGamePosterMetadata,
+    getGames,
+    saveGamePoster,
+    updateGame,
+} from "@/api/game";
 import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { useConfigStore } from "@/stores/config";
@@ -33,7 +38,6 @@ import { useParams } from "react-router-dom";
 function Page() {
     const { id } = useParams<{ id: string }>();
     const configStore = useConfigStore();
-    const gameApi = useGameApi();
 
     const [game, setGame] = useState<Game>();
 
@@ -58,63 +62,57 @@ function Page() {
         },
     });
 
-    function getGame() {
-        gameApi
-            .getGames({
-                id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGame(r.data[0]);
-            });
+    function handleGetGame() {
+        getGames({
+            id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGame(r.data[0]);
+        });
     }
 
-    function updateGame() {
-        gameApi
-            .updateGame({
-                id: Number(id),
-                title: form.getValues().title,
-                bio: form.getValues().bio,
-                description: form.getValues().description,
-                is_public: form.getValues().is_public,
-                started_at: Math.ceil(form.getValues().started_at),
-                ended_at: Math.ceil(form.getValues().ended_at),
-                member_limit_min: form.getValues().member_limit_min,
-                member_limit_max: form.getValues().member_limit_max,
-                parallel_container_limit:
-                    form.getValues().parallel_container_limit,
-                is_need_write_up: form.getValues().is_need_write_up,
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: `比赛 ${form.getValues().title} 更新成功`,
-                });
+    function handleUpdateGame() {
+        updateGame({
+            id: Number(id),
+            title: form.getValues().title,
+            bio: form.getValues().bio,
+            description: form.getValues().description,
+            is_public: form.getValues().is_public,
+            started_at: Math.ceil(form.getValues().started_at),
+            ended_at: Math.ceil(form.getValues().ended_at),
+            member_limit_min: form.getValues().member_limit_min,
+            member_limit_max: form.getValues().member_limit_max,
+            parallel_container_limit: form.getValues().parallel_container_limit,
+            is_need_write_up: form.getValues().is_need_write_up,
+        }).then((_) => {
+            showSuccessNotification({
+                message: `比赛 ${form.getValues().title} 更新成功`,
             });
+        });
     }
 
-    function getGamePosterMetadata() {
-        gameApi.getGamePosterMetadata(Number(game?.id)).then((res) => {
+    function handleGetGamePosterMetadata() {
+        getGamePosterMetadata(Number(game?.id)).then((res) => {
             const r = res.data;
             setGamePosterMetadata(r.data);
         });
     }
 
-    function saveGamePoster(file?: File) {
+    function handleSaveGamePoster(file?: File) {
         const config: AxiosRequestConfig<FormData> = {};
-        gameApi
-            .saveGamePoster(Number(game?.id), file!, config)
+        saveGamePoster(Number(game?.id), file!, config)
             .then((_) => {
                 showSuccessNotification({
                     message: `比赛 ${form.getValues().title} 头图更新成功`,
                 });
             })
             .finally(() => {
-                getGame();
+                handleGetGame();
             });
     }
 
     useEffect(() => {
-        getGame();
+        handleGetGame();
     }, []);
 
     useEffect(() => {
@@ -131,7 +129,7 @@ function Page() {
                 parallel_container_limit: game?.parallel_container_limit,
                 is_need_write_up: game?.is_need_write_up,
             });
-            getGamePosterMetadata();
+            handleGetGamePosterMetadata();
         }
     }, [game]);
 
@@ -151,7 +149,7 @@ function Page() {
                     </Group>
                     <Divider />
                 </Stack>
-                <form onSubmit={form.onSubmit((_) => updateGame())}>
+                <form onSubmit={form.onSubmit((_) => handleUpdateGame())}>
                     <Stack mx={20}>
                         <Flex gap={20}>
                             <SimpleGrid
@@ -256,7 +254,7 @@ function Page() {
                             <Center>
                                 <Dropzone
                                     onDrop={(files: any) =>
-                                        saveGamePoster(files[0])
+                                        handleSaveGamePoster(files[0])
                                     }
                                     onReject={() => {
                                         showErrNotification({

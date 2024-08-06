@@ -1,4 +1,3 @@
-import { useChallengeApi } from "@/api/challenge";
 import ChallengeModal from "@/components/modals/ChallengeModal";
 import MDIcon from "@/components/ui/MDIcon";
 import ChallengeCard from "@/components/widgets/ChallengeCard";
@@ -22,12 +21,20 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useEffect, useState } from "react";
+import { getChallenges, getChallengeStatus } from "@/api/challenge";
+import { useNavigate } from "react-router-dom";
 
 export default function Page() {
     const authStore = useAuthStore();
     const configStore = useConfigStore();
     const categoryStore = useCategoryStore();
-    const challengeApi = useChallengeApi();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!useAuthStore.getState().user) {
+            navigate("/login?redirect=/challenges");
+        }
+    }, []);
 
     const [refresh, setRefresh] = useState<number>(0);
 
@@ -52,20 +59,18 @@ export default function Page() {
         document.title = `题库 - ${configStore?.pltCfg?.site?.title}`;
     }, []);
 
-    function getChallenges() {
+    function handleGetChallenges() {
         setLoading(true);
-        challengeApi
-            .getChallenges({
-                is_practicable: true,
-                is_detailed: false,
-                page: page,
-                size: rowsPerPage,
-                title: search,
-                category_id:
-                    selectedCategory === 0 ? undefined : selectedCategory,
-                sort_key: sort.split("_")[0],
-                sort_order: sort.split("_")[1],
-            })
+        getChallenges({
+            is_practicable: true,
+            is_detailed: false,
+            page: page,
+            size: rowsPerPage,
+            title: search,
+            category_id: selectedCategory === 0 ? undefined : selectedCategory,
+            sort_key: sort.split("_")[0],
+            sort_order: sort.split("_")[1],
+        })
             .then((res) => {
                 const r = res.data;
                 setChallenges(r?.data);
@@ -83,25 +88,26 @@ export default function Page() {
             });
     }
 
-    function getChallengeStatus() {
-        challengeApi
-            .getChallengeStatus({
-                cids: challenges.map((c) => c?.id!),
-                user_id: authStore.user?.id,
-            })
-            .then((res) => {
-                const r = res.data;
-                setChallengeStatus(r?.data);
-            });
+    function handleGetChallengeStatus() {
+        getChallengeStatus({
+            cids: challenges.map((c) => c?.id!),
+            user_id: authStore.user?.id,
+        }).then((res) => {
+            const r = res.data;
+            setChallengeStatus(r?.data);
+        });
     }
 
     useEffect(() => {
-        getChallenges();
+        handleGetChallenges();
     }, [page, rowsPerPage, search, selectedCategory, sort, refresh]);
 
     useEffect(() => {
-        getChallengeStatus();
+        if (challenges.length) {
+            handleGetChallengeStatus();
+        }
     }, [challenges]);
+
     return (
         <>
             <Stack m={56}>

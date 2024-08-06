@@ -1,4 +1,9 @@
-import { useUserApi } from "@/api/user";
+import {
+    getUserAvatarMetadata,
+    getUsers,
+    saveUserAvatar,
+    updateUser,
+} from "@/api/user";
 import MDIcon from "@/components/ui/MDIcon";
 import { useAuthStore } from "@/stores/auth";
 import { Metadata } from "@/types/media";
@@ -26,7 +31,6 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 
 export default function Page() {
-    const userApi = useUserApi();
     const authStore = useAuthStore();
 
     const [user, setUser] = useState<User>();
@@ -55,28 +59,25 @@ export default function Page() {
         ),
     });
 
-    function getUser() {
-        userApi
-            .getUsers({
-                id: authStore.user?.id,
-            })
-            .then((res) => {
-                const r = res.data;
-                setUser(r.data?.[0]);
-                authStore.setUser(r.data?.[0]);
-            });
+    function handleGetUser() {
+        getUsers({
+            id: authStore.user?.id,
+        }).then((res) => {
+            const r = res.data;
+            setUser(r.data?.[0]);
+            authStore.setUser(r.data?.[0]);
+        });
     }
 
-    function updateUser() {
-        userApi
-            .updateUser({
-                id: Number(user?.id),
-                nickname: form.getValues().nickname,
-                email: form.getValues().email,
-                password: form.getValues().password
-                    ? form.getValues().password
-                    : undefined,
-            })
+    function handleUpdateUser() {
+        updateUser({
+            id: Number(user?.id),
+            nickname: form.getValues().nickname,
+            email: form.getValues().email,
+            password: form.getValues().password
+                ? form.getValues().password
+                : undefined,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `个人资料更新成功`,
@@ -92,16 +93,16 @@ export default function Page() {
             });
     }
 
-    function getUserAvatarMetadata() {
-        userApi.getUserAvatarMetadata(Number(user?.id)).then((res) => {
-            setAvatarMetadata(res.data);
+    function handleGetUserAvatarMetadata() {
+        getUserAvatarMetadata(Number(user?.id)).then((res) => {
+            const r = res.data;
+            setAvatarMetadata(r.data);
         });
     }
 
-    function saveUserAvatar(file?: File) {
+    function handleSaveUserAvatar(file?: File) {
         const config: AxiosRequestConfig<FormData> = {};
-        userApi
-            .saveUserAvatar(Number(user?.id), file!, config)
+        saveUserAvatar(Number(user?.id), file!, config)
             .then((_) => {
                 showSuccessNotification({
                     message: `用户 ${form.getValues().nickname} 头像更新成功`,
@@ -113,7 +114,7 @@ export default function Page() {
     }
 
     useEffect(() => {
-        getUser();
+        handleGetUser();
     }, [refresh]);
 
     useEffect(() => {
@@ -124,7 +125,7 @@ export default function Page() {
                 nickname: user.nickname,
                 password: "",
             });
-            getUserAvatarMetadata();
+            handleGetUserAvatarMetadata();
         }
     }, [user]);
 
@@ -151,7 +152,9 @@ export default function Page() {
                     </Flex>
                     <Divider my={10} />
                     <Box p={10}>
-                        <form onSubmit={form.onSubmit((_) => updateUser())}>
+                        <form
+                            onSubmit={form.onSubmit((_) => handleUpdateUser())}
+                        >
                             <Stack gap={10}>
                                 <Flex gap={10}>
                                     <Stack
@@ -193,7 +196,7 @@ export default function Page() {
                                     </Stack>
                                     <Dropzone
                                         onDrop={(files: any) =>
-                                            saveUserAvatar(files[0])
+                                            handleSaveUserAvatar(files[0])
                                         }
                                         onReject={() => {
                                             showErrNotification({

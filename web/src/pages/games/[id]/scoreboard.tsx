@@ -1,4 +1,3 @@
-import { useGameApi } from "@/api/game";
 import { Game } from "@/types/game";
 import { GameSubmission, Status } from "@/types/submission";
 import {
@@ -29,6 +28,7 @@ import SecondBloodIcon from "@/components/icons/hexagons/SecondBloodIcon";
 import ThirdBloodIcon from "@/components/icons/hexagons/ThirdBloodIcon";
 import { Row, calculateAndSort } from "@/utils/game";
 import { useCategoryStore } from "@/stores/category";
+import { getGameChallenges, getGames, getGameSubmissions } from "@/api/game";
 
 interface ScoreSeries {
     name: string;
@@ -41,8 +41,6 @@ function Page() {
     const { id } = useParams<{ id: string }>();
     const { colorScheme } = useMantineColorScheme();
     const theme = useMantineTheme();
-
-    const gameApi = useGameApi();
 
     const categoryStore = useCategoryStore();
 
@@ -60,24 +58,21 @@ function Page() {
 
     const [loading, setLoading] = useState(true);
 
-    function getGame() {
-        gameApi
-            .getGames({
-                id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGame(r.data[0]);
-            });
+    function handleGetGame() {
+        getGames({
+            id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGame(r.data[0]);
+        });
     }
 
-    function getSubmissions() {
+    function handleGetGameSubmissions() {
         setLoading(true);
-        gameApi
-            .getGameSubmissions({
-                id: Number(id),
-                status: Status.Correct,
-            })
+        getGameSubmissions({
+            id: Number(id),
+            status: Status.Correct,
+        })
             .then((res) => {
                 const r = res.data;
                 setSubmissions(r.data);
@@ -87,16 +82,14 @@ function Page() {
             });
     }
 
-    function getGameChallenges() {
-        gameApi
-            .getGameChallenges({
-                game_id: Number(id),
-                is_enabled: true,
-            })
-            .then((res) => {
-                const r = res.data;
-                setGameChallenges(r.data);
-            });
+    function handleGetGameChallenges() {
+        getGameChallenges({
+            game_id: Number(id),
+            is_enabled: true,
+        }).then((res) => {
+            const r = res.data;
+            setGameChallenges(r.data);
+        });
     }
 
     // 用于表头
@@ -185,12 +178,12 @@ function Page() {
     }, [submissions]);
 
     useEffect(() => {
-        getGame();
+        handleGetGame();
     }, []);
 
     useEffect(() => {
-        getSubmissions();
-        getGameChallenges();
+        handleGetGameSubmissions();
+        handleGetGameChallenges();
     }, [game]);
 
     useEffect(() => {

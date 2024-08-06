@@ -1,7 +1,5 @@
-import { useChallengeApi } from "@/api/challenge";
 import MDIcon from "@/components/ui/MDIcon";
-import { Flag } from "@/types/flag";
-import { showSuccessNotification } from "@/utils/notification";
+import { Flag, Type } from "@/types/flag";
 import {
     Accordion,
     ActionIcon,
@@ -41,7 +39,7 @@ export default function ChallengeFlagAccordion(
             value: "",
             env: "",
             banned: false,
-            type: "pattern",
+            type: Type.Pattern,
         },
     });
 
@@ -88,7 +86,7 @@ export default function ChallengeFlagAccordion(
                 <Accordion.Control>
                     <Group>
                         <Badge color={flag?.banned ? "red" : "brand"}>
-                            {flag?.type === "pattern" ? "正则" : "动态"}
+                            {flag?.type === Type.Pattern ? "正则" : "动态"}
                         </Badge>
                         <Text fw={600}>{flag?.value}</Text>
                         <Text fw={300}>{flag?.env}</Text>

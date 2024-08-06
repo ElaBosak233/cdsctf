@@ -21,11 +21,17 @@ import {
     showErrNotification,
     showSuccessNotification,
 } from "@/utils/notification";
-import { useUserApi } from "@/api/user";
 import { useEffect, useState } from "react";
 import { User } from "@/types/user";
 import { Dropzone } from "@mantine/dropzone";
 import { AxiosRequestConfig } from "axios";
+import {
+    getUserAvatarMetadata,
+    getUsers,
+    saveUserAvatar,
+    updateUser,
+} from "@/api/user";
+import { Metadata } from "@/types/media";
 
 interface UserEditModalProps extends ModalProps {
     setRefresh: () => void;
@@ -35,9 +41,8 @@ interface UserEditModalProps extends ModalProps {
 export default function UserEditModal(props: UserEditModalProps) {
     const { userID, setRefresh, ...modalProps } = props;
 
-    const userApi = useUserApi();
-
     const [user, setUser] = useState<User>();
+    const [avatarMetadata, setAvatarMetadata] = useState<Metadata>();
 
     const form = useForm({
         mode: "controlled",
@@ -65,28 +70,25 @@ export default function UserEditModal(props: UserEditModalProps) {
         ),
     });
 
-    function getUser() {
-        userApi
-            .getUsers({
-                id: userID,
-            })
-            .then((res) => {
-                const r = res.data;
-                setUser(r.data?.[0]);
-            });
+    function handleGetUser() {
+        getUsers({
+            id: userID,
+        }).then((res) => {
+            const r = res.data;
+            setUser(r.data?.[0]);
+        });
     }
 
-    function updateUser() {
-        userApi
-            .updateUser({
-                id: Number(user?.id),
-                nickname: form.getValues().nickname,
-                email: form.getValues().email,
-                password: form.getValues().password
-                    ? form.getValues().password
-                    : undefined,
-                group: form.getValues().group,
-            })
+    function handleUpdateUser() {
+        updateUser({
+            id: Number(user?.id),
+            nickname: form.getValues().nickname,
+            email: form.getValues().email,
+            password: form.getValues().password
+                ? form.getValues().password
+                : undefined,
+            group: form.getValues().group,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `用户 ${form.getValues().nickname} 更新成功`,
@@ -104,10 +106,16 @@ export default function UserEditModal(props: UserEditModalProps) {
             });
     }
 
-    function saveUserAvatar(file?: File) {
+    function handleGetUserAvatarMetadata() {
+        getUserAvatarMetadata(user?.id!).then((res) => {
+            const r = res.data;
+            setAvatarMetadata(r.data);
+        });
+    }
+
+    function handleSaveUserAvatar(file?: File) {
         const config: AxiosRequestConfig<FormData> = {};
-        userApi
-            .saveUserAvatar(Number(user?.id), file!, config)
+        saveUserAvatar(Number(user?.id), file!, config)
             .then((_) => {
                 showSuccessNotification({
                     message: `用户 ${form.getValues().nickname} 头像更新成功`,
@@ -115,7 +123,7 @@ export default function UserEditModal(props: UserEditModalProps) {
             })
             .finally(() => {
                 setRefresh();
-                getUser();
+                handleGetUser();
             });
     }
 
@@ -128,7 +136,8 @@ export default function UserEditModal(props: UserEditModalProps) {
             return;
         }
         if (userID) {
-            getUser();
+            handleGetUser();
+            handleGetUserAvatarMetadata();
         }
     }, [modalProps.opened]);
 
@@ -167,7 +176,11 @@ export default function UserEditModal(props: UserEditModalProps) {
                         </Flex>
                         <Divider my={10} />
                         <Box p={10}>
-                            <form onSubmit={form.onSubmit((_) => updateUser())}>
+                            <form
+                                onSubmit={form.onSubmit((_) =>
+                                    handleUpdateUser()
+                                )}
+                            >
                                 <Stack gap={10}>
                                     <Flex gap={10}>
                                         <Stack
@@ -209,7 +222,7 @@ export default function UserEditModal(props: UserEditModalProps) {
                                         </Stack>
                                         <Dropzone
                                             onDrop={(files: any) =>
-                                                saveUserAvatar(files[0])
+                                                handleSaveUserAvatar(files[0])
                                             }
                                             onReject={() => {
                                                 showErrNotification({
@@ -232,7 +245,7 @@ export default function UserEditModal(props: UserEditModalProps) {
                                                     pointerEvents: "none",
                                                 }}
                                             >
-                                                {user?.avatar?.name ? (
+                                                {avatarMetadata ? (
                                                     <Center>
                                                         <Image
                                                             w={120}

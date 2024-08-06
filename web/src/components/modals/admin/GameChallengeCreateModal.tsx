@@ -20,11 +20,11 @@ import {
 } from "@/utils/notification";
 import { useEffect, useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
-import { useGameApi } from "@/api/game";
 import { Challenge } from "@/types/challenge";
 import ChallengeSelectModal from "./ChallengeSelectModal";
 import { useParams } from "react-router-dom";
 import { useCategoryStore } from "@/stores/category";
+import { createGameChallenge } from "@/api/game";
 
 interface GameChallengeCreateModalProps extends ModalProps {
     setRefresh: () => void;
@@ -37,7 +37,6 @@ export default function GameChallengeCreateModal(
 
     const { id } = useParams<{ id: string }>();
 
-    const gameApi = useGameApi();
     const categoryStore = useCategoryStore();
 
     const [challenge, setChallenge] = useState<Challenge>();
@@ -88,15 +87,14 @@ export default function GameChallengeCreateModal(
         }
     }, [challenge]);
 
-    function createGameChallenge() {
-        gameApi
-            .createGameChallenge({
-                game_id: Number(id),
-                challenge_id: form.getValues().challenge_id,
-                max_pts: form.getValues().max_pts,
-                min_pts: form.getValues().min_pts,
-                is_enabled: false,
-            })
+    function handleCreateGameChallenge() {
+        createGameChallenge({
+            game_id: Number(id),
+            challenge_id: form.getValues().challenge_id,
+            max_pts: form.getValues().max_pts,
+            min_pts: form.getValues().min_pts,
+            is_enabled: false,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `题目 ${challenge?.title} 添加成功`,
@@ -144,7 +142,7 @@ export default function GameChallengeCreateModal(
                         <Box p={10}>
                             <form
                                 onSubmit={form.onSubmit((_) =>
-                                    createGameChallenge()
+                                    handleCreateGameChallenge()
                                 )}
                             >
                                 <Stack gap={10}>

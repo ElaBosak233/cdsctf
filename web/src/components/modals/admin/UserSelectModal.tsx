@@ -1,4 +1,4 @@
-import { useUserApi } from "@/api/user";
+import { getUsers } from "@/api/user";
 import MDIcon from "@/components/ui/MDIcon";
 import { User } from "@/types/user";
 import {
@@ -24,29 +24,26 @@ interface UserSelectModalProps extends ModalProps {
 export default function UserSelectModal(props: UserSelectModalProps) {
     const { setUser, ...modalProps } = props;
 
-    const userApi = useUserApi();
     const [users, setUsers] = useState<Array<User>>([]);
     const [search, setSearch] = useState<string>("");
     const [page, setPage] = useState<number>(1);
     const [total, setTotal] = useState<number>(0);
     const [rowsPerPage, _] = useState<number>(10);
 
-    function getUsers() {
-        userApi
-            .getUsers({
-                size: 10,
-                page: page,
-                name: search,
-            })
-            .then((res) => {
-                const r = res.data;
-                setUsers(r.data);
-                setTotal(r.total);
-            });
+    function handleGetUsers() {
+        getUsers({
+            size: 10,
+            page: page,
+            name: search,
+        }).then((res) => {
+            const r = res.data;
+            setUsers(r.data);
+            setTotal(r.total);
+        });
     }
 
     useEffect(() => {
-        getUsers();
+        handleGetUsers();
     }, [search, page]);
 
     return (

@@ -1,4 +1,3 @@
-import { useGameApi } from "@/api/game";
 import MDIcon from "@/components/ui/MDIcon";
 import MarkdownRender from "@/components/utils/MarkdownRender";
 import { useConfigStore } from "@/stores/config";
@@ -23,10 +22,10 @@ import { useAuthStore } from "@/stores/auth";
 import { showErrNotification } from "@/utils/notification";
 import { useDisclosure } from "@mantine/hooks";
 import GameTeamApplyModal from "@/components/modals/GameTeamApplyModal";
+import { getGames, getGameTeams } from "@/api/game";
 
 export default function Page() {
     const { id } = useParams<{ id: string }>();
-    const gameApi = useGameApi();
     const configStore = useConfigStore();
     const navigate = useNavigate();
     const authStore = useAuthStore();
@@ -51,26 +50,22 @@ export default function Page() {
     const [applyOpened, { open: applyOpen, close: applyClose }] =
         useDisclosure(false);
 
-    function getGame() {
-        gameApi
-            .getGames({
-                id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGame(r.data[0]);
-            });
+    function handleGetGame() {
+        getGames({
+            id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGame(r.data[0]);
+        });
     }
 
-    function getGameTeams() {
-        gameApi
-            .getGameTeams({
-                game_id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGameTeams(r.data);
-            });
+    function handleGetGameTeams() {
+        getGameTeams({
+            game_id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGameTeams(r.data);
+        });
     }
 
     function enter() {
@@ -107,8 +102,8 @@ export default function Page() {
     }, [gameTeams]);
 
     useEffect(() => {
-        getGame();
-        getGameTeams();
+        handleGetGame();
+        handleGetGameTeams();
     }, []);
 
     useEffect(() => {

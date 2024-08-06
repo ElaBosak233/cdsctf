@@ -1,4 +1,9 @@
-import { useGameApi } from "@/api/game";
+import {
+    deleteGameTeam,
+    getGames,
+    getGameTeams,
+    updateGameTeam,
+} from "@/api/game";
 import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import GameTeamCreateModal from "@/components/modals/admin/GameTeamCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
@@ -26,7 +31,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 function Page() {
-    const gameApi = useGameApi();
     const { id } = useParams<{ id: string }>();
 
     const [loading, setLoading] = useState<boolean>(true);
@@ -46,23 +50,20 @@ function Page() {
 
     const [total, setTotal] = useState<number>(0);
 
-    function getGame() {
-        gameApi
-            .getGames({
-                id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGame(r.data[0]);
-            });
+    function handleGetGame() {
+        getGames({
+            id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGame(r.data[0]);
+        });
     }
 
-    function getGameTeams() {
+    function handleGetGameTeams() {
         setLoading(true);
-        gameApi
-            .getGameTeams({
-                game_id: Number(id),
-            })
+        getGameTeams({
+            game_id: Number(id),
+        })
             .then((res) => {
                 const r = res.data;
                 setGameTeams(r.data);
@@ -74,44 +75,40 @@ function Page() {
     }
 
     function switchIsAllowed(gameTeam?: GameTeam) {
-        gameApi
-            .updateGameTeam({
-                game_id: Number(id),
-                team_id: gameTeam?.team_id,
-                is_allowed: !gameTeam?.is_allowed,
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: !gameTeam?.is_allowed
-                        ? `已允许队伍 ${gameTeam?.team?.name} 参赛`
-                        : `已禁止队伍 ${gameTeam?.team?.name} 参赛`,
-                });
-                setGameTeams(
-                    gameTeams?.map((gt) =>
-                        gt.id === gameTeam?.id
-                            ? {
-                                  ...gt,
-                                  is_allowed: !gameTeam?.is_allowed,
-                              }
-                            : gt
-                    )
-                );
+        updateGameTeam({
+            game_id: Number(id),
+            team_id: gameTeam?.team_id,
+            is_allowed: !gameTeam?.is_allowed,
+        }).then((_) => {
+            showSuccessNotification({
+                message: !gameTeam?.is_allowed
+                    ? `已允许队伍 ${gameTeam?.team?.name} 参赛`
+                    : `已禁止队伍 ${gameTeam?.team?.name} 参赛`,
             });
+            setGameTeams(
+                gameTeams?.map((gt) =>
+                    gt.id === gameTeam?.id
+                        ? {
+                              ...gt,
+                              is_allowed: !gameTeam?.is_allowed,
+                          }
+                        : gt
+                )
+            );
+        });
     }
 
-    function deleteGameTeam(gameTeam?: GameTeam) {
+    function handleDeleteGameTeam(gameTeam?: GameTeam) {
         if (gameTeam) {
-            gameApi
-                .deleteGameTeam({
-                    game_id: gameTeam?.game_id,
-                    team_id: gameTeam?.team_id,
-                })
-                .then(() => {
-                    showSuccessNotification({
-                        message: "团队已移除",
-                    });
-                    setRefresh((prev) => prev + 1);
+            deleteGameTeam({
+                game_id: gameTeam?.game_id,
+                team_id: gameTeam?.team_id,
+            }).then(() => {
+                showSuccessNotification({
+                    message: "团队已移除",
                 });
+                setRefresh((prev) => prev + 1);
+            });
         }
     }
 
@@ -137,12 +134,12 @@ function Page() {
                 color: "red",
             },
             onConfirm: () => {
-                deleteGameTeam(gameTeam);
+                handleDeleteGameTeam(gameTeam);
             },
         });
 
     useEffect(() => {
-        getGame();
+        handleGetGame();
     }, [refresh]);
 
     useEffect(() => {
@@ -155,7 +152,7 @@ function Page() {
 
     useEffect(() => {
         if (game) {
-            getGameTeams();
+            handleGetGameTeams();
         }
     }, [game]);
 

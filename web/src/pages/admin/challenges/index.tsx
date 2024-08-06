@@ -1,4 +1,8 @@
-import { useChallengeApi } from "@/api/challenge";
+import {
+    deleteChallenge,
+    getChallenges,
+    updateChallenge,
+} from "@/api/challenge";
 import ChallengeCreateModal from "@/components/modals/admin/ChallengeCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
 import { useCategoryStore } from "@/stores/category";
@@ -32,7 +36,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Page() {
-    const challengeApi = useChallengeApi();
     const configStore = useConfigStore();
     const categoryStore = useCategoryStore();
 
@@ -53,28 +56,25 @@ export default function Page() {
     const [createOpened, { open: createOpen, close: createClose }] =
         useDisclosure(false);
 
-    function getChallenges() {
-        challengeApi
-            .getChallenges({
-                page: page,
-                size: rowsPerPage,
-                title: search,
-                sort_key: sort.split("_")[0],
-                sort_order: sort.split("_")[1],
-            })
-            .then((res) => {
-                const r = res.data;
-                setChallenges(r.data);
-                setTotal(r.total);
-            });
+    function handleGetChallenges() {
+        getChallenges({
+            page: page,
+            size: rowsPerPage,
+            title: search,
+            sort_key: sort.split("_")[0],
+            sort_order: sort.split("_")[1],
+        }).then((res) => {
+            const r = res.data;
+            setChallenges(r.data);
+            setTotal(r.total);
+        });
     }
 
     function switchIsPracticable(challenge?: Challenge) {
-        challengeApi
-            .updateChallenge({
-                id: Number(challenge?.id),
-                is_practicable: !challenge?.is_practicable,
-            })
+        updateChallenge({
+            id: Number(challenge?.id),
+            is_practicable: !challenge?.is_practicable,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: !challenge?.is_practicable
@@ -87,11 +87,10 @@ export default function Page() {
             });
     }
 
-    function deleteChallenge(challenge?: Challenge) {
-        challengeApi
-            .deleteChallenge({
-                id: Number(challenge?.id),
-            })
+    function handleDeleteChallenge(challenge?: Challenge) {
+        deleteChallenge({
+            id: Number(challenge?.id),
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `题目 ${challenge?.title} 已被删除`,
@@ -129,12 +128,12 @@ export default function Page() {
                 color: "red",
             },
             onConfirm: () => {
-                deleteChallenge(challenge);
+                handleDeleteChallenge(challenge);
             },
         });
 
     useEffect(() => {
-        getChallenges();
+        handleGetChallenges();
     }, [search, page, rowsPerPage, sort, refresh]);
 
     useEffect(() => {

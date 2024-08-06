@@ -1,4 +1,4 @@
-import { useTeamApi } from "@/api/team";
+import { getTeams } from "@/api/team";
 import MDIcon from "@/components/ui/MDIcon";
 import { Team } from "@/types/team";
 import {
@@ -24,29 +24,26 @@ interface TeamSelectModalProps extends ModalProps {
 export default function TeamSelectModal(props: TeamSelectModalProps) {
     const { setTeam, ...modalProps } = props;
 
-    const teamApi = useTeamApi();
     const [teams, setTeams] = useState<Array<Team>>([]);
     const [search, setSearch] = useState<string>("");
     const [page, setPage] = useState<number>(1);
     const [total, setTotal] = useState<number>(0);
     const [rowsPerPage, _] = useState<number>(10);
 
-    function getTeams() {
-        teamApi
-            .getTeams({
-                size: 10,
-                page: page,
-                name: search,
-            })
-            .then((res) => {
-                const r = res.data;
-                setTeams(r.data);
-                setTotal(r.total);
-            });
+    function handleGetTeams() {
+        getTeams({
+            size: 10,
+            page: page,
+            name: search,
+        }).then((res) => {
+            const r = res.data;
+            setTeams(r.data);
+            setTotal(r.total);
+        });
     }
 
     useEffect(() => {
-        getTeams();
+        handleGetTeams();
     }, [search, page]);
 
     return (

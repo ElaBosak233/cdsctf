@@ -1,12 +1,10 @@
-import { useUserApi } from "@/api/user";
+import { register } from "@/api/user";
 import MDIcon from "@/components/ui/MDIcon";
-import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
 import { Box, Button, Flex, Group, Stack, TextInput } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { User } from "@/types/user";
+import { redirect } from "react-router-dom";
 import {
     showErrNotification,
     showSuccessNotification,
@@ -17,9 +15,6 @@ import { z } from "zod";
 
 export default function Page() {
     const configStore = useConfigStore();
-    const navigate = useNavigate();
-    const userApi = useUserApi();
-    const authStore = useAuthStore();
 
     useEffect(() => {
         document.title = `注册 - ${configStore?.pltCfg?.site?.title}`;
@@ -50,7 +45,7 @@ export default function Page() {
         ),
     });
 
-    function register() {
+    function handleRegister() {
         if (
             configStore?.pltCfg?.user?.register?.captcha?.enabled &&
             !form.getValues().token
@@ -62,23 +57,19 @@ export default function Page() {
             return;
         }
         setRegisterLoading(true);
-        userApi
-            .register({
-                username: form.getValues().username?.toLocaleLowerCase(),
-                nickname: form.getValues().nickname,
-                password: form.getValues().password,
-                email: form.getValues().email,
-                token: form.getValues().token,
-            })
-            .then((res) => {
-                const r = res.data;
-                authStore.setPgsToken(r.token as string);
-                authStore.setUser(r.data as User);
+        register({
+            username: form.getValues().username?.toLocaleLowerCase(),
+            nickname: form.getValues().nickname,
+            password: form.getValues().password,
+            email: form.getValues().email,
+            token: form.getValues().token,
+        })
+            .then((_) => {
                 showSuccessNotification({
                     title: "注册成功",
                     message: "请登录",
                 });
-                navigate("/login");
+                redirect("/login");
             })
             .catch((err) => {
                 switch (err.response?.status) {
@@ -107,7 +98,7 @@ export default function Page() {
                 className={"no-select"}
             >
                 <Stack>
-                    <form onSubmit={form.onSubmit((_) => register())}>
+                    <form onSubmit={form.onSubmit((_) => handleRegister())}>
                         <Stack>
                             <Group>
                                 <TextInput
@@ -197,7 +188,7 @@ export default function Page() {
                     >
                         已有帐号？
                         <Box
-                            onClick={() => navigate("/login")}
+                            onClick={() => redirect("/login")}
                             sx={{
                                 fontStyle: "italic",
                                 ":hover": {
