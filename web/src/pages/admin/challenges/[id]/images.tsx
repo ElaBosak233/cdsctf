@@ -1,4 +1,4 @@
-import { useChallengeApi } from "@/api/challenge";
+import { getChallenges, updateChallenge } from "@/api/challenge";
 import withChallengeEdit from "@/components/layouts/admin/withChallengeEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { Challenge } from "@/types/challenge";
@@ -11,7 +11,6 @@ import {
     Flex,
     Group,
     NumberInput,
-    Select,
     SimpleGrid,
     Stack,
     Text,
@@ -24,7 +23,6 @@ import { useParams } from "react-router-dom";
 
 function Page() {
     const { id } = useParams<{ id: string }>();
-    const challengeApi = useChallengeApi();
 
     const [refresh, setRefresh] = useState<number>(0);
     const [challenge, setChallenge] = useState<Challenge>();
@@ -40,36 +38,32 @@ function Page() {
         },
     });
 
-    function getChallenge() {
-        challengeApi
-            .getChallenges({
-                id: Number(id),
-                is_detailed: true,
-            })
-            .then((res) => {
-                const r = res.data;
-                setChallenge(r.data?.[0]);
-                setEnvs(r.data?.[0]?.envs || []);
-                setPorts(r.data?.[0]?.ports || []);
-            });
+    function handleGetChallenge() {
+        getChallenges({
+            id: Number(id),
+            is_detailed: true,
+        }).then((res) => {
+            const r = res.data;
+            setChallenge(r.data?.[0]);
+            setEnvs(r.data?.[0]?.envs || []);
+            setPorts(r.data?.[0]?.ports || []);
+        });
     }
 
-    function updateChallengeImage() {
-        challengeApi
-            .updateChallenge({
-                id: Number(id),
-                image_name: form.getValues().image_name,
-                cpu_limit: form.getValues().cpu_limit,
-                memory_limit: form.getValues().memory_limit,
-                envs: envs,
-                ports: ports,
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: "镜像更新成功",
-                });
-                setRefresh((prev) => prev + 1);
+    function handleUpdateChallengeImage() {
+        updateChallenge({
+            id: Number(id),
+            image_name: form.getValues().image_name,
+            cpu_limit: form.getValues().cpu_limit,
+            memory_limit: form.getValues().memory_limit,
+            envs: envs,
+            ports: ports,
+        }).then((_) => {
+            showSuccessNotification({
+                message: "镜像更新成功",
             });
+            setRefresh((prev) => prev + 1);
+        });
     }
 
     useEffect(() => {
@@ -81,7 +75,7 @@ function Page() {
     }, [challenge]);
 
     useEffect(() => {
-        getChallenge();
+        handleGetChallenge();
     }, [refresh]);
 
     useEffect(() => {
@@ -90,7 +84,7 @@ function Page() {
 
     return (
         <Stack m={36}>
-            <form onSubmit={form.onSubmit((_) => updateChallengeImage())}>
+            <form onSubmit={form.onSubmit((_) => handleUpdateChallengeImage())}>
                 <Stack>
                     <Stack gap={10}>
                         <Group>

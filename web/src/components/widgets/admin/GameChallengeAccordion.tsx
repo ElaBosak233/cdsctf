@@ -1,4 +1,3 @@
-import { useGameApi } from "@/api/game";
 import MDIcon from "@/components/ui/MDIcon";
 import { useCategoryStore } from "@/stores/category";
 import { ChallengeStatus } from "@/types/challenge";
@@ -24,6 +23,7 @@ import { modals } from "@mantine/modals";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Curve from "./Curve";
+import { deleteGameChallenge, updateGameChallenge } from "@/api/game";
 
 export default function GameChallengeAccordion({
     gameChallenge,
@@ -35,7 +35,6 @@ export default function GameChallengeAccordion({
     setRefresh: () => void;
 }) {
     const navigate = useNavigate();
-    const gameApi = useGameApi();
     const categoryStore = useCategoryStore();
 
     const form = useForm({
@@ -50,12 +49,11 @@ export default function GameChallengeAccordion({
     });
 
     function switchIsEnabled() {
-        gameApi
-            .updateGameChallenge({
-                game_id: gameChallenge?.game_id,
-                challenge_id: gameChallenge?.challenge_id,
-                is_enabled: !gameChallenge?.is_enabled,
-            })
+        updateGameChallenge({
+            game_id: gameChallenge?.game_id,
+            challenge_id: gameChallenge?.challenge_id,
+            is_enabled: !gameChallenge?.is_enabled,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: !gameChallenge?.is_enabled
@@ -68,21 +66,18 @@ export default function GameChallengeAccordion({
             });
     }
 
-    function updateGameChallenge() {
-        gameApi
-            .updateGameChallenge({
-                game_id: gameChallenge?.game_id,
-                challenge_id: gameChallenge?.challenge_id,
-                min_pts: form.getValues().min_pts,
-                max_pts: form.getValues().max_pts,
-                difficulty: form.getValues().difficulty,
-                first_blood_reward_ratio:
-                    form.getValues().first_blood_reward_ratio,
-                second_blood_reward_ratio:
-                    form.getValues().second_blood_reward_ratio,
-                third_blood_reward_ratio:
-                    form.getValues().third_blood_reward_ratio,
-            })
+    function handleUpdateGameChallenge() {
+        updateGameChallenge({
+            game_id: gameChallenge?.game_id,
+            challenge_id: gameChallenge?.challenge_id,
+            min_pts: form.getValues().min_pts,
+            max_pts: form.getValues().max_pts,
+            difficulty: form.getValues().difficulty,
+            first_blood_reward_ratio: form.getValues().first_blood_reward_ratio,
+            second_blood_reward_ratio:
+                form.getValues().second_blood_reward_ratio,
+            third_blood_reward_ratio: form.getValues().third_blood_reward_ratio,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: "题目分值已更新",
@@ -93,19 +88,17 @@ export default function GameChallengeAccordion({
             });
     }
 
-    function deleteGameChallenge(gameChallenge?: GameChallenge) {
+    function handleDeleteGameChallenge(gameChallenge?: GameChallenge) {
         if (gameChallenge) {
-            gameApi
-                .deleteGameChallenge({
-                    game_id: gameChallenge?.game_id,
-                    challenge_id: gameChallenge?.challenge_id,
-                })
-                .then(() => {
-                    showSuccessNotification({
-                        message: "题目已删除",
-                    });
-                    setRefresh();
+            deleteGameChallenge({
+                game_id: gameChallenge?.game_id,
+                challenge_id: gameChallenge?.challenge_id,
+            }).then(() => {
+                showSuccessNotification({
+                    message: "题目已删除",
                 });
+                setRefresh();
+            });
         }
     }
 
@@ -133,7 +126,7 @@ export default function GameChallengeAccordion({
                 color: "red",
             },
             onConfirm: () => {
-                deleteGameChallenge(gameChallenge);
+                handleDeleteGameChallenge(gameChallenge);
             },
         });
 
@@ -223,7 +216,9 @@ export default function GameChallengeAccordion({
                 </Flex>
             </Center>
             <Accordion.Panel>
-                <form onSubmit={form.onSubmit((_) => updateGameChallenge())}>
+                <form
+                    onSubmit={form.onSubmit((_) => handleUpdateGameChallenge())}
+                >
                     <Stack align={"end"}>
                         <Flex w={"100%"} gap={10}>
                             <Stack>

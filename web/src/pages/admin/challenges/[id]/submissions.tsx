@@ -1,5 +1,5 @@
-import { useChallengeApi } from "@/api/challenge";
-import { useSubmissionApi } from "@/api/submission";
+import { getChallenges } from "@/api/challenge";
+import { deleteSubmission, getSubmissions } from "@/api/submission";
 import withChallengeEdit from "@/components/layouts/admin/withChallengeEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { Challenge } from "@/types/challenge";
@@ -26,8 +26,6 @@ import { useParams } from "react-router-dom";
 
 function Page() {
     const { id } = useParams<{ id: string }>();
-    const submissionApi = useSubmissionApi();
-    const challengeApi = useChallengeApi();
 
     const [challenge, setChallenge] = useState<Challenge>();
     const [submissions, setSubmissions] = useState<Array<Submission>>([]);
@@ -78,26 +76,23 @@ function Page() {
         ],
     ]);
 
-    function getChallenge() {
-        challengeApi
-            .getChallenges({
-                id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setChallenge(r.data[0]);
-            });
+    function handleGetChallenge() {
+        getChallenges({
+            id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setChallenge(r.data[0]);
+        });
     }
 
-    function getSubmissions() {
+    function handleGetSubmissions() {
         setLoading(true);
-        submissionApi
-            .getSubmissions({
-                challenge_id: Number(id),
-                page: page,
-                size: rowsPerPage,
-                is_detailed: true,
-            })
+        getSubmissions({
+            challenge_id: Number(id),
+            page: page,
+            size: rowsPerPage,
+            is_detailed: true,
+        })
             .then((res) => {
                 const r = res.data;
                 setSubmissions(r.data);
@@ -108,18 +103,16 @@ function Page() {
             });
     }
 
-    function deleteSubmission(submission?: Submission) {
+    function handleDeleteSubmission(submission?: Submission) {
         if (submission) {
-            submissionApi
-                .deleteSubmission({
-                    id: submission?.id,
-                })
-                .then(() => {
-                    showSuccessNotification({
-                        message: "提交记录已移除",
-                    });
-                    setRefresh((prev) => prev + 1);
+            deleteSubmission({
+                id: submission?.id,
+            }).then(() => {
+                showSuccessNotification({
+                    message: "提交记录已移除",
                 });
+                setRefresh((prev) => prev + 1);
+            });
         }
     }
 
@@ -145,18 +138,18 @@ function Page() {
                 color: "red",
             },
             onConfirm: () => {
-                deleteSubmission(submission);
+                handleDeleteSubmission(submission);
             },
         });
 
     useEffect(() => {
         if (challenge) {
-            getSubmissions();
+            handleGetSubmissions();
         }
     }, [challenge, page, rowsPerPage, refresh]);
 
     useEffect(() => {
-        getChallenge();
+        handleGetChallenge();
     }, []);
 
     useEffect(() => {
