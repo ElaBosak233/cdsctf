@@ -1,4 +1,4 @@
-import { useGameApi } from "@/api/game";
+import { getGames } from "@/api/game";
 import MDIcon from "@/components/ui/MDIcon";
 import GameCard from "@/components/widgets/GameCard";
 import { useConfigStore } from "@/stores/config";
@@ -17,7 +17,6 @@ import { useNavigate } from "react-router-dom";
 
 export default function Page() {
     const configStore = useConfigStore();
-    const gameApi = useGameApi();
     const navigate = useNavigate();
 
     const [games, setGames] = useState<Array<Game>>([]);
@@ -28,14 +27,13 @@ export default function Page() {
 
     const [loading, setLoading] = useState<boolean>(true);
 
-    function getGames() {
+    function handleGetGames() {
         setLoading(true);
-        gameApi
-            .getGames({
-                title: search,
-                page: page,
-                is_enabled: true,
-            })
+        getGames({
+            title: search,
+            page: page,
+            is_enabled: true,
+        })
             .then((res) => {
                 const r = res.data;
                 setGames(r.data);
@@ -47,7 +45,7 @@ export default function Page() {
     }
 
     useEffect(() => {
-        getGames();
+        handleGetGames();
     }, [page, search]);
 
     useEffect(() => {

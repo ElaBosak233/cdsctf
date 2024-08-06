@@ -18,8 +18,8 @@ import {
 import { useForm, zodResolver } from "@mantine/form";
 import { useEffect } from "react";
 import { z } from "zod";
-import { useChallengeApi } from "@/api/challenge";
 import { useCategoryStore } from "@/stores/category";
+import { createChallenge } from "@/api/challenge";
 
 interface ChallengeCreateModalProps extends ModalProps {
     setRefresh: () => void;
@@ -28,7 +28,6 @@ interface ChallengeCreateModalProps extends ModalProps {
 export default function ChallengeCreateModal(props: ChallengeCreateModalProps) {
     const { setRefresh, ...modalProps } = props;
 
-    const challengeApi = useChallengeApi();
     const categoryStore = useCategoryStore();
 
     const form = useForm({
@@ -46,20 +45,18 @@ export default function ChallengeCreateModal(props: ChallengeCreateModalProps) {
         ),
     });
 
-    function createChallenge() {
-        challengeApi
-            .createChallenge({
-                title: form.getValues().title,
-                description: form.getValues().description,
-                category_id: form.getValues().category_id,
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: `题目 ${form.getValues().title} 创建成功`,
-                });
-                setRefresh();
-                modalProps.onClose();
+    function handleCreateChallenge() {
+        createChallenge({
+            title: form.getValues().title,
+            description: form.getValues().description,
+            category_id: form.getValues().category_id,
+        }).then((_) => {
+            showSuccessNotification({
+                message: `题目 ${form.getValues().title} 创建成功`,
             });
+            setRefresh();
+            modalProps.onClose();
+        });
     }
 
     useEffect(() => {
@@ -91,7 +88,7 @@ export default function ChallengeCreateModal(props: ChallengeCreateModalProps) {
                         <Box p={10}>
                             <form
                                 onSubmit={form.onSubmit((_) =>
-                                    createChallenge()
+                                    handleCreateChallenge()
                                 )}
                             >
                                 <Stack gap={10}>

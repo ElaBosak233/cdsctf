@@ -1,15 +1,14 @@
 import { Box, Button, Flex, Group, Progress, Stack, Text } from "@mantine/core";
 import MDIcon from "@/components/ui/MDIcon";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { useGameApi } from "@/api/game";
 import { Game } from "@/types/game";
 import { useEffect, useState } from "react";
 import { useInterval } from "@mantine/hooks";
+import { getGames } from "@/api/game";
 
 export default function withGame(WrappedComponent: React.ComponentType<any>) {
     return function withGame(props: any) {
         const { id } = useParams<{ id: string }>();
-        const gameApi = useGameApi();
         const location = useLocation();
         const path = location.pathname.split(`/games/${id}`)[1];
 
@@ -19,15 +18,13 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
         const [seconds, setSeconds] = useState(0);
         const interval = useInterval(() => setSeconds((s) => s + 1), 1000);
 
-        function getGame() {
-            gameApi
-                .getGames({
-                    id: Number(id),
-                })
-                .then((res) => {
-                    const r = res.data;
-                    setGame(r.data[0]);
-                });
+        function handleGetGame() {
+            getGames({
+                id: Number(id),
+            }).then((res) => {
+                const r = res.data;
+                setGame(r.data[0]);
+            });
         }
 
         useEffect(() => {
@@ -44,7 +41,7 @@ export default function withGame(WrappedComponent: React.ComponentType<any>) {
         }, []);
 
         useEffect(() => {
-            getGame();
+            handleGetGame();
         }, []);
 
         return (

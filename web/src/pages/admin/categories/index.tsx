@@ -13,16 +13,14 @@ import {
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { Category } from "@/types/category";
-import { useCategoryApi } from "@/api/category";
 import { modals } from "@mantine/modals";
 import { showSuccessNotification } from "@/utils/notification";
 import CategoryCreateModal from "@/components/modals/admin/CategoryCreateModal";
 import CategoryEditModal from "@/components/modals/admin/CategoryEditModal";
 import { useDisclosure } from "@mantine/hooks";
+import { deleteCategory, getCategories } from "@/api/category";
 
 export default function Page() {
-    const categoryApi = useCategoryApi();
-
     const [refresh, setRefresh] = useState<number>(0);
     const [categories, setCategories] = useState<Array<Category>>([]);
 
@@ -32,24 +30,22 @@ export default function Page() {
         useDisclosure(false);
     const [selectedCategory, setSelectedCategory] = useState<Category>();
 
-    function getCategories() {
-        categoryApi.getCategories().then((res) => {
+    function handleGetCategories() {
+        getCategories().then((res) => {
             const r = res.data;
             setCategories(r?.data);
         });
     }
 
-    function deleteCategory(category?: Category) {
-        categoryApi
-            .deleteCategory({
-                id: category?.id,
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: "分类删除成功",
-                });
-                setRefresh((prev) => prev + 1);
+    function handleDeleteCategory(category?: Category) {
+        deleteCategory({
+            id: category?.id,
+        }).then((_) => {
+            showSuccessNotification({
+                message: "分类删除成功",
             });
+            setRefresh((prev) => prev + 1);
+        });
     }
 
     const openDeleteCategoryModal = (category?: Category) =>
@@ -77,12 +73,12 @@ export default function Page() {
                 color: "red",
             },
             onConfirm: () => {
-                deleteCategory(category);
+                handleDeleteCategory(category);
             },
         });
 
     useEffect(() => {
-        getCategories();
+        handleGetCategories();
     }, [refresh]);
 
     return (

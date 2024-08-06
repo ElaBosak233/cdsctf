@@ -1,4 +1,3 @@
-import { useUserApi } from "@/api/user";
 import MDIcon from "@/components/ui/MDIcon";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
@@ -6,16 +5,15 @@ import { Box, Button, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User } from "@/types/user";
 import {
     showErrNotification,
     showSuccessNotification,
 } from "@/utils/notification";
+import { login } from "@/api/user";
 
 export default function Page() {
     const configStore = useConfigStore();
     const navigate = useNavigate();
-    const userApi = useUserApi();
     const authStore = useAuthStore();
 
     useEffect(() => {
@@ -47,27 +45,27 @@ export default function Page() {
         },
     });
 
-    function login() {
+    function handleLogin() {
         setLoginLoading(true);
-        userApi
-            .login({
-                account: form.getValues().account?.toLocaleLowerCase(),
-                password: form.getValues().password,
-            })
+        login({
+            account: form.getValues().account?.toLocaleLowerCase(),
+            password: form.getValues().password,
+        })
             .then((res) => {
                 const r = res.data;
-                authStore.setPgsToken(r.token as string);
-                authStore.setUser(r.data as User);
+                authStore.setPgsToken(r?.token);
+                authStore.setUser(r?.data);
                 showSuccessNotification({
                     title: "登录成功",
                     message: `欢迎进入 ${configStore?.pltCfg?.site?.title}`,
                 });
                 navigate("/");
+                console.log(res);
             })
             .catch((err) => {
                 showErrNotification({
                     title: "发生了错误",
-                    message: `登录失败 ${err.response?.data?.msg}`,
+                    message: `登录失败 ${err}`,
                 });
             })
             .finally(() => {
@@ -93,7 +91,7 @@ export default function Page() {
                         marginTop: "2rem",
                     }}
                 >
-                    <form onSubmit={form.onSubmit((_) => login())}>
+                    <form onSubmit={form.onSubmit((_) => handleLogin())}>
                         <TextInput
                             label="用户名/邮箱"
                             size="lg"

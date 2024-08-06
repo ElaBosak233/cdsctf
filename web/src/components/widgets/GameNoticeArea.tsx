@@ -1,4 +1,3 @@
-import { useGameApi } from "@/api/game";
 import { Notice } from "@/types/notice";
 import { Box, Flex, ScrollArea, ThemeIcon } from "@mantine/core";
 import { useEffect, useState } from "react";
@@ -8,26 +7,24 @@ import dayjs from "dayjs";
 import FirstBloodIcon from "@/components/icons/hexagons/FirstBloodIcon";
 import SecondBloodIcon from "@/components/icons/hexagons/SecondBloodIcon";
 import ThirdBloodIcon from "@/components/icons/hexagons/ThirdBloodIcon";
+import { getGameNotices } from "@/api/game";
 
 export default function GameNoticeArea() {
     const { id } = useParams<{ id: string }>();
-    const gameApi = useGameApi();
 
     const [notices, setNotices] = useState<Array<Notice>>([]);
 
-    function getGameNotices() {
-        gameApi
-            .getGameNotices({
-                game_id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setNotices(r.data);
-            });
+    function handleGetGameNotices() {
+        getGameNotices({
+            game_id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setNotices(r.data);
+        });
     }
 
     useEffect(() => {
-        getGameNotices();
+        handleGetGameNotices();
     }, []);
 
     useEffect(() => {

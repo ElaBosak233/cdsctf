@@ -13,12 +13,12 @@ import {
 } from "@mantine/core";
 import MDIcon from "@/components/ui/MDIcon";
 import { isEmail, useForm } from "@mantine/form";
-import { useTeamApi } from "@/api/team";
 import { useAuthStore } from "@/stores/auth";
 import {
     showErrNotification,
     showSuccessNotification,
 } from "@/utils/notification";
+import { createTeam } from "@/api/team";
 
 interface TeamCreateModalProps extends ModalProps {
     setRefresh: () => void;
@@ -26,8 +26,6 @@ interface TeamCreateModalProps extends ModalProps {
 
 export default function TeamCreateModal(props: TeamCreateModalProps) {
     const { setRefresh, ...modalProps } = props;
-
-    const teamApi = useTeamApi();
     const authStore = useAuthStore();
 
     const form = useForm({
@@ -54,14 +52,17 @@ export default function TeamCreateModal(props: TeamCreateModalProps) {
         },
     });
 
-    function createTeam(name: string, description: string, email: string) {
-        teamApi
-            .createTeam({
-                name: name,
-                description: description,
-                email: email,
-                captain_id: Number(authStore.user?.id),
-            })
+    function handleCreateTeam(
+        name: string,
+        description: string,
+        email: string
+    ) {
+        createTeam({
+            name: name,
+            description: description,
+            email: email,
+            captain_id: Number(authStore.user?.id),
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `团队 ${form.values.name} 创建成功`,
@@ -104,7 +105,7 @@ export default function TeamCreateModal(props: TeamCreateModalProps) {
                         <Box p={10}>
                             <form
                                 onSubmit={form.onSubmit((values) =>
-                                    createTeam(
+                                    handleCreateTeam(
                                         values.name,
                                         values.description,
                                         values.email

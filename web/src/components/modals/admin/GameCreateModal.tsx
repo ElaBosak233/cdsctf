@@ -1,4 +1,3 @@
-import { useGameApi } from "@/api/game";
 import MDIcon from "@/components/ui/MDIcon";
 import { showSuccessNotification } from "@/utils/notification";
 import {
@@ -18,6 +17,7 @@ import { useForm, zodResolver } from "@mantine/form";
 import { DateTimePicker } from "@mantine/dates";
 import { useEffect } from "react";
 import { z } from "zod";
+import { createGame } from "@/api/game";
 
 interface GameCreateModalProps extends ModalProps {
     setRefresh: () => void;
@@ -25,8 +25,6 @@ interface GameCreateModalProps extends ModalProps {
 
 export default function GameCreateModal(props: GameCreateModalProps) {
     const { setRefresh, ...modalProps } = props;
-
-    const gameApi = useGameApi();
 
     const form = useForm({
         mode: "controlled",
@@ -46,22 +44,20 @@ export default function GameCreateModal(props: GameCreateModalProps) {
         ),
     });
 
-    function createGame() {
-        gameApi
-            .createGame({
-                title: form.getValues().title,
-                bio: form.getValues().bio,
-                started_at: Math.ceil(form.getValues().started_at),
-                ended_at: Math.ceil(form.getValues().ended_at),
-                is_enabled: false,
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: `比赛 ${form.getValues().title} 创建成功`,
-                });
-                setRefresh();
-                modalProps.onClose();
+    function handleCreateGame() {
+        createGame({
+            title: form.getValues().title,
+            bio: form.getValues().bio,
+            started_at: Math.ceil(form.getValues().started_at),
+            ended_at: Math.ceil(form.getValues().ended_at),
+            is_enabled: false,
+        }).then((_) => {
+            showSuccessNotification({
+                message: `比赛 ${form.getValues().title} 创建成功`,
             });
+            setRefresh();
+            modalProps.onClose();
+        });
     }
 
     useEffect(() => {
@@ -91,7 +87,11 @@ export default function GameCreateModal(props: GameCreateModalProps) {
                         </Flex>
                         <Divider my={10} />
                         <Box p={10}>
-                            <form onSubmit={form.onSubmit((_) => createGame())}>
+                            <form
+                                onSubmit={form.onSubmit((_) =>
+                                    handleCreateGame()
+                                )}
+                            >
                                 <Stack gap={10}>
                                     <TextInput
                                         label="比赛名称"

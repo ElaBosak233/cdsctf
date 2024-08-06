@@ -1,5 +1,5 @@
-import { useChallengeApi } from "@/api/challenge";
-import { useGameApi } from "@/api/game";
+import { getChallengeStatus } from "@/api/challenge";
+import { getGameChallenges, getGames } from "@/api/game";
 import withGameEdit from "@/components/layouts/admin/withGameEdit";
 import GameChallengeCreateModal from "@/components/modals/admin/GameChallengeCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
@@ -24,8 +24,6 @@ import { useParams } from "react-router-dom";
 
 function Page() {
     const { id } = useParams<{ id: string }>();
-    const gameApi = useGameApi();
-    const challengeApi = useChallengeApi();
 
     const [refresh, setRefresh] = useState<number>(0);
 
@@ -40,23 +38,20 @@ function Page() {
     const [createOpened, { open: createOpen, close: createClose }] =
         useDisclosure(false);
 
-    function getGame() {
-        gameApi
-            .getGames({
-                id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGame(r.data[0]);
-            });
+    function handleGetGame() {
+        getGames({
+            id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGame(r.data[0]);
+        });
     }
 
-    function getChallenges() {
+    function handleGetChallenges() {
         setLoading(true);
-        gameApi
-            .getGameChallenges({
-                game_id: Number(id),
-            })
+        getGameChallenges({
+            game_id: Number(id),
+        })
             .then((res) => {
                 const r = res.data;
                 setGameChallenges(r.data);
@@ -66,31 +61,29 @@ function Page() {
             });
     }
 
-    function getChallengeStatus() {
-        challengeApi
-            .getChallengeStatus({
-                cids: gameChallenges.map((c) => Number(c.challenge_id)),
-                game_id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setStatus(r.data);
-            });
+    function handleGetChallengeStatus() {
+        getChallengeStatus({
+            cids: gameChallenges.map((c) => Number(c.challenge_id)),
+            game_id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setStatus(r.data);
+        });
     }
 
     useEffect(() => {
-        getGame();
+        handleGetGame();
     }, []);
 
     useEffect(() => {
         if (game) {
-            getChallenges();
+            handleGetChallenges();
         }
     }, [game, refresh]);
 
     useEffect(() => {
         if (gameChallenges.length > 0) {
-            getChallengeStatus();
+            handleGetChallengeStatus();
         }
     }, [gameChallenges]);
 

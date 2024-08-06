@@ -1,4 +1,4 @@
-import { useGameApi } from "@/api/game";
+import { createGameNotice } from "@/api/game";
 import MDIcon from "@/components/ui/MDIcon";
 import { showSuccessNotification } from "@/utils/notification";
 import {
@@ -25,7 +25,6 @@ export default function GameNoticeCreateModal(
     props: GameNoticeCreateModalProps
 ) {
     const { setRefresh, ...modalProps } = props;
-    const gameApi = useGameApi();
     const { id } = useParams<{ id: string }>();
 
     const form = useForm({
@@ -35,20 +34,18 @@ export default function GameNoticeCreateModal(
         },
     });
 
-    function createGameNotice() {
-        gameApi
-            .createGameNotice({
-                content: form.getValues().content,
-                type: "normal",
-                game_id: Number(id),
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: "公告创建成功",
-                });
-                setRefresh();
-                modalProps.onClose();
+    function handleCreateGameNotice() {
+        createGameNotice({
+            content: form.getValues().content,
+            type: "normal",
+            game_id: Number(id),
+        }).then((_) => {
+            showSuccessNotification({
+                message: "公告创建成功",
             });
+            setRefresh();
+            modalProps.onClose();
+        });
     }
 
     useEffect(() => {
@@ -78,7 +75,9 @@ export default function GameNoticeCreateModal(
                     <Divider my={10} />
                     <Box p={10}>
                         <form
-                            onSubmit={form.onSubmit((_) => createGameNotice())}
+                            onSubmit={form.onSubmit((_) =>
+                                handleCreateGameNotice()
+                            )}
                         >
                             <Stack gap={10}>
                                 <TextInput

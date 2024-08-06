@@ -1,5 +1,6 @@
-import { useChallengeApi } from "@/api/challenge";
+import { getChallenges } from "@/api/challenge";
 import MDIcon from "@/components/ui/MDIcon";
+import { useCategoryStore } from "@/stores/category";
 import { Challenge } from "@/types/challenge";
 import {
     Card,
@@ -24,29 +25,26 @@ interface ChallengeSelectModalProps extends ModalProps {
 export default function ChallengeSelectModal(props: ChallengeSelectModalProps) {
     const { setChallenge, ...modalProps } = props;
 
-    const challengeApi = useChallengeApi();
     const [challenges, setChallenges] = useState<Array<Challenge>>([]);
     const [search, setSearch] = useState<string>("");
     const [page, setPage] = useState<number>(1);
     const [total, setTotal] = useState<number>(0);
     const [rowsPerPage, _] = useState<number>(10);
 
-    function getChallenges() {
-        challengeApi
-            .getChallenges({
-                size: 10,
-                page: page,
-                title: search,
-            })
-            .then((res) => {
-                const r = res.data;
-                setChallenges(r.data);
-                setTotal(r.total);
-            });
+    function handleGetChallenges() {
+        getChallenges({
+            size: 10,
+            page: page,
+            title: search,
+        }).then((res) => {
+            const r = res.data;
+            setChallenges(r.data);
+            setTotal(r.total);
+        });
     }
 
     useEffect(() => {
-        getChallenges();
+        handleGetChallenges();
     }, [search, page]);
 
     return (
@@ -89,10 +87,20 @@ export default function ChallengeSelectModal(props: ChallengeSelectModalProps) {
                                             <Badge>{challenge?.id}</Badge>
                                             <MDIcon
                                                 color={
-                                                    challenge?.category?.color
+                                                    useCategoryStore
+                                                        .getState()
+                                                        .getCategory(
+                                                            challenge?.category_id!
+                                                        )?.color
                                                 }
                                             >
-                                                {challenge?.category?.icon}
+                                                {
+                                                    useCategoryStore
+                                                        .getState()
+                                                        .getCategory(
+                                                            challenge?.category_id!
+                                                        )?.icon
+                                                }
                                             </MDIcon>
                                             <Text fw={700} size="1rem">
                                                 {challenge?.title}

@@ -22,9 +22,7 @@ import SecondBloodIcon from "@/components/icons/hexagons/SecondBloodIcon";
 import MarkdownRender from "../utils/MarkdownRender";
 import { useEffect, useState } from "react";
 import { Pod } from "@/types/pod";
-import { usePodApi } from "@/api/pod";
 import { useAuthStore } from "@/stores/auth";
-import { useSubmissionApi } from "@/api/submission";
 import {
     showErrNotification,
     showInfoNotification,
@@ -36,9 +34,11 @@ import { useForm } from "@mantine/form";
 import { useTeamStore } from "@/stores/team";
 import { useClipboard, useInterval } from "@mantine/hooks";
 import { Metadata } from "@/types/media";
-import { useChallengeApi } from "@/api/challenge";
 import { useCategoryStore } from "@/stores/category";
 import { Status } from "@/types/submission";
+import { getChallengeAttachmentMetadata } from "@/api/challenge";
+import { createPod, getPods, removePod, renewPod } from "@/api/pod";
+import { createSubmission, getSubmissionByID } from "@/api/submission";
 
 interface ChallengeModalProps extends ModalProps {
     challenge?: Challenge;
@@ -51,9 +51,6 @@ export default function ChallengeModal(props: ChallengeModalProps) {
     const { challenge, gameID, setRefresh, status, ...modalProps } = props;
 
     const clipboard = useClipboard({ timeout: 500 });
-    const podApi = usePodApi();
-    const challengeApi = useChallengeApi();
-    const submissionApi = useSubmissionApi();
     const authStore = useAuthStore();
     const teamStore = useTeamStore();
     const categoryStore = useCategoryStore();
@@ -76,38 +73,33 @@ export default function ChallengeModal(props: ChallengeModalProps) {
         },
     });
 
-    function getAttachmentMetadata() {
-        challengeApi
-            .getChallengeAttachmentMetadata(Number(challenge?.id))
-            .then((res) => {
-                const r = res.data;
-                setAttachmentMetadata(r?.data);
-            });
+    function handleGetAttachmentMetadata() {
+        getChallengeAttachmentMetadata(Number(challenge?.id)).then((res) => {
+            const r = res.data;
+            setAttachmentMetadata(r?.data);
+        });
     }
 
-    function getPod() {
-        podApi
-            .getPods({
-                challenge_id: challenge?.id,
-                user_id: !gameID ? authStore?.user?.id : undefined,
-                team_id: gameID ? teamStore?.selectedTeamID : undefined,
-                game_id: gameID ? gameID : undefined,
-                is_available: true,
-            })
-            .then((res) => {
-                const r = res.data;
-                setPod(r.data?.[0] as Pod);
-            });
+    function handleGetPod() {
+        getPods({
+            challenge_id: challenge?.id,
+            user_id: !gameID ? authStore?.user?.id : undefined,
+            team_id: gameID ? teamStore?.selectedTeamID : undefined,
+            game_id: gameID ? gameID : undefined,
+            is_available: true,
+        }).then((res) => {
+            const r = res.data;
+            setPod(r.data?.[0] as Pod);
+        });
     }
 
-    function createPod() {
+    function handleCreatePod() {
         setPodCreateLoading(true);
-        podApi
-            .createPod({
-                challenge_id: challenge?.id,
-                team_id: gameID ? teamStore?.selectedTeamID : undefined,
-                game_id: gameID ? gameID : undefined,
-            })
+        createPod({
+            challenge_id: challenge?.id,
+            team_id: gameID ? teamStore?.selectedTeamID : undefined,
+            game_id: gameID ? gameID : undefined,
+        })
             .then((res) => {
                 const r = res.data;
                 setPod(r?.data);
@@ -123,12 +115,11 @@ export default function ChallengeModal(props: ChallengeModalProps) {
             });
     }
 
-    function removePod() {
+    function handleRemovePod() {
         setPodRemoveLoading(true);
-        podApi
-            .removePod({
-                id: pod?.id as number,
-            })
+        removePod({
+            id: Number(pod?.id),
+        })
             .then((_) => {
                 setPod(undefined);
                 setPodTime(0);
@@ -142,14 +133,13 @@ export default function ChallengeModal(props: ChallengeModalProps) {
             });
     }
 
-    function renewPod() {
+    function handleRenewPod() {
         setPodRenewLoading(true);
-        podApi
-            .renewPod({
-                id: pod?.id!,
-            })
+        renewPod({
+            id: pod?.id!,
+        })
             .then((_) => {
-                getPod();
+                handleGetPod();
             })
             .finally(() => {
                 setPodRenewLoading(false);
@@ -167,16 +157,15 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 
         let submissionID = 0;
 
-        await submissionApi
-            .createSubmission({
-                challenge_id: challenge?.id,
-                flag: flag,
-                team_id: gameID ? teamStore?.selectedTeamID : undefined,
-                game_id: gameID ? gameID : undefined,
-            })
+        await createSubmission({
+            challenge_id: challenge?.id,
+            flag: flag,
+            team_id: gameID ? teamStore?.selectedTeamID : undefined,
+            game_id: gameID ? gameID : undefined,
+        })
             .then((res) => {
                 const r = res.data;
-                submissionID = r?.data?.id;
+                submissionID = Number(r?.data?.id);
                 showLoadingNotification({
                     id: "flag_check",
                     title: "请稍候",
@@ -191,7 +180,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
             });
 
         const interval = setInterval(() => {
-            submissionApi.getSubmissionByID(submissionID).then((res) => {
+            getSubmissionByID(submissionID).then((res) => {
                 const r = res.data;
                 if (r?.data?.status !== Status.Pending) {
                     clearInterval(interval);
@@ -246,10 +235,10 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 
     useEffect(() => {
         if (challenge?.is_dynamic) {
-            getPod();
+            handleGetPod();
         }
         if (challenge?.has_attachment) {
-            getAttachmentMetadata();
+            handleGetAttachmentMetadata();
         }
     }, [challenge, modalProps.opened]);
 
@@ -488,14 +477,14 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                                                 <Button
                                                     loading={podRenewLoading}
                                                     color={"blue"}
-                                                    onClick={renewPod}
+                                                    onClick={handleRenewPod}
                                                 >
                                                     实例续期
                                                 </Button>
                                                 <Button
                                                     loading={podRemoveLoading}
                                                     color={"red"}
-                                                    onClick={removePod}
+                                                    onClick={handleRemovePod}
                                                 >
                                                     销毁实例
                                                 </Button>
@@ -506,7 +495,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                                                 size="sm"
                                                 color={category?.color}
                                                 loading={podCreateLoading}
-                                                onClick={createPod}
+                                                onClick={handleCreatePod}
                                             >
                                                 开启容器
                                             </Button>

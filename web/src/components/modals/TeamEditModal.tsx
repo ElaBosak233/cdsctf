@@ -1,4 +1,3 @@
-import { useTeamApi } from "@/api/team";
 import { useAuthStore } from "@/stores/auth";
 import { Team, TeamUpdateRequest } from "@/types/team";
 import {
@@ -32,6 +31,15 @@ import { User } from "@/types/user";
 import { AxiosRequestConfig } from "axios";
 import { Dropzone } from "@mantine/dropzone";
 import { Metadata } from "@/types/media";
+import {
+    deleteTeam,
+    deleteTeamUser,
+    getTeamAvatarMetadata,
+    getTeamInviteToken,
+    saveTeamAvatar,
+    updateTeam,
+    updateTeamInviteToken,
+} from "@/api/team";
 
 interface TeamEditModalProps extends ModalProps {
     setRefresh: () => void;
@@ -41,7 +49,6 @@ interface TeamEditModalProps extends ModalProps {
 export default function TeamEditModal(props: TeamEditModalProps) {
     const { setRefresh, team, ...modalProps } = props;
 
-    const teamApi = useTeamApi();
     const authStore = useAuthStore();
 
     const [isCaptain, setIsCaptain] = useState<boolean>(false);
@@ -74,17 +81,16 @@ export default function TeamEditModal(props: TeamEditModalProps) {
         },
     });
 
-    function getTeamAvatarMetadata() {
-        teamApi.getTeamAvatarMetadata(Number(team?.id)).then((res) => {
+    function handleGetTeamAvatarMetadata() {
+        getTeamAvatarMetadata(Number(team?.id)).then((res) => {
             const r = res.data;
             setAvatarMetadata(r.data);
         });
     }
 
-    function saveTeamAvatar(file?: File) {
+    function handleSaveTeamAvatar(file?: File) {
         const config: AxiosRequestConfig<FormData> = {};
-        teamApi
-            .saveTeamAvatar(Number(team?.id), file!, config)
+        saveTeamAvatar(Number(team?.id), file!, config)
             .then((_) => {
                 showSuccessNotification({
                     message: `团队 ${form.getValues().name} 头像更新成功`,
@@ -96,40 +102,35 @@ export default function TeamEditModal(props: TeamEditModalProps) {
             });
     }
 
-    function getTeamInviteToken() {
-        teamApi
-            .getTeamInviteToken({
-                id: Number(team?.id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setInviteToken(r.token);
-            });
+    function handleGetTeamInviteToken() {
+        getTeamInviteToken({
+            id: Number(team?.id),
+        }).then((res) => {
+            const r = res.data;
+            setInviteToken(r.token);
+        });
     }
 
-    function updateTeamInviteToken() {
-        teamApi
-            .updateTeamInviteToken({
-                id: Number(team?.id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setInviteToken(r.token);
-                showSuccessNotification({
-                    message: `团队 ${team?.name} 邀请码更新成功`,
-                });
+    function handleUpdateTeamInviteToken() {
+        updateTeamInviteToken({
+            id: Number(team?.id),
+        }).then((res) => {
+            const r = res.data;
+            setInviteToken(r.token);
+            showSuccessNotification({
+                message: `团队 ${team?.name} 邀请码更新成功`,
             });
+        });
     }
 
-    function updateTeam(request: TeamUpdateRequest) {
-        teamApi
-            .updateTeam({
-                id: Number(team?.id),
-                name: request?.name,
-                description: request?.description,
-                email: request?.email,
-                captain_id: request?.captain_id || Number(authStore.user?.id),
-            })
+    function handleUpdateTeam(request: TeamUpdateRequest) {
+        updateTeam({
+            id: Number(team?.id),
+            name: request?.name,
+            description: request?.description,
+            email: request?.email,
+            captain_id: request?.captain_id || Number(authStore.user?.id),
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `团队 ${form.values.name} 更新成功`,
@@ -147,28 +148,25 @@ export default function TeamEditModal(props: TeamEditModalProps) {
             });
     }
 
-    function deleteTeamUser(user?: User) {
-        teamApi
-            .deleteTeamUser({
-                id: Number(team?.id),
-                user_id: Number(user?.id),
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: `用户 ${user?.nickname} 已被踢出`,
-                });
-                setRefresh();
-                setUsers((prevUsers) =>
-                    prevUsers?.filter((u) => u?.id !== user?.id)
-                );
+    function handleDeleteTeamUser(user?: User) {
+        deleteTeamUser({
+            id: Number(team?.id),
+            user_id: Number(user?.id),
+        }).then((_) => {
+            showSuccessNotification({
+                message: `用户 ${user?.nickname} 已被踢出`,
             });
+            setRefresh();
+            setUsers((prevUsers) =>
+                prevUsers?.filter((u) => u?.id !== user?.id)
+            );
+        });
     }
 
-    function deleteTeam() {
-        teamApi
-            .deleteTeam({
-                id: Number(team?.id),
-            })
+    function handleDeleteTeam() {
+        deleteTeam({
+            id: Number(team?.id),
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `团队 ${team?.name} 已被解散`,
@@ -202,7 +200,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
                 color: "red",
             },
             onConfirm: () => {
-                deleteTeamUser(user);
+                handleDeleteTeamUser(user);
             },
         });
 
@@ -225,7 +223,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
                 cancel: "取消",
             },
             onConfirm: () => {
-                updateTeam({
+                handleUpdateTeam({
                     captain_id: user?.id,
                 });
             },
@@ -253,7 +251,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
                 color: "red",
             },
             onConfirm: () => {
-                deleteTeam();
+                handleDeleteTeam();
             },
         });
 
@@ -261,7 +259,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
         if (team) {
             setIsCaptain(authStore?.user?.id === team?.captain_id);
             if (authStore?.user?.id === team?.captain_id) {
-                getTeamInviteToken();
+                handleGetTeamInviteToken();
             }
             setUsers(team?.users);
             form.setValues({
@@ -269,7 +267,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
                 description: team?.description,
                 email: team?.email,
             });
-            getTeamAvatarMetadata();
+            handleGetTeamAvatarMetadata();
         }
     }, [team]);
 
@@ -298,7 +296,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
                         <Box p={10}>
                             <form
                                 onSubmit={form.onSubmit((values) =>
-                                    updateTeam({
+                                    handleUpdateTeam({
                                         name: values.name,
                                         description: values.description,
                                         email: values.email,
@@ -331,7 +329,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
                                                     rightSection={
                                                         <ActionIcon
                                                             onClick={
-                                                                updateTeamInviteToken
+                                                                handleUpdateTeamInviteToken
                                                             }
                                                         >
                                                             <MDIcon>
@@ -345,7 +343,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
                                         </Stack>
                                         <Dropzone
                                             onDrop={(files: any) =>
-                                                saveTeamAvatar(files[0])
+                                                handleSaveTeamAvatar(files[0])
                                             }
                                             onReject={() => {
                                                 showErrNotification({

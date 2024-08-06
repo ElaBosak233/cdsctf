@@ -3,9 +3,9 @@ import Navbar, { NavItems } from "@/components/navigations/Navbar";
 import routes from "~react-pages";
 import { AppShell, Button, LoadingOverlay } from "@mantine/core";
 import { Suspense, useEffect, useState } from "react";
-import { useCategoryApi } from "@/api/category";
+import { getCategories } from "@/api/category";
 import { useCategoryStore } from "@/stores/category";
-import { useConfigApi } from "@/api/config";
+import { getConfig } from "@/api/config";
 import { useConfigStore } from "@/stores/config";
 import "dayjs/locale/zh-cn";
 import { useDisclosure, useFavicon } from "@mantine/hooks";
@@ -14,9 +14,7 @@ import MDIcon from "./components/ui/MDIcon";
 import { useWsrxStore } from "./stores/wsrx";
 
 function App() {
-    const categoryApi = useCategoryApi();
     const categoryStore = useCategoryStore();
-    const configApi = useConfigApi();
     const configStore = useConfigStore();
     const wsrxStore = useWsrxStore();
 
@@ -29,8 +27,7 @@ function App() {
 
     // Get platform config
     useEffect(() => {
-        configApi
-            .getPltCfg()
+        getConfig()
             .then((res) => {
                 const r = res.data;
                 configStore.setPltCfg(r.data);
@@ -42,7 +39,7 @@ function App() {
 
     // Get exists categories
     useEffect(() => {
-        categoryApi.getCategories().then((res) => {
+        getCategories().then((res) => {
             const r = res.data;
             categoryStore.setCategories(r.data);
         });

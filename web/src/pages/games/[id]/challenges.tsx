@@ -1,5 +1,10 @@
-import { useChallengeApi } from "@/api/challenge";
-import { useGameApi } from "@/api/game";
+import { getChallengeStatus } from "@/api/challenge";
+import {
+    getGameChallenges,
+    getGames,
+    getGameSubmissions,
+    getGameTeams,
+} from "@/api/game";
 import withGame from "@/components/layouts/withGame";
 import ChallengeModal from "@/components/modals/ChallengeModal";
 import MDIcon from "@/components/ui/MDIcon";
@@ -39,9 +44,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 function Page() {
     const { id } = useParams<{ id: string }>();
-    const gameApi = useGameApi();
-
-    const challengeApi = useChallengeApi();
     const configStore = useConfigStore();
     const categoryStore = useCategoryStore();
     const authStore = useAuthStore();
@@ -77,13 +79,12 @@ function Page() {
     const [rank, setRank] = useState<number>(0);
     const [solves, setSolves] = useState<number>(0);
 
-    function getSubmissions() {
+    function handleGetGameSubmissions() {
         setLoadingTeamStatus(true);
-        gameApi
-            .getGameSubmissions({
-                id: Number(id),
-                status: Status.Correct,
-            })
+        getGameSubmissions({
+            id: Number(id),
+            status: Status.Correct,
+        })
             .then((res) => {
                 const r = res.data;
                 setSubmissions(r.data);
@@ -93,25 +94,21 @@ function Page() {
             });
     }
 
-    function getGame() {
-        gameApi
-            .getGames({
-                id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGame(r.data?.[0]);
-            });
+    function handleGetGame() {
+        getGames({
+            id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGame(r.data?.[0]);
+        });
     }
 
-    function getGameChallenges() {
+    function handleGetGameChallenges() {
         setLoadingChallenges(true);
-        gameApi
-            .getGameChallenges({
-                game_id: Number(id),
-                team_id: gameTeam?.team_id,
-                is_enabled: true,
-            })
+        getGameChallenges({
+            game_id: Number(id),
+            is_enabled: true,
+        })
             .then((res) => {
                 const r = res.data;
                 setGameChallenges(r.data);
@@ -121,28 +118,24 @@ function Page() {
             });
     }
 
-    function getChallengeStatus() {
-        challengeApi
-            .getChallengeStatus({
-                game_id: Number(id),
-                cids: gameChallenges.map((c) => c.challenge_id!),
-                team_id: gameTeam?.team_id,
-            })
-            .then((res) => {
-                const r = res.data;
-                setStatus(r.data);
-            });
+    function handleGetChallengeStatus() {
+        getChallengeStatus({
+            game_id: Number(id),
+            cids: gameChallenges.map((c) => c.challenge_id!),
+            team_id: gameTeam?.team_id,
+        }).then((res) => {
+            const r = res.data;
+            setStatus(r.data);
+        });
     }
 
-    function getGameTeams() {
-        gameApi
-            .getGameTeams({
-                game_id: Number(id),
-            })
-            .then((res) => {
-                const r = res.data;
-                setGameTeams(r.data);
-            });
+    function handleGetGameTeams() {
+        getGameTeams({
+            game_id: Number(id),
+        }).then((res) => {
+            const r = res.data;
+            setGameTeams(r.data);
+        });
     }
 
     useEffect(() => {
@@ -217,19 +210,19 @@ function Page() {
                     });
                 }
             });
-            getChallengeStatus();
+            handleGetChallengeStatus();
         }
     }, [gameChallenges]);
 
     useEffect(() => {
-        getGame();
-        getGameTeams();
-        getSubmissions();
+        handleGetGame();
+        handleGetGameTeams();
+        handleGetGameSubmissions();
     }, []);
 
     useEffect(() => {
         if (gameTeam) {
-            getGameChallenges();
+            handleGetGameChallenges();
         }
     }, [gameTeam, refresh]);
 

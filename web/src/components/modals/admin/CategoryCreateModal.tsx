@@ -1,4 +1,4 @@
-import { useCategoryApi } from "@/api/category";
+import { createCategory } from "@/api/category";
 import MDIcon from "@/components/ui/MDIcon";
 import { showSuccessNotification } from "@/utils/notification";
 import {
@@ -24,7 +24,6 @@ interface CategoryCreateModalProps extends ModalProps {
 
 export default function CategoryCreateModal(props: CategoryCreateModalProps) {
     const { setRefresh, ...modalProps } = props;
-    const categoryApi = useCategoryApi();
 
     const form = useForm({
         mode: "controlled",
@@ -40,20 +39,18 @@ export default function CategoryCreateModal(props: CategoryCreateModalProps) {
         ),
     });
 
-    function createCategory() {
-        categoryApi
-            .createCategory({
-                name: form.getValues().name,
-                icon: form.getValues().icon,
-                color: form.getValues().color,
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: `分类 ${form.getValues().name} 创建成功`,
-                });
-                setRefresh();
-                modalProps.onClose();
+    function handleCreateCategory() {
+        createCategory({
+            name: form.getValues().name,
+            icon: form.getValues().icon,
+            color: form.getValues().color,
+        }).then((_) => {
+            showSuccessNotification({
+                message: `分类 ${form.getValues().name} 创建成功`,
             });
+            setRefresh();
+            modalProps.onClose();
+        });
     }
 
     useEffect(() => {
@@ -85,7 +82,7 @@ export default function CategoryCreateModal(props: CategoryCreateModalProps) {
                         <Box p={10}>
                             <form
                                 onSubmit={form.onSubmit((_) =>
-                                    createCategory()
+                                    handleCreateCategory()
                                 )}
                             >
                                 <Stack gap={10}>

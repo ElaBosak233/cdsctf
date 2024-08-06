@@ -15,7 +15,6 @@ import {
 } from "@mantine/core";
 import MDIcon from "@/components/ui/MDIcon";
 import { isEmail, useForm } from "@mantine/form";
-import { useTeamApi } from "@/api/team";
 import {
     showErrNotification,
     showSuccessNotification,
@@ -24,6 +23,7 @@ import { useEffect, useState } from "react";
 import { User } from "@/types/user";
 import UserSelectModal from "./UserSelectModal";
 import { useDisclosure } from "@mantine/hooks";
+import { createTeam } from "@/api/team";
 
 interface TeamCreateModalProps extends ModalProps {
     setRefresh: () => void;
@@ -31,8 +31,6 @@ interface TeamCreateModalProps extends ModalProps {
 
 export default function TeamCreateModal(props: TeamCreateModalProps) {
     const { setRefresh, ...modalProps } = props;
-
-    const teamApi = useTeamApi();
 
     const [captain, setCaptain] = useState<User>();
 
@@ -76,14 +74,13 @@ export default function TeamCreateModal(props: TeamCreateModalProps) {
         }
     }, [captain]);
 
-    function createTeam() {
-        teamApi
-            .createTeam({
-                name: form.getValues().name,
-                description: form.getValues().description,
-                email: form.getValues().email,
-                captain_id: form.getValues().captain_id,
-            })
+    function handleCreateTeam() {
+        createTeam({
+            name: form.getValues().name,
+            description: form.getValues().description,
+            email: form.getValues().email,
+            captain_id: form.getValues().captain_id,
+        })
             .then((_) => {
                 showSuccessNotification({
                     message: `团队 ${form.values.name} 创建成功`,
@@ -129,7 +126,11 @@ export default function TeamCreateModal(props: TeamCreateModalProps) {
                         </Flex>
                         <Divider my={10} />
                         <Box p={10}>
-                            <form onSubmit={form.onSubmit((_) => createTeam())}>
+                            <form
+                                onSubmit={form.onSubmit((_) =>
+                                    handleCreateTeam()
+                                )}
+                            >
                                 <Stack gap={10}>
                                     <TextInput
                                         label="团队名称"
