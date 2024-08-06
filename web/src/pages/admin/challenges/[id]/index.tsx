@@ -1,4 +1,10 @@
-import { useChallengeApi } from "@/api/challenge";
+import {
+    deleteChallengeAttachment,
+    getChallengeAttachmentMetadata,
+    getChallenges,
+    saveChallengeAttachment,
+    updateChallenge,
+} from "@/api/challenge";
 import withChallengeEdit from "@/components/layouts/admin/withChallengeEdit";
 import MDIcon from "@/components/ui/MDIcon";
 import { useCategoryStore } from "@/stores/category";
@@ -34,7 +40,6 @@ import { z } from "zod";
 
 function Page() {
     const configStore = useConfigStore();
-    const challengeApi = useChallengeApi();
     const categoryStore = useCategoryStore();
 
     const { id } = useParams<{ id: string }>();
@@ -46,45 +51,41 @@ function Page() {
 
     const [attachment, setAttachment] = useState<File | null>(null);
 
-    function getChallenge() {
-        challengeApi
-            .getChallenges({
-                id: Number(id),
-                is_detailed: true,
-            })
-            .then((res) => {
-                const r = res.data;
-                setChallenge(r.data[0]);
-            });
+    function handleGetChallenge() {
+        getChallenges({
+            id: Number(id),
+            is_detailed: true,
+        }).then((res) => {
+            const r = res.data;
+            setChallenge(r.data[0]);
+        });
     }
 
-    function getAttachmentMetadata() {
-        challengeApi.getChallengeAttachmentMetadata(Number(id)).then((res) => {
+    function handleGetAttachmentMetadata() {
+        getChallengeAttachmentMetadata(Number(id)).then((res) => {
             const r = res.data;
             setAttachmentMetadata(r.data);
         });
     }
 
-    function saveAttachment() {
+    function handleSaveAttachment() {
         showLoadingNotification({
             id: "upload-attachment",
             message: "正在上传附件",
         });
         const config: AxiosRequestConfig<FormData> = {};
-        challengeApi
-            .saveChallengeAttachment(Number(id), attachment!, config)
-            .then((_) => {
-                showSuccessNotification({
-                    id: "upload-attachment",
-                    message: "附件上传成功",
-                    update: true,
-                });
-                setRefresh((prev) => prev + 1);
+        saveChallengeAttachment(Number(id), attachment!, config).then((_) => {
+            showSuccessNotification({
+                id: "upload-attachment",
+                message: "附件上传成功",
+                update: true,
             });
+            setRefresh((prev) => prev + 1);
+        });
     }
 
-    function deleteAttachment() {
-        challengeApi.deleteChallengeAttachment(Number(id)).then((_) => {
+    function handleDeleteAttachment() {
+        deleteChallengeAttachment(Number(id)).then((_) => {
             showSuccessNotification({
                 message: "附件删除成功",
             });
@@ -94,7 +95,7 @@ function Page() {
 
     useEffect(() => {
         if (attachment) {
-            saveAttachment();
+            handleSaveAttachment();
         }
     }, [attachment]);
 
@@ -116,27 +117,25 @@ function Page() {
         ),
     });
 
-    function updateChallenge() {
-        challengeApi
-            .updateChallenge({
-                id: Number(id),
-                title: form.getValues().title,
-                description: form.getValues().description,
-                category_id: form.getValues().category_id,
-                is_dynamic: form.getValues().is_dynamic,
-                duration: form.getValues().duration,
-            })
-            .then((_) => {
-                showSuccessNotification({
-                    message: `题目 ${form.getValues().title} 更新成功`,
-                });
-                setRefresh((prev) => prev + 1);
+    function handleUpdateChallenge() {
+        updateChallenge({
+            id: Number(id),
+            title: form.getValues().title,
+            description: form.getValues().description,
+            category_id: form.getValues().category_id,
+            is_dynamic: form.getValues().is_dynamic,
+            duration: form.getValues().duration,
+        }).then((_) => {
+            showSuccessNotification({
+                message: `题目 ${form.getValues().title} 更新成功`,
             });
+            setRefresh((prev) => prev + 1);
+        });
     }
 
     useEffect(() => {
         setAttachment(null);
-        getChallenge();
+        handleGetChallenge();
     }, [refresh]);
 
     useEffect(() => {
@@ -148,7 +147,7 @@ function Page() {
                 is_dynamic: challenge.is_dynamic,
                 duration: challenge.duration,
             });
-            getAttachmentMetadata();
+            handleGetAttachmentMetadata();
         }
     }, [challenge]);
 
@@ -168,7 +167,7 @@ function Page() {
                     </Group>
                     <Divider />
                 </Stack>
-                <form onSubmit={form.onSubmit((_) => updateChallenge())}>
+                <form onSubmit={form.onSubmit((_) => handleUpdateChallenge())}>
                     <Stack mx={20}>
                         <Group>
                             <TextInput
@@ -237,7 +236,7 @@ function Page() {
                             <Tooltip label="清除附件" withArrow>
                                 <ActionIcon
                                     my={7}
-                                    onClick={() => deleteAttachment()}
+                                    onClick={() => handleDeleteAttachment()}
                                 >
                                     <MDIcon color={"red"}>delete</MDIcon>
                                 </ActionIcon>
