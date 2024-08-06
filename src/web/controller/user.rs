@@ -18,11 +18,11 @@ use serde_json::json;
 
 use crate::database::get_db;
 use crate::{util::jwt, web::traits::Ext};
-use crate::{util::validate, web::traits::Error};
+use crate::{util::validate, web::traits::WebError};
 
 pub async fn get(
     Query(params): Query<crate::model::user::request::FindRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let (mut users, total) = crate::model::user::find(
         params.id,
         params.name,
@@ -33,7 +33,7 @@ pub async fn get(
         params.size,
     )
     .await
-    .map_err(|err| Error::DatabaseError(err))?;
+    .map_err(|err| WebError::DatabaseError(err))?;
 
     for user in users.iter_mut() {
         user.simplify();
@@ -51,7 +51,7 @@ pub async fn get(
 
 pub async fn create(
     validate::Json(mut body): validate::Json<crate::model::user::request::CreateRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
 
@@ -65,7 +65,7 @@ pub async fn create(
     let mut user = crate::model::user::ActiveModel::from(body)
         .insert(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     user.simplify();
 
@@ -81,7 +81,7 @@ pub async fn create(
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
     validate::Json(mut body): validate::Json<crate::model::user::request::UpdateRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let operator = ext.clone().operator.unwrap();
     body.id = Some(id);
     if !(operator.group == "admin"
@@ -89,7 +89,7 @@ pub async fn update(
             && (body.group.clone().is_none()
                 || operator.group == body.group.clone().unwrap_or("".to_string()))))
     {
-        return Err(Error::Forbidden(String::new()));
+        return Err(WebError::Forbidden(String::new()));
     }
 
     if let Some(password) = body.password {
@@ -103,7 +103,7 @@ pub async fn update(
     let user = crate::model::user::ActiveModel::from(body)
         .update(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -114,11 +114,11 @@ pub async fn update(
     ));
 }
 
-pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let _ = crate::model::user::Entity::delete_by_id(id)
         .exec(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -128,10 +128,10 @@ pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
     ));
 }
 
-pub async fn get_teams(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn get_teams(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let teams = crate::model::team::find_by_user_id(id)
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -144,7 +144,7 @@ pub async fn get_teams(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> 
 
 pub async fn login(
     Json(mut body): Json<crate::model::user::request::LoginRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     body.account = body.account.to_lowercase();
 
     let mut user = crate::model::user::Entity::find()
@@ -161,8 +161,8 @@ pub async fn login(
         )
         .one(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?
-        .ok_or_else(|| Error::BadRequest(String::from("invalid")))?;
+        .map_err(|err| WebError::DatabaseError(err))?
+        .ok_or_else(|| WebError::BadRequest(String::from("invalid")))?;
 
     let hashed_password = user.password.clone();
 
@@ -173,7 +173,7 @@ pub async fn login(
         )
         .is_err()
     {
-        return Err(Error::BadRequest(String::from("invalid")));
+        return Err(WebError::BadRequest(String::from("invalid")));
     }
 
     let token = jwt::generate_jwt_token(user.id.clone()).await;
@@ -191,7 +191,7 @@ pub async fn login(
 
 pub async fn register(
     validate::Json(mut body): validate::Json<crate::model::user::request::RegisterRequest>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
 
@@ -209,11 +209,11 @@ pub async fn register(
         )
         .count(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?
+        .map_err(|err| WebError::DatabaseError(err))?
         > 0;
 
     if is_conflict {
-        return Err(Error::Conflict(String::new()));
+        return Err(WebError::Conflict(String::new()));
     }
 
     let hashed_password = Argon2::default()
@@ -227,7 +227,7 @@ pub async fn register(
     let user = user
         .insert(&get_db())
         .await
-        .map_err(|err| Error::DatabaseError(err))?;
+        .map_err(|err| WebError::DatabaseError(err))?;
 
     return Ok((
         StatusCode::OK,
@@ -238,18 +238,18 @@ pub async fn register(
     ));
 }
 
-pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("users/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
             let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
             return Ok(Response::builder().body(Body::from(buffer)).unwrap());
         }
-        None => return Err(Error::NotFound(String::new())),
+        None => return Err(WebError::NotFound(String::new())),
     }
 }
 
-pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<impl IntoResponse, Error> {
+pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("users/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {
@@ -265,17 +265,17 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<impl IntoRespons
             ));
         }
         None => {
-            return Err(Error::NotFound(String::new()));
+            return Err(WebError::NotFound(String::new()));
         }
     }
 }
 
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && operator.id != id {
-        return Err(Error::Forbidden(String::new()));
+        return Err(WebError::Forbidden(String::new()));
     }
 
     let path = format!("users/{}/avatar", id);
@@ -287,12 +287,12 @@ pub async fn save_avatar(
             let content_type = field.content_type().unwrap().to_string();
             let mime: Mime = content_type.parse().unwrap();
             if mime.type_() != mime::IMAGE {
-                return Err(Error::BadRequest(String::from("forbidden_file_type")));
+                return Err(WebError::BadRequest(String::from("forbidden_file_type")));
             }
             data = match field.bytes().await {
                 Ok(bytes) => bytes.to_vec(),
                 Err(_err) => {
-                    return Err(Error::BadRequest(String::from("size_too_large")));
+                    return Err(WebError::BadRequest(String::from("size_too_large")));
                 }
             };
         }
@@ -302,7 +302,7 @@ pub async fn save_avatar(
 
     let _ = crate::media::save(path, filename, data)
         .await
-        .map_err(|_| Error::InternalServerError(String::new()));
+        .map_err(|_| WebError::InternalServerError(String::new()));
 
     return Ok((
         StatusCode::OK,
@@ -314,17 +314,17 @@ pub async fn save_avatar(
 
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, Error> {
+) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && operator.id != id {
-        return Err(Error::Forbidden(String::new()));
+        return Err(WebError::Forbidden(String::new()));
     }
 
     let path = format!("users/{}/avatar", id);
 
     let _ = crate::media::delete(path)
         .await
-        .map_err(|_| Error::InternalServerError(String::new()));
+        .map_err(|_| WebError::InternalServerError(String::new()));
 
     return Ok((
         StatusCode::OK,

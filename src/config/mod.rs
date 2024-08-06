@@ -5,6 +5,7 @@ pub mod captcha;
 pub mod consts;
 pub mod container;
 pub mod db;
+pub mod queue;
 pub mod site;
 
 use serde::{Deserialize, Serialize};
@@ -22,6 +23,7 @@ pub struct Config {
     pub container: container::Config,
     pub captcha: captcha::Config,
     pub db: db::Config,
+    pub queue: queue::Config,
 }
 
 pub async fn init() {

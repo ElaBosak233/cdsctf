@@ -24,3 +24,8 @@ services:
             POSTGRES_DB: cloudsdale
         volumes:
             - "./db:/var/lib/postgresql/data"
+
+    queue:
+        image: nats:latest
+        restart: always
+        command: ["-js"]

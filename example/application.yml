@@ -65,13 +65,21 @@ container:
     request_limit: 0
 
 db:
-  dbname: "cloudsdale"
   host: "db"
+  port: 5432
+  dbname: "cloudsdale"
   username: "cloudsdale"
   password: "cloudsdale"
-  port: 5432
   sslmode: "disable"
   schema: "public"
+
+queue:
+  host: "queue"
+  port: 4222
+  token: ""
+  user: ""
+  password: ""
+  tls: false
 
 email:
   address: ""  # The email address that will be used to send emails.

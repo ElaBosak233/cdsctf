@@ -8,6 +8,7 @@ mod email;
 mod logger;
 mod media;
 mod model;
+mod queue;
 mod util;
 mod web;
 
@@ -32,6 +33,7 @@ async fn bootstrap() {
     logger::init().await;
     config::init().await;
     database::init().await;
+    queue::init().await;
     container::init().await;
     checker::init().await;
     web::init();

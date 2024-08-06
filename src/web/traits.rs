@@ -13,7 +13,7 @@ pub struct Ext {
 }
 
 #[derive(Debug, Error)]
-pub enum Error {
+pub enum WebError {
     #[error("not found: {0}")]
     NotFound(String),
     #[error("internal server error: {0}")]
@@ -30,11 +30,13 @@ pub enum Error {
     TooManyRequests(String),
     #[error("database error: {0}")]
     DatabaseError(#[from] sea_orm::DbErr),
+    #[error("queue error: {0}")]
+    QueueError(#[from] crate::queue::traits::QueueError),
     #[error(transparent)]
     OtherError(#[from] anyhow::Error),
 }
 
-impl IntoResponse for Error {
+impl IntoResponse for WebError {
     fn into_response(self) -> Response<Body> {
         let (status, message) = match self {
             Self::NotFound(msg) => (StatusCode::NOT_FOUND, msg.clone()),
@@ -48,6 +50,7 @@ impl IntoResponse for Error {
                 sea_orm::DbErr::RecordNotFound(msg) => (StatusCode::NOT_FOUND, msg.clone()),
                 _ => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
             },
+            Self::QueueError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
             Self::OtherError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
         };
 
