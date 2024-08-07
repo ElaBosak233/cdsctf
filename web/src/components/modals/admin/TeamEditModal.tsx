@@ -289,12 +289,7 @@ export default function TeamEditModal(props: TeamEditModalProps) {
                             >
                                 <Stack gap={10}>
                                     <Flex gap={10}>
-                                        <Stack
-                                            gap={10}
-                                            sx={{
-                                                flexGrow: 1,
-                                            }}
-                                        >
+                                        <Stack gap={10} flex={1}>
                                             <TextInput
                                                 label="团队名称"
                                                 size="md"

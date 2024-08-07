@@ -112,21 +112,20 @@ function Page() {
             .then((res) => {
                 const r = res.data;
                 setGameChallenges(r.data);
+
+                return getChallengeStatus({
+                    game_id: Number(id),
+                    cids: gameChallenges.map((c) => c.challenge_id!),
+                    team_id: gameTeam?.team_id,
+                });
+            })
+            .then((res) => {
+                const r = res.data;
+                setStatus(r.data);
             })
             .finally(() => {
                 setLoadingChallenges(false);
             });
-    }
-
-    function handleGetChallengeStatus() {
-        getChallengeStatus({
-            game_id: Number(id),
-            cids: gameChallenges.map((c) => c.challenge_id!),
-            team_id: gameTeam?.team_id,
-        }).then((res) => {
-            const r = res.data;
-            setStatus(r.data);
-        });
     }
 
     function handleGetGameTeams() {
@@ -210,7 +209,6 @@ function Page() {
                     });
                 }
             });
-            handleGetChallengeStatus();
         }
     }, [gameChallenges]);
 
@@ -317,31 +315,34 @@ function Page() {
                         <ScrollArea h={"calc(100vh - 250px)"}>
                             <LoadingOverlay visible={loadingChallenges} />
                             <Group gap={"lg"} justify={"start"}>
-                                {selectedGameChallenges?.map(
-                                    (gameChallenge) => (
-                                        <UnstyledButton
-                                            onClick={() => {
-                                                open();
-                                                setSelectedChallenge(
-                                                    gameChallenge
-                                                );
-                                            }}
-                                            key={gameChallenge?.challenge_id}
-                                        >
-                                            <ChallengeCard
-                                                challenge={
-                                                    gameChallenge?.challenge
-                                                }
-                                                status={
-                                                    status?.[
+                                {!loadingChallenges &&
+                                    selectedGameChallenges?.map(
+                                        (gameChallenge) => (
+                                            <UnstyledButton
+                                                onClick={() => {
+                                                    open();
+                                                    setSelectedChallenge(
                                                         gameChallenge
-                                                            ?.challenge_id!
-                                                    ]
+                                                    );
+                                                }}
+                                                key={
+                                                    gameChallenge?.challenge_id
                                                 }
-                                            />
-                                        </UnstyledButton>
-                                    )
-                                )}
+                                            >
+                                                <ChallengeCard
+                                                    challenge={
+                                                        gameChallenge?.challenge
+                                                    }
+                                                    status={
+                                                        status?.[
+                                                            gameChallenge
+                                                                ?.challenge_id!
+                                                        ]
+                                                    }
+                                                />
+                                            </UnstyledButton>
+                                        )
+                                    )}
                             </Group>
                         </ScrollArea>
                     </Box>
@@ -363,11 +364,11 @@ function Page() {
                                     <Title
                                         fw={700}
                                         size={"1.25rem"}
+                                        flex={1}
                                         sx={{
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
                                             whiteSpace: "nowrap",
-                                            flexGrow: 1,
                                         }}
                                     >
                                         {gameTeam?.team?.name}

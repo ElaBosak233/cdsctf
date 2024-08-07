@@ -389,9 +389,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                                                             justify={
                                                                 "space-between"
                                                             }
-                                                            sx={{
-                                                                flexGrow: 1,
-                                                            }}
+                                                            flex={1}
                                                         >
                                                             <Text>
                                                                 {nat.src}

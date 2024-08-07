@@ -18,7 +18,6 @@ import {
     Select,
     Stack,
     UnstyledButton,
-    Text,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useEffect, useState } from "react";
@@ -77,6 +76,15 @@ export default function Page() {
                 const r = res.data;
                 setChallenges(r?.data);
                 setTotal(r?.total);
+
+                return getChallengeStatus({
+                    cids: r?.data?.map((c) => c?.id!),
+                    user_id: authStore.user?.id,
+                });
+            })
+            .then((res) => {
+                const r = res.data;
+                setChallengeStatus(r?.data);
             })
             .catch((err) => {
                 if (err?.response?.status === 400) {
@@ -90,36 +98,16 @@ export default function Page() {
             });
     }
 
-    function handleGetChallengeStatus() {
-        getChallengeStatus({
-            cids: challenges.map((c) => c?.id!),
-            user_id: authStore.user?.id,
-        }).then((res) => {
-            const r = res.data;
-            setChallengeStatus(r?.data);
-        });
-    }
-
     useEffect(() => {
         handleGetChallenges();
     }, [page, rowsPerPage, search, selectedCategory, sort, refresh]);
-
-    useEffect(() => {
-        if (challenges.length) {
-            handleGetChallengeStatus();
-        }
-    }, [challenges]);
 
     return (
         <>
             <Stack m={56}>
                 <Flex align={"start"}>
                     <Flex w={360} mx={36} visibleFrom={"md"}>
-                        <Box
-                            sx={{
-                                flexGrow: 1,
-                            }}
-                        >
+                        <Box flex={1}>
                             <Flex justify={"space-between"} align={"center"}>
                                 <Input
                                     variant="filled"
@@ -129,9 +117,7 @@ export default function Page() {
                                     onChange={(e) =>
                                         setSearchInput(e.target.value)
                                     }
-                                    sx={{
-                                        flexGrow: 1,
-                                    }}
+                                    flex={1}
                                 />
                                 <ActionIcon
                                     variant={"filled"}
@@ -252,30 +238,26 @@ export default function Page() {
                                     text={"暂无题目"}
                                 />
                             )}
-                            <Group
-                                gap={"lg"}
-                                sx={{
-                                    flexGrow: 1,
-                                }}
-                            >
-                                {challenges?.map((challenge) => (
-                                    <UnstyledButton
-                                        onClick={() => {
-                                            open();
-                                            setSelectedChallenge(challenge);
-                                        }}
-                                        key={challenge?.id}
-                                    >
-                                        <ChallengeCard
-                                            challenge={challenge}
-                                            status={
-                                                challengeStatus?.[
-                                                    challenge?.id!
-                                                ]
-                                            }
-                                        />
-                                    </UnstyledButton>
-                                ))}
+                            <Group gap={"lg"} flex={1}>
+                                {!loading &&
+                                    challenges?.map((challenge) => (
+                                        <UnstyledButton
+                                            onClick={() => {
+                                                open();
+                                                setSelectedChallenge(challenge);
+                                            }}
+                                            key={challenge?.id}
+                                        >
+                                            <ChallengeCard
+                                                challenge={challenge}
+                                                status={
+                                                    challengeStatus?.[
+                                                        challenge?.id!
+                                                    ]
+                                                }
+                                            />
+                                        </UnstyledButton>
+                                    ))}
                             </Group>
                         </Box>
                         <Flex justify={"center"} mt={30}>

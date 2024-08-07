@@ -183,11 +183,7 @@ export default function UserEditModal(props: UserEditModalProps) {
                             >
                                 <Stack gap={10}>
                                     <Flex gap={10}>
-                                        <Stack
-                                            sx={{
-                                                flexGrow: 1,
-                                            }}
-                                        >
+                                        <Stack flex={1}>
                                             <Flex gap={10} w={"100%"}>
                                                 <TextInput
                                                     label="用户名"

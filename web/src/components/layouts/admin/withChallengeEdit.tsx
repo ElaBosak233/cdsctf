@@ -14,9 +14,7 @@ export default function withChallengeEdit(
                         mih={"calc(100vh - 180px)"}
                         shadow={"md"}
                         radius={"md"}
-                        sx={{
-                            flexGrow: 1,
-                        }}
+                        flex={1}
                     >
                         <WrappedComponent {...props} />
                     </Paper>
