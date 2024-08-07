@@ -3,6 +3,7 @@ import TeamCreateModal from "@/components/modals/TeamCreateModal";
 import TeamEditModal from "@/components/modals/TeamEditModal";
 import TeamJoinModal from "@/components/modals/TeamJoinModal";
 import MDIcon from "@/components/ui/MDIcon";
+import WaterMark from "@/components/ui/WaterMark";
 import TeamCard from "@/components/widgets/TeamCard";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
@@ -61,7 +62,10 @@ export default function Page() {
 
     return (
         <>
-            <Stack mx={150} my={36}>
+            <Stack mx={150} my={36} pos={"relative"}>
+                {!teams?.length && (
+                    <WaterMark icon={"people"} text={"暂无团队"} />
+                )}
                 <Flex justify={"end"} gap={15}>
                     <Button
                         size="lg"

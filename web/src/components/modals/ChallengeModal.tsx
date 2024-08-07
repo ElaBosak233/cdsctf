@@ -222,6 +222,8 @@ export default function ChallengeModal(props: ChallengeModalProps) {
         if (podTime > 0) {
             interval.start();
             return interval.stop;
+        } else {
+            interval.stop();
         }
     }, [podTime]);
 
@@ -259,11 +261,10 @@ export default function ChallengeModal(props: ChallengeModalProps) {
                 }}
             >
                 <Card
-                    shadow="md"
-                    padding="lg"
-                    radius="md"
-                    withBorder
-                    miw={"40vw"}
+                    shadow={"md"}
+                    padding={"lg"}
+                    radius={"md"}
+                    miw={"40rem"}
                     mih={"20rem"}
                     sx={{
                         position: "relative",

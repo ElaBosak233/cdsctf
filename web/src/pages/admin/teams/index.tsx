@@ -14,6 +14,7 @@ import {
     Divider,
     Flex,
     Group,
+    LoadingOverlay,
     Pagination,
     Paper,
     Select,
@@ -32,6 +33,7 @@ export default function Page() {
     const configStore = useConfigStore();
 
     const [refresh, setRefresh] = useState<number>(0);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const [teams, setTeams] = useState<Array<Team>>([]);
     const [page, setPage] = useState<number>(1);
@@ -48,17 +50,22 @@ export default function Page() {
     const [selectedTeam, setSelectedTeam] = useState<Team>();
 
     function handleGetTeams() {
+        setLoading(true);
         getTeams({
             page: page,
             size: rowsPerPage,
             name: search,
             sort_key: sort.split("_")[0],
             sort_order: sort.split("_")[1],
-        }).then((res) => {
-            const r = res.data;
-            setTeams(r.data);
-            setTotal(r.total);
-        });
+        })
+            .then((res) => {
+                const r = res.data;
+                setTeams(r.data);
+                setTotal(r.total);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     }
 
     function handleDeleteTeam(team?: Team) {
@@ -182,12 +189,8 @@ export default function Page() {
                     gap={36}
                     mih={"calc(100vh - 10rem)"}
                 >
-                    <Paper
-                        w={"100%"}
-                        sx={{
-                            flexGrow: 1,
-                        }}
-                    >
+                    <Paper w={"100%"} shadow={"md"} flex={1} pos={"relative"}>
+                        <LoadingOverlay visible={loading} />
                         <Table stickyHeader horizontalSpacing={"md"} striped>
                             <Table.Thead>
                                 <Table.Tr
@@ -290,7 +293,7 @@ export default function Page() {
                         </Table>
                     </Paper>
                     <Pagination
-                        total={Math.ceil(total / rowsPerPage)}
+                        total={Math.max(Math.ceil(total / rowsPerPage), 1)}
                         value={page}
                         onChange={setPage}
                         withEdges

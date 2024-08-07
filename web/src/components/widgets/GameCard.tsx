@@ -34,7 +34,7 @@ export default function GameCard({ game }: { game?: Game }) {
 
     return (
         <>
-            <Card h={200} shadow="sm" className="no-select">
+            <Card h={200} shadow={"md"} radius={"md"} className={"no-select"}>
                 <Card.Section
                     sx={{
                         display: "flex",

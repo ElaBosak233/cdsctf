@@ -1,4 +1,11 @@
-import { createTheme } from "@mantine/core";
+import {
+    ActionIcon,
+    Avatar,
+    Checkbox,
+    createTheme,
+    LoadingOverlay,
+    ThemeIcon,
+} from "@mantine/core";
 
 export function useTheme() {
     const theme = createTheme({
@@ -51,10 +58,22 @@ export function useTheme() {
                 "#202020",
                 "#141414",
             ],
+            red: [
+                "#FFB4B4",
+                "#FFA0A0",
+                "#FF8c8c",
+                "#FF7878",
+                "#FF6464",
+                "#FE5050",
+                "#FE3c3c",
+                "#FE2828",
+                "#FC1414",
+                "#FC0000",
+            ],
         },
         primaryColor: "brand",
         components: {
-            LoadingOverlay: {
+            LoadingOverlay: LoadingOverlay.extend({
                 defaultProps: {
                     transitionProps: {
                         exitDuration: 250,
@@ -63,24 +82,34 @@ export function useTheme() {
                         backgroundOpacity: 0,
                     },
                 },
-            },
-            ActionIcon: {
+            }),
+            ActionIcon: ActionIcon.extend({
                 defaultProps: {
                     variant: "transparent",
                 },
-            },
-            ThemeIcon: {
+            }),
+            ThemeIcon: ThemeIcon.extend({
                 defaultProps: {
                     variant: "transparent",
                 },
-            },
-            Avatar: {
+            }),
+            Avatar: Avatar.extend({
                 defaultProps: {
                     imageProps: {
                         draggable: false,
                     },
                 },
-            },
+            }),
+            Checkbox: Checkbox.extend({
+                styles: {
+                    body: {
+                        alignItems: "center",
+                    },
+                    labelWrapper: {
+                        display: "flex",
+                    },
+                },
+            }),
         },
     });
     return { theme: theme };

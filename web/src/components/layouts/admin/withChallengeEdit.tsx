@@ -12,6 +12,8 @@ export default function withChallengeEdit(
                     <Paper
                         mx={36}
                         mih={"calc(100vh - 180px)"}
+                        shadow={"md"}
+                        radius={"md"}
                         sx={{
                             flexGrow: 1,
                         }}

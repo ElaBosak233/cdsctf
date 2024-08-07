@@ -13,7 +13,7 @@ export default function ChallengeEditSidebar(props: ChallengeEditSidebarProps) {
     const navigate = useNavigate();
 
     return (
-        <Stack w={150} {...stackProps}>
+        <Stack miw={175} {...stackProps}>
             <Button
                 size="md"
                 leftSection={<MDIcon c={"white"}>arrow_back</MDIcon>}
@@ -46,15 +46,17 @@ export default function ChallengeEditSidebar(props: ChallengeEditSidebarProps) {
                     Flags
                 </Button>
                 <Button
-                    variant={path === "/images" ? "filled" : "subtle"}
-                    onClick={() => navigate(`/admin/challenges/${id}/images`)}
+                    variant={path === "/container" ? "filled" : "subtle"}
+                    onClick={() =>
+                        navigate(`/admin/challenges/${id}/container`)
+                    }
                     leftSection={
-                        <MDIcon c={path === "/images" ? "white" : "brand"}>
+                        <MDIcon c={path === "/container" ? "white" : "brand"}>
                             package_2
                         </MDIcon>
                     }
                 >
-                    镜像
+                    容器
                 </Button>
                 <Button
                     variant={path === "/submissions" ? "filled" : "subtle"}

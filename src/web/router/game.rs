@@ -78,12 +78,16 @@ pub fn router() -> Router {
             "/:id/submissions",
             get(controller::game::get_submission).layer(from_fn(auth::jwt(Group::User))),
         )
-        .route("/:id/poster", get(controller::game::find_poster))
+        .route("/:id/poster", get(controller::game::get_poster))
         .route(
             "/:id/poster",
             post(controller::game::save_poster)
                 .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */))
                 .layer(from_fn(auth::jwt(Group::Admin))),
+        )
+        .route(
+            "/:id/poster/metadata",
+            get(controller::game::get_poster_metadata),
         )
         .route(
             "/:id/poster",

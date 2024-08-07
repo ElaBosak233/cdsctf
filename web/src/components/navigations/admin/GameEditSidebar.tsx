@@ -13,7 +13,7 @@ export default function GameEditSidebar(props: GameEditSidebarProps) {
     const navigate = useNavigate();
 
     return (
-        <Stack w={150} {...stackProps}>
+        <Stack miw={175} {...stackProps}>
             <Button
                 size="md"
                 leftSection={<MDIcon c={"white"}>arrow_back</MDIcon>}

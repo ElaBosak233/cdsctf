@@ -1,5 +1,6 @@
 import { getGames } from "@/api/game";
 import MDIcon from "@/components/ui/MDIcon";
+import WaterMark from "@/components/ui/WaterMark";
 import GameCard from "@/components/widgets/GameCard";
 import { useConfigStore } from "@/stores/config";
 import { Game } from "@/types/game";
@@ -60,18 +61,19 @@ export default function Page() {
                 mih={"calc(100vh - 10rem)"}
                 align="center"
                 gap={36}
+                pos={"relative"}
             >
+                {!games.length && <WaterMark icon={"flag"} text={"暂无比赛"} />}
                 <Flex w={"100%"} gap={20}>
                     <TextInput
                         variant="filled"
                         size="lg"
-                        w={"90%"}
+                        flex={1}
                         placeholder={"搜索比赛"}
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.currentTarget.value)}
                     />
                     <Button
-                        w={"10%"}
                         size="lg"
                         leftSection={<MDIcon c={"white"}>search</MDIcon>}
                         onClick={() => {
@@ -81,13 +83,7 @@ export default function Page() {
                         搜索
                     </Button>
                 </Flex>
-                <Stack
-                    w={"100%"}
-                    sx={{
-                        flexGrow: 1,
-                    }}
-                    pos={"relative"}
-                >
+                <Stack w={"100%"} flex={1} pos={"relative"}>
                     <LoadingOverlay visible={loading} />
                     {games.map((game) => (
                         <UnstyledButton

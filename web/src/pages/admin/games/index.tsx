@@ -22,6 +22,7 @@ import {
     Tooltip,
     Image,
     Divider,
+    LoadingOverlay,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
@@ -36,6 +37,7 @@ export default function Page() {
     const navigate = useNavigate();
 
     const [refresh, setRefresh] = useState<number>(0);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const [games, setGames] = useState<Array<Game>>([]);
     const [page, setPage] = useState<number>(1);
@@ -49,17 +51,22 @@ export default function Page() {
         useDisclosure(false);
 
     function handleGetGames() {
+        setLoading(true);
         getGames({
             page: page,
             size: rowsPerPage,
             title: search,
             sort_key: sort.split("_")[0],
             sort_order: sort.split("_")[1],
-        }).then((res) => {
-            const r = res.data;
-            setGames(r.data);
-            setTotal(r.total);
-        });
+        })
+            .then((res) => {
+                const r = res.data;
+                setGames(r.data);
+                setTotal(r.total);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     }
 
     function handleDeleteGame(game?: Game) {
@@ -141,7 +148,7 @@ export default function Page() {
 
     return (
         <>
-            <Flex my={36} mx={"10%"} justify={"space-between"} gap={36}>
+            <Flex my={36} mx={"10%"} justify={"center"} gap={36}>
                 <Stack w={"15%"} gap={0} visibleFrom={"lg"}>
                     <Flex justify={"space-between"} align={"center"}>
                         <TextInput
@@ -207,12 +214,8 @@ export default function Page() {
                     gap={36}
                     mih={"calc(100vh - 10rem)"}
                 >
-                    <Paper
-                        w={"100%"}
-                        sx={{
-                            flexGrow: 1,
-                        }}
-                    >
+                    <Paper w={"100%"} shadow={"md"} pos={"relative"} flex={1}>
+                        <LoadingOverlay visible={loading} />
                         <Table stickyHeader horizontalSpacing={"md"} striped>
                             <Table.Thead>
                                 <Table.Tr
@@ -371,7 +374,7 @@ export default function Page() {
                         </Table>
                     </Paper>
                     <Pagination
-                        total={Math.ceil(total / rowsPerPage)}
+                        total={Math.max(Math.ceil(total / rowsPerPage), 1)}
                         value={page}
                         onChange={setPage}
                         withEdges

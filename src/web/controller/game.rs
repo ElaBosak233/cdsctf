@@ -273,7 +273,7 @@ pub async fn get_submission(
     ));
 }
 
-pub async fn find_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("games/{}/poster", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
@@ -281,6 +281,27 @@ pub async fn find_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, WebEr
             return Ok(Response::builder().body(Body::from(buffer)).unwrap());
         }
         None => return Err(WebError::NotFound(String::new())),
+    }
+}
+
+pub async fn get_poster_metadata(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+    let path = format!("games/{}/poster", id);
+    match crate::media::scan_dir(path.clone()).await.unwrap().first() {
+        Some((filename, size)) => {
+            return Ok((
+                StatusCode::OK,
+                Json(json!({
+                    "code": StatusCode::OK.as_u16(),
+                    "data": {
+                        "filename": filename,
+                        "size": size,
+                    },
+                })),
+            ));
+        }
+        None => {
+            return Err(WebError::NotFound(String::new()));
+        }
     }
 }
 

@@ -19,7 +19,6 @@ import {
     NumberInput,
     SimpleGrid,
     Stack,
-    Switch,
     TextInput,
     Textarea,
     Image,
@@ -27,6 +26,7 @@ import {
     Button,
     Group,
     Divider,
+    Checkbox,
 } from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
 import { Dropzone } from "@mantine/dropzone";
@@ -151,21 +151,24 @@ function Page() {
                 </Stack>
                 <form onSubmit={form.onSubmit((_) => handleUpdateGame())}>
                     <Stack mx={20}>
+                        <TextInput
+                            my={"auto"}
+                            label="标题"
+                            description="展示在最醒目位置的比赛大标题"
+                            withAsterisk
+                            key={form.key("title")}
+                            {...form.getInputProps("title")}
+                        />
+                        <Textarea
+                            label="简介"
+                            description="展示在比赛页面的简短介绍"
+                            key={form.key("bio")}
+                            {...form.getInputProps("bio")}
+                        />
                         <Flex gap={20}>
-                            <SimpleGrid
-                                cols={4}
-                                sx={{
-                                    alignItems: "center",
-                                }}
-                            >
-                                <TextInput
-                                    label="标题"
-                                    description="展示在最醒目位置的比赛大标题"
-                                    withAsterisk
-                                    key={form.key("title")}
-                                    {...form.getInputProps("title")}
-                                />
+                            <SimpleGrid cols={4}>
                                 <NumberInput
+                                    my={"auto"}
                                     label="最小人数"
                                     description="一个团队所需的最少的人数"
                                     withAsterisk
@@ -173,6 +176,7 @@ function Page() {
                                     {...form.getInputProps("member_limit_min")}
                                 />
                                 <NumberInput
+                                    my={"auto"}
                                     label="最大人数"
                                     description="一个团队所需的最多的人数"
                                     withAsterisk
@@ -180,6 +184,7 @@ function Page() {
                                     {...form.getInputProps("member_limit_max")}
                                 />
                                 <NumberInput
+                                    my={"auto"}
                                     label="容器限制"
                                     description="一个团队最多可启用的容器数量"
                                     withAsterisk
@@ -189,10 +194,11 @@ function Page() {
                                     )}
                                 />
                                 <DateTimePicker
+                                    my={"auto"}
                                     withSeconds
                                     withAsterisk
                                     label="开始时间"
-                                    description="比赛开始的时间"
+                                    description="此时允许进入比赛，并且允许作答"
                                     placeholder="请选择比赛开始的时间"
                                     valueFormat="YYYY/MM/DD HH:mm:ss"
                                     value={
@@ -208,10 +214,31 @@ function Page() {
                                     }}
                                 />
                                 <DateTimePicker
+                                    my={"auto"}
+                                    withSeconds
+                                    withAsterisk
+                                    label="冻结时间"
+                                    description="此时允许进入比赛，仅可提交 WP"
+                                    placeholder="请选择比赛冻结的时间"
+                                    valueFormat="YYYY/MM/DD HH:mm:ss"
+                                    value={
+                                        new Date(
+                                            form.getValues().started_at * 1000
+                                        )
+                                    }
+                                    onChange={(value) => {
+                                        form.setFieldValue(
+                                            "frozed_at",
+                                            Number(value?.getTime()) / 1000
+                                        );
+                                    }}
+                                />
+                                <DateTimePicker
+                                    my={"auto"}
                                     withSeconds
                                     withAsterisk
                                     label="结束时间"
-                                    description="比赛结束的时间"
+                                    description="此时不允许进入比赛，封存比赛"
                                     placeholder="请选择比赛结束的时间"
                                     valueFormat="YYYY/MM/DD HH:mm:ss"
                                     value={
@@ -226,7 +253,8 @@ function Page() {
                                         );
                                     }}
                                 />
-                                <Switch
+                                <Checkbox
+                                    my={"auto"}
                                     label="是否公开"
                                     description="若为是，则队伍在报名参赛后自动审批"
                                     labelPosition="left"
@@ -238,7 +266,8 @@ function Page() {
                                         );
                                     }}
                                 />
-                                <Switch
+                                <Checkbox
+                                    my={"auto"}
                                     label="是否需要 WP"
                                     description="若为是，则比赛页面中将显示提交 WP 入口"
                                     labelPosition="left"
@@ -251,74 +280,66 @@ function Page() {
                                     }}
                                 />
                             </SimpleGrid>
-                            <Center>
-                                <Dropzone
-                                    onDrop={(files: any) =>
-                                        handleSaveGamePoster(files[0])
-                                    }
-                                    onReject={() => {
-                                        showErrNotification({
-                                            message: "文件上传失败",
-                                        });
-                                    }}
-                                    w={"15vw"}
-                                    mah={"20vh"}
-                                    accept={[
-                                        "image/png",
-                                        "image/gif",
-                                        "image/jpeg",
-                                        "image/webp",
-                                        "image/avif",
-                                        "image/heic",
-                                    ]}
-                                >
-                                    <Center
-                                        style={{
-                                            pointerEvents: "none",
-                                        }}
-                                    >
-                                        {gamePosterMetadata?.filename ? (
-                                            <Center>
-                                                <Image
-                                                    mah={"20vh"}
-                                                    w={"15vw"}
-                                                    fit="contain"
-                                                    src={`/api/games/${game?.id}/poster`}
-                                                />
-                                            </Center>
-                                        ) : (
-                                            <Center h={"20vh"}>
-                                                <Stack gap={0}>
-                                                    <Text size="xl" inline>
-                                                        拖拽或点击上传头图
-                                                    </Text>
-                                                    <Text
-                                                        size="sm"
-                                                        c="dimmed"
-                                                        inline
-                                                        mt={7}
-                                                    >
-                                                        图片大小不超过 3MB
-                                                    </Text>
-                                                </Stack>
-                                            </Center>
-                                        )}
-                                    </Center>
-                                </Dropzone>
-                            </Center>
                         </Flex>
+                        <Dropzone
+                            onDrop={(files: any) =>
+                                handleSaveGamePoster(files[0])
+                            }
+                            onReject={() => {
+                                showErrNotification({
+                                    message: "文件上传失败",
+                                });
+                            }}
+                            mih={"10rem"}
+                            accept={[
+                                "image/png",
+                                "image/gif",
+                                "image/jpeg",
+                                "image/webp",
+                                "image/avif",
+                                "image/heic",
+                            ]}
+                        >
+                            <Center
+                                style={{
+                                    pointerEvents: "none",
+                                }}
+                            >
+                                {gamePosterMetadata?.filename ? (
+                                    <Center>
+                                        <Image
+                                            mah={"20vh"}
+                                            w={"15vw"}
+                                            fit="contain"
+                                            src={`/api/games/${game?.id}/poster`}
+                                        />
+                                    </Center>
+                                ) : (
+                                    <Center h={"20vh"}>
+                                        <Stack gap={0}>
+                                            <Text size="xl" inline>
+                                                拖拽或点击上传头图
+                                            </Text>
+                                            <Text
+                                                size="sm"
+                                                c="dimmed"
+                                                inline
+                                                mt={7}
+                                            >
+                                                图片大小不超过 3MB
+                                            </Text>
+                                        </Stack>
+                                    </Center>
+                                )}
+                            </Center>
+                        </Dropzone>
                         <Textarea
-                            label="简介"
-                            description="展示在比赛页面的简短介绍"
-                            key={form.key("bio")}
-                            {...form.getInputProps("bio")}
-                        />
-                        <Textarea
+                            flex={1}
                             label="详情"
                             description="展示在比赛详情页的介绍"
                             minRows={12}
                             maxRows={12}
-                            resize="vertical"
+                            resize={"vertical"}
                             autosize
                             key={form.key("description")}
                             {...form.getInputProps("description")}
