@@ -41,14 +41,6 @@ captcha:
     secret_key: ""
     threshold: 0.5
 
-cache:
-  provider: "memory"  # The cache provider, can be "memory" or "redis".
-  redis:
-    host: "cache"
-    port: 6379
-    password: ""
-    db: 0
-
 container:
   provider: "docker"  # The container provider, can be "docker" or "k8s".
   entry: "127.0.0.1"  # The public entry of containers.
@@ -71,7 +63,6 @@ db:
   username: "cloudsdale"
   password: "cloudsdale"
   sslmode: "disable"
-  schema: "public"
 
 queue:
   host: "queue"
@@ -80,6 +71,9 @@ queue:
   user: ""
   password: ""
   tls: false
+
+cache:
+  url: "redis://cache:6379/1"
 
 email:
   address: ""  # The email address that will be used to send emails.

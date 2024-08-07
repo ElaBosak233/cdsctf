@@ -1,4 +1,5 @@
 mod assets;
+mod cache;
 mod captcha;
 mod checker;
 mod config;
@@ -34,6 +35,7 @@ async fn bootstrap() {
     config::init().await;
     database::init().await;
     queue::init().await;
+    cache::init().await;
     container::init().await;
     checker::init().await;
     web::init();

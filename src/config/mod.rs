@@ -24,6 +24,7 @@ pub struct Config {
     pub captcha: captcha::Config,
     pub db: db::Config,
     pub queue: queue::Config,
+    pub cache: cache::Config,
 }
 
 pub async fn init() {
