@@ -23,11 +23,8 @@ import {
     FileInput,
     Flex,
     Group,
-    NumberInput,
     Select,
-    SimpleGrid,
     Stack,
-    Switch,
     TextInput,
     Textarea,
     Tooltip,
@@ -105,8 +102,6 @@ function Page() {
             title: "",
             description: "",
             category_id: 0,
-            is_dynamic: false,
-            duration: 0,
         },
         validate: zodResolver(
             z.object({
@@ -123,8 +118,6 @@ function Page() {
             title: form.getValues().title,
             description: form.getValues().description,
             category_id: form.getValues().category_id,
-            is_dynamic: form.getValues().is_dynamic,
-            duration: form.getValues().duration,
         }).then((_) => {
             showSuccessNotification({
                 message: `题目 ${form.getValues().title} 更新成功`,
@@ -144,8 +137,6 @@ function Page() {
                 title: challenge.title,
                 description: challenge.description,
                 category_id: challenge.category_id,
-                is_dynamic: challenge.is_dynamic,
-                duration: challenge.duration,
             });
             handleGetAttachmentMetadata();
         }
@@ -242,28 +233,6 @@ function Page() {
                                 </ActionIcon>
                             </Tooltip>
                         </Group>
-                        <SimpleGrid cols={2}>
-                            <Switch
-                                my={"auto"}
-                                label="是否需要动态容器"
-                                description={
-                                    "题目是否需要启用容器环境进行题目分发"
-                                }
-                                checked={form.getValues().is_dynamic}
-                                onChange={(e) =>
-                                    form.setFieldValue(
-                                        "is_dynamic",
-                                        e.currentTarget.checked
-                                    )
-                                }
-                            />
-                            <NumberInput
-                                label="持续时间"
-                                description="动态容器持续时间（秒）"
-                                key={form.key("duration")}
-                                {...form.getInputProps("duration")}
-                            />
-                        </SimpleGrid>
 
                         <Flex justify={"end"}>
                             <Button

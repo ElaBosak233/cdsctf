@@ -27,6 +27,7 @@ pub struct Model {
     #[sea_orm(default_value = false)]
     pub is_need_write_up: bool,
     pub started_at: i64,
+    pub frozed_at: i64,
     pub ended_at: i64,
     pub created_at: i64,
     pub updated_at: i64,

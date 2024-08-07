@@ -7,6 +7,7 @@ import { showSuccessNotification } from "@/utils/notification";
 import {
     ActionIcon,
     Button,
+    Checkbox,
     Divider,
     Flex,
     Group,
@@ -35,6 +36,8 @@ function Page() {
             image_name: "",
             cpu_limit: 1,
             memory_limit: 256,
+            is_dynamic: false,
+            duration: 1800,
         },
     });
 
@@ -58,6 +61,8 @@ function Page() {
             memory_limit: form.getValues().memory_limit,
             envs: envs,
             ports: ports,
+            is_dynamic: form.getValues().is_dynamic,
+            duration: form.getValues().duration,
         }).then((_) => {
             showSuccessNotification({
                 message: "镜像更新成功",
@@ -71,6 +76,8 @@ function Page() {
             image_name: challenge?.image_name || "",
             cpu_limit: challenge?.cpu_limit || 1,
             memory_limit: challenge?.memory_limit || 256,
+            is_dynamic: challenge?.is_dynamic || false,
+            duration: challenge?.duration || 1800,
         });
     }, [challenge]);
 
@@ -79,7 +86,7 @@ function Page() {
     }, [refresh]);
 
     useEffect(() => {
-        document.title = `镜像 - ${challenge?.title}`;
+        document.title = `容器 - ${challenge?.title}`;
     }, [challenge]);
 
     return (
@@ -90,19 +97,35 @@ function Page() {
                         <Group>
                             <MDIcon>deployed_code_update</MDIcon>
                             <Text fw={700} size="xl">
-                                镜像参数
+                                容器参数
                             </Text>
                         </Group>
                         <Divider />
                     </Stack>
                     <Stack mx={20}>
-                        <SimpleGrid cols={3}>
+                        <SimpleGrid cols={2}>
+                            <Checkbox
+                                my={"auto"}
+                                label="是否启用容器"
+                                description={
+                                    "题目是否需要启用容器环境进行题目分发"
+                                }
+                                checked={form.getValues().is_dynamic}
+                                onChange={(e) =>
+                                    form.setFieldValue(
+                                        "is_dynamic",
+                                        e.currentTarget.checked
+                                    )
+                                }
+                            />
                             <TextInput
                                 label="镜像名"
                                 description="例如 nginx:latest"
                                 key={form.key("image_name")}
                                 {...form.getInputProps("image_name")}
                             />
+                        </SimpleGrid>
+                        <SimpleGrid cols={3}>
                             <NumberInput
                                 label="CPU 限制"
                                 description="CPU 核心限制（核）"
@@ -114,6 +137,12 @@ function Page() {
                                 description="内存大小限制（MB）"
                                 key={form.key("memory_limit")}
                                 {...form.getInputProps("memory_limit")}
+                            />
+                            <NumberInput
+                                label="持续时间"
+                                description="动态容器持续时间（秒）"
+                                key={form.key("duration")}
+                                {...form.getInputProps("duration")}
                             />
                         </SimpleGrid>
                     </Stack>
@@ -135,26 +164,19 @@ function Page() {
                         </Flex>
                         <Divider />
                     </Stack>
-                    <Stack mx={20}>
+                    <SimpleGrid mx={20} cols={4}>
                         {ports?.map((port, index) => (
-                            <Flex
-                                key={index}
-                                align={"center"}
-                                justify={"space-between"}
-                            >
-                                <Flex gap={15}>
-                                    <NumberInput
-                                        label="端口"
-                                        value={port}
-                                        onChange={(e) =>
-                                            setPorts(
-                                                ports.map((p, i) =>
-                                                    i === index ? Number(e) : p
-                                                )
+                            <Flex gap={10} key={index} align={"center"}>
+                                <NumberInput
+                                    value={port}
+                                    onChange={(e) =>
+                                        setPorts(
+                                            ports.map((p, i) =>
+                                                i === index ? Number(e) : p
                                             )
-                                        }
-                                    />
-                                </Flex>
+                                        )
+                                    }
+                                />
                                 <Tooltip
                                     label="删除端口映射"
                                     withArrow
@@ -170,7 +192,7 @@ function Page() {
                                 </Tooltip>
                             </Flex>
                         ))}
-                    </Stack>
+                    </SimpleGrid>
                     <Stack gap={10}>
                         <Flex justify={"space-between"} align="center">
                             <Group>
@@ -238,7 +260,7 @@ function Page() {
                                     />
                                 </Group>
                                 <Tooltip
-                                    label="删除端口映射"
+                                    label="删除环境变量"
                                     withArrow
                                     onClick={() => {
                                         const newEnvs = [...envs];

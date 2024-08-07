@@ -1,6 +1,5 @@
 import { getChallenges, updateChallenge } from "@/api/challenge";
 import withChallengeEdit from "@/components/layouts/admin/withChallengeEdit";
-import ChallengeFlagCreateModal from "@/components/modals/admin/ChallengeFlagCreateModal";
 import MDIcon from "@/components/ui/MDIcon";
 import { Challenge } from "@/types/challenge";
 import { Flag, Type } from "@/types/flag";
@@ -16,11 +15,10 @@ import {
     Button,
     Select,
     TextInput,
-    Card,
     Badge,
     Center,
+    Checkbox,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -28,10 +26,7 @@ function Page() {
     const { id } = useParams<{ id: string }>();
 
     const [challenge, setChallenge] = useState<Challenge>();
-    const [flags, setFlags] = useState<Array<Flag>>();
-
-    const [createOpened, { open: createOpen, close: createClose }] =
-        useDisclosure(false);
+    const [flags, setFlags] = useState<Array<Flag>>([]);
 
     function handleGetChallenge() {
         getChallenges({
@@ -59,7 +54,7 @@ function Page() {
     }, []);
 
     useEffect(() => {
-        setFlags(challenge?.flags);
+        setFlags(challenge?.flags || []);
     }, [challenge]);
 
     useEffect(() => {
@@ -78,7 +73,19 @@ function Page() {
                             </Text>
                         </Group>
                         <Tooltip label="创建 Flag" withArrow>
-                            <ActionIcon onClick={() => createOpen()}>
+                            <ActionIcon
+                                onClick={() => {
+                                    setFlags([
+                                        ...flags,
+                                        {
+                                            value: "",
+                                            type: Type.Static,
+                                            banned: false,
+                                            env: "",
+                                        },
+                                    ]);
+                                }}
+                            >
                                 <MDIcon>add</MDIcon>
                             </ActionIcon>
                         </Tooltip>
@@ -87,55 +94,107 @@ function Page() {
                 </Stack>
                 <Stack mx={20}>
                     {flags?.map((flag, index) => (
-                        <Card shadow={"xs"} key={index}>
-                            <Flex gap={15}>
-                                <Center>
-                                    <Badge
-                                        color={flag?.banned ? "red" : "brand"}
-                                    >
-                                        {index + 1}
-                                    </Badge>
-                                </Center>
-                                <TextInput
-                                    label="Flag 值"
-                                    disabled
-                                    value={flag.value}
-                                />
-                                <Select
-                                    label="Flag 类型"
-                                    disabled
-                                    data={[
-                                        {
-                                            label: "正则表达式",
-                                            value: Type.Pattern.toString(),
-                                        },
-                                        {
-                                            label: "动态",
-                                            value: Type.Dynamic.toString(),
-                                        },
-                                    ]}
-                                    allowDeselect={false}
-                                    value={flag.type.toString()}
-                                />
-                                <TextInput
-                                    label="环境变量"
-                                    disabled
-                                    value={flag.env}
-                                />
-                                <Flex justify={"end"} align={"center"} flex={1}>
-                                    <ActionIcon
-                                        onClick={() => {
-                                            const newFlags = flags?.filter(
-                                                (_, i) => i !== index
-                                            );
-                                            setFlags(newFlags);
-                                        }}
-                                    >
-                                        <MDIcon c={"red"}>delete</MDIcon>
-                                    </ActionIcon>
-                                </Flex>
+                        <Flex gap={15} key={index} align={"center"}>
+                            <Center>
+                                <Badge color={flag?.banned ? "red" : "brand"}>
+                                    {index + 1}
+                                </Badge>
+                            </Center>
+                            <TextInput
+                                label="Flag 值"
+                                value={flag.value}
+                                flex={1}
+                                onChange={(e) => {
+                                    setFlags(
+                                        flags.map((f, i) =>
+                                            i === index
+                                                ? {
+                                                      ...f,
+                                                      value: e.target.value,
+                                                  }
+                                                : f
+                                        )
+                                    );
+                                }}
+                            />
+                            <Select
+                                w={"15%"}
+                                label="Flag 类型"
+                                data={[
+                                    {
+                                        label: "静态",
+                                        value: Type.Static.toString(),
+                                    },
+                                    {
+                                        label: "正则",
+                                        value: Type.Pattern.toString(),
+                                    },
+                                    {
+                                        label: "动态",
+                                        value: Type.Dynamic.toString(),
+                                    },
+                                ]}
+                                allowDeselect={false}
+                                value={flag.type.toString()}
+                                onChange={(value) => {
+                                    setFlags(
+                                        flags.map((f, i) =>
+                                            i === index
+                                                ? {
+                                                      ...f,
+                                                      type: Number(value),
+                                                  }
+                                                : f
+                                        )
+                                    );
+                                }}
+                            />
+                            <TextInput
+                                w={"15%"}
+                                label="环境变量"
+                                value={flag.env}
+                                onChange={(e) => {
+                                    setFlags(
+                                        flags.map((f, i) =>
+                                            i === index
+                                                ? {
+                                                      ...f,
+                                                      env: e.target.value,
+                                                  }
+                                                : f
+                                        )
+                                    );
+                                }}
+                            />
+                            <Checkbox
+                                label="封禁此 Flag"
+                                description="用户提交此 Flag 时将被判为作弊"
+                                checked={flag.banned}
+                                onChange={(e) => {
+                                    setFlags(
+                                        flags.map((f, i) =>
+                                            i === index
+                                                ? {
+                                                      ...f,
+                                                      banned: e.target.checked,
+                                                  }
+                                                : f
+                                        )
+                                    );
+                                }}
+                            />
+                            <Flex justify={"end"} align={"center"}>
+                                <ActionIcon
+                                    onClick={() => {
+                                        setFlags(
+                                            flags.filter((_, i) => i !== index)
+                                        );
+                                    }}
+                                >
+                                    <MDIcon c={"red"}>delete</MDIcon>
+                                </ActionIcon>
                             </Flex>
-                        </Card>
+                        </Flex>
                     ))}
                 </Stack>
                 <Flex justify="end">
@@ -147,15 +206,6 @@ function Page() {
                     </Button>
                 </Flex>
             </Stack>
-            <ChallengeFlagCreateModal
-                centered
-                opened={createOpened}
-                onClose={createClose}
-                addFlag={(flag) => {
-                    const newFlags = flags?.concat(flag);
-                    setFlags(newFlags);
-                }}
-            />
         </>
     );
 }

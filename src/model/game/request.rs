@@ -28,6 +28,9 @@ impl Default for FindRequest {
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct CreateRequest {
     pub title: String,
+    pub started_at: i64,
+    pub ended_at: i64,
+
     pub bio: Option<String>,
     pub description: Option<String>,
     pub is_enabled: Option<bool>,
@@ -36,8 +39,6 @@ pub struct CreateRequest {
     pub member_limit_max: Option<i64>,
     pub parallel_container_limit: Option<i64>,
     pub is_need_write_up: Option<bool>,
-    pub started_at: Option<i64>,
-    pub ended_at: Option<i64>,
 }
 
 impl From<CreateRequest> for ActiveModel {
@@ -46,6 +47,10 @@ impl From<CreateRequest> for ActiveModel {
             title: Set(req.title),
             bio: Set(req.bio),
             description: Set(req.description),
+            started_at: Set(req.started_at),
+            ended_at: Set(req.ended_at),
+            frozed_at: Set(req.ended_at),
+
             is_enabled: Set(req.is_enabled.unwrap_or(false)),
             is_public: Set(req.is_public.unwrap_or(false)),
 
@@ -54,8 +59,7 @@ impl From<CreateRequest> for ActiveModel {
             parallel_container_limit: req.parallel_container_limit.map_or(NotSet, |v| Set(v)),
 
             is_need_write_up: Set(req.is_need_write_up.unwrap_or(false)),
-            started_at: req.started_at.map_or(NotSet, |v| Set(v)),
-            ended_at: req.ended_at.map_or(NotSet, |v| Set(v)),
+
             ..Default::default()
         }
     }
@@ -75,6 +79,7 @@ pub struct UpdateRequest {
     pub is_need_write_up: Option<bool>,
     pub started_at: Option<i64>,
     pub ended_at: Option<i64>,
+    pub frozed_at: Option<i64>,
 }
 
 impl From<UpdateRequest> for ActiveModel {
@@ -94,6 +99,7 @@ impl From<UpdateRequest> for ActiveModel {
             is_need_write_up: req.is_need_write_up.map_or(NotSet, |v| Set(v)),
             started_at: req.started_at.map_or(NotSet, |v| Set(v)),
             ended_at: req.ended_at.map_or(NotSet, |v| Set(v)),
+            frozed_at: req.frozed_at.map_or(NotSet, |v| Set(v)),
             ..Default::default()
         }
     }

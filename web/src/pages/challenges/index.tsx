@@ -18,11 +18,13 @@ import {
     Select,
     Stack,
     UnstyledButton,
+    Text,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 import { getChallenges, getChallengeStatus } from "@/api/challenge";
 import { useNavigate } from "react-router-dom";
+import WaterMark from "@/components/ui/WaterMark";
 
 export default function Page() {
     const authStore = useAuthStore();
@@ -244,6 +246,12 @@ export default function Page() {
                     <Stack w={"120%"}>
                         <Box mih={"calc(100vh - 260px)"} pos={"relative"}>
                             <LoadingOverlay visible={loading} zIndex={2} />
+                            {!challenges?.length && (
+                                <WaterMark
+                                    icon={"collections_bookmark"}
+                                    text={"暂无题目"}
+                                />
+                            )}
                             <Group
                                 gap={"lg"}
                                 sx={{

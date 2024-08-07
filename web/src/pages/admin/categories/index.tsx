@@ -84,10 +84,8 @@ export default function Page() {
     return (
         <>
             <Flex my={36} mx={"10%"} justify={"center"}>
-                <Stack
-                    align="center"
-                    gap={36}
-                    component={Paper}
+                <Paper
+                    shadow={"md"}
                     mih={"calc(100vh - 10rem)"}
                     sx={{
                         flexGrow: 1,
@@ -174,7 +172,7 @@ export default function Page() {
                             ))}
                         </Table.Tbody>
                     </Table>
-                </Stack>
+                </Paper>
             </Flex>
             <CategoryCreateModal
                 setRefresh={() => {

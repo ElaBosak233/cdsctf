@@ -48,7 +48,10 @@ function App() {
     useEffect(() => {
         wsrxStore.setStatus("offline");
         const interval = setInterval(() => {
-            if (useWsrxStore.getState().isEnabled) {
+            if (
+                useWsrxStore.getState().isEnabled &&
+                useWsrxStore.getState().status !== "offline"
+            ) {
                 wsrxStore.ping();
             }
         }, 10000);
