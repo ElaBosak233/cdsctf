@@ -157,9 +157,7 @@ export default function Page() {
                             mr={5}
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
-                            sx={{
-                                flexGrow: 1,
-                            }}
+                            flex={1}
                         />
                         <ActionIcon
                             variant={"filled"}

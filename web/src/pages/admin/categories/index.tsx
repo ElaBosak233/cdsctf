@@ -84,13 +84,7 @@ export default function Page() {
     return (
         <>
             <Flex my={36} mx={"10%"} justify={"center"}>
-                <Paper
-                    shadow={"md"}
-                    mih={"calc(100vh - 10rem)"}
-                    sx={{
-                        flexGrow: 1,
-                    }}
-                >
+                <Paper shadow={"md"} mih={"calc(100vh - 10rem)"} flex={1}>
                     <Table stickyHeader horizontalSpacing={"md"} striped>
                         <Table.Thead>
                             <Table.Tr

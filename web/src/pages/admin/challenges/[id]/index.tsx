@@ -165,9 +165,7 @@ function Page() {
                                 label="标题"
                                 withAsterisk
                                 description="题目大标题"
-                                sx={{
-                                    flexGrow: 1,
-                                }}
+                                flex={1}
                                 key={form.key("title")}
                                 {...form.getInputProps("title")}
                             />
@@ -208,9 +206,7 @@ function Page() {
                             <TextInput
                                 label="附件名/大小"
                                 disabled
-                                sx={{
-                                    flexGrow: 1,
-                                }}
+                                flex={1}
                                 value={
                                     attachmentMetadata?.filename
                                         ? `${attachmentMetadata?.filename} / ${attachmentMetadata?.size} bytes`
