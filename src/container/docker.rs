@@ -94,11 +94,11 @@ impl Container for Docker {
         let mut env_bindings: Vec<String> = challenge
             .envs
             .into_iter()
-            .map(|env| format!("{}:{}", env.key, env.value))
+            .map(|env| format!("{}={}", env.key, env.value))
             .collect();
 
         env_bindings.push(format!(
-            "{}:{}",
+            "{}={}",
             injected_flag.env.unwrap_or("FLAG".to_string()),
             injected_flag.value
         ));
