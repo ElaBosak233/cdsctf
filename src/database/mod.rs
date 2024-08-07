@@ -12,8 +12,6 @@ use sea_orm::{
 use std::time::Duration;
 use tracing::info;
 
-use crate::config;
-
 static DB: OnceCell<DatabaseConnection> = OnceCell::new();
 
 pub async fn init() {
@@ -33,7 +31,7 @@ pub async fn init() {
         .idle_timeout(Duration::from_secs(8))
         .max_lifetime(Duration::from_secs(8))
         .sqlx_logging(false)
-        .set_schema_search_path(&config::get_config().db.schema);
+        .set_schema_search_path("public");
 
     let db: DatabaseConnection = Database::connect(opt).await.unwrap();
     DB.set(db).unwrap();

@@ -31,8 +31,8 @@ pub async fn migrate(db: &DbConn) {
         crate::model::user_team::Entity,
         crate::model::category::Entity,
         crate::model::challenge::Entity,
-        crate::model::submission::Entity,
         crate::model::game::Entity,
+        crate::model::submission::Entity,
         crate::model::pod::Entity,
         crate::model::game_challenge::Entity,
         crate::model::game_team::Entity

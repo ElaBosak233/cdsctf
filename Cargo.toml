@@ -78,6 +78,17 @@ sea-orm-migration = { version = "1.0" }
 # Message Queue
 async-nats = { version = "0.35" }
 
+# Cache
+fred = { version = "9.0", features = [
+    "enable-rustls",
+    "dns",
+    "mocks",
+    "monitor",
+    "partial-tracing",
+    "sentinel-client",
+    "serde-json",
+] }
+
 # Containerization & Orchestration
 bollard = { version = "*" }
 kube = { version = "0.93", features = ["runtime", "derive"] }

@@ -7,11 +7,11 @@ use traits::QueueError;
 
 static CLIENT: OnceCell<async_nats::Client> = OnceCell::new();
 
-pub fn get_client() -> async_nats::Client {
+fn get_client() -> async_nats::Client {
     return CLIENT.get().unwrap().clone();
 }
 
-pub fn get_jetstream() -> async_nats::jetstream::Context {
+fn get_jetstream() -> async_nats::jetstream::Context {
     let client = get_client();
     return async_nats::jetstream::new(client);
 }
