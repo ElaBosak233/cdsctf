@@ -7,15 +7,12 @@ use axum::{
 };
 use regex::Regex;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
-use serde_json::json;
 use uuid::Uuid;
 
-use crate::web::traits::WebError;
+use crate::web::{model::pod::*, traits::WebError};
 use crate::{database::get_db, web::traits::Ext};
 
-pub async fn get(
-    Query(params): Query<crate::model::pod::request::FindRequest>,
-) -> Result<impl IntoResponse, WebError> {
+pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, WebError> {
     let (mut pods, total) = crate::model::pod::find(
         params.id,
         params.name,
@@ -25,8 +22,7 @@ pub async fn get(
         params.challenge_id,
         params.is_available,
     )
-    .await
-    .map_err(|err| WebError::DatabaseError(err))?;
+    .await?;
 
     if let Some(is_detailed) = params.is_detailed {
         if !is_detailed {
@@ -38,16 +34,16 @@ pub async fn get(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(pods),
-            "total": total,
-        })),
+        Json(GetResponse {
+            code: StatusCode::OK.as_u16(),
+            data: pods,
+            total: total,
+        }),
     ));
 }
 
 pub async fn create(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<crate::model::pod::request::CreateRequest>,
+    Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.clone().unwrap();
     body.user_id = Some(operator.id);
@@ -100,10 +96,10 @@ pub async fn create(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(pod),
-        })),
+        Json(CreateResponse {
+            code: StatusCode::OK.as_u16(),
+            data: pod,
+        }),
     ));
 }
 
@@ -115,8 +111,7 @@ pub async fn update(
     let pod = crate::model::pod::Entity::find()
         .filter(crate::model::pod::Column::Id.eq(id))
         .one(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?
+        .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
 
     if !(operator.group == "admin"
@@ -140,9 +135,9 @@ pub async fn update(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(UpdateResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }
 
@@ -152,8 +147,7 @@ pub async fn delete(
     let operator = ext.operator.clone().unwrap();
     let pod = crate::model::pod::Entity::find_by_id(id)
         .one(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?
+        .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
 
     if !(operator.group == "admin"
@@ -178,8 +172,8 @@ pub async fn delete(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(DeleteResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }

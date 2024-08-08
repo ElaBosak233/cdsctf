@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use anyhow::anyhow;
 use axum::{
     body::Body,
     extract::{Multipart, Path, Query},
@@ -8,16 +7,15 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
-use sea_orm::{ActiveModelTrait, EntityTrait};
-use serde_json::json;
+use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
 
-use crate::database::get_db;
+use crate::web::model::challenge::*;
+use crate::{database::get_db, web::model::Metadata};
 use crate::{model::submission::Status, web::traits::Ext};
 use crate::{util::validate, web::traits::WebError};
 
 pub async fn get(
-    Extension(ext): Extension<Ext>,
-    Query(params): Query<crate::model::challenge::request::FindRequest>,
+    Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && params.is_detailed.unwrap_or(false) {
@@ -33,8 +31,7 @@ pub async fn get(
         params.page,
         params.size,
     )
-    .await
-    .map_err(|err| WebError::DatabaseError(err))?;
+    .await?;
 
     for challenge in challenges.iter_mut() {
         let is_detailed = params.is_detailed.unwrap_or(false);
@@ -45,33 +42,28 @@ pub async fn get(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(challenges),
-            "total": total,
-        })),
+        Json(GetResponse {
+            code: StatusCode::OK.as_u16(),
+            data: challenges,
+            total: total,
+        }),
     ));
 }
 
-pub async fn get_status(
-    Json(body): Json<crate::model::challenge::request::StatusRequest>,
-) -> Result<impl IntoResponse, WebError> {
+pub async fn get_status(Json(body): Json<StatusRequest>) -> Result<impl IntoResponse, WebError> {
     let mut submissions = crate::model::submission::find_by_challenge_ids(body.cids.clone())
         .await
         .unwrap();
 
-    let mut result: HashMap<i64, crate::model::challenge::response::StatusResponse> =
-        HashMap::new();
+    let mut result: HashMap<i64, StatusResponse> = HashMap::new();
 
     for cid in body.cids {
-        result
-            .entry(cid)
-            .or_insert_with(|| crate::model::challenge::response::StatusResponse {
-                is_solved: false,
-                solved_times: 0,
-                pts: 0,
-                bloods: Vec::new(),
-            });
+        result.entry(cid).or_insert_with(|| StatusResponse {
+            is_solved: false,
+            solved_times: 0,
+            pts: 0,
+            bloods: Vec::new(),
+        });
     }
 
     for submission in submissions.iter_mut() {
@@ -147,61 +139,86 @@ pub async fn get_status(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(result),
-        })),
+        Json(GetStatusResponse {
+            code: StatusCode::OK.as_u16(),
+            data: result,
+        }),
     ));
 }
 
-pub async fn create(
-    Json(body): Json<crate::model::challenge::request::CreateRequest>,
-) -> Result<impl IntoResponse, WebError> {
-    let challenge = crate::model::challenge::ActiveModel::from(body)
-        .insert(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+pub async fn create(Json(body): Json<CreateRequest>) -> Result<impl IntoResponse, WebError> {
+    let challenge = crate::model::challenge::ActiveModel {
+        title: Set(body.title),
+        description: Set(Some(body.description)),
+        category_id: Set(body.category_id),
+        is_practicable: Set(body.is_practicable.unwrap_or(false)),
+        is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
+        has_attachment: Set(body.has_attachment.unwrap_or(false)),
+        image_name: Set(body.image_name),
+        cpu_limit: Set(body.cpu_limit.unwrap_or(0)),
+        memory_limit: Set(body.memory_limit.unwrap_or(0)),
+        duration: Set(body.duration.unwrap_or(1800)),
+        ports: Set(body.ports.unwrap_or(vec![])),
+        envs: Set(body.envs.unwrap_or(vec![])),
+        flags: Set(body.flags.unwrap_or(vec![])),
+        ..Default::default()
+    }
+    .insert(&get_db())
+    .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(challenge),
-        })),
+        Json(CreateResponse {
+            code: StatusCode::OK.as_u16(),
+            data: challenge,
+        }),
     ));
 }
 
 pub async fn update(
-    Path(id): Path<i64>,
-    validate::Json(mut body): validate::Json<crate::model::challenge::request::UpdateRequest>,
+    Path(id): Path<i64>, validate::Json(mut body): validate::Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     body.id = Some(id);
 
-    let challenge = crate::model::challenge::ActiveModel::from(body)
-        .update(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let challenge = crate::model::challenge::ActiveModel {
+        id: body.id.map_or(NotSet, |v| Set(v)),
+        title: body.title.map_or(NotSet, |v| Set(v)),
+        description: body.description.map_or(NotSet, |v| Set(Some(v))),
+        category_id: body.category_id.map_or(NotSet, |v| Set(v)),
+        is_practicable: body.is_practicable.map_or(NotSet, |v| Set(v)),
+        is_dynamic: body.is_dynamic.map_or(NotSet, |v| Set(v)),
+        has_attachment: body.has_attachment.map_or(NotSet, |v| Set(v)),
+        image_name: body.image_name.map_or(NotSet, |v| Set(Some(v))),
+        cpu_limit: body.cpu_limit.map_or(NotSet, |v| Set(v)),
+        memory_limit: body.memory_limit.map_or(NotSet, |v| Set(v)),
+        duration: body.duration.map_or(NotSet, |v| Set(v)),
+        ports: body.ports.map_or(NotSet, |v| Set(v)),
+        envs: body.envs.map_or(NotSet, |v| Set(v)),
+        flags: body.flags.map_or(NotSet, |v| Set(v)),
+        ..Default::default()
+    }
+    .update(&get_db())
+    .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(challenge),
-        })),
+        Json(UpdateResponse {
+            code: StatusCode::OK.as_u16(),
+            data: challenge,
+        }),
     ));
 }
 
 pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let _ = crate::model::challenge::Entity::delete_by_id(id)
         .exec(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+        .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(DeleteResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }
 
@@ -229,13 +246,13 @@ pub async fn get_attachment_metadata(Path(id): Path<i64>) -> Result<impl IntoRes
         Some((filename, size)) => {
             return Ok((
                 StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                    "data": {
-                        "filename": filename,
-                        "size": size,
+                Json(GetAttachmentMetadataResponse {
+                    code: StatusCode::OK.as_u16(),
+                    data: Metadata {
+                        filename: filename.to_string(),
+                        size: *size,
                     },
-                })),
+                }),
             ));
         }
         None => return Err(WebError::NotFound(String::new())),
@@ -268,9 +285,9 @@ pub async fn save_attachment(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(SaveAttachmentResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }
 
@@ -283,8 +300,8 @@ pub async fn delete_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse,
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(DeleteAttachmentResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }

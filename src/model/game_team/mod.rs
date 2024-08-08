@@ -1,7 +1,5 @@
-pub mod request;
-
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, TryIntoModel};
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
@@ -17,6 +15,13 @@ pub struct Model {
     pub team_id: i64,
     #[sea_orm(default_value = false)]
     pub is_allowed: bool,
+
+    /// pts of the team in the game. (only controlled by daemons)
+    #[sea_orm(default_value = 0)]
+    pub pts: i64,
+    /// rank of the team in the game. (only controlled by daemons)
+    #[sea_orm(default_value = 0)]
+    pub rank: i64,
 
     #[sea_orm(ignore)]
     pub game: Option<game::Model>,

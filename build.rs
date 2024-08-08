@@ -2,7 +2,7 @@ use std::process::Command;
 
 fn main() {
     println!(
-        "cargo:rustc-env=GIT_COMMIT_ID={}",
+        "cargo:rustc-env=GIT_COMMIT={}",
         String::from_utf8(
             Command::new("git")
                 .args(&["rev-parse", "HEAD"])

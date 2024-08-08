@@ -23,7 +23,7 @@ async fn main() {
         std::str::from_utf8(&banner)
             .unwrap()
             .replace("{{version}}", env!("CARGO_PKG_VERSION"))
-            .replace("{{commit}}", env!("GIT_COMMIT_ID"))
+            .replace("{{git_commit}}", env!("GIT_COMMIT"))
             .replace("{{build_at}}", env!("BUILD_AT"))
     );
 

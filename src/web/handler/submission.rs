@@ -4,15 +4,16 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
-use sea_orm::{ActiveModelTrait, EntityTrait};
-use serde_json::json;
+use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
 
-use crate::web::traits::WebError;
 use crate::{database::get_db, web::traits::Ext};
+use crate::{
+    model::submission::Status,
+    web::{model::submission::*, traits::WebError},
+};
 
 pub async fn get(
-    Extension(ext): Extension<Ext>,
-    Query(params): Query<crate::model::submission::request::FindRequest>,
+    Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.unwrap();
     if operator.group != "admin" && params.is_detailed.unwrap_or(false) {
@@ -29,8 +30,7 @@ pub async fn get(
         params.page,
         params.size,
     )
-    .await
-    .map_err(|err| WebError::DatabaseError(err))?;
+    .await?;
 
     let is_detailed = params.is_detailed.unwrap_or(false);
     for submission in submissions.iter_mut() {
@@ -41,19 +41,18 @@ pub async fn get(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(submissions),
-            "total": total,
-        })),
+        Json(GetResponse {
+            code: StatusCode::OK.as_u16(),
+            data: submissions,
+            total: total,
+        }),
     ));
 }
 
 pub async fn get_by_id(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let submission = crate::model::submission::Entity::find_by_id(id)
         .one(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+        .await?;
 
     if submission.is_none() {
         return Err(WebError::NotFound(String::from("")));
@@ -64,16 +63,15 @@ pub async fn get_by_id(Path(id): Path<i64>) -> Result<impl IntoResponse, WebErro
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(submission),
-        })),
+        Json(GetByIDResponse {
+            code: StatusCode::OK.as_u16(),
+            data: submission,
+        }),
     ));
 }
 
 pub async fn create(
-    Extension(ext): Extension<Ext>,
-    Json(mut body): Json<crate::model::submission::request::CreateRequest>,
+    Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.unwrap();
     body.user_id = Some(operator.id);
@@ -111,32 +109,38 @@ pub async fn create(
         }
     }
 
-    let submission = crate::model::submission::ActiveModel::from(body)
-        .insert(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let submission = crate::model::submission::ActiveModel {
+        flag: Set(body.flag),
+        user_id: body.user_id.map_or(NotSet, |v| Set(v)),
+        team_id: body.team_id.map_or(NotSet, |v| Set(Some(v))),
+        game_id: body.game_id.map_or(NotSet, |v| Set(Some(v))),
+        challenge_id: body.challenge_id.map_or(NotSet, |v| Set(v)),
+        status: Set(Status::Pending),
+        ..Default::default()
+    }
+    .insert(&get_db())
+    .await?;
 
     crate::queue::publish("checker", submission.id).await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(submission),
-        })),
+        Json(CreateResponse {
+            code: StatusCode::OK.as_u16(),
+            data: submission,
+        }),
     ));
 }
 
 pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let _ = crate::model::submission::Entity::delete_by_id(id)
         .exec(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+        .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(DeleteResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }

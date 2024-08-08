@@ -1,7 +1,7 @@
 use axum::{routing::get, Router};
 
-use crate::web::controller;
+use crate::web::handler;
 
 pub fn router() -> Router {
-    return Router::new().route("/:token", get(controller::proxy::link));
+    return Router::new().route("/:token", get(handler::proxy::link));
 }

@@ -1,7 +1,7 @@
 use axum::{routing::get, Router};
 
-use crate::web::controller;
+use crate::web::handler;
 
 pub fn router() -> Router {
-    return Router::new().route("/*path", get(controller::media::get_file));
+    return Router::new().route("/*path", get(handler::media::get_file));
 }
