@@ -11,18 +11,16 @@ use axum::{
 };
 use mime::Mime;
 use sea_orm::{
-    prelude::Expr, sea_query::Func, ActiveModelTrait, Condition, EntityTrait, PaginatorTrait,
-    QueryFilter, Set,
+    prelude::Expr, sea_query::Func, ActiveModelTrait, ActiveValue::NotSet, Condition, EntityTrait,
+    PaginatorTrait, QueryFilter, Set,
 };
-use serde_json::json;
 
 use crate::database::get_db;
+use crate::web::model::{user::*, Metadata};
 use crate::{util::jwt, web::traits::Ext};
 use crate::{util::validate, web::traits::WebError};
 
-pub async fn get(
-    Query(params): Query<crate::model::user::request::FindRequest>,
-) -> Result<impl IntoResponse, WebError> {
+pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, WebError> {
     let (mut users, total) = crate::model::user::find(
         params.id,
         params.name,
@@ -32,8 +30,7 @@ pub async fn get(
         params.page,
         params.size,
     )
-    .await
-    .map_err(|err| WebError::DatabaseError(err))?;
+    .await?;
 
     for user in users.iter_mut() {
         user.simplify();
@@ -41,16 +38,16 @@ pub async fn get(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(users),
-            "total": total,
-        })),
+        Json(GetResponse {
+            code: StatusCode::OK.as_u16(),
+            data: users,
+            total: total,
+        }),
     ));
 }
 
 pub async fn create(
-    validate::Json(mut body): validate::Json<crate::model::user::request::CreateRequest>,
+    validate::Json(mut body): validate::Json<CreateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
@@ -62,25 +59,31 @@ pub async fn create(
 
     body.password = hashed_password;
 
-    let mut user = crate::model::user::ActiveModel::from(body)
-        .insert(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let mut user = crate::model::user::ActiveModel {
+        username: Set(body.username),
+        nickname: Set(body.nickname),
+        email: Set(body.email),
+        password: Set(body.password),
+        group: Set(body.group),
+        ..Default::default()
+    }
+    .insert(&get_db())
+    .await?;
 
     user.simplify();
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(user),
-        })),
+        Json(CreateResponse {
+            code: StatusCode::OK.as_u16(),
+            data: user,
+        }),
     ));
 }
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-    validate::Json(mut body): validate::Json<crate::model::user::request::UpdateRequest>,
+    validate::Json(mut body): validate::Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.clone().operator.unwrap();
     body.id = Some(id);
@@ -100,51 +103,53 @@ pub async fn update(
         body.password = Some(hashed_password);
     }
 
-    let user = crate::model::user::ActiveModel::from(body)
-        .update(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let user = crate::model::user::ActiveModel {
+        id: Set(body.id.unwrap_or(0)),
+        username: body.username.map_or(NotSet, |v| Set(v)),
+        nickname: body.nickname.map_or(NotSet, |v| Set(v)),
+        email: body.email.map_or(NotSet, |v| Set(v)),
+        password: body.password.map_or(NotSet, |v| Set(v)),
+        group: body.group.map_or(NotSet, |v| Set(v)),
+        ..Default::default()
+    }
+    .update(&get_db())
+    .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(user),
-        })),
+        Json(UpdateResponse {
+            code: StatusCode::OK.as_u16(),
+            data: user,
+        }),
     ));
 }
 
 pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let _ = crate::model::user::Entity::delete_by_id(id)
         .exec(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+        .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(DeleteResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }
 
 pub async fn get_teams(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
-    let teams = crate::model::team::find_by_user_id(id)
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let teams = crate::model::team::find_by_user_id(id).await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(teams),
-        })),
+        Json(GetTeamResponse {
+            code: StatusCode::OK.as_u16(),
+            data: teams,
+        }),
     ));
 }
 
-pub async fn login(
-    Json(mut body): Json<crate::model::user::request::LoginRequest>,
-) -> Result<impl IntoResponse, WebError> {
+pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoResponse, WebError> {
     body.account = body.account.to_lowercase();
 
     let mut user = crate::model::user::Entity::find()
@@ -160,8 +165,7 @@ pub async fn login(
                 ),
         )
         .one(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?
+        .await?
         .ok_or_else(|| WebError::BadRequest(String::from("invalid")))?;
 
     let hashed_password = user.password.clone();
@@ -181,16 +185,16 @@ pub async fn login(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(user),
-            "token": token,
-        })),
+        Json(LoginResponse {
+            code: StatusCode::OK.as_u16(),
+            data: user,
+            token: token,
+        }),
     ));
 }
 
 pub async fn register(
-    validate::Json(mut body): validate::Json<crate::model::user::request::RegisterRequest>,
+    validate::Json(mut body): validate::Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
@@ -208,8 +212,7 @@ pub async fn register(
                 ),
         )
         .count(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?
+        .await?
         > 0;
 
     if is_conflict {
@@ -220,21 +223,24 @@ pub async fn register(
         .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
         .unwrap()
         .to_string();
-    let mut user = crate::model::user::ActiveModel::from(body);
-    user.password = Set(hashed_password);
-    user.group = Set(String::from("user"));
 
-    let user = user
-        .insert(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let user = crate::model::user::ActiveModel {
+        username: Set(body.username),
+        nickname: Set(body.nickname),
+        email: Set(body.email),
+        password: Set(hashed_password),
+        group: Set(String::from("user")),
+        ..Default::default()
+    };
+
+    let user = user.insert(&get_db()).await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(user),
-        })),
+        Json(RegisterResponse {
+            code: StatusCode::OK.as_u16(),
+            data: user,
+        }),
     ));
 }
 
@@ -255,13 +261,13 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<impl IntoRespons
         Some((filename, size)) => {
             return Ok((
                 StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                    "data": {
-                        "filename": filename,
-                        "size": size,
+                Json(GetAvatarMetadataResponse {
+                    code: StatusCode::OK.as_u16(),
+                    data: Metadata {
+                        filename: filename.to_string(),
+                        size: *size,
                     },
-                })),
+                }),
             ));
         }
         None => {
@@ -306,9 +312,9 @@ pub async fn save_avatar(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(SaveAvatarResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }
 
@@ -328,8 +334,8 @@ pub async fn delete_avatar(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(DeleteAvatarResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }

@@ -1,9 +1,9 @@
 use axum::{routing::get, Router};
 
-use crate::web::controller;
+use crate::web::handler;
 
 pub fn router() -> Router {
     return Router::new()
-        .route("/", get(controller::config::find))
-        .route("/favicon", get(controller::config::get_favicon));
+        .route("/", get(handler::config::find))
+        .route("/favicon", get(handler::config::get_favicon));
 }

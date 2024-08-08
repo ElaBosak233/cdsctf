@@ -1,5 +1,3 @@
-use crate::database::get_db;
-use crate::web::traits::{WebError, Ext};
 use axum::body::Body;
 use axum::{
     extract::{Multipart, Path, Query},
@@ -8,10 +6,14 @@ use axum::{
     Extension, Json,
 };
 use mime::Mime;
+use sea_orm::ActiveValue::NotSet;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect, Set,
 };
-use serde_json::json;
+
+use crate::database::get_db;
+use crate::web::model::{team::*, Metadata};
+use crate::web::traits::{Ext, WebError};
 
 fn can_modify_team(user: crate::model::user::Model, team_id: i64) -> bool {
     return user.group == "admin"
@@ -21,9 +23,7 @@ fn can_modify_team(user: crate::model::user::Model, team_id: i64) -> bool {
             .any(|team| team.id == team_id && team.captain_id == user.id);
 }
 
-pub async fn get(
-    Query(params): Query<crate::model::team::request::FindRequest>,
-) -> Result<impl IntoResponse, WebError> {
+pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, WebError> {
     let (teams, total) = crate::model::team::find(
         params.id,
         params.name,
@@ -31,31 +31,35 @@ pub async fn get(
         params.page,
         params.size,
     )
-    .await
-    .map_err(|err| WebError::DatabaseError(err))?;
+    .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(teams),
-            "total": total,
-        })),
+        Json(GetResponse {
+            code: StatusCode::OK.as_u16(),
+            data: teams,
+            total: total,
+        }),
     ));
 }
 
 pub async fn create(
-    Extension(ext): Extension<Ext>, Json(body): Json<crate::model::team::request::CreateRequest>,
+    Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.unwrap();
     if !(operator.group == "admin" || operator.id == body.captain_id) {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let team = crate::model::team::ActiveModel::from(body.clone())
-        .insert(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let team = crate::model::team::ActiveModel {
+        name: Set(body.name),
+        email: Set(Some(body.email)),
+        captain_id: Set(body.captain_id),
+        description: body.description.map_or(NotSet, |v| Set(Some(v))),
+        ..Default::default()
+    }
+    .insert(&get_db())
+    .await?;
 
     let _ = crate::model::user_team::ActiveModel {
         user_id: Set(body.captain_id),
@@ -63,38 +67,42 @@ pub async fn create(
         ..Default::default()
     }
     .insert(&get_db())
-    .await
-    .map_err(|err| WebError::DatabaseError(err))?;
+    .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(team),
-        })),
+        Json(CreateResponse {
+            code: StatusCode::OK.as_u16(),
+            data: team,
+        }),
     ));
 }
 
 pub async fn update(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-    Json(mut body): Json<crate::model::team::request::UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     if !can_modify_team(ext.operator.unwrap(), id) {
         return Err(WebError::Forbidden(String::new()));
     }
     body.id = Some(id);
 
-    let team = crate::model::team::ActiveModel::from(body)
-        .insert(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let team = crate::model::team::ActiveModel {
+        id: body.id.map_or(NotSet, |v| Set(v)),
+        name: body.name.map_or(NotSet, |v| Set(v)),
+        email: body.email.map_or(NotSet, |v| Set(Some(v))),
+        captain_id: body.captain_id.map_or(NotSet, |v| Set(v)),
+        description: body.description.map_or(NotSet, |v| Set(Some(v))),
+        ..Default::default()
+    }
+    .insert(&get_db())
+    .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": json!(team),
-        })),
+        Json(UpdateResponse {
+            code: StatusCode::OK.as_u16(),
+            data: team,
+        }),
     ));
 }
 
@@ -107,30 +115,31 @@ pub async fn delete(
 
     let _ = crate::model::team::Entity::delete_by_id(id)
         .exec(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+        .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(DeleteResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }
 
 pub async fn create_user(
-    Json(body): Json<crate::model::user_team::request::CreateRequest>,
+    Json(body): Json<CreateUserRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    let _ = crate::model::user_team::ActiveModel::from(body)
-        .insert(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let _ = crate::model::user_team::ActiveModel {
+        user_id: Set(body.user_id),
+        team_id: Set(body.team_id),
+    }
+    .insert(&get_db())
+    .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(CreateUserResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }
 
@@ -146,14 +155,13 @@ pub async fn delete_user(
         .filter(crate::model::user_team::Column::UserId.eq(user_id))
         .filter(crate::model::user_team::Column::TeamId.eq(id))
         .exec(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+        .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(DeleteUserResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }
 
@@ -170,16 +178,15 @@ pub async fn get_invite_token(
         .select_only()
         .column(crate::model::team::Column::InviteToken)
         .one(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?
+        .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "token": team.invite_token,
-        })),
+        Json(GetInviteTokenResponse {
+            code: StatusCode::OK.as_u16(),
+            token: team.invite_token,
+        }),
     ));
 }
 
@@ -193,58 +200,53 @@ pub async fn update_invite_token(
 
     let mut team = crate::model::team::Entity::find_by_id(id)
         .one(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?
+        .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?
         .into_active_model();
 
     let token = uuid::Uuid::new_v4().simple().to_string();
     team.invite_token = Set(Some(token.clone()));
 
-    let _ = team
-        .update(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let _ = team.update(&get_db()).await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "token": token,
-        })),
+        Json(UpdateInviteTokenResponse {
+            code: StatusCode::OK.as_u16(),
+            token: token,
+        }),
     ));
 }
 
-pub async fn join(
-    Json(body): Json<crate::model::user_team::request::JoinRequest>,
-) -> Result<impl IntoResponse, WebError> {
+pub async fn join(Json(body): Json<JoinRequest>) -> Result<impl IntoResponse, WebError> {
     let _ = crate::model::user::Entity::find_by_id(body.user_id)
         .one(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?
+        .await?
         .ok_or_else(|| WebError::NotFound(String::from("invalid_user_or_team")))?;
 
     let team = crate::model::team::Entity::find_by_id(body.team_id)
         .one(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?
+        .await?
         .ok_or_else(|| WebError::NotFound(String::from("invalid_user_or_team")))?;
 
     if Some(body.invite_token.clone()) != team.invite_token {
         return Err(WebError::BadRequest(String::from("invalid_invite_token")));
     }
 
-    let user_team = crate::model::user_team::ActiveModel::from(body)
-        .insert(&get_db())
-        .await
-        .map_err(|err| WebError::DatabaseError(err))?;
+    let user_team = crate::model::user_team::ActiveModel {
+        user_id: Set(body.user_id),
+        team_id: Set(body.team_id),
+        ..Default::default()
+    }
+    .insert(&get_db())
+    .await?;
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-            "data": user_team,
-        })),
+        Json(JoinResponse {
+            code: StatusCode::OK.as_u16(),
+            data: user_team,
+        }),
     ));
 }
 
@@ -258,13 +260,13 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<impl IntoRespons
         Some((filename, size)) => {
             return Ok((
                 StatusCode::OK,
-                Json(json!({
-                    "code": StatusCode::OK.as_u16(),
-                    "data": {
-                        "filename": filename,
-                        "size": size,
+                Json(GetAvatarMetadataResponse {
+                    code: StatusCode::OK.as_u16(),
+                    data: Metadata {
+                        filename: filename.to_string(),
+                        size: *size,
                     },
-                })),
+                }),
             ));
         }
         None => return Err(WebError::NotFound(String::new())),
@@ -318,15 +320,15 @@ pub async fn save_avatar(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(SaveAvatarResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }
 
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.unwrap();
     if !can_modify_team(operator, id) {
         return Err(WebError::Forbidden(String::new()));
@@ -340,8 +342,8 @@ pub async fn delete_avatar(
 
     return Ok((
         StatusCode::OK,
-        Json(json!({
-            "code": StatusCode::OK.as_u16(),
-        })),
+        Json(DeleteAvatarResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
     ));
 }

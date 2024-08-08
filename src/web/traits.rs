@@ -3,7 +3,7 @@ use axum::body::Body;
 use axum::http::{Response, StatusCode};
 use axum::response::IntoResponse;
 use axum::Json;
-use serde_json::json;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tracing::error;
 
@@ -36,6 +36,12 @@ pub enum WebError {
     OtherError(#[from] anyhow::Error),
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct WebErrorResponse {
+    pub code: u16,
+    pub msg: String,
+}
+
 impl IntoResponse for WebError {
     fn into_response(self) -> Response<Body> {
         let (status, message) = match self {
@@ -56,10 +62,10 @@ impl IntoResponse for WebError {
 
         return (
             status,
-            Json(json!({
-                "code": status.as_u16(),
-                "msg": message,
-            })),
+            Json(WebErrorResponse {
+                code: status.as_u16(),
+                msg: message,
+            }),
         )
             .into_response();
     }

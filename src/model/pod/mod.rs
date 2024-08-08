@@ -1,5 +1,4 @@
 pub mod nat;
-pub mod request;
 
 use axum::async_trait;
 use sea_orm::{entity::prelude::*, Set};

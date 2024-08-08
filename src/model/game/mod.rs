@@ -1,7 +1,5 @@
-pub mod request;
-
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, QuerySelect, Set, TryIntoModel};
+use sea_orm::{entity::prelude::*, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
