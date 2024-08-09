@@ -1,3 +1,6 @@
+//! checker module is for checking submissions,
+//! it will assign a status to each submission.
+
 use futures::StreamExt;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter,
@@ -5,7 +8,7 @@ use sea_orm::{
 };
 use tracing::info;
 
-use crate::{database::get_db, model::submission::Status};
+use crate::{calculator::traits::CalculatorPayload, database::get_db, model::submission::Status};
 
 async fn check(id: i64) {
     let submission = crate::model::submission::Entity::find()
@@ -130,10 +133,22 @@ async fn check(id: i64) {
         submission.id, status, user.username
     );
 
-    let mut submission = submission.into_active_model();
-    submission.status = Set(status);
+    let mut submission_active_model = submission.clone().into_active_model();
+    submission_active_model.status = Set(status.clone());
 
-    submission.update(&get_db()).await.unwrap();
+    submission_active_model.update(&get_db()).await.unwrap();
+
+    if submission.game_id.is_some() && status == Status::Correct {
+        crate::queue::publish(
+            "calculator",
+            CalculatorPayload {
+                game_id: submission.game_id,
+                team_id: submission.team_id,
+            },
+        )
+        .await
+        .unwrap();
+    }
 }
 
 async fn recover() {

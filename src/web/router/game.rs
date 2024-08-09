@@ -74,10 +74,10 @@ pub fn router() -> Router {
             "/:id/notices/:notice_id",
             delete(handler::game::delete_notice).layer(from_fn(auth::jwt(Group::Admin))),
         )
-        .route(
-            "/:id/submissions",
-            get(handler::game::get_submission).layer(from_fn(auth::jwt(Group::User))),
-        )
+        // .route(
+        //     "/:id/submissions",
+        //     get(handler::game::get_submission).layer(from_fn(auth::jwt(Group::User))),
+        // )
         .route("/:id/poster", get(handler::game::get_poster))
         .route(
             "/:id/poster",

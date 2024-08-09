@@ -7,10 +7,10 @@ use axum::{
 };
 use mime::Mime;
 use sea_orm::ActiveValue::NotSet;
-use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ActiveModelTrait, Set};
+use sea_orm::{ColumnTrait, Condition};
 
 use crate::database::get_db;
 use crate::web::model::{game::*, Metadata};
@@ -153,6 +153,7 @@ pub async fn create_challenge(
         first_blood_reward_ratio: body.first_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
         second_blood_reward_ratio: body.second_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
         third_blood_reward_ratio: body.third_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
+        ..Default::default()
     }
     .insert(&get_db())
     .await?;
@@ -182,6 +183,7 @@ pub async fn update_challenge(
         first_blood_reward_ratio: body.first_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
         second_blood_reward_ratio: body.second_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
         third_blood_reward_ratio: body.third_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
+        ..Default::default()
     }
     .update(&get_db())
     .await?;
@@ -303,21 +305,38 @@ pub async fn delete_notice() -> Result<impl IntoResponse, WebError> {
     Ok(todo!())
 }
 
-/// get submissions by game id will calculate rank, pts of each submissoin.
-pub async fn get_submission(
-    Path(id): Path<i64>, Query(params): Query<GetSubmissionRequest>,
-) -> Result<impl IntoResponse, WebError> {
-    let submissions =
-        crate::model::submission::get_game_submission_model(id, params.status).await?;
+// pub async fn get_submission(
+//     Path(id): Path<i64>, Query(params): Query<GetSubmissionRequest>,
+// ) -> Result<impl IntoResponse, WebError> {
+//     let submissions = crate::model::submission::get_with_pts(id, params.status).await?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(GetSubmissionResponse {
-            code: StatusCode::OK.as_u16(),
-            data: submissions,
-        }),
-    ));
-}
+//     return Ok((
+//         StatusCode::OK,
+//         Json(GetSubmissionResponse {
+//             code: StatusCode::OK.as_u16(),
+//             data: submissions,
+//         }),
+//     ));
+// }
+
+// pub async fn get_scoreboard(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+//     pub struct TeamScoreRecord {}
+
+//     let submissions =
+//         crate::model::submission::get_with_pts(id, Some(crate::model::submission::Status::Correct))
+//             .await;
+
+//     let game_teams = crate::model::game_team::Entity::find()
+//         .filter(
+//             Condition::all()
+//                 .add(crate::model::game_team::Column::GameId.eq(id))
+//                 .add(crate::model::game_team::Column::IsAllowed.eq(true)),
+//         )
+//         .all(&get_db())
+//         .await?;
+
+//     return Ok(());
+// }
 
 pub async fn get_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("games/{}/poster", id);

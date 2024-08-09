@@ -28,6 +28,9 @@ pub struct Model {
     #[sea_orm(default_value = 200)]
     pub min_pts: i64,
 
+    #[sea_orm(default_value = 0)]
+    pub pts: i64,
+
     #[sea_orm(ignore)]
     pub challenge: Option<challenge::Model>,
 }

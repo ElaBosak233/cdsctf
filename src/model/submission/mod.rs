@@ -1,10 +1,12 @@
 pub mod status;
 
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, Condition, QuerySelect, Set};
+use sea_orm::{
+    entity::prelude::*, Condition, IntoActiveModel, QueryOrder, QuerySelect, Set, TryIntoModel,
+};
 use serde::{Deserialize, Serialize};
 
-use crate::database::get_db;
+use crate::{calculator::traits::CalculatorPayload, database::get_db};
 
 use super::{challenge, game, team, user};
 pub use status::Status;
@@ -22,6 +24,11 @@ pub struct Model {
     pub challenge_id: i64,
     pub created_at: i64,
     pub updated_at: i64,
+
+    #[sea_orm(default_value = 0)]
+    pub pts: i64,
+    #[sea_orm(default_value = 0)]
+    pub rank: i64,
 
     #[sea_orm(ignore)]
     pub user: Option<user::Model>,
@@ -113,49 +120,27 @@ impl ActiveModelBehavior for ActiveModel {
         C: ConnectionTrait,
     {
         self.updated_at = Set(chrono::Utc::now().timestamp());
-        Ok(self)
+        return Ok(self);
     }
-}
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct GameSubmissionModel {
-    pub id: i64,
-    pub flag: String,
-    pub status: Status,
-    pub user_id: i64,
-    pub team_id: Option<i64>,
-    pub game_id: Option<i64>,
-    pub challenge_id: i64,
-    pub created_at: i64,
-    pub updated_at: i64,
+    async fn after_delete<C>(self, _db: &C) -> Result<Self, DbErr>
+    where
+        C: ConnectionTrait,
+    {
+        let submission = self.clone().try_into_model()?;
+        if let Some(game_id) = submission.game_id {
+            crate::queue::publish(
+                "calculator",
+                CalculatorPayload {
+                    game_id: Some(game_id),
+                    team_id: None,
+                },
+            )
+            .await
+            .unwrap();
+        }
 
-    pub pts: i64,
-    pub rank: i64,
-    pub user: Option<user::Model>,
-    pub team: Option<team::Model>,
-    pub challenge: Option<challenge::Model>,
-}
-
-impl From<Model> for GameSubmissionModel {
-    fn from(model: Model) -> Self {
-        return Self {
-            id: model.id,
-            flag: model.flag,
-            status: model.status,
-            user_id: model.user_id,
-            team_id: model.team_id,
-            game_id: model.game_id,
-            challenge_id: model.challenge_id,
-            created_at: model.created_at,
-            updated_at: model.updated_at,
-
-            pts: 0,
-            rank: 0,
-
-            user: model.user,
-            team: model.team,
-            challenge: model.challenge,
-        };
+        return Ok(self);
     }
 }
 
@@ -189,9 +174,6 @@ async fn preload(
             team.simplify();
         }
         submission.game = games[i].clone();
-        // if let Some(game) = submission.game.as_mut() {
-        //     game.simplify();
-        // }
     }
     return Ok(submissions);
 }
@@ -242,20 +224,20 @@ pub async fn find(
     return Ok((submissions, total));
 }
 
-pub async fn find_by_challenge_ids(
+pub async fn get_by_challenge_ids(
     challenge_ids: Vec<i64>,
 ) -> Result<Vec<crate::model::submission::Model>, DbErr> {
     let mut submissions = crate::model::submission::Entity::find()
         .filter(crate::model::submission::Column::ChallengeId.is_in(challenge_ids))
+        .order_by_asc(crate::model::submission::Column::CreatedAt)
         .all(&get_db())
         .await?;
     submissions = preload(submissions).await?;
     return Ok(submissions);
 }
 
-pub async fn get_game_submission_model(
-    game_id: i64, status: Option<Status>,
-) -> Result<Vec<GameSubmissionModel>, DbErr> {
+/// game only
+pub async fn get_with_pts(game_id: i64, status: Option<Status>) -> Result<Vec<Model>, DbErr> {
     let mut submissions = crate::model::submission::Entity::find()
         .filter(
             Condition::all()
@@ -269,10 +251,9 @@ pub async fn get_game_submission_model(
 
     submissions = preload(submissions).await?;
 
-    let mut submissions = submissions
-        .into_iter()
-        .map(|submission| GameSubmissionModel::from(submission))
-        .collect::<Vec<GameSubmissionModel>>();
+    for submission in submissions.iter_mut() {
+        submission.game = None;
+    }
 
     let game_challenges = crate::model::game_challenge::Entity::find()
         .filter(Condition::all().add(crate::model::game_challenge::Column::GameId.eq(game_id)))
@@ -286,7 +267,7 @@ pub async fn get_game_submission_model(
                 submission.challenge_id == game_challenge.challenge_id
                     && submission.status == Status::Correct
             })
-            .collect::<Vec<&mut GameSubmissionModel>>();
+            .collect::<Vec<&mut Model>>();
         submissions.sort_by_key(|submission| submission.created_at);
 
         let base_points = crate::util::math::curve(
