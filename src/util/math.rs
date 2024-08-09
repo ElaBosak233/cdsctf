@@ -3,7 +3,7 @@ use std::f64::consts::E;
 /// curve is a function that calculates the value of a curve given the parameters s, r, d, and x.
 ///
 /// - "s" is the maximum value.
-/// - "r" is the maximum value.
+/// - "r" is the minimum value.
 /// - "d" is the degree of difficulty of the challenge.
 /// - "x" is the quantity of correct submissions.
 pub fn curve(s: i64, r: i64, d: i64, x: i64) -> i64 {

@@ -34,7 +34,7 @@ services:
             - "--js"
             - "--sd=/data"
         volumes:
-            - "./queue:/data
+            - "./queue:/data"
 
     cache:
         image: redis:alpine

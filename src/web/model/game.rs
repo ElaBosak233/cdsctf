@@ -175,9 +175,15 @@ pub struct GetSubmissionRequest {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GetScoreboardRequest {
+    pub size: Option<i64>,
+    pub page: Option<i64>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetSubmissionResponse {
     pub code: u16,
-    pub data: Vec<crate::model::submission::GameSubmissionModel>,
+    pub data: Vec<crate::model::submission::Model>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

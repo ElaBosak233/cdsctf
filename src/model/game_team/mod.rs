@@ -1,8 +1,8 @@
 use axum::async_trait;
-use sea_orm::entity::prelude::*;
+use sea_orm::{entity::prelude::*, TryIntoModel};
 use serde::{Deserialize, Serialize};
 
-use crate::database::get_db;
+use crate::{calculator::traits::CalculatorPayload, database::get_db};
 
 use super::{game, team};
 
@@ -16,10 +16,8 @@ pub struct Model {
     #[sea_orm(default_value = false)]
     pub is_allowed: bool,
 
-    /// pts of the team in the game. (only controlled by daemons)
     #[sea_orm(default_value = 0)]
     pub pts: i64,
-    /// rank of the team in the game. (only controlled by daemons)
     #[sea_orm(default_value = 0)]
     pub rank: i64,
 
@@ -53,7 +51,35 @@ impl RelationTrait for Relation {
 }
 
 #[async_trait]
-impl ActiveModelBehavior for ActiveModel {}
+impl ActiveModelBehavior for ActiveModel {
+    async fn after_delete<C>(self, _db: &C) -> Result<Self, DbErr>
+    where
+        C: ConnectionTrait,
+    {
+        let game_team = self.clone().try_into_model()?;
+        crate::queue::publish(
+            "calculator",
+            CalculatorPayload {
+                game_id: Some(game_team.game_id),
+                team_id: None,
+            },
+        )
+        .await
+        .unwrap();
+
+        return Ok(self);
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ExPtsModel {
+    pub game_id: i64,
+    pub team_id: i64,
+    pub is_allowed: bool,
+    pub pts: i64,
+    pub rank: i64,
+    pub team: Option<team::Model>,
+}
 
 async fn preload(
     mut game_teams: Vec<crate::model::game_team::Model>,

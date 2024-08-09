@@ -160,10 +160,13 @@ pub async fn delete(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    crate::container::get_container()
-        .await
-        .delete(pod.name.clone())
-        .await;
+    let pod_name = pod.name.clone();
+    tokio::spawn(async move {
+        crate::container::get_container()
+            .await
+            .delete(pod_name)
+            .await;
+    });
 
     let mut pod = pod.clone().into_active_model();
     pod.removed_at = Set(chrono::Utc::now().timestamp());
