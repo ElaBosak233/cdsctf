@@ -2,7 +2,7 @@ use axum::async_trait;
 use sea_orm::{entity::prelude::*, TryIntoModel};
 use serde::{Deserialize, Serialize};
 
-use crate::{calculator::traits::CalculatorPayload, database::get_db};
+use crate::database::get_db;
 
 use super::{game, team};
 
@@ -51,25 +51,7 @@ impl RelationTrait for Relation {
 }
 
 #[async_trait]
-impl ActiveModelBehavior for ActiveModel {
-    async fn after_delete<C>(self, _db: &C) -> Result<Self, DbErr>
-    where
-        C: ConnectionTrait,
-    {
-        let game_team = self.clone().try_into_model()?;
-        crate::queue::publish(
-            "calculator",
-            CalculatorPayload {
-                game_id: Some(game_team.game_id),
-                team_id: None,
-            },
-        )
-        .await
-        .unwrap();
-
-        return Ok(self);
-    }
-}
+impl ActiveModelBehavior for ActiveModel {}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExPtsModel {

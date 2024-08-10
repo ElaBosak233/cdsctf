@@ -1,5 +1,5 @@
 use axum::async_trait;
-use sea_orm::entity::prelude::*;
+use sea_orm::{entity::prelude::*, TryIntoModel};
 use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;

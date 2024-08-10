@@ -1,3 +1,5 @@
+pub mod calculator;
+
 use crate::util::jwt::Group;
 use crate::web::handler;
 use crate::web::middleware::auth;
@@ -8,7 +10,9 @@ use axum::{
     Router,
 };
 
-pub fn router() -> Router {
+pub async fn router() -> Router {
+    calculator::init().await;
+
     return Router::new()
         .route(
             "/",
@@ -73,6 +77,10 @@ pub fn router() -> Router {
         .route(
             "/:id/notices/:notice_id",
             delete(handler::game::delete_notice).layer(from_fn(auth::jwt(Group::Admin))),
+        )
+        .route(
+            "/:id/calculate",
+            post(handler::game::calculate).layer(from_fn(auth::jwt(Group::Admin))),
         )
         // .route(
         //     "/:id/submissions",

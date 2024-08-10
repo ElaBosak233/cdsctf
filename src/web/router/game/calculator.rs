@@ -1,17 +1,20 @@
 //! calculator module is used to calculate the pts and rank of submissions, game_teams and game_challenges
 
-pub mod traits;
-
 use std::collections::HashMap;
 
 use futures::StreamExt;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter, Set,
 };
+use serde::{Deserialize, Serialize};
 use tracing::info;
-use traits::CalculatorPayload;
 
 use crate::{database::get_db, model::submission::Status};
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Payload {
+    pub game_id: Option<i64>,
+}
 
 pub async fn calculate(game_id: i64) {
     let submissions = crate::model::submission::Entity::find()
@@ -133,22 +136,10 @@ pub async fn init() {
             }
             let message = result.unwrap();
             let payload = String::from_utf8(message.payload.to_vec()).unwrap();
-            let calculator_payload = serde_json::from_str::<CalculatorPayload>(&payload).unwrap();
+            let calculator_payload = serde_json::from_str::<Payload>(&payload).unwrap();
 
             if let Some(game_id) = calculator_payload.game_id {
                 calculate(game_id).await;
-            } else if let Some(team_id) = calculator_payload.team_id {
-                let game_teams = crate::model::game_team::Entity::find()
-                    .filter(
-                        Condition::all().add(crate::model::game_team::Column::TeamId.eq(team_id)),
-                    )
-                    .all(&get_db())
-                    .await
-                    .unwrap();
-
-                for game_team in game_teams {
-                    calculate(game_team.game_id).await;
-                }
             } else {
                 let games = crate::model::game::Entity::find()
                     .all(&get_db())
@@ -162,5 +153,5 @@ pub async fn init() {
             message.ack().await.unwrap();
         }
     });
-    info!("Calculator initialized successfully.");
+    info!("game calculator initialized successfully.");
 }

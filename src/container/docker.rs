@@ -17,34 +17,6 @@ fn get_docker_client() -> &'static DockerClient {
     return DOCKER_CLI.get().unwrap();
 }
 
-async fn daemon() {
-    info!("Docker container daemon has been started.");
-    tokio::spawn(async {
-        let interval = time::Duration::from_secs(10);
-        loop {
-            let pods = pod::Entity::find()
-                .filter(pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp()))
-                .all(&get_db())
-                .await
-                .unwrap();
-            for pod in pods {
-                let _ = get_docker_client()
-                    .stop_container(pod.name.clone().as_str(), None)
-                    .await;
-                let _ = get_docker_client()
-                    .remove_container(pod.name.clone().as_str(), None)
-                    .await;
-                crate::model::pod::Entity::delete_by_id(pod.id)
-                    .exec(&get_db())
-                    .await
-                    .unwrap();
-                info!("Cleaned up expired container: {0}", pod.name);
-            }
-            tokio::time::sleep(interval).await;
-        }
-    });
-}
-
 #[derive(Clone)]
 pub struct Docker;
 
@@ -70,7 +42,6 @@ impl Container for Docker {
                 process::exit(1);
             }
         }
-        daemon().await;
     }
 
     async fn create(

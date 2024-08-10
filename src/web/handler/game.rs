@@ -14,6 +14,7 @@ use sea_orm::{ColumnTrait, Condition};
 
 use crate::database::get_db;
 use crate::web::model::{game::*, Metadata};
+use crate::web::router::game::calculator;
 use crate::web::traits::Ext;
 use crate::web::traits::WebError;
 
@@ -303,6 +304,17 @@ pub async fn update_notice() -> Result<impl IntoResponse, WebError> {
 
 pub async fn delete_notice() -> Result<impl IntoResponse, WebError> {
     Ok(todo!())
+}
+
+pub async fn calculate(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+    crate::queue::publish("calculator", calculator::Payload { game_id: Some(id) }).await?;
+
+    return Ok((
+        StatusCode::OK,
+        Json(CalculateResponse {
+            code: StatusCode::OK.as_u16(),
+        }),
+    ));
 }
 
 // pub async fn get_submission(

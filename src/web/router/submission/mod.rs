@@ -1,3 +1,5 @@
+pub mod checker;
+
 use crate::util::jwt::Group;
 use crate::web::handler;
 use crate::web::middleware::auth;
@@ -7,7 +9,9 @@ use axum::{
     Router,
 };
 
-pub fn router() -> Router {
+pub async fn router() -> Router {
+    checker::init().await;
+
     return Router::new()
         .route(
             "/",
