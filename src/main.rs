@@ -1,8 +1,6 @@
 mod assets;
 mod cache;
-mod calculator;
 mod captcha;
-mod checker;
 mod config;
 mod container;
 mod database;
@@ -38,9 +36,7 @@ async fn bootstrap() {
     queue::init().await;
     cache::init().await;
     container::init().await;
-    checker::init().await;
-    calculator::init().await;
-    web::init();
+    web::init().await;
 
     let addr = format!(
         "{}:{}",

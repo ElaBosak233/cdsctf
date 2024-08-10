@@ -6,7 +6,7 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{calculator::traits::CalculatorPayload, database::get_db};
+use crate::database::get_db;
 
 use super::{challenge, game, team, user};
 pub use status::Status;
@@ -120,26 +120,6 @@ impl ActiveModelBehavior for ActiveModel {
         C: ConnectionTrait,
     {
         self.updated_at = Set(chrono::Utc::now().timestamp());
-        return Ok(self);
-    }
-
-    async fn after_delete<C>(self, _db: &C) -> Result<Self, DbErr>
-    where
-        C: ConnectionTrait,
-    {
-        let submission = self.clone().try_into_model()?;
-        if let Some(game_id) = submission.game_id {
-            crate::queue::publish(
-                "calculator",
-                CalculatorPayload {
-                    game_id: Some(game_id),
-                    team_id: None,
-                },
-            )
-            .await
-            .unwrap();
-        }
-
         return Ok(self);
     }
 }

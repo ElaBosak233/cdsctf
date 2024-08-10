@@ -15,7 +15,7 @@ use tower_http::{
 
 static APP: OnceLock<Router> = OnceLock::new();
 
-pub fn init() {
+pub async fn init() {
     let cors = CorsLayer::new()
         .allow_methods([
             Method::GET,
@@ -30,7 +30,7 @@ pub fn init() {
     let app: Router = Router::new()
         .merge(
             Router::new()
-                .nest("/api", router::router())
+                .nest("/api", router::router().await)
                 .layer(TraceLayer::new_for_http()),
         )
         .layer(from_fn(middleware::frontend::serve))

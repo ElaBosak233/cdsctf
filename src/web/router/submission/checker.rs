@@ -8,7 +8,7 @@ use sea_orm::{
 };
 use tracing::info;
 
-use crate::{calculator::traits::CalculatorPayload, database::get_db, model::submission::Status};
+use crate::{database::get_db, model::submission::Status, web::router::game::calculator};
 
 async fn check(id: i64) {
     let submission = crate::model::submission::Entity::find()
@@ -141,9 +141,8 @@ async fn check(id: i64) {
     if submission.game_id.is_some() && status == Status::Correct {
         crate::queue::publish(
             "calculator",
-            CalculatorPayload {
+            calculator::Payload {
                 game_id: submission.game_id,
-                team_id: submission.team_id,
             },
         )
         .await
@@ -180,5 +179,5 @@ pub async fn init() {
         }
     });
     recover().await;
-    info!("Checker initialized successfully.");
+    info!("submission checker initialized successfully.");
 }

@@ -170,6 +170,11 @@ pub struct DeleteTeamResponse {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CalculateResponse {
+    pub code: u16,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetSubmissionRequest {
     pub status: Option<crate::model::submission::Status>,
 }
