@@ -13,7 +13,6 @@ pub struct GetRequest {
     pub is_practicable: Option<bool>,
     pub is_dynamic: Option<bool>,
     pub is_detailed: Option<bool>,
-    pub user_id: Option<i64>,
     pub page: Option<u64>,
     pub size: Option<u64>,
 }

@@ -103,7 +103,7 @@ pub async fn create(
     ));
 }
 
-pub async fn update(
+pub async fn renew(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.clone().unwrap();
@@ -141,7 +141,7 @@ pub async fn update(
     ));
 }
 
-pub async fn delete(
+pub async fn stop(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.clone().unwrap();

@@ -21,12 +21,20 @@ pub async fn router() -> Router {
             "/",
             post(handler::pod::create).layer(from_fn(auth::jwt(Group::User))),
         )
+        // .route(
+        //     "/:id",
+        //     put(handler::pod::update).layer(from_fn(auth::jwt(Group::User))),
+        // )
+        // .route(
+        //     "/:id",
+        //     delete(handler::pod::delete).layer(from_fn(auth::jwt(Group::User))),
+        // )
         .route(
-            "/:id",
-            put(handler::pod::update).layer(from_fn(auth::jwt(Group::User))),
+            "/:id/renew",
+            post(handler::pod::renew).layer(from_fn(auth::jwt(Group::User))),
         )
         .route(
-            "/:id",
-            delete(handler::pod::delete).layer(from_fn(auth::jwt(Group::User))),
+            "/:id/stop",
+            post(handler::pod::stop).layer(from_fn(auth::jwt(Group::User))),
         );
 }

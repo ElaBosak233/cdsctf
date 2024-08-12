@@ -1,0 +1,32 @@
+version: "3.0"
+services:
+    db:
+        image: postgres:alpine
+        restart: always
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_USER: cloudsdale
+            POSTGRES_PASSWORD: cloudsdale
+            POSTGRES_DB: cloudsdale
+        volumes:
+            - "./db:/var/lib/postgresql/data"
+
+    queue:
+        image: nats:alpine
+        restart: always
+        ports:
+            - "4222:4222"
+        command:
+            - "--js"
+            - "--sd=/data"
+        volumes:
+            - "./queue:/data"
+
+    cache:
+        image: redis:alpine
+        restart: always
+        ports:
+            - "6379:6379"
+        volumes:
+            - "./cache:/data"

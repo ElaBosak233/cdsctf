@@ -10,7 +10,7 @@ use tokio::{fs::File, io::AsyncReadExt};
 
 use crate::config::get_config;
 
-pub async fn find() -> impl IntoResponse {
+pub async fn get() -> impl IntoResponse {
     return (
         StatusCode::OK,
         Json(json!({

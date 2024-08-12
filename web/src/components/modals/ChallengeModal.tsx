@@ -37,7 +37,7 @@ import { Metadata } from "@/types/media";
 import { useCategoryStore } from "@/stores/category";
 import { Status } from "@/types/submission";
 import { getChallengeAttachmentMetadata } from "@/api/challenge";
-import { createPod, getPods, removePod, renewPod } from "@/api/pod";
+import { createPod, getPods, stopPod, renewPod } from "@/api/pod";
 import { createSubmission, getSubmissionByID } from "@/api/submission";
 
 interface ChallengeModalProps extends ModalProps {
@@ -117,7 +117,7 @@ export default function ChallengeModal(props: ChallengeModalProps) {
 
     function handleRemovePod() {
         setPodRemoveLoading(true);
-        removePod({
+        stopPod({
             id: Number(pod?.id),
         })
             .then((_) => {
