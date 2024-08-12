@@ -4,6 +4,6 @@ use crate::web::handler;
 
 pub fn router() -> Router {
     return Router::new()
-        .route("/", get(handler::config::find))
+        .route("/", get(handler::config::get))
         .route("/favicon", get(handler::config::get_favicon));
 }

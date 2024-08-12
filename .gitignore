@@ -9,9 +9,10 @@
 /application.yml
 /favicon.webp
 /k8s-config.yml
-/configs
 /db
 /media
 /caputres
 /logs
 /dist
+/queue
+/cache

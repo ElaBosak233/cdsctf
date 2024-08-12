@@ -22,15 +22,15 @@ export async function createPod(request: PodCreateRequest) {
 }
 
 export async function renewPod(request: PodRenewRequest) {
-    return api().put<{
+    return api().post<{
         code: number;
         data: Pod;
-    }>(`/pods/${request.id}`, request);
+    }>(`/pods/${request.id}/renew`, request);
 }
 
-export async function removePod(request: PodRemoveRequest) {
-    return api().delete<{
+export async function stopPod(request: PodRemoveRequest) {
+    return api().post<{
         code: number;
         data: Pod;
-    }>(`/pods/${request.id}`, { data: request });
+    }>(`/pods/${request.id}/stop`, { data: request });
 }
