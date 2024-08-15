@@ -5,10 +5,17 @@ export interface User {
     username?: string;
     nickname?: string;
     email?: string;
-    group?: string;
+    group?: Group;
     teams?: Array<Team>;
     created_at?: string;
     updated_at?: string;
+}
+
+export enum Group {
+    Guest = 0,
+    Banned = 1,
+    User = 2,
+    Admin = 3,
 }
 
 export interface UserFindRequest {
@@ -17,7 +24,7 @@ export interface UserFindRequest {
     username?: string;
     nickname?: string;
     email?: string;
-    group?: string;
+    group?: Group;
     page?: number;
     size?: number;
     sort_key?: string;
@@ -29,7 +36,7 @@ export interface UserUpdateRequest {
     username?: string;
     nickname?: string;
     email?: string;
-    group?: string;
+    group?: Group;
     password?: string;
 }
 
@@ -37,7 +44,7 @@ export interface UserCreateRequest {
     username?: string;
     nickname?: string;
     email?: string;
-    group?: string;
+    group?: Group;
     password?: string;
 }
 

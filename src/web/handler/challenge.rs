@@ -9,16 +9,16 @@ use axum::{
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
 
-use crate::web::model::challenge::*;
 use crate::{database::get_db, web::model::Metadata};
 use crate::{model::submission::Status, web::traits::Ext};
+use crate::{model::user::group::Group, web::model::challenge::*};
 use crate::{util::validate, web::traits::WebError};
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
-    if operator.group != "admin" && params.is_detailed.unwrap_or(false) {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
         return Err(WebError::Forbidden(String::new()));
     }
 
@@ -50,7 +50,11 @@ pub async fn get(
     ));
 }
 
-pub async fn get_status(Json(body): Json<StatusRequest>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_status(
+    Extension(ext): Extension<Ext>, Json(body): Json<StatusRequest>,
+) -> Result<impl IntoResponse, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
     let mut submissions = crate::model::submission::get_by_challenge_ids(body.cids.clone())
         .await
         .unwrap();
@@ -123,7 +127,14 @@ pub async fn get_status(Json(body): Json<StatusRequest>) -> Result<impl IntoResp
     ));
 }
 
-pub async fn create(Json(body): Json<CreateRequest>) -> Result<impl IntoResponse, WebError> {
+pub async fn create(
+    Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let challenge = crate::model::challenge::ActiveModel {
         title: Set(body.title),
         description: Set(Some(body.description)),
@@ -153,8 +164,14 @@ pub async fn create(Json(body): Json<CreateRequest>) -> Result<impl IntoResponse
 }
 
 pub async fn update(
-    Path(id): Path<i64>, validate::Json(mut body): validate::Json<UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    validate::Json(mut body): validate::Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     body.id = Some(id);
 
     let challenge = crate::model::challenge::ActiveModel {
@@ -186,7 +203,14 @@ pub async fn update(
     ));
 }
 
-pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn delete(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let _ = crate::model::challenge::Entity::delete_by_id(id)
         .exec(&get_db())
         .await?;
@@ -217,7 +241,11 @@ pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, We
     }
 }
 
-pub async fn get_attachment_metadata(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_attachment_metadata(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {
@@ -237,8 +265,13 @@ pub async fn get_attachment_metadata(Path(id): Path<i64>) -> Result<impl IntoRes
 }
 
 pub async fn save_attachment(
-    Path(id): Path<i64>, mut multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let path = format!("challenges/{}/attachment", id);
     let mut filename = String::new();
     let mut data = Vec::<u8>::new();
@@ -268,7 +301,14 @@ pub async fn save_attachment(
     ));
 }
 
-pub async fn delete_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn delete_attachment(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let path = format!("challenges/{}/attachment", id);
 
     let _ = crate::media::delete(path)

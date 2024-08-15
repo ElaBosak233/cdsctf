@@ -12,11 +12,12 @@ use sea_orm::{
 };
 
 use crate::database::get_db;
+use crate::model::user::group::Group;
 use crate::web::model::{team::*, Metadata};
 use crate::web::traits::{Ext, WebError};
 
 fn can_modify_team(user: crate::model::user::Model, team_id: i64) -> bool {
-    return user.group == "admin"
+    return user.group == Group::Admin
         || user
             .teams
             .iter()
@@ -46,8 +47,8 @@ pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
-    if !(operator.group == "admin" || operator.id == body.captain_id) {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if !(operator.group == Group::Admin || operator.id == body.captain_id) {
         return Err(WebError::Forbidden(String::new()));
     }
 
@@ -81,7 +82,9 @@ pub async fn create(
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    if !can_modify_team(ext.operator.unwrap(), id) {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
+    if !can_modify_team(operator, id) {
         return Err(WebError::Forbidden(String::new()));
     }
     body.id = Some(id);
@@ -109,7 +112,9 @@ pub async fn update(
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    if !can_modify_team(ext.operator.unwrap(), id) {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
+    if !can_modify_team(operator, id) {
         return Err(WebError::Forbidden(String::new()));
     }
 
@@ -126,8 +131,13 @@ pub async fn delete(
 }
 
 pub async fn create_user(
-    Json(body): Json<CreateUserRequest>,
+    Extension(ext): Extension<Ext>, Json(body): Json<CreateUserRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let _ = crate::model::user_team::ActiveModel {
         user_id: Set(body.user_id),
         team_id: Set(body.team_id),
@@ -146,7 +156,7 @@ pub async fn create_user(
 pub async fn delete_user(
     Extension(ext): Extension<Ext>, Path((id, user_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if !can_modify_team(operator.clone(), id) && operator.id != user_id {
         return Err(WebError::Forbidden(String::new()));
     }
@@ -168,7 +178,7 @@ pub async fn delete_user(
 pub async fn get_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     if !can_modify_team(operator, id) {
         return Err(WebError::Forbidden(String::new()));
@@ -193,7 +203,7 @@ pub async fn get_invite_token(
 pub async fn update_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if !can_modify_team(operator, id) {
         return Err(WebError::Forbidden(String::new()));
     }
@@ -218,7 +228,13 @@ pub async fn update_invite_token(
     ));
 }
 
-pub async fn join(Json(body): Json<JoinRequest>) -> Result<impl IntoResponse, WebError> {
+pub async fn join(
+    Extension(ext): Extension<Ext>, Json(mut body): Json<JoinRequest>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
+    body.user_id = operator.id;
+
     let _ = crate::model::user::Entity::find_by_id(body.user_id)
         .one(&get_db())
         .await?
@@ -287,7 +303,7 @@ pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebErr
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if !can_modify_team(operator, id) {
         return Err(WebError::Forbidden(String::new()));
     }
@@ -329,7 +345,7 @@ pub async fn save_avatar(
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if !can_modify_team(operator, id) {
         return Err(WebError::Forbidden(String::new()));
     }

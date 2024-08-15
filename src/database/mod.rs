@@ -59,7 +59,7 @@ pub async fn init_admin() {
             username: Set(String::from("admin")),
             nickname: Set(String::from("Administrator")),
             email: Set(String::from("admin@admin.com")),
-            group: Set(String::from("admin")),
+            group: Set(crate::model::user::group::Group::Admin),
             password: Set(hashed_password),
             ..Default::default()
         };

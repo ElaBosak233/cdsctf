@@ -31,6 +31,7 @@ pub async fn init() {
         .merge(
             Router::new()
                 .nest("/api", router::router().await)
+                .layer(from_fn(middleware::auth::jwt))
                 .layer(TraceLayer::new_for_http()),
         )
         .layer(from_fn(middleware::frontend::serve))

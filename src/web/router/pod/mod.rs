@@ -1,11 +1,8 @@
 pub mod daemon;
 
-use crate::util::jwt::Group;
 use crate::web::handler;
-use crate::web::middleware::auth;
 use axum::{
-    middleware::from_fn,
-    routing::{delete, get, post, put},
+    routing::{get, post},
     Router,
 };
 
@@ -13,28 +10,8 @@ pub async fn router() -> Router {
     daemon::init().await;
 
     return Router::new()
-        .route(
-            "/",
-            get(handler::pod::get).layer(from_fn(auth::jwt(Group::User))),
-        )
-        .route(
-            "/",
-            post(handler::pod::create).layer(from_fn(auth::jwt(Group::User))),
-        )
-        // .route(
-        //     "/:id",
-        //     put(handler::pod::update).layer(from_fn(auth::jwt(Group::User))),
-        // )
-        // .route(
-        //     "/:id",
-        //     delete(handler::pod::delete).layer(from_fn(auth::jwt(Group::User))),
-        // )
-        .route(
-            "/:id/renew",
-            post(handler::pod::renew).layer(from_fn(auth::jwt(Group::User))),
-        )
-        .route(
-            "/:id/stop",
-            post(handler::pod::stop).layer(from_fn(auth::jwt(Group::User))),
-        );
+        .route("/", get(handler::pod::get))
+        .route("/", post(handler::pod::create))
+        .route("/:id/renew", post(handler::pod::renew))
+        .route("/:id/stop", post(handler::pod::stop));
 }

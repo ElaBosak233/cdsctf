@@ -32,6 +32,7 @@ import {
     updateUser,
 } from "@/api/user";
 import { Metadata } from "@/types/media";
+import { Group as UGroup } from "@/types/user";
 
 interface UserEditModalProps extends ModalProps {
     setRefresh: () => void;
@@ -51,7 +52,7 @@ export default function UserEditModal(props: UserEditModalProps) {
             nickname: "",
             email: "",
             password: "",
-            group: "user",
+            group: UGroup.User,
         },
         validate: zodResolver(
             z.object({
@@ -63,9 +64,6 @@ export default function UserEditModal(props: UserEditModalProps) {
                     .refine((val) => val === "" || Number(val?.length) >= 6, {
                         message: "密码长度至少为 6 位",
                     }),
-                group: z.string().regex(/^(user|admin)$/, {
-                    message: "用户组只能为 user 或 admin",
-                }),
             })
         ),
     });
@@ -210,10 +208,27 @@ export default function UserEditModal(props: UserEditModalProps) {
                                             </Flex>
                                             <Select
                                                 label="权限组"
-                                                data={["user", "admin"]}
+                                                data={[
+                                                    {
+                                                        label: "管理员",
+                                                        value: UGroup.Admin.toString(),
+                                                    },
+                                                    {
+                                                        label: "普通用户",
+                                                        value: UGroup.User.toString(),
+                                                    },
+                                                ]}
                                                 allowDeselect={false}
                                                 key={form.key("group")}
-                                                {...form.getInputProps("group")}
+                                                value={form
+                                                    .getValues()
+                                                    .group.toString()}
+                                                onChange={(value) => {
+                                                    form.setFieldValue(
+                                                        "group",
+                                                        Number(value)
+                                                    );
+                                                }}
                                             />
                                         </Stack>
                                         <Dropzone
