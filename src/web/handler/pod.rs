@@ -9,10 +9,17 @@ use regex::Regex;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
 use uuid::Uuid;
 
-use crate::web::{model::pod::*, traits::WebError};
 use crate::{database::get_db, web::traits::Ext};
+use crate::{
+    model::user::group::Group,
+    web::{model::pod::*, traits::WebError},
+};
 
-pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, WebError> {
+pub async fn get(
+    Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
+) -> Result<impl IntoResponse, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
     let (mut pods, total) = crate::model::pod::find(
         params.id,
         params.name,
@@ -45,7 +52,7 @@ pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.clone().unwrap();
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     body.user_id = Some(operator.id);
 
     let challenge = crate::model::challenge::Entity::find_by_id(body.challenge_id)
@@ -106,7 +113,7 @@ pub async fn create(
 pub async fn renew(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.clone().unwrap();
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let pod = crate::model::pod::Entity::find()
         .filter(crate::model::pod::Column::Id.eq(id))
@@ -114,7 +121,7 @@ pub async fn renew(
         .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
 
-    if !(operator.group == "admin"
+    if !(operator.group == Group::Admin
         || operator.id == pod.user_id
         || operator
             .teams
@@ -144,13 +151,14 @@ pub async fn renew(
 pub async fn stop(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.clone().unwrap();
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
     let pod = crate::model::pod::Entity::find_by_id(id)
         .one(&get_db())
         .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
 
-    if !(operator.group == "admin"
+    if !(operator.group == Group::Admin
         || operator.id == pod.user_id
         || operator
             .teams

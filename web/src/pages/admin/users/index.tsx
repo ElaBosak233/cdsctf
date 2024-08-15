@@ -27,6 +27,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
+import { Group as UGroup } from "@/types/user";
 
 export default function Page() {
     const configStore = useConfigStore();
@@ -231,7 +232,16 @@ export default function Page() {
                                         </Table.Th>
                                         <Table.Th>{user?.nickname}</Table.Th>
                                         <Table.Th>{user?.email}</Table.Th>
-                                        <Table.Th>{user?.group}</Table.Th>
+                                        <Table.Th>
+                                            {user?.group === UGroup.Admin
+                                                ? "管理员"
+                                                : user?.group === UGroup.User
+                                                  ? "普通用户"
+                                                  : user?.group ===
+                                                      UGroup.Banned
+                                                    ? "封禁"
+                                                    : "未知"}
+                                        </Table.Th>
                                         <Table.Th>
                                             <Group
                                                 justify="center"

@@ -2,14 +2,14 @@ use axum::{
     extract::{Path, Query},
     http::StatusCode,
     response::IntoResponse,
-    Json,
+    Extension, Json,
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
 
-use crate::database::get_db;
-use crate::util::validate;
 use crate::web::model::category::*;
 use crate::web::traits::WebError;
+use crate::{database::get_db, web::traits::Ext};
+use crate::{model::user::group::Group, util::validate};
 
 pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, WebError> {
     let (categories, total) = crate::model::category::find(params.id, params.name).await?;
@@ -25,8 +25,12 @@ pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, 
 }
 
 pub async fn create(
-    validate::Json(body): validate::Json<CreateRequest>,
+    Extension(ext): Extension<Ext>, validate::Json(body): validate::Json<CreateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::from("")));
+    }
     let category = crate::model::category::ActiveModel {
         name: Set(body.name),
         color: Set(body.color),
@@ -46,8 +50,14 @@ pub async fn create(
 }
 
 pub async fn update(
-    Path(id): Path<i64>, validate::Json(mut body): validate::Json<UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    validate::Json(mut body): validate::Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::from("")));
+    }
+
     body.id = Some(id);
     let category = crate::model::category::ActiveModel {
         id: body.id.map_or(NotSet, |v| Set(v)),
@@ -68,7 +78,14 @@ pub async fn update(
     ));
 }
 
-pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn delete(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::from("")));
+    }
+
     let _ = crate::model::category::Entity::delete_by_id(id)
         .exec(&get_db())
         .await?;

@@ -6,7 +6,7 @@ use axum::{
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
 
-use crate::{database::get_db, web::traits::Ext};
+use crate::{database::get_db, model::user::group::Group, web::traits::Ext};
 use crate::{
     model::submission::Status,
     web::{model::submission::*, traits::WebError},
@@ -15,8 +15,8 @@ use crate::{
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
-    if operator.group != "admin" && params.is_detailed.unwrap_or(false) {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
         return Err(WebError::Forbidden(String::new()));
     }
 
@@ -49,7 +49,11 @@ pub async fn get(
     ));
 }
 
-pub async fn get_by_id(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_by_id(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
     let submission = crate::model::submission::Entity::find_by_id(id)
         .one(&get_db())
         .await?;
@@ -73,7 +77,8 @@ pub async fn get_by_id(Path(id): Path<i64>) -> Result<impl IntoResponse, WebErro
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
     body.user_id = Some(operator.id);
 
     if let Some(challenge_id) = body.challenge_id {
@@ -132,7 +137,14 @@ pub async fn create(
     ));
 }
 
-pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn delete(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let _ = crate::model::submission::Entity::delete_by_id(id)
         .exec(&get_db())
         .await?;

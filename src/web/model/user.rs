@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
+use crate::model::user::group::Group;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetRequest {
     pub id: Option<i64>,
@@ -24,7 +26,7 @@ pub struct CreateRequest {
     pub nickname: String,
     pub email: String,
     pub password: String,
-    pub group: String,
+    pub group: Group,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -42,7 +44,7 @@ pub struct UpdateRequest {
     #[validate(email)]
     pub email: Option<String>,
     pub password: Option<String>,
-    pub group: Option<String>,
+    pub group: Option<Group>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

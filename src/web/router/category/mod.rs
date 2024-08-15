@@ -1,4 +1,3 @@
-use crate::util::jwt::Group;
 use crate::web::handler;
 use crate::web::middleware::auth;
 use axum::{
@@ -10,16 +9,7 @@ use axum::{
 pub fn router() -> Router {
     return Router::new()
         .route("/", get(handler::category::get))
-        .route(
-            "/",
-            post(handler::category::create).layer(from_fn(auth::jwt(Group::Admin))),
-        )
-        .route(
-            "/:id",
-            put(handler::category::update).layer(from_fn(auth::jwt(Group::Admin))),
-        )
-        .route(
-            "/:id",
-            delete(handler::category::delete).layer(from_fn(auth::jwt(Group::Admin))),
-        );
+        .route("/", post(handler::category::create))
+        .route("/:id", put(handler::category::update))
+        .route("/:id", delete(handler::category::delete));
 }

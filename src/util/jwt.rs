@@ -19,27 +19,6 @@ pub struct Claims {
     pub exp: usize,
 }
 
-#[derive(Debug, Clone)]
-#[repr(u8)]
-pub enum Group {
-    Admin = 3,
-    User = 2,
-    Guest = 1,
-    Banned = 0,
-}
-
-impl Group {
-    pub fn from_str(s: String) -> Result<Group, &'static str> {
-        match s.as_str() {
-            "admin" => Ok(Group::Admin),
-            "user" => Ok(Group::User),
-            "guest" => Ok(Group::Guest),
-            "banned" => Ok(Group::Banned),
-            _ => Err("Invalid group"),
-        }
-    }
-}
-
 pub async fn get_secret() -> String {
     return SECRET.clone();
 }

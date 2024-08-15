@@ -7,12 +7,13 @@ use axum::{
 };
 use mime::Mime;
 use sea_orm::ActiveValue::NotSet;
+use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ActiveModelTrait, Set};
-use sea_orm::{ColumnTrait, Condition};
 
 use crate::database::get_db;
+use crate::model::user::group::Group;
 use crate::web::model::{game::*, Metadata};
 use crate::web::router::game::calculator;
 use crate::web::traits::Ext;
@@ -21,8 +22,8 @@ use crate::web::traits::WebError;
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
-    if operator.group != "admin" && !params.is_enabled.unwrap_or(true) {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin && !params.is_enabled.unwrap_or(true) {
         return Err(WebError::Forbidden(String::new()));
     }
 
@@ -45,7 +46,14 @@ pub async fn get(
     ));
 }
 
-pub async fn create(Json(body): Json<CreateRequest>) -> Result<impl IntoResponse, WebError> {
+pub async fn create(
+    Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let game = crate::model::game::ActiveModel {
         title: Set(body.title),
         bio: Set(body.bio),
@@ -78,8 +86,13 @@ pub async fn create(Json(body): Json<CreateRequest>) -> Result<impl IntoResponse
 }
 
 pub async fn update(
-    Path(id): Path<i64>, Json(mut body): Json<UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     body.id = Some(id);
 
     let game = crate::model::game::ActiveModel {
@@ -112,7 +125,14 @@ pub async fn update(
     ));
 }
 
-pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn delete(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let _ = crate::model::game::Entity::delete_by_id(id)
         .exec(&get_db())
         .await?;
@@ -126,8 +146,10 @@ pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> 
 }
 
 pub async fn get_challenge(
-    Query(params): Query<GetChallengeRequest>,
+    Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
     let (game_challenges, _) =
         crate::model::game_challenge::find(params.game_id, params.challenge_id, params.is_enabled)
             .await?;
@@ -142,8 +164,13 @@ pub async fn get_challenge(
 }
 
 pub async fn create_challenge(
-    Json(body): Json<CreateChallengeRequest>,
+    Extension(ext): Extension<Ext>, Json(body): Json<CreateChallengeRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let game_challenge = crate::model::game_challenge::ActiveModel {
         game_id: Set(body.game_id),
         challenge_id: Set(body.challenge_id),
@@ -169,8 +196,14 @@ pub async fn create_challenge(
 }
 
 pub async fn update_challenge(
-    Path((id, challenge_id)): Path<(i64, i64)>, Json(mut body): Json<UpdateChallengeRequest>,
+    Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, i64)>,
+    Json(mut body): Json<UpdateChallengeRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     body.game_id = Some(id);
     body.challenge_id = Some(challenge_id);
 
@@ -199,8 +232,13 @@ pub async fn update_challenge(
 }
 
 pub async fn delete_challenge(
-    Path((id, challenge_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let _ = crate::model::game_challenge::Entity::delete_many()
         .filter(crate::model::game_challenge::Column::GameId.eq(id))
         .filter(crate::model::game_challenge::Column::ChallengeId.eq(challenge_id))
@@ -215,7 +253,11 @@ pub async fn delete_challenge(
     ));
 }
 
-pub async fn get_team(Query(params): Query<GetTeamRequest>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_team(
+    Extension(ext): Extension<Ext>, Query(params): Query<GetTeamRequest>,
+) -> Result<impl IntoResponse, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
     let (game_teams, total) = crate::model::game_team::find(params.game_id, params.team_id).await?;
 
     return Ok((
@@ -229,8 +271,13 @@ pub async fn get_team(Query(params): Query<GetTeamRequest>) -> Result<impl IntoR
 }
 
 pub async fn create_team(
-    Json(body): Json<CreateTeamRequest>,
+    Extension(ext): Extension<Ext>, Json(body): Json<CreateTeamRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let game_team = crate::model::game_team::ActiveModel {
         game_id: Set(body.game_id),
         team_id: Set(body.team_id),
@@ -250,8 +297,14 @@ pub async fn create_team(
 }
 
 pub async fn update_team(
-    Path((id, team_id)): Path<(i64, i64)>, Json(mut body): Json<UpdateTeamRequest>,
+    Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
+    Json(mut body): Json<UpdateTeamRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     body.game_id = Some(id);
     body.team_id = Some(team_id);
 
@@ -274,8 +327,13 @@ pub async fn update_team(
 }
 
 pub async fn delete_team(
-    Path((id, team_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let _ = crate::model::game_team::Entity::delete_many()
         .filter(crate::model::game_team::Column::GameId.eq(id))
         .filter(crate::model::game_team::Column::TeamId.eq(team_id))
@@ -306,7 +364,14 @@ pub async fn delete_notice() -> Result<impl IntoResponse, WebError> {
     Ok(todo!())
 }
 
-pub async fn calculate(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn calculate(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     crate::queue::publish("calculator", calculator::Payload { game_id: Some(id) }).await?;
 
     return Ok((
@@ -383,8 +448,13 @@ pub async fn get_poster_metadata(Path(id): Path<i64>) -> Result<impl IntoRespons
 }
 
 pub async fn save_poster(
-    Path(id): Path<i64>, mut multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let path = format!("games/{}/poster", id);
     let mut filename = String::new();
     let mut data = Vec::<u8>::new();
@@ -419,7 +489,14 @@ pub async fn save_poster(
     ));
 }
 
-pub async fn delete_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn delete_poster(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let path = format!("games/{}/poster", id);
 
     let _ = crate::media::delete(path)

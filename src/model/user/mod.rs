@@ -1,4 +1,7 @@
+pub mod group;
+
 use axum::async_trait;
+use group::Group;
 use sea_orm::{entity::prelude::*, Condition, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +19,7 @@ pub struct Model {
     pub nickname: String,
     #[sea_orm(unique)]
     pub email: String,
-    pub group: String,
+    pub group: Group,
     pub password: String,
     pub created_at: i64,
     pub updated_at: i64,

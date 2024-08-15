@@ -15,8 +15,8 @@ use sea_orm::{
     PaginatorTrait, QueryFilter, Set,
 };
 
-use crate::database::get_db;
 use crate::web::model::{user::*, Metadata};
+use crate::{database::get_db, model::user::group::Group};
 use crate::{util::jwt, web::traits::Ext};
 use crate::{util::validate, web::traits::WebError};
 
@@ -47,8 +47,13 @@ pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, 
 }
 
 pub async fn create(
-    validate::Json(mut body): validate::Json<CreateRequest>,
+    Extension(ext): Extension<Ext>, validate::Json(mut body): validate::Json<CreateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Unauthorized(String::new()));
+    }
+
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
 
@@ -85,12 +90,11 @@ pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
     validate::Json(mut body): validate::Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.clone().operator.unwrap();
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     body.id = Some(id);
-    if !(operator.group == "admin"
+    if !(operator.group == Group::Admin
         || (operator.id == body.id.unwrap_or(0)
-            && (body.group.clone().is_none()
-                || operator.group == body.group.clone().unwrap_or("".to_string()))))
+            && (body.group.clone().is_none() || operator.group == body.group.clone().unwrap())))
     {
         return Err(WebError::Forbidden(String::new()));
     }
@@ -124,7 +128,14 @@ pub async fn update(
     ));
 }
 
-pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn delete(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if !(operator.group == Group::Admin || operator.id == id) {
+        return Err(WebError::Forbidden(String::new()));
+    }
+
     let _ = crate::model::user::Entity::delete_by_id(id)
         .exec(&get_db())
         .await?;
@@ -137,7 +148,11 @@ pub async fn delete(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> 
     ));
 }
 
-pub async fn get_teams(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_teams(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<impl IntoResponse, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+
     let teams = crate::model::team::find_by_user_id(id).await?;
 
     return Ok((
@@ -229,7 +244,7 @@ pub async fn register(
         nickname: Set(body.nickname),
         email: Set(body.email),
         password: Set(hashed_password),
-        group: Set(String::from("user")),
+        group: Set(Group::User),
         ..Default::default()
     };
 
@@ -279,8 +294,8 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<impl IntoRespons
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
-    if operator.group != "admin" && operator.id != id {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin && operator.id != id {
         return Err(WebError::Forbidden(String::new()));
     }
 
@@ -321,8 +336,8 @@ pub async fn save_avatar(
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.unwrap();
-    if operator.group != "admin" && operator.id != id {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin && operator.id != id {
         return Err(WebError::Forbidden(String::new()));
     }
 

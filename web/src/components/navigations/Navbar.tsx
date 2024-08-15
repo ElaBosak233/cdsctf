@@ -20,6 +20,7 @@ import MDIcon from "@/components/ui/MDIcon";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
 import { useWsrxStore } from "@/stores/wsrx";
+import { Group as UGroup } from "@/types/user";
 
 export const NavItems = [
     {
@@ -159,7 +160,7 @@ export default function Navbar(props: NavbarProps) {
                                     {item?.name}
                                 </Button>
                             ))}
-                            {authStore?.user?.group === "admin" && (
+                            {authStore?.user?.group === UGroup.Admin && (
                                 <Button
                                     variant={"transparent"}
                                     c={"white"}
