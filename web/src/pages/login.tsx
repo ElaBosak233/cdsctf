@@ -118,7 +118,7 @@ export default function Page() {
                             登录
                         </Button>
                     </form>
-                    {configStore?.pltCfg?.user?.register?.enabled && (
+                    {configStore?.pltCfg?.auth?.registration?.enabled && (
                         <Box
                             sx={{
                                 display: "flex",

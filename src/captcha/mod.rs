@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use recaptcha::Recaptcha;
 use tracing::error;
 use traits::Captcha;
@@ -11,7 +9,7 @@ pub mod recaptcha;
 pub mod traits;
 pub mod turnstile;
 
-pub fn new() -> Option<Box<dyn Captcha>> {
+pub fn new() -> Option<Box<dyn Captcha + Send + Sync>> {
     match config::get_config()
         .captcha
         .provider

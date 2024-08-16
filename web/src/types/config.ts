@@ -9,16 +9,19 @@ export interface Config {
         parallel_limit?: number;
         request_limit?: number;
     };
-    user?: {
-        register?: {
+    auth?: {
+        registration?: {
             enabled?: boolean;
-            captcha?: {
-                enabled?: boolean;
-            };
-            email?: {
-                domains?: Array<string>;
-                enabled?: boolean;
-            };
+            captcha?: boolean;
+        };
+    };
+    captcha?: {
+        provider?: string;
+        turnstile?: {
+            site_key?: string;
+        };
+        recaptcha?: {
+            site_key?: string;
         };
     };
 }
