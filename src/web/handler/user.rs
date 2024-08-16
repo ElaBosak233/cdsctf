@@ -1,11 +1,13 @@
+use std::net::SocketAddr;
+
 use argon2::{
     password_hash::{rand_core::OsRng, SaltString},
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
 };
 use axum::{
     body::Body,
-    extract::{Multipart, Path, Query},
-    http::{Response, StatusCode},
+    extract::{ConnectInfo, Multipart, Path, Query},
+    http::{HeaderMap, Response, StatusCode},
     response::IntoResponse,
     Extension, Json,
 };
@@ -209,7 +211,7 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
 }
 
 pub async fn register(
-    validate::Json(mut body): validate::Json<RegisterRequest>,
+    Extension(ext): Extension<Ext>, validate::Json(mut body): validate::Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
@@ -234,6 +236,16 @@ pub async fn register(
         return Err(WebError::Conflict(String::new()));
     }
 
+    if crate::config::get_config().auth.registration.captcha {
+        let captcha = crate::captcha::new().unwrap();
+        let token = body
+            .token
+            .ok_or(WebError::BadRequest(String::from("invalid_captcha_token")))?;
+        if !captcha.verify(token, ext.client_ip).await {
+            return Err(WebError::BadRequest(String::from("captcha_failed")));
+        }
+    }
+
     let hashed_password = Argon2::default()
         .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
         .unwrap()
@@ -246,9 +258,9 @@ pub async fn register(
         password: Set(hashed_password),
         group: Set(Group::User),
         ..Default::default()
-    };
-
-    let user = user.insert(&get_db()).await?;
+    }
+    .insert(&get_db())
+    .await?;
 
     return Ok((
         StatusCode::OK,

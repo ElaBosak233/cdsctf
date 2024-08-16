@@ -1,7 +1,9 @@
+use std::net::SocketAddr;
+
 use crate::{database::get_db, model::user::group::Group, web::traits::WebError};
 use axum::{
     body::Body,
-    extract::Request,
+    extract::{ConnectInfo, Request},
     http::StatusCode,
     middleware::Next,
     response::{IntoResponse, Response},
@@ -54,8 +56,17 @@ pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebErro
             return Err(WebError::Forbidden(String::from("forbidden")));
         }
 
+        let ConnectInfo(addr) = req.extensions().get::<ConnectInfo<SocketAddr>>().unwrap();
+
+        let client_ip = req
+            .headers()
+            .get("X-Forwarded-For")
+            .and_then(|header_value| header_value.to_str().ok().map(|s| s.to_string()))
+            .unwrap_or_else(|| addr.ip().to_owned().to_string());
+
         req.extensions_mut().insert(Ext {
             operator: Some(user.clone()),
+            client_ip: client_ip,
         });
     }
 

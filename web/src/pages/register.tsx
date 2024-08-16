@@ -47,7 +47,7 @@ export default function Page() {
 
     function handleRegister() {
         if (
-            configStore?.pltCfg?.user?.register?.captcha?.enabled &&
+            configStore?.pltCfg?.auth?.registration?.captcha &&
             !form.getValues().token
         ) {
             showErrNotification({
@@ -132,14 +132,14 @@ export default function Page() {
                                 {...form.getInputProps("password")}
                             />
                             <Flex justify={"center"}>
-                                {configStore?.pltCfg?.user?.register?.captcha
-                                    ?.enabled && (
+                                {configStore?.pltCfg?.auth?.registration
+                                    ?.captcha && (
                                     <>
-                                        {configStore?.captchaCfg?.provider ===
-                                            "turnstile" && (
+                                        {configStore?.pltCfg?.captcha
+                                            ?.provider === "turnstile" && (
                                             <Turnstile
                                                 sitekey={String(
-                                                    configStore?.captchaCfg
+                                                    configStore?.pltCfg?.captcha
                                                         ?.turnstile?.site_key
                                                 )}
                                                 onVerify={(token) => {
@@ -150,11 +150,11 @@ export default function Page() {
                                                 }}
                                             />
                                         )}
-                                        {configStore?.captchaCfg?.provider ===
-                                            "recaptcha" && (
+                                        {configStore?.pltCfg?.captcha
+                                            ?.provider === "recaptcha" && (
                                             <ReCAPTCHA
                                                 sitekey={String(
-                                                    configStore?.captchaCfg
+                                                    configStore?.pltCfg?.captcha
                                                         ?.recaptcha?.site_key
                                                 )}
                                                 onChange={(token) => {

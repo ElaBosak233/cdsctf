@@ -85,6 +85,7 @@ pub struct RegisterRequest {
     #[validate(email)]
     pub email: String,
     pub password: String,
+    pub token: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -10,6 +10,7 @@ use tracing::error;
 #[derive(Clone, Debug)]
 pub struct Ext {
     pub operator: Option<user::Model>,
+    pub client_ip: String,
 }
 
 #[derive(Debug, Error)]
