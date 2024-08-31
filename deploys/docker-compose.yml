@@ -6,7 +6,7 @@ services:
         ports:
             - "8888:8888"
         volumes:
-            - "./application.yml:/app/application.yml:ro"
+            - "./application.toml:/app/application.toml:ro"
             - "/var/run/docker.sock:/var/run/docker.sock"
             - "./assets:/app/assets"
             - "./captures:/app/captures"

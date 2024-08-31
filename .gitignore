@@ -6,7 +6,7 @@
 *.lock
 
 # Cloudsdale
-/application.yml
+/application.toml
 /favicon.webp
 /k8s-config.yml
 /db
