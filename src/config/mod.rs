@@ -28,14 +28,12 @@ pub struct Config {
 }
 
 pub async fn init() {
-    let target_path = Path::new("application.yml");
+    let target_path = Path::new("application.toml");
     if target_path.exists() {
-        let content = fs::read_to_string("application.yml").await.unwrap();
-        APP_CONFIG
-            .set(serde_yaml::from_str(&content).unwrap())
-            .unwrap();
+        let content = fs::read_to_string("application.toml").await.unwrap();
+        APP_CONFIG.set(toml::from_str(&content).unwrap()).unwrap();
     } else {
-        error!("Configuration application.yml not found.");
+        error!("Configuration application.toml not found.");
         process::exit(1);
     }
 }
