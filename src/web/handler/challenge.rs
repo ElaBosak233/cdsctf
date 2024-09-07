@@ -25,7 +25,7 @@ pub async fn get(
     let (mut challenges, total) = crate::model::challenge::find(
         params.id,
         params.title,
-        params.category_id,
+        params.category,
         params.is_practicable,
         params.is_dynamic,
         params.page,
@@ -138,7 +138,7 @@ pub async fn create(
     let challenge = crate::model::challenge::ActiveModel {
         title: Set(body.title),
         description: Set(Some(body.description)),
-        category_id: Set(body.category_id),
+        category: Set(body.category),
         is_practicable: Set(body.is_practicable.unwrap_or(false)),
         is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
         has_attachment: Set(body.has_attachment.unwrap_or(false)),
@@ -178,7 +178,7 @@ pub async fn update(
         id: body.id.map_or(NotSet, |v| Set(v)),
         title: body.title.map_or(NotSet, |v| Set(v)),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
-        category_id: body.category_id.map_or(NotSet, |v| Set(v)),
+        category: body.category.map_or(NotSet, |v| Set(v)),
         is_practicable: body.is_practicable.map_or(NotSet, |v| Set(v)),
         is_dynamic: body.is_dynamic.map_or(NotSet, |v| Set(v)),
         has_attachment: body.has_attachment.map_or(NotSet, |v| Set(v)),

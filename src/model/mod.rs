@@ -1,4 +1,3 @@
-pub mod category;
 pub mod challenge;
 pub mod game;
 pub mod game_challenge;

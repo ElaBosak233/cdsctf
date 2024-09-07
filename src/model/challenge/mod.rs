@@ -1,3 +1,4 @@
+pub mod category;
 pub mod env;
 pub mod flag;
 
@@ -7,7 +8,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::database::get_db;
 
-use super::{category, game, game_challenge, pod, submission};
+use super::{game, game_challenge, pod, submission};
+pub use category::Category;
 pub use env::Env;
 pub use flag::Flag;
 
@@ -18,7 +20,7 @@ pub struct Model {
     pub id: i64,
     pub title: String,
     pub description: Option<String>,
-    pub category_id: i64,
+    pub category: Category,
     #[sea_orm(default_value = false)]
     pub is_dynamic: bool,
     #[sea_orm(default_value = false)]
@@ -54,7 +56,6 @@ impl Model {
 
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
-    Category,
     Submission,
     Pod,
 }
@@ -62,22 +63,9 @@ pub enum Relation {
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
-            Self::Category => {
-                return Entity::belongs_to(category::Entity)
-                    .from(Column::CategoryId)
-                    .to(category::Column::Id)
-                    .on_delete(ForeignKeyAction::Cascade)
-                    .into()
-            }
             Self::Submission => return Entity::has_many(submission::Entity).into(),
             Self::Pod => return Entity::has_many(pod::Entity).into(),
         }
-    }
-}
-
-impl Related<category::Entity> for Entity {
-    fn to() -> RelationDef {
-        return Relation::Category.def();
     }
 }
 
@@ -117,8 +105,8 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 pub async fn find(
-    id: Option<i64>, title: Option<String>, category_id: Option<i64>, is_practicable: Option<bool>,
-    is_dynamic: Option<bool>, page: Option<u64>, size: Option<u64>,
+    id: Option<i64>, title: Option<String>, category: Option<Category>,
+    is_practicable: Option<bool>, is_dynamic: Option<bool>, page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<crate::model::challenge::Model>, u64), DbErr> {
     let mut query = crate::model::challenge::Entity::find();
 
@@ -130,8 +118,8 @@ pub async fn find(
         query = query.filter(crate::model::challenge::Column::Title.contains(title));
     }
 
-    if let Some(category_id) = category_id {
-        query = query.filter(crate::model::challenge::Column::CategoryId.eq(category_id));
+    if let Some(category) = category {
+        query = query.filter(crate::model::challenge::Column::Category.eq(category));
     }
 
     if let Some(is_practicable) = is_practicable {
