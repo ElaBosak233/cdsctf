@@ -76,10 +76,10 @@ sea-orm = { version = "1.0", features = [
 sea-orm-migration = { version = "1.0" }
 
 # Message Queue
-async-nats = { version = "0.35" }
+async-nats = { version = "0.36" }
 
 # Cache
-fred = { version = "9.0", features = [
+fred = { version = "9.2", features = [
     "enable-rustls",
     "dns",
     "mocks",
