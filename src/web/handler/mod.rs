@@ -1,4 +1,3 @@
-pub mod category;
 pub mod challenge;
 pub mod config;
 pub mod game;

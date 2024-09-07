@@ -38,7 +38,6 @@ pub async fn init() {
     migration::migrate(&get_db()).await;
     info!("Database connection established successfully.");
     init_admin().await;
-    init_category().await;
 }
 
 pub fn get_db() -> DatabaseConnection {
@@ -65,50 +64,5 @@ pub async fn init_admin() {
         };
         user.insert(&get_db()).await.unwrap();
         info!("Admin user created successfully.");
-    }
-}
-
-pub async fn init_category() {
-    let total = crate::model::category::Entity::find()
-        .count(&get_db())
-        .await
-        .unwrap();
-    if total == 0 {
-        let default_categories = vec![
-            crate::model::category::ActiveModel {
-                name: Set("web".to_string()),
-                color: Set("#009688".to_string()),
-                icon: Set("language".to_string()),
-                ..Default::default()
-            },
-            crate::model::category::ActiveModel {
-                name: Set("pwn".to_string()),
-                color: Set("#673AB7".to_string()),
-                icon: Set("function".to_string()),
-                ..Default::default()
-            },
-            crate::model::category::ActiveModel {
-                name: Set("crypto".to_string()),
-                color: Set("#607D8B".to_string()),
-                icon: Set("tag".to_string()),
-                ..Default::default()
-            },
-            crate::model::category::ActiveModel {
-                name: Set("misc".to_string()),
-                color: Set("#3F51B5".to_string()),
-                icon: Set("fingerprint".to_string()),
-                ..Default::default()
-            },
-            crate::model::category::ActiveModel {
-                name: Set("reverse".to_string()),
-                color: Set("#6D4C41".to_string()),
-                icon: Set("keyboard_double_arrow_left".to_string()),
-                ..Default::default()
-            },
-        ];
-        for categ0ry in default_categories {
-            categ0ry.insert(&get_db()).await.unwrap();
-        }
-        info!("Default category created successfully.");
     }
 }
