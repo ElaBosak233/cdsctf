@@ -21,6 +21,7 @@ pub struct Model {
     pub title: String,
     pub description: Option<String>,
     pub category: Category,
+    pub tags: Vec<String>,
     #[sea_orm(default_value = false)]
     pub is_dynamic: bool,
     #[sea_orm(default_value = false)]
