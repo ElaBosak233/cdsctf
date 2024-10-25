@@ -1,13 +1,12 @@
 version: "3.0"
 services:
     core:
-        image: elabosak233/cloudsdale:main
+        image: elabosak233/cdsctf:main
         restart: always
         ports:
             - "8888:8888"
         volumes:
             - "./application.toml:/app/application.toml:ro"
-            - "/var/run/docker.sock:/var/run/docker.sock"
             - "./assets:/app/assets"
             - "./captures:/app/captures"
             - "./media:/app/media"

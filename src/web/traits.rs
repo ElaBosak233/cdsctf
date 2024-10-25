@@ -1,11 +1,14 @@
-use crate::model::user;
-use axum::body::Body;
-use axum::http::{Response, StatusCode};
-use axum::response::IntoResponse;
-use axum::Json;
+use axum::{
+    body::Body,
+    http::{Response, StatusCode},
+    response::IntoResponse,
+    Json,
+};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tracing::error;
+
+use crate::model::user;
 
 #[derive(Clone, Debug)]
 pub struct Ext {

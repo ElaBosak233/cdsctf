@@ -49,7 +49,7 @@ cd cloudsdale
 使用 Docker Compose 运行开发时的依赖服务（数据库、消息队列、缓存）
 
 ```bash
-docker compose -f deploys/docker-compose.dev.yml up
+docker compose -f deploys/compose.dev.yml up
 ```
 
 ### 使用 Cargo 编译/运行后端

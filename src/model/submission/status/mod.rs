@@ -16,9 +16,9 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 #[repr(i32)]
 pub enum Status {
     #[default]
-    Pending = 0,
-    Correct = 1,
+    Pending   = 0,
+    Correct   = 1,
     Incorrect = 2,
-    Cheat = 3,
-    Invalid = 4,
+    Cheat     = 3,
+    Invalid   = 4,
 }

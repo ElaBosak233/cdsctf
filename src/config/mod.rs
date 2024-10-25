@@ -2,14 +2,15 @@ pub mod auth;
 pub mod axum;
 pub mod cache;
 pub mod captcha;
+pub mod cluster;
 pub mod consts;
-pub mod container;
 pub mod db;
 pub mod queue;
 pub mod site;
 
-use serde::{Deserialize, Serialize};
 use std::{path::Path, process, sync::OnceLock};
+
+use serde::{Deserialize, Serialize};
 use tokio::fs::{self};
 use tracing::error;
 
@@ -20,7 +21,7 @@ pub struct Config {
     pub site: site::Config,
     pub auth: auth::Config,
     pub axum: axum::Config,
-    pub container: container::Config,
+    pub cluster: cluster::Config,
     pub captcha: captcha::Config,
     pub db: db::Config,
     pub queue: queue::Config,

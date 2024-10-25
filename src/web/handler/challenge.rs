@@ -9,10 +9,15 @@ use axum::{
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
 
-use crate::{database::get_db, web::model::Metadata};
-use crate::{model::submission::Status, web::traits::Ext};
-use crate::{model::user::group::Group, web::model::challenge::*};
-use crate::{util::validate, web::traits::WebError};
+use crate::{
+    database::get_db,
+    model::{submission::Status, user::group::Group},
+    util::validate,
+    web::{
+        model::{challenge::*, Metadata},
+        traits::{Ext, WebError},
+    },
+};
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
@@ -139,6 +144,7 @@ pub async fn create(
         title: Set(body.title),
         description: Set(Some(body.description)),
         category: Set(body.category),
+        tags: Set(body.tags.unwrap_or(vec![])),
         is_practicable: Set(body.is_practicable.unwrap_or(false)),
         is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
         has_attachment: Set(body.has_attachment.unwrap_or(false)),
@@ -178,6 +184,7 @@ pub async fn update(
         id: body.id.map_or(NotSet, |v| Set(v)),
         title: body.title.map_or(NotSet, |v| Set(v)),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
+        tags: body.tags.map_or(NotSet, |v| Set(v)),
         category: body.category.map_or(NotSet, |v| Set(v)),
         is_practicable: body.is_practicable.map_or(NotSet, |v| Set(v)),
         is_dynamic: body.is_dynamic.map_or(NotSet, |v| Set(v)),

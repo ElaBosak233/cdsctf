@@ -1,6 +1,7 @@
 use std::f64::consts::E;
 
-/// curve is a function that calculates the value of a curve given the parameters s, r, d, and x.
+/// curve is a function that calculates the value of a curve given the
+/// parameters s, r, d, and x.
 ///
 /// - "s" is the maximum value.
 /// - "r" is the minimum value.

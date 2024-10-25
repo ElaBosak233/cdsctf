@@ -8,8 +8,7 @@ pub mod submission;
 pub mod team;
 pub mod user;
 
-use axum::http::StatusCode;
-use axum::{Json, Router};
+use axum::{http::StatusCode, Json, Router};
 use serde_json::json;
 
 pub async fn router() -> Router {

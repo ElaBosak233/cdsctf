@@ -20,9 +20,9 @@ pub async fn get() -> impl IntoResponse {
                 "auth": {
                     "registration": get_config().auth.registration,
                 },
-                "container": {
-                    "parallel_limit": get_config().container.strategy.parallel_limit,
-                    "request_limit": get_config().container.strategy.request_limit,
+                "cluster": {
+                    "parallel_limit": get_config().cluster.strategy.parallel_limit,
+                    "request_limit": get_config().cluster.strategy.request_limit,
                 },
                 "captcha": {
                     "provider": get_config().captcha.provider,

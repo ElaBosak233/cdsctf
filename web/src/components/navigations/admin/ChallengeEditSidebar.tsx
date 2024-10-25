@@ -46,12 +46,12 @@ export default function ChallengeEditSidebar(props: ChallengeEditSidebarProps) {
                     Flags
                 </Button>
                 <Button
-                    variant={path === "/container" ? "filled" : "subtle"}
+                    variant={path === "/cluster" ? "filled" : "subtle"}
                     onClick={() =>
                         navigate(`/admin/challenges/${id}/container`)
                     }
                     leftSection={
-                        <MDIcon c={path === "/container" ? "white" : "brand"}>
+                        <MDIcon c={path === "/cluster" ? "white" : "brand"}>
                             package_2
                         </MDIcon>
                     }

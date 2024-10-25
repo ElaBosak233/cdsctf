@@ -1,4 +1,5 @@
-//! calculator module is used to calculate the pts and rank of submissions, game_teams and game_challenges
+//! calculator module is used to calculate the pts and rank of submissions,
+//! game_teams and game_challenges
 
 use std::collections::HashMap;
 

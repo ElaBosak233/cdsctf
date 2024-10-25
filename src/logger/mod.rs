@@ -2,9 +2,7 @@ use once_cell::sync::OnceCell;
 use tracing::{info, Level};
 use tracing_appender::{non_blocking, non_blocking::WorkerGuard};
 use tracing_error::ErrorLayer;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::EnvFilter;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 static FILE_GUARD: OnceCell<WorkerGuard> = OnceCell::new();
 static CONSOLE_GUARD: OnceCell<WorkerGuard> = OnceCell::new();

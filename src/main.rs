@@ -1,8 +1,8 @@
 mod assets;
 mod cache;
 mod captcha;
+mod cluster;
 mod config;
-mod container;
 mod database;
 mod email;
 mod logger;
@@ -11,6 +11,8 @@ mod model;
 mod queue;
 mod util;
 mod web;
+
+use std::net::SocketAddr;
 
 use tracing::info;
 
@@ -30,12 +32,16 @@ async fn main() {
 }
 
 async fn bootstrap() {
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("");
+
     logger::init().await;
     config::init().await;
     database::init().await;
     queue::init().await;
     cache::init().await;
-    container::init().await;
+    cluster::init().await;
     web::init().await;
 
     let addr = format!(
@@ -46,11 +52,14 @@ async fn bootstrap() {
     let listener = tokio::net::TcpListener::bind(&addr).await;
 
     info!(
-        "Cloudsdale service has been started at {}. Enjoy your hacking challenges!",
+        "CdsCTF service has been started at {}. Enjoy your hacking challenges!",
         &addr
     );
 
-    axum::serve(listener.unwrap(), web::get_app())
-        .await
-        .unwrap();
+    axum::serve(
+        listener.unwrap(),
+        web::get_app().into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .unwrap();
 }
