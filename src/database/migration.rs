@@ -11,8 +11,7 @@ macro_rules! create_tables {
 
 async fn create_table<E>(db: &DbConn, entity: E)
 where
-    E: EntityTrait,
-{
+    E: EntityTrait, {
     let builder = db.get_database_backend();
     let schema = Schema::new(builder);
     let stmt = builder.build(schema.create_table_from_entity(entity).if_not_exists());

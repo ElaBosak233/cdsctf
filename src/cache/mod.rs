@@ -20,8 +20,7 @@ fn get_client() -> &'static RedisClient {
 
 pub async fn get<T>(key: impl Into<RedisKey> + Send + Display) -> Result<Option<T>, CacheError>
 where
-    T: for<'de> Deserialize<'de>,
-{
+    T: for<'de> Deserialize<'de>, {
     let result = get_client().get::<Option<Value>, _>(key).await?;
     match result {
         Some(value) => Ok(Some(serde_json::from_value(value)?)),
@@ -31,8 +30,7 @@ where
 
 pub async fn getdel<T>(key: impl Into<RedisKey> + Send + Display) -> Result<Option<T>, CacheError>
 where
-    T: for<'de> Deserialize<'de>,
-{
+    T: for<'de> Deserialize<'de>, {
     let result = get_client().getdel::<Option<Value>, _>(key).await?;
     match result {
         Some(value) => return Ok(Some(serde_json::from_value(value)?)),

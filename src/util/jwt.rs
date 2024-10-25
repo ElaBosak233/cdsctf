@@ -1,8 +1,9 @@
-use crate::config;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+
+use crate::config;
 
 static SECRET: Lazy<String> = Lazy::new(|| {
     let mut secret_key = config::get_config().auth.jwt.secret_key.clone();

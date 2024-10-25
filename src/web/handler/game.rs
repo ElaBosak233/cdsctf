@@ -1,23 +1,22 @@
-use axum::body::Body;
 use axum::{
+    body::Body,
     extract::{Multipart, Path, Query},
     http::{Response, StatusCode},
     response::IntoResponse,
     Extension, Json,
 };
 use mime::Mime;
-use sea_orm::ActiveValue::NotSet;
-use sea_orm::ColumnTrait;
-use sea_orm::EntityTrait;
-use sea_orm::QueryFilter;
-use sea_orm::{ActiveModelTrait, Set};
+use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, EntityTrait, QueryFilter, Set};
 
-use crate::database::get_db;
-use crate::model::user::group::Group;
-use crate::web::model::{game::*, Metadata};
-use crate::web::router::game::calculator;
-use crate::web::traits::Ext;
-use crate::web::traits::WebError;
+use crate::{
+    database::get_db,
+    model::user::group::Group,
+    web::{
+        model::{game::*, Metadata},
+        router::game::calculator,
+        traits::{Ext, WebError},
+    },
+};
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
@@ -385,7 +384,8 @@ pub async fn calculate(
 // pub async fn get_submission(
 //     Path(id): Path<i64>, Query(params): Query<GetSubmissionRequest>,
 // ) -> Result<impl IntoResponse, WebError> {
-//     let submissions = crate::model::submission::get_with_pts(id, params.status).await?;
+//     let submissions = crate::model::submission::get_with_pts(id,
+// params.status).await?;
 
 //     return Ok((
 //         StatusCode::OK,
@@ -396,12 +396,12 @@ pub async fn calculate(
 //     ));
 // }
 
-// pub async fn get_scoreboard(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
-//     pub struct TeamScoreRecord {}
+// pub async fn get_scoreboard(Path(id): Path<i64>) -> Result<impl IntoResponse,
+// WebError> {     pub struct TeamScoreRecord {}
 
 //     let submissions =
-//         crate::model::submission::get_with_pts(id, Some(crate::model::submission::Status::Correct))
-//             .await;
+//         crate::model::submission::get_with_pts(id,
+// Some(crate::model::submission::Status::Correct))             .await;
 
 //     let game_teams = crate::model::game_team::Entity::find()
 //         .filter(

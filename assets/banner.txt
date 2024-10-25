@@ -7,4 +7,4 @@
 
 Commit: {{git_commit}}
 Build At: {{build_at}}
-GitHub: https://github.com/elabosak233/cloudsdale
+GitHub: https://github.com/elabosak233/cdsctf

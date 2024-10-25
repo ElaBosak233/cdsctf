@@ -2,9 +2,8 @@ use axum::async_trait;
 use sea_orm::{entity::prelude::*, Iterable, JoinType, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 
-use crate::database::get_db;
-
 use super::{game, game_team, pod, submission, user, user_team};
+use crate::database::get_db;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "teams")]
@@ -84,8 +83,7 @@ impl ActiveModelBehavior for ActiveModel {
 
     async fn before_save<C>(mut self, _db: &C, _insert: bool) -> Result<Self, DbErr>
     where
-        C: ConnectionTrait,
-    {
+        C: ConnectionTrait, {
         self.updated_at = Set(chrono::Utc::now().timestamp());
         Ok(self)
     }

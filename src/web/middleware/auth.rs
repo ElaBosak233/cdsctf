@@ -1,6 +1,5 @@
 use std::net::SocketAddr;
 
-use crate::{database::get_db, model::user::group::Group, web::traits::WebError};
 use axum::{
     body::Body,
     extract::{ConnectInfo, Request},
@@ -13,14 +12,19 @@ use jsonwebtoken::{decode, DecodingKey, Validation};
 use sea_orm::EntityTrait;
 use serde_json::json;
 
-use crate::{util, web::traits::Ext};
+use crate::{
+    database::get_db,
+    model::user::group::Group,
+    util,
+    web::traits::{Ext, WebError},
+};
 
 pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
     let token = req
         .headers()
         .get("Authorization")
         .and_then(|header| header.to_str().ok())
-        // .and_then(|header| header.strip_prefix("Bearer "))
+        .and_then(|header| header.strip_prefix("Bearer "))
         .unwrap_or("");
 
     let decoding_key = DecodingKey::from_secret(util::jwt::get_secret().await.as_bytes());

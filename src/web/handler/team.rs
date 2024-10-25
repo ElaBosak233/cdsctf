@@ -1,20 +1,24 @@
-use axum::body::Body;
 use axum::{
+    body::Body,
     extract::{Multipart, Path, Query},
     http::{Response, StatusCode},
     response::IntoResponse,
     Extension, Json,
 };
 use mime::Mime;
-use sea_orm::ActiveValue::NotSet;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect, Set,
+    ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter,
+    QuerySelect, Set,
 };
 
-use crate::database::get_db;
-use crate::model::user::group::Group;
-use crate::web::model::{team::*, Metadata};
-use crate::web::traits::{Ext, WebError};
+use crate::{
+    database::get_db,
+    model::user::group::Group,
+    web::{
+        model::{team::*, Metadata},
+        traits::{Ext, WebError},
+    },
+};
 
 fn can_modify_team(user: crate::model::user::Model, team_id: i64) -> bool {
     return user.group == Group::Admin

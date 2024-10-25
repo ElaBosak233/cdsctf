@@ -39,7 +39,7 @@ pub async fn link(
 
     let target_nat = target_nat.unwrap();
     let target_port = target_nat.dst.clone().unwrap();
-    let target_url = format!("{}:{}", config::get_config().container.entry, target_port);
+    let target_url = format!("{}:{}", config::get_config().cluster.entry, target_port);
 
     return Ok(ws.on_upgrade(move |socket| async move {
         let tcp = tokio::net::TcpStream::connect(target_url).await.unwrap();

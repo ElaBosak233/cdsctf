@@ -6,10 +6,13 @@ use axum::{
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
 
-use crate::{database::get_db, model::user::group::Group, web::traits::Ext};
 use crate::{
-    model::submission::Status,
-    web::{model::submission::*, traits::WebError},
+    database::get_db,
+    model::{submission::Status, user::group::Group},
+    web::{
+        model::submission::*,
+        traits::{Ext, WebError},
+    },
 };
 
 pub async fn get(

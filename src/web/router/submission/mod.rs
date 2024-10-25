@@ -1,12 +1,12 @@
 pub mod checker;
 
-use crate::web::handler;
-use crate::web::middleware::auth;
 use axum::{
     middleware::from_fn,
     routing::{delete, get, post},
     Router,
 };
+
+use crate::web::{handler, middleware::auth};
 
 pub async fn router() -> Router {
     checker::init().await;

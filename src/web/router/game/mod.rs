@@ -1,11 +1,12 @@
 pub mod calculator;
 
-use crate::web::handler;
 use axum::{
     extract::DefaultBodyLimit,
     routing::{delete, get, post, put},
     Router,
 };
+
+use crate::web::handler;
 
 pub async fn router() -> Router {
     calculator::init().await;

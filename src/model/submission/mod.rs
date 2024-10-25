@@ -5,11 +5,10 @@ use sea_orm::{
     entity::prelude::*, Condition, IntoActiveModel, QueryOrder, QuerySelect, Set, TryIntoModel,
 };
 use serde::{Deserialize, Serialize};
-
-use crate::database::get_db;
+pub use status::Status;
 
 use super::{challenge, game, team, user};
-pub use status::Status;
+use crate::database::get_db;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "submissions")]
@@ -117,8 +116,7 @@ impl ActiveModelBehavior for ActiveModel {
 
     async fn before_save<C>(mut self, _db: &C, _insert: bool) -> Result<Self, DbErr>
     where
-        C: ConnectionTrait,
-    {
+        C: ConnectionTrait, {
         self.updated_at = Set(chrono::Utc::now().timestamp());
         return Ok(self);
     }

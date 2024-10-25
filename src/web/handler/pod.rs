@@ -9,10 +9,13 @@ use regex::Regex;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
 use uuid::Uuid;
 
-use crate::{database::get_db, web::traits::Ext};
 use crate::{
+    database::get_db,
     model::user::group::Group,
-    web::{model::pod::*, traits::WebError},
+    web::{
+        model::pod::*,
+        traits::{Ext, WebError},
+    },
 };
 
 pub async fn get(
@@ -79,9 +82,7 @@ pub async fn create(
             .to_string();
     }
 
-    let nats = crate::container::get_container()
-        .await
-        .create(ctn_name.clone(), challenge.clone(), injected_flag.clone())
+    let nats = crate::cluster::create(ctn_name.clone(), challenge.clone(), injected_flag.clone())
         .await
         .map_err(|err| WebError::OtherError(anyhow!("{:?}", err)))?;
 
@@ -170,10 +171,7 @@ pub async fn stop(
 
     let pod_name = pod.name.clone();
     tokio::spawn(async move {
-        crate::container::get_container()
-            .await
-            .delete(pod_name)
-            .await;
+        crate::cluster::delete(pod_name).await;
     });
 
     let mut pod = pod.clone().into_active_model();

@@ -1,13 +1,13 @@
 [package]
-name = "cloudsdale"
+name = "cdsctf"
 version = "0.0.1"
 edition = "2021"
-description = "The Cloudsdale project is an open-source, high-performance, Jeopardy-style's CTF platform."
+description = "The CdsCTF project is an open-source, high-performance, Jeopardy-style's CTF platform."
 
 [dependencies]
 # Async
 async-trait = { version = "0.1" }
-tokio = { version = "1.39", features = ["full"] }
+tokio = { version = "1.41", features = ["full"] }
 futures = { version = "^0.3" }
 futures-util = { version = "^0.3" }
 tower = { version = "0.5" }
@@ -42,8 +42,8 @@ jsonwebtoken = { version = "9.3.0" }
 argon2 = { version = "0.5" }
 
 # Data Handling
-uuid = { version = "1.8", features = ["v4", "fast-rng", "macro-diagnostics"] }
-regex = { version = "1.10" }
+uuid = { version = "1.11", features = ["v4", "fast-rng", "macro-diagnostics"] }
+regex = { version = "1.11" }
 chrono = { version = "0.4" }
 toml = { version = "0.8" }
 serde = { version = "1.0", features = ["derive"] }
@@ -79,7 +79,7 @@ sea-orm-migration = { version = "1.1" }
 async-nats = { version = "0.37" }
 
 # Cache
-fred = { version = "9.2", features = [
+fred = { version = "9.3", features = [
     "enable-rustls",
     "dns",
     "mocks",
@@ -90,7 +90,6 @@ fred = { version = "9.2", features = [
 ] }
 
 # Containerization & Orchestration
-bollard = { version = "*" }
 kube = { version = "0.96", features = ["runtime", "derive"] }
 k8s-openapi = { version = "0.23", features = ["latest"] }
 
@@ -107,5 +106,5 @@ reqwest = { version = "0.12", features = [
 chrono = { version = "0.4" }
 
 [[bin]]
-name = "cloudsdale"
+name = "cdsctf"
 path = "src/main.rs"

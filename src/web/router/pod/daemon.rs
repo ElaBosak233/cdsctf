@@ -3,7 +3,7 @@ use std::time;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use tracing::info;
 
-use crate::{container::get_container, database::get_db};
+use crate::{cluster, database::get_db};
 
 pub async fn init() {
     tokio::spawn(async {
@@ -15,12 +15,12 @@ pub async fn init() {
                 .await
                 .unwrap();
             for pod in pods {
-                get_container().await.delete(pod.name.clone()).await;
+                cluster::delete(pod.name.clone()).await;
                 crate::model::pod::Entity::delete_by_id(pod.id)
                     .exec(&get_db())
                     .await
                     .unwrap();
-                info!("Cleaned up expired container: {0}", pod.name);
+                info!("Cleaned up expired cluster: {0}", pod.name);
             }
             tokio::time::sleep(interval).await;
         }

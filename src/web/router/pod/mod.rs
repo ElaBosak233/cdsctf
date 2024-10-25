@@ -1,10 +1,11 @@
 pub mod daemon;
 
-use crate::web::handler;
 use axum::{
     routing::{get, post},
     Router,
 };
+
+use crate::web::handler;
 
 pub async fn router() -> Router {
     daemon::init().await;

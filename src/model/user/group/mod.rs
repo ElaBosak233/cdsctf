@@ -16,8 +16,8 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 #[repr(i32)]
 pub enum Group {
     #[default]
-    Guest = 0,
+    Guest  = 0,
     Banned = 1,
-    User = 2,
-    Admin = 3,
+    User   = 2,
+    Admin  = 3,
 }

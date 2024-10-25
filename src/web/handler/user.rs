@@ -17,10 +17,15 @@ use sea_orm::{
     PaginatorTrait, QueryFilter, Set,
 };
 
-use crate::web::model::{user::*, Metadata};
-use crate::{database::get_db, model::user::group::Group};
-use crate::{util::jwt, web::traits::Ext};
-use crate::{util::validate, web::traits::WebError};
+use crate::{
+    database::get_db,
+    model::user::group::Group,
+    util::{jwt, validate},
+    web::{
+        model::{user::*, Metadata},
+        traits::{Ext, WebError},
+    },
+};
 
 pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, WebError> {
     let (mut users, total) = crate::model::user::find(

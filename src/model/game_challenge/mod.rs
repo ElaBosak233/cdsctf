@@ -2,9 +2,8 @@ use axum::async_trait;
 use sea_orm::{entity::prelude::*, TryIntoModel};
 use serde::{Deserialize, Serialize};
 
-use crate::database::get_db;
-
 use super::{challenge, game};
+use crate::database::get_db;
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "game_challenges")]
