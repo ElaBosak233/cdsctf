@@ -14,7 +14,7 @@ RUN apt update && apt install -y musl-tools musl-dev pkg-config
 
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
-RUN strip target/x86_64-unknown-linux-musl/release/cloudsdale
+RUN strip target/x86_64-unknown-linux-musl/release/cdsctf
 
 FROM node:20 AS frontend
 
@@ -29,7 +29,7 @@ FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=backend /app/target/x86_64-unknown-linux-musl/release/cloudsdale .
+COPY --from=backend /app/target/x86_64-unknown-linux-musl/release/cdsctf .
 COPY --from=frontend /app/dist ./dist
 
 EXPOSE 8888
