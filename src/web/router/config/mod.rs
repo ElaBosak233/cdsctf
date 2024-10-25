@@ -1,9 +1,60 @@
-use axum::{routing::get, Router};
+use std::path::PathBuf;
 
-use crate::web::handler;
+use axum::{
+    http::{Response, StatusCode},
+    response::IntoResponse,
+    Json, Router,
+};
+use serde_json::json;
+use tokio::{fs::File, io::AsyncReadExt};
+
+use crate::config::get_config;
 
 pub fn router() -> Router {
     return Router::new()
-        .route("/", get(handler::config::get))
-        .route("/favicon", get(handler::config::get_favicon));
+        .route("/", axum::routing::get(get))
+        .route("/favicon", axum::routing::get(get_favicon));
+}
+
+pub async fn get() -> impl IntoResponse {
+    return (
+        StatusCode::OK,
+        Json(json!({
+            "code": StatusCode::OK.as_u16(),
+            "data": {
+                "site": get_config().site,
+                "auth": {
+                    "registration": get_config().auth.registration,
+                },
+                "cluster": {
+                    "parallel_limit": get_config().cluster.strategy.parallel_limit,
+                    "request_limit": get_config().cluster.strategy.request_limit,
+                },
+                "captcha": {
+                    "provider": get_config().captcha.provider,
+                    "turnstile": {
+                        "site_key": get_config().captcha.turnstile.site_key
+                    },
+                    "recaptcha": {
+                        "site_key": get_config().captcha.recaptcha.site_key
+                    }
+                }
+            }
+        })),
+    );
+}
+
+pub async fn get_favicon() -> impl IntoResponse {
+    let path = PathBuf::from(get_config().site.favicon.clone());
+
+    match File::open(&path).await {
+        Ok(mut file) => {
+            let mut buffer = Vec::new();
+            if let Err(_) = file.read_to_end(&mut buffer).await {
+                return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
+            }
+            return Response::builder().body(buffer.into()).unwrap();
+        }
+        Err(_) => return (StatusCode::NOT_FOUND).into_response(),
+    }
 }
