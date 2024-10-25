@@ -4,9 +4,9 @@ import zh from "./zh.mts";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-	title: "Cloudsdale",
+	title: "CdsCTF",
 	description:
-		"The Cloudsdale project is an open-source, high-performance, Jeopardy-style's CTF platform. ",
+		"The CdsCTF project is an open-source, high-performance, Jeopardy-style's CTF platform. ",
 	head: [
 		["link", { rel: "icon", href: "/favicon.webp", type: "image/webp" }],
 	],
@@ -21,7 +21,7 @@ export default defineConfig({
 		socialLinks: [
 			{
 				icon: "github",
-				link: "https://github.com/elabosak233/cloudsdale",
+				link: "https://github.com/elabosak233/cdsctf",
 			},
 		],
 	},

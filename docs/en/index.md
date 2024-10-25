@@ -2,21 +2,21 @@
 layout: home
 
 hero:
-  name: "Cloudsdale"
+  name: "CdsCTF"
   text: "An Open Source CTF Platform"
   tagline: High-performance, lightweight, and easy to use
   image:
     src: /favicon.webp
   actions:
     - theme: brand
-      text: What is Cloudsdale?
+      text: What is CdsCTF?
       link: /en/guide/
     - theme: alt
       text: Quick Start
       link: /en/quick-start/
     - theme: alt
       text: GitHub
-      link: https://github.com/elabosak233/cloudsdale
+      link: https://github.com/elabosak233/cdsctf
 
 features:
   - title: High Performance

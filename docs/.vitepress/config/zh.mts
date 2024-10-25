@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 export default defineConfig({
 	lang: "zh-Hans",
-	description: "Cloudsdale 是一个开源、高性能的解题模式 CTF 平台",
+	description: "CdsCTF 是一个开源、高性能的解题模式 CTF 平台",
 	themeConfig: {
 		nav: [
 			{ text: "指南", link: "/zh/guide" },
@@ -13,9 +13,7 @@ export default defineConfig({
 			"/zh/guide": [
 				{
 					text: "简介",
-					items: [
-						{ text: "什么是 Cloudsdale？", link: "/zh/guide/" },
-					],
+					items: [{ text: "什么是 CdsCTF？", link: "/zh/guide/" }],
 				},
 			],
 			"/zh/contribution": [
