@@ -37,13 +37,13 @@
 先克隆仓库，或者可以先复刻再克隆
 
 ```bash
-git clone https://github.com/ElaBosak233/cloudsdale.git
+git clone https://github.com/elabosak233/cdsctf.git
 ```
 
 进入仓库
 
 ```bash
-cd cloudsdale
+cd cdsctf
 ```
 
 使用 Docker Compose 运行开发时的依赖服务（数据库、消息队列、缓存）
@@ -61,7 +61,7 @@ cargo build
 你可以使用这条命令运行后端（请务必在根目录准备好符合要求的 `application.yml`）
 
 ```bash
-cargo run --bin cloudsdale
+cargo run --bin cdsctf
 ```
 
 ::: tip 使用 Windows 进行开发时，遇到无法编译 `aws-lc-sys` 的问题
