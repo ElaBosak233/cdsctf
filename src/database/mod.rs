@@ -1,5 +1,7 @@
 mod migration;
 
+use std::time::Duration;
+
 use argon2::{
     password_hash::{rand_core::OsRng, SaltString},
     Argon2, PasswordHasher,
@@ -9,7 +11,6 @@ use sea_orm::{
     ActiveModelTrait, ConnectOptions, Database, DatabaseConnection, EntityTrait, PaginatorTrait,
     Set,
 };
-use std::time::Duration;
 use tracing::info;
 
 static DB: OnceCell<DatabaseConnection> = OnceCell::new();

@@ -26,7 +26,7 @@ pub struct Flag {
 #[repr(i32)]
 pub enum Type {
     #[default]
-    Static = 0,
+    Static  = 0,
     Pattern = 1,
     Dynamic = 2,
 }

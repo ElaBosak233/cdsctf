@@ -3,9 +3,8 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::model::challenge::Category;
-
 use super::Metadata;
+use crate::model::challenge::Category;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetRequest {

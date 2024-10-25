@@ -15,7 +15,7 @@ jobs:
             - name: Check out repository
               uses: actions/checkout@v4
               with:
-                  repository: elabosak233/cloudsdale
+                  repository: elabosak233/cdsctf
                   ref: ${{ github.ref }}
 
             - name: Set up Docker Buildx
@@ -40,8 +40,8 @@ jobs:
               id: meta
               with:
                   images: |
-                      ghcr.io/${{ github.repository_owner }}/cloudsdale
-                      docker.io/${{ github.repository_owner }}/cloudsdale
+                      ghcr.io/${{ github.repository_owner }}/cdsctf
+                      docker.io/${{ github.repository_owner }}/cdsctf
                   flavor: |
                       latest=${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
                   tags: |

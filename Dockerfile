@@ -34,4 +34,4 @@ COPY --from=frontend /app/dist ./dist
 
 EXPOSE 8888
 
-CMD ["./cloudsdale"]
+CMD ["./cdsctf"]

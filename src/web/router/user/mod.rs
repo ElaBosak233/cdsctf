@@ -1,9 +1,10 @@
-use crate::web::handler;
 use axum::{
     extract::DefaultBodyLimit,
     routing::{delete, get, post, put},
     Router,
 };
+
+use crate::web::handler;
 
 pub fn router() -> Router {
     return Router::new()

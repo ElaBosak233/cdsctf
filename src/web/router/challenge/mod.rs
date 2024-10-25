@@ -1,11 +1,11 @@
-use crate::web::handler;
-use crate::web::middleware::auth;
 use axum::{
     extract::DefaultBodyLimit,
     middleware::from_fn,
     routing::{delete, get, post, put},
     Router,
 };
+
+use crate::web::{handler, middleware::auth};
 
 pub fn router() -> Router {
     return Router::new()

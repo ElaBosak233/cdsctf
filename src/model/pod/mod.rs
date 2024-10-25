@@ -1,13 +1,12 @@
 pub mod nat;
 
 use axum::async_trait;
+pub use nat::Nat;
 use sea_orm::{entity::prelude::*, Set};
 use serde::{Deserialize, Serialize};
 
-use crate::database::get_db;
-
 use super::{challenge, game, team, user};
-pub use nat::Nat;
+use crate::database::get_db;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "pods")]
@@ -15,7 +14,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub name: String,
-    pub flag: Option<String>, // The generated flag, which will be injected into the container.
+    pub flag: Option<String>, // The generated flag, which will be injected into the cluster.
     pub user_id: i64,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
