@@ -1,12 +1,12 @@
-# 什么是 Cloudsdale？
+# 什么是 CdsCTF？
 
-Cloudsdale 是一个基于 Rust 构建、使用解题模式（Jeopardy）的 CTF 平台。她非常地 轻量，并且可以使用 _简单_ 的配置文件快速部署。
+CdsCTF？ 是一个基于 Rust 构建、使用解题模式（Jeopardy）的 CTF 平台。她非常地 轻量，并且可以使用 _简单_ 的配置文件快速部署。
 
 本项目灵感来源于 CTFd、Cardinal、GZ::CTF 和 Ret2Shell，博采众长之下诞生了本项目。因为作者对软件的独特乃至夸张的理解，以及作者所在的学校资源非常有限，所以希望打造一个轻量又好用的 CTF 平台，给予学校 CTF 团队一个良好的体验。
 
 ## 使用场景
 
-就像 ACM 一样，CTF 也应当有属于自己的定制化平台。Cloudsdale 非常适合组织小型的 CTF 比赛，或者进行 CTF 团队训练，灵活的题目管理功能可以更加高效地保存与使用题目。
+就像 ACM 一样，CTF 也应当有属于自己的定制化平台。CdsCTF？ 非常适合组织小型的 CTF 比赛，或者进行 CTF 团队训练，灵活的题目管理功能可以更加高效地保存与使用题目。
 
 ## 功能
 
@@ -28,5 +28,4 @@ Cloudsdale 是一个基于 Rust 构建、使用解题模式（Jeopardy）的 CTF
 - 数据库
     - 基于 SeaORM 的多种关系型数据库支持（PostgreSQL, SQLite3, MySQL）
 - 容器支持
-    - Docker
     - Kubernetes

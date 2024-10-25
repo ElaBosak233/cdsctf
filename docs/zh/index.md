@@ -2,21 +2,21 @@
 layout: home
 
 hero:
-  name: "Cloudsdale"
+  name: "CdsCTF"
   text: "一个开源的 CTF 平台"
   tagline: 高性能、轻量、易于使用
   image:
     src: /favicon.webp
   actions:
     - theme: brand
-      text: 什么是 Clousdale?
+      text: 什么是 CdsCTF?
       link: /zh/guide/
     - theme: alt
       text: 快速开始
       link: /zh/quick-start/
     - theme: alt
       text: GitHub
-      link: https://github.com/elabosak233/cloudsdale
+      link: https://github.com/elabosak233/cdsctf
 
 features:
   - title: 高性能
