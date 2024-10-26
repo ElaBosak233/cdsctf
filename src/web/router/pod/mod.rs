@@ -9,15 +9,13 @@ use axum::{
 };
 use regex::Regex;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
     database::get_db,
     model::user::group::Group,
-    web::{
-        model::pod::*,
-        traits::{Ext, WebError},
-    },
+    web::traits::{Ext, WebError, WebResult},
 };
 
 pub async fn router() -> Router {
@@ -30,9 +28,23 @@ pub async fn router() -> Router {
         .route("/:id/stop", axum::routing::post(stop));
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GetRequest {
+    pub id: Option<i64>,
+    pub name: Option<String>,
+    pub user_id: Option<i64>,
+    pub team_id: Option<i64>,
+    pub game_id: Option<i64>,
+    pub challenge_id: Option<i64>,
+    pub is_available: Option<bool>,
+    pub is_detailed: Option<bool>,
+    pub page: Option<u64>,
+    pub size: Option<u64>,
+}
+
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<Vec<crate::model::pod::Model>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let (mut pods, total) = crate::model::pod::find(
@@ -54,19 +66,25 @@ pub async fn get(
         }
     }
 
-    return Ok((
-        StatusCode::OK,
-        Json(GetResponse {
-            code: StatusCode::OK.as_u16(),
-            data: pods,
-            total: total,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(pods),
+        total: Some(total),
+        ..WebResult::default()
+    });
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CreateRequest {
+    pub challenge_id: i64,
+    pub team_id: Option<i64>,
+    pub user_id: Option<i64>,
+    pub game_id: Option<i64>,
 }
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<crate::model::pod::Model>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     body.user_id = Some(operator.id);
 
@@ -114,18 +132,16 @@ pub async fn create(
 
     pod.simplify();
 
-    return Ok((
-        StatusCode::OK,
-        Json(CreateResponse {
-            code: StatusCode::OK.as_u16(),
-            data: pod,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(pod),
+        ..WebResult::default()
+    });
 }
 
 pub async fn renew(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let pod = crate::model::pod::Entity::find()
@@ -153,17 +169,15 @@ pub async fn renew(
     pod.removed_at = Set(chrono::Utc::now().timestamp() + challenge.duration);
     let _ = pod.update(&get_db()).await;
 
-    return Ok((
-        StatusCode::OK,
-        Json(UpdateResponse {
-            code: StatusCode::OK.as_u16(),
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        ..WebResult::default()
+    });
 }
 
 pub async fn stop(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let pod = crate::model::pod::Entity::find_by_id(id)
@@ -191,10 +205,8 @@ pub async fn stop(
 
     let _ = pod.update(&get_db()).await?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(DeleteResponse {
-            code: StatusCode::OK.as_u16(),
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        ..WebResult::default()
+    });
 }
