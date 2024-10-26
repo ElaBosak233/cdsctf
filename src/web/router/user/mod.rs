@@ -14,14 +14,16 @@ use sea_orm::{
     prelude::Expr, sea_query::Func, ActiveModelTrait, ActiveValue::NotSet, Condition, EntityTrait,
     PaginatorTrait, QueryFilter, Set,
 };
+use serde::{Deserialize, Serialize};
+use validator::Validate;
 
 use crate::{
     database::get_db,
     model::user::group::Group,
     util::{jwt, validate},
     web::{
-        model::{user::*, Metadata},
-        traits::{Ext, WebError},
+        model::Metadata,
+        traits::{Ext, WebError, WebResult},
     },
 };
 
@@ -47,7 +49,19 @@ pub fn router() -> Router {
         .route("/:id/avatar", axum::routing::delete(delete_avatar));
 }
 
-pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, WebError> {
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GetRequest {
+    pub id: Option<i64>,
+    pub name: Option<String>,
+    pub email: Option<String>,
+    pub group: Option<String>,
+    pub page: Option<u64>,
+    pub size: Option<u64>,
+}
+
+pub async fn get(
+    Query(params): Query<GetRequest>,
+) -> Result<WebResult<Vec<crate::model::user::Model>>, WebError> {
     let (mut users, total) = crate::model::user::find(
         params.id,
         params.name,
@@ -63,19 +77,26 @@ pub async fn get(Query(params): Query<GetRequest>) -> Result<impl IntoResponse, 
         user.simplify();
     }
 
-    return Ok((
-        StatusCode::OK,
-        Json(GetResponse {
-            code: StatusCode::OK.as_u16(),
-            data: users,
-            total: total,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(users),
+        total: Some(total),
+        ..WebResult::default()
+    });
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+pub struct CreateRequest {
+    pub username: String,
+    pub nickname: String,
+    pub email: String,
+    pub password: String,
+    pub group: Group,
 }
 
 pub async fn create(
     Extension(ext): Extension<Ext>, validate::Json(mut body): validate::Json<CreateRequest>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<crate::model::user::Model>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Unauthorized(String::new()));
@@ -104,19 +125,29 @@ pub async fn create(
 
     user.simplify();
 
-    return Ok((
-        StatusCode::OK,
-        Json(CreateResponse {
-            code: StatusCode::OK.as_u16(),
-            data: user,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(user),
+        ..WebResult::default()
+    });
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+pub struct UpdateRequest {
+    pub id: Option<i64>,
+    #[validate(length(min = 3, max = 20))]
+    pub username: Option<String>,
+    pub nickname: Option<String>,
+    #[validate(email)]
+    pub email: Option<String>,
+    pub password: Option<String>,
+    pub group: Option<Group>,
 }
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
     validate::Json(mut body): validate::Json<UpdateRequest>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<crate::model::user::Model>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     body.id = Some(id);
     if !(operator.group == Group::Admin
@@ -146,18 +177,16 @@ pub async fn update(
     .update(&get_db())
     .await?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(UpdateResponse {
-            code: StatusCode::OK.as_u16(),
-            data: user,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(user),
+        ..WebResult::default()
+    });
 }
 
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if !(operator.group == Group::Admin || operator.id == id) {
         return Err(WebError::Forbidden(String::new()));
@@ -167,31 +196,39 @@ pub async fn delete(
         .exec(&get_db())
         .await?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(DeleteResponse {
-            code: StatusCode::OK.as_u16(),
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        ..WebResult::default()
+    });
 }
 
 pub async fn get_teams(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<Vec<crate::model::team::Model>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let teams = crate::model::team::find_by_user_id(id).await?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(GetTeamResponse {
-            code: StatusCode::OK.as_u16(),
-            data: teams,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(teams),
+        ..WebResult::default()
+    });
 }
 
-pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoResponse, WebError> {
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct LoginRequest {
+    pub account: String,
+    pub password: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct LoginResult {
+    pub token: String,
+    pub user: crate::model::user::Model,
+}
+
+pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<WebResult<LoginResult>, WebError> {
     body.account = body.account.to_lowercase();
 
     let mut user = crate::model::user::Entity::find()
@@ -225,19 +262,27 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
     let token = jwt::generate_jwt_token(user.id.clone()).await;
     user.simplify();
 
-    return Ok((
-        StatusCode::OK,
-        Json(LoginResponse {
-            code: StatusCode::OK.as_u16(),
-            data: user,
-            token: token,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(LoginResult { token, user }),
+        ..WebResult::default()
+    });
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+pub struct RegisterRequest {
+    #[validate(length(min = 3, max = 20))]
+    pub username: String,
+    pub nickname: String,
+    #[validate(email)]
+    pub email: String,
+    pub password: String,
+    pub token: Option<String>,
 }
 
 pub async fn register(
     Extension(ext): Extension<Ext>, validate::Json(mut body): validate::Json<RegisterRequest>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<crate::model::user::Model>, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
 
@@ -287,13 +332,11 @@ pub async fn register(
     .insert(&get_db())
     .await?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(RegisterResponse {
-            code: StatusCode::OK.as_u16(),
-            data: user,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(user),
+        ..WebResult::default()
+    });
 }
 
 pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
@@ -307,20 +350,18 @@ pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebErr
     }
 }
 
-pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
     let path = format!("users/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {
-            return Ok((
-                StatusCode::OK,
-                Json(GetAvatarMetadataResponse {
-                    code: StatusCode::OK.as_u16(),
-                    data: Metadata {
-                        filename: filename.to_string(),
-                        size: *size,
-                    },
+            return Ok(WebResult {
+                code: StatusCode::OK.as_u16(),
+                data: Some(Metadata {
+                    filename: filename.to_string(),
+                    size: *size,
                 }),
-            ));
+                ..WebResult::default()
+            });
         }
         None => {
             return Err(WebError::NotFound(String::new()));
@@ -330,7 +371,7 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<impl IntoRespons
 
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin && operator.id != id {
         return Err(WebError::Forbidden(String::new()));
@@ -362,17 +403,15 @@ pub async fn save_avatar(
         .await
         .map_err(|_| WebError::InternalServerError(String::new()));
 
-    return Ok((
-        StatusCode::OK,
-        Json(SaveAvatarResponse {
-            code: StatusCode::OK.as_u16(),
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        ..WebResult::default()
+    });
 }
 
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin && operator.id != id {
         return Err(WebError::Forbidden(String::new()));
@@ -384,10 +423,8 @@ pub async fn delete_avatar(
         .await
         .map_err(|_| WebError::InternalServerError(String::new()));
 
-    return Ok((
-        StatusCode::OK,
-        Json(DeleteAvatarResponse {
-            code: StatusCode::OK.as_u16(),
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        ..WebResult::default()
+    });
 }

@@ -3,8 +3,6 @@ pub mod game;
 pub mod pod;
 pub mod proxy;
 pub mod submission;
-pub mod team;
-pub mod user;
 
 use serde::{Deserialize, Serialize};
 
