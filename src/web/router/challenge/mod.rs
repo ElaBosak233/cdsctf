@@ -8,6 +8,8 @@ use axum::{
     Extension, Json, Router,
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
+use serde::{Deserialize, Serialize};
+use validator::Validate;
 
 pub fn router() -> Router {
     return Router::new()
@@ -31,17 +33,30 @@ pub fn router() -> Router {
 
 use crate::{
     database::get_db,
-    model::{submission::Status, user::group::Group},
+    model::{challenge::Category, submission::Status, user::group::Group},
     util::validate,
     web::{
-        model::{challenge::*, Metadata},
-        traits::{Ext, WebError},
+        model::Metadata,
+        traits::{Ext, WebError, WebResult},
     },
 };
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GetRequest {
+    pub id: Option<i64>,
+    pub title: Option<String>,
+    pub category: Option<Category>,
+    pub tags: Option<Vec<String>>,
+    pub is_practicable: Option<bool>,
+    pub is_dynamic: Option<bool>,
+    pub is_detailed: Option<bool>,
+    pub page: Option<u64>,
+    pub size: Option<u64>,
+}
+
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<Vec<crate::model::challenge::Model>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
         return Err(WebError::Forbidden(String::new()));
@@ -65,29 +80,43 @@ pub async fn get(
         }
     }
 
-    return Ok((
-        StatusCode::OK,
-        Json(GetResponse {
-            code: StatusCode::OK.as_u16(),
-            data: challenges,
-            total: total,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(challenges),
+        total: Some(total),
+        ..WebResult::default()
+    });
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct StatusRequest {
+    pub cids: Vec<i64>,
+    pub user_id: Option<i64>,
+    pub team_id: Option<i64>,
+    pub game_id: Option<i64>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct StatusResult {
+    pub is_solved: bool,
+    pub solved_times: i64,
+    pub pts: i64,
+    pub bloods: Vec<crate::model::submission::Model>,
 }
 
 pub async fn get_status(
     Extension(ext): Extension<Ext>, Json(body): Json<StatusRequest>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<HashMap<i64, StatusResult>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let mut submissions = crate::model::submission::get_by_challenge_ids(body.cids.clone())
         .await
         .unwrap();
 
-    let mut result: HashMap<i64, StatusResponse> = HashMap::new();
+    let mut result: HashMap<i64, StatusResult> = HashMap::new();
 
     for cid in body.cids {
-        result.entry(cid).or_insert_with(|| StatusResponse {
+        result.entry(cid).or_insert_with(|| StatusResult {
             is_solved: false,
             solved_times: 0,
             pts: 0,
@@ -143,18 +172,35 @@ pub async fn get_status(
         }
     }
 
-    return Ok((
-        StatusCode::OK,
-        Json(GetStatusResponse {
-            code: StatusCode::OK.as_u16(),
-            data: result,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(result),
+        ..WebResult::default()
+    });
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateRequest {
+    pub title: String,
+    pub description: String,
+    pub category: Category,
+    pub tags: Option<Vec<String>>,
+    pub is_practicable: Option<bool>,
+    pub is_dynamic: Option<bool>,
+    pub has_attachment: Option<bool>,
+    pub difficulty: Option<i64>,
+    pub image_name: Option<String>,
+    pub cpu_limit: Option<i64>,
+    pub memory_limit: Option<i64>,
+    pub duration: Option<i64>,
+    pub ports: Option<Vec<i32>>,
+    pub envs: Option<Vec<crate::model::challenge::Env>>,
+    pub flags: Option<Vec<crate::model::challenge::Flag>>,
 }
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<crate::model::challenge::Model>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -180,13 +226,31 @@ pub async fn create(
     .insert(&get_db())
     .await?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(CreateResponse {
-            code: StatusCode::OK.as_u16(),
-            data: challenge,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(challenge),
+        ..WebResult::default()
+    });
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct UpdateRequest {
+    pub id: Option<i64>,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub category: Option<Category>,
+    pub tags: Option<Vec<String>>,
+    pub is_practicable: Option<bool>,
+    pub is_dynamic: Option<bool>,
+    pub has_attachment: Option<bool>,
+    pub difficulty: Option<i64>,
+    pub image_name: Option<String>,
+    pub cpu_limit: Option<i64>,
+    pub memory_limit: Option<i64>,
+    pub duration: Option<i64>,
+    pub ports: Option<Vec<i32>>,
+    pub envs: Option<Vec<crate::model::challenge::Env>>,
+    pub flags: Option<Vec<crate::model::challenge::Flag>>,
 }
 
 pub async fn update(
@@ -221,18 +285,16 @@ pub async fn update(
     .update(&get_db())
     .await?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(UpdateResponse {
-            code: StatusCode::OK.as_u16(),
-            data: challenge,
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(challenge),
+        ..WebResult::default()
+    });
 }
 
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -242,12 +304,10 @@ pub async fn delete(
         .exec(&get_db())
         .await?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(DeleteResponse {
-            code: StatusCode::OK.as_u16(),
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        ..WebResult::default()
+    });
 }
 
 pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
@@ -270,22 +330,20 @@ pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, We
 
 pub async fn get_attachment_metadata(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<Metadata>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {
-            return Ok((
-                StatusCode::OK,
-                Json(GetAttachmentMetadataResponse {
-                    code: StatusCode::OK.as_u16(),
-                    data: Metadata {
-                        filename: filename.to_string(),
-                        size: *size,
-                    },
+            return Ok(WebResult {
+                code: StatusCode::OK.as_u16(),
+                data: Some(Metadata {
+                    filename: filename.to_string(),
+                    size: *size,
                 }),
-            ));
+                ..WebResult::default()
+            });
         }
         None => return Err(WebError::NotFound(String::new())),
     }
@@ -293,7 +351,7 @@ pub async fn get_attachment_metadata(
 
 pub async fn save_attachment(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -320,17 +378,15 @@ pub async fn save_attachment(
         .await
         .map_err(|_| WebError::InternalServerError(String::new()))?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(SaveAttachmentResponse {
-            code: StatusCode::OK.as_u16(),
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        ..WebResult::default()
+    });
 }
 
 pub async fn delete_attachment(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -342,10 +398,8 @@ pub async fn delete_attachment(
         .await
         .map_err(|_| WebError::InternalServerError(String::new()))?;
 
-    return Ok((
-        StatusCode::OK,
-        Json(DeleteAttachmentResponse {
-            code: StatusCode::OK.as_u16(),
-        }),
-    ));
+    return Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        ..WebResult::default()
+    });
 }

@@ -4,15 +4,17 @@ use axum::{
     Router,
 };
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use serde::Deserialize;
 
-use crate::{
-    config,
-    database::get_db,
-    web::{model::proxy::*, traits::WebError},
-};
+use crate::{config, database::get_db, web::traits::WebError};
 
 pub fn router() -> Router {
     return Router::new().route("/:token", axum::routing::get(link));
+}
+
+#[derive(Deserialize)]
+pub struct LinkRequest {
+    pub port: u32,
 }
 
 pub async fn link(
