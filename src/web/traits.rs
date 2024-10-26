@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use axum::{
     body::Body,
     http::{Response, StatusCode},
@@ -14,6 +16,36 @@ use crate::model::user;
 pub struct Ext {
     pub operator: Option<user::Model>,
     pub client_ip: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WebResult<T> {
+    pub code: u16,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub msg: Option<String>,
+    pub data: Option<T>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total: Option<u64>,
+    pub ts: i64,
+}
+
+impl<T> Default for WebResult<T> {
+    fn default() -> Self {
+        Self {
+            code: 0,
+            msg: None,
+            data: None,
+            total: None,
+            ts: 0,
+        }
+    }
+}
+
+impl<T: Serialize + Debug> IntoResponse for WebResult<T> {
+    fn into_response(mut self) -> Response<Body> {
+        self.ts = chrono::Utc::now().timestamp();
+        return (StatusCode::OK, Json(self)).into_response();
+    }
 }
 
 #[derive(Debug, Error)]
@@ -40,12 +72,6 @@ pub enum WebError {
     OtherError(#[from] anyhow::Error),
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct WebErrorResponse {
-    pub code: u16,
-    pub msg: String,
-}
-
 impl IntoResponse for WebError {
     fn into_response(self) -> Response<Body> {
         let (status, message) = match self {
@@ -66,9 +92,10 @@ impl IntoResponse for WebError {
 
         return (
             status,
-            Json(WebErrorResponse {
+            Json(WebResult::<()> {
                 code: status.as_u16(),
-                msg: message,
+                msg: Option::from(message),
+                ..WebResult::default()
             }),
         )
             .into_response();
