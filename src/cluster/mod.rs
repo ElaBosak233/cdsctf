@@ -20,30 +20,6 @@ pub fn get_k8s_client() -> &'static K8sClient {
     return K8S_CLIENT.get().unwrap();
 }
 
-pub async fn daemon() {
-    info!("Kubernetes cluster daemon has been started.");
-    tokio::spawn(async {
-        let interval = Duration::from_secs(10);
-        loop {
-            let pods: Api<Pod> = Api::namespaced(
-                get_k8s_client().clone(),
-                config::get_config().cluster.namespace.as_str(),
-            );
-            let lp = ListParams::default().labels("expired=true");
-
-            if let Ok(pod_list) = pods.list(&lp).await {
-                for pod in pod_list {
-                    let name = pod.name_any();
-                    let _ = pods.delete(&name, &DeleteParams::default()).await;
-                    info!("Cleaned up expired pod: {}", name);
-                }
-            }
-
-            tokio::time::sleep(interval).await;
-        }
-    });
-}
-
 pub async fn init() {
     match Kubeconfig::read_from(config::get_config().cluster.path.clone()) {
         Ok(config) => match Config::from_custom_kubeconfig(config, &Default::default()).await {
@@ -51,7 +27,6 @@ pub async fn init() {
                 let client = K8sClient::try_from(config).unwrap();
                 let _ = K8S_CLIENT.set(client);
                 info!("Kubernetes client initialized successfully.");
-                daemon().await;
             }
             Err(e) => {
                 error!(
