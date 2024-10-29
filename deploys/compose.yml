@@ -36,7 +36,7 @@ services:
             - "./queue:/data"
 
     cache:
-        image: redis:alpine
+        image: valkey/valkey:alpine
         restart: always
         volumes:
             - "./cache:/data"
