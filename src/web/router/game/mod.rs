@@ -108,7 +108,7 @@ pub struct CreateRequest {
     pub started_at: i64,
     pub ended_at: i64,
 
-    pub bio: Option<String>,
+    pub sketch: Option<String>,
     pub description: Option<String>,
     pub is_enabled: Option<bool>,
     pub is_public: Option<bool>,
@@ -128,7 +128,7 @@ pub async fn create(
 
     let game = crate::model::game::ActiveModel {
         title: Set(body.title),
-        bio: Set(body.bio),
+        sketch: Set(body.sketch),
         description: Set(body.description),
         started_at: Set(body.started_at),
         ended_at: Set(body.ended_at),
@@ -159,7 +159,7 @@ pub async fn create(
 pub struct UpdateRequest {
     pub id: Option<i64>,
     pub title: Option<String>,
-    pub bio: Option<String>,
+    pub sketch: Option<String>,
     pub description: Option<String>,
     pub is_enabled: Option<bool>,
     pub is_public: Option<bool>,
@@ -185,7 +185,7 @@ pub async fn update(
     let game = crate::model::game::ActiveModel {
         id: body.id.map_or(NotSet, |v| Set(v)),
         title: body.title.map_or(NotSet, |v| Set(v)),
-        bio: body.bio.map_or(NotSet, |v| Set(Some(v))),
+        sketch: body.sketch.map_or(NotSet, |v| Set(Some(v))),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
         is_enabled: body.is_enabled.map_or(NotSet, |v| Set(v)),
         is_public: body.is_public.map_or(NotSet, |v| Set(v)),

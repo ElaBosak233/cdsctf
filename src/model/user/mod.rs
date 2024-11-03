@@ -28,10 +28,10 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn simplify(&mut self) {
+    pub fn desensitize(&mut self) {
         self.password.clear();
         for team in self.teams.iter_mut() {
-            team.simplify();
+            team.desensitize();
         }
     }
 }
@@ -101,10 +101,10 @@ pub async fn find(
     id: Option<i64>, name: Option<String>, username: Option<String>, group: Option<String>,
     email: Option<String>, page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<crate::model::user::Model>, u64), DbErr> {
-    let mut query = crate::model::user::Entity::find();
+    let mut sql = crate::model::user::Entity::find();
 
     if let Some(id) = id {
-        query = query.filter(crate::model::user::Column::Id.eq(id));
+        sql = sql.filter(crate::model::user::Column::Id.eq(id));
     }
 
     if let Some(name) = name {
@@ -112,31 +112,31 @@ pub async fn find(
         let condition = Condition::any()
             .add(crate::model::user::Column::Username.like(&pattern))
             .add(crate::model::user::Column::Nickname.like(&pattern));
-        query = query.filter(condition);
+        sql = sql.filter(condition);
     }
 
     if let Some(username) = username {
-        query = query.filter(crate::model::user::Column::Username.eq(username));
+        sql = sql.filter(crate::model::user::Column::Username.eq(username));
     }
 
     if let Some(group) = group {
-        query = query.filter(crate::model::user::Column::Group.eq(group));
+        sql = sql.filter(crate::model::user::Column::Group.eq(group));
     }
 
     if let Some(email) = email {
-        query = query.filter(crate::model::user::Column::Email.eq(email));
+        sql = sql.filter(crate::model::user::Column::Email.eq(email));
     }
 
-    let total = query.clone().count(&get_db()).await?;
+    let total = sql.clone().count(&get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
             let offset = (page - 1) * size;
-            query = query.offset(offset).limit(size);
+            sql = sql.offset(offset).limit(size);
         }
     }
 
-    let mut users = query.all(&get_db()).await?;
+    let mut users = sql.all(&get_db()).await?;
 
     users = preload(users).await?;
 
