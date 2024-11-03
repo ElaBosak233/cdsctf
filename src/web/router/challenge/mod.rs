@@ -125,7 +125,7 @@ pub async fn get_status(
     }
 
     for submission in submissions.iter_mut() {
-        submission.simplify();
+        submission.desensitize();
         submission.challenge = None;
 
         if body.game_id.is_some() {

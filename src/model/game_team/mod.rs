@@ -85,19 +85,19 @@ async fn preload(
 pub async fn find(
     game_id: Option<i64>, team_id: Option<i64>,
 ) -> Result<(Vec<crate::model::game_team::Model>, u64), DbErr> {
-    let mut query = crate::model::game_team::Entity::find();
+    let mut sql = crate::model::game_team::Entity::find();
 
     if let Some(game_id) = game_id {
-        query = query.filter(crate::model::game_team::Column::GameId.eq(game_id));
+        sql = sql.filter(crate::model::game_team::Column::GameId.eq(game_id));
     }
 
     if let Some(team_id) = team_id {
-        query = query.filter(crate::model::game_team::Column::TeamId.eq(team_id));
+        sql = sql.filter(crate::model::game_team::Column::TeamId.eq(team_id));
     }
 
-    let total = query.clone().count(&get_db()).await?;
+    let total = sql.clone().count(&get_db()).await?;
 
-    let mut game_teams = query.all(&get_db()).await?;
+    let mut game_teams = sql.all(&get_db()).await?;
 
     game_teams = preload(game_teams).await?;
 

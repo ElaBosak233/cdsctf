@@ -90,7 +90,7 @@ pub struct CreateRequest {
     pub name: String,
     pub email: String,
     pub captain_id: i64,
-    pub description: Option<String>,
+    pub slogan: Option<String>,
 }
 
 pub async fn create(
@@ -105,7 +105,7 @@ pub async fn create(
         name: Set(body.name),
         email: Set(Some(body.email)),
         captain_id: Set(body.captain_id),
-        description: body.description.map_or(NotSet, |v| Set(Some(v))),
+        slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
     .insert(&get_db())
@@ -132,7 +132,7 @@ pub struct UpdateRequest {
     pub name: Option<String>,
     pub email: Option<String>,
     pub captain_id: Option<i64>,
-    pub description: Option<String>,
+    pub slogan: Option<String>,
 }
 
 pub async fn update(
@@ -150,7 +150,7 @@ pub async fn update(
         name: body.name.map_or(NotSet, |v| Set(v)),
         email: body.email.map_or(NotSet, |v| Set(Some(v))),
         captain_id: body.captain_id.map_or(NotSet, |v| Set(v)),
-        description: body.description.map_or(NotSet, |v| Set(Some(v))),
+        slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
     .insert(&get_db())

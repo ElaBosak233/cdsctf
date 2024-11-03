@@ -11,7 +11,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub title: String,
-    pub bio: Option<String>,
+    pub sketch: Option<String>,
     pub description: Option<String>,
     pub is_enabled: bool,
     pub is_public: bool,
@@ -87,30 +87,30 @@ pub async fn find(
     id: Option<i64>, title: Option<String>, is_enabled: Option<bool>, page: Option<u64>,
     size: Option<u64>,
 ) -> Result<(Vec<crate::model::game::Model>, u64), DbErr> {
-    let mut query = crate::model::game::Entity::find();
+    let mut sql = crate::model::game::Entity::find();
 
     if let Some(id) = id {
-        query = query.filter(crate::model::game::Column::Id.eq(id));
+        sql = sql.filter(crate::model::game::Column::Id.eq(id));
     }
 
     if let Some(title) = title {
-        query = query.filter(crate::model::game::Column::Title.contains(title));
+        sql = sql.filter(crate::model::game::Column::Title.contains(title));
     }
 
     if let Some(is_enabled) = is_enabled {
-        query = query.filter(crate::model::game::Column::IsEnabled.eq(is_enabled));
+        sql = sql.filter(crate::model::game::Column::IsEnabled.eq(is_enabled));
     }
 
-    let total = query.clone().count(&get_db()).await?;
+    let total = sql.clone().count(&get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
             let offset = (page - 1) * size;
-            query = query.offset(offset).limit(size);
+            sql = sql.offset(offset).limit(size);
         }
     }
 
-    let games = query.all(&get_db()).await?;
+    let games = sql.all(&get_db()).await?;
 
     return Ok((games, total));
 }

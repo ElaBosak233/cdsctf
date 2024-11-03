@@ -43,19 +43,19 @@ impl ActiveModelBehavior for ActiveModel {}
 pub async fn find(
     user_id: Option<i64>, team_id: Option<i64>,
 ) -> Result<(Vec<crate::model::user_team::Model>, u64), DbErr> {
-    let mut query = crate::model::user_team::Entity::find();
+    let mut sql = crate::model::user_team::Entity::find();
 
     if let Some(user_id) = user_id {
-        query = query.filter(crate::model::user_team::Column::UserId.eq(user_id));
+        sql = sql.filter(crate::model::user_team::Column::UserId.eq(user_id));
     }
 
     if let Some(team_id) = team_id {
-        query = query.filter(crate::model::user_team::Column::TeamId.eq(team_id));
+        sql = sql.filter(crate::model::user_team::Column::TeamId.eq(team_id));
     }
 
-    let total = query.clone().count(&get_db()).await?;
+    let total = sql.clone().count(&get_db()).await?;
 
-    let user_teams = query.all(&get_db()).await?;
+    let user_teams = sql.all(&get_db()).await?;
 
     Ok((user_teams, total))
 }

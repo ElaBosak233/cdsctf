@@ -47,7 +47,7 @@ pub struct Model {
 pub struct Ports(pub Vec<i64>);
 
 impl Model {
-    pub fn simplify(&mut self) {
+    pub fn desensitize(&mut self) {
         self.envs.clear();
         self.ports.clear();
         self.flags.clear();
@@ -107,38 +107,38 @@ pub async fn find(
     id: Option<i64>, title: Option<String>, category: Option<Category>,
     is_practicable: Option<bool>, is_dynamic: Option<bool>, page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<crate::model::challenge::Model>, u64), DbErr> {
-    let mut query = crate::model::challenge::Entity::find();
+    let mut sql = crate::model::challenge::Entity::find();
 
     if let Some(id) = id {
-        query = query.filter(crate::model::challenge::Column::Id.eq(id));
+        sql = sql.filter(crate::model::challenge::Column::Id.eq(id));
     }
 
     if let Some(title) = title {
-        query = query.filter(crate::model::challenge::Column::Title.contains(title));
+        sql = sql.filter(crate::model::challenge::Column::Title.contains(title));
     }
 
     if let Some(category) = category {
-        query = query.filter(crate::model::challenge::Column::Category.eq(category));
+        sql = sql.filter(crate::model::challenge::Column::Category.eq(category));
     }
 
     if let Some(is_practicable) = is_practicable {
-        query = query.filter(crate::model::challenge::Column::IsPracticable.eq(is_practicable));
+        sql = sql.filter(crate::model::challenge::Column::IsPracticable.eq(is_practicable));
     }
 
     if let Some(is_dynamic) = is_dynamic {
-        query = query.filter(crate::model::challenge::Column::IsDynamic.eq(is_dynamic));
+        sql = sql.filter(crate::model::challenge::Column::IsDynamic.eq(is_dynamic));
     }
 
-    let total = query.clone().count(&get_db()).await?;
+    let total = sql.clone().count(&get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
             let offset = (page - 1) * size;
-            query = query.offset(offset).limit(size);
+            sql = sql.offset(offset).limit(size);
         }
     }
 
-    let challenges = query.all(&get_db()).await?;
+    let challenges = sql.all(&get_db()).await?;
 
     return Ok((challenges, total));
 }

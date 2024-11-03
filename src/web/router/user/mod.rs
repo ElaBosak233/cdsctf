@@ -74,7 +74,7 @@ pub async fn get(
     .await?;
 
     for user in users.iter_mut() {
-        user.simplify();
+        user.desensitize();
     }
 
     return Ok(WebResult {
@@ -123,7 +123,7 @@ pub async fn create(
     .insert(&get_db())
     .await?;
 
-    user.simplify();
+    user.desensitize();
 
     return Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -260,7 +260,7 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<WebResult<Login
     }
 
     let token = jwt::generate_jwt_token(user.id.clone()).await;
-    user.simplify();
+    user.desensitize();
 
     return Ok(WebResult {
         code: StatusCode::OK.as_u16(),

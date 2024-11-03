@@ -130,7 +130,7 @@ pub async fn create(
     .insert(&get_db())
     .await?;
 
-    pod.simplify();
+    pod.desensitize();
 
     return Ok(WebResult {
         code: StatusCode::OK.as_u16(),
