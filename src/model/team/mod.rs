@@ -13,7 +13,7 @@ pub struct Model {
     pub name: String,
     pub email: Option<String>,
     pub captain_id: i64,
-    pub description: Option<String>,
+    pub slogan: Option<String>,
     pub invite_token: Option<String>,
     pub created_at: i64,
     pub updated_at: i64,
@@ -25,13 +25,13 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn simplify(&mut self) {
+    pub fn desensitize(&mut self) {
         self.invite_token = None;
         if let Some(captain) = self.captain.as_mut() {
-            captain.simplify();
+            captain.desensitize();
         }
         for user in self.users.iter_mut() {
-            user.simplify();
+            user.desensitize();
         }
     }
 }
@@ -103,7 +103,7 @@ async fn preload(
     for (i, team) in teams.iter_mut().enumerate() {
         team.users = users[i].clone();
         for user in team.users.iter_mut() {
-            user.simplify();
+            user.desensitize();
             if user.id == team.captain_id {
                 team.captain = Some(user.clone());
             }
@@ -117,30 +117,30 @@ pub async fn find(
     id: Option<i64>, name: Option<String>, email: Option<String>, page: Option<u64>,
     size: Option<u64>,
 ) -> Result<(Vec<crate::model::team::Model>, u64), DbErr> {
-    let mut query = crate::model::team::Entity::find();
+    let mut sql = crate::model::team::Entity::find();
 
     if let Some(id) = id {
-        query = query.filter(crate::model::team::Column::Id.eq(id));
+        sql = sql.filter(crate::model::team::Column::Id.eq(id));
     }
 
     if let Some(name) = name {
-        query = query.filter(crate::model::team::Column::Name.contains(name));
+        sql = sql.filter(crate::model::team::Column::Name.contains(name));
     }
 
     if let Some(email) = email {
-        query = query.filter(crate::model::team::Column::Email.eq(email));
+        sql = sql.filter(crate::model::team::Column::Email.eq(email));
     }
 
-    let total = query.clone().count(&get_db()).await?;
+    let total = sql.clone().count(&get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
             let offset = (page - 1) * size;
-            query = query.offset(offset).limit(size);
+            sql = sql.offset(offset).limit(size);
         }
     }
 
-    let mut teams = query.all(&get_db()).await?;
+    let mut teams = sql.all(&get_db()).await?;
 
     teams = preload(teams).await?;
 

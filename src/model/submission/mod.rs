@@ -40,7 +40,7 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn simplify(&mut self) {
+    pub fn desensitize(&mut self) {
         self.flag.clear();
     }
 }
@@ -141,15 +141,15 @@ async fn preload(
     for (i, submission) in submissions.iter_mut().enumerate() {
         submission.user = users[i].clone();
         if let Some(user) = submission.user.as_mut() {
-            user.simplify();
+            user.desensitize();
         }
         submission.challenge = challenges[i].clone();
         if let Some(challenge) = submission.challenge.as_mut() {
-            challenge.simplify();
+            challenge.desensitize();
         }
         submission.team = teams[i].clone();
         if let Some(team) = submission.team.as_mut() {
-            team.simplify();
+            team.desensitize();
         }
         submission.game = games[i].clone();
     }
@@ -160,42 +160,42 @@ pub async fn find(
     id: Option<i64>, user_id: Option<i64>, team_id: Option<i64>, game_id: Option<i64>,
     challenge_id: Option<i64>, status: Option<Status>, page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<crate::model::submission::Model>, u64), DbErr> {
-    let mut query = crate::model::submission::Entity::find();
+    let mut sql = crate::model::submission::Entity::find();
 
     if let Some(id) = id {
-        query = query.filter(crate::model::submission::Column::Id.eq(id));
+        sql = sql.filter(crate::model::submission::Column::Id.eq(id));
     }
 
     if let Some(user_id) = user_id {
-        query = query.filter(crate::model::submission::Column::UserId.eq(user_id));
+        sql = sql.filter(crate::model::submission::Column::UserId.eq(user_id));
     }
 
     if let Some(team_id) = team_id {
-        query = query.filter(crate::model::submission::Column::TeamId.eq(team_id));
+        sql = sql.filter(crate::model::submission::Column::TeamId.eq(team_id));
     }
 
     if let Some(game_id) = game_id {
-        query = query.filter(crate::model::submission::Column::GameId.eq(game_id));
+        sql = sql.filter(crate::model::submission::Column::GameId.eq(game_id));
     }
 
     if let Some(challenge_id) = challenge_id {
-        query = query.filter(crate::model::submission::Column::ChallengeId.eq(challenge_id));
+        sql = sql.filter(crate::model::submission::Column::ChallengeId.eq(challenge_id));
     }
 
     if let Some(status) = status {
-        query = query.filter(crate::model::submission::Column::Status.eq(status));
+        sql = sql.filter(crate::model::submission::Column::Status.eq(status));
     }
 
-    let total = query.clone().count(&get_db()).await?;
+    let total = sql.clone().count(&get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
             let offset = (page - 1) * size;
-            query = query.offset(offset).limit(size);
+            sql = sql.offset(offset).limit(size);
         }
     }
 
-    let mut submissions = query.all(&get_db()).await?;
+    let mut submissions = sql.all(&get_db()).await?;
 
     submissions = preload(submissions).await?;
 

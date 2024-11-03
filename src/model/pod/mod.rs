@@ -33,10 +33,10 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn simplify(&mut self) {
+    pub fn desensitize(&mut self) {
         self.flag = None;
         for nat in self.nats.iter_mut() {
-            nat.simplify();
+            nat.desensitize();
         }
     }
 }
@@ -128,49 +128,49 @@ pub async fn find(
     id: Option<i64>, name: Option<String>, user_id: Option<i64>, team_id: Option<i64>,
     game_id: Option<i64>, challenge_id: Option<i64>, is_available: Option<bool>,
 ) -> Result<(Vec<crate::model::pod::Model>, u64), DbErr> {
-    let mut query = crate::model::pod::Entity::find();
+    let mut sql = crate::model::pod::Entity::find();
     if let Some(id) = id {
-        query = query.filter(crate::model::pod::Column::Id.eq(id));
+        sql = sql.filter(crate::model::pod::Column::Id.eq(id));
     }
 
     if let Some(name) = name {
-        query = query.filter(crate::model::pod::Column::Name.eq(name));
+        sql = sql.filter(crate::model::pod::Column::Name.eq(name));
     }
 
     if let Some(user_id) = user_id {
-        query = query.filter(crate::model::pod::Column::UserId.eq(user_id));
+        sql = sql.filter(crate::model::pod::Column::UserId.eq(user_id));
     }
 
     if let Some(team_id) = team_id {
-        query = query.filter(crate::model::pod::Column::TeamId.eq(team_id));
+        sql = sql.filter(crate::model::pod::Column::TeamId.eq(team_id));
     }
 
     if let Some(game_id) = game_id {
-        query = query.filter(crate::model::pod::Column::GameId.eq(game_id));
+        sql = sql.filter(crate::model::pod::Column::GameId.eq(game_id));
     }
 
     if let Some(challenge_id) = challenge_id {
-        query = query.filter(crate::model::pod::Column::ChallengeId.eq(challenge_id));
+        sql = sql.filter(crate::model::pod::Column::ChallengeId.eq(challenge_id));
     }
 
     if let Some(is_available) = is_available {
         match is_available {
             true => {
-                query = query.filter(
+                sql = sql.filter(
                     crate::model::pod::Column::RemovedAt.gte(chrono::Utc::now().timestamp()),
                 )
             }
             false => {
-                query = query.filter(
+                sql = sql.filter(
                     crate::model::pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp()),
                 )
             }
         }
     }
 
-    let total = query.clone().count(&get_db()).await?;
+    let total = sql.clone().count(&get_db()).await?;
 
-    let mut pods = query.all(&get_db()).await?;
+    let mut pods = sql.all(&get_db()).await?;
 
     pods = preload(pods).await?;
 

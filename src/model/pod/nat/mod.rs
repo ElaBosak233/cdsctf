@@ -10,7 +10,7 @@ pub struct Nat {
 }
 
 impl Nat {
-    pub fn simplify(&mut self) {
+    pub fn desensitize(&mut self) {
         if self.proxy {
             self.dst = None;
             self.entry = None;

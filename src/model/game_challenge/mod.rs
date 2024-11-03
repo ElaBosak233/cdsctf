@@ -89,23 +89,23 @@ async fn preload(
 pub async fn find(
     game_id: Option<i64>, challenge_id: Option<i64>, is_enabled: Option<bool>,
 ) -> Result<(Vec<crate::model::game_challenge::Model>, u64), DbErr> {
-    let mut query = crate::model::game_challenge::Entity::find();
+    let mut sql = crate::model::game_challenge::Entity::find();
 
     if let Some(game_id) = game_id {
-        query = query.filter(crate::model::game_challenge::Column::GameId.eq(game_id));
+        sql = sql.filter(crate::model::game_challenge::Column::GameId.eq(game_id));
     }
 
     if let Some(challenge_id) = challenge_id {
-        query = query.filter(crate::model::game_challenge::Column::ChallengeId.eq(challenge_id));
+        sql = sql.filter(crate::model::game_challenge::Column::ChallengeId.eq(challenge_id));
     }
 
     if let Some(is_enabled) = is_enabled {
-        query = query.filter(crate::model::game_challenge::Column::IsEnabled.eq(is_enabled));
+        sql = sql.filter(crate::model::game_challenge::Column::IsEnabled.eq(is_enabled));
     }
 
-    let total = query.clone().count(&get_db()).await?;
+    let total = sql.clone().count(&get_db()).await?;
 
-    let mut game_challenges = query.all(&get_db()).await?;
+    let mut game_challenges = sql.all(&get_db()).await?;
 
     game_challenges = preload(game_challenges).await?;
 

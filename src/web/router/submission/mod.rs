@@ -61,7 +61,7 @@ pub async fn get(
     let is_detailed = params.is_detailed.unwrap_or(false);
     for submission in submissions.iter_mut() {
         if !is_detailed {
-            submission.simplify();
+            submission.desensitize();
         }
     }
 
@@ -87,7 +87,7 @@ pub async fn get_by_id(
     }
 
     let mut submission = submission.unwrap();
-    submission.simplify();
+    submission.desensitize();
 
     return Ok(WebResult {
         code: StatusCode::OK.as_u16(),
