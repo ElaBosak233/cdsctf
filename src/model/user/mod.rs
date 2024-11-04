@@ -20,6 +20,8 @@ pub struct Model {
     pub email: String,
     pub group: Group,
     pub password: String,
+    #[sea_orm(default_value = false)]
+    pub is_deleted: bool,
     pub created_at: i64,
     pub updated_at: i64,
 
@@ -74,8 +76,10 @@ impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(mut self, _db: &C, _insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
-        self.updated_at = Set(chrono::Utc::now().timestamp());
-        Ok(self)
+        Ok(Self {
+            updated_at: Set(chrono::Utc::now().timestamp()),
+            ..self
+        })
     }
 }
 
