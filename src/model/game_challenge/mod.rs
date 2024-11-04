@@ -1,8 +1,8 @@
-use axum::async_trait;
+use async_trait::async_trait;
 use sea_orm::{entity::prelude::*, TryIntoModel};
 use serde::{Deserialize, Serialize};
 
-use super::{challenge, game};
+use super::{challenge, game, user};
 use crate::database::get_db;
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
@@ -12,6 +12,7 @@ pub struct Model {
     pub game_id: i64,
     #[sea_orm(primary_key)]
     pub challenge_id: i64,
+    pub contact_id: Option<i64>,
     #[sea_orm(default_value = 1)]
     pub difficulty: i64,
     #[sea_orm(default_value = false)]
@@ -38,6 +39,7 @@ pub struct Model {
 pub enum Relation {
     Game,
     Challenge,
+    User,
 }
 
 impl RelationTrait for Relation {
@@ -53,6 +55,7 @@ impl RelationTrait for Relation {
                 .to(challenge::Column::Id)
                 .on_delete(ForeignKeyAction::Cascade)
                 .into(),
+            Self::User => Entity::belongs_to(user::Entity).from(Column::ContactId).to(user::Column::Id).into(),
         }
     }
 }
@@ -66,6 +69,12 @@ impl Related<challenge::Entity> for Entity {
 impl Related<game::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Game.def()
+    }
+}
+
+impl Related<user::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::User.def()
     }
 }
 
