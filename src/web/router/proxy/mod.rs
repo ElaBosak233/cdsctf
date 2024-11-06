@@ -5,7 +5,7 @@ use axum::{
 };
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde::Deserialize;
-
+use tracing::debug;
 use crate::{config, database::get_db, web::traits::WebError};
 
 pub fn router() -> Router {
@@ -25,31 +25,12 @@ pub async fn link(
     }
 
     let ws = ws.unwrap();
-
-    let pod = crate::model::pod::Entity::find()
-        .filter(crate::model::pod::Column::Name.eq(token))
-        .one(&get_db())
-        .await
-        .unwrap();
-
-    if pod.is_none() {
-        return Err(WebError::NotFound(String::from("")));
-    }
-
-    let pod = pod.unwrap();
-
-    let target_nat = pod.nats.iter().find(|p| p.src == query.port.to_string());
-
-    if target_nat.is_none() {
-        return Err(WebError::NotFound(String::from("")));
-    }
-
-    let target_nat = target_nat.unwrap();
-    let target_port = target_nat.dst.clone().unwrap();
-    let target_url = format!("{}:{}", config::get_config().cluster.entry, target_port);
+    let port = query.port;
 
     return Ok(ws.on_upgrade(move |socket| async move {
-        let tcp = tokio::net::TcpStream::connect(target_url).await.unwrap();
-        let _ = wsrx::proxy(socket.into(), tcp).await;
+        let result = crate::cluster::wsrx(token, port as u16, socket).await;
+        if let Err(e) = result {
+            debug!("Failed to link pods: {:?}", e);
+        }
     }));
 }
