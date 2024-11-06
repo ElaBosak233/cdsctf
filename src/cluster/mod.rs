@@ -1,5 +1,5 @@
 use std::{collections::BTreeMap, process, sync::OnceLock, time::Duration};
-
+use axum::extract::ws::WebSocket;
 use k8s_openapi::api::core::v1::{
     Container as K8sContainer, ContainerPort, EnvVar, Pod, PodSpec, Service, ServicePort,
     ServiceSpec,
@@ -11,6 +11,7 @@ use kube::{
     Client as K8sClient, Config,
 };
 use tracing::{error, info};
+use tokio_util::codec::Framed;
 
 use crate::config;
 
@@ -48,7 +49,7 @@ pub async fn create(
     injected_flag: crate::model::challenge::Flag,
 ) -> Result<Vec<crate::model::pod::Nat>, anyhow::Error> {
     let client = get_k8s_client().clone();
-    let pods: Api<Pod> = Api::namespaced(
+    let api: Api<Pod> = Api::namespaced(
         client.clone(),
         config::get_config().cluster.namespace.as_str(),
     );
@@ -93,7 +94,10 @@ pub async fn create(
                 name: name.clone(),
                 image: challenge.image_name.clone(),
                 env: Some(env_vars),
-                ports: Some(container_ports),
+                ports: Some(match config::get_config().cluster.proxy.enabled {
+                    true => vec![],
+                    false => container_ports,
+                }),
                 ..Default::default()
             }],
             ..Default::default()
@@ -101,9 +105,9 @@ pub async fn create(
         ..Default::default()
     };
 
-    pods.create(&PostParams::default(), &pod).await?;
+    api.create(&PostParams::default(), &pod).await?;
 
-    kube::runtime::wait::await_condition(pods.clone(), &name, conditions::is_pod_running()).await?;
+    kube::runtime::wait::await_condition(api.clone(), &name, conditions::is_pod_running()).await?;
 
     // let pod = pods.get(&name).await?;
 
@@ -172,9 +176,24 @@ pub async fn create(
 }
 
 pub async fn delete(name: String) {
-    let pods: Api<Pod> = Api::namespaced(
+    let api: Api<Pod> = Api::namespaced(
         get_k8s_client().clone(),
         config::get_config().cluster.namespace.as_str(),
     );
-    let _ = pods.delete(&name, &DeleteParams::default()).await;
+    let _ = api.delete(&name, &DeleteParams::default()).await;
+}
+
+pub async fn wsrx(name: String, port: u16, ws: WebSocket) -> Result<(), anyhow::Error> {
+    let api: Api<Pod> = Api::namespaced(
+        get_k8s_client().clone(),
+        config::get_config().cluster.namespace.as_str(),
+    );
+    let mut pf = api.portforward(&name, &[port]).await?;
+    let pfw = pf.take_stream(port);
+    if let Some(pfw) = pfw {
+        let stream = Framed::new(pfw, wsrx::proxy::MessageCodec::new());
+        let ws: wsrx::WrappedWsStream = ws.into();
+        wsrx::proxy::proxy_stream(stream, ws).await?;
+    }
+    return Ok(());
 }
