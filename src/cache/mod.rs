@@ -15,7 +15,7 @@ pub mod traits;
 static CLIENT: OnceCell<RedisClient> = OnceCell::new();
 
 fn get_client() -> &'static RedisClient {
-    return CLIENT.get().unwrap();
+    CLIENT.get().unwrap()
 }
 
 pub async fn get<T>(key: impl Into<RedisKey> + Send + Display) -> Result<Option<T>, CacheError>
@@ -33,8 +33,8 @@ where
     T: for<'de> Deserialize<'de>, {
     let result = get_client().getdel::<Option<Value>, _>(key).await?;
     match result {
-        Some(value) => return Ok(Some(serde_json::from_value(value)?)),
-        None => return Ok(None),
+        Some(value) => Ok(Some(serde_json::from_value(value)?)),
+        None => Ok(None),
     }
 }
 
@@ -44,7 +44,7 @@ pub async fn set(
     let value = serde_json::to_string(&value)?;
     get_client().set(key, value, None, None, false).await?;
 
-    return Ok(());
+    Ok(())
 }
 
 pub async fn set_ex(
@@ -55,13 +55,13 @@ pub async fn set_ex(
         .set(key, value, Some(Expiration::EX(expire as i64)), None, false)
         .await?;
 
-    return Ok(());
+    Ok(())
 }
 
 pub async fn flush() -> Result<(), CacheError> {
     get_client().flushall(false).await?;
 
-    return Ok(());
+    Ok(())
 }
 
 pub async fn init() {

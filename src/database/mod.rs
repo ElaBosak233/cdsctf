@@ -42,7 +42,7 @@ pub async fn init() {
 }
 
 pub fn get_db() -> DatabaseConnection {
-    return DB.get().unwrap().clone();
+    DB.get().unwrap().clone()
 }
 
 pub async fn init_admin() {

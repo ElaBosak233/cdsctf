@@ -27,10 +27,10 @@ pub async fn link(
     let ws = ws.unwrap();
     let port = query.port;
 
-    return Ok(ws.on_upgrade(move |socket| async move {
+    Ok(ws.on_upgrade(move |socket| async move {
         let result = crate::cluster::wsrx(token, port as u16, socket).await;
         if let Err(e) = result {
             debug!("Failed to link pods: {:?}", e);
         }
-    }));
+    }))
 }

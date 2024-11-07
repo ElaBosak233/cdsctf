@@ -16,11 +16,11 @@ pub fn new() -> Option<Box<dyn Captcha + Send + Sync>> {
         .to_lowercase()
         .as_str()
     {
-        "recaptcha" => return Some(Box::new(Recaptcha::new())),
-        "turnstile" => return Some(Box::new(Turnstile::new())),
+        "recaptcha" => Some(Box::new(Recaptcha::new())),
+        "turnstile" => Some(Box::new(Turnstile::new())),
         _ => {
             error!("Invalid captcha provider");
-            return None;
+            None
         }
     }
 }

@@ -12,7 +12,7 @@ use axum::{http::StatusCode, Json, Router};
 use serde_json::json;
 
 pub async fn router() -> Router {
-    return Router::new()
+    Router::new()
         .route(
             "/",
             axum::routing::any(|| async {
@@ -33,5 +33,5 @@ pub async fn router() -> Router {
         .nest("/challenges", challenge::router())
         .nest("/games", game::router().await)
         .nest("/pods", pod::router().await)
-        .nest("/submissions", submission::router().await);
+        .nest("/submissions", submission::router().await)
 }

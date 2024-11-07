@@ -15,9 +15,9 @@ pub async fn get(path: String, filename: String) -> Result<Vec<u8>, Box<dyn Erro
             if let Err(_) = file.read_to_end(&mut buffer).await {
                 return Err("internal_server_error".into());
             }
-            return Ok(buffer);
+            Ok(buffer)
         }
-        Err(_) => return Err("not_found".into()),
+        Err(_) => Err("not_found".into()),
     }
 }
 
@@ -40,7 +40,7 @@ pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, Box<dyn Error>
             files.push((file_name, file_size));
         }
     }
-    return Ok(files);
+    Ok(files)
 }
 
 pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), Box<dyn Error>> {
@@ -53,7 +53,7 @@ pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), B
     }
     let mut file = File::create(&filepath).await?;
     file.write_all(&data).await?;
-    return Ok(());
+    Ok(())
 }
 
 pub async fn delete(path: String) -> Result<(), Box<dyn Error>> {
@@ -61,5 +61,5 @@ pub async fn delete(path: String) -> Result<(), Box<dyn Error>> {
     if metadata(&filepath).await.is_ok() {
         remove_dir_all(&filepath).await?;
     }
-    return Ok(());
+    Ok(())
 }

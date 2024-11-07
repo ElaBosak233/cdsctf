@@ -22,17 +22,17 @@ pub async fn serve(req: Request, next: Next) -> Result<axum::response::Response,
         if let Ok(index_content) = fs::read_to_string(PathBuf::from("dist").join("index.html")) {
             let index_content =
                 index_content.replace("{{title}}", config::get_config().site.title.as_str());
-            return Ok(Response::builder()
+            Ok(Response::builder()
                 .status(StatusCode::OK)
                 .body(index_content)
                 .unwrap()
-                .into_response());
+                .into_response())
         } else {
-            return Ok(Response::builder()
+            Ok(Response::builder()
                 .status(StatusCode::NOT_FOUND)
                 .body("404 Not Found".to_string())
                 .unwrap()
-                .into_response());
+                .into_response())
         }
     }
 
@@ -43,12 +43,12 @@ pub async fn serve(req: Request, next: Next) -> Result<axum::response::Response,
     if let Ok(content) = fs::read(&filepath) {
         let mime = mime_guess::from_path(&filepath).first_or_octet_stream();
 
-        return Ok(Response::builder()
+        Ok(Response::builder()
             .status(StatusCode::OK)
             .header("Content-Type", mime.as_ref())
             .body(axum::body::Body::from(content))
-            .unwrap());
+            .unwrap())
     } else {
-        return index().await;
+        index().await
     }
 }

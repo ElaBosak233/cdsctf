@@ -86,19 +86,19 @@ impl ActiveModelBehavior for ActiveModel {
 pub async fn find(
     id: Option<i64>, title: Option<String>, is_enabled: Option<bool>, page: Option<u64>,
     size: Option<u64>,
-) -> Result<(Vec<crate::model::game::Model>, u64), DbErr> {
-    let mut sql = crate::model::game::Entity::find();
+) -> Result<(Vec<Model>, u64), DbErr> {
+    let mut sql = Entity::find();
 
     if let Some(id) = id {
-        sql = sql.filter(crate::model::game::Column::Id.eq(id));
+        sql = sql.filter(Column::Id.eq(id));
     }
 
     if let Some(title) = title {
-        sql = sql.filter(crate::model::game::Column::Title.contains(title));
+        sql = sql.filter(Column::Title.contains(title));
     }
 
     if let Some(is_enabled) = is_enabled {
-        sql = sql.filter(crate::model::game::Column::IsEnabled.eq(is_enabled));
+        sql = sql.filter(Column::IsEnabled.eq(is_enabled));
     }
 
     let total = sql.clone().count(&get_db()).await?;
@@ -112,5 +112,5 @@ pub async fn find(
 
     let games = sql.all(&get_db()).await?;
 
-    return Ok((games, total));
+    Ok((games, total))
 }

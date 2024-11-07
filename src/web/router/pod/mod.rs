@@ -21,11 +21,11 @@ use crate::{
 pub async fn router() -> Router {
     daemon::init().await;
 
-    return Router::new()
+    Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
         .route("/:id/renew", axum::routing::post(renew))
-        .route("/:id/stop", axum::routing::post(stop));
+        .route("/:id/stop", axum::routing::post(stop))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -66,12 +66,12 @@ pub async fn get(
         }
     }
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(pods),
         total: Some(total),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -107,7 +107,7 @@ pub async fn create(
         injected_flag.value = re
             .replace_all(
                 &injected_flag.value,
-                uuid::Uuid::new_v4().simple().to_string(),
+                Uuid::new_v4().simple().to_string(),
             )
             .to_string();
     }
@@ -132,11 +132,25 @@ pub async fn create(
 
     pod.desensitize();
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(pod),
         ..WebResult::default()
-    });
+    })
+}
+
+macro_rules! check_permission {
+    ($operator:expr, $pod:expr) => {
+        if !($operator.group == Group::Admin
+            || $operator.id == $pod.user_id
+            || $operator
+                .teams
+                .iter()
+                .any(|team| Some(team.id) == $pod.team_id))
+        {
+            return Err(WebError::Forbidden(String::new()));
+        }
+    };
 }
 
 pub async fn renew(
@@ -150,15 +164,7 @@ pub async fn renew(
         .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
 
-    if !(operator.group == Group::Admin
-        || operator.id == pod.user_id
-        || operator
-            .teams
-            .iter()
-            .any(|team| Some(team.id) == pod.team_id))
-    {
-        return Err(WebError::Forbidden(String::new()));
-    }
+    check_permission!(operator, pod);
 
     let challenge = crate::model::challenge::Entity::find_by_id(pod.challenge_id)
         .one(&get_db())
@@ -169,10 +175,10 @@ pub async fn renew(
     pod.removed_at = Set(chrono::Utc::now().timestamp() + challenge.duration);
     let _ = pod.update(&get_db()).await;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn stop(
@@ -185,15 +191,7 @@ pub async fn stop(
         .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
 
-    if !(operator.group == Group::Admin
-        || operator.id == pod.user_id
-        || operator
-            .teams
-            .iter()
-            .any(|team| Some(team.id) == pod.team_id))
-    {
-        return Err(WebError::Forbidden(String::new()));
-    }
+    check_permission!(operator, pod);
 
     let pod_name = pod.name.clone();
     tokio::spawn(async move {
@@ -205,8 +203,8 @@ pub async fn stop(
 
     let _ = pod.update(&get_db()).await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }

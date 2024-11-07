@@ -23,7 +23,7 @@ struct RecaptchaRequest {
 
 impl Recaptcha {
     pub fn new() -> Self {
-        return Recaptcha {
+        Recaptcha {
             url: crate::config::get_config().captcha.recaptcha.url.clone(),
             secret_key: crate::config::get_config()
                 .captcha
@@ -31,7 +31,7 @@ impl Recaptcha {
                 .secret_key
                 .clone(),
             threshold: crate::config::get_config().captcha.recaptcha.threshold,
-        };
+        }
     }
 }
 
@@ -57,24 +57,20 @@ impl Captcha for Recaptcha {
         match response.get("success") {
             Some(result) => {
                 if let serde_json::Value::Bool(success) = result {
-                    match response.get("score") {
+                    return match response.get("score") {
                         Some(score) => {
                             if let serde_json::Value::Number(score) = score {
                                 let score = score.as_f64().unwrap_or(0.0);
-                                if *success && score >= self.threshold {
-                                    return true;
-                                } else {
-                                    return false;
-                                }
+                                return *success && score >= self.threshold;
                             }
-                            return false;
+                            false
                         }
-                        None => return false,
+                        None => false,
                     }
                 }
-                return false;
+                false
             }
-            None => return false,
+            None => false,
         }
     }
 }
