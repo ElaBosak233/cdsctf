@@ -2,7 +2,7 @@ pub mod status;
 
 use axum::async_trait;
 use sea_orm::{
-    entity::prelude::*, Condition, IntoActiveModel, QueryOrder, QuerySelect, Set, TryIntoModel,
+    entity::prelude::*, IntoActiveModel, QueryOrder, QuerySelect, Set, TryIntoModel,
 };
 use serde::{Deserialize, Serialize};
 pub use status::Status;
@@ -118,24 +118,24 @@ impl ActiveModelBehavior for ActiveModel {
     where
         C: ConnectionTrait, {
         self.updated_at = Set(chrono::Utc::now().timestamp());
-        return Ok(self);
+        Ok(self)
     }
 }
 
 async fn preload(
-    mut submissions: Vec<crate::model::submission::Model>,
-) -> Result<Vec<crate::model::submission::Model>, DbErr> {
+    mut submissions: Vec<Model>,
+) -> Result<Vec<Model>, DbErr> {
     let users = submissions
-        .load_one(crate::model::user::Entity, &get_db())
+        .load_one(user::Entity, &get_db())
         .await?;
     let challenges = submissions
-        .load_one(crate::model::challenge::Entity, &get_db())
+        .load_one(challenge::Entity, &get_db())
         .await?;
     let teams = submissions
-        .load_one(crate::model::team::Entity, &get_db())
+        .load_one(team::Entity, &get_db())
         .await?;
     let games = submissions
-        .load_one(crate::model::game::Entity, &get_db())
+        .load_one(game::Entity, &get_db())
         .await?;
 
     for (i, submission) in submissions.iter_mut().enumerate() {
@@ -153,37 +153,37 @@ async fn preload(
         }
         submission.game = games[i].clone();
     }
-    return Ok(submissions);
+    Ok(submissions)
 }
 
 pub async fn find(
     id: Option<i64>, user_id: Option<i64>, team_id: Option<i64>, game_id: Option<i64>,
     challenge_id: Option<i64>, status: Option<Status>, page: Option<u64>, size: Option<u64>,
-) -> Result<(Vec<crate::model::submission::Model>, u64), DbErr> {
-    let mut sql = crate::model::submission::Entity::find();
+) -> Result<(Vec<Model>, u64), DbErr> {
+    let mut sql = Entity::find();
 
     if let Some(id) = id {
-        sql = sql.filter(crate::model::submission::Column::Id.eq(id));
+        sql = sql.filter(Column::Id.eq(id));
     }
 
     if let Some(user_id) = user_id {
-        sql = sql.filter(crate::model::submission::Column::UserId.eq(user_id));
+        sql = sql.filter(Column::UserId.eq(user_id));
     }
 
     if let Some(team_id) = team_id {
-        sql = sql.filter(crate::model::submission::Column::TeamId.eq(team_id));
+        sql = sql.filter(Column::TeamId.eq(team_id));
     }
 
     if let Some(game_id) = game_id {
-        sql = sql.filter(crate::model::submission::Column::GameId.eq(game_id));
+        sql = sql.filter(Column::GameId.eq(game_id));
     }
 
     if let Some(challenge_id) = challenge_id {
-        sql = sql.filter(crate::model::submission::Column::ChallengeId.eq(challenge_id));
+        sql = sql.filter(Column::ChallengeId.eq(challenge_id));
     }
 
     if let Some(status) = status {
-        sql = sql.filter(crate::model::submission::Column::Status.eq(status));
+        sql = sql.filter(Column::Status.eq(status));
     }
 
     let total = sql.clone().count(&get_db()).await?;
@@ -199,73 +199,17 @@ pub async fn find(
 
     submissions = preload(submissions).await?;
 
-    return Ok((submissions, total));
+    Ok((submissions, total))
 }
 
 pub async fn get_by_challenge_ids(
     challenge_ids: Vec<i64>,
-) -> Result<Vec<crate::model::submission::Model>, DbErr> {
-    let mut submissions = crate::model::submission::Entity::find()
-        .filter(crate::model::submission::Column::ChallengeId.is_in(challenge_ids))
-        .order_by_asc(crate::model::submission::Column::CreatedAt)
+) -> Result<Vec<Model>, DbErr> {
+    let mut submissions = Entity::find()
+        .filter(Column::ChallengeId.is_in(challenge_ids))
+        .order_by_asc(Column::CreatedAt)
         .all(&get_db())
         .await?;
     submissions = preload(submissions).await?;
-    return Ok(submissions);
-}
-
-/// game only
-pub async fn get_with_pts(game_id: i64, status: Option<Status>) -> Result<Vec<Model>, DbErr> {
-    let mut submissions = crate::model::submission::Entity::find()
-        .filter(
-            Condition::all()
-                .add(crate::model::submission::Column::GameId.eq(game_id))
-                .add(status.map_or(Condition::all(), |status| {
-                    Condition::all().add(crate::model::submission::Column::Status.eq(status))
-                })),
-        )
-        .all(&get_db())
-        .await?;
-
-    submissions = preload(submissions).await?;
-
-    for submission in submissions.iter_mut() {
-        submission.game = None;
-    }
-
-    let game_challenges = crate::model::game_challenge::Entity::find()
-        .filter(Condition::all().add(crate::model::game_challenge::Column::GameId.eq(game_id)))
-        .all(&get_db())
-        .await?;
-
-    for game_challenge in game_challenges {
-        let mut submissions = submissions
-            .iter_mut()
-            .filter(|submission| {
-                submission.challenge_id == game_challenge.challenge_id
-                    && submission.status == Status::Correct
-            })
-            .collect::<Vec<&mut Model>>();
-        submissions.sort_by_key(|submission| submission.created_at);
-
-        let base_points = crate::util::math::curve(
-            game_challenge.max_pts,
-            game_challenge.min_pts,
-            game_challenge.difficulty,
-            submissions.len() as i64,
-        );
-
-        for (i, submission) in submissions.iter_mut().enumerate() {
-            submission.rank = i as i64 + 1;
-            let bonus_multiplier = match submission.rank {
-                1 => 100 + game_challenge.first_blood_reward_ratio,
-                2 => 100 + game_challenge.second_blood_reward_ratio,
-                3 => 100 + game_challenge.third_blood_reward_ratio,
-                _ => 100,
-            };
-            submission.pts = base_points * bonus_multiplier / 100;
-        }
-    }
-
-    return Ok(submissions);
+    Ok(submissions)
 }

@@ -2,15 +2,14 @@ use std::net::SocketAddr;
 
 use axum::{
     body::Body,
-    extract::{ConnectInfo, Request},
-    http::StatusCode,
+    extract::{ConnectInfo, Request}
+    ,
     middleware::Next,
-    response::{IntoResponse, Response},
-    Json,
+    response::Response
+    ,
 };
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use sea_orm::EntityTrait;
-use serde_json::json;
 
 use crate::{
     database::get_db,
@@ -30,49 +29,36 @@ pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebErro
     let decoding_key = DecodingKey::from_secret(util::jwt::get_secret().await.as_bytes());
     let validation = Validation::default();
 
-    let result = decode::<util::jwt::Claims>(token, &decoding_key, &validation);
+    let result = decode::<util::jwt::Claims>(token, &decoding_key, &validation).map_err(|_err| {
+        WebError::Unauthorized(String::from("invalid_token"))
+    })?;
 
-    if let Ok(token_data) = result {
-        let result = crate::model::user::Entity::find_by_id(token_data.claims.id)
-            .one(&get_db())
-            .await;
+    let user = crate::model::user::Entity::find_by_id(result.claims.id)
+        .one(&get_db())
+        .await.map_err(|_err| WebError::InternalServerError(String::from("internal_server_error")))?;
 
-        if let Err(_err) = result {
-            return Ok((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({
-                    "code": StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
-                    "msg": "internal_server_error"
-                })),
-            )
-                .into_response());
-        }
-
-        let user = result.unwrap();
-
-        if user.is_none() {
-            return Err(WebError::NotFound(String::from("not_found")));
-        }
-
-        let user = user.unwrap();
-
-        if user.group == Group::Banned {
-            return Err(WebError::Forbidden(String::from("forbidden")));
-        }
-
-        let ConnectInfo(addr) = req.extensions().get::<ConnectInfo<SocketAddr>>().unwrap();
-
-        let client_ip = req
-            .headers()
-            .get("X-Forwarded-For")
-            .and_then(|header_value| header_value.to_str().ok().map(|s| s.to_string()))
-            .unwrap_or_else(|| addr.ip().to_owned().to_string());
-
-        req.extensions_mut().insert(Ext {
-            operator: Some(user.clone()),
-            client_ip: client_ip,
-        });
+    if user.is_none() {
+        return Err(WebError::Unauthorized(String::from("not_found")));
     }
 
-    return Ok(next.run(req).await);
+    let user = user.unwrap();
+
+    if user.group == Group::Banned {
+        return Err(WebError::Forbidden(String::from("forbidden")));
+    }
+
+    let ConnectInfo(addr) = req.extensions().get::<ConnectInfo<SocketAddr>>().unwrap();
+
+    let client_ip = req
+        .headers()
+        .get("X-Forwarded-For")
+        .and_then(|header_value| header_value.to_str().ok().map(|s| s.to_string()))
+        .unwrap_or_else(|| addr.ip().to_owned().to_string());
+
+    req.extensions_mut().insert(Ext {
+        operator: Some(user.clone()),
+        client_ip: client_ip,
+    });
+
+    Ok(next.run(req).await)
 }

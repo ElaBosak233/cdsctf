@@ -7,7 +7,7 @@ use crate::config;
 
 static SECRET: Lazy<String> = Lazy::new(|| {
     let mut secret_key = config::get_config().auth.jwt.secret_key.clone();
-    let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])\]").unwrap();
+    let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])]").unwrap();
     secret_key = re
         .replace_all(&secret_key, uuid::Uuid::new_v4().simple().to_string())
         .to_string();
@@ -21,7 +21,7 @@ pub struct Claims {
 }
 
 pub async fn get_secret() -> String {
-    return SECRET.clone();
+    SECRET.clone()
 }
 
 pub async fn generate_jwt_token(user_id: i64) -> String {
@@ -33,12 +33,10 @@ pub async fn generate_jwt_token(user_id: i64) -> String {
         .timestamp() as usize,
     };
 
-    let token = encode(
+    encode(
         &Header::default(),
         &claims,
         &EncodingKey::from_secret(secret.as_bytes()),
     )
-    .unwrap();
-
-    return token;
+        .unwrap()
 }

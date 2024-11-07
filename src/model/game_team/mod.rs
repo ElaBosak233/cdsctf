@@ -1,5 +1,5 @@
 use axum::async_trait;
-use sea_orm::{entity::prelude::*, TryIntoModel};
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use super::{game, team};
@@ -63,14 +63,14 @@ pub struct ExPtsModel {
 }
 
 async fn preload(
-    mut game_teams: Vec<crate::model::game_team::Model>,
-) -> Result<Vec<crate::model::game_team::Model>, DbErr> {
+    mut game_teams: Vec<Model>,
+) -> Result<Vec<Model>, DbErr> {
     let team_ids: Vec<i64> = game_teams
         .iter()
         .map(|game_team| game_team.team_id)
         .collect();
 
-    let teams = crate::model::team::find_by_ids(team_ids).await?;
+    let teams = team::find_by_ids(team_ids).await?;
 
     for game_team in game_teams.iter_mut() {
         game_team.team = teams
@@ -79,20 +79,20 @@ async fn preload(
             .cloned();
     }
 
-    return Ok(game_teams);
+    Ok(game_teams)
 }
 
 pub async fn find(
     game_id: Option<i64>, team_id: Option<i64>,
-) -> Result<(Vec<crate::model::game_team::Model>, u64), DbErr> {
-    let mut sql = crate::model::game_team::Entity::find();
+) -> Result<(Vec<Model>, u64), DbErr> {
+    let mut sql = Entity::find();
 
     if let Some(game_id) = game_id {
-        sql = sql.filter(crate::model::game_team::Column::GameId.eq(game_id));
+        sql = sql.filter(Column::GameId.eq(game_id));
     }
 
     if let Some(team_id) = team_id {
-        sql = sql.filter(crate::model::game_team::Column::TeamId.eq(team_id));
+        sql = sql.filter(Column::TeamId.eq(team_id));
     }
 
     let total = sql.clone().count(&get_db()).await?;

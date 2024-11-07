@@ -22,14 +22,14 @@ struct TurnstileRequest {
 
 impl Turnstile {
     pub fn new() -> Self {
-        return Turnstile {
+        Turnstile {
             url: crate::config::get_config().captcha.turnstile.url.clone(),
             secret_key: crate::config::get_config()
                 .captcha
                 .turnstile
                 .secret_key
                 .clone(),
-        };
+        }
     }
 }
 
@@ -53,8 +53,8 @@ impl Captcha for Turnstile {
         let response: serde_json::Value = resp.json().await.unwrap();
 
         match response.get("success") {
-            Some(success) => return success.as_bool().unwrap(),
-            None => return false,
+            Some(success) => success.as_bool().unwrap(),
+            None => false,
         }
     }
 }

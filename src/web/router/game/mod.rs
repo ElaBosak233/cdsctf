@@ -24,7 +24,7 @@ use crate::{
 pub async fn router() -> Router {
     calculator::init().await;
 
-    return Router::new()
+    Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
         .route("/:id", axum::routing::put(update))
@@ -65,7 +65,7 @@ pub async fn router() -> Router {
             "/:id/poster/metadata",
             axum::routing::get(get_poster_metadata),
         )
-        .route("/:id/poster", axum::routing::delete(delete_poster));
+        .route("/:id/poster", axum::routing::delete(delete_poster))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -94,12 +94,12 @@ pub async fn get(
     )
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(games),
         total: Some(total),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
@@ -148,11 +148,11 @@ pub async fn create(
     .insert(&get_db())
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(game),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
@@ -203,11 +203,11 @@ pub async fn update(
     .update(&get_db())
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(game),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn delete(
@@ -222,10 +222,10 @@ pub async fn delete(
         .exec(&get_db())
         .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -245,11 +245,11 @@ pub async fn get_challenge(
         crate::model::game_challenge::find(params.game_id, params.challenge_id, params.is_enabled)
             .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenges),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -288,11 +288,11 @@ pub async fn create_challenge(
     .insert(&get_db())
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenge),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -335,11 +335,11 @@ pub async fn update_challenge(
     .update(&get_db())
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenge),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn delete_challenge(
@@ -356,10 +356,10 @@ pub async fn delete_challenge(
         .exec(&get_db())
         .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -375,12 +375,12 @@ pub async fn get_team(
 
     let (game_teams, total) = crate::model::game_team::find(params.game_id, params.team_id).await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(game_teams),
         total: Some(total),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -406,11 +406,11 @@ pub async fn create_team(
     .insert(&get_db())
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(game_team),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -441,11 +441,11 @@ pub async fn update_team(
     .update(&get_db())
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(game_team),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn delete_team(
@@ -462,10 +462,10 @@ pub async fn delete_team(
         .exec(&get_db())
         .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn get_notice() -> Result<impl IntoResponse, WebError> {
@@ -494,10 +494,10 @@ pub async fn calculate(
 
     crate::queue::publish("calculator", calculator::Payload { game_id: Some(id) }).await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }
 
 // pub async fn get_submission(
@@ -539,9 +539,9 @@ pub async fn get_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, WebErr
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
             let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
-            return Ok(Response::builder().body(Body::from(buffer)).unwrap());
+            Ok(Response::builder().body(Body::from(buffer)).unwrap())
         }
-        None => return Err(WebError::NotFound(String::new())),
+        None => Err(WebError::NotFound(String::new())),
     }
 }
 
@@ -549,17 +549,17 @@ pub async fn get_poster_metadata(Path(id): Path<i64>) -> Result<WebResult<Metada
     let path = format!("games/{}/poster", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {
-            return Ok(WebResult {
+            Ok(WebResult {
                 code: StatusCode::OK.as_u16(),
                 data: Some(Metadata {
                     filename: filename.to_string(),
                     size: *size,
                 }),
                 ..WebResult::default()
-            });
+            })
         }
         None => {
-            return Err(WebError::NotFound(String::new()));
+            Err(WebError::NotFound(String::new()))
         }
     }
 }
@@ -598,10 +598,10 @@ pub async fn save_poster(
         .await
         .map_err(|_| WebError::InternalServerError(String::new()))?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn delete_poster(
@@ -618,8 +618,8 @@ pub async fn delete_poster(
         .await
         .map_err(|_| WebError::InternalServerError(String::new()))?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }

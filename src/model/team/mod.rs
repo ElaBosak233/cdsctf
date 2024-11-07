@@ -94,12 +94,12 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 async fn preload(
-    mut teams: Vec<crate::model::team::Model>,
-) -> Result<Vec<crate::model::team::Model>, DbErr> {
+    mut teams: Vec<Model>,
+) -> Result<Vec<Model>, DbErr> {
     let users = teams
         .load_many_to_many(
-            crate::model::user::Entity,
-            crate::model::user_team::Entity,
+            user::Entity,
+            user_team::Entity,
             &get_db(),
         )
         .await?;
@@ -114,25 +114,25 @@ async fn preload(
         }
     }
 
-    return Ok(teams);
+    Ok(teams)
 }
 
 pub async fn find(
     id: Option<i64>, name: Option<String>, email: Option<String>, page: Option<u64>,
     size: Option<u64>,
-) -> Result<(Vec<crate::model::team::Model>, u64), DbErr> {
-    let mut sql = crate::model::team::Entity::find();
+) -> Result<(Vec<Model>, u64), DbErr> {
+    let mut sql = Entity::find();
 
     if let Some(id) = id {
-        sql = sql.filter(crate::model::team::Column::Id.eq(id));
+        sql = sql.filter(Column::Id.eq(id));
     }
 
     if let Some(name) = name {
-        sql = sql.filter(crate::model::team::Column::Name.contains(name));
+        sql = sql.filter(Column::Name.contains(name));
     }
 
     if let Some(email) = email {
-        sql = sql.filter(crate::model::team::Column::Email.eq(email));
+        sql = sql.filter(Column::Email.eq(email));
     }
 
     let total = sql.clone().count(&get_db()).await?;
@@ -148,35 +148,34 @@ pub async fn find(
 
     teams = preload(teams).await?;
 
-    return Ok((teams, total));
+    Ok((teams, total))
 }
 
-pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<crate::model::team::Model>, DbErr> {
-    let mut teams = crate::model::team::Entity::find()
-        .filter(crate::model::team::Column::Id.is_in(ids))
+pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<Model>, DbErr> {
+    let mut teams = Entity::find()
+        .filter(Column::Id.is_in(ids))
         .all(&get_db())
         .await?;
 
     teams = preload(teams).await?;
 
-    return Ok(teams);
+    Ok(teams)
 }
 
-pub async fn find_by_user_id(id: i64) -> Result<Vec<crate::model::team::Model>, DbErr> {
-    let mut teams = crate::model::user_team::Entity::find()
+pub async fn find_by_user_id(id: i64) -> Result<Vec<Model>, DbErr> {
+    let mut teams = Entity::find()
         .select_only()
-        .columns(crate::model::team::Column::iter())
-        .filter(crate::model::user_team::Column::UserId.eq(id))
+        .columns(Column::iter())
+        .filter(user_team::Column::UserId.eq(id))
         .join(
             JoinType::InnerJoin,
-            crate::model::user_team::Relation::Team.def(),
+            user_team::Relation::Team.def(),
         )
-        .into_model::<crate::model::team::Model>()
+        .into_model::<Model>()
         .all(&get_db())
-        .await
-        .unwrap();
+        .await?;
 
     teams = preload(teams).await?;
 
-    return Ok(teams);
+    Ok(teams)
 }
