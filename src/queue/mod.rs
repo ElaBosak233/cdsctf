@@ -8,12 +8,12 @@ use traits::QueueError;
 static CLIENT: OnceCell<async_nats::Client> = OnceCell::new();
 
 fn get_client() -> async_nats::Client {
-    return CLIENT.get().unwrap().clone();
+    CLIENT.get().unwrap().clone()
 }
 
 fn get_jetstream() -> async_nats::jetstream::Context {
     let client = get_client();
-    return async_nats::jetstream::new(client);
+    async_nats::jetstream::new(client)
 }
 
 pub async fn publish(subject: &'static str, payload: impl Serialize) -> Result<(), QueueError> {
@@ -23,7 +23,7 @@ pub async fn publish(subject: &'static str, payload: impl Serialize) -> Result<(
         .publish(subject, serde_json::to_string(&payload).unwrap().into())
         .await?;
 
-    return Ok(());
+    Ok(())
 }
 
 pub async fn subscribe(
@@ -55,7 +55,7 @@ pub async fn subscribe(
         .messages()
         .await?;
 
-    return Ok(messages);
+    Ok(messages)
 }
 
 pub async fn init() {

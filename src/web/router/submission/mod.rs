@@ -12,11 +12,11 @@ use serde::{Deserialize, Serialize};
 pub async fn router() -> Router {
     checker::init().await;
 
-    return Router::new()
+    Router::new()
         .route("/", axum::routing::get(get))
         .route("/:id", axum::routing::get(get_by_id))
         .route("/", axum::routing::post(create))
-        .route("/:id", axum::routing::delete(delete));
+        .route("/:id", axum::routing::delete(delete))
 }
 
 use crate::{
@@ -32,7 +32,7 @@ pub struct GetRequest {
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
-    pub status: Option<crate::model::submission::Status>,
+    pub status: Option<Status>,
     pub is_detailed: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
@@ -65,12 +65,12 @@ pub async fn get(
         }
     }
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(submissions),
         total: Some(total),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn get_by_id(
@@ -89,11 +89,11 @@ pub async fn get_by_id(
     let mut submission = submission.unwrap();
     submission.desensitize();
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(submission),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -115,8 +115,7 @@ pub async fn create(
     if let Some(challenge_id) = body.challenge_id {
         let challenge = crate::model::challenge::Entity::find_by_id(challenge_id)
             .one(&get_db())
-            .await
-            .unwrap();
+            .await?;
 
         if challenge.is_none() {
             return Err(WebError::BadRequest(String::from("challenge_not_found")));
@@ -126,8 +125,7 @@ pub async fn create(
     if let Some(game_id) = body.game_id {
         let game = crate::model::game::Entity::find_by_id(game_id)
             .one(&get_db())
-            .await
-            .unwrap();
+            .await?;
 
         if game.is_none() {
             return Err(WebError::BadRequest(String::from("game_not_found")));
@@ -137,8 +135,7 @@ pub async fn create(
     if let Some(team_id) = body.team_id {
         let team = crate::model::team::Entity::find_by_id(team_id)
             .one(&get_db())
-            .await
-            .unwrap();
+            .await?;
 
         if team.is_none() {
             return Err(WebError::BadRequest(String::from("team_not_found")));
@@ -159,11 +156,11 @@ pub async fn create(
 
     crate::queue::publish("checker", submission.id).await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(submission),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn delete(
@@ -178,8 +175,8 @@ pub async fn delete(
         .exec(&get_db())
         .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }

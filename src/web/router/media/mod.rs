@@ -6,22 +6,22 @@ use axum::{
 };
 
 pub fn router() -> Router {
-    return Router::new().route("/*path", axum::routing::get(get_file));
+    Router::new().route("/*path", axum::routing::get(get_file))
 }
 
 pub async fn get_file(Path(path): Path<String>) -> impl IntoResponse {
     let filename = path.split("/").last().unwrap_or("attachment");
     match crate::media::get(path.clone(), filename.to_string()).await {
         Ok(buffer) => {
-            return Response::builder()
+            Response::builder()
                 .header(header::CONTENT_TYPE, "application/octet-stream")
                 .header(
                     header::CONTENT_DISPOSITION,
                     format!("attachment; filename=\"{}\"", filename),
                 )
                 .body(buffer.into())
-                .unwrap();
+                .unwrap()
         }
-        Err(_) => return (StatusCode::NOT_FOUND).into_response(),
+        Err(_) => StatusCode::NOT_FOUND.into_response(),
     }
 }

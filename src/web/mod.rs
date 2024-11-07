@@ -40,5 +40,5 @@ pub async fn init() {
 }
 
 pub fn get_app() -> Router {
-    return APP.get().unwrap().clone();
+    APP.get().unwrap().clone()
 }

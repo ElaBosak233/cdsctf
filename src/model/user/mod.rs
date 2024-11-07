@@ -84,12 +84,12 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 async fn preload(
-    mut users: Vec<crate::model::user::Model>,
-) -> Result<Vec<crate::model::user::Model>, DbErr> {
+    mut users: Vec<Model>,
+) -> Result<Vec<Model>, DbErr> {
     let teams = users
         .load_many_to_many(
-            crate::model::team::Entity,
-            crate::model::user_team::Entity,
+            team::Entity,
+            user_team::Entity,
             &get_db(),
         )
         .await?;
@@ -98,37 +98,37 @@ async fn preload(
         user.teams = teams[i].clone();
     }
 
-    return Ok(users);
+    Ok(users)
 }
 
 pub async fn find(
     id: Option<i64>, name: Option<String>, username: Option<String>, group: Option<String>,
     email: Option<String>, page: Option<u64>, size: Option<u64>,
-) -> Result<(Vec<crate::model::user::Model>, u64), DbErr> {
-    let mut sql = crate::model::user::Entity::find();
+) -> Result<(Vec<Model>, u64), DbErr> {
+    let mut sql = Entity::find();
 
     if let Some(id) = id {
-        sql = sql.filter(crate::model::user::Column::Id.eq(id));
+        sql = sql.filter(Column::Id.eq(id));
     }
 
     if let Some(name) = name {
         let pattern = format!("%{}%", name);
         let condition = Condition::any()
-            .add(crate::model::user::Column::Username.like(&pattern))
-            .add(crate::model::user::Column::Nickname.like(&pattern));
+            .add(Column::Username.like(&pattern))
+            .add(Column::Nickname.like(&pattern));
         sql = sql.filter(condition);
     }
 
     if let Some(username) = username {
-        sql = sql.filter(crate::model::user::Column::Username.eq(username));
+        sql = sql.filter(Column::Username.eq(username));
     }
 
     if let Some(group) = group {
-        sql = sql.filter(crate::model::user::Column::Group.eq(group));
+        sql = sql.filter(Column::Group.eq(group));
     }
 
     if let Some(email) = email {
-        sql = sql.filter(crate::model::user::Column::Email.eq(email));
+        sql = sql.filter(Column::Email.eq(email));
     }
 
     let total = sql.clone().count(&get_db()).await?;

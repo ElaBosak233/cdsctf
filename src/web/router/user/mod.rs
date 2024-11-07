@@ -4,12 +4,13 @@ use argon2::{
 };
 use axum::{
     body::Body,
-    extract::{ConnectInfo, DefaultBodyLimit, Multipart, Path, Query},
-    http::{HeaderMap, Response, StatusCode},
+    extract::{DefaultBodyLimit, Multipart, Path, Query},
+    http::{Response},
     response::IntoResponse,
     Extension, Json, Router,
 };
 use mime::Mime;
+use reqwest::StatusCode;
 use sea_orm::{
     prelude::Expr, sea_query::Func, ActiveModelTrait, ActiveValue::NotSet, Condition, EntityTrait,
     PaginatorTrait, QueryFilter, Set,
@@ -28,7 +29,7 @@ use crate::{
 };
 
 pub fn router() -> Router {
-    return Router::new()
+    Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
         .route("/:id", axum::routing::put(update))
@@ -46,7 +47,7 @@ pub fn router() -> Router {
             axum::routing::post(save_avatar)
                 .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
         )
-        .route("/:id/avatar", axum::routing::delete(delete_avatar));
+        .route("/:id/avatar", axum::routing::delete(delete_avatar))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -77,12 +78,12 @@ pub async fn get(
         user.desensitize();
     }
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(users),
         total: Some(total),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
@@ -125,11 +126,11 @@ pub async fn create(
 
     user.desensitize();
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
@@ -177,11 +178,11 @@ pub async fn update(
     .update(&get_db())
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn delete(
@@ -196,10 +197,10 @@ pub async fn delete(
         .exec(&get_db())
         .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn get_teams(
@@ -209,11 +210,11 @@ pub async fn get_teams(
 
     let teams = crate::model::team::find_by_user_id(id).await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(teams),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -262,11 +263,11 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<WebResult<Login
     let token = jwt::generate_jwt_token(user.id.clone()).await;
     user.desensitize();
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(LoginResult { token, user }),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
@@ -332,11 +333,11 @@ pub async fn register(
     .insert(&get_db())
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
@@ -344,28 +345,24 @@ pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebErr
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
             let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
-            return Ok(Response::builder().body(Body::from(buffer)).unwrap());
+            Ok(Response::builder().body(Body::from(buffer)).unwrap())
         }
-        None => return Err(WebError::NotFound(String::new())),
+        None => Err(WebError::NotFound(String::new())),
     }
 }
 
 pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
     let path = format!("users/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
-        Some((filename, size)) => {
-            return Ok(WebResult {
-                code: StatusCode::OK.as_u16(),
-                data: Some(Metadata {
-                    filename: filename.to_string(),
-                    size: *size,
-                }),
-                ..WebResult::default()
-            });
-        }
-        None => {
-            return Err(WebError::NotFound(String::new()));
-        }
+        Some((filename, size)) => Ok(WebResult {
+            code: StatusCode::OK.as_u16(),
+            data: Some(Metadata {
+                filename: filename.to_string(),
+                size: *size,
+            }),
+            ..WebResult::default()
+        }),
+        None => Err(WebError::NotFound(String::new()))
     }
 }
 
@@ -403,10 +400,10 @@ pub async fn save_avatar(
         .await
         .map_err(|_| WebError::InternalServerError(String::new()));
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn delete_avatar(
@@ -423,8 +420,8 @@ pub async fn delete_avatar(
         .await
         .map_err(|_| WebError::InternalServerError(String::new()));
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }

@@ -11,13 +11,13 @@ use tokio::{fs::File, io::AsyncReadExt};
 use crate::{config::get_config, web::traits::WebResult};
 
 pub fn router() -> Router {
-    return Router::new()
+    Router::new()
         .route("/", axum::routing::get(get))
-        .route("/favicon", axum::routing::get(get_favicon));
+        .route("/favicon", axum::routing::get(get_favicon))
 }
 
 pub async fn get() -> WebResult<serde_json::Value> {
-    return WebResult {
+    WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(json!({
             "site": get_config().site,
@@ -39,7 +39,7 @@ pub async fn get() -> WebResult<serde_json::Value> {
             }
         })),
         ..WebResult::default()
-    };
+    }
 }
 
 pub async fn get_favicon() -> impl IntoResponse {
@@ -49,10 +49,10 @@ pub async fn get_favicon() -> impl IntoResponse {
         Ok(mut file) => {
             let mut buffer = Vec::new();
             if let Err(_) = file.read_to_end(&mut buffer).await {
-                return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
+                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
-            return Response::builder().body(buffer.into()).unwrap();
+            Response::builder().body(buffer.into()).unwrap()
         }
-        Err(_) => return (StatusCode::NOT_FOUND).into_response(),
+        Err(_) => StatusCode::NOT_FOUND.into_response(),
     }
 }

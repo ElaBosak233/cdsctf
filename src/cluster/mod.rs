@@ -18,7 +18,7 @@ use crate::config;
 static K8S_CLIENT: OnceLock<K8sClient> = OnceLock::new();
 
 pub fn get_k8s_client() -> &'static K8sClient {
-    return K8S_CLIENT.get().unwrap();
+    K8S_CLIENT.get().unwrap()
 }
 
 pub async fn init() {
@@ -49,7 +49,17 @@ pub async fn create(
     injected_flag: crate::model::challenge::Flag,
 ) -> Result<Vec<crate::model::pod::Nat>, anyhow::Error> {
     let client = get_k8s_client().clone();
-    let api: Api<Pod> = Api::namespaced(
+
+    let metadata = k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
+        name: Some(name.clone()),
+        labels: Some(BTreeMap::from([(
+            String::from("cds/resource_id"),
+            name.clone(),
+        )])),
+        ..Default::default()
+    };
+
+    let pod_api: Api<Pod> = Api::namespaced(
         client.clone(),
         config::get_config().cluster.namespace.as_str(),
     );
@@ -81,14 +91,7 @@ pub async fn create(
         .collect();
 
     let pod = Pod {
-        metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
-            name: Some(name.clone()),
-            labels: Some(BTreeMap::from([(
-                String::from("cds/resource_id"),
-                name.clone(),
-            )])),
-            ..Default::default()
-        },
+        metadata: metadata.clone(),
         spec: Some(PodSpec {
             containers: vec![K8sContainer {
                 name: name.clone(),
@@ -105,26 +108,17 @@ pub async fn create(
         ..Default::default()
     };
 
-    api.create(&PostParams::default(), &pod).await?;
+    pod_api.create(&PostParams::default(), &pod).await?;
 
-    kube::runtime::wait::await_condition(api.clone(), &name, conditions::is_pod_running()).await?;
+    kube::runtime::wait::await_condition(pod_api.clone(), &name, conditions::is_pod_running()).await?;
 
-    // let pod = pods.get(&name).await?;
-
-    let services: Api<Service> = Api::namespaced(
+    let service_api: Api<Service> = Api::namespaced(
         client.clone(),
         config::get_config().cluster.namespace.as_str(),
     );
 
     let service = Service {
-        metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
-            name: Some(name.clone()),
-            labels: Some(BTreeMap::from([(
-                String::from("cds/resource_id"),
-                name.clone(),
-            )])),
-            ..Default::default()
-        },
+        metadata: metadata.clone(),
         spec: Some(ServiceSpec {
             selector: Some(BTreeMap::from([(
                 String::from("cds/resource_id"),
@@ -148,9 +142,9 @@ pub async fn create(
         ..Default::default()
     };
 
-    services.create(&PostParams::default(), &service).await?;
+    service_api.create(&PostParams::default(), &service).await?;
 
-    let service = services.get(&name).await?;
+    let service = service_api.get(&name).await?;
 
     let mut nats: Vec<crate::model::pod::Nat> = Vec::new();
     if let Some(spec) = service.spec {
@@ -172,28 +166,28 @@ pub async fn create(
         }
     }
 
-    return Ok(nats);
+    Ok(nats)
 }
 
 pub async fn delete(name: String) {
-    let api: Api<Pod> = Api::namespaced(
+    let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client().clone(),
         config::get_config().cluster.namespace.as_str(),
     );
-    let _ = api.delete(&name, &DeleteParams::default()).await;
+    let _ = pod_api.delete(&name, &DeleteParams::default()).await;
 }
 
 pub async fn wsrx(name: String, port: u16, ws: WebSocket) -> Result<(), anyhow::Error> {
-    let api: Api<Pod> = Api::namespaced(
+    let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client().clone(),
         config::get_config().cluster.namespace.as_str(),
     );
-    let mut pf = api.portforward(&name, &[port]).await?;
+    let mut pf = pod_api.portforward(&name, &[port]).await?;
     let pfw = pf.take_stream(port);
     if let Some(pfw) = pfw {
         let stream = Framed::new(pfw, wsrx::proxy::MessageCodec::new());
         let ws: wsrx::WrappedWsStream = ws.into();
         wsrx::proxy::proxy_stream(stream, ws).await?;
     }
-    return Ok(());
+    Ok(())
 }

@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 pub fn router() -> Router {
-    return Router::new()
+    Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
         .route("/status", axum::routing::post(get_status))
@@ -28,7 +28,7 @@ pub fn router() -> Router {
             axum::routing::post(save_attachment)
                 .layer(DefaultBodyLimit::max(512 * 1024 * 1024 /* MB */)),
         )
-        .route("/:id/attachment", axum::routing::delete(delete_attachment));
+        .route("/:id/attachment", axum::routing::delete(delete_attachment))
 }
 
 use crate::{
@@ -80,12 +80,12 @@ pub async fn get(
         }
     }
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(challenges),
         total: Some(total),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -110,8 +110,7 @@ pub async fn get_status(
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let mut submissions = crate::model::submission::get_by_challenge_ids(body.cids.clone())
-        .await
-        .unwrap();
+        .await?;
 
     let mut result: HashMap<i64, StatusResult> = HashMap::new();
 
@@ -163,8 +162,7 @@ pub async fn get_status(
 
     if let Some(game_id) = body.game_id {
         let (game_challenges, _) = crate::model::game_challenge::find(Some(game_id), None, None)
-            .await
-            .unwrap();
+            .await?;
 
         for game_challenge in game_challenges {
             let status_response = result.get_mut(&game_challenge.challenge_id).unwrap();
@@ -172,11 +170,11 @@ pub async fn get_status(
         }
     }
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(result),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -226,11 +224,11 @@ pub async fn create(
     .insert(&get_db())
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(challenge),
         ..WebResult::default()
-    });
+    })
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -285,11 +283,11 @@ pub async fn update(
     .update(&get_db())
     .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         data: Some(challenge),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn delete(
@@ -304,10 +302,10 @@ pub async fn delete(
         .exec(&get_db())
         .await?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
@@ -315,16 +313,16 @@ pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, We
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
             let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
-            return Ok(Response::builder()
+            Ok(Response::builder()
                 .header(header::CONTENT_TYPE, "application/octet-stream")
                 .header(
                     header::CONTENT_DISPOSITION,
                     format!("attachment; filename=\"{}\"", filename),
                 )
                 .body(Body::from(buffer))
-                .unwrap());
+                .unwrap())
         }
-        None => return Err(WebError::NotFound(String::new())),
+        None => Err(WebError::NotFound(String::new())),
     }
 }
 
@@ -336,16 +334,16 @@ pub async fn get_attachment_metadata(
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, size)) => {
-            return Ok(WebResult {
+            Ok(WebResult {
                 code: StatusCode::OK.as_u16(),
                 data: Some(Metadata {
                     filename: filename.to_string(),
                     size: *size,
                 }),
                 ..WebResult::default()
-            });
+            })
         }
-        None => return Err(WebError::NotFound(String::new())),
+        None => Err(WebError::NotFound(String::new())),
     }
 }
 
@@ -378,10 +376,10 @@ pub async fn save_attachment(
         .await
         .map_err(|_| WebError::InternalServerError(String::new()))?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }
 
 pub async fn delete_attachment(
@@ -398,8 +396,8 @@ pub async fn delete_attachment(
         .await
         .map_err(|_| WebError::InternalServerError(String::new()))?;
 
-    return Ok(WebResult {
+    Ok(WebResult {
         code: StatusCode::OK.as_u16(),
         ..WebResult::default()
-    });
+    })
 }

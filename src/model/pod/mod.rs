@@ -107,12 +107,12 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 async fn preload(
-    mut pods: Vec<crate::model::pod::Model>,
-) -> Result<Vec<crate::model::pod::Model>, DbErr> {
-    let users = pods.load_one(crate::model::user::Entity, &get_db()).await?;
-    let teams = pods.load_one(crate::model::team::Entity, &get_db()).await?;
+    mut pods: Vec<Model>,
+) -> Result<Vec<Model>, DbErr> {
+    let users = pods.load_one(user::Entity, &get_db()).await?;
+    let teams = pods.load_one(team::Entity, &get_db()).await?;
     let challenges = pods
-        .load_one(crate::model::challenge::Entity, &get_db())
+        .load_one(challenge::Entity, &get_db())
         .await?;
 
     for (i, pod) in pods.iter_mut().enumerate() {
@@ -121,48 +121,48 @@ async fn preload(
         pod.challenge = challenges[i].clone();
     }
 
-    return Ok(pods);
+    Ok(pods)
 }
 
 pub async fn find(
     id: Option<i64>, name: Option<String>, user_id: Option<i64>, team_id: Option<i64>,
     game_id: Option<i64>, challenge_id: Option<i64>, is_available: Option<bool>,
-) -> Result<(Vec<crate::model::pod::Model>, u64), DbErr> {
-    let mut sql = crate::model::pod::Entity::find();
+) -> Result<(Vec<Model>, u64), DbErr> {
+    let mut sql = Entity::find();
     if let Some(id) = id {
-        sql = sql.filter(crate::model::pod::Column::Id.eq(id));
+        sql = sql.filter(Column::Id.eq(id));
     }
 
     if let Some(name) = name {
-        sql = sql.filter(crate::model::pod::Column::Name.eq(name));
+        sql = sql.filter(Column::Name.eq(name));
     }
 
     if let Some(user_id) = user_id {
-        sql = sql.filter(crate::model::pod::Column::UserId.eq(user_id));
+        sql = sql.filter(Column::UserId.eq(user_id));
     }
 
     if let Some(team_id) = team_id {
-        sql = sql.filter(crate::model::pod::Column::TeamId.eq(team_id));
+        sql = sql.filter(Column::TeamId.eq(team_id));
     }
 
     if let Some(game_id) = game_id {
-        sql = sql.filter(crate::model::pod::Column::GameId.eq(game_id));
+        sql = sql.filter(Column::GameId.eq(game_id));
     }
 
     if let Some(challenge_id) = challenge_id {
-        sql = sql.filter(crate::model::pod::Column::ChallengeId.eq(challenge_id));
+        sql = sql.filter(Column::ChallengeId.eq(challenge_id));
     }
 
     if let Some(is_available) = is_available {
         match is_available {
             true => {
                 sql = sql.filter(
-                    crate::model::pod::Column::RemovedAt.gte(chrono::Utc::now().timestamp()),
+                    Column::RemovedAt.gte(chrono::Utc::now().timestamp()),
                 )
             }
             false => {
                 sql = sql.filter(
-                    crate::model::pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp()),
+                    Column::RemovedAt.lte(chrono::Utc::now().timestamp()),
                 )
             }
         }
@@ -174,5 +174,5 @@ pub async fn find(
 
     pods = preload(pods).await?;
 
-    return Ok((pods, total));
+    Ok((pods, total))
 }
