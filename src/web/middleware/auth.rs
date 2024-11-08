@@ -29,22 +29,24 @@ pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebErro
     let decoding_key = DecodingKey::from_secret(util::jwt::get_secret().await.as_bytes());
     let validation = Validation::default();
 
-    let result = decode::<util::jwt::Claims>(token, &decoding_key, &validation).map_err(|_err| {
-        WebError::Unauthorized(String::from("invalid_token"))
-    })?;
+    let mut user: Option<crate::model::user::Model> = None;
 
-    let user = crate::model::user::Entity::find_by_id(result.claims.id)
-        .one(&get_db())
-        .await.map_err(|_err| WebError::InternalServerError(String::from("internal_server_error")))?;
+    let result = decode::<util::jwt::Claims>(token, &decoding_key, &validation);
 
-    if user.is_none() {
-        return Err(WebError::Unauthorized(String::from("not_found")));
-    }
+    if let Ok(data) = result {
+        user = crate::model::user::Entity::find_by_id(data.claims.id)
+            .one(&get_db())
+            .await.map_err(|_err| WebError::InternalServerError(String::from("internal_server_error")))?;
 
-    let user = user.unwrap();
+        if user.is_none() {
+            return Err(WebError::Unauthorized(String::from("not_found")));
+        }
 
-    if user.group == Group::Banned {
-        return Err(WebError::Forbidden(String::from("forbidden")));
+        let user = user.clone().unwrap();
+
+        if user.group == Group::Banned {
+            return Err(WebError::Forbidden(String::from("forbidden")));
+        }
     }
 
     let ConnectInfo(addr) = req.extensions().get::<ConnectInfo<SocketAddr>>().unwrap();
@@ -56,8 +58,8 @@ pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebErro
         .unwrap_or_else(|| addr.ip().to_owned().to_string());
 
     req.extensions_mut().insert(Ext {
-        operator: Some(user.clone()),
-        client_ip: client_ip,
+        operator: user,
+        client_ip,
     });
 
     Ok(next.run(req).await)
