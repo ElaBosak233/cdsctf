@@ -29,7 +29,7 @@ pub async fn generate_jwt_token(user_id: i64) -> String {
     let claims = Claims {
         id: user_id,
         exp: (chrono::Utc::now()
-            + chrono::Duration::minutes(crate::config::get_config().auth.jwt.expiration as i64))
+            + chrono::Duration::minutes(config::get_config().auth.jwt.expiration))
         .timestamp() as usize,
     };
 

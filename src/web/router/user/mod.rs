@@ -19,6 +19,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::{
+    config,
     database::get_db,
     model::user::group::Group,
     util::{jwt, validate},
@@ -260,9 +261,14 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
     let mut headers = HeaderMap::new();
     headers.insert(
         SET_COOKIE,
-        format!("token={}; Path=/; HttpOnly; SameSite=Strict", token)
-            .parse()
-            .unwrap(),
+        format!(
+            "token={}; Max-Age={}; Path=/; HttpOnly; SameSite=Strict",
+            token,
+            chrono::Duration::minutes(config::get_config().auth.jwt.expiration)
+                .num_seconds()
+        )
+        .parse()
+        .unwrap(),
     );
 
     Ok((
