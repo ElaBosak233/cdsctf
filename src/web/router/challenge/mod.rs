@@ -109,8 +109,7 @@ pub async fn get_status(
 ) -> Result<WebResult<HashMap<i64, StatusResult>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let mut submissions = crate::model::submission::get_by_challenge_ids(body.cids.clone())
-        .await?;
+    let mut submissions = crate::model::submission::get_by_challenge_ids(body.cids.clone()).await?;
 
     let mut result: HashMap<i64, StatusResult> = HashMap::new();
 
@@ -161,8 +160,8 @@ pub async fn get_status(
     }
 
     if let Some(game_id) = body.game_id {
-        let (game_challenges, _) = crate::model::game_challenge::find(Some(game_id), None, None)
-            .await?;
+        let (game_challenges, _) =
+            crate::model::game_challenge::find(Some(game_id), None, None).await?;
 
         for game_challenge in game_challenges {
             let status_response = result.get_mut(&game_challenge.challenge_id).unwrap();
@@ -333,16 +332,14 @@ pub async fn get_attachment_metadata(
 
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
-        Some((filename, size)) => {
-            Ok(WebResult {
-                code: StatusCode::OK.as_u16(),
-                data: Some(Metadata {
-                    filename: filename.to_string(),
-                    size: *size,
-                }),
-                ..WebResult::default()
-            })
-        }
+        Some((filename, size)) => Ok(WebResult {
+            code: StatusCode::OK.as_u16(),
+            data: Some(Metadata {
+                filename: filename.to_string(),
+                size: *size,
+            }),
+            ..WebResult::default()
+        }),
         None => Err(WebError::NotFound(String::new())),
     }
 }

@@ -83,15 +83,9 @@ impl ActiveModelBehavior for ActiveModel {
     }
 }
 
-async fn preload(
-    mut users: Vec<Model>,
-) -> Result<Vec<Model>, DbErr> {
+async fn preload(mut users: Vec<Model>) -> Result<Vec<Model>, DbErr> {
     let teams = users
-        .load_many_to_many(
-            team::Entity,
-            user_team::Entity,
-            &get_db(),
-        )
+        .load_many_to_many(team::Entity, user_team::Entity, &get_db())
         .await?;
 
     for (i, user) in users.iter_mut().enumerate() {

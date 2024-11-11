@@ -328,16 +328,14 @@ pub async fn leave() -> impl IntoResponse {
 pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
     let path = format!("teams/{}/avatar", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
-        Some((filename, size)) => {
-            Ok(WebResult {
-                code: StatusCode::OK.as_u16(),
-                data: Some(Metadata {
-                    filename: filename.to_string(),
-                    size: *size,
-                }),
-                ..WebResult::default()
-            })
-        }
+        Some((filename, size)) => Ok(WebResult {
+            code: StatusCode::OK.as_u16(),
+            data: Some(Metadata {
+                filename: filename.to_string(),
+                size: *size,
+            }),
+            ..WebResult::default()
+        }),
         None => Err(WebError::NotFound(String::new())),
     }
 }

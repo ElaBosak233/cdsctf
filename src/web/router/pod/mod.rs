@@ -105,10 +105,7 @@ pub async fn create(
     let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])\]").unwrap();
     if injected_flag.type_ == crate::model::challenge::flag::Type::Dynamic {
         injected_flag.value = re
-            .replace_all(
-                &injected_flag.value,
-                Uuid::new_v4().simple().to_string(),
-            )
+            .replace_all(&injected_flag.value, Uuid::new_v4().simple().to_string())
             .to_string();
     }
 

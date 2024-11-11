@@ -548,19 +548,15 @@ pub async fn get_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, WebErr
 pub async fn get_poster_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
     let path = format!("games/{}/poster", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
-        Some((filename, size)) => {
-            Ok(WebResult {
-                code: StatusCode::OK.as_u16(),
-                data: Some(Metadata {
-                    filename: filename.to_string(),
-                    size: *size,
-                }),
-                ..WebResult::default()
-            })
-        }
-        None => {
-            Err(WebError::NotFound(String::new()))
-        }
+        Some((filename, size)) => Ok(WebResult {
+            code: StatusCode::OK.as_u16(),
+            data: Some(Metadata {
+                filename: filename.to_string(),
+                size: *size,
+            }),
+            ..WebResult::default()
+        }),
+        None => Err(WebError::NotFound(String::new())),
     }
 }
 

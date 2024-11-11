@@ -66,7 +66,7 @@ impl Captcha for Recaptcha {
                             false
                         }
                         None => false,
-                    }
+                    };
                 }
                 false
             }

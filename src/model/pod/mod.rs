@@ -106,14 +106,10 @@ impl ActiveModelBehavior for ActiveModel {
     }
 }
 
-async fn preload(
-    mut pods: Vec<Model>,
-) -> Result<Vec<Model>, DbErr> {
+async fn preload(mut pods: Vec<Model>) -> Result<Vec<Model>, DbErr> {
     let users = pods.load_one(user::Entity, &get_db()).await?;
     let teams = pods.load_one(team::Entity, &get_db()).await?;
-    let challenges = pods
-        .load_one(challenge::Entity, &get_db())
-        .await?;
+    let challenges = pods.load_one(challenge::Entity, &get_db()).await?;
 
     for (i, pod) in pods.iter_mut().enumerate() {
         pod.user = users[i].clone();
@@ -155,16 +151,8 @@ pub async fn find(
 
     if let Some(is_available) = is_available {
         match is_available {
-            true => {
-                sql = sql.filter(
-                    Column::RemovedAt.gte(chrono::Utc::now().timestamp()),
-                )
-            }
-            false => {
-                sql = sql.filter(
-                    Column::RemovedAt.lte(chrono::Utc::now().timestamp()),
-                )
-            }
+            true => sql = sql.filter(Column::RemovedAt.gte(chrono::Utc::now().timestamp())),
+            false => sql = sql.filter(Column::RemovedAt.lte(chrono::Utc::now().timestamp())),
         }
     }
 

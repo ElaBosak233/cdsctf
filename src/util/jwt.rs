@@ -38,5 +38,5 @@ pub async fn generate_jwt_token(user_id: i64) -> String {
         &claims,
         &EncodingKey::from_secret(secret.as_bytes()),
     )
-        .unwrap()
+    .unwrap()
 }

@@ -93,15 +93,9 @@ impl ActiveModelBehavior for ActiveModel {
     }
 }
 
-async fn preload(
-    mut teams: Vec<Model>,
-) -> Result<Vec<Model>, DbErr> {
+async fn preload(mut teams: Vec<Model>) -> Result<Vec<Model>, DbErr> {
     let users = teams
-        .load_many_to_many(
-            user::Entity,
-            user_team::Entity,
-            &get_db(),
-        )
+        .load_many_to_many(user::Entity, user_team::Entity, &get_db())
         .await?;
 
     for (i, team) in teams.iter_mut().enumerate() {
@@ -167,10 +161,7 @@ pub async fn find_by_user_id(id: i64) -> Result<Vec<Model>, DbErr> {
         .select_only()
         .columns(Column::iter())
         .filter(user_team::Column::UserId.eq(id))
-        .join(
-            JoinType::InnerJoin,
-            user_team::Relation::Team.def(),
-        )
+        .join(JoinType::InnerJoin, user_team::Relation::Team.def())
         .into_model::<Model>()
         .all(&get_db())
         .await?;
