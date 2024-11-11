@@ -5,7 +5,7 @@ use argon2::{
 use axum::{
     body::Body,
     extract::{DefaultBodyLimit, Multipart, Path, Query},
-    http::{Response},
+    http::{header::SET_COOKIE, HeaderMap, Response},
     response::IntoResponse,
     Extension, Json, Router,
 };
@@ -223,13 +223,7 @@ pub struct LoginRequest {
     pub password: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct LoginResult {
-    pub token: String,
-    pub user: crate::model::user::Model,
-}
-
-pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<WebResult<LoginResult>, WebError> {
+pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoResponse, WebError> {
     body.account = body.account.to_lowercase();
 
     let mut user = crate::model::user::Entity::find()
@@ -263,11 +257,23 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<WebResult<Login
     let token = jwt::generate_jwt_token(user.id.clone()).await;
     user.desensitize();
 
-    Ok(WebResult {
-        code: StatusCode::OK.as_u16(),
-        data: Some(LoginResult { token, user }),
-        ..WebResult::default()
-    })
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        SET_COOKIE,
+        format!("token={}; Path=/; HttpOnly; SameSite=Strict", token)
+            .parse()
+            .unwrap(),
+    );
+
+    Ok((
+        StatusCode::OK,
+        headers,
+        WebResult {
+            code: StatusCode::OK.as_u16(),
+            data: Some(user),
+            ..WebResult::default()
+        },
+    ))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
@@ -362,7 +368,7 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metada
             }),
             ..WebResult::default()
         }),
-        None => Err(WebError::NotFound(String::new()))
+        None => Err(WebError::NotFound(String::new())),
     }
 }
 

@@ -1,9 +1,7 @@
 pub mod status;
 
 use axum::async_trait;
-use sea_orm::{
-    entity::prelude::*, IntoActiveModel, QueryOrder, QuerySelect, Set, TryIntoModel,
-};
+use sea_orm::{entity::prelude::*, IntoActiveModel, QueryOrder, QuerySelect, Set, TryIntoModel};
 use serde::{Deserialize, Serialize};
 pub use status::Status;
 
@@ -122,21 +120,11 @@ impl ActiveModelBehavior for ActiveModel {
     }
 }
 
-async fn preload(
-    mut submissions: Vec<Model>,
-) -> Result<Vec<Model>, DbErr> {
-    let users = submissions
-        .load_one(user::Entity, &get_db())
-        .await?;
-    let challenges = submissions
-        .load_one(challenge::Entity, &get_db())
-        .await?;
-    let teams = submissions
-        .load_one(team::Entity, &get_db())
-        .await?;
-    let games = submissions
-        .load_one(game::Entity, &get_db())
-        .await?;
+async fn preload(mut submissions: Vec<Model>) -> Result<Vec<Model>, DbErr> {
+    let users = submissions.load_one(user::Entity, &get_db()).await?;
+    let challenges = submissions.load_one(challenge::Entity, &get_db()).await?;
+    let teams = submissions.load_one(team::Entity, &get_db()).await?;
+    let games = submissions.load_one(game::Entity, &get_db()).await?;
 
     for (i, submission) in submissions.iter_mut().enumerate() {
         submission.user = users[i].clone();
@@ -202,9 +190,7 @@ pub async fn find(
     Ok((submissions, total))
 }
 
-pub async fn get_by_challenge_ids(
-    challenge_ids: Vec<i64>,
-) -> Result<Vec<Model>, DbErr> {
+pub async fn get_by_challenge_ids(challenge_ids: Vec<i64>) -> Result<Vec<Model>, DbErr> {
     let mut submissions = Entity::find()
         .filter(Column::ChallengeId.is_in(challenge_ids))
         .order_by_asc(Column::CreatedAt)

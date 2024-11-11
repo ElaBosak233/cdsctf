@@ -6,6 +6,7 @@ use axum::{
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde::Deserialize;
 use tracing::debug;
+
 use crate::{config, database::get_db, web::traits::WebError};
 
 pub fn router() -> Router {

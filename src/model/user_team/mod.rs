@@ -40,9 +40,7 @@ impl RelationTrait for Relation {
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 
-pub async fn find(
-    user_id: Option<i64>, team_id: Option<i64>,
-) -> Result<(Vec<Model>, u64), DbErr> {
+pub async fn find(user_id: Option<i64>, team_id: Option<i64>) -> Result<(Vec<Model>, u64), DbErr> {
     let mut sql = Entity::find();
 
     if let Some(user_id) = user_id {

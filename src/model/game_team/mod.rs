@@ -62,9 +62,7 @@ pub struct ExPtsModel {
     pub team: Option<team::Model>,
 }
 
-async fn preload(
-    mut game_teams: Vec<Model>,
-) -> Result<Vec<Model>, DbErr> {
+async fn preload(mut game_teams: Vec<Model>) -> Result<Vec<Model>, DbErr> {
     let team_ids: Vec<i64> = game_teams
         .iter()
         .map(|game_team| game_team.team_id)
@@ -82,9 +80,7 @@ async fn preload(
     Ok(game_teams)
 }
 
-pub async fn find(
-    game_id: Option<i64>, team_id: Option<i64>,
-) -> Result<(Vec<Model>, u64), DbErr> {
+pub async fn find(game_id: Option<i64>, team_id: Option<i64>) -> Result<(Vec<Model>, u64), DbErr> {
     let mut sql = Entity::find();
 
     if let Some(game_id) = game_id {
