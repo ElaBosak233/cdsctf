@@ -2,11 +2,10 @@ use std::net::SocketAddr;
 
 use axum::{
     body::Body,
-    extract::{ConnectInfo, Request}
-    ,
+    extract::{ConnectInfo, Request},
+    http::header::COOKIE,
     middleware::Next,
-    response::Response
-    ,
+    response::Response,
 };
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use sea_orm::EntityTrait;
@@ -19,12 +18,25 @@ use crate::{
 };
 
 pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
-    let token = req
+    let cookies = req
         .headers()
-        .get("Authorization")
+        .get(COOKIE)
         .and_then(|header| header.to_str().ok())
-        .and_then(|header| header.strip_prefix("Bearer "))
-        .unwrap_or("");
+        .unwrap_or("")
+        .to_string();
+
+    let mut jar = cookie::CookieJar::new();
+    let cookies: Vec<String> = cookies
+        .split(";")
+        .map(|cookie| cookie.trim().to_string())
+        .collect();
+    for cookie in cookies {
+        if let Ok(parsed_cookie) = cookie::Cookie::parse(cookie) {
+            jar.add(parsed_cookie);
+        }
+    }
+
+    let token = jar.get("token").map(|cookie| cookie.value()).unwrap_or("");
 
     let decoding_key = DecodingKey::from_secret(util::jwt::get_secret().await.as_bytes());
     let validation = Validation::default();
@@ -36,7 +48,7 @@ pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebErro
     if let Ok(data) = result {
         user = crate::model::user::Entity::find_by_id(data.claims.id)
             .one(&get_db())
-            .await.map_err(|_err| WebError::InternalServerError(String::from("internal_server_error")))?;
+            .await?;
 
         if user.is_none() {
             return Err(WebError::Unauthorized(String::from("not_found")));

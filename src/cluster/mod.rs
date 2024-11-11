@@ -1,4 +1,5 @@
 use std::{collections::BTreeMap, process, sync::OnceLock, time::Duration};
+
 use axum::extract::ws::WebSocket;
 use k8s_openapi::api::core::v1::{
     Container as K8sContainer, ContainerPort, EnvVar, Pod, PodSpec, Service, ServicePort,
@@ -10,8 +11,8 @@ use kube::{
     runtime::wait::conditions,
     Client as K8sClient, Config,
 };
-use tracing::{error, info};
 use tokio_util::codec::Framed;
+use tracing::{error, info};
 
 use crate::config;
 
@@ -110,7 +111,8 @@ pub async fn create(
 
     pod_api.create(&PostParams::default(), &pod).await?;
 
-    kube::runtime::wait::await_condition(pod_api.clone(), &name, conditions::is_pod_running()).await?;
+    kube::runtime::wait::await_condition(pod_api.clone(), &name, conditions::is_pod_running())
+        .await?;
 
     let service_api: Api<Service> = Api::namespaced(
         client.clone(),

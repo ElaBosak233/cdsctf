@@ -55,7 +55,10 @@ impl RelationTrait for Relation {
                 .to(challenge::Column::Id)
                 .on_delete(ForeignKeyAction::Cascade)
                 .into(),
-            Self::User => Entity::belongs_to(user::Entity).from(Column::ContactId).to(user::Column::Id).into(),
+            Self::User => Entity::belongs_to(user::Entity)
+                .from(Column::ContactId)
+                .to(user::Column::Id)
+                .into(),
         }
     }
 }
@@ -81,9 +84,7 @@ impl Related<user::Entity> for Entity {
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 
-async fn preload(
-    mut game_challenges: Vec<Model>,
-) -> Result<Vec<Model>, DbErr> {
+async fn preload(mut game_challenges: Vec<Model>) -> Result<Vec<Model>, DbErr> {
     let challenges = game_challenges
         .load_one(challenge::Entity, &get_db())
         .await?;
