@@ -307,7 +307,8 @@ pub async fn delete(
     })
 }
 
-pub async fn get_attachment(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_attachment(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await.unwrap().first() {
         Some((filename, _size)) => {
