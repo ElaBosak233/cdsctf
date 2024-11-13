@@ -7,6 +7,7 @@ pub mod proxy;
 pub mod submission;
 pub mod team;
 pub mod user;
+pub mod metric;
 
 use axum::{http::StatusCode, Json, Router};
 use serde_json::json;
@@ -34,4 +35,5 @@ pub async fn router() -> Router {
         .nest("/games", game::router().await)
         .nest("/pods", pod::router().await)
         .nest("/submissions", submission::router().await)
+        .nest("/metrics", metric::router().await)
 }

@@ -103,6 +103,7 @@ reqwest = { version = "0.12", features = [
     "json",
     "rustls-tls",
 ], default-features = false }
+sysinfo = "0.32.0"
 
 [build-dependencies]
 chrono = { version = "0.4" }
