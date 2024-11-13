@@ -11,6 +11,7 @@ mod model;
 mod queue;
 mod util;
 mod web;
+mod metric;
 
 use std::net::SocketAddr;
 

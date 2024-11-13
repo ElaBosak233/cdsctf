@@ -10,7 +10,7 @@ use tracing::debug;
 use crate::{config, database::get_db, web::traits::WebError};
 
 pub fn router() -> Router {
-    return Router::new().route("/:token", axum::routing::get(link));
+    Router::new().route("/:token", axum::routing::get(link))
 }
 
 #[derive(Deserialize)]
