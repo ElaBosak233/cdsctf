@@ -1,7 +1,9 @@
 use std::time::Duration;
+
+use sysinfo::System;
 use tokio::time::interval;
-use sysinfo::{System};
 use tracing::info;
+
 use crate::metric::{CPU_USAGE, MEMORY_USAGE};
 
 pub async fn init() {
