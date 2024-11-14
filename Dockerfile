@@ -1,4 +1,4 @@
-FROM rust:latest AS backend
+FROM rust:latest AS builder
 
 WORKDIR /app
 
@@ -16,21 +16,11 @@ RUN cargo build --release --target x86_64-unknown-linux-musl
 
 RUN strip target/x86_64-unknown-linux-musl/release/cdsctf
 
-FROM node:20 AS frontend
-
-COPY ./web /app
-    
-WORKDIR /app
-    
-RUN npm install
-RUN npm run build
-
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=backend /app/target/x86_64-unknown-linux-musl/release/cdsctf .
-COPY --from=frontend /app/dist ./dist
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/cdsctf .
 
 EXPOSE 8888
 

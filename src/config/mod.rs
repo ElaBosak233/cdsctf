@@ -5,6 +5,7 @@ pub mod captcha;
 pub mod cluster;
 pub mod consts;
 pub mod db;
+pub mod metric;
 pub mod queue;
 pub mod site;
 
@@ -26,6 +27,7 @@ pub struct Config {
     pub db: db::Config,
     pub queue: queue::Config,
     pub cache: cache::Config,
+    pub metric: metric::Config,
 }
 
 pub async fn init() {
