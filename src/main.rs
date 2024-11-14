@@ -7,11 +7,11 @@ mod database;
 mod email;
 mod logger;
 mod media;
+mod metric;
 mod model;
 mod queue;
 mod util;
 mod web;
-mod metric;
 
 use std::net::SocketAddr;
 

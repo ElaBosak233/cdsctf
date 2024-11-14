@@ -7,10 +7,7 @@ use std::sync::OnceLock;
 
 use axum::{middleware::from_fn, Router};
 use reqwest::Method;
-use tower_http::{
-    cors::{Any, CorsLayer},
-    trace::TraceLayer,
-};
+use tower_http::cors::{Any, CorsLayer};
 
 static APP: OnceLock<Router> = OnceLock::new();
 
@@ -26,17 +23,9 @@ pub async fn init() {
         .allow_headers(Any)
         .allow_origin(Any);
 
-    let app: Router = Router::new()
-        .merge(
-            Router::new()
-                .nest("/api", router::router().await)
-                .layer(from_fn(middleware::auth::jwt))
-                .layer(TraceLayer::new_for_http()),
-        )
-        .layer(from_fn(middleware::frontend::serve))
-        .layer(cors);
+    let router = router::router().await.layer(cors);
 
-    APP.set(app).unwrap();
+    APP.set(router).unwrap();
 }
 
 pub fn get_app() -> Router {

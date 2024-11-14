@@ -1,39 +1,22 @@
-pub mod challenge;
-pub mod config;
-pub mod game;
-pub mod media;
-pub mod pod;
-pub mod proxy;
-pub mod submission;
-pub mod team;
-pub mod user;
-pub mod metric;
+use axum::{
+    middleware::from_fn,
+    response::IntoResponse,
+    Router,
+};
+use tower_http::{trace::TraceLayer};
 
-use axum::{http::StatusCode, Json, Router};
-use serde_json::json;
+use crate::{web::middleware};
+
+pub mod api;
+pub mod metric;
 
 pub async fn router() -> Router {
     Router::new()
-        .route(
-            "/",
-            axum::routing::any(|| async {
-                return (
-                    StatusCode::OK,
-                    Json(json!({
-                        "code": StatusCode::OK.as_u16(),
-                        "msg": format!("{:?}", "This is the heart of Cloudsdale!")
-                    })),
-                );
-            }),
+        .merge(
+            Router::new()
+                .nest("/api", api::router().await)
+                .layer(from_fn(middleware::auth::jwt))
+                .layer(TraceLayer::new_for_http()),
         )
-        .nest("/configs", config::router())
-        .nest("/media", media::router())
-        .nest("/proxies", proxy::router())
-        .nest("/users", user::router())
-        .nest("/teams", team::router())
-        .nest("/challenges", challenge::router())
-        .nest("/games", game::router().await)
-        .nest("/pods", pod::router().await)
-        .nest("/submissions", submission::router().await)
         .nest("/metrics", metric::router().await)
 }
