@@ -61,6 +61,32 @@ async fn bootstrap() {
         listener.unwrap(),
         web::get_app().into_make_service_with_connect_info::<SocketAddr>(),
     )
+    .with_graceful_shutdown(shutdown_signal())
     .await
-    .unwrap();
+    .expect("Failed to start axum server");
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        tokio::signal::ctrl_c().await.expect("Failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate());
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {
+            info!("Received Ctrl+C, shutting down...");
+            std::process::exit(0);
+        },
+        _ = terminate => {
+            info!("Received SIGTERM, shutting down...");
+            std::process::exit(0);
+        }
+    }
 }
