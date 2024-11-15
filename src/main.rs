@@ -68,12 +68,17 @@ async fn bootstrap() {
 
 async fn shutdown_signal() {
     let ctrl_c = async {
-        tokio::signal::ctrl_c().await.expect("Failed to install Ctrl+C handler");
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to install Ctrl+C handler");
     };
 
     #[cfg(unix)]
     let terminate = async {
-        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate());
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("Failed to install signal handler")
+            .recv()
+            .await;
     };
 
     #[cfg(not(unix))]
