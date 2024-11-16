@@ -70,6 +70,8 @@ pub enum WebError {
     TooManyRequests(String),
     #[error("db error: {0}")]
     DatabaseError(#[from] sea_orm::DbErr),
+    #[error("media error: {0}")]
+    MediaError(#[from] crate::media::traits::MediaError),
     #[error("queue error: {0}")]
     QueueError(#[from] crate::queue::traits::QueueError),
     #[error(transparent)]
@@ -90,6 +92,7 @@ impl IntoResponse for WebError {
                 sea_orm::DbErr::RecordNotFound(msg) => (StatusCode::NOT_FOUND, msg.clone()),
                 _ => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
             },
+            Self::MediaError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
             Self::QueueError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
             Self::OtherError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
         };

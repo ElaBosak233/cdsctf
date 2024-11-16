@@ -28,7 +28,9 @@ where
     }
 }
 
-pub async fn getdel<T>(key: impl Into<RedisKey> + Send + Display) -> Result<Option<T>, CacheError>
+pub async fn get_del<T>(
+    key: impl Into<RedisKey> + Send + Display,
+) -> Result<Option<T>, CacheError>
 where
     T: for<'de> Deserialize<'de>, {
     let result = get_client().getdel::<Option<Value>, _>(key).await?;

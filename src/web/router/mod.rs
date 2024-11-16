@@ -1,10 +1,10 @@
+pub mod api;
+pub mod metric;
+
 use axum::{middleware::from_fn, response::IntoResponse, Router};
 use tower_http::trace::TraceLayer;
 
 use crate::web::middleware;
-
-pub mod api;
-pub mod metric;
 
 pub async fn router() -> Router {
     Router::new()
