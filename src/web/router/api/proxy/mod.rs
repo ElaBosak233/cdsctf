@@ -7,7 +7,7 @@ use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde::Deserialize;
 use tracing::debug;
 
-use crate::{config, database::get_db, web::traits::WebError};
+use crate::{config, db::get_db, web::traits::WebError};
 
 pub fn router() -> Router {
     Router::new().route("/:token", axum::routing::get(link))

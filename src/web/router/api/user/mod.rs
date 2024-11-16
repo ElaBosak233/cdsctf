@@ -20,7 +20,7 @@ use validator::Validate;
 
 use crate::{
     config,
-    database::get_db,
+    db::get_db,
     model::user::group::Group,
     util::{jwt, validate},
     web::{
@@ -264,7 +264,7 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
         format!(
             "token={}; Max-Age={}; Path=/; HttpOnly; SameSite=Strict",
             token,
-            chrono::Duration::minutes(config::get_config().auth.jwt.expiration).num_seconds()
+            chrono::Duration::minutes(config::get_config().await.auth.jwt.expiration).num_seconds()
         )
         .parse()
         .unwrap(),
@@ -316,16 +316,6 @@ pub async fn register(
 
     if is_conflict {
         return Err(WebError::Conflict(String::new()));
-    }
-
-    if crate::config::get_config().auth.registration.captcha {
-        let captcha = crate::captcha::new().unwrap();
-        let token = body
-            .token
-            .ok_or(WebError::BadRequest(String::from("invalid_captcha_token")))?;
-        if !captcha.verify(token, ext.client_ip).await {
-            return Err(WebError::BadRequest(String::from("captcha_failed")));
-        }
     }
 
     let hashed_password = Argon2::default()

@@ -32,7 +32,7 @@ pub fn router() -> Router {
 }
 
 use crate::{
-    database::get_db,
+    db::get_db,
     model::{challenge::Category, submission::Status, user::group::Group},
     util::validate,
     web::{

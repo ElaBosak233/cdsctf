@@ -7,7 +7,7 @@ use tokio::{
 
 pub async fn get(path: String, filename: String) -> Result<Vec<u8>, Box<dyn Error>> {
     let filepath =
-        PathBuf::from(crate::config::consts::path::MEDIA).join(format!("{}/{}", path, filename));
+        PathBuf::from(crate::env::consts::path::MEDIA).join(format!("{}/{}", path, filename));
 
     match File::open(&filepath).await {
         Ok(mut file) => {
@@ -22,7 +22,7 @@ pub async fn get(path: String, filename: String) -> Result<Vec<u8>, Box<dyn Erro
 }
 
 pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
-    let filepath = PathBuf::from(crate::config::consts::path::MEDIA).join(path);
+    let filepath = PathBuf::from(crate::env::consts::path::MEDIA).join(path);
     let mut files = Vec::new();
 
     if metadata(&filepath).await.is_err() {
@@ -45,7 +45,7 @@ pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, Box<dyn Error>
 
 pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), Box<dyn Error>> {
     let filepath =
-        PathBuf::from(crate::config::consts::path::MEDIA).join(format!("{}/{}", path, filename));
+        PathBuf::from(crate::env::consts::path::MEDIA).join(format!("{}/{}", path, filename));
     if let Some(parent) = filepath.parent() {
         if metadata(parent).await.is_err() {
             create_dir_all(parent).await?;
@@ -57,7 +57,7 @@ pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), B
 }
 
 pub async fn delete(path: String) -> Result<(), Box<dyn Error>> {
-    let filepath = PathBuf::from(crate::config::consts::path::MEDIA).join(path);
+    let filepath = PathBuf::from(crate::env::consts::path::MEDIA).join(path);
     if metadata(&filepath).await.is_ok() {
         remove_dir_all(&filepath).await?;
     }

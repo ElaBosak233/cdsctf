@@ -14,8 +14,8 @@ pub mod traits;
 
 static CLIENT: OnceCell<RedisClient> = OnceCell::new();
 
-fn get_client() -> &'static RedisClient {
-    CLIENT.get().unwrap()
+fn get_client() -> RedisClient {
+    CLIENT.get().unwrap().clone()
 }
 
 pub async fn get<T>(key: impl Into<RedisKey> + Send + Display) -> Result<Option<T>, CacheError>
@@ -65,7 +65,7 @@ pub async fn flush() -> Result<(), CacheError> {
 }
 
 pub async fn init() {
-    let config = RedisConfig::from_url(&crate::config::get_config().cache.url).unwrap();
+    let config = RedisConfig::from_url(&crate::env::get_env().cache.url).unwrap();
     let client = RedisClient::new(config, None, None, None);
     client.init().await.unwrap();
 

@@ -10,7 +10,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
-use crate::{database::get_db, model::submission::Status};
+use crate::{db::get_db, model::submission::Status};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Payload {

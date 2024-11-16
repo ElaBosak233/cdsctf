@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::{
-    database::get_db,
+    db::get_db,
     model::user::group::Group,
     web::{
         model::Metadata,

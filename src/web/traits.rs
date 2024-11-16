@@ -68,7 +68,7 @@ pub enum WebError {
     Conflict(String),
     #[error("too many requests: {0}")]
     TooManyRequests(String),
-    #[error("database error: {0}")]
+    #[error("db error: {0}")]
     DatabaseError(#[from] sea_orm::DbErr),
     #[error("queue error: {0}")]
     QueueError(#[from] crate::queue::traits::QueueError),

@@ -10,7 +10,7 @@ use sea_orm::{entity::prelude::*, FromJsonQueryResult, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 
 use super::{game, game_challenge, pod, submission};
-use crate::database::get_db;
+use crate::db::get_db;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "challenges")]
