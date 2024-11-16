@@ -104,7 +104,7 @@ pub async fn init_config() {
             }),
             site: Set(crate::config::site::Config {
                 title: String::from("CdsCTF"),
-                description: String::from("CdsCTF is a CTF platform."),
+                description: String::from("Reality is an illusion, the universe is a hologram."),
                 color: String::from("#0C4497"),
                 favicon: String::from(""),
             }),

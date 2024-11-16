@@ -19,7 +19,7 @@ pub struct Model {
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: i64,
-    #[sea_orm(column_type = "Json")]
+    #[sea_orm(column_type = "JsonBinary")]
     pub nats: Vec<Nat>,
     pub removed_at: i64,
     pub created_at: i64,
