@@ -25,7 +25,7 @@ pub static MEMORY_USAGE: Lazy<IntGauge> = Lazy::new(|| {
 });
 
 pub static MEMORY_USAGE_RATIO: Lazy<Gauge> = Lazy::new(|| {
-    let opts = Opts::new("memory_usage_bytes", "Memory usage in bytes")
+    let opts = Opts::new("memory_usage_ratio", "Memory usage ratio")
         .namespace(crate::env::get_env().metric.namespace.clone());
     let gauge = Gauge::with_opts(opts).expect("metric can be created");
     METRICS_REGISTRY.register(Box::new(gauge.clone())).unwrap();
