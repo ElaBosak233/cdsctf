@@ -91,12 +91,7 @@ pub async fn init_config() {
                 },
             }),
             cluster: Set(crate::config::cluster::Config {
-                namespace: String::from("default"),
                 entry: String::from("127.0.0.1"),
-                proxy: crate::config::cluster::proxy::Config {
-                    enabled: true,
-                    traffic_capture: false,
-                },
                 strategy: crate::config::cluster::strategy::Config {
                     parallel_limit: 0,
                     request_limit: 0,

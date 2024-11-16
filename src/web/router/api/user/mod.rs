@@ -21,11 +21,13 @@ use validator::Validate;
 use crate::{
     config,
     db::get_db,
+    media::util::hash,
     model::user::group::Group,
     util::{jwt, validate},
     web::{
         model::Metadata,
         traits::{Ext, WebError, WebResult},
+        util::handle_image_multipart,
     },
 };
 
@@ -368,7 +370,7 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metada
 }
 
 pub async fn save_avatar(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin && operator.id != id {
@@ -376,26 +378,13 @@ pub async fn save_avatar(
     }
 
     let path = format!("users/{}/avatar", id);
-    let mut filename = String::new();
-    let mut data = Vec::<u8>::new();
-    while let Some(field) = multipart.next_field().await.unwrap() {
-        if field.name() == Some("file") {
-            filename = field.file_name().unwrap().to_string();
-            let content_type = field.content_type().unwrap().to_string();
-            let mime: Mime = content_type.parse().unwrap();
-            if mime.type_() != mime::IMAGE {
-                return Err(WebError::BadRequest(String::from("forbidden_file_type")));
-            }
-            data = match field.bytes().await {
-                Ok(bytes) => bytes.to_vec(),
-                Err(_err) => {
-                    return Err(WebError::BadRequest(String::from("size_too_large")));
-                }
-            };
-        }
-    }
 
-    crate::media::delete(path.clone()).await.unwrap();
+    let data = handle_image_multipart(multipart).await?;
+
+    crate::media::delete_dir(path.clone()).await.unwrap();
+
+    let data = crate::media::util::img_convert_to_webp(data).await?;
+    let filename = format!("{}.webp", hash(data.clone()));
 
     let _ = crate::media::save(path, filename, data)
         .await
@@ -417,7 +406,7 @@ pub async fn delete_avatar(
 
     let path = format!("users/{}/avatar", id);
 
-    let _ = crate::media::delete(path)
+    let _ = crate::media::delete_dir(path)
         .await
         .map_err(|_| WebError::InternalServerError(String::new()));
 

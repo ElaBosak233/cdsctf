@@ -103,7 +103,11 @@ reqwest = { version = "0.12", features = [
     "json",
     "rustls-tls",
 ], default-features = false }
-sysinfo = "0.32.0"
+sysinfo = { version = "0.32.0" }
+tempfile = { version = "3.14.0" }
+image = { version = "0.25.5" }
+webp = { version = "0.3.0", features = ["image"] }
+hex = "0.4.3"
 
 [build-dependencies]
 chrono = { version = "0.4" }

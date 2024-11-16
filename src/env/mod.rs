@@ -1,5 +1,6 @@
 pub mod axum;
 pub mod cache;
+pub mod cluster;
 pub mod consts;
 pub mod db;
 pub mod metric;
@@ -21,6 +22,7 @@ pub struct Env {
     pub queue: queue::Env,
     pub cache: cache::Env,
     pub metric: metric::Env,
+    pub cluster: cluster::Env,
 }
 
 pub async fn init() {
