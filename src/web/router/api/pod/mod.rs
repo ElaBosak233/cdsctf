@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    database::get_db,
+    db::get_db,
     model::user::group::Group,
     web::traits::{Ext, WebError, WebResult},
 };

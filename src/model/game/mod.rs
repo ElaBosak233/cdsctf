@@ -3,7 +3,7 @@ use sea_orm::{entity::prelude::*, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 
 use super::{challenge, game_challenge, game_team, pod, submission, team};
-use crate::database::get_db;
+use crate::db::get_db;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "games")]

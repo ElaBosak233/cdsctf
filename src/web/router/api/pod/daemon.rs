@@ -3,7 +3,7 @@ use std::time;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use tracing::info;
 
-use crate::{cluster, database::get_db};
+use crate::{cluster, db::get_db};
 
 pub async fn init() {
     tokio::spawn(async {

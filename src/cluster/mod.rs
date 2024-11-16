@@ -23,23 +23,17 @@ pub fn get_k8s_client() -> &'static K8sClient {
 }
 
 pub async fn init() {
-    match Kubeconfig::read_from(config::get_config().cluster.path.clone()) {
-        Ok(config) => match Config::from_custom_kubeconfig(config, &Default::default()).await {
-            Ok(config) => {
-                let client = K8sClient::try_from(config).unwrap();
-                let _ = K8S_CLIENT.set(client);
-                info!("Kubernetes client initialized successfully.");
-            }
-            Err(e) => {
-                error!(
-                    "Failed to create Kubernetes client from custom config: {:?}",
-                    e
-                );
-                process::exit(1);
-            }
-        },
+    match Config::from_kubeconfig(&Default::default()).await {
+        Ok(config) => {
+            let client = K8sClient::try_from(config).unwrap();
+            let _ = K8S_CLIENT.set(client);
+            info!("Kubernetes client initialized successfully.");
+        }
         Err(e) => {
-            error!("Failed to read Kubernetes config file: {:?}", e);
+            error!(
+                "Failed to create Kubernetes client from custom config: {:?}",
+                e
+            );
             process::exit(1);
         }
     }
@@ -62,7 +56,7 @@ pub async fn create(
 
     let pod_api: Api<Pod> = Api::namespaced(
         client.clone(),
-        config::get_config().cluster.namespace.as_str(),
+        config::get_config().await.cluster.namespace.as_str(),
     );
 
     let mut env_vars: Vec<EnvVar> = challenge
@@ -98,7 +92,7 @@ pub async fn create(
                 name: name.clone(),
                 image: challenge.image_name.clone(),
                 env: Some(env_vars),
-                ports: Some(match config::get_config().cluster.proxy.enabled {
+                ports: Some(match config::get_config().await.cluster.proxy.enabled {
                     true => vec![],
                     false => container_ports,
                 }),
@@ -116,7 +110,7 @@ pub async fn create(
 
     let service_api: Api<Service> = Api::namespaced(
         client.clone(),
-        config::get_config().cluster.namespace.as_str(),
+        config::get_config().await.cluster.namespace.as_str(),
     );
 
     let service = Service {
@@ -156,10 +150,10 @@ pub async fn create(
                     nats.push(crate::model::pod::Nat {
                         src: format!("{}", port.port),
                         dst: Some(format!("{}", node_port)),
-                        proxy: config::get_config().cluster.proxy.enabled,
+                        proxy: config::get_config().await.cluster.proxy.enabled,
                         entry: Some(format!(
                             "{}:{}",
-                            config::get_config().cluster.entry,
+                            config::get_config().await.cluster.entry,
                             node_port
                         )),
                     });
@@ -174,7 +168,7 @@ pub async fn create(
 pub async fn delete(name: String) {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client().clone(),
-        config::get_config().cluster.namespace.as_str(),
+        config::get_config().await.cluster.namespace.as_str(),
     );
     let _ = pod_api.delete(&name, &DeleteParams::default()).await;
 }
@@ -182,7 +176,7 @@ pub async fn delete(name: String) {
 pub async fn wsrx(name: String, port: u16, ws: WebSocket) -> Result<(), anyhow::Error> {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client().clone(),
-        config::get_config().cluster.namespace.as_str(),
+        config::get_config().await.cluster.namespace.as_str(),
     );
     let mut pf = pod_api.portforward(&name, &[port]).await?;
     let pfw = pf.take_stream(port);

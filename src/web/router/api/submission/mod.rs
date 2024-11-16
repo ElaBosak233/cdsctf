@@ -20,7 +20,7 @@ pub async fn router() -> Router {
 }
 
 use crate::{
-    database::get_db,
+    db::get_db,
     model::{submission::Status, user::group::Group},
     web::traits::{Ext, WebError, WebResult},
 };
