@@ -1,11 +1,16 @@
+pub mod traits;
+pub mod util;
+
 use std::{error::Error, path::PathBuf};
 
 use tokio::{
-    fs::{create_dir_all, metadata, read_dir, remove_dir_all, File},
+    fs::{create_dir_all, metadata, read_dir, remove_dir_all, remove_file, File},
     io::{AsyncReadExt, AsyncWriteExt},
 };
 
-pub async fn get(path: String, filename: String) -> Result<Vec<u8>, Box<dyn Error>> {
+use crate::media::traits::MediaError;
+
+pub async fn get(path: String, filename: String) -> Result<Vec<u8>, MediaError> {
     let filepath =
         PathBuf::from(crate::env::consts::path::MEDIA).join(format!("{}/{}", path, filename));
 
@@ -13,15 +18,15 @@ pub async fn get(path: String, filename: String) -> Result<Vec<u8>, Box<dyn Erro
         Ok(mut file) => {
             let mut buffer = Vec::new();
             if let Err(_) = file.read_to_end(&mut buffer).await {
-                return Err("internal_server_error".into());
+                return Err(MediaError::InternalServerError(String::new()));
             }
             Ok(buffer)
         }
-        Err(_) => Err("not_found".into()),
+        Err(_) => Err(MediaError::NotFound(String::new())),
     }
 }
 
-pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
+pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, MediaError> {
     let filepath = PathBuf::from(crate::env::consts::path::MEDIA).join(path);
     let mut files = Vec::new();
 
@@ -43,7 +48,7 @@ pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, Box<dyn Error>
     Ok(files)
 }
 
-pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), Box<dyn Error>> {
+pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), MediaError> {
     let filepath =
         PathBuf::from(crate::env::consts::path::MEDIA).join(format!("{}/{}", path, filename));
     if let Some(parent) = filepath.parent() {
@@ -56,7 +61,16 @@ pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), B
     Ok(())
 }
 
-pub async fn delete(path: String) -> Result<(), Box<dyn Error>> {
+pub async fn delete(path: String, filename: String) -> Result<(), MediaError> {
+    let filepath =
+        PathBuf::from(crate::env::consts::path::MEDIA).join(format!("{}/{}", path, filename));
+    if metadata(&filepath).await.is_ok() {
+        remove_file(&filepath).await?;
+    }
+    Ok(())
+}
+
+pub async fn delete_dir(path: String) -> Result<(), Box<dyn Error>> {
     let filepath = PathBuf::from(crate::env::consts::path::MEDIA).join(path);
     if metadata(&filepath).await.is_ok() {
         remove_dir_all(&filepath).await?;

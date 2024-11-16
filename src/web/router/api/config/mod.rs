@@ -1,31 +1,36 @@
-use std::path::PathBuf;
-
 use axum::{
+    body::Body,
+    extract::Multipart,
     http::{Response, StatusCode},
-    response::IntoResponse,
+    response::{IntoResponse, Redirect},
     Extension, Json, Router,
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::Set};
-use tokio::{fs::File, io::AsyncReadExt};
 
 use crate::{
     config::get_config,
     db::get_db,
-    web::traits::{Ext, WebError, WebResult},
+    model::user::group::Group,
+    web::{
+        traits::{Ext, WebError, WebResult},
+        util::handle_image_multipart,
+    },
 };
 
 pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::put(update))
-        .route("/favicon", axum::routing::get(get_favicon))
+        .route("/icon", axum::routing::get(get_icon))
+        .route("/icon", axum::routing::post(save_icon))
+        .route("/icon", axum::routing::delete(delete_icon))
 }
 
 pub async fn get(
     Extension(ext): Extension<Ext>,
 ) -> Result<WebResult<crate::config::Config>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
-    if operator.group != crate::model::user::group::Group::Admin {
+    if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
     }
 
@@ -40,7 +45,7 @@ pub async fn update(
     Extension(ext): Extension<Ext>, Json(mut body): Json<crate::config::Config>,
 ) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
-    if operator.group != crate::model::user::group::Group::Admin {
+    if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
     }
 
@@ -60,17 +65,54 @@ pub async fn update(
     })
 }
 
-pub async fn get_favicon() -> impl IntoResponse {
-    let path = PathBuf::from(get_config().await.site.favicon.clone());
-
-    match File::open(&path).await {
-        Ok(mut file) => {
-            let mut buffer = Vec::new();
-            if let Err(_) = file.read_to_end(&mut buffer).await {
-                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-            }
-            Response::builder().body(buffer.into()).unwrap()
+pub async fn get_icon() -> impl IntoResponse {
+    let path = String::from("configs");
+    let filename = String::from("icon.webp");
+    match crate::media::get(path, filename).await {
+        Ok(data) => Response::builder().body(Body::from(data)).unwrap(),
+        Err(_) => {
+            Redirect::to("/icon.webp").into_response() // default frontend icon
         }
-        Err(_) => StatusCode::NOT_FOUND.into_response(),
     }
+}
+
+pub async fn save_icon(
+    Extension(ext): Extension<Ext>, multipart: Multipart,
+) -> Result<WebResult<()>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+    let path = String::from("configs");
+    let filename = String::from("icon.webp");
+    let data = handle_image_multipart(multipart).await?;
+    crate::media::delete(path.clone(), filename.clone())
+        .await
+        .unwrap();
+    let data = crate::media::util::img_convert_to_webp(data).await?;
+    let _ = crate::media::save(path, filename, data)
+        .await
+        .map_err(|_| WebError::InternalServerError(String::new()))?;
+
+    Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        ..WebResult::default()
+    })
+}
+
+pub async fn delete_icon(Extension(ext): Extension<Ext>) -> Result<WebResult<()>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(String::new()));
+    }
+    let path = String::from("configs");
+    let filename = String::from("icon.webp");
+    crate::media::delete(path.clone(), filename.clone())
+        .await
+        .unwrap();
+
+    Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        ..WebResult::default()
+    })
 }

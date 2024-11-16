@@ -370,7 +370,7 @@ pub async fn save_attachment(
         }
     }
 
-    crate::media::delete(path.clone()).await.unwrap();
+    crate::media::delete_dir(path.clone()).await.unwrap();
 
     let _ = crate::media::save(path, filename, data)
         .await
@@ -392,7 +392,7 @@ pub async fn delete_attachment(
 
     let path = format!("challenges/{}/attachment", id);
 
-    let _ = crate::media::delete(path)
+    let _ = crate::media::delete_dir(path)
         .await
         .map_err(|_| WebError::InternalServerError(String::new()))?;
 

@@ -14,8 +14,6 @@ use kube::{
 use tokio_util::codec::Framed;
 use tracing::{error, info};
 
-use crate::config;
-
 static K8S_CLIENT: OnceLock<K8sClient> = OnceLock::new();
 
 pub fn get_k8s_client() -> &'static K8sClient {
@@ -56,7 +54,7 @@ pub async fn create(
 
     let pod_api: Api<Pod> = Api::namespaced(
         client.clone(),
-        config::get_config().await.cluster.namespace.as_str(),
+        crate::env::get_env().cluster.namespace.as_str(),
     );
 
     let mut env_vars: Vec<EnvVar> = challenge
@@ -79,7 +77,7 @@ pub async fn create(
         .ports
         .iter()
         .map(|port| ContainerPort {
-            container_port: *port as i32,
+            container_port: *port,
             protocol: Some("TCP".to_string()),
             ..Default::default()
         })
@@ -92,7 +90,7 @@ pub async fn create(
                 name: name.clone(),
                 image: challenge.image_name.clone(),
                 env: Some(env_vars),
-                ports: Some(match config::get_config().await.cluster.proxy.enabled {
+                ports: Some(match crate::env::get_env().cluster.proxy.enabled {
                     true => vec![],
                     false => container_ports,
                 }),
@@ -110,7 +108,7 @@ pub async fn create(
 
     let service_api: Api<Service> = Api::namespaced(
         client.clone(),
-        config::get_config().await.cluster.namespace.as_str(),
+        crate::env::get_env().cluster.namespace.as_str(),
     );
 
     let service = Service {
@@ -125,7 +123,7 @@ pub async fn create(
                     .ports
                     .iter()
                     .map(|port| ServicePort {
-                        port: *port as i32,
+                        port: *port,
                         target_port: None,
                         protocol: Some("TCP".to_string()),
                         ..Default::default()
@@ -150,10 +148,10 @@ pub async fn create(
                     nats.push(crate::model::pod::Nat {
                         src: format!("{}", port.port),
                         dst: Some(format!("{}", node_port)),
-                        proxy: config::get_config().await.cluster.proxy.enabled,
+                        proxy: crate::env::get_env().cluster.proxy.enabled,
                         entry: Some(format!(
                             "{}:{}",
-                            config::get_config().await.cluster.entry,
+                            crate::config::get_config().await.cluster.entry,
                             node_port
                         )),
                     });
@@ -168,7 +166,7 @@ pub async fn create(
 pub async fn delete(name: String) {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client().clone(),
-        config::get_config().await.cluster.namespace.as_str(),
+        crate::env::get_env().cluster.namespace.as_str(),
     );
     let _ = pod_api.delete(&name, &DeleteParams::default()).await;
 }
@@ -176,7 +174,7 @@ pub async fn delete(name: String) {
 pub async fn wsrx(name: String, port: u16, ws: WebSocket) -> Result<(), anyhow::Error> {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client().clone(),
-        config::get_config().await.cluster.namespace.as_str(),
+        crate::env::get_env().cluster.namespace.as_str(),
     );
     let mut pf = pod_api.portforward(&name, &[port]).await?;
     let pfw = pf.take_stream(port);
