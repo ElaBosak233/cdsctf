@@ -35,9 +35,9 @@ pub struct Model {
     #[sea_orm(default_value = 1800)]
     pub duration: i64,
     pub ports: Vec<i32>,
-    #[sea_orm(column_type = "Json")]
+    #[sea_orm(column_type = "JsonBinary")]
     pub envs: Vec<Env>,
-    #[sea_orm(column_type = "Json")]
+    #[sea_orm(column_type = "JsonBinary")]
     pub flags: Vec<Flag>,
     pub created_at: i64,
     pub updated_at: i64,
