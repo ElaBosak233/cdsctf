@@ -11,7 +11,7 @@ use jsonwebtoken::{decode, DecodingKey, Validation};
 use sea_orm::EntityTrait;
 
 use crate::{
-    database::get_db,
+    db::get_db,
     model::user::group::Group,
     util,
     web::traits::{Ext, WebError},

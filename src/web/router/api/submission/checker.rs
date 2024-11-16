@@ -8,7 +8,7 @@ use sea_orm::{
 };
 use tracing::info;
 
-use crate::{database::get_db, model::submission::Status, web::router::api::game::calculator};
+use crate::{db::get_db, model::submission::Status, web::router::api::game::calculator};
 
 async fn check(id: i64) {
     let submission = crate::model::submission::Entity::find()

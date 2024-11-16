@@ -60,16 +60,16 @@ pub async fn subscribe(
 
 pub async fn init() {
     let client = async_nats::ConnectOptions::new()
-        .require_tls(crate::config::get_config().queue.tls)
+        .require_tls(crate::env::get_env().queue.tls)
         .user_and_password(
-            crate::config::get_config().queue.user.clone(),
-            crate::config::get_config().queue.password.clone(),
+            crate::env::get_env().queue.user.clone(),
+            crate::env::get_env().queue.password.clone(),
         )
-        .token(crate::config::get_config().queue.token.clone())
+        .token(crate::env::get_env().queue.token.clone())
         .connect(format!(
             "{}:{}",
-            crate::config::get_config().queue.host,
-            crate::config::get_config().queue.port
+            crate::env::get_env().queue.host,
+            crate::env::get_env().queue.port
         ))
         .await
         .unwrap();

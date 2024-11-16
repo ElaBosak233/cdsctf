@@ -25,6 +25,7 @@ where
 pub async fn migrate(db: &DbConn) {
     create_tables!(
         db,
+        crate::model::config::Entity,
         crate::model::user::Entity,
         crate::model::team::Entity,
         crate::model::user_team::Entity,

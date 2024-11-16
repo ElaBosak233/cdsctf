@@ -1,10 +1,10 @@
 mod assets;
 mod cache;
-mod captcha;
 mod cluster;
 mod config;
-mod database;
+mod db;
 mod email;
+mod env;
 mod logger;
 mod media;
 mod metric;
@@ -38,18 +38,15 @@ async fn bootstrap() {
         .expect("");
 
     logger::init().await;
-    config::init().await;
-    database::init().await;
+    env::init().await;
     queue::init().await;
+    db::init().await;
     cache::init().await;
     cluster::init().await;
+    config::init().await;
     web::init().await;
 
-    let addr = format!(
-        "{}:{}",
-        config::get_config().axum.host,
-        config::get_config().axum.port
-    );
+    let addr = format!("{}:{}", env::get_env().axum.host, env::get_env().axum.port);
     let listener = tokio::net::TcpListener::bind(&addr).await;
 
     info!(

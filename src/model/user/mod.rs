@@ -6,7 +6,7 @@ use sea_orm::{entity::prelude::*, Condition, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 
 use super::{pod, submission, team, user_team};
-use crate::database::get_db;
+use crate::db::get_db;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "users")]
