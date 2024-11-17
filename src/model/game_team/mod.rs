@@ -91,9 +91,9 @@ pub async fn find(game_id: Option<i64>, team_id: Option<i64>) -> Result<(Vec<Mod
         sql = sql.filter(Column::TeamId.eq(team_id));
     }
 
-    let total = sql.clone().count(&get_db()).await?;
+    let total = sql.clone().count(get_db()).await?;
 
-    let mut game_teams = sql.all(&get_db()).await?;
+    let mut game_teams = sql.all(get_db()).await?;
 
     game_teams = preload(game_teams).await?;
 

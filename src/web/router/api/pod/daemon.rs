@@ -11,13 +11,13 @@ pub async fn init() {
         loop {
             let pods = crate::model::pod::Entity::find()
                 .filter(crate::model::pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp()))
-                .all(&get_db())
+                .all(get_db())
                 .await
                 .unwrap();
             for pod in pods {
                 cluster::delete(pod.name.clone()).await;
                 crate::model::pod::Entity::delete_by_id(pod.id)
-                    .exec(&get_db())
+                    .exec(get_db())
                     .await
                     .unwrap();
                 info!("Cleaned up expired cluster: {0}", pod.name);

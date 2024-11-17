@@ -24,13 +24,13 @@ pub async fn calculate(game_id: i64) {
                 .add(crate::model::submission::Column::GameId.eq(game_id))
                 .add(crate::model::submission::Column::Status.eq(Status::Correct)),
         )
-        .all(&get_db())
+        .all(get_db())
         .await
         .unwrap();
 
     let game_challenges = crate::model::game_challenge::Entity::find()
         .filter(Condition::all().add(crate::model::game_challenge::Column::GameId.eq(game_id)))
-        .all(&get_db())
+        .all(get_db())
         .await
         .unwrap();
 
@@ -72,7 +72,7 @@ pub async fn calculate(game_id: i64) {
                 _ => base_pts,
             });
             submission.rank = Set(rank as i64 + 1);
-            submission.update(&get_db()).await.unwrap();
+            submission.update(get_db()).await.unwrap();
         }
 
         let pts = match submissions.len() {
@@ -83,7 +83,7 @@ pub async fn calculate(game_id: i64) {
         };
         let mut game_challenge = game_challenge.into_active_model();
         game_challenge.pts = Set(pts);
-        game_challenge.update(&get_db()).await.unwrap();
+        game_challenge.update(get_db()).await.unwrap();
     }
 
     // calculate pts and rank for each game_team
@@ -93,7 +93,7 @@ pub async fn calculate(game_id: i64) {
                 .add(crate::model::submission::Column::GameId.eq(game_id))
                 .add(crate::model::submission::Column::Status.eq(Status::Correct)),
         )
-        .all(&get_db())
+        .all(get_db())
         .await
         .unwrap();
 
@@ -103,7 +103,7 @@ pub async fn calculate(game_id: i64) {
                 .add(crate::model::game_team::Column::GameId.eq(game_id))
                 .add(crate::model::game_team::Column::IsAllowed.eq(true)),
         )
-        .all(&get_db())
+        .all(get_db())
         .await
         .unwrap();
 
@@ -124,7 +124,7 @@ pub async fn calculate(game_id: i64) {
         let mut game_team = game_team.clone().into_active_model();
         game_team.rank = Set(rank as i64 + 1);
         game_team.pts = Set(pts);
-        game_team.update(&get_db()).await.unwrap();
+        game_team.update(get_db()).await.unwrap();
     }
 }
 
@@ -143,7 +143,7 @@ pub async fn init() {
                 calculate(game_id).await;
             } else {
                 let games = crate::model::game::Entity::find()
-                    .all(&get_db())
+                    .all(get_db())
                     .await
                     .unwrap();
                 for game in games {

@@ -147,7 +147,7 @@ pub async fn create(
 
         ..Default::default()
     }
-    .insert(&get_db())
+    .insert(get_db())
     .await?;
 
     Ok(WebResult {
@@ -202,7 +202,7 @@ pub async fn update(
         frozed_at: body.frozed_at.map_or(NotSet, |v| Set(v)),
         ..Default::default()
     }
-    .update(&get_db())
+    .update(get_db())
     .await?;
 
     Ok(WebResult {
@@ -221,7 +221,7 @@ pub async fn delete(
     }
 
     let _ = crate::model::game::Entity::delete_by_id(id)
-        .exec(&get_db())
+        .exec(get_db())
         .await?;
 
     Ok(WebResult {
@@ -287,7 +287,7 @@ pub async fn create_challenge(
         third_blood_reward_ratio: body.third_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
         ..Default::default()
     }
-    .insert(&get_db())
+    .insert(get_db())
     .await?;
 
     Ok(WebResult {
@@ -334,7 +334,7 @@ pub async fn update_challenge(
         third_blood_reward_ratio: body.third_blood_reward_ratio.map_or(NotSet, |v| Set(v)),
         ..Default::default()
     }
-    .update(&get_db())
+    .update(get_db())
     .await?;
 
     Ok(WebResult {
@@ -355,7 +355,7 @@ pub async fn delete_challenge(
     let _ = crate::model::game_challenge::Entity::delete_many()
         .filter(crate::model::game_challenge::Column::GameId.eq(id))
         .filter(crate::model::game_challenge::Column::ChallengeId.eq(challenge_id))
-        .exec(&get_db())
+        .exec(get_db())
         .await?;
 
     Ok(WebResult {
@@ -405,7 +405,7 @@ pub async fn create_team(
 
         ..Default::default()
     }
-    .insert(&get_db())
+    .insert(get_db())
     .await?;
 
     Ok(WebResult {
@@ -440,7 +440,7 @@ pub async fn update_team(
         is_allowed: body.is_allowed.map_or(NotSet, |v| Set(v)),
         ..Default::default()
     }
-    .update(&get_db())
+    .update(get_db())
     .await?;
 
     Ok(WebResult {
@@ -461,7 +461,7 @@ pub async fn delete_team(
     let _ = crate::model::game_team::Entity::delete_many()
         .filter(crate::model::game_team::Column::GameId.eq(id))
         .filter(crate::model::game_team::Column::TeamId.eq(team_id))
-        .exec(&get_db())
+        .exec(get_db())
         .await?;
 
     Ok(WebResult {
@@ -530,7 +530,7 @@ pub async fn calculate(
 //                 .add(crate::model::game_team::Column::GameId.eq(id))
 //                 .add(crate::model::game_team::Column::IsAllowed.eq(true)),
 //         )
-//         .all(&get_db())
+//         .all(get_db())
 //         .await?;
 
 //     return Ok(());

@@ -107,9 +107,9 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 async fn preload(mut pods: Vec<Model>) -> Result<Vec<Model>, DbErr> {
-    let users = pods.load_one(user::Entity, &get_db()).await?;
-    let teams = pods.load_one(team::Entity, &get_db()).await?;
-    let challenges = pods.load_one(challenge::Entity, &get_db()).await?;
+    let users = pods.load_one(user::Entity, get_db()).await?;
+    let teams = pods.load_one(team::Entity, get_db()).await?;
+    let challenges = pods.load_one(challenge::Entity, get_db()).await?;
 
     for (i, pod) in pods.iter_mut().enumerate() {
         pod.user = users[i].clone();
@@ -156,9 +156,9 @@ pub async fn find(
         }
     }
 
-    let total = sql.clone().count(&get_db()).await?;
+    let total = sql.clone().count(get_db()).await?;
 
-    let mut pods = sql.all(&get_db()).await?;
+    let mut pods = sql.all(get_db()).await?;
 
     pods = preload(pods).await?;
 

@@ -50,7 +50,7 @@ pub async fn init() {
 
 pub async fn sync() {
     let config = crate::model::config::Entity::find()
-        .one(&get_db())
+        .one(get_db())
         .await
         .unwrap();
     if let Some(config) = config {

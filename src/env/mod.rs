@@ -36,6 +36,6 @@ pub async fn init() {
     }
 }
 
-pub fn get_env() -> Env {
-    APP_ENV.get().unwrap().clone()
+pub fn get_env() -> &'static Env {
+    APP_ENV.get().unwrap()
 }

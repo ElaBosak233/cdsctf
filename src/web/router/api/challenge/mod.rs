@@ -220,7 +220,7 @@ pub async fn create(
         flags: Set(body.flags.unwrap_or(vec![])),
         ..Default::default()
     }
-    .insert(&get_db())
+    .insert(get_db())
     .await?;
 
     Ok(WebResult {
@@ -279,7 +279,7 @@ pub async fn update(
         flags: body.flags.map_or(NotSet, |v| Set(v)),
         ..Default::default()
     }
-    .update(&get_db())
+    .update(get_db())
     .await?;
 
     Ok(WebResult {
@@ -298,7 +298,7 @@ pub async fn delete(
     }
 
     let _ = crate::model::challenge::Entity::delete_by_id(id)
-        .exec(&get_db())
+        .exec(get_db())
         .await?;
 
     Ok(WebResult {

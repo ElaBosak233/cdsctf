@@ -47,7 +47,7 @@ pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebErro
 
     if let Ok(data) = result {
         user = crate::model::user::Entity::find_by_id(data.claims.id)
-            .one(&get_db())
+            .one(get_db())
             .await?;
 
         if user.is_none() {

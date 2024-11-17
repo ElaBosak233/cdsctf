@@ -95,7 +95,7 @@ impl ActiveModelBehavior for ActiveModel {
 
 async fn preload(mut teams: Vec<Model>) -> Result<Vec<Model>, DbErr> {
     let users = teams
-        .load_many_to_many(user::Entity, user_team::Entity, &get_db())
+        .load_many_to_many(user::Entity, user_team::Entity, get_db())
         .await?;
 
     for (i, team) in teams.iter_mut().enumerate() {
@@ -129,7 +129,7 @@ pub async fn find(
         sql = sql.filter(Column::Email.eq(email));
     }
 
-    let total = sql.clone().count(&get_db()).await?;
+    let total = sql.clone().count(get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
@@ -138,7 +138,7 @@ pub async fn find(
         }
     }
 
-    let mut teams = sql.all(&get_db()).await?;
+    let mut teams = sql.all(get_db()).await?;
 
     teams = preload(teams).await?;
 
@@ -148,7 +148,7 @@ pub async fn find(
 pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<Model>, DbErr> {
     let mut teams = Entity::find()
         .filter(Column::Id.is_in(ids))
-        .all(&get_db())
+        .all(get_db())
         .await?;
 
     teams = preload(teams).await?;
@@ -163,7 +163,7 @@ pub async fn find_by_user_id(id: i64) -> Result<Vec<Model>, DbErr> {
         .filter(user_team::Column::UserId.eq(id))
         .join(JoinType::InnerJoin, user_team::Relation::Team.def())
         .into_model::<Model>()
-        .all(&get_db())
+        .all(get_db())
         .await?;
 
     teams = preload(teams).await?;

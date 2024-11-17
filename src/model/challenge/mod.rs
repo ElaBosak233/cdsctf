@@ -129,7 +129,7 @@ pub async fn find(
         sql = sql.filter(Column::IsDynamic.eq(is_dynamic));
     }
 
-    let total = sql.clone().count(&get_db()).await?;
+    let total = sql.clone().count(get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
@@ -138,7 +138,7 @@ pub async fn find(
         }
     }
 
-    let challenges = sql.all(&get_db()).await?;
+    let challenges = sql.all(get_db()).await?;
 
     Ok((challenges, total))
 }
@@ -146,7 +146,7 @@ pub async fn find(
 pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<Model>, DbErr> {
     let challenges = Entity::find()
         .filter(Column::Id.is_in(ids))
-        .all(&get_db())
+        .all(get_db())
         .await?;
 
     Ok(challenges)

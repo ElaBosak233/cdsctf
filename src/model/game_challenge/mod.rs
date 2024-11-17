@@ -86,7 +86,7 @@ impl ActiveModelBehavior for ActiveModel {}
 
 async fn preload(mut game_challenges: Vec<Model>) -> Result<Vec<Model>, DbErr> {
     let challenges = game_challenges
-        .load_one(challenge::Entity, &get_db())
+        .load_one(challenge::Entity, get_db())
         .await?;
 
     for (i, game_challenge) in game_challenges.iter_mut().enumerate() {
@@ -113,9 +113,9 @@ pub async fn find(
         sql = sql.filter(Column::IsEnabled.eq(is_enabled));
     }
 
-    let total = sql.clone().count(&get_db()).await?;
+    let total = sql.clone().count(get_db()).await?;
 
-    let mut game_challenges = sql.all(&get_db()).await?;
+    let mut game_challenges = sql.all(get_db()).await?;
 
     game_challenges = preload(game_challenges).await?;
 
