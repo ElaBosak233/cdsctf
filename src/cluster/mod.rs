@@ -1,5 +1,3 @@
-use std::{collections::BTreeMap, process, sync::OnceLock, time::Duration};
-
 use axum::extract::ws::WebSocket;
 use k8s_openapi::api::core::v1::{
     Container as K8sContainer, ContainerPort, EnvVar, Pod, PodSpec, Service, ServicePort,
@@ -11,30 +9,34 @@ use kube::{
     runtime::wait::conditions,
     Client as K8sClient, Config,
 };
+use once_cell::sync::OnceCell;
+use std::{collections::BTreeMap, process, sync::OnceLock, time::Duration};
 use tokio_util::codec::Framed;
 use tracing::{error, info};
 
-static K8S_CLIENT: OnceLock<K8sClient> = OnceLock::new();
+static K8S_CLIENT: OnceCell<K8sClient> = OnceCell::new();
 
 pub fn get_k8s_client() -> &'static K8sClient {
     K8S_CLIENT.get().unwrap()
 }
 
 pub async fn init() {
-    match Config::from_kubeconfig(&Default::default()).await {
-        Ok(config) => {
-            let client = K8sClient::try_from(config).unwrap();
-            let _ = K8S_CLIENT.set(client);
-            info!("Kubernetes client initialized successfully.");
-        }
-        Err(e) => {
-            error!(
+    let result = Config::from_kubeconfig(&Default::default()).await;
+    if let Err(e) = result {
+        error!(
                 "Failed to create Kubernetes client from custom config: {:?}",
                 e
             );
-            process::exit(1);
-        }
+        process::exit(1);
     }
+    let config = result.unwrap();
+    let client = K8sClient::try_from(config).unwrap();
+    if let Err(_) = client.apiserver_version().await {
+        error!("Failed to connect to Kubernetes API server.");
+        process::exit(1);
+    }
+    let _ = K8S_CLIENT.set(client);
+    info!("Kubernetes client initialized successfully.");
 }
 
 pub async fn create(

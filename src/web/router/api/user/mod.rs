@@ -9,11 +9,11 @@ use axum::{
     response::IntoResponse,
     Extension, Json, Router,
 };
-use mime::Mime;
 use reqwest::StatusCode;
+use sea_orm::ActiveValue::Set;
 use sea_orm::{
     prelude::Expr, sea_query::Func, ActiveModelTrait, ActiveValue::NotSet, Condition, EntityTrait,
-    PaginatorTrait, QueryFilter, Set,
+    PaginatorTrait, QueryFilter,
 };
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -75,7 +75,7 @@ pub async fn get(
         params.page,
         params.size,
     )
-    .await?;
+        .await?;
 
     for user in users.iter_mut() {
         user.desensitize();
@@ -124,8 +124,8 @@ pub async fn create(
         group: Set(body.group),
         ..Default::default()
     }
-    .insert(&get_db())
-    .await?;
+        .insert(get_db())
+        .await?;
 
     user.desensitize();
 
@@ -156,7 +156,7 @@ pub async fn update(
     body.id = Some(id);
     if !(operator.group == Group::Admin
         || (operator.id == body.id.unwrap_or(0)
-            && (body.group.clone().is_none() || operator.group == body.group.clone().unwrap())))
+        && (body.group.clone().is_none() || operator.group == body.group.clone().unwrap())))
     {
         return Err(WebError::Forbidden(String::new()));
     }
@@ -178,8 +178,8 @@ pub async fn update(
         group: body.group.map_or(NotSet, |v| Set(v)),
         ..Default::default()
     }
-    .update(&get_db())
-    .await?;
+        .update(get_db())
+        .await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -196,8 +196,12 @@ pub async fn delete(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let _ = crate::model::user::Entity::delete_by_id(id)
-        .exec(&get_db())
+    let _ = crate::model::user::ActiveModel {
+        id: Set(id),
+        is_deleted: Set(true),
+        ..Default::default()
+    }
+        .update(get_db())
         .await?;
 
     Ok(WebResult {
@@ -241,7 +245,7 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
                         .eq(body.account.clone()),
                 ),
         )
-        .one(&get_db())
+        .one(get_db())
         .await?
         .ok_or_else(|| WebError::BadRequest(String::from("invalid")))?;
 
@@ -268,8 +272,8 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
             token,
             chrono::Duration::minutes(config::get_config().await.auth.jwt.expiration).num_seconds()
         )
-        .parse()
-        .unwrap(),
+            .parse()
+            .unwrap(),
     );
 
     Ok((
@@ -312,7 +316,7 @@ pub async fn register(
                         .eq(body.email.clone()),
                 ),
         )
-        .count(&get_db())
+        .count(get_db())
         .await?
         > 0;
 
@@ -333,8 +337,8 @@ pub async fn register(
         group: Set(Group::User),
         ..Default::default()
     }
-    .insert(&get_db())
-    .await?;
+        .insert(get_db())
+        .await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),

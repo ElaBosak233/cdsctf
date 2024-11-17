@@ -36,19 +36,19 @@ pub async fn init() {
 
     let db: DatabaseConnection = Database::connect(opt).await.unwrap();
     DB.set(db).unwrap();
-    migration::migrate(&get_db()).await;
+    migration::migrate(get_db()).await;
     info!("Database connection established successfully.");
     init_admin().await;
     init_config().await;
 }
 
-pub fn get_db() -> DatabaseConnection {
-    DB.get().unwrap().clone()
+pub fn get_db() -> &'static DatabaseConnection {
+    DB.get().unwrap()
 }
 
 pub async fn init_admin() {
     let total = crate::model::user::Entity::find()
-        .count(&get_db())
+        .count(get_db())
         .await
         .unwrap();
     if total == 0 {
@@ -64,14 +64,14 @@ pub async fn init_admin() {
             password: Set(hashed_password),
             ..Default::default()
         };
-        user.insert(&get_db()).await.unwrap();
+        user.insert(get_db()).await.unwrap();
         info!("Admin user created successfully.");
     }
 }
 
 pub async fn init_config() {
     let total = crate::model::config::Entity::find()
-        .count(&get_db())
+        .count(get_db())
         .await
         .unwrap();
     if total == 0 {
@@ -105,7 +105,7 @@ pub async fn init_config() {
             }),
             ..Default::default()
         };
-        config.insert(&get_db()).await.unwrap();
+        config.insert(get_db()).await.unwrap();
         info!("Default configuration created successfully.");
     }
 }
