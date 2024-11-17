@@ -92,7 +92,7 @@ pub async fn create(
         .one(&get_db())
         .await?;
 
-    let challenge = challenge.unwrap();
+    let challenge = challenge.ok_or(WebError::BadRequest(String::from("challenge_not_found")))?;
 
     let ctn_name = format!("cds-{}", Uuid::new_v4().simple().to_string());
 
