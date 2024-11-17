@@ -17,7 +17,7 @@ async fn check(id: i64) {
                 .add(crate::model::submission::Column::Id.eq(id))
                 .add(crate::model::submission::Column::Status.eq(Status::Pending)),
         )
-        .one(&get_db())
+        .one(get_db())
         .await
         .unwrap();
 
@@ -28,13 +28,13 @@ async fn check(id: i64) {
     let submission = submission.unwrap();
 
     let user = crate::model::user::Entity::find_by_id(submission.user_id)
-        .one(&get_db())
+        .one(get_db())
         .await
         .unwrap();
 
     if user.is_none() {
         crate::model::submission::Entity::delete_by_id(submission.id)
-            .exec(&get_db())
+            .exec(get_db())
             .await
             .unwrap();
         return;
@@ -44,13 +44,13 @@ async fn check(id: i64) {
 
     // Get related challenge
     let challenge = crate::model::challenge::Entity::find_by_id(submission.challenge_id)
-        .one(&get_db())
+        .one(get_db())
         .await
         .unwrap();
 
     if challenge.is_none() {
         crate::model::submission::Entity::delete_by_id(submission.id)
-            .exec(&get_db())
+            .exec(get_db())
             .await
             .unwrap();
         return;
@@ -67,7 +67,7 @@ async fn check(id: i64) {
                 }))
                 .add(crate::model::submission::Column::Status.eq(Status::Correct)),
         )
-        .all(&get_db())
+        .all(get_db())
         .await
         .unwrap();
 
@@ -88,7 +88,7 @@ async fn check(id: i64) {
                             Condition::all().add(crate::model::pod::Column::GameId.eq(game_id))
                         })),
                 )
-                .all(&get_db())
+                .all(get_db())
                 .await
                 .unwrap();
 
@@ -136,7 +136,7 @@ async fn check(id: i64) {
     let mut submission_active_model = submission.clone().into_active_model();
     submission_active_model.status = Set(status.clone());
 
-    submission_active_model.update(&get_db()).await.unwrap();
+    submission_active_model.update(get_db()).await.unwrap();
 
     if submission.game_id.is_some() && status == Status::Correct {
         crate::queue::publish(
@@ -154,7 +154,7 @@ async fn recover() {
     let unchecked_submissions = crate::model::submission::Entity::find()
         .filter(crate::model::submission::Column::Status.eq(Status::Pending))
         .order_by_asc(crate::model::submission::Column::CreatedAt)
-        .all(&get_db())
+        .all(get_db())
         .await
         .unwrap();
 

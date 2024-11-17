@@ -79,7 +79,7 @@ pub async fn get_by_id(
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let submission = crate::model::submission::Entity::find_by_id(id)
-        .one(&get_db())
+        .one(get_db())
         .await?;
 
     if submission.is_none() {
@@ -114,7 +114,7 @@ pub async fn create(
 
     if let Some(challenge_id) = body.challenge_id {
         let challenge = crate::model::challenge::Entity::find_by_id(challenge_id)
-            .one(&get_db())
+            .one(get_db())
             .await?;
 
         if challenge.is_none() {
@@ -124,7 +124,7 @@ pub async fn create(
 
     if let Some(game_id) = body.game_id {
         let game = crate::model::game::Entity::find_by_id(game_id)
-            .one(&get_db())
+            .one(get_db())
             .await?;
 
         if game.is_none() {
@@ -134,7 +134,7 @@ pub async fn create(
 
     if let Some(team_id) = body.team_id {
         let team = crate::model::team::Entity::find_by_id(team_id)
-            .one(&get_db())
+            .one(get_db())
             .await?;
 
         if team.is_none() {
@@ -151,7 +151,7 @@ pub async fn create(
         status: Set(Status::Pending),
         ..Default::default()
     }
-    .insert(&get_db())
+    .insert(get_db())
     .await?;
 
     crate::queue::publish("checker", submission.id).await?;
@@ -172,7 +172,7 @@ pub async fn delete(
     }
 
     let _ = crate::model::submission::Entity::delete_by_id(id)
-        .exec(&get_db())
+        .exec(get_db())
         .await?;
 
     Ok(WebResult {

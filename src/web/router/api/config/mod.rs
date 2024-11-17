@@ -57,7 +57,7 @@ pub async fn update(
         ..Default::default()
     };
 
-    config.update(&get_db()).await?;
+    config.update(get_db()).await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),

@@ -85,7 +85,7 @@ impl ActiveModelBehavior for ActiveModel {
 
 async fn preload(mut users: Vec<Model>) -> Result<Vec<Model>, DbErr> {
     let teams = users
-        .load_many_to_many(team::Entity, user_team::Entity, &get_db())
+        .load_many_to_many(team::Entity, user_team::Entity, get_db())
         .await?;
 
     for (i, user) in users.iter_mut().enumerate() {
@@ -125,7 +125,7 @@ pub async fn find(
         sql = sql.filter(Column::Email.eq(email));
     }
 
-    let total = sql.clone().count(&get_db()).await?;
+    let total = sql.clone().count(get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
@@ -134,7 +134,7 @@ pub async fn find(
         }
     }
 
-    let mut users = sql.all(&get_db()).await?;
+    let mut users = sql.all(get_db()).await?;
 
     users = preload(users).await?;
 

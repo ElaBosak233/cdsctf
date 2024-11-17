@@ -101,7 +101,7 @@ pub async fn find(
         sql = sql.filter(Column::IsEnabled.eq(is_enabled));
     }
 
-    let total = sql.clone().count(&get_db()).await?;
+    let total = sql.clone().count(get_db()).await?;
 
     if let Some(page) = page {
         if let Some(size) = size {
@@ -110,7 +110,7 @@ pub async fn find(
         }
     }
 
-    let games = sql.all(&get_db()).await?;
+    let games = sql.all(get_db()).await?;
 
     Ok((games, total))
 }

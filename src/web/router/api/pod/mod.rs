@@ -89,7 +89,7 @@ pub async fn create(
     body.user_id = Some(operator.id);
 
     let challenge = crate::model::challenge::Entity::find_by_id(body.challenge_id)
-        .one(&get_db())
+        .one(get_db())
         .await?;
 
     let challenge = challenge.ok_or(WebError::BadRequest(String::from("challenge_not_found")))?;
@@ -124,7 +124,7 @@ pub async fn create(
         nats: Set(nats),
         ..Default::default()
     }
-    .insert(&get_db())
+    .insert(get_db())
     .await?;
 
     pod.desensitize();
@@ -157,20 +157,20 @@ pub async fn renew(
 
     let pod = crate::model::pod::Entity::find()
         .filter(crate::model::pod::Column::Id.eq(id))
-        .one(&get_db())
+        .one(get_db())
         .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
 
     check_permission!(operator, pod);
 
     let challenge = crate::model::challenge::Entity::find_by_id(pod.challenge_id)
-        .one(&get_db())
+        .one(get_db())
         .await?;
     let challenge = challenge.unwrap();
 
     let mut pod = pod.clone().into_active_model();
     pod.removed_at = Set(chrono::Utc::now().timestamp() + challenge.duration);
-    let _ = pod.update(&get_db()).await;
+    let _ = pod.update(get_db()).await;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -184,7 +184,7 @@ pub async fn stop(
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let pod = crate::model::pod::Entity::find_by_id(id)
-        .one(&get_db())
+        .one(get_db())
         .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
 
@@ -198,7 +198,7 @@ pub async fn stop(
     let mut pod = pod.clone().into_active_model();
     pod.removed_at = Set(chrono::Utc::now().timestamp());
 
-    let _ = pod.update(&get_db()).await?;
+    let _ = pod.update(get_db()).await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
