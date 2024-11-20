@@ -11,6 +11,18 @@ use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
+use crate::{
+    db::{
+        entity::{submission::Status, user::Group},
+        get_db,
+    },
+    util::validate,
+    web::{
+        model::Metadata,
+        traits::{Ext, WebError, WebResult},
+    },
+};
+
 pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get))
@@ -31,21 +43,11 @@ pub fn router() -> Router {
         .route("/:id/attachment", axum::routing::delete(delete_attachment))
 }
 
-use crate::{
-    db::get_db,
-    model::{challenge::Category, submission::Status, user::group::Group},
-    util::validate,
-    web::{
-        model::Metadata,
-        traits::{Ext, WebError, WebResult},
-    },
-};
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetRequest {
     pub id: Option<i64>,
     pub title: Option<String>,
-    pub category: Option<Category>,
+    pub category: Option<i32>,
     pub tags: Option<Vec<String>>,
     pub is_practicable: Option<bool>,
     pub is_dynamic: Option<bool>,
@@ -56,13 +58,13 @@ pub struct GetRequest {
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::model::challenge::Model>>, WebError> {
+) -> Result<WebResult<Vec<crate::shared::Challenge>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let (mut challenges, total) = crate::model::challenge::find(
+    let (mut challenges, total) = crate::shared::challenge::find(
         params.id,
         params.title,
         params.category,
@@ -101,7 +103,7 @@ pub struct StatusResult {
     pub is_solved: bool,
     pub solved_times: i64,
     pub pts: i64,
-    pub bloods: Vec<crate::model::submission::Model>,
+    pub bloods: Vec<crate::shared::Submission>,
 }
 
 pub async fn get_status(
@@ -109,7 +111,8 @@ pub async fn get_status(
 ) -> Result<WebResult<HashMap<i64, StatusResult>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let mut submissions = crate::model::submission::get_by_challenge_ids(body.cids.clone()).await?;
+    let mut submissions =
+        crate::shared::submission::get_by_challenge_ids(body.cids.clone()).await?;
 
     let mut result: HashMap<i64, StatusResult> = HashMap::new();
 
@@ -161,7 +164,7 @@ pub async fn get_status(
 
     if let Some(game_id) = body.game_id {
         let (game_challenges, _) =
-            crate::model::game_challenge::find(Some(game_id), None, None).await?;
+            crate::shared::game_challenge::find(Some(game_id), None, None).await?;
 
         for game_challenge in game_challenges {
             let status_response = result.get_mut(&game_challenge.challenge_id).unwrap();
@@ -180,7 +183,7 @@ pub async fn get_status(
 pub struct CreateRequest {
     pub title: String,
     pub description: String,
-    pub category: Category,
+    pub category: i32,
     pub tags: Option<Vec<String>>,
     pub is_practicable: Option<bool>,
     pub is_dynamic: Option<bool>,
@@ -191,19 +194,19 @@ pub struct CreateRequest {
     pub memory_limit: Option<i64>,
     pub duration: Option<i64>,
     pub ports: Option<Vec<i32>>,
-    pub envs: Option<Vec<crate::model::challenge::Env>>,
-    pub flags: Option<Vec<crate::model::challenge::Flag>>,
+    pub envs: Option<Vec<crate::db::entity::challenge::Env>>,
+    pub flags: Option<Vec<crate::db::entity::challenge::Flag>>,
 }
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
-) -> Result<WebResult<crate::model::challenge::Model>, WebError> {
+) -> Result<WebResult<crate::shared::Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let challenge = crate::model::challenge::ActiveModel {
+    let challenge = crate::db::entity::challenge::ActiveModel {
         title: Set(body.title),
         description: Set(Some(body.description)),
         category: Set(body.category),
@@ -222,6 +225,7 @@ pub async fn create(
     }
     .insert(get_db())
     .await?;
+    let challenge = crate::shared::Challenge::from(challenge);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -235,7 +239,7 @@ pub struct UpdateRequest {
     pub id: Option<i64>,
     pub title: Option<String>,
     pub description: Option<String>,
-    pub category: Option<Category>,
+    pub category: Option<i32>,
     pub tags: Option<Vec<String>>,
     pub is_practicable: Option<bool>,
     pub is_dynamic: Option<bool>,
@@ -246,14 +250,14 @@ pub struct UpdateRequest {
     pub memory_limit: Option<i64>,
     pub duration: Option<i64>,
     pub ports: Option<Vec<i32>>,
-    pub envs: Option<Vec<crate::model::challenge::Env>>,
-    pub flags: Option<Vec<crate::model::challenge::Flag>>,
+    pub envs: Option<Vec<crate::db::entity::challenge::Env>>,
+    pub flags: Option<Vec<crate::db::entity::challenge::Flag>>,
 }
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
     validate::Json(mut body): validate::Json<UpdateRequest>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<WebResult<crate::shared::Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -261,7 +265,7 @@ pub async fn update(
 
     body.id = Some(id);
 
-    let challenge = crate::model::challenge::ActiveModel {
+    let challenge = crate::db::entity::challenge::ActiveModel {
         id: body.id.map_or(NotSet, |v| Set(v)),
         title: body.title.map_or(NotSet, |v| Set(v)),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
@@ -281,6 +285,7 @@ pub async fn update(
     }
     .update(get_db())
     .await?;
+    let challenge = crate::shared::Challenge::from(challenge);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -297,7 +302,7 @@ pub async fn delete(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let _ = crate::model::challenge::Entity::delete_by_id(id)
+    let _ = crate::db::entity::challenge::Entity::delete_by_id(id)
         .exec(get_db())
         .await?;
 
