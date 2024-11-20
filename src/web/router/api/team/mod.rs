@@ -5,18 +5,17 @@ use axum::{
     response::IntoResponse,
     Extension, Json, Router,
 };
-use sea_orm::ActiveValue::Set;
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter,
-    QuerySelect,
+    ActiveModelTrait,
+    ActiveValue::{NotSet, Set},
+    ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::{
-    db::get_db,
+    db::{entity::user::Group, get_db},
     media::util::hash,
-    model::user::group::Group,
     web::{
         model::Metadata,
         traits::{Ext, WebError, WebResult},
@@ -49,12 +48,12 @@ pub fn router() -> Router {
         .route("/:id/avatar", axum::routing::delete(delete_avatar))
 }
 
-fn can_modify_team(user: crate::model::user::Model, team_id: i64) -> bool {
+fn can_modify_team(user: crate::shared::User, team_id: i64) -> bool {
     user.group == Group::Admin
         || user
-        .teams
-        .iter()
-        .any(|team| team.id == team_id && team.captain_id == user.id)
+            .teams
+            .iter()
+            .any(|team| team.id == team_id && team.captain_id == user.id)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
@@ -69,15 +68,15 @@ pub struct GetRequest {
 
 pub async fn get(
     Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::model::team::Model>>, WebError> {
-    let (teams, total) = crate::model::team::find(
+) -> Result<WebResult<Vec<crate::shared::Team>>, WebError> {
+    let (teams, total) = crate::shared::team::find(
         params.id,
         params.name,
         params.email,
         params.page,
         params.size,
     )
-        .await?;
+    .await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -97,29 +96,31 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
-) -> Result<WebResult<crate::model::team::Model>, WebError> {
+) -> Result<WebResult<crate::shared::Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if !(operator.group == Group::Admin || operator.id == body.captain_id) {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let team = crate::model::team::ActiveModel {
+    let team = crate::db::entity::team::ActiveModel {
         name: Set(body.name),
         email: Set(Some(body.email)),
         captain_id: Set(body.captain_id),
         slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
-        .insert(get_db())
-        .await?;
+    .insert(get_db())
+    .await?;
 
-    let _ = crate::model::user_team::ActiveModel {
+    let team = crate::shared::Team::from(team);
+
+    let _ = crate::db::entity::user_team::ActiveModel {
         user_id: Set(body.captain_id),
         team_id: Set(team.id),
         ..Default::default()
     }
-        .insert(get_db())
-        .await?;
+    .insert(get_db())
+    .await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -139,7 +140,7 @@ pub struct UpdateRequest {
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<UpdateRequest>,
-) -> Result<WebResult<crate::model::team::Model>, WebError> {
+) -> Result<WebResult<crate::shared::Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     if !can_modify_team(operator, id) {
@@ -147,7 +148,7 @@ pub async fn update(
     }
     body.id = Some(id);
 
-    let team = crate::model::team::ActiveModel {
+    let team = crate::db::entity::team::ActiveModel {
         id: body.id.map_or(NotSet, |v| Set(v)),
         name: body.name.map_or(NotSet, |v| Set(v)),
         email: body.email.map_or(NotSet, |v| Set(Some(v))),
@@ -155,8 +156,9 @@ pub async fn update(
         slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
-        .update(get_db())
-        .await?;
+    .update(get_db())
+    .await?;
+    let team = crate::shared::Team::from(team);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -174,13 +176,13 @@ pub async fn delete(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let _ = crate::model::team::ActiveModel {
+    let _ = crate::db::entity::team::ActiveModel {
         id: Set(id),
         is_deleted: Set(true),
         ..Default::default()
     }
-        .update(get_db())
-        .await?;
+    .update(get_db())
+    .await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -202,12 +204,12 @@ pub async fn create_user(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let _ = crate::model::user_team::ActiveModel {
+    let _ = crate::db::entity::user_team::ActiveModel {
         user_id: Set(body.user_id),
         team_id: Set(body.team_id),
     }
-        .insert(get_db())
-        .await?;
+    .insert(get_db())
+    .await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -223,9 +225,9 @@ pub async fn delete_user(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let _ = crate::model::user_team::Entity::delete_many()
-        .filter(crate::model::user_team::Column::UserId.eq(user_id))
-        .filter(crate::model::user_team::Column::TeamId.eq(id))
+    let _ = crate::db::entity::user_team::Entity::delete_many()
+        .filter(crate::db::entity::user_team::Column::UserId.eq(user_id))
+        .filter(crate::db::entity::user_team::Column::TeamId.eq(id))
         .exec(get_db())
         .await?;
 
@@ -244,9 +246,9 @@ pub async fn get_invite_token(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let team = crate::model::team::Entity::find_by_id(id)
+    let team = crate::db::entity::team::Entity::find_by_id(id)
         .select_only()
-        .column(crate::model::team::Column::InviteToken)
+        .column(crate::db::entity::team::Column::InviteToken)
         .one(get_db())
         .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
@@ -266,7 +268,7 @@ pub async fn update_invite_token(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let mut team = crate::model::team::Entity::find_by_id(id)
+    let mut team = crate::db::entity::team::Entity::find_by_id(id)
         .one(get_db())
         .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?
@@ -293,17 +295,17 @@ pub struct JoinRequest {
 
 pub async fn join(
     Extension(ext): Extension<Ext>, Json(mut body): Json<JoinRequest>,
-) -> Result<WebResult<crate::model::user_team::Model>, WebError> {
+) -> Result<WebResult<crate::shared::UserTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     body.user_id = operator.id;
 
-    let _ = crate::model::user::Entity::find_by_id(body.user_id)
+    let _ = crate::db::entity::user::Entity::find_by_id(body.user_id)
         .one(get_db())
         .await?
         .ok_or_else(|| WebError::NotFound(String::from("invalid_user_or_team")))?;
 
-    let team = crate::model::team::Entity::find_by_id(body.team_id)
+    let team = crate::db::entity::team::Entity::find_by_id(body.team_id)
         .one(get_db())
         .await?
         .ok_or_else(|| WebError::NotFound(String::from("invalid_user_or_team")))?;
@@ -312,13 +314,14 @@ pub async fn join(
         return Err(WebError::BadRequest(String::from("invalid_invite_token")));
     }
 
-    let user_team = crate::model::user_team::ActiveModel {
+    let user_team = crate::db::entity::user_team::ActiveModel {
         user_id: Set(body.user_id),
         team_id: Set(body.team_id),
         ..Default::default()
     }
-        .insert(get_db())
-        .await?;
+    .insert(get_db())
+    .await?;
+    let user_team = crate::shared::UserTeam::from(user_team);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),

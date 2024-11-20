@@ -9,8 +9,7 @@ use sea_orm::{ActiveModelTrait, ActiveValue::Set};
 
 use crate::{
     config::get_config,
-    db::get_db,
-    model::user::group::Group,
+    db::{entity::user::Group, get_db},
     web::{
         traits::{Ext, WebError, WebResult},
         util::handle_image_multipart,
@@ -49,7 +48,7 @@ pub async fn update(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let config = crate::model::config::ActiveModel {
+    let config = crate::db::entity::config::ActiveModel {
         id: Set(1),
         auth: Set(body.auth),
         site: Set(body.site),

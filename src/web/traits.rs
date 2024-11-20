@@ -10,11 +10,9 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tracing::error;
 
-use crate::model::user;
-
 #[derive(Clone, Debug)]
 pub struct Ext {
-    pub operator: Option<user::Model>,
+    pub operator: Option<crate::shared::User>,
     pub client_ip: String,
 }
 

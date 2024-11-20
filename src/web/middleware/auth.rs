@@ -11,8 +11,7 @@ use jsonwebtoken::{decode, DecodingKey, Validation};
 use sea_orm::EntityTrait;
 
 use crate::{
-    db::get_db,
-    model::user::group::Group,
+    db::{entity::user::Group, get_db},
     util,
     web::traits::{Ext, WebError},
 };
@@ -41,14 +40,15 @@ pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebErro
     let decoding_key = DecodingKey::from_secret(util::jwt::get_secret().await.as_bytes());
     let validation = Validation::default();
 
-    let mut user: Option<crate::model::user::Model> = None;
+    let mut user: Option<crate::shared::User> = None;
 
     let result = decode::<util::jwt::Claims>(token, &decoding_key, &validation);
 
     if let Ok(data) = result {
-        user = crate::model::user::Entity::find_by_id(data.claims.id)
+        user = crate::db::entity::user::Entity::find_by_id(data.claims.id)
             .one(get_db())
-            .await?;
+            .await?
+            .map(|user| user.into());
 
         if user.is_none() {
             return Err(WebError::Unauthorized(String::from("not_found")));

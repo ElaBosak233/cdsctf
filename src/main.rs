@@ -8,8 +8,8 @@ mod env;
 mod logger;
 mod media;
 mod metric;
-mod model;
 mod queue;
+mod shared;
 mod util;
 mod web;
 

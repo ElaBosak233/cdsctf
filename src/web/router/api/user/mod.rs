@@ -10,19 +10,20 @@ use axum::{
     Extension, Json, Router,
 };
 use reqwest::StatusCode;
-use sea_orm::ActiveValue::Set;
 use sea_orm::{
-    prelude::Expr, sea_query::Func, ActiveModelTrait, ActiveValue::NotSet, Condition, EntityTrait,
-    PaginatorTrait, QueryFilter,
+    prelude::Expr,
+    sea_query::Func,
+    ActiveModelTrait,
+    ActiveValue::{NotSet, Set},
+    Condition, EntityTrait, PaginatorTrait, QueryFilter,
 };
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::{
     config,
-    db::get_db,
+    db::{entity::user::Group, get_db},
     media::util::hash,
-    model::user::group::Group,
     util::{jwt, validate},
     web::{
         model::Metadata,
@@ -65,8 +66,8 @@ pub struct GetRequest {
 
 pub async fn get(
     Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::model::user::Model>>, WebError> {
-    let (mut users, total) = crate::model::user::find(
+) -> Result<WebResult<Vec<crate::shared::User>>, WebError> {
+    let (mut users, total) = crate::shared::user::find(
         params.id,
         params.name,
         None,
@@ -75,7 +76,7 @@ pub async fn get(
         params.page,
         params.size,
     )
-        .await?;
+    .await?;
 
     for user in users.iter_mut() {
         user.desensitize();
@@ -100,7 +101,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, validate::Json(mut body): validate::Json<CreateRequest>,
-) -> Result<WebResult<crate::model::user::Model>, WebError> {
+) -> Result<WebResult<crate::shared::User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Unauthorized(String::new()));
@@ -114,18 +115,17 @@ pub async fn create(
         .unwrap()
         .to_string();
 
-    body.password = hashed_password;
-
-    let mut user = crate::model::user::ActiveModel {
+    let user = crate::db::entity::user::ActiveModel {
         username: Set(body.username),
         nickname: Set(body.nickname),
         email: Set(body.email),
-        password: Set(body.password),
+        hashed_password: Set(hashed_password),
         group: Set(body.group),
         ..Default::default()
     }
-        .insert(get_db())
-        .await?;
+    .insert(get_db())
+    .await?;
+    let mut user = crate::shared::User::from(user);
 
     user.desensitize();
 
@@ -151,12 +151,12 @@ pub struct UpdateRequest {
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
     validate::Json(mut body): validate::Json<UpdateRequest>,
-) -> Result<WebResult<crate::model::user::Model>, WebError> {
+) -> Result<WebResult<crate::shared::User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     body.id = Some(id);
     if !(operator.group == Group::Admin
         || (operator.id == body.id.unwrap_or(0)
-        && (body.group.clone().is_none() || operator.group == body.group.clone().unwrap())))
+            && (body.group.clone().is_none() || operator.group == body.group.clone().unwrap())))
     {
         return Err(WebError::Forbidden(String::new()));
     }
@@ -169,17 +169,18 @@ pub async fn update(
         body.password = Some(hashed_password);
     }
 
-    let user = crate::model::user::ActiveModel {
+    let user = crate::db::entity::user::ActiveModel {
         id: Set(body.id.unwrap_or(0)),
         username: body.username.map_or(NotSet, |v| Set(v)),
         nickname: body.nickname.map_or(NotSet, |v| Set(v)),
         email: body.email.map_or(NotSet, |v| Set(v)),
-        password: body.password.map_or(NotSet, |v| Set(v)),
+        hashed_password: body.password.map_or(NotSet, |v| Set(v)),
         group: body.group.map_or(NotSet, |v| Set(v)),
         ..Default::default()
     }
-        .update(get_db())
-        .await?;
+    .update(get_db())
+    .await?;
+    let user = crate::shared::User::from(user);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -196,13 +197,13 @@ pub async fn delete(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let _ = crate::model::user::ActiveModel {
+    let _ = crate::db::entity::user::ActiveModel {
         id: Set(id),
         is_deleted: Set(true),
         ..Default::default()
     }
-        .update(get_db())
-        .await?;
+    .update(get_db())
+    .await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -212,10 +213,10 @@ pub async fn delete(
 
 pub async fn get_teams(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<Vec<crate::model::team::Model>>, WebError> {
+) -> Result<WebResult<Vec<crate::shared::Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let teams = crate::model::team::find_by_user_id(id).await?;
+    let teams = crate::shared::team::find_by_user_id(id).await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -233,23 +234,29 @@ pub struct LoginRequest {
 pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoResponse, WebError> {
     body.account = body.account.to_lowercase();
 
-    let mut user = crate::model::user::Entity::find()
+    let user = crate::db::entity::user::Entity::find()
         .filter(
             Condition::any()
                 .add(
-                    Expr::expr(Func::lower(Expr::col(crate::model::user::Column::Username)))
-                        .eq(body.account.clone()),
+                    Expr::expr(Func::lower(Expr::col(
+                        crate::db::entity::user::Column::Username,
+                    )))
+                    .eq(body.account.clone()),
                 )
                 .add(
-                    Expr::expr(Func::lower(Expr::col(crate::model::user::Column::Email)))
-                        .eq(body.account.clone()),
+                    Expr::expr(Func::lower(Expr::col(
+                        crate::db::entity::user::Column::Email,
+                    )))
+                    .eq(body.account.clone()),
                 ),
         )
         .one(get_db())
         .await?
         .ok_or_else(|| WebError::BadRequest(String::from("invalid")))?;
 
-    let hashed_password = user.password.clone();
+    let mut user = crate::shared::User::from(user);
+
+    let hashed_password = user.hashed_password.clone();
 
     if Argon2::default()
         .verify_password(
@@ -272,8 +279,8 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
             token,
             chrono::Duration::minutes(config::get_config().await.auth.jwt.expiration).num_seconds()
         )
-            .parse()
-            .unwrap(),
+        .parse()
+        .unwrap(),
     );
 
     Ok((
@@ -300,20 +307,24 @@ pub struct RegisterRequest {
 
 pub async fn register(
     Extension(ext): Extension<Ext>, validate::Json(mut body): validate::Json<RegisterRequest>,
-) -> Result<WebResult<crate::model::user::Model>, WebError> {
+) -> Result<WebResult<crate::shared::User>, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
 
-    let is_conflict = crate::model::user::Entity::find()
+    let is_conflict = crate::db::entity::user::Entity::find()
         .filter(
             Condition::any()
                 .add(
-                    Expr::expr(Func::lower(Expr::col(crate::model::user::Column::Username)))
-                        .eq(body.username.clone()),
+                    Expr::expr(Func::lower(Expr::col(
+                        crate::db::entity::user::Column::Username,
+                    )))
+                    .eq(body.username.clone()),
                 )
                 .add(
-                    Expr::expr(Func::lower(Expr::col(crate::model::user::Column::Email)))
-                        .eq(body.email.clone()),
+                    Expr::expr(Func::lower(Expr::col(
+                        crate::db::entity::user::Column::Email,
+                    )))
+                    .eq(body.email.clone()),
                 ),
         )
         .count(get_db())
@@ -329,16 +340,17 @@ pub async fn register(
         .unwrap()
         .to_string();
 
-    let user = crate::model::user::ActiveModel {
+    let user = crate::db::entity::user::ActiveModel {
         username: Set(body.username),
         nickname: Set(body.nickname),
         email: Set(body.email),
-        password: Set(hashed_password),
+        hashed_password: Set(hashed_password),
         group: Set(Group::User),
         ..Default::default()
     }
-        .insert(get_db())
-        .await?;
+    .insert(get_db())
+    .await?;
+    let user = crate::shared::User::from(user);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),

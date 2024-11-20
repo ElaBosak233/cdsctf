@@ -9,14 +9,16 @@ pub async fn init() {
     tokio::spawn(async {
         let interval = time::Duration::from_secs(10);
         loop {
-            let pods = crate::model::pod::Entity::find()
-                .filter(crate::model::pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp()))
+            let pods = crate::db::entity::pod::Entity::find()
+                .filter(
+                    crate::db::entity::pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp()),
+                )
                 .all(get_db())
                 .await
                 .unwrap();
             for pod in pods {
                 cluster::delete(pod.name.clone()).await;
-                crate::model::pod::Entity::delete_by_id(pod.id)
+                crate::db::entity::pod::Entity::delete_by_id(pod.id)
                     .exec(get_db())
                     .await
                     .unwrap();

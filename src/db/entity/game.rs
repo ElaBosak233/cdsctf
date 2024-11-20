@@ -1,4 +1,4 @@
-use axum::async_trait;
+use async_trait::async_trait;
 use sea_orm::{entity::prelude::*, QuerySelect, Set};
 use serde::{Deserialize, Serialize};
 
@@ -24,7 +24,7 @@ pub struct Model {
     #[sea_orm(default_value = false)]
     pub is_need_write_up: bool,
     pub started_at: i64,
-    pub frozed_at: i64,
+    pub frozen_at: i64,
     pub ended_at: i64,
     pub created_at: i64,
     pub updated_at: i64,
@@ -81,36 +81,4 @@ impl ActiveModelBehavior for ActiveModel {
         self.updated_at = Set(chrono::Utc::now().timestamp());
         Ok(self)
     }
-}
-
-pub async fn find(
-    id: Option<i64>, title: Option<String>, is_enabled: Option<bool>, page: Option<u64>,
-    size: Option<u64>,
-) -> Result<(Vec<Model>, u64), DbErr> {
-    let mut sql = Entity::find();
-
-    if let Some(id) = id {
-        sql = sql.filter(Column::Id.eq(id));
-    }
-
-    if let Some(title) = title {
-        sql = sql.filter(Column::Title.contains(title));
-    }
-
-    if let Some(is_enabled) = is_enabled {
-        sql = sql.filter(Column::IsEnabled.eq(is_enabled));
-    }
-
-    let total = sql.clone().count(get_db()).await?;
-
-    if let Some(page) = page {
-        if let Some(size) = size {
-            let offset = (page - 1) * size;
-            sql = sql.offset(offset).limit(size);
-        }
-    }
-
-    let games = sql.all(get_db()).await?;
-
-    Ok((games, total))
 }
