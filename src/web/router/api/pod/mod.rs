@@ -13,8 +13,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    db::get_db,
-    model::user::group::Group,
+    db::{entity::user::Group, get_db},
     web::traits::{Ext, WebError, WebResult},
 };
 
@@ -44,10 +43,10 @@ pub struct GetRequest {
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::model::pod::Model>>, WebError> {
+) -> Result<WebResult<Vec<crate::shared::Pod>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let (mut pods, total) = crate::model::pod::find(
+    let (mut pods, total) = crate::shared::pod::find(
         params.id,
         params.name,
         params.user_id,
@@ -84,13 +83,14 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
-) -> Result<WebResult<crate::model::pod::Model>, WebError> {
+) -> Result<WebResult<crate::shared::Pod>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     body.user_id = Some(operator.id);
 
-    let challenge = crate::model::challenge::Entity::find_by_id(body.challenge_id)
+    let challenge = crate::db::entity::challenge::Entity::find_by_id(body.challenge_id)
         .one(get_db())
-        .await?;
+        .await?
+        .map(|challenge| crate::shared::Challenge::from(challenge));
 
     let challenge = challenge.ok_or(WebError::BadRequest(String::from("challenge_not_found")))?;
 
@@ -103,7 +103,7 @@ pub async fn create(
     let mut injected_flag = challenge.flags.clone().into_iter().next().unwrap();
 
     let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])\]").unwrap();
-    if injected_flag.type_ == crate::model::challenge::flag::Type::Dynamic {
+    if injected_flag.type_ == crate::db::entity::challenge::FlagType::Dynamic {
         injected_flag.value = re
             .replace_all(&injected_flag.value, Uuid::new_v4().simple().to_string())
             .to_string();
@@ -113,7 +113,7 @@ pub async fn create(
         .await
         .map_err(|err| WebError::OtherError(anyhow!("{:?}", err)))?;
 
-    let mut pod = crate::model::pod::ActiveModel {
+    let pod = crate::db::entity::pod::ActiveModel {
         name: Set(ctn_name),
         user_id: Set(body.user_id.clone().unwrap()),
         team_id: Set(body.team_id.clone()),
@@ -126,6 +126,7 @@ pub async fn create(
     }
     .insert(get_db())
     .await?;
+    let mut pod = crate::shared::Pod::from(pod);
 
     pod.desensitize();
 
@@ -155,15 +156,15 @@ pub async fn renew(
 ) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let pod = crate::model::pod::Entity::find()
-        .filter(crate::model::pod::Column::Id.eq(id))
+    let pod = crate::db::entity::pod::Entity::find()
+        .filter(crate::db::entity::pod::Column::Id.eq(id))
         .one(get_db())
         .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;
 
     check_permission!(operator, pod);
 
-    let challenge = crate::model::challenge::Entity::find_by_id(pod.challenge_id)
+    let challenge = crate::db::entity::challenge::Entity::find_by_id(pod.challenge_id)
         .one(get_db())
         .await?;
     let challenge = challenge.unwrap();
@@ -183,7 +184,7 @@ pub async fn stop(
 ) -> Result<WebResult<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let pod = crate::model::pod::Entity::find_by_id(id)
+    let pod = crate::db::entity::pod::Entity::find_by_id(id)
         .one(get_db())
         .await?
         .ok_or_else(|| WebError::NotFound(String::new()))?;

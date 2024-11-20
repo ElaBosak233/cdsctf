@@ -25,15 +25,15 @@ where
 pub async fn migrate(db: &DbConn) {
     create_tables!(
         db,
-        crate::model::config::Entity,
-        crate::model::user::Entity,
-        crate::model::team::Entity,
-        crate::model::user_team::Entity,
-        crate::model::challenge::Entity,
-        crate::model::game::Entity,
-        crate::model::submission::Entity,
-        crate::model::pod::Entity,
-        crate::model::game_challenge::Entity,
-        crate::model::game_team::Entity
+        super::entity::config::Entity,
+        super::entity::user::Entity,
+        super::entity::team::Entity,
+        super::entity::user_team::Entity,
+        super::entity::challenge::Entity,
+        super::entity::game::Entity,
+        super::entity::submission::Entity,
+        super::entity::pod::Entity,
+        super::entity::game_challenge::Entity,
+        super::entity::game_team::Entity
     );
 }

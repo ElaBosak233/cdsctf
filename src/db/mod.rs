@@ -1,3 +1,4 @@
+pub mod entity;
 mod migration;
 
 use std::time::Duration;
@@ -47,21 +48,18 @@ pub fn get_db() -> &'static DatabaseConnection {
 }
 
 pub async fn init_admin() {
-    let total = crate::model::user::Entity::find()
-        .count(get_db())
-        .await
-        .unwrap();
+    let total = entity::user::Entity::find().count(get_db()).await.unwrap();
     if total == 0 {
         let hashed_password = Argon2::default()
             .hash_password("123456".as_bytes(), &SaltString::generate(&mut OsRng))
             .unwrap()
             .to_string();
-        let user = crate::model::user::ActiveModel {
+        let user = entity::user::ActiveModel {
             username: Set(String::from("admin")),
             nickname: Set(String::from("Administrator")),
             email: Set(String::from("admin@admin.com")),
-            group: Set(crate::model::user::group::Group::Admin),
-            password: Set(hashed_password),
+            group: Set(crate::db::entity::user::Group::Admin),
+            hashed_password: Set(hashed_password),
             ..Default::default()
         };
         user.insert(get_db()).await.unwrap();
@@ -70,12 +68,12 @@ pub async fn init_admin() {
 }
 
 pub async fn init_config() {
-    let total = crate::model::config::Entity::find()
+    let total = entity::config::Entity::find()
         .count(get_db())
         .await
         .unwrap();
     if total == 0 {
-        let config = crate::model::config::ActiveModel {
+        let config = entity::config::ActiveModel {
             auth: Set(crate::config::auth::Config {
                 jwt: crate::config::auth::jwt::Config {
                     secret_key: String::from("123456"),

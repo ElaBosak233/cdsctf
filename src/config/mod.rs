@@ -21,8 +21,8 @@ pub struct Config {
     pub cluster: cluster::Config,
 }
 
-impl From<crate::model::config::Model> for Config {
-    fn from(config: crate::model::config::Model) -> Self {
+impl From<crate::db::entity::config::Model> for Config {
+    fn from(config: crate::db::entity::config::Model) -> Self {
         Config {
             auth: config.auth,
             cluster: config.cluster,
@@ -49,7 +49,7 @@ pub async fn init() {
 }
 
 pub async fn sync() {
-    let config = crate::model::config::Entity::find()
+    let config = crate::db::entity::config::Entity::find()
         .one(get_db())
         .await
         .unwrap();

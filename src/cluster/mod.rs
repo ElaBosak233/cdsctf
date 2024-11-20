@@ -1,3 +1,5 @@
+use std::{collections::BTreeMap, process, sync::OnceLock, time::Duration};
+
 use axum::extract::ws::WebSocket;
 use k8s_openapi::api::core::v1::{
     Container as K8sContainer, ContainerPort, EnvVar, Pod, PodSpec, Service, ServicePort,
@@ -10,7 +12,6 @@ use kube::{
     Client as K8sClient, Config,
 };
 use once_cell::sync::OnceCell;
-use std::{collections::BTreeMap, process, sync::OnceLock, time::Duration};
 use tokio_util::codec::Framed;
 use tracing::{error, info};
 
@@ -24,9 +25,9 @@ pub async fn init() {
     let result = Config::from_kubeconfig(&Default::default()).await;
     if let Err(e) = result {
         error!(
-                "Failed to create Kubernetes client from custom config: {:?}",
-                e
-            );
+            "Failed to create Kubernetes client from custom config: {:?}",
+            e
+        );
         process::exit(1);
     }
     let config = result.unwrap();
@@ -40,9 +41,9 @@ pub async fn init() {
 }
 
 pub async fn create(
-    name: String, challenge: crate::model::challenge::Model,
-    injected_flag: crate::model::challenge::Flag,
-) -> Result<Vec<crate::model::pod::Nat>, anyhow::Error> {
+    name: String, challenge: crate::shared::Challenge,
+    injected_flag: crate::db::entity::challenge::Flag,
+) -> Result<Vec<crate::db::entity::pod::Nat>, anyhow::Error> {
     let client = get_k8s_client().clone();
 
     let metadata = k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
@@ -142,12 +143,12 @@ pub async fn create(
 
     let service = service_api.get(&name).await?;
 
-    let mut nats: Vec<crate::model::pod::Nat> = Vec::new();
+    let mut nats: Vec<crate::db::entity::pod::Nat> = Vec::new();
     if let Some(spec) = service.spec {
         if let Some(ports) = spec.ports {
             for port in ports {
                 if let Some(node_port) = port.node_port {
-                    nats.push(crate::model::pod::Nat {
+                    nats.push(crate::db::entity::pod::Nat {
                         src: format!("{}", port.port),
                         dst: Some(format!("{}", node_port)),
                         proxy: crate::env::get_env().cluster.proxy.enabled,

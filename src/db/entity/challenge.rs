@@ -1,13 +1,12 @@
-pub mod category;
-pub mod env;
-pub mod flag;
-
-use axum::async_trait;
-pub use category::Category;
-pub use env::Env;
-pub use flag::Flag;
-use sea_orm::{entity::prelude::*, FromJsonQueryResult, QuerySelect, Set};
+use async_trait::async_trait;
+use sea_orm::{
+    ActiveModelBehavior, ActiveModelTrait, ColumnTrait, ConnectionTrait, DbErr, DeriveActiveEnum,
+    DeriveEntityModel, DerivePrimaryKey, EntityTrait, EnumIter, FromJsonQueryResult,
+    PaginatorTrait, PrimaryKeyTrait, QueryFilter, QuerySelect, Related, RelationDef, RelationTrait,
+    Set,
+};
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::{game, game_challenge, pod, submission};
 use crate::db::get_db;
@@ -19,7 +18,7 @@ pub struct Model {
     pub id: i64,
     pub title: String,
     pub description: Option<String>,
-    pub category: Category,
+    pub category: i32,
     pub tags: Vec<String>,
     #[sea_orm(default_value = false)]
     pub is_dynamic: bool,
@@ -44,14 +43,38 @@ pub struct Model {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-pub struct Ports(pub Vec<i64>);
+pub struct Env {
+    pub key: String,
+    pub value: String,
+}
 
-impl Model {
-    pub fn desensitize(&mut self) {
-        self.envs.clear();
-        self.ports.clear();
-        self.flags.clear();
-    }
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+pub struct Flag {
+    #[serde(rename = "type")]
+    pub type_: FlagType,
+    pub banned: bool,
+    pub env: Option<String>,
+    pub value: String,
+}
+
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize_repr,
+    Deserialize_repr,
+    EnumIter,
+    DeriveActiveEnum,
+)]
+#[sea_orm(rs_type = "i32", db_type = "Integer")]
+#[repr(i32)]
+pub enum FlagType {
+    #[default]
+    Static  = 0,
+    Pattern = 1,
+    Dynamic = 2,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
@@ -101,53 +124,4 @@ impl ActiveModelBehavior for ActiveModel {
         self.updated_at = Set(chrono::Utc::now().timestamp());
         Ok(self)
     }
-}
-
-pub async fn find(
-    id: Option<i64>, title: Option<String>, category: Option<Category>,
-    is_practicable: Option<bool>, is_dynamic: Option<bool>, page: Option<u64>, size: Option<u64>,
-) -> Result<(Vec<Model>, u64), DbErr> {
-    let mut sql = Entity::find();
-
-    if let Some(id) = id {
-        sql = sql.filter(Column::Id.eq(id));
-    }
-
-    if let Some(title) = title {
-        sql = sql.filter(Column::Title.contains(title));
-    }
-
-    if let Some(category) = category {
-        sql = sql.filter(Column::Category.eq(category));
-    }
-
-    if let Some(is_practicable) = is_practicable {
-        sql = sql.filter(Column::IsPracticable.eq(is_practicable));
-    }
-
-    if let Some(is_dynamic) = is_dynamic {
-        sql = sql.filter(Column::IsDynamic.eq(is_dynamic));
-    }
-
-    let total = sql.clone().count(get_db()).await?;
-
-    if let Some(page) = page {
-        if let Some(size) = size {
-            let offset = (page - 1) * size;
-            sql = sql.offset(offset).limit(size);
-        }
-    }
-
-    let challenges = sql.all(get_db()).await?;
-
-    Ok((challenges, total))
-}
-
-pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<Model>, DbErr> {
-    let challenges = Entity::find()
-        .filter(Column::Id.is_in(ids))
-        .all(get_db())
-        .await?;
-
-    Ok(challenges)
 }

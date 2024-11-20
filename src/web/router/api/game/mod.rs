@@ -13,9 +13,8 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::{
-    db::get_db,
+    db::{entity::user::Group, get_db},
     media::util::hash,
-    model::user::group::Group,
     web::{
         model::Metadata,
         traits::{Ext, WebError, WebResult},
@@ -81,13 +80,13 @@ pub struct GetRequest {
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::model::game::Model>>, WebError> {
+) -> Result<WebResult<Vec<crate::shared::Game>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin && !params.is_enabled.unwrap_or(true) {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let (games, total) = crate::model::game::find(
+    let (games, total) = crate::shared::game::find(
         params.id,
         params.title,
         params.is_enabled,
@@ -95,6 +94,10 @@ pub async fn get(
         params.size,
     )
     .await?;
+    let games = games
+        .into_iter()
+        .map(|game| crate::shared::Game::from(game))
+        .collect::<Vec<crate::shared::Game>>();
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -122,19 +125,19 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
-) -> Result<WebResult<crate::model::game::Model>, WebError> {
+) -> Result<WebResult<crate::shared::Game>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let game = crate::model::game::ActiveModel {
+    let game = crate::db::entity::game::ActiveModel {
         title: Set(body.title),
         sketch: Set(body.sketch),
         description: Set(body.description),
         started_at: Set(body.started_at),
         ended_at: Set(body.ended_at),
-        frozed_at: Set(body.ended_at),
+        frozen_at: Set(body.ended_at),
 
         is_enabled: Set(body.is_enabled.unwrap_or(false)),
         is_public: Set(body.is_public.unwrap_or(false)),
@@ -149,6 +152,7 @@ pub async fn create(
     }
     .insert(get_db())
     .await?;
+    let game = crate::shared::Game::from(game);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -171,12 +175,12 @@ pub struct UpdateRequest {
     pub is_need_write_up: Option<bool>,
     pub started_at: Option<i64>,
     pub ended_at: Option<i64>,
-    pub frozed_at: Option<i64>,
+    pub frozen_at: Option<i64>,
 }
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<UpdateRequest>,
-) -> Result<WebResult<crate::model::game::Model>, WebError> {
+) -> Result<WebResult<crate::shared::Game>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -184,7 +188,7 @@ pub async fn update(
 
     body.id = Some(id);
 
-    let game = crate::model::game::ActiveModel {
+    let game = crate::db::entity::game::ActiveModel {
         id: body.id.map_or(NotSet, |v| Set(v)),
         title: body.title.map_or(NotSet, |v| Set(v)),
         sketch: body.sketch.map_or(NotSet, |v| Set(Some(v))),
@@ -199,11 +203,12 @@ pub async fn update(
         is_need_write_up: body.is_need_write_up.map_or(NotSet, |v| Set(v)),
         started_at: body.started_at.map_or(NotSet, |v| Set(v)),
         ended_at: body.ended_at.map_or(NotSet, |v| Set(v)),
-        frozed_at: body.frozed_at.map_or(NotSet, |v| Set(v)),
+        frozen_at: body.frozen_at.map_or(NotSet, |v| Set(v)),
         ..Default::default()
     }
     .update(get_db())
     .await?;
+    let game = crate::shared::Game::from(game);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -220,7 +225,7 @@ pub async fn delete(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let _ = crate::model::game::Entity::delete_by_id(id)
+    let _ = crate::db::entity::game::Entity::delete_by_id(id)
         .exec(get_db())
         .await?;
 
@@ -240,12 +245,15 @@ pub struct GetChallengeRequest {
 
 pub async fn get_challenge(
     Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
-) -> Result<WebResult<Vec<crate::model::game_challenge::Model>>, WebError> {
+) -> Result<WebResult<Vec<crate::shared::GameChallenge>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let (game_challenges, _) =
-        crate::model::game_challenge::find(params.game_id, params.challenge_id, params.is_enabled)
-            .await?;
+    let (game_challenges, _) = crate::shared::game_challenge::find(
+        params.game_id,
+        params.challenge_id,
+        params.is_enabled,
+    )
+    .await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -269,13 +277,13 @@ pub struct CreateChallengeRequest {
 
 pub async fn create_challenge(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateChallengeRequest>,
-) -> Result<WebResult<crate::model::game_challenge::Model>, WebError> {
+) -> Result<WebResult<crate::shared::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let game_challenge = crate::model::game_challenge::ActiveModel {
+    let game_challenge = crate::db::entity::game_challenge::ActiveModel {
         game_id: Set(body.game_id),
         challenge_id: Set(body.challenge_id),
         difficulty: body.difficulty.map_or(NotSet, |v| Set(v)),
@@ -289,6 +297,7 @@ pub async fn create_challenge(
     }
     .insert(get_db())
     .await?;
+    let game_challenge = crate::shared::GameChallenge::from(game_challenge);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -313,7 +322,7 @@ pub struct UpdateChallengeRequest {
 pub async fn update_challenge(
     Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, i64)>,
     Json(mut body): Json<UpdateChallengeRequest>,
-) -> Result<WebResult<crate::model::game_challenge::Model>, WebError> {
+) -> Result<WebResult<crate::shared::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -322,7 +331,7 @@ pub async fn update_challenge(
     body.game_id = Some(id);
     body.challenge_id = Some(challenge_id);
 
-    let game_challenge = crate::model::game_challenge::ActiveModel {
+    let game_challenge = crate::db::entity::game_challenge::ActiveModel {
         game_id: body.game_id.map_or(NotSet, |v| Set(v)),
         challenge_id: body.challenge_id.map_or(NotSet, |v| Set(v)),
         difficulty: body.difficulty.map_or(NotSet, |v| Set(v)),
@@ -336,6 +345,7 @@ pub async fn update_challenge(
     }
     .update(get_db())
     .await?;
+    let game_challenge = crate::shared::GameChallenge::from(game_challenge);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -352,9 +362,9 @@ pub async fn delete_challenge(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let _ = crate::model::game_challenge::Entity::delete_many()
-        .filter(crate::model::game_challenge::Column::GameId.eq(id))
-        .filter(crate::model::game_challenge::Column::ChallengeId.eq(challenge_id))
+    let _ = crate::db::entity::game_challenge::Entity::delete_many()
+        .filter(crate::db::entity::game_challenge::Column::GameId.eq(id))
+        .filter(crate::db::entity::game_challenge::Column::ChallengeId.eq(challenge_id))
         .exec(get_db())
         .await?;
 
@@ -372,10 +382,11 @@ pub struct GetTeamRequest {
 
 pub async fn get_team(
     Extension(ext): Extension<Ext>, Query(params): Query<GetTeamRequest>,
-) -> Result<WebResult<Vec<crate::model::game_team::Model>>, WebError> {
+) -> Result<WebResult<Vec<crate::shared::GameTeam>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let (game_teams, total) = crate::model::game_team::find(params.game_id, params.team_id).await?;
+    let (game_teams, total) =
+        crate::shared::game_team::find(params.game_id, params.team_id).await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -393,13 +404,13 @@ pub struct CreateTeamRequest {
 
 pub async fn create_team(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateTeamRequest>,
-) -> Result<WebResult<crate::model::game_team::Model>, WebError> {
+) -> Result<WebResult<crate::shared::GameTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let game_team = crate::model::game_team::ActiveModel {
+    let game_team = crate::db::entity::game_team::ActiveModel {
         game_id: Set(body.game_id),
         team_id: Set(body.team_id),
 
@@ -407,6 +418,7 @@ pub async fn create_team(
     }
     .insert(get_db())
     .await?;
+    let game_team = crate::shared::GameTeam::from(game_team);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -425,7 +437,7 @@ pub struct UpdateTeamRequest {
 pub async fn update_team(
     Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
     Json(mut body): Json<UpdateTeamRequest>,
-) -> Result<WebResult<crate::model::game_team::Model>, WebError> {
+) -> Result<WebResult<crate::shared::GameTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -434,7 +446,7 @@ pub async fn update_team(
     body.game_id = Some(id);
     body.team_id = Some(team_id);
 
-    let game_team = crate::model::game_team::ActiveModel {
+    let game_team = crate::db::entity::game_team::ActiveModel {
         game_id: body.game_id.map_or(NotSet, |v| Set(v)),
         team_id: body.team_id.map_or(NotSet, |v| Set(v)),
         is_allowed: body.is_allowed.map_or(NotSet, |v| Set(v)),
@@ -442,6 +454,7 @@ pub async fn update_team(
     }
     .update(get_db())
     .await?;
+    let game_team = crate::shared::GameTeam::from(game_team);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -458,9 +471,9 @@ pub async fn delete_team(
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let _ = crate::model::game_team::Entity::delete_many()
-        .filter(crate::model::game_team::Column::GameId.eq(id))
-        .filter(crate::model::game_team::Column::TeamId.eq(team_id))
+    let _ = crate::db::entity::game_team::Entity::delete_many()
+        .filter(crate::db::entity::game_team::Column::GameId.eq(id))
+        .filter(crate::db::entity::game_team::Column::TeamId.eq(team_id))
         .exec(get_db())
         .await?;
 
@@ -505,7 +518,7 @@ pub async fn calculate(
 // pub async fn get_submission(
 //     Path(id): Path<i64>, Query(params): Query<GetSubmissionRequest>,
 // ) -> Result<impl IntoResponse, WebError> {
-//     let submissions = crate::model::submission::get_with_pts(id,
+//     let submissions = crate::shared::submission::get_with_pts(id,
 // params.status).await?;
 
 //     return Ok((
@@ -521,14 +534,14 @@ pub async fn calculate(
 // WebError> {     pub struct TeamScoreRecord {}
 
 //     let submissions =
-//         crate::model::submission::get_with_pts(id,
-// Some(crate::model::submission::Status::Correct))             .await;
+//         crate::shared::submission::get_with_pts(id,
+// Some(crate::shared::submission::Status::Correct))             .await;
 
-//     let game_teams = crate::model::game_team::Entity::find()
+//     let game_teams = crate::shared::game_team::Entity::find()
 //         .filter(
 //             Condition::all()
-//                 .add(crate::model::game_team::Column::GameId.eq(id))
-//                 .add(crate::model::game_team::Column::IsAllowed.eq(true)),
+//                 .add(crate::shared::game_team::Column::GameId.eq(id))
+//                 .add(crate::shared::game_team::Column::IsAllowed.eq(true)),
 //         )
 //         .all(get_db())
 //         .await?;

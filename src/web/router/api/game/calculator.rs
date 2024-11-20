@@ -10,7 +10,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
-use crate::{db::get_db, model::submission::Status};
+use crate::db::{entity::submission::Status, get_db};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Payload {
@@ -18,24 +18,24 @@ pub struct Payload {
 }
 
 pub async fn calculate(game_id: i64) {
-    let submissions = crate::model::submission::Entity::find()
+    let submissions = crate::db::entity::submission::Entity::find()
         .filter(
             Condition::all()
-                .add(crate::model::submission::Column::GameId.eq(game_id))
-                .add(crate::model::submission::Column::Status.eq(Status::Correct)),
+                .add(crate::db::entity::submission::Column::GameId.eq(game_id))
+                .add(crate::db::entity::submission::Column::Status.eq(Status::Correct)),
         )
         .all(get_db())
         .await
         .unwrap();
 
-    let game_challenges = crate::model::game_challenge::Entity::find()
-        .filter(Condition::all().add(crate::model::game_challenge::Column::GameId.eq(game_id)))
+    let game_challenges = crate::db::entity::game_challenge::Entity::find()
+        .filter(Condition::all().add(crate::db::entity::game_challenge::Column::GameId.eq(game_id)))
         .all(get_db())
         .await
         .unwrap();
 
     // categorize submissions by challenge_id
-    let mut submissions_by_challenge_id: HashMap<i64, Vec<crate::model::submission::Model>> =
+    let mut submissions_by_challenge_id: HashMap<i64, Vec<crate::db::entity::submission::Model>> =
         HashMap::new();
 
     for submission in submissions {
@@ -87,21 +87,21 @@ pub async fn calculate(game_id: i64) {
     }
 
     // calculate pts and rank for each game_team
-    let submissions = crate::model::submission::Entity::find()
+    let submissions = crate::db::entity::submission::Entity::find()
         .filter(
             Condition::all()
-                .add(crate::model::submission::Column::GameId.eq(game_id))
-                .add(crate::model::submission::Column::Status.eq(Status::Correct)),
+                .add(crate::db::entity::submission::Column::GameId.eq(game_id))
+                .add(crate::db::entity::submission::Column::Status.eq(Status::Correct)),
         )
         .all(get_db())
         .await
         .unwrap();
 
-    let mut game_teams = crate::model::game_team::Entity::find()
+    let mut game_teams = crate::db::entity::game_team::Entity::find()
         .filter(
             Condition::all()
-                .add(crate::model::game_team::Column::GameId.eq(game_id))
-                .add(crate::model::game_team::Column::IsAllowed.eq(true)),
+                .add(crate::db::entity::game_team::Column::GameId.eq(game_id))
+                .add(crate::db::entity::game_team::Column::IsAllowed.eq(true)),
         )
         .all(get_db())
         .await
@@ -142,7 +142,7 @@ pub async fn init() {
             if let Some(game_id) = calculator_payload.game_id {
                 calculate(game_id).await;
             } else {
-                let games = crate::model::game::Entity::find()
+                let games = crate::db::entity::game::Entity::find()
                     .all(get_db())
                     .await
                     .unwrap();

@@ -8,14 +8,17 @@ use sea_orm::{
 };
 use tracing::info;
 
-use crate::{db::get_db, model::submission::Status, web::router::api::game::calculator};
+use crate::{
+    db::{entity::submission::Status, get_db},
+    web::router::api::game::calculator,
+};
 
 async fn check(id: i64) {
-    let submission = crate::model::submission::Entity::find()
+    let submission = crate::db::entity::submission::Entity::find()
         .filter(
             Condition::all()
-                .add(crate::model::submission::Column::Id.eq(id))
-                .add(crate::model::submission::Column::Status.eq(Status::Pending)),
+                .add(crate::db::entity::submission::Column::Id.eq(id))
+                .add(crate::db::entity::submission::Column::Status.eq(Status::Pending)),
         )
         .one(get_db())
         .await
@@ -27,13 +30,13 @@ async fn check(id: i64) {
 
     let submission = submission.unwrap();
 
-    let user = crate::model::user::Entity::find_by_id(submission.user_id)
+    let user = crate::db::entity::user::Entity::find_by_id(submission.user_id)
         .one(get_db())
         .await
         .unwrap();
 
     if user.is_none() {
-        crate::model::submission::Entity::delete_by_id(submission.id)
+        crate::db::entity::submission::Entity::delete_by_id(submission.id)
             .exec(get_db())
             .await
             .unwrap();
@@ -43,13 +46,13 @@ async fn check(id: i64) {
     let user = user.unwrap();
 
     // Get related challenge
-    let challenge = crate::model::challenge::Entity::find_by_id(submission.challenge_id)
+    let challenge = crate::db::entity::challenge::Entity::find_by_id(submission.challenge_id)
         .one(get_db())
         .await
         .unwrap();
 
     if challenge.is_none() {
-        crate::model::submission::Entity::delete_by_id(submission.id)
+        crate::db::entity::submission::Entity::delete_by_id(submission.id)
             .exec(get_db())
             .await
             .unwrap();
@@ -58,14 +61,14 @@ async fn check(id: i64) {
 
     let challenge = challenge.unwrap();
 
-    let exist_submissions = crate::model::submission::Entity::find()
+    let exist_submissions = crate::db::entity::submission::Entity::find()
         .filter(
             Condition::all()
-                .add(crate::model::submission::Column::ChallengeId.eq(submission.challenge_id))
+                .add(crate::db::entity::submission::Column::ChallengeId.eq(submission.challenge_id))
                 .add(submission.game_id.map_or(Condition::all(), |game_id| {
-                    Condition::all().add(crate::model::submission::Column::GameId.eq(game_id))
+                    Condition::all().add(crate::db::entity::submission::Column::GameId.eq(game_id))
                 }))
-                .add(crate::model::submission::Column::Status.eq(Status::Correct)),
+                .add(crate::db::entity::submission::Column::Status.eq(Status::Correct)),
         )
         .all(get_db())
         .await
@@ -76,16 +79,18 @@ async fn check(id: i64) {
     match challenge.is_dynamic {
         true => {
             // Dynamic challenge, verify flag correctness from pods
-            let pods = crate::model::pod::Entity::find()
+            let pods = crate::db::entity::pod::Entity::find()
                 .filter(
                     Condition::all()
                         .add(
-                            crate::model::pod::Column::RemovedAt
+                            crate::db::entity::pod::Column::RemovedAt
                                 .gte(chrono::Utc::now().timestamp()),
                         )
-                        .add(crate::model::pod::Column::ChallengeId.eq(submission.challenge_id))
+                        .add(
+                            crate::db::entity::pod::Column::ChallengeId.eq(submission.challenge_id),
+                        )
                         .add(submission.game_id.map_or(Condition::all(), |game_id| {
-                            Condition::all().add(crate::model::pod::Column::GameId.eq(game_id))
+                            Condition::all().add(crate::db::entity::pod::Column::GameId.eq(game_id))
                         })),
                 )
                 .all(get_db())
@@ -151,9 +156,9 @@ async fn check(id: i64) {
 }
 
 async fn recover() {
-    let unchecked_submissions = crate::model::submission::Entity::find()
-        .filter(crate::model::submission::Column::Status.eq(Status::Pending))
-        .order_by_asc(crate::model::submission::Column::CreatedAt)
+    let unchecked_submissions = crate::db::entity::submission::Entity::find()
+        .filter(crate::db::entity::submission::Column::Status.eq(Status::Pending))
+        .order_by_asc(crate::db::entity::submission::Column::CreatedAt)
         .all(get_db())
         .await
         .unwrap();
