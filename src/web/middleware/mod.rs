@@ -1,2 +1,2 @@
 pub mod auth;
-mod validate;
+pub mod error;

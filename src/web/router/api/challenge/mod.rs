@@ -16,8 +16,8 @@ use crate::{
         entity::{submission::Status, user::Group},
         get_db,
     },
-    util::validate,
     web::{
+        extract::validate,
         model::Metadata,
         traits::{Ext, WebError, WebResult},
     },
@@ -58,13 +58,13 @@ pub struct GetRequest {
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::shared::Challenge>>, WebError> {
+) -> Result<WebResult<Vec<crate::db::transfer::Challenge>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let (mut challenges, total) = crate::shared::challenge::find(
+    let (mut challenges, total) = crate::db::transfer::challenge::find(
         params.id,
         params.title,
         params.category,
@@ -103,7 +103,7 @@ pub struct StatusResult {
     pub is_solved: bool,
     pub solved_times: i64,
     pub pts: i64,
-    pub bloods: Vec<crate::shared::Submission>,
+    pub bloods: Vec<crate::db::transfer::Submission>,
 }
 
 pub async fn get_status(
@@ -112,7 +112,7 @@ pub async fn get_status(
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let mut submissions =
-        crate::shared::submission::get_by_challenge_ids(body.cids.clone()).await?;
+        crate::db::transfer::submission::get_by_challenge_ids(body.cids.clone()).await?;
 
     let mut result: HashMap<i64, StatusResult> = HashMap::new();
 
@@ -164,7 +164,7 @@ pub async fn get_status(
 
     if let Some(game_id) = body.game_id {
         let (game_challenges, _) =
-            crate::shared::game_challenge::find(Some(game_id), None, None).await?;
+            crate::db::transfer::game_challenge::find(Some(game_id), None, None).await?;
 
         for game_challenge in game_challenges {
             let status_response = result.get_mut(&game_challenge.challenge_id).unwrap();
@@ -200,7 +200,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
-) -> Result<WebResult<crate::shared::Challenge>, WebError> {
+) -> Result<WebResult<crate::db::transfer::Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -225,7 +225,7 @@ pub async fn create(
     }
     .insert(get_db())
     .await?;
-    let challenge = crate::shared::Challenge::from(challenge);
+    let challenge = crate::db::transfer::Challenge::from(challenge);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -257,7 +257,7 @@ pub struct UpdateRequest {
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
     validate::Json(mut body): validate::Json<UpdateRequest>,
-) -> Result<WebResult<crate::shared::Challenge>, WebError> {
+) -> Result<WebResult<crate::db::transfer::Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -285,7 +285,7 @@ pub async fn update(
     }
     .update(get_db())
     .await?;
-    let challenge = crate::shared::Challenge::from(challenge);
+    let challenge = crate::db::transfer::Challenge::from(challenge);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),

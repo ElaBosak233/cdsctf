@@ -48,7 +48,7 @@ pub fn router() -> Router {
         .route("/:id/avatar", axum::routing::delete(delete_avatar))
 }
 
-fn can_modify_team(user: crate::shared::User, team_id: i64) -> bool {
+fn can_modify_team(user: crate::db::transfer::User, team_id: i64) -> bool {
     user.group == Group::Admin
         || user
             .teams
@@ -68,8 +68,8 @@ pub struct GetRequest {
 
 pub async fn get(
     Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::shared::Team>>, WebError> {
-    let (teams, total) = crate::shared::team::find(
+) -> Result<WebResult<Vec<crate::db::transfer::Team>>, WebError> {
+    let (teams, total) = crate::db::transfer::team::find(
         params.id,
         params.name,
         params.email,
@@ -96,7 +96,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
-) -> Result<WebResult<crate::shared::Team>, WebError> {
+) -> Result<WebResult<crate::db::transfer::Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if !(operator.group == Group::Admin || operator.id == body.captain_id) {
         return Err(WebError::Forbidden(String::new()));
@@ -112,7 +112,7 @@ pub async fn create(
     .insert(get_db())
     .await?;
 
-    let team = crate::shared::Team::from(team);
+    let team = crate::db::transfer::Team::from(team);
 
     let _ = crate::db::entity::user_team::ActiveModel {
         user_id: Set(body.captain_id),
@@ -140,7 +140,7 @@ pub struct UpdateRequest {
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<UpdateRequest>,
-) -> Result<WebResult<crate::shared::Team>, WebError> {
+) -> Result<WebResult<crate::db::transfer::Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     if !can_modify_team(operator, id) {
@@ -158,7 +158,7 @@ pub async fn update(
     }
     .update(get_db())
     .await?;
-    let team = crate::shared::Team::from(team);
+    let team = crate::db::transfer::Team::from(team);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -295,7 +295,7 @@ pub struct JoinRequest {
 
 pub async fn join(
     Extension(ext): Extension<Ext>, Json(mut body): Json<JoinRequest>,
-) -> Result<WebResult<crate::shared::UserTeam>, WebError> {
+) -> Result<WebResult<crate::db::transfer::UserTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     body.user_id = operator.id;
@@ -321,7 +321,7 @@ pub async fn join(
     }
     .insert(get_db())
     .await?;
-    let user_team = crate::shared::UserTeam::from(user_team);
+    let user_team = crate::db::transfer::UserTeam::from(user_team);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),

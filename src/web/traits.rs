@@ -12,7 +12,7 @@ use tracing::error;
 
 #[derive(Clone, Debug)]
 pub struct Ext {
-    pub operator: Option<crate::shared::User>,
+    pub operator: Option<crate::db::transfer::User>,
     pub client_ip: String,
 }
 

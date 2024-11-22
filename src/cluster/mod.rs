@@ -41,7 +41,7 @@ pub async fn init() {
 }
 
 pub async fn create(
-    name: String, challenge: crate::shared::Challenge,
+    name: String, challenge: crate::db::entity::challenge::Model,
     injected_flag: crate::db::entity::challenge::Flag,
 ) -> Result<Vec<crate::db::entity::pod::Nat>, anyhow::Error> {
     let client = get_k8s_client().clone();

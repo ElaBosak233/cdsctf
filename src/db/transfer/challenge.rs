@@ -52,6 +52,30 @@ impl From<entity::challenge::Model> for Challenge {
     }
 }
 
+impl From<Challenge> for entity::challenge::Model {
+    fn from(challenge: Challenge) -> Self {
+        Self {
+            id: challenge.id,
+            title: challenge.title,
+            description: challenge.description,
+            category: challenge.category,
+            tags: challenge.tags,
+            is_dynamic: challenge.is_dynamic,
+            has_attachment: challenge.has_attachment,
+            is_practicable: challenge.is_practicable,
+            image_name: challenge.image_name,
+            cpu_limit: challenge.cpu_limit,
+            memory_limit: challenge.memory_limit,
+            duration: challenge.duration,
+            ports: challenge.ports,
+            envs: challenge.envs,
+            flags: challenge.flags,
+            created_at: challenge.created_at,
+            updated_at: challenge.updated_at,
+        }
+    }
+}
+
 impl Challenge {
     pub fn desensitize(&mut self) {
         self.envs.clear();

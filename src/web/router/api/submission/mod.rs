@@ -42,13 +42,13 @@ pub struct GetRequest {
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::shared::Submission>>, WebError> {
+) -> Result<WebResult<Vec<crate::db::transfer::Submission>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let (mut submissions, total) = crate::shared::submission::find(
+    let (mut submissions, total) = crate::db::transfer::submission::find(
         params.id,
         params.user_id,
         params.team_id,
@@ -77,7 +77,7 @@ pub async fn get(
 
 pub async fn get_by_id(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<crate::shared::Submission>, WebError> {
+) -> Result<WebResult<crate::db::transfer::Submission>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let submission = crate::db::entity::submission::Entity::find_by_id(id)
@@ -89,7 +89,7 @@ pub async fn get_by_id(
     }
 
     let submission = submission.unwrap();
-    let mut submission = crate::shared::Submission::from(submission);
+    let mut submission = crate::db::transfer::Submission::from(submission);
     submission.desensitize();
 
     Ok(WebResult {
@@ -110,7 +110,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
-) -> Result<WebResult<crate::shared::Submission>, WebError> {
+) -> Result<WebResult<crate::db::transfer::Submission>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     body.user_id = Some(operator.id);
@@ -156,7 +156,7 @@ pub async fn create(
     }
     .insert(get_db())
     .await?;
-    let submission = crate::shared::Submission::from(submission);
+    let submission = crate::db::transfer::Submission::from(submission);
 
     crate::queue::publish("checker", submission.id).await?;
 

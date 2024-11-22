@@ -3,6 +3,9 @@ use mime::Mime;
 
 use crate::web::traits::WebError;
 
+pub mod jwt;
+pub mod math;
+
 pub async fn handle_image_multipart(mut multipart: Multipart) -> Result<Vec<u8>, WebError> {
     while let Some(field) = multipart.next_field().await.unwrap() {
         if field.name() == Some("file") {
