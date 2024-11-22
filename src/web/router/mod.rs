@@ -1,7 +1,7 @@
 pub mod api;
 pub mod metric;
 
-use axum::{middleware::from_fn, response::IntoResponse, Router};
+use axum::{extract::FromRequest, middleware::from_fn, response::IntoResponse, Router};
 use tower_http::trace::TraceLayer;
 
 use crate::web::middleware;

@@ -9,8 +9,6 @@ mod logger;
 mod media;
 mod metric;
 mod queue;
-mod shared;
-mod util;
 mod web;
 
 use std::net::SocketAddr;

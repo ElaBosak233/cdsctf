@@ -43,10 +43,10 @@ pub struct GetRequest {
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::shared::Pod>>, WebError> {
+) -> Result<WebResult<Vec<crate::db::transfer::Pod>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let (mut pods, total) = crate::shared::pod::find(
+    let (mut pods, total) = crate::db::transfer::pod::find(
         params.id,
         params.name,
         params.user_id,
@@ -83,14 +83,14 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
-) -> Result<WebResult<crate::shared::Pod>, WebError> {
+) -> Result<WebResult<crate::db::transfer::Pod>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     body.user_id = Some(operator.id);
 
     let challenge = crate::db::entity::challenge::Entity::find_by_id(body.challenge_id)
         .one(get_db())
         .await?
-        .map(|challenge| crate::shared::Challenge::from(challenge));
+        .map(|challenge| crate::db::transfer::Challenge::from(challenge));
 
     let challenge = challenge.ok_or(WebError::BadRequest(String::from("challenge_not_found")))?;
 
@@ -109,9 +109,13 @@ pub async fn create(
             .to_string();
     }
 
-    let nats = crate::cluster::create(ctn_name.clone(), challenge.clone(), injected_flag.clone())
-        .await
-        .map_err(|err| WebError::OtherError(anyhow!("{:?}", err)))?;
+    let nats = crate::cluster::create(
+        ctn_name.clone(),
+        crate::db::entity::challenge::Model::from(challenge.clone()),
+        injected_flag.clone(),
+    )
+    .await
+    .map_err(|err| WebError::OtherError(anyhow!("{:?}", err)))?;
 
     let pod = crate::db::entity::pod::ActiveModel {
         name: Set(ctn_name),
@@ -126,7 +130,7 @@ pub async fn create(
     }
     .insert(get_db())
     .await?;
-    let mut pod = crate::shared::Pod::from(pod);
+    let mut pod = crate::db::transfer::Pod::from(pod);
 
     pod.desensitize();
 

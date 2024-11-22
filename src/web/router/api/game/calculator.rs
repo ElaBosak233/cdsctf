@@ -56,7 +56,7 @@ pub async fn calculate(game_id: i64) {
         // sort submissions by created_at
         submissions.sort_by_key(|s| s.created_at);
 
-        let base_pts = crate::util::math::curve(
+        let base_pts = crate::web::util::math::curve(
             game_challenge.max_pts,
             game_challenge.min_pts,
             game_challenge.difficulty,
