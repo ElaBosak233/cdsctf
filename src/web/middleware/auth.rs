@@ -12,7 +12,7 @@ use sea_orm::EntityTrait;
 
 use crate::{
     db::{entity::user::Group, get_db},
-    util,
+    web,
     web::traits::{Ext, WebError},
 };
 
@@ -37,12 +37,12 @@ pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebErro
 
     let token = jar.get("token").map(|cookie| cookie.value()).unwrap_or("");
 
-    let decoding_key = DecodingKey::from_secret(util::jwt::get_secret().await.as_bytes());
+    let decoding_key = DecodingKey::from_secret(web::util::jwt::get_secret().await.as_bytes());
     let validation = Validation::default();
 
-    let mut user: Option<crate::shared::User> = None;
+    let mut user: Option<crate::db::transfer::User> = None;
 
-    let result = decode::<util::jwt::Claims>(token, &decoding_key, &validation);
+    let result = decode::<web::util::jwt::Claims>(token, &decoding_key, &validation);
 
     if let Ok(data) = result {
         user = crate::db::entity::user::Entity::find_by_id(data.claims.id)
@@ -59,6 +59,8 @@ pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebErro
         if user.group == Group::Banned {
             return Err(WebError::Forbidden(String::from("forbidden")));
         }
+    } else {
+        return Ok(next.run(req).await);
     }
 
     let ConnectInfo(addr) = req.extensions().get::<ConnectInfo<SocketAddr>>().unwrap();

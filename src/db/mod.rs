@@ -1,5 +1,6 @@
 pub mod entity;
 mod migration;
+pub mod transfer;
 
 use std::time::Duration;
 

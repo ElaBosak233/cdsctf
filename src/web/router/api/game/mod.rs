@@ -80,13 +80,13 @@ pub struct GetRequest {
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::shared::Game>>, WebError> {
+) -> Result<WebResult<Vec<crate::db::transfer::Game>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin && !params.is_enabled.unwrap_or(true) {
         return Err(WebError::Forbidden(String::new()));
     }
 
-    let (games, total) = crate::shared::game::find(
+    let (games, total) = crate::db::transfer::game::find(
         params.id,
         params.title,
         params.is_enabled,
@@ -96,8 +96,8 @@ pub async fn get(
     .await?;
     let games = games
         .into_iter()
-        .map(|game| crate::shared::Game::from(game))
-        .collect::<Vec<crate::shared::Game>>();
+        .map(|game| crate::db::transfer::Game::from(game))
+        .collect::<Vec<crate::db::transfer::Game>>();
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -125,7 +125,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
-) -> Result<WebResult<crate::shared::Game>, WebError> {
+) -> Result<WebResult<crate::db::transfer::Game>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -152,7 +152,7 @@ pub async fn create(
     }
     .insert(get_db())
     .await?;
-    let game = crate::shared::Game::from(game);
+    let game = crate::db::transfer::Game::from(game);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -180,7 +180,7 @@ pub struct UpdateRequest {
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<UpdateRequest>,
-) -> Result<WebResult<crate::shared::Game>, WebError> {
+) -> Result<WebResult<crate::db::transfer::Game>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -208,7 +208,7 @@ pub async fn update(
     }
     .update(get_db())
     .await?;
-    let game = crate::shared::Game::from(game);
+    let game = crate::db::transfer::Game::from(game);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -245,10 +245,10 @@ pub struct GetChallengeRequest {
 
 pub async fn get_challenge(
     Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
-) -> Result<WebResult<Vec<crate::shared::GameChallenge>>, WebError> {
+) -> Result<WebResult<Vec<crate::db::transfer::GameChallenge>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let (game_challenges, _) = crate::shared::game_challenge::find(
+    let (game_challenges, _) = crate::db::transfer::game_challenge::find(
         params.game_id,
         params.challenge_id,
         params.is_enabled,
@@ -277,7 +277,7 @@ pub struct CreateChallengeRequest {
 
 pub async fn create_challenge(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateChallengeRequest>,
-) -> Result<WebResult<crate::shared::GameChallenge>, WebError> {
+) -> Result<WebResult<crate::db::transfer::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -297,7 +297,7 @@ pub async fn create_challenge(
     }
     .insert(get_db())
     .await?;
-    let game_challenge = crate::shared::GameChallenge::from(game_challenge);
+    let game_challenge = crate::db::transfer::GameChallenge::from(game_challenge);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -322,7 +322,7 @@ pub struct UpdateChallengeRequest {
 pub async fn update_challenge(
     Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, i64)>,
     Json(mut body): Json<UpdateChallengeRequest>,
-) -> Result<WebResult<crate::shared::GameChallenge>, WebError> {
+) -> Result<WebResult<crate::db::transfer::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -345,7 +345,7 @@ pub async fn update_challenge(
     }
     .update(get_db())
     .await?;
-    let game_challenge = crate::shared::GameChallenge::from(game_challenge);
+    let game_challenge = crate::db::transfer::GameChallenge::from(game_challenge);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -382,11 +382,11 @@ pub struct GetTeamRequest {
 
 pub async fn get_team(
     Extension(ext): Extension<Ext>, Query(params): Query<GetTeamRequest>,
-) -> Result<WebResult<Vec<crate::shared::GameTeam>>, WebError> {
+) -> Result<WebResult<Vec<crate::db::transfer::GameTeam>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
     let (game_teams, total) =
-        crate::shared::game_team::find(params.game_id, params.team_id).await?;
+        crate::db::transfer::game_team::find(params.game_id, params.team_id).await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -404,7 +404,7 @@ pub struct CreateTeamRequest {
 
 pub async fn create_team(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateTeamRequest>,
-) -> Result<WebResult<crate::shared::GameTeam>, WebError> {
+) -> Result<WebResult<crate::db::transfer::GameTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -418,7 +418,7 @@ pub async fn create_team(
     }
     .insert(get_db())
     .await?;
-    let game_team = crate::shared::GameTeam::from(game_team);
+    let game_team = crate::db::transfer::GameTeam::from(game_team);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -437,7 +437,7 @@ pub struct UpdateTeamRequest {
 pub async fn update_team(
     Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
     Json(mut body): Json<UpdateTeamRequest>,
-) -> Result<WebResult<crate::shared::GameTeam>, WebError> {
+) -> Result<WebResult<crate::db::transfer::GameTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(String::new()));
@@ -454,7 +454,7 @@ pub async fn update_team(
     }
     .update(get_db())
     .await?;
-    let game_team = crate::shared::GameTeam::from(game_team);
+    let game_team = crate::db::transfer::GameTeam::from(game_team);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -518,7 +518,7 @@ pub async fn calculate(
 // pub async fn get_submission(
 //     Path(id): Path<i64>, Query(params): Query<GetSubmissionRequest>,
 // ) -> Result<impl IntoResponse, WebError> {
-//     let submissions = crate::shared::submission::get_with_pts(id,
+//     let submissions = crate::transfer::submission::get_with_pts(id,
 // params.status).await?;
 
 //     return Ok((
@@ -534,14 +534,14 @@ pub async fn calculate(
 // WebError> {     pub struct TeamScoreRecord {}
 
 //     let submissions =
-//         crate::shared::submission::get_with_pts(id,
-// Some(crate::shared::submission::Status::Correct))             .await;
+//         crate::transfer::submission::get_with_pts(id,
+// Some(crate::transfer::submission::Status::Correct))             .await;
 
-//     let game_teams = crate::shared::game_team::Entity::find()
+//     let game_teams = crate::transfer::game_team::Entity::find()
 //         .filter(
 //             Condition::all()
-//                 .add(crate::shared::game_team::Column::GameId.eq(id))
-//                 .add(crate::shared::game_team::Column::IsAllowed.eq(true)),
+//                 .add(crate::transfer::game_team::Column::GameId.eq(id))
+//                 .add(crate::transfer::game_team::Column::IsAllowed.eq(true)),
 //         )
 //         .all(get_db())
 //         .await?;

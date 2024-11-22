@@ -24,11 +24,11 @@ use crate::{
     config,
     db::{entity::user::Group, get_db},
     media::util::hash,
-    util::{jwt, validate},
     web::{
+        extract::validate,
         model::Metadata,
         traits::{Ext, WebError, WebResult},
-        util::handle_image_multipart,
+        util::{handle_image_multipart, jwt},
     },
 };
 
@@ -66,8 +66,8 @@ pub struct GetRequest {
 
 pub async fn get(
     Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<crate::shared::User>>, WebError> {
-    let (mut users, total) = crate::shared::user::find(
+) -> Result<WebResult<Vec<crate::db::transfer::User>>, WebError> {
+    let (mut users, total) = crate::db::transfer::user::find(
         params.id,
         params.name,
         None,
@@ -101,7 +101,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, validate::Json(mut body): validate::Json<CreateRequest>,
-) -> Result<WebResult<crate::shared::User>, WebError> {
+) -> Result<WebResult<crate::db::transfer::User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     if operator.group != Group::Admin {
         return Err(WebError::Unauthorized(String::new()));
@@ -125,7 +125,7 @@ pub async fn create(
     }
     .insert(get_db())
     .await?;
-    let mut user = crate::shared::User::from(user);
+    let mut user = crate::db::transfer::User::from(user);
 
     user.desensitize();
 
@@ -151,7 +151,7 @@ pub struct UpdateRequest {
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
     validate::Json(mut body): validate::Json<UpdateRequest>,
-) -> Result<WebResult<crate::shared::User>, WebError> {
+) -> Result<WebResult<crate::db::transfer::User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
     body.id = Some(id);
     if !(operator.group == Group::Admin
@@ -180,7 +180,7 @@ pub async fn update(
     }
     .update(get_db())
     .await?;
-    let user = crate::shared::User::from(user);
+    let user = crate::db::transfer::User::from(user);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -213,10 +213,10 @@ pub async fn delete(
 
 pub async fn get_teams(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<Vec<crate::shared::Team>>, WebError> {
+) -> Result<WebResult<Vec<crate::db::transfer::Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
 
-    let teams = crate::shared::team::find_by_user_id(id).await?;
+    let teams = crate::db::transfer::team::find_by_user_id(id).await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -254,7 +254,7 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
         .await?
         .ok_or_else(|| WebError::BadRequest(String::from("invalid")))?;
 
-    let mut user = crate::shared::User::from(user);
+    let mut user = crate::db::transfer::User::from(user);
 
     let hashed_password = user.hashed_password.clone();
 
@@ -307,7 +307,7 @@ pub struct RegisterRequest {
 
 pub async fn register(
     Extension(ext): Extension<Ext>, validate::Json(mut body): validate::Json<RegisterRequest>,
-) -> Result<WebResult<crate::shared::User>, WebError> {
+) -> Result<WebResult<crate::db::transfer::User>, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
 
@@ -350,7 +350,7 @@ pub async fn register(
     }
     .insert(get_db())
     .await?;
-    let user = crate::shared::User::from(user);
+    let user = crate::db::transfer::User::from(user);
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
