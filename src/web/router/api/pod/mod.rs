@@ -114,8 +114,7 @@ pub async fn create(
         crate::db::entity::challenge::Model::from(challenge.clone()),
         injected_flag.clone(),
     )
-    .await
-    .map_err(|err| WebError::OtherError(anyhow!("{:?}", err)))?;
+    .await?;
 
     let pod = crate::db::entity::pod::ActiveModel {
         name: Set(ctn_name),

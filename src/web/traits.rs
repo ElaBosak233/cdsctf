@@ -72,6 +72,8 @@ pub enum WebError {
     MediaError(#[from] crate::media::traits::MediaError),
     #[error("queue error: {0}")]
     QueueError(#[from] crate::queue::traits::QueueError),
+    #[error("cluster error: {0}")]
+    ClusterError(#[from] crate::cluster::traits::ClusterError),
     #[error(transparent)]
     OtherError(#[from] anyhow::Error),
 }
@@ -92,6 +94,7 @@ impl IntoResponse for WebError {
             },
             Self::MediaError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
             Self::QueueError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
+            Self::ClusterError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
             Self::OtherError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
         };
 
