@@ -1,8 +1,8 @@
 use std::fmt::Display;
 
 use fred::{
-    prelude::{ClientLike, KeysInterface, RedisClient},
-    types::{Expiration, RedisConfig, RedisKey},
+    prelude::{Client, ClientLike, KeysInterface},
+    types::{config::Config, Expiration, Key},
 };
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
@@ -12,13 +12,13 @@ use traits::CacheError;
 
 pub mod traits;
 
-static CLIENT: OnceCell<RedisClient> = OnceCell::new();
+static CLIENT: OnceCell<Client> = OnceCell::new();
 
-fn get_client() -> RedisClient {
+fn get_client() -> Client {
     CLIENT.get().unwrap().clone()
 }
 
-pub async fn get<T>(key: impl Into<RedisKey> + Send + Display) -> Result<Option<T>, CacheError>
+pub async fn get<T>(key: impl Into<Key> + Send + Display) -> Result<Option<T>, CacheError>
 where
     T: for<'de> Deserialize<'de>, {
     let result = get_client().get::<Option<Value>, _>(key).await?;
@@ -28,9 +28,7 @@ where
     }
 }
 
-pub async fn get_del<T>(
-    key: impl Into<RedisKey> + Send + Display,
-) -> Result<Option<T>, CacheError>
+pub async fn get_del<T>(key: impl Into<Key> + Send + Display) -> Result<Option<T>, CacheError>
 where
     T: for<'de> Deserialize<'de>, {
     let result = get_client().getdel::<Option<Value>, _>(key).await?;
@@ -41,7 +39,7 @@ where
 }
 
 pub async fn set(
-    key: impl Into<RedisKey> + Send + Display, value: impl Serialize + Send,
+    key: impl Into<Key> + Send + Display, value: impl Serialize + Send,
 ) -> Result<(), CacheError> {
     let value = serde_json::to_string(&value)?;
     get_client().set(key, value, None, None, false).await?;
@@ -50,7 +48,7 @@ pub async fn set(
 }
 
 pub async fn set_ex(
-    key: impl Into<RedisKey> + Send + Display, value: impl Serialize + Send, expire: u64,
+    key: impl Into<Key> + Send + Display, value: impl Serialize + Send, expire: u64,
 ) -> Result<(), CacheError> {
     let value = serde_json::to_string(&value)?;
     get_client()
@@ -67,8 +65,8 @@ pub async fn flush() -> Result<(), CacheError> {
 }
 
 pub async fn init() {
-    let config = RedisConfig::from_url(&crate::env::get_env().cache.url).unwrap();
-    let client = RedisClient::new(config, None, None, None);
+    let config = Config::from_url(&crate::env::get_env().cache.url).unwrap();
+    let client = Client::new(config, None, None, None);
     client.init().await.unwrap();
 
     CLIENT.set(client).unwrap();

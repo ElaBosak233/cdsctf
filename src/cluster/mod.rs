@@ -1,4 +1,4 @@
-pub(crate)mod traits;
+pub mod traits;
 
 use std::{collections::BTreeMap, process, sync::OnceLock, time::Duration};
 
@@ -19,6 +19,7 @@ use kube::{
 use once_cell::sync::OnceCell;
 use tokio_util::codec::Framed;
 use tracing::{error, info};
+
 use crate::cluster::traits::ClusterError;
 
 static K8S_CLIENT: OnceCell<K8sClient> = OnceCell::new();
