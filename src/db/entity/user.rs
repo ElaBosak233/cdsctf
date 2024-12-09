@@ -1,10 +1,9 @@
 use async_trait::async_trait;
-use sea_orm::{entity::prelude::*, Condition, QuerySelect, Set};
+use sea_orm::{entity::prelude::*, Set};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::{pod, submission, team, user_team};
-use crate::db::get_db;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "users")]

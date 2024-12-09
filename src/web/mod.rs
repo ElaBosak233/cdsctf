@@ -5,12 +5,11 @@ pub mod router;
 pub mod traits;
 pub mod util;
 
-use std::sync::OnceLock;
-
 use axum::Router;
+use once_cell::sync::OnceCell;
 use tower_http::cors::{Any, CorsLayer};
 
-static APP: OnceLock<Router> = OnceLock::new();
+static APP: OnceCell<Router> = OnceCell::new();
 
 pub async fn init() {
     let cors = CorsLayer::new()

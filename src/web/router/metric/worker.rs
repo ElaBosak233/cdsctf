@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use sysinfo::{Pid, System};
-use tokio::time::interval;
 use tracing::info;
 
 use crate::metric::{CPU_USAGE, MEMORY_USAGE, MEMORY_USAGE_RATIO};

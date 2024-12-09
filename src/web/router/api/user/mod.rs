@@ -7,7 +7,7 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart, Path, Query},
     http::{header::SET_COOKIE, HeaderMap, Response},
     response::IntoResponse,
-    Extension, Json, Router,
+    Router,
 };
 use reqwest::StatusCode;
 use sea_orm::{
@@ -18,6 +18,7 @@ use sea_orm::{
     Condition, EntityTrait, PaginatorTrait, QueryFilter,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use validator::Validate;
 
 use crate::{
@@ -25,12 +26,13 @@ use crate::{
     db::{entity::user::Group, get_db},
     media::util::hash,
     web::{
-        extract::validate,
+        extract::{Extension, Json},
         model::Metadata,
         traits::{Ext, WebError, WebResult},
         util::{handle_image_multipart, jwt},
     },
 };
+use crate::web::extract::VJson;
 
 pub fn router() -> Router {
     Router::new()
@@ -100,11 +102,13 @@ pub struct CreateRequest {
 }
 
 pub async fn create(
-    Extension(ext): Extension<Ext>, validate::Json(mut body): validate::Json<CreateRequest>,
+    Extension(ext): Extension<Ext>, VJson(mut body): VJson<CreateRequest>,
 ) -> Result<WebResult<crate::db::transfer::User>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(serde_json::json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Unauthorized(String::new()));
+        return Err(WebError::Unauthorized(serde_json::json!("")));
     }
 
     body.email = body.email.to_lowercase();
@@ -149,16 +153,17 @@ pub struct UpdateRequest {
 }
 
 pub async fn update(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-    validate::Json(mut body): validate::Json<UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResult<crate::db::transfer::User>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     body.id = Some(id);
     if !(operator.group == Group::Admin
         || (operator.id == body.id.unwrap_or(0)
             && (body.group.clone().is_none() || operator.group == body.group.clone().unwrap())))
     {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     if let Some(password) = body.password {
@@ -171,11 +176,11 @@ pub async fn update(
 
     let user = crate::db::entity::user::ActiveModel {
         id: Set(body.id.unwrap_or(0)),
-        username: body.username.map_or(NotSet, |v| Set(v)),
-        nickname: body.nickname.map_or(NotSet, |v| Set(v)),
-        email: body.email.map_or(NotSet, |v| Set(v)),
-        hashed_password: body.password.map_or(NotSet, |v| Set(v)),
-        group: body.group.map_or(NotSet, |v| Set(v)),
+        username: body.username.map_or(NotSet, Set),
+        nickname: body.nickname.map_or(NotSet, Set),
+        email: body.email.map_or(NotSet, Set),
+        hashed_password: body.password.map_or(NotSet, Set),
+        group: body.group.map_or(NotSet, Set),
         ..Default::default()
     }
     .update(get_db())
@@ -192,9 +197,11 @@ pub async fn update(
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if !(operator.group == Group::Admin || operator.id == id) {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let _ = crate::db::entity::user::ActiveModel {
@@ -214,7 +221,9 @@ pub async fn delete(
 pub async fn get_teams(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<Vec<crate::db::transfer::Team>>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let _ = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     let teams = crate::db::transfer::team::find_by_user_id(id).await?;
 
@@ -252,7 +261,7 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
         )
         .one(get_db())
         .await?
-        .ok_or_else(|| WebError::BadRequest(String::from("invalid")))?;
+        .ok_or_else(|| WebError::BadRequest(json!("invalid")))?;
 
     let mut user = crate::db::transfer::User::from(user);
 
@@ -265,10 +274,10 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
         )
         .is_err()
     {
-        return Err(WebError::BadRequest(String::from("invalid")));
+        return Err(WebError::BadRequest(json!("invalid")));
     }
 
-    let token = jwt::generate_jwt_token(user.id.clone()).await;
+    let token = jwt::generate_jwt_token(user.id).await;
     user.desensitize();
 
     let mut headers = HeaderMap::new();
@@ -306,7 +315,7 @@ pub struct RegisterRequest {
 }
 
 pub async fn register(
-    Extension(ext): Extension<Ext>, validate::Json(mut body): validate::Json<RegisterRequest>,
+    Extension(ext): Extension<Ext>, Json(mut body): Json<RegisterRequest>,
 ) -> Result<WebResult<crate::db::transfer::User>, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
@@ -332,7 +341,7 @@ pub async fn register(
         > 0;
 
     if is_conflict {
-        return Err(WebError::Conflict(String::new()));
+        return Err(WebError::Conflict(json!("")));
     }
 
     let hashed_password = Argon2::default()
@@ -361,18 +370,18 @@ pub async fn register(
 
 pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("users/{}/avatar", id);
-    match crate::media::scan_dir(path.clone()).await.unwrap().first() {
+    match crate::media::scan_dir(path.clone()).await?.first() {
         Some((filename, _size)) => {
-            let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
+            let buffer = crate::media::get(path, filename.to_string()).await?;
             Ok(Response::builder().body(Body::from(buffer)).unwrap())
         }
-        None => Err(WebError::NotFound(String::new())),
+        None => Err(WebError::NotFound(serde_json::json!(""))),
     }
 }
 
 pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
     let path = format!("users/{}/avatar", id);
-    match crate::media::scan_dir(path.clone()).await.unwrap().first() {
+    match crate::media::scan_dir(path.clone()).await?.first() {
         Some((filename, size)) => Ok(WebResult {
             code: StatusCode::OK.as_u16(),
             data: Some(Metadata {
@@ -381,16 +390,18 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metada
             }),
             ..WebResult::default()
         }),
-        None => Err(WebError::NotFound(String::new())),
+        None => Err(WebError::NotFound(json!(""))),
     }
 }
 
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && operator.id != id {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let path = format!("users/{}/avatar", id);
@@ -404,7 +415,7 @@ pub async fn save_avatar(
 
     let _ = crate::media::save(path, filename, data)
         .await
-        .map_err(|_| WebError::InternalServerError(String::new()));
+        .map_err(|_| WebError::InternalServerError(json!("")));
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -415,16 +426,18 @@ pub async fn save_avatar(
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && operator.id != id {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let path = format!("users/{}/avatar", id);
 
     let _ = crate::media::delete_dir(path)
         .await
-        .map_err(|_| WebError::InternalServerError(String::new()));
+        .map_err(|_| WebError::InternalServerError(json!("")));
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),

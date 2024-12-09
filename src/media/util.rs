@@ -8,7 +8,7 @@ pub fn hash(data: Vec<u8>) -> String {
 }
 
 pub async fn img_convert_to_webp(img: Vec<u8>) -> Result<Vec<u8>, anyhow::Error> {
-    let origin_image = image::load_from_memory(&*img)?.to_rgba8();
+    let origin_image = image::load_from_memory(&img)?.to_rgba8();
     let webp_encoder =
         webp::Encoder::from_rgba(&origin_image, origin_image.width(), origin_image.height());
     let webp_image = webp_encoder.encode(85.0);

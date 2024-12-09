@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 use prometheus::{Gauge, IntCounterVec, IntGauge, Opts, Registry};
 
-pub static METRICS_REGISTRY: Lazy<Registry> = Lazy::new(|| Registry::new());
+pub static METRICS_REGISTRY: Lazy<Registry> = Lazy::new(Registry::new);
 
 pub static HTTP_REQUEST_TOTAL: Lazy<IntCounterVec> = Lazy::new(|| {
     let opts = Opts::new(

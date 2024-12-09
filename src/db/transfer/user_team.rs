@@ -36,7 +36,7 @@ pub async fn find(
     let user_teams = sql.all(get_db()).await?;
     let user_teams = user_teams
         .into_iter()
-        .map(|user_team| UserTeam::from(user_team))
+        .map(UserTeam::from)
         .collect::<Vec<UserTeam>>();
 
     Ok((user_teams, total))

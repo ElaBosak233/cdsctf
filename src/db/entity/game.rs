@@ -1,9 +1,8 @@
 use async_trait::async_trait;
-use sea_orm::{entity::prelude::*, QuerySelect, Set};
+use sea_orm::{entity::prelude::*, Set};
 use serde::{Deserialize, Serialize};
 
 use super::{challenge, game_challenge, game_team, pod, submission, team};
-use crate::db::get_db;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "games")]
