@@ -20,7 +20,7 @@ pub struct Ext {
 pub struct WebResult<T> {
     pub code: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub msg: Option<String>,
+    pub msg: Option<serde_json::Value>,
     pub data: Option<T>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub total: Option<u64>,
@@ -53,19 +53,21 @@ impl<T: Serialize + Debug> IntoResponse for WebResult<T> {
 #[derive(Debug, Error)]
 pub enum WebError {
     #[error("not found: {0}")]
-    NotFound(String),
+    NotFound(serde_json::Value),
     #[error("internal server error: {0}")]
-    InternalServerError(String),
+    InternalServerError(serde_json::Value),
     #[error("bad request: {0}")]
-    BadRequest(String),
+    BadRequest(serde_json::Value),
     #[error("unauthorized: {0}")]
-    Unauthorized(String),
+    Unauthorized(serde_json::Value),
     #[error("forbidden: {0}")]
-    Forbidden(String),
+    Forbidden(serde_json::Value),
     #[error("conflict: {0}")]
-    Conflict(String),
+    Conflict(serde_json::Value),
     #[error("too many requests: {0}")]
-    TooManyRequests(String),
+    TooManyRequests(serde_json::Value),
+    #[error("unprocessable entity: {0}")]
+    UnprocessableEntity(serde_json::Value),
     #[error("db error: {0}")]
     DatabaseError(#[from] sea_orm::DbErr),
     #[error("media error: {0}")]
@@ -88,14 +90,32 @@ impl IntoResponse for WebError {
             Self::Forbidden(msg) => (StatusCode::FORBIDDEN, msg.clone()),
             Self::Conflict(msg) => (StatusCode::CONFLICT, msg.clone()),
             Self::TooManyRequests(msg) => (StatusCode::TOO_MANY_REQUESTS, msg.clone()),
+            Self::UnprocessableEntity(msg) => (StatusCode::UNPROCESSABLE_ENTITY, msg.clone()),
             Self::DatabaseError(err) => match err {
-                sea_orm::DbErr::RecordNotFound(msg) => (StatusCode::NOT_FOUND, msg.clone()),
-                _ => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
+                sea_orm::DbErr::RecordNotFound(msg) => {
+                    (StatusCode::NOT_FOUND, serde_json::json!(msg.clone()))
+                }
+                _ => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    serde_json::json!(err.to_string()),
+                ),
             },
-            Self::MediaError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
-            Self::QueueError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
-            Self::ClusterError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
-            Self::OtherError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
+            Self::MediaError(err) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!(err.to_string()),
+            ),
+            Self::QueueError(err) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!(err.to_string()),
+            ),
+            Self::ClusterError(err) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!(err.to_string()),
+            ),
+            Self::OtherError(err) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!(err.to_string()),
+            ),
         };
 
         WebResult::<()> {

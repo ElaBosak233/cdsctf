@@ -3,14 +3,15 @@ use axum::{
     extract::Multipart,
     http::{Response, StatusCode},
     response::{IntoResponse, Redirect},
-    Extension, Json, Router,
+    Router,
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::Set};
-
+use serde_json::json;
 use crate::{
     config::get_config,
     db::{entity::user::Group, get_db},
     web::{
+        extract::{Extension, Json},
         traits::{Ext, WebError, WebResult},
         util::handle_image_multipart,
     },
@@ -28,9 +29,11 @@ pub fn router() -> Router {
 pub async fn get(
     Extension(ext): Extension<Ext>,
 ) -> Result<WebResult<crate::config::Config>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     Ok(WebResult {
@@ -41,11 +44,13 @@ pub async fn get(
 }
 
 pub async fn update(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<crate::config::Config>,
+    Extension(ext): Extension<Ext>, Json(body): Json<crate::config::Config>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let config = crate::db::entity::config::ActiveModel {
@@ -78,9 +83,11 @@ pub async fn get_icon() -> impl IntoResponse {
 pub async fn save_icon(
     Extension(ext): Extension<Ext>, multipart: Multipart,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
     let path = String::from("configs");
     let filename = String::from("icon.webp");
@@ -89,9 +96,9 @@ pub async fn save_icon(
         .await
         .unwrap();
     let data = crate::media::util::img_convert_to_webp(data).await?;
-    let _ = crate::media::save(path, filename, data)
+    crate::media::save(path, filename, data)
         .await
-        .map_err(|_| WebError::InternalServerError(String::new()))?;
+        .map_err(|_| WebError::InternalServerError(json!("")))?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -100,9 +107,11 @@ pub async fn save_icon(
 }
 
 pub async fn delete_icon(Extension(ext): Extension<Ext>) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
     let path = String::from("configs");
     let filename = String::from("icon.webp");

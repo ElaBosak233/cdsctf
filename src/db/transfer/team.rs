@@ -1,4 +1,4 @@
-use sea_orm::{entity::prelude::*, Iterable, JoinType, QuerySelect, Set};
+use sea_orm::{entity::prelude::*, Iterable, JoinType, QuerySelect};
 use serde::{Deserialize, Serialize};
 
 use super::User;
@@ -70,7 +70,7 @@ async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
     let models = teams
         .clone()
         .into_iter()
-        .map(|team| entity::team::Model::from(team))
+        .map(entity::team::Model::from)
         .collect::<Vec<entity::team::Model>>();
     let users = models
         .load_many_to_many(entity::user::Entity, entity::user_team::Entity, get_db())
@@ -79,7 +79,7 @@ async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
         .map(|users| {
             users
                 .into_iter()
-                .map(|user| User::from(user))
+                .map(User::from)
                 .collect::<Vec<User>>()
         })
         .collect::<Vec<Vec<User>>>();

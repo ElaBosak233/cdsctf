@@ -17,7 +17,7 @@ pub async fn get(path: String, filename: String) -> Result<Vec<u8>, MediaError> 
     match File::open(&filepath).await {
         Ok(mut file) => {
             let mut buffer = Vec::new();
-            if let Err(_) = file.read_to_end(&mut buffer).await {
+            if (file.read_to_end(&mut buffer).await).is_err() {
                 return Err(MediaError::InternalServerError(String::new()));
             }
             Ok(buffer)

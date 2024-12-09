@@ -3,7 +3,7 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart, Path, Query},
     http::{Response, StatusCode},
     response::IntoResponse,
-    Extension, Json, Router,
+    Router,
 };
 use sea_orm::{
     ActiveModelTrait,
@@ -11,17 +11,20 @@ use sea_orm::{
     ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use validator::Validate;
 
 use crate::{
     db::{entity::user::Group, get_db},
     media::util::hash,
     web::{
+        extract::{Extension, Json},
         model::Metadata,
         traits::{Ext, WebError, WebResult},
         util::handle_image_multipart,
     },
 };
+use crate::web::extract::VJson;
 
 pub fn router() -> Router {
     Router::new()
@@ -95,11 +98,13 @@ pub struct CreateRequest {
 }
 
 pub async fn create(
-    Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
+    Extension(ext): Extension<Ext>, VJson(body): VJson<CreateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Team>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(serde_json::json!("")))?;
     if !(operator.group == Group::Admin || operator.id == body.captain_id) {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(serde_json::json!("")));
     }
 
     let team = crate::db::entity::team::ActiveModel {
@@ -139,20 +144,22 @@ pub struct UpdateRequest {
 }
 
 pub async fn update(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Team>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     if !can_modify_team(operator, id) {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
     body.id = Some(id);
 
     let team = crate::db::entity::team::ActiveModel {
-        id: body.id.map_or(NotSet, |v| Set(v)),
-        name: body.name.map_or(NotSet, |v| Set(v)),
+        id: body.id.map_or(NotSet, Set),
+        name: body.name.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, |v| Set(Some(v))),
-        captain_id: body.captain_id.map_or(NotSet, |v| Set(v)),
+        captain_id: body.captain_id.map_or(NotSet, Set),
         slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
@@ -170,10 +177,12 @@ pub async fn update(
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     if !can_modify_team(operator, id) {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let _ = crate::db::entity::team::ActiveModel {
@@ -199,9 +208,11 @@ pub struct CreateUserRequest {
 pub async fn create_user(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateUserRequest>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let _ = crate::db::entity::user_team::ActiveModel {
@@ -220,9 +231,11 @@ pub async fn create_user(
 pub async fn delete_user(
     Extension(ext): Extension<Ext>, Path((id, user_id)): Path<(i64, i64)>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if !can_modify_team(operator.clone(), id) && operator.id != user_id {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let _ = crate::db::entity::user_team::Entity::delete_many()
@@ -240,10 +253,12 @@ pub async fn delete_user(
 pub async fn get_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<String>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     if !can_modify_team(operator, id) {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let team = crate::db::entity::team::Entity::find_by_id(id)
@@ -251,7 +266,7 @@ pub async fn get_invite_token(
         .column(crate::db::entity::team::Column::InviteToken)
         .one(get_db())
         .await?
-        .ok_or_else(|| WebError::NotFound(String::new()))?;
+        .ok_or_else(|| WebError::NotFound(json!("")))?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -263,15 +278,17 @@ pub async fn get_invite_token(
 pub async fn update_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<String>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if !can_modify_team(operator, id) {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let mut team = crate::db::entity::team::Entity::find_by_id(id)
         .one(get_db())
         .await?
-        .ok_or_else(|| WebError::NotFound(String::new()))?
+        .ok_or_else(|| WebError::NotFound(json!("")))?
         .into_active_model();
 
     let token = uuid::Uuid::new_v4().simple().to_string();
@@ -296,22 +313,26 @@ pub struct JoinRequest {
 pub async fn join(
     Extension(ext): Extension<Ext>, Json(mut body): Json<JoinRequest>,
 ) -> Result<WebResult<crate::db::transfer::UserTeam>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     body.user_id = operator.id;
 
     let _ = crate::db::entity::user::Entity::find_by_id(body.user_id)
         .one(get_db())
         .await?
-        .ok_or_else(|| WebError::NotFound(String::from("invalid_user_or_team")))?;
+        .ok_or_else(|| WebError::NotFound(json!("invalid_user_or_team")))?;
 
     let team = crate::db::entity::team::Entity::find_by_id(body.team_id)
         .one(get_db())
         .await?
-        .ok_or_else(|| WebError::NotFound(String::from("invalid_user_or_team")))?;
+        .ok_or_else(|| WebError::NotFound(json!("invalid_user_or_team")))?;
 
     if Some(body.invite_token.clone()) != team.invite_token {
-        return Err(WebError::BadRequest(String::from("invalid_invite_token")));
+        return Err(WebError::BadRequest(json!(
+            "invalid_invite_token"
+        )));
     }
 
     let user_team = crate::db::entity::user_team::ActiveModel {
@@ -336,7 +357,7 @@ pub async fn leave() -> impl IntoResponse {
 
 pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
     let path = format!("teams/{}/avatar", id);
-    match crate::media::scan_dir(path.clone()).await.unwrap().first() {
+    match crate::media::scan_dir(path.clone()).await?.first() {
         Some((filename, size)) => Ok(WebResult {
             code: StatusCode::OK.as_u16(),
             data: Some(Metadata {
@@ -345,27 +366,29 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metada
             }),
             ..WebResult::default()
         }),
-        None => Err(WebError::NotFound(String::new())),
+        None => Err(WebError::NotFound(json!(""))),
     }
 }
 
 pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("teams/{}/avatar", id);
-    match crate::media::scan_dir(path.clone()).await.unwrap().first() {
+    match crate::media::scan_dir(path.clone()).await?.first() {
         Some((filename, _size)) => {
-            let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
+            let buffer = crate::media::get(path, filename.to_string()).await?;
             Ok(Response::builder().body(Body::from(buffer)).unwrap())
         }
-        None => Err(WebError::NotFound(String::new())),
+        None => Err(WebError::NotFound(json!(""))),
     }
 }
 
 pub async fn save_avatar(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if !can_modify_team(operator, id) {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let path = format!("teams/{}/avatar", id);
@@ -376,9 +399,9 @@ pub async fn save_avatar(
     let data = crate::media::util::img_convert_to_webp(data).await?;
     let filename = format!("{}.webp", hash(data.clone()));
 
-    let _ = crate::media::save(path, filename, data)
+    crate::media::save(path, filename, data)
         .await
-        .map_err(|_| WebError::InternalServerError(String::new()))?;
+        .map_err(|_| WebError::InternalServerError(json!("")))?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -389,16 +412,18 @@ pub async fn save_avatar(
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if !can_modify_team(operator, id) {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let path = format!("teams/{}/avatar", id);
 
-    let _ = crate::media::delete_dir(path)
+    crate::media::delete_dir(path)
         .await
-        .map_err(|_| WebError::InternalServerError(String::new()))?;
+        .map_err(|_| WebError::InternalServerError(json!("")))?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),

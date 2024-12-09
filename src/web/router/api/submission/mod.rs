@@ -3,11 +3,21 @@ pub mod checker;
 use axum::{
     extract::{Path, Query},
     http::StatusCode,
-    response::IntoResponse,
-    Extension, Json, Router,
+    Router,
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
+use crate::{
+    db::{
+        entity::{submission::Status, user::Group},
+        get_db,
+    },
+    web::{
+        extract::{Extension, Json},
+        traits::{Ext, WebError, WebResult},
+    },
+};
 
 pub async fn router() -> Router {
     checker::init().await;
@@ -18,14 +28,6 @@ pub async fn router() -> Router {
         .route("/", axum::routing::post(create))
         .route("/:id", axum::routing::delete(delete))
 }
-
-use crate::{
-    db::{
-        entity::{submission::Status, user::Group},
-        get_db,
-    },
-    web::traits::{Ext, WebError, WebResult},
-};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetRequest {
@@ -43,9 +45,11 @@ pub struct GetRequest {
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<WebResult<Vec<crate::db::transfer::Submission>>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let (mut submissions, total) = crate::db::transfer::submission::find(
@@ -78,14 +82,16 @@ pub async fn get(
 pub async fn get_by_id(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<crate::db::transfer::Submission>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let _ = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     let submission = crate::db::entity::submission::Entity::find_by_id(id)
         .one(get_db())
         .await?;
 
     if submission.is_none() {
-        return Err(WebError::NotFound(String::from("")));
+        return Err(WebError::NotFound(json!("")));
     }
 
     let submission = submission.unwrap();
@@ -111,7 +117,9 @@ pub struct CreateRequest {
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Submission>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     body.user_id = Some(operator.id);
 
@@ -121,7 +129,9 @@ pub async fn create(
             .await?;
 
         if challenge.is_none() {
-            return Err(WebError::BadRequest(String::from("challenge_not_found")));
+            return Err(WebError::BadRequest(json!(
+                "challenge_not_found"
+            )));
         }
     }
 
@@ -131,7 +141,7 @@ pub async fn create(
             .await?;
 
         if game.is_none() {
-            return Err(WebError::BadRequest(String::from("game_not_found")));
+            return Err(WebError::BadRequest(json!("game_not_found")));
         }
     }
 
@@ -141,16 +151,16 @@ pub async fn create(
             .await?;
 
         if team.is_none() {
-            return Err(WebError::BadRequest(String::from("team_not_found")));
+            return Err(WebError::BadRequest(json!("team_not_found")));
         }
     }
 
     let submission = crate::db::entity::submission::ActiveModel {
         flag: Set(body.flag),
-        user_id: body.user_id.map_or(NotSet, |v| Set(v)),
+        user_id: body.user_id.map_or(NotSet, Set),
         team_id: body.team_id.map_or(NotSet, |v| Set(Some(v))),
         game_id: body.game_id.map_or(NotSet, |v| Set(Some(v))),
-        challenge_id: body.challenge_id.map_or(NotSet, |v| Set(v)),
+        challenge_id: body.challenge_id.map_or(NotSet, Set),
         status: Set(Status::Pending),
         ..Default::default()
     }
@@ -170,9 +180,11 @@ pub async fn create(
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let _ = crate::db::entity::submission::Entity::delete_by_id(id)

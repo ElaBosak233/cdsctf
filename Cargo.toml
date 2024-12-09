@@ -3,12 +3,13 @@ name = "cdsctf"
 version = "0.0.1"
 edition = "2021"
 description = "The CdsCTF project is an open-source, high-performance, Jeopardy-style's CTF platform."
+publish = false
 
 [dependencies]
 # Async
 async-trait = { version = "0.1" }
-tokio = { version = "1.41", features = ["full"] }
-tokio-util = { version = "0.7.12" }
+tokio = { version = "1.42", features = ["full"] }
+tokio-util = { version = "0.7.13" }
 futures = { version = "^0.3" }
 futures-util = { version = "^0.3" }
 tower = { version = "0.5" }

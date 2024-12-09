@@ -3,11 +3,11 @@ use axum::{
     response::IntoResponse,
     Router,
 };
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde::Deserialize;
+use serde_json::json;
 use tracing::debug;
 
-use crate::{config, db::get_db, web::traits::WebError};
+use crate::web::traits::WebError;
 
 pub fn router() -> Router {
     Router::new().route("/:token", axum::routing::get(link))
@@ -22,7 +22,7 @@ pub async fn link(
     Path(token): Path<String>, Query(query): Query<LinkRequest>, ws: Option<WebSocketUpgrade>,
 ) -> Result<impl IntoResponse, WebError> {
     if ws.is_none() {
-        return Err(WebError::BadRequest(String::from("")));
+        return Err(WebError::BadRequest(json!("")));
     }
 
     let ws = ws.unwrap();

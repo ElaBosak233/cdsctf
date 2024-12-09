@@ -5,7 +5,7 @@ fn main() {
         "cargo:rustc-env=GIT_COMMIT={}",
         String::from_utf8(
             Command::new("git")
-                .args(&["rev-parse", "HEAD"])
+                .args(["rev-parse", "HEAD"])
                 .output()
                 .expect("Failed to execute git command")
                 .stdout,
@@ -18,6 +18,5 @@ fn main() {
         "cargo:rustc-env=BUILD_AT={}",
         chrono::Utc::now()
             .format("%Y-%m-%d %H:%M:%S UTC")
-            .to_string()
     );
 }

@@ -9,7 +9,7 @@ pub mod team;
 pub mod user;
 
 use axum::{http::StatusCode, response::IntoResponse, Router};
-
+use serde_json::json;
 use crate::web::traits::WebResult;
 
 pub async fn router() -> Router {
@@ -29,7 +29,7 @@ pub async fn router() -> Router {
 pub async fn index() -> impl IntoResponse {
     WebResult::<()> {
         code: StatusCode::OK.as_u16(),
-        msg: Some(format!("{:?}", "This is the heart of Cloudsdale!")),
+        msg: Some(json!("This is the heart of Cloudsdale!")),
         ..WebResult::default()
     }
 }

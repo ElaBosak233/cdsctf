@@ -41,7 +41,7 @@ pub async fn subscribe(
 
     let subscriber = stream
         .get_or_create_consumer(
-            &subject,
+            subject,
             async_nats::jetstream::consumer::pull::Config {
                 durable_name: Some(String::from(subject)),
                 ..Default::default()

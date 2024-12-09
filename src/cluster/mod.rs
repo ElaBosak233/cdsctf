@@ -1,6 +1,6 @@
 pub mod traits;
 
-use std::{collections::BTreeMap, process, sync::OnceLock, time::Duration};
+use std::{collections::BTreeMap, process};
 
 use axum::extract::ws::WebSocket;
 use k8s_openapi::{
@@ -12,7 +12,6 @@ use k8s_openapi::{
 };
 use kube::{
     api::{Api, DeleteParams, ListParams, PostParams, ResourceExt},
-    config::Kubeconfig,
     runtime::{reflector::Lookup, wait::conditions},
     Client as K8sClient, Config,
 };

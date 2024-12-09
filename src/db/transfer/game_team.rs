@@ -67,7 +67,7 @@ pub async fn find(
     let game_teams = sql.all(get_db()).await?;
     let mut game_teams = game_teams
         .into_iter()
-        .map(|game_team| GameTeam::from(game_team))
+        .map(GameTeam::from)
         .collect::<Vec<GameTeam>>();
 
     game_teams = preload(game_teams).await?;

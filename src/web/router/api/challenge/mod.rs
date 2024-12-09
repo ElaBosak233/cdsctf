@@ -5,10 +5,11 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart, Path, Query},
     http::{header, Response, StatusCode},
     response::IntoResponse,
-    Extension, Json, Router,
+    Router,
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use validator::Validate;
 
 use crate::{
@@ -17,11 +18,12 @@ use crate::{
         get_db,
     },
     web::{
-        extract::validate,
+        extract::{Extension, Json},
         model::Metadata,
         traits::{Ext, WebError, WebResult},
     },
 };
+use crate::web::extract::VJson;
 
 pub fn router() -> Router {
     Router::new()
@@ -59,9 +61,11 @@ pub struct GetRequest {
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<WebResult<Vec<crate::db::transfer::Challenge>>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(serde_json::json!("")))?;
     if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(serde_json::json!("")));
     }
 
     let (mut challenges, total) = crate::db::transfer::challenge::find(
@@ -106,10 +110,13 @@ pub struct StatusResult {
     pub bloods: Vec<crate::db::transfer::Submission>,
 }
 
+#[axum::debug_handler]
 pub async fn get_status(
     Extension(ext): Extension<Ext>, Json(body): Json<StatusRequest>,
 ) -> Result<WebResult<HashMap<i64, StatusResult>>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let _ = ext
+        .operator
+        .ok_or(WebError::Unauthorized(serde_json::json!("")))?;
 
     let mut submissions =
         crate::db::transfer::submission::get_by_challenge_ids(body.cids.clone()).await?;
@@ -201,9 +208,11 @@ pub struct CreateRequest {
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Challenge>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(serde_json::json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(serde_json::json!("")));
     }
 
     let challenge = crate::db::entity::challenge::ActiveModel {
@@ -255,32 +264,33 @@ pub struct UpdateRequest {
 }
 
 pub async fn update(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-    validate::Json(mut body): validate::Json<UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Challenge>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     body.id = Some(id);
 
     let challenge = crate::db::entity::challenge::ActiveModel {
-        id: body.id.map_or(NotSet, |v| Set(v)),
-        title: body.title.map_or(NotSet, |v| Set(v)),
+        id: body.id.map_or(NotSet, Set),
+        title: body.title.map_or(NotSet, Set),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
-        tags: body.tags.map_or(NotSet, |v| Set(v)),
-        category: body.category.map_or(NotSet, |v| Set(v)),
-        is_practicable: body.is_practicable.map_or(NotSet, |v| Set(v)),
-        is_dynamic: body.is_dynamic.map_or(NotSet, |v| Set(v)),
-        has_attachment: body.has_attachment.map_or(NotSet, |v| Set(v)),
+        tags: body.tags.map_or(NotSet, Set),
+        category: body.category.map_or(NotSet, Set),
+        is_practicable: body.is_practicable.map_or(NotSet, Set),
+        is_dynamic: body.is_dynamic.map_or(NotSet, Set),
+        has_attachment: body.has_attachment.map_or(NotSet, Set),
         image_name: body.image_name.map_or(NotSet, |v| Set(Some(v))),
-        cpu_limit: body.cpu_limit.map_or(NotSet, |v| Set(v)),
-        memory_limit: body.memory_limit.map_or(NotSet, |v| Set(v)),
-        duration: body.duration.map_or(NotSet, |v| Set(v)),
-        ports: body.ports.map_or(NotSet, |v| Set(v)),
-        envs: body.envs.map_or(NotSet, |v| Set(v)),
-        flags: body.flags.map_or(NotSet, |v| Set(v)),
+        cpu_limit: body.cpu_limit.map_or(NotSet, Set),
+        memory_limit: body.memory_limit.map_or(NotSet, Set),
+        duration: body.duration.map_or(NotSet, Set),
+        ports: body.ports.map_or(NotSet, Set),
+        envs: body.envs.map_or(NotSet, Set),
+        flags: body.flags.map_or(NotSet, Set),
         ..Default::default()
     }
     .update(get_db())
@@ -297,9 +307,11 @@ pub async fn update(
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let _ = crate::db::entity::challenge::Entity::delete_by_id(id)
@@ -315,11 +327,13 @@ pub async fn delete(
 pub async fn get_attachment(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let _ = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     let path = format!("challenges/{}/attachment", id);
-    match crate::media::scan_dir(path.clone()).await.unwrap().first() {
+    match crate::media::scan_dir(path.clone()).await?.first() {
         Some((filename, _size)) => {
-            let buffer = crate::media::get(path, filename.to_string()).await.unwrap();
+            let buffer = crate::media::get(path, filename.to_string()).await?;
             Ok(Response::builder()
                 .header(header::CONTENT_TYPE, "application/octet-stream")
                 .header(
@@ -329,17 +343,19 @@ pub async fn get_attachment(
                 .body(Body::from(buffer))
                 .unwrap())
         }
-        None => Err(WebError::NotFound(String::new())),
+        None => Err(WebError::NotFound(json!(""))),
     }
 }
 
 pub async fn get_attachment_metadata(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<Metadata>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let _ = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     let path = format!("challenges/{}/attachment", id);
-    match crate::media::scan_dir(path.clone()).await.unwrap().first() {
+    match crate::media::scan_dir(path.clone()).await?.first() {
         Some((filename, size)) => Ok(WebResult {
             code: StatusCode::OK.as_u16(),
             data: Some(Metadata {
@@ -348,16 +364,18 @@ pub async fn get_attachment_metadata(
             }),
             ..WebResult::default()
         }),
-        None => Err(WebError::NotFound(String::new())),
+        None => Err(WebError::NotFound(json!(""))),
     }
 }
 
 pub async fn save_attachment(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let path = format!("challenges/{}/attachment", id);
@@ -369,7 +387,7 @@ pub async fn save_attachment(
             data = match field.bytes().await {
                 Ok(bytes) => bytes.to_vec(),
                 Err(_err) => {
-                    return Err(WebError::BadRequest(String::from("size_too_large")));
+                    return Err(WebError::BadRequest(json!("size_too_large")));
                 }
             };
         }
@@ -377,9 +395,9 @@ pub async fn save_attachment(
 
     crate::media::delete_dir(path.clone()).await.unwrap();
 
-    let _ = crate::media::save(path, filename, data)
+    crate::media::save(path, filename, data)
         .await
-        .map_err(|_| WebError::InternalServerError(String::new()))?;
+        .map_err(|_| WebError::InternalServerError(json!("")))?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -390,16 +408,18 @@ pub async fn save_attachment(
 pub async fn delete_attachment(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(String::new()));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let path = format!("challenges/{}/attachment", id);
 
-    let _ = crate::media::delete_dir(path)
+    crate::media::delete_dir(path)
         .await
-        .map_err(|_| WebError::InternalServerError(String::new()))?;
+        .map_err(|_| WebError::InternalServerError(json!("")))?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),

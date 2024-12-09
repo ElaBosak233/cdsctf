@@ -1,20 +1,22 @@
 pub mod daemon;
 
-use anyhow::anyhow;
 use axum::{
     extract::{Path, Query},
     http::StatusCode,
-    response::IntoResponse,
-    Extension, Json, Router,
+    Router,
 };
 use regex::Regex;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use uuid::Uuid;
 
 use crate::{
     db::{entity::user::Group, get_db},
-    web::traits::{Ext, WebError, WebResult},
+    web::{
+        extract::{Extension, Json},
+        traits::{Ext, WebError, WebResult},
+    },
 };
 
 pub async fn router() -> Router {
@@ -44,7 +46,9 @@ pub struct GetRequest {
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<WebResult<Vec<crate::db::transfer::Pod>>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let _ = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     let (mut pods, total) = crate::db::transfer::pod::find(
         params.id,
@@ -84,20 +88,24 @@ pub struct CreateRequest {
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Pod>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
     body.user_id = Some(operator.id);
 
     let challenge = crate::db::entity::challenge::Entity::find_by_id(body.challenge_id)
         .one(get_db())
         .await?
-        .map(|challenge| crate::db::transfer::Challenge::from(challenge));
+        .map(crate::db::transfer::Challenge::from);
 
-    let challenge = challenge.ok_or(WebError::BadRequest(String::from("challenge_not_found")))?;
+    let challenge = challenge.ok_or(WebError::BadRequest(json!(
+        "challenge_not_found"
+    )))?;
 
-    let ctn_name = format!("cds-{}", Uuid::new_v4().simple().to_string());
+    let ctn_name = format!("cds-{}", Uuid::new_v4().simple());
 
     if challenge.flags.clone().into_iter().next().is_none() {
-        return Err(WebError::BadRequest(String::from("no_flag")));
+        return Err(WebError::BadRequest(json!("no_flag")));
     }
 
     let mut injected_flag = challenge.flags.clone().into_iter().next().unwrap();
@@ -118,10 +126,10 @@ pub async fn create(
 
     let pod = crate::db::entity::pod::ActiveModel {
         name: Set(ctn_name),
-        user_id: Set(body.user_id.clone().unwrap()),
-        team_id: Set(body.team_id.clone()),
-        game_id: Set(body.game_id.clone()),
-        challenge_id: Set(body.challenge_id.clone()),
+        user_id: Set(body.user_id.unwrap()),
+        team_id: Set(body.team_id),
+        game_id: Set(body.game_id),
+        challenge_id: Set(body.challenge_id),
         flag: Set(Some(injected_flag.value)),
         removed_at: Set(chrono::Utc::now().timestamp() + challenge.duration),
         nats: Set(nats),
@@ -149,7 +157,7 @@ macro_rules! check_permission {
                 .iter()
                 .any(|team| Some(team.id) == $pod.team_id))
         {
-            return Err(WebError::Forbidden(String::new()));
+            return Err(WebError::Forbidden(json!("")));
         }
     };
 }
@@ -157,13 +165,15 @@ macro_rules! check_permission {
 pub async fn renew(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     let pod = crate::db::entity::pod::Entity::find()
         .filter(crate::db::entity::pod::Column::Id.eq(id))
         .one(get_db())
         .await?
-        .ok_or_else(|| WebError::NotFound(String::new()))?;
+        .ok_or_else(|| WebError::NotFound(json!("")))?;
 
     check_permission!(operator, pod);
 
@@ -185,12 +195,14 @@ pub async fn renew(
 pub async fn stop(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(String::new()))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("")))?;
 
     let pod = crate::db::entity::pod::Entity::find_by_id(id)
         .one(get_db())
         .await?
-        .ok_or_else(|| WebError::NotFound(String::new()))?;
+        .ok_or_else(|| WebError::NotFound(json!("")))?;
 
     check_permission!(operator, pod);
 

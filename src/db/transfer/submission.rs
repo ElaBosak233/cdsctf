@@ -75,32 +75,32 @@ async fn preload(mut submissions: Vec<Submission>) -> Result<Vec<Submission>, Db
     let models = submissions
         .clone()
         .into_iter()
-        .map(|submission| entity::submission::Model::from(submission))
+        .map(entity::submission::Model::from)
         .collect::<Vec<entity::submission::Model>>();
 
     let users = models
         .load_one(entity::user::Entity, get_db())
         .await?
         .into_iter()
-        .map(|u| u.map(|user| User::from(user)))
+        .map(|u| u.map(User::from))
         .collect::<Vec<Option<User>>>();
     let challenges = models
         .load_one(entity::challenge::Entity, get_db())
         .await?
         .into_iter()
-        .map(|c| c.map(|challenge| Challenge::from(challenge)))
+        .map(|c| c.map(Challenge::from))
         .collect::<Vec<Option<Challenge>>>();
     let teams = models
         .load_one(entity::team::Entity, get_db())
         .await?
         .into_iter()
-        .map(|t| t.map(|team| Team::from(team)))
+        .map(|t| t.map(Team::from))
         .collect::<Vec<Option<Team>>>();
     let games = models
         .load_one(entity::game::Entity, get_db())
         .await?
         .into_iter()
-        .map(|g| g.map(|game| Game::from(game)))
+        .map(|g| g.map(Game::from))
         .collect::<Vec<Option<Game>>>();
 
     for (i, submission) in submissions.iter_mut().enumerate() {
@@ -163,7 +163,7 @@ pub async fn find(
     let submissions = sql.all(get_db()).await?;
     let mut submissions = submissions
         .into_iter()
-        .map(|submission| Submission::from(submission))
+        .map(Submission::from)
         .collect::<Vec<Submission>>();
 
     submissions = preload(submissions).await?;
@@ -180,7 +180,7 @@ pub async fn get_by_challenge_ids(challenge_ids: Vec<i64>) -> Result<Vec<Submiss
 
     let mut submissions = submissions
         .into_iter()
-        .map(|submission| Submission::from(submission))
+        .map(Submission::from)
         .collect::<Vec<Submission>>();
     submissions = preload(submissions).await?;
     Ok(submissions)
