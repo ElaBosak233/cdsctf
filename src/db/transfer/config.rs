@@ -1,4 +1,3 @@
-use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -18,9 +17,9 @@ impl From<entity::config::Model> for Config {
     fn from(model: entity::config::Model) -> Self {
         Self {
             id: model.id,
-            auth: model.auth.into(),
-            cluster: model.cluster.into(),
-            site: model.site.into(),
+            auth: model.auth,
+            cluster: model.cluster,
+            site: model.site,
         }
     }
 }

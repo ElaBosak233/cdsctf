@@ -9,7 +9,7 @@ use axum::{
 };
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use sea_orm::EntityTrait;
-
+use serde_json::json;
 use crate::{
     db::{entity::user::Group, get_db},
     web,
@@ -51,13 +51,13 @@ pub async fn jwt(mut req: Request<Body>, next: Next) -> Result<Response, WebErro
             .map(|user| user.into());
 
         if user.is_none() {
-            return Err(WebError::Unauthorized(String::from("not_found")));
+            return Err(WebError::Unauthorized(json!("not_found")));
         }
 
         let user = user.clone().unwrap();
 
         if user.group == Group::Banned {
-            return Err(WebError::Forbidden(String::from("forbidden")));
+            return Err(WebError::Forbidden(json!("forbidden")));
         }
     } else {
         return Ok(next.run(req).await);

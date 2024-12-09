@@ -41,7 +41,7 @@ pub async fn calculate(game_id: i64) {
     for submission in submissions {
         submissions_by_challenge_id
             .entry(submission.challenge_id)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(submission);
     }
 
@@ -116,7 +116,7 @@ pub async fn calculate(game_id: i64) {
         pts_by_team_id
             .get(&b.team_id)
             .unwrap_or(&0)
-            .cmp(&pts_by_team_id.get(&a.team_id).unwrap_or(&0))
+            .cmp(pts_by_team_id.get(&a.team_id).unwrap_or(&0))
     });
 
     for (rank, game_team) in game_teams.iter().enumerate() {

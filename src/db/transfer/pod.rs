@@ -72,28 +72,28 @@ async fn preload(mut pods: Vec<Pod>) -> Result<Vec<Pod>, DbErr> {
     let models = pods
         .clone()
         .into_iter()
-        .map(|pod| entity::pod::Model::from(pod))
+        .map(entity::pod::Model::from)
         .collect::<Vec<entity::pod::Model>>();
 
     let users = models
         .load_one(entity::user::Entity, get_db())
         .await?
         .into_iter()
-        .map(|u| u.map(|user| User::from(user)))
+        .map(|u| u.map(User::from))
         .collect::<Vec<Option<User>>>();
 
     let teams = models
         .load_one(entity::team::Entity, get_db())
         .await?
         .into_iter()
-        .map(|t| t.map(|team| Team::from(team)))
+        .map(|t| t.map(Team::from))
         .collect::<Vec<Option<Team>>>();
 
     let challenges = models
         .load_one(entity::challenge::Entity, get_db())
         .await?
         .into_iter()
-        .map(|c| c.map(|challenge| Challenge::from(challenge)))
+        .map(|c| c.map(Challenge::from))
         .collect::<Vec<Option<Challenge>>>();
 
     for (i, pod) in pods.iter_mut().enumerate() {
@@ -150,7 +150,7 @@ pub async fn find(
     let pods = sql.all(get_db()).await?;
     let mut pods = pods
         .into_iter()
-        .map(|pod| Pod::from(pod))
+        .map(Pod::from)
         .collect::<Vec<Pod>>();
 
     pods = preload(pods).await?;

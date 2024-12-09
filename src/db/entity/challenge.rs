@@ -1,15 +1,13 @@
 use async_trait::async_trait;
 use sea_orm::{
     ActiveModelBehavior, ActiveModelTrait, ColumnTrait, ConnectionTrait, DbErr, DeriveActiveEnum,
-    DeriveEntityModel, DerivePrimaryKey, EntityTrait, EnumIter, FromJsonQueryResult,
-    PaginatorTrait, PrimaryKeyTrait, QueryFilter, QuerySelect, Related, RelationDef, RelationTrait,
+    DeriveEntityModel, DerivePrimaryKey, EntityTrait, EnumIter, FromJsonQueryResult, PrimaryKeyTrait, Related, RelationDef, RelationTrait,
     Set,
 };
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::{game, game_challenge, pod, submission};
-use crate::db::get_db;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "challenges")]

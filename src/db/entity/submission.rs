@@ -1,9 +1,8 @@
 use async_trait::async_trait;
-use sea_orm::{entity::prelude::*, IntoActiveModel, QueryOrder, QuerySelect, Set, TryIntoModel};
+use sea_orm::{entity::prelude::*, Set};
 use serde::{Deserialize, Serialize};
 
 use super::{challenge, game, team, user};
-use crate::db::get_db;
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "submissions")]

@@ -10,5 +10,5 @@ pub fn get(path: &str) -> Option<Vec<u8>> {
     if let Ok(file) = fs::read(format!("assets/{}", path)) {
         return Some(file);
     }
-    Assets::get(&path).map(|e| e.data.into_owned())
+    Assets::get(path).map(|e| e.data.into_owned())
 }

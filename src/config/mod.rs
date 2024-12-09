@@ -7,7 +7,7 @@ use futures_util::StreamExt;
 use once_cell::sync::Lazy;
 use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
-use tokio::sync::{Mutex, RwLock};
+use tokio::sync::RwLock;
 use tracing::info;
 
 use crate::db::get_db;

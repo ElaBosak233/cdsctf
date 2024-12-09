@@ -6,7 +6,7 @@ pub mod db;
 pub mod metric;
 pub mod queue;
 
-use std::{path::Path, process, sync::OnceLock};
+use std::{path::Path, process};
 
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};

@@ -40,13 +40,13 @@ impl From<entity::game_challenge::Model> for GameChallenge {
 }
 
 async fn preload(
-    mut models: Vec<entity::game_challenge::Model>,
+    models: Vec<entity::game_challenge::Model>,
 ) -> Result<Vec<GameChallenge>, DbErr> {
     let challenges = models
         .load_one(entity::challenge::Entity, get_db())
         .await?
         .into_iter()
-        .map(|c| c.map(|challenge| Challenge::from(challenge)))
+        .map(|c| c.map(Challenge::from))
         .collect::<Vec<Option<Challenge>>>();
 
     let mut game_challenges = models
