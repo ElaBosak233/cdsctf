@@ -3,7 +3,6 @@ pub mod metric;
 
 use axum::{middleware::from_fn, Router};
 use tower_http::trace::TraceLayer;
-
 use crate::web::middleware;
 
 pub async fn router() -> Router {
@@ -11,8 +10,9 @@ pub async fn router() -> Router {
         .merge(
             Router::new()
                 .nest("/api", api::router().await)
-                .layer(from_fn(middleware::auth::jwt))
-                .layer(TraceLayer::new_for_http()),
+                .layer(TraceLayer::new_for_http())
+                .layer(from_fn(middleware::auth))
+                .layer(from_fn(middleware::network)),
         )
         .nest("/metrics", metric::router().await)
 }
