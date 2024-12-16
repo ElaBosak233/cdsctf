@@ -16,7 +16,9 @@ where
     let schema = Schema::new(builder);
     let stmt = builder.build(schema.create_table_from_entity(entity).if_not_exists());
 
-    if let Err(e) = db.execute(stmt).await { error!("Error: {}", e) }
+    if let Err(e) = db.execute(stmt).await {
+        error!("Error: {}", e)
+    }
 }
 
 pub async fn migrate(db: &DbConn) {

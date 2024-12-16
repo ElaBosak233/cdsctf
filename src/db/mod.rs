@@ -77,7 +77,7 @@ pub async fn init_config() {
         let config = entity::config::ActiveModel {
             auth: Set(crate::config::auth::Config {
                 jwt: crate::config::auth::jwt::Config {
-                    secret_key: String::from("123456"),
+                    secret_key: String::from(uuid::Uuid::new_v4()),
                     expiration: 1800,
                 },
                 registration: crate::config::auth::registration::Config {

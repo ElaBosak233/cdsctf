@@ -39,9 +39,7 @@ impl From<entity::game_challenge::Model> for GameChallenge {
     }
 }
 
-async fn preload(
-    models: Vec<entity::game_challenge::Model>,
-) -> Result<Vec<GameChallenge>, DbErr> {
+async fn preload(models: Vec<entity::game_challenge::Model>) -> Result<Vec<GameChallenge>, DbErr> {
     let challenges = models
         .load_one(entity::challenge::Entity, get_db())
         .await?

@@ -46,9 +46,7 @@ pub struct GetRequest {
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<WebResult<Vec<crate::db::transfer::Pod>>, WebError> {
-    let _ = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let (mut pods, total) = crate::db::transfer::pod::find(
         params.id,
@@ -88,9 +86,7 @@ pub struct CreateRequest {
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Pod>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     body.user_id = Some(operator.id);
 
     let challenge = crate::db::entity::challenge::Entity::find_by_id(body.challenge_id)
@@ -98,9 +94,7 @@ pub async fn create(
         .await?
         .map(crate::db::transfer::Challenge::from);
 
-    let challenge = challenge.ok_or(WebError::BadRequest(json!(
-        "challenge_not_found"
-    )))?;
+    let challenge = challenge.ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
 
     let ctn_name = format!("cds-{}", Uuid::new_v4().simple());
 
@@ -165,9 +159,7 @@ macro_rules! check_permission {
 pub async fn renew(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let pod = crate::db::entity::pod::Entity::find()
         .filter(crate::db::entity::pod::Column::Id.eq(id))
@@ -195,9 +187,7 @@ pub async fn renew(
 pub async fn stop(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let pod = crate::db::entity::pod::Entity::find_by_id(id)
         .one(get_db())
