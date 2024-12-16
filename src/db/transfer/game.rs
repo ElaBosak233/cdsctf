@@ -1,4 +1,5 @@
-use sea_orm::{entity::prelude::*, QuerySelect};
+use std::str::FromStr;
+use sea_orm::{entity::prelude::*, Order, QueryOrder, QuerySelect};
 use serde::{Deserialize, Serialize};
 
 use crate::db::{entity, get_db};
@@ -67,7 +68,7 @@ impl From<Game> for entity::game::Model {
 }
 
 pub async fn find(
-    id: Option<i64>, title: Option<String>, is_enabled: Option<bool>, page: Option<u64>,
+    id: Option<i64>, title: Option<String>, is_enabled: Option<bool>, sorts: Option<String>, page: Option<u64>,
     size: Option<u64>,
 ) -> Result<(Vec<entity::game::Model>, u64), DbErr> {
     let mut sql = entity::game::Entity::find();
@@ -82,6 +83,23 @@ pub async fn find(
 
     if let Some(is_enabled) = is_enabled {
         sql = sql.filter(entity::game::Column::IsEnabled.eq(is_enabled));
+    }
+
+    if let Some(sorts) = sorts {
+        let sorts = sorts.split(",").collect::<Vec<&str>>();
+        for sort in sorts {
+            let col = match crate::db::entity::game::Column::from_str(
+                sort.replace("-", "").as_str(),
+            ) {
+                Ok(col) => col,
+                Err(_) => continue,
+            };
+            if sort.starts_with("-") {
+                sql = sql.order_by(col, Order::Desc);
+            } else {
+                sql = sql.order_by(col, Order::Asc);
+            }
+        }
     }
 
     let total = sql.clone().count(get_db()).await?;
