@@ -76,7 +76,7 @@ pub async fn find(
                 sort.replace("-", "").as_str(),
             ) {
                 Ok(col) => col,
-                Err(_) => return Err(DbErr::Custom("invalid sort column".to_string())),
+                Err(_) => continue,
             };
             if sort.starts_with("-") {
                 sql = sql.order_by(col, Order::Desc);
