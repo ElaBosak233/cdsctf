@@ -10,7 +10,8 @@ pub mod user;
 
 use axum::{http::StatusCode, response::IntoResponse, Router};
 use serde_json::json;
-use crate::web::traits::{WebResult};
+
+use crate::web::traits::WebResult;
 
 pub async fn router() -> Router {
     Router::new()

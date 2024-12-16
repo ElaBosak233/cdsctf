@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use sea_orm::{
     ActiveModelBehavior, ActiveModelTrait, ColumnTrait, ConnectionTrait, DbErr, DeriveActiveEnum,
-    DeriveEntityModel, DerivePrimaryKey, EntityTrait, EnumIter, FromJsonQueryResult, PrimaryKeyTrait, Related, RelationDef, RelationTrait,
-    Set,
+    DeriveEntityModel, DerivePrimaryKey, EntityTrait, EnumIter, FromJsonQueryResult,
+    PrimaryKeyTrait, Related, RelationDef, RelationTrait, Set,
 };
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};

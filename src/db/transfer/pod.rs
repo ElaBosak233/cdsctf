@@ -148,10 +148,7 @@ pub async fn find(
     let total = sql.clone().count(get_db()).await?;
 
     let pods = sql.all(get_db()).await?;
-    let mut pods = pods
-        .into_iter()
-        .map(Pod::from)
-        .collect::<Vec<Pod>>();
+    let mut pods = pods.into_iter().map(Pod::from).collect::<Vec<Pod>>();
 
     pods = preload(pods).await?;
 

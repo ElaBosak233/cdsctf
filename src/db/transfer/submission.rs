@@ -1,4 +1,4 @@
-use sea_orm::{entity::prelude::*, QueryOrder, QuerySelect};
+use sea_orm::{entity::prelude::*, Condition, QueryOrder, QuerySelect};
 use serde::{Deserialize, Serialize};
 
 use super::{Challenge, Game, Team, User};
@@ -183,5 +183,30 @@ pub async fn get_by_challenge_ids(challenge_ids: Vec<i64>) -> Result<Vec<Submiss
         .map(Submission::from)
         .collect::<Vec<Submission>>();
     submissions = preload(submissions).await?;
+    Ok(submissions)
+}
+
+pub async fn get_by_game_id_and_team_ids(
+    game_id: i64, team_ids: Vec<i64>, status: Option<Status>,
+) -> Result<Vec<Submission>, DbErr> {
+    let mut sql = entity::submission::Entity::find().filter(
+        Condition::all()
+            .add(entity::submission::Column::GameId.eq(game_id))
+            .add(entity::submission::Column::TeamId.is_in(team_ids)),
+    );
+
+    if let Some(status) = status {
+        sql = sql.filter(entity::submission::Column::Status.eq(status));
+    }
+
+    let submissions = sql.all(get_db()).await?;
+
+    let mut submissions = submissions
+        .into_iter()
+        .map(Submission::from)
+        .collect::<Vec<Submission>>();
+
+    submissions = preload(submissions).await?;
+
     Ok(submissions)
 }

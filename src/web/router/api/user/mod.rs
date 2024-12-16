@@ -3,9 +3,8 @@ use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
 };
 use axum::{
-    body::Body,
     extract::{DefaultBodyLimit, Multipart, Path, Query},
-    http::{header::SET_COOKIE, HeaderMap, Response},
+    http::{header::SET_COOKIE, HeaderMap},
     response::IntoResponse,
     Router,
 };
@@ -24,15 +23,14 @@ use validator::Validate;
 use crate::{
     config,
     db::{entity::user::Group, get_db},
-    media::util::hash,
     web::{
-        extract::{Extension, Json},
+        extract::{Extension, Json, VJson},
         model::Metadata,
         traits::{Ext, WebError, WebResult},
-        util::{handle_image_multipart, jwt},
+        util,
+        util::jwt,
     },
 };
-use crate::web::extract::VJson;
 
 pub fn router() -> Router {
     Router::new()
@@ -155,9 +153,7 @@ pub struct UpdateRequest {
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResult<crate::db::transfer::User>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     body.id = Some(id);
     if !(operator.group == Group::Admin
         || (operator.id == body.id.unwrap_or(0)
@@ -197,9 +193,7 @@ pub async fn update(
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if !(operator.group == Group::Admin || operator.id == id) {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -221,9 +215,7 @@ pub async fn delete(
 pub async fn get_teams(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<Vec<crate::db::transfer::Team>>, WebError> {
-    let _ = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let teams = crate::db::transfer::team::find_by_user_id(id).await?;
 
@@ -370,77 +362,38 @@ pub async fn register(
 
 pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("users/{}/avatar", id);
-    match crate::media::scan_dir(path.clone()).await?.first() {
-        Some((filename, _size)) => {
-            let buffer = crate::media::get(path, filename.to_string()).await?;
-            Ok(Response::builder().body(Body::from(buffer)).unwrap())
-        }
-        None => Err(WebError::NotFound(serde_json::json!(""))),
-    }
+
+    util::media::get_img(path).await
 }
 
 pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
     let path = format!("users/{}/avatar", id);
-    match crate::media::scan_dir(path.clone()).await?.first() {
-        Some((filename, size)) => Ok(WebResult {
-            code: StatusCode::OK.as_u16(),
-            data: Some(Metadata {
-                filename: filename.to_string(),
-                size: *size,
-            }),
-            ..WebResult::default()
-        }),
-        None => Err(WebError::NotFound(json!(""))),
-    }
+
+    util::media::get_img_metadata(path).await
 }
 
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && operator.id != id {
         return Err(WebError::Forbidden(json!("")));
     }
 
     let path = format!("users/{}/avatar", id);
 
-    let data = handle_image_multipart(multipart).await?;
-
-    crate::media::delete_dir(path.clone()).await.unwrap();
-
-    let data = crate::media::util::img_convert_to_webp(data).await?;
-    let filename = format!("{}.webp", hash(data.clone()));
-
-    let _ = crate::media::save(path, filename, data)
-        .await
-        .map_err(|_| WebError::InternalServerError(json!("")));
-
-    Ok(WebResult {
-        code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
-    })
+    util::media::save_img(path, multipart).await
 }
 
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && operator.id != id {
         return Err(WebError::Forbidden(json!("")));
     }
 
     let path = format!("users/{}/avatar", id);
 
-    let _ = crate::media::delete_dir(path)
-        .await
-        .map_err(|_| WebError::InternalServerError(json!("")));
-
-    Ok(WebResult {
-        code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
-    })
+    util::media::delete_img(path).await
 }
