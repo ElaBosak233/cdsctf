@@ -84,6 +84,7 @@ pub struct GetRequest {
     pub is_enabled: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
+    pub sorts: Option<String>
 }
 
 pub async fn get(
@@ -98,6 +99,7 @@ pub async fn get(
         params.id,
         params.title,
         params.is_enabled,
+        params.sorts,
         params.page,
         params.size,
     )
