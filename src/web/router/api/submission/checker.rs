@@ -124,12 +124,14 @@ async fn check(id: i64) {
         }
     }
 
-    for exist_submission in exist_submissions {
-        if exist_submission.user_id == submission.user_id
-            || (submission.game_id.is_some() && exist_submission.team_id == submission.team_id)
-        {
-            status = Status::Invalid;
-            break;
+    if status == Status::Correct {
+        for exist_submission in exist_submissions {
+            if (exist_submission.user_id == submission.user_id
+                || (submission.game_id.is_some() && exist_submission.team_id == submission.team_id))
+            {
+                status = Status::Invalid;
+                break;
+            }
         }
     }
 

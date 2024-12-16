@@ -3,6 +3,7 @@ pub mod metric;
 
 use axum::{middleware::from_fn, Router};
 use tower_http::trace::TraceLayer;
+
 use crate::web::middleware;
 
 pub async fn router() -> Router {

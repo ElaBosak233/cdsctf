@@ -7,6 +7,7 @@ use axum::{
 };
 use sea_orm::{ActiveModelTrait, ActiveValue::Set};
 use serde_json::json;
+
 use crate::{
     config::get_config,
     db::{entity::user::Group, get_db},
@@ -29,9 +30,7 @@ pub fn router() -> Router {
 pub async fn get(
     Extension(ext): Extension<Ext>,
 ) -> Result<WebResult<crate::config::Config>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -46,9 +45,7 @@ pub async fn get(
 pub async fn update(
     Extension(ext): Extension<Ext>, Json(body): Json<crate::config::Config>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -83,18 +80,14 @@ pub async fn get_icon() -> impl IntoResponse {
 pub async fn save_icon(
     Extension(ext): Extension<Ext>, multipart: Multipart,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
     let path = String::from("configs");
     let filename = String::from("icon.webp");
     let data = handle_image_multipart(multipart).await?;
-    crate::media::delete(path.clone(), filename.clone())
-        .await
-        .unwrap();
+    crate::media::delete(path.clone(), filename.clone()).await?;
     let data = crate::media::util::img_convert_to_webp(data).await?;
     crate::media::save(path, filename, data)
         .await
@@ -107,17 +100,13 @@ pub async fn save_icon(
 }
 
 pub async fn delete_icon(Extension(ext): Extension<Ext>) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
     let path = String::from("configs");
     let filename = String::from("icon.webp");
-    crate::media::delete(path.clone(), filename.clone())
-        .await
-        .unwrap();
+    crate::media::delete(path.clone(), filename.clone()).await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),

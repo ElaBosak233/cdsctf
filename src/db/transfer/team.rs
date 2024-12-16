@@ -76,12 +76,7 @@ async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
         .load_many_to_many(entity::user::Entity, entity::user_team::Entity, get_db())
         .await?
         .into_iter()
-        .map(|users| {
-            users
-                .into_iter()
-                .map(User::from)
-                .collect::<Vec<User>>()
-        })
+        .map(|users| users.into_iter().map(User::from).collect::<Vec<User>>())
         .collect::<Vec<Vec<User>>>();
 
     for (i, team) in teams.iter_mut().enumerate() {

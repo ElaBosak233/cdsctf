@@ -38,10 +38,10 @@ async fn bootstrap() {
     logger::init().await;
     env::init().await;
     queue::init().await;
-    db::init().await;
     cache::init().await;
-    cluster::init().await;
+    db::init().await;
     config::init().await;
+    cluster::init().await;
     web::init().await;
 
     let addr = format!("{}:{}", env::get_env().axum.host, env::get_env().axum.port);

@@ -25,7 +25,7 @@ impl ActiveModelBehavior for ActiveModel {
     async fn after_save<C>(model: Model, _db: &C, _insert: bool) -> Result<Model, DbErr>
     where
         C: ConnectionTrait, {
-        let _ = crate::queue::publish("config", "").await.unwrap();
+        let _ = crate::cache::set("config", crate::config::Config::from(model.clone())).await;
         Ok(model)
     }
 }

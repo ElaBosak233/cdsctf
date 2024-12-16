@@ -154,5 +154,5 @@ pub async fn init() {
             message.ack().await.unwrap();
         }
     });
-    info!("game calculator initialized successfully.");
+    info!("Game calculator initialized successfully.");
 }

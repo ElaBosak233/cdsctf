@@ -1,9 +1,8 @@
 pub mod calculator;
 
 use axum::{
-    body::Body,
     extract::{DefaultBodyLimit, Multipart, Path, Query},
-    http::{Response, StatusCode},
+    http::StatusCode,
     response::IntoResponse,
     Router,
 };
@@ -13,16 +12,18 @@ use serde_json::json;
 use validator::Validate;
 
 use crate::{
-    db::{entity::user::Group, get_db},
-    media::util::hash,
+    db::{
+        entity::{submission::Status, user::Group},
+        get_db,
+        transfer::{GameTeam, Submission},
+    },
     web::{
-        extract::{Extension, Json},
+        extract::{Extension, Json, VJson},
         model::Metadata,
         traits::{Ext, WebError, WebResult},
-        util::handle_image_multipart,
+        util,
     },
 };
-use crate::web::extract::VJson;
 
 pub async fn router() -> Router {
     calculator::init().await;
@@ -54,10 +55,15 @@ pub async fn router() -> Router {
             axum::routing::delete(delete_notice),
         )
         .route("/:id/calculate", axum::routing::post(calculate))
-        // .route(
-        //     "/:id/submissions",
-        //     get(handler::game::get_submission).layer(from_fn(auth::jwt(Group::User))),
-        // )
+        .route("/:id/scoreboard", axum::routing::get(get_scoreboard))
+        .route("/:id/icon", axum::routing::get(get_icon))
+        .route(
+            "/:id/icon",
+            axum::routing::post(save_icon)
+                .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
+        )
+        .route("/:id/icon/metadata", axum::routing::get(get_icon_metadata))
+        .route("/:id/icon", axum::routing::delete(delete_icon))
         .route("/:id/poster", axum::routing::get(get_poster))
         .route(
             "/:id/poster",
@@ -83,9 +89,7 @@ pub struct GetRequest {
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<WebResult<Vec<crate::db::transfer::Game>>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && !params.is_enabled.unwrap_or(true) {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -129,9 +133,7 @@ pub struct CreateRequest {
 pub async fn create(
     Extension(ext): Extension<Ext>, VJson(body): VJson<CreateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Game>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -186,9 +188,7 @@ pub struct UpdateRequest {
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Game>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -227,9 +227,7 @@ pub async fn update(
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -255,9 +253,7 @@ pub struct GetChallengeRequest {
 pub async fn get_challenge(
     Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResult<Vec<crate::db::transfer::GameChallenge>>, WebError> {
-    let _ = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let (game_challenges, _) = crate::db::transfer::game_challenge::find(
         params.game_id,
@@ -289,9 +285,7 @@ pub struct CreateChallengeRequest {
 pub async fn create_challenge(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateChallengeRequest>,
 ) -> Result<WebResult<crate::db::transfer::GameChallenge>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -336,9 +330,7 @@ pub async fn update_challenge(
     Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, i64)>,
     Json(mut body): Json<UpdateChallengeRequest>,
 ) -> Result<WebResult<crate::db::transfer::GameChallenge>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -372,9 +364,7 @@ pub async fn update_challenge(
 pub async fn delete_challenge(
     Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, i64)>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -399,13 +389,18 @@ pub struct GetTeamRequest {
 
 pub async fn get_team(
     Extension(ext): Extension<Ext>, Query(params): Query<GetTeamRequest>,
-) -> Result<WebResult<Vec<crate::db::transfer::GameTeam>>, WebError> {
-    let _ = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+) -> Result<WebResult<Vec<GameTeam>>, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let (game_teams, total) =
-        crate::db::transfer::game_team::find(params.game_id, params.team_id).await?;
+    let (game_teams, total) = crate::db::transfer::game_team::find(
+        params.game_id,
+        params.team_id,
+        None,
+        None,
+        None,
+        None,
+    )
+    .await?;
 
     Ok(WebResult {
         code: StatusCode::OK.as_u16(),
@@ -423,10 +418,8 @@ pub struct CreateTeamRequest {
 
 pub async fn create_team(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateTeamRequest>,
-) -> Result<WebResult<crate::db::transfer::GameTeam>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+) -> Result<WebResult<GameTeam>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -458,10 +451,8 @@ pub struct UpdateTeamRequest {
 pub async fn update_team(
     Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
     Json(mut body): Json<UpdateTeamRequest>,
-) -> Result<WebResult<crate::db::transfer::GameTeam>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+) -> Result<WebResult<GameTeam>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -489,9 +480,7 @@ pub async fn update_team(
 pub async fn delete_team(
     Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -527,9 +516,7 @@ pub async fn delete_notice() -> Result<impl IntoResponse, WebError> {
 pub async fn calculate(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -542,112 +529,141 @@ pub async fn calculate(
     })
 }
 
-// pub async fn get_submission(
-//     Path(id): Path<i64>, Query(params): Query<GetSubmissionRequest>,
-// ) -> Result<impl IntoResponse, WebError> {
-//     let submissions = crate::transfer::submission::get_with_pts(id,
-// params.status).await?;
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GetScoreboardRequest {
+    pub size: u64,
+    pub page: u64,
+}
 
-//     return Ok((
-//         StatusCode::OK,
-//         Json(GetSubmissionResponse {
-//             code: StatusCode::OK.as_u16(),
-//             data: submissions,
-//         }),
-//     ));
-// }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ScoreRecord {
+    pub game_team: GameTeam,
+    pub submissions: Vec<Submission>,
+}
 
-// pub async fn get_scoreboard(Path(id): Path<i64>) -> Result<impl IntoResponse,
-// WebError> {     pub struct TeamScoreRecord {}
+pub async fn get_scoreboard(
+    Path(id): Path<i64>, Query(params): Query<GetScoreboardRequest>,
+) -> Result<WebResult<Vec<ScoreRecord>>, WebError> {
+    let (game_teams, total) = crate::db::transfer::game_team::find(
+        Some(id),
+        None,
+        None,
+        Some("-pts".to_string()),
+        Some(params.page),
+        Some(params.size),
+    )
+    .await?;
 
-//     let submissions =
-//         crate::transfer::submission::get_with_pts(id,
-// Some(crate::transfer::submission::Status::Correct))             .await;
+    let team_ids = game_teams.iter().map(|t| t.team_id).collect::<Vec<i64>>();
 
-//     let game_teams = crate::transfer::game_team::Entity::find()
-//         .filter(
-//             Condition::all()
-//                 .add(crate::transfer::game_team::Column::GameId.eq(id))
-//                 .add(crate::transfer::game_team::Column::IsAllowed.eq(true)),
-//         )
-//         .all(get_db())
-//         .await?;
+    let submissions = crate::db::transfer::submission::get_by_game_id_and_team_ids(
+        id,
+        team_ids,
+        Some(Status::Correct),
+    )
+    .await?;
 
-//     return Ok(());
-// }
+    let mut result: Vec<ScoreRecord> = Vec::new();
+
+    for game_team in game_teams {
+        let mut submissions = submissions
+            .iter()
+            .filter(|s| s.team_id.unwrap() == game_team.team_id)
+            .cloned()
+            .collect::<Vec<Submission>>();
+        for submission in submissions.iter_mut() {
+            submission.flag.clear();
+            submission.team = None;
+            submission.challenge = None;
+            submission.game = None;
+        }
+
+        result.push(ScoreRecord {
+            game_team,
+            submissions,
+        });
+    }
+
+    Ok(WebResult {
+        code: StatusCode::OK.as_u16(),
+        data: Some(result),
+        total: Some(total),
+        ..Default::default()
+    })
+}
 
 pub async fn get_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("games/{}/poster", id);
-    match crate::media::scan_dir(path.clone()).await?.first() {
-        Some((filename, _size)) => {
-            let buffer = crate::media::get(path, filename.to_string()).await?;
-            Ok(Response::builder().body(Body::from(buffer)).unwrap())
-        }
-        None => Err(WebError::NotFound(json!(""))),
-    }
+
+    util::media::get_img(path).await
 }
 
 pub async fn get_poster_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
     let path = format!("games/{}/poster", id);
-    match crate::media::scan_dir(path.clone()).await?.first() {
-        Some((filename, size)) => Ok(WebResult {
-            code: StatusCode::OK.as_u16(),
-            data: Some(Metadata {
-                filename: filename.to_string(),
-                size: *size,
-            }),
-            ..WebResult::default()
-        }),
-        None => Err(WebError::NotFound(json!(""))),
-    }
+
+    util::media::get_img_metadata(path).await
 }
 
 pub async fn save_poster(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
     let path = format!("games/{}/poster", id);
-    let data = handle_image_multipart(multipart).await?;
 
-    crate::media::delete_dir(path.clone()).await.unwrap();
-
-    let data = crate::media::util::img_convert_to_webp(data).await?;
-    let filename = format!("{}.webp", hash(data.clone()));
-
-    crate::media::save(path, filename, data)
-        .await
-        .map_err(|_| WebError::InternalServerError(json!("")))?;
-
-    Ok(WebResult {
-        code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
-    })
+    util::media::save_img(path, multipart).await
 }
 
 pub async fn delete_poster(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
     let path = format!("games/{}/poster", id);
 
-    crate::media::delete_dir(path)
-        .await
-        .map_err(|_| WebError::InternalServerError(json!("")))?;
+    util::media::delete_img(path).await
+}
 
-    Ok(WebResult {
-        code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
-    })
+pub async fn get_icon(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+    let path = format!("games/{}/icon", id);
+
+    util::media::get_img(path).await
+}
+
+pub async fn get_icon_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
+    let path = format!("games/{}/icon", id);
+
+    util::media::get_img_metadata(path).await
+}
+
+pub async fn save_icon(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
+) -> Result<WebResult<()>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(json!("")));
+    }
+
+    let path = format!("games/{}/icon", id);
+
+    util::media::save_img(path, multipart).await
+}
+
+pub async fn delete_icon(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<WebResult<()>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(json!("")));
+    }
+
+    let path = format!("games/{}/icon", id);
+
+    util::media::delete_img(path).await
 }

@@ -18,12 +18,11 @@ use crate::{
         get_db,
     },
     web::{
-        extract::{Extension, Json},
+        extract::{Extension, Json, VJson},
         model::Metadata,
         traits::{Ext, WebError, WebResult},
     },
 };
-use crate::web::extract::VJson;
 
 pub fn router() -> Router {
     Router::new()
@@ -61,11 +60,9 @@ pub struct GetRequest {
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<WebResult<Vec<crate::db::transfer::Challenge>>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(serde_json::json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
-        return Err(WebError::Forbidden(serde_json::json!("")));
+        return Err(WebError::Forbidden(json!("")));
     }
 
     let (mut challenges, total) = crate::db::transfer::challenge::find(
@@ -114,9 +111,7 @@ pub struct StatusResult {
 pub async fn get_status(
     Extension(ext): Extension<Ext>, Json(body): Json<StatusRequest>,
 ) -> Result<WebResult<HashMap<i64, StatusResult>>, WebError> {
-    let _ = ext
-        .operator
-        .ok_or(WebError::Unauthorized(serde_json::json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let mut submissions =
         crate::db::transfer::submission::get_by_challenge_ids(body.cids.clone()).await?;
@@ -266,9 +261,7 @@ pub struct UpdateRequest {
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Challenge>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -307,9 +300,7 @@ pub async fn update(
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -327,9 +318,7 @@ pub async fn delete(
 pub async fn get_attachment(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let _ = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await?.first() {
         Some((filename, _size)) => {
@@ -350,9 +339,7 @@ pub async fn get_attachment(
 pub async fn get_attachment_metadata(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<Metadata>, WebError> {
-    let _ = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let path = format!("challenges/{}/attachment", id);
     match crate::media::scan_dir(path.clone()).await?.first() {
@@ -371,9 +358,7 @@ pub async fn get_attachment_metadata(
 pub async fn save_attachment(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -408,9 +393,7 @@ pub async fn save_attachment(
 pub async fn delete_attachment(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }

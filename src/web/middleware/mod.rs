@@ -1,21 +1,30 @@
 pub mod error;
 
 use std::net::SocketAddr;
-use axum::body::Body;
-use axum::extract::{ConnectInfo, Request};
-use axum::http::header::COOKIE;
-use axum::middleware::Next;
-use axum::response::Response;
+
+use axum::{
+    body::Body,
+    extract::{ConnectInfo, Request},
+    http::header::COOKIE,
+    middleware::Next,
+    response::Response,
+};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use sea_orm::EntityTrait;
 use serde_json::json;
-use crate::db::entity::user::Group;
-use crate::db::get_db;
-use crate::web;
-use crate::web::traits::{Ext, WebError};
+
+use crate::{
+    db::{entity::user::Group, get_db},
+    web,
+    web::traits::{Ext, WebError},
+};
 
 pub async fn auth(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
-    let mut ext = req.extensions().get::<Ext>().unwrap_or(&Ext::default()).to_owned();
+    let mut ext = req
+        .extensions()
+        .get::<Ext>()
+        .unwrap_or(&Ext::default())
+        .to_owned();
 
     let cookies = req
         .headers()
@@ -61,11 +70,17 @@ pub async fn auth(mut req: Request<Body>, next: Next) -> Result<Response, WebErr
 
     ext.operator = user;
 
+    req.extensions_mut().insert(ext);
+
     Ok(next.run(req).await)
 }
 
 pub async fn network(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
-    let mut ext = req.extensions().get::<Ext>().unwrap_or(&Ext::default()).to_owned();
+    let mut ext = req
+        .extensions()
+        .get::<Ext>()
+        .unwrap_or(&Ext::default())
+        .to_owned();
 
     let ConnectInfo(addr) = req.extensions().get::<ConnectInfo<SocketAddr>>().unwrap();
 

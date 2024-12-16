@@ -5,9 +5,12 @@ use axum::{
     http::StatusCode,
     Router,
 };
-use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, Condition, EntityTrait, QueryFilter, Set,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+
 use crate::{
     db::{
         entity::{submission::Status, user::Group},
@@ -45,9 +48,7 @@ pub struct GetRequest {
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<WebResult<Vec<crate::db::transfer::Submission>>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -82,9 +83,7 @@ pub async fn get(
 pub async fn get_by_id(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<crate::db::transfer::Submission>, WebError> {
-    let _ = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let submission = crate::db::entity::submission::Entity::find_by_id(id)
         .one(get_db())
@@ -117,25 +116,23 @@ pub struct CreateRequest {
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
 ) -> Result<WebResult<crate::db::transfer::Submission>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     body.user_id = Some(operator.id);
 
-    if let Some(challenge_id) = body.challenge_id {
+    if let Some(challenge_id) = body.challenge_id.clone() {
         let challenge = crate::db::entity::challenge::Entity::find_by_id(challenge_id)
             .one(get_db())
             .await?;
 
         if challenge.is_none() {
-            return Err(WebError::BadRequest(json!(
-                "challenge_not_found"
-            )));
+            return Err(WebError::BadRequest(json!("challenge_not_found")));
         }
+    } else {
+        return Err(WebError::BadRequest(json!("challenge_id_required")));
     }
 
-    if let Some(game_id) = body.game_id {
+    if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
         let game = crate::db::entity::game::Entity::find_by_id(game_id)
             .one(get_db())
             .await?;
@@ -143,15 +140,29 @@ pub async fn create(
         if game.is_none() {
             return Err(WebError::BadRequest(json!("game_not_found")));
         }
-    }
 
-    if let Some(team_id) = body.team_id {
         let team = crate::db::entity::team::Entity::find_by_id(team_id)
             .one(get_db())
             .await?;
 
         if team.is_none() {
             return Err(WebError::BadRequest(json!("team_not_found")));
+        }
+
+        let game_challenge = crate::db::entity::game_challenge::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(crate::db::entity::game_challenge::Column::GameId.eq(game_id))
+                    .add(
+                        crate::db::entity::game_challenge::Column::ChallengeId
+                            .eq(body.challenge_id.unwrap()),
+                    ),
+            )
+            .one(get_db())
+            .await?;
+
+        if game_challenge.is_none() {
+            return Err(WebError::BadRequest(json!("game_challenge_not_found")));
         }
     }
 
@@ -180,9 +191,7 @@ pub async fn create(
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResult<()>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }

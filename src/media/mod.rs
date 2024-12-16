@@ -70,7 +70,7 @@ pub async fn delete(path: String, filename: String) -> Result<(), MediaError> {
     Ok(())
 }
 
-pub async fn delete_dir(path: String) -> Result<(), Box<dyn Error>> {
+pub async fn delete_dir(path: String) -> Result<(), MediaError> {
     let filepath = PathBuf::from(crate::env::consts::path::MEDIA).join(path);
     if metadata(&filepath).await.is_ok() {
         remove_dir_all(&filepath).await?;

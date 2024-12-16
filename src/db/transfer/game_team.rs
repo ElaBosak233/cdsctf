@@ -1,7 +1,9 @@
-use sea_orm::entity::prelude::*;
+use std::str::FromStr;
+
+use sea_orm::{entity::prelude::*, Order, QueryOrder, QuerySelect};
 use serde::{Deserialize, Serialize};
 
-use super::{team, Game, Team};
+use super::{team, Game, Submission, Team};
 use crate::db::{entity, get_db};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -50,7 +52,8 @@ async fn preload(mut game_teams: Vec<GameTeam>) -> Result<Vec<GameTeam>, DbErr> 
 }
 
 pub async fn find(
-    game_id: Option<i64>, team_id: Option<i64>,
+    game_id: Option<i64>, team_id: Option<i64>, is_allowed: Option<bool>, sorts: Option<String>,
+    page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<GameTeam>, u64), DbErr> {
     let mut sql = entity::game_team::Entity::find();
 
@@ -62,7 +65,35 @@ pub async fn find(
         sql = sql.filter(entity::game_team::Column::TeamId.eq(team_id));
     }
 
+    if let Some(is_allowed) = is_allowed {
+        sql = sql.filter(entity::game_team::Column::IsAllowed.eq(is_allowed));
+    }
+
+    if let Some(sorts) = sorts {
+        let sorts = sorts.split(",").collect::<Vec<&str>>();
+        for sort in sorts {
+            let col = match crate::db::entity::game_team::Column::from_str(
+                sort.replace("-", "").as_str(),
+            ) {
+                Ok(col) => col,
+                Err(_) => return Err(DbErr::Custom("invalid sort column".to_string())),
+            };
+            if sort.starts_with("-") {
+                sql = sql.order_by(col, Order::Desc);
+            } else {
+                sql = sql.order_by(col, Order::Asc);
+            }
+        }
+    }
+
     let total = sql.clone().count(get_db()).await?;
+
+    if let Some(page) = page {
+        if let Some(size) = size {
+            let offset = (page - 1) * size;
+            sql = sql.offset(offset).limit(size);
+        }
+    }
 
     let game_teams = sql.all(get_db()).await?;
     let mut game_teams = game_teams
