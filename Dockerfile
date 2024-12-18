@@ -2,11 +2,9 @@ FROM rust:latest AS builder
 
 WORKDIR /app
 
-COPY Cargo.toml ./
+COPY . .
 
 RUN cargo fetch
-
-COPY . .
 
 RUN rustup target add x86_64-unknown-linux-musl
 
