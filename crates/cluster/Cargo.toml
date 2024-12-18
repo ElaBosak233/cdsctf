@@ -1,0 +1,20 @@
+[package]
+name = "cds-cluster"
+version = "0.0.1"
+edition = "2024"
+publish = false
+resolver = "2"
+
+[dependencies]
+cds-env = { workspace = true }
+cds-config = { workspace = true }
+cds-db = { workspace = true }
+
+kube = { workspace = true }
+k8s-openapi = { workspace = true }
+axum = { workspace = true }
+once_cell = { workspace = true }
+tokio-util = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+wsrx = { workspace = true }

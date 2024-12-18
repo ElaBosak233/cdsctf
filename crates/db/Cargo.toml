@@ -1,0 +1,22 @@
+[package]
+name = "cds-db"
+version = "0.0.1"
+edition = "2024"
+publish = false
+resolver = "2"
+
+[dependencies]
+cds-env = { workspace = true }
+cds-cache = { workspace = true }
+
+async-trait = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+sea-orm = { workspace = true }
+serde_repr = { workspace = true }
+once_cell = { workspace = true }
+chrono = { workspace = true }
+serde_json = { workspace = true }
+
+[lib]
+path = "src/lib.rs"

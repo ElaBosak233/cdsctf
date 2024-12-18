@@ -1,0 +1,35 @@
+[package]
+name = "cds-server"
+version = "0.0.1"
+edition = "2024"
+publish = false
+resolver = "2"
+
+[dependencies]
+cds-assets = { workspace = true }
+cds-env = { workspace = true }
+cds-db = { workspace = true }
+cds-config = { workspace = true }
+cds-cluster = { workspace = true }
+cds-queue = { workspace = true }
+cds-web = { workspace = true }
+cds-cache = { workspace = true }
+
+once_cell = { workspace = true }
+tracing = { workspace = true }
+tracing-appender = { workspace = true }
+tracing-error = { workspace = true }
+tracing-subscriber = { workspace = true }
+tokio = { workspace = true }
+rustls = { workspace = true }
+axum = { workspace = true }
+sea-orm = { workspace = true }
+argon2 = { workspace = true }
+serde_json = { workspace = true }
+
+[build-dependencies]
+chrono = { workspace = true }
+
+[[bin]]
+name = "cdsctf"
+path = "src/main.rs"
