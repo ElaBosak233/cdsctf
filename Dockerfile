@@ -2,6 +2,8 @@ FROM rust:latest AS builder
 
 WORKDIR /app
 
+RUN rustup install nightly && rustup default nightly
+
 COPY . .
 
 RUN cargo fetch
