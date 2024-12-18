@@ -1,0 +1,37 @@
+[package]
+name = "cds-web"
+version = "0.0.1"
+edition = "2024"
+publish = false
+resolver = "2"
+
+[dependencies]
+cds-db = { workspace = true }
+cds-config = { workspace = true }
+cds-cluster = { workspace = true }
+cds-media = { workspace = true }
+cds-metric = { workspace = true }
+cds-queue = { workspace = true }
+
+argon2 = { workspace = true }
+axum = { workspace = true }
+once_cell = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+tower-http = { workspace = true }
+jsonwebtoken = { workspace = true }
+sea-orm = { workspace = true }
+async-trait = { workspace = true }
+mime = { workspace = true }
+validator = { workspace = true }
+anyhow = { workspace = true }
+sysinfo = { workspace = true }
+regex = { workspace = true }
+cookie = { workspace = true }
+prometheus = { workspace = true }
+tokio = { workspace = true }
+uuid = { workspace = true }
+futures = { workspace = true }

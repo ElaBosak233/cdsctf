@@ -1,0 +1,14 @@
+[package]
+name = "cds-config"
+version = "0.0.1"
+edition = "2024"
+publish = false
+resolver = "2"
+
+[dependencies]
+cds-db = { workspace = true }
+cds-cache = { workspace = true }
+
+sea-orm = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
