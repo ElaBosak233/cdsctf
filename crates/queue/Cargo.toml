@@ -1,0 +1,16 @@
+[package]
+name = "cds-queue"
+version = "0.0.1"
+edition = "2024"
+publish = false
+resolver = "2"
+
+[dependencies]
+cds-env = { workspace = true }
+
+tracing = { workspace = true }
+serde = { workspace = true }
+once_cell = { workspace = true }
+async-nats = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

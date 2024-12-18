@@ -1,11 +1,20 @@
-[package]
-name = "cdsctf"
-version = "0.0.1"
-edition = "2021"
-description = "The CdsCTF project is an open-source, high-performance, Jeopardy-style's CTF platform."
-publish = false
+[workspace]
+members = ["crates/*"]
+resolver = "2"
 
-[dependencies]
+[workspace.dependencies]
+# Local Libraries
+cds-assets = { path = "crates/assets" }
+cds-media = { path = "crates/media" }
+cds-db = { path = "crates/db" }
+cds-env = { path = "crates/env" }
+cds-web = { path = "crates/web" }
+cds-config = { path = "crates/config" }
+cds-queue = { path = "crates/queue" }
+cds-metric = { path = "crates/metric" }
+cds-cache = { path = "crates/cache" }
+cds-cluster = { path = "crates/cluster" }
+
 # Async
 async-trait = { version = "0.1" }
 tokio = { version = "1.42", features = ["full"] }
@@ -101,10 +110,3 @@ tempfile = { version = "3.14.0" }
 image = { version = "0.25.5" }
 webp = { version = "0.3.0", features = ["image"] }
 hex = "0.4.3"
-
-[build-dependencies]
-chrono = { version = "0.4" }
-
-[[bin]]
-name = "cdsctf"
-path = "src/main.rs"

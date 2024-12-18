@@ -1,0 +1,17 @@
+[package]
+name = "cds-media"
+version = "0.0.1"
+edition = "2024"
+publish = false
+resolver = "2"
+
+[dependencies]
+cds-env = { workspace = true }
+
+ring = { workspace = true }
+tokio = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+image = { workspace = true }
+webp = { workspace = true }
+hex = { workspace = true }
