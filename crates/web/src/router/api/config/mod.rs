@@ -12,7 +12,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Json},
-    traits::{Ext, WebError, WebResult},
+    traits::{Ext, WebError, WebResponse},
     util::handle_image_multipart,
 };
 
@@ -27,22 +27,22 @@ pub fn router() -> Router {
 
 pub async fn get(
     Extension(ext): Extension<Ext>,
-) -> Result<WebResult<cds_config::Config>, WebError> {
+) -> Result<WebResponse<cds_config::Config>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(get_config().await),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Json(body): Json<cds_config::Config>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -56,9 +56,9 @@ pub async fn update(
 
     config.update(get_db()).await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -75,7 +75,7 @@ pub async fn get_icon() -> impl IntoResponse {
 
 pub async fn save_icon(
     Extension(ext): Extension<Ext>, multipart: Multipart,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -89,13 +89,13 @@ pub async fn save_icon(
         .await
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
-pub async fn delete_icon(Extension(ext): Extension<Ext>) -> Result<WebResult<()>, WebError> {
+pub async fn delete_icon(Extension(ext): Extension<Ext>) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -104,8 +104,8 @@ pub async fn delete_icon(Extension(ext): Extension<Ext>) -> Result<WebResult<()>
     let filename = String::from("icon.webp");
     cds_media::delete(path.clone(), filename.clone()).await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }

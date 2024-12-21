@@ -23,7 +23,7 @@ use validator::Validate;
 use crate::{
     extract::{Extension, Json, VJson},
     model::Metadata,
-    traits::{Ext, WebError, WebResult},
+    traits::{Ext, WebError, WebResponse},
     util,
     util::jwt,
 };
@@ -62,7 +62,7 @@ pub struct GetRequest {
 
 pub async fn get(
     Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<cds_db::transfer::User>>, WebError> {
+) -> Result<WebResponse<Vec<cds_db::transfer::User>>, WebError> {
     let (mut users, total) = cds_db::transfer::user::find(
         params.id,
         params.name,
@@ -78,11 +78,11 @@ pub async fn get(
         user.desensitize();
     }
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(users),
         total: Some(total),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -97,7 +97,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, VJson(mut body): VJson<CreateRequest>,
-) -> Result<WebResult<cds_db::transfer::User>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
     let operator = ext
         .operator
         .ok_or(WebError::Unauthorized(json!("")))?;
@@ -127,10 +127,10 @@ pub async fn create(
 
     user.desensitize();
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -148,7 +148,7 @@ pub struct UpdateRequest {
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
-) -> Result<WebResult<cds_db::transfer::User>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     body.id = Some(id);
     if !(operator.group == Group::Admin
@@ -179,16 +179,16 @@ pub async fn update(
     .await?;
     let user = cds_db::transfer::User::from(user);
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if !(operator.group == Group::Admin || operator.id == id) {
         return Err(WebError::Forbidden(json!("")));
@@ -202,23 +202,23 @@ pub async fn delete(
     .update(get_db())
     .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn get_teams(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<Vec<cds_db::transfer::Team>>, WebError> {
+) -> Result<WebResponse<Vec<cds_db::transfer::Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let teams = cds_db::transfer::team::find_by_user_id(id).await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(teams),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -279,10 +279,10 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
         .unwrap(),
     );
 
-    Ok((StatusCode::OK, headers, WebResult {
+    Ok((StatusCode::OK, headers, WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
-        ..WebResult::default()
+        ..WebResponse::default()
     }))
 }
 
@@ -299,7 +299,7 @@ pub struct RegisterRequest {
 
 pub async fn register(
     Extension(ext): Extension<Ext>, Json(mut body): Json<RegisterRequest>,
-) -> Result<WebResult<cds_db::transfer::User>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
 
@@ -342,10 +342,10 @@ pub async fn register(
     .await?;
     let user = cds_db::transfer::User::from(user);
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -355,7 +355,7 @@ pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebErr
     util::media::get_img(path).await
 }
 
-pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
+pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResponse<Metadata>, WebError> {
     let path = format!("users/{}/avatar", id);
 
     util::media::get_img_metadata(path).await
@@ -363,7 +363,7 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metada
 
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && operator.id != id {
         return Err(WebError::Forbidden(json!("")));
@@ -376,7 +376,7 @@ pub async fn save_avatar(
 
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && operator.id != id {
         return Err(WebError::Forbidden(json!("")));
