@@ -17,7 +17,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Json},
-    traits::{Ext, WebError, WebResult},
+    traits::{Ext, WebError, WebResponse},
 };
 
 pub async fn router() -> Router {
@@ -45,7 +45,7 @@ pub struct GetRequest {
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<cds_db::transfer::Submission>>, WebError> {
+) -> Result<WebResponse<Vec<cds_db::transfer::Submission>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
         return Err(WebError::Forbidden(json!("")));
@@ -70,17 +70,17 @@ pub async fn get(
         }
     }
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(submissions),
         total: Some(total),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn get_by_id(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<cds_db::transfer::Submission>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::Submission>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let submission = cds_db::entity::submission::Entity::find_by_id(id)
@@ -95,10 +95,10 @@ pub async fn get_by_id(
     let mut submission = cds_db::transfer::Submission::from(submission);
     submission.desensitize();
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(submission),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -113,7 +113,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
-) -> Result<WebResult<cds_db::transfer::Submission>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::Submission>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     body.user_id = Some(operator.id);
@@ -179,16 +179,16 @@ pub async fn create(
 
     cds_queue::publish("checker", submission.id).await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(submission),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -198,8 +198,8 @@ pub async fn delete(
         .exec(get_db())
         .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }

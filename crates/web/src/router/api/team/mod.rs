@@ -17,7 +17,7 @@ use validator::Validate;
 use crate::{
     extract::{Extension, Json, VJson},
     model::Metadata,
-    traits::{Ext, WebError, WebResult},
+    traits::{Ext, WebError, WebResponse},
     util,
 };
 
@@ -66,7 +66,7 @@ pub struct GetRequest {
 
 pub async fn get(
     Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<cds_db::transfer::Team>>, WebError> {
+) -> Result<WebResponse<Vec<cds_db::transfer::Team>>, WebError> {
     let (teams, total) = cds_db::transfer::team::find(
         params.id,
         params.name,
@@ -76,11 +76,11 @@ pub async fn get(
     )
     .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(teams),
         total: Some(total),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -94,7 +94,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, VJson(body): VJson<CreateRequest>,
-) -> Result<WebResult<cds_db::transfer::Team>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
     let operator = ext
         .operator
         .ok_or(WebError::Unauthorized(serde_json::json!("")))?;
@@ -122,10 +122,10 @@ pub async fn create(
     .insert(get_db())
     .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(team),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -140,7 +140,7 @@ pub struct UpdateRequest {
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
-) -> Result<WebResult<cds_db::transfer::Team>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     if !can_modify_team(operator, id) {
@@ -160,16 +160,16 @@ pub async fn update(
     .await?;
     let team = cds_db::transfer::Team::from(team);
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(team),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     if !can_modify_team(operator, id) {
@@ -184,9 +184,9 @@ pub async fn delete(
     .update(get_db())
     .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -198,7 +198,7 @@ pub struct CreateUserRequest {
 
 pub async fn create_user(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateUserRequest>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -211,15 +211,15 @@ pub async fn create_user(
     .insert(get_db())
     .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn delete_user(
     Extension(ext): Extension<Ext>, Path((id, user_id)): Path<(i64, i64)>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if !can_modify_team(operator.clone(), id) && operator.id != user_id {
         return Err(WebError::Forbidden(json!("")));
@@ -231,15 +231,15 @@ pub async fn delete_user(
         .exec(get_db())
         .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn get_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<String>, WebError> {
+) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     if !can_modify_team(operator, id) {
@@ -253,16 +253,16 @@ pub async fn get_invite_token(
         .await?
         .ok_or_else(|| WebError::NotFound(json!("")))?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: team.invite_token,
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn update_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<String>, WebError> {
+) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if !can_modify_team(operator, id) {
         return Err(WebError::Forbidden(json!("")));
@@ -279,10 +279,10 @@ pub async fn update_invite_token(
 
     let _ = team.update(get_db()).await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(token),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -295,7 +295,7 @@ pub struct JoinRequest {
 
 pub async fn join(
     Extension(ext): Extension<Ext>, Json(mut body): Json<JoinRequest>,
-) -> Result<WebResult<cds_db::transfer::UserTeam>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::UserTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     body.user_id = operator.id;
@@ -323,10 +323,10 @@ pub async fn join(
     .await?;
     let user_team = cds_db::transfer::UserTeam::from(user_team);
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(user_team),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -340,7 +340,7 @@ pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebErr
     util::media::get_img(path).await
 }
 
-pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
+pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResponse<Metadata>, WebError> {
     let path = format!("teams/{}/avatar", id);
 
     util::media::get_img_metadata(path).await
@@ -348,7 +348,7 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResult<Metada
 
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if !can_modify_team(operator, id) {
         return Err(WebError::Forbidden(json!("")));
@@ -361,7 +361,7 @@ pub async fn save_avatar(
 
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if !can_modify_team(operator, id) {
         return Err(WebError::Forbidden(json!("")));
