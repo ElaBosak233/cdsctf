@@ -110,3 +110,10 @@ tempfile = { version = "3.14.0" }
 image = { version = "0.25.5" }
 webp = { version = "0.3.0", features = ["image"] }
 hex = "0.4.3"
+
+[profile.release]
+opt-level = 3
+strip = true
+lto = "thin"
+panic = "abort"
+codegen-units = 1
