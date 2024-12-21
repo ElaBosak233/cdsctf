@@ -19,7 +19,7 @@ use validator::Validate;
 use crate::{
     extract::{Extension, Json, VJson},
     model::Metadata,
-    traits::{Ext, WebError, WebResult},
+    traits::{Ext, WebError, WebResponse},
     util,
 };
 
@@ -87,7 +87,7 @@ pub struct GetRequest {
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<WebResult<Vec<cds_db::transfer::Game>>, WebError> {
+) -> Result<WebResponse<Vec<cds_db::transfer::Game>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && !params.is_enabled.unwrap_or(true) {
         return Err(WebError::Forbidden(json!("")));
@@ -107,11 +107,11 @@ pub async fn get(
         .map(cds_db::transfer::Game::from)
         .collect::<Vec<cds_db::transfer::Game>>();
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(games),
         total: Some(total),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -132,7 +132,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, VJson(body): VJson<CreateRequest>,
-) -> Result<WebResult<cds_db::transfer::Game>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::Game>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -161,10 +161,10 @@ pub async fn create(
     .await?;
     let game = cds_db::transfer::Game::from(game);
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -187,7 +187,7 @@ pub struct UpdateRequest {
 
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
-) -> Result<WebResult<cds_db::transfer::Game>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::Game>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -217,16 +217,16 @@ pub async fn update(
     .await?;
     let game = cds_db::transfer::Game::from(game);
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -236,9 +236,9 @@ pub async fn delete(
         .exec(get_db())
         .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -252,7 +252,7 @@ pub struct GetChallengeRequest {
 
 pub async fn get_challenge(
     Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
-) -> Result<WebResult<Vec<cds_db::transfer::GameChallenge>>, WebError> {
+) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let (game_challenges, _) = cds_db::transfer::game_challenge::find(
@@ -262,10 +262,10 @@ pub async fn get_challenge(
     )
     .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenges),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -284,7 +284,7 @@ pub struct CreateChallengeRequest {
 
 pub async fn create_challenge(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateChallengeRequest>,
-) -> Result<WebResult<cds_db::transfer::GameChallenge>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -306,10 +306,10 @@ pub async fn create_challenge(
     .await?;
     let game_challenge = cds_db::transfer::GameChallenge::from(game_challenge);
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenge),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -329,7 +329,7 @@ pub struct UpdateChallengeRequest {
 pub async fn update_challenge(
     Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, i64)>,
     Json(mut body): Json<UpdateChallengeRequest>,
-) -> Result<WebResult<cds_db::transfer::GameChallenge>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -354,16 +354,16 @@ pub async fn update_challenge(
     .await?;
     let game_challenge = cds_db::transfer::GameChallenge::from(game_challenge);
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenge),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn delete_challenge(
     Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, i64)>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -375,9 +375,9 @@ pub async fn delete_challenge(
         .exec(get_db())
         .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -389,18 +389,18 @@ pub struct GetTeamRequest {
 
 pub async fn get_team(
     Extension(ext): Extension<Ext>, Query(params): Query<GetTeamRequest>,
-) -> Result<WebResult<Vec<GameTeam>>, WebError> {
+) -> Result<WebResponse<Vec<GameTeam>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let (game_teams, total) =
         cds_db::transfer::game_team::find(params.game_id, params.team_id, None, None, None, None)
             .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_teams),
         total: Some(total),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -412,7 +412,7 @@ pub struct CreateTeamRequest {
 
 pub async fn create_team(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateTeamRequest>,
-) -> Result<WebResult<GameTeam>, WebError> {
+) -> Result<WebResponse<GameTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -428,10 +428,10 @@ pub async fn create_team(
     .await?;
     let game_team = cds_db::transfer::GameTeam::from(game_team);
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_team),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -445,7 +445,7 @@ pub struct UpdateTeamRequest {
 pub async fn update_team(
     Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
     Json(mut body): Json<UpdateTeamRequest>,
-) -> Result<WebResult<GameTeam>, WebError> {
+) -> Result<WebResponse<GameTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -464,16 +464,16 @@ pub async fn update_team(
     .await?;
     let game_team = cds_db::transfer::GameTeam::from(game_team);
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_team),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
 pub async fn delete_team(
     Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -485,9 +485,9 @@ pub async fn delete_team(
         .exec(get_db())
         .await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -509,7 +509,7 @@ pub async fn delete_notice() -> Result<impl IntoResponse, WebError> {
 
 pub async fn calculate(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -517,9 +517,9 @@ pub async fn calculate(
 
     cds_queue::publish("calculator", calculator::Payload { game_id: Some(id) }).await?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
@@ -537,7 +537,7 @@ pub struct ScoreRecord {
 
 pub async fn get_scoreboard(
     Path(id): Path<i64>, Query(params): Query<GetScoreboardRequest>,
-) -> Result<WebResult<Vec<ScoreRecord>>, WebError> {
+) -> Result<WebResponse<Vec<ScoreRecord>>, WebError> {
     let (game_teams, total) = cds_db::transfer::game_team::find(
         Some(id),
         None,
@@ -578,7 +578,7 @@ pub async fn get_scoreboard(
         });
     }
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(result),
         total: Some(total),
@@ -592,7 +592,7 @@ pub async fn get_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, WebErr
     util::media::get_img(path).await
 }
 
-pub async fn get_poster_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
+pub async fn get_poster_metadata(Path(id): Path<i64>) -> Result<WebResponse<Metadata>, WebError> {
     let path = format!("games/{}/poster", id);
 
     util::media::get_img_metadata(path).await
@@ -600,7 +600,7 @@ pub async fn get_poster_metadata(Path(id): Path<i64>) -> Result<WebResult<Metada
 
 pub async fn save_poster(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -613,7 +613,7 @@ pub async fn save_poster(
 
 pub async fn delete_poster(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -630,7 +630,7 @@ pub async fn get_icon(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError
     util::media::get_img(path).await
 }
 
-pub async fn get_icon_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata>, WebError> {
+pub async fn get_icon_metadata(Path(id): Path<i64>) -> Result<WebResponse<Metadata>, WebError> {
     let path = format!("games/{}/icon", id);
 
     util::media::get_img_metadata(path).await
@@ -638,7 +638,7 @@ pub async fn get_icon_metadata(Path(id): Path<i64>) -> Result<WebResult<Metadata
 
 pub async fn save_icon(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -651,7 +651,7 @@ pub async fn save_icon(
 
 pub async fn delete_icon(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResult<()>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));

@@ -9,7 +9,7 @@ use serde_json::json;
 
 use crate::{
     model::Metadata,
-    traits::{WebError, WebResult},
+    traits::{WebError, WebResponse},
     util::handle_image_multipart,
 };
 
@@ -23,21 +23,21 @@ pub async fn get_img(path: String) -> Result<impl IntoResponse, WebError> {
     }
 }
 
-pub async fn get_img_metadata(path: String) -> Result<WebResult<Metadata>, WebError> {
+pub async fn get_img_metadata(path: String) -> Result<WebResponse<Metadata>, WebError> {
     match cds_media::scan_dir(path.clone()).await?.first() {
-        Some((filename, size)) => Ok(WebResult {
+        Some((filename, size)) => Ok(WebResponse {
             code: StatusCode::OK.as_u16(),
             data: Some(Metadata {
                 filename: filename.to_string(),
                 size: *size,
             }),
-            ..WebResult::default()
+            ..WebResponse::default()
         }),
         None => Err(WebError::NotFound(json!(""))),
     }
 }
 
-pub async fn save_img(path: String, multipart: Multipart) -> Result<WebResult<()>, WebError> {
+pub async fn save_img(path: String, multipart: Multipart) -> Result<WebResponse<()>, WebError> {
     let data = handle_image_multipart(multipart).await?;
 
     cds_media::delete_dir(path.clone()).await?;
@@ -49,19 +49,19 @@ pub async fn save_img(path: String, multipart: Multipart) -> Result<WebResult<()
         .await
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }
 
-pub async fn delete_img(path: String) -> Result<WebResult<()>, WebError> {
+pub async fn delete_img(path: String) -> Result<WebResponse<()>, WebError> {
     cds_media::delete_dir(path)
         .await
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
-    Ok(WebResult {
+    Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResult::default()
+        ..WebResponse::default()
     })
 }

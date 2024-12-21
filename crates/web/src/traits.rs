@@ -17,7 +17,7 @@ pub struct Ext {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct WebResult<T> {
+pub struct WebResponse<T> {
     pub code: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub msg: Option<serde_json::Value>,
@@ -27,7 +27,7 @@ pub struct WebResult<T> {
     pub ts: i64,
 }
 
-impl<T> Default for WebResult<T> {
+impl<T> Default for WebResponse<T> {
     fn default() -> Self {
         Self {
             code: 0,
@@ -39,7 +39,7 @@ impl<T> Default for WebResult<T> {
     }
 }
 
-impl<T: Serialize + Debug> IntoResponse for WebResult<T> {
+impl<T: Serialize + Debug> IntoResponse for WebResponse<T> {
     fn into_response(mut self) -> Response<Body> {
         self.ts = chrono::Utc::now().timestamp();
         (
@@ -118,10 +118,10 @@ impl IntoResponse for WebError {
             ),
         };
 
-        WebResult::<()> {
+        WebResponse::<()> {
             code: status.as_u16(),
             msg: Option::from(message),
-            ..WebResult::default()
+            ..WebResponse::default()
         }
         .into_response()
     }

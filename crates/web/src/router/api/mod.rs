@@ -11,7 +11,7 @@ pub mod user;
 use axum::{Router, http::StatusCode, response::IntoResponse};
 use serde_json::json;
 
-use crate::traits::WebResult;
+use crate::traits::WebResponse;
 
 pub async fn router() -> Router {
     Router::new()
@@ -28,9 +28,9 @@ pub async fn router() -> Router {
 }
 
 pub async fn index() -> impl IntoResponse {
-    WebResult::<()> {
+    WebResponse::<()> {
         code: StatusCode::OK.as_u16(),
         msg: Some(json!("This is the heart of CdsCTF!")),
-        ..WebResult::default()
+        ..WebResponse::default()
     }
 }
