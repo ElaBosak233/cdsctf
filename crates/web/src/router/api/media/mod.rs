@@ -1,12 +1,13 @@
 use axum::{
     Router,
-    extract::Path,
     http::{StatusCode, header},
     response::{IntoResponse, Response},
 };
 
+use crate::extract::Path;
+
 pub fn router() -> Router {
-    Router::new().route("/*path", axum::routing::get(get_file))
+    Router::new().route("/{*path}", axum::routing::get(get_file))
 }
 
 pub async fn get_file(Path(path): Path<String>) -> impl IntoResponse {
