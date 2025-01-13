@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use axum::{
     Router,
     body::Body,
-    extract::{DefaultBodyLimit, Multipart, Path, Query},
+    extract::{DefaultBodyLimit, Multipart},
     http::{Response, StatusCode, header},
     response::IntoResponse,
 };
@@ -17,7 +17,7 @@ use serde_json::json;
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Json, VJson},
+    extract::{Extension, Json, Path, Query, VJson},
     model::Metadata,
     traits::{Ext, WebError, WebResponse},
 };
@@ -27,19 +27,19 @@ pub fn router() -> Router {
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
         .route("/status", axum::routing::post(get_status))
-        .route("/:id", axum::routing::put(update))
-        .route("/:id", axum::routing::delete(delete))
-        .route("/:id/attachment", axum::routing::get(get_attachment))
+        .route("/{id}", axum::routing::put(update))
+        .route("/{id}", axum::routing::delete(delete))
+        .route("/{id}/attachment", axum::routing::get(get_attachment))
         .route(
-            "/:id/attachment/metadata",
+            "/{id}/attachment/metadata",
             axum::routing::get(get_attachment_metadata),
         )
         .route(
-            "/:id/attachment",
+            "/{id}/attachment",
             axum::routing::post(save_attachment)
                 .layer(DefaultBodyLimit::max(512 * 1024 * 1024 /* MB */)),
         )
-        .route("/:id/attachment", axum::routing::delete(delete_attachment))
+        .route("/{id}/attachment", axum::routing::delete(delete_attachment))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -117,12 +117,14 @@ pub async fn get_status(
     let mut result: HashMap<i64, StatusResponse> = HashMap::new();
 
     for challenge_id in body.challenge_ids {
-        result.entry(challenge_id).or_insert_with(|| StatusResponse {
-            is_solved: false,
-            solved_times: 0,
-            pts: 0,
-            bloods: Vec::new(),
-        });
+        result
+            .entry(challenge_id)
+            .or_insert_with(|| StatusResponse {
+                is_solved: false,
+                solved_times: 0,
+                pts: 0,
+                bloods: Vec::new(),
+            });
     }
 
     for submission in submissions.iter_mut() {

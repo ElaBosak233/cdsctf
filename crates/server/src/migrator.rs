@@ -1,11 +1,13 @@
-use argon2::{Argon2, PasswordHasher};
-use argon2::password_hash::rand_core::OsRng;
-use argon2::password_hash::SaltString;
-use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, EntityTrait, PaginatorTrait, Schema};
-use sea_orm::ActiveValue::Set;
-use sea_orm::sqlx::types::uuid;
-use tracing::{error, info};
+use argon2::{
+    Argon2, PasswordHasher,
+    password_hash::{SaltString, rand_core::OsRng},
+};
 use cds_db::{entity, get_db};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue::Set, ConnectionTrait, DbConn, EntityTrait, PaginatorTrait,
+    Schema, sqlx::types::uuid,
+};
+use tracing::{error, info};
 
 macro_rules! create_tables {
     ($db:expr, $($entity:expr),*) => {
@@ -104,7 +106,7 @@ pub async fn init_config() {
                     },
                 },
             })
-                .unwrap()),
+            .unwrap()),
             ..Default::default()
         };
         config.insert(get_db()).await.unwrap();

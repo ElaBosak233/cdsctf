@@ -17,7 +17,7 @@ cds-cluster = { path = "crates/cluster" }
 
 # Async
 async-trait = { version = "0.1" }
-tokio = { version = "1.42", features = ["full"] }
+tokio = { version = "1.43", features = ["full"] }
 tokio-util = { version = "0.7.13" }
 futures = { version = "^0.3" }
 futures-util = { version = "^0.3" }
@@ -25,7 +25,7 @@ tower = { version = "0.5" }
 tower-http = { version = "0.6", features = ["cors", "fs", "trace"] }
 
 # Web
-axum = { version = "0.7", features = [
+axum = { version = "0.8", features = [
     "ws",
     "http2",
     "multipart",
@@ -37,7 +37,7 @@ axum = { version = "0.7", features = [
 rust-embed = { version = "8.5" }
 mime = { version = "0.3" }
 mime_guess = { version = "2.0" }
-wsrx = { version = "0.2", features = ["server"] }
+wsrx = { version = "0.3", features = ["server"] }
 cookie = { version = "0.18.1" }
 
 # Security
@@ -94,8 +94,8 @@ fred = { version = "10.0", features = [
 ] }
 
 # Containerization & Orchestration
-kube = { version = "0.97", features = ["client", "config", "runtime", "derive", "rustls-tls", "ws"] }
-k8s-openapi = { version = "0.23", features = ["latest"] }
+kube = { version = "0.98", features = ["client", "config", "runtime", "derive", "rustls-tls", "ws"] }
+k8s-openapi = { version = "0.24", features = ["latest"] }
 
 # Miscellaneous
 once_cell = { version = "1.20" }
@@ -105,8 +105,8 @@ reqwest = { version = "0.12", features = [
     "json",
     "rustls-tls",
 ], default-features = false }
-sysinfo = { version = "0.32.1" }
-tempfile = { version = "3.14.0" }
+sysinfo = { version = "0.33.1" }
+tempfile = { version = "3.15.0" }
 image = { version = "0.25.5" }
 webp = { version = "0.3.0", features = ["image"] }
 hex = "0.4.3"
