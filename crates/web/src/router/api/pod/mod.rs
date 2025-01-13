@@ -1,10 +1,6 @@
 pub mod daemon;
 
-use axum::{
-    Router,
-    extract::{Path, Query},
-    http::StatusCode,
-};
+use axum::{Router, http::StatusCode};
 use cds_db::{entity::user::Group, get_db};
 use regex::Regex;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
@@ -13,7 +9,7 @@ use serde_json::json;
 use uuid::Uuid;
 
 use crate::{
-    extract::{Extension, Json},
+    extract::{Extension, Json, Path, Query, VJson},
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -23,8 +19,8 @@ pub async fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
-        .route("/:id/renew", axum::routing::post(renew))
-        .route("/:id/stop", axum::routing::post(stop))
+        .route("/{id}/renew", axum::routing::post(renew))
+        .route("/{id}/stop", axum::routing::post(stop))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

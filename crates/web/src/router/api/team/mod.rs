@@ -1,6 +1,6 @@
 use axum::{
     Router,
-    extract::{DefaultBodyLimit, Multipart, Path, Query},
+    extract::{DefaultBodyLimit, Multipart},
     http::StatusCode,
     response::IntoResponse,
 };
@@ -15,7 +15,7 @@ use serde_json::json;
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Json, VJson},
+    extract::{Extension, Json, Path, Query, VJson},
     model::Metadata,
     traits::{Ext, WebError, WebResponse},
     util,
@@ -25,25 +25,25 @@ pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
-        .route("/:id", axum::routing::put(update))
-        .route("/:id", axum::routing::delete(delete))
-        .route("/:id/users", axum::routing::post(create_user))
-        .route("/:id/users/:user_id", axum::routing::delete(delete_user))
-        .route("/:id/invite", axum::routing::get(get_invite_token))
-        .route("/:id/invite", axum::routing::put(update_invite_token))
-        .route("/:id/join", axum::routing::post(join))
-        .route("/:id/leave", axum::routing::delete(leave))
-        .route("/:id/avatar", axum::routing::get(get_avatar))
+        .route("/{id}", axum::routing::put(update))
+        .route("/{id}", axum::routing::delete(delete))
+        .route("/{id}/users", axum::routing::post(create_user))
+        .route("/{id}/users/{user_id}", axum::routing::delete(delete_user))
+        .route("/{id}/invite", axum::routing::get(get_invite_token))
+        .route("/{id}/invite", axum::routing::put(update_invite_token))
+        .route("/{id}/join", axum::routing::post(join))
+        .route("/{id}/leave", axum::routing::delete(leave))
+        .route("/{id}/avatar", axum::routing::get(get_avatar))
         .route(
-            "/:id/avatar/metadata",
+            "/{id}/avatar/metadata",
             axum::routing::get(get_avatar_metadata),
         )
         .route(
-            "/:id/avatar",
+            "/{id}/avatar",
             axum::routing::post(save_avatar)
                 .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
         )
-        .route("/:id/avatar", axum::routing::delete(delete_avatar))
+        .route("/{id}/avatar", axum::routing::delete(delete_avatar))
 }
 
 fn can_modify_team(user: cds_db::transfer::User, team_id: i64) -> bool {

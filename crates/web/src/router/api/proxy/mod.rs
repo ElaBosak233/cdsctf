@@ -1,16 +1,15 @@
-use axum::{
-    Router,
-    extract::{Path, Query, WebSocketUpgrade},
-    response::IntoResponse,
-};
+use axum::{Router, extract::WebSocketUpgrade, response::IntoResponse};
 use serde::Deserialize;
 use serde_json::json;
 use tracing::debug;
 
-use crate::traits::WebError;
+use crate::{
+    extract::{Extension, Json, Path, Query, VJson},
+    traits::WebError,
+};
 
 pub fn router() -> Router {
-    Router::new().route("/:token", axum::routing::get(link))
+    Router::new().route("/{token}", axum::routing::get(link))
 }
 
 #[derive(Deserialize)]
@@ -18,14 +17,10 @@ pub struct LinkRequest {
     pub port: u32,
 }
 
+#[axum::debug_handler]
 pub async fn link(
-    Path(token): Path<String>, Query(query): Query<LinkRequest>, ws: Option<WebSocketUpgrade>,
+    Path(token): Path<String>, Query(query): Query<LinkRequest>, ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
-    if ws.is_none() {
-        return Err(WebError::BadRequest(json!("")));
-    }
-
-    let ws = ws.unwrap();
     let port = query.port;
 
     Ok(ws.on_upgrade(move |socket| async move {

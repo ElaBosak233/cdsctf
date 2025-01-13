@@ -3,7 +3,7 @@ use axum::{
     extract::{
         FromRequest, FromRequestParts, Request,
         path::ErrorKind,
-        rejection::{ExtensionRejection, PathRejection, QueryRejection},
+        rejection::{ExtensionRejection, JsonRejection, PathRejection, QueryRejection},
     },
     http::request::Parts,
 };
@@ -13,10 +13,9 @@ use validator::Validate;
 
 use crate::traits::WebError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Path<T>(pub T);
 
-#[async_trait]
 impl<S, T> FromRequestParts<S> for Path<T>
 where
     T: DeserializeOwned + Send,
@@ -49,7 +48,6 @@ where
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Json<T>(pub T);
 
-#[async_trait]
 impl<S, T> FromRequest<S> for Json<T>
 where
     T: DeserializeOwned,
@@ -60,12 +58,6 @@ where
     async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
         match axum::extract::Json::<T>::from_request(req, state).await {
             Ok(value) => Ok(Self(value.0)),
-            //     match value.0.validate() {
-            //     Ok(_) => Ok(Self(value.0)),
-            //     Err(validation_errors) => {
-            //         Err(WebError::UnprocessableEntity(json!(validation_errors)))
-            //     }
-            // },
             Err(rejection) => Err(WebError::BadRequest(json!(rejection.body_text()))),
         }
     }
@@ -74,7 +66,6 @@ where
 #[derive(Debug, Clone, Copy, Default)]
 pub struct VJson<T>(pub T);
 
-#[async_trait]
 impl<S, T> FromRequest<S> for VJson<T>
 where
     T: Validate + DeserializeOwned,
@@ -98,7 +89,6 @@ where
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Extension<T>(pub T);
 
-#[async_trait]
 impl<S, T> FromRequestParts<S> for Extension<T>
 where
     T: Clone + Send + Sync + 'static,
@@ -119,9 +109,9 @@ where
     }
 }
 
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Query<T>(pub T);
 
-#[async_trait]
 impl<S, T> FromRequestParts<S> for Query<T>
 where
     T: DeserializeOwned,

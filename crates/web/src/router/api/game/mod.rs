@@ -2,7 +2,7 @@ pub mod calculator;
 
 use axum::{
     Router,
-    extract::{DefaultBodyLimit, Multipart, Path, Query},
+    extract::{DefaultBodyLimit, Multipart},
     http::StatusCode,
     response::IntoResponse,
 };
@@ -17,7 +17,7 @@ use serde_json::json;
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Json, VJson},
+    extract::{Extension, Json, Path, Query, VJson},
     model::Metadata,
     traits::{Ext, WebError, WebResponse},
     util,
@@ -29,50 +29,50 @@ pub async fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
-        .route("/:id", axum::routing::put(update))
-        .route("/:id", axum::routing::delete(delete))
-        .route("/:id/challenges", axum::routing::get(get_challenge))
-        .route("/:id/challenges", axum::routing::post(create_challenge))
+        .route("/{id}", axum::routing::put(update))
+        .route("/{id}", axum::routing::delete(delete))
+        .route("/{id}/challenges", axum::routing::get(get_challenge))
+        .route("/{id}/challenges", axum::routing::post(create_challenge))
         .route(
-            "/:id/challenges/:challenge_id",
+            "/{id}/challenges/{challenge_id}",
             axum::routing::put(update_challenge),
         )
         .route(
-            "/:id/challenges/:challenge_id",
+            "/{id}/challenges/{challenge_id}",
             axum::routing::delete(delete_challenge),
         )
-        .route("/:id/teams", axum::routing::get(get_team))
-        .route("/:id/teams", axum::routing::post(create_team))
-        .route("/:id/teams/:team_id", axum::routing::put(update_team))
-        .route("/:id/teams/:team_id", axum::routing::delete(delete_team))
-        .route("/:id/notices", axum::routing::get(get_notice))
-        .route("/:id/notices", axum::routing::post(create_notice))
-        .route("/:id/notices/:notice_id", axum::routing::put(update_notice))
+        .route("/{id}/teams", axum::routing::get(get_team))
+        .route("/{id}/teams", axum::routing::post(create_team))
+        .route("/{id}/teams/{team_id}", axum::routing::put(update_team))
+        .route("/{id}/teams/{team_id}", axum::routing::delete(delete_team))
+        .route("/{id}/notices", axum::routing::get(get_notice))
+        .route("/{id}/notices", axum::routing::post(create_notice))
+        .route("/{id}/notices/{notice_id}", axum::routing::put(update_notice))
         .route(
-            "/:id/notices/:notice_id",
+            "/{id}/notices/{notice_id}",
             axum::routing::delete(delete_notice),
         )
-        .route("/:id/calculate", axum::routing::post(calculate))
-        .route("/:id/scoreboard", axum::routing::get(get_scoreboard))
-        .route("/:id/icon", axum::routing::get(get_icon))
+        .route("/{id}/calculate", axum::routing::post(calculate))
+        .route("/{id}/scoreboard", axum::routing::get(get_scoreboard))
+        .route("/{id}/icon", axum::routing::get(get_icon))
         .route(
-            "/:id/icon",
+            "/{id}/icon",
             axum::routing::post(save_icon)
                 .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
         )
-        .route("/:id/icon/metadata", axum::routing::get(get_icon_metadata))
-        .route("/:id/icon", axum::routing::delete(delete_icon))
-        .route("/:id/poster", axum::routing::get(get_poster))
+        .route("/{id}/icon/metadata", axum::routing::get(get_icon_metadata))
+        .route("/{id}/icon", axum::routing::delete(delete_icon))
+        .route("/{id}/poster", axum::routing::get(get_poster))
         .route(
-            "/:id/poster",
+            "/{id}/poster",
             axum::routing::post(save_poster)
                 .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
         )
         .route(
-            "/:id/poster/metadata",
+            "/{id}/poster/metadata",
             axum::routing::get(get_poster_metadata),
         )
-        .route("/:id/poster", axum::routing::delete(delete_poster))
+        .route("/{id}/poster", axum::routing::delete(delete_poster))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

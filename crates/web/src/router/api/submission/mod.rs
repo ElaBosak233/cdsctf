@@ -1,10 +1,6 @@
 pub mod checker;
 
-use axum::{
-    Router,
-    extract::{Path, Query},
-    http::StatusCode,
-};
+use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::{submission::Status, user::Group},
     get_db,
@@ -16,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Json},
+    extract::{Extension, Json, Path, Query, VJson},
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -25,9 +21,9 @@ pub async fn router() -> Router {
 
     Router::new()
         .route("/", axum::routing::get(get))
-        .route("/:id", axum::routing::get(get_by_id))
+        .route("/{id}", axum::routing::get(get_by_id))
         .route("/", axum::routing::post(create))
-        .route("/:id", axum::routing::delete(delete))
+        .route("/{id}", axum::routing::delete(delete))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
