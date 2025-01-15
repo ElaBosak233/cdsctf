@@ -8,10 +8,11 @@ use axum::{
 use cds_config::get_config;
 use cds_db::{entity::user::Group, get_db};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Json},
+    extract::{Extension, Json, Query},
     traits::{Ext, WebError, WebResponse},
     util::handle_image_multipart,
 };
@@ -25,19 +26,38 @@ pub fn router() -> Router {
         .route("/icon", axum::routing::delete(delete_icon))
 }
 
-pub async fn get(
-    Extension(ext): Extension<Ext>,
-) -> Result<WebResponse<cds_config::Config>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GetRequest {
+    pub is_detailed: Option<bool>,
+}
 
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        data: Some(get_config().await),
-        ..WebResponse::default()
-    })
+pub async fn get(
+    Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
+) -> Result<WebResponse<cds_config::Config>, WebError> {
+    match params.is_detailed {
+        Some(true) => {
+            let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+            if operator.group != Group::Admin {
+                return Err(WebError::Forbidden(json!("")));
+            }
+
+            Ok(WebResponse {
+                code: StatusCode::OK.as_u16(),
+                data: Some(get_config().await),
+                ..WebResponse::default()
+            })
+        }
+        _ => {
+            let mut config = get_config().await;
+            config.desensitize();
+
+            Ok(WebResponse {
+                code: StatusCode::OK.as_u16(),
+                data: Some(config),
+                ..WebResponse::default()
+            })
+        }
+    }
 }
 
 pub async fn update(
