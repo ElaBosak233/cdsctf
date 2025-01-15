@@ -47,7 +47,10 @@ pub async fn router() -> Router {
         .route("/{id}/teams/{team_id}", axum::routing::delete(delete_team))
         .route("/{id}/notices", axum::routing::get(get_notice))
         .route("/{id}/notices", axum::routing::post(create_notice))
-        .route("/{id}/notices/{notice_id}", axum::routing::put(update_notice))
+        .route(
+            "/{id}/notices/{notice_id}",
+            axum::routing::put(update_notice),
+        )
         .route(
             "/{id}/notices/{notice_id}",
             axum::routing::delete(delete_notice),

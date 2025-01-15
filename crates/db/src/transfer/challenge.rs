@@ -1,5 +1,10 @@
-use sea_orm::{ColumnTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect};
+use std::str::FromStr;
+
+use sea_orm::{
+    ColumnTrait, DbErr, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
+};
 use serde::{Deserialize, Serialize};
+use tracing::debug;
 
 use crate::{
     entity,
@@ -16,7 +21,7 @@ pub struct Challenge {
     pub tags: Vec<String>,
     pub is_dynamic: bool,
     pub has_attachment: bool,
-    pub is_practicable: bool,
+    pub is_public: bool,
     pub image_name: Option<String>,
     pub cpu_limit: i64,
     pub memory_limit: i64,
@@ -24,6 +29,7 @@ pub struct Challenge {
     pub ports: Vec<i32>,
     pub envs: Vec<Env>,
     pub flags: Vec<Flag>,
+    pub is_deleted: bool,
     pub created_at: i64,
     pub updated_at: i64,
 }
@@ -38,7 +44,7 @@ impl From<entity::challenge::Model> for Challenge {
             tags: entity.tags,
             is_dynamic: entity.is_dynamic,
             has_attachment: entity.has_attachment,
-            is_practicable: entity.is_practicable,
+            is_public: entity.is_public,
             image_name: entity.image_name,
             cpu_limit: entity.cpu_limit,
             memory_limit: entity.memory_limit,
@@ -46,6 +52,7 @@ impl From<entity::challenge::Model> for Challenge {
             ports: entity.ports,
             envs: entity.envs,
             flags: entity.flags,
+            is_deleted: entity.is_deleted,
             created_at: entity.created_at,
             updated_at: entity.updated_at,
         }
@@ -62,7 +69,7 @@ impl From<Challenge> for entity::challenge::Model {
             tags: challenge.tags,
             is_dynamic: challenge.is_dynamic,
             has_attachment: challenge.has_attachment,
-            is_practicable: challenge.is_practicable,
+            is_public: challenge.is_public,
             image_name: challenge.image_name,
             cpu_limit: challenge.cpu_limit,
             memory_limit: challenge.memory_limit,
@@ -70,6 +77,7 @@ impl From<Challenge> for entity::challenge::Model {
             ports: challenge.ports,
             envs: challenge.envs,
             flags: challenge.flags,
+            is_deleted: challenge.is_deleted,
             created_at: challenge.created_at,
             updated_at: challenge.updated_at,
         }
@@ -85,8 +93,9 @@ impl Challenge {
 }
 
 pub async fn find(
-    id: Option<i64>, title: Option<String>, category: Option<i32>, is_practicable: Option<bool>,
-    is_dynamic: Option<bool>, page: Option<u64>, size: Option<u64>,
+    id: Option<i64>, title: Option<String>, category: Option<i32>, is_public: Option<bool>,
+    is_dynamic: Option<bool>, is_deleted: Option<bool>, sorts: Option<String>, page: Option<u64>,
+    size: Option<u64>,
 ) -> Result<(Vec<Challenge>, u64), DbErr> {
     let mut sql = entity::challenge::Entity::find();
 
@@ -102,15 +111,36 @@ pub async fn find(
         sql = sql.filter(entity::challenge::Column::Category.eq(category));
     }
 
-    if let Some(is_practicable) = is_practicable {
-        sql = sql.filter(entity::challenge::Column::IsPracticable.eq(is_practicable));
+    if let Some(is_public) = is_public {
+        sql = sql.filter(entity::challenge::Column::IsPublic.eq(is_public));
     }
 
     if let Some(is_dynamic) = is_dynamic {
         sql = sql.filter(entity::challenge::Column::IsDynamic.eq(is_dynamic));
     }
 
+    match is_deleted {
+        Some(true) => sql = sql.filter(entity::challenge::Column::IsDeleted.eq(true)),
+        _ => sql = sql.filter(entity::challenge::Column::IsDeleted.eq(false)),
+    }
+
     let total = sql.clone().count(get_db()).await?;
+
+    if let Some(sorts) = sorts {
+        let sorts = sorts.split(",").collect::<Vec<&str>>();
+        for sort in sorts {
+            let col =
+                match crate::entity::challenge::Column::from_str(sort.replace("-", "").as_str()) {
+                    Ok(col) => col,
+                    Err(_) => continue,
+                };
+            if sort.starts_with("-") {
+                sql = sql.order_by(col, Order::Desc);
+            } else {
+                sql = sql.order_by(col, Order::Asc);
+            }
+        }
+    }
 
     if let Some(page) = page {
         if let Some(size) = size {

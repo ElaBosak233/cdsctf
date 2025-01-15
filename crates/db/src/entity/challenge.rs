@@ -23,7 +23,7 @@ pub struct Model {
     #[sea_orm(default_value = false)]
     pub has_attachment: bool,
     #[sea_orm(default_value = false)]
-    pub is_practicable: bool,
+    pub is_public: bool,
     pub image_name: Option<String>,
     #[sea_orm(default_value = 0)]
     pub cpu_limit: i64,
@@ -36,6 +36,8 @@ pub struct Model {
     pub envs: Vec<Env>,
     #[sea_orm(column_type = "JsonBinary")]
     pub flags: Vec<Flag>,
+    #[sea_orm(default_value = false)]
+    pub is_deleted: bool,
     pub created_at: i64,
     pub updated_at: i64,
 }
