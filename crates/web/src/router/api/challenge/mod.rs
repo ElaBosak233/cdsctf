@@ -48,11 +48,13 @@ pub struct GetRequest {
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tags: Option<Vec<String>>,
-    pub is_practicable: Option<bool>,
+    pub is_public: Option<bool>,
     pub is_dynamic: Option<bool>,
     pub is_detailed: Option<bool>,
+    pub is_deleted: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
+    pub sorts: Option<String>,
 }
 
 pub async fn get(
@@ -67,8 +69,10 @@ pub async fn get(
         params.id,
         params.title,
         params.category,
-        params.is_practicable,
+        params.is_public,
         params.is_dynamic,
+        params.is_deleted,
+        params.sorts,
         params.page,
         params.size,
     )
@@ -187,7 +191,7 @@ pub struct CreateRequest {
     pub description: String,
     pub category: i32,
     pub tags: Option<Vec<String>>,
-    pub is_practicable: Option<bool>,
+    pub is_public: Option<bool>,
     pub is_dynamic: Option<bool>,
     pub has_attachment: Option<bool>,
     pub difficulty: Option<i64>,
@@ -213,7 +217,7 @@ pub async fn create(
         description: Set(Some(body.description)),
         category: Set(body.category),
         tags: Set(body.tags.unwrap_or(vec![])),
-        is_practicable: Set(body.is_practicable.unwrap_or(false)),
+        is_public: Set(body.is_public.unwrap_or(false)),
         is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
         has_attachment: Set(body.has_attachment.unwrap_or(false)),
         image_name: Set(body.image_name),
@@ -243,7 +247,7 @@ pub struct UpdateRequest {
     pub description: Option<String>,
     pub category: Option<i32>,
     pub tags: Option<Vec<String>>,
-    pub is_practicable: Option<bool>,
+    pub is_public: Option<bool>,
     pub is_dynamic: Option<bool>,
     pub has_attachment: Option<bool>,
     pub difficulty: Option<i64>,
@@ -272,7 +276,7 @@ pub async fn update(
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
         tags: body.tags.map_or(NotSet, Set),
         category: body.category.map_or(NotSet, Set),
-        is_practicable: body.is_practicable.map_or(NotSet, Set),
+        is_public: body.is_public.map_or(NotSet, Set),
         is_dynamic: body.is_dynamic.map_or(NotSet, Set),
         has_attachment: body.has_attachment.map_or(NotSet, Set),
         image_name: body.image_name.map_or(NotSet, |v| Set(Some(v))),
@@ -303,9 +307,13 @@ pub async fn delete(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let _ = cds_db::entity::challenge::Entity::delete_by_id(id)
-        .exec(get_db())
-        .await?;
+    let _ = cds_db::entity::challenge::ActiveModel {
+        id: Set(id),
+        is_deleted: Set(true),
+        ..Default::default()
+    }
+    .update(get_db())
+    .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
