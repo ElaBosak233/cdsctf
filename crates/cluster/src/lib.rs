@@ -17,7 +17,7 @@ use kube::{
 };
 use once_cell::sync::OnceCell;
 use tokio_util::codec::Framed;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use crate::traits::ClusterError;
 
@@ -127,6 +127,8 @@ pub async fn create(
 
     kube::runtime::wait::await_condition(pod_api.clone(), &name, conditions::is_pod_running())
         .await?;
+
+    info!("Creating pod3");
 
     let mut nats: Vec<cds_db::entity::pod::Nat> = Vec::new();
 

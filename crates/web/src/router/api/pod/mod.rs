@@ -38,9 +38,9 @@ pub struct GetRequest {
 }
 
 pub async fn get(
-    Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
+    Extension(ext): Extension<Ext>, Query(mut params): Query<GetRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Pod>>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let (mut pods, total) = cds_db::transfer::pod::find(
         params.id,
@@ -53,10 +53,17 @@ pub async fn get(
     )
     .await?;
 
-    if let Some(is_detailed) = params.is_detailed {
-        if !is_detailed {
+    match params.is_detailed {
+        Some(true) => {
+            if operator.group != Group::Admin {
+                return Err(WebError::Forbidden(json!("")));
+            }
+        },
+        _ => {
             for pod in pods.iter_mut() {
                 pod.flag = None;
+                pod.user = None;
+                pod.challenge = None;
             }
         }
     }
@@ -98,7 +105,7 @@ pub async fn create(
 
     let mut injected_flag = challenge.flags.clone().into_iter().next().unwrap();
 
-    let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])\]").unwrap();
+    let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])]").unwrap();
     if injected_flag.type_ == cds_db::entity::challenge::FlagType::Dynamic {
         injected_flag.value = re
             .replace_all(&injected_flag.value, Uuid::new_v4().simple().to_string())
