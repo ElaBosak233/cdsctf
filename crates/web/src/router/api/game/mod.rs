@@ -275,7 +275,7 @@ pub async fn get_challenge(
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateChallengeRequest {
     pub game_id: i64,
-    pub challenge_id: i64,
+    pub challenge_id: uuid::Uuid,
     pub is_enabled: Option<bool>,
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,
@@ -319,7 +319,7 @@ pub async fn create_challenge(
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UpdateChallengeRequest {
     pub game_id: Option<i64>,
-    pub challenge_id: Option<i64>,
+    pub challenge_id: Option<uuid::Uuid>,
     pub is_enabled: Option<bool>,
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,
@@ -330,7 +330,7 @@ pub struct UpdateChallengeRequest {
 }
 
 pub async fn update_challenge(
-    Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, uuid::Uuid)>,
     Json(mut body): Json<UpdateChallengeRequest>,
 ) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

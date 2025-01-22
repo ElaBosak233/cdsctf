@@ -1,13 +1,13 @@
 pub mod daemon;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{entity::user::Group, get_db};
+use cds_db::{entity::user::Group, get_db, transfer::Pod};
 use regex::Regex;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
-use cds_db::transfer::Pod;
+
 use crate::{
     extract::{Extension, Json, Path, Query, VJson},
     traits::{Ext, WebError, WebResponse},
@@ -58,7 +58,7 @@ pub async fn get(
             if operator.group != Group::Admin {
                 return Err(WebError::Forbidden(json!("")));
             }
-        },
+        }
         _ => {
             for pod in pods.iter_mut() {
                 pod.flag = None;
@@ -78,7 +78,7 @@ pub async fn get(
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateRequest {
-    pub challenge_id: i64,
+    pub challenge_id: uuid::Uuid,
     pub team_id: Option<i64>,
     pub user_id: Option<i64>,
     pub game_id: Option<i64>,

@@ -4,7 +4,6 @@ use sea_orm::{
     ColumnTrait, DbErr, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
-use tracing::debug;
 
 use crate::{
     entity,
@@ -14,7 +13,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Challenge {
-    pub id: i64,
+    pub id: uuid::Uuid,
     pub title: String,
     pub description: Option<String>,
     pub category: i32,
@@ -142,11 +141,9 @@ pub async fn find(
         }
     }
 
-    if let Some(page) = page {
-        if let Some(size) = size {
-            let offset = (page - 1) * size;
-            sql = sql.offset(offset).limit(size);
-        }
+    if let (Some(page), Some(size)) = (page, size) {
+        let offset = (page - 1) * size;
+        sql = sql.offset(offset).limit(size);
     }
 
     let models = sql.all(get_db()).await?;

@@ -4,6 +4,7 @@ use sea_orm::{
     DeriveEntityModel, DerivePrimaryKey, EntityTrait, EnumIter, FromJsonQueryResult,
     PrimaryKeyTrait, Related, RelationDef, RelationTrait, Set,
 };
+use sea_orm::sqlx::types::uuid;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
@@ -12,8 +13,8 @@ use super::{game, game_challenge, pod, submission};
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "challenges")]
 pub struct Model {
-    #[sea_orm(primary_key)]
-    pub id: i64,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub id: uuid::Uuid,
     pub title: String,
     pub description: Option<String>,
     pub category: i32,
@@ -112,6 +113,7 @@ impl Related<game::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {
     fn new() -> Self {
         Self {
+            id: Set(uuid::Uuid::new_v4()),
             created_at: Set(chrono::Utc::now().timestamp()),
             updated_at: Set(chrono::Utc::now().timestamp()),
             ..ActiveModelTrait::default()

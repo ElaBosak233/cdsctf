@@ -7,7 +7,7 @@ use crate::{entity, get_db};
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GameChallenge {
     pub game_id: i64,
-    pub challenge_id: i64,
+    pub challenge_id: Uuid,
     pub contact_id: Option<i64>,
     pub difficulty: i64,
     pub is_enabled: bool,

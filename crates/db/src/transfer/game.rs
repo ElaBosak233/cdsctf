@@ -103,11 +103,9 @@ pub async fn find(
 
     let total = sql.clone().count(get_db()).await?;
 
-    if let Some(page) = page {
-        if let Some(size) = size {
-            let offset = (page - 1) * size;
-            sql = sql.offset(offset).limit(size);
-        }
+    if let (Some(page), Some(size)) = (page, size) {
+        let offset = (page - 1) * size;
+        sql = sql.offset(offset).limit(size);
     }
 
     let games = sql.all(get_db()).await?;
