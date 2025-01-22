@@ -88,7 +88,7 @@ pub async fn get_icon() -> impl IntoResponse {
     match cds_media::get(path, filename).await {
         Ok(data) => Response::builder().body(Body::from(data)).unwrap(),
         Err(_) => {
-            Redirect::to("/icon.webp").into_response() // default frontend icon
+            Redirect::to("/icon.svg").into_response() // default frontend icon
         }
     }
 }
