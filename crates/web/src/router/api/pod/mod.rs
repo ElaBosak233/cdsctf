@@ -7,7 +7,7 @@ use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, Query
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
-
+use cds_db::transfer::Pod;
 use crate::{
     extract::{Extension, Json, Path, Query, VJson},
     traits::{Ext, WebError, WebResponse},
@@ -86,7 +86,7 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
-) -> Result<WebResponse<cds_db::transfer::Pod>, WebError> {
+) -> Result<WebResponse<Pod>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     body.user_id = Some(operator.id);
 
@@ -159,7 +159,7 @@ macro_rules! check_permission {
 
 pub async fn renew(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<WebResponse<Pod>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let pod = cds_db::entity::pod::Entity::find()
@@ -177,10 +177,14 @@ pub async fn renew(
 
     let mut pod = pod.clone().into_active_model();
     pod.removed_at = Set(chrono::Utc::now().timestamp() + challenge.duration);
-    let _ = pod.update(get_db()).await;
+    let pod = pod.clone().update(get_db()).await?;
+
+    let mut pod = cds_db::transfer::Pod::from(pod);
+    pod.desensitize();
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
+        data: Some(pod),
         ..WebResponse::default()
     })
 }
