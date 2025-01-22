@@ -12,7 +12,7 @@ pub struct Pod {
     pub user_id: i64,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: i64,
+    pub challenge_id: Uuid,
     pub nats: Vec<Nat>,
     pub removed_at: i64,
     pub created_at: i64,

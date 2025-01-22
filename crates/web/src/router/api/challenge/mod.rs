@@ -95,7 +95,7 @@ pub async fn get(
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StatusRequest {
-    pub challenge_ids: Vec<i64>,
+    pub challenge_ids: Vec<uuid::Uuid>,
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
@@ -112,13 +112,13 @@ pub struct StatusResponse {
 #[axum::debug_handler]
 pub async fn get_status(
     Extension(ext): Extension<Ext>, Json(body): Json<StatusRequest>,
-) -> Result<WebResponse<HashMap<i64, StatusResponse>>, WebError> {
+) -> Result<WebResponse<HashMap<uuid::Uuid, StatusResponse>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let mut submissions =
         cds_db::transfer::submission::get_by_challenge_ids(body.challenge_ids.clone()).await?;
 
-    let mut result: HashMap<i64, StatusResponse> = HashMap::new();
+    let mut result: HashMap<uuid::Uuid, StatusResponse> = HashMap::new();
 
     for challenge_id in body.challenge_ids {
         result
@@ -242,7 +242,7 @@ pub async fn create(
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateRequest {
-    pub id: Option<i64>,
+    pub id: Option<uuid::Uuid>,
     pub title: Option<String>,
     pub description: Option<String>,
     pub category: Option<i32>,
@@ -261,7 +261,7 @@ pub struct UpdateRequest {
 }
 
 pub async fn update(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -300,7 +300,7 @@ pub async fn update(
 }
 
 pub async fn delete(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -322,7 +322,7 @@ pub async fn delete(
 }
 
 pub async fn get_attachment(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
 ) -> Result<impl IntoResponse, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let path = format!("challenges/{}/attachment", id);
@@ -343,7 +343,7 @@ pub async fn get_attachment(
 }
 
 pub async fn get_attachment_metadata(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<Metadata>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -362,7 +362,7 @@ pub async fn get_attachment_metadata(
 }
 
 pub async fn save_attachment(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, mut multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>, mut multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -397,7 +397,7 @@ pub async fn save_attachment(
 }
 
 pub async fn delete_attachment(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {

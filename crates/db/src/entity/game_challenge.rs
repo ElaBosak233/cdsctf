@@ -10,7 +10,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub game_id: i64,
     #[sea_orm(primary_key)]
-    pub challenge_id: i64,
+    pub challenge_id: Uuid,
     pub contact_id: Option<i64>,
     #[sea_orm(default_value = 1)]
     pub difficulty: i64,

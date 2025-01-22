@@ -104,7 +104,7 @@ pub struct CreateRequest {
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: Option<i64>,
+    pub challenge_id: Option<uuid::Uuid>,
 }
 
 pub async fn create(

@@ -12,7 +12,7 @@ pub struct Submission {
     pub user_id: i64,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: i64,
+    pub challenge_id: Uuid,
     pub created_at: i64,
     pub updated_at: i64,
 
@@ -153,11 +153,9 @@ pub async fn find(
 
     let total = sql.clone().count(get_db()).await?;
 
-    if let Some(page) = page {
-        if let Some(size) = size {
-            let offset = (page - 1) * size;
-            sql = sql.offset(offset).limit(size);
-        }
+    if let (Some(page), Some(size)) = (page, size) {
+        let offset = (page - 1) * size;
+        sql = sql.offset(offset).limit(size);
     }
 
     let submissions = sql.all(get_db()).await?;
@@ -171,7 +169,7 @@ pub async fn find(
     Ok((submissions, total))
 }
 
-pub async fn get_by_challenge_ids(challenge_ids: Vec<i64>) -> Result<Vec<Submission>, DbErr> {
+pub async fn get_by_challenge_ids(challenge_ids: Vec<Uuid>) -> Result<Vec<Submission>, DbErr> {
     let submissions = entity::submission::Entity::find()
         .filter(entity::submission::Column::ChallengeId.is_in(challenge_ids))
         .order_by_asc(entity::submission::Column::CreatedAt)
