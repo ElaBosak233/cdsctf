@@ -5,10 +5,10 @@ use std::{collections::BTreeMap, process};
 use axum::extract::ws::WebSocket;
 use k8s_openapi::{
     api::core::v1::{
-        Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec, Service,
-        ServicePort, ServiceSpec,
+        Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec,
+        ResourceRequirements, Service, ServicePort, ServiceSpec,
     },
-    apimachinery::pkg::apis::meta::v1::ObjectMeta,
+    apimachinery::pkg::{api::resource::Quantity, apis::meta::v1::ObjectMeta},
 };
 use kube::{
     Client as K8sClient, Config,
@@ -116,6 +116,27 @@ pub async fn create(
                 image: challenge.image_name.clone(),
                 env: Some(env_vars),
                 ports: Some(container_ports),
+                image_pull_policy: Some(String::from("IfNotPresent")),
+                resources: Some(ResourceRequirements {
+                    requests: Some(
+                        [("cpu", "10m".to_owned()), ("memory", "16Mi".to_owned())]
+                            .iter()
+                            .cloned()
+                            .map(|(k, v)| (k.to_owned(), Quantity(v)))
+                            .collect(),
+                    ),
+                    limits: Some(
+                        [
+                            ("cpu", challenge.cpu_limit.to_string()),
+                            ("memory", challenge.memory_limit.to_string()),
+                        ]
+                        .iter()
+                        .cloned()
+                        .map(|(k, v)| (k.to_owned(), Quantity(v)))
+                        .collect(),
+                    ),
+                    ..Default::default()
+                }),
                 ..Default::default()
             }],
             ..Default::default()
@@ -127,8 +148,6 @@ pub async fn create(
 
     kube::runtime::wait::await_condition(pod_api.clone(), &name, conditions::is_pod_running())
         .await?;
-
-    info!("Creating pod3");
 
     let mut nats: Vec<cds_db::entity::pod::Nat> = Vec::new();
 
