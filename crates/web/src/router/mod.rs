@@ -13,7 +13,7 @@ pub async fn router() -> Router {
                 .nest("/api", api::router().await)
                 .layer(TraceLayer::new_for_http())
                 .layer(from_fn(middleware::auth))
-                .layer(from_fn(middleware::network)),
+                .layer(from_fn(middleware::network::ip_record)),
         )
         .nest("/metrics", metric::router().await)
 }

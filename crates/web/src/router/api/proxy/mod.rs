@@ -1,10 +1,9 @@
 use axum::{Router, extract::WebSocketUpgrade, response::IntoResponse};
 use serde::Deserialize;
-use serde_json::json;
 use tracing::debug;
 
 use crate::{
-    extract::{Extension, Json, Path, Query, VJson},
+    extract::{Path, Query},
     traits::WebError,
 };
 

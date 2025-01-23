@@ -1,9 +1,8 @@
-use async_trait::async_trait;
 use axum::{
     extract::{
         FromRequest, FromRequestParts, Request,
         path::ErrorKind,
-        rejection::{ExtensionRejection, JsonRejection, PathRejection, QueryRejection},
+        rejection::{ExtensionRejection, PathRejection, QueryRejection},
     },
     http::request::Parts,
 };

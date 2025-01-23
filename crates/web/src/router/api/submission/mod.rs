@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Json, Path, Query, VJson},
+    extract::{Extension, Json, Path, Query},
     traits::{Ext, WebError, WebResponse},
 };
 

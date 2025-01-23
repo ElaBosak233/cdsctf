@@ -7,6 +7,7 @@ use crate::traits::WebError;
 pub mod jwt;
 pub mod math;
 pub mod media;
+pub mod network;
 
 pub async fn handle_image_multipart(mut multipart: Multipart) -> Result<Vec<u8>, WebError> {
     while let Some(field) = multipart.next_field().await.unwrap() {
