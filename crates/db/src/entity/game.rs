@@ -74,10 +74,17 @@ impl ActiveModelBehavior for ActiveModel {
         }
     }
 
-    async fn before_save<C>(mut self, _db: &C, _insert: bool) -> Result<Self, DbErr>
+    async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
-        self.updated_at = Set(chrono::Utc::now().timestamp());
+        let ts = chrono::Utc::now().timestamp();
+
+        self.updated_at = Set(ts);
+
+        if insert {
+            self.created_at = Set(ts);
+        }
+
         Ok(self)
     }
 }

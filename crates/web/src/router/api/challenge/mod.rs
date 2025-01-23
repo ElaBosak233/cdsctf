@@ -44,7 +44,7 @@ pub fn router() -> Router {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetRequest {
-    pub id: Option<i64>,
+    pub id: Option<uuid::Uuid>,
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tags: Option<Vec<String>>,
@@ -287,6 +287,7 @@ pub async fn update(
         ports: body.ports.map_or(NotSet, Set),
         envs: body.envs.map_or(NotSet, Set),
         flags: body.flags.map_or(NotSet, Set),
+        created_at: NotSet,
         ..Default::default()
     }
     .update(get_db())
