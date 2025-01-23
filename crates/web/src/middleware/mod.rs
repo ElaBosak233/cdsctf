@@ -1,13 +1,8 @@
 pub mod error;
-
-use std::net::SocketAddr;
+pub mod network;
 
 use axum::{
-    body::Body,
-    extract::{ConnectInfo, Request},
-    http::header::COOKIE,
-    middleware::Next,
-    response::Response,
+    body::Body, extract::Request, http::header::COOKIE, middleware::Next, response::Response,
 };
 use cds_db::{entity::user::Group, get_db};
 use jsonwebtoken::{DecodingKey, Validation, decode};
@@ -66,28 +61,6 @@ pub async fn auth(mut req: Request<Body>, next: Next) -> Result<Response, WebErr
     }
 
     ext.operator = user;
-
-    req.extensions_mut().insert(ext);
-
-    Ok(next.run(req).await)
-}
-
-pub async fn network(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
-    let mut ext = req
-        .extensions()
-        .get::<Ext>()
-        .unwrap_or(&Ext::default())
-        .to_owned();
-
-    let ConnectInfo(addr) = req.extensions().get::<ConnectInfo<SocketAddr>>().unwrap();
-
-    let client_ip = req
-        .headers()
-        .get("X-Forwarded-For")
-        .and_then(|header_value| header_value.to_str().ok().map(|s| s.to_string()))
-        .unwrap_or_else(|| addr.ip().to_owned().to_string());
-
-    ext.client_ip = client_ip;
 
     req.extensions_mut().insert(ext);
 
