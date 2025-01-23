@@ -17,7 +17,7 @@ use kube::{
 };
 use once_cell::sync::OnceCell;
 use tokio_util::codec::Framed;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 use crate::traits::ClusterError;
 
@@ -119,7 +119,7 @@ pub async fn create(
                 image_pull_policy: Some(String::from("IfNotPresent")),
                 resources: Some(ResourceRequirements {
                     requests: Some(
-                        [("cpu", "10m".to_owned()), ("memory", "16Mi".to_owned())]
+                        [("cpu", "10m".to_owned()), ("memory", "32Mi".to_owned())]
                             .iter()
                             .cloned()
                             .map(|(k, v)| (k.to_owned(), Quantity(v)))
@@ -128,7 +128,7 @@ pub async fn create(
                     limits: Some(
                         [
                             ("cpu", challenge.cpu_limit.to_string()),
-                            ("memory", challenge.memory_limit.to_string()),
+                            ("memory", format!("{}Mi", challenge.memory_limit)),
                         ]
                         .iter()
                         .cloned()

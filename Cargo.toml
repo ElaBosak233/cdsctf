@@ -39,6 +39,7 @@ mime = { version = "0.3" }
 mime_guess = { version = "2.0" }
 wsrx = { version = "0.3", features = ["server"] }
 cookie = { version = "0.18.1" }
+tower_governor = { version = "0.6" }
 
 # Security
 rustls = { version = "0.23", features = ["ring"] }

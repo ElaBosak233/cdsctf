@@ -34,8 +34,10 @@ pub async fn calculate(game_id: i64) {
         .unwrap();
 
     // categorize submissions by challenge_id
-    let mut submissions_by_challenge_id: HashMap<uuid::Uuid, Vec<cds_db::entity::submission::Model>> =
-        HashMap::new();
+    let mut submissions_by_challenge_id: HashMap<
+        uuid::Uuid,
+        Vec<cds_db::entity::submission::Model>,
+    > = HashMap::new();
 
     for submission in submissions {
         submissions_by_challenge_id

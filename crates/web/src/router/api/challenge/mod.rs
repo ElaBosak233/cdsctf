@@ -261,7 +261,8 @@ pub struct UpdateRequest {
 }
 
 pub async fn update(
-    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>, VJson(mut body): VJson<UpdateRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+    VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {

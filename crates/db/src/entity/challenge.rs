@@ -4,7 +4,6 @@ use sea_orm::{
     DeriveEntityModel, DerivePrimaryKey, EntityTrait, EnumIter, FromJsonQueryResult,
     PrimaryKeyTrait, Related, RelationDef, RelationTrait, Set,
 };
-use sea_orm::sqlx::types::uuid;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 

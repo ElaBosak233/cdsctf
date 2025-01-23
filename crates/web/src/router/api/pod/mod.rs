@@ -9,7 +9,7 @@ use serde_json::json;
 use uuid::Uuid;
 
 use crate::{
-    extract::{Extension, Json, Path, Query, VJson},
+    extract::{Extension, Json, Path, Query},
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -38,7 +38,7 @@ pub struct GetRequest {
 }
 
 pub async fn get(
-    Extension(ext): Extension<Ext>, Query(mut params): Query<GetRequest>,
+    Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Pod>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
