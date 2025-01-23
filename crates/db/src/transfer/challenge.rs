@@ -92,7 +92,7 @@ impl Challenge {
 }
 
 pub async fn find(
-    id: Option<i64>, title: Option<String>, category: Option<i32>, is_public: Option<bool>,
+    id: Option<uuid::Uuid>, title: Option<String>, category: Option<i32>, is_public: Option<bool>,
     is_dynamic: Option<bool>, is_deleted: Option<bool>, sorts: Option<String>, page: Option<u64>,
     size: Option<u64>,
 ) -> Result<(Vec<Challenge>, u64), DbErr> {
