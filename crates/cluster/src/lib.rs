@@ -65,7 +65,7 @@ pub async fn init() {
 }
 
 pub async fn create(
-    name: String, challenge: cds_db::entity::challenge::Model,
+    name: String, env: cds_db::entity::challenge::Env,
     injected_flag: cds_db::entity::challenge::Flag,
 ) -> Result<Vec<cds_db::entity::pod::Nat>, ClusterError> {
     let metadata = ObjectMeta {
@@ -82,12 +82,12 @@ pub async fn create(
         cds_env::get_env().cluster.namespace.as_str(),
     );
 
-    let mut env_vars: Vec<EnvVar> = challenge
+    let mut env_vars: Vec<EnvVar> = env
         .envs
         .into_iter()
         .map(|env| EnvVar {
-            name: env.key,
-            value: Some(env.value),
+            name: env.0,
+            value: Some(env.1),
             ..Default::default()
         })
         .collect();
@@ -98,7 +98,7 @@ pub async fn create(
         ..Default::default()
     });
 
-    let container_ports: Vec<ContainerPort> = challenge
+    let container_ports: Vec<ContainerPort> = env
         .ports
         .iter()
         .map(|port| ContainerPort {
@@ -113,7 +113,7 @@ pub async fn create(
         spec: Some(PodSpec {
             containers: vec![K8sContainer {
                 name: name.clone(),
-                image: challenge.image_name.clone(),
+                image: Some(env.image),
                 env: Some(env_vars),
                 ports: Some(container_ports),
                 image_pull_policy: Some(String::from("IfNotPresent")),
@@ -127,8 +127,8 @@ pub async fn create(
                     ),
                     limits: Some(
                         [
-                            ("cpu", challenge.cpu_limit.to_string()),
-                            ("memory", format!("{}Mi", challenge.memory_limit)),
+                            ("cpu", env.cpu_limit.to_string()),
+                            ("memory", format!("{}Mi", env.memory_limit)),
                         ]
                         .iter()
                         .cloned()
@@ -153,7 +153,7 @@ pub async fn create(
 
     match cds_env::get_env().cluster.proxy.enabled {
         true => {
-            for port in challenge.ports {
+            for port in env.ports {
                 nats.push(cds_db::entity::pod::Nat {
                     src: format!("{}", port),
                     dst: None,
@@ -167,7 +167,7 @@ pub async fn create(
                 get_k8s_client(),
                 cds_env::get_env().cluster.namespace.as_str(),
             );
-            let service_ports: Vec<ServicePort> = challenge
+            let service_ports: Vec<ServicePort> = env
                 .ports
                 .iter()
                 .map(|port| ServicePort {
