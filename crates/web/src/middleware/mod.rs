@@ -38,7 +38,7 @@ pub async fn auth(mut req: Request<Body>, next: Next) -> Result<Response, WebErr
 
     let token = jar.get("token").map(|cookie| cookie.value()).unwrap_or("");
 
-    let decoding_key = DecodingKey::from_secret(crate::util::jwt::get_secret().await.as_bytes());
+    let decoding_key = DecodingKey::from_secret(crate::util::jwt::get_jwt_config().await.secret.as_bytes());
     let validation = Validation::default();
 
     let mut user: Option<cds_db::transfer::User> = None;

@@ -1,5 +1,7 @@
 use jsonwebtoken::{EncodingKey, Header, encode};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Claims {
@@ -7,23 +9,36 @@ pub struct Claims {
     pub exp: usize,
 }
 
-pub async fn get_secret() -> String {
-    cds_config::get_config().await.auth.jwt.secret_key
+pub async fn get_jwt_config() -> cds_env::axum::jwt::Env {
+    if let Some(jwt) = cds_cache::get::<cds_env::axum::jwt::Env>("jwt")
+        .await
+        .unwrap()
+    {
+        return jwt;
+    }
+
+    let mut jwt = cds_env::get_env().axum.jwt.clone();
+    let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])]").unwrap();
+    jwt.secret = re
+        .replace_all(&jwt.secret, Uuid::new_v4().simple().to_string())
+        .to_string();
+    let _ = cds_cache::set("jwt", jwt.clone()).await;
+
+    jwt
 }
 
 pub async fn generate_jwt_token(user_id: i64) -> String {
-    let secret = get_secret().await;
+    let jwt_config = get_jwt_config().await;
     let claims = Claims {
         id: user_id,
-        exp: (chrono::Utc::now()
-            + chrono::Duration::minutes(cds_config::get_config().await.auth.jwt.expiration))
-        .timestamp() as usize,
+        exp: (chrono::Utc::now() + chrono::Duration::minutes(jwt_config.expiration)).timestamp()
+            as usize,
     };
 
     encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
+        &EncodingKey::from_secret(jwt_config.secret.as_bytes()),
     )
     .unwrap()
 }

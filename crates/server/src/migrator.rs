@@ -77,10 +77,6 @@ pub async fn init_config() {
         let config = entity::config::ActiveModel {
             value: Set(serde_json::to_value(cds_config::Config {
                 auth: cds_config::auth::Config {
-                    jwt: cds_config::auth::jwt::Config {
-                        secret_key: String::from(uuid::Uuid::new_v4()),
-                        expiration: 1800,
-                    },
                     registration: cds_config::auth::registration::Config {
                         enabled: true,
                         captcha: false,
