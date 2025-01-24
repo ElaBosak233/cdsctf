@@ -20,12 +20,6 @@ impl From<cds_db::entity::config::Model> for Config {
     }
 }
 
-impl Config {
-    pub fn desensitize(&mut self) {
-        self.auth.jwt.secret_key.clear();
-    }
-}
-
 pub async fn init() {
     let config = cds_cache::get::<Config>("config").await.unwrap();
     if config.is_none() {
