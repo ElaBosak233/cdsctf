@@ -112,12 +112,11 @@ pub async fn create(
             .to_string();
     }
 
-    let nats = cds_cluster::create(
-        ctn_name.clone(),
-        cds_db::entity::challenge::Model::from(challenge.clone()),
-        injected_flag.clone(),
-    )
-    .await?;
+    let env = challenge
+        .env
+        .ok_or(WebError::BadRequest(json!("challenge_env_invalid")))?;
+
+    let nats = cds_cluster::create(ctn_name.clone(), env.clone(), injected_flag.clone()).await?;
 
     let pod = cds_db::entity::pod::ActiveModel {
         name: Set(ctn_name),
@@ -126,7 +125,7 @@ pub async fn create(
         game_id: Set(body.game_id),
         challenge_id: Set(body.challenge_id),
         flag: Set(Some(injected_flag.value)),
-        removed_at: Set(chrono::Utc::now().timestamp() + challenge.duration),
+        removed_at: Set(chrono::Utc::now().timestamp() + env.duration),
         nats: Set(nats),
         ..Default::default()
     }
@@ -176,7 +175,7 @@ pub async fn renew(
     let challenge = challenge.unwrap();
 
     let mut pod = pod.clone().into_active_model();
-    pod.removed_at = Set(chrono::Utc::now().timestamp() + challenge.duration);
+    pod.removed_at = Set(chrono::Utc::now().timestamp() + challenge.env.unwrap().duration);
     let pod = pod.clone().update(get_db()).await?;
 
     let mut pod = cds_db::transfer::Pod::from(pod);
