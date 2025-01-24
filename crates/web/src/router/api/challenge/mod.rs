@@ -11,7 +11,11 @@ use cds_db::{
     entity::{submission::Status, user::Group},
     get_db,
 };
-use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, EntityTrait, Set};
+use sea_orm::{
+    ActiveModelTrait,
+    ActiveValue::{NotSet, Set},
+    EntityTrait,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use validator::Validate;
@@ -188,19 +192,14 @@ pub async fn get_status(
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateRequest {
     pub title: String,
-    pub description: String,
+    pub description: Option<String>,
     pub category: i32,
     pub tags: Option<Vec<String>>,
     pub is_public: Option<bool>,
     pub is_dynamic: Option<bool>,
     pub has_attachment: Option<bool>,
-    pub difficulty: Option<i64>,
     pub image_name: Option<String>,
-    pub cpu_limit: Option<i64>,
-    pub memory_limit: Option<i64>,
-    pub duration: Option<i64>,
-    pub ports: Option<Vec<i32>>,
-    pub envs: Option<Vec<cds_db::entity::challenge::Env>>,
+    pub env: Option<cds_db::entity::challenge::Env>,
     pub flags: Option<Vec<cds_db::entity::challenge::Flag>>,
 }
 
@@ -214,18 +213,13 @@ pub async fn create(
 
     let challenge = cds_db::entity::challenge::ActiveModel {
         title: Set(body.title),
-        description: Set(Some(body.description)),
+        description: Set(body.description),
         category: Set(body.category),
         tags: Set(body.tags.unwrap_or(vec![])),
         is_public: Set(body.is_public.unwrap_or(false)),
         is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
         has_attachment: Set(body.has_attachment.unwrap_or(false)),
-        image_name: Set(body.image_name),
-        cpu_limit: Set(body.cpu_limit.unwrap_or(0)),
-        memory_limit: Set(body.memory_limit.unwrap_or(0)),
-        duration: Set(body.duration.unwrap_or(1800)),
-        ports: Set(body.ports.unwrap_or(vec![])),
-        envs: Set(body.envs.unwrap_or(vec![])),
+        env: Set(body.env),
         flags: Set(body.flags.unwrap_or(vec![])),
         ..Default::default()
     }
@@ -250,13 +244,7 @@ pub struct UpdateRequest {
     pub is_public: Option<bool>,
     pub is_dynamic: Option<bool>,
     pub has_attachment: Option<bool>,
-    pub difficulty: Option<i64>,
-    pub image_name: Option<String>,
-    pub cpu_limit: Option<i64>,
-    pub memory_limit: Option<i64>,
-    pub duration: Option<i64>,
-    pub ports: Option<Vec<i32>>,
-    pub envs: Option<Vec<cds_db::entity::challenge::Env>>,
+    pub env: Option<cds_db::entity::challenge::Env>,
     pub flags: Option<Vec<cds_db::entity::challenge::Flag>>,
 }
 
@@ -280,12 +268,7 @@ pub async fn update(
         is_public: body.is_public.map_or(NotSet, Set),
         is_dynamic: body.is_dynamic.map_or(NotSet, Set),
         has_attachment: body.has_attachment.map_or(NotSet, Set),
-        image_name: body.image_name.map_or(NotSet, |v| Set(Some(v))),
-        cpu_limit: body.cpu_limit.map_or(NotSet, Set),
-        memory_limit: body.memory_limit.map_or(NotSet, Set),
-        duration: body.duration.map_or(NotSet, Set),
-        ports: body.ports.map_or(NotSet, Set),
-        envs: body.envs.map_or(NotSet, Set),
+        env: body.env.map_or(NotSet, |v| Set(Some(v))),
         flags: body.flags.map_or(NotSet, Set),
         created_at: NotSet,
         ..Default::default()

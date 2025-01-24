@@ -21,12 +21,7 @@ pub struct Challenge {
     pub is_dynamic: bool,
     pub has_attachment: bool,
     pub is_public: bool,
-    pub image_name: Option<String>,
-    pub cpu_limit: i64,
-    pub memory_limit: i64,
-    pub duration: i64,
-    pub ports: Vec<i32>,
-    pub envs: Vec<Env>,
+    pub env: Option<Env>,
     pub flags: Vec<Flag>,
     pub is_deleted: bool,
     pub created_at: i64,
@@ -44,12 +39,7 @@ impl From<entity::challenge::Model> for Challenge {
             is_dynamic: entity.is_dynamic,
             has_attachment: entity.has_attachment,
             is_public: entity.is_public,
-            image_name: entity.image_name,
-            cpu_limit: entity.cpu_limit,
-            memory_limit: entity.memory_limit,
-            duration: entity.duration,
-            ports: entity.ports,
-            envs: entity.envs,
+            env: entity.env,
             flags: entity.flags,
             is_deleted: entity.is_deleted,
             created_at: entity.created_at,
@@ -69,12 +59,7 @@ impl From<Challenge> for entity::challenge::Model {
             is_dynamic: challenge.is_dynamic,
             has_attachment: challenge.has_attachment,
             is_public: challenge.is_public,
-            image_name: challenge.image_name,
-            cpu_limit: challenge.cpu_limit,
-            memory_limit: challenge.memory_limit,
-            duration: challenge.duration,
-            ports: challenge.ports,
-            envs: challenge.envs,
+            env: challenge.env,
             flags: challenge.flags,
             is_deleted: challenge.is_deleted,
             created_at: challenge.created_at,
@@ -85,8 +70,7 @@ impl From<Challenge> for entity::challenge::Model {
 
 impl Challenge {
     pub fn desensitize(&mut self) {
-        self.envs.clear();
-        self.ports.clear();
+        self.env = None;
         self.flags.clear();
     }
 }

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use async_trait::async_trait;
 use sea_orm::{
     ActiveModelBehavior, ActiveModelTrait, ConnectionTrait, DbErr, DeriveActiveEnum,
@@ -24,16 +26,8 @@ pub struct Model {
     pub has_attachment: bool,
     #[sea_orm(default_value = false)]
     pub is_public: bool,
-    pub image_name: Option<String>,
-    #[sea_orm(default_value = 0)]
-    pub cpu_limit: i64,
-    #[sea_orm(default_value = 0)]
-    pub memory_limit: i64,
-    #[sea_orm(default_value = 1800)]
-    pub duration: i64,
-    pub ports: Vec<i32>,
     #[sea_orm(column_type = "JsonBinary")]
-    pub envs: Vec<Env>,
+    pub env: Option<Env>,
     #[sea_orm(column_type = "JsonBinary")]
     pub flags: Vec<Flag>,
     #[sea_orm(default_value = false)]
@@ -44,8 +38,12 @@ pub struct Model {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
 pub struct Env {
-    pub key: String,
-    pub value: String,
+    pub image: String,
+    pub cpu_limit: i64,
+    pub memory_limit: i64,
+    pub duration: i64,
+    pub ports: Vec<i32>,
+    pub envs: HashMap<String, String>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
