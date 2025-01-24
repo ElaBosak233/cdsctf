@@ -310,6 +310,16 @@ pub async fn get_attachment(
     Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
 ) -> Result<impl IntoResponse, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+
+    if !challenge.has_attachment {
+        return Err(WebError::NotFound(json!("challenge_has_not_attachment")));
+    }
+
     let path = format!("challenges/{}/attachment", id);
     match cds_media::scan_dir(path.clone()).await?.first() {
         Some((filename, _size)) => {
@@ -331,6 +341,15 @@ pub async fn get_attachment_metadata(
     Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<Metadata>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+
+    if !challenge.has_attachment {
+        return Err(WebError::NotFound(json!("challenge_has_not_attachment")));
+    }
 
     let path = format!("challenges/{}/attachment", id);
     match cds_media::scan_dir(path.clone()).await?.first() {
