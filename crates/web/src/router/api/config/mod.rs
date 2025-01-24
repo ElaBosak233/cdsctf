@@ -48,8 +48,7 @@ pub async fn get(
             })
         }
         _ => {
-            let mut config = get_config().await;
-            config.desensitize();
+            let config = get_config().await;
 
             Ok(WebResponse {
                 code: StatusCode::OK.as_u16(),

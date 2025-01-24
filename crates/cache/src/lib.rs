@@ -60,6 +60,11 @@ pub async fn set_ex(
     Ok(())
 }
 
+pub async fn exists(key: impl Into<Key> + Send + Display) -> Result<bool, CacheError> {
+    let result = get_client().exists(key).await?;
+    Ok(result)
+}
+
 pub async fn flush() -> Result<(), CacheError> {
     get_client().flushall::<()>(false).await?;
 
