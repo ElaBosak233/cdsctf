@@ -59,7 +59,7 @@ pub async fn init() {
     let client = async_nats::ConnectOptions::new()
         .require_tls(cds_env::get_env().queue.tls)
         .user_and_password(
-            cds_env::get_env().queue.user.clone(),
+            cds_env::get_env().queue.username.clone(),
             cds_env::get_env().queue.password.clone(),
         )
         .token(cds_env::get_env().queue.token.clone())

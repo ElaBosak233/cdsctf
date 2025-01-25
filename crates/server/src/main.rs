@@ -34,13 +34,13 @@ async fn bootstrap() {
     migrator::run().await;
 
     cds_config::init().await;
-    cds_cluster::init().await;
+    let _ = cds_cluster::init().await;
     cds_web::init().await;
 
     let addr = format!(
         "{}:{}",
-        cds_env::get_env().axum.host,
-        cds_env::get_env().axum.port
+        cds_env::get_env().server.host,
+        cds_env::get_env().server.port
     );
     let listener = tokio::net::TcpListener::bind(&addr).await;
 
@@ -55,7 +55,7 @@ async fn bootstrap() {
     )
     .with_graceful_shutdown(shutdown_signal())
     .await
-    .expect("Failed to start axum server");
+    .expect("Failed to start server server");
 }
 
 async fn shutdown_signal() {

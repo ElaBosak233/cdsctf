@@ -12,4 +12,6 @@ pub enum ClusterError {
     KubeRuntimeWaitError(#[from] kube::runtime::wait::Error),
     #[error("proxy error: {0}")]
     ProxyError(#[from] wsrx::Error),
+    #[error(transparent)]
+    OtherError(#[from] anyhow::Error),
 }

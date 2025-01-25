@@ -1,7 +1,8 @@
 pub mod traits;
 
 use std::{collections::BTreeMap, process};
-
+use std::path::Path;
+use anyhow::anyhow;
 use axum::extract::ws::WebSocket;
 use k8s_openapi::{
     api::core::v1::{
@@ -15,6 +16,7 @@ use kube::{
     api::{Api, DeleteParams, ListParams, PostParams},
     runtime::wait::conditions,
 };
+use kube::config::Kubeconfig;
 use once_cell::sync::OnceCell;
 use tokio_util::codec::Framed;
 use tracing::{error, info};
@@ -27,8 +29,10 @@ pub fn get_k8s_client() -> K8sClient {
     K8S_CLIENT.get().unwrap().clone()
 }
 
-pub async fn init() {
-    let result = Config::from_kubeconfig(&Default::default()).await;
+pub async fn init() -> Result<(), ClusterError> {
+    let result = Config::from_custom_kubeconfig(Kubeconfig::read_from(
+        Path::new(cds_env::get_env().cluster.kube_config_path.as_str())
+    )?, &Default::default()).await;
     if let Err(e) = result {
         error!(
             "Failed to create Kubernetes client from custom config: {:?}",
@@ -36,8 +40,8 @@ pub async fn init() {
         );
         process::exit(1);
     }
-    let config = result.unwrap();
-    let client = K8sClient::try_from(config).unwrap();
+    let config = result?;
+    let client = K8sClient::try_from(config)?;
     if let Err(_) = client.apiserver_version().await {
         error!("Failed to connect to Kubernetes API server.");
         process::exit(1);
@@ -46,7 +50,7 @@ pub async fn init() {
     info!("Kubernetes client initialized successfully.");
 
     let namespace_api: Api<Namespace> = Api::all(get_k8s_client().clone());
-    let namespaces = namespace_api.list(&ListParams::default()).await.unwrap();
+    let namespaces = namespace_api.list(&ListParams::default()).await?;
     if !namespaces.items.iter().any(|namespace| {
         namespace.metadata.name == Some(cds_env::get_env().clone().cluster.namespace)
     }) {
@@ -60,8 +64,10 @@ pub async fn init() {
         let _ = namespace_api
             .create(&PostParams::default(), &namespace)
             .await;
-        info!("Namespace is created successfully.")
+        info!("Namespace is created successfully.");
     }
+
+    Ok(())
 }
 
 pub async fn create(
@@ -151,13 +157,13 @@ pub async fn create(
 
     let mut nats: Vec<cds_db::entity::pod::Nat> = Vec::new();
 
-    match cds_env::get_env().cluster.proxy.enabled {
+    match cds_env::get_env().cluster.proxy.is_enabled {
         true => {
             for port in env.ports {
                 nats.push(cds_db::entity::pod::Nat {
                     src: format!("{}", port),
                     dst: None,
-                    proxy: cds_env::get_env().cluster.proxy.enabled,
+                    proxy: cds_env::get_env().cluster.proxy.is_enabled,
                     entry: None,
                 });
             }
@@ -202,7 +208,7 @@ pub async fn create(
                             nats.push(cds_db::entity::pod::Nat {
                                 src: format!("{}", port.port),
                                 dst: Some(format!("{}", node_port)),
-                                proxy: cds_env::get_env().cluster.proxy.enabled,
+                                proxy: cds_env::get_env().cluster.proxy.is_enabled,
                                 entry: Some(format!(
                                     "{}:{}",
                                     cds_config::get_config().await.cluster.entry,
