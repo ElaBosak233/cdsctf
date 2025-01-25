@@ -1,0 +1,13 @@
+[package]
+name = "cds-email"
+version = "0.0.1"
+edition = "2024"
+publish = false
+resolver = "2"
+
+[dependencies]
+cds-config = { workspace = true }
+
+lettre = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
