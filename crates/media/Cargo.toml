@@ -6,7 +6,7 @@ publish = false
 resolver = "2"
 
 [dependencies]
-cds-env = { workspace = true }
+cds-config = { workspace = true }
 
 ring = { workspace = true }
 tokio = { workspace = true }

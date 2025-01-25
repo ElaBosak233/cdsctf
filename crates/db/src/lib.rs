@@ -12,11 +12,11 @@ static DB: OnceCell<DatabaseConnection> = OnceCell::new();
 pub async fn init() {
     let url = format!(
         "postgres://{}:{}@{}:{}/{}",
-        cds_env::get_env().db.username,
-        cds_env::get_env().db.password,
-        cds_env::get_env().db.host,
-        cds_env::get_env().db.port,
-        cds_env::get_env().db.dbname,
+        cds_config::get_config().db.username,
+        cds_config::get_config().db.password,
+        cds_config::get_config().db.host,
+        cds_config::get_config().db.port,
+        cds_config::get_config().db.dbname,
     );
     let mut opt = ConnectOptions::new(url);
     opt.max_connections(100)

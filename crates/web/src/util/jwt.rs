@@ -9,15 +9,15 @@ pub struct Claims {
     pub exp: usize,
 }
 
-pub async fn get_jwt_config() -> cds_env::auth::Env {
-    if let Some(jwt) = cds_cache::get::<cds_env::auth::Env>("jwt")
+pub async fn get_jwt_config() -> cds_config::auth::Config {
+    if let Some(jwt) = cds_cache::get::<cds_config::auth::Config>("jwt")
         .await
         .unwrap()
     {
         return jwt;
     }
 
-    let mut jwt = cds_env::get_env().auth.clone();
+    let mut jwt = cds_config::get_config().auth.clone();
     let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])]").unwrap();
     jwt.secret = re
         .replace_all(&jwt.secret, Uuid::new_v4().simple().to_string())

@@ -8,7 +8,7 @@ pub static HTTP_REQUEST_TOTAL: Lazy<IntCounterVec> = Lazy::new(|| {
         "http_requests_total",
         "Total number of HTTP requests received",
     )
-    .namespace(cds_env::get_env().metric.namespace.clone());
+    .namespace(cds_config::get_config().metric.namespace.clone());
     let counter = IntCounterVec::new(opts, &["method", "path"]).expect("metric can be created");
     METRICS_REGISTRY
         .register(Box::new(counter.clone()))
@@ -18,7 +18,7 @@ pub static HTTP_REQUEST_TOTAL: Lazy<IntCounterVec> = Lazy::new(|| {
 
 pub static MEMORY_USAGE: Lazy<IntGauge> = Lazy::new(|| {
     let opts = Opts::new("memory_usage_bytes", "Memory usage in bytes")
-        .namespace(cds_env::get_env().metric.namespace.clone());
+        .namespace(cds_config::get_config().metric.namespace.clone());
     let gauge = IntGauge::with_opts(opts).expect("metric can be created");
     METRICS_REGISTRY.register(Box::new(gauge.clone())).unwrap();
     gauge
@@ -26,7 +26,7 @@ pub static MEMORY_USAGE: Lazy<IntGauge> = Lazy::new(|| {
 
 pub static MEMORY_USAGE_RATIO: Lazy<Gauge> = Lazy::new(|| {
     let opts = Opts::new("memory_usage_ratio", "Memory usage ratio")
-        .namespace(cds_env::get_env().metric.namespace.clone());
+        .namespace(cds_config::get_config().metric.namespace.clone());
     let gauge = Gauge::with_opts(opts).expect("metric can be created");
     METRICS_REGISTRY.register(Box::new(gauge.clone())).unwrap();
     gauge
@@ -34,7 +34,7 @@ pub static MEMORY_USAGE_RATIO: Lazy<Gauge> = Lazy::new(|| {
 
 pub static CPU_USAGE: Lazy<IntGauge> = Lazy::new(|| {
     let opts = Opts::new("cpu_usage_percent", "CPU usage percentage")
-        .namespace(cds_env::get_env().metric.namespace.clone());
+        .namespace(cds_config::get_config().metric.namespace.clone());
     let gauge = IntGauge::with_opts(opts).expect("metric can be created");
     METRICS_REGISTRY.register(Box::new(gauge.clone())).unwrap();
     gauge

@@ -1,39 +1,46 @@
 pub mod auth;
+pub mod cache;
 pub mod cluster;
-pub mod site;
-pub mod traits;
+pub mod db;
+pub mod media;
+pub mod meta;
+pub mod metric;
+pub mod queue;
+pub mod server;
 
-use cds_db::get_db;
-use sea_orm::EntityTrait;
+use std::{path::Path, process};
+
+use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
+use tokio::fs::{self};
+use tracing::error;
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+static APP_CONFIG: OnceCell<Config> = OnceCell::new();
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub site: site::Config,
+    pub server: server::Config,
     pub auth: auth::Config,
+    pub db: db::Config,
+    pub queue: queue::Config,
+    pub cache: cache::Config,
+    pub metric: metric::Config,
     pub cluster: cluster::Config,
-}
-
-impl From<cds_db::entity::config::Model> for Config {
-    fn from(config: cds_db::entity::config::Model) -> Self {
-        serde_json::from_value::<Self>(config.value).unwrap()
-    }
+    pub media: media::Config,
+    pub meta: meta::Config,
 }
 
 pub async fn init() {
-    let config = cds_cache::get::<Config>("config").await.unwrap();
-    if config.is_none() {
-        let model = cds_db::entity::config::Entity::find()
-            .one(get_db())
-            .await
-            .unwrap();
-        if let Some(model) = model {
-            let _ = cds_cache::set("config", Config::from(model.clone())).await;
-        }
+    let target_path = Path::new("application.toml");
+    if target_path.exists() {
+        let content = fs::read_to_string("application.toml").await.unwrap();
+        APP_CONFIG.set(toml::from_str(&content).unwrap()).unwrap();
+    } else {
+        error!("Configuration application.toml not found.");
+        process::exit(1);
     }
 }
 
-pub async fn get_config() -> Config {
-    let config = cds_cache::get::<Config>("config").await.unwrap();
-    config.clone().unwrap()
+pub fn get_config() -> Config {
+    APP_CONFIG.get().unwrap().clone()
 }

@@ -57,16 +57,16 @@ pub async fn subscribe(
 
 pub async fn init() {
     let client = async_nats::ConnectOptions::new()
-        .require_tls(cds_env::get_env().queue.tls)
+        .require_tls(cds_config::get_config().queue.tls)
         .user_and_password(
-            cds_env::get_env().queue.username.clone(),
-            cds_env::get_env().queue.password.clone(),
+            cds_config::get_config().queue.username.clone(),
+            cds_config::get_config().queue.password.clone(),
         )
-        .token(cds_env::get_env().queue.token.clone())
+        .token(cds_config::get_config().queue.token.clone())
         .connect(format!(
             "{}:{}",
-            cds_env::get_env().queue.host,
-            cds_env::get_env().queue.port
+            cds_config::get_config().queue.host,
+            cds_config::get_config().queue.port
         ))
         .await
         .unwrap();

@@ -6,7 +6,7 @@ publish = false
 resolver = "2"
 
 [dependencies]
-cds-env = { workspace = true }
+cds-config = { workspace = true }
 
 prometheus = { workspace = true }
 once_cell = { workspace = true }

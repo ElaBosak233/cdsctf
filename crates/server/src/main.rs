@@ -26,21 +26,19 @@ async fn bootstrap() {
         .expect("");
 
     logger::init().await;
-    cds_env::init().await;
+    cds_config::init().await;
     cds_queue::init().await;
     cds_cache::init().await;
     cds_db::init().await;
 
     migrator::run().await;
-
-    cds_config::init().await;
     let _ = cds_cluster::init().await;
     cds_web::init().await;
 
     let addr = format!(
         "{}:{}",
-        cds_env::get_env().server.host,
-        cds_env::get_env().server.port
+        cds_config::get_config().server.host,
+        cds_config::get_config().server.port
     );
     let listener = tokio::net::TcpListener::bind(&addr).await;
 

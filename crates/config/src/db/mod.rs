@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Env {
+pub struct Config {
     pub host: String,
     pub port: u16,
+    pub dbname: String,
     pub username: String,
     pub password: String,
-    pub token: String,
-    pub tls: bool,
+    pub sslmode: String,
 }

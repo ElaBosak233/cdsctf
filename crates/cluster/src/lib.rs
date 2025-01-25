@@ -1,8 +1,7 @@
 pub mod traits;
 
-use std::{collections::BTreeMap, process};
-use std::path::Path;
-use anyhow::anyhow;
+use std::{collections::BTreeMap, path::Path, process};
+
 use axum::extract::ws::WebSocket;
 use k8s_openapi::{
     api::core::v1::{
@@ -14,9 +13,9 @@ use k8s_openapi::{
 use kube::{
     Client as K8sClient, Config,
     api::{Api, DeleteParams, ListParams, PostParams},
+    config::Kubeconfig,
     runtime::wait::conditions,
 };
-use kube::config::Kubeconfig;
 use once_cell::sync::OnceCell;
 use tokio_util::codec::Framed;
 use tracing::{error, info};
@@ -30,9 +29,13 @@ pub fn get_k8s_client() -> K8sClient {
 }
 
 pub async fn init() -> Result<(), ClusterError> {
-    let result = Config::from_custom_kubeconfig(Kubeconfig::read_from(
-        Path::new(cds_env::get_env().cluster.kube_config_path.as_str())
-    )?, &Default::default()).await;
+    let result = Config::from_custom_kubeconfig(
+        Kubeconfig::read_from(Path::new(
+            cds_config::get_config().cluster.kube_config_path.as_str(),
+        ))?,
+        &Default::default(),
+    )
+    .await;
     if let Err(e) = result {
         error!(
             "Failed to create Kubernetes client from custom config: {:?}",
@@ -52,11 +55,11 @@ pub async fn init() -> Result<(), ClusterError> {
     let namespace_api: Api<Namespace> = Api::all(get_k8s_client().clone());
     let namespaces = namespace_api.list(&ListParams::default()).await?;
     if !namespaces.items.iter().any(|namespace| {
-        namespace.metadata.name == Some(cds_env::get_env().clone().cluster.namespace)
+        namespace.metadata.name == Some(cds_config::get_config().clone().cluster.namespace)
     }) {
         let namespace = Namespace {
             metadata: ObjectMeta {
-                name: Some(cds_env::get_env().clone().cluster.namespace),
+                name: Some(cds_config::get_config().clone().cluster.namespace),
                 ..Default::default()
             },
             ..Default::default()
@@ -85,7 +88,7 @@ pub async fn create(
 
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_env::get_env().cluster.namespace.as_str(),
+        cds_config::get_config().cluster.namespace.as_str(),
     );
 
     let mut env_vars: Vec<EnvVar> = env
@@ -157,13 +160,13 @@ pub async fn create(
 
     let mut nats: Vec<cds_db::entity::pod::Nat> = Vec::new();
 
-    match cds_env::get_env().cluster.proxy.is_enabled {
+    match cds_config::get_config().cluster.proxy.is_enabled {
         true => {
             for port in env.ports {
                 nats.push(cds_db::entity::pod::Nat {
                     src: format!("{}", port),
                     dst: None,
-                    proxy: cds_env::get_env().cluster.proxy.is_enabled,
+                    proxy: cds_config::get_config().cluster.proxy.is_enabled,
                     entry: None,
                 });
             }
@@ -171,7 +174,7 @@ pub async fn create(
         false => {
             let service_api: Api<Service> = Api::namespaced(
                 get_k8s_client(),
-                cds_env::get_env().cluster.namespace.as_str(),
+                cds_config::get_config().cluster.namespace.as_str(),
             );
             let service_ports: Vec<ServicePort> = env
                 .ports
@@ -208,10 +211,10 @@ pub async fn create(
                             nats.push(cds_db::entity::pod::Nat {
                                 src: format!("{}", port.port),
                                 dst: Some(format!("{}", node_port)),
-                                proxy: cds_env::get_env().cluster.proxy.is_enabled,
+                                proxy: cds_config::get_config().cluster.proxy.is_enabled,
                                 entry: Some(format!(
                                     "{}:{}",
-                                    cds_config::get_config().await.cluster.entry,
+                                    cds_config::get_config().cluster.entry_host,
                                     node_port
                                 )),
                             });
@@ -228,12 +231,12 @@ pub async fn create(
 pub async fn delete(name: String) {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_env::get_env().cluster.namespace.as_str(),
+        cds_config::get_config().cluster.namespace.as_str(),
     );
     let _ = pod_api.delete(&name, &DeleteParams::default()).await;
     let service_api: Api<Service> = Api::namespaced(
         get_k8s_client(),
-        cds_env::get_env().cluster.namespace.as_str(),
+        cds_config::get_config().cluster.namespace.as_str(),
     );
     let _ = service_api.delete(&name, &DeleteParams::default()).await;
 }
@@ -241,7 +244,7 @@ pub async fn delete(name: String) {
 pub async fn wsrx(name: String, port: u16, ws: WebSocket) -> Result<(), ClusterError> {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_env::get_env().cluster.namespace.as_str(),
+        cds_config::get_config().cluster.namespace.as_str(),
     );
     let mut pf = pod_api.portforward(&name, &[port]).await?;
     let pfw = pf.take_stream(port);

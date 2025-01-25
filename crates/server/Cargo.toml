@@ -7,9 +7,8 @@ resolver = "2"
 
 [dependencies]
 cds-assets = { workspace = true }
-cds-env = { workspace = true }
-cds-db = { workspace = true }
 cds-config = { workspace = true }
+cds-db = { workspace = true }
 cds-cluster = { workspace = true }
 cds-queue = { workspace = true }
 cds-web = { workspace = true }

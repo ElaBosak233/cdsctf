@@ -72,7 +72,7 @@ pub async fn flush() -> Result<(), CacheError> {
 }
 
 pub async fn init() {
-    let config = Config::from_url(&cds_env::get_env().cache.url).unwrap();
+    let config = Config::from_url(&cds_config::get_config().cache.url).unwrap();
     let client = Client::new(config, None, None, None);
     client.init().await.unwrap();
 
