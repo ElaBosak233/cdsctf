@@ -270,8 +270,7 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
         format!(
             "token={}; Max-Age={}; Path=/; HttpOnly; SameSite=Strict",
             token,
-            chrono::Duration::minutes(jwt::get_jwt_config().await.expiration)
-                .num_seconds()
+            chrono::Duration::minutes(jwt::get_jwt_config().await.expiration).num_seconds()
         )
         .parse()
         .unwrap(),

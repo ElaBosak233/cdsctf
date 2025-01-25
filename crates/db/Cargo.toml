@@ -6,7 +6,7 @@ publish = false
 resolver = "2"
 
 [dependencies]
-cds-env = { workspace = true }
+cds-config = { workspace = true }
 cds-cache = { workspace = true }
 
 async-trait = { workspace = true }

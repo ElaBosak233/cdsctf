@@ -1,11 +1,11 @@
+pub mod proxy;
 
-pub mod strategy;
-
-use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub entry: String,
-    pub strategy: strategy::Config,
+    pub namespace: String,
+    pub kube_config_path: String,
+    pub proxy: proxy::Config,
+    pub entry_host: String,
 }

@@ -7,9 +7,8 @@ resolver = "2"
 cds-assets = { path = "crates/assets" }
 cds-media = { path = "crates/media" }
 cds-db = { path = "crates/db" }
-cds-env = { path = "crates/env" }
-cds-web = { path = "crates/web" }
 cds-config = { path = "crates/config" }
+cds-web = { path = "crates/web" }
 cds-queue = { path = "crates/queue" }
 cds-metric = { path = "crates/metric" }
 cds-cache = { path = "crates/cache" }
@@ -20,7 +19,6 @@ async-trait = { version = "0.1" }
 tokio = { version = "1.43", features = ["full"] }
 tokio-util = { version = "0.7.13" }
 futures = { version = "^0.3" }
-futures-util = { version = "^0.3" }
 tower = { version = "0.5" }
 tower-http = { version = "0.6", features = ["cors", "fs", "trace"] }
 
@@ -36,7 +34,6 @@ axum = { version = "0.8", features = [
 ] }
 rust-embed = { version = "8.5" }
 mime = { version = "0.3" }
-mime_guess = { version = "2.0" }
 wsrx = { version = "0.3", features = ["server"] }
 cookie = { version = "0.18.1" }
 tower_governor = { version = "0.6" }
