@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct Env {
     pub host: String,
     pub port: u16,
-    pub user: String,
+    pub username: String,
     pub password: String,
     pub token: String,
     pub tls: bool,
