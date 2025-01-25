@@ -6,7 +6,6 @@ publish = false
 resolver = "2"
 
 [dependencies]
-cds-env = { workspace = true }
 cds-config = { workspace = true }
 cds-db = { workspace = true }
 

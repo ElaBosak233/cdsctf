@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub secret: String,
-    pub expiration: i64,
+    pub title: String,
+    pub description: String,
+    pub logo_path: String,
 }
