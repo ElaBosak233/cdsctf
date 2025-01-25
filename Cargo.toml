@@ -109,7 +109,7 @@ tempfile = { version = "3.15.0" }
 image = { version = "0.25.5" }
 webp = { version = "0.3.0", features = ["image"] }
 hex = { version = "0.4.3" }
-lettre = { version = "0.11" }
+lettre = { version = "0.11", features = ["tokio1-rustls-tls"], default-features = false }
 
 [profile.release]
 opt-level = 3
