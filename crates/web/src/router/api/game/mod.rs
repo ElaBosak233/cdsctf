@@ -121,8 +121,6 @@ pub async fn get(
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct CreateRequest {
     pub title: String,
-    pub started_at: i64,
-    pub ended_at: i64,
     pub sketch: Option<String>,
     pub description: Option<String>,
     pub is_enabled: Option<bool>,
@@ -131,6 +129,8 @@ pub struct CreateRequest {
     pub member_limit_max: Option<i64>,
     pub parallel_container_limit: Option<i64>,
     pub is_need_write_up: Option<bool>,
+    pub started_at: i64,
+    pub ended_at: i64,
 }
 
 pub async fn create(

@@ -33,12 +33,11 @@ pub async fn get_meta() -> Result<WebResponse<Meta>, WebError> {
 }
 
 pub async fn get_icon() -> impl IntoResponse {
-    let path = String::from("configs");
-    let filename = String::from("icon.webp");
-    match cds_media::get(path, filename).await {
+    let path = cds_config::get_config().meta.logo_path;
+    match tokio::fs::read(path).await {
         Ok(data) => Response::builder().body(Body::from(data)).unwrap(),
         Err(_) => {
-            Redirect::to("/icon.svg").into_response() // default frontend icon
+            Redirect::to("/logo.svg").into_response() // default frontend icon
         }
     }
 }
