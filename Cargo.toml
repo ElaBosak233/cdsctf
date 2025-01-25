@@ -8,6 +8,7 @@ cds-assets = { path = "crates/assets" }
 cds-media = { path = "crates/media" }
 cds-db = { path = "crates/db" }
 cds-config = { path = "crates/config" }
+cds-email = { path = "crates/email" }
 cds-web = { path = "crates/web" }
 cds-queue = { path = "crates/queue" }
 cds-metric = { path = "crates/metric" }
