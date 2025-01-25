@@ -1,10 +1,11 @@
-pub mod axum;
+pub mod server;
 pub mod cache;
 pub mod cluster;
-pub mod consts;
 pub mod db;
 pub mod metric;
 pub mod queue;
+pub mod media;
+pub mod auth;
 
 use std::{path::Path, process};
 
@@ -17,12 +18,14 @@ static APP_ENV: OnceCell<Env> = OnceCell::new();
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Env {
-    pub axum: axum::Env,
+    pub server: server::Env,
+    pub auth: auth::Env,
     pub db: db::Env,
     pub queue: queue::Env,
     pub cache: cache::Env,
     pub metric: metric::Env,
     pub cluster: cluster::Env,
+    pub media: media::Env,
 }
 
 pub async fn init() {
@@ -36,6 +39,6 @@ pub async fn init() {
     }
 }
 
-pub fn get_env() -> &'static Env {
-    APP_ENV.get().unwrap()
+pub fn get_env() -> Env {
+    APP_ENV.get().unwrap().clone()
 }
