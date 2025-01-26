@@ -11,8 +11,8 @@ pub struct Model {
     pub id: i64,
     pub name: String,
     pub email: Option<String>,
-    pub captain_id: i64,
     pub slogan: Option<String>,
+    pub description: Option<String>,
     pub invite_token: Option<String>,
     #[sea_orm(default_value = false)]
     pub is_deleted: bool,

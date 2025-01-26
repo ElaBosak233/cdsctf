@@ -8,11 +8,9 @@ static FILE_GUARD: OnceCell<WorkerGuard> = OnceCell::new();
 static CONSOLE_GUARD: OnceCell<WorkerGuard> = OnceCell::new();
 
 pub async fn init() {
-    let filter = EnvFilter::from_default_env()
-        .add_directive(Level::TRACE.into());
+    let filter = EnvFilter::from_default_env().add_directive(Level::TRACE.into());
 
-    let file_appender =
-        tracing_appender::rolling::daily("./data/logs", "cds");
+    let file_appender = tracing_appender::rolling::daily("./data/logs", "cds");
     let (non_blocking_file, file_guard) = non_blocking(file_appender);
     let (non_blocking_console, console_guard) = non_blocking(std::io::stdout());
     let file_layer = tracing_subscriber::fmt::Layer::new()

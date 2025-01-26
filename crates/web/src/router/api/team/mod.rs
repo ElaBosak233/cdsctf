@@ -25,6 +25,7 @@ pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
+        .route("/register", axum::routing::post(register))
         .route("/{id}", axum::routing::put(update))
         .route("/{id}", axum::routing::delete(delete))
         .route("/{id}/users", axum::routing::post(create_user))
@@ -47,11 +48,7 @@ pub fn router() -> Router {
 }
 
 fn can_modify_team(user: cds_db::transfer::User, team_id: i64) -> bool {
-    user.group == Group::Admin
-        || user
-            .teams
-            .iter()
-            .any(|team| team.id == team_id && team.captain_id == user.id)
+    user.group == Group::Admin || user.teams.iter().any(|team| team.id == team_id)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
@@ -59,11 +56,11 @@ pub struct GetRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
-    pub user_id: Option<i64>,
     pub page: Option<u64>,
     pub size: Option<u64>,
 }
 
+/// Get teams by given params.
 pub async fn get(
     Query(params): Query<GetRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Team>>, WebError> {
@@ -88,25 +85,25 @@ pub async fn get(
 pub struct CreateRequest {
     pub name: String,
     pub email: String,
-    pub captain_id: i64,
     pub slogan: Option<String>,
+    pub description: Option<String>,
 }
 
+/// Create a team by given data.
+///
+/// Only admins can use this function.
+///
+/// No users will be added to the newly created team.
 pub async fn create(
     Extension(ext): Extension<Ext>, VJson(body): VJson<CreateRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(serde_json::json!("")))?;
-    if !(operator.group == Group::Admin || operator.id == body.captain_id) {
-        return Err(WebError::Forbidden(serde_json::json!("")));
-    }
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let team = cds_db::entity::team::ActiveModel {
         name: Set(body.name),
         email: Set(Some(body.email)),
-        captain_id: Set(body.captain_id),
         slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
+        description: body.description.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
     .insert(get_db())
@@ -114,18 +111,58 @@ pub async fn create(
 
     let team = cds_db::transfer::Team::from(team);
 
-    let _ = cds_db::entity::user_team::ActiveModel {
-        user_id: Set(body.captain_id),
-        team_id: Set(team.id),
+    Ok(WebResponse {
+        code: StatusCode::OK.as_u16(),
+        data: Some(team),
+        ..Default::default()
+    })
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+pub struct RegisterRequest {
+    pub name: String,
+    pub email: String,
+    pub slogan: Option<String>,
+    pub description: Option<String>,
+}
+
+/// Register a team by given data.
+///
+/// The operator of this function will be added into the newly created team.
+/// So you should call this function in general teams page, not in admin panel.
+pub async fn register(
+    Extension(ext): Extension<Ext>, VJson(body): VJson<RegisterRequest>,
+) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    let team = cds_db::entity::team::ActiveModel {
+        name: Set(body.name),
+        email: Set(Some(body.email)),
+        slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
+        description: body.description.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
     .insert(get_db())
     .await?;
 
+    let _ = cds_db::entity::user_team::ActiveModel {
+        user_id: Set(operator.id),
+        team_id: Set(team.id.clone()),
+        ..Default::default()
+    }
+    .insert(get_db())
+    .await?;
+
+    let team = cds_db::transfer::team::find_by_ids(vec![team.id])
+        .await?
+        .first()
+        .unwrap()
+        .to_owned();
+
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(team),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -134,10 +171,13 @@ pub struct UpdateRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
-    pub captain_id: Option<i64>,
     pub slogan: Option<String>,
+    pub description: Option<String>,
 }
 
+/// Update a team by given data.
+///
+/// Admins or the members of team can update any field of current team.
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
@@ -152,8 +192,8 @@ pub async fn update(
         id: body.id.map_or(NotSet, Set),
         name: body.name.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, |v| Set(Some(v))),
-        captain_id: body.captain_id.map_or(NotSet, Set),
         slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
+        description: body.description.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
     .update(get_db())
@@ -167,6 +207,12 @@ pub async fn update(
     })
 }
 
+/// Delete a team by `id`.
+///
+/// Admins or the members of team can delete current team.
+///
+/// The team won't be permanently deleted;
+/// for safety, it's marked as deleted using the `is_deleted` field.
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
@@ -196,6 +242,9 @@ pub struct CreateUserRequest {
     pub team_id: i64,
 }
 
+/// Add a user into a team by given data.
+///
+/// Only admins can use this function.
 pub async fn create_user(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateUserRequest>,
 ) -> Result<WebResponse<()>, WebError> {
@@ -213,15 +262,18 @@ pub async fn create_user(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
+/// Kick a user from a team by `id` and `user_id`.
+///
+/// Only admins can use this function.
 pub async fn delete_user(
     Extension(ext): Extension<Ext>, Path((id, user_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if !can_modify_team(operator.clone(), id) && operator.id != user_id {
+    if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -233,10 +285,11 @@ pub async fn delete_user(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
+/// Get the invite_token of a team by `id`.
 pub async fn get_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
@@ -256,10 +309,13 @@ pub async fn get_invite_token(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: team.invite_token,
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
+/// Update the invite_token of a team by `id`.
+///
+/// Admins or the members of team can update the invite_token.
 pub async fn update_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
@@ -282,7 +338,7 @@ pub async fn update_invite_token(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(token),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -293,6 +349,9 @@ pub struct JoinRequest {
     pub invite_token: String,
 }
 
+/// Join a team by given data.
+///
+/// The field `user_id` will be overwritten by operator's id.
 pub async fn join(
     Extension(ext): Extension<Ext>, Json(mut body): Json<JoinRequest>,
 ) -> Result<WebResponse<cds_db::transfer::UserTeam>, WebError> {
@@ -326,12 +385,26 @@ pub async fn join(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(user_team),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
-pub async fn leave() -> impl IntoResponse {
-    ""
+/// Leave a team by `id`.
+///
+/// Remove the operator from the current team.
+pub async fn leave(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> Result<WebResponse<()>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    let _ = cds_db::entity::user_team::Entity::delete_many()
+        .filter(cds_db::entity::user_team::Column::UserId.eq(operator.id))
+        .filter(cds_db::entity::user_team::Column::TeamId.eq(id))
+        .exec(get_db())
+        .await?;
+
+    Ok(WebResponse {
+        code: StatusCode::OK.as_u16(),
+        ..Default::default()
+    })
 }
 
 pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
