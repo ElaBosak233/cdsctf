@@ -23,7 +23,7 @@ pub struct Challenge {
     pub is_public: bool,
     pub env: Option<Env>,
     pub flags: Vec<Flag>,
-    pub is_deleted: bool,
+    pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
 }
@@ -41,7 +41,7 @@ impl From<entity::challenge::Model> for Challenge {
             is_public: entity.is_public,
             env: entity.env,
             flags: entity.flags,
-            is_deleted: entity.is_deleted,
+            deleted_at: entity.deleted_at,
             created_at: entity.created_at,
             updated_at: entity.updated_at,
         }
@@ -61,7 +61,7 @@ impl From<Challenge> for entity::challenge::Model {
             is_public: challenge.is_public,
             env: challenge.env,
             flags: challenge.flags,
-            is_deleted: challenge.is_deleted,
+            deleted_at: challenge.deleted_at,
             created_at: challenge.created_at,
             updated_at: challenge.updated_at,
         }
@@ -77,8 +77,7 @@ impl Challenge {
 
 pub async fn find(
     id: Option<uuid::Uuid>, title: Option<String>, category: Option<i32>, is_public: Option<bool>,
-    is_dynamic: Option<bool>, is_deleted: Option<bool>, sorts: Option<String>, page: Option<u64>,
-    size: Option<u64>,
+    is_dynamic: Option<bool>, sorts: Option<String>, page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<Challenge>, u64), DbErr> {
     let mut sql = entity::challenge::Entity::find();
 
@@ -102,10 +101,7 @@ pub async fn find(
         sql = sql.filter(entity::challenge::Column::IsDynamic.eq(is_dynamic));
     }
 
-    match is_deleted {
-        Some(true) => sql = sql.filter(entity::challenge::Column::IsDeleted.eq(true)),
-        _ => sql = sql.filter(entity::challenge::Column::IsDeleted.eq(false)),
-    }
+    sql = sql.filter(entity::challenge::Column::DeletedAt.is_null());
 
     let total = sql.clone().count(get_db()).await?;
 

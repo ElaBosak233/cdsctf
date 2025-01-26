@@ -1,4 +1,6 @@
-use sea_orm::{Condition, QuerySelect, entity::prelude::*};
+use std::str::FromStr;
+
+use sea_orm::{Condition, Order, QueryOrder, QuerySelect, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 use super::Team;
@@ -13,7 +15,7 @@ pub struct User {
     pub group: Group,
     pub description: Option<String>,
     pub hashed_password: String,
-    pub is_deleted: bool,
+    pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
     pub teams: Vec<Team>,
@@ -29,7 +31,7 @@ impl From<entity::user::Model> for User {
             group: model.group,
             description: model.description,
             hashed_password: model.hashed_password,
-            is_deleted: model.is_deleted,
+            deleted_at: model.deleted_at,
             created_at: model.created_at,
             updated_at: model.updated_at,
             teams: vec![],
@@ -47,7 +49,7 @@ impl From<User> for entity::user::Model {
             group: user.group,
             description: user.description,
             hashed_password: user.hashed_password,
-            is_deleted: user.is_deleted,
+            deleted_at: user.deleted_at,
             created_at: user.created_at,
             updated_at: user.updated_at,
         }
@@ -85,7 +87,7 @@ async fn preload(mut users: Vec<User>) -> Result<Vec<User>, DbErr> {
 
 pub async fn find(
     id: Option<i64>, name: Option<String>, username: Option<String>, group: Option<Group>,
-    email: Option<String>, page: Option<u64>, size: Option<u64>,
+    email: Option<String>, sorts: Option<String>, page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<User>, u64), DbErr> {
     let mut sql = entity::user::Entity::find();
 
@@ -113,9 +115,24 @@ pub async fn find(
         sql = sql.filter(entity::user::Column::Email.eq(email));
     }
 
-    sql = sql.filter(entity::user::Column::IsDeleted.eq(false));
+    sql = sql.filter(entity::user::Column::DeletedAt.is_null());
 
     let total = sql.clone().count(get_db()).await?;
+
+    if let Some(sorts) = sorts {
+        let sorts = sorts.split(",").collect::<Vec<&str>>();
+        for sort in sorts {
+            let col = match crate::entity::user::Column::from_str(sort.replace("-", "").as_str()) {
+                Ok(col) => col,
+                Err(_) => continue,
+            };
+            if sort.starts_with("-") {
+                sql = sql.order_by(col, Order::Desc);
+            } else {
+                sql = sql.order_by(col, Order::Asc);
+            }
+        }
+    }
 
     if let (Some(page), Some(size)) = (page, size) {
         let offset = (page - 1) * size;
