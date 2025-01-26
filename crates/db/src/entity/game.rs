@@ -66,14 +66,6 @@ impl Related<challenge::Entity> for Entity {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
-    fn new() -> Self {
-        Self {
-            created_at: Set(chrono::Utc::now().timestamp()),
-            updated_at: Set(chrono::Utc::now().timestamp()),
-            ..ActiveModelTrait::default()
-        }
-    }
-
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {

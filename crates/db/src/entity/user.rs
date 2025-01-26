@@ -18,8 +18,7 @@ pub struct Model {
     pub description: Option<String>,
     pub group: Group,
     pub hashed_password: String,
-    #[sea_orm(default_value = false)]
-    pub is_deleted: bool,
+    pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
 }

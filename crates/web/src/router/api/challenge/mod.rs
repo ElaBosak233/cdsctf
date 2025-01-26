@@ -13,8 +13,8 @@ use cds_db::{
 };
 use sea_orm::{
     ActiveModelTrait,
-    ActiveValue::{NotSet, Set},
-    EntityTrait,
+    ActiveValue::{NotSet, Set, Unchanged},
+    ColumnTrait, EntityTrait, QueryFilter,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -55,7 +55,6 @@ pub struct GetRequest {
     pub is_public: Option<bool>,
     pub is_dynamic: Option<bool>,
     pub is_detailed: Option<bool>,
-    pub is_deleted: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -75,7 +74,6 @@ pub async fn get(
         params.category,
         params.is_public,
         params.is_dynamic,
-        params.is_deleted,
         params.sorts,
         params.page,
         params.size,
@@ -257,10 +255,16 @@ pub async fn update(
         return Err(WebError::Forbidden(json!("")));
     }
 
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+
     body.id = Some(id);
 
     let challenge = cds_db::entity::challenge::ActiveModel {
-        id: body.id.map_or(NotSet, Set),
+        id: Unchanged(challenge.id),
         title: body.title.map_or(NotSet, Set),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
         tags: body.tags.map_or(NotSet, Set),
@@ -292,9 +296,15 @@ pub async fn delete(
         return Err(WebError::Forbidden(json!("")));
     }
 
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+
     let _ = cds_db::entity::challenge::ActiveModel {
-        id: Set(id),
-        is_deleted: Set(true),
+        id: Set(challenge.id),
+        deleted_at: Set(Some(chrono::Utc::now().timestamp())),
         ..Default::default()
     }
     .update(get_db())
@@ -312,6 +322,7 @@ pub async fn get_attachment(
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
@@ -343,6 +354,7 @@ pub async fn get_attachment_metadata(
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
@@ -373,7 +385,13 @@ pub async fn save_attachment(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let path = format!("challenges/{}/attachment", id);
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+
+    let path = format!("challenges/{}/attachment", challenge.id);
     let mut filename = String::new();
     let mut data = Vec::<u8>::new();
     while let Some(field) = multipart.next_field().await.unwrap() {
@@ -408,7 +426,13 @@ pub async fn delete_attachment(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let path = format!("challenges/{}/attachment", id);
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+
+    let path = format!("challenges/{}/attachment", challenge.id);
 
     cds_media::delete_dir(path)
         .await

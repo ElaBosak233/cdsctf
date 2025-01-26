@@ -11,8 +11,8 @@ use axum::{
 use cds_db::{entity::user::Group, get_db};
 use sea_orm::{
     ActiveModelTrait,
-    ActiveValue::{NotSet, Set},
-    Condition, EntityTrait, PaginatorTrait, QueryFilter,
+    ActiveValue::{NotSet, Set, Unchanged},
+    ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter,
     prelude::Expr,
     sea_query::Func,
 };
@@ -55,9 +55,10 @@ pub struct GetRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
-    pub group: Option<cds_db::entity::user::Group>,
+    pub group: Option<Group>,
     pub page: Option<u64>,
     pub size: Option<u64>,
+    pub sorts: Option<String>,
 }
 
 pub async fn get(
@@ -69,6 +70,7 @@ pub async fn get(
         None,
         params.group,
         params.email,
+        params.sorts,
         params.page,
         params.size,
     )
@@ -148,7 +150,7 @@ pub struct UpdateRequest {
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     body.id = Some(id);
     if !(operator.group == Group::Admin
         || (operator.id == body.id.unwrap_or(0)
@@ -157,8 +159,14 @@ pub async fn update(
                 .as_ref()
                 .map_or(true, |group| operator.group == *group))))
     {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::Forbidden("".into()));
     }
+
+    let user = cds_db::entity::user::Entity::find_by_id(body.id.unwrap_or(0))
+        .filter(cds_db::entity::user::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest("".into()))?;
 
     if let Some(email) = body.email {
         body.email = Some(email.to_lowercase());
@@ -177,7 +185,7 @@ pub async fn update(
     }
 
     let user = cds_db::entity::user::ActiveModel {
-        id: Set(body.id.unwrap_or(0)),
+        id: Unchanged(user.id),
         username: body.username.map_or(NotSet, Set),
         nickname: body.nickname.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, Set),
@@ -205,9 +213,17 @@ pub async fn delete(
         return Err(WebError::Forbidden(json!("")));
     }
 
+    let user = cds_db::entity::user::Entity::find_by_id(id)
+        .filter(cds_db::entity::user::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest("".into()))?;
+
     let _ = cds_db::entity::user::ActiveModel {
-        id: Set(id),
-        is_deleted: Set(true),
+        id: Unchanged(id),
+        username: Set(format!("[DELETED]_{}", user.username)),
+        email: Set(format!("deleted_{}@del.cdsctf", user.email)),
+        deleted_at: Set(Some(chrono::Utc::now().timestamp())),
         ..Default::default()
     }
     .update(get_db())
@@ -222,7 +238,7 @@ pub async fn delete(
 pub async fn get_teams(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Team>>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     let teams = cds_db::transfer::team::find_by_user_id(id).await?;
 
@@ -256,9 +272,10 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
                         .eq(body.account.clone()),
                 ),
         )
+        .filter(cds_db::entity::user::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
-        .ok_or_else(|| WebError::BadRequest(json!("invalid")))?;
+        .ok_or(WebError::BadRequest(json!("invalid")))?;
 
     let mut user = cds_db::transfer::User::from(user);
 
@@ -308,7 +325,7 @@ pub struct RegisterRequest {
 }
 
 pub async fn register(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<RegisterRequest>,
+    Extension(_ext): Extension<Ext>, Json(mut body): Json<RegisterRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
@@ -332,7 +349,7 @@ pub async fn register(
         > 0;
 
     if is_conflict {
-        return Err(WebError::Conflict(json!("")));
+        return Err(WebError::Conflict("".into()));
     }
 
     let hashed_password = Argon2::default()
@@ -374,9 +391,9 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResponse<Meta
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     if operator.group != Group::Admin && operator.id != id {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::Forbidden("".into()));
     }
 
     let path = format!("users/{}/avatar", id);
@@ -387,9 +404,9 @@ pub async fn save_avatar(
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     if operator.group != Group::Admin && operator.id != id {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::Forbidden("".into()));
     }
 
     let path = format!("users/{}/avatar", id);
