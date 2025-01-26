@@ -5,29 +5,25 @@ use axum::{
     response::{IntoResponse, Redirect},
 };
 use sea_orm::ActiveModelTrait;
-use serde::{Deserialize, Serialize};
-
+use serde_json::json;
 use crate::traits::{WebError, WebResponse};
 
 pub fn router() -> Router {
     Router::new()
-        .route("/meta", axum::routing::get(get_meta))
+        .route("/", axum::routing::get(get))
         .route("/icon", axum::routing::get(get_icon))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Meta {
-    pub title: String,
-    pub description: String,
-}
-
-pub async fn get_meta() -> Result<WebResponse<Meta>, WebError> {
+pub type ClientConfig = serde_json::Value;
+pub async fn get() -> Result<WebResponse<ClientConfig>, WebError> {
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        data: Some(Meta {
-            title: cds_config::get_config().meta.title,
-            description: cds_config::get_config().meta.description,
-        }),
+        data: Some(json!({
+            "meta": {
+                "title": cds_config::get_config().meta.title,
+                "description": cds_config::get_config().meta.description,
+            },
+        })),
         ..WebResponse::default()
     })
 }
