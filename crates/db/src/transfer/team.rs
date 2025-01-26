@@ -9,15 +9,14 @@ pub struct Team {
     pub id: i64,
     pub name: String,
     pub email: Option<String>,
-    pub captain_id: i64,
     pub slogan: Option<String>,
+    pub description: Option<String>,
     pub invite_token: Option<String>,
     pub is_deleted: bool,
     pub created_at: i64,
     pub updated_at: i64,
 
     pub users: Vec<User>,
-    pub captain: Option<User>,
 }
 
 impl From<entity::team::Model> for Team {
@@ -26,14 +25,13 @@ impl From<entity::team::Model> for Team {
             id: model.id,
             name: model.name,
             email: model.email,
-            captain_id: model.captain_id,
             slogan: model.slogan,
+            description: model.description,
             invite_token: model.invite_token,
             is_deleted: model.is_deleted,
             created_at: model.created_at,
             updated_at: model.updated_at,
             users: vec![],
-            captain: None,
         }
     }
 }
@@ -44,8 +42,8 @@ impl From<Team> for entity::team::Model {
             id: team.id,
             name: team.name,
             email: team.email,
-            captain_id: team.captain_id,
             slogan: team.slogan,
+            description: team.description,
             invite_token: team.invite_token,
             is_deleted: team.is_deleted,
             created_at: team.created_at,
@@ -57,9 +55,6 @@ impl From<Team> for entity::team::Model {
 impl Team {
     pub fn desensitize(&mut self) {
         self.invite_token = None;
-        if let Some(captain) = self.captain.as_mut() {
-            captain.desensitize();
-        }
         for user in self.users.iter_mut() {
             user.desensitize();
         }
@@ -83,9 +78,6 @@ async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
         team.users = users[i].clone();
         for user in team.users.iter_mut() {
             user.desensitize();
-            if user.id == team.captain_id {
-                team.captain = Some(user.clone());
-            }
         }
     }
 
