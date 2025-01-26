@@ -142,6 +142,7 @@ pub struct UpdateRequest {
     pub email: Option<String>,
     pub password: Option<String>,
     pub group: Option<Group>,
+    pub description: Option<String>,
 }
 
 pub async fn update(
@@ -151,7 +152,10 @@ pub async fn update(
     body.id = Some(id);
     if !(operator.group == Group::Admin
         || (operator.id == body.id.unwrap_or(0)
-            && (body.group.clone().is_none() || operator.group == body.group.clone().unwrap())))
+            && (body
+                .group
+                .as_ref()
+                .map_or(true, |group| operator.group == *group))))
     {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -179,6 +183,7 @@ pub async fn update(
         email: body.email.map_or(NotSet, Set),
         hashed_password: body.password.map_or(NotSet, Set),
         group: body.group.map_or(NotSet, Set),
+        description: body.description.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
     .update(get_db())
