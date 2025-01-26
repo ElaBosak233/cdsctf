@@ -5,11 +5,8 @@ use axum::{
     response::IntoResponse,
 };
 use cds_db::{entity::user::Group, get_db};
-use sea_orm::{
-    ActiveModelTrait,
-    ActiveValue::{NotSet, Set},
-    ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect,
-};
+use sea_orm::{ActiveModelTrait, ActiveValue::{NotSet, Set}, ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter, QuerySelect};
+use sea_orm::ActiveValue::Unchanged;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use validator::Validate;
@@ -33,7 +30,7 @@ pub fn router() -> Router {
         .route("/{id}/invite", axum::routing::get(get_invite_token))
         .route("/{id}/invite", axum::routing::put(update_invite_token))
         .route("/{id}/join", axum::routing::post(join))
-        .route("/{id}/leave", axum::routing::delete(leave))
+        .route("/{id}/quit", axum::routing::delete(quit))
         .route("/{id}/avatar", axum::routing::get(get_avatar))
         .route(
             "/{id}/avatar/metadata",
@@ -47,8 +44,8 @@ pub fn router() -> Router {
         .route("/{id}/avatar", axum::routing::delete(delete_avatar))
 }
 
-fn can_modify_team(user: cds_db::transfer::User, team_id: i64) -> bool {
-    user.group == Group::Admin || user.teams.iter().any(|team| team.id == team_id)
+fn can_modify_team(user: &cds_db::transfer::User, team: &cds_db::transfer::Team) -> bool {
+    user.group == Group::Admin || user.teams.iter().any(|t| t.id == team.id)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
@@ -58,6 +55,7 @@ pub struct GetRequest {
     pub email: Option<String>,
     pub page: Option<u64>,
     pub size: Option<u64>,
+    pub sorts: Option<String>,
 }
 
 /// Get teams by given params.
@@ -68,6 +66,7 @@ pub async fn get(
         params.id,
         params.name,
         params.email,
+        params.sorts,
         params.page,
         params.size,
     )
@@ -153,11 +152,12 @@ pub async fn register(
     .insert(get_db())
     .await?;
 
-    let team = cds_db::transfer::team::find_by_ids(vec![team.id])
-        .await?
-        .first()
-        .unwrap()
-        .to_owned();
+    let team = cds_db::transfer::Team::from(
+        cds_db::entity::team::Entity::find_by_id(team.id)
+            .one(get_db())
+            .await?
+            .unwrap(),
+    );
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
@@ -182,14 +182,21 @@ pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let team = cds_db::transfer::Team::from(
+        cds_db::entity::team::Entity::find_by_id(id)
+            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
+    );
 
-    if !can_modify_team(operator, id) {
+    if !can_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
     body.id = Some(id);
 
     let team = cds_db::entity::team::ActiveModel {
-        id: body.id.map_or(NotSet, Set),
+        id: Unchanged(team.id),
         name: body.name.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, |v| Set(Some(v))),
         slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
@@ -217,14 +224,22 @@ pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let team = cds_db::transfer::Team::from(
+        cds_db::entity::team::Entity::find_by_id(id)
+            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
+    );
 
-    if !can_modify_team(operator, id) {
+    if !can_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
     let _ = cds_db::entity::team::ActiveModel {
         id: Set(id),
-        is_deleted: Set(true),
+        is_locked: Set(true),
+        deleted_at: Set(Some(chrono::Utc::now().timestamp())),
         ..Default::default()
     }
     .update(get_db())
@@ -249,13 +264,21 @@ pub async fn create_user(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateUserRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let team = cds_db::transfer::Team::from(
+        cds_db::entity::team::Entity::find_by_id(body.team_id)
+            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
+    );
+
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
     let _ = cds_db::entity::user_team::ActiveModel {
         user_id: Set(body.user_id),
-        team_id: Set(body.team_id),
+        team_id: Set(team.id),
     }
     .insert(get_db())
     .await?;
@@ -273,7 +296,15 @@ pub async fn delete_user(
     Extension(ext): Extension<Ext>, Path((id, user_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
+    let team = cds_db::transfer::Team::from(
+        cds_db::entity::team::Entity::find_by_id(id)
+            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
+    );
+
+    if operator.group != Group::Admin || team.deleted_at.is_some() {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -294,8 +325,15 @@ pub async fn get_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let team = cds_db::transfer::Team::from(
+        cds_db::entity::team::Entity::find_by_id(id)
+            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
+    );
 
-    if !can_modify_team(operator, id) {
+    if !can_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -320,7 +358,14 @@ pub async fn update_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if !can_modify_team(operator, id) {
+    let team = cds_db::transfer::Team::from(
+        cds_db::entity::team::Entity::find_by_id(id)
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
+    );
+
+    if !can_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -356,18 +401,13 @@ pub async fn join(
     Extension(ext): Extension<Ext>, Json(mut body): Json<JoinRequest>,
 ) -> Result<WebResponse<cds_db::transfer::UserTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let team = cds_db::entity::team::Entity::find_by_id(body.team_id)
+        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
     body.user_id = operator.id;
-
-    let _ = cds_db::entity::user::Entity::find_by_id(body.user_id)
-        .one(get_db())
-        .await?
-        .ok_or_else(|| WebError::NotFound(json!("invalid_user_or_team")))?;
-
-    let team = cds_db::entity::team::Entity::find_by_id(body.team_id)
-        .one(get_db())
-        .await?
-        .ok_or_else(|| WebError::NotFound(json!("invalid_user_or_team")))?;
 
     if Some(body.invite_token.clone()) != team.invite_token {
         return Err(WebError::BadRequest(json!("invalid_invite_token")));
@@ -389,15 +429,30 @@ pub async fn join(
     })
 }
 
-/// Leave a team by `id`.
+/// Quit a team by `id`.
 ///
 /// Remove the operator from the current team.
-pub async fn leave(Extension(ext): Extension<Ext>, Path(id): Path<i64>) -> Result<WebResponse<()>, WebError> {
+pub async fn quit(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let team = cds_db::entity::team::Entity::find_by_id(id)
+        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
+
+    if cds_db::entity::user_team::Entity::find()
+        .filter(cds_db::entity::user_team::Column::TeamId.eq(team.id))
+        .count(get_db())
+        .await? == 1
+    {
+        return Err(WebError::BadRequest(json!("delete_instead_of_leave")));
+    }
 
     let _ = cds_db::entity::user_team::Entity::delete_many()
         .filter(cds_db::entity::user_team::Column::UserId.eq(operator.id))
-        .filter(cds_db::entity::user_team::Column::TeamId.eq(id))
+        .filter(cds_db::entity::user_team::Column::TeamId.eq(team.id))
         .exec(get_db())
         .await?;
 
@@ -423,7 +478,15 @@ pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if !can_modify_team(operator, id) {
+    let team = cds_db::transfer::Team::from(
+        cds_db::entity::team::Entity::find_by_id(id)
+            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
+    );
+
+    if !can_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -436,7 +499,15 @@ pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if !can_modify_team(operator, id) {
+    let team = cds_db::transfer::Team::from(
+        cds_db::entity::team::Entity::find_by_id(id)
+            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
+    );
+
+    if !can_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
