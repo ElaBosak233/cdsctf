@@ -81,7 +81,7 @@ async fn preload(mut users: Vec<User>) -> Result<Vec<User>, DbErr> {
 }
 
 pub async fn find(
-    id: Option<i64>, name: Option<String>, username: Option<String>, group: Option<String>,
+    id: Option<i64>, name: Option<String>, username: Option<String>, group: Option<Group>,
     email: Option<String>, page: Option<u64>, size: Option<u64>,
 ) -> Result<(Vec<User>, u64), DbErr> {
     let mut sql = entity::user::Entity::find();
@@ -109,6 +109,8 @@ pub async fn find(
     if let Some(email) = email {
         sql = sql.filter(entity::user::Column::Email.eq(email));
     }
+
+    sql = sql.filter(entity::user::Column::IsDeleted.eq(false));
 
     let total = sql.clone().count(get_db()).await?;
 

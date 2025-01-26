@@ -55,7 +55,7 @@ pub struct GetRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
-    pub group: Option<String>,
+    pub group: Option<cds_db::entity::user::Group>,
     pub page: Option<u64>,
     pub size: Option<u64>,
 }
@@ -154,6 +154,14 @@ pub async fn update(
             && (body.group.clone().is_none() || operator.group == body.group.clone().unwrap())))
     {
         return Err(WebError::Forbidden(json!("")));
+    }
+
+    if let Some(email) = body.email {
+        body.email = Some(email.to_lowercase());
+    }
+
+    if let Some(username) = body.username {
+        body.username = Some(username.to_lowercase());
     }
 
     if let Some(password) = body.password {
