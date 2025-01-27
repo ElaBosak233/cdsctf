@@ -20,8 +20,6 @@ pub struct Model {
     pub member_limit_min: i64,
     #[sea_orm(default_value = 3)]
     pub member_limit_max: i64,
-    #[sea_orm(default_value = 2)]
-    pub parallel_container_limit: i64,
     #[sea_orm(default_value = false)]
     pub is_need_write_up: bool,
     pub started_at: i64,
