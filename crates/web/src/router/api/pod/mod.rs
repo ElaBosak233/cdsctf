@@ -3,7 +3,10 @@ pub mod daemon;
 use axum::{Router, http::StatusCode};
 use cds_db::{entity::user::Group, get_db, transfer::Pod};
 use regex::Regex;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter, Set};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, PaginatorTrait,
+    QueryFilter, Set,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
@@ -30,7 +33,7 @@ pub struct GetRequest {
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: Option<i64>,
+    pub challenge_id: Option<Uuid>,
     pub is_available: Option<bool>,
     pub is_detailed: Option<bool>,
     pub page: Option<u64>,
@@ -78,7 +81,7 @@ pub async fn get(
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateRequest {
-    pub challenge_id: uuid::Uuid,
+    pub challenge_id: Uuid,
     pub team_id: Option<i64>,
     pub user_id: Option<i64>,
     pub game_id: Option<i64>,
@@ -88,14 +91,11 @@ pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
 ) -> Result<WebResponse<Pod>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    body.user_id = Some(operator.id);
 
     let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
         .one(get_db())
         .await?
-        .map(cds_db::transfer::Challenge::from);
-
-    let challenge = challenge.ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
 
     let ctn_name = format!("cds-{}", Uuid::new_v4().simple());
 
@@ -116,11 +116,67 @@ pub async fn create(
         .env
         .ok_or(WebError::BadRequest(json!("challenge_env_invalid")))?;
 
+    if body.game_id.is_some() != body.team_id.is_some() {
+        return Err(WebError::BadRequest(json!("invalid")));
+    }
+
+    if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
+        let _ = cds_db::entity::game_team::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(cds_db::entity::game_team::Column::GameId.eq(game_id))
+                    .add(cds_db::entity::game_team::Column::TeamId.eq(team_id)),
+            )
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("game_team_not_found")))?;
+
+        let _ = cds_db::entity::game_challenge::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
+                    .add(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id)),
+            )
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("game_challenge_not_found")))?;
+
+        let member_count = cds_db::entity::user_team::Entity::find()
+            .filter(Condition::all().add(cds_db::entity::user_team::Column::TeamId.eq(team_id)))
+            .count(get_db())
+            .await?;
+
+        let existing_pod_count = cds_db::entity::pod::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(cds_db::entity::pod::Column::TeamId.eq(team_id))
+                    .add(cds_db::entity::pod::Column::GameId.eq(game_id)),
+            )
+            .count(get_db())
+            .await?;
+
+        if member_count == existing_pod_count {
+            return Err(WebError::TooManyRequests(json!("too_many_team_pods")));
+        }
+    } else {
+        let existing_pod_count = cds_db::entity::pod::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(cds_db::entity::pod::Column::UserId.eq(operator.id))
+            )
+            .count(get_db())
+            .await?;
+
+        if existing_pod_count == 1 {
+            return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
+        }
+    }
+
     let nats = cds_cluster::create(ctn_name.clone(), env.clone(), injected_flag.clone()).await?;
 
     let pod = cds_db::entity::pod::ActiveModel {
         name: Set(ctn_name),
-        user_id: Set(body.user_id.unwrap()),
+        user_id: Set(operator.id),
         team_id: Set(body.team_id),
         game_id: Set(body.game_id),
         challenge_id: Set(body.challenge_id),
@@ -161,11 +217,10 @@ pub async fn renew(
 ) -> Result<WebResponse<Pod>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let pod = cds_db::entity::pod::Entity::find()
-        .filter(cds_db::entity::pod::Column::Id.eq(id))
+    let pod = cds_db::entity::pod::Entity::find_by_id(id)
         .one(get_db())
         .await?
-        .ok_or_else(|| WebError::NotFound(json!("")))?;
+        .ok_or(WebError::NotFound(json!("pod_not_found")))?;
 
     check_permission!(operator, pod);
 
@@ -196,11 +251,12 @@ pub async fn stop(
     let pod = cds_db::entity::pod::Entity::find_by_id(id)
         .one(get_db())
         .await?
-        .ok_or_else(|| WebError::NotFound(json!("")))?;
+        .ok_or(WebError::NotFound(json!("pod_not_found")))?;
 
     check_permission!(operator, pod);
 
     let pod_name = pod.name.clone();
+
     tokio::spawn(async move {
         cds_cluster::delete(pod_name).await;
     });

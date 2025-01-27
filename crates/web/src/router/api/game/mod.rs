@@ -11,7 +11,12 @@ use cds_db::{
     get_db,
     transfer::{GameTeam, Submission},
 };
-use sea_orm::{ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, EntityTrait, QueryFilter, Set};
+use sea_orm::{
+    ActiveModelTrait,
+    ActiveValue::{NotSet, Unchanged},
+    ColumnTrait, Condition, EntityTrait, QueryFilter, Set,
+    sea_query::Cond,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use validator::Validate;
@@ -127,7 +132,6 @@ pub struct CreateRequest {
     pub is_public: Option<bool>,
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
-    pub parallel_container_limit: Option<i64>,
     pub is_need_write_up: Option<bool>,
     pub started_at: i64,
     pub ended_at: i64,
@@ -145,19 +149,17 @@ pub async fn create(
         title: Set(body.title),
         sketch: Set(body.sketch),
         description: Set(body.description),
-        started_at: Set(body.started_at),
-        ended_at: Set(body.ended_at),
-        frozen_at: Set(body.ended_at),
 
         is_enabled: Set(body.is_enabled.unwrap_or(false)),
         is_public: Set(body.is_public.unwrap_or(false)),
+        is_need_write_up: Set(body.is_need_write_up.unwrap_or(false)),
 
         member_limit_min: body.member_limit_min.map_or(NotSet, Set),
         member_limit_max: body.member_limit_max.map_or(NotSet, Set),
-        parallel_container_limit: body.parallel_container_limit.map_or(NotSet, Set),
 
-        is_need_write_up: Set(body.is_need_write_up.unwrap_or(false)),
-
+        started_at: Set(body.started_at),
+        ended_at: Set(body.ended_at),
+        frozen_at: Set(body.ended_at),
         ..Default::default()
     }
     .insert(get_db())
@@ -181,7 +183,6 @@ pub struct UpdateRequest {
     pub is_public: Option<bool>,
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
-    pub parallel_container_limit: Option<i64>,
     pub is_need_write_up: Option<bool>,
     pub started_at: Option<i64>,
     pub ended_at: Option<i64>,
@@ -196,21 +197,23 @@ pub async fn update(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    body.id = Some(id);
+    let game = cds_db::entity::game::Entity::find_by_id(id)
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
     let game = cds_db::entity::game::ActiveModel {
-        id: body.id.map_or(NotSet, Set),
+        id: Unchanged(game.id),
         title: body.title.map_or(NotSet, Set),
         sketch: body.sketch.map_or(NotSet, |v| Set(Some(v))),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
         is_enabled: body.is_enabled.map_or(NotSet, Set),
         is_public: body.is_public.map_or(NotSet, Set),
+        is_need_write_up: body.is_need_write_up.map_or(NotSet, Set),
 
         member_limit_min: body.member_limit_min.map_or(NotSet, Set),
         member_limit_max: body.member_limit_max.map_or(NotSet, Set),
-        parallel_container_limit: body.parallel_container_limit.map_or(NotSet, Set),
 
-        is_need_write_up: body.is_need_write_up.map_or(NotSet, Set),
         started_at: body.started_at.map_or(NotSet, Set),
         ended_at: body.ended_at.map_or(NotSet, Set),
         frozen_at: body.frozen_at.map_or(NotSet, Set),
@@ -235,7 +238,12 @@ pub async fn delete(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let _ = cds_db::entity::game::Entity::delete_by_id(id)
+    let game = cds_db::entity::game::Entity::find_by_id(id)
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
+
+    let _ = cds_db::entity::game::Entity::delete_by_id(game.id)
         .exec(get_db())
         .await?;
 
@@ -338,12 +346,19 @@ pub async fn update_challenge(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    body.game_id = Some(id);
-    body.challenge_id = Some(challenge_id);
+    let game_challenge = cds_db::entity::game_challenge::Entity::find()
+        .filter(
+            Condition::all()
+                .add(cds_db::entity::game_challenge::Column::GameId.eq(id))
+                .add(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id)),
+        )
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("game_challenge_not_found")))?;
 
     let game_challenge = cds_db::entity::game_challenge::ActiveModel {
-        game_id: body.game_id.map_or(NotSet, Set),
-        challenge_id: body.challenge_id.map_or(NotSet, Set),
+        game_id: Unchanged(game_challenge.game_id),
+        challenge_id: Unchanged(game_challenge.challenge_id),
         difficulty: body.difficulty.map_or(NotSet, Set),
         is_enabled: body.is_enabled.map_or(NotSet, Set),
         max_pts: body.max_pts.map_or(NotSet, Set),
@@ -372,9 +387,19 @@ pub async fn delete_challenge(
         return Err(WebError::Forbidden(json!("")));
     }
 
+    let game_challenge = cds_db::entity::game_challenge::Entity::find()
+        .filter(
+            Condition::all()
+                .add(cds_db::entity::game_challenge::Column::GameId.eq(id))
+                .add(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id)),
+        )
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("game_challenge_not_found")))?;
+
     let _ = cds_db::entity::game_challenge::Entity::delete_many()
-        .filter(cds_db::entity::game_challenge::Column::GameId.eq(id))
-        .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id))
+        .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_challenge.game_id))
+        .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(game_challenge.challenge_id))
         .exec(get_db())
         .await?;
 
@@ -424,7 +449,6 @@ pub async fn create_team(
     let game_team = cds_db::entity::game_team::ActiveModel {
         game_id: Set(body.game_id),
         team_id: Set(body.team_id),
-
         ..Default::default()
     }
     .insert(get_db())
@@ -454,12 +478,19 @@ pub async fn update_team(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    body.game_id = Some(id);
-    body.team_id = Some(team_id);
+    let game_team = cds_db::entity::game_team::Entity::find()
+        .filter(
+            Condition::all()
+                .add(cds_db::entity::game_team::Column::GameId.eq(id))
+                .add(cds_db::entity::game_team::Column::TeamId.eq(team_id)),
+        )
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("game_team_not_found")))?;
 
     let game_team = cds_db::entity::game_team::ActiveModel {
-        game_id: body.game_id.map_or(NotSet, Set),
-        team_id: body.team_id.map_or(NotSet, Set),
+        game_id: Unchanged(game_team.team_id),
+        team_id: Unchanged(game_team.team_id),
         is_allowed: body.is_allowed.map_or(NotSet, Set),
         ..Default::default()
     }
@@ -482,9 +513,19 @@ pub async fn delete_team(
         return Err(WebError::Forbidden(json!("")));
     }
 
+    let game_team = cds_db::entity::game_team::Entity::find()
+        .filter(
+            Condition::all()
+                .add(cds_db::entity::game_team::Column::GameId.eq(id))
+                .add(cds_db::entity::game_team::Column::TeamId.eq(team_id)),
+        )
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("game_team_not_found")))?;
+
     let _ = cds_db::entity::game_team::Entity::delete_many()
-        .filter(cds_db::entity::game_team::Column::GameId.eq(id))
-        .filter(cds_db::entity::game_team::Column::TeamId.eq(team_id))
+        .filter(cds_db::entity::game_team::Column::GameId.eq(game_team.game_id))
+        .filter(cds_db::entity::game_team::Column::TeamId.eq(game_team.team_id))
         .exec(get_db())
         .await?;
 

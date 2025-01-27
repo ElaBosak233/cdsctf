@@ -107,7 +107,7 @@ async fn preload(mut pods: Vec<Pod>) -> Result<Vec<Pod>, DbErr> {
 
 pub async fn find(
     id: Option<i64>, name: Option<String>, user_id: Option<i64>, team_id: Option<i64>,
-    game_id: Option<i64>, challenge_id: Option<i64>, is_available: Option<bool>,
+    game_id: Option<i64>, challenge_id: Option<Uuid>, is_available: Option<bool>,
 ) -> Result<(Vec<Pod>, u64), DbErr> {
     let mut sql = entity::pod::Entity::find();
     if let Some(id) = id {
