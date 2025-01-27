@@ -15,6 +15,7 @@ pub struct Model {
     pub nickname: String,
     #[sea_orm(unique)]
     pub email: String,
+    #[sea_orm(column_type = "Text")]
     pub description: Option<String>,
     pub group: Group,
     pub hashed_password: String,

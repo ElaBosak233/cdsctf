@@ -39,7 +39,7 @@ pub struct GetRequest {
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
-) -> Result<WebResponse<Vec<cds_db::transfer::Pod>>, WebError> {
+) -> Result<WebResponse<Vec<Pod>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let (mut pods, total) = cds_db::transfer::pod::find(

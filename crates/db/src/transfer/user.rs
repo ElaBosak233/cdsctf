@@ -14,6 +14,7 @@ pub struct User {
     pub email: String,
     pub group: Group,
     pub description: Option<String>,
+    #[serde(skip_serializing)]
     pub hashed_password: String,
     pub deleted_at: Option<i64>,
     pub created_at: i64,

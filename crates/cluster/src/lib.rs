@@ -80,8 +80,8 @@ pub async fn create(
     let metadata = ObjectMeta {
         name: Some(name.clone()),
         labels: Some(BTreeMap::from([
-            (String::from("cds/app"), String::from("challenges")),
-            (String::from("cds/resource_id"), name.clone()),
+            ("cds/app".to_owned(), "challenges".to_owned()),
+            ("cds/resource_id".to_owned(), name.clone()),
         ])),
         ..Default::default()
     };
@@ -102,7 +102,7 @@ pub async fn create(
         .collect();
 
     env_vars.push(EnvVar {
-        name: injected_flag.env.unwrap_or("FLAG".to_string()),
+        name: injected_flag.env.unwrap_or("FLAG".to_owned()),
         value: Some(injected_flag.value),
         ..Default::default()
     });
@@ -112,7 +112,7 @@ pub async fn create(
         .iter()
         .map(|port| ContainerPort {
             container_port: *port,
-            protocol: Some("TCP".to_string()),
+            protocol: Some("TCP".to_owned()),
             ..Default::default()
         })
         .collect();
@@ -125,7 +125,7 @@ pub async fn create(
                 image: Some(env.image),
                 env: Some(env_vars),
                 ports: Some(container_ports),
-                image_pull_policy: Some(String::from("IfNotPresent")),
+                image_pull_policy: Some("IfNotPresent".to_owned()),
                 resources: Some(ResourceRequirements {
                     requests: Some(
                         [("cpu", "10m".to_owned()), ("memory", "32Mi".to_owned())]
@@ -180,9 +180,10 @@ pub async fn create(
                 .ports
                 .iter()
                 .map(|port| ServicePort {
+                    name: Some(port.to_string()),
                     port: *port,
                     target_port: None,
-                    protocol: Some("TCP".to_string()),
+                    protocol: Some("TCP".to_owned()),
                     ..Default::default()
                 })
                 .collect();
@@ -191,11 +192,11 @@ pub async fn create(
                 metadata: metadata.clone(),
                 spec: Some(ServiceSpec {
                     selector: Some(BTreeMap::from([(
-                        String::from("cds/resource_id"),
+                        "cds/resource_id".to_owned(),
                         name.clone(),
                     )])),
                     ports: Some(service_ports),
-                    type_: Some("NodePort".to_string()),
+                    type_: Some("NodePort".to_owned()),
                     ..Default::default()
                 }),
                 ..Default::default()
