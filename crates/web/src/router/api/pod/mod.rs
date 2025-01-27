@@ -160,10 +160,7 @@ pub async fn create(
         }
     } else {
         let existing_pod_count = cds_db::entity::pod::Entity::find()
-            .filter(
-                Condition::all()
-                    .add(cds_db::entity::pod::Column::UserId.eq(operator.id))
-            )
+            .filter(Condition::all().add(cds_db::entity::pod::Column::UserId.eq(operator.id)))
             .count(get_db())
             .await?;
 

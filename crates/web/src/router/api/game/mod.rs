@@ -1,5 +1,7 @@
 pub mod calculator;
 
+use std::str::FromStr;
+
 use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
@@ -14,11 +16,12 @@ use cds_db::{
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{NotSet, Unchanged},
-    ColumnTrait, Condition, EntityTrait, QueryFilter, Set,
-    sea_query::Cond,
+    ColumnTrait, Condition, EntityTrait, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect, RelationTrait, Set,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
@@ -93,6 +96,7 @@ pub struct GetRequest {
     pub sorts: Option<String>,
 }
 
+/// Get games with given params.
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Game>>, WebError> {
@@ -101,16 +105,45 @@ pub async fn get(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let (games, total) = cds_db::transfer::game::find(
-        params.id,
-        params.title,
-        params.is_enabled,
-        params.sorts,
-        params.page,
-        params.size,
-    )
-    .await?;
-    let games = games
+    let mut sql = cds_db::entity::game::Entity::find();
+
+    if let Some(id) = params.id {
+        sql = sql.filter(cds_db::entity::game::Column::Id.eq(id));
+    }
+
+    if let Some(title) = params.title {
+        sql = sql.filter(cds_db::entity::game::Column::Title.contains(title));
+    }
+
+    if let Some(is_enabled) = params.is_enabled {
+        sql = sql.filter(cds_db::entity::game::Column::IsEnabled.eq(is_enabled));
+    }
+
+    if let Some(sorts) = params.sorts {
+        let sorts = sorts.split(",").collect::<Vec<&str>>();
+        for sort in sorts {
+            let col = match cds_db::entity::game::Column::from_str(sort.replace("-", "").as_str()) {
+                Ok(col) => col,
+                Err(_) => continue,
+            };
+            if sort.starts_with("-") {
+                sql = sql.order_by(col, Order::Desc);
+            } else {
+                sql = sql.order_by(col, Order::Asc);
+            }
+        }
+    }
+
+    let total = sql.clone().count(get_db()).await?;
+
+    if let (Some(page), Some(size)) = (params.page, params.size) {
+        let offset = (page - 1) * size;
+        sql = sql.offset(offset).limit(size);
+    }
+
+    let games = sql
+        .all(get_db())
+        .await?
         .into_iter()
         .map(cds_db::transfer::Game::from)
         .collect::<Vec<cds_db::transfer::Game>>();
@@ -257,25 +290,96 @@ pub async fn delete(
 pub struct GetChallengeRequest {
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
-    pub team_id: Option<i64>,
+    pub category: Option<i32>,
     pub is_enabled: Option<bool>,
+
+    pub page: Option<u64>,
+    pub size: Option<u64>,
 }
 
 pub async fn get_challenge(
-    Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let (game_challenges, _) = cds_db::transfer::game_challenge::find(
-        params.game_id,
-        params.challenge_id,
-        params.is_enabled,
-    )
-    .await?;
+    let game = cds_db::entity::game::Entity::find_by_id(id)
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
+
+    if operator.group != Group::Admin {
+        // Check if the operator can view the game challenges.
+        //
+        // There are two prerequisites:
+        // the operator must belong to one of the `is_allowed` = `true` game teams,
+        // and time is between game's `started_at` and `ended_at`.
+        //
+        // SELECT u.id AS user_id, gt.game_id, gt.is_allowed
+        // FROM users u
+        //     JOIN user_teams ut ON u.id = ut.user_id
+        //     JOIN game_teams gt ON ut.team_id = gt.team_id
+        // WHERE u.id = ? AND gt.game_id = ? AND gt.is_allowed = true;
+        let exists = cds_db::entity::user::Entity::find()
+            .join(
+                JoinType::InnerJoin,
+                cds_db::entity::user_team::Relation::User.def().rev(),
+            )
+            .join(
+                JoinType::InnerJoin,
+                cds_db::entity::user_team::Relation::Team.def(),
+            )
+            .join(
+                JoinType::InnerJoin,
+                cds_db::entity::game_team::Relation::Team.def().rev(),
+            )
+            .filter(cds_db::entity::user::Column::Id.eq(operator.id))
+            .filter(cds_db::entity::game_team::Column::GameId.eq(game.id))
+            .filter(cds_db::entity::game_team::Column::IsAllowed.eq(true))
+            .count(get_db())
+            .await?
+            > 0;
+
+        if !exists
+            || chrono::Utc::now().timestamp() < game.started_at
+            || chrono::Utc::now().timestamp() > game.ended_at
+        {
+            return Err(WebError::Forbidden(json!("")));
+        }
+    }
+
+    // Using inner join to access fields in related tables.
+    let mut sql = cds_db::entity::game_challenge::Entity::find()
+        .inner_join(cds_db::entity::challenge::Entity)
+        .inner_join(cds_db::entity::game::Entity);
+
+    sql = sql.filter(cds_db::entity::game_challenge::Column::GameId.eq(id));
+
+    if let Some(challenge_id) = params.challenge_id {
+        sql = sql.filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id));
+    }
+
+    if let Some(is_enabled) = params.is_enabled {
+        sql = sql.filter(cds_db::entity::game_challenge::Column::IsEnabled.eq(is_enabled));
+    }
+
+    if let Some(category) = params.category {
+        sql = sql.filter(cds_db::entity::challenge::Column::Category.eq(category));
+    }
+
+    let total = sql.clone().count(get_db()).await?;
+
+    if let (Some(page), Some(size)) = (params.page, params.size) {
+        let offset = (page - 1) * size;
+        sql = sql.offset(offset).limit(size);
+    }
+
+    let game_challenges =
+        cds_db::transfer::game_challenge::preload(sql.all(get_db()).await?).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenges),
+        total: Some(total),
         ..WebResponse::default()
     })
 }
@@ -283,7 +387,7 @@ pub async fn get_challenge(
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateChallengeRequest {
     pub game_id: i64,
-    pub challenge_id: uuid::Uuid,
+    pub challenge_id: Uuid,
     pub is_enabled: Option<bool>,
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,
@@ -301,9 +405,19 @@ pub async fn create_challenge(
         return Err(WebError::Forbidden(json!("")));
     }
 
+    let game = cds_db::entity::game::Entity::find_by_id(body.game_id)
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
+
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+
     let game_challenge = cds_db::entity::game_challenge::ActiveModel {
-        game_id: Set(body.game_id),
-        challenge_id: Set(body.challenge_id),
+        game_id: Set(game.id),
+        challenge_id: Set(challenge.id),
         difficulty: body.difficulty.map_or(NotSet, Set),
         is_enabled: body.is_enabled.map_or(NotSet, Set),
         max_pts: body.max_pts.map_or(NotSet, Set),
@@ -327,7 +441,7 @@ pub async fn create_challenge(
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UpdateChallengeRequest {
     pub game_id: Option<i64>,
-    pub challenge_id: Option<uuid::Uuid>,
+    pub challenge_id: Option<Uuid>,
     pub is_enabled: Option<bool>,
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,
@@ -338,7 +452,7 @@ pub struct UpdateChallengeRequest {
 }
 
 pub async fn update_challenge(
-    Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, uuid::Uuid)>,
+    Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, Uuid)>,
     Json(mut body): Json<UpdateChallengeRequest>,
 ) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -380,7 +494,7 @@ pub async fn update_challenge(
 }
 
 pub async fn delete_challenge(
-    Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, Uuid)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
