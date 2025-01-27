@@ -39,7 +39,9 @@ impl From<entity::game_challenge::Model> for GameChallenge {
     }
 }
 
-async fn preload(models: Vec<entity::game_challenge::Model>) -> Result<Vec<GameChallenge>, DbErr> {
+pub async fn preload(
+    models: Vec<entity::game_challenge::Model>,
+) -> Result<Vec<GameChallenge>, DbErr> {
     let challenges = models
         .load_one(entity::challenge::Entity, get_db())
         .await?
@@ -60,9 +62,12 @@ async fn preload(models: Vec<entity::game_challenge::Model>) -> Result<Vec<GameC
 }
 
 pub async fn find(
-    game_id: Option<i64>, challenge_id: Option<i64>, is_enabled: Option<bool>,
+    game_id: Option<i64>, challenge_id: Option<i64>, category: Option<i32>,
+    is_enabled: Option<bool>,
 ) -> Result<(Vec<GameChallenge>, u64), DbErr> {
-    let mut sql = entity::game_challenge::Entity::find();
+    let mut sql = entity::game_challenge::Entity::find()
+        .inner_join(entity::challenge::Entity)
+        .inner_join(entity::game::Entity);
 
     if let Some(game_id) = game_id {
         sql = sql.filter(entity::game_challenge::Column::GameId.eq(game_id));
@@ -74,6 +79,10 @@ pub async fn find(
 
     if let Some(is_enabled) = is_enabled {
         sql = sql.filter(entity::game_challenge::Column::IsEnabled.eq(is_enabled));
+    }
+
+    if let Some(category) = category {
+        sql = sql.filter(entity::challenge::Column::Category.eq(category));
     }
 
     let total = sql.clone().count(get_db()).await?;
