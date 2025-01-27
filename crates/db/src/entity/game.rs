@@ -10,7 +10,9 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub title: String,
+    #[sea_orm(column_type = "Text")]
     pub sketch: Option<String>,
+    #[sea_orm(column_type = "Text")]
     pub description: Option<String>,
     pub is_enabled: bool,
     pub is_public: bool,

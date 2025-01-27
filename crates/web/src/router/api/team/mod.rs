@@ -5,8 +5,11 @@ use axum::{
     response::IntoResponse,
 };
 use cds_db::{entity::user::Group, get_db};
-use sea_orm::{ActiveModelTrait, ActiveValue::{NotSet, Set}, ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter, QuerySelect};
-use sea_orm::ActiveValue::Unchanged;
+use sea_orm::{
+    ActiveModelTrait,
+    ActiveValue::{NotSet, Set, Unchanged},
+    ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter, QuerySelect,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use validator::Validate;
@@ -445,7 +448,8 @@ pub async fn quit(
     if cds_db::entity::user_team::Entity::find()
         .filter(cds_db::entity::user_team::Column::TeamId.eq(team.id))
         .count(get_db())
-        .await? == 1
+        .await?
+        == 1
     {
         return Err(WebError::BadRequest(json!("delete_instead_of_leave")));
     }

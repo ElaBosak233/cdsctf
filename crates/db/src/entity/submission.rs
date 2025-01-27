@@ -1,6 +1,7 @@
 use async_trait::async_trait;
-use sea_orm::{Set, entity::prelude::*};
+use sea_orm::{DeriveActiveEnum, EnumIter, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::{challenge, game, team, user};
 
@@ -23,9 +24,6 @@ pub struct Model {
     #[sea_orm(default_value = 0)]
     pub rank: i64,
 }
-
-use sea_orm::{DeriveActiveEnum, EnumIter};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(
     Clone,
