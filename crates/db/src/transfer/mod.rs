@@ -1,3 +1,5 @@
+//! Transfer module is used to store structures with additional fields and
+//! preload functions.
 pub mod challenge;
 pub mod game;
 pub mod game_challenge;

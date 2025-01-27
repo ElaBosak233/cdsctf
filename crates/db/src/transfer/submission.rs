@@ -71,7 +71,7 @@ impl From<Submission> for entity::submission::Model {
     }
 }
 
-async fn preload(mut submissions: Vec<Submission>) -> Result<Vec<Submission>, DbErr> {
+pub async fn preload(mut submissions: Vec<Submission>) -> Result<Vec<Submission>, DbErr> {
     let models = submissions
         .clone()
         .into_iter()
@@ -119,54 +119,6 @@ async fn preload(mut submissions: Vec<Submission>) -> Result<Vec<Submission>, Db
         submission.game = games[i].clone();
     }
     Ok(submissions)
-}
-
-pub async fn find(
-    id: Option<i64>, user_id: Option<i64>, team_id: Option<i64>, game_id: Option<i64>,
-    challenge_id: Option<i64>, status: Option<Status>, page: Option<u64>, size: Option<u64>,
-) -> Result<(Vec<Submission>, u64), DbErr> {
-    let mut sql = entity::submission::Entity::find();
-
-    if let Some(id) = id {
-        sql = sql.filter(entity::submission::Column::Id.eq(id));
-    }
-
-    if let Some(user_id) = user_id {
-        sql = sql.filter(entity::submission::Column::UserId.eq(user_id));
-    }
-
-    if let Some(team_id) = team_id {
-        sql = sql.filter(entity::submission::Column::TeamId.eq(team_id));
-    }
-
-    if let Some(game_id) = game_id {
-        sql = sql.filter(entity::submission::Column::GameId.eq(game_id));
-    }
-
-    if let Some(challenge_id) = challenge_id {
-        sql = sql.filter(entity::submission::Column::ChallengeId.eq(challenge_id));
-    }
-
-    if let Some(status) = status {
-        sql = sql.filter(entity::submission::Column::Status.eq(status));
-    }
-
-    let total = sql.clone().count(get_db()).await?;
-
-    if let (Some(page), Some(size)) = (page, size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
-
-    let submissions = sql.all(get_db()).await?;
-    let mut submissions = submissions
-        .into_iter()
-        .map(Submission::from)
-        .collect::<Vec<Submission>>();
-
-    submissions = preload(submissions).await?;
-
-    Ok((submissions, total))
 }
 
 pub async fn get_by_challenge_ids(challenge_ids: Vec<Uuid>) -> Result<Vec<Submission>, DbErr> {
