@@ -11,7 +11,9 @@ pub struct Model {
     pub id: i64,
     pub name: String,
     pub email: Option<String>,
+    #[sea_orm(column_type = "Text")]
     pub slogan: Option<String>,
+    #[sea_orm(column_type = "Text")]
     pub description: Option<String>,
     pub invite_token: Option<String>,
     #[sea_orm(default_value = false)]
