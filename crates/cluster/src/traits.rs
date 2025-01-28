@@ -12,6 +12,8 @@ pub enum ClusterError {
     KubeRuntimeWaitError(#[from] kube::runtime::wait::Error),
     #[error("proxy error: {0}")]
     ProxyError(#[from] wsrx::Error),
+    #[error("missing field: {0}")]
+    MissingField(String),
     #[error(transparent)]
     OtherError(#[from] anyhow::Error),
 }

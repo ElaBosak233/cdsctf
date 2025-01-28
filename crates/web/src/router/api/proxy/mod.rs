@@ -2,6 +2,7 @@ use axum::{Router, extract::WebSocketUpgrade, response::IntoResponse};
 use serde::Deserialize;
 use tracing::debug;
 use uuid::Uuid;
+
 use crate::{
     extract::{Path, Query},
     traits::WebError,

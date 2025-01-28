@@ -38,7 +38,6 @@ pub async fn run() {
         entity::challenge::Entity,
         entity::game::Entity,
         entity::submission::Entity,
-        entity::pod::Entity,
         entity::game_challenge::Entity,
         entity::game_team::Entity
     );
