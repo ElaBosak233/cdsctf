@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::{challenge, game_challenge, game_team, pod, submission, team};
+use super::{challenge, game_challenge, game_team, submission, team};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "games")]
@@ -32,14 +32,12 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Submission,
-    Pod,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
             Self::Submission => Entity::has_many(submission::Entity).into(),
-            Self::Pod => Entity::has_many(pod::Entity).into(),
         }
     }
 }

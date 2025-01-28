@@ -1,29 +1,35 @@
 pub mod traits;
+pub mod worker;
 
-use std::{collections::BTreeMap, path::Path, process};
-use std::fmt::format;
+use std::{collections::BTreeMap, fmt::format, path::Path, process};
+
 use axum::extract::ws::WebSocket;
+use cds_db::get_db;
 use k8s_openapi::{
     api::core::v1::{
         Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec,
         ResourceRequirements, Service, ServicePort, ServiceSpec,
     },
     apimachinery::pkg::{api::resource::Quantity, apis::meta::v1::ObjectMeta},
+    serde_json::json,
 };
 use kube::{
-    Client as K8sClient, Config,
+    Client as K8sClient, Config as K8sConfig,
     api::{Api, DeleteParams, ListParams, PostParams},
     config::Kubeconfig,
-    runtime::wait::conditions,
+    runtime::{wait::conditions, watcher},
 };
 use once_cell::sync::OnceCell;
 use regex::Regex;
-use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel};
-use sea_orm::ActiveValue::{Set, Unchanged};
+use sea_orm::{
+    ActiveModelTrait,
+    ActiveValue::{Set, Unchanged},
+    EntityTrait, IntoActiveModel,
+};
 use tokio_util::codec::Framed;
 use tracing::{error, info};
 use uuid::Uuid;
-use cds_db::get_db;
+
 use crate::traits::ClusterError;
 
 static K8S_CLIENT: OnceCell<K8sClient> = OnceCell::new();
@@ -33,7 +39,7 @@ pub fn get_k8s_client() -> K8sClient {
 }
 
 pub async fn init() -> Result<(), ClusterError> {
-    let result = Config::from_custom_kubeconfig(
+    let result = K8sConfig::from_custom_kubeconfig(
         Kubeconfig::read_from(Path::new(
             cds_config::get_config().cluster.kube_config_path.as_str(),
         ))?,
@@ -74,30 +80,182 @@ pub async fn init() -> Result<(), ClusterError> {
         info!("Namespace is created successfully.");
     }
 
+    worker::cleaner().await;
+
     Ok(())
 }
 
-pub async fn create(id: Uuid) -> Result<(), ClusterError> {
-    let name = format!("cds-{}",id.to_string());
+pub async fn get_service(id: Uuid) -> Result<Service, ClusterError> {
+    let service = get_services_by_label(&format!("cds/resource_id={}", id.to_string()))
+        .await?
+        .get(0)
+        .ok_or(ClusterError::OtherError(anyhow::anyhow!("")))?
+        .to_owned();
 
-    let pod = cds_db::entity::pod::Entity::find_by_id(id).one(get_db()).await.unwrap().ok_or("").unwrap();
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(pod.challenge_id).one(get_db()).await.unwrap().ok_or("").unwrap();
+    Ok(service)
+}
 
-    let metadata = ObjectMeta {
-        name: Some(name.clone()),
-        labels: Some(BTreeMap::from([
-            ("cds/app".to_owned(), "challenges".to_owned()),
-            ("cds/resource_id".to_owned(), name.clone()),
-        ])),
-        ..Default::default()
-    };
+pub async fn get_services_by_label(label: &str) -> Result<Vec<Service>, ClusterError> {
+    let service_api: Api<Service> = Api::namespaced(
+        get_k8s_client(),
+        cds_config::get_config().cluster.namespace.as_str(),
+    );
 
+    let services = service_api
+        .list(&ListParams {
+            label_selector: Some(label.to_owned()),
+            ..Default::default()
+        })
+        .await?;
+
+    Ok(services.items)
+}
+
+pub async fn create_service(service: Service) -> Result<Service, ClusterError> {
+    let service_api: Api<Service> = Api::namespaced(
+        get_k8s_client(),
+        cds_config::get_config().cluster.namespace.as_str(),
+    );
+
+    let service = service_api.create(&Default::default(), &service).await?;
+
+    Ok(service)
+}
+
+pub async fn delete_service(id: &str) -> Result<(), ClusterError> {
+    let service_api: Api<Service> = Api::namespaced(
+        get_k8s_client(),
+        cds_config::get_config().cluster.namespace.as_str(),
+    );
+
+    let _ = service_api
+        .delete_collection(
+            &DeleteParams::default(),
+            &ListParams::default().labels(&format!("cds/resource_id={id}")),
+        )
+        .await?;
+
+    Ok(())
+}
+
+pub async fn get_pod(id: &str) -> Result<Pod, ClusterError> {
+    let pod = get_pods_by_label(&format!("cds/resource_id={}", id.to_string()))
+        .await?
+        .get(0)
+        .ok_or(ClusterError::OtherError(anyhow::anyhow!("")))?
+        .to_owned();
+
+    Ok(pod)
+}
+
+pub async fn get_pods_list() -> Result<Vec<Pod>, ClusterError> {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
         cds_config::get_config().cluster.namespace.as_str(),
     );
 
+    let pods = pod_api.list(&ListParams::default()).await?;
+
+    Ok(pods.items)
+}
+
+pub async fn get_pods_by_label(label: &str) -> Result<Vec<Pod>, ClusterError> {
+    let pod_api: Api<Pod> = Api::namespaced(
+        get_k8s_client(),
+        cds_config::get_config().cluster.namespace.as_str(),
+    );
+
+    let pods = pod_api
+        .list(&ListParams {
+            label_selector: Some(label.to_owned()),
+            field_selector: Some(
+                "status.phase!=Succeeded,status.phase!=Failed,status.phase!=Unknown".to_owned(),
+            ),
+            ..Default::default()
+        })
+        .await?;
+
+    Ok(pods.items)
+}
+
+pub async fn create_pod(pod: Pod) -> Result<Pod, ClusterError> {
+    let pod_api: Api<Pod> = Api::namespaced(
+        get_k8s_client(),
+        cds_config::get_config().cluster.namespace.as_str(),
+    );
+
+    let pod = pod_api.create(&Default::default(), &pod).await?;
+
+    Ok(pod)
+}
+
+pub async fn delete_pod(id: &str) -> Result<(), ClusterError> {
+    let pod_api: Api<Pod> = Api::namespaced(
+        get_k8s_client(),
+        cds_config::get_config().cluster.namespace.as_str(),
+    );
+
+    let _ = pod_api
+        .delete_collection(
+            &DeleteParams {
+                grace_period_seconds: Some(0),
+                ..Default::default()
+            },
+            &ListParams::default().labels(&format!("cds/resource_id={id}")),
+        )
+        .await?;
+
+    Ok(())
+}
+
+pub async fn create_challenge_env(
+    user: cds_db::transfer::User, team: Option<cds_db::transfer::Team>,
+    game: Option<cds_db::transfer::Game>, challenge: cds_db::transfer::Challenge,
+) -> Result<(), ClusterError> {
+    let id = Uuid::new_v4();
+    let name = format!("cds-{}", id.to_string());
+
+    let mut desensitized_challenge = challenge.clone();
+    desensitized_challenge.desensitize();
+
     let env = challenge.env.unwrap();
+
+    let metadata = ObjectMeta {
+        name: Some(name.clone()),
+        labels: Some(BTreeMap::from([
+            ("cds/app".to_owned(), "challenges".to_owned()),
+            ("cds/resource_id".to_owned(), id.to_string()),
+            ("cds/user_id".to_owned(), format!("{}", user.id)),
+            (
+                "cds/team_id".to_owned(),
+                format!("{}", match team {
+                    Some(team) => team.id,
+                    _ => 0,
+                }),
+            ),
+            (
+                "cds/game_id".to_owned(),
+                format!("{}", match game {
+                    Some(game) => game.id,
+                    _ => 0,
+                }),
+            ),
+            (
+                "cds/challenge_id".to_owned(),
+                format!("{}", challenge.id.to_string()),
+            ),
+        ])),
+        annotations: Some(BTreeMap::from([
+            (
+                "cds/challenge".to_owned(),
+                json!(desensitized_challenge).to_string(),
+            ),
+            ("cds/renew".to_owned(), format!("{}", 0)),
+            ("cds/duration".to_owned(), format!("{}", env.duration)),
+            ("cds/ports".to_owned(), json!(env.ports).to_string()),
+        ])),
+        ..Default::default()
+    };
 
     let mut env_vars: Vec<EnvVar> = env
         .envs
@@ -170,9 +328,9 @@ pub async fn create(id: Uuid) -> Result<(), ClusterError> {
         ..Default::default()
     };
 
-    pod_api.create(&PostParams::default(), &kube_pod).await?;
+    create_pod(kube_pod).await?;
 
-    let mut nats: Vec<cds_db::entity::pod::Nat> = Vec::new();
+    // let mut nats: Vec<cds_db::entity::pod::Nat> = Vec::new();
 
     let service_type = if cds_config::get_config().cluster.proxy.is_enabled {
         "ClusterIP"
@@ -183,37 +341,37 @@ pub async fn create(id: Uuid) -> Result<(), ClusterError> {
         get_k8s_client(),
         cds_config::get_config().cluster.namespace.as_str(),
     );
-    let service_ports: Vec<ServicePort> = env
-        .ports
-        .iter()
-        .map(|port| ServicePort {
-            name: Some(port.to_string()),
-            port: *port,
-            target_port: None,
-            protocol: Some("TCP".to_owned()),
-            ..Default::default()
-        })
-        .collect();
 
     let kube_service = Service {
         metadata: metadata.clone(),
         spec: Some(ServiceSpec {
             selector: Some(BTreeMap::from([(
                 "cds/resource_id".to_owned(),
-                name.clone(),
+                id.to_string(),
             )])),
-            ports: Some(service_ports),
+            ports: Some(
+                env.ports
+                    .iter()
+                    .map(|port| ServicePort {
+                        name: Some(port.to_string()),
+                        port: *port,
+                        target_port: None,
+                        protocol: Some("TCP".to_owned()),
+                        ..Default::default()
+                    })
+                    .collect::<Vec<ServicePort>>(),
+            ),
             type_: Some(service_type.to_owned()),
             ..Default::default()
         }),
         ..Default::default()
     };
 
-    match service_api.create(&PostParams::default(), &kube_service).await {
-        Ok(_) => {},
+    match create_service(kube_service).await {
+        Ok(_) => {}
         Err(err) => {
-            delete(id).await;
-            return Err(ClusterError::KubeError(err));
+            delete_challenge_env(&id.to_string()).await?;
+            return Err(err);
         }
     };
 
@@ -222,46 +380,32 @@ pub async fn create(id: Uuid) -> Result<(), ClusterError> {
         if let Some(ports) = spec.ports {
             for port in ports {
                 if let Some(node_port) = port.node_port {
-                    nats.push(cds_db::entity::pod::Nat {
-                        src: format!("{}", port.port),
-                        dst: Some(format!("{}", node_port)),
-                        proxy: cds_config::get_config().cluster.proxy.is_enabled,
-                        entry: match cds_config::get_config().cluster.proxy.is_enabled {
-                            true => Some("".to_owned()),
-                            false => Some(format!(
-                                "{}:{}",
-                                cds_config::get_config().cluster.entry_host,
-                                node_port
-                            ))
-                        },
-                    });
+                    // nats.push(cds_db::entity::pod::Nat {
+                    //     src: format!("{}", port.port),
+                    //     dst: Some(format!("{}", node_port)),
+                    //     proxy: cds_config::get_config().cluster.proxy.is_enabled,
+                    //     entry: match cds_config::get_config().cluster.proxy.is_enabled {
+                    //         true => Some("".to_owned()),
+                    //         false => Some(format!(
+                    //             "{}:{}",
+                    //             cds_config::get_config().cluster.entry_host,
+                    //             node_port
+                    //         )),
+                    //     },
+                    // });
                 }
             }
         }
     }
 
-    let _ = cds_db::entity::pod::ActiveModel {
-        id: Unchanged(id),
-        nats: Set(nats),
-        ..Default::default()
-    }.update(get_db()).await.unwrap();
-
     Ok(())
 }
 
-pub async fn delete(id: Uuid) {
-    let name = format!("cds-{}", id.to_string());
+pub async fn delete_challenge_env(id: &str) -> Result<(), ClusterError> {
+    delete_pod(id).await?;
+    delete_service(id).await?;
 
-    let pod_api: Api<Pod> = Api::namespaced(
-        get_k8s_client(),
-        cds_config::get_config().cluster.namespace.as_str(),
-    );
-    let _ = pod_api.delete(&name, &DeleteParams::default()).await;
-    let service_api: Api<Service> = Api::namespaced(
-        get_k8s_client(),
-        cds_config::get_config().cluster.namespace.as_str(),
-    );
-    let _ = service_api.delete(&name, &DeleteParams::default()).await;
+    Ok(())
 }
 
 pub async fn wsrx(id: Uuid, port: u16, ws: WebSocket) -> Result<(), ClusterError> {
