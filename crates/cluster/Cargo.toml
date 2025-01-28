@@ -9,6 +9,7 @@ resolver = "2"
 cds-config = { workspace = true }
 cds-db = { workspace = true }
 
+tokio = { workspace = true }
 kube = { workspace = true }
 k8s-openapi = { workspace = true }
 axum = { workspace = true }
@@ -18,3 +19,6 @@ tracing = { workspace = true }
 thiserror = { workspace = true }
 wsrx = { workspace = true }
 anyhow = { workspace = true }
+uuid = { workspace = true }
+sea-orm = { workspace = true }
+regex = { workspace = true }
