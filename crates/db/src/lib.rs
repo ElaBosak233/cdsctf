@@ -1,5 +1,6 @@
 pub mod entity;
 pub mod transfer;
+pub mod util;
 
 use std::time::Duration;
 

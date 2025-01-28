@@ -1,14 +1,17 @@
+use std::str::FromStr;
+
 use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
     http::StatusCode,
     response::IntoResponse,
 };
-use cds_db::{entity::user::Group, get_db};
+use cds_db::{entity, entity::user::Group, get_db};
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{NotSet, Set, Unchanged},
-    ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter, QuerySelect,
+    ColumnTrait, EntityTrait, IntoActiveModel, Order, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -47,10 +50,6 @@ pub fn router() -> Router {
         .route("/{id}/avatar", axum::routing::delete(delete_avatar))
 }
 
-fn can_modify_team(user: &cds_db::transfer::User, team: &cds_db::transfer::Team) -> bool {
-    user.group == Group::Admin || user.teams.iter().any(|t| t.id == team.id)
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct GetRequest {
     pub id: Option<i64>,
@@ -65,15 +64,55 @@ pub struct GetRequest {
 pub async fn get(
     Query(params): Query<GetRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Team>>, WebError> {
-    let (teams, total) = cds_db::transfer::team::find(
-        params.id,
-        params.name,
-        params.email,
-        params.sorts,
-        params.page,
-        params.size,
-    )
-    .await?;
+    let mut sql = entity::team::Entity::find();
+
+    if let Some(id) = params.id {
+        sql = sql.filter(entity::team::Column::Id.eq(id));
+    }
+
+    if let Some(name) = params.name {
+        sql = sql.filter(entity::team::Column::Name.contains(name));
+    }
+
+    if let Some(email) = params.email {
+        sql = sql.filter(entity::team::Column::Email.eq(email));
+    }
+
+    // Exclude teams which has been deleted.
+    sql = sql.filter(entity::team::Column::DeletedAt.is_null());
+
+    let total = sql.clone().count(get_db()).await?;
+
+    // Sort according to the `sorts` parameter.
+    if let Some(sorts) = params.sorts {
+        let sorts = sorts.split(",").collect::<Vec<&str>>();
+        for sort in sorts {
+            let col = match cds_db::entity::team::Column::from_str(sort.replace("-", "").as_str()) {
+                Ok(col) => col,
+                Err(_) => continue,
+            };
+            if sort.starts_with("-") {
+                sql = sql.order_by(col, Order::Desc);
+            } else {
+                sql = sql.order_by(col, Order::Asc);
+            }
+        }
+    }
+
+    // Paginate according to the `page` and `size` parameters.
+    if let (Some(page), Some(size)) = (params.page, params.size) {
+        let offset = (page - 1) * size;
+        sql = sql.offset(offset).limit(size);
+    }
+
+    let mut teams = sql
+        .all(get_db())
+        .await?
+        .into_iter()
+        .map(cds_db::transfer::Team::from)
+        .collect::<Vec<cds_db::transfer::Team>>();
+
+    teams = cds_db::transfer::team::preload(teams).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
@@ -93,9 +132,11 @@ pub struct CreateRequest {
 
 /// Create a team by given data.
 ///
-/// Only admins can use this function.
+/// Unlike the `register` function,
+/// no users will be added to the newly created team.
 ///
-/// No users will be added to the newly created team.
+/// # Prerequisite
+/// - Operator is admin.
 pub async fn create(
     Extension(ext): Extension<Ext>, VJson(body): VJson<CreateRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
@@ -180,7 +221,8 @@ pub struct UpdateRequest {
 
 /// Update a team by given data.
 ///
-/// Admins or the members of team can update any field of current team.
+/// # Prerequisite
+/// - Operator is admin or the members of current team.
 pub async fn update(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
@@ -193,7 +235,7 @@ pub async fn update(
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
 
-    if !can_modify_team(&operator, &team) {
+    if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
     body.id = Some(id);
@@ -219,10 +261,11 @@ pub async fn update(
 
 /// Delete a team by `id`.
 ///
-/// Admins or the members of team can delete current team.
+/// The team won't be permanently deleted.
+/// For safety, it's marked as deleted using the `is_deleted` field.
 ///
-/// The team won't be permanently deleted;
-/// for safety, it's marked as deleted using the `is_deleted` field.
+/// # Prerequisite
+/// - Operator is admin or the members of current team.
 pub async fn delete(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
@@ -235,7 +278,7 @@ pub async fn delete(
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
 
-    if !can_modify_team(&operator, &team) {
+    if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -263,6 +306,9 @@ pub struct CreateUserRequest {
 /// Add a user into a team by given data.
 ///
 /// Only admins can use this function.
+///
+/// # Prerequisite
+/// - Operator is admin.
 pub async fn create_user(
     Extension(ext): Extension<Ext>, Json(body): Json<CreateUserRequest>,
 ) -> Result<WebResponse<()>, WebError> {
@@ -294,7 +340,8 @@ pub async fn create_user(
 
 /// Kick a user from a team by `id` and `user_id`.
 ///
-/// Only admins can use this function.
+/// # Prerequisite
+/// - Operator is admin.
 pub async fn delete_user(
     Extension(ext): Extension<Ext>, Path((id, user_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
@@ -324,6 +371,9 @@ pub async fn delete_user(
 }
 
 /// Get the invite_token of a team by `id`.
+///
+/// # Prerequisite
+/// - Operator is admin or the members of current team.
 pub async fn get_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
@@ -336,7 +386,7 @@ pub async fn get_invite_token(
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
 
-    if !can_modify_team(&operator, &team) {
+    if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -356,7 +406,8 @@ pub async fn get_invite_token(
 
 /// Update the invite_token of a team by `id`.
 ///
-/// Admins or the members of team can update the invite_token.
+/// # Prerequisite
+/// - Operator is admin or the members of current team.
 pub async fn update_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
@@ -368,7 +419,7 @@ pub async fn update_invite_token(
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
 
-    if !can_modify_team(&operator, &team) {
+    if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -478,6 +529,10 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResponse<Meta
     util::media::get_img_metadata(path).await
 }
 
+/// Save an avatar for the team.
+///
+/// # Prerequisite
+/// - Operator is admin or the members of current team.
 pub async fn save_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
@@ -490,7 +545,7 @@ pub async fn save_avatar(
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
 
-    if !can_modify_team(&operator, &team) {
+    if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -499,6 +554,10 @@ pub async fn save_avatar(
     util::media::save_img(path, multipart).await
 }
 
+/// Delete avatar for the team.
+///
+/// # Prerequisite
+/// - Operator is admin or the members of current team.
 pub async fn delete_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
@@ -511,7 +570,7 @@ pub async fn delete_avatar(
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
 
-    if !can_modify_team(&operator, &team) {
+    if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 

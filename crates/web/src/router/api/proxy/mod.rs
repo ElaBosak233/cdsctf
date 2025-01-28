@@ -1,7 +1,7 @@
 use axum::{Router, extract::WebSocketUpgrade, response::IntoResponse};
 use serde::Deserialize;
 use tracing::debug;
-
+use uuid::Uuid;
 use crate::{
     extract::{Path, Query},
     traits::WebError,
@@ -18,7 +18,7 @@ pub struct LinkRequest {
 
 #[axum::debug_handler]
 pub async fn link(
-    Path(token): Path<String>, Query(query): Query<LinkRequest>, ws: WebSocketUpgrade,
+    Path(token): Path<Uuid>, Query(query): Query<LinkRequest>, ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
     let port = query.port;
 

@@ -16,7 +16,7 @@ use cds_db::{
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{NotSet, Unchanged},
-    ColumnTrait, Condition, EntityTrait, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder,
+    ColumnTrait, Condition, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder,
     QuerySelect, RelationTrait, Set,
 };
 use serde::{Deserialize, Serialize};
@@ -297,6 +297,12 @@ pub struct GetChallengeRequest {
     pub size: Option<u64>,
 }
 
+/// Get challenges by given params.
+///
+/// # Prerequisite
+/// - If the operator is admin, there is no prerequisite.
+/// - Operator is in one of the `is_allowed` = `true` game teams.
+/// - Operating time is between related game's `started_at` and `ended_at`.
 pub async fn get_challenge(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
@@ -305,41 +311,11 @@ pub async fn get_challenge(
     let game = cds_db::entity::game::Entity::find_by_id(id)
         .one(get_db())
         .await?
+        .map(|game| cds_db::transfer::Game::from(game))
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
     if operator.group != Group::Admin {
-        // Check if the operator can view the game challenges.
-        //
-        // There are two prerequisites:
-        // the operator must belong to one of the `is_allowed` = `true` game teams,
-        // and time is between game's `started_at` and `ended_at`.
-        //
-        // SELECT u.id AS user_id, gt.game_id, gt.is_allowed
-        // FROM users u
-        //     JOIN user_teams ut ON u.id = ut.user_id
-        //     JOIN game_teams gt ON ut.team_id = gt.team_id
-        // WHERE u.id = ? AND gt.game_id = ? AND gt.is_allowed = true;
-        let exists = cds_db::entity::user::Entity::find()
-            .join(
-                JoinType::InnerJoin,
-                cds_db::entity::user_team::Relation::User.def().rev(),
-            )
-            .join(
-                JoinType::InnerJoin,
-                cds_db::entity::user_team::Relation::Team.def(),
-            )
-            .join(
-                JoinType::InnerJoin,
-                cds_db::entity::game_team::Relation::Team.def().rev(),
-            )
-            .filter(cds_db::entity::user::Column::Id.eq(operator.id))
-            .filter(cds_db::entity::game_team::Column::GameId.eq(game.id))
-            .filter(cds_db::entity::game_team::Column::IsAllowed.eq(true))
-            .count(get_db())
-            .await?
-            > 0;
-
-        if !exists
+        if !cds_db::util::is_user_in_game(&operator, &game, Some(true)).await?
             || chrono::Utc::now().timestamp() < game.started_at
             || chrono::Utc::now().timestamp() > game.ended_at
         {
@@ -552,17 +528,41 @@ pub struct CreateTeamRequest {
     pub team_id: i64,
 }
 
+/// Add a team to a game with given path and data.
+///
+/// # Prerequisite
+/// - Operator is admin or one of the current team's members.
+/// - No user in the team is already in the game.
 pub async fn create_team(
-    Extension(ext): Extension<Ext>, Json(body): Json<CreateTeamRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(body): Json<CreateTeamRequest>,
 ) -> Result<WebResponse<GameTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
+
+    let game = cds_db::entity::game::Entity::find_by_id(id)
+        .one(get_db())
+        .await?
+        .map(|game| cds_db::transfer::Game::from(game))
+        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
+
+    let team = cds_db::entity::team::Entity::find_by_id(body.team_id)
+        .one(get_db())
+        .await?
+        .map(|team| cds_db::transfer::Team::from(team))
+        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
+
+    if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
+    if cds_db::util::is_user_in_game(&operator, &game, None).await? {
+        return Err(WebError::BadRequest(json!(
+            "one_user_in_team_already_in_game"
+        )));
+    }
+
     let game_team = cds_db::entity::game_team::ActiveModel {
-        game_id: Set(body.game_id),
-        team_id: Set(body.team_id),
+        game_id: Set(game.id),
+        team_id: Set(team.id),
         ..Default::default()
     }
     .insert(get_db())
@@ -583,6 +583,13 @@ pub struct UpdateTeamRequest {
     pub is_allowed: Option<bool>,
 }
 
+/// Update a game team with given path and data.
+///
+/// This function is only used to switch whether
+/// the game_team is allowed to access the game or not.
+///
+/// # Prerequisite
+/// - Operator is admin.
 pub async fn update_team(
     Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
     Json(mut body): Json<UpdateTeamRequest>,
@@ -683,8 +690,8 @@ pub async fn calculate(
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetScoreboardRequest {
-    pub size: u64,
-    pub page: u64,
+    pub size: Option<u64>,
+    pub page: Option<u64>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -696,15 +703,24 @@ pub struct ScoreRecord {
 pub async fn get_scoreboard(
     Path(id): Path<i64>, Query(params): Query<GetScoreboardRequest>,
 ) -> Result<WebResponse<Vec<ScoreRecord>>, WebError> {
-    let (game_teams, total) = cds_db::transfer::game_team::find(
-        Some(id),
-        None,
-        None,
-        Some("-pts".to_string()),
-        Some(params.page),
-        Some(params.size),
-    )
-    .await?;
+    let mut sql = cds_db::entity::game_team::Entity::find()
+        .filter(cds_db::entity::game_team::Column::GameId.eq(id))
+        .order_by(cds_db::entity::game_team::Column::Pts, Order::Desc);
+
+    let total = sql.clone().count(get_db()).await?;
+
+    if let (Some(page), Some(size)) = (params.page, params.size) {
+        let offset = (page - 1) * size;
+        sql = sql.offset(offset).limit(size);
+    }
+
+    let game_teams = sql.all(get_db()).await?;
+    let mut game_teams = game_teams
+        .into_iter()
+        .map(GameTeam::from)
+        .collect::<Vec<GameTeam>>();
+
+    game_teams = cds_db::transfer::game_team::preload(game_teams).await?;
 
     let team_ids = game_teams.iter().map(|t| t.team_id).collect::<Vec<i64>>();
 
