@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use sea_orm::{FromJsonQueryResult, Set, entity::prelude::*};
+use sea_orm::{FromJsonQueryResult, entity::prelude::*};
+use sea_orm::ActiveValue::Set;
 use serde::{Deserialize, Serialize};
 
 use super::{challenge, game, team, user};
@@ -7,14 +8,24 @@ use super::{challenge, game, team, user};
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "pods")]
 pub struct Model {
-    #[sea_orm(primary_key)]
-    pub id: i64,
-    pub name: String,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub id: Uuid,
     pub flag: Option<String>, // The generated flag, which will be injected into the cluster.
     pub user_id: i64,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: Uuid,
+
+    /// Pod phase
+    ///
+    /// - Pending
+    /// - Running
+    /// - Succeeded
+    /// - Failed
+    /// - Unknown
+    ///
+    /// https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase
+    pub phase: String,
     #[sea_orm(column_type = "JsonBinary")]
     pub nats: Vec<Nat>,
     pub removed_at: i64,
@@ -94,6 +105,7 @@ impl ActiveModelBehavior for ActiveModel {
         let ts = chrono::Utc::now().timestamp();
 
         if insert {
+            self.id = Set(Uuid::new_v4());
             self.created_at = Set(ts);
         }
 

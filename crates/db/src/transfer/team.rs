@@ -66,7 +66,7 @@ impl Team {
     }
 }
 
-async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
+pub async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
     let models = teams
         .clone()
         .into_iter()

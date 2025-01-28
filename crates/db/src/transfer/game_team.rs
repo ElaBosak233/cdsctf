@@ -33,7 +33,7 @@ impl From<entity::game_team::Model> for GameTeam {
     }
 }
 
-async fn preload(mut game_teams: Vec<GameTeam>) -> Result<Vec<GameTeam>, DbErr> {
+pub async fn preload(mut game_teams: Vec<GameTeam>) -> Result<Vec<GameTeam>, DbErr> {
     let team_ids: Vec<i64> = game_teams
         .iter()
         .map(|game_team| game_team.team_id)

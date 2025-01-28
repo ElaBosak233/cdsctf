@@ -1,8 +1,11 @@
 use std::time;
 
 use cds_db::get_db;
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use futures::StreamExt;
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::ActiveValue::{Set, Unchanged};
 use tracing::info;
+use uuid::Uuid;
 
 pub async fn init() {
     tokio::spawn(async {
@@ -14,12 +17,12 @@ pub async fn init() {
                 .await
                 .unwrap();
             for pod in pods {
-                cds_cluster::delete(pod.name.clone()).await;
+                cds_cluster::delete(pod.id).await;
                 cds_db::entity::pod::Entity::delete_by_id(pod.id)
                     .exec(get_db())
                     .await
                     .unwrap();
-                info!("Cleaned up expired cluster: {0}", pod.name);
+                info!("Cleaned up expired cluster: {0}", pod.id);
             }
             tokio::time::sleep(interval).await;
         }
