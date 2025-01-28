@@ -76,34 +76,34 @@ async fn check(id: i64) {
 
     match challenge.is_dynamic {
         true => {
-            // Dynamic challenge, verify flag correctness from pods
-            let pods = cds_db::entity::pod::Entity::find()
-                .filter(
-                    Condition::all()
-                        .add(
-                            cds_db::entity::pod::Column::RemovedAt
-                                .gte(chrono::Utc::now().timestamp()),
-                        )
-                        .add(cds_db::entity::pod::Column::ChallengeId.eq(submission.challenge_id))
-                        .add(submission.game_id.map_or(Condition::all(), |game_id| {
-                            Condition::all().add(cds_db::entity::pod::Column::GameId.eq(game_id))
-                        })),
-                )
-                .all(get_db())
-                .await
-                .unwrap();
-
-            for pod in pods {
-                if pod.flag == Some(submission.flag.clone()) {
-                    if pod.user_id == submission.user_id || submission.team_id == pod.team_id {
-                        status = Status::Correct;
-                        break;
-                    } else {
-                        status = Status::Cheat;
-                        break;
-                    }
-                }
-            }
+            // // Dynamic challenge, verify flag correctness from pods
+            // let pods = cds_db::entity::pod::Entity::find()
+            //     .filter(
+            //         Condition::all()
+            //             .add(
+            //                 cds_db::entity::pod::Column::RemovedAt
+            //                     .gte(chrono::Utc::now().timestamp()),
+            //             )
+            //             .add(cds_db::entity::pod::Column::ChallengeId.eq(submission.challenge_id))
+            //             .add(submission.game_id.map_or(Condition::all(), |game_id| {
+            //                 Condition::all().add(cds_db::entity::pod::Column::GameId.eq(game_id))
+            //             })),
+            //     )
+            //     .all(get_db())
+            //     .await
+            //     .unwrap();
+            //
+            // for pod in pods {
+            //     if pod.flag == Some(submission.flag.clone()) {
+            //         if pod.user_id == submission.user_id || submission.team_id == pod.team_id {
+            //             status = Status::Correct;
+            //             break;
+            //         } else {
+            //             status = Status::Cheat;
+            //             break;
+            //         }
+            //     }
+            // }
         }
         false => {
             // Static challenge

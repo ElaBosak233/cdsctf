@@ -1,16 +1,11 @@
-pub mod daemon;
+use std::collections::BTreeMap;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{
-    entity::user::Group,
-    get_db,
-    transfer::{Pod, pod::preload},
-};
+use cds_db::{get_db};
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, PaginatorTrait,
-    QueryFilter,
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, IntoActiveModel,
+    PaginatorTrait, QueryFilter,
 };
-use sea_orm::ActiveValue::Set;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
@@ -21,12 +16,10 @@ use crate::{
 };
 
 pub async fn router() -> Router {
-    daemon::init().await;
-
     Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
-        .route("/{id}/renew", axum::routing::post(renew))
+        // .route("/{id}/renew", axum::routing::post(renew))
         .route("/{id}/stop", axum::routing::post(stop))
 }
 
@@ -37,84 +30,84 @@ pub struct GetRequest {
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: Option<Uuid>,
-    pub is_available: Option<bool>,
-    pub is_detailed: Option<bool>,
-    pub page: Option<u64>,
-    pub size: Option<u64>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Pod {
+    pub id: String,
+    pub user_id: String,
+    pub team_id: String,
+    pub game_id: String,
+    pub challenge_id: String,
+
+    pub ports: String,
 }
 
 pub async fn get(
     Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
 ) -> Result<WebResponse<Vec<Pod>>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let mut sql = cds_db::entity::pod::Entity::find();
+    let mut map: BTreeMap<String, String> = BTreeMap::new();
 
     if let Some(id) = params.id {
-        sql = sql.filter(cds_db::entity::pod::Column::Id.eq(id));
+        map.insert("cds/resource_id".to_owned(), id);
     }
 
     if let Some(user_id) = params.user_id {
-        sql = sql.filter(cds_db::entity::pod::Column::UserId.eq(user_id));
+        map.insert("cds/user_id".to_owned(), format!("{}", user_id));
     }
 
     if let Some(team_id) = params.team_id {
-        sql = sql.filter(cds_db::entity::pod::Column::TeamId.eq(team_id));
+        map.insert("cds/team_id".to_owned(), format!("{}", team_id));
     }
 
     if let Some(game_id) = params.game_id {
-        sql = sql.filter(cds_db::entity::pod::Column::GameId.eq(game_id));
+        map.insert("cds/game_id".to_owned(), format!("{}", game_id));
     }
 
     if let Some(challenge_id) = params.challenge_id {
-        sql = sql.filter(cds_db::entity::pod::Column::ChallengeId.eq(challenge_id));
+        map.insert("cds/challenge_id".to_owned(), format!("{}", challenge_id));
     }
 
-    if let Some(is_available) = params.is_available {
-        match is_available {
-            true => {
-                sql = sql.filter(
-                    cds_db::entity::pod::Column::RemovedAt.gte(chrono::Utc::now().timestamp()),
-                )
-            }
-            false => {
-                sql = sql.filter(
-                    cds_db::entity::pod::Column::RemovedAt.lte(chrono::Utc::now().timestamp()),
-                )
-            }
-        }
-    }
+    let labels = map
+        .iter()
+        .map(|(k, v)| format!("{}={}", k, v))
+        .collect::<Vec<String>>()
+        .join(",");
 
-    let total = sql.clone().count(get_db()).await?;
+    let pods = cds_cluster::get_pods_by_label(&labels).await?;
 
-    let mut pods = sql
-        .all(get_db())
-        .await?
+    let pods = pods
         .into_iter()
-        .map(|pod| Pod::from(pod))
+        .map(|pod| {
+            let labels = pod
+                .metadata
+                .labels.unwrap_or_default();
+
+            let id = labels
+                .get("cds/resource_id")
+                .map(|s| s.to_owned())
+                .unwrap_or_default()
+                .to_owned();
+            let user_id = labels.get("cds/user_id").map(|s| s.to_owned()).unwrap_or_default().to_owned();
+            let team_id = labels.get("cds/team_id").map(|s| s.to_owned()).unwrap_or_default().to_owned();
+            let game_id = labels.get("cds/game_id").map(|s| s.to_owned()).unwrap_or_default().to_owned();
+            let challenge_id = labels.get("cds/challenge_id").map(|s| s.to_owned()).unwrap_or_default().to_owned();
+
+            let annotations = pod
+                .metadata
+                .annotations.unwrap_or_default();
+
+            let ports = annotations.get("cds/ports").map(|s| s.to_owned()).unwrap_or_default().to_owned();
+
+            Pod { id, user_id, team_id, game_id, challenge_id, ports }
+        })
         .collect::<Vec<Pod>>();
-
-    pods = preload(pods).await?;
-
-    match params.is_detailed {
-        Some(true) => {
-            if operator.group != Group::Admin {
-                return Err(WebError::Forbidden(json!("")));
-            }
-        }
-        _ => {
-            for pod in pods.iter_mut() {
-                pod.desensitize();
-                pod.user = None;
-                pod.challenge = None;
-            }
-        }
-    }
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(pods),
-        total: Some(total),
         ..WebResponse::default()
     })
 }
@@ -129,19 +122,21 @@ pub struct CreateRequest {
 
 pub async fn create(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
-) -> Result<WebResponse<Pod>, WebError> {
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
         .one(get_db())
         .await?
+        .map(|challenge| cds_db::transfer::Challenge::from(challenge))
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
 
-    if challenge.flags.clone().into_iter().next().is_none() {
+    if challenge.clone().flags.into_iter().next().is_none() {
         return Err(WebError::BadRequest(json!("no_flag")));
     }
 
-    let env = challenge
+    let _ = challenge
+        .clone()
         .env
         .ok_or(WebError::BadRequest(json!("challenge_env_invalid")))?;
 
@@ -164,7 +159,10 @@ pub async fn create(
             .filter(
                 Condition::all()
                     .add(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
-                    .add(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id)),
+                    .add(
+                        cds_db::entity::game_challenge::Column::ChallengeId
+                            .eq(challenge.clone().id),
+                    ),
             )
             .one(get_db())
             .await?
@@ -175,123 +173,112 @@ pub async fn create(
             .count(get_db())
             .await?;
 
-        let existing_pod_count = cds_db::entity::pod::Entity::find()
-            .filter(
-                Condition::all()
-                    .add(cds_db::entity::pod::Column::TeamId.eq(team_id))
-                    .add(cds_db::entity::pod::Column::GameId.eq(game_id)),
-            )
-            .count(get_db())
-            .await?;
-
-        if member_count == existing_pod_count {
-            return Err(WebError::TooManyRequests(json!("too_many_team_pods")));
-        }
+        // let existing_pod_count = cds_db::entity::pod::Entity::find()
+        //     .filter(
+        //         Condition::all()
+        //             .add(cds_db::entity::pod::Column::TeamId.eq(team_id))
+        //             .add(cds_db::entity::pod::Column::GameId.eq(game_id)),
+        //     )
+        //     .count(get_db())
+        //     .await?;
+        //
+        // if member_count == existing_pod_count {
+        //     return Err(WebError::TooManyRequests(json!("too_many_team_pods")));
+        // }
     } else {
-        let existing_pod_count = cds_db::entity::pod::Entity::find()
-            .filter(Condition::all().add(cds_db::entity::pod::Column::UserId.eq(operator.id)))
-            .count(get_db())
-            .await?;
-
-        if existing_pod_count == 1 {
-            return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
-        }
+        // let existing_pod_count = cds_db::entity::pod::Entity::find()
+        //     .filter(Condition::all().add(cds_db::entity::pod::Column::UserId.eq(operator.id)))
+        //     .count(get_db())
+        //     .await?;
+        //
+        // if existing_pod_count == 1 {
+        //     return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
+        // }
     }
 
-    let pod = cds_db::entity::pod::ActiveModel {
-        user_id: Set(operator.id),
-        team_id: Set(body.team_id),
-        game_id: Set(body.game_id),
-        challenge_id: Set(body.challenge_id),
-        removed_at: Set(chrono::Utc::now().timestamp() + env.duration),
-        phase: Set("Pending".to_owned()),
-        nats: Set(vec![]),
-        ..Default::default()
-    }
-    .insert(get_db())
-    .await?;
-    let mut pod = cds_db::transfer::Pod::from(pod);
-
-    pod.desensitize();
-
-    let pod_id = pod.clone().id;
-    tokio::spawn(async move {
-        let _ = cds_cluster::create(pod_id)
-            .await;
-    });
-
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        data: Some(pod),
-        ..WebResponse::default()
-    })
-}
-
-macro_rules! check_permission {
-    ($operator:expr, $pod:expr) => {
-        if !($operator.group == Group::Admin
-            || $operator.id == $pod.user_id
-            || $operator
-                .teams
-                .iter()
-                .any(|team| Some(team.id) == $pod.team_id))
-        {
-            return Err(WebError::Forbidden(json!("")));
-        }
+    let team = match body.team_id {
+        Some(team_id) => cds_db::entity::team::Entity::find_by_id(team_id)
+            .one(get_db())
+            .await?
+            .map(|team| cds_db::transfer::Team::from(team)),
+        _ => None,
     };
-}
 
-pub async fn renew(
-    Extension(ext): Extension<Ext>, Path(id): Path<Uuid>,
-) -> Result<WebResponse<Pod>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let game = match body.game_id {
+        Some(game_id) => cds_db::entity::game::Entity::find_by_id(game_id)
+            .one(get_db())
+            .await?
+            .map(|game| cds_db::transfer::Game::from(game)),
+        _ => None,
+    };
 
-    let pod = cds_db::entity::pod::Entity::find_by_id(id)
-        .one(get_db())
-        .await?
-        .ok_or(WebError::NotFound(json!("pod_not_found")))?;
-
-    check_permission!(operator, pod);
-
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(pod.challenge_id)
-        .one(get_db())
-        .await?;
-    let challenge = challenge.unwrap();
-
-    let mut pod = pod.clone().into_active_model();
-    pod.removed_at = Set(chrono::Utc::now().timestamp() + challenge.env.unwrap().duration);
-    let pod = pod.clone().update(get_db()).await?;
-
-    let mut pod = cds_db::transfer::Pod::from(pod);
-    pod.desensitize();
+    let _ = cds_cluster::create_challenge_env(operator, team, game, challenge).await;
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        data: Some(pod),
         ..WebResponse::default()
     })
 }
 
+// macro_rules! check_permission {
+//     ($operator:expr, $pod:expr) => {
+//         if !($operator.group == Group::Admin
+//             || $operator.id == $pod.user_id
+//             || $operator
+//                 .teams
+//                 .iter()
+//                 .any(|team| Some(team.id) == $pod.team_id))
+//         {
+//             return Err(WebError::Forbidden(json!("")));
+//         }
+//     };
+// }
+
+// pub async fn renew(
+//     Extension(ext): Extension<Ext>, Path(id): Path<Uuid>,
+// ) -> Result<WebResponse<Pod>, WebError> {
+//     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+//
+//     let pod = cds_db::entity::pod::Entity::find_by_id(id)
+//         .one(get_db())
+//         .await?
+//         .ok_or(WebError::NotFound(json!("pod_not_found")))?;
+//
+//     check_permission!(operator, pod);
+//
+//     let challenge = cds_db::entity::challenge::Entity::find_by_id(pod.challenge_id)
+//         .one(get_db())
+//         .await?;
+//     let challenge = challenge.unwrap();
+//
+//     let mut pod = pod.clone().into_active_model();
+//     pod.removed_at = Set(chrono::Utc::now().timestamp() + challenge.env.unwrap().duration);
+//     let pod = pod.clone().update(get_db()).await?;
+//
+//     let mut pod = cds_db::transfer::Pod::from(pod);
+//     pod.desensitize();
+//
+//     Ok(WebResponse {
+//         code: StatusCode::OK.as_u16(),
+//         data: Some(pod),
+//         ..WebResponse::default()
+//     })
+// }
+//
 pub async fn stop(
     Extension(ext): Extension<Ext>, Path(id): Path<Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let pod = cds_db::entity::pod::Entity::find_by_id(id)
-        .one(get_db())
-        .await?
-        .ok_or(WebError::NotFound(json!("pod_not_found")))?;
+    // todo: auth
 
-    check_permission!(operator, pod);
+    let pod = cds_cluster::get_pod(&id.to_string()).await?;
 
-    tokio::spawn(async move {
-        cds_cluster::delete(id).await;
-    });
+    let labels = pod.metadata.labels.unwrap_or_default();
 
-    let mut pod = pod.clone().into_active_model();
-    pod.removed_at = Set(chrono::Utc::now().timestamp());
+    let id = labels.get("cds/resource_id").map(|s| s.to_string()).unwrap_or_default();
 
-    let _ = pod.update(get_db()).await?;
+    cds_cluster::delete_challenge_env(&id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),

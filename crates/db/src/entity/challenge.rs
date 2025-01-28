@@ -9,7 +9,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::{game, game_challenge, pod, submission};
+use super::{game, game_challenge, submission};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "challenges")]
@@ -78,14 +78,12 @@ pub enum FlagType {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Submission,
-    Pod,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
             Self::Submission => Entity::has_many(submission::Entity).into(),
-            Self::Pod => Entity::has_many(pod::Entity).into(),
         }
     }
 }

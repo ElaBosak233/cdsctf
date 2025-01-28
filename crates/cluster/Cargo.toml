@@ -22,3 +22,5 @@ anyhow = { workspace = true }
 uuid = { workspace = true }
 sea-orm = { workspace = true }
 regex = { workspace = true }
+futures-util = { workspace = true }
+serde_json = { workspace = true }
