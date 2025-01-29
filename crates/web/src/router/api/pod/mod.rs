@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 
-use axum::{Router, http::StatusCode};
+use axum::{Router, extract::WebSocketUpgrade, http::StatusCode, response::IntoResponse};
 use cds_db::{entity::user::Group, get_db};
 use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::info;
+use tracing::debug;
 use uuid::Uuid;
 
 use crate::{
@@ -15,14 +15,34 @@ use crate::{
 
 pub async fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get))
-        .route("/", axum::routing::post(create))
-        .route("/{id}/renew", axum::routing::post(renew))
-        .route("/{id}/stop", axum::routing::post(stop))
+        .route("/", axum::routing::get(get_pod))
+        .route("/", axum::routing::post(create_pod))
+        .route("/{id}/renew", axum::routing::post(renew_pod))
+        .route("/{id}/stop", axum::routing::post(stop_pod))
+        .route("/{id}/wsrx", axum::routing::get(wsrx))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetRequest {
+pub struct Pod {
+    pub id: String,
+    pub user_id: i64,
+    pub team_id: i64,
+    pub game_id: i64,
+    pub challenge_id: String,
+
+    pub ports: Vec<i32>,
+    pub nats: String,
+
+    pub status: String,
+    pub reason: String,
+
+    pub renew: i64,
+    pub duration: i64,
+    pub started_at: i64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GetPodRequest {
     pub id: Option<String>,
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
@@ -30,23 +50,8 @@ pub struct GetRequest {
     pub challenge_id: Option<Uuid>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Pod {
-    pub id: String,
-    pub user_id: String,
-    pub team_id: String,
-    pub game_id: String,
-    pub challenge_id: String,
-
-    pub ports: String,
-    pub nats: String,
-
-    pub status: String,
-    pub reason: String,
-}
-
-pub async fn get(
-    Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
+pub async fn get_pod(
+    Extension(ext): Extension<Ext>, Query(params): Query<GetPodRequest>,
 ) -> Result<WebResponse<Vec<Pod>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -94,17 +99,23 @@ pub async fn get(
                 .get("cds/user_id")
                 .map(|s| s.to_owned())
                 .unwrap_or_default()
-                .to_owned();
+                .to_owned()
+                .parse::<i64>()
+                .unwrap_or(0);
             let team_id = labels
                 .get("cds/team_id")
                 .map(|s| s.to_owned())
                 .unwrap_or_default()
-                .to_owned();
+                .to_owned()
+                .parse::<i64>()
+                .unwrap_or(0);
             let game_id = labels
                 .get("cds/game_id")
                 .map(|s| s.to_owned())
                 .unwrap_or_default()
-                .to_owned();
+                .to_owned()
+                .parse::<i64>()
+                .unwrap_or(0);
             let challenge_id = labels
                 .get("cds/challenge_id")
                 .map(|s| s.to_owned())
@@ -113,16 +124,32 @@ pub async fn get(
 
             let annotations = pod.metadata.annotations.unwrap_or_default();
 
-            let ports = annotations
-                .get("cds/ports")
-                .map(|s| s.to_owned())
-                .unwrap_or_default()
-                .to_owned();
+            let ports = serde_json::from_str::<Vec<i32>>(
+                &annotations
+                    .get("cds/ports")
+                    .map(|s| s.to_owned())
+                    .unwrap_or_default(),
+            )
+            .unwrap_or_default();
             let nats = annotations
                 .get("cds/nats")
                 .map(|s| s.to_owned())
                 .unwrap_or_default()
                 .to_owned();
+            let duration = annotations
+                .get("cds/duration")
+                .map(|s| s.to_owned())
+                .unwrap_or_default()
+                .to_owned()
+                .parse::<i64>()
+                .unwrap_or(0);
+            let renew = annotations
+                .get("cds/renew")
+                .map(|s| s.to_owned())
+                .unwrap_or_default()
+                .to_owned()
+                .parse::<i64>()
+                .unwrap_or(0);
 
             let mut status = "".to_owned();
             let mut reason = "".to_owned();
@@ -152,6 +179,8 @@ pub async fn get(
                     }
                 });
 
+            let started_at = pod.metadata.creation_timestamp.unwrap().0.timestamp();
+
             Pod {
                 id,
                 user_id,
@@ -162,6 +191,9 @@ pub async fn get(
                 nats,
                 status,
                 reason,
+                renew,
+                duration,
+                started_at,
             }
         })
         .collect::<Vec<Pod>>();
@@ -174,15 +206,15 @@ pub async fn get(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CreateRequest {
+pub struct CreatePodRequest {
     pub challenge_id: Uuid,
     pub team_id: Option<i64>,
     pub user_id: Option<i64>,
     pub game_id: Option<i64>,
 }
 
-pub async fn create(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
+pub async fn create_pod(
+    Extension(ext): Extension<Ext>, Json(mut body): Json<CreatePodRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -288,7 +320,7 @@ pub async fn create(
     })
 }
 
-pub async fn renew(
+pub async fn renew_pod(
     Extension(ext): Extension<Ext>, Path(id): Path<Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -338,6 +370,10 @@ pub async fn renew(
 
     let now = chrono::Utc::now().timestamp();
 
+    if renew == 3 {
+        return Err(WebError::BadRequest(json!("no_more_renewal")));
+    }
+
     if now - started_at + (renew + 1) * duration > chrono::Duration::minutes(10).num_seconds() {
         return Err(WebError::BadRequest(json!("renewal_within_10_minutes")));
     }
@@ -350,7 +386,7 @@ pub async fn renew(
     })
 }
 
-pub async fn stop(
+pub async fn stop_pod(
     Extension(ext): Extension<Ext>, Path(id): Path<Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -387,4 +423,23 @@ pub async fn stop(
         code: StatusCode::OK.as_u16(),
         ..WebResponse::default()
     })
+}
+
+#[derive(Deserialize)]
+pub struct WsrxRequest {
+    pub port: u32,
+}
+
+#[axum::debug_handler]
+pub async fn wsrx(
+    Path(id): Path<Uuid>, Query(query): Query<WsrxRequest>, ws: WebSocketUpgrade,
+) -> Result<impl IntoResponse, WebError> {
+    let port = query.port;
+
+    Ok(ws.on_upgrade(move |socket| async move {
+        let result = cds_cluster::wsrx(id, port as u16, socket).await;
+        if let Err(e) = result {
+            debug!("Failed to link pods: {:?}", e);
+        }
+    }))
 }
