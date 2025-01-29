@@ -1,13 +1,11 @@
 use std::collections::BTreeMap;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{get_db};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, IntoActiveModel,
-    PaginatorTrait, QueryFilter,
-};
+use cds_db::{entity::user::Group, get_db};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tracing::info;
 use uuid::Uuid;
 
 use crate::{
@@ -19,7 +17,7 @@ pub async fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get))
         .route("/", axum::routing::post(create))
-        // .route("/{id}/renew", axum::routing::post(renew))
+        .route("/{id}/renew", axum::routing::post(renew))
         .route("/{id}/stop", axum::routing::post(stop))
 }
 
@@ -41,6 +39,10 @@ pub struct Pod {
     pub challenge_id: String,
 
     pub ports: String,
+    pub nats: String,
+
+    pub status: String,
+    pub reason: String,
 }
 
 pub async fn get(
@@ -81,27 +83,86 @@ pub async fn get(
     let pods = pods
         .into_iter()
         .map(|pod| {
-            let labels = pod
-                .metadata
-                .labels.unwrap_or_default();
+            let labels = pod.metadata.labels.unwrap_or_default();
 
             let id = labels
                 .get("cds/resource_id")
                 .map(|s| s.to_owned())
                 .unwrap_or_default()
                 .to_owned();
-            let user_id = labels.get("cds/user_id").map(|s| s.to_owned()).unwrap_or_default().to_owned();
-            let team_id = labels.get("cds/team_id").map(|s| s.to_owned()).unwrap_or_default().to_owned();
-            let game_id = labels.get("cds/game_id").map(|s| s.to_owned()).unwrap_or_default().to_owned();
-            let challenge_id = labels.get("cds/challenge_id").map(|s| s.to_owned()).unwrap_or_default().to_owned();
+            let user_id = labels
+                .get("cds/user_id")
+                .map(|s| s.to_owned())
+                .unwrap_or_default()
+                .to_owned();
+            let team_id = labels
+                .get("cds/team_id")
+                .map(|s| s.to_owned())
+                .unwrap_or_default()
+                .to_owned();
+            let game_id = labels
+                .get("cds/game_id")
+                .map(|s| s.to_owned())
+                .unwrap_or_default()
+                .to_owned();
+            let challenge_id = labels
+                .get("cds/challenge_id")
+                .map(|s| s.to_owned())
+                .unwrap_or_default()
+                .to_owned();
 
-            let annotations = pod
-                .metadata
-                .annotations.unwrap_or_default();
+            let annotations = pod.metadata.annotations.unwrap_or_default();
 
-            let ports = annotations.get("cds/ports").map(|s| s.to_owned()).unwrap_or_default().to_owned();
+            let ports = annotations
+                .get("cds/ports")
+                .map(|s| s.to_owned())
+                .unwrap_or_default()
+                .to_owned();
+            let nats = annotations
+                .get("cds/nats")
+                .map(|s| s.to_owned())
+                .unwrap_or_default()
+                .to_owned();
 
-            Pod { id, user_id, team_id, game_id, challenge_id, ports }
+            let mut status = "".to_owned();
+            let mut reason = "".to_owned();
+
+            let _ = pod
+                .status
+                .unwrap()
+                .container_statuses
+                .unwrap()
+                .iter()
+                .for_each(|s| {
+                    let container_state = s.to_owned().state.unwrap();
+                    if let Some(waiting) = container_state.waiting {
+                        status = "waiting".to_owned();
+                        if let Some(r) = waiting.reason {
+                            reason = r.clone();
+                        }
+                    }
+                    if let Some(_) = container_state.running {
+                        status = "running".to_owned();
+                    }
+                    if let Some(terminated) = container_state.terminated {
+                        status = "terminated".to_owned();
+                        if let Some(r) = terminated.reason {
+                            reason = r.clone();
+                        }
+                    }
+                });
+
+            Pod {
+                id,
+                user_id,
+                team_id,
+                game_id,
+                challenge_id,
+                ports,
+                nats,
+                status,
+                reason,
+            }
         })
         .collect::<Vec<Pod>>();
 
@@ -173,27 +234,34 @@ pub async fn create(
             .count(get_db())
             .await?;
 
-        // let existing_pod_count = cds_db::entity::pod::Entity::find()
-        //     .filter(
-        //         Condition::all()
-        //             .add(cds_db::entity::pod::Column::TeamId.eq(team_id))
-        //             .add(cds_db::entity::pod::Column::GameId.eq(game_id)),
-        //     )
-        //     .count(get_db())
-        //     .await?;
-        //
-        // if member_count == existing_pod_count {
-        //     return Err(WebError::TooManyRequests(json!("too_many_team_pods")));
-        // }
+        let existing_pods = cds_cluster::get_pods_by_label(
+            &BTreeMap::from([
+                ("cds/game_id", format!("{}", game_id)),
+                ("cds/team_id", format!("{}", team_id)),
+            ])
+            .iter()
+            .map(|(k, v)| format!("{}={}", k, v))
+            .collect::<Vec<String>>()
+            .join(","),
+        )
+        .await?;
+
+        if member_count == existing_pods.len() as u64 {
+            return Err(WebError::TooManyRequests(json!("too_many_team_pods")));
+        }
     } else {
-        // let existing_pod_count = cds_db::entity::pod::Entity::find()
-        //     .filter(Condition::all().add(cds_db::entity::pod::Column::UserId.eq(operator.id)))
-        //     .count(get_db())
-        //     .await?;
-        //
-        // if existing_pod_count == 1 {
-        //     return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
-        // }
+        let existing_pods = cds_cluster::get_pods_by_label(
+            &BTreeMap::from([("cds/user_id", format!("{}", operator.id))])
+                .iter()
+                .map(|(k, v)| format!("{}={}", k, v))
+                .collect::<Vec<String>>()
+                .join(","),
+        )
+        .await?;
+
+        if existing_pods.len() == 1 {
+            return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
+        }
     }
 
     let team = match body.team_id {
@@ -220,63 +288,98 @@ pub async fn create(
     })
 }
 
-// macro_rules! check_permission {
-//     ($operator:expr, $pod:expr) => {
-//         if !($operator.group == Group::Admin
-//             || $operator.id == $pod.user_id
-//             || $operator
-//                 .teams
-//                 .iter()
-//                 .any(|team| Some(team.id) == $pod.team_id))
-//         {
-//             return Err(WebError::Forbidden(json!("")));
-//         }
-//     };
-// }
+pub async fn renew(
+    Extension(ext): Extension<Ext>, Path(id): Path<Uuid>,
+) -> Result<WebResponse<()>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-// pub async fn renew(
-//     Extension(ext): Extension<Ext>, Path(id): Path<Uuid>,
-// ) -> Result<WebResponse<Pod>, WebError> {
-//     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-//
-//     let pod = cds_db::entity::pod::Entity::find_by_id(id)
-//         .one(get_db())
-//         .await?
-//         .ok_or(WebError::NotFound(json!("pod_not_found")))?;
-//
-//     check_permission!(operator, pod);
-//
-//     let challenge = cds_db::entity::challenge::Entity::find_by_id(pod.challenge_id)
-//         .one(get_db())
-//         .await?;
-//     let challenge = challenge.unwrap();
-//
-//     let mut pod = pod.clone().into_active_model();
-//     pod.removed_at = Set(chrono::Utc::now().timestamp() + challenge.env.unwrap().duration);
-//     let pod = pod.clone().update(get_db()).await?;
-//
-//     let mut pod = cds_db::transfer::Pod::from(pod);
-//     pod.desensitize();
-//
-//     Ok(WebResponse {
-//         code: StatusCode::OK.as_u16(),
-//         data: Some(pod),
-//         ..WebResponse::default()
-//     })
-// }
-//
+    let pod = cds_cluster::get_pod(&id.to_string()).await?;
+
+    let labels = pod.metadata.labels.unwrap_or_default();
+    let id = labels
+        .get("cds/resource_id")
+        .map(|s| s.to_string())
+        .unwrap_or_default();
+    let team_id = labels
+        .get("cds/team_id")
+        .map(|s| s.to_string())
+        .unwrap_or_default();
+    let user_id = labels
+        .get("cds/user_id")
+        .map(|s| s.to_string())
+        .unwrap_or_default();
+
+    if !(operator.group == Group::Admin
+        || operator.id.to_string() == user_id
+        || operator
+            .teams
+            .iter()
+            .any(|team| team.id.to_string() == team_id))
+    {
+        return Err(WebError::Forbidden(json!("")));
+    }
+
+    let started_at = pod.metadata.creation_timestamp.unwrap().0.timestamp();
+
+    let annotations = pod.metadata.annotations.unwrap_or_default();
+
+    let renew = annotations
+        .get("cds/renew")
+        .map(|s| s.to_owned())
+        .unwrap_or_default()
+        .parse::<i64>()
+        .unwrap();
+    let duration = annotations
+        .get("cds/duration")
+        .map(|s| s.to_owned())
+        .unwrap_or_default()
+        .parse::<i64>()
+        .unwrap();
+
+    let now = chrono::Utc::now().timestamp();
+
+    if now - started_at + (renew + 1) * duration > chrono::Duration::minutes(10).num_seconds() {
+        return Err(WebError::BadRequest(json!("renewal_within_10_minutes")));
+    }
+
+    cds_cluster::renew_challenge_env(&id).await?;
+
+    Ok(WebResponse {
+        code: StatusCode::OK.as_u16(),
+        ..WebResponse::default()
+    })
+}
+
 pub async fn stop(
     Extension(ext): Extension<Ext>, Path(id): Path<Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    // todo: auth
-
     let pod = cds_cluster::get_pod(&id.to_string()).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
+    let id = labels
+        .get("cds/resource_id")
+        .map(|s| s.to_string())
+        .unwrap_or_default();
+    let team_id = labels
+        .get("cds/team_id")
+        .map(|s| s.to_string())
+        .unwrap_or_default();
+    let user_id = labels
+        .get("cds/user_id")
+        .map(|s| s.to_string())
+        .unwrap_or_default();
 
-    let id = labels.get("cds/resource_id").map(|s| s.to_string()).unwrap_or_default();
+    if !(operator.group == Group::Admin
+        || operator.id.to_string() == user_id
+        || operator
+            .teams
+            .iter()
+            .any(|team| team.id.to_string() == team_id))
+    {
+        return Err(WebError::Forbidden(json!("")));
+    }
 
     cds_cluster::delete_challenge_env(&id).await?;
 
