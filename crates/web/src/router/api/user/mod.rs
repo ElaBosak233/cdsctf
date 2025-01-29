@@ -30,28 +30,28 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get))
-        .route("/", axum::routing::post(create))
-        .route("/{id}", axum::routing::put(update))
-        .route("/{id}", axum::routing::delete(delete))
-        .route("/{id}/teams", axum::routing::get(get_teams))
-        .route("/login", axum::routing::post(login))
-        .route("/register", axum::routing::post(register))
-        .route("/{id}/avatar", axum::routing::get(get_avatar))
+        .route("/", axum::routing::get(get_user))
+        .route("/", axum::routing::post(create_user))
+        .route("/{id}", axum::routing::put(update_user))
+        .route("/{id}", axum::routing::delete(delete_user))
+        .route("/{id}/teams", axum::routing::get(get_user_teams))
+        .route("/login", axum::routing::post(user_login))
+        .route("/register", axum::routing::post(user_register))
+        .route("/{id}/avatar", axum::routing::get(get_user_avatar))
         .route(
             "/{id}/avatar/metadata",
-            axum::routing::get(get_avatar_metadata),
+            axum::routing::get(get_user_avatar_metadata),
         )
         .route(
             "/{id}/avatar",
-            axum::routing::post(save_avatar)
+            axum::routing::post(save_user_avatar)
                 .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
         )
-        .route("/{id}/avatar", axum::routing::delete(delete_avatar))
+        .route("/{id}/avatar", axum::routing::delete(delete_user_avatar))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetRequest {
+pub struct GetUserRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
@@ -61,8 +61,8 @@ pub struct GetRequest {
     pub sorts: Option<String>,
 }
 
-pub async fn get(
-    Query(params): Query<GetRequest>,
+pub async fn get_user(
+    Query(params): Query<GetUserRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::User>>, WebError> {
     let (mut users, total) = cds_db::transfer::user::find(
         params.id,
@@ -89,7 +89,7 @@ pub async fn get(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
-pub struct CreateRequest {
+pub struct CreateUserRequest {
     pub username: String,
     pub nickname: String,
     pub email: String,
@@ -97,8 +97,8 @@ pub struct CreateRequest {
     pub group: Group,
 }
 
-pub async fn create(
-    Extension(ext): Extension<Ext>, VJson(mut body): VJson<CreateRequest>,
+pub async fn create_user(
+    Extension(ext): Extension<Ext>, VJson(mut body): VJson<CreateUserRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -135,7 +135,7 @@ pub async fn create(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
-pub struct UpdateRequest {
+pub struct UpdateUserRequest {
     pub id: Option<i64>,
     #[validate(length(min = 3, max = 20))]
     pub username: Option<String>,
@@ -147,8 +147,8 @@ pub struct UpdateRequest {
     pub description: Option<String>,
 }
 
-pub async fn update(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
+pub async fn update_user(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateUserRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     body.id = Some(id);
@@ -205,7 +205,7 @@ pub async fn update(
     })
 }
 
-pub async fn delete(
+pub async fn delete_user(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -235,7 +235,7 @@ pub async fn delete(
     })
 }
 
-pub async fn get_teams(
+pub async fn get_user_teams(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
@@ -250,12 +250,14 @@ pub async fn get_teams(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct LoginRequest {
+pub struct UserLoginRequest {
     pub account: String,
     pub password: String,
 }
 
-pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoResponse, WebError> {
+pub async fn user_login(
+    Json(mut body): Json<UserLoginRequest>,
+) -> Result<impl IntoResponse, WebError> {
     body.account = body.account.to_lowercase();
 
     let user = cds_db::entity::user::Entity::find()
@@ -314,7 +316,7 @@ pub async fn login(Json(mut body): Json<LoginRequest>) -> Result<impl IntoRespon
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
-pub struct RegisterRequest {
+pub struct UserRegisterRequest {
     #[validate(length(min = 3, max = 20))]
     pub username: String,
     pub nickname: String,
@@ -324,8 +326,8 @@ pub struct RegisterRequest {
     pub token: Option<String>,
 }
 
-pub async fn register(
-    Extension(_ext): Extension<Ext>, Json(mut body): Json<RegisterRequest>,
+pub async fn user_register(
+    Extension(_ext): Extension<Ext>, Json(mut body): Json<UserRegisterRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
@@ -376,19 +378,21 @@ pub async fn register(
     })
 }
 
-pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_user_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("users/{}/avatar", id);
 
     util::media::get_img(path).await
 }
 
-pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResponse<Metadata>, WebError> {
+pub async fn get_user_avatar_metadata(
+    Path(id): Path<i64>,
+) -> Result<WebResponse<Metadata>, WebError> {
     let path = format!("users/{}/avatar", id);
 
     util::media::get_img_metadata(path).await
 }
 
-pub async fn save_avatar(
+pub async fn save_user_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
@@ -401,7 +405,7 @@ pub async fn save_avatar(
     util::media::save_img(path, multipart).await
 }
 
-pub async fn delete_avatar(
+pub async fn delete_user_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;

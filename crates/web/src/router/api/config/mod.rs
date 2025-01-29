@@ -11,12 +11,12 @@ use crate::traits::{WebError, WebResponse};
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get))
+        .route("/", axum::routing::get(get_config))
         .route("/icon", axum::routing::get(get_icon))
 }
 
 pub type ClientConfig = serde_json::Value;
-pub async fn get() -> Result<WebResponse<ClientConfig>, WebError> {
+pub async fn get_config() -> Result<WebResponse<ClientConfig>, WebError> {
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(json!({
