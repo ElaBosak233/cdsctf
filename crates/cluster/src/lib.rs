@@ -14,8 +14,8 @@ use k8s_openapi::{
     serde_json::json,
 };
 use kube::{
-    Client as K8sClient, Config as K8sConfig,
-    api::{Api, DeleteParams, ListParams, PostParams},
+    Client as K8sClient, Config as K8sConfig, ResourceExt,
+    api::{Api, DeleteParams, ListParams, Patch, PatchParams, PostParams},
     config::Kubeconfig,
     runtime::{wait::conditions, watcher},
 };
@@ -27,7 +27,7 @@ use sea_orm::{
     EntityTrait, IntoActiveModel,
 };
 use tokio_util::codec::Framed;
-use tracing::{error, info};
+use tracing::{error, info, warn};
 use uuid::Uuid;
 
 use crate::traits::ClusterError;
@@ -89,7 +89,7 @@ pub async fn get_service(id: Uuid) -> Result<Service, ClusterError> {
     let service = get_services_by_label(&format!("cds/resource_id={}", id.to_string()))
         .await?
         .get(0)
-        .ok_or(ClusterError::OtherError(anyhow::anyhow!("")))?
+        .ok_or(ClusterError::NotFound("service_not_found".to_owned()))?
         .to_owned();
 
     Ok(service)
@@ -142,7 +142,7 @@ pub async fn get_pod(id: &str) -> Result<Pod, ClusterError> {
     let pod = get_pods_by_label(&format!("cds/resource_id={}", id.to_string()))
         .await?
         .get(0)
-        .ok_or(ClusterError::OtherError(anyhow::anyhow!("")))?
+        .ok_or(ClusterError::NotFound("pod_not_found".to_owned()))?
         .to_owned();
 
     Ok(pod)
@@ -220,6 +220,15 @@ pub async fn create_challenge_env(
 
     let env = challenge.env.unwrap();
 
+    let mut injected_flag = challenge.flags.clone().into_iter().next().unwrap();
+
+    let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])]").unwrap();
+    if injected_flag.type_ == cds_db::entity::challenge::FlagType::Dynamic {
+        injected_flag.value = re
+            .replace_all(&injected_flag.value, Uuid::new_v4().simple().to_string())
+            .to_string();
+    }
+
     let metadata = ObjectMeta {
         name: Some(name.clone()),
         labels: Some(BTreeMap::from([
@@ -250,6 +259,7 @@ pub async fn create_challenge_env(
                 "cds/challenge".to_owned(),
                 json!(desensitized_challenge).to_string(),
             ),
+            ("cds/flag".to_owned(), format!("{}", injected_flag.value)),
             ("cds/renew".to_owned(), format!("{}", 0)),
             ("cds/duration".to_owned(), format!("{}", env.duration)),
             ("cds/ports".to_owned(), json!(env.ports).to_string()),
@@ -267,15 +277,6 @@ pub async fn create_challenge_env(
         })
         .collect();
 
-    let mut injected_flag = challenge.flags.clone().into_iter().next().unwrap();
-
-    let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])]").unwrap();
-    if injected_flag.type_ == cds_db::entity::challenge::FlagType::Dynamic {
-        injected_flag.value = re
-            .replace_all(&injected_flag.value, Uuid::new_v4().simple().to_string())
-            .to_string();
-    }
-
     env_vars.push(EnvVar {
         name: injected_flag.env.unwrap_or("FLAG".to_owned()),
         value: Some(injected_flag.value),
@@ -292,7 +293,7 @@ pub async fn create_challenge_env(
         })
         .collect();
 
-    let kube_pod = Pod {
+    let pod = Pod {
         metadata: metadata.clone(),
         spec: Some(PodSpec {
             containers: vec![K8sContainer {
@@ -328,21 +329,15 @@ pub async fn create_challenge_env(
         ..Default::default()
     };
 
-    create_pod(kube_pod).await?;
-
-    // let mut nats: Vec<cds_db::entity::pod::Nat> = Vec::new();
+    let mut pod = create_pod(pod).await?;
 
     let service_type = if cds_config::get_config().cluster.proxy.is_enabled {
         "ClusterIP"
     } else {
         "NodePort"
     };
-    let service_api: Api<Service> = Api::namespaced(
-        get_k8s_client(),
-        cds_config::get_config().cluster.namespace.as_str(),
-    );
 
-    let kube_service = Service {
+    let service = Service {
         metadata: metadata.clone(),
         spec: Some(ServiceSpec {
             selector: Some(BTreeMap::from([(
@@ -367,36 +362,84 @@ pub async fn create_challenge_env(
         ..Default::default()
     };
 
-    match create_service(kube_service).await {
-        Ok(_) => {}
+    let service = match create_service(service).await {
+        Ok(service) => service,
         Err(err) => {
             delete_challenge_env(&id.to_string()).await?;
             return Err(err);
         }
     };
 
-    let kube_service = service_api.get(&name).await?;
-    if let Some(spec) = kube_service.spec {
+    let mut nats: BTreeMap<i32, i32> = BTreeMap::new();
+
+    if let Some(spec) = service.spec {
         if let Some(ports) = spec.ports {
             for port in ports {
                 if let Some(node_port) = port.node_port {
-                    // nats.push(cds_db::entity::pod::Nat {
-                    //     src: format!("{}", port.port),
-                    //     dst: Some(format!("{}", node_port)),
-                    //     proxy: cds_config::get_config().cluster.proxy.is_enabled,
-                    //     entry: match cds_config::get_config().cluster.proxy.is_enabled {
-                    //         true => Some("".to_owned()),
-                    //         false => Some(format!(
-                    //             "{}:{}",
-                    //             cds_config::get_config().cluster.entry_host,
-                    //             node_port
-                    //         )),
-                    //     },
-                    // });
+                    nats.insert(port.port, node_port);
                 }
             }
         }
     }
+
+    let pod_api: Api<Pod> = Api::namespaced(
+        get_k8s_client(),
+        cds_config::get_config().cluster.namespace.as_str(),
+    );
+
+    let annotations = pod.annotations_mut();
+    annotations.insert(
+        "cds/nats".to_owned(),
+        nats.iter()
+            .map(|(k, v)| format!("{}={}", k, v))
+            .collect::<Vec<String>>()
+            .join(","),
+    );
+
+    pod_api
+        .patch(
+            &name,
+            &PatchParams::default(),
+            &Patch::Merge(json!({
+                "metadata": {
+                    "annotations": annotations,
+                }
+            })),
+        )
+        .await?;
+
+    Ok(())
+}
+
+pub async fn renew_challenge_env(id: &str) -> Result<(), ClusterError> {
+    let name = format!("cds-{}", id.to_string());
+    let pod_api: Api<Pod> = Api::namespaced(
+        get_k8s_client(),
+        cds_config::get_config().cluster.namespace.as_str(),
+    );
+
+    warn!("{}", name);
+
+    let mut pod = get_pod(id).await?;
+
+    let annotations = pod.annotations_mut();
+
+    if let Some(renew) = annotations.get_mut("cds/renew") {
+        *renew = format!("{}", renew.parse::<i64>().unwrap_or(0) + 1);
+        warn!("{}", renew);
+    }
+
+    pod_api
+        .patch(
+            &name,
+            &PatchParams::default(),
+            &Patch::Merge(json!({
+                "metadata": {
+                    "annotations": annotations,
+                }
+            })),
+        )
+        .await?;
 
     Ok(())
 }

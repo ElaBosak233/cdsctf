@@ -1,6 +1,8 @@
 //! checker module is for checking submissions,
 //! it will assign a status to each submission.
 
+use std::collections::BTreeMap;
+
 use cds_db::{entity::submission::Status, get_db};
 use futures::StreamExt;
 use sea_orm::{
@@ -76,34 +78,47 @@ async fn check(id: i64) {
 
     match challenge.is_dynamic {
         true => {
-            // // Dynamic challenge, verify flag correctness from pods
-            // let pods = cds_db::entity::pod::Entity::find()
-            //     .filter(
-            //         Condition::all()
-            //             .add(
-            //                 cds_db::entity::pod::Column::RemovedAt
-            //                     .gte(chrono::Utc::now().timestamp()),
-            //             )
-            //             .add(cds_db::entity::pod::Column::ChallengeId.eq(submission.challenge_id))
-            //             .add(submission.game_id.map_or(Condition::all(), |game_id| {
-            //                 Condition::all().add(cds_db::entity::pod::Column::GameId.eq(game_id))
-            //             })),
-            //     )
-            //     .all(get_db())
-            //     .await
-            //     .unwrap();
-            //
-            // for pod in pods {
-            //     if pod.flag == Some(submission.flag.clone()) {
-            //         if pod.user_id == submission.user_id || submission.team_id == pod.team_id {
-            //             status = Status::Correct;
-            //             break;
-            //         } else {
-            //             status = Status::Cheat;
-            //             break;
-            //         }
-            //     }
-            // }
+            // Dynamic challenge, verify flag correctness from pods
+
+            let pods = cds_cluster::get_pods_by_label(
+                &BTreeMap::from([("cds/challenge_id", format!("{}", challenge.id))])
+                    .iter()
+                    .map(|(k, v)| format!("{}={}", k, v))
+                    .collect::<Vec<String>>()
+                    .join(","),
+            )
+            .await
+            .unwrap();
+
+            for pod in pods {
+                let labels = pod.metadata.labels.unwrap_or_default();
+                let annotations = pod.metadata.annotations.unwrap_or_default();
+
+                if let Some(flag) = annotations.get("cds/flag").map(|s| s.to_owned()) {
+                    let user_id = labels
+                        .get("cds/user_id")
+                        .map(|s| s.to_owned())
+                        .unwrap_or_default();
+                    let team_id = labels
+                        .get("cds/team_id")
+                        .map(|s| s.to_owned())
+                        .unwrap_or_default();
+
+                    if flag == submission.flag.clone() {
+                        if submission.user_id.to_string() == user_id {
+                            status = Status::Correct;
+                        } else if submission.team_id.is_some()
+                            && submission.team_id.unwrap().to_string() == team_id
+                        {
+                            status = Status::Correct;
+                        } else {
+                            status = Status::Cheat;
+                        }
+
+                        break;
+                    }
+                }
+            }
         }
         false => {
             // Static challenge
