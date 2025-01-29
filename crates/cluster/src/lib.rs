@@ -21,11 +21,6 @@ use kube::{
 };
 use once_cell::sync::OnceCell;
 use regex::Regex;
-use sea_orm::{
-    ActiveModelTrait,
-    ActiveValue::{Set, Unchanged},
-    EntityTrait, IntoActiveModel,
-};
 use tokio_util::codec::Framed;
 use tracing::{error, info, warn};
 use uuid::Uuid;

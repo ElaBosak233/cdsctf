@@ -22,14 +22,14 @@ pub async fn router() -> Router {
     checker::init().await;
 
     Router::new()
-        .route("/", axum::routing::get(get))
-        .route("/{id}", axum::routing::get(get_by_id))
-        .route("/", axum::routing::post(create))
-        .route("/{id}", axum::routing::delete(delete))
+        .route("/", axum::routing::get(get_submission))
+        .route("/{id}", axum::routing::get(get_submission_by_id))
+        .route("/", axum::routing::post(create_submission))
+        .route("/{id}", axum::routing::delete(delete_submission))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetRequest {
+pub struct GetSubmissionRequest {
     pub id: Option<i64>,
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
@@ -41,8 +41,8 @@ pub struct GetRequest {
     pub size: Option<u64>,
 }
 
-pub async fn get(
-    Extension(ext): Extension<Ext>, Query(params): Query<GetRequest>,
+pub async fn get_submission(
+    Extension(ext): Extension<Ext>, Query(params): Query<GetSubmissionRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
@@ -107,7 +107,7 @@ pub async fn get(
     })
 }
 
-pub async fn get_by_id(
+pub async fn get_submission_by_id(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<Submission>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -132,7 +132,7 @@ pub async fn get_by_id(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CreateRequest {
+pub struct CreateSubmissionRequest {
     pub flag: String,
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
@@ -140,8 +140,8 @@ pub struct CreateRequest {
     pub challenge_id: uuid::Uuid,
 }
 
-pub async fn create(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<CreateRequest>,
+pub async fn create_submission(
+    Extension(ext): Extension<Ext>, Json(mut body): Json<CreateSubmissionRequest>,
 ) -> Result<WebResponse<Submission>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -215,7 +215,7 @@ pub async fn create(
     })
 }
 
-pub async fn delete(
+pub async fn delete_submission(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

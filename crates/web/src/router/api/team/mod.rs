@@ -6,7 +6,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
-use cds_db::{entity, entity::user::Group, get_db};
+use cds_db::{entity::user::Group, get_db};
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{NotSet, Set, Unchanged},
@@ -26,32 +26,35 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get))
-        .route("/", axum::routing::post(create))
-        .route("/register", axum::routing::post(register))
-        .route("/{id}", axum::routing::put(update))
-        .route("/{id}", axum::routing::delete(delete))
-        .route("/{id}/users", axum::routing::post(create_user))
-        .route("/{id}/users/{user_id}", axum::routing::delete(delete_user))
-        .route("/{id}/invite", axum::routing::get(get_invite_token))
-        .route("/{id}/invite", axum::routing::put(update_invite_token))
-        .route("/{id}/join", axum::routing::post(join))
-        .route("/{id}/quit", axum::routing::delete(quit))
-        .route("/{id}/avatar", axum::routing::get(get_avatar))
+        .route("/", axum::routing::get(get_team))
+        .route("/", axum::routing::post(create_team))
+        .route("/register", axum::routing::post(perform_team_register))
+        .route("/{id}", axum::routing::put(update_team))
+        .route("/{id}", axum::routing::delete(delete_team))
+        .route("/{id}/users", axum::routing::post(create_team_user))
+        .route(
+            "/{id}/users/{user_id}",
+            axum::routing::delete(delete_team_user),
+        )
+        .route("/{id}/invite", axum::routing::get(get_team_invite_token))
+        .route("/{id}/invite", axum::routing::put(update_team_invite_token))
+        .route("/{id}/join", axum::routing::post(join_team))
+        .route("/{id}/quit", axum::routing::delete(quit_team))
+        .route("/{id}/avatar", axum::routing::get(get_team_avatar))
         .route(
             "/{id}/avatar/metadata",
-            axum::routing::get(get_avatar_metadata),
+            axum::routing::get(get_team_avatar_metadata),
         )
         .route(
             "/{id}/avatar",
-            axum::routing::post(save_avatar)
+            axum::routing::post(save_team_avatar)
                 .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
         )
-        .route("/{id}/avatar", axum::routing::delete(delete_avatar))
+        .route("/{id}/avatar", axum::routing::delete(delete_team_avatar))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
-pub struct GetRequest {
+pub struct GetTeamRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
@@ -61,25 +64,25 @@ pub struct GetRequest {
 }
 
 /// Get teams by given params.
-pub async fn get(
-    Query(params): Query<GetRequest>,
+pub async fn get_team(
+    Query(params): Query<GetTeamRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Team>>, WebError> {
-    let mut sql = entity::team::Entity::find();
+    let mut sql = cds_db::entity::team::Entity::find();
 
     if let Some(id) = params.id {
-        sql = sql.filter(entity::team::Column::Id.eq(id));
+        sql = sql.filter(cds_db::entity::team::Column::Id.eq(id));
     }
 
     if let Some(name) = params.name {
-        sql = sql.filter(entity::team::Column::Name.contains(name));
+        sql = sql.filter(cds_db::entity::team::Column::Name.contains(name));
     }
 
     if let Some(email) = params.email {
-        sql = sql.filter(entity::team::Column::Email.eq(email));
+        sql = sql.filter(cds_db::entity::team::Column::Email.eq(email));
     }
 
     // Exclude teams which has been deleted.
-    sql = sql.filter(entity::team::Column::DeletedAt.is_null());
+    sql = sql.filter(cds_db::entity::team::Column::DeletedAt.is_null());
 
     let total = sql.clone().count(get_db()).await?;
 
@@ -123,7 +126,7 @@ pub async fn get(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
-pub struct CreateRequest {
+pub struct CreateTeamRequest {
     pub name: String,
     pub email: String,
     pub slogan: Option<String>,
@@ -137,8 +140,8 @@ pub struct CreateRequest {
 ///
 /// # Prerequisite
 /// - Operator is admin.
-pub async fn create(
-    Extension(ext): Extension<Ext>, VJson(body): VJson<CreateRequest>,
+pub async fn create_team(
+    Extension(ext): Extension<Ext>, VJson(body): VJson<CreateTeamRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -162,7 +165,7 @@ pub async fn create(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
-pub struct RegisterRequest {
+pub struct PerformTeamRegisterRequest {
     pub name: String,
     pub email: String,
     pub slogan: Option<String>,
@@ -173,8 +176,8 @@ pub struct RegisterRequest {
 ///
 /// The operator of this function will be added into the newly created team.
 /// So you should call this function in general teams page, not in admin panel.
-pub async fn register(
-    Extension(ext): Extension<Ext>, VJson(body): VJson<RegisterRequest>,
+pub async fn perform_team_register(
+    Extension(ext): Extension<Ext>, VJson(body): VJson<PerformTeamRegisterRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -211,7 +214,7 @@ pub async fn register(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
-pub struct UpdateRequest {
+pub struct UpdateTeamRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
@@ -223,8 +226,8 @@ pub struct UpdateRequest {
 ///
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
-pub async fn update(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateRequest>,
+pub async fn update_team(
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateTeamRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::transfer::Team::from(
@@ -266,7 +269,7 @@ pub async fn update(
 ///
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
-pub async fn delete(
+pub async fn delete_team(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -298,7 +301,7 @@ pub async fn delete(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CreateUserRequest {
+pub struct CreateTeamUserRequest {
     pub user_id: i64,
     pub team_id: i64,
 }
@@ -309,8 +312,8 @@ pub struct CreateUserRequest {
 ///
 /// # Prerequisite
 /// - Operator is admin.
-pub async fn create_user(
-    Extension(ext): Extension<Ext>, Json(body): Json<CreateUserRequest>,
+pub async fn create_team_user(
+    Extension(ext): Extension<Ext>, Json(body): Json<CreateTeamUserRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::transfer::Team::from(
@@ -342,7 +345,7 @@ pub async fn create_user(
 ///
 /// # Prerequisite
 /// - Operator is admin.
-pub async fn delete_user(
+pub async fn delete_team_user(
     Extension(ext): Extension<Ext>, Path((id, user_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -374,7 +377,7 @@ pub async fn delete_user(
 ///
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
-pub async fn get_invite_token(
+pub async fn get_team_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -408,7 +411,7 @@ pub async fn get_invite_token(
 ///
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
-pub async fn update_invite_token(
+pub async fn update_team_invite_token(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -442,7 +445,7 @@ pub async fn update_invite_token(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct JoinRequest {
+pub struct JoinTeamRequest {
     pub user_id: i64,
     pub team_id: i64,
     pub invite_token: String,
@@ -451,8 +454,8 @@ pub struct JoinRequest {
 /// Join a team by given data.
 ///
 /// The field `user_id` will be overwritten by operator's id.
-pub async fn join(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<JoinRequest>,
+pub async fn join_team(
+    Extension(ext): Extension<Ext>, Json(mut body): Json<JoinTeamRequest>,
 ) -> Result<WebResponse<cds_db::transfer::UserTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::entity::team::Entity::find_by_id(body.team_id)
@@ -486,7 +489,7 @@ pub async fn join(
 /// Quit a team by `id`.
 ///
 /// Remove the operator from the current team.
-pub async fn quit(
+pub async fn quit_team(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -517,13 +520,15 @@ pub async fn quit(
     })
 }
 
-pub async fn get_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_team_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("teams/{}/avatar", id);
 
     util::media::get_img(path).await
 }
 
-pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResponse<Metadata>, WebError> {
+pub async fn get_team_avatar_metadata(
+    Path(id): Path<i64>,
+) -> Result<WebResponse<Metadata>, WebError> {
     let path = format!("teams/{}/avatar", id);
 
     util::media::get_img_metadata(path).await
@@ -533,7 +538,7 @@ pub async fn get_avatar_metadata(Path(id): Path<i64>) -> Result<WebResponse<Meta
 ///
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
-pub async fn save_avatar(
+pub async fn save_team_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -558,7 +563,7 @@ pub async fn save_avatar(
 ///
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
-pub async fn delete_avatar(
+pub async fn delete_team_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

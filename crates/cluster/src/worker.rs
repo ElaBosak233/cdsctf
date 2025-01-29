@@ -7,7 +7,6 @@ use kube::{
     Api,
     runtime::{WatchStreamExt, watcher as k8sWatcher, watcher::Event},
 };
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use tracing::{info, warn};
 
 use crate::{get_k8s_client, traits::ClusterError};
