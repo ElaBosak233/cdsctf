@@ -1,8 +1,6 @@
 use std::str::FromStr;
 
-use sea_orm::{
-    ColumnTrait, DbErr, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
-};
+use sea_orm::{ColumnTrait, DbErr, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -22,10 +20,12 @@ pub struct Challenge {
     pub has_attachment: bool,
     pub is_public: bool,
     pub env: Option<Env>,
-    pub flags: Vec<Flag>,
+    pub script: Option<String>,
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
+
+    pub flags: Vec<Flag>,
 }
 
 impl From<entity::challenge::Model> for Challenge {
@@ -40,10 +40,12 @@ impl From<entity::challenge::Model> for Challenge {
             has_attachment: entity.has_attachment,
             is_public: entity.is_public,
             env: entity.env,
-            flags: entity.flags,
+            script: entity.script,
             deleted_at: entity.deleted_at,
             created_at: entity.created_at,
             updated_at: entity.updated_at,
+
+            flags: entity.flags,
         }
     }
 }
@@ -60,10 +62,12 @@ impl From<Challenge> for entity::challenge::Model {
             has_attachment: challenge.has_attachment,
             is_public: challenge.is_public,
             env: challenge.env,
-            flags: challenge.flags,
+            script: challenge.script,
             deleted_at: challenge.deleted_at,
             created_at: challenge.created_at,
             updated_at: challenge.updated_at,
+
+            flags: challenge.flags,
         }
     }
 }
@@ -72,6 +76,7 @@ impl Challenge {
     pub fn desensitize(&mut self) {
         self.env = None;
         self.flags.clear();
+        self.script = None;
     }
 }
 

@@ -1,0 +1,21 @@
+[package]
+name = "cds-checker"
+version = "0.0.1"
+edition = "2024"
+publish = false
+resolver = "2"
+
+[dependencies]
+cds-db = { workspace = true }
+
+rune = { workspace = true }
+rune-modules = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+once_cell = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }
+chrono = { workspace = true }
+dashmap = { workspace = true }
+ring = { workspace = true }
+hex = { workspace = true }

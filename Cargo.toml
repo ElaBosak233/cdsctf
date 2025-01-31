@@ -14,6 +14,7 @@ cds-queue = { path = "crates/queue" }
 cds-metric = { path = "crates/metric" }
 cds-cache = { path = "crates/cache" }
 cds-cluster = { path = "crates/cluster" }
+cds-checker = { path = "crates/checker" }
 
 # Async
 async-trait = { version = "0.1" }
@@ -97,6 +98,10 @@ fred = { version = "10.0", features = [
 kube = { version = "0.98", features = ["client", "config", "runtime", "derive", "rustls-tls", "ws"] }
 k8s-openapi = { version = "0.24", features = ["latest"] }
 
+# Script Engine
+rune = { version = "0.13", features = ["tokio"] }
+rune-modules = { version = "0.13", features = ["full"] }
+
 # Miscellaneous
 once_cell = { version = "1.20" }
 prometheus = { version = "0.13" }
@@ -111,6 +116,7 @@ image = { version = "0.25.5" }
 webp = { version = "0.3.0", features = ["image"] }
 hex = { version = "0.4.3" }
 lettre = { version = "0.11", features = ["tokio1-rustls-tls"], default-features = false }
+dashmap = { version = "6.1" }
 
 [profile.release]
 opt-level = 3
