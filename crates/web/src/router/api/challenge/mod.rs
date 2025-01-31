@@ -289,6 +289,7 @@ pub async fn create_challenge(
         is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
         has_attachment: Set(body.has_attachment.unwrap_or(false)),
         env: Set(body.env),
+
         flags: Set(body.flags.unwrap_or(vec![])),
         ..Default::default()
     }
@@ -314,6 +315,9 @@ pub struct UpdateChallengeRequest {
     pub is_dynamic: Option<bool>,
     pub has_attachment: Option<bool>,
     pub env: Option<cds_db::entity::challenge::Env>,
+    pub script: Option<String>,
+
+    #[deprecated]
     pub flags: Option<Vec<cds_db::entity::challenge::Flag>>,
 }
 
@@ -344,8 +348,10 @@ pub async fn update_challenge(
         is_dynamic: body.is_dynamic.map_or(NotSet, Set),
         has_attachment: body.has_attachment.map_or(NotSet, Set),
         env: body.env.map_or(NotSet, |v| Set(Some(v))),
-        flags: body.flags.map_or(NotSet, Set),
+        script: body.script.map_or(NotSet, |v| Set(Some(v))),
         created_at: NotSet,
+
+        flags: body.flags.map_or(NotSet, Set),
         ..Default::default()
     }
     .update(get_db())
