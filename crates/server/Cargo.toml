@@ -13,6 +13,7 @@ cds-cluster = { workspace = true }
 cds-queue = { workspace = true }
 cds-web = { workspace = true }
 cds-cache = { workspace = true }
+cds-checker = { workspace = true }
 
 once_cell = { workspace = true }
 tracing = { workspace = true }

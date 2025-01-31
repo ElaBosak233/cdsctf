@@ -29,11 +29,15 @@ pub struct Model {
     pub is_public: bool,
     #[sea_orm(column_type = "JsonBinary")]
     pub env: Option<Env>,
-    #[sea_orm(column_type = "JsonBinary")]
-    pub flags: Vec<Flag>,
+    #[sea_orm(column_type = "Text")]
+    pub script: Option<String>,
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
+
+    #[deprecated]
+    #[sea_orm(column_type = "JsonBinary")]
+    pub flags: Vec<Flag>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]

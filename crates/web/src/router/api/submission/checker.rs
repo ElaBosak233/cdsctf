@@ -59,7 +59,7 @@ async fn check(id: i64) {
         return;
     }
 
-    let challenge = challenge.unwrap();
+    let challenge = challenge.map(|challenge| cds_db::transfer::Challenge::from(challenge)).unwrap();
 
     let exist_submissions = cds_db::entity::submission::Entity::find()
         .filter(
@@ -76,63 +76,14 @@ async fn check(id: i64) {
 
     let mut status: Status = Status::Incorrect;
 
-    match challenge.is_dynamic {
-        true => {
-            // Dynamic challenge, verify flag correctness from pods
-
-            let pods = cds_cluster::get_pods_by_label(
-                &BTreeMap::from([("cds/challenge_id", format!("{}", challenge.id))])
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", k, v))
-                    .collect::<Vec<String>>()
-                    .join(","),
-            )
-            .await
-            .unwrap();
-
-            for pod in pods {
-                let labels = pod.metadata.labels.unwrap_or_default();
-                let annotations = pod.metadata.annotations.unwrap_or_default();
-
-                if let Some(flag) = annotations.get("cds/flag").map(|s| s.to_owned()) {
-                    let user_id = labels
-                        .get("cds/user_id")
-                        .map(|s| s.to_owned())
-                        .unwrap_or_default();
-                    let team_id = labels
-                        .get("cds/team_id")
-                        .map(|s| s.to_owned())
-                        .unwrap_or_default();
-
-                    if flag == submission.flag.clone() {
-                        if submission.user_id.to_string() == user_id {
-                            status = Status::Correct;
-                        } else if submission.team_id.is_some()
-                            && submission.team_id.unwrap().to_string() == team_id
-                        {
-                            status = Status::Correct;
-                        } else {
-                            status = Status::Cheat;
-                        }
-
-                        break;
-                    }
-                }
-            }
-        }
-        false => {
-            // Static challenge
-            for flag in challenge.flags.clone() {
-                if flag.value == submission.flag {
-                    if flag.banned {
-                        status = Status::Cheat;
-                        break;
-                    } else {
-                        status = Status::Correct;
-                    }
-                }
-            }
-        }
+    let operator_id = match submission.team_id {
+        Some(team_id) => team_id,
+        _ => submission.user_id,
+    };
+    let result = cds_checker::check(challenge, operator_id, &submission.flag).await.unwrap();
+    match result {
+        true => status = Status::Correct,
+        false => status = Status::Incorrect,
     }
 
     if status == Status::Correct {

@@ -33,6 +33,7 @@ async fn bootstrap() {
 
     migrator::run().await;
     let _ = cds_cluster::init().await;
+    cds_checker::init().await.unwrap();
     cds_web::init().await;
 
     let addr = format!(
