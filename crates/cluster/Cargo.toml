@@ -8,6 +8,7 @@ resolver = "2"
 [dependencies]
 cds-config = { workspace = true }
 cds-db = { workspace = true }
+cds-checker = { workspace = true }
 
 tokio = { workspace = true }
 kube = { workspace = true }

@@ -24,8 +24,6 @@ pub struct Challenge {
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
-
-    pub flags: Vec<Flag>,
 }
 
 impl From<entity::challenge::Model> for Challenge {
@@ -44,8 +42,6 @@ impl From<entity::challenge::Model> for Challenge {
             deleted_at: entity.deleted_at,
             created_at: entity.created_at,
             updated_at: entity.updated_at,
-
-            flags: entity.flags,
         }
     }
 }
@@ -66,8 +62,6 @@ impl From<Challenge> for entity::challenge::Model {
             deleted_at: challenge.deleted_at,
             created_at: challenge.created_at,
             updated_at: challenge.updated_at,
-
-            flags: challenge.flags,
         }
     }
 }
@@ -75,7 +69,6 @@ impl From<Challenge> for entity::challenge::Model {
 impl Challenge {
     pub fn desensitize(&mut self) {
         self.env = None;
-        self.flags.clear();
         self.script = None;
     }
 }

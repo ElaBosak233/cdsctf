@@ -1,4 +1,4 @@
-//! XXTEA util for leet and suid modules.
+//! XXTEA util for suid modules.
 //!
 //! Modified from https://github.com/ret2shell/ret2script.
 

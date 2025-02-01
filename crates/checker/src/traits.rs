@@ -22,6 +22,8 @@ pub enum CheckerError {
     MissingScript(String),
     #[error("script error: {0}")]
     ScriptError(String),
+    #[error("String UTF-8 decode error: {0}")]
+    FromUtf8Error(#[from] std::string::FromUtf8Error),
     #[error("other error: {0}")]
     OtherError(#[from] anyhow::Error),
 }

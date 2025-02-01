@@ -21,3 +21,4 @@ ring = { workspace = true }
 hex = { workspace = true }
 regex = { workspace = true }
 aes = { workspace = true }
+tracing = { workspace = true }

@@ -14,6 +14,7 @@ use rune::{
     runtime::{Object, RuntimeContext},
     termcolor::Buffer,
 };
+use tracing::debug;
 use uuid::Uuid;
 
 use crate::traits::CheckerError;
@@ -51,6 +52,7 @@ pub fn init_rune_context() -> Result<(), CheckerError> {
     rune_context.install(modules::regex::module(true)?)?;
     rune_context.install(modules::suid::module(true)?)?;
     rune_context.install(modules::leet::module(true)?)?;
+    rune_context.install(modules::flag::module(true)?)?;
 
     RUNE_CONTEXT.set(rune_context).map_err(|_| {
         CheckerError::OtherError(anyhow!("RUNE_CONTEXT has already been initialized"))
@@ -64,28 +66,28 @@ pub fn get_rune_context() -> &'static Context {
 }
 
 pub fn lint(script: &str) -> Result<(), CheckerError> {
-    let rune_context = get_rune_context();
     let mut sources = Sources::new();
     sources.insert(Source::memory(script)?)?;
     let mut diagnostics = Diagnostics::new();
 
     let _ = rune::prepare(&mut sources)
-        .with_context(&rune_context)
-        .with_diagnostics(&mut diagnostics);
+        .with_context(&get_rune_context())
+        .with_diagnostics(&mut diagnostics).build();
 
     if !diagnostics.is_empty() {
         let mut out = Buffer::ansi();
         diagnostics.emit(&mut out, &sources)?;
 
-        return Err(CheckerError::CompileError(
-            String::from_utf8_lossy(&out.into_inner()).to_string(),
-        ));
+        let out = String::from_utf8(out.into_inner())?.to_string();
+
+        return Err(CheckerError::CompileError(out));
     }
 
     let unit = rune::prepare(&mut sources)
-        .with_context(&rune_context)
+        .with_context(&get_rune_context())
         .build()?;
-    let runtime = rune_context.runtime()?;
+
+    let runtime = get_rune_context().runtime()?;
     let vm = Vm::new(Arc::new(runtime), Arc::new(unit));
 
     vm.lookup_function(["check"])
@@ -100,9 +102,13 @@ pub fn lint(script: &str) -> Result<(), CheckerError> {
 async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerError> {
     let checker_context = get_checker_context();
 
-    if checker_context.contains_key(&challenge.id) {
-        return Ok(());
+    if let Some(context) = checker_context.get(&challenge.id) {
+        if context.created_at.timestamp() > challenge.updated_at {
+            return Ok(());
+        }
     }
+
+    debug!("Preloading checker for challenge {}", challenge.id);
 
     let mut sources = Sources::new();
 
@@ -129,7 +135,7 @@ async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerE
 }
 
 pub async fn check(
-    challenge: cds_db::transfer::Challenge, operator_id: i64, content: &str,
+    challenge: &cds_db::transfer::Challenge, operator_id: i64, content: &str,
 ) -> Result<bool, CheckerError> {
     preload(&challenge).await?;
 
@@ -152,7 +158,7 @@ pub async fn check(
 }
 
 pub async fn environ(
-    challenge: cds_db::transfer::Challenge, operator_id: i64,
+    challenge: &cds_db::transfer::Challenge, operator_id: i64,
 ) -> Result<HashMap<String, String>, CheckerError> {
     preload(&challenge).await?;
 

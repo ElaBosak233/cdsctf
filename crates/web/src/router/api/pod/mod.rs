@@ -224,10 +224,6 @@ pub async fn create_pod(
         .map(|challenge| cds_db::transfer::Challenge::from(challenge))
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
 
-    if challenge.clone().flags.into_iter().next().is_none() {
-        return Err(WebError::BadRequest(json!("no_flag")));
-    }
-
     let _ = challenge
         .clone()
         .env
@@ -312,7 +308,7 @@ pub async fn create_pod(
         _ => None,
     };
 
-    let _ = cds_cluster::create_challenge_env(operator, team, game, challenge).await;
+    let _ = cds_cluster::create_challenge_env(operator, team, game, challenge).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
