@@ -1,3 +1,3 @@
 pub mod leet;
-pub mod xxtea;
 pub mod suid;
+pub mod xxtea;
