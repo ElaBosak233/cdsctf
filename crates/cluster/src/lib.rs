@@ -210,19 +210,7 @@ pub async fn create_challenge_env(
     let id = Uuid::new_v4();
     let name = format!("cds-{}", id.to_string());
 
-    let mut desensitized_challenge = challenge.clone();
-    desensitized_challenge.desensitize();
-
-    let env = challenge.env.unwrap();
-
-    let mut injected_flag = challenge.flags.clone().into_iter().next().unwrap();
-
-    let re = Regex::new(r"\[([Uu][Uu][Ii][Dd])]").unwrap();
-    if injected_flag.type_ == cds_db::entity::challenge::FlagType::Dynamic {
-        injected_flag.value = re
-            .replace_all(&injected_flag.value, Uuid::new_v4().simple().to_string())
-            .to_string();
-    }
+    let env = challenge.clone().env.unwrap();
 
     let metadata = ObjectMeta {
         name: Some(name.clone()),
@@ -232,14 +220,14 @@ pub async fn create_challenge_env(
             ("cds/user_id".to_owned(), format!("{}", user.id)),
             (
                 "cds/team_id".to_owned(),
-                format!("{}", match team {
+                format!("{}", match &team {
                     Some(team) => team.id,
                     _ => 0,
                 }),
             ),
             (
                 "cds/game_id".to_owned(),
-                format!("{}", match game {
+                format!("{}", match &game {
                     Some(game) => game.id,
                     _ => 0,
                 }),
@@ -250,11 +238,7 @@ pub async fn create_challenge_env(
             ),
         ])),
         annotations: Some(BTreeMap::from([
-            (
-                "cds/challenge".to_owned(),
-                json!(desensitized_challenge).to_string(),
-            ),
-            ("cds/flag".to_owned(), format!("{}", injected_flag.value)),
+            ("cds/challenge".to_owned(), json!(challenge).to_string()),
             ("cds/renew".to_owned(), format!("{}", 0)),
             ("cds/duration".to_owned(), format!("{}", env.duration)),
             ("cds/ports".to_owned(), json!(env.ports).to_string()),
@@ -272,11 +256,21 @@ pub async fn create_challenge_env(
         })
         .collect();
 
-    env_vars.push(EnvVar {
-        name: injected_flag.env.unwrap_or("FLAG".to_owned()),
-        value: Some(injected_flag.value),
-        ..Default::default()
-    });
+    let operator_id = if let (Some(_), Some(team)) = (game, team) {
+        team.id
+    } else {
+        user.id
+    };
+
+    let checker_environ = cds_checker::environ(&challenge, operator_id).await?;
+
+    for (k, v) in checker_environ {
+        env_vars.push(EnvVar {
+            name: k,
+            value: Some(v),
+            ..Default::default()
+        })
+    }
 
     let container_ports: Vec<ContainerPort> = env
         .ports

@@ -22,7 +22,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use validator::Validate;
-
+use cds_checker::traits::CheckerError;
 use crate::{
     extract::{Extension, Json, Path, Query, VJson},
     model::Metadata,
@@ -36,6 +36,7 @@ pub fn router() -> Router {
         .route("/status", axum::routing::post(get_challenge_status))
         .route("/{id}", axum::routing::put(update_challenge))
         .route("/{id}", axum::routing::delete(delete_challenge))
+        .route("/{id}/lint", axum::routing::get(lint_challenge_script))
         .route(
             "/{id}/attachment",
             axum::routing::get(get_challenge_attachment),
@@ -151,7 +152,7 @@ pub async fn get_challenge(
     for challenge in challenges.iter_mut() {
         let is_detailed = params.is_detailed.unwrap_or(false);
         if !is_detailed {
-            challenge.flags.clear();
+            challenge.desensitize();
         }
     }
 
@@ -269,7 +270,7 @@ pub struct CreateChallengeRequest {
     pub has_attachment: Option<bool>,
     pub image_name: Option<String>,
     pub env: Option<cds_db::entity::challenge::Env>,
-    pub flags: Option<Vec<cds_db::entity::challenge::Flag>>,
+    pub script: Option<String>,
 }
 
 pub async fn create_challenge(
@@ -289,8 +290,7 @@ pub async fn create_challenge(
         is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
         has_attachment: Set(body.has_attachment.unwrap_or(false)),
         env: Set(body.env),
-
-        flags: Set(body.flags.unwrap_or(vec![])),
+        script: Set(body.script),
         ..Default::default()
     }
     .insert(get_db())
@@ -316,9 +316,6 @@ pub struct UpdateChallengeRequest {
     pub has_attachment: Option<bool>,
     pub env: Option<cds_db::entity::challenge::Env>,
     pub script: Option<String>,
-
-    #[deprecated]
-    pub flags: Option<Vec<cds_db::entity::challenge::Flag>>,
 }
 
 pub async fn update_challenge(
@@ -350,8 +347,6 @@ pub async fn update_challenge(
         env: body.env.map_or(NotSet, |v| Set(Some(v))),
         script: body.script.map_or(NotSet, |v| Set(Some(v))),
         created_at: NotSet,
-
-        flags: body.flags.map_or(NotSet, Set),
         ..Default::default()
     }
     .update(get_db())
@@ -389,6 +384,37 @@ pub async fn delete_challenge(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
+        ..WebResponse::default()
+    })
+}
+
+pub async fn lint_challenge_script(Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>) -> Result<WebResponse<()>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(json!("")));
+    }
+
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+
+    let script = challenge.script.ok_or(WebError::BadRequest(json!("null_script")))?;
+
+    let lint = cds_checker::lint(&script);
+    let msg = if let Err(lint) = lint {
+        match lint {
+            CheckerError::CompileError(diagnostics) => Some(diagnostics),
+            err => Some(err.to_string())
+        }
+    } else {
+        None
+    };
+
+    Ok(WebResponse {
+        code: StatusCode::OK.as_u16(),
+        msg: msg.map(|msg| json!(msg)),
         ..WebResponse::default()
     })
 }
