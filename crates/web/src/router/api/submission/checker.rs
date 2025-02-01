@@ -3,17 +3,18 @@
 
 use std::collections::BTreeMap;
 
+use anyhow::anyhow;
 use cds_db::{entity::submission::Status, get_db};
 use futures::StreamExt;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter,
-    QueryOrder, Set,
+    ActiveModelTrait, ActiveValue::Unchanged, ColumnTrait, Condition, EntityTrait, IntoActiveModel,
+    QueryFilter, QueryOrder, Set,
 };
-use tracing::info;
+use tracing::{error, info};
 
 use crate::router::api::game::calculator;
 
-async fn check(id: i64) {
+async fn check(id: i64) -> Result<(), anyhow::Error> {
     let submission = cds_db::entity::submission::Entity::find()
         .filter(
             Condition::all()
@@ -21,26 +22,18 @@ async fn check(id: i64) {
                 .add(cds_db::entity::submission::Column::Status.eq(Status::Pending)),
         )
         .one(get_db())
-        .await
-        .unwrap();
-
-    if submission.is_none() {
-        return;
-    }
-
-    let submission = submission.unwrap();
+        .await?
+        .ok_or(anyhow!(""))?;
 
     let user = cds_db::entity::user::Entity::find_by_id(submission.user_id)
         .one(get_db())
-        .await
-        .unwrap();
+        .await?;
 
     if user.is_none() {
         cds_db::entity::submission::Entity::delete_by_id(submission.id)
             .exec(get_db())
-            .await
-            .unwrap();
-        return;
+            .await?;
+        return Err(anyhow!(""));
     }
 
     let user = user.unwrap();
@@ -48,18 +41,18 @@ async fn check(id: i64) {
     // Get related challenge
     let challenge = cds_db::entity::challenge::Entity::find_by_id(submission.challenge_id)
         .one(get_db())
-        .await
-        .unwrap();
+        .await?
+        .map(|challenge| cds_db::transfer::Challenge::from(challenge));
 
     if challenge.is_none() {
         cds_db::entity::submission::Entity::delete_by_id(submission.id)
             .exec(get_db())
-            .await
-            .unwrap();
-        return;
+            .await?;
+
+        return Err(anyhow!(""));
     }
 
-    let challenge = challenge.map(|challenge| cds_db::transfer::Challenge::from(challenge)).unwrap();
+    let challenge = challenge.unwrap();
 
     let exist_submissions = cds_db::entity::submission::Entity::find()
         .filter(
@@ -71,8 +64,7 @@ async fn check(id: i64) {
                 .add(cds_db::entity::submission::Column::Status.eq(Status::Correct)),
         )
         .all(get_db())
-        .await
-        .unwrap();
+        .await?;
 
     let mut status: Status = Status::Incorrect;
 
@@ -80,7 +72,18 @@ async fn check(id: i64) {
         Some(team_id) => team_id,
         _ => submission.user_id,
     };
-    let result = cds_checker::check(challenge, operator_id, &submission.flag).await.unwrap();
+    let result = cds_checker::check(challenge, operator_id, &submission.flag).await;
+
+    if result.is_err() {
+        cds_db::entity::submission::Entity::delete_by_id(submission.id)
+            .exec(get_db())
+            .await?;
+
+        return Err(anyhow!(""));
+    }
+
+    let result = result?;
+
     match result {
         true => status = Status::Correct,
         false => status = Status::Incorrect,
@@ -102,18 +105,22 @@ async fn check(id: i64) {
         submission.id, status, user.username
     );
 
-    let mut submission_active_model = submission.clone().into_active_model();
-    submission_active_model.status = Set(status.clone());
-
-    submission_active_model.update(get_db()).await.unwrap();
+    let submission = cds_db::entity::submission::ActiveModel {
+        id: Unchanged(submission.id),
+        status: Set(status.clone()),
+        ..Default::default()
+    }
+    .update(get_db())
+    .await?;
 
     if submission.game_id.is_some() && status == Status::Correct {
         cds_queue::publish("calculator", calculator::Payload {
             game_id: submission.game_id,
         })
-        .await
-        .unwrap();
+        .await?;
     }
+
+    Ok(())
 }
 
 async fn recover() {
@@ -140,7 +147,11 @@ pub async fn init() {
             let message = result.unwrap();
             let payload = String::from_utf8(message.payload.to_vec()).unwrap();
             let id = payload.parse::<i64>().unwrap();
-            check(id).await;
+
+            if let Err(err) = check(id).await {
+                error!("{:?}", err);
+            }
+
             message.ack().await.unwrap();
         }
     });
