@@ -19,3 +19,4 @@ chrono = { workspace = true }
 dashmap = { workspace = true }
 ring = { workspace = true }
 hex = { workspace = true }
+regex = { workspace = true }
