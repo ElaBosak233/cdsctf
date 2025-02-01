@@ -1,16 +1,19 @@
 pub mod modules;
 pub mod traits;
+pub mod util;
 pub mod worker;
 
-use std::collections::HashMap;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::anyhow;
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use once_cell::sync::{Lazy, OnceCell};
-use rune::{Context, Diagnostics, Source, Sources, Unit, Vm, runtime::RuntimeContext, termcolor::Buffer, Any, Value};
-use rune::runtime::Object;
+use rune::{
+    Any, Context, Diagnostics, Source, Sources, Unit, Value, Vm,
+    runtime::{Object, RuntimeContext},
+    termcolor::Buffer,
+};
 use uuid::Uuid;
 
 use crate::traits::CheckerError;
@@ -45,6 +48,9 @@ pub fn init_rune_context() -> Result<(), CheckerError> {
     rune_context.install(rune_modules::process::module(true)?)?;
 
     rune_context.install(modules::crypto::module(true)?)?;
+    rune_context.install(modules::regex::module(true)?)?;
+    rune_context.install(modules::suid::module(true)?)?;
+    rune_context.install(modules::leet::module(true)?)?;
 
     RUNE_CONTEXT.set(rune_context).map_err(|_| {
         CheckerError::OtherError(anyhow!("RUNE_CONTEXT has already been initialized"))
@@ -57,7 +63,7 @@ pub fn get_rune_context() -> &'static Context {
     RUNE_CONTEXT.get().unwrap()
 }
 
-pub async fn lint(script: &str) -> Result<(), CheckerError> {
+pub fn lint(script: &str) -> Result<(), CheckerError> {
     let rune_context = get_rune_context();
     let mut sources = Sources::new();
     sources.insert(Source::memory(script)?)?;
@@ -100,11 +106,13 @@ async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerE
 
     let mut sources = Sources::new();
 
-    if let Some(script) = &challenge.script {
-        sources.insert(Source::memory(script)?)?;
-    } else {
-        return Err(CheckerError::MissingScript("".to_owned()));
-    }
+    let script = challenge
+        .clone()
+        .script
+        .ok_or(CheckerError::MissingScript("".to_owned()))?;
+
+    sources.insert(Source::memory(&script)?)?;
+    lint(&script)?;
 
     let unit = rune::prepare(&mut sources)
         .with_context(&get_rune_context())
@@ -120,14 +128,22 @@ async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerE
     Ok(())
 }
 
-pub async fn check(challenge: cds_db::transfer::Challenge, operator_id: i64, content: &str) -> Result<bool, CheckerError> {
+pub async fn check(
+    challenge: cds_db::transfer::Challenge, operator_id: i64, content: &str,
+) -> Result<bool, CheckerError> {
     preload(&challenge).await?;
 
     let checker_context = get_checker_context();
-    let ctx = checker_context.get(&challenge.id).ok_or(CheckerError::MissingScript("".to_owned()))?;
+    let ctx = checker_context
+        .get(&challenge.id)
+        .ok_or(CheckerError::MissingScript("".to_owned()))?;
     let vm = Vm::new(ctx.runtime_context.clone(), ctx.unit.clone());
 
-    let result = vm.send_execute(["check"], (operator_id, content))?.async_complete().await.into_result()?;
+    let result = vm
+        .send_execute(["check"], (operator_id, content))?
+        .async_complete()
+        .await
+        .into_result()?;
     let output = rune::from_value::<Result<bool, Value>>(result)?;
 
     let is_correct = output.map_err(|_| CheckerError::ScriptError("".to_owned()))?;
@@ -135,14 +151,22 @@ pub async fn check(challenge: cds_db::transfer::Challenge, operator_id: i64, con
     Ok(is_correct)
 }
 
-pub async fn environ(challenge: cds_db::transfer::Challenge, operator_id: i64) -> Result<HashMap<String, String>, CheckerError> {
+pub async fn environ(
+    challenge: cds_db::transfer::Challenge, operator_id: i64,
+) -> Result<HashMap<String, String>, CheckerError> {
     preload(&challenge).await?;
 
     let checker_context = get_checker_context();
-    let ctx = checker_context.get(&challenge.id).ok_or(CheckerError::MissingScript("".to_owned()))?;
+    let ctx = checker_context
+        .get(&challenge.id)
+        .ok_or(CheckerError::MissingScript("".to_owned()))?;
     let vm = Vm::new(ctx.runtime_context.clone(), ctx.unit.clone());
 
-    let result = vm.send_execute(["environ"], (operator_id, ))?.async_complete().await.into_result()?;
+    let result = vm
+        .send_execute(["environ"], (operator_id,))?
+        .async_complete()
+        .await
+        .into_result()?;
     let output = rune::from_value::<Result<Object, Value>>(result)?;
 
     let object = output.map_err(|_| CheckerError::ScriptError("".to_owned()))?;
