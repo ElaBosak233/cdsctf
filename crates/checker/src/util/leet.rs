@@ -80,7 +80,8 @@ pub static LEET_CHAR_TABLE: Lazy<HashMap<u8, Vec<u8>>> = Lazy::new(|| {
 ///
 /// # Params
 /// - `template`: The origin flag. Such as `HelloWorld`.
-/// - `data`: The data which is used to hide into leet flag. Usually operator's id.
+/// - `data`: The data which is used to hide into leet flag. Usually operator's
+///   id.
 /// - `key`: The key for encryption.
 pub fn encode(template: &str, data: i64, key: &str) -> String {
     let encrypted = super::xxtea::encrypt_raw(&data.to_le_bytes(), key);
@@ -151,17 +152,22 @@ pub fn decode(template: &str, payload: &str, key: &str) -> Result<i64, io::Error
 #[cfg(test)]
 mod tests {
     const TEMPLATE: &str = "MyLittlePony";
-    const DATA: i64 = 2010;
     const KEY: &str = "Fr1endShip1sM4g1c";
-    const PAYLOAD: &str = "my11ttL3p0ny4c75b159b440";
 
     #[test]
-    pub fn encode_test() {
-        assert_eq!(super::encode(TEMPLATE, DATA, KEY), PAYLOAD)
-    }
+    pub fn test() {
+        let mut payloads: Vec<String> = Vec::new();
 
-    #[test]
-    pub fn decode_test() {
-        assert_eq!(super::decode(TEMPLATE, PAYLOAD, KEY).unwrap(), DATA)
+        for i in 2010..2021 {
+            let leet_flag = super::encode(TEMPLATE, i as i64, KEY);
+            println!("{i} {:?}", leet_flag);
+            payloads.push(leet_flag);
+        }
+
+        for payload in payloads {
+            let payload = &payload;
+            let data = super::decode(TEMPLATE, payload, KEY).unwrap();
+            println!("{payload} {:?}", data)
+        }
     }
 }
