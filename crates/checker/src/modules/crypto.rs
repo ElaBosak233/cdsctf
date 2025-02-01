@@ -5,6 +5,7 @@ use rune::{ContextError, Module};
 pub fn module(_stdio: bool) -> Result<Module, ContextError> {
     let mut module = Module::from_meta(module_meta)?;
     module.function_meta(sha256)?;
+    module.function_meta(sha512)?;
 
     Ok(module)
 }

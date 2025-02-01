@@ -18,4 +18,6 @@ pub enum ClusterError {
     MissingField(String),
     #[error(transparent)]
     OtherError(#[from] anyhow::Error),
+    #[error("checker error: {0}")]
+    CheckerError(#[from] cds_checker::traits::CheckerError),
 }

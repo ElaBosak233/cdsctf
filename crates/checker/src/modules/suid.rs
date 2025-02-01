@@ -1,5 +1,3 @@
-use std::io;
-
 use rune::{ContextError, Module};
 
 #[rune::module(::suid)]

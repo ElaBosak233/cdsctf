@@ -72,17 +72,11 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         Some(team_id) => team_id,
         _ => submission.user_id,
     };
-    let result = cds_checker::check(challenge, operator_id, &submission.flag).await;
 
-    if result.is_err() {
-        cds_db::entity::submission::Entity::delete_by_id(submission.id)
-            .exec(get_db())
-            .await?;
-
-        return Err(anyhow!(""));
-    }
-
-    let result = result?;
+    let result = match cds_checker::check(&challenge, operator_id, &submission.flag).await {
+        Ok(is_correct) => is_correct,
+        _ => false,
+    };
 
     match result {
         true => status = Status::Correct,
