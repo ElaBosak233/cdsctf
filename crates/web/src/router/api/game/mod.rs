@@ -15,9 +15,9 @@ use cds_db::{
 };
 use sea_orm::{
     ActiveModelTrait,
-    ActiveValue::{NotSet, Unchanged},
+    ActiveValue::{NotSet, Set, Unchanged},
     ColumnTrait, Condition, EntityTrait, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder,
-    QuerySelect, RelationTrait, Set,
+    QuerySelect, RelationTrait,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -317,7 +317,7 @@ pub struct GetGameChallengeRequest {
 /// - Operating time is between related game's `started_at` and `ended_at`.
 pub async fn get_game_challenge(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-    Query(params): Query<GetGameChallengeRequest>,
+    Query(mut params): Query<GetGameChallengeRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -328,9 +328,12 @@ pub async fn get_game_challenge(
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
     if operator.group != Group::Admin {
-        if !cds_db::util::is_user_in_game(&operator, &game, Some(true)).await?
-            || chrono::Utc::now().timestamp() < game.started_at
-            || chrono::Utc::now().timestamp() > game.ended_at
+        let now = chrono::Utc::now().timestamp();
+        let in_game = cds_db::util::is_user_in_game(&operator, &game, Some(true)).await?;
+
+        if !in_game
+            || !(game.started_at..=game.ended_at).contains(&now)
+            || params.is_enabled != Some(true)
         {
             return Err(WebError::Forbidden(json!("")));
         }
@@ -625,6 +628,7 @@ pub async fn create_game_team(
     let game_team = cds_db::entity::game_team::ActiveModel {
         game_id: Set(game.id),
         team_id: Set(team.id),
+        is_allowed: Set(matches!(game.is_public, true)),
         ..Default::default()
     }
     .insert(get_db())
@@ -672,7 +676,7 @@ pub async fn update_game_team(
         .ok_or(WebError::BadRequest(json!("game_team_not_found")))?;
 
     let game_team = cds_db::entity::game_team::ActiveModel {
-        game_id: Unchanged(game_team.team_id),
+        game_id: Unchanged(game_team.game_id),
         team_id: Unchanged(game_team.team_id),
         is_allowed: body.is_allowed.map_or(NotSet, Set),
         ..Default::default()
@@ -804,7 +808,6 @@ pub async fn get_game_scoreboard(
         for submission in submissions.iter_mut() {
             submission.flag.clear();
             submission.team = None;
-            submission.challenge = None;
             submission.game = None;
         }
 

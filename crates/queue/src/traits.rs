@@ -14,4 +14,6 @@ pub enum QueueError {
     CreateStreamError(#[from] async_nats::jetstream::context::CreateStreamError),
     #[error("stream error: {0}")]
     StreamError(#[from] async_nats::jetstream::consumer::StreamError),
+    #[error("other error: {0}")]
+    OtherError(#[from] anyhow::Error),
 }

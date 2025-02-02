@@ -1,5 +1,6 @@
 pub mod traits;
 
+use anyhow::anyhow;
 use once_cell::sync::OnceCell;
 use serde::Serialize;
 use tracing::info;
@@ -55,7 +56,7 @@ pub async fn subscribe(
     Ok(messages)
 }
 
-pub async fn init() {
+pub async fn init() -> Result<(), QueueError> {
     let client = async_nats::ConnectOptions::new()
         .require_tls(cds_config::get_config().queue.tls)
         .user_and_password(
@@ -68,9 +69,12 @@ pub async fn init() {
             cds_config::get_config().queue.host,
             cds_config::get_config().queue.port
         ))
-        .await
-        .unwrap();
-    CLIENT.set(client).unwrap();
+        .await?;
+    CLIENT
+        .set(client)
+        .map_err(|_| anyhow!("Failed to set client into OnceCell."))?;
 
     info!("Message queue initialized successfully.");
+
+    Ok(())
 }

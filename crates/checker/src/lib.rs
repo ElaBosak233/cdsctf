@@ -3,7 +3,7 @@ pub mod traits;
 pub mod util;
 pub mod worker;
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, ops::Deref, sync::Arc};
 
 use anyhow::anyhow;
 use chrono::{DateTime, Utc};
@@ -14,7 +14,7 @@ use rune::{
     runtime::{Object, RuntimeContext},
     termcolor::Buffer,
 };
-use tracing::debug;
+use tracing::{debug, info};
 use uuid::Uuid;
 
 use crate::traits::CheckerError;
@@ -31,6 +31,28 @@ pub static CHECKER_CONTEXT: Lazy<Arc<DashMap<Uuid, CheckerContext>>> =
 pub static RUNE_CONTEXT: OnceCell<Context> = OnceCell::new();
 
 pub async fn init() -> Result<(), CheckerError> {
+    fn init_rune_context() -> Result<(), CheckerError> {
+        let mut rune_context = Context::with_default_modules()?;
+        rune_context.install(rune_modules::http::module(true)?)?;
+        rune_context.install(rune_modules::json::module(true)?)?;
+        rune_context.install(rune_modules::toml::module(true)?)?;
+        rune_context.install(rune_modules::process::module(true)?)?;
+
+        rune_context.install(modules::crypto::module(true)?)?;
+        rune_context.install(modules::regex::module(true)?)?;
+        rune_context.install(modules::suid::module(true)?)?;
+        rune_context.install(modules::leet::module(true)?)?;
+        rune_context.install(modules::flag::module(true)?)?;
+
+        RUNE_CONTEXT
+            .set(rune_context)
+            .map_err(|_| anyhow!("Failed to set rune_context into OnceCell."))?;
+
+        info!("Rune context loaded.");
+
+        Ok(())
+    }
+
     init_rune_context()?;
     worker::cleaner().await;
 
@@ -41,28 +63,8 @@ pub fn get_checker_context() -> Arc<DashMap<Uuid, CheckerContext>> {
     Arc::clone(&CHECKER_CONTEXT)
 }
 
-pub fn init_rune_context() -> Result<(), CheckerError> {
-    let mut rune_context = Context::with_default_modules()?;
-    rune_context.install(rune_modules::http::module(true)?)?;
-    rune_context.install(rune_modules::json::module(true)?)?;
-    rune_context.install(rune_modules::toml::module(true)?)?;
-    rune_context.install(rune_modules::process::module(true)?)?;
-
-    rune_context.install(modules::crypto::module(true)?)?;
-    rune_context.install(modules::regex::module(true)?)?;
-    rune_context.install(modules::suid::module(true)?)?;
-    rune_context.install(modules::leet::module(true)?)?;
-    rune_context.install(modules::flag::module(true)?)?;
-
-    RUNE_CONTEXT.set(rune_context).map_err(|_| {
-        CheckerError::OtherError(anyhow!("RUNE_CONTEXT has already been initialized"))
-    })?;
-
-    Ok(())
-}
-
 pub fn get_rune_context() -> &'static Context {
-    RUNE_CONTEXT.get().unwrap()
+    &RUNE_CONTEXT.get().unwrap()
 }
 
 pub fn lint(script: &str) -> Result<(), CheckerError> {
@@ -72,7 +74,8 @@ pub fn lint(script: &str) -> Result<(), CheckerError> {
 
     let _ = rune::prepare(&mut sources)
         .with_context(&get_rune_context())
-        .with_diagnostics(&mut diagnostics).build();
+        .with_diagnostics(&mut diagnostics)
+        .build();
 
     if !diagnostics.is_empty() {
         let mut out = Buffer::ansi();

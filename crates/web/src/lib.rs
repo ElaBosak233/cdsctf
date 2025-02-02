@@ -16,7 +16,7 @@ use crate::middleware::{error::governor_error, network::GovernorKeyExtractor};
 
 static APP: OnceCell<Router> = OnceCell::new();
 
-pub async fn init() {
+pub async fn init() -> Result<(), anyhow::Error> {
     let cors = CorsLayer::new()
         .allow_methods(Any)
         .allow_headers(Any)
@@ -46,9 +46,12 @@ pub async fn init() {
         config: governor_conf,
     });
 
-    APP.set(router).unwrap();
+    APP.set(router)
+        .map_err(|_| anyhow::anyhow!("Failed to set router into OnceCell"))?;
+
+    Ok(())
 }
 
-pub fn get_app() -> Router {
-    APP.get().unwrap().clone()
+pub fn get_app() -> &'static Router {
+    &APP.get().unwrap()
 }

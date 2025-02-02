@@ -14,6 +14,7 @@ cds-queue = { workspace = true }
 cds-web = { workspace = true }
 cds-cache = { workspace = true }
 cds-checker = { workspace = true }
+cds-telemetry = { workspace = true }
 
 once_cell = { workspace = true }
 tracing = { workspace = true }
@@ -26,6 +27,7 @@ axum = { workspace = true }
 sea-orm = { workspace = true }
 argon2 = { workspace = true }
 serde_json = { workspace = true }
+anyhow = { workspace = true }
 
 [build-dependencies]
 chrono = { workspace = true }

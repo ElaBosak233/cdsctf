@@ -1,5 +1,9 @@
 use std::str::FromStr;
 
+use argon2::{
+    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
+    password_hash::{SaltString, rand_core::OsRng},
+};
 use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
@@ -10,8 +14,8 @@ use cds_db::{entity::user::Group, get_db};
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{NotSet, Set, Unchanged},
-    ColumnTrait, EntityTrait, IntoActiveModel, Order, PaginatorTrait, QueryFilter, QueryOrder,
-    QuerySelect,
+    ColumnTrait, EntityTrait, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect, RelationTrait,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -28,7 +32,7 @@ pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_team))
         .route("/", axum::routing::post(create_team))
-        .route("/register", axum::routing::post(perform_team_register))
+        .route("/register", axum::routing::post(team_register))
         .route("/{id}", axum::routing::put(update_team))
         .route("/{id}", axum::routing::delete(delete_team))
         .route("/{id}/users", axum::routing::post(create_team_user))
@@ -36,8 +40,6 @@ pub fn router() -> Router {
             "/{id}/users/{user_id}",
             axum::routing::delete(delete_team_user),
         )
-        .route("/{id}/invite", axum::routing::get(get_team_invite_token))
-        .route("/{id}/invite", axum::routing::put(update_team_invite_token))
         .route("/{id}/join", axum::routing::post(join_team))
         .route("/{id}/quit", axum::routing::delete(quit_team))
         .route("/{id}/avatar", axum::routing::get(get_team_avatar))
@@ -58,6 +60,19 @@ pub struct GetTeamRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
+
+    /// The user id of expected teams.
+    ///
+    /// `user_id` is not in table `teams`, so it relies on JOIN queries.
+    ///
+    /// ```sql
+    /// SELECT *
+    /// FROM "teams"
+    ///     INNER JOIN "user_teams" ON "teams"."id" = "user_teams"."team_id"
+    /// WHERE "user_teams"."user_id" = ?;
+    /// ```
+    pub user_id: Option<i64>,
+
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -79,6 +94,15 @@ pub async fn get_team(
 
     if let Some(email) = params.email {
         sql = sql.filter(cds_db::entity::team::Column::Email.eq(email));
+    }
+
+    if let Some(user_id) = params.user_id {
+        sql = sql
+            .join(
+                JoinType::InnerJoin,
+                cds_db::entity::user_team::Relation::Team.def().rev(),
+            )
+            .filter(cds_db::entity::user_team::Column::UserId.eq(user_id))
     }
 
     // Exclude teams which has been deleted.
@@ -129,6 +153,7 @@ pub async fn get_team(
 pub struct CreateTeamRequest {
     pub name: String,
     pub email: String,
+    pub password: String,
     pub slogan: Option<String>,
     pub description: Option<String>,
 }
@@ -143,11 +168,21 @@ pub struct CreateTeamRequest {
 pub async fn create_team(
     Extension(ext): Extension<Ext>, VJson(body): VJson<CreateTeamRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(json!("")));
+    }
+
+    let hashed_password = Argon2::default()
+        .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
+        .unwrap()
+        .to_string();
 
     let team = cds_db::entity::team::ActiveModel {
         name: Set(body.name),
-        email: Set(Some(body.email)),
+        email: Set(body.email),
+        hashed_password: Set(hashed_password),
         slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
@@ -165,27 +200,30 @@ pub async fn create_team(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
-pub struct PerformTeamRegisterRequest {
+pub struct TeamRegisterRequest {
     pub name: String,
     pub email: String,
-    pub slogan: Option<String>,
-    pub description: Option<String>,
+    pub password: String,
 }
 
 /// Register a team by given data.
 ///
 /// The operator of this function will be added into the newly created team.
 /// So you should call this function in general teams page, not in admin panel.
-pub async fn perform_team_register(
-    Extension(ext): Extension<Ext>, VJson(body): VJson<PerformTeamRegisterRequest>,
+pub async fn team_register(
+    Extension(ext): Extension<Ext>, VJson(body): VJson<TeamRegisterRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
+    let hashed_password = Argon2::default()
+        .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
+        .unwrap()
+        .to_string();
+
     let team = cds_db::entity::team::ActiveModel {
         name: Set(body.name),
-        email: Set(Some(body.email)),
-        slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
-        description: body.description.map_or(NotSet, |v| Set(Some(v))),
+        email: Set(body.email),
+        hashed_password: Set(hashed_password),
         ..Default::default()
     }
     .insert(get_db())
@@ -199,12 +237,11 @@ pub async fn perform_team_register(
     .insert(get_db())
     .await?;
 
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find_by_id(team.id)
-            .one(get_db())
-            .await?
-            .unwrap(),
-    );
+    let team = cds_db::entity::team::Entity::find_by_id(team.id)
+        .one(get_db())
+        .await?
+        .map(|team| cds_db::transfer::Team::from(team))
+        .unwrap();
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
@@ -218,6 +255,7 @@ pub struct UpdateTeamRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
+    pub password: Option<String>,
     pub slogan: Option<String>,
     pub description: Option<String>,
 }
@@ -243,10 +281,19 @@ pub async fn update_team(
     }
     body.id = Some(id);
 
+    if let Some(password) = body.password {
+        let hashed_password = Argon2::default()
+            .hash_password(password.as_bytes(), &SaltString::generate(&mut OsRng))
+            .unwrap()
+            .to_string();
+        body.password = Some(hashed_password);
+    }
+
     let team = cds_db::entity::team::ActiveModel {
         id: Unchanged(team.id),
         name: body.name.map_or(NotSet, Set),
-        email: body.email.map_or(NotSet, |v| Set(Some(v))),
+        email: body.email.map_or(NotSet, Set),
+        hashed_password: body.password.map_or(NotSet, Set),
         slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
@@ -373,92 +420,21 @@ pub async fn delete_team_user(
     })
 }
 
-/// Get the invite_token of a team by `id`.
-///
-/// # Prerequisite
-/// - Operator is admin or the members of current team.
-pub async fn get_team_invite_token(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResponse<String>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find_by_id(id)
-            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
-    );
-
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let team = cds_db::entity::team::Entity::find_by_id(id)
-        .select_only()
-        .column(cds_db::entity::team::Column::InviteToken)
-        .one(get_db())
-        .await?
-        .ok_or_else(|| WebError::NotFound(json!("")))?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        data: team.invite_token,
-        ..Default::default()
-    })
-}
-
-/// Update the invite_token of a team by `id`.
-///
-/// # Prerequisite
-/// - Operator is admin or the members of current team.
-pub async fn update_team_invite_token(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResponse<String>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find_by_id(id)
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
-    );
-
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let mut team = cds_db::entity::team::Entity::find_by_id(id)
-        .one(get_db())
-        .await?
-        .ok_or_else(|| WebError::NotFound(json!("")))?
-        .into_active_model();
-
-    let token = uuid::Uuid::new_v4().simple().to_string();
-    team.invite_token = Set(Some(token.clone()));
-
-    let _ = team.update(get_db()).await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        data: Some(token),
-        ..Default::default()
-    })
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JoinTeamRequest {
     pub user_id: i64,
     pub team_id: i64,
-    pub invite_token: String,
+    pub password: String,
 }
 
 /// Join a team by given data.
 ///
 /// The field `user_id` will be overwritten by operator's id.
 pub async fn join_team(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<JoinTeamRequest>,
+    Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<JoinTeamRequest>,
 ) -> Result<WebResponse<cds_db::transfer::UserTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::entity::team::Entity::find_by_id(body.team_id)
+    let team = cds_db::entity::team::Entity::find_by_id(id)
         .filter(cds_db::entity::team::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
@@ -466,13 +442,19 @@ pub async fn join_team(
 
     body.user_id = operator.id;
 
-    if Some(body.invite_token.clone()) != team.invite_token {
-        return Err(WebError::BadRequest(json!("invalid_invite_token")));
+    if Argon2::default()
+        .verify_password(
+            body.password.as_bytes(),
+            &PasswordHash::new(&team.hashed_password).unwrap(),
+        )
+        .is_err()
+    {
+        return Err(WebError::BadRequest(json!("invalid_password")));
     }
 
     let user_team = cds_db::entity::user_team::ActiveModel {
         user_id: Set(body.user_id),
-        team_id: Set(body.team_id),
+        team_id: Set(id),
         ..Default::default()
     }
     .insert(get_db())

@@ -14,3 +14,4 @@ once_cell = { workspace = true }
 async-nats = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+anyhow = { workspace = true }

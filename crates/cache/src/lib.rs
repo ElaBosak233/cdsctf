@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use anyhow::anyhow;
 use fred::{
     prelude::{Client, ClientLike, KeysInterface},
     types::{Expiration, Key, config::Config},
@@ -16,6 +17,19 @@ static CLIENT: OnceCell<Client> = OnceCell::new();
 
 fn get_client() -> Client {
     CLIENT.get().unwrap().clone()
+}
+
+pub async fn init() -> Result<(), CacheError> {
+    let config = Config::from_url(&cds_config::get_config().cache.url)?;
+    let client = Client::new(config, None, None, None);
+    client.init().await?;
+
+    CLIENT
+        .set(client)
+        .map_err(|_| anyhow!("Failed to set client into OnceCell."))?;
+    info!("Cache initialized successfully.");
+
+    Ok(())
 }
 
 pub async fn get<T>(key: impl Into<Key> + Send + Display) -> Result<Option<T>, CacheError>
@@ -69,13 +83,4 @@ pub async fn flush() -> Result<(), CacheError> {
     get_client().flushall::<()>(false).await?;
 
     Ok(())
-}
-
-pub async fn init() {
-    let config = Config::from_url(&cds_config::get_config().cache.url).unwrap();
-    let client = Client::new(config, None, None, None);
-    client.init().await.unwrap();
-
-    CLIENT.set(client).unwrap();
-    info!("Cache initialized successfully.");
 }

@@ -7,6 +7,7 @@ use axum::{
     http::{Response, StatusCode, header},
     response::IntoResponse,
 };
+use cds_checker::traits::CheckerError;
 use cds_db::{
     entity::{submission::Status, user::Group},
     get_db,
@@ -22,7 +23,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use validator::Validate;
-use cds_checker::traits::CheckerError;
+
 use crate::{
     extract::{Extension, Json, Path, Query, VJson},
     model::Metadata,
@@ -180,7 +181,6 @@ pub struct ChallengeStatusResponse {
     pub bloods: Vec<cds_db::transfer::Submission>,
 }
 
-#[axum::debug_handler]
 pub async fn get_challenge_status(
     Extension(ext): Extension<Ext>, Json(body): Json<GetChallengeStatusRequest>,
 ) -> Result<WebResponse<HashMap<uuid::Uuid, ChallengeStatusResponse>>, WebError> {
@@ -388,7 +388,9 @@ pub async fn delete_challenge(
     })
 }
 
-pub async fn lint_challenge_script(Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>) -> Result<WebResponse<()>, WebError> {
+pub async fn lint_challenge_script(
+    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -400,13 +402,15 @@ pub async fn lint_challenge_script(Extension(ext): Extension<Ext>, Path(id): Pat
         .await?
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
 
-    let script = challenge.script.ok_or(WebError::BadRequest(json!("null_script")))?;
+    let script = challenge
+        .script
+        .ok_or(WebError::BadRequest(json!("null_script")))?;
 
     let lint = cds_checker::lint(&script);
     let msg = if let Err(lint) = lint {
         match lint {
             CheckerError::CompileError(diagnostics) => Some(diagnostics),
-            err => Some(err.to_string())
+            err => Some(err.to_string()),
         }
     } else {
         None

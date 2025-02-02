@@ -4,13 +4,14 @@ pub mod util;
 
 use std::time::Duration;
 
+use anyhow::anyhow;
 use once_cell::sync::OnceCell;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use tracing::info;
 
 static DB: OnceCell<DatabaseConnection> = OnceCell::new();
 
-pub async fn init() {
+pub async fn init() -> Result<(), anyhow::Error> {
     let url = format!(
         "postgres://{}:{}@{}:{}/{}",
         cds_config::get_config().db.username,
@@ -29,9 +30,12 @@ pub async fn init() {
         .sqlx_logging(false)
         .set_schema_search_path("public");
 
-    let db: DatabaseConnection = Database::connect(opt).await.unwrap();
-    DB.set(db).unwrap();
+    let db: DatabaseConnection = Database::connect(opt).await?;
+    DB.set(db)
+        .map_err(|_| anyhow!("Failed to set db into OnceCell."))?;
     info!("Database connection established successfully.");
+
+    Ok(())
 }
 
 pub fn get_db() -> &'static DatabaseConnection {

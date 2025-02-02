@@ -30,5 +30,5 @@ pub async fn init() {
         }
     });
 
-    info!("metrics worker initialized successfully.");
+    info!("Metrics worker initialized successfully.");
 }

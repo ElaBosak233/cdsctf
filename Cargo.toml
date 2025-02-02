@@ -11,10 +11,10 @@ cds-config = { path = "crates/config" }
 cds-email = { path = "crates/email" }
 cds-web = { path = "crates/web" }
 cds-queue = { path = "crates/queue" }
-cds-metric = { path = "crates/metric" }
 cds-cache = { path = "crates/cache" }
 cds-cluster = { path = "crates/cluster" }
 cds-checker = { path = "crates/checker" }
+cds-telemetry = { path = "crates/telemetry" }
 
 # Async
 async-trait = { version = "0.1" }
@@ -44,6 +44,7 @@ tower_governor = { version = "0.6" }
 # Security
 rustls = { version = "0.23", features = ["ring"] }
 ring = { version = "0.17" }
+hex = { version = "0.4.3" }
 jsonwebtoken = { version = "9.3.0" }
 argon2 = { version = "0.5" }
 aes = { version = "0.8" }
@@ -103,19 +104,21 @@ k8s-openapi = { version = "0.24", features = ["latest"] }
 rune = { version = "0.13", features = ["tokio"] }
 rune-modules = { version = "0.13", features = ["full"] }
 
+# Metric
+opentelemetry = { version = "0.27" }
+opentelemetry-otlp = { version = "0.27", features = ["metrics"] }
+opentelemetry_sdk = { version = "0.27", features = [ "rt-tokio" ] }
+sysinfo = { version = "0.33" }
+
 # Miscellaneous
 once_cell = { version = "1.20" }
-prometheus = { version = "0.13" }
 validator = { version = "0.19", features = ["derive"] }
 reqwest = { version = "0.12", features = [
     "json",
     "rustls-tls",
 ], default-features = false }
-sysinfo = { version = "0.33.1" }
-tempfile = { version = "3.15.0" }
 image = { version = "0.25.5" }
 webp = { version = "0.3.0", features = ["image"] }
-hex = { version = "0.4.3" }
 lettre = { version = "0.11", features = ["tokio1-rustls-tls"], default-features = false }
 dashmap = { version = "6.1" }
 

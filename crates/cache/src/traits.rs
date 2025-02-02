@@ -6,4 +6,6 @@ pub enum CacheError {
     RedisError(#[from] fred::error::Error),
     #[error("serde_json error: {0}")]
     SerdeJsonError(#[from] serde_json::Error),
+    #[error("other error: {0}")]
+    OtherError(#[from] anyhow::Error),
 }

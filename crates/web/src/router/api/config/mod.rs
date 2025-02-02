@@ -30,7 +30,7 @@ pub async fn get_config() -> Result<WebResponse<ClientConfig>, WebError> {
 }
 
 pub async fn get_icon() -> impl IntoResponse {
-    let path = cds_config::get_config().meta.logo_path;
+    let path = &cds_config::get_config().meta.logo_path;
     match tokio::fs::read(path).await {
         Ok(data) => Response::builder().body(Body::from(data)).unwrap(),
         Err(_) => {
