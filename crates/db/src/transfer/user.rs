@@ -73,7 +73,7 @@ async fn preload(mut users: Vec<User>) -> Result<Vec<User>, DbErr> {
         .map(entity::user::Model::from)
         .collect::<Vec<entity::user::Model>>();
     let teams = models
-        .load_many_to_many(entity::team::Entity, entity::user_team::Entity, get_db())
+        .load_many_to_many(entity::team::Entity, entity::team_user::Entity, get_db())
         .await?
         .into_iter()
         .map(|teams| teams.into_iter().map(Team::from).collect::<Vec<Team>>())

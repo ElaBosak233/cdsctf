@@ -2,14 +2,14 @@ pub mod metric;
 
 use std::time::Duration;
 
-use anyhow::Context;
+use anyhow::{Context, anyhow};
 use opentelemetry::global;
 use opentelemetry_otlp::{ExportConfig, MetricExporter, Protocol, WithExportConfig};
 use opentelemetry_sdk::metrics::{PeriodicReader, SdkMeterProvider, Temporality};
 
 pub async fn init() -> Result<(), anyhow::Error> {
     if !cds_config::get_config().telemetry.is_enabled {
-        return Ok(())
+        return Ok(());
     }
 
     let export_config = ExportConfig {
@@ -32,7 +32,7 @@ pub async fn init() -> Result<(), anyhow::Error> {
         .with_tonic()
         .with_export_config(export_config)
         .build()
-        .context("Failed to initialize metrics")?;
+        .map_err(|_| anyhow!("Failed to initialize metrics"))?;
 
     let meter_provider = SdkMeterProvider::builder()
         .with_reader(
