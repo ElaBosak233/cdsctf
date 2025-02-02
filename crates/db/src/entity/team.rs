@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::{game, game_team, submission, user, user_team};
+use super::{game, game_team, submission, team_user, user};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "teams")]
@@ -38,11 +38,11 @@ impl RelationTrait for Relation {
 
 impl Related<user::Entity> for Entity {
     fn to() -> RelationDef {
-        user_team::Relation::User.def()
+        team_user::Relation::User.def()
     }
 
     fn via() -> Option<RelationDef> {
-        Some(user_team::Relation::Team.def().rev())
+        Some(team_user::Relation::Team.def().rev())
     }
 }
 

@@ -34,12 +34,13 @@ pub async fn run() {
         get_db(),
         entity::user::Entity,
         entity::team::Entity,
-        entity::user_team::Entity,
+        entity::team_user::Entity,
         entity::challenge::Entity,
         entity::game::Entity,
         entity::submission::Entity,
         entity::game_challenge::Entity,
-        entity::game_team::Entity
+        entity::game_team::Entity,
+        entity::game_notice::Entity
     );
 
     init_admin().await;

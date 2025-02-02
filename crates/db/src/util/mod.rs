@@ -17,7 +17,7 @@ pub fn can_user_modify_team(user: &crate::transfer::User, team: &crate::transfer
 /// ```sql
 ///  SELECT u.id AS user_id, gt.game_id, gt.is_allowed
 ///  FROM users u
-///     JOIN user_teams ut ON u.id = ut.user_id
+///     JOIN team_users tu ON u.id = tu.user_id
 ///     JOIN game_teams gt ON ut.team_id = gt.team_id
 ///  u.id = ? AND gt.game_id = ? AND gt.is_allowed = true;
 /// ```
@@ -27,11 +27,11 @@ pub async fn is_user_in_game(
     let mut sql = crate::entity::user::Entity::find()
         .join(
             JoinType::InnerJoin,
-            crate::entity::user_team::Relation::User.def().rev(),
+            crate::entity::team_user::Relation::User.def().rev(),
         )
         .join(
             JoinType::InnerJoin,
-            crate::entity::user_team::Relation::Team.def(),
+            crate::entity::team_user::Relation::Team.def(),
         )
         .join(
             JoinType::InnerJoin,

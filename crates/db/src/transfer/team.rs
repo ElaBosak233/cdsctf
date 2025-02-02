@@ -73,7 +73,7 @@ pub async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
         .map(entity::team::Model::from)
         .collect::<Vec<entity::team::Model>>();
     let users = models
-        .load_many_to_many(entity::user::Entity, entity::user_team::Entity, get_db())
+        .load_many_to_many(entity::user::Entity, entity::team_user::Entity, get_db())
         .await?
         .into_iter()
         .map(|users| users.into_iter().map(User::from).collect::<Vec<User>>())
@@ -106,8 +106,8 @@ pub async fn find_by_user_id(id: i64) -> Result<Vec<Team>, DbErr> {
     let teams = entity::team::Entity::find()
         .select_only()
         .columns(entity::team::Column::iter())
-        .filter(entity::user_team::Column::UserId.eq(id))
-        .join(JoinType::InnerJoin, entity::user_team::Relation::Team.def())
+        .filter(entity::team_user::Column::UserId.eq(id))
+        .join(JoinType::InnerJoin, entity::team_user::Relation::Team.def())
         .into_model::<entity::team::Model>()
         .all(get_db())
         .await?;

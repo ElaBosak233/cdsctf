@@ -8,7 +8,7 @@ use tracing::info;
 
 #[tokio::main]
 async fn main() {
-    let banner = cds_assets::get("banner.txt").unwrap();
+    let banner = cds_assets::get("banner.txt").unwrap_or(vec![]);
     println!(
         "{}",
         std::str::from_utf8(&banner)

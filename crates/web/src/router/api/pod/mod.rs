@@ -257,8 +257,8 @@ pub async fn create_pod(
             .await?
             .ok_or(WebError::BadRequest(json!("game_challenge_not_found")))?;
 
-        let member_count = cds_db::entity::user_team::Entity::find()
-            .filter(Condition::all().add(cds_db::entity::user_team::Column::TeamId.eq(team_id)))
+        let member_count = cds_db::entity::team_user::Entity::find()
+            .filter(Condition::all().add(cds_db::entity::team_user::Column::TeamId.eq(team_id)))
             .count(get_db())
             .await?;
 
