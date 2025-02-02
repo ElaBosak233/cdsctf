@@ -7,7 +7,7 @@ use rust_embed::Embed;
 pub struct Embeds;
 
 pub fn get(path: &str) -> Option<Vec<u8>> {
-    if let Ok(file) = fs::read(format!("assets/{}", path)) {
+    if let Ok(file) = fs::read(format!("./data/assets/{}", path)) {
         return Some(file);
     }
     Embeds::get(path).map(|e| e.data.into_owned())

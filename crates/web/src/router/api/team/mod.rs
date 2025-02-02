@@ -68,8 +68,8 @@ pub struct GetTeamRequest {
     /// ```sql
     /// SELECT *
     /// FROM "teams"
-    ///     INNER JOIN "user_teams" ON "teams"."id" = "user_teams"."team_id"
-    /// WHERE "user_teams"."user_id" = ?;
+    ///     INNER JOIN "team_users" ON "teams"."id" = "team_users"."team_id"
+    /// WHERE "team_users"."user_id" = ?;
     /// ```
     pub user_id: Option<i64>,
 
@@ -100,9 +100,9 @@ pub async fn get_team(
         sql = sql
             .join(
                 JoinType::InnerJoin,
-                cds_db::entity::user_team::Relation::Team.def().rev(),
+                cds_db::entity::team_user::Relation::Team.def().rev(),
             )
-            .filter(cds_db::entity::user_team::Column::UserId.eq(user_id))
+            .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
     }
 
     // Exclude teams which has been deleted.
@@ -229,7 +229,7 @@ pub async fn team_register(
     .insert(get_db())
     .await?;
 
-    let _ = cds_db::entity::user_team::ActiveModel {
+    let _ = cds_db::entity::team_user::ActiveModel {
         user_id: Set(operator.id),
         team_id: Set(team.id.clone()),
         ..Default::default()
@@ -375,7 +375,7 @@ pub async fn create_team_user(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let _ = cds_db::entity::user_team::ActiveModel {
+    let _ = cds_db::entity::team_user::ActiveModel {
         user_id: Set(body.user_id),
         team_id: Set(team.id),
     }
@@ -408,9 +408,9 @@ pub async fn delete_team_user(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let _ = cds_db::entity::user_team::Entity::delete_many()
-        .filter(cds_db::entity::user_team::Column::UserId.eq(user_id))
-        .filter(cds_db::entity::user_team::Column::TeamId.eq(id))
+    let _ = cds_db::entity::team_user::Entity::delete_many()
+        .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
+        .filter(cds_db::entity::team_user::Column::TeamId.eq(id))
         .exec(get_db())
         .await?;
 
@@ -432,7 +432,7 @@ pub struct JoinTeamRequest {
 /// The field `user_id` will be overwritten by operator's id.
 pub async fn join_team(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(mut body): Json<JoinTeamRequest>,
-) -> Result<WebResponse<cds_db::transfer::UserTeam>, WebError> {
+) -> Result<WebResponse<cds_db::transfer::TeamUser>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::entity::team::Entity::find_by_id(id)
         .filter(cds_db::entity::team::Column::DeletedAt.is_null())
@@ -452,18 +452,18 @@ pub async fn join_team(
         return Err(WebError::BadRequest(json!("invalid_password")));
     }
 
-    let user_team = cds_db::entity::user_team::ActiveModel {
+    let team_user = cds_db::entity::team_user::ActiveModel {
         user_id: Set(body.user_id),
         team_id: Set(id),
         ..Default::default()
     }
     .insert(get_db())
     .await?;
-    let user_team = cds_db::transfer::UserTeam::from(user_team);
+    let team_user = cds_db::transfer::TeamUser::from(team_user);
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        data: Some(user_team),
+        data: Some(team_user),
         ..Default::default()
     })
 }
@@ -481,8 +481,8 @@ pub async fn quit_team(
         .await?
         .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
-    if cds_db::entity::user_team::Entity::find()
-        .filter(cds_db::entity::user_team::Column::TeamId.eq(team.id))
+    if cds_db::entity::team_user::Entity::find()
+        .filter(cds_db::entity::team_user::Column::TeamId.eq(team.id))
         .count(get_db())
         .await?
         == 1
@@ -490,9 +490,9 @@ pub async fn quit_team(
         return Err(WebError::BadRequest(json!("delete_instead_of_leave")));
     }
 
-    let _ = cds_db::entity::user_team::Entity::delete_many()
-        .filter(cds_db::entity::user_team::Column::UserId.eq(operator.id))
-        .filter(cds_db::entity::user_team::Column::TeamId.eq(team.id))
+    let _ = cds_db::entity::team_user::Entity::delete_many()
+        .filter(cds_db::entity::team_user::Column::UserId.eq(operator.id))
+        .filter(cds_db::entity::team_user::Column::TeamId.eq(team.id))
         .exec(get_db())
         .await?;
 
