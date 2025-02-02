@@ -3,5 +3,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
     pub is_enabled: bool,
-    pub namespace: String,
+    pub protocol: String,
+    pub endpoint_url: String,
 }

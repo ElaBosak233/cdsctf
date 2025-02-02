@@ -1,0 +1,18 @@
+[package]
+name = "cds-telemetry"
+version = "0.0.1"
+edition = "2024"
+publish = false
+resolver = "2"
+
+[dependencies]
+cds-config = { workspace = true }
+
+tracing = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry-otlp = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+once_cell = { workspace = true }
+sysinfo = { workspace = true }

@@ -10,12 +10,12 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub name: String,
-    pub email: Option<String>,
+    pub email: String,
     #[sea_orm(column_type = "Text")]
     pub slogan: Option<String>,
     #[sea_orm(column_type = "Text")]
     pub description: Option<String>,
-    pub invite_token: Option<String>,
+    pub hashed_password: String,
     #[sea_orm(default_value = false)]
     pub is_locked: bool,
     pub deleted_at: Option<i64>,

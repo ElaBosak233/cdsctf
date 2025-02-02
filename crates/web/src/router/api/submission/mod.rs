@@ -156,6 +156,7 @@ pub async fn create_submission(
         return Err(WebError::BadRequest(json!("invalid")));
     }
 
+    // If the submission is not in game mode, challenge must be public.
     if !challenge.is_public && (body.game_id.is_none() || body.team_id.is_none()) {
         return Err(WebError::BadRequest(json!("challenge_not_found")));
     }
@@ -181,7 +182,7 @@ pub async fn create_submission(
             .await?
             .ok_or(WebError::BadRequest(json!("game_challenge_not_found")));
 
-        let _ = cds_db::entity::game_challenge::Entity::find()
+        let _ = cds_db::entity::game_team::Entity::find()
             .filter(
                 Condition::all()
                     .add(cds_db::entity::game_team::Column::TeamId.eq(team.id))

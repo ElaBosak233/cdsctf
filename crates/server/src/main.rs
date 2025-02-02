@@ -3,6 +3,7 @@ mod migrator;
 
 use std::net::SocketAddr;
 
+use anyhow::anyhow;
 use tracing::info;
 
 #[tokio::main]
@@ -17,24 +18,30 @@ async fn main() {
             .replace("{{build_at}}", env!("BUILD_AT"))
     );
 
-    bootstrap().await;
+    bootstrap().await.unwrap_or_else(|err| {
+        panic!("Bootstrap error: {}", err);
+    });
 }
 
-async fn bootstrap() {
-    rustls::crypto::ring::default_provider()
-        .install_default()
-        .expect("");
+async fn bootstrap() -> Result<(), anyhow::Error> {
+    cds_config::init().await?;
 
     logger::init().await;
-    cds_config::init().await;
-    cds_queue::init().await;
-    cds_cache::init().await;
-    cds_db::init().await;
+
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .map_err(|_| anyhow!("Failed to install `ring` as default crypto provider."))?;
+
+    cds_telemetry::init().await?;
+    cds_queue::init().await?;
+    cds_cache::init().await?;
+    cds_db::init().await?;
 
     migrator::run().await;
-    let _ = cds_cluster::init().await;
-    cds_checker::init().await.unwrap();
-    cds_web::init().await;
+
+    cds_cluster::init().await?;
+    cds_checker::init().await?;
+    cds_web::init().await?;
 
     let addr = format!(
         "{}:{}",
@@ -49,12 +56,16 @@ async fn bootstrap() {
     );
 
     axum::serve(
-        listener.unwrap(),
-        cds_web::get_app().into_make_service_with_connect_info::<SocketAddr>(),
+        listener?,
+        cds_web::get_app()
+            .to_owned()
+            .into_make_service_with_connect_info::<SocketAddr>(),
     )
     .with_graceful_shutdown(shutdown_signal())
     .await
     .expect("Failed to start server server");
+
+    Ok(())
 }
 
 async fn shutdown_signal() {
