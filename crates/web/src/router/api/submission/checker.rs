@@ -8,7 +8,7 @@ use cds_db::{entity::submission::Status, get_db};
 use futures::StreamExt;
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Unchanged, ColumnTrait, Condition, EntityTrait, IntoActiveModel,
-    QueryFilter, QueryOrder, Set,
+    PaginatorTrait, QueryFilter, QueryOrder, Set,
 };
 use tracing::{error, info};
 
@@ -25,46 +25,32 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         .await?
         .ok_or(anyhow!(""))?;
 
-    let user = cds_db::entity::user::Entity::find_by_id(submission.user_id)
-        .one(get_db())
-        .await?;
-
-    if user.is_none() {
-        cds_db::entity::submission::Entity::delete_by_id(submission.id)
-            .exec(get_db())
-            .await?;
-        return Err(anyhow!(""));
-    }
-
-    let user = user.unwrap();
-
-    // Get related challenge
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(submission.challenge_id)
+    let user = if let Some(user) = cds_db::entity::user::Entity::find_by_id(submission.user_id)
         .one(get_db())
         .await?
-        .map(|challenge| cds_db::transfer::Challenge::from(challenge));
-
-    if challenge.is_none() {
+    {
+        user
+    } else {
         cds_db::entity::submission::Entity::delete_by_id(submission.id)
             .exec(get_db())
             .await?;
-
         return Err(anyhow!(""));
-    }
+    };
 
-    let challenge = challenge.unwrap();
-
-    let exist_submissions = cds_db::entity::submission::Entity::find()
-        .filter(
-            Condition::all()
-                .add(cds_db::entity::submission::Column::ChallengeId.eq(submission.challenge_id))
-                .add(submission.game_id.map_or(Condition::all(), |game_id| {
-                    Condition::all().add(cds_db::entity::submission::Column::GameId.eq(game_id))
-                }))
-                .add(cds_db::entity::submission::Column::Status.eq(Status::Correct)),
-        )
-        .all(get_db())
-        .await?;
+    // Get related challenge
+    let challenge = if let Some(challenge) =
+        cds_db::entity::challenge::Entity::find_by_id(submission.challenge_id)
+            .one(get_db())
+            .await?
+            .map(|challenge| cds_db::transfer::Challenge::from(challenge))
+    {
+        challenge
+    } else {
+        cds_db::entity::submission::Entity::delete_by_id(submission.id)
+            .exec(get_db())
+            .await?;
+        return Err(anyhow!("Challenge not found"));
+    };
 
     let mut status: Status = Status::Incorrect;
 
@@ -84,12 +70,24 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
     }
 
     if status == Status::Correct {
-        for exist_submission in exist_submissions {
-            if exist_submission.user_id == submission.user_id
-                || (submission.game_id.is_some() && exist_submission.team_id == submission.team_id)
-            {
-                status = Status::Invalid;
-                break;
+        if let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) {
+            let is_already_correct = cds_db::entity::submission::Entity::find()
+                .filter(
+                    Condition::all()
+                        .add(
+                            cds_db::entity::submission::Column::ChallengeId
+                                .eq(submission.challenge_id),
+                        )
+                        .add(cds_db::entity::submission::Column::GameId.eq(game_id))
+                        .add(cds_db::entity::submission::Column::TeamId.eq(team_id))
+                        .add(cds_db::entity::submission::Column::Status.eq(Status::Correct)),
+                )
+                .count(get_db())
+                .await?
+                > 0;
+
+            if is_already_correct {
+                status = Status::Duplicate;
             }
         }
     }

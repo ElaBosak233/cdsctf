@@ -45,6 +45,7 @@ pub enum Status {
     Incorrect = 2,
     Cheat     = 3,
     Invalid   = 4,
+    Duplicate = 5,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
