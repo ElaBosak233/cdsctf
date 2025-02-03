@@ -383,6 +383,7 @@ pub struct CreateGameChallengeRequest {
     pub first_blood_reward_ratio: Option<i64>,
     pub second_blood_reward_ratio: Option<i64>,
     pub third_blood_reward_ratio: Option<i64>,
+    pub frozen_at: Option<i64>,
 }
 
 pub async fn create_game_challenge(
@@ -413,6 +414,9 @@ pub async fn create_game_challenge(
         first_blood_reward_ratio: body.first_blood_reward_ratio.map_or(NotSet, Set),
         second_blood_reward_ratio: body.second_blood_reward_ratio.map_or(NotSet, Set),
         third_blood_reward_ratio: body.third_blood_reward_ratio.map_or(NotSet, Set),
+
+        // If not provided, it will be determined by the game's frozen_at by default.
+        frozen_at: body.frozen_at.map_or(Set(game.frozen_at), Set),
         ..Default::default()
     }
     .insert(get_db())
@@ -437,6 +441,7 @@ pub struct UpdateGameChallengeRequest {
     pub first_blood_reward_ratio: Option<i64>,
     pub second_blood_reward_ratio: Option<i64>,
     pub third_blood_reward_ratio: Option<i64>,
+    pub frozen_at: Option<i64>,
 }
 
 pub async fn update_game_challenge(
@@ -468,6 +473,7 @@ pub async fn update_game_challenge(
         first_blood_reward_ratio: body.first_blood_reward_ratio.map_or(NotSet, Set),
         second_blood_reward_ratio: body.second_blood_reward_ratio.map_or(NotSet, Set),
         third_blood_reward_ratio: body.third_blood_reward_ratio.map_or(NotSet, Set),
+        frozen_at: body.frozen_at.map_or(NotSet, Set),
         ..Default::default()
     }
     .update(get_db())
