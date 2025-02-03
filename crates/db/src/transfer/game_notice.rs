@@ -1,6 +1,3 @@
-use std::str::FromStr;
-
-use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::entity;

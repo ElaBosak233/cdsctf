@@ -1,4 +1,4 @@
-//! checker module is for checking submissions,
+//! Checker module is for checking submissions,
 //! it will assign a status to each submission.
 
 use std::collections::BTreeMap;
@@ -23,7 +23,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         )
         .one(get_db())
         .await?
-        .ok_or(anyhow!(""))?;
+        .ok_or(anyhow!("submission_not_found"))?;
 
     let user = if let Some(user) = cds_db::entity::user::Entity::find_by_id(submission.user_id)
         .one(get_db())
@@ -34,7 +34,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         cds_db::entity::submission::Entity::delete_by_id(submission.id)
             .exec(get_db())
             .await?;
-        return Err(anyhow!(""));
+        return Err(anyhow!("user_not_found"));
     };
 
     // Get related challenge
@@ -49,7 +49,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         cds_db::entity::submission::Entity::delete_by_id(submission.id)
             .exec(get_db())
             .await?;
-        return Err(anyhow!("Challenge not found"));
+        return Err(anyhow!("challenge_not_found"));
     };
 
     let mut status: Status = Status::Incorrect;
@@ -59,35 +59,53 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         _ => submission.user_id,
     };
 
-    let result = match cds_checker::check(&challenge, operator_id, &submission.flag).await {
-        Ok(is_correct) => is_correct,
-        _ => false,
+    match cds_checker::check(&challenge, operator_id, &submission.flag).await? {
+        cds_checker::Status::Correct => status = Status::Correct,
+        cds_checker::Status::Incorrect => status = Status::Incorrect,
+        cds_checker::Status::Cheat(_peer_team_id) => status = Status::Cheat,
     };
 
-    match result {
-        true => status = Status::Correct,
-        false => status = Status::Incorrect,
-    }
-
     if status == Status::Correct {
-        if let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) {
-            let is_already_correct = cds_db::entity::submission::Entity::find()
-                .filter(
-                    Condition::all()
-                        .add(
-                            cds_db::entity::submission::Column::ChallengeId
-                                .eq(submission.challenge_id),
-                        )
-                        .add(cds_db::entity::submission::Column::GameId.eq(game_id))
-                        .add(cds_db::entity::submission::Column::TeamId.eq(team_id))
-                        .add(cds_db::entity::submission::Column::Status.eq(Status::Correct)),
-                )
+        // Check whether the submission is duplicate.
+        let is_already_correct = if let (Some(game_id), Some(team_id)) =
+            (submission.game_id, submission.team_id)
+        {
+            cds_db::entity::submission::Entity::find()
+                .filter(cds_db::entity::submission::Column::ChallengeId.eq(submission.challenge_id))
+                .filter(cds_db::entity::submission::Column::GameId.eq(game_id))
+                .filter(cds_db::entity::submission::Column::TeamId.eq(team_id))
+                .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
                 .count(get_db())
                 .await?
-                > 0;
+                > 0
+        } else {
+            cds_db::entity::submission::Entity::find()
+                .filter(cds_db::entity::submission::Column::ChallengeId.eq(submission.challenge_id))
+                .filter(cds_db::entity::submission::Column::UserId.eq(submission.user_id))
+                .filter(cds_db::entity::submission::Column::GameId.is_null())
+                .filter(cds_db::entity::submission::Column::TeamId.is_null())
+                .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
+                .count(get_db())
+                .await?
+                > 0
+        };
 
-            if is_already_correct {
-                status = Status::Duplicate;
+        if is_already_correct {
+            status = Status::Duplicate;
+        }
+
+        if let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) {
+            let game_challenge = cds_db::entity::game_challenge::Entity::find()
+                .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
+                .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))
+                .one(get_db())
+                .await?
+                .map(|game_challenge| cds_db::transfer::GameChallenge::from(game_challenge))
+                .ok_or(anyhow!("game_challenge_not_found"))?;
+
+            let now = chrono::Utc::now().timestamp();
+            if now > game_challenge.frozen_at {
+                status = Status::Invalid;
             }
         }
     }
@@ -148,5 +166,5 @@ pub async fn init() {
         }
     });
     recover().await;
-    info!("submission checker initialized successfully.");
+    info!("Submission checker initialized successfully.");
 }

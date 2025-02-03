@@ -1,4 +1,4 @@
-use sea_orm::{Condition, QueryOrder, QuerySelect, entity::prelude::*};
+use sea_orm::{Condition, QueryOrder, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 use super::{Challenge, Game, Team, User};

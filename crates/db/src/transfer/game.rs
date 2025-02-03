@@ -1,9 +1,7 @@
-use std::str::FromStr;
-
-use sea_orm::{Order, QueryOrder, QuerySelect, entity::prelude::*};
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity, get_db};
+use crate::entity;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Game {

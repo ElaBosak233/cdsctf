@@ -1,10 +1,10 @@
 use std::str::FromStr;
 
-use sea_orm::{Order, QueryOrder, QuerySelect, entity::prelude::*};
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use super::{Game, Team, team};
-use crate::{entity, get_db};
+use crate::entity;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GameTeam {

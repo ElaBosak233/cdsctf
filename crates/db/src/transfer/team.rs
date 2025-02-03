@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use sea_orm::{Iterable, JoinType, Order, QueryOrder, QuerySelect, entity::prelude::*};
+use sea_orm::{Iterable, JoinType, QuerySelect, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 use super::User;
