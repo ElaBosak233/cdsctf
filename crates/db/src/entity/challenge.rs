@@ -46,35 +46,6 @@ pub struct Env {
     pub envs: HashMap<String, String>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-pub struct Flag {
-    #[serde(rename = "type")]
-    pub type_: FlagType,
-    pub banned: bool,
-    pub env: Option<String>,
-    pub value: String,
-}
-
-#[derive(
-    Clone,
-    Debug,
-    Default,
-    PartialEq,
-    Eq,
-    Serialize_repr,
-    Deserialize_repr,
-    EnumIter,
-    DeriveActiveEnum,
-)]
-#[sea_orm(rs_type = "i32", db_type = "Integer")]
-#[repr(i32)]
-pub enum FlagType {
-    #[default]
-    Static  = 0,
-    Pattern = 1,
-    Dynamic = 2,
-}
-
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Submission,

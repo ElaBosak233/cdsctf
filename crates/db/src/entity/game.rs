@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sea_orm::{Set, entity::prelude::*};
+use sea_orm::{FromJsonQueryResult, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 use super::{challenge, game_challenge, game_team, submission, team};
@@ -22,11 +22,20 @@ pub struct Model {
     pub member_limit_max: i64,
     #[sea_orm(default_value = false)]
     pub is_need_write_up: bool,
+    #[sea_orm(column_type = "JsonBinary")]
+    pub timeslots: Vec<Timeslot>,
     pub started_at: i64,
     pub frozen_at: i64,
     pub ended_at: i64,
     pub created_at: i64,
     pub updated_at: i64,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+pub struct Timeslot {
+    pub label: String,
+    pub started_at: String,
+    pub ended_at: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

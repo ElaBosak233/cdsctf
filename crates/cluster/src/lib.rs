@@ -320,10 +320,9 @@ pub async fn create_challenge_env(
 
     let mut pod = create_pod(pod).await?;
 
-    let service_type = if cds_config::get_config().cluster.proxy.is_enabled {
-        "ClusterIP"
-    } else {
-        "NodePort"
+    let service_type = match cds_config::get_config().cluster.traffic {
+        cds_config::cluster::Traffic::Expose => "NodePort",
+        cds_config::cluster::Traffic::Proxy => "ClusterIP",
     };
 
     let service = Service {
