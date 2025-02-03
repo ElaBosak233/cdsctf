@@ -7,5 +7,5 @@ pub struct Config {
     pub dbname: String,
     pub username: String,
     pub password: String,
-    pub sslmode: String,
+    pub ssl_mode: String,
 }

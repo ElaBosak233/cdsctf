@@ -26,7 +26,7 @@ async fn main() {
 async fn bootstrap() -> Result<(), anyhow::Error> {
     cds_config::init().await?;
 
-    logger::init().await;
+    logger::init().await?;
 
     rustls::crypto::ring::default_provider()
         .install_default()
