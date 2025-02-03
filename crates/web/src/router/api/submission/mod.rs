@@ -36,16 +36,23 @@ pub struct GetSubmissionRequest {
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
     pub status: Option<Status>,
-    pub is_detailed: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
+
+    #[deprecated]
+    pub is_detailed: Option<bool>,
+
+    /// Whether the expected submissions are desensitized.
+    /// If you are not an admin, this must be true,
+    /// or you will be forbidden.
+    pub is_desensitized: Option<bool>,
 }
 
 pub async fn get_submission(
     Extension(ext): Extension<Ext>, Query(params): Query<GetSubmissionRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
+    if operator.group != Group::Admin && params.is_desensitized.unwrap_or(false) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -90,7 +97,7 @@ pub async fn get_submission(
 
     submissions = cds_db::transfer::submission::preload(submissions).await?;
 
-    match params.is_detailed {
+    match params.is_desensitized {
         Some(true) => {
             for submission in submissions.iter_mut() {
                 submission.desensitize();
