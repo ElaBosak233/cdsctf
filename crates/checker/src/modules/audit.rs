@@ -1,14 +1,12 @@
-//! Flag module.
-//!
-//! Modified from https://github.com/ret2shell/ret2script.
-
 use std::{io, str::FromStr};
 
 use rune::{Any, ContextError, Module};
 
-#[rune::module(::flag)]
+#[rune::module(::audit)]
 pub fn module(_stdio: bool) -> Result<Module, ContextError> {
     let mut module = Module::from_meta(module_meta)?;
+    module.ty::<Status>()?;
+
     module.ty::<Flag>()?;
     module.function_meta(Flag::new)?;
     module.function_meta(Flag::parse)?;
@@ -22,7 +20,18 @@ pub fn module(_stdio: bool) -> Result<Module, ContextError> {
 }
 
 #[derive(Any, Debug, Clone)]
-#[rune(item = ::flag)]
+#[rune(item = ::audit)]
+pub enum Status {
+    #[rune(constructor)]
+    Correct,
+    #[rune(constructor)]
+    Incorrect,
+    #[rune(constructor)]
+    Cheat(#[rune(get, set)] i64),
+}
+
+#[derive(Any, Debug, Clone)]
+#[rune(item = ::audit)]
 pub struct Flag {
     prefix: String,
     content: String,

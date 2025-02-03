@@ -10,13 +10,14 @@ pub struct GameChallenge {
     pub challenge_id: Uuid,
     pub contact_id: Option<i64>,
     pub difficulty: i64,
-    pub is_enabled: bool,
     pub first_blood_reward_ratio: i64,
     pub second_blood_reward_ratio: i64,
     pub third_blood_reward_ratio: i64,
     pub max_pts: i64,
     pub min_pts: i64,
     pub pts: i64,
+    pub is_enabled: bool,
+    pub frozen_at: i64,
     pub challenge: Option<Challenge>,
 }
 
@@ -34,6 +35,7 @@ impl From<entity::game_challenge::Model> for GameChallenge {
             max_pts: entity.max_pts,
             min_pts: entity.min_pts,
             pts: entity.pts,
+            frozen_at: entity.frozen_at,
             challenge: None,
         }
     }

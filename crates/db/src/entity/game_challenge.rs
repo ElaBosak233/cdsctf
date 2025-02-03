@@ -14,18 +14,19 @@ pub struct Model {
     pub contact_id: Option<i64>,
     #[sea_orm(default_value = 1)]
     pub difficulty: i64,
-    #[sea_orm(default_value = false)]
-    pub is_enabled: bool,
+    #[sea_orm(default_value = 2000)]
+    pub max_pts: i64,
+    #[sea_orm(default_value = 200)]
+    pub min_pts: i64,
     #[sea_orm(default_value = 5)]
     pub first_blood_reward_ratio: i64,
     #[sea_orm(default_value = 3)]
     pub second_blood_reward_ratio: i64,
     #[sea_orm(default_value = 1)]
     pub third_blood_reward_ratio: i64,
-    #[sea_orm(default_value = 2000)]
-    pub max_pts: i64,
-    #[sea_orm(default_value = 200)]
-    pub min_pts: i64,
+    #[sea_orm(default_value = false)]
+    pub is_enabled: bool,
+    pub frozen_at: i64,
 
     #[sea_orm(default_value = 0)]
     pub pts: i64,

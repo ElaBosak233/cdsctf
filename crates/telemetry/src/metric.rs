@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 
-use once_cell::sync::{Lazy, OnceCell};
+use once_cell::sync::Lazy;
 use opentelemetry::{
     InstrumentationScope, KeyValue, global,
     metrics::{Meter, ObservableGauge},
 };
-use opentelemetry_sdk::{Resource, metrics::SdkMeterProvider};
+use opentelemetry_sdk::Resource;
 use sysinfo::System;
 
 pub static METRICS_RESOURCE: Lazy<Resource> = Lazy::new(|| {
@@ -27,7 +27,7 @@ pub static CPU_USAGE_OBSERVABLE_GAUGE: Lazy<ObservableGauge<f64>> = Lazy::new(||
         .f64_observable_gauge("cpu_usage")
         .with_description("CPU usage")
         .with_callback(|observer| {
-            let mut system = System::new();
+            let system = System::new();
             let pid = sysinfo::get_current_pid().expect("Failed to get current process's PID");
             let measurement = if let Some(process) = system.process(pid) {
                 process.cpu_usage() as f64
@@ -44,7 +44,7 @@ pub static RAM_USAGE_OBSERVABLE_GAUGE: Lazy<ObservableGauge<u64>> = Lazy::new(||
         .u64_observable_gauge("ram_usage")
         .with_description("RAM usage")
         .with_callback(|observer| {
-            let mut system = System::new();
+            let system = System::new();
             let pid = sysinfo::get_current_pid().expect("Failed to get current process's PID");
             let measurement = if let Some(process) = system.process(pid) {
                 process.memory()

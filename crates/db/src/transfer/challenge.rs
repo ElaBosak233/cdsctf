@@ -1,13 +1,7 @@
-use std::str::FromStr;
-
 use sea_orm::{ColumnTrait, DbErr, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    entity,
-    entity::challenge::{Env, Flag},
-    get_db,
-};
+use crate::{entity, entity::challenge::Env, get_db};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Challenge {
@@ -20,7 +14,7 @@ pub struct Challenge {
     pub has_attachment: bool,
     pub is_public: bool,
     pub env: Option<Env>,
-    pub script: Option<String>,
+    pub checker: Option<String>,
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
@@ -38,7 +32,7 @@ impl From<entity::challenge::Model> for Challenge {
             has_attachment: entity.has_attachment,
             is_public: entity.is_public,
             env: entity.env,
-            script: entity.script,
+            checker: entity.checker,
             deleted_at: entity.deleted_at,
             created_at: entity.created_at,
             updated_at: entity.updated_at,
@@ -58,7 +52,7 @@ impl From<Challenge> for entity::challenge::Model {
             has_attachment: challenge.has_attachment,
             is_public: challenge.is_public,
             env: challenge.env,
-            script: challenge.script,
+            checker: challenge.checker,
             deleted_at: challenge.deleted_at,
             created_at: challenge.created_at,
             updated_at: challenge.updated_at,
@@ -69,7 +63,7 @@ impl From<Challenge> for entity::challenge::Model {
 impl Challenge {
     pub fn desensitize(&mut self) {
         self.env = None;
-        self.script = None;
+        self.checker = None;
     }
 }
 
