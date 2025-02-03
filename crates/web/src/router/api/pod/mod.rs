@@ -30,6 +30,7 @@ pub struct Pod {
     pub game_id: i64,
     pub challenge_id: String,
 
+    pub public_entry: String,
     pub ports: Vec<i32>,
     pub nats: String,
 
@@ -181,12 +182,22 @@ pub async fn get_pod(
 
             let started_at = pod.metadata.creation_timestamp.unwrap().0.timestamp();
 
+            let node_name = pod.spec.unwrap().node_name.unwrap();
+
+            let public_entry = cds_config::get_config()
+                .cluster
+                .public_entries
+                .get(&node_name)
+                .cloned()
+                .unwrap_or("unknown".to_owned());
+
             Pod {
                 id,
                 user_id,
                 team_id,
                 game_id,
                 challenge_id,
+                public_entry,
                 ports,
                 nats,
                 status,
@@ -426,7 +437,6 @@ pub struct WsrxRequest {
     pub port: u32,
 }
 
-#[axum::debug_handler]
 pub async fn wsrx(
     Path(id): Path<Uuid>, Query(query): Query<WsrxRequest>, ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {

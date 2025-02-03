@@ -1,4 +1,4 @@
-pub mod proxy;
+use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
@@ -6,6 +6,13 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub namespace: String,
     pub kube_config_path: String,
-    pub proxy: proxy::Config,
-    pub entry_host: String,
+    pub traffic: Traffic,
+    pub public_entries: HashMap<String, String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Traffic {
+    Expose,
+    Proxy,
 }
