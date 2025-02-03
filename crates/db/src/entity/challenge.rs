@@ -30,7 +30,7 @@ pub struct Model {
     #[sea_orm(column_type = "JsonBinary")]
     pub env: Option<Env>,
     #[sea_orm(column_type = "Text")]
-    pub script: Option<String>,
+    pub checker: Option<String>,
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,

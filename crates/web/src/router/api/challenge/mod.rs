@@ -37,7 +37,10 @@ pub fn router() -> Router {
         .route("/status", axum::routing::post(get_challenge_status))
         .route("/{id}", axum::routing::put(update_challenge))
         .route("/{id}", axum::routing::delete(delete_challenge))
-        .route("/{id}/lint", axum::routing::get(lint_challenge_script))
+        .route(
+            "/{id}/checker",
+            axum::routing::put(update_challenge_checker),
+        )
         .route(
             "/{id}/attachment",
             axum::routing::get(get_challenge_attachment),
@@ -65,17 +68,21 @@ pub struct GetChallengeRequest {
     pub tags: Option<String>,
     pub is_public: Option<bool>,
     pub is_dynamic: Option<bool>,
-    pub is_detailed: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
+
+    /// Whether the expected challenges are desensitized.
+    /// If you are not an admin, this must be true,
+    /// or you will be forbidden.
+    pub is_desensitized: Option<bool>,
 }
 
 pub async fn get_challenge(
     Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<Challenge>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin && params.is_detailed.unwrap_or(false) {
+    if operator.group != Group::Admin && !params.is_desensitized.unwrap_or(false) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -150,10 +157,11 @@ pub async fn get_challenge(
         .map(Challenge::from)
         .collect::<Vec<Challenge>>();
 
-    for challenge in challenges.iter_mut() {
-        let is_detailed = params.is_detailed.unwrap_or(false);
-        if !is_detailed {
-            challenge.desensitize();
+    if let Some(is_desensitized) = params.is_desensitized {
+        if is_desensitized {
+            for challenge in challenges.iter_mut() {
+                challenge.desensitize();
+            }
         }
     }
 
@@ -270,7 +278,7 @@ pub struct CreateChallengeRequest {
     pub has_attachment: Option<bool>,
     pub image_name: Option<String>,
     pub env: Option<cds_db::entity::challenge::Env>,
-    pub script: Option<String>,
+    pub checker: Option<String>,
 }
 
 pub async fn create_challenge(
@@ -290,7 +298,7 @@ pub async fn create_challenge(
         is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
         has_attachment: Set(body.has_attachment.unwrap_or(false)),
         env: Set(body.env),
-        script: Set(body.script),
+        checker: Set(body.checker),
         ..Default::default()
     }
     .insert(get_db())
@@ -315,7 +323,7 @@ pub struct UpdateChallengeRequest {
     pub is_dynamic: Option<bool>,
     pub has_attachment: Option<bool>,
     pub env: Option<cds_db::entity::challenge::Env>,
-    pub script: Option<String>,
+    pub checker: Option<String>,
 }
 
 pub async fn update_challenge(
@@ -345,7 +353,7 @@ pub async fn update_challenge(
         is_dynamic: body.is_dynamic.map_or(NotSet, Set),
         has_attachment: body.has_attachment.map_or(NotSet, Set),
         env: body.env.map_or(NotSet, |v| Set(Some(v))),
-        script: body.script.map_or(NotSet, |v| Set(Some(v))),
+        checker: body.checker.map_or(NotSet, |v| Set(Some(v))),
         created_at: NotSet,
         ..Default::default()
     }
@@ -388,23 +396,38 @@ pub async fn delete_challenge(
     })
 }
 
-pub async fn lint_challenge_script(
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct UpdateChallengeCheckerRequest {
+    pub id: Option<uuid::Uuid>,
+    pub checker: Option<String>,
+}
+
+pub async fn update_challenge_checker(
     Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+    VJson(body): VJson<UpdateChallengeRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+    let _ = cds_db::entity::challenge::Entity::find_by_id(id)
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
 
+    let challenge = cds_db::entity::challenge::ActiveModel {
+        id: Unchanged(id),
+        checker: body.checker.map_or(NotSet, |v| Set(Some(v))),
+        ..Default::default()
+    }
+    .update(get_db())
+    .await?;
+
     let script = challenge
-        .script
-        .ok_or(WebError::BadRequest(json!("null_script")))?;
+        .checker
+        .ok_or(WebError::BadRequest(json!("null_checker_script")))?;
 
     let lint = cds_checker::lint(&script);
     let msg = if let Err(lint) = lint {

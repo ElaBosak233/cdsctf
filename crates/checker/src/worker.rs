@@ -7,7 +7,7 @@ pub async fn cleaner() {
         let interval = time::Duration::from_secs(15 * 60);
         loop {
             let now = chrono::Utc::now();
-            get_checker_context().retain(|id, ctx| {
+            get_checker_context().retain(|_id, ctx| {
                 let duration = now.signed_duration_since(ctx.created_at);
                 duration.num_hours() > 1
             });

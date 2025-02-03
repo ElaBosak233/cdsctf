@@ -17,18 +17,19 @@ use rune::{
 use tracing::{debug, info};
 use uuid::Uuid;
 
+pub use crate::modules::audit::Status;
 use crate::traits::CheckerError;
 
-pub struct CheckerContext {
+struct CheckerContext {
     pub unit: Arc<Unit>,
     pub runtime_context: Arc<RuntimeContext>,
     pub created_at: DateTime<Utc>,
 }
 
-pub static CHECKER_CONTEXT: Lazy<Arc<DashMap<Uuid, CheckerContext>>> =
+static CHECKER_CONTEXT: Lazy<Arc<DashMap<Uuid, CheckerContext>>> =
     Lazy::new(|| Arc::new(DashMap::new()));
 
-pub static RUNE_CONTEXT: OnceCell<Context> = OnceCell::new();
+static RUNE_CONTEXT: OnceCell<Context> = OnceCell::new();
 
 pub async fn init() -> Result<(), CheckerError> {
     fn init_rune_context() -> Result<(), CheckerError> {
@@ -38,11 +39,11 @@ pub async fn init() -> Result<(), CheckerError> {
         rune_context.install(rune_modules::toml::module(true)?)?;
         rune_context.install(rune_modules::process::module(true)?)?;
 
+        rune_context.install(modules::audit::module(true)?)?;
         rune_context.install(modules::crypto::module(true)?)?;
         rune_context.install(modules::regex::module(true)?)?;
         rune_context.install(modules::suid::module(true)?)?;
         rune_context.install(modules::leet::module(true)?)?;
-        rune_context.install(modules::flag::module(true)?)?;
 
         RUNE_CONTEXT
             .set(rune_context)
@@ -59,11 +60,11 @@ pub async fn init() -> Result<(), CheckerError> {
     Ok(())
 }
 
-pub fn get_checker_context() -> Arc<DashMap<Uuid, CheckerContext>> {
+fn get_checker_context() -> Arc<DashMap<Uuid, CheckerContext>> {
     Arc::clone(&CHECKER_CONTEXT)
 }
 
-pub fn get_rune_context() -> &'static Context {
+fn get_rune_context() -> &'static Context {
     &RUNE_CONTEXT.get().unwrap()
 }
 
@@ -117,7 +118,7 @@ async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerE
 
     let script = challenge
         .clone()
-        .script
+        .checker
         .ok_or(CheckerError::MissingScript("".to_owned()))?;
 
     sources.insert(Source::memory(&script)?)?;
@@ -139,7 +140,7 @@ async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerE
 
 pub async fn check(
     challenge: &cds_db::transfer::Challenge, operator_id: i64, content: &str,
-) -> Result<bool, CheckerError> {
+) -> Result<Status, CheckerError> {
     preload(&challenge).await?;
 
     let checker_context = get_checker_context();
@@ -153,7 +154,7 @@ pub async fn check(
         .async_complete()
         .await
         .into_result()?;
-    let output = rune::from_value::<Result<bool, Value>>(result)?;
+    let output = rune::from_value::<Result<Status, Value>>(result)?;
 
     let is_correct = output.map_err(|_| CheckerError::ScriptError("".to_owned()))?;
 

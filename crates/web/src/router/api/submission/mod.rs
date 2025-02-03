@@ -52,7 +52,7 @@ pub async fn get_submission(
     Extension(ext): Extension<Ext>, Query(params): Query<GetSubmissionRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin && params.is_desensitized.unwrap_or(false) {
+    if operator.group != Group::Admin && !params.is_desensitized.unwrap_or(false) {
         return Err(WebError::Forbidden(json!("")));
     }
 
