@@ -2,11 +2,13 @@ pub mod auth;
 pub mod cache;
 pub mod cluster;
 pub mod db;
+pub mod logger;
 pub mod media;
 pub mod meta;
 pub mod queue;
 pub mod server;
 pub mod telemetry;
+
 mod traits;
 
 use std::path::Path;
@@ -30,6 +32,7 @@ pub struct Config {
     pub cache: cache::Config,
     pub cluster: cluster::Config,
     pub media: media::Config,
+    pub logger: logger::Config,
     pub telemetry: telemetry::Config,
 }
 
