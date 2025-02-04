@@ -15,15 +15,12 @@ pub async fn init() -> Result<(), anyhow::Error> {
     let export_config = ExportConfig {
         endpoint: Some(cds_config::get_config().telemetry.endpoint_url.to_string()),
         timeout: Duration::from_secs(5),
-        protocol: match cds_config::get_config()
-            .telemetry
-            .protocol
-            .to_lowercase()
-            .as_str()
-        {
-            "json" => Protocol::HttpJson,
-            "binary" => Protocol::HttpBinary,
-            "grpc" | _ => Protocol::Grpc,
+        protocol: match cds_config::get_config().telemetry.protocol {
+            cds_config::telemetry::Protocol::Json => Protocol::HttpJson,
+            cds_config::telemetry::Protocol::Binary => Protocol::HttpBinary,
+            cds_config::telemetry::Protocol::Grpc | cds_config::telemetry::Protocol::Unknown => {
+                Protocol::Grpc
+            }
         },
     };
 
