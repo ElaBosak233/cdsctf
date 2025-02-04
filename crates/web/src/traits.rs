@@ -70,6 +70,8 @@ pub enum WebError {
     UnprocessableEntity(serde_json::Value),
     #[error("db error: {0}")]
     DatabaseError(#[from] sea_orm::DbErr),
+    #[error("cache error: {0}")]
+    CacheError(#[from] cds_cache::traits::CacheError),
     #[error("captcha error: {0}")]
     CaptchaError(#[from] cds_captcha::traits::CaptchaError),
     #[error("media error: {0}")]
@@ -102,6 +104,10 @@ impl IntoResponse for WebError {
                     serde_json::json!(err.to_string()),
                 ),
             },
+            Self::CacheError(err) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!(err.to_string()),
+            ),
             Self::CaptchaError(err) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),

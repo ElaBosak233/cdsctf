@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
 
@@ -14,10 +17,13 @@ struct TurnstileRequest {
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 struct TurnstileResponse {
     success: bool,
-    challenge_ts: Option<String>,
+    challenge_ts: DateTime<Utc>,
     hostname: Option<String>,
     #[serde(rename = "error-codes", default)]
     error_codes: Vec<String>,
+    action: Option<String>,
+    cdata: Option<String>,
+    metadata: Option<HashMap<String, serde_json::Value>>,
 }
 
 pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {

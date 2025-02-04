@@ -2,12 +2,11 @@ use std::collections::HashMap;
 
 use async_trait::async_trait;
 use sea_orm::{
-    ActiveModelBehavior, ConnectionTrait, DbErr, DeriveActiveEnum, DeriveEntityModel,
+    ActiveModelBehavior, ConnectionTrait, DbErr, DeriveEntityModel,
     DerivePrimaryKey, EntityTrait, EnumIter, FromJsonQueryResult, PrimaryKeyTrait, Related,
     RelationDef, RelationTrait, Set,
 };
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::{game, game_challenge, submission};
 

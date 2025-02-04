@@ -34,8 +34,8 @@ pub struct Model {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
 pub struct Timeslot {
     pub label: String,
-    pub started_at: String,
-    pub ended_at: String,
+    pub started_at: i64,
+    pub ended_at: i64,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
