@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod cache;
+pub mod captcha;
 pub mod cluster;
 pub mod db;
 pub mod email;
@@ -29,6 +30,7 @@ pub struct Config {
     pub meta: meta::Config,
     pub auth: auth::Config,
     pub db: db::Config,
+    pub captcha: captcha::Config,
     pub email: email::Config,
     pub queue: queue::Config,
     pub cache: cache::Config,
