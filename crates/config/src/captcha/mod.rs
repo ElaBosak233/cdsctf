@@ -1,3 +1,4 @@
+pub mod hcaptcha;
 pub mod turnstile;
 
 use serde::{Deserialize, Serialize};
@@ -6,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub provider: Provider,
     pub turnstile: turnstile::Config,
+    pub hcaptcha: hcaptcha::Config,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
@@ -14,7 +16,8 @@ pub enum Provider {
     Pow,
     Image,
     Turnstile,
-    Hcaptcha,
+    #[serde(rename = "hcaptcha")]
+    HCaptcha,
     #[default]
     #[serde(other)]
     None,

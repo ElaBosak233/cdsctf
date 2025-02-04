@@ -4,20 +4,26 @@ use tracing::{debug, info};
 use crate::traits::{Answer, CaptchaError};
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
-struct TurnstileRequest {
+struct HCaptchaRequest {
     secret: String,
     response: String,
-    #[serde(rename = "clientip")]
-    client_ip: Option<String>,
+    #[serde(rename = "remoteip")]
+    remote_ip: Option<String>,
+    #[serde(rename = "sitekey")]
+    site_key: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
-struct TurnstileResponse {
+struct HCaptchaResponse {
     success: bool,
     challenge_ts: Option<String>,
     hostname: Option<String>,
+    credit: Option<bool>,
     #[serde(rename = "error-codes", default)]
     error_codes: Vec<String>,
+    score: Option<f64>,
+    #[serde(default)]
+    score_reason: Vec<String>,
 }
 
 pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
@@ -25,21 +31,27 @@ pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
     let url = &cds_config::get_config().captcha.turnstile.url;
     let response = client
         .post(url)
-        .json(&TurnstileRequest {
-            secret: cds_config::get_config()
-                .captcha
-                .turnstile
-                .secret_key
-                .clone(),
+        .json(&HCaptchaRequest {
+            secret: cds_config::get_config().captcha.hcaptcha.secret_key.clone(),
             response: answer.content.clone(),
-            client_ip: answer.client_ip.clone(),
+            remote_ip: answer.client_ip.clone(),
+            site_key: Some(cds_config::get_config().captcha.hcaptcha.site_key.clone()),
         })
         .send()
         .await?
-        .json::<TurnstileResponse>()
+        .json::<HCaptchaResponse>()
         .await?;
 
     debug!("{:?}", response);
+
+    if let (Some(expected_score), Some(score)) = (
+        cds_config::get_config().captcha.hcaptcha.score,
+        response.score,
+    ) {
+        if score < expected_score {
+            return Ok(false);
+        }
+    }
 
     Ok(response.success)
 }

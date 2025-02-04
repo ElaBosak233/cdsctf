@@ -28,6 +28,9 @@ pub async fn get_config() -> Result<WebResponse<ClientConfig>, WebError> {
                 "provider": cds_config::get_config().captcha.provider,
                 "turnstile": {
                     "site_key": cds_config::get_config().captcha.turnstile.site_key,
+                },
+                "hcaptcha": {
+                    "site_key": cds_config::get_config().captcha.hcaptcha.site_key,
                 }
             }
         })),
