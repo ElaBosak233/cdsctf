@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
 
@@ -16,7 +17,7 @@ struct HCaptchaRequest {
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 struct HCaptchaResponse {
     success: bool,
-    challenge_ts: Option<String>,
+    challenge_ts: Option<DateTime<Utc>>,
     hostname: Option<String>,
     credit: Option<bool>,
     #[serde(rename = "error-codes", default)]

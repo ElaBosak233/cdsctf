@@ -51,14 +51,14 @@ argon2 = { version = "0.5" }
 aes = { version = "0.8" }
 
 # Data Handling
-uuid = { version = "1.11", features = [
+uuid = { version = "1.12", features = [
     "v4",
     "fast-rng",
     "macro-diagnostics"
 ] }
 nanoid = { version = "0.4" }
 regex = { version = "1.11" }
-chrono = { version = "0.4" }
+chrono = { version = "0.4", features = ["serde"] }
 toml = { version = "0.8" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
@@ -125,7 +125,7 @@ sysinfo = { version = "0.33" }
 
 # Miscellaneous
 once_cell = { version = "1.20" }
-validator = { version = "0.19", features = ["derive"] }
+validator = { version = "0.20", features = ["derive"] }
 reqwest = { version = "0.12", features = [
     "json",
     "rustls-tls",

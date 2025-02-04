@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
     pub provider: Provider,
+    pub difficulty: u64,
     pub turnstile: turnstile::Config,
     pub hcaptcha: hcaptcha::Config,
 }
