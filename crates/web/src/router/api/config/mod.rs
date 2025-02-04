@@ -24,6 +24,12 @@ pub async fn get_config() -> Result<WebResponse<ClientConfig>, WebError> {
                 "title": cds_config::get_config().meta.title,
                 "description": cds_config::get_config().meta.description,
             },
+            "captcha": {
+                "provider": cds_config::get_config().captcha.provider,
+                "turnstile": {
+                    "site_key": cds_config::get_config().captcha.turnstile.site_key,
+                }
+            }
         })),
         ..WebResponse::default()
     })

@@ -1,22 +1,20 @@
+pub mod turnstile;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub is_enabled: bool,
-    pub host: String,
-    pub port: u16,
-    pub tls: Tls,
-    pub username: String,
-    pub password: String,
-    pub sender: String,
-    pub whitelist: Vec<String>,
+    pub provider: Provider,
+    pub turnstile: turnstile::Config,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
-pub enum Tls {
-    Starttls,
-    Tls,
+pub enum Provider {
+    Pow,
+    Image,
+    Turnstile,
+    Hcaptcha,
     #[default]
     #[serde(other)]
     None,

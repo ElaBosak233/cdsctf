@@ -5,16 +5,17 @@ resolver = "2"
 [workspace.dependencies]
 # Local Libraries
 cds-assets = { path = "crates/assets" }
-cds-media = { path = "crates/media" }
-cds-db = { path = "crates/db" }
-cds-config = { path = "crates/config" }
-cds-email = { path = "crates/email" }
-cds-web = { path = "crates/web" }
-cds-queue = { path = "crates/queue" }
 cds-cache = { path = "crates/cache" }
-cds-cluster = { path = "crates/cluster" }
+cds-captcha = { path = "crates/captcha" }
 cds-checker = { path = "crates/checker" }
+cds-cluster = { path = "crates/cluster" }
+cds-config = { path = "crates/config" }
+cds-db = { path = "crates/db" }
+cds-email = { path = "crates/email" }
+cds-media = { path = "crates/media" }
+cds-queue = { path = "crates/queue" }
 cds-telemetry = { path = "crates/telemetry" }
+cds-web = { path = "crates/web" }
 
 # Async
 async-trait = { version = "0.1" }
@@ -55,6 +56,7 @@ uuid = { version = "1.11", features = [
     "fast-rng",
     "macro-diagnostics"
 ] }
+nanoid = { version = "0.4" }
 regex = { version = "1.11" }
 chrono = { version = "0.4" }
 toml = { version = "0.8" }
@@ -130,6 +132,7 @@ reqwest = { version = "0.12", features = [
 ], default-features = false }
 image = { version = "0.25.5" }
 webp = { version = "0.3.0", features = ["image"] }
+biosvg = { version = "0.1" }
 lettre = { version = "0.11", features = [
     "tokio1-rustls-tls",
     "smtp-transport",

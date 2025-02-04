@@ -253,11 +253,21 @@ pub async fn get_user_teams(
 pub struct UserLoginRequest {
     pub account: String,
     pub password: String,
+    pub captcha: Option<cds_captcha::Answer>,
 }
 
 pub async fn user_login(
-    Json(mut body): Json<UserLoginRequest>,
+    Extension(ext): Extension<Ext>, Json(mut body): Json<UserLoginRequest>,
 ) -> Result<impl IntoResponse, WebError> {
+    if !cds_captcha::check(&cds_captcha::Answer {
+        client_ip: Some(ext.client_ip),
+        ..body.captcha.unwrap_or_default()
+    })
+    .await?
+    {
+        return Err(WebError::BadRequest(json!("captcha_invalid")));
+    }
+
     body.account = body.account.to_lowercase();
 
     let user = cds_db::entity::user::Entity::find()
@@ -323,12 +333,21 @@ pub struct UserRegisterRequest {
     #[validate(email)]
     pub email: String,
     pub password: String,
-    pub token: Option<String>,
+    pub captcha: Option<cds_captcha::Answer>,
 }
 
 pub async fn user_register(
-    Extension(_ext): Extension<Ext>, Json(mut body): Json<UserRegisterRequest>,
+    Extension(ext): Extension<Ext>, Json(mut body): Json<UserRegisterRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
+    if !cds_captcha::check(&cds_captcha::Answer {
+        client_ip: Some(ext.client_ip),
+        ..body.captcha.unwrap_or_default()
+    })
+    .await?
+    {
+        return Err(WebError::BadRequest(json!("captcha_invalid")));
+    }
+
     body.email = body.email.to_lowercase();
     body.username = body.username.to_lowercase();
 
