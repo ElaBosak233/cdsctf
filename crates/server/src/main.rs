@@ -41,6 +41,7 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
 
     cds_cluster::init().await?;
     cds_checker::init().await?;
+    cds_email::init().await?;
     cds_web::init().await?;
 
     let addr = format!(
