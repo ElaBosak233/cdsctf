@@ -13,6 +13,7 @@ pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_config))
         .route("/icon", axum::routing::get(get_icon))
+        .route("/captcha", axum::routing::get(get_captcha))
 }
 
 pub type ClientConfig = serde_json::Value;
@@ -46,4 +47,16 @@ pub async fn get_icon() -> impl IntoResponse {
             Redirect::to("/logo.svg").into_response() // default frontend icon
         }
     }
+}
+
+pub async fn get_captcha() -> Result<WebResponse<cds_captcha::Captcha>, WebError> {
+    let captcha = cds_captcha::generate()
+        .await?
+        .ok_or(WebError::BadRequest(json!("dont_need_generate_captcha")))?;
+
+    Ok(WebResponse {
+        code: StatusCode::OK.as_u16(),
+        data: Some(captcha.desensitize()),
+        ..Default::default()
+    })
 }

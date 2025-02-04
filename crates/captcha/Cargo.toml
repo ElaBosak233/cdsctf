@@ -6,6 +6,7 @@ publish = false
 resolver = "2"
 
 [dependencies]
+cds-cache = { workspace = true }
 cds-config = { workspace = true }
 
 hex = { workspace = true }
@@ -14,8 +15,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
-tokio = { workspace = true }
-once_cell = { workspace = true }
 nanoid = { workspace = true }
 reqwest = { workspace = true }
 tracing = { workspace = true }
+chrono = { workspace = true }
