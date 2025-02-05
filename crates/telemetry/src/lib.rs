@@ -1,18 +1,35 @@
-pub mod metric;
+pub mod logger;
+pub mod meter;
+pub mod tracer;
 
 use std::time::Duration;
 
-use anyhow::{Context, anyhow};
-use opentelemetry::global;
-use opentelemetry_otlp::{ExportConfig, MetricExporter, Protocol, WithExportConfig};
-use opentelemetry_sdk::metrics::{PeriodicReader, SdkMeterProvider, Temporality};
+use anyhow::Context;
+use once_cell::sync::Lazy;
+use opentelemetry::KeyValue;
+use opentelemetry_otlp::{ExportConfig, Protocol, WithExportConfig};
+use opentelemetry_sdk::Resource;
+
+pub(crate) static RESOURCE: Lazy<Resource> = Lazy::new(|| {
+    let pairs = vec![KeyValue::new("service.name", "cdsctf")];
+
+    Resource::new(pairs)
+});
 
 pub async fn init() -> Result<(), anyhow::Error> {
     if !cds_config::get_config().telemetry.is_enabled {
         return Ok(());
     }
 
-    let export_config = ExportConfig {
+    meter::init()?;
+    logger::init()?;
+    tracer::init()?;
+
+    Ok(())
+}
+
+pub fn get_export_config() -> ExportConfig {
+    ExportConfig {
         endpoint: Some(cds_config::get_config().telemetry.endpoint_url.to_string()),
         timeout: Duration::from_secs(5),
         protocol: match cds_config::get_config().telemetry.protocol {
@@ -22,25 +39,5 @@ pub async fn init() -> Result<(), anyhow::Error> {
                 Protocol::Grpc
             }
         },
-    };
-
-    let metric_exporter = MetricExporter::builder()
-        .with_temporality(Temporality::Cumulative)
-        .with_tonic()
-        .with_export_config(export_config)
-        .build()
-        .map_err(|_| anyhow!("Failed to initialize metrics"))?;
-
-    let meter_provider = SdkMeterProvider::builder()
-        .with_reader(
-            PeriodicReader::builder(metric_exporter, opentelemetry_sdk::runtime::Tokio)
-                .with_interval(Duration::from_secs(3))
-                .build(),
-        )
-        .with_resource(metric::METRICS_RESOURCE.clone())
-        .build();
-
-    global::set_meter_provider(meter_provider);
-
-    Ok(())
+    }
 }

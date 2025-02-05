@@ -47,7 +47,7 @@ pub fn get_config() -> &'static Config {
 pub async fn init() -> Result<(), ConfigError> {
     let target_path = Path::new("application.toml");
     if !target_path.exists() {
-        return Err(ConfigError::ConfigNotFound());
+        return Err(ConfigError::ConfigNotFound);
     }
 
     let content = fs::read_to_string("application.toml").await?;

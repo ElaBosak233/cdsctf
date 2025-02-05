@@ -3,7 +3,7 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum ConfigError {
     #[error("config file not found")]
-    ConfigNotFound(),
+    ConfigNotFound,
     #[error("io error: {0}")]
     IOError(#[from] std::io::Error),
     #[error("toml de error: {0}")]

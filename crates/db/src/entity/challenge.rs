@@ -2,9 +2,8 @@ use std::collections::HashMap;
 
 use async_trait::async_trait;
 use sea_orm::{
-    ActiveModelBehavior, ConnectionTrait, DbErr, DeriveEntityModel,
-    DerivePrimaryKey, EntityTrait, EnumIter, FromJsonQueryResult, PrimaryKeyTrait, Related,
-    RelationDef, RelationTrait, Set,
+    ActiveModelBehavior, ConnectionTrait, DbErr, DeriveEntityModel, DerivePrimaryKey, EntityTrait,
+    EnumIter, FromJsonQueryResult, PrimaryKeyTrait, Related, RelationDef, RelationTrait, Set,
 };
 use serde::{Deserialize, Serialize};
 
