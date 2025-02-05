@@ -16,6 +16,7 @@ cds-cache = { workspace = true }
 cds-checker = { workspace = true }
 cds-telemetry = { workspace = true }
 cds-email = { workspace = true }
+cds-logger = { workspace = true }
 
 once_cell = { workspace = true }
 tracing = { workspace = true }

@@ -1,4 +1,3 @@
-mod logger;
 mod migrator;
 
 use std::net::SocketAddr;
@@ -25,14 +24,14 @@ async fn main() {
 
 async fn bootstrap() -> Result<(), anyhow::Error> {
     cds_config::init().await?;
+    cds_telemetry::init().await?;
 
-    logger::init().await?;
+    cds_logger::init().await?;
 
     rustls::crypto::ring::default_provider()
         .install_default()
         .map_err(|_| anyhow!("Failed to install `ring` as default crypto provider."))?;
 
-    cds_telemetry::init().await?;
     cds_queue::init().await?;
     cds_cache::init().await?;
     cds_db::init().await?;

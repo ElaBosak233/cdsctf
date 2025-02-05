@@ -49,7 +49,7 @@ pub async fn init() -> Result<(), CheckerError> {
             .set(rune_context)
             .map_err(|_| anyhow!("Failed to set rune_context into OnceCell."))?;
 
-        info!("Rune context loaded.");
+        info!("Checker's rune context loaded.");
 
         Ok(())
     }
