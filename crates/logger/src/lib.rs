@@ -1,15 +1,22 @@
+mod traits;
+
 use std::path::Path;
 
 use once_cell::sync::OnceCell;
-use tracing::{Level, info};
+use tracing::{Level, info, info_span};
 use tracing_appender::{non_blocking, non_blocking::WorkerGuard, rolling};
 use tracing_error::ErrorLayer;
-use tracing_subscriber::{EnvFilter, Layer, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_opentelemetry::OpenTelemetryLayer;
+use tracing_subscriber::{
+    EnvFilter, Layer, Registry, layer::SubscriberExt, util::SubscriberInitExt,
+};
+
+use crate::traits::LoggerError;
 
 static FILE_GUARD: OnceCell<WorkerGuard> = OnceCell::new();
 static CONSOLE_GUARD: OnceCell<WorkerGuard> = OnceCell::new();
 
-pub async fn init() -> Result<(), anyhow::Error> {
+pub async fn init() -> Result<(), LoggerError> {
     let filter = EnvFilter::new(&cds_config::get_config().logger.level);
 
     let file_appender = rolling::RollingFileAppender::builder()
@@ -37,12 +44,18 @@ pub async fn init() -> Result<(), anyhow::Error> {
         .with_thread_ids(false)
         .with_thread_names(false);
 
-    tracing_subscriber::registry()
+    let mut registry = tracing_subscriber::registry()
         .with(ErrorLayer::default())
         .with(filter)
         .with(console_layer)
         .with(file_layer)
-        .init();
+        .with(cds_telemetry::logger::get_tracing_layer())
+        .with(
+            cds_telemetry::tracer::get_provider()
+                .map(|p| OpenTelemetryLayer::new(cds_telemetry::tracer::get_tracer())),
+        );
+
+    registry.init();
 
     info!("Logger initialized successfully.");
 

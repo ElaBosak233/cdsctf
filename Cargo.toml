@@ -10,6 +10,7 @@ cds-captcha = { path = "crates/captcha" }
 cds-checker = { path = "crates/checker" }
 cds-cluster = { path = "crates/cluster" }
 cds-config = { path = "crates/config" }
+cds-logger = { path = "crates/logger" }
 cds-db = { path = "crates/db" }
 cds-email = { path = "crates/email" }
 cds-media = { path = "crates/media" }
@@ -77,6 +78,7 @@ tracing-subscriber = { version = "0.3", features = [
 ] }
 tracing-appender = "0.2"
 tracing-error = { version = "0.2" }
+tracing-opentelemetry = { version = "0.28" }
 
 # Database
 sea-orm = { version = "1.1", features = [
@@ -118,9 +120,10 @@ rune = { version = "0.13", features = ["tokio"] }
 rune-modules = { version = "0.13", features = ["full"] }
 
 # Metric
-opentelemetry = { version = "0.27" }
+opentelemetry = { version = "0.27", features = ["metrics"] }
 opentelemetry-otlp = { version = "0.27", features = ["metrics"] }
-opentelemetry_sdk = { version = "0.27", features = [ "rt-tokio" ] }
+opentelemetry_sdk = { version = "0.27", features = ["rt-tokio"] }
+opentelemetry-appender-tracing = { version = "0.27" }
 sysinfo = { version = "0.33" }
 
 # Miscellaneous
