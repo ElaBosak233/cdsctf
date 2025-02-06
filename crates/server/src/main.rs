@@ -20,6 +20,30 @@ async fn main() {
     bootstrap().await.unwrap_or_else(|err| {
         panic!("Bootstrap error: {}", err);
     });
+
+    let addr = format!(
+        "{}:{}",
+        cds_config::get_config().server.host,
+        cds_config::get_config().server.port
+    );
+    let listener = tokio::net::TcpListener::bind(&addr)
+        .await
+        .expect("TcpListener could not bind.");
+
+    info!(
+        "CdsCTF service has been started at {}. Enjoy your hacking challenges!",
+        &addr
+    );
+
+    axum::serve(
+        listener,
+        cds_web::get_app()
+            .to_owned()
+            .into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown())
+    .await
+    .expect("Failed to start axum server.");
 }
 
 async fn bootstrap() -> Result<(), anyhow::Error> {
@@ -43,32 +67,10 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
     cds_email::init().await?;
     cds_web::init().await?;
 
-    let addr = format!(
-        "{}:{}",
-        cds_config::get_config().server.host,
-        cds_config::get_config().server.port
-    );
-    let listener = tokio::net::TcpListener::bind(&addr).await;
-
-    info!(
-        "CdsCTF service has been started at {}. Enjoy your hacking challenges!",
-        &addr
-    );
-
-    axum::serve(
-        listener?,
-        cds_web::get_app()
-            .to_owned()
-            .into_make_service_with_connect_info::<SocketAddr>(),
-    )
-    .with_graceful_shutdown(shutdown_signal())
-    .await
-    .expect("Failed to start server server");
-
     Ok(())
 }
 
-async fn shutdown_signal() {
+async fn shutdown() {
     let ctrl_c = async {
         tokio::signal::ctrl_c()
             .await
@@ -89,11 +91,14 @@ async fn shutdown_signal() {
     tokio::select! {
         _ = ctrl_c => {
             info!("Received Ctrl+C, shutting down...");
-            std::process::exit(0);
         },
         _ = terminate => {
             info!("Received SIGTERM, shutting down...");
-            std::process::exit(0);
         }
     }
+
+    info!("Please wait a few seconds for asynchronous data operations.");
+
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    std::process::exit(0);
 }
