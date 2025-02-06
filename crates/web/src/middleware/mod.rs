@@ -41,26 +41,19 @@ pub async fn auth(mut req: Request<Body>, next: Next) -> Result<Response, WebErr
     let decoding_key = DecodingKey::from_secret(cds_config::get_config().auth.secret.as_bytes());
     let validation = Validation::default();
 
-    let mut user: Option<cds_db::transfer::User> = None;
-
     if let Ok(data) = decode::<crate::util::jwt::Claims>(token, &decoding_key, &validation) {
-        user = cds_db::entity::user::Entity::find_by_id(data.claims.id)
+        let user = cds_db::entity::user::Entity::find_by_id(data.claims.id)
             .one(get_db())
             .await?
-            .map(|user| user.into());
-
-        if user.is_none() {
-            return Err(WebError::Unauthorized(json!("not_found")));
-        }
-
-        let user = user.clone().unwrap();
+            .map(|user| cds_db::transfer::User::from(user))
+            .ok_or(WebError::Unauthorized(json!("not_found")))?;
 
         if user.group == Group::Banned {
             return Err(WebError::Forbidden(json!("forbidden")));
         }
-    }
 
-    ext.operator = user;
+        ext.operator = Some(user);
+    }
 
     req.extensions_mut().insert(ext);
 
