@@ -12,23 +12,10 @@ use opentelemetry_sdk::Resource;
 
 pub(crate) static RESOURCE: Lazy<Resource> = Lazy::new(|| {
     let pairs = vec![KeyValue::new("service.name", "cdsctf")];
-
     Resource::new(pairs)
 });
 
-pub async fn init() -> Result<(), anyhow::Error> {
-    if !cds_config::get_config().telemetry.is_enabled {
-        return Ok(());
-    }
-
-    meter::init()?;
-    logger::init()?;
-    tracer::init()?;
-
-    Ok(())
-}
-
-pub fn get_export_config() -> ExportConfig {
+pub(crate) fn get_export_config() -> ExportConfig {
     ExportConfig {
         endpoint: Some(cds_config::get_config().telemetry.endpoint_url.to_string()),
         timeout: Duration::from_secs(5),
@@ -40,4 +27,16 @@ pub fn get_export_config() -> ExportConfig {
             }
         },
     }
+}
+
+pub async fn init() -> Result<(), anyhow::Error> {
+    if !cds_config::get_config().telemetry.is_enabled {
+        return Ok(());
+    }
+
+    meter::init()?;
+    logger::init()?;
+    tracer::init()?;
+
+    Ok(())
 }
