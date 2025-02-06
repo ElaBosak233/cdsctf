@@ -169,7 +169,7 @@ pub async fn get_challenge(
         code: StatusCode::OK.as_u16(),
         data: Some(challenges),
         total: Some(total),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -263,7 +263,7 @@ pub async fn get_challenge_status(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(result),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -308,7 +308,7 @@ pub async fn create_challenge(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(challenge),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -364,7 +364,7 @@ pub async fn update_challenge(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(challenge),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -392,7 +392,7 @@ pub async fn delete_challenge(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -442,7 +442,7 @@ pub async fn update_challenge_checker(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         msg: msg.map(|msg| json!(msg)),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -501,7 +501,7 @@ pub async fn get_challenge_attachment_metadata(
                 filename: filename.to_string(),
                 size: *size,
             }),
-            ..WebResponse::default()
+            ..Default::default()
         }),
         None => Err(WebError::NotFound(json!(""))),
     }
@@ -544,7 +544,7 @@ pub async fn save_challenge_attachment(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -570,6 +570,6 @@ pub async fn delete_challenge_attachment(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }

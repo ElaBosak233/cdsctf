@@ -29,6 +29,6 @@ pub async fn index() -> impl IntoResponse {
     WebResponse::<()> {
         code: StatusCode::OK.as_u16(),
         msg: Some(json!("This is the heart of CdsCTF!")),
-        ..WebResponse::default()
+        ..Default::default()
     }
 }

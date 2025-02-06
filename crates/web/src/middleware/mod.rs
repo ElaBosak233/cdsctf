@@ -6,7 +6,7 @@ use axum::{
 };
 use cds_db::{entity::user::Group, get_db};
 use jsonwebtoken::{DecodingKey, Validation, decode};
-use sea_orm::EntityTrait;
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde_json::json;
 
 use crate::traits::{Ext, WebError};
@@ -42,7 +42,9 @@ pub async fn auth(mut req: Request<Body>, next: Next) -> Result<Response, WebErr
     let validation = Validation::default();
 
     if let Ok(data) = decode::<crate::util::jwt::Claims>(token, &decoding_key, &validation) {
-        let user = cds_db::entity::user::Entity::find_by_id(data.claims.id)
+        let user = cds_db::entity::user::Entity::find()
+            .filter(cds_db::entity::user::Column::Id.eq(data.claims.id))
+            .filter(cds_db::entity::user::Column::DeletedAt.is_null())
             .one(get_db())
             .await?
             .map(|user| cds_db::transfer::User::from(user))
