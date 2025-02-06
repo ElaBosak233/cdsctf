@@ -145,7 +145,7 @@ pub async fn get_team(
         code: StatusCode::OK.as_u16(),
         data: Some(teams),
         total: Some(total),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -305,7 +305,7 @@ pub async fn update_team(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(team),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -343,7 +343,7 @@ pub async fn delete_team(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 

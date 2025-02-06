@@ -110,7 +110,7 @@ pub async fn get_submission(
         code: StatusCode::OK.as_u16(),
         data: Some(submissions),
         total: Some(total),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -134,7 +134,7 @@ pub async fn get_submission_by_id(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(submission),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -219,7 +219,7 @@ pub async fn create_submission(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(submission),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -237,6 +237,6 @@ pub async fn delete_submission(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }

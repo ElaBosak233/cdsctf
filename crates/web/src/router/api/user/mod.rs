@@ -35,6 +35,9 @@ pub fn router() -> Router {
         .route("/{id}", axum::routing::put(update_user))
         .route("/{id}", axum::routing::delete(delete_user))
         .route("/{id}/teams", axum::routing::get(get_user_teams))
+        .route("/profile", axum::routing::get(get_user_profile))
+        .route("/profile", axum::routing::put(update_user_profile))
+        .route("/profile", axum::routing::delete(delete_user_profile))
         .route("/login", axum::routing::post(user_login))
         .route("/register", axum::routing::post(user_register))
         .route("/{id}/avatar", axum::routing::get(get_user_avatar))
@@ -84,7 +87,7 @@ pub async fn get_user(
         code: StatusCode::OK.as_u16(),
         data: Some(users),
         total: Some(total),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -130,7 +133,7 @@ pub async fn create_user(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -147,18 +150,16 @@ pub struct UpdateUserRequest {
     pub description: Option<String>,
 }
 
+/// Update a user with given data.
+///
+/// # Prerequisite
+/// - Operator is admin.
 pub async fn update_user(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateUserRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     body.id = Some(id);
-    if !(operator.group == Group::Admin
-        || (operator.id == body.id.unwrap_or(0)
-            && (body
-                .group
-                .as_ref()
-                .map_or(true, |group| operator.group == *group))))
-    {
+    if operator.group != Group::Admin {
         return Err(WebError::Forbidden("".into()));
     }
 
@@ -201,15 +202,19 @@ pub async fn update_user(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
+/// Delete a user with given data.
+///
+/// # Prerequisite
+/// - Operator is admin.
 pub async fn delete_user(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if !(operator.group == Group::Admin || operator.id == id) {
+    if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -231,7 +236,7 @@ pub async fn delete_user(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -245,7 +250,112 @@ pub async fn get_user_teams(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(teams),
-        ..WebResponse::default()
+        ..Default::default()
+    })
+}
+
+pub async fn get_user_profile(
+    Extension(ext): Extension<Ext>,
+) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
+
+    Ok(WebResponse {
+        code: StatusCode::OK.as_u16(),
+        data: Some(operator),
+        ..Default::default()
+    })
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+pub struct UpdateUserProfileRequest {
+    pub nickname: Option<String>,
+    #[validate(email)]
+    pub email: Option<String>,
+    pub password: Option<String>,
+    pub description: Option<String>,
+}
+
+pub async fn update_user_profile(
+    Extension(ext): Extension<Ext>, Json(mut body): Json<UpdateUserProfileRequest>,
+) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
+
+    if let Some(email) = body.email {
+        body.email = Some(email.to_lowercase());
+    }
+
+    if let Some(password) = body.password {
+        let hashed_password = Argon2::default()
+            .hash_password(password.as_bytes(), &SaltString::generate(&mut OsRng))
+            .unwrap()
+            .to_string();
+        body.password = Some(hashed_password);
+    }
+
+    let user = cds_db::entity::user::ActiveModel {
+        id: Unchanged(operator.id),
+        nickname: body.nickname.map_or(NotSet, Set),
+        email: body.email.map_or(NotSet, Set),
+        hashed_password: body.password.map_or(NotSet, Set),
+        description: body.description.map_or(NotSet, |v| Set(Some(v))),
+        ..Default::default()
+    }
+    .update(get_db())
+    .await?;
+    let user = cds_db::transfer::User::from(user);
+
+    Ok(WebResponse {
+        code: StatusCode::OK.as_u16(),
+        data: Some(user),
+        ..Default::default()
+    })
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct DeleteUserProfileRequest {
+    pub password: String,
+    pub captcha: Option<cds_captcha::Answer>,
+}
+
+pub async fn delete_user_profile(
+    Extension(ext): Extension<Ext>, Json(mut body): Json<DeleteUserProfileRequest>,
+) -> Result<WebResponse<()>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
+
+    if !cds_captcha::check(&cds_captcha::Answer {
+        client_ip: Some(ext.client_ip),
+        ..body.captcha.unwrap_or_default()
+    })
+    .await?
+    {
+        return Err(WebError::BadRequest(json!("captcha_invalid")));
+    }
+
+    let hashed_password = operator.hashed_password.clone();
+
+    if Argon2::default()
+        .verify_password(
+            body.password.as_bytes(),
+            &PasswordHash::new(&hashed_password).unwrap(),
+        )
+        .is_err()
+    {
+        return Err(WebError::BadRequest(json!("password_invalid")));
+    }
+
+    let _ = cds_db::entity::user::ActiveModel {
+        id: Unchanged(operator.id),
+        username: Set(format!("[DELETED]_{}", operator.username)),
+        email: Set(format!("deleted_{}@del.cdsctf", operator.email)),
+        deleted_at: Set(Some(chrono::Utc::now().timestamp())),
+        ..Default::default()
+    }
+    .update(get_db())
+    .await?;
+
+    Ok(WebResponse {
+        code: StatusCode::OK.as_u16(),
+        ..Default::default()
     })
 }
 
@@ -321,7 +431,7 @@ pub async fn user_login(
     Ok((StatusCode::OK, headers, WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
-        ..WebResponse::default()
+        ..Default::default()
     }))
 }
 
@@ -393,7 +503,7 @@ pub async fn user_register(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(user),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 

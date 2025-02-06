@@ -31,7 +31,7 @@ pub async fn get_img_metadata(path: String) -> Result<WebResponse<Metadata>, Web
                 filename: filename.to_string(),
                 size: *size,
             }),
-            ..WebResponse::default()
+            ..Default::default()
         }),
         None => Err(WebError::NotFound(json!(""))),
     }
@@ -51,7 +51,7 @@ pub async fn save_img(path: String, multipart: Multipart) -> Result<WebResponse<
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -62,6 +62,6 @@ pub async fn delete_img(path: String) -> Result<WebResponse<()>, WebError> {
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
