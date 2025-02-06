@@ -160,7 +160,7 @@ pub async fn get_game(
         code: StatusCode::OK.as_u16(),
         data: Some(games),
         total: Some(total),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -210,7 +210,7 @@ pub async fn create_game(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -267,7 +267,7 @@ pub async fn update_game(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -290,7 +290,7 @@ pub async fn delete_game(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -368,7 +368,7 @@ pub async fn get_game_challenge(
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenges),
         total: Some(total),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -426,7 +426,7 @@ pub async fn create_game_challenge(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenge),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -483,7 +483,7 @@ pub async fn update_game_challenge(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenge),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -513,7 +513,7 @@ pub async fn delete_game_challenge(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -585,7 +585,7 @@ pub async fn get_game_team(
         code: StatusCode::OK.as_u16(),
         data: Some(game_teams),
         total: Some(total),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -640,7 +640,7 @@ pub async fn create_game_team(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_team),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -690,7 +690,7 @@ pub async fn update_game_team(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_team),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -720,7 +720,7 @@ pub async fn delete_game_team(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -819,7 +819,7 @@ pub async fn calculate_game(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 

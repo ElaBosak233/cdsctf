@@ -35,7 +35,7 @@ pub async fn get_config() -> Result<WebResponse<ClientConfig>, WebError> {
                 }
             }
         })),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 

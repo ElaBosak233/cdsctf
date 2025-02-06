@@ -212,7 +212,7 @@ pub async fn get_pod(
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(pods),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -323,7 +323,7 @@ pub async fn create_pod(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -389,7 +389,7 @@ pub async fn renew_pod(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 
@@ -428,7 +428,7 @@ pub async fn stop_pod(
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
-        ..WebResponse::default()
+        ..Default::default()
     })
 }
 

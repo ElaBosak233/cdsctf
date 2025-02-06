@@ -133,7 +133,7 @@ impl IntoResponse for WebError {
         WebResponse::<()> {
             code: status.as_u16(),
             msg: Option::from(message),
-            ..WebResponse::default()
+            ..Default::default()
         }
         .into_response()
     }
