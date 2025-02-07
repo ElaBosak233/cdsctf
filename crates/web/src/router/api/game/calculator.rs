@@ -66,22 +66,19 @@ pub async fn calculate(game_id: i64) {
 
         for (rank, submission) in submissions.iter().enumerate() {
             let mut submission = submission.clone().into_active_model();
-            submission.pts = Set(match rank {
-                0 => base_pts * (100 + game_challenge.first_blood_reward_ratio) / 100,
-                1 => base_pts * (100 + game_challenge.second_blood_reward_ratio) / 100,
-                2 => base_pts * (100 + game_challenge.third_blood_reward_ratio) / 100,
-                _ => base_pts,
-            });
+            submission.pts =
+                Set(base_pts * (100 + game_challenge.bonus_ratios.get(rank).unwrap_or(&0)) / 100);
             submission.rank = Set(rank as i64 + 1);
             submission.update(get_db()).await.unwrap();
         }
 
-        let pts = match submissions.len() {
-            0 => base_pts * (100 + game_challenge.first_blood_reward_ratio) / 100,
-            1 => base_pts * (100 + game_challenge.second_blood_reward_ratio) / 100,
-            2 => base_pts * (100 + game_challenge.third_blood_reward_ratio) / 100,
-            _ => base_pts,
-        };
+        let pts = base_pts
+            * (100
+                + game_challenge
+                    .bonus_ratios
+                    .get(submissions.len())
+                    .unwrap_or(&0))
+            / 100;
         let mut game_challenge = game_challenge.into_active_model();
         game_challenge.pts = Set(pts);
         game_challenge.update(get_db()).await.unwrap();

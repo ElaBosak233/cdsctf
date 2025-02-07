@@ -23,7 +23,6 @@ pub async fn router() -> Router {
 
     Router::new()
         .route("/", axum::routing::get(get_submission))
-        .route("/{id}", axum::routing::get(get_submission_by_id))
         .route("/", axum::routing::post(create_submission))
         .route("/{id}", axum::routing::delete(delete_submission))
 }
@@ -39,9 +38,6 @@ pub struct GetSubmissionRequest {
     pub page: Option<u64>,
     pub size: Option<u64>,
 
-    #[deprecated]
-    pub is_detailed: Option<bool>,
-
     /// Whether the expected submissions are desensitized.
     /// If you are not an admin, this must be true,
     /// or you will be forbidden.
@@ -52,7 +48,9 @@ pub async fn get_submission(
     Extension(ext): Extension<Ext>, Query(params): Query<GetSubmissionRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin && !params.is_desensitized.unwrap_or(false) {
+    let is_desensitized = params.is_desensitized.unwrap_or(true);
+
+    if operator.group != Group::Admin && !is_desensitized {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -97,13 +95,10 @@ pub async fn get_submission(
 
     submissions = cds_db::transfer::submission::preload(submissions).await?;
 
-    match params.is_desensitized {
-        Some(true) => {
-            for submission in submissions.iter_mut() {
-                submission.desensitize();
-            }
+    if is_desensitized {
+        for submission in submissions.iter_mut() {
+            submission.desensitize();
         }
-        _ => {}
     }
 
     Ok(WebResponse {
@@ -114,33 +109,9 @@ pub async fn get_submission(
     })
 }
 
-pub async fn get_submission_by_id(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
-) -> Result<WebResponse<Submission>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
-    let submission = cds_db::entity::submission::Entity::find_by_id(id)
-        .one(get_db())
-        .await?;
-
-    if submission.is_none() {
-        return Err(WebError::NotFound(json!("")));
-    }
-
-    let submission = submission.unwrap();
-    let mut submission = cds_db::transfer::Submission::from(submission);
-    submission.desensitize();
-
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        data: Some(submission),
-        ..Default::default()
-    })
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateSubmissionRequest {
-    pub flag: String,
+    pub content: String,
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
@@ -202,7 +173,7 @@ pub async fn create_submission(
     }
 
     let submission = cds_db::entity::submission::ActiveModel {
-        flag: Set(body.flag),
+        content: Set(body.content),
         user_id: body.user_id.map_or(NotSet, Set),
         team_id: body.team_id.map_or(NotSet, |v| Set(Some(v))),
         game_id: body.game_id.map_or(NotSet, |v| Set(Some(v))),

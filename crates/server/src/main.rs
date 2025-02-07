@@ -97,7 +97,9 @@ async fn shutdown() {
         }
     }
 
-    cds_queue::shutdown().await.expect("Failed to shutdown queue.");
+    cds_queue::shutdown()
+        .await
+        .expect("Failed to shutdown queue.");
 
     cds_telemetry::shutdown()
         .await

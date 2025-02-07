@@ -262,7 +262,7 @@ pub async fn create_challenge_env(
         user.id
     };
 
-    let checker_environ = cds_checker::environ(&challenge, operator_id).await?;
+    let checker_environ = cds_checker::generate(&challenge, operator_id).await?;
 
     for (k, v) in checker_environ {
         env_vars.push(EnvVar {

@@ -18,12 +18,7 @@ pub struct Model {
     pub max_pts: i64,
     #[sea_orm(default_value = 200)]
     pub min_pts: i64,
-    #[sea_orm(default_value = 5)]
-    pub first_blood_reward_ratio: i64,
-    #[sea_orm(default_value = 3)]
-    pub second_blood_reward_ratio: i64,
-    #[sea_orm(default_value = 1)]
-    pub third_blood_reward_ratio: i64,
+    pub bonus_ratios: Vec<i64>,
     #[sea_orm(default_value = false)]
     pub is_enabled: bool,
     pub frozen_at: i64,

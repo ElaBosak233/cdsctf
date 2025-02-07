@@ -19,3 +19,4 @@ nanoid = { workspace = true }
 reqwest = { workspace = true }
 tracing = { workspace = true }
 chrono = { workspace = true }
+biosvg = { workspace = true }

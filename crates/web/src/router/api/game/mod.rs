@@ -171,9 +171,10 @@ pub struct CreateGameRequest {
     pub description: Option<String>,
     pub is_enabled: Option<bool>,
     pub is_public: Option<bool>,
+    pub is_need_write_up: Option<bool>,
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
-    pub is_need_write_up: Option<bool>,
+    pub timeslots: Option<Vec<cds_db::entity::game::Timeslot>>,
     pub started_at: i64,
     pub ended_at: i64,
 }
@@ -198,6 +199,7 @@ pub async fn create_game(
         member_limit_min: body.member_limit_min.map_or(NotSet, Set),
         member_limit_max: body.member_limit_max.map_or(NotSet, Set),
 
+        timeslots: Set(body.timeslots.unwrap_or(vec![])),
         started_at: Set(body.started_at),
         ended_at: Set(body.ended_at),
         frozen_at: Set(body.ended_at),
@@ -225,6 +227,7 @@ pub struct UpdateGameRequest {
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
     pub is_need_write_up: Option<bool>,
+    pub timeslots: Option<Vec<cds_db::entity::game::Timeslot>>,
     pub started_at: Option<i64>,
     pub ended_at: Option<i64>,
     pub frozen_at: Option<i64>,
@@ -255,6 +258,7 @@ pub async fn update_game(
         member_limit_min: body.member_limit_min.map_or(NotSet, Set),
         member_limit_max: body.member_limit_max.map_or(NotSet, Set),
 
+        timeslots: body.timeslots.map_or(NotSet, Set),
         started_at: body.started_at.map_or(NotSet, Set),
         ended_at: body.ended_at.map_or(NotSet, Set),
         frozen_at: body.frozen_at.map_or(NotSet, Set),
@@ -380,9 +384,7 @@ pub struct CreateGameChallengeRequest {
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
-    pub first_blood_reward_ratio: Option<i64>,
-    pub second_blood_reward_ratio: Option<i64>,
-    pub third_blood_reward_ratio: Option<i64>,
+    pub bonus_ratios: Option<Vec<i64>>,
     pub frozen_at: Option<i64>,
 }
 
@@ -411,9 +413,7 @@ pub async fn create_game_challenge(
         is_enabled: body.is_enabled.map_or(NotSet, Set),
         max_pts: body.max_pts.map_or(NotSet, Set),
         min_pts: body.min_pts.map_or(NotSet, Set),
-        first_blood_reward_ratio: body.first_blood_reward_ratio.map_or(NotSet, Set),
-        second_blood_reward_ratio: body.second_blood_reward_ratio.map_or(NotSet, Set),
-        third_blood_reward_ratio: body.third_blood_reward_ratio.map_or(NotSet, Set),
+        bonus_ratios: body.bonus_ratios.map_or(Set(vec![5, 3, 1]), Set),
 
         // If not provided, it will be determined by the game's frozen_at by default.
         frozen_at: body.frozen_at.map_or(Set(game.frozen_at), Set),
@@ -438,9 +438,7 @@ pub struct UpdateGameChallengeRequest {
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
-    pub first_blood_reward_ratio: Option<i64>,
-    pub second_blood_reward_ratio: Option<i64>,
-    pub third_blood_reward_ratio: Option<i64>,
+    pub bonus_ratios: Option<Vec<i64>>,
     pub frozen_at: Option<i64>,
 }
 
@@ -470,9 +468,7 @@ pub async fn update_game_challenge(
         is_enabled: body.is_enabled.map_or(NotSet, Set),
         max_pts: body.max_pts.map_or(NotSet, Set),
         min_pts: body.min_pts.map_or(NotSet, Set),
-        first_blood_reward_ratio: body.first_blood_reward_ratio.map_or(NotSet, Set),
-        second_blood_reward_ratio: body.second_blood_reward_ratio.map_or(NotSet, Set),
-        third_blood_reward_ratio: body.third_blood_reward_ratio.map_or(NotSet, Set),
+        bonus_ratios: body.bonus_ratios.map_or(NotSet, Set),
         frozen_at: body.frozen_at.map_or(NotSet, Set),
         ..Default::default()
     }
@@ -875,7 +871,7 @@ pub async fn get_game_scoreboard(
             .cloned()
             .collect::<Vec<Submission>>();
         for submission in submissions.iter_mut() {
-            submission.flag.clear();
+            submission.desensitize();
             submission.team = None;
             submission.game = None;
         }

@@ -38,11 +38,13 @@ pub async fn shutdown() -> Result<(), anyhow::Error> {
                 println!("unable to fully flush logs: {e}");
             }
         }
-    }).await?;
+    })
+    .await?;
 
     tokio::task::spawn_blocking(move || {
         get_provider().unwrap().shutdown().unwrap();
-    }).await?;
+    })
+    .await?;
 
     Ok(())
 }

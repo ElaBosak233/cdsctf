@@ -268,13 +268,12 @@ pub async fn update_team(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateTeamRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find_by_id(id)
-            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
-    );
+    let team = cds_db::entity::team::Entity::find_by_id(id)
+        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .map(|team| cds_db::transfer::Team::from(team))
+        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
     if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
@@ -320,21 +319,21 @@ pub async fn delete_team(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find_by_id(id)
-            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
-    );
+    let team = cds_db::entity::team::Entity::find_by_id(id)
+        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .map(|team| cds_db::transfer::Team::from(team))
+        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
     if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
     let _ = cds_db::entity::team::ActiveModel {
-        id: Set(id),
+        id: Unchanged(id),
         is_locked: Set(true),
+        name: Set(format!("[DELETED]_{}", team.name)),
         deleted_at: Set(Some(chrono::Utc::now().timestamp())),
         ..Default::default()
     }
@@ -524,13 +523,12 @@ pub async fn save_team_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find_by_id(id)
-            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
-    );
+    let team = cds_db::entity::team::Entity::find_by_id(id)
+        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .map(|team| cds_db::transfer::Team::from(team))
+        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
     if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
@@ -549,13 +547,12 @@ pub async fn delete_team_avatar(
     Extension(ext): Extension<Ext>, Path(id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find_by_id(id)
-            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
-    );
+    let team = cds_db::entity::team::Entity::find_by_id(id)
+        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .map(|team| cds_db::transfer::Team::from(team))
+        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
     if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
