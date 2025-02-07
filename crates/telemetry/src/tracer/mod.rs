@@ -46,15 +46,13 @@ pub fn init() -> Result<(), anyhow::Error> {
 }
 
 pub async fn shutdown() -> Result<(), anyhow::Error> {
-    let handle = tokio::task::spawn_blocking(move || {
-        for r in crate::logger::get_provider().unwrap().force_flush() {
+    tokio::task::spawn_blocking(move || {
+        for r in get_provider().unwrap().force_flush() {
             if let Err(e) = r {
                 println!("unable to fully flush traces: {e}");
             }
         }
-    });
-
-    handle.await?;
+    }).await?;
 
     global::shutdown_tracer_provider();
 
