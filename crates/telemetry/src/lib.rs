@@ -9,6 +9,7 @@ use once_cell::sync::Lazy;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::{ExportConfig, Protocol, WithExportConfig};
 use opentelemetry_sdk::Resource;
+use tracing::{info, warn};
 
 pub(crate) static RESOURCE: Lazy<Resource> = Lazy::new(|| {
     let pairs = vec![KeyValue::new("service.name", "cdsctf")];
@@ -37,6 +38,19 @@ pub async fn init() -> Result<(), anyhow::Error> {
     meter::init()?;
     logger::init()?;
     tracer::init()?;
+
+    Ok(())
+}
+
+pub async fn shutdown() -> Result<(), anyhow::Error> {
+    if !cds_config::get_config().telemetry.is_enabled {
+        return Ok(());
+    }
+
+    info!("Shutting down telemetry...");
+
+    tracer::shutdown().await?;
+    logger::shutdown().await?;
 
     Ok(())
 }
