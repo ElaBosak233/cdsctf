@@ -10,7 +10,7 @@ use super::{challenge, game, team, user};
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
-    pub flag: String,
+    pub content: String,
     pub status: Status,
     pub user_id: i64,
     pub team_id: Option<i64>,

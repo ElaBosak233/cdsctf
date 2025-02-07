@@ -3,16 +3,25 @@ use nanoid::nanoid;
 use crate::{Answer, Captcha, traits::CaptchaError};
 
 pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
-    let challenge = nanoid!(16);
+    let (answer, challenge) = biosvg::BiosvgBuilder::new()
+        .length(4)
+        .difficulty(cds_config::get_config().captcha.difficulty as u16)
+        .colors(vec![
+            "#0078D6".to_string(),
+            "#aa3333".to_string(),
+            "#f08012".to_string(),
+            "#33aa00".to_string(),
+            "#AA00AA".to_string(),
+            "#44CC7F".to_string(),
+        ])
+        .build()
+        .map_err(|err| CaptchaError::BiosvgError)?;
+    let id = nanoid::nanoid!();
 
     let captcha = Captcha {
-        id: nanoid!(),
-        challenge: format!(
-            "{}#{}",
-            cds_config::get_config().captcha.difficulty,
-            challenge
-        ),
-        criteria: Some(challenge),
+        id,
+        challenge,
+        criteria: Some(answer),
     };
 
     cds_cache::set_ex(&captcha.id, &captcha, 5 * 60).await?;
@@ -30,20 +39,11 @@ pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
     .await?
     .ok_or(CaptchaError::Gone)?;
 
-    let challenge = captcha
+    let criteria = captcha
         .criteria
         .ok_or(CaptchaError::MissingField("criteria".to_owned()))?;
 
-    let mut context = ring::digest::Context::new(&ring::digest::SHA256);
-    context.update(answer.content.as_bytes());
-    let result = hex::encode(context.finish().as_ref());
-
-    if answer.content.trim().starts_with(challenge.trim())
-        && result.starts_with(
-            "0".repeat((cds_config::get_config().captcha.difficulty + 1) as usize)
-                .as_str(),
-        )
-    {
+    if answer.content.trim().to_lowercase() == criteria.trim().to_lowercase() {
         return Ok(true);
     }
 

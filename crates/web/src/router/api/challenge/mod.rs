@@ -82,7 +82,9 @@ pub async fn get_challenge(
     Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<Challenge>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin && !params.is_desensitized.unwrap_or(false) {
+    let is_desensitized = params.is_desensitized.unwrap_or(true);
+
+    if operator.group != Group::Admin && !is_desensitized {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -157,11 +159,9 @@ pub async fn get_challenge(
         .map(Challenge::from)
         .collect::<Vec<Challenge>>();
 
-    if let Some(is_desensitized) = params.is_desensitized {
-        if is_desensitized {
-            for challenge in challenges.iter_mut() {
-                challenge.desensitize();
-            }
+    if is_desensitized {
+        for challenge in challenges.iter_mut() {
+            challenge.desensitize();
         }
     }
 

@@ -97,8 +97,8 @@ pub fn lint(script: &str) -> Result<(), CheckerError> {
     vm.lookup_function(["check"])
         .map_err(|_| CheckerError::MissingFunction("check".to_owned()))?;
 
-    vm.lookup_function(["environ"])
-        .map_err(|_| CheckerError::MissingFunction("environ".to_owned()))?;
+    vm.lookup_function(["generate"])
+        .map_err(|_| CheckerError::MissingFunction("generate".to_owned()))?;
 
     Ok(())
 }
@@ -161,7 +161,7 @@ pub async fn check(
     Ok(is_correct)
 }
 
-pub async fn environ(
+pub async fn generate(
     challenge: &cds_db::transfer::Challenge, operator_id: i64,
 ) -> Result<HashMap<String, String>, CheckerError> {
     preload(&challenge).await?;
@@ -173,7 +173,7 @@ pub async fn environ(
     let vm = Vm::new(ctx.runtime_context.clone(), ctx.unit.clone());
 
     let result = vm
-        .send_execute(["environ"], (operator_id,))?
+        .send_execute(["generate"], (operator_id,))?
         .async_complete()
         .await
         .into_result()?;
