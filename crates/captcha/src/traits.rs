@@ -27,11 +27,13 @@ pub struct Answer {
 #[derive(Debug, Error)]
 pub enum CaptchaError {
     #[error("gone")]
-    Gone(),
+    Gone,
     #[error("missing field: {0}")]
     MissingField(String),
     #[error("reqwest error: {0}")]
     ReqwestError(#[from] reqwest::Error),
+    #[error("biosvg error")]
+    BiosvgError,
     #[error("cache error: {0}")]
     CacheError(#[from] cds_cache::traits::CacheError),
     #[error("other error: {0}")]

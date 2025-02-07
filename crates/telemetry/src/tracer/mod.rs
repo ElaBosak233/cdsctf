@@ -52,7 +52,8 @@ pub async fn shutdown() -> Result<(), anyhow::Error> {
                 println!("unable to fully flush traces: {e}");
             }
         }
-    }).await?;
+    })
+    .await?;
 
     global::shutdown_tracer_provider();
 

@@ -7,7 +7,7 @@ use crate::{entity, entity::submission::Status, get_db};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Submission {
     pub id: i64,
-    pub flag: String,
+    pub content: String,
     pub status: Status,
     pub user_id: i64,
     pub team_id: Option<i64>,
@@ -27,7 +27,7 @@ pub struct Submission {
 
 impl Submission {
     pub fn desensitize(&mut self) {
-        self.flag.clear();
+        self.content.clear();
     }
 }
 
@@ -35,7 +35,7 @@ impl From<entity::submission::Model> for Submission {
     fn from(model: entity::submission::Model) -> Self {
         Self {
             id: model.id,
-            flag: model.flag,
+            content: model.content,
             status: model.status,
             user_id: model.user_id,
             team_id: model.team_id,
@@ -57,7 +57,7 @@ impl From<Submission> for entity::submission::Model {
     fn from(submission: Submission) -> Self {
         Self {
             id: submission.id,
-            flag: submission.flag,
+            content: submission.content,
             status: submission.status,
             user_id: submission.user_id,
             team_id: submission.team_id,
