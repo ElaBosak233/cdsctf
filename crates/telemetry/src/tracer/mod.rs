@@ -9,7 +9,7 @@ use opentelemetry::{
 use opentelemetry_otlp::{SpanExporter, WithExportConfig};
 use opentelemetry_sdk::trace::{Tracer, TracerProvider};
 
-pub static PROVIDER: OnceCell<TracerProvider> = OnceCell::new();
+static PROVIDER: OnceCell<TracerProvider> = OnceCell::new();
 
 pub fn get_provider() -> Option<TracerProvider> {
     PROVIDER.get().map(|p| p.to_owned())
@@ -41,6 +41,22 @@ pub fn init() -> Result<(), anyhow::Error> {
 
     PROVIDER.set(tracer_provider).ok();
     global::set_tracer_provider(get_provider().unwrap());
+
+    Ok(())
+}
+
+pub async fn shutdown() -> Result<(), anyhow::Error> {
+    let handle = tokio::task::spawn_blocking(move || {
+        for r in crate::logger::get_provider().unwrap().force_flush() {
+            if let Err(e) = r {
+                println!("unable to fully flush traces: {e}");
+            }
+        }
+    });
+
+    handle.await?;
+
+    global::shutdown_tracer_provider();
 
     Ok(())
 }

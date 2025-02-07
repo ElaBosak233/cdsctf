@@ -78,3 +78,10 @@ pub async fn init() -> Result<(), QueueError> {
 
     Ok(())
 }
+
+pub async fn shutdown() -> Result<(), QueueError> {
+    info!("Shutting down message queue...");
+
+    get_client().drain().await?;
+    Ok(())
+}

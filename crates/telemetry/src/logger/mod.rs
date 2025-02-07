@@ -30,3 +30,24 @@ pub fn init() -> Result<(), anyhow::Error> {
 
     Ok(())
 }
+
+pub async fn shutdown() -> Result<(), anyhow::Error> {
+
+    let handle = tokio::task::spawn_blocking(move || {
+        for r in get_provider().unwrap().force_flush() {
+            if let Err(e) = r {
+                println!("unable to fully flush logs: {e}");
+            }
+        }
+    });
+
+    handle.await?;
+
+    let handle = tokio::task::spawn_blocking(move || {
+        get_provider().unwrap().shutdown().unwrap();
+    });
+
+    handle.await?;
+
+    Ok(())
+}

@@ -4,6 +4,8 @@ use thiserror::Error;
 pub enum QueueError {
     #[error("connect error: {0}")]
     ConnectError(#[from] async_nats::ConnectError),
+    #[error("drain error: {0}")]
+    DrainError(#[from] async_nats::client::DrainError),
     #[error("serialization error: {0}")]
     SerializationError(#[from] serde_json::Error),
     #[error("publish error: {0}")]

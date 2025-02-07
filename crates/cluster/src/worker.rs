@@ -34,13 +34,13 @@ pub async fn cleaner() {
                     .map(|s| s.to_owned())
                     .unwrap_or_default()
                     .parse::<i64>()
-                    .unwrap();
+                    .unwrap_or(3);
                 let duration = annotations
                     .get("cds/duration")
                     .map(|s| s.to_owned())
                     .unwrap_or_default()
                     .parse::<i64>()
-                    .unwrap();
+                    .unwrap_or(0);
 
                 let now = chrono::Utc::now().timestamp();
 
