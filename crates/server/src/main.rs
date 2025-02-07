@@ -97,8 +97,11 @@ async fn shutdown() {
         }
     }
 
-    info!("Please wait a few seconds for asynchronous data operations.");
+    cds_queue::shutdown().await.expect("Failed to shutdown queue.");
 
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    cds_telemetry::shutdown()
+        .await
+        .expect("Failed to shutdown telemetry.");
+
     std::process::exit(0);
 }
