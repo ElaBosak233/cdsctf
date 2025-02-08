@@ -21,6 +21,7 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use serde_with::serde_as;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -385,7 +386,7 @@ pub struct CreateGameChallengeRequest {
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
     pub bonus_ratios: Option<Vec<i64>>,
-    pub frozen_at: Option<i64>,
+    pub frozen_at: Option<Option<i64>>,
 }
 
 pub async fn create_game_challenge(
@@ -414,9 +415,7 @@ pub async fn create_game_challenge(
         max_pts: body.max_pts.map_or(NotSet, Set),
         min_pts: body.min_pts.map_or(NotSet, Set),
         bonus_ratios: body.bonus_ratios.map_or(Set(vec![5, 3, 1]), Set),
-
-        // If not provided, it will be determined by the game's frozen_at by default.
-        frozen_at: body.frozen_at.map_or(Set(game.frozen_at), Set),
+        frozen_at: body.frozen_at.map_or(NotSet, Set),
         ..Default::default()
     }
     .insert(get_db())
@@ -430,6 +429,7 @@ pub async fn create_game_challenge(
     })
 }
 
+#[serde_as]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UpdateGameChallengeRequest {
     pub game_id: Option<i64>,
@@ -439,7 +439,12 @@ pub struct UpdateGameChallengeRequest {
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
     pub bonus_ratios: Option<Vec<i64>>,
-    pub frozen_at: Option<i64>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub frozen_at: Option<Option<i64>>,
 }
 
 pub async fn update_game_challenge(
@@ -464,8 +469,8 @@ pub async fn update_game_challenge(
     let game_challenge = cds_db::entity::game_challenge::ActiveModel {
         game_id: Unchanged(game_challenge.game_id),
         challenge_id: Unchanged(game_challenge.challenge_id),
-        difficulty: body.difficulty.map_or(NotSet, Set),
         is_enabled: body.is_enabled.map_or(NotSet, Set),
+        difficulty: body.difficulty.map_or(NotSet, Set),
         max_pts: body.max_pts.map_or(NotSet, Set),
         min_pts: body.min_pts.map_or(NotSet, Set),
         bonus_ratios: body.bonus_ratios.map_or(NotSet, Set),

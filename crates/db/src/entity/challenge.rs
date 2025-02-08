@@ -16,14 +16,11 @@ pub struct Model {
     pub id: uuid::Uuid,
     pub title: String,
     #[sea_orm(column_type = "Text")]
-    pub description: Option<String>,
+    pub description: String,
     pub category: i32,
     pub tags: Vec<String>,
-    #[sea_orm(default_value = false)]
     pub is_dynamic: bool,
-    #[sea_orm(default_value = false)]
     pub has_attachment: bool,
-    #[sea_orm(default_value = false)]
     pub is_public: bool,
     #[sea_orm(column_type = "JsonBinary")]
     pub env: Option<Env>,

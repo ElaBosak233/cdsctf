@@ -43,25 +43,3 @@ impl From<entity::game::Model> for Game {
         }
     }
 }
-
-impl From<Game> for entity::game::Model {
-    fn from(game: Game) -> Self {
-        Self {
-            id: game.id,
-            title: game.title,
-            sketch: game.sketch,
-            description: game.description,
-            is_enabled: game.is_enabled,
-            is_public: game.is_public,
-            is_need_write_up: game.is_need_write_up,
-            member_limit_min: game.member_limit_min,
-            member_limit_max: game.member_limit_max,
-            timeslots: game.timeslots,
-            started_at: game.started_at,
-            frozen_at: game.frozen_at,
-            ended_at: game.ended_at,
-            created_at: game.created_at,
-            updated_at: game.updated_at,
-        }
-    }
-}

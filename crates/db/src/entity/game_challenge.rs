@@ -21,7 +21,7 @@ pub struct Model {
     pub bonus_ratios: Vec<i64>,
     #[sea_orm(default_value = false)]
     pub is_enabled: bool,
-    pub frozen_at: i64,
+    pub frozen_at: Option<i64>,
 
     #[sea_orm(default_value = 0)]
     pub pts: i64,

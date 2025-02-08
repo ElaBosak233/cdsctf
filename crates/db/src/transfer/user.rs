@@ -22,6 +22,15 @@ pub struct User {
     pub teams: Vec<Team>,
 }
 
+impl User {
+    pub fn desensitize(&mut self) {
+        self.hashed_password.clear();
+        for team in self.teams.iter_mut() {
+            team.desensitize();
+        }
+    }
+}
+
 impl From<entity::user::Model> for User {
     fn from(model: entity::user::Model) -> Self {
         Self {
@@ -57,20 +66,11 @@ impl From<User> for entity::user::Model {
     }
 }
 
-impl User {
-    pub fn desensitize(&mut self) {
-        self.hashed_password.clear();
-        for team in self.teams.iter_mut() {
-            team.desensitize();
-        }
-    }
-}
-
 async fn preload(mut users: Vec<User>) -> Result<Vec<User>, DbErr> {
     let models = users
         .clone()
         .into_iter()
-        .map(entity::user::Model::from)
+        .map(|user| entity::user::Model::from(user))
         .collect::<Vec<entity::user::Model>>();
     let teams = models
         .load_many_to_many(entity::team::Entity, entity::team_user::Entity, get_db())
