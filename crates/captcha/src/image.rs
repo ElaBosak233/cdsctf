@@ -1,6 +1,4 @@
-use nanoid::nanoid;
-
-use crate::{Answer, Captcha, traits::CaptchaError};
+use crate::{traits::CaptchaError, Answer, Captcha};
 
 pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
     let (answer, challenge) = biosvg::BiosvgBuilder::new()
@@ -30,7 +28,7 @@ pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
 }
 
 pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
-    let captcha = cds_cache::get::<Captcha>(
+    let captcha = cds_cache::get_del::<Captcha>(
         answer
             .id
             .clone()
