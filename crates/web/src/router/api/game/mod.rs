@@ -110,7 +110,7 @@ pub async fn get_game(
     Extension(ext): Extension<Ext>, Query(params): Query<GetGameRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Game>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin && !params.is_enabled.unwrap_or(true) {
+    if operator.group != Group::Admin && !params.is_enabled.unwrap_or(false) {
         return Err(WebError::Forbidden(json!("")));
     }
 
