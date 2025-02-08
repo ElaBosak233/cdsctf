@@ -1,13 +1,13 @@
-use sea_orm::{ColumnTrait, DbErr, EntityTrait, QueryFilter};
+use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity, entity::challenge::Env, get_db};
+use crate::{entity, entity::challenge::Env};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Challenge {
     pub id: uuid::Uuid,
     pub title: String,
-    pub description: Option<String>,
+    pub description: String,
     pub category: i32,
     pub tags: Vec<String>,
     pub is_dynamic: bool,
@@ -40,38 +40,9 @@ impl From<entity::challenge::Model> for Challenge {
     }
 }
 
-impl From<Challenge> for entity::challenge::Model {
-    fn from(challenge: Challenge) -> Self {
-        Self {
-            id: challenge.id,
-            title: challenge.title,
-            description: challenge.description,
-            category: challenge.category,
-            tags: challenge.tags,
-            is_dynamic: challenge.is_dynamic,
-            has_attachment: challenge.has_attachment,
-            is_public: challenge.is_public,
-            env: challenge.env,
-            checker: challenge.checker,
-            deleted_at: challenge.deleted_at,
-            created_at: challenge.created_at,
-            updated_at: challenge.updated_at,
-        }
-    }
-}
-
 impl Challenge {
     pub fn desensitize(&mut self) {
         self.env = None;
         self.checker = None;
     }
-}
-
-pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<Challenge>, DbErr> {
-    let models = entity::challenge::Entity::find()
-        .filter(entity::challenge::Column::Id.is_in(ids))
-        .all(get_db())
-        .await?;
-    let challenges = models.into_iter().map(Challenge::from).collect();
-    Ok(challenges)
 }

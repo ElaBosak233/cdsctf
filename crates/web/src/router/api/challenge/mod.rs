@@ -37,6 +37,7 @@ pub fn router() -> Router {
         .route("/status", axum::routing::post(get_challenge_status))
         .route("/{id}", axum::routing::put(update_challenge))
         .route("/{id}", axum::routing::delete(delete_challenge))
+        .route("/{id}/env", axum::routing::put(update_challenge_env))
         .route(
             "/{id}/checker",
             axum::routing::put(update_challenge_checker),
@@ -270,7 +271,7 @@ pub async fn get_challenge_status(
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateChallengeRequest {
     pub title: String,
-    pub description: Option<String>,
+    pub description: String,
     pub category: i32,
     pub tags: Option<Vec<String>>,
     pub is_public: Option<bool>,
@@ -322,8 +323,6 @@ pub struct UpdateChallengeRequest {
     pub is_public: Option<bool>,
     pub is_dynamic: Option<bool>,
     pub has_attachment: Option<bool>,
-    pub env: Option<cds_db::entity::challenge::Env>,
-    pub checker: Option<String>,
 }
 
 pub async fn update_challenge(
@@ -346,15 +345,12 @@ pub async fn update_challenge(
     let challenge = cds_db::entity::challenge::ActiveModel {
         id: Unchanged(challenge.id),
         title: body.title.map_or(NotSet, Set),
-        description: body.description.map_or(NotSet, |v| Set(Some(v))),
+        description: body.description.map_or(NotSet, Set),
         tags: body.tags.map_or(NotSet, Set),
         category: body.category.map_or(NotSet, Set),
         is_public: body.is_public.map_or(NotSet, Set),
         is_dynamic: body.is_dynamic.map_or(NotSet, Set),
         has_attachment: body.has_attachment.map_or(NotSet, Set),
-        env: body.env.map_or(NotSet, |v| Set(Some(v))),
-        checker: body.checker.map_or(NotSet, |v| Set(Some(v))),
-        created_at: NotSet,
         ..Default::default()
     }
     .update(get_db())
@@ -397,6 +393,41 @@ pub async fn delete_challenge(
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct UpdateChallengeEnvRequest {
+    pub id: Option<uuid::Uuid>,
+    pub env: Option<cds_db::entity::challenge::Env>,
+}
+
+pub async fn update_challenge_env(
+    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+    VJson(body): VJson<UpdateChallengeEnvRequest>,
+) -> Result<WebResponse<()>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(json!("")));
+    }
+
+    let _ = cds_db::entity::challenge::Entity::find_by_id(id)
+        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
+        .one(get_db())
+        .await?
+        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+
+    let _ = cds_db::entity::challenge::ActiveModel {
+        id: Unchanged(id),
+        env: body.env.map_or(NotSet, |v| Set(Some(v))),
+        ..Default::default()
+    }
+    .update(get_db())
+    .await?;
+
+    Ok(WebResponse {
+        code: StatusCode::OK.as_u16(),
+        ..Default::default()
+    })
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateChallengeCheckerRequest {
     pub id: Option<uuid::Uuid>,
     pub checker: Option<String>,
@@ -404,7 +435,7 @@ pub struct UpdateChallengeCheckerRequest {
 
 pub async fn update_challenge_checker(
     Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
-    VJson(body): VJson<UpdateChallengeRequest>,
+    VJson(body): VJson<UpdateChallengeCheckerRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
