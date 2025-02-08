@@ -422,6 +422,11 @@ pub async fn create_game_challenge(
     .await?;
     let game_challenge = cds_db::transfer::GameChallenge::from(game_challenge);
 
+    cds_queue::publish("calculator", calculator::Payload {
+        game_id: Some(game.id),
+    })
+    .await?;
+
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
         data: Some(game_challenge),
@@ -480,6 +485,11 @@ pub async fn update_game_challenge(
     .update(get_db())
     .await?;
     let game_challenge = cds_db::transfer::GameChallenge::from(game_challenge);
+
+    cds_queue::publish("calculator", calculator::Payload {
+        game_id: Some(game_challenge.game_id),
+    })
+    .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
