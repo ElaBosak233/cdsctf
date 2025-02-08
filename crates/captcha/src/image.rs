@@ -1,4 +1,4 @@
-use crate::{traits::CaptchaError, Answer, Captcha};
+use crate::{Answer, Captcha, traits::CaptchaError};
 
 pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
     let (answer, challenge) = biosvg::BiosvgBuilder::new()

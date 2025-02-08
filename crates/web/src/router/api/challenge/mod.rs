@@ -85,7 +85,7 @@ pub async fn get_challenge(
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let is_desensitized = params.is_desensitized.unwrap_or(true);
 
-    if operator.group != Group::Admin && !is_desensitized {
+    if operator.group != Group::Admin && (!is_desensitized || !params.is_public.unwrap_or(false)) {
         return Err(WebError::Forbidden(json!("")));
     }
 

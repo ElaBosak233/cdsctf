@@ -45,6 +45,7 @@ pub fn router() -> Router {
         )
         .route("/login", axum::routing::post(user_login))
         .route("/register", axum::routing::post(user_register))
+        .route("/logout", axum::routing::post(user_logout))
         .route("/{id}/avatar", axum::routing::get(get_user_avatar))
         .route(
             "/{id}/avatar/metadata",
@@ -557,6 +558,26 @@ pub async fn user_register(
         data: Some(user),
         ..Default::default()
     })
+}
+
+pub async fn user_logout(Extension(ext): Extension<Ext>) -> Result<impl IntoResponse, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
+
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        SET_COOKIE,
+        format!(
+            "token=unknown; Max-Age={}; Path=/; HttpOnly; SameSite=Strict",
+            chrono::Duration::minutes(0).num_seconds()
+        )
+        .parse()
+        .unwrap(),
+    );
+
+    Ok((StatusCode::OK, headers, WebResponse::<()> {
+        code: StatusCode::OK.as_u16(),
+        ..Default::default()
+    }))
 }
 
 pub async fn get_user_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
