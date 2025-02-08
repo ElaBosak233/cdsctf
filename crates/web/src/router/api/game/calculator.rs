@@ -5,7 +5,10 @@ use std::collections::HashMap;
 
 use cds_db::{entity::submission::Status, get_db};
 use futures::StreamExt;
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter, QueryOrder, Set};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter,
+    QueryOrder, Set,
+};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
@@ -107,7 +110,8 @@ pub async fn calculate(game_id: i64) {
             Condition::all()
                 .add(cds_db::entity::game_team::Column::GameId.eq(game_id))
                 .add(cds_db::entity::game_team::Column::IsAllowed.eq(true)),
-        ).order_by_desc(cds_db::entity::game_team::Column::Pts)
+        )
+        .order_by_desc(cds_db::entity::game_team::Column::Pts)
         .all(get_db())
         .await
         .unwrap();

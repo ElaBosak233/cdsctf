@@ -21,7 +21,7 @@ pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
 }
 
 pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
-    let captcha = cds_cache::get::<Captcha>(
+    let captcha = cds_cache::get_del::<Captcha>(
         answer
             .id
             .clone()

@@ -108,10 +108,17 @@ impl IntoResponse for WebError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),
             ),
-            Self::CaptchaError(err) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                serde_json::json!(err.to_string()),
-            ),
+            Self::CaptchaError(err) => match err {
+                cds_captcha::traits::CaptchaError::Gone => {
+                    (StatusCode::GONE, serde_json::json!(err.to_string()))
+                },
+                cds_captcha::traits::CaptchaError::MissingField(_) => {
+                    (StatusCode::BAD_REQUEST, serde_json::json!(err.to_string()))
+                },
+                _ => {
+                    (StatusCode::INTERNAL_SERVER_ERROR, serde_json::json!(err.to_string()))
+                }
+            },
             Self::MediaError(err) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),
