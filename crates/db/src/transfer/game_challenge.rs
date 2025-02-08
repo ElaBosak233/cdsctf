@@ -15,7 +15,7 @@ pub struct GameChallenge {
     pub min_pts: i64,
     pub pts: i64,
     pub is_enabled: bool,
-    pub frozen_at: i64,
+    pub frozen_at: Option<i64>,
     pub challenge: Option<Challenge>,
 }
 

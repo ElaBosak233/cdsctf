@@ -12,7 +12,8 @@ use cds_db::{entity::user::Group, get_db};
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{NotSet, Set, Unchanged},
-    ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter,
+    ColumnTrait, Condition, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect,
+    RelationTrait,
     prelude::Expr,
     sea_query::Func,
 };
@@ -245,7 +246,19 @@ pub async fn get_user_teams(
 ) -> Result<WebResponse<Vec<cds_db::transfer::Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let teams = cds_db::transfer::team::find_by_user_id(id).await?;
+    let teams = cds_db::entity::team::Entity::find()
+        .join(
+            JoinType::InnerJoin,
+            cds_db::entity::team_user::Relation::Team.def().rev(),
+        )
+        .filter(cds_db::entity::team_user::Column::UserId.eq(id))
+        .all(get_db())
+        .await?
+        .into_iter()
+        .map(|team| cds_db::transfer::Team::from(team))
+        .collect::<Vec<cds_db::transfer::Team>>();
+
+    let teams = cds_db::transfer::team::preload(teams).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),

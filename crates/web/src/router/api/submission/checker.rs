@@ -104,8 +104,10 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
                 .ok_or(anyhow!("game_challenge_not_found"))?;
 
             let now = chrono::Utc::now().timestamp();
-            if now > game_challenge.frozen_at {
-                status = Status::Invalid;
+            if let Some(frozen_at) = game_challenge.frozen_at {
+                if now > frozen_at {
+                    status = Status::Invalid;
+                }
             }
         }
     }

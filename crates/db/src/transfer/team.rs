@@ -70,13 +70,18 @@ pub async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
     let models = teams
         .clone()
         .into_iter()
-        .map(entity::team::Model::from)
+        .map(|team| entity::team::Model::from(team))
         .collect::<Vec<entity::team::Model>>();
     let users = models
         .load_many_to_many(entity::user::Entity, entity::team_user::Entity, get_db())
         .await?
         .into_iter()
-        .map(|users| users.into_iter().map(User::from).collect::<Vec<User>>())
+        .map(|users| {
+            users
+                .into_iter()
+                .map(|user| super::User::from(user))
+                .collect::<Vec<User>>()
+        })
         .collect::<Vec<Vec<User>>>();
 
     for (i, team) in teams.iter_mut().enumerate() {
@@ -92,23 +97,6 @@ pub async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
 pub async fn find_by_ids(ids: Vec<i64>) -> Result<Vec<Team>, DbErr> {
     let teams = entity::team::Entity::find()
         .filter(entity::team::Column::Id.is_in(ids))
-        .all(get_db())
-        .await?;
-
-    let mut teams = teams.into_iter().map(Team::from).collect::<Vec<Team>>();
-
-    teams = preload(teams).await?;
-
-    Ok(teams)
-}
-
-pub async fn find_by_user_id(id: i64) -> Result<Vec<Team>, DbErr> {
-    let teams = entity::team::Entity::find()
-        .select_only()
-        .columns(entity::team::Column::iter())
-        .filter(entity::team_user::Column::UserId.eq(id))
-        .join(JoinType::InnerJoin, entity::team_user::Relation::Team.def())
-        .into_model::<entity::team::Model>()
         .all(get_db())
         .await?;
 
