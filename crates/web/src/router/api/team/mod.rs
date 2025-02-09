@@ -421,7 +421,6 @@ pub async fn delete_team_user(
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JoinTeamRequest {
-    pub user_id: i64,
     pub team_id: i64,
     pub password: String,
 }
@@ -439,8 +438,6 @@ pub async fn join_team(
         .await?
         .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
-    body.user_id = operator.id;
-
     if Argon2::default()
         .verify_password(
             body.password.as_bytes(),
@@ -452,7 +449,7 @@ pub async fn join_team(
     }
 
     let team_user = cds_db::entity::team_user::ActiveModel {
-        user_id: Set(body.user_id),
+        user_id: Set(operator.id),
         team_id: Set(id),
         ..Default::default()
     }
