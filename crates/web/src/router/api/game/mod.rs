@@ -1,7 +1,6 @@
 pub mod calculator;
 
 use std::str::FromStr;
-
 use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
@@ -38,61 +37,61 @@ pub async fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_game))
         .route("/", axum::routing::post(create_game))
-        .route("/{id}", axum::routing::put(update_game))
-        .route("/{id}", axum::routing::delete(delete_game))
-        .route("/{id}/challenges", axum::routing::get(get_game_challenge))
+        .route("/{game_id}", axum::routing::put(update_game))
+        .route("/{game_id}", axum::routing::delete(delete_game))
+        .route("/{game_id}/challenges", axum::routing::get(get_game_challenge))
         .route(
-            "/{id}/challenges",
+            "/{game_id}/challenges",
             axum::routing::post(create_game_challenge),
         )
         .route(
-            "/{id}/challenges/{challenge_id}",
+            "/{game_id}/challenges/{challenge_id}",
             axum::routing::put(update_game_challenge),
         )
         .route(
-            "/{id}/challenges/{challenge_id}",
+            "/{game_id}/challenges/{challenge_id}",
             axum::routing::delete(delete_game_challenge),
         )
-        .route("/{id}/teams", axum::routing::get(get_game_team))
-        .route("/{id}/teams", axum::routing::post(create_game_team))
+        .route("/{game_id}/teams", axum::routing::get(get_game_team))
+        .route("/{game_id}/teams", axum::routing::post(create_game_team))
         .route(
-            "/{id}/teams/{team_id}",
+            "/{game_id}/teams/{team_id}",
             axum::routing::put(update_game_team),
         )
         .route(
-            "/{id}/teams/{team_id}",
+            "/{game_id}/teams/{team_id}",
             axum::routing::delete(delete_game_team),
         )
-        .route("/{id}/notices", axum::routing::get(get_game_notice))
-        .route("/{id}/notices", axum::routing::post(create_game_notice))
+        .route("/{game_id}/notices", axum::routing::get(get_game_notice))
+        .route("/{game_id}/notices", axum::routing::post(create_game_notice))
         .route(
-            "/{id}/notices/{notice_id}",
+            "/{game_id}/notices/{notice_id}",
             axum::routing::delete(delete_game_notice),
         )
-        .route("/{id}/calculate", axum::routing::post(calculate_game))
-        .route("/{id}/scoreboard", axum::routing::get(get_game_scoreboard))
-        .route("/{id}/icon", axum::routing::get(get_game_icon))
+        .route("/{game_id}/calculate", axum::routing::post(calculate_game))
+        .route("/{game_id}/scoreboard", axum::routing::get(get_game_scoreboard))
+        .route("/{game_id}/icon", axum::routing::get(get_game_icon))
         .route(
-            "/{id}/icon",
+            "/{game_id}/icon",
             axum::routing::post(save_game_icon)
                 .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
         )
         .route(
-            "/{id}/icon/metadata",
+            "/{game_id}/icon/metadata",
             axum::routing::get(get_game_icon_metadata),
         )
-        .route("/{id}/icon", axum::routing::delete(delete_game_icon))
-        .route("/{id}/poster", axum::routing::get(get_game_poster))
+        .route("/{game_id}/icon", axum::routing::delete(delete_game_icon))
+        .route("/{game_id}/poster", axum::routing::get(get_game_poster))
         .route(
-            "/{id}/poster",
+            "/{game_id}/poster",
             axum::routing::post(save_game_poster)
                 .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
         )
         .route(
-            "/{id}/poster/metadata",
+            "/{game_id}/poster/metadata",
             axum::routing::get(get_game_poster_metadata),
         )
-        .route("/{id}/poster", axum::routing::delete(delete_game_poster))
+        .route("/{game_id}/poster", axum::routing::delete(delete_game_poster))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -235,14 +234,14 @@ pub struct UpdateGameRequest {
 }
 
 pub async fn update_game(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateGameRequest>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, VJson(mut body): VJson<UpdateGameRequest>,
 ) -> Result<WebResponse<cds_db::transfer::Game>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let game = cds_db::entity::game::Entity::find_by_id(id)
+    let game = cds_db::entity::game::Entity::find_by_id(game_id)
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
@@ -277,14 +276,14 @@ pub async fn update_game(
 }
 
 pub async fn delete_game(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let game = cds_db::entity::game::Entity::find_by_id(id)
+    let game = cds_db::entity::game::Entity::find_by_id(game_id)
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
@@ -317,12 +316,12 @@ pub struct GetGameChallengeRequest {
 /// - Operator is in one of the `is_allowed` = `true` game teams.
 /// - Operating time is between related game's `started_at` and `ended_at`.
 pub async fn get_game_challenge(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
     Query(mut params): Query<GetGameChallengeRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let game = cds_db::entity::game::Entity::find_by_id(id)
+    let game = cds_db::entity::game::Entity::find_by_id(game_id)
         .one(get_db())
         .await?
         .map(|game| cds_db::transfer::Game::from(game))
@@ -345,7 +344,7 @@ pub async fn get_game_challenge(
         .inner_join(cds_db::entity::challenge::Entity)
         .inner_join(cds_db::entity::game::Entity);
 
-    sql = sql.filter(cds_db::entity::game_challenge::Column::GameId.eq(id));
+    sql = sql.filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id));
 
     if let Some(challenge_id) = params.challenge_id {
         sql = sql.filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id));
@@ -379,7 +378,6 @@ pub async fn get_game_challenge(
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateGameChallengeRequest {
-    pub game_id: i64,
     pub challenge_id: Uuid,
     pub is_enabled: Option<bool>,
     pub difficulty: Option<i64>,
@@ -390,14 +388,14 @@ pub struct CreateGameChallengeRequest {
 }
 
 pub async fn create_game_challenge(
-    Extension(ext): Extension<Ext>, Json(body): Json<CreateGameChallengeRequest>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Json(body): Json<CreateGameChallengeRequest>,
 ) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let game = cds_db::entity::game::Entity::find_by_id(body.game_id)
+    let game = cds_db::entity::game::Entity::find_by_id(game_id)
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
@@ -437,7 +435,6 @@ pub async fn create_game_challenge(
 #[serde_as]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UpdateGameChallengeRequest {
-    pub game_id: Option<i64>,
     pub challenge_id: Option<Uuid>,
     pub is_enabled: Option<bool>,
     pub difficulty: Option<i64>,
@@ -453,7 +450,7 @@ pub struct UpdateGameChallengeRequest {
 }
 
 pub async fn update_game_challenge(
-    Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, Uuid)>,
+    Extension(ext): Extension<Ext>, Path((game_id, challenge_id)): Path<(i64, Uuid)>,
     Json(mut body): Json<UpdateGameChallengeRequest>,
 ) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -464,7 +461,7 @@ pub async fn update_game_challenge(
     let game_challenge = cds_db::entity::game_challenge::Entity::find()
         .filter(
             Condition::all()
-                .add(cds_db::entity::game_challenge::Column::GameId.eq(id))
+                .add(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
                 .add(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id)),
         )
         .one(get_db())
@@ -499,7 +496,7 @@ pub async fn update_game_challenge(
 }
 
 pub async fn delete_game_challenge(
-    Extension(ext): Extension<Ext>, Path((id, challenge_id)): Path<(i64, Uuid)>,
+    Extension(ext): Extension<Ext>, Path((game_id, challenge_id)): Path<(i64, Uuid)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -509,7 +506,7 @@ pub async fn delete_game_challenge(
     let game_challenge = cds_db::entity::game_challenge::Entity::find()
         .filter(
             Condition::all()
-                .add(cds_db::entity::game_challenge::Column::GameId.eq(id))
+                .add(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
                 .add(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id)),
         )
         .one(get_db())
@@ -555,13 +552,13 @@ pub struct GetGameTeamRequest {
 
 /// Get game teams with given data.
 pub async fn get_game_team(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, Query(params): Query<GetGameTeamRequest>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Query(params): Query<GetGameTeamRequest>,
 ) -> Result<WebResponse<Vec<GameTeam>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let mut sql = cds_db::entity::game_team::Entity::find();
 
-    sql = sql.filter(cds_db::entity::game_team::Column::GameId.eq(id));
+    sql = sql.filter(cds_db::entity::game_team::Column::GameId.eq(game_id));
 
     if let Some(team_id) = params.team_id {
         sql = sql.filter(cds_db::entity::game_team::Column::TeamId.eq(team_id));
@@ -612,11 +609,11 @@ pub struct CreateGameTeamRequest {
 /// - Operator is admin or one of the current team's members.
 /// - No user in the team is already in the game.
 pub async fn create_game_team(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(body): Json<CreateGameTeamRequest>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Json(body): Json<CreateGameTeamRequest>,
 ) -> Result<WebResponse<GameTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let game = cds_db::entity::game::Entity::find_by_id(id)
+    let game = cds_db::entity::game::Entity::find_by_id(game_id)
         .one(get_db())
         .await?
         .map(|game| cds_db::transfer::Game::from(game))
@@ -670,7 +667,7 @@ pub struct UpdateGameTeamRequest {
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn update_game_team(
-    Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
     Json(mut body): Json<UpdateGameTeamRequest>,
 ) -> Result<WebResponse<GameTeam>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -681,7 +678,7 @@ pub async fn update_game_team(
     let game_team = cds_db::entity::game_team::Entity::find()
         .filter(
             Condition::all()
-                .add(cds_db::entity::game_team::Column::GameId.eq(id))
+                .add(cds_db::entity::game_team::Column::GameId.eq(game_id))
                 .add(cds_db::entity::game_team::Column::TeamId.eq(team_id)),
         )
         .one(get_db())
@@ -706,7 +703,7 @@ pub async fn update_game_team(
 }
 
 pub async fn delete_game_team(
-    Extension(ext): Extension<Ext>, Path((id, team_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -716,7 +713,7 @@ pub async fn delete_game_team(
     let game_team = cds_db::entity::game_team::Entity::find()
         .filter(
             Condition::all()
-                .add(cds_db::entity::game_team::Column::GameId.eq(id))
+                .add(cds_db::entity::game_team::Column::GameId.eq(game_id))
                 .add(cds_db::entity::game_team::Column::TeamId.eq(team_id)),
         )
         .one(get_db())
@@ -741,12 +738,12 @@ pub struct GetGameNoticeRequest {
 }
 
 pub async fn get_game_notice(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Vec<GameNotice>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let game_notices = cds_db::entity::game_notice::Entity::find()
-        .filter(cds_db::entity::game_notice::Column::GameId.eq(id))
+        .filter(cds_db::entity::game_notice::Column::GameId.eq(game_id))
         .all(get_db())
         .await?
         .into_iter()
@@ -768,7 +765,7 @@ pub struct CreateGameNoticeRequest {
 }
 
 pub async fn create_game_notice(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, Json(body): Json<CreateGameNoticeRequest>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Json(body): Json<CreateGameNoticeRequest>,
 ) -> Result<WebResponse<GameNotice>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -777,7 +774,7 @@ pub async fn create_game_notice(
     }
 
     let game_notice = cds_db::entity::game_notice::ActiveModel {
-        game_id: Set(id),
+        game_id: Set(game_id),
         title: Set(body.title),
         content: Set(body.content),
         ..Default::default()
@@ -795,7 +792,7 @@ pub async fn create_game_notice(
 }
 
 pub async fn delete_game_notice(
-    Extension(ext): Extension<Ext>, Path((id, notice_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>, Path((game_id, notice_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -806,7 +803,7 @@ pub async fn delete_game_notice(
     let _ = cds_db::entity::game_notice::Entity::delete_many()
         .filter(
             Condition::all()
-                .add(cds_db::entity::game_notice::Column::GameId.eq(id))
+                .add(cds_db::entity::game_notice::Column::GameId.eq(game_id))
                 .add(cds_db::entity::game_notice::Column::Id.eq(notice_id)),
         )
         .exec(get_db())
@@ -819,14 +816,14 @@ pub async fn delete_game_notice(
 }
 
 pub async fn calculate_game(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    cds_queue::publish("calculator", calculator::Payload { game_id: Some(id) }).await?;
+    cds_queue::publish("calculator", calculator::Payload { game_id: Some(game_id) }).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK.as_u16(),
@@ -847,10 +844,10 @@ pub struct ScoreRecord {
 }
 
 pub async fn get_game_scoreboard(
-    Path(id): Path<i64>, Query(params): Query<GetGameScoreboardRequest>,
+    Path(game_id): Path<i64>, Query(params): Query<GetGameScoreboardRequest>,
 ) -> Result<WebResponse<Vec<ScoreRecord>>, WebError> {
     let mut sql = cds_db::entity::game_team::Entity::find()
-        .filter(cds_db::entity::game_team::Column::GameId.eq(id))
+        .filter(cds_db::entity::game_team::Column::GameId.eq(game_id))
         .order_by(cds_db::entity::game_team::Column::Pts, Order::Desc);
 
     let total = sql.clone().count(get_db()).await?;
@@ -871,7 +868,7 @@ pub async fn get_game_scoreboard(
     let team_ids = game_teams.iter().map(|t| t.team_id).collect::<Vec<i64>>();
 
     let submissions = cds_db::transfer::submission::get_by_game_id_and_team_ids(
-        id,
+        game_id,
         team_ids,
         Some(Status::Correct),
     )
@@ -905,82 +902,82 @@ pub async fn get_game_scoreboard(
     })
 }
 
-pub async fn get_game_poster(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
-    let path = format!("games/{}/poster", id);
+pub async fn get_game_poster(Path(game_id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+    let path = format!("games/{}/poster", game_id);
 
     util::media::get_img(path).await
 }
 
 pub async fn get_game_poster_metadata(
-    Path(id): Path<i64>,
+    Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Metadata>, WebError> {
-    let path = format!("games/{}/poster", id);
+    let path = format!("games/{}/poster", game_id);
 
     util::media::get_img_metadata(path).await
 }
 
 pub async fn save_game_poster(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let path = format!("games/{}/poster", id);
+    let path = format!("games/{}/poster", game_id);
 
     util::media::save_img(path, multipart).await
 }
 
 pub async fn delete_game_poster(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let path = format!("games/{}/poster", id);
+    let path = format!("games/{}/poster", game_id);
 
     util::media::delete_img(path).await
 }
 
-pub async fn get_game_icon(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
-    let path = format!("games/{}/icon", id);
+pub async fn get_game_icon(Path(game_id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+    let path = format!("games/{}/icon", game_id);
 
     util::media::get_img(path).await
 }
 
 pub async fn get_game_icon_metadata(
-    Path(id): Path<i64>,
+    Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Metadata>, WebError> {
-    let path = format!("games/{}/icon", id);
+    let path = format!("games/{}/icon", game_id);
 
     util::media::get_img_metadata(path).await
 }
 
 pub async fn save_game_icon(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let path = format!("games/{}/icon", id);
+    let path = format!("games/{}/icon", game_id);
 
     util::media::save_img(path, multipart).await
 }
 
 pub async fn delete_game_icon(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let path = format!("games/{}/icon", id);
+    let path = format!("games/{}/icon", game_id);
 
     util::media::delete_img(path).await
 }

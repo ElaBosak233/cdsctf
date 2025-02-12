@@ -17,9 +17,9 @@ pub async fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_pod))
         .route("/", axum::routing::post(create_pod))
-        .route("/{id}/renew", axum::routing::post(renew_pod))
-        .route("/{id}/stop", axum::routing::post(stop_pod))
-        .route("/{id}/wsrx", axum::routing::get(wsrx))
+        .route("/{pod_id}/renew", axum::routing::post(renew_pod))
+        .route("/{pod_id}/stop", axum::routing::post(stop_pod))
+        .route("/{pod_id}/wsrx", axum::routing::get(wsrx))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -328,11 +328,11 @@ pub async fn create_pod(
 }
 
 pub async fn renew_pod(
-    Extension(ext): Extension<Ext>, Path(id): Path<Uuid>,
+    Extension(ext): Extension<Ext>, Path(pod_id): Path<Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let pod = cds_cluster::get_pod(&id.to_string()).await?;
+    let pod = cds_cluster::get_pod(&pod_id.to_string()).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
@@ -394,11 +394,11 @@ pub async fn renew_pod(
 }
 
 pub async fn stop_pod(
-    Extension(ext): Extension<Ext>, Path(id): Path<Uuid>,
+    Extension(ext): Extension<Ext>, Path(pod_id): Path<Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let pod = cds_cluster::get_pod(&id.to_string()).await?;
+    let pod = cds_cluster::get_pod(&pod_id.to_string()).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
@@ -438,12 +438,12 @@ pub struct WsrxRequest {
 }
 
 pub async fn wsrx(
-    Path(id): Path<Uuid>, Query(query): Query<WsrxRequest>, ws: WebSocketUpgrade,
+    Path(pod_id): Path<Uuid>, Query(query): Query<WsrxRequest>, ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
     let port = query.port;
 
     Ok(ws.on_upgrade(move |socket| async move {
-        let result = cds_cluster::wsrx(id, port as u16, socket).await;
+        let result = cds_cluster::wsrx(pod_id, port as u16, socket).await;
         if let Err(e) = result {
             debug!("Failed to link pods: {:?}", e);
         }

@@ -24,7 +24,7 @@ pub async fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_submission))
         .route("/", axum::routing::post(create_submission))
-        .route("/{id}", axum::routing::delete(delete_submission))
+        .route("/{submission_id}", axum::routing::delete(delete_submission))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -195,14 +195,14 @@ pub async fn create_submission(
 }
 
 pub async fn delete_submission(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(submission_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let _ = cds_db::entity::submission::Entity::delete_by_id(id)
+    let _ = cds_db::entity::submission::Entity::delete_by_id(submission_id)
         .exec(get_db())
         .await?;
 

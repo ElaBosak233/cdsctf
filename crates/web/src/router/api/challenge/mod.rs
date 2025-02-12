@@ -35,28 +35,28 @@ pub fn router() -> Router {
         .route("/", axum::routing::get(get_challenge))
         .route("/", axum::routing::post(create_challenge))
         .route("/status", axum::routing::post(get_challenge_status))
-        .route("/{id}", axum::routing::put(update_challenge))
-        .route("/{id}", axum::routing::delete(delete_challenge))
-        .route("/{id}/env", axum::routing::put(update_challenge_env))
+        .route("/{challenge_id}", axum::routing::put(update_challenge))
+        .route("/{challenge_id}", axum::routing::delete(delete_challenge))
+        .route("/{challenge_id}/env", axum::routing::put(update_challenge_env))
         .route(
-            "/{id}/checker",
+            "/{challenge_id}/checker",
             axum::routing::put(update_challenge_checker),
         )
         .route(
-            "/{id}/attachment",
+            "/{challenge_id}/attachment",
             axum::routing::get(get_challenge_attachment),
         )
         .route(
-            "/{id}/attachment/metadata",
+            "/{challenge_id}/attachment/metadata",
             axum::routing::get(get_challenge_attachment_metadata),
         )
         .route(
-            "/{id}/attachment",
+            "/{challenge_id}/attachment",
             axum::routing::post(save_challenge_attachment)
                 .layer(DefaultBodyLimit::max(512 * 1024 * 1024 /* MB */)),
         )
         .route(
-            "/{id}/attachment",
+            "/{challenge_id}/attachment",
             axum::routing::delete(delete_challenge_attachment),
         )
 }
@@ -315,7 +315,6 @@ pub async fn create_challenge(
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateChallengeRequest {
-    pub id: Option<uuid::Uuid>,
     pub title: Option<String>,
     pub description: Option<String>,
     pub category: Option<i32>,
@@ -326,7 +325,7 @@ pub struct UpdateChallengeRequest {
 }
 
 pub async fn update_challenge(
-    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
     VJson(mut body): VJson<UpdateChallengeRequest>,
 ) -> Result<WebResponse<Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -334,13 +333,11 @@ pub async fn update_challenge(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
-
-    body.id = Some(id);
 
     let challenge = cds_db::entity::challenge::ActiveModel {
         id: Unchanged(challenge.id),
@@ -365,14 +362,14 @@ pub async fn update_challenge(
 }
 
 pub async fn delete_challenge(
-    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
@@ -394,12 +391,11 @@ pub async fn delete_challenge(
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateChallengeEnvRequest {
-    pub id: Option<uuid::Uuid>,
     pub env: Option<cds_db::entity::challenge::Env>,
 }
 
 pub async fn update_challenge_env(
-    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
     VJson(body): VJson<UpdateChallengeEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -407,14 +403,14 @@ pub async fn update_challenge_env(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let _ = cds_db::entity::challenge::Entity::find_by_id(id)
+    let _ = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
 
     let _ = cds_db::entity::challenge::ActiveModel {
-        id: Unchanged(id),
+        id: Unchanged(challenge_id),
         env: body.env.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
@@ -429,12 +425,11 @@ pub async fn update_challenge_env(
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateChallengeCheckerRequest {
-    pub id: Option<uuid::Uuid>,
     pub checker: Option<String>,
 }
 
 pub async fn update_challenge_checker(
-    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
     VJson(body): VJson<UpdateChallengeCheckerRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -442,14 +437,14 @@ pub async fn update_challenge_checker(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let _ = cds_db::entity::challenge::Entity::find_by_id(id)
+    let _ = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
 
     let challenge = cds_db::entity::challenge::ActiveModel {
-        id: Unchanged(id),
+        id: Unchanged(challenge_id),
         checker: body.checker.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
@@ -478,11 +473,11 @@ pub async fn update_challenge_checker(
 }
 
 pub async fn get_challenge_attachment(
-    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<impl IntoResponse, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
@@ -492,7 +487,7 @@ pub async fn get_challenge_attachment(
         return Err(WebError::NotFound(json!("challenge_has_not_attachment")));
     }
 
-    let path = format!("challenges/{}/attachment", id);
+    let path = format!("challenges/{}/attachment", challenge_id);
     match cds_media::scan_dir(path.clone()).await?.first() {
         Some((filename, _size)) => {
             let buffer = cds_media::get(path, filename.to_string()).await?;
@@ -510,11 +505,11 @@ pub async fn get_challenge_attachment(
 }
 
 pub async fn get_challenge_attachment_metadata(
-    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<Metadata>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
@@ -524,7 +519,7 @@ pub async fn get_challenge_attachment_metadata(
         return Err(WebError::NotFound(json!("challenge_has_not_attachment")));
     }
 
-    let path = format!("challenges/{}/attachment", id);
+    let path = format!("challenges/{}/attachment", challenge_id);
     match cds_media::scan_dir(path.clone()).await?.first() {
         Some((filename, size)) => Ok(WebResponse {
             code: StatusCode::OK.as_u16(),
@@ -539,14 +534,14 @@ pub async fn get_challenge_attachment_metadata(
 }
 
 pub async fn save_challenge_attachment(
-    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>, mut multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>, mut multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
@@ -580,14 +575,14 @@ pub async fn save_challenge_attachment(
 }
 
 pub async fn delete_challenge_attachment(
-    Extension(ext): Extension<Ext>, Path(id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(id)
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
