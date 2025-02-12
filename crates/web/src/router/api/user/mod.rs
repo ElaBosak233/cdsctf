@@ -33,9 +33,9 @@ pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_user))
         .route("/", axum::routing::post(create_user))
-        .route("/{id}", axum::routing::put(update_user))
-        .route("/{id}", axum::routing::delete(delete_user))
-        .route("/{id}/teams", axum::routing::get(get_user_teams))
+        .route("/{user_id}", axum::routing::put(update_user))
+        .route("/{user_id}", axum::routing::delete(delete_user))
+        .route("/{user_id}/teams", axum::routing::get(get_user_teams))
         .route("/profile", axum::routing::get(get_user_profile))
         .route("/profile", axum::routing::put(update_user_profile))
         .route("/profile", axum::routing::delete(delete_user_profile))
@@ -46,17 +46,17 @@ pub fn router() -> Router {
         .route("/login", axum::routing::post(user_login))
         .route("/register", axum::routing::post(user_register))
         .route("/logout", axum::routing::post(user_logout))
-        .route("/{id}/avatar", axum::routing::get(get_user_avatar))
+        .route("/{user_id}/avatar", axum::routing::get(get_user_avatar))
         .route(
-            "/{id}/avatar/metadata",
+            "/{user_id}/avatar/metadata",
             axum::routing::get(get_user_avatar_metadata),
         )
         .route(
-            "/{id}/avatar",
+            "/{user_id}/avatar",
             axum::routing::post(save_user_avatar)
                 .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
         )
-        .route("/{id}/avatar", axum::routing::delete(delete_user_avatar))
+        .route("/{user_id}/avatar", axum::routing::delete(delete_user_avatar))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -145,7 +145,6 @@ pub async fn create_user(
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateUserRequest {
-    pub id: Option<i64>,
     #[validate(length(min = 3, max = 20))]
     pub username: Option<String>,
     pub nickname: Option<String>,
@@ -161,15 +160,14 @@ pub struct UpdateUserRequest {
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn update_user(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, VJson(mut body): VJson<UpdateUserRequest>,
+    Extension(ext): Extension<Ext>, Path(user_id): Path<i64>, VJson(mut body): VJson<UpdateUserRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    body.id = Some(id);
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden("".into()));
     }
 
-    let user = cds_db::entity::user::Entity::find_by_id(body.id.unwrap_or(0))
+    let user = cds_db::entity::user::Entity::find_by_id(user_id)
         .filter(cds_db::entity::user::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
@@ -217,21 +215,21 @@ pub async fn update_user(
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn delete_user(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(user_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let user = cds_db::entity::user::Entity::find_by_id(id)
+    let user = cds_db::entity::user::Entity::find_by_id(user_id)
         .filter(cds_db::entity::user::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest("".into()))?;
 
     let _ = cds_db::entity::user::ActiveModel {
-        id: Unchanged(id),
+        id: Unchanged(user_id),
         username: Set(format!("[DELETED]_{}", user.username)),
         email: Set(format!("deleted_{}@del.cdsctf", user.email)),
         deleted_at: Set(Some(chrono::Utc::now().timestamp())),
@@ -247,7 +245,7 @@ pub async fn delete_user(
 }
 
 pub async fn get_user_teams(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(user_id): Path<i64>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
@@ -256,7 +254,7 @@ pub async fn get_user_teams(
             JoinType::InnerJoin,
             cds_db::entity::team_user::Relation::Team.def().rev(),
         )
-        .filter(cds_db::entity::team_user::Column::UserId.eq(id))
+        .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
         .all(get_db())
         .await?
         .into_iter()
@@ -580,42 +578,42 @@ pub async fn user_logout(Extension(ext): Extension<Ext>) -> Result<impl IntoResp
     }))
 }
 
-pub async fn get_user_avatar(Path(id): Path<i64>) -> Result<impl IntoResponse, WebError> {
-    let path = format!("users/{}/avatar", id);
+pub async fn get_user_avatar(Path(user_id): Path<i64>) -> Result<impl IntoResponse, WebError> {
+    let path = format!("users/{}/avatar", user_id);
 
     util::media::get_img(path).await
 }
 
 pub async fn get_user_avatar_metadata(
-    Path(id): Path<i64>,
+    Path(user_id): Path<i64>,
 ) -> Result<WebResponse<Metadata>, WebError> {
-    let path = format!("users/{}/avatar", id);
+    let path = format!("users/{}/avatar", user_id);
 
     util::media::get_img_metadata(path).await
 }
 
 pub async fn save_user_avatar(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>, multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path(user_id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    if operator.group != Group::Admin && operator.id != id {
+    if operator.group != Group::Admin && operator.id != user_id {
         return Err(WebError::Forbidden("".into()));
     }
 
-    let path = format!("users/{}/avatar", id);
+    let path = format!("users/{}/avatar", user_id);
 
     util::media::save_img(path, multipart).await
 }
 
 pub async fn delete_user_avatar(
-    Extension(ext): Extension<Ext>, Path(id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(user_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    if operator.group != Group::Admin && operator.id != id {
+    if operator.group != Group::Admin && operator.id != user_id {
         return Err(WebError::Forbidden("".into()));
     }
 
-    let path = format!("users/{}/avatar", id);
+    let path = format!("users/{}/avatar", user_id);
 
     util::media::delete_img(path).await
 }
