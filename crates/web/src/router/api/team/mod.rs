@@ -1,19 +1,16 @@
+mod team_id;
+
 use std::str::FromStr;
 
 use argon2::{
-    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
+    Argon2, PasswordHasher, PasswordVerifier,
     password_hash::{SaltString, rand_core::OsRng},
 };
-use axum::{
-    Router,
-    extract::{DefaultBodyLimit, Multipart},
-    http::StatusCode,
-    response::IntoResponse,
-};
+use axum::{Router, http::StatusCode, response::IntoResponse};
 use cds_db::{entity::user::Group, get_db};
 use sea_orm::{
     ActiveModelTrait,
-    ActiveValue::{NotSet, Set, Unchanged},
+    ActiveValue::{NotSet, Set},
     ColumnTrait, EntityTrait, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder,
     QuerySelect, RelationTrait,
 };
@@ -22,10 +19,8 @@ use serde_json::json;
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Json, Path, Query, VJson},
-    model::Metadata,
+    extract::{Extension, Query, VJson},
     traits::{Ext, WebError, WebResponse},
-    util,
 };
 
 pub fn router() -> Router {
@@ -33,26 +28,7 @@ pub fn router() -> Router {
         .route("/", axum::routing::get(get_team))
         .route("/", axum::routing::post(create_team))
         .route("/register", axum::routing::post(team_register))
-        .route("/{team_id}", axum::routing::put(update_team))
-        .route("/{team_id}", axum::routing::delete(delete_team))
-        .route("/{team_id}/users", axum::routing::post(create_team_user))
-        .route(
-            "/{team_id}/users/{user_id}",
-            axum::routing::delete(delete_team_user),
-        )
-        .route("/{team_id}/join", axum::routing::post(join_team))
-        .route("/{team_id}/quit", axum::routing::delete(quit_team))
-        .route("/{team_id}/avatar", axum::routing::get(get_team_avatar))
-        .route(
-            "/{team_id}/avatar/metadata",
-            axum::routing::get(get_team_avatar_metadata),
-        )
-        .route(
-            "/{team_id}/avatar",
-            axum::routing::post(save_team_avatar)
-                .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
-        )
-        .route("/{team_id}/avatar", axum::routing::delete(delete_team_avatar))
+        .nest("/{team_id}", team_id::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
@@ -248,314 +224,4 @@ pub async fn team_register(
         data: Some(team),
         ..Default::default()
     })
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
-pub struct UpdateTeamRequest {
-    pub id: Option<i64>,
-    pub name: Option<String>,
-    pub email: Option<String>,
-    pub password: Option<String>,
-    pub slogan: Option<String>,
-    pub description: Option<String>,
-}
-
-/// Update a team by given data.
-///
-/// # Prerequisite
-/// - Operator is admin or the members of current team.
-pub async fn update_team(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>, VJson(mut body): VJson<UpdateTeamRequest>,
-) -> Result<WebResponse<cds_db::transfer::Team>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::entity::team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .map(|team| cds_db::transfer::Team::from(team))
-        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
-
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
-        return Err(WebError::Forbidden(json!("")));
-    }
-    body.id = Some(team_id);
-
-    if let Some(password) = body.password {
-        let hashed_password = Argon2::default()
-            .hash_password(password.as_bytes(), &SaltString::generate(&mut OsRng))
-            .unwrap()
-            .to_string();
-        body.password = Some(hashed_password);
-    }
-
-    let team = cds_db::entity::team::ActiveModel {
-        id: Unchanged(team.id),
-        name: body.name.map_or(NotSet, Set),
-        email: body.email.map_or(NotSet, Set),
-        hashed_password: body.password.map_or(NotSet, Set),
-        slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
-        description: body.description.map_or(NotSet, |v| Set(Some(v))),
-        ..Default::default()
-    }
-    .update(get_db())
-    .await?;
-    let team = cds_db::transfer::Team::from(team);
-
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        data: Some(team),
-        ..Default::default()
-    })
-}
-
-/// Delete a team by `id`.
-///
-/// The team won't be permanently deleted.
-/// For safety, it's marked as deleted using the `is_deleted` field.
-///
-/// # Prerequisite
-/// - Operator is admin or the members of current team.
-pub async fn delete_team(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::entity::team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .map(|team| cds_db::transfer::Team::from(team))
-        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
-
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let _ = cds_db::entity::team::ActiveModel {
-        id: Unchanged(team_id),
-        is_locked: Set(true),
-        name: Set(format!("[DELETED]_{}", team.name)),
-        deleted_at: Set(Some(chrono::Utc::now().timestamp())),
-        ..Default::default()
-    }
-    .update(get_db())
-    .await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        ..Default::default()
-    })
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CreateTeamUserRequest {
-    pub user_id: i64,
-    pub team_id: i64,
-}
-
-/// Add a user into a team by given data.
-///
-/// Only admins can use this function.
-///
-/// # Prerequisite
-/// - Operator is admin.
-pub async fn create_team_user(
-    Extension(ext): Extension<Ext>, Json(body): Json<CreateTeamUserRequest>,
-) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find_by_id(body.team_id)
-            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
-    );
-
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let _ = cds_db::entity::team_user::ActiveModel {
-        user_id: Set(body.user_id),
-        team_id: Set(team.id),
-    }
-    .insert(get_db())
-    .await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        ..Default::default()
-    })
-}
-
-/// Kick a user from a team by `id` and `user_id`.
-///
-/// # Prerequisite
-/// - Operator is admin.
-pub async fn delete_team_user(
-    Extension(ext): Extension<Ext>, Path((team_id, user_id)): Path<(i64, i64)>,
-) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find_by_id(team_id)
-            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
-    );
-
-    if operator.group != Group::Admin || team.deleted_at.is_some() {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let _ = cds_db::entity::team_user::Entity::delete_many()
-        .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
-        .filter(cds_db::entity::team_user::Column::TeamId.eq(team_id))
-        .exec(get_db())
-        .await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        ..Default::default()
-    })
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct JoinTeamRequest {
-    pub team_id: i64,
-    pub password: String,
-}
-
-/// Join a team by given data.
-///
-/// The field `user_id` will be overwritten by operator's id.
-pub async fn join_team(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>, Json(mut body): Json<JoinTeamRequest>,
-) -> Result<WebResponse<cds_db::transfer::TeamUser>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::entity::team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
-
-    if Argon2::default()
-        .verify_password(
-            body.password.as_bytes(),
-            &PasswordHash::new(&team.hashed_password).unwrap(),
-        )
-        .is_err()
-    {
-        return Err(WebError::BadRequest(json!("invalid_password")));
-    }
-
-    let team_user = cds_db::entity::team_user::ActiveModel {
-        user_id: Set(operator.id),
-        team_id: Set(team_id),
-        ..Default::default()
-    }
-    .insert(get_db())
-    .await?;
-    let team_user = cds_db::transfer::TeamUser::from(team_user);
-
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        data: Some(team_user),
-        ..Default::default()
-    })
-}
-
-/// Quit a team by `id`.
-///
-/// Remove the operator from the current team.
-pub async fn quit_team(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::entity::team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
-
-    if cds_db::entity::team_user::Entity::find()
-        .filter(cds_db::entity::team_user::Column::TeamId.eq(team.id))
-        .count(get_db())
-        .await?
-        == 1
-    {
-        return Err(WebError::BadRequest(json!("delete_instead_of_leave")));
-    }
-
-    let _ = cds_db::entity::team_user::Entity::delete_many()
-        .filter(cds_db::entity::team_user::Column::UserId.eq(operator.id))
-        .filter(cds_db::entity::team_user::Column::TeamId.eq(team.id))
-        .exec(get_db())
-        .await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
-        ..Default::default()
-    })
-}
-
-pub async fn get_team_avatar(Path(team_id): Path<i64>) -> Result<impl IntoResponse, WebError> {
-    let path = format!("teams/{}/avatar", team_id);
-
-    util::media::get_img(path).await
-}
-
-pub async fn get_team_avatar_metadata(
-    Path(team_id): Path<i64>,
-) -> Result<WebResponse<Metadata>, WebError> {
-    let path = format!("teams/{}/avatar", team_id);
-
-    util::media::get_img_metadata(path).await
-}
-
-/// Save an avatar for the team.
-///
-/// # Prerequisite
-/// - Operator is admin or the members of current team.
-pub async fn save_team_avatar(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>, multipart: Multipart,
-) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::entity::team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .map(|team| cds_db::transfer::Team::from(team))
-        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
-
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let path = format!("teams/{}/avatar", team_id);
-
-    util::media::save_img(path, multipart).await
-}
-
-/// Delete avatar for the team.
-///
-/// # Prerequisite
-/// - Operator is admin or the members of current team.
-pub async fn delete_team_avatar(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::entity::team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .map(|team| cds_db::transfer::Team::from(team))
-        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
-
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let path = format!("teams/{}/avatar", team_id);
-
-    util::media::delete_img(path).await
 }
