@@ -7,11 +7,11 @@ use opentelemetry::{
     trace::TracerProvider as TracerProviderTraits,
 };
 use opentelemetry_otlp::{SpanExporter, WithExportConfig};
-use opentelemetry_sdk::trace::{Tracer, TracerProvider};
+use opentelemetry_sdk::trace::{Tracer, SdkTracerProvider};
 
-static PROVIDER: OnceCell<TracerProvider> = OnceCell::new();
+static PROVIDER: OnceCell<SdkTracerProvider> = OnceCell::new();
 
-pub fn get_provider() -> Option<TracerProvider> {
+pub fn get_provider() -> Option<SdkTracerProvider> {
     PROVIDER.get().map(|p| p.to_owned())
 }
 
@@ -34,8 +34,8 @@ pub fn init() -> Result<(), anyhow::Error> {
         .build()
         .map_err(|_| anyhow!("Failed to initialize span."))?;
 
-    let tracer_provider = TracerProvider::builder()
-        .with_batch_exporter(span_exporter, opentelemetry_sdk::runtime::Tokio)
+    let tracer_provider = SdkTracerProvider::builder()
+        .with_batch_exporter(span_exporter)
         .with_resource(crate::RESOURCE.clone())
         .build();
 
@@ -47,15 +47,17 @@ pub fn init() -> Result<(), anyhow::Error> {
 
 pub async fn shutdown() -> Result<(), anyhow::Error> {
     tokio::task::spawn_blocking(move || {
-        for r in get_provider().unwrap().force_flush() {
-            if let Err(e) = r {
-                println!("unable to fully flush traces: {e}");
-            }
+        if let Err(e) = get_provider().unwrap().force_flush() {
+            println!("unable to fully flush traces: {:?}", e);
         }
     })
     .await?;
 
-    global::shutdown_tracer_provider();
+    tokio::task::spawn_blocking(move || {
+        if let Err(e) = get_provider().unwrap().shutdown() {
+            println!("unable to shutdown telemetry tracer provider: {:?}", e);
+        }
+    }).await?;
 
     Ok(())
 }

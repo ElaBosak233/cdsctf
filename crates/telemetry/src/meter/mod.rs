@@ -4,12 +4,9 @@ use std::{borrow::Cow, time::Duration};
 
 use anyhow::anyhow;
 use once_cell::sync::{Lazy, OnceCell};
-use opentelemetry::{InstrumentationScope, KeyValue, global, metrics::Meter};
+use opentelemetry::{global, metrics::Meter, InstrumentationScope};
 use opentelemetry_otlp::{MetricExporter, WithExportConfig};
-use opentelemetry_sdk::{
-    Resource,
-    metrics::{PeriodicReader, SdkMeterProvider, Temporality},
-};
+use opentelemetry_sdk::metrics::{PeriodicReader, SdkMeterProvider, Temporality};
 
 pub static PROVIDER: OnceCell<SdkMeterProvider> = OnceCell::new();
 
@@ -31,7 +28,7 @@ pub fn init() -> Result<(), anyhow::Error> {
 
     let meter_provider = SdkMeterProvider::builder()
         .with_reader(
-            PeriodicReader::builder(metric_exporter, opentelemetry_sdk::runtime::Tokio)
+            PeriodicReader::builder(metric_exporter)
                 .with_interval(Duration::from_secs(3))
                 .build(),
         )
