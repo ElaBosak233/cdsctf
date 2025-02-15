@@ -12,8 +12,7 @@ use opentelemetry_sdk::Resource;
 use tracing::{info, warn};
 
 pub(crate) static RESOURCE: Lazy<Resource> = Lazy::new(|| {
-    let pairs = vec![KeyValue::new("service.name", "cdsctf")];
-    Resource::new(pairs)
+    Resource::builder().with_service_name("cdsctf").build()
 });
 
 pub(crate) fn get_export_config() -> ExportConfig {
