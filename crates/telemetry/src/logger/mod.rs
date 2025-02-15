@@ -2,15 +2,15 @@ use anyhow::anyhow;
 use once_cell::sync::OnceCell;
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
 use opentelemetry_otlp::{LogExporter, WithExportConfig};
-use opentelemetry_sdk::logs::{Logger, LoggerProvider};
+use opentelemetry_sdk::logs::{SdkLogger, SdkLoggerProvider};
 
-pub static PROVIDER: OnceCell<LoggerProvider> = OnceCell::new();
+pub static PROVIDER: OnceCell<SdkLoggerProvider> = OnceCell::new();
 
-pub fn get_provider() -> Option<LoggerProvider> {
+pub fn get_provider() -> Option<SdkLoggerProvider> {
     PROVIDER.get().map(|p| p.to_owned())
 }
 
-pub fn get_tracing_layer() -> Option<OpenTelemetryTracingBridge<LoggerProvider, Logger>> {
+pub fn get_tracing_layer() -> Option<OpenTelemetryTracingBridge<SdkLoggerProvider, SdkLogger>> {
     get_provider().map(|p| OpenTelemetryTracingBridge::new(&p))
 }
 
@@ -21,8 +21,8 @@ pub fn init() -> Result<(), anyhow::Error> {
         .build()
         .map_err(|_| anyhow!("Failed to initialize log."))?;
 
-    let logger_provider = LoggerProvider::builder()
-        .with_batch_exporter(log_exporter, opentelemetry_sdk::runtime::Tokio)
+    let logger_provider = SdkLoggerProvider::builder()
+        .with_batch_exporter(log_exporter)
         .with_resource(crate::RESOURCE.clone())
         .build();
 
@@ -33,16 +33,16 @@ pub fn init() -> Result<(), anyhow::Error> {
 
 pub async fn shutdown() -> Result<(), anyhow::Error> {
     tokio::task::spawn_blocking(move || {
-        for r in get_provider().unwrap().force_flush() {
-            if let Err(e) = r {
-                println!("unable to fully flush logs: {e}");
-            }
+        if let Err(e) = get_provider().unwrap().force_flush() {
+            println!("unable to fully flush logs: {:?}", e);
         }
     })
     .await?;
 
     tokio::task::spawn_blocking(move || {
-        get_provider().unwrap().shutdown().unwrap();
+        if let Err(e) = get_provider().unwrap().shutdown() {
+            println!("unable to shutdown telemetry logger provider: {:?}", e);
+        }
     })
     .await?;
 
