@@ -7,7 +7,7 @@ use opentelemetry::{
     trace::TracerProvider as TracerProviderTraits,
 };
 use opentelemetry_otlp::{SpanExporter, WithExportConfig};
-use opentelemetry_sdk::trace::{Tracer, SdkTracerProvider};
+use opentelemetry_sdk::trace::{SdkTracerProvider, Tracer};
 
 static PROVIDER: OnceCell<SdkTracerProvider> = OnceCell::new();
 
@@ -57,7 +57,8 @@ pub async fn shutdown() -> Result<(), anyhow::Error> {
         if let Err(e) = get_provider().unwrap().shutdown() {
             println!("unable to shutdown telemetry tracer provider: {:?}", e);
         }
-    }).await?;
+    })
+    .await?;
 
     Ok(())
 }

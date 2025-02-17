@@ -4,7 +4,7 @@ use std::{borrow::Cow, time::Duration};
 
 use anyhow::anyhow;
 use once_cell::sync::{Lazy, OnceCell};
-use opentelemetry::{global, metrics::Meter, InstrumentationScope};
+use opentelemetry::{InstrumentationScope, global, metrics::Meter};
 use opentelemetry_otlp::{MetricExporter, WithExportConfig};
 use opentelemetry_sdk::metrics::{PeriodicReader, SdkMeterProvider, Temporality};
 

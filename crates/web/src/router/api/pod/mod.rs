@@ -156,12 +156,12 @@ pub async fn get_pod(
 
             let _ = pod
                 .status
-                .unwrap()
+                .unwrap_or_default()
                 .container_statuses
-                .unwrap()
+                .unwrap_or_default()
                 .iter()
                 .for_each(|s| {
-                    let container_state = s.to_owned().state.unwrap();
+                    let container_state = s.to_owned().state.unwrap_or_default();
                     if let Some(waiting) = container_state.waiting {
                         status = "waiting".to_owned();
                         if let Some(r) = waiting.reason {
@@ -181,7 +181,7 @@ pub async fn get_pod(
 
             let started_at = pod.metadata.creation_timestamp.unwrap().0.timestamp();
 
-            let node_name = pod.spec.unwrap().node_name.unwrap();
+            let node_name = pod.spec.unwrap_or_default().node_name.unwrap_or_default();
 
             let public_entry = cds_config::get_config()
                 .cluster
