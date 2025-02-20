@@ -1,10 +1,15 @@
 pub mod traits;
+mod util;
 pub mod worker;
 
 use std::{collections::BTreeMap, fmt::format, path::Path, process};
 
-use axum::extract::ws::WebSocket;
+use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
 use cds_db::get_db;
+use futures_util::{
+    SinkExt, StreamExt, TryStreamExt,
+    stream::{SplitSink, SplitStream},
+};
 use k8s_openapi::{
     api::core::v1::{
         Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec,
@@ -15,13 +20,18 @@ use k8s_openapi::{
 };
 use kube::{
     Client as K8sClient, Config as K8sConfig, ResourceExt,
-    api::{Api, DeleteParams, ListParams, Patch, PatchParams, PostParams},
+    api::{Api, AttachParams, DeleteParams, ListParams, Patch, PatchParams, PostParams},
     config::Kubeconfig,
     runtime::{wait::conditions, watcher},
 };
+use nanoid::nanoid;
 use once_cell::sync::OnceCell;
 use regex::Regex;
-use tokio_util::codec::Framed;
+use tokio::io::{
+    AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader,
+    stdin, stdout,
+};
+use tokio_util::codec::{BytesCodec, Framed, FramedRead};
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
@@ -207,8 +217,8 @@ pub async fn create_challenge_env(
     user: cds_db::transfer::User, team: Option<cds_db::transfer::Team>,
     game: Option<cds_db::transfer::Game>, challenge: cds_db::transfer::Challenge,
 ) -> Result<(), ClusterError> {
-    let id = Uuid::new_v4();
-    let name = format!("cds-{}", id.to_string());
+    let id = util::gen_safe_nanoid();
+    let name = format!("cds-{}", id);
 
     let env = challenge.clone().env.unwrap();
 
@@ -286,7 +296,7 @@ pub async fn create_challenge_env(
         metadata: metadata.clone(),
         spec: Some(PodSpec {
             containers: vec![K8sContainer {
-                name: name.clone(),
+                name: format!("cds-{}", util::gen_safe_nanoid()),
                 image: Some(env.image),
                 env: Some(env_vars),
                 ports: Some(container_ports),
@@ -439,8 +449,8 @@ pub async fn delete_challenge_env(id: &str) -> Result<(), ClusterError> {
     Ok(())
 }
 
-pub async fn wsrx(id: Uuid, port: u16, ws: WebSocket) -> Result<(), ClusterError> {
-    let name = format!("cds-{}", id.to_string());
+pub async fn wsrx(id: &str, port: u16, ws: WebSocket) -> Result<(), ClusterError> {
+    let name = format!("cds-{}", id);
 
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
@@ -453,5 +463,91 @@ pub async fn wsrx(id: Uuid, port: u16, ws: WebSocket) -> Result<(), ClusterError
         let ws: wsrx::WrappedWsStream = ws.into();
         wsrx::proxy::proxy_stream(stream, ws).await?;
     }
+    Ok(())
+}
+
+pub async fn exec(
+    id: &str, container_id: &str, command: String, ws: WebSocket,
+) -> Result<(), ClusterError> {
+    async fn process_client_to_pod<W>(mut receiver: SplitStream<WebSocket>, mut stdin_writer: W)
+    where
+        W: AsyncWrite + Unpin + Sized, {
+        while let Some(Ok(msg)) = receiver.next().await {
+            match msg {
+                Message::Text(text) => {
+                    if stdin_writer.write_all(text.as_bytes()).await.is_err() {
+                        break;
+                    }
+                }
+                Message::Close(_) => break,
+                _ => {}
+            }
+        }
+        let _ = stdin_writer.shutdown().await;
+    }
+
+    async fn process_pod_to_client<R, S>(stdout_reader: R, mut sender: S)
+    where
+        R: AsyncRead + Unpin,
+        S: SinkExt<Message> + Unpin, {
+        let mut reader = FramedRead::new(stdout_reader, BytesCodec::new());
+        while let Some(result) = reader.next().await {
+            match result {
+                Ok(bytes) => {
+                    if let Ok(text) = String::from_utf8(bytes.to_vec()) {
+                        if sender
+                            .send(Message::Text(Utf8Bytes::from(text)))
+                            .await
+                            .is_err()
+                        {
+                            break;
+                        }
+                    }
+                }
+                Err(_) => break
+            }
+        }
+        let _ = sender.close().await;
+    }
+
+    let (sender, receiver) = ws.split();
+    let name = format!("cds-{}", id.to_string());
+
+    let pod_api: Api<Pod> = Api::namespaced(
+        get_k8s_client(),
+        cds_config::get_config().cluster.namespace.as_str(),
+    );
+
+    let attach_params = AttachParams {
+        container: Some(format!("cds-{}", container_id)),
+        stdin: true,
+        stdout: true,
+        stderr: false,
+        tty: true,
+        ..Default::default()
+    };
+
+    let mut attached = pod_api.exec(&name, vec![command], &attach_params).await?;
+
+    let stdin_writer = attached.stdin().unwrap();
+    let stdout_reader = BufReader::new(attached.stdout().unwrap());
+
+    let mut recv_task = tokio::spawn(async move {
+        process_client_to_pod(receiver, stdin_writer).await;
+    });
+
+    let mut send_task = tokio::spawn(async move {
+        process_pod_to_client(stdout_reader, sender).await;
+    });
+
+    tokio::select! {
+        _ = &mut recv_task => {
+            send_task.abort();
+        },
+        _ = &mut send_task => {
+            recv_task.abort();
+        },
+    }
+
     Ok(())
 }
