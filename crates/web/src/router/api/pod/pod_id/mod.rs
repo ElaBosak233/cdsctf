@@ -1,5 +1,8 @@
+mod containers;
+
 use axum::{Router, extract::WebSocketUpgrade, http::StatusCode, response::IntoResponse};
 use cds_db::entity::user::Group;
+use containers::container_id;
 use serde::Deserialize;
 use serde_json::json;
 use tracing::debug;
@@ -15,14 +18,15 @@ pub fn router() -> Router {
         .route("/renew", axum::routing::post(renew_pod))
         .route("/stop", axum::routing::post(stop_pod))
         .route("/wsrx", axum::routing::get(wsrx))
+        .nest("/containers", containers::router())
 }
 
 pub async fn renew_pod(
-    Extension(ext): Extension<Ext>, Path(pod_id): Path<Uuid>,
+    Extension(ext): Extension<Ext>, Path(pod_id): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let pod = cds_cluster::get_pod(&pod_id.to_string()).await?;
+    let pod = cds_cluster::get_pod(&pod_id).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
@@ -84,11 +88,11 @@ pub async fn renew_pod(
 }
 
 pub async fn stop_pod(
-    Extension(ext): Extension<Ext>, Path(pod_id): Path<Uuid>,
+    Extension(ext): Extension<Ext>, Path(pod_id): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let pod = cds_cluster::get_pod(&pod_id.to_string()).await?;
+    let pod = cds_cluster::get_pod(&pod_id).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
@@ -128,12 +132,12 @@ pub struct WsrxRequest {
 }
 
 pub async fn wsrx(
-    Path(pod_id): Path<Uuid>, Query(query): Query<WsrxRequest>, ws: WebSocketUpgrade,
+    Path(pod_id): Path<String>, Query(query): Query<WsrxRequest>, ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
     let port = query.port;
 
     Ok(ws.on_upgrade(move |socket| async move {
-        let result = cds_cluster::wsrx(pod_id, port as u16, socket).await;
+        let result = cds_cluster::wsrx(&pod_id, port as u16, socket).await;
         if let Err(e) = result {
             debug!("Failed to link pods: {:?}", e);
         }
