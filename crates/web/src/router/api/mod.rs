@@ -1,8 +1,8 @@
 pub mod challenge;
+pub mod cluster;
 pub mod config;
 pub mod game;
 pub mod media;
-pub mod pod;
 pub mod submission;
 pub mod team;
 pub mod user;
@@ -21,7 +21,7 @@ pub async fn router() -> Router {
         .nest("/teams", team::router())
         .nest("/challenges", challenge::router())
         .nest("/games", game::router().await)
-        .nest("/pods", pod::router().await)
+        .nest("/clusters", cluster::router().await)
         .nest("/submissions", submission::router().await)
 }
 

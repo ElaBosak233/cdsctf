@@ -222,6 +222,18 @@ pub async fn create_challenge_env(
 
     let env = challenge.clone().env.unwrap();
 
+    let all_ports: Vec<i32> = env
+        .containers
+        .iter()
+        .flat_map(|container| container.ports.iter().copied())
+        .collect();
+
+    let unique_ports: Vec<i32> = all_ports
+        .into_iter()
+        .collect::<std::collections::HashSet<_>>()
+        .into_iter()
+        .collect();
+
     let metadata = ObjectMeta {
         name: Some(name.clone()),
         labels: Some(BTreeMap::from([
@@ -251,20 +263,10 @@ pub async fn create_challenge_env(
             ("cds/challenge".to_owned(), json!(challenge).to_string()),
             ("cds/renew".to_owned(), format!("{}", 0)),
             ("cds/duration".to_owned(), format!("{}", env.duration)),
-            ("cds/ports".to_owned(), json!(env.ports).to_string()),
+            ("cds/ports".to_owned(), json!(unique_ports).to_string()),
         ])),
         ..Default::default()
     };
-
-    let mut env_vars: Vec<EnvVar> = env
-        .envs
-        .into_iter()
-        .map(|env| EnvVar {
-            name: env.0,
-            value: Some(env.1),
-            ..Default::default()
-        })
-        .collect();
 
     let operator_id = if let (Some(_), Some(team)) = (game, team) {
         team.id
@@ -274,55 +276,73 @@ pub async fn create_challenge_env(
 
     let checker_environ = cds_checker::generate(&challenge, operator_id).await?;
 
-    for (k, v) in checker_environ {
-        env_vars.push(EnvVar {
+    let checker_env_vars = checker_environ
+        .into_iter()
+        .map(|(k, v)| EnvVar {
             name: k,
             value: Some(v),
             ..Default::default()
         })
-    }
-
-    let container_ports: Vec<ContainerPort> = env
-        .ports
-        .iter()
-        .map(|port| ContainerPort {
-            container_port: *port,
-            protocol: Some("TCP".to_owned()),
-            ..Default::default()
-        })
-        .collect();
+        .collect::<Vec<EnvVar>>();
 
     let pod = Pod {
         metadata: metadata.clone(),
         spec: Some(PodSpec {
-            containers: vec![K8sContainer {
-                name: format!("cds-{}", util::gen_safe_nanoid()),
-                image: Some(env.image),
-                env: Some(env_vars),
-                ports: Some(container_ports),
-                image_pull_policy: Some("IfNotPresent".to_owned()),
-                resources: Some(ResourceRequirements {
-                    requests: Some(
-                        [("cpu", "10m".to_owned()), ("memory", "32Mi".to_owned())]
-                            .iter()
-                            .cloned()
-                            .map(|(k, v)| (k.to_owned(), Quantity(v)))
-                            .collect(),
-                    ),
-                    limits: Some(
-                        [
-                            ("cpu", env.cpu_limit.to_string()),
-                            ("memory", format!("{}Mi", env.memory_limit)),
-                        ]
-                        .iter()
-                        .cloned()
-                        .map(|(k, v)| (k.to_owned(), Quantity(v)))
-                        .collect(),
-                    ),
-                    ..Default::default()
-                }),
-                ..Default::default()
-            }],
+            containers: env
+                .containers
+                .into_iter()
+                .map(|container| {
+                    let merged_env_vars = container
+                        .envs
+                        .into_iter()
+                        .map(|(k, v)| EnvVar {
+                            name: k,
+                            value: Some(v),
+                            ..Default::default()
+                        })
+                        .chain(checker_env_vars.clone())
+                        .collect::<Vec<EnvVar>>();
+
+                    K8sContainer {
+                        name: format!("cds-{}", util::gen_safe_nanoid()),
+                        image: Some(container.image),
+                        env: Some(merged_env_vars),
+                        ports: Some(
+                            container
+                                .ports
+                                .into_iter()
+                                .map(|port| ContainerPort {
+                                    container_port: port,
+                                    protocol: Some("TCP".to_owned()),
+                                    ..Default::default()
+                                })
+                                .collect::<Vec<ContainerPort>>(),
+                        ),
+                        image_pull_policy: Some("IfNotPresent".to_owned()),
+                        resources: Some(ResourceRequirements {
+                            requests: Some(
+                                [("cpu", "10m".to_owned()), ("memory", "32Mi".to_owned())]
+                                    .iter()
+                                    .cloned()
+                                    .map(|(k, v)| (k.to_owned(), Quantity(v)))
+                                    .collect(),
+                            ),
+                            limits: Some(
+                                [
+                                    ("cpu", container.cpu_limit.to_string()),
+                                    ("memory", format!("{}Mi", container.memory_limit)),
+                                ]
+                                .iter()
+                                .cloned()
+                                .map(|(k, v)| (k.to_owned(), Quantity(v)))
+                                .collect(),
+                            ),
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    }
+                })
+                .collect::<Vec<K8sContainer>>(),
             ..Default::default()
         }),
         ..Default::default()
@@ -343,11 +363,11 @@ pub async fn create_challenge_env(
                 id.to_string(),
             )])),
             ports: Some(
-                env.ports
-                    .iter()
+                unique_ports
+                    .into_iter()
                     .map(|port| ServicePort {
                         name: Some(port.to_string()),
-                        port: *port,
+                        port,
                         target_port: None,
                         protocol: Some("TCP".to_owned()),
                         ..Default::default()
@@ -504,7 +524,7 @@ pub async fn exec(
                         }
                     }
                 }
-                Err(_) => break
+                Err(_) => break,
             }
         }
         let _ = sender.close().await;

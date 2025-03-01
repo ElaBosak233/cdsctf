@@ -1,8 +1,8 @@
+mod container_id;
+
 use axum::{Router, http::StatusCode};
 
 use crate::traits::{WebError, WebResponse};
-
-pub mod container_id;
 
 pub fn router() -> Router {
     Router::new()
