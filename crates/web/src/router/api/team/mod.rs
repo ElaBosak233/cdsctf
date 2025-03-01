@@ -118,7 +118,7 @@ pub async fn get_team(
     teams = cds_db::transfer::team::preload(teams).await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(teams),
         total: Some(total),
         ..Default::default()
@@ -169,7 +169,7 @@ pub async fn create_team(
     let team = cds_db::transfer::Team::from(team);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(team),
         ..Default::default()
     })
@@ -220,7 +220,7 @@ pub async fn team_register(
         .unwrap();
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(team),
         ..Default::default()
     })

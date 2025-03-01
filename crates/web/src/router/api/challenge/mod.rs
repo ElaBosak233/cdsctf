@@ -2,15 +2,15 @@ mod challenge_id;
 
 use std::{collections::HashMap, str::FromStr};
 
-use axum::{Router, http::StatusCode, response::IntoResponse};
+use axum::{http::StatusCode, response::IntoResponse, Router};
 use cds_db::{
     entity::{submission::Status, user::Group},
     get_db,
     transfer::Challenge,
 };
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden, IdenStatic,
-    Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, sea_query::Expr,
+    sea_query::Expr, ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden,
+    IdenStatic, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -135,7 +135,7 @@ pub async fn get_challenge(
     }
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(challenges),
         total: Some(total),
         ..Default::default()
@@ -230,7 +230,7 @@ pub async fn get_challenge_status(
     }
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(result),
         ..Default::default()
     })
@@ -275,7 +275,7 @@ pub async fn create_challenge(
     let challenge = cds_db::transfer::Challenge::from(challenge);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(challenge),
         ..Default::default()
     })

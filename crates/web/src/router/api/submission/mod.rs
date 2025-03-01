@@ -102,7 +102,7 @@ pub async fn get_submission(
     }
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(submissions),
         total: Some(total),
         ..Default::default()
@@ -188,7 +188,7 @@ pub async fn create_submission(
     cds_queue::publish("checker", submission.id).await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(submission),
         ..Default::default()
     })
@@ -207,7 +207,7 @@ pub async fn delete_submission(
         .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }

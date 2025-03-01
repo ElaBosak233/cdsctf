@@ -58,7 +58,7 @@ pub async fn get_env(
     let mut map: BTreeMap<String, String> = BTreeMap::new();
 
     if let Some(id) = params.id {
-        map.insert("cds/resource_id".to_owned(), id);
+        map.insert("cds/env_id".to_owned(), id);
     }
 
     if let Some(user_id) = params.user_id {
@@ -91,7 +91,7 @@ pub async fn get_env(
             let labels = pod.metadata.labels.unwrap_or_default();
 
             let id = labels
-                .get("cds/resource_id")
+                .get("cds/env_id")
                 .map(|s| s.to_owned())
                 .unwrap_or_default()
                 .to_owned();
@@ -209,7 +209,7 @@ pub async fn get_env(
         .collect::<Vec<Pod>>();
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(pods),
         ..Default::default()
     })
@@ -321,7 +321,7 @@ pub async fn create_env(
     let _ = cds_cluster::create_challenge_env(operator, team, game, challenge).await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }

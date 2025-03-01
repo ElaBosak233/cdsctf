@@ -29,7 +29,7 @@ pub async fn renew_pod(
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
-        .get("cds/resource_id")
+        .get("cds/env_id")
         .map(|s| s.to_string())
         .unwrap_or_default();
     let team_id = labels
@@ -81,7 +81,7 @@ pub async fn renew_pod(
     cds_cluster::renew_challenge_env(&id).await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }
@@ -95,7 +95,7 @@ pub async fn stop_pod(
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
-        .get("cds/resource_id")
+        .get("cds/env_id")
         .map(|s| s.to_string())
         .unwrap_or_default();
     let team_id = labels
@@ -120,7 +120,7 @@ pub async fn stop_pod(
     cds_cluster::delete_challenge_env(&id).await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }

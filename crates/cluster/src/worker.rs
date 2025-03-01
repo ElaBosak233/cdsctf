@@ -21,7 +21,7 @@ pub async fn cleaner() {
                     .metadata
                     .labels
                     .unwrap_or_default()
-                    .get("cds/resource_id")
+                    .get("cds/env_id")
                     .map(|s| s.to_owned())
                     .unwrap_or_default();
 

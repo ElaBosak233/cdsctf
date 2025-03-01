@@ -90,7 +90,7 @@ pub async fn update_user(
     let user = cds_db::transfer::User::from(user);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(user),
         ..Default::default()
     })
@@ -125,7 +125,7 @@ pub async fn delete_user(
     .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }
@@ -150,7 +150,7 @@ pub async fn get_user_teams(
     let teams = cds_db::transfer::team::preload(teams).await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(teams),
         ..Default::default()
     })

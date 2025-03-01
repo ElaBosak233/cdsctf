@@ -12,7 +12,7 @@ pub fn router() -> Router {
 
 pub async fn get_container() -> Result<WebResponse<()>, WebError> {
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }

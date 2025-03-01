@@ -26,7 +26,7 @@ pub async fn get_img(path: String) -> Result<impl IntoResponse, WebError> {
 pub async fn get_img_metadata(path: String) -> Result<WebResponse<Metadata>, WebError> {
     match cds_media::scan_dir(path.clone()).await?.first() {
         Some((filename, size)) => Ok(WebResponse {
-            code: StatusCode::OK.as_u16(),
+            code: StatusCode::OK,
             data: Some(Metadata {
                 filename: filename.to_string(),
                 size: *size,
@@ -50,7 +50,7 @@ pub async fn save_img(path: String, multipart: Multipart) -> Result<WebResponse<
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }
@@ -61,7 +61,7 @@ pub async fn delete_img(path: String) -> Result<WebResponse<()>, WebError> {
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }

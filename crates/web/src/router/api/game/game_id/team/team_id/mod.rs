@@ -63,7 +63,7 @@ pub async fn update_game_team(
     let game_team = cds_db::transfer::GameTeam::from(game_team);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(game_team),
         ..Default::default()
     })
@@ -94,7 +94,7 @@ pub async fn delete_game_team(
         .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }

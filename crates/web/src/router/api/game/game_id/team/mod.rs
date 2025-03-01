@@ -87,7 +87,7 @@ pub async fn get_game_team(
     game_teams = cds_db::transfer::game_team::preload(game_teams).await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(game_teams),
         total: Some(total),
         ..Default::default()
@@ -144,7 +144,7 @@ pub async fn create_game_team(
     let game_team = cds_db::transfer::GameTeam::from(game_team);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(game_team),
         ..Default::default()
     })

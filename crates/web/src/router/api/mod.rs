@@ -1,13 +1,13 @@
 pub mod challenge;
-pub mod cluster;
 pub mod config;
 pub mod game;
 pub mod media;
 pub mod submission;
 pub mod team;
 pub mod user;
+pub mod env;
 
-use axum::{Router, http::StatusCode, response::IntoResponse};
+use axum::{response::IntoResponse, Router};
 use serde_json::json;
 
 use crate::traits::WebResponse;
@@ -21,13 +21,12 @@ pub async fn router() -> Router {
         .nest("/teams", team::router())
         .nest("/challenges", challenge::router())
         .nest("/games", game::router().await)
-        .nest("/clusters", cluster::router().await)
+        .nest("/envs", env::router().await)
         .nest("/submissions", submission::router().await)
 }
 
 pub async fn index() -> impl IntoResponse {
     WebResponse::<()> {
-        code: StatusCode::OK.as_u16(),
         msg: Some(json!("This is the heart of CdsCTF!")),
         ..Default::default()
     }
