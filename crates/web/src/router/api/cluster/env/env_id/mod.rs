@@ -1,8 +1,7 @@
-mod containers;
+mod container;
 
 use axum::{Router, extract::WebSocketUpgrade, http::StatusCode, response::IntoResponse};
 use cds_db::entity::user::Group;
-use containers::container_id;
 use serde::Deserialize;
 use serde_json::json;
 use tracing::debug;
@@ -18,7 +17,7 @@ pub fn router() -> Router {
         .route("/renew", axum::routing::post(renew_pod))
         .route("/stop", axum::routing::post(stop_pod))
         .route("/wsrx", axum::routing::get(wsrx))
-        .nest("/containers", containers::router())
+        .nest("/containers", container::router())
 }
 
 pub async fn renew_pod(

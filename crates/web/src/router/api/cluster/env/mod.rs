@@ -1,4 +1,4 @@
-mod pod_id;
+mod env_id;
 
 use std::collections::BTreeMap;
 
@@ -16,9 +16,9 @@ use crate::{
 
 pub async fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get_pod))
-        .route("/", axum::routing::post(create_pod))
-        .nest("/{pod_id}", pod_id::router())
+        .route("/", axum::routing::get(get_env))
+        .route("/", axum::routing::post(create_env))
+        .nest("/{env_id}", env_id::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -50,7 +50,7 @@ pub struct GetPodRequest {
     pub challenge_id: Option<Uuid>,
 }
 
-pub async fn get_pod(
+pub async fn get_env(
     Extension(ext): Extension<Ext>, Query(params): Query<GetPodRequest>,
 ) -> Result<WebResponse<Vec<Pod>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -223,7 +223,7 @@ pub struct CreatePodRequest {
     pub game_id: Option<i64>,
 }
 
-pub async fn create_pod(
+pub async fn create_env(
     Extension(ext): Extension<Ext>, Json(mut body): Json<CreatePodRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
