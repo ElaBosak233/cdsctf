@@ -84,7 +84,7 @@ pub async fn update_team(
     let team = cds_db::transfer::Team::from(team);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(team),
         ..Default::default()
     })
@@ -123,7 +123,7 @@ pub async fn delete_team(
     .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }
@@ -167,7 +167,7 @@ pub async fn join_team(
     let team_user = cds_db::transfer::TeamUser::from(team_user);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(team_user),
         ..Default::default()
     })
@@ -202,7 +202,7 @@ pub async fn quit_team(
         .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }

@@ -37,7 +37,7 @@ pub async fn get_game_notice(
         .collect::<Vec<GameNotice>>();
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(game_notices),
         ..Default::default()
     })
@@ -72,7 +72,7 @@ pub async fn create_game_notice(
     let game_notice = cds_db::transfer::GameNotice::from(game_notice);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(game_notice),
         ..Default::default()
     })
@@ -97,7 +97,7 @@ pub async fn delete_game_notice(
         .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }

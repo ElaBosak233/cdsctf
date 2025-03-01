@@ -91,7 +91,7 @@ pub async fn init() -> Result<(), ClusterError> {
 }
 
 pub async fn get_service(id: Uuid) -> Result<Service, ClusterError> {
-    let service = get_services_by_label(&format!("cds/resource_id={}", id.to_string()))
+    let service = get_services_by_label(&format!("cds/env_id={}", id.to_string()))
         .await?
         .get(0)
         .ok_or(ClusterError::NotFound("service_not_found".to_owned()))?
@@ -136,7 +136,7 @@ pub async fn delete_service(id: &str) -> Result<(), ClusterError> {
     let _ = service_api
         .delete_collection(
             &DeleteParams::default(),
-            &ListParams::default().labels(&format!("cds/resource_id={id}")),
+            &ListParams::default().labels(&format!("cds/env_id={id}")),
         )
         .await?;
 
@@ -144,7 +144,7 @@ pub async fn delete_service(id: &str) -> Result<(), ClusterError> {
 }
 
 pub async fn get_pod(id: &str) -> Result<Pod, ClusterError> {
-    let pod = get_pods_by_label(&format!("cds/resource_id={}", id.to_string()))
+    let pod = get_pods_by_label(&format!("cds/env_id={}", id.to_string()))
         .await?
         .get(0)
         .ok_or(ClusterError::NotFound("pod_not_found".to_owned()))?
@@ -206,7 +206,7 @@ pub async fn delete_pod(id: &str) -> Result<(), ClusterError> {
                 grace_period_seconds: Some(0),
                 ..Default::default()
             },
-            &ListParams::default().labels(&format!("cds/resource_id={id}")),
+            &ListParams::default().labels(&format!("cds/env_id={id}")),
         )
         .await?;
 
@@ -238,7 +238,7 @@ pub async fn create_challenge_env(
         name: Some(name.clone()),
         labels: Some(BTreeMap::from([
             ("cds/app".to_owned(), "challenges".to_owned()),
-            ("cds/resource_id".to_owned(), id.to_string()),
+            ("cds/env_id".to_owned(), id.to_string()),
             ("cds/user_id".to_owned(), format!("{}", user.id)),
             (
                 "cds/team_id".to_owned(),
@@ -261,6 +261,9 @@ pub async fn create_challenge_env(
         ])),
         annotations: Some(BTreeMap::from([
             ("cds/challenge".to_owned(), json!(challenge).to_string()),
+            ("cds/user".to_owned(), json!(user).to_string()),
+            ("cds/team".to_owned(), json!(team).to_string()),
+            ("cds/game".to_owned(), json!(game).to_string()),
             ("cds/renew".to_owned(), format!("{}", 0)),
             ("cds/duration".to_owned(), format!("{}", env.duration)),
             ("cds/ports".to_owned(), json!(unique_ports).to_string()),
@@ -358,10 +361,7 @@ pub async fn create_challenge_env(
     let service = Service {
         metadata: metadata.clone(),
         spec: Some(ServiceSpec {
-            selector: Some(BTreeMap::from([(
-                "cds/resource_id".to_owned(),
-                id.to_string(),
-            )])),
+            selector: Some(BTreeMap::from([("cds/env_id".to_owned(), id.to_string())])),
             ports: Some(
                 unique_ports
                     .into_iter()

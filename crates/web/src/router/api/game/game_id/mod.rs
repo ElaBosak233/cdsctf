@@ -92,7 +92,7 @@ pub async fn update_game(
     let game = cds_db::transfer::Game::from(game);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(game),
         ..Default::default()
     })
@@ -116,7 +116,7 @@ pub async fn delete_game(
         .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }
@@ -135,7 +135,7 @@ pub async fn calculate_game(
     .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }
@@ -204,7 +204,7 @@ pub async fn get_game_scoreboard(
     }
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(result),
         total: Some(total),
         ..Default::default()
