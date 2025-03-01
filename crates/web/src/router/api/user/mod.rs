@@ -67,7 +67,7 @@ pub async fn get_user(
     }
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(users),
         total: Some(total),
         ..Default::default()
@@ -114,7 +114,7 @@ pub async fn create_user(
     user.desensitize();
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(user),
         ..Default::default()
     })
@@ -190,7 +190,7 @@ pub async fn user_login(
     );
 
     Ok((StatusCode::OK, headers, WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(user),
         ..Default::default()
     }))
@@ -262,7 +262,7 @@ pub async fn user_register(
     let user = cds_db::transfer::User::from(user);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(user),
         ..Default::default()
     })
@@ -283,7 +283,7 @@ pub async fn user_logout(Extension(ext): Extension<Ext>) -> Result<impl IntoResp
     );
 
     Ok((StatusCode::OK, headers, WebResponse::<()> {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     }))
 }

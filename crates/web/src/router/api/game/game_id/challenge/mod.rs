@@ -94,7 +94,7 @@ pub async fn get_game_challenge(
         cds_db::transfer::game_challenge::preload(sql.all(get_db()).await?).await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(game_challenges),
         total: Some(total),
         ..Default::default()
@@ -152,7 +152,7 @@ pub async fn create_game_challenge(
     .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(game_challenge),
         ..Default::default()
     })

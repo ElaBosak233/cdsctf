@@ -80,7 +80,7 @@ pub async fn get_challenge_attachment_metadata(
     let path = format!("challenges/{}/attachment", challenge_id);
     match cds_media::scan_dir(path.clone()).await?.first() {
         Some((filename, size)) => Ok(WebResponse {
-            code: StatusCode::OK.as_u16(),
+            code: StatusCode::OK,
             data: Some(Metadata {
                 filename: filename.to_string(),
                 size: *size,
@@ -127,7 +127,7 @@ pub async fn save_challenge_attachment(
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }
@@ -153,7 +153,7 @@ pub async fn delete_challenge_attachment(
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }

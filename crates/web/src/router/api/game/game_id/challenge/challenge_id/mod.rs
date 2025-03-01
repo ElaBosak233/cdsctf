@@ -81,7 +81,7 @@ pub async fn update_game_challenge(
     .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(game_challenge),
         ..Default::default()
     })
@@ -112,7 +112,7 @@ pub async fn delete_game_challenge(
         .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }

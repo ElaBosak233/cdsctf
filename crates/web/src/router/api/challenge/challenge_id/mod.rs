@@ -68,7 +68,7 @@ pub async fn update_challenge(
     let challenge = cds_db::transfer::Challenge::from(challenge);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(challenge),
         ..Default::default()
     })
@@ -97,7 +97,7 @@ pub async fn delete_challenge(
     .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }
@@ -131,7 +131,7 @@ pub async fn update_challenge_env(
     .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         ..Default::default()
     })
 }
@@ -179,7 +179,7 @@ pub async fn update_challenge_checker(
     };
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         msg: msg.map(|msg| json!(msg)),
         ..Default::default()
     })

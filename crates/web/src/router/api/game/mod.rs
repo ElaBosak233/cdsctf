@@ -92,7 +92,7 @@ pub async fn get_game(
         .collect::<Vec<cds_db::transfer::Game>>();
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(games),
         total: Some(total),
         ..Default::default()
@@ -145,7 +145,7 @@ pub async fn create_game(
     let game = cds_db::transfer::Game::from(game);
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(game),
         ..Default::default()
     })

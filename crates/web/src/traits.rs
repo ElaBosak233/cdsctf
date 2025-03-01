@@ -18,7 +18,8 @@ pub struct Ext {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WebResponse<T> {
-    pub code: u16,
+    #[serde(with = "http_serde::status_code")]
+    pub code: StatusCode,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub msg: Option<serde_json::Value>,
     pub data: Option<T>,
@@ -30,7 +31,7 @@ pub struct WebResponse<T> {
 impl<T> Default for WebResponse<T> {
     fn default() -> Self {
         Self {
-            code: 0,
+            code: StatusCode::OK,
             msg: None,
             data: None,
             total: None,
@@ -43,7 +44,7 @@ impl<T: Serialize + Debug> IntoResponse for WebResponse<T> {
     fn into_response(mut self) -> Response<Body> {
         self.ts = chrono::Utc::now().timestamp();
         (
-            StatusCode::from_u16(self.code).unwrap_or(StatusCode::OK),
+            self.code,
             Json(self),
         )
             .into_response()
@@ -139,7 +140,7 @@ impl IntoResponse for WebError {
         };
 
         WebResponse::<()> {
-            code: status.as_u16(),
+            code: status,
             msg: Option::from(message),
             ..Default::default()
         }

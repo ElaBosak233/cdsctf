@@ -19,7 +19,7 @@ pub fn router() -> Router {
 pub type ClientConfig = serde_json::Value;
 pub async fn get_config() -> Result<WebResponse<ClientConfig>, WebError> {
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(json!({
             "meta": {
                 "title": cds_config::get_config().meta.title,
@@ -55,7 +55,7 @@ pub async fn get_captcha() -> Result<WebResponse<cds_captcha::Captcha>, WebError
         .ok_or(WebError::BadRequest(json!("dont_need_generate_captcha")))?;
 
     Ok(WebResponse {
-        code: StatusCode::OK.as_u16(),
+        code: StatusCode::OK,
         data: Some(captcha.desensitize()),
         ..Default::default()
     })
