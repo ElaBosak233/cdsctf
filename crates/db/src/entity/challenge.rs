@@ -33,10 +33,15 @@ pub struct Model {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
 pub struct Env {
+    pub duration: i64,
+    pub containers: Vec<Container>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+pub struct Container {
     pub image: String,
     pub cpu_limit: i64,
     pub memory_limit: i64,
-    pub duration: i64,
     pub ports: Vec<i32>,
     pub envs: HashMap<String, String>,
 }
