@@ -1,8 +1,8 @@
 use async_trait::async_trait;
-use sea_orm::{FromJsonQueryResult, Set, entity::prelude::*};
+use sea_orm::{entity::prelude::*, FromJsonQueryResult, Set};
 use serde::{Deserialize, Serialize};
 
-use super::{challenge, game_challenge, game_team, submission, team};
+use super::{challenge, game_challenge, game_team, submission};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "games")]
@@ -41,23 +41,15 @@ pub struct Timeslot {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Submission,
+    GameTeam,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
             Self::Submission => Entity::has_many(submission::Entity).into(),
+            Self::GameTeam => Entity::has_many(game_team::Entity).into(),
         }
-    }
-}
-
-impl Related<team::Entity> for Entity {
-    fn to() -> RelationDef {
-        game_team::Relation::Team.def()
-    }
-
-    fn via() -> Option<RelationDef> {
-        Some(game_team::Relation::Game.def().rev())
     }
 }
 

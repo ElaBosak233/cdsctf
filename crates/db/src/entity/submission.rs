@@ -3,7 +3,7 @@ use sea_orm::{DeriveActiveEnum, EnumIter, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::{challenge, game, team, user};
+use super::{challenge, game, game_team, user};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "submissions")]
@@ -13,7 +13,7 @@ pub struct Model {
     pub content: String,
     pub status: Status,
     pub user_id: i64,
-    pub team_id: Option<i64>,
+    pub game_team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: Uuid,
     pub created_at: i64,
@@ -52,8 +52,8 @@ pub enum Status {
 pub enum Relation {
     Challenge,
     User,
-    Team,
     Game,
+    GameTeam,
 }
 
 impl RelationTrait for Relation {
@@ -69,9 +69,9 @@ impl RelationTrait for Relation {
                 .to(user::Column::Id)
                 .on_delete(ForeignKeyAction::Cascade)
                 .into(),
-            Self::Team => Entity::belongs_to(team::Entity)
-                .from(Column::TeamId)
-                .to(team::Column::Id)
+            Self::GameTeam => Entity::belongs_to(game_team::Entity)
+                .from(Column::GameTeamId)
+                .to(game_team::Column::Id)
                 .on_delete(ForeignKeyAction::Cascade)
                 .into(),
             Self::Game => Entity::belongs_to(game::Entity)
@@ -95,9 +95,9 @@ impl Related<user::Entity> for Entity {
     }
 }
 
-impl Related<team::Entity> for Entity {
+impl Related<game_team::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Team.def()
+        Relation::GameTeam.def()
     }
 }
 

@@ -15,17 +15,17 @@ pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
         criteria: Some(challenge),
     };
 
-    cds_cache::set_ex(&captcha.id, &captcha, 5 * 60).await?;
+    cds_cache::set_ex(format!("captcha:pow:{}", &captcha.id), &captcha, 5 * 60).await?;
 
     Ok(captcha)
 }
 
 pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
     let captcha = cds_cache::get_del::<Captcha>(
-        answer
+        format!("captcha:pow:{}", answer
             .id
             .clone()
-            .ok_or(CaptchaError::MissingField("id".to_owned()))?,
+            .ok_or(CaptchaError::MissingField("id".to_owned()))?),
     )
     .await?
     .ok_or(CaptchaError::Gone)?;

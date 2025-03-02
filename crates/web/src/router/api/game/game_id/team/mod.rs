@@ -28,8 +28,8 @@ pub struct GetGameTeamRequest {
     /// It will be overwritten by `id` in path.
     pub game_id: Option<i64>,
 
-    /// The team id of expected game teams.
-    pub team_id: Option<i64>,
+    /// The game_team id of expected game teams.
+    pub game_team_id: Option<i64>,
 
     /// The user id of expected game teams.
     ///
@@ -39,9 +39,8 @@ pub struct GetGameTeamRequest {
     /// ```sql
     /// SELECT *
     /// FROM "game_teams"
-    ///     INNER JOIN "teams" ON "game_teams"."team_id" = "teams"."id"
-    ///     INNER JOIN "team_users" ON "teams"."id" = "team_users"."team_id"
-    /// WHERE "game_teams"."game_id" = ? AND "team_users"."user_id" = ?;
+    ///     INNER JOIN "game_team_users" ON "game_team"."id" = "game_team_users"."game_team_id"
+    /// WHERE "game_teams"."game_id" = ? AND "game_team_users"."user_id" = ?;
     /// ```
     pub user_id: Option<i64>,
 }
@@ -57,24 +56,24 @@ pub async fn get_game_team(
 
     sql = sql.filter(cds_db::entity::game_team::Column::GameId.eq(game_id));
 
-    if let Some(team_id) = params.team_id {
-        sql = sql.filter(cds_db::entity::game_team::Column::TeamId.eq(team_id));
+    if let Some(game_team_id) = params.game_team_id {
+        sql = sql.filter(cds_db::entity::game_team::Column::Id.eq(game_team_id));
     }
 
-    if let Some(user_id) = params.user_id {
-        // If you are a little confused about the following statement,
-        // you can refer to the comments on the field `user_id` in `GetTeamRequest`
-        sql = sql
-            .join(
-                JoinType::InnerJoin,
-                cds_db::entity::game_team::Relation::Team.def(),
-            )
-            .join(
-                JoinType::InnerJoin,
-                cds_db::entity::team_user::Relation::Team.def().rev(),
-            )
-            .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
-    }
+    // if let Some(user_id) = params.user_id {
+    //     // If you are a little confused about the following statement,
+    //     // you can refer to the comments on the field `user_id` in `GetTeamRequest`
+    //     sql = sql
+    //         .join(
+    //             JoinType::InnerJoin,
+    //             cds_db::entity::game_team::Relation::Team.def(),
+    //         )
+    //         .join(
+    //             JoinType::InnerJoin,
+    //             cds_db::entity::game_team_user::Relation::Team.def().rev(),
+    //         )
+    //         .filter(cds_db::entity::game_team_user::Column::UserId.eq(user_id))
+    // }
 
     let total = sql.clone().count(get_db()).await?;
 
@@ -97,7 +96,10 @@ pub async fn get_game_team(
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateGameTeamRequest {
     pub game_id: i64,
-    pub team_id: i64,
+    pub name: String,
+    pub email: Option<String>,
+    pub slogan: Option<String>,
+    pub description: Option<String>,
 }
 
 /// Add a team to a game with given path and data.
@@ -117,16 +119,6 @@ pub async fn create_game_team(
         .map(|game| cds_db::transfer::Game::from(game))
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
-    let team = cds_db::entity::team::Entity::find_by_id(body.team_id)
-        .one(get_db())
-        .await?
-        .map(|team| cds_db::transfer::Team::from(team))
-        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
-
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     if cds_db::util::is_user_in_game(&operator, &game, None).await? {
         return Err(WebError::BadRequest(json!(
             "one_user_in_team_already_in_game"
@@ -134,8 +126,11 @@ pub async fn create_game_team(
     }
 
     let game_team = cds_db::entity::game_team::ActiveModel {
+        name: Set(body.name),
+        email: Set(body.email),
+        slogan: Set(body.slogan),
+        description: Set(body.description),
         game_id: Set(game.id),
-        team_id: Set(team.id),
         is_allowed: Set(matches!(game.is_public, true)),
         ..Default::default()
     }

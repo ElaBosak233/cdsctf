@@ -214,7 +214,7 @@ pub async fn delete_pod(id: &str) -> Result<(), ClusterError> {
 }
 
 pub async fn create_challenge_env(
-    user: cds_db::transfer::User, team: Option<cds_db::transfer::Team>,
+    user: cds_db::transfer::User, game_team: Option<cds_db::transfer::GameTeam>,
     game: Option<cds_db::transfer::Game>, challenge: cds_db::transfer::Challenge,
 ) -> Result<(), ClusterError> {
     let id = util::gen_safe_nanoid();
@@ -242,7 +242,7 @@ pub async fn create_challenge_env(
             ("cds/user_id".to_owned(), format!("{}", user.id)),
             (
                 "cds/team_id".to_owned(),
-                format!("{}", match &team {
+                format!("{}", match &game_team {
                     Some(team) => team.id,
                     _ => 0,
                 }),
@@ -262,7 +262,7 @@ pub async fn create_challenge_env(
         annotations: Some(BTreeMap::from([
             ("cds/challenge".to_owned(), json!(challenge).to_string()),
             ("cds/user".to_owned(), json!(user).to_string()),
-            ("cds/team".to_owned(), json!(team).to_string()),
+            ("cds/team".to_owned(), json!(game_team).to_string()),
             ("cds/game".to_owned(), json!(game).to_string()),
             ("cds/renew".to_owned(), format!("{}", 0)),
             ("cds/duration".to_owned(), format!("{}", env.duration)),
@@ -271,7 +271,7 @@ pub async fn create_challenge_env(
         ..Default::default()
     };
 
-    let operator_id = if let (Some(_), Some(team)) = (game, team) {
+    let operator_id = if let (Some(_), Some(team)) = (game, game_team) {
         team.id
     } else {
         user.id

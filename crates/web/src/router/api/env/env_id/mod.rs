@@ -1,12 +1,14 @@
 mod container;
 
 use axum::{Router, extract::WebSocketUpgrade, http::StatusCode, response::IntoResponse};
+use sea_orm::{EntityTrait, PaginatorTrait, QueryFilter};
+use sea_orm::ColumnTrait;
 use cds_db::entity::user::Group;
 use serde::Deserialize;
 use serde_json::json;
 use tracing::debug;
 use uuid::Uuid;
-
+use cds_db::get_db;
 use crate::{
     extract::{Extension, Path, Query},
     traits::{Ext, WebError, WebResponse},
@@ -41,12 +43,14 @@ pub async fn renew_pod(
         .map(|s| s.to_string())
         .unwrap_or_default();
 
+    let is_user_in_team = cds_db::entity::game_team_user::Entity::find()
+        .filter(cds_db::entity::game_team_user::Column::GameTeamId.eq(team_id))
+        .filter(cds_db::entity::game_team_user::Column::UserId.eq(user_id.clone()))
+        .count(get_db()).await? > 0;
+
     if !(operator.group == Group::Admin
         || operator.id.to_string() == user_id
-        || operator
-            .teams
-            .iter()
-            .any(|team| team.id.to_string() == team_id))
+        || is_user_in_team)
     {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -107,12 +111,14 @@ pub async fn stop_pod(
         .map(|s| s.to_string())
         .unwrap_or_default();
 
+    let is_user_in_team = cds_db::entity::game_team_user::Entity::find()
+        .filter(cds_db::entity::game_team_user::Column::GameTeamId.eq(team_id))
+        .filter(cds_db::entity::game_team_user::Column::UserId.eq(user_id.clone()))
+        .count(get_db()).await? > 0;
+
     if !(operator.group == Group::Admin
         || operator.id.to_string() == user_id
-        || operator
-            .teams
-            .iter()
-            .any(|team| team.id.to_string() == team_id))
+        || is_user_in_team)
     {
         return Err(WebError::Forbidden(json!("")));
     }

@@ -31,7 +31,7 @@ pub async fn router() -> Router {
 pub struct GetSubmissionRequest {
     pub id: Option<i64>,
     pub user_id: Option<i64>,
-    pub team_id: Option<i64>,
+    pub game_team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
     pub status: Option<Status>,
@@ -64,8 +64,8 @@ pub async fn get_submission(
         sql = sql.filter(cds_db::entity::submission::Column::UserId.eq(user_id));
     }
 
-    if let Some(team_id) = params.team_id {
-        sql = sql.filter(cds_db::entity::submission::Column::TeamId.eq(team_id));
+    if let Some(team_id) = params.game_team_id {
+        sql = sql.filter(cds_db::entity::submission::Column::GameTeamId.eq(team_id));
     }
 
     if let Some(game_id) = params.game_id {
@@ -113,7 +113,7 @@ pub async fn get_submission(
 pub struct CreateSubmissionRequest {
     pub content: String,
     pub user_id: Option<i64>,
-    pub team_id: Option<i64>,
+    pub game_team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: uuid::Uuid,
 }
@@ -130,25 +130,20 @@ pub async fn create_submission(
         .await?
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
 
-    if body.game_id.is_some() != body.team_id.is_some() {
+    if body.game_id.is_some() != body.game_team_id.is_some() {
         return Err(WebError::BadRequest(json!("invalid")));
     }
 
     // If the submission is not in game mode, challenge must be public.
-    if !challenge.is_public && (body.game_id.is_none() || body.team_id.is_none()) {
+    if !challenge.is_public && (body.game_id.is_none() || body.game_team_id.is_none()) {
         return Err(WebError::BadRequest(json!("challenge_not_found")));
     }
 
-    if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
+    if let (Some(game_id), Some(game_team_id)) = (body.game_id, body.game_team_id) {
         let game = cds_db::entity::game::Entity::find_by_id(game_id)
             .one(get_db())
             .await?
             .ok_or(WebError::BadRequest(json!("game_not_found")))?;
-
-        let team = cds_db::entity::team::Entity::find_by_id(team_id)
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
         let _ = cds_db::entity::game_challenge::Entity::find()
             .filter(
@@ -163,7 +158,7 @@ pub async fn create_submission(
         let _ = cds_db::entity::game_team::Entity::find()
             .filter(
                 Condition::all()
-                    .add(cds_db::entity::game_team::Column::TeamId.eq(team.id))
+                    .add(cds_db::entity::game_team::Column::Id.eq(game_team_id))
                     .add(cds_db::entity::game_team::Column::GameId.eq(game.id))
                     .add(cds_db::entity::game_team::Column::IsAllowed.eq(true)),
             )
@@ -175,7 +170,7 @@ pub async fn create_submission(
     let submission = cds_db::entity::submission::ActiveModel {
         content: Set(body.content),
         user_id: body.user_id.map_or(NotSet, Set),
-        team_id: body.team_id.map_or(NotSet, |v| Set(Some(v))),
+        game_team_id: body.game_team_id.map_or(NotSet, |v| Set(Some(v))),
         game_id: body.game_id.map_or(NotSet, |v| Set(Some(v))),
         challenge_id: Set(body.challenge_id),
         status: Set(Status::Pending),

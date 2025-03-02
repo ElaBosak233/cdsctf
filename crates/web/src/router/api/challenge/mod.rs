@@ -146,7 +146,7 @@ pub async fn get_challenge(
 pub struct GetChallengeStatusRequest {
     pub challenge_ids: Vec<uuid::Uuid>,
     pub user_id: Option<i64>,
-    pub team_id: Option<i64>,
+    pub game_team_id: Option<i64>,
     pub game_id: Option<i64>,
 }
 
@@ -202,9 +202,9 @@ pub async fn get_challenge_status(
             }
         }
 
-        if let Some(team_id) = body.team_id {
+        if let Some(game_team_id) = body.game_team_id {
             if let Some(game_id) = body.game_id {
-                if submission.team_id == Some(team_id) && submission.game_id == Some(game_id) {
+                if submission.game_team_id == Some(game_team_id) && submission.game_id == Some(game_id) {
                     status_response.is_solved = true;
                 }
             }

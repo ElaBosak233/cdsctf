@@ -3,7 +3,7 @@ use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::{submission, team, team_user};
+use super::{submission, game_team_user, game_team};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "users")]
@@ -58,13 +58,13 @@ impl RelationTrait for Relation {
     }
 }
 
-impl Related<team::Entity> for Entity {
+impl Related<game_team::Entity> for Entity {
     fn to() -> RelationDef {
-        team_user::Relation::Team.def()
+        game_team_user::Relation::GameTeam.def()
     }
 
     fn via() -> Option<RelationDef> {
-        Some(team_user::Relation::User.def().rev())
+        Some(game_team_user::Relation::User.def().rev())
     }
 }
 

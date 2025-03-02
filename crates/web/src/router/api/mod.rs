@@ -3,7 +3,6 @@ pub mod config;
 pub mod game;
 pub mod media;
 pub mod submission;
-pub mod team;
 pub mod user;
 pub mod env;
 
@@ -18,7 +17,6 @@ pub async fn router() -> Router {
         .nest("/configs", config::router())
         .nest("/media", media::router())
         .nest("/users", user::router())
-        .nest("/teams", team::router())
         .nest("/challenges", challenge::router())
         .nest("/games", game::router().await)
         .nest("/envs", env::router().await)

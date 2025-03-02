@@ -48,14 +48,14 @@ pub async fn save_team_avatar(
     Extension(ext): Extension<Ext>, Path(team_id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::entity::team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+    let game_team = cds_db::entity::game_team::Entity::find_by_id(team_id)
+        .filter(cds_db::entity::game_team::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
-        .map(|team| cds_db::transfer::Team::from(team))
+        .map(|game_team| cds_db::transfer::GameTeam::from(game_team))
         .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
+    if !cds_db::util::can_user_modify_team(&operator, &game_team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -72,14 +72,14 @@ pub async fn delete_team_avatar(
     Extension(ext): Extension<Ext>, Path(team_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::entity::team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
+    let game_team = cds_db::entity::game_team::Entity::find_by_id(team_id)
+        .filter(cds_db::entity::game_team::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
-        .map(|team| cds_db::transfer::Team::from(team))
+        .map(|game_team| cds_db::transfer::GameTeam::from(game_team))
         .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
+    if !cds_db::util::can_user_modify_team(&operator, &game_team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
