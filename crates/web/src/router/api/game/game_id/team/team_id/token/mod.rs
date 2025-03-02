@@ -21,7 +21,7 @@ pub fn router() -> Router {
 /// # Prerequisite
 /// - Operator is admin or one of the members of current team.
 pub async fn create_token(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::transfer::Team::from(
@@ -52,7 +52,7 @@ pub async fn create_token(
 /// # Prerequisite
 /// - Operator is admin or one of the members of current team.
 pub async fn get_token(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::transfer::Team::from(
@@ -81,7 +81,7 @@ pub async fn get_token(
 /// # Prerequisite
 /// - Operator is admin or one of the members of current team.
 pub async fn delete_token(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::transfer::Team::from(
