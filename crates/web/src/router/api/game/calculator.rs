@@ -3,7 +3,10 @@
 
 use std::collections::HashMap;
 
-use cds_db::{entity::submission::Status, get_db};
+use cds_db::{
+    entity::{submission::Status, team::State},
+    get_db,
+};
 use futures::StreamExt;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter,
@@ -85,7 +88,7 @@ pub async fn calculate(game_id: i64) {
         .filter(
             Condition::all()
                 .add(cds_db::entity::team::Column::GameId.eq(game_id))
-                .add(cds_db::entity::team::Column::IsAllowed.eq(true)),
+                .add(cds_db::entity::team::Column::State.eq(State::Passed)),
         )
         .all(get_db())
         .await
@@ -109,7 +112,7 @@ pub async fn calculate(game_id: i64) {
         .filter(
             Condition::all()
                 .add(cds_db::entity::team::Column::GameId.eq(game_id))
-                .add(cds_db::entity::team::Column::IsAllowed.eq(true)),
+                .add(cds_db::entity::team::Column::State.eq(State::Passed)),
         )
         .order_by_desc(cds_db::entity::team::Column::Pts)
         .all(get_db())

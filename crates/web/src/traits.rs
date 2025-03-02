@@ -43,11 +43,7 @@ impl<T> Default for WebResponse<T> {
 impl<T: Serialize + Debug> IntoResponse for WebResponse<T> {
     fn into_response(mut self) -> Response<Body> {
         self.ts = chrono::Utc::now().timestamp();
-        (
-            self.code,
-            Json(self),
-        )
-            .into_response()
+        (self.code, Json(self)).into_response()
     }
 }
 

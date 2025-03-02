@@ -1,7 +1,11 @@
 mod team_id;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{get_db, transfer::Team};
+use cds_db::{
+    entity::{team::State, user::Group},
+    get_db,
+    transfer::Team,
+};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, PaginatorTrait,
     QueryFilter, QuerySelect, RelationTrait,
@@ -96,13 +100,15 @@ pub struct CreateTeamRequest {
 /// Add a team to a game with given path and data.
 ///
 /// # Prerequisite
-/// - Operator is admin or one of the current team's members.
-/// - No user in the team is already in the game.
+/// - Operator is admin.
 pub async fn create_team(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
-    Json(body): Json<CreateTeamRequest>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Json(body): Json<CreateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    if operator.group != Group::Admin {
+        return Err(WebError::Forbidden(json!("")));
+    }
 
     let game = cds_db::entity::game::Entity::find_by_id(game_id)
         .one(get_db())
@@ -110,19 +116,13 @@ pub async fn create_team(
         .map(|game| cds_db::transfer::Game::from(game))
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
-    if cds_db::util::is_user_in_game(&operator, &game, None).await? {
-        return Err(WebError::BadRequest(json!(
-            "one_user_in_team_already_in_game"
-        )));
-    }
-
     let team = cds_db::entity::team::ActiveModel {
         name: Set(body.name),
         email: Set(body.email),
         slogan: Set(body.slogan),
         description: Set(body.description),
         game_id: Set(game.id),
-        is_allowed: Set(matches!(game.is_public, true)),
+        state: Set(State::Passed),
         ..Default::default()
     }
     .insert(get_db())
@@ -147,11 +147,9 @@ pub struct TeamRegisterRequest {
 /// Add a team to a game with given path and data.
 ///
 /// # Prerequisite
-/// - Operator is admin or one of the current team's members.
 /// - No user in the team is already in the game.
 pub async fn team_register(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
-    Json(body): Json<CreateTeamRequest>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Json(body): Json<CreateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -173,19 +171,28 @@ pub async fn team_register(
         slogan: Set(body.slogan),
         description: Set(body.description),
         game_id: Set(game.id),
-        is_allowed: Set(matches!(game.is_public, true)),
+        state: Set(if game.is_public {
+            State::Passed
+        } else {
+            State::Pending
+        }),
         ..Default::default()
     }
-        .insert(get_db())
-        .await?;
+    .insert(get_db())
+    .await?;
 
     let _ = cds_db::entity::team_user::ActiveModel {
         team_id: Set(team.id),
         user_id: Set(operator.id),
-    }.insert(get_db()).await?;
+    }
+    .insert(get_db())
+    .await?;
 
     let team = cds_db::entity::team::Entity::find_by_id(team.id)
-        .one(get_db()).await?.map(|team| cds_db::transfer::Team::from(team)).unwrap();
+        .one(get_db())
+        .await?
+        .map(|team| cds_db::transfer::Team::from(team))
+        .unwrap();
 
     Ok(WebResponse {
         code: StatusCode::OK,

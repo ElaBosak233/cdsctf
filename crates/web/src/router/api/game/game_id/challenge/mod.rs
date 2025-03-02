@@ -1,5 +1,8 @@
 use axum::{Router, http::StatusCode};
-use cds_db::{entity::user::Group, get_db};
+use cds_db::{
+    entity::{team::State, user::Group},
+    get_db,
+};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, NotSet, PaginatorTrait,
     QueryFilter, QuerySelect,
@@ -54,7 +57,7 @@ pub async fn get_game_challenge(
 
     if operator.group != Group::Admin {
         let now = chrono::Utc::now().timestamp();
-        let in_game = cds_db::util::is_user_in_game(&operator, &game, Some(true)).await?;
+        let in_game = cds_db::util::is_user_in_game(&operator, &game, Some(State::Passed)).await?;
 
         if !in_game
             || !(game.started_at..=game.ended_at).contains(&now)

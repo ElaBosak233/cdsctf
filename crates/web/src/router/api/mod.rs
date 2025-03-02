@@ -1,12 +1,12 @@
 pub mod challenge;
 pub mod config;
+pub mod env;
 pub mod game;
 pub mod media;
 pub mod submission;
 pub mod user;
-pub mod env;
 
-use axum::{response::IntoResponse, Router};
+use axum::{Router, response::IntoResponse};
 use serde_json::json;
 
 use crate::traits::WebResponse;
