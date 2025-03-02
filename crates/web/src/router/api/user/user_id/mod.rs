@@ -24,7 +24,6 @@ pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::put(update_user))
         .route("/", axum::routing::delete(delete_user))
-        .route("/teams", axum::routing::get(get_user_teams))
         .nest("/avatar", avatar::router())
 }
 
@@ -126,32 +125,6 @@ pub async fn delete_user(
 
     Ok(WebResponse {
         code: StatusCode::OK,
-        ..Default::default()
-    })
-}
-
-pub async fn get_user_teams(
-    Extension(ext): Extension<Ext>, Path(user_id): Path<i64>,
-) -> Result<WebResponse<Vec<cds_db::transfer::Team>>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-
-    let teams = cds_db::entity::team::Entity::find()
-        .join(
-            JoinType::InnerJoin,
-            cds_db::entity::team_user::Relation::Team.def().rev(),
-        )
-        .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
-        .all(get_db())
-        .await?
-        .into_iter()
-        .map(|team| cds_db::transfer::Team::from(team))
-        .collect::<Vec<cds_db::transfer::Team>>();
-
-    let teams = cds_db::transfer::team::preload(teams).await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(teams),
         ..Default::default()
     })
 }

@@ -95,7 +95,7 @@ pub async fn calculate(game_id: i64) {
         let mut submissions = submissions
             .clone()
             .into_iter()
-            .filter(|submission| submission.team_id == Some(game_team.team_id))
+            .filter(|submission| submission.game_team_id == Some(game_team.id))
             .collect::<Vec<_>>();
 
         submissions.sort_by_key(|submission| submission.created_at);
