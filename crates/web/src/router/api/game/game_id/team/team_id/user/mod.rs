@@ -1,5 +1,8 @@
 use axum::{Router, http::StatusCode};
-use cds_db::{entity::user::Group, get_db};
+use cds_db::{
+    entity::{team::State, user::Group},
+    get_db,
+};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -29,10 +32,23 @@ pub struct CreateTeamUserRequest {
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn create_team_user(
-    Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
     Json(body): Json<CreateTeamUserRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let user = cds_db::transfer::User::from(
+        cds_db::entity::user::Entity::find_by_id(body.user_id)
+            .filter(cds_db::entity::user::Column::DeletedAt.is_null())
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("user_not_found")))?,
+    );
+    let game = cds_db::transfer::Game::from(
+        cds_db::entity::game::Entity::find_by_id(game_id)
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("game_not_found")))?,
+    );
     let team = cds_db::transfer::Team::from(
         cds_db::entity::team::Entity::find_by_id(team_id)
             .filter(cds_db::entity::team::Column::DeletedAt.is_null())
@@ -43,6 +59,14 @@ pub async fn create_team_user(
 
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
+    }
+
+    if team.state != State::Preparing {
+        return Err(WebError::BadRequest(json!("team_not_preparing")));
+    }
+
+    if cds_db::util::is_user_in_game(&user, &game, None).await? {
+        return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
     let _ = cds_db::entity::team_user::ActiveModel {
@@ -78,6 +102,10 @@ pub async fn delete_team_user(
         return Err(WebError::Forbidden(json!("")));
     }
 
+    if team.state != State::Preparing {
+        return Err(WebError::BadRequest(json!("team_not_preparing")));
+    }
+
     let _ = cds_db::entity::team_user::Entity::delete_many()
         .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
         .filter(cds_db::entity::team_user::Column::TeamId.eq(team_id))
@@ -96,11 +124,17 @@ pub struct JoinTeamRequest {
 }
 
 pub async fn join_team(
-    Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
     Json(body): Json<JoinTeamRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
+    let game = cds_db::transfer::Game::from(
+        cds_db::entity::game::Entity::find_by_id(game_id)
+            .one(get_db())
+            .await?
+            .ok_or(WebError::BadRequest(json!("game_not_found")))?
+    );
     let team = cds_db::transfer::Team::from(
         cds_db::entity::team::Entity::find_by_id(team_id)
             .filter(cds_db::entity::team::Column::DeletedAt.is_null())
@@ -108,6 +142,14 @@ pub async fn join_team(
             .await?
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
+
+    if team.state != State::Preparing {
+        return Err(WebError::BadRequest(json!("team_not_preparing")));
+    }
+
+    if cds_db::util::is_user_in_game(&operator, &game, None).await? {
+        return Err(WebError::BadRequest(json!("user_already_in_game")));
+    }
 
     let criteria = cds_cache::get::<String>(format!("team:{team_id}:token"))
         .await?
@@ -142,6 +184,10 @@ pub async fn leave_team(
             .await?
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
+
+    if team.state != State::Preparing {
+        return Err(WebError::BadRequest(json!("team_not_preparing")));
+    }
 
     let _ = cds_db::entity::team_user::Entity::delete_many()
         .filter(cds_db::entity::team_user::Column::UserId.eq(operator.id))
