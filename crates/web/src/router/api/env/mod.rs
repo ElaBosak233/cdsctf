@@ -243,12 +243,12 @@ pub async fn create_env(
         return Err(WebError::BadRequest(json!("invalid")));
     }
 
-    if let (Some(game_id), Some(game_team_id)) = (body.game_id, body.game_team_id) {
-        let _ = cds_db::entity::game_team::Entity::find()
+    if let (Some(game_id), Some(team_id)) = (body.game_id, body.game_team_id) {
+        let _ = cds_db::entity::team::Entity::find()
             .filter(
                 Condition::all()
-                    .add(cds_db::entity::game_team::Column::GameId.eq(game_id))
-                    .add(cds_db::entity::game_team::Column::Id.eq(game_team_id)),
+                    .add(cds_db::entity::team::Column::GameId.eq(game_id))
+                    .add(cds_db::entity::team::Column::Id.eq(team_id)),
             )
             .one(get_db())
             .await?
@@ -267,15 +267,15 @@ pub async fn create_env(
             .await?
             .ok_or(WebError::BadRequest(json!("game_challenge_not_found")))?;
 
-        let member_count = cds_db::entity::game_team_user::Entity::find()
-            .filter(Condition::all().add(cds_db::entity::game_team_user::Column::GameTeamId.eq(game_team_id)))
+        let member_count = cds_db::entity::team_user::Entity::find()
+            .filter(Condition::all().add(cds_db::entity::team_user::Column::TeamId.eq(team_id)))
             .count(get_db())
             .await?;
 
         let existing_pods = cds_cluster::get_pods_by_label(
             &BTreeMap::from([
                 ("cds/game_id", format!("{}", game_id)),
-                ("cds/team_id", format!("{}", game_team_id)),
+                ("cds/team_id", format!("{}", team_id)),
             ])
             .iter()
             .map(|(k, v)| format!("{}={}", k, v))
@@ -302,11 +302,11 @@ pub async fn create_env(
         }
     }
 
-    let game_team = match body.game_team_id {
-        Some(game_team_id) => cds_db::entity::game_team::Entity::find_by_id(game_team_id)
+    let team = match body.game_team_id {
+        Some(game_team_id) => cds_db::entity::team::Entity::find_by_id(game_team_id)
             .one(get_db())
             .await?
-            .map(|game_team| cds_db::transfer::GameTeam::from(game_team)),
+            .map(|team| cds_db::transfer::Team::from(team)),
         _ => None,
     };
 
@@ -318,7 +318,7 @@ pub async fn create_env(
         _ => None,
     };
 
-    let _ = cds_cluster::create_challenge_env(operator, game_team, game, challenge).await?;
+    let _ = cds_cluster::create_challenge_env(operator, team, game, challenge).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

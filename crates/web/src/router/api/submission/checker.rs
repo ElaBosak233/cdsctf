@@ -54,7 +54,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
 
     let mut status: Status = Status::Incorrect;
 
-    let operator_id = match submission.game_team_id {
+    let operator_id = match submission.team_id {
         Some(game_team_id) => game_team_id,
         _ => submission.user_id,
     };
@@ -67,13 +67,13 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
 
     if status == Status::Correct {
         // Check whether the submission is duplicate.
-        let is_already_correct = if let (Some(game_id), Some(game_team_id)) =
-            (submission.game_id, submission.game_team_id)
+        let is_already_correct = if let (Some(game_id), Some(team_id)) =
+            (submission.game_id, submission.team_id)
         {
             cds_db::entity::submission::Entity::find()
                 .filter(cds_db::entity::submission::Column::ChallengeId.eq(submission.challenge_id))
                 .filter(cds_db::entity::submission::Column::GameId.eq(game_id))
-                .filter(cds_db::entity::submission::Column::GameTeamId.eq(game_team_id))
+                .filter(cds_db::entity::submission::Column::TeamId.eq(team_id))
                 .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
                 .count(get_db())
                 .await?
@@ -83,7 +83,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
                 .filter(cds_db::entity::submission::Column::ChallengeId.eq(submission.challenge_id))
                 .filter(cds_db::entity::submission::Column::UserId.eq(submission.user_id))
                 .filter(cds_db::entity::submission::Column::GameId.is_null())
-                .filter(cds_db::entity::submission::Column::GameTeamId.is_null())
+                .filter(cds_db::entity::submission::Column::TeamId.is_null())
                 .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
                 .count(get_db())
                 .await?
@@ -94,7 +94,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
             status = Status::Duplicate;
         }
 
-        if let (Some(game_id), Some(_game_team_id)) = (submission.game_id, submission.game_team_id) {
+        if let (Some(game_id), Some(_game_team_id)) = (submission.game_id, submission.team_id) {
             let game_challenge = cds_db::entity::game_challenge::Entity::find()
                 .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
                 .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))

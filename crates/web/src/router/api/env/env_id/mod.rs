@@ -43,9 +43,9 @@ pub async fn renew_pod(
         .map(|s| s.to_string())
         .unwrap_or_default();
 
-    let is_user_in_team = cds_db::entity::game_team_user::Entity::find()
-        .filter(cds_db::entity::game_team_user::Column::GameTeamId.eq(team_id))
-        .filter(cds_db::entity::game_team_user::Column::UserId.eq(user_id.clone()))
+    let is_user_in_team = cds_db::entity::team_user::Entity::find()
+        .filter(cds_db::entity::team_user::Column::TeamId.eq(team_id))
+        .filter(cds_db::entity::team_user::Column::UserId.eq(user_id.clone()))
         .count(get_db()).await? > 0;
 
     if !(operator.group == Group::Admin
@@ -111,9 +111,9 @@ pub async fn stop_pod(
         .map(|s| s.to_string())
         .unwrap_or_default();
 
-    let is_user_in_team = cds_db::entity::game_team_user::Entity::find()
-        .filter(cds_db::entity::game_team_user::Column::GameTeamId.eq(team_id))
-        .filter(cds_db::entity::game_team_user::Column::UserId.eq(user_id.clone()))
+    let is_user_in_team = cds_db::entity::team_user::Entity::find()
+        .filter(cds_db::entity::team_user::Column::TeamId.eq(team_id))
+        .filter(cds_db::entity::team_user::Column::UserId.eq(user_id.clone()))
         .count(get_db()).await? > 0;
 
     if !(operator.group == Group::Admin
