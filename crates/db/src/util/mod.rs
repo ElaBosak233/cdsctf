@@ -5,8 +5,10 @@ use sea_orm::{
 
 use crate::{entity::user::Group, get_db};
 
-pub fn can_user_modify_team(user: &crate::transfer::User, game_team: &crate::transfer::GameTeam) -> bool {
-    user.group == Group::Admin || game_team.users.iter().any(|t| t.id == user.id)
+pub fn can_user_modify_team(
+    user: &crate::transfer::User, team: &crate::transfer::Team,
+) -> bool {
+    user.group == Group::Admin || team.users.iter().any(|t| t.id == user.id)
 }
 
 /// Check whether a user is in a game.
@@ -15,33 +17,24 @@ pub fn can_user_modify_team(user: &crate::transfer::User, game_team: &crate::tra
 /// - `is_allowed`: Whether the user is allowed to access into the game.
 ///
 /// ```sql
-///  SELECT u.id AS user_id, gt.game_id, gt.is_allowed
-///  FROM users u
-///     JOIN game_team_users gtu ON u.id = gtu.user_id
-///     JOIN game_teams gt ON gtu.game_team_id = gt.id
-///  u.id = ? AND gt.game_id = ? AND gt.is_allowed = true;
+///  SELECT u.id AS user_id, t.game_id, t.is_allowed
+///  FROM teams t
+///     JOIN team_users tu ON t.id = tu.team_id
+///  WHERE u.id = ? AND t.game_id = ? AND t.is_allowed = true;
 /// ```
 pub async fn is_user_in_game(
     user: &crate::transfer::User, game: &crate::transfer::Game, is_allowed: Option<bool>,
 ) -> Result<bool, DbErr> {
-    let mut sql = crate::entity::user::Entity::find()
+    let mut sql = crate::entity::team::Entity::find()
         .join(
             JoinType::InnerJoin,
-            crate::entity::game_team_user::Relation::User.def().rev(),
-        )  // u.id = gtu.user_id
-        .join(
-            JoinType::InnerJoin,
-            crate::entity::game_team_user::Relation::GameTeam.def(),
+            crate::entity::team_user::Relation::Team.def().rev(),
         )
-        .join(
-            JoinType::InnerJoin,
-            crate::entity::game_team::Relation::Game.def().rev(),
-        )  // gtu.game_team_id = gt.id
-        .filter(crate::entity::user::Column::Id.eq(user.id))
-        .filter(crate::entity::game_team::Column::GameId.eq(game.id));
+        .filter(crate::entity::team_user::Column::UserId.eq(user.id))
+        .filter(crate::entity::team::Column::GameId.eq(game.id));
 
     if let Some(is_allowed) = is_allowed {
-        sql = sql.filter(crate::entity::game_team::Column::IsAllowed.eq(is_allowed));
+        sql = sql.filter(crate::entity::team::Column::IsAllowed.eq(is_allowed));
     }
 
     Ok(sql.count(get_db()).await? > 0)

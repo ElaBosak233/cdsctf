@@ -9,11 +9,11 @@ pub struct GameTeamUser {
     pub game_team_id: i64,
 }
 
-impl From<entity::game_team_user::Model> for GameTeamUser {
-    fn from(entity: entity::game_team_user::Model) -> Self {
+impl From<entity::team_user::Model> for GameTeamUser {
+    fn from(entity: entity::team_user::Model) -> Self {
         Self {
             user_id: entity.user_id,
-            game_team_id: entity.game_team_id,
+            game_team_id: entity.team_id,
         }
     }
 }

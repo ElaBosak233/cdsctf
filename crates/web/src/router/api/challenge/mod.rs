@@ -204,7 +204,7 @@ pub async fn get_challenge_status(
 
         if let Some(game_team_id) = body.game_team_id {
             if let Some(game_id) = body.game_id {
-                if submission.game_team_id == Some(game_team_id) && submission.game_id == Some(game_id) {
+                if submission.team_id == Some(game_team_id) && submission.game_id == Some(game_id) {
                     status_response.is_solved = true;
                 }
             }

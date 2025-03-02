@@ -7,7 +7,7 @@ use crate::{entity, get_db};
 use crate::transfer::{User};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct GameTeam {
+pub struct Team {
     pub id: i64,
     pub game_id: i64,
     pub name: String,
@@ -22,8 +22,8 @@ pub struct GameTeam {
     pub users: Vec<User>
 }
 
-impl From<entity::game_team::Model> for GameTeam {
-    fn from(entity: entity::game_team::Model) -> Self {
+impl From<entity::team::Model> for Team {
+    fn from(entity: entity::team::Model) -> Self {
         Self {
             id: entity.id,
             game_id: entity.game_id,
@@ -40,32 +40,32 @@ impl From<entity::game_team::Model> for GameTeam {
     }
 }
 
-impl From<GameTeam> for entity::game_team::Model {
-    fn from(game_team: GameTeam) -> Self {
+impl From<Team> for entity::team::Model {
+    fn from(team: Team) -> Self {
         Self {
-            id: game_team.id,
-            game_id: game_team.game_id,
-            name: game_team.name,
-            is_allowed: game_team.is_allowed,
-            pts: game_team.pts,
-            rank: game_team.rank,
-            email: game_team.email,
-            slogan: game_team.slogan,
-            description: game_team.description,
-            deleted_at: game_team.deleted_at,
+            id: team.id,
+            game_id: team.game_id,
+            name: team.name,
+            is_allowed: team.is_allowed,
+            pts: team.pts,
+            rank: team.rank,
+            email: team.email,
+            slogan: team.slogan,
+            description: team.description,
+            deleted_at: team.deleted_at,
         }
     }
 }
 
-pub async fn preload(mut game_teams: Vec<GameTeam>) -> Result<Vec<GameTeam>, DbErr> {
-    let models = game_teams
+pub async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
+    let models = teams
         .clone()
         .into_iter()
-        .map(|game_team| entity::game_team::Model::from(game_team))
-        .collect::<Vec<entity::game_team::Model>>();
+        .map(|team| entity::team::Model::from(team))
+        .collect::<Vec<entity::team::Model>>();
 
     let users = models
-        .load_many_to_many(entity::user::Entity, entity::game_team_user::Entity, get_db())
+        .load_many_to_many(entity::user::Entity, entity::team_user::Entity, get_db())
         .await?
         .into_iter()
         .map(|users| {
@@ -76,12 +76,12 @@ pub async fn preload(mut game_teams: Vec<GameTeam>) -> Result<Vec<GameTeam>, DbE
         })
         .collect::<Vec<Vec<User>>>();
 
-    for (i, game_team) in game_teams.iter_mut().enumerate() {
-        game_team.users = users[i].clone();
-        for user in game_team.users.iter_mut() {
+    for (i, team) in teams.iter_mut().enumerate() {
+        team.users = users[i].clone();
+        for user in team.users.iter_mut() {
             user.desensitize();
         }
     }
 
-    Ok(game_teams)
+    Ok(teams)
 }

@@ -8,7 +8,7 @@ use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::{submission::Status, user::Group},
     get_db,
-    transfer::{GameTeam, Submission},
+    transfer::{Submission, Team},
 };
 use sea_orm::{
     ActiveModelTrait,
@@ -148,16 +148,16 @@ pub struct GetGameScoreboardRequest {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ScoreRecord {
-    pub game_team: GameTeam,
+    pub team: Team,
     pub submissions: Vec<Submission>,
 }
 
 pub async fn get_game_scoreboard(
     Path(game_id): Path<i64>, Query(params): Query<GetGameScoreboardRequest>,
 ) -> Result<WebResponse<Vec<ScoreRecord>>, WebError> {
-    let mut sql = cds_db::entity::game_team::Entity::find()
-        .filter(cds_db::entity::game_team::Column::GameId.eq(game_id))
-        .order_by(cds_db::entity::game_team::Column::Pts, Order::Desc);
+    let mut sql = cds_db::entity::team::Entity::find()
+        .filter(cds_db::entity::team::Column::GameId.eq(game_id))
+        .order_by(cds_db::entity::team::Column::Pts, Order::Desc);
 
     let total = sql.clone().count(get_db()).await?;
 
@@ -166,15 +166,12 @@ pub async fn get_game_scoreboard(
         sql = sql.offset(offset).limit(size);
     }
 
-    let game_teams = sql.all(get_db()).await?;
-    let mut game_teams = game_teams
-        .into_iter()
-        .map(GameTeam::from)
-        .collect::<Vec<GameTeam>>();
+    let teams = sql.all(get_db()).await?;
+    let mut teams = teams.into_iter().map(Team::from).collect::<Vec<Team>>();
 
-    game_teams = cds_db::transfer::game_team::preload(game_teams).await?;
+    teams = cds_db::transfer::team::preload(teams).await?;
 
-    let team_ids = game_teams.iter().map(|t| t.id).collect::<Vec<i64>>();
+    let team_ids = teams.iter().map(|t| t.id).collect::<Vec<i64>>();
 
     let submissions = cds_db::transfer::submission::get_by_game_id_and_team_ids(
         game_id,
@@ -185,22 +182,19 @@ pub async fn get_game_scoreboard(
 
     let mut result: Vec<ScoreRecord> = Vec::new();
 
-    for game_team in game_teams {
+    for team in teams {
         let mut submissions = submissions
             .iter()
-            .filter(|s| s.game_team_id.unwrap() == game_team.id)
+            .filter(|s| s.team_id.unwrap() == team.id)
             .cloned()
             .collect::<Vec<Submission>>();
         for submission in submissions.iter_mut() {
             submission.desensitize();
-            submission.game_team = None;
+            submission.team = None;
             submission.game = None;
         }
 
-        result.push(ScoreRecord {
-            game_team,
-            submissions,
-        });
+        result.push(ScoreRecord { team, submissions });
     }
 
     Ok(WebResponse {

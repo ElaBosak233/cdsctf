@@ -2,10 +2,10 @@ use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::{game, game_team_user, user};
+use super::{game, team_user, user};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
-#[sea_orm(table_name = "game_teams")]
+#[sea_orm(table_name = "teams")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
@@ -52,11 +52,11 @@ impl Related<game::Entity> for Entity {
 
 impl Related<user::Entity> for Entity {
     fn to() -> RelationDef {
-        game_team_user::Relation::User.def()
+        team_user::Relation::User.def()
     }
 
     fn via() -> Option<RelationDef> {
-        Some(game_team_user::Relation::GameTeam.def().rev())
+        Some(team_user::Relation::Team.def().rev())
     }
 }
 

@@ -1,5 +1,5 @@
 //! calculator module is used to calculate the pts and rank of submissions,
-//! game_teams and game_challenges
+//! teams and game_challenges
 
 use std::collections::HashMap;
 
@@ -70,7 +70,7 @@ pub async fn calculate(game_id: i64) {
         game_challenge.update(get_db()).await.unwrap();
     }
 
-    // calculate pts rank for each game_team
+    // calculate pts rank for each team
     let submissions = cds_db::entity::submission::Entity::find()
         .filter(
             Condition::all()
@@ -81,45 +81,45 @@ pub async fn calculate(game_id: i64) {
         .await
         .unwrap();
 
-    let game_teams = cds_db::entity::game_team::Entity::find()
+    let teams = cds_db::entity::team::Entity::find()
         .filter(
             Condition::all()
-                .add(cds_db::entity::game_team::Column::GameId.eq(game_id))
-                .add(cds_db::entity::game_team::Column::IsAllowed.eq(true)),
+                .add(cds_db::entity::team::Column::GameId.eq(game_id))
+                .add(cds_db::entity::team::Column::IsAllowed.eq(true)),
         )
         .all(get_db())
         .await
         .unwrap();
 
-    for game_team in game_teams {
+    for team in teams {
         let mut submissions = submissions
             .clone()
             .into_iter()
-            .filter(|submission| submission.game_team_id == Some(game_team.id))
+            .filter(|submission| submission.team_id == Some(team.id))
             .collect::<Vec<_>>();
 
         submissions.sort_by_key(|submission| submission.created_at);
-        let mut game_team = game_team.into_active_model();
-        game_team.pts = Set(submissions.iter().map(|s| s.pts).sum());
-        game_team.update(get_db()).await.unwrap();
+        let mut team = team.into_active_model();
+        team.pts = Set(submissions.iter().map(|s| s.pts).sum());
+        team.update(get_db()).await.unwrap();
     }
 
-    // calculate rank for each game_team
-    let game_teams = cds_db::entity::game_team::Entity::find()
+    // calculate rank for each team
+    let teams = cds_db::entity::team::Entity::find()
         .filter(
             Condition::all()
-                .add(cds_db::entity::game_team::Column::GameId.eq(game_id))
-                .add(cds_db::entity::game_team::Column::IsAllowed.eq(true)),
+                .add(cds_db::entity::team::Column::GameId.eq(game_id))
+                .add(cds_db::entity::team::Column::IsAllowed.eq(true)),
         )
-        .order_by_desc(cds_db::entity::game_team::Column::Pts)
+        .order_by_desc(cds_db::entity::team::Column::Pts)
         .all(get_db())
         .await
         .unwrap();
 
-    for (i, game_team) in game_teams.into_iter().enumerate() {
-        let mut game_team = game_team.into_active_model();
-        game_team.rank = Set(i as i64 + 1);
-        game_team.update(get_db()).await.unwrap();
+    for (i, team) in teams.into_iter().enumerate() {
+        let mut team = team.into_active_model();
+        team.rank = Set(i as i64 + 1);
+        team.update(get_db()).await.unwrap();
     }
 }
 

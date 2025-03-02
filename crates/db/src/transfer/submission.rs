@@ -1,7 +1,7 @@
 use sea_orm::{Condition, QueryOrder, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::{Challenge, Game, GameTeam, User};
+use super::{Challenge, Game, Team, User};
 use crate::{entity, entity::submission::Status, get_db};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -10,7 +10,7 @@ pub struct Submission {
     pub content: String,
     pub status: Status,
     pub user_id: i64,
-    pub game_team_id: Option<i64>,
+    pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: Uuid,
     pub created_at: i64,
@@ -21,7 +21,7 @@ pub struct Submission {
 
     pub user: Option<User>,
     pub game: Option<Game>,
-    pub game_team: Option<GameTeam>,
+    pub team: Option<Team>,
     pub challenge: Option<Challenge>,
 }
 
@@ -38,7 +38,7 @@ impl From<entity::submission::Model> for Submission {
             content: model.content,
             status: model.status,
             user_id: model.user_id,
-            game_team_id: model.game_team_id,
+            team_id: model.team_id,
             game_id: model.game_id,
             challenge_id: model.challenge_id,
             created_at: model.created_at,
@@ -46,7 +46,7 @@ impl From<entity::submission::Model> for Submission {
             pts: model.pts,
             rank: model.rank,
             user: None,
-            game_team: None,
+            team: None,
             game: None,
             challenge: None,
         }
@@ -60,7 +60,7 @@ impl From<Submission> for entity::submission::Model {
             content: submission.content,
             status: submission.status,
             user_id: submission.user_id,
-            game_team_id: submission.game_team_id,
+            team_id: submission.team_id,
             game_id: submission.game_id,
             challenge_id: submission.challenge_id,
             created_at: submission.created_at,
@@ -90,12 +90,12 @@ pub async fn preload(mut submissions: Vec<Submission>) -> Result<Vec<Submission>
         .into_iter()
         .map(|c| c.map(|c| Challenge::from(c)))
         .collect::<Vec<Option<Challenge>>>();
-    let game_teams = models
-        .load_one(entity::game_team::Entity, get_db())
+    let teams = models
+        .load_one(entity::team::Entity, get_db())
         .await?
         .into_iter()
-        .map(|t| t.map(|t| GameTeam::from(t)))
-        .collect::<Vec<Option<GameTeam>>>();
+        .map(|t| t.map(|t| Team::from(t)))
+        .collect::<Vec<Option<Team>>>();
     let games = models
         .load_one(entity::game::Entity, get_db())
         .await?
@@ -112,10 +112,7 @@ pub async fn preload(mut submissions: Vec<Submission>) -> Result<Vec<Submission>
         if let Some(challenge) = submission.challenge.as_mut() {
             challenge.desensitize();
         }
-        submission.game_team = game_teams[i].clone();
-        // if let Some(game_team) = submission.game_team.as_mut() {
-        //     game_team.desensitize();
-        // }
+        submission.team = teams[i].clone();
         submission.game = games[i].clone();
     }
     Ok(submissions)
@@ -137,12 +134,12 @@ pub async fn get_by_challenge_ids(challenge_ids: Vec<Uuid>) -> Result<Vec<Submis
 }
 
 pub async fn get_by_game_id_and_team_ids(
-    game_id: i64, game_team_ids: Vec<i64>, status: Option<Status>,
+    game_id: i64, team_ids: Vec<i64>, status: Option<Status>,
 ) -> Result<Vec<Submission>, DbErr> {
     let mut sql = entity::submission::Entity::find().filter(
         Condition::all()
             .add(entity::submission::Column::GameId.eq(game_id))
-            .add(entity::submission::Column::GameTeamId.is_in(game_team_ids)),
+            .add(entity::submission::Column::TeamId.is_in(team_ids)),
     );
 
     if let Some(status) = status {

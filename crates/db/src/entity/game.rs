@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sea_orm::{entity::prelude::*, FromJsonQueryResult, Set};
 use serde::{Deserialize, Serialize};
 
-use super::{challenge, game_challenge, game_team, submission};
+use super::{challenge, game_challenge, team, submission};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "games")]
@@ -48,7 +48,7 @@ impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
             Self::Submission => Entity::has_many(submission::Entity).into(),
-            Self::GameTeam => Entity::has_many(game_team::Entity).into(),
+            Self::GameTeam => Entity::has_many(team::Entity).into(),
         }
     }
 }
