@@ -71,6 +71,8 @@ pub async fn get_team(
             .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
     }
 
+    sql = sql.filter(cds_db::entity::team::Column::DeletedAt.is_null());
+
     let total = sql.clone().count(get_db()).await?;
 
     let teams = sql.all(get_db()).await?;
@@ -122,7 +124,7 @@ pub async fn create_team(
         slogan: Set(body.slogan),
         description: Set(body.description),
         game_id: Set(game.id),
-        state: Set(State::Passed),
+        state: Set(State::Preparing),
         ..Default::default()
     }
     .insert(get_db())
@@ -160,9 +162,7 @@ pub async fn team_register(
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
     if cds_db::util::is_user_in_game(&operator, &game, None).await? {
-        return Err(WebError::BadRequest(json!(
-            "one_user_in_team_already_in_game"
-        )));
+        return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
     let team = cds_db::entity::team::ActiveModel {
@@ -171,11 +171,7 @@ pub async fn team_register(
         slogan: Set(body.slogan),
         description: Set(body.description),
         game_id: Set(game.id),
-        state: Set(if game.is_public {
-            State::Passed
-        } else {
-            State::Pending
-        }),
+        state: Set(State::Preparing),
         ..Default::default()
     }
     .insert(get_db())
