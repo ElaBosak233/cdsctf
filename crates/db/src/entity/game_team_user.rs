@@ -2,13 +2,13 @@ use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::{team, user};
+use super::{game_team, user};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
-#[sea_orm(table_name = "team_users")]
+#[sea_orm(table_name = "game_team_users")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub team_id: i64,
+    pub game_team_id: i64,
     #[sea_orm(primary_key)]
     pub user_id: i64,
 }
@@ -16,7 +16,7 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     User,
-    Team,
+    GameTeam,
 }
 
 impl RelationTrait for Relation {
@@ -27,9 +27,9 @@ impl RelationTrait for Relation {
                 .to(user::Column::Id)
                 .on_delete(ForeignKeyAction::Cascade)
                 .into(),
-            Self::Team => Entity::belongs_to(team::Entity)
-                .from(Column::TeamId)
-                .to(team::Column::Id)
+            Self::GameTeam => Entity::belongs_to(game_team::Entity)
+                .from(Column::GameTeamId)
+                .to(game_team::Column::Id)
                 .on_delete(ForeignKeyAction::Cascade)
                 .into(),
         }

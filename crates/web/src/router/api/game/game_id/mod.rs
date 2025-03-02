@@ -174,7 +174,7 @@ pub async fn get_game_scoreboard(
 
     game_teams = cds_db::transfer::game_team::preload(game_teams).await?;
 
-    let team_ids = game_teams.iter().map(|t| t.team_id).collect::<Vec<i64>>();
+    let team_ids = game_teams.iter().map(|t| t.id).collect::<Vec<i64>>();
 
     let submissions = cds_db::transfer::submission::get_by_game_id_and_team_ids(
         game_id,
@@ -188,12 +188,12 @@ pub async fn get_game_scoreboard(
     for game_team in game_teams {
         let mut submissions = submissions
             .iter()
-            .filter(|s| s.team_id.unwrap() == game_team.team_id)
+            .filter(|s| s.game_team_id.unwrap() == game_team.id)
             .cloned()
             .collect::<Vec<Submission>>();
         for submission in submissions.iter_mut() {
             submission.desensitize();
-            submission.team = None;
+            submission.game_team = None;
             submission.game = None;
         }
 

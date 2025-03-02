@@ -2,15 +2,20 @@ use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::{game, team};
+use super::{game, game_team_user, user};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "game_teams")]
 pub struct Model {
     #[sea_orm(primary_key)]
+    pub id: i64,
     pub game_id: i64,
-    #[sea_orm(primary_key)]
-    pub team_id: i64,
+    pub name: String,
+    pub email: Option<String>,
+    #[sea_orm(column_type = "Text")]
+    pub slogan: Option<String>,
+    #[sea_orm(column_type = "Text")]
+    pub description: Option<String>,
     #[sea_orm(default_value = false)]
     pub is_allowed: bool,
 
@@ -18,12 +23,13 @@ pub struct Model {
     pub pts: i64,
     #[sea_orm(default_value = 0)]
     pub rank: i64,
+
+    pub deleted_at: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Game,
-    Team,
 }
 
 impl RelationTrait for Relation {
@@ -34,12 +40,23 @@ impl RelationTrait for Relation {
                 .to(game::Column::Id)
                 .on_delete(ForeignKeyAction::Cascade)
                 .into(),
-            Self::Team => Entity::belongs_to(team::Entity)
-                .from(Column::TeamId)
-                .to(team::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
         }
+    }
+}
+
+impl Related<game::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Game.def()
+    }
+}
+
+impl Related<user::Entity> for Entity {
+    fn to() -> RelationDef {
+        game_team_user::Relation::User.def()
+    }
+
+    fn via() -> Option<RelationDef> {
+        Some(game_team_user::Relation::GameTeam.def().rev())
     }
 }
 

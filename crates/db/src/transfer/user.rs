@@ -3,7 +3,6 @@ use std::str::FromStr;
 use sea_orm::{Condition, Order, QueryOrder, QuerySelect, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::Team;
 use crate::{entity, entity::user::Group, get_db};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -19,15 +18,11 @@ pub struct User {
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
-    pub teams: Vec<Team>,
 }
 
 impl User {
     pub fn desensitize(&mut self) {
         self.hashed_password.clear();
-        for team in self.teams.iter_mut() {
-            team.desensitize();
-        }
     }
 }
 
@@ -44,7 +39,6 @@ impl From<entity::user::Model> for User {
             deleted_at: model.deleted_at,
             created_at: model.created_at,
             updated_at: model.updated_at,
-            teams: vec![],
         }
     }
 }
@@ -72,16 +66,12 @@ async fn preload(mut users: Vec<User>) -> Result<Vec<User>, DbErr> {
         .into_iter()
         .map(|user| entity::user::Model::from(user))
         .collect::<Vec<entity::user::Model>>();
-    let teams = models
-        .load_many_to_many(entity::team::Entity, entity::team_user::Entity, get_db())
-        .await?
-        .into_iter()
-        .map(|teams| teams.into_iter().map(Team::from).collect::<Vec<Team>>())
-        .collect::<Vec<Vec<Team>>>();
-
-    for (i, user) in users.iter_mut().enumerate() {
-        user.teams = teams[i].clone();
-    }
+    // let teams = models
+    //     .load_many_to_many(entity::team::Entity, entity::game_team_user::Entity, get_db())
+    //     .await?
+    //     .into_iter()
+    //     .map(|teams| teams.into_iter().map(Team::from).collect::<Vec<Team>>())
+    //     .collect::<Vec<Vec<Team>>>();
 
     Ok(users)
 }
