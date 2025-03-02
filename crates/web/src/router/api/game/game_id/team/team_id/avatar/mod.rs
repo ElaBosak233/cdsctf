@@ -26,16 +26,16 @@ pub fn router() -> Router {
         .route("/", axum::routing::delete(delete_team_avatar))
 }
 
-pub async fn get_team_avatar(Path(team_id): Path<i64>) -> Result<impl IntoResponse, WebError> {
-    let path = format!("teams/{}/avatar", team_id);
+pub async fn get_team_avatar(Path((game_id, team_id)): Path<(i64, i64)>) -> Result<impl IntoResponse, WebError> {
+    let path = format!("games/{game_id}/teams/{team_id}/avatar");
 
     util::media::get_img(path).await
 }
 
 pub async fn get_team_avatar_metadata(
-    Path(team_id): Path<i64>,
+    Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<Metadata>, WebError> {
-    let path = format!("teams/{}/avatar", team_id);
+    let path = format!("games/{game_id}/teams/{team_id}/avatar");
 
     util::media::get_img_metadata(path).await
 }
@@ -45,21 +45,21 @@ pub async fn get_team_avatar_metadata(
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
 pub async fn save_team_avatar(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>, multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let game_team = cds_db::entity::game_team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::game_team::Column::DeletedAt.is_null())
+    let team = cds_db::entity::team::Entity::find_by_id(team_id)
+        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
-        .map(|game_team| cds_db::transfer::GameTeam::from(game_team))
+        .map(|team| cds_db::transfer::Team::from(team))
         .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
-    if !cds_db::util::can_user_modify_team(&operator, &game_team) {
+    if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let path = format!("teams/{}/avatar", team_id);
+    let path = format!("games/{game_id}/teams/{team_id}/avatar");
 
     util::media::save_img(path, multipart).await
 }
@@ -69,21 +69,21 @@ pub async fn save_team_avatar(
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
 pub async fn delete_team_avatar(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let game_team = cds_db::entity::game_team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::game_team::Column::DeletedAt.is_null())
+    let team = cds_db::entity::team::Entity::find_by_id(team_id)
+        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
-        .map(|game_team| cds_db::transfer::GameTeam::from(game_team))
+        .map(|team| cds_db::transfer::Team::from(team))
         .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
-    if !cds_db::util::can_user_modify_team(&operator, &game_team) {
+    if !cds_db::util::can_user_modify_team(&operator, &team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let path = format!("teams/{}/avatar", team_id);
+    let path = format!("games/{game_id}/teams/{team_id}/avatar");
 
     util::media::delete_img(path).await
 }
