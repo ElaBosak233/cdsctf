@@ -1,14 +1,13 @@
 mod container;
 
 use axum::{Router, extract::WebSocketUpgrade, http::StatusCode, response::IntoResponse};
-use sea_orm::{EntityTrait, PaginatorTrait, QueryFilter};
-use sea_orm::ColumnTrait;
-use cds_db::entity::user::Group;
+use cds_db::{entity::user::Group, get_db};
+use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
 use serde::Deserialize;
 use serde_json::json;
 use tracing::debug;
 use uuid::Uuid;
-use cds_db::get_db;
+
 use crate::{
     extract::{Extension, Path, Query},
     traits::{Ext, WebError, WebResponse},
@@ -46,12 +45,11 @@ pub async fn renew_pod(
     let is_user_in_team = cds_db::entity::team_user::Entity::find()
         .filter(cds_db::entity::team_user::Column::TeamId.eq(team_id))
         .filter(cds_db::entity::team_user::Column::UserId.eq(user_id.clone()))
-        .count(get_db()).await? > 0;
+        .count(get_db())
+        .await?
+        > 0;
 
-    if !(operator.group == Group::Admin
-        || operator.id.to_string() == user_id
-        || is_user_in_team)
-    {
+    if !(operator.group == Group::Admin || operator.id.to_string() == user_id || is_user_in_team) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -114,12 +112,11 @@ pub async fn stop_pod(
     let is_user_in_team = cds_db::entity::team_user::Entity::find()
         .filter(cds_db::entity::team_user::Column::TeamId.eq(team_id))
         .filter(cds_db::entity::team_user::Column::UserId.eq(user_id.clone()))
-        .count(get_db()).await? > 0;
+        .count(get_db())
+        .await?
+        > 0;
 
-    if !(operator.group == Group::Admin
-        || operator.id.to_string() == user_id
-        || is_user_in_team)
-    {
+    if !(operator.group == Group::Admin || operator.id.to_string() == user_id || is_user_in_team) {
         return Err(WebError::Forbidden(json!("")));
     }
 

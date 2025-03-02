@@ -3,8 +3,7 @@ use std::str::FromStr;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity, get_db};
-use crate::transfer::{User};
+use crate::{entity, entity::team::State, get_db, transfer::User};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Team {
@@ -14,12 +13,12 @@ pub struct Team {
     pub email: Option<String>,
     pub slogan: Option<String>,
     pub description: Option<String>,
-    pub is_allowed: bool,
+    pub state: State,
     pub pts: i64,
     pub rank: i64,
     pub deleted_at: Option<i64>,
 
-    pub users: Vec<User>
+    pub users: Vec<User>,
 }
 
 impl From<entity::team::Model> for Team {
@@ -28,14 +27,14 @@ impl From<entity::team::Model> for Team {
             id: entity.id,
             game_id: entity.game_id,
             name: entity.name,
-            is_allowed: entity.is_allowed,
+            state: entity.state,
             pts: entity.pts,
             rank: entity.rank,
             email: entity.email,
             slogan: entity.slogan,
             description: entity.description,
             deleted_at: entity.deleted_at,
-            users: vec![]
+            users: vec![],
         }
     }
 }
@@ -46,7 +45,7 @@ impl From<Team> for entity::team::Model {
             id: team.id,
             game_id: team.game_id,
             name: team.name,
-            is_allowed: team.is_allowed,
+            state: team.state,
             pts: team.pts,
             rank: team.rank,
             email: team.email,
