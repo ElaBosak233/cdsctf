@@ -29,7 +29,7 @@ pub struct CreateTeamUserRequest {
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn create_team_user(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
     Json(body): Json<CreateTeamUserRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -63,7 +63,7 @@ pub async fn create_team_user(
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn delete_team_user(
-    Extension(ext): Extension<Ext>, Path((team_id, user_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>, Path((_game_id, team_id, user_id)): Path<(i64, i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::transfer::Team::from(
@@ -96,7 +96,8 @@ pub struct JoinTeamRequest {
 }
 
 pub async fn join_team(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>, Json(body): Json<JoinTeamRequest>,
+    Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
+    Json(body): Json<JoinTeamRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -130,7 +131,7 @@ pub async fn join_team(
 }
 
 pub async fn leave_team(
-    Extension(ext): Extension<Ext>, Path(team_id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
