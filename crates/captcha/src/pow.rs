@@ -21,12 +21,13 @@ pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
 }
 
 pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
-    let captcha = cds_cache::get_del::<Captcha>(
-        format!("captcha:pow:{}", answer
+    let captcha = cds_cache::get_del::<Captcha>(format!(
+        "captcha:pow:{}",
+        answer
             .id
             .clone()
-            .ok_or(CaptchaError::MissingField("id".to_owned()))?),
-    )
+            .ok_or(CaptchaError::MissingField("id".to_owned()))?
+    ))
     .await?
     .ok_or(CaptchaError::Gone)?;
 

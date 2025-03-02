@@ -2,15 +2,15 @@ mod challenge_id;
 
 use std::{collections::HashMap, str::FromStr};
 
-use axum::{http::StatusCode, response::IntoResponse, Router};
+use axum::{Router, http::StatusCode, response::IntoResponse};
 use cds_db::{
     entity::{submission::Status, user::Group},
     get_db,
     transfer::Challenge,
 };
 use sea_orm::{
-    sea_query::Expr, ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden,
-    IdenStatic, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden, IdenStatic,
+    Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, sea_query::Expr,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;

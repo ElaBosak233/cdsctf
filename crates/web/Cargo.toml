@@ -32,6 +32,7 @@ mime = { workspace = true }
 validator = { workspace = true }
 anyhow = { workspace = true }
 regex = { workspace = true }
+nanoid = { workspace = true }
 cookie = { workspace = true }
 tokio = { workspace = true }
 uuid = { workspace = true }

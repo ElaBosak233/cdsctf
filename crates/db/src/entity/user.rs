@@ -3,7 +3,7 @@ use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::{submission, team_user, team};
+use super::{submission, team, team_user};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "users")]

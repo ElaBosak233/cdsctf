@@ -1,5 +1,9 @@
-use axum::{http::StatusCode, Router};
-use cds_db::{entity::user::Group, get_db, transfer::Team};
+use axum::{Router, http::StatusCode};
+use cds_db::{
+    entity::{team::State, user::Group},
+    get_db,
+    transfer::Team,
+};
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{Set, Unchanged},
@@ -13,34 +17,35 @@ use crate::{
     traits::{Ext, WebError, WebResponse},
 };
 
-pub mod avatar;
+mod avatar;
+mod token;
+mod user;
 
 pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::put(update_team))
         .route("/", axum::routing::delete(delete_team))
+        .route("/state", axum::routing::put(update_team_state))
         .nest("/avatar", avatar::router())
-        // .route("/join")
-        // .route("/leave")
+        .nest("/users", user::router())
+        .nest("/token", token::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct UpdateGameTeamRequest {
-    pub game_id: Option<i64>,
-    pub team_id: Option<i64>,
-    pub is_allowed: Option<bool>,
+pub struct UpdateTeamRequest {
+    pub name: Option<String>,
+    pub email: Option<String>,
+    pub slogan: Option<String>,
+    pub description: Option<String>,
 }
 
-/// Update a game team with given path and data.
-///
-/// This function is only used to switch whether
-/// the team is allowed to access the game or not.
+/// Update a team with given path and data.
 ///
 /// # Prerequisite
-/// - Operator is admin.
+/// - Operator is admin or one of current team.
 pub async fn update_team(
     Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
-    Json(mut body): Json<UpdateGameTeamRequest>,
+    Json(mut body): Json<UpdateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -60,7 +65,10 @@ pub async fn update_team(
     let team = cds_db::entity::team::ActiveModel {
         id: Unchanged(team.id),
         game_id: Unchanged(team.game_id),
-        is_allowed: body.is_allowed.map_or(NotSet, Set),
+        name: body.name.map_or(NotSet, Set),
+        slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
+        email: body.email.map_or(NotSet, |v| Set(Some(v))),
+        description: body.description.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
     .update(get_db())
@@ -100,6 +108,58 @@ pub async fn delete_team(
 
     Ok(WebResponse {
         code: StatusCode::OK,
+        ..Default::default()
+    })
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct UpdateTeamStateRequest {
+    pub state: State,
+}
+
+/// Update a team's state with given path and data.
+///
+/// This function is only used to switch whether
+/// the team is allowed to access the game or not.
+///
+/// # Prerequisite
+/// - Operator is admin.
+pub async fn update_team_state(
+    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
+    Json(mut body): Json<UpdateTeamStateRequest>,
+) -> Result<WebResponse<Team>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    if operator.group != Group::Admin
+        && !cds_db::util::is_user_in_team(operator.id, team_id).await?
+    {
+        return Err(WebError::Forbidden(json!("")));
+    }
+
+    let team = cds_db::entity::team::Entity::find()
+        .filter(
+            Condition::all()
+                .add(cds_db::entity::team::Column::GameId.eq(game_id))
+                .add(cds_db::entity::team::Column::Id.eq(team_id)),
+        )
+        .one(get_db())
+        .await?
+        .map(|team| cds_db::transfer::Team::from(team))
+        .ok_or(WebError::BadRequest(json!("team_not_found")))?;
+
+    let team = cds_db::entity::team::ActiveModel {
+        id: Unchanged(team.id),
+        game_id: Unchanged(team.game_id),
+        state: Set(body.state),
+        ..Default::default()
+    }
+    .update(get_db())
+    .await?;
+    let team = cds_db::transfer::Team::from(team);
+
+    Ok(WebResponse {
+        code: StatusCode::OK,
+        data: Some(team),
         ..Default::default()
     })
 }

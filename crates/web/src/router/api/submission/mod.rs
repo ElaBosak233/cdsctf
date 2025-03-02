@@ -2,7 +2,7 @@ pub mod checker;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::{submission::Status, user::Group},
+    entity::{submission::Status, team::State, user::Group},
     get_db,
     transfer::Submission,
 };
@@ -160,7 +160,7 @@ pub async fn create_submission(
                 Condition::all()
                     .add(cds_db::entity::team::Column::Id.eq(game_team_id))
                     .add(cds_db::entity::team::Column::GameId.eq(game.id))
-                    .add(cds_db::entity::team::Column::IsAllowed.eq(true)),
+                    .add(cds_db::entity::team::Column::State.eq(State::Passed)),
             )
             .one(get_db())
             .await?

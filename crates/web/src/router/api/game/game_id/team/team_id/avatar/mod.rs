@@ -3,7 +3,7 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart},
     response::IntoResponse,
 };
-use cds_db::get_db;
+use cds_db::{entity::user::Group, get_db};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde_json::json;
 
@@ -26,7 +26,9 @@ pub fn router() -> Router {
         .route("/", axum::routing::delete(delete_team_avatar))
 }
 
-pub async fn get_team_avatar(Path((game_id, team_id)): Path<(i64, i64)>) -> Result<impl IntoResponse, WebError> {
+pub async fn get_team_avatar(
+    Path((game_id, team_id)): Path<(i64, i64)>,
+) -> Result<impl IntoResponse, WebError> {
     let path = format!("games/{game_id}/teams/{team_id}/avatar");
 
     util::media::get_img(path).await
@@ -45,7 +47,8 @@ pub async fn get_team_avatar_metadata(
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
 pub async fn save_team_avatar(
-    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>, multipart: Multipart,
+    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
+    multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::entity::team::Entity::find_by_id(team_id)
@@ -55,7 +58,9 @@ pub async fn save_team_avatar(
         .map(|team| cds_db::transfer::Team::from(team))
         .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
+    if operator.group != Group::Admin
+        && !cds_db::util::is_user_in_team(operator.id, team.id).await?
+    {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -79,7 +84,9 @@ pub async fn delete_team_avatar(
         .map(|team| cds_db::transfer::Team::from(team))
         .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
-    if !cds_db::util::can_user_modify_team(&operator, &team) {
+    if operator.group != Group::Admin
+        && !cds_db::util::is_user_in_team(operator.id, team.id).await?
+    {
         return Err(WebError::Forbidden(json!("")));
     }
 

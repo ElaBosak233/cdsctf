@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::{game, team_user, user};
 
@@ -16,8 +17,7 @@ pub struct Model {
     pub slogan: Option<String>,
     #[sea_orm(column_type = "Text")]
     pub description: Option<String>,
-    #[sea_orm(default_value = false)]
-    pub is_allowed: bool,
+    pub state: State,
 
     #[sea_orm(default_value = 0)]
     pub pts: i64,
@@ -25,6 +25,26 @@ pub struct Model {
     pub rank: i64,
 
     pub deleted_at: Option<i64>,
+}
+
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize_repr,
+    Deserialize_repr,
+    EnumIter,
+    DeriveActiveEnum,
+)]
+#[sea_orm(rs_type = "i32", db_type = "Integer")]
+#[repr(i32)]
+pub enum State {
+    Banned  = 0,
+    #[default]
+    Pending = 1,
+    Passed  = 2,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

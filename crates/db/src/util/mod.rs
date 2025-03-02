@@ -3,12 +3,15 @@ use sea_orm::{
     RelationTrait,
 };
 
-use crate::{entity::user::Group, get_db};
+use crate::{entity::team::State, get_db};
 
-pub fn can_user_modify_team(
-    user: &crate::transfer::User, team: &crate::transfer::Team,
-) -> bool {
-    user.group == Group::Admin || team.users.iter().any(|t| t.id == user.id)
+pub async fn is_user_in_team(user_id: i64, team_id: i64) -> Result<bool, DbErr> {
+    Ok(crate::entity::team_user::Entity::find()
+        .filter(crate::entity::team_user::Column::UserId.eq(user_id))
+        .filter(crate::entity::team_user::Column::TeamId.eq(team_id))
+        .count(get_db())
+        .await?
+        > 0)
 }
 
 /// Check whether a user is in a game.
@@ -23,7 +26,7 @@ pub fn can_user_modify_team(
 ///  WHERE u.id = ? AND t.game_id = ? AND t.is_allowed = true;
 /// ```
 pub async fn is_user_in_game(
-    user: &crate::transfer::User, game: &crate::transfer::Game, is_allowed: Option<bool>,
+    user: &crate::transfer::User, game: &crate::transfer::Game, state: Option<State>,
 ) -> Result<bool, DbErr> {
     let mut sql = crate::entity::team::Entity::find()
         .join(
@@ -33,8 +36,8 @@ pub async fn is_user_in_game(
         .filter(crate::entity::team_user::Column::UserId.eq(user.id))
         .filter(crate::entity::team::Column::GameId.eq(game.id));
 
-    if let Some(is_allowed) = is_allowed {
-        sql = sql.filter(crate::entity::team::Column::IsAllowed.eq(is_allowed));
+    if let Some(state) = state {
+        sql = sql.filter(crate::entity::team::Column::State.eq(state));
     }
 
     Ok(sql.count(get_db()).await? > 0)

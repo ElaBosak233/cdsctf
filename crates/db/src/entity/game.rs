@@ -1,8 +1,8 @@
 use async_trait::async_trait;
-use sea_orm::{entity::prelude::*, FromJsonQueryResult, Set};
+use sea_orm::{FromJsonQueryResult, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::{challenge, game_challenge, team, submission};
+use super::{challenge, game_challenge, submission, team};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "games")]
