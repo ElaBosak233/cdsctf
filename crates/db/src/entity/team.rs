@@ -23,8 +23,6 @@ pub struct Model {
     pub pts: i64,
     #[sea_orm(default_value = 0)]
     pub rank: i64,
-
-    pub deleted_at: Option<i64>,
 }
 
 #[derive(

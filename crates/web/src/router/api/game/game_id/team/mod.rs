@@ -71,8 +71,6 @@ pub async fn get_team(
             .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
     }
 
-    sql = sql.filter(cds_db::entity::team::Column::DeletedAt.is_null());
-
     let total = sql.clone().count(get_db()).await?;
 
     let teams = sql.all(get_db()).await?;

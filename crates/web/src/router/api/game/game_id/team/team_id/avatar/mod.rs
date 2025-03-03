@@ -1,10 +1,10 @@
 use axum::{
-    Router,
     extract::{DefaultBodyLimit, Multipart},
     response::IntoResponse,
+    Router,
 };
 use cds_db::{entity::user::Group, get_db};
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, EntityTrait};
 use serde_json::json;
 
 use crate::{
@@ -52,7 +52,6 @@ pub async fn save_team_avatar(
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::entity::team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
         .map(|team| cds_db::transfer::Team::from(team))
@@ -78,7 +77,6 @@ pub async fn delete_team_avatar(
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::entity::team::Entity::find_by_id(team_id)
-        .filter(cds_db::entity::team::Column::DeletedAt.is_null())
         .one(get_db())
         .await?
         .map(|team| cds_db::transfer::Team::from(team))

@@ -1,7 +1,7 @@
 use axum::Router;
 use cds_db::{entity::user::Group, get_db};
 use nanoid::nanoid;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, EntityTrait};
 use serde_json::json;
 
 use crate::{
@@ -26,7 +26,6 @@ pub async fn create_token(
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::transfer::Team::from(
         cds_db::entity::team::Entity::find_by_id(team_id)
-            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
             .one(get_db())
             .await?
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
@@ -57,7 +56,6 @@ pub async fn get_token(
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::transfer::Team::from(
         cds_db::entity::team::Entity::find_by_id(team_id)
-            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
             .one(get_db())
             .await?
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
@@ -86,7 +84,6 @@ pub async fn delete_token(
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = cds_db::transfer::Team::from(
         cds_db::entity::team::Entity::find_by_id(team_id)
-            .filter(cds_db::entity::team::Column::DeletedAt.is_null())
             .one(get_db())
             .await?
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
