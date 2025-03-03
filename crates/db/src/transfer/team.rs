@@ -16,7 +16,6 @@ pub struct Team {
     pub state: State,
     pub pts: i64,
     pub rank: i64,
-    pub deleted_at: Option<i64>,
 
     pub users: Vec<User>,
 }
@@ -33,7 +32,6 @@ impl From<entity::team::Model> for Team {
             email: entity.email,
             slogan: entity.slogan,
             description: entity.description,
-            deleted_at: entity.deleted_at,
             users: vec![],
         }
     }
@@ -51,7 +49,6 @@ impl From<Team> for entity::team::Model {
             email: team.email,
             slogan: team.slogan,
             description: team.description,
-            deleted_at: team.deleted_at,
         }
     }
 }
