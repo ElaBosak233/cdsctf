@@ -13,7 +13,6 @@ pub async fn is_user_in_team(user_id: i64, team_id: i64) -> Result<bool, DbErr> 
         )
         .filter(crate::entity::team_user::Column::UserId.eq(user_id))
         .filter(crate::entity::team_user::Column::TeamId.eq(team_id))
-        .filter(crate::entity::team::Column::DeletedAt.is_null())
         .count(get_db())
         .await?
         > 0)
@@ -39,8 +38,7 @@ pub async fn is_user_in_game(
             crate::entity::team_user::Relation::Team.def().rev(),
         )
         .filter(crate::entity::team_user::Column::UserId.eq(user.id))
-        .filter(crate::entity::team::Column::GameId.eq(game.id))
-        .filter(crate::entity::team::Column::DeletedAt.is_null());
+        .filter(crate::entity::team::Column::GameId.eq(game.id));
 
     if let Some(state) = state {
         sql = sql.filter(crate::entity::team::Column::State.eq(state));
