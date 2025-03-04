@@ -7,10 +7,6 @@ use crate::{entity::team::State, get_db};
 
 pub async fn is_user_in_team(user_id: i64, team_id: i64) -> Result<bool, DbErr> {
     Ok(crate::entity::team_user::Entity::find()
-        .join(
-            JoinType::InnerJoin,
-            crate::entity::team_user::Relation::Team.def().rev(),
-        )
         .filter(crate::entity::team_user::Column::UserId.eq(user_id))
         .filter(crate::entity::team_user::Column::TeamId.eq(team_id))
         .count(get_db())
