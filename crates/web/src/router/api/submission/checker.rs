@@ -59,10 +59,15 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         _ => submission.user_id,
     };
 
-    match cds_checker::check(&challenge, operator_id, &submission.content).await? {
-        cds_checker::Status::Correct => status = Status::Correct,
-        cds_checker::Status::Incorrect => status = Status::Incorrect,
-        cds_checker::Status::Cheat(_peer_team_id) => status = Status::Cheat,
+    match cds_checker::check(&challenge, operator_id, &submission.content).await {
+        Ok(c_status) => match c_status {
+            cds_checker::Status::Correct => status = Status::Correct,
+            cds_checker::Status::Incorrect => status = Status::Incorrect,
+            cds_checker::Status::Cheat(_peer_team_id) => status = Status::Cheat,
+        },
+        Err(_) => {
+            status = Status::Incorrect
+        }
     };
 
     if status == Status::Correct {
