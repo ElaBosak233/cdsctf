@@ -7,7 +7,9 @@ use cds_db::get_db;
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{Set, Unchanged},
-    NotSet,
+    EntityTrait, NotSet, PaginatorTrait, QueryFilter,
+    prelude::Expr,
+    sea_query::Func,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -56,6 +58,19 @@ pub async fn update_user_profile(
 
     if let Some(email) = body.email {
         body.email = Some(email.to_lowercase());
+
+        let is_conflict = cds_db::entity::user::Entity::find()
+            .filter(
+                Expr::expr(Func::lower(Expr::col(cds_db::entity::user::Column::Email)))
+                    .eq(body.email.clone()),
+            )
+            .count(get_db())
+            .await?
+            > 0;
+
+        if is_conflict {
+            return Err(WebError::Conflict(json!("")));
+        }
     }
 
     let user = cds_db::entity::user::ActiveModel {
