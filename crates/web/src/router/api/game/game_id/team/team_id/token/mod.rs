@@ -31,7 +31,8 @@ pub async fn create_token(
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
 
-    if operator.group != Group::Admin && !cds_db::util::is_user_in_team(operator.id, team.id).await?
+    if operator.group != Group::Admin
+        && !cds_db::util::is_user_in_team(operator.id, team.id).await?
     {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -61,7 +62,8 @@ pub async fn get_token(
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
 
-    if operator.group != Group::Admin && !cds_db::util::is_user_in_team(operator.id, team.id).await?
+    if operator.group != Group::Admin
+        && !cds_db::util::is_user_in_team(operator.id, team.id).await?
     {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -89,7 +91,8 @@ pub async fn delete_token(
             .ok_or(WebError::BadRequest(json!("team_not_found")))?,
     );
 
-    if operator.group != Group::Admin && !cds_db::util::is_user_in_team(operator.id, team.id).await?
+    if operator.group != Group::Admin
+        && !cds_db::util::is_user_in_team(operator.id, team.id).await?
     {
         return Err(WebError::Forbidden(json!("")));
     }

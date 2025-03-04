@@ -76,8 +76,10 @@ pub async fn get_user(
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct CreateUserRequest {
+    #[validate(length(min = 3, max = 20))]
     pub username: String,
     pub nickname: String,
+    #[validate(email)]
     pub email: String,
     pub password: String,
     pub group: Group,
@@ -92,7 +94,14 @@ pub async fn create_user(
     }
 
     body.email = body.email.to_lowercase();
+    if !cds_db::util::is_user_email_unique(0, &body.email).await? {
+        return Err(WebError::Conflict(json!("email_already_exists")));
+    }
+
     body.username = body.username.to_lowercase();
+    if !cds_db::util::is_user_username_unique(0, &body.username).await? {
+        return Err(WebError::Conflict(json!("username_already_exists")));
+    }
 
     let hashed_password = Argon2::default()
         .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
@@ -220,28 +229,13 @@ pub async fn user_register(
     }
 
     body.email = body.email.to_lowercase();
+    if !cds_db::util::is_user_email_unique(0, &body.email).await? {
+        return Err(WebError::Conflict(json!("email_already_exists")));
+    }
+
     body.username = body.username.to_lowercase();
-
-    let is_conflict = cds_db::entity::user::Entity::find()
-        .filter(
-            Condition::any()
-                .add(
-                    Expr::expr(Func::lower(Expr::col(
-                        cds_db::entity::user::Column::Username,
-                    )))
-                    .eq(body.username.clone()),
-                )
-                .add(
-                    Expr::expr(Func::lower(Expr::col(cds_db::entity::user::Column::Email)))
-                        .eq(body.email.clone()),
-                ),
-        )
-        .count(get_db())
-        .await?
-        > 0;
-
-    if is_conflict {
-        return Err(WebError::Conflict("".into()));
+    if !cds_db::util::is_user_username_unique(0, &body.username).await? {
+        return Err(WebError::Conflict(json!("username_already_exists")));
     }
 
     let hashed_password = Argon2::default()

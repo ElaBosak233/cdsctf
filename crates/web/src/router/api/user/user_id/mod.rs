@@ -29,10 +29,7 @@ pub fn router() -> Router {
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateUserRequest {
-    #[validate(length(min = 3, max = 20))]
-    pub username: Option<String>,
     pub nickname: Option<String>,
-    #[validate(email)]
     pub email: Option<String>,
     pub password: Option<String>,
     pub group: Option<Group>,
@@ -60,10 +57,9 @@ pub async fn update_user(
 
     if let Some(email) = body.email {
         body.email = Some(email.to_lowercase());
-    }
-
-    if let Some(username) = body.username {
-        body.username = Some(username.to_lowercase());
+        if !cds_db::util::is_user_email_unique(user_id, &email.to_lowercase()).await? {
+            return Err(WebError::Conflict(json!("email_already_exists")));
+        }
     }
 
     if let Some(password) = body.password {
@@ -76,7 +72,6 @@ pub async fn update_user(
 
     let user = cds_db::entity::user::ActiveModel {
         id: Unchanged(user.id),
-        username: body.username.map_or(NotSet, Set),
         nickname: body.nickname.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, Set),
         hashed_password: body.password.map_or(NotSet, Set),
