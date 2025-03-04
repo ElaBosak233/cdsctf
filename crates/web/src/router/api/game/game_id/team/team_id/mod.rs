@@ -8,7 +8,11 @@ use cds_db::{
     get_db,
     transfer::Team,
 };
-use sea_orm::{ActiveModelTrait, ActiveValue::{Set, Unchanged}, ColumnTrait, Condition, EntityTrait, NotSet, PaginatorTrait, QueryFilter};
+use sea_orm::{
+    ActiveModelTrait,
+    ActiveValue::{Set, Unchanged},
+    ColumnTrait, Condition, EntityTrait, NotSet, PaginatorTrait, QueryFilter,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -123,7 +127,9 @@ pub async fn set_team_ready(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let game = cds_db::entity::game::Entity::find_by_id(game_id).one(get_db()).await?
+    let game = cds_db::entity::game::Entity::find_by_id(game_id)
+        .one(get_db())
+        .await?
         .map(|game| cds_db::transfer::Game::from(game))
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
@@ -140,7 +146,8 @@ pub async fn set_team_ready(
     // Review the number of members
     let team_users = cds_db::entity::team_user::Entity::find()
         .filter(cds_db::entity::team_user::Column::TeamId.eq(team.id))
-        .count(get_db()).await?;
+        .count(get_db())
+        .await?;
 
     if team_users < game.member_limit_min as u64 || team_users > game.member_limit_max as u64 {
         return Err(WebError::BadRequest(json!("member_limit_not_satisfied")));
