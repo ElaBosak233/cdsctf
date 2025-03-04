@@ -3,7 +3,9 @@ use cds_db::{
     entity::{team::State, user::Group},
     get_db,
 };
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -27,8 +29,8 @@ pub fn router() -> Router {
 // }
 //
 // pub async fn get_member(
-//     Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
-//     Json(body): Json<CreateTeamUserRequest>
+//     Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64,
+// i64)>,     Json(body): Json<CreateTeamUserRequest>
 // ) -> Result<WebResponse<()>, WebError> {
 //
 // }
@@ -149,7 +151,7 @@ pub async fn join_team(
         cds_db::entity::game::Entity::find_by_id(game_id)
             .one(get_db())
             .await?
-            .ok_or(WebError::BadRequest(json!("game_not_found")))?
+            .ok_or(WebError::BadRequest(json!("game_not_found")))?,
     );
     let team = cds_db::transfer::Team::from(
         cds_db::entity::team::Entity::find()
@@ -209,7 +211,8 @@ pub async fn leave_team(
 
     let count = cds_db::entity::team_user::Entity::find()
         .filter(cds_db::entity::team_user::Column::TeamId.eq(team.id))
-        .count(get_db()).await?;
+        .count(get_db())
+        .await?;
 
     if count <= 1 {
         return Err(WebError::BadRequest(json!("team_has_no_other_member")));
