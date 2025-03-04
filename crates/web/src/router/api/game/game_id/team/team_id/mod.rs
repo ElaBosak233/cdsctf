@@ -82,7 +82,9 @@ pub async fn delete_team(
     Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin && !cds_db::util::is_user_in_team(operator.id, team_id).await? {
+    if operator.group != Group::Admin
+        && !cds_db::util::is_user_in_team(operator.id, team_id).await?
+    {
         return Err(WebError::Forbidden(json!("")));
     }
 

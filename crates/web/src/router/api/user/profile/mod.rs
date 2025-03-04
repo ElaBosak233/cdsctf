@@ -7,9 +7,7 @@ use cds_db::get_db;
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{Set, Unchanged},
-    EntityTrait, NotSet, PaginatorTrait, QueryFilter,
-    prelude::Expr,
-    sea_query::Func,
+    EntityTrait, NotSet,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -58,18 +56,8 @@ pub async fn update_user_profile(
 
     if let Some(email) = body.email {
         body.email = Some(email.to_lowercase());
-
-        let is_conflict = cds_db::entity::user::Entity::find()
-            .filter(
-                Expr::expr(Func::lower(Expr::col(cds_db::entity::user::Column::Email)))
-                    .eq(body.email.clone()),
-            )
-            .count(get_db())
-            .await?
-            > 0;
-
-        if is_conflict {
-            return Err(WebError::Conflict(json!("")));
+        if !cds_db::util::is_user_email_unique(operator.id, &email.to_lowercase()).await? {
+            return Err(WebError::Conflict(json!("email_already_exists")));
         }
     }
 
