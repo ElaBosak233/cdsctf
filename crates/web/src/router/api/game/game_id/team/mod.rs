@@ -1,15 +1,13 @@
 mod team_id;
 
+use std::str::FromStr;
 use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::{team::State, user::Group},
     get_db,
     transfer::Team,
 };
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, PaginatorTrait,
-    QueryFilter, QuerySelect, RelationTrait,
-};
+use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -27,9 +25,11 @@ pub fn router() -> Router {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetGameTeamRequest {
+pub struct GetTeamRequest {
     /// The team id of expected game teams.
     pub id: Option<i64>,
+    pub name: Option<String>,
+    pub state: Option<State>,
 
     /// The user id of expected game teams.
     ///
@@ -43,12 +43,16 @@ pub struct GetGameTeamRequest {
     /// WHERE "team_users"."game_id" = ? AND "team_users"."user_id" = ?;
     /// ```
     pub user_id: Option<i64>,
+
+    pub page: Option<u64>,
+    pub size: Option<u64>,
+    pub sorts: Option<String>,
 }
 
 /// Get game teams with given data.
 pub async fn get_team(
     Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
-    Query(params): Query<GetGameTeamRequest>,
+    Query(params): Query<GetTeamRequest>,
 ) -> Result<WebResponse<Vec<Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -58,6 +62,14 @@ pub async fn get_team(
 
     if let Some(id) = params.id {
         sql = sql.filter(cds_db::entity::team::Column::Id.eq(id));
+    }
+
+    if let Some(name) = params.name {
+        sql = sql.filter(cds_db::entity::team::Column::Name.contains(name));
+    }
+
+    if let Some(state) = params.state {
+        sql = sql.filter(cds_db::entity::team::Column::State.eq(state));
     }
 
     if let Some(user_id) = params.user_id {
@@ -72,6 +84,27 @@ pub async fn get_team(
     }
 
     let total = sql.clone().count(get_db()).await?;
+
+    if let Some(sorts) = params.sorts {
+        let sorts = sorts.split(",").collect::<Vec<&str>>();
+        for sort in sorts {
+            let col =
+                match cds_db::entity::team::Column::from_str(sort.replace("-", "").as_str()) {
+                    Ok(col) => col,
+                    Err(_) => continue,
+                };
+            if sort.starts_with("-") {
+                sql = sql.order_by(col, Order::Desc);
+            } else {
+                sql = sql.order_by(col, Order::Asc);
+            }
+        }
+    }
+
+    if let (Some(page), Some(size)) = (params.page, params.size) {
+        let offset = (page - 1) * size;
+        sql = sql.offset(offset).limit(size);
+    }
 
     let teams = sql.all(get_db()).await?;
     let mut teams = teams
