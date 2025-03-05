@@ -36,20 +36,20 @@ pub async fn renew_pod(
     let team_id = labels
         .get("cds/team_id")
         .map(|s| s.to_string())
+        .unwrap_or_default()
+        .parse::<i64>()
         .unwrap_or_default();
     let user_id = labels
         .get("cds/user_id")
         .map(|s| s.to_string())
+        .unwrap_or_default()
+        .parse::<i64>()
         .unwrap_or_default();
 
-    let is_user_in_team = cds_db::entity::team_user::Entity::find()
-        .filter(cds_db::entity::team_user::Column::TeamId.eq(team_id))
-        .filter(cds_db::entity::team_user::Column::UserId.eq(user_id.clone()))
-        .count(get_db())
-        .await?
-        > 0;
-
-    if !(operator.group == Group::Admin || operator.id.to_string() == user_id || is_user_in_team) {
+    if !(operator.group == Group::Admin
+        || operator.id == user_id
+        || cds_db::util::is_user_in_team(user_id, team_id).await?)
+    {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -103,20 +103,20 @@ pub async fn stop_pod(
     let team_id = labels
         .get("cds/team_id")
         .map(|s| s.to_string())
+        .unwrap_or_default()
+        .parse::<i64>()
         .unwrap_or_default();
     let user_id = labels
         .get("cds/user_id")
         .map(|s| s.to_string())
+        .unwrap_or_default()
+        .parse::<i64>()
         .unwrap_or_default();
 
-    let is_user_in_team = cds_db::entity::team_user::Entity::find()
-        .filter(cds_db::entity::team_user::Column::TeamId.eq(team_id))
-        .filter(cds_db::entity::team_user::Column::UserId.eq(user_id.clone()))
-        .count(get_db())
-        .await?
-        > 0;
-
-    if !(operator.group == Group::Admin || operator.id.to_string() == user_id || is_user_in_team) {
+    if !(operator.group == Group::Admin
+        || operator.id == user_id
+        || cds_db::util::is_user_in_team(user_id, team_id).await?)
+    {
         return Err(WebError::Forbidden(json!("")));
     }
 
