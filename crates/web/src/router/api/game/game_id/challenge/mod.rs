@@ -29,7 +29,7 @@ pub fn router() -> Router {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetGameChallengeRequest {
     pub game_id: Option<i64>,
-    pub challenge_id: Option<i64>,
+    pub challenge_id: Option<Uuid>,
     pub category: Option<i32>,
     pub is_enabled: Option<bool>,
 
@@ -133,6 +133,15 @@ pub async fn create_game_challenge(
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+
+    let is_challenge_in_game = cds_db::entity::game_challenge::Entity::find()
+        .filter(cds_db::entity::game_challenge::Column::GameId.eq(game.id))
+        .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))
+        .count(get_db()).await? > 0;
+
+    if is_challenge_in_game {
+        return Err(WebError::Conflict(json!("challenge_already_in_game")));
+    }
 
     let game_challenge = cds_db::entity::game_challenge::ActiveModel {
         game_id: Set(game.id),
