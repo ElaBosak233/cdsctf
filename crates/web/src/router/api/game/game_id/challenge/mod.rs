@@ -137,7 +137,9 @@ pub async fn create_game_challenge(
     let is_challenge_in_game = cds_db::entity::game_challenge::Entity::find()
         .filter(cds_db::entity::game_challenge::Column::GameId.eq(game.id))
         .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))
-        .count(get_db()).await? > 0;
+        .count(get_db())
+        .await?
+        > 0;
 
     if is_challenge_in_game {
         return Err(WebError::Conflict(json!("challenge_already_in_game")));

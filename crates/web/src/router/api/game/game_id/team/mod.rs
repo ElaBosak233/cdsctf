@@ -1,13 +1,17 @@
 mod team_id;
 
 use std::str::FromStr;
+
 use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::{team::State, user::Group},
     get_db,
     transfer::Team,
 };
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, Order, PaginatorTrait,
+    QueryFilter, QueryOrder, QuerySelect, RelationTrait,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -51,8 +55,7 @@ pub struct GetTeamRequest {
 
 /// Get game teams with given data.
 pub async fn get_team(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
-    Query(params): Query<GetTeamRequest>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Query(params): Query<GetTeamRequest>,
 ) -> Result<WebResponse<Vec<Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -88,11 +91,10 @@ pub async fn get_team(
     if let Some(sorts) = params.sorts {
         let sorts = sorts.split(",").collect::<Vec<&str>>();
         for sort in sorts {
-            let col =
-                match cds_db::entity::team::Column::from_str(sort.replace("-", "").as_str()) {
-                    Ok(col) => col,
-                    Err(_) => continue,
-                };
+            let col = match cds_db::entity::team::Column::from_str(sort.replace("-", "").as_str()) {
+                Ok(col) => col,
+                Err(_) => continue,
+            };
             if sort.starts_with("-") {
                 sql = sql.order_by(col, Order::Desc);
             } else {
