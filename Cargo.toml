@@ -2,6 +2,13 @@
 members = ["crates/*"]
 resolver = "2"
 
+[workspace.package]
+edition = "2024"
+publish = false
+repository = "https://github.com/ElaBosak233/cdsctf"
+rust-version = "1.85.0"
+version = "0.0.1"
+
 [workspace.dependencies]
 # Local Libraries
 cds-assets = { path = "crates/assets" }
