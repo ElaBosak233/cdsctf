@@ -1,13 +1,17 @@
 [package]
 name = "cds-db"
-version = "0.0.1"
-edition = "2024"
-publish = false
-resolver = "2"
+resolver = "3"
+
+authors = { workspace = true }
+edition  = { workspace = true }
+homepage = { workspace = true }
+publish = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+version = { workspace = true }
 
 [dependencies]
 cds-config = { workspace = true }
-cds-cache = { workspace = true }
 
 async-trait = { workspace = true }
 serde = { workspace = true }

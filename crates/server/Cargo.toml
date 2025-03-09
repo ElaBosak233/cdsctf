@@ -1,9 +1,14 @@
 [package]
 name = "cds-server"
-version = "0.0.1"
-edition = "2024"
-publish = false
-resolver = "2"
+resolver = "3"
+
+authors = { workspace = true }
+edition  = { workspace = true }
+homepage = { workspace = true }
+publish = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+version = { workspace = true }
 
 [dependencies]
 cds-assets = { workspace = true }
@@ -18,20 +23,13 @@ cds-telemetry = { workspace = true }
 cds-email = { workspace = true }
 cds-logger = { workspace = true }
 
-once_cell = { workspace = true }
 tracing = { workspace = true }
-tracing-appender = { workspace = true }
-tracing-error = { workspace = true }
-tracing-subscriber = { workspace = true }
 tokio = { workspace = true }
 rustls = { workspace = true }
 axum = { workspace = true }
 sea-orm = { workspace = true }
 argon2 = { workspace = true }
-serde_json = { workspace = true }
 anyhow = { workspace = true }
-
-[build-dependencies]
 chrono = { workspace = true }
 
 [[bin]]
