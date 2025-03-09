@@ -8,7 +8,6 @@ pub struct Config {
     pub tls: Tls,
     pub username: String,
     pub password: String,
-    pub sender: String,
     pub whitelist: Vec<String>,
 }
 

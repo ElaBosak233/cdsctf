@@ -219,6 +219,10 @@ pub struct UserRegisterRequest {
 pub async fn user_register(
     Extension(ext): Extension<Ext>, Json(mut body): Json<UserRegisterRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
+    if !cds_config::get_config().auth.is_registration_enabled {
+        return Err(WebError::BadRequest(json!("registration_disabled")));
+    }
+
     if !cds_captcha::check(&cds_captcha::Answer {
         client_ip: Some(ext.client_ip),
         ..body.captcha.unwrap_or_default()
@@ -248,7 +252,13 @@ pub async fn user_register(
         nickname: Set(body.nickname),
         email: Set(body.email),
         hashed_password: Set(hashed_password),
-        group: Set(Group::User),
+        group: Set(
+            if cds_db::entity::user::Entity::find().count(get_db()).await? == 0 {
+                Group::Admin
+            } else {
+                Group::User
+            },
+        ),
         ..Default::default()
     }
     .insert(get_db())

@@ -16,14 +16,16 @@ pub fn router() -> Router {
         .route("/captcha", axum::routing::get(get_captcha))
 }
 
-pub type ClientConfig = serde_json::Value;
-pub async fn get_config() -> Result<WebResponse<ClientConfig>, WebError> {
+pub async fn get_config() -> Result<WebResponse<serde_json::Value>, WebError> {
     Ok(WebResponse {
         code: StatusCode::OK,
         data: Some(json!({
             "meta": {
                 "title": cds_config::get_config().meta.title,
                 "description": cds_config::get_config().meta.description,
+            },
+            "auth": {
+                "is_registration_enabled": cds_config::get_config().auth.is_registration_enabled,
             },
             "captcha": {
                 "provider": cds_config::get_config().captcha.provider,
@@ -33,6 +35,10 @@ pub async fn get_config() -> Result<WebResponse<ClientConfig>, WebError> {
                 "hcaptcha": {
                     "site_key": cds_config::get_config().captcha.hcaptcha.site_key,
                 }
+            },
+            "version": {
+                "tag": cds_config::get_version(),
+                "commit": cds_config::get_commit(),
             }
         })),
         ..Default::default()

@@ -4,4 +4,5 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub secret: String,
     pub expiration: i64,
+    pub is_registration_enabled: bool,
 }
