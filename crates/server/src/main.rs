@@ -3,20 +3,11 @@ mod migrator;
 use std::net::SocketAddr;
 
 use anyhow::anyhow;
+use chrono::TimeZone;
 use tracing::info;
 
 #[tokio::main]
 async fn main() {
-    let banner = cds_assets::get("banner.txt").unwrap_or(vec![]);
-    println!(
-        "{}",
-        std::str::from_utf8(&banner)
-            .unwrap()
-            .replace("{{version}}", env!("CARGO_PKG_VERSION"))
-            .replace("{{git_commit}}", env!("GIT_COMMIT"))
-            .replace("{{build_at}}", env!("BUILD_AT"))
-    );
-
     bootstrap().await.unwrap_or_else(|err| {
         panic!("Bootstrap error: {}", err);
     });
@@ -49,6 +40,24 @@ async fn main() {
 async fn bootstrap() -> Result<(), anyhow::Error> {
     cds_config::init().await?;
     cds_telemetry::init().await?;
+
+    let banner = cds_assets::get("banner.txt").unwrap_or(vec![]);
+    println!(
+        "{}",
+        std::str::from_utf8(&banner)?
+            .replace("{{version}}", &cds_config::get_version())
+            .replace("{{git_commit}}", &cds_config::get_commit())
+            .replace(
+                "{{build_at}}",
+                chrono::Local
+                    .timestamp_opt(cds_config::get_build_timestamp(), 0)
+                    .single()
+                    .unwrap()
+                    .format("%Y-%m-%d %H:%M:%S UTC %:z")
+                    .to_string()
+                    .as_str()
+            )
+    );
 
     cds_logger::init().await?;
 

@@ -41,26 +41,4 @@ pub async fn run() {
         entity::game_challenge::Entity,
         entity::game_notice::Entity
     );
-
-    init_admin().await;
-}
-
-pub async fn init_admin() {
-    let total = entity::user::Entity::find().count(get_db()).await.unwrap();
-    if total == 0 {
-        let hashed_password = Argon2::default()
-            .hash_password("123456".as_bytes(), &SaltString::generate(&mut OsRng))
-            .unwrap()
-            .to_string();
-        let user = entity::user::ActiveModel {
-            username: Set(String::from("admin")),
-            nickname: Set(String::from("Administrator")),
-            email: Set(String::from("admin@admin.com")),
-            group: Set(entity::user::Group::Admin),
-            hashed_password: Set(hashed_password),
-            ..Default::default()
-        };
-        user.insert(get_db()).await.unwrap();
-        info!("Admin user created successfully.");
-    }
 }
