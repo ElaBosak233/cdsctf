@@ -11,14 +11,14 @@ pub async fn generate_jwt_token(user_id: i64) -> String {
     let claims = Claims {
         id: user_id,
         exp: (chrono::Utc::now()
-            + chrono::Duration::minutes(cds_config::get_config().auth.expiration))
+            + chrono::Duration::minutes(cds_config::get_variable().auth.expiration))
         .timestamp() as usize,
     };
 
     encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(cds_config::get_config().auth.secret.as_bytes()),
+        &EncodingKey::from_secret(cds_config::get_variable().auth.secret.as_bytes()),
     )
     .unwrap()
 }

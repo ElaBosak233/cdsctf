@@ -11,13 +11,13 @@ use tokio::{
 use crate::traits::MediaError;
 
 pub async fn get(path: String, filename: String) -> Result<Vec<u8>, MediaError> {
-    let filepath =
-        PathBuf::from(&cds_config::get_config().media.path).join(format!("{}/{}", path, filename));
+    let filepath = PathBuf::from(&cds_config::get_constant().media.path)
+        .join(format!("{}/{}", path, filename));
 
     match File::open(&filepath).await {
         Ok(mut file) => {
             let mut buffer = Vec::new();
-            if (file.read_to_end(&mut buffer).await).is_err() {
+            if file.read_to_end(&mut buffer).await.is_err() {
                 return Err(MediaError::InternalServerError(String::new()));
             }
             Ok(buffer)
@@ -27,7 +27,7 @@ pub async fn get(path: String, filename: String) -> Result<Vec<u8>, MediaError> 
 }
 
 pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, MediaError> {
-    let filepath = PathBuf::from(&cds_config::get_config().media.path).join(path);
+    let filepath = PathBuf::from(&cds_config::get_constant().media.path).join(path);
     let mut files = Vec::new();
 
     if metadata(&filepath).await.is_err() {
@@ -49,8 +49,8 @@ pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, MediaError> {
 }
 
 pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), MediaError> {
-    let filepath =
-        PathBuf::from(&cds_config::get_config().media.path).join(format!("{}/{}", path, filename));
+    let filepath = PathBuf::from(&cds_config::get_constant().media.path)
+        .join(format!("{}/{}", path, filename));
     if let Some(parent) = filepath.parent() {
         if metadata(parent).await.is_err() {
             create_dir_all(parent).await?;
@@ -62,8 +62,8 @@ pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), M
 }
 
 pub async fn delete(path: String, filename: String) -> Result<(), MediaError> {
-    let filepath =
-        PathBuf::from(&cds_config::get_config().media.path).join(format!("{}/{}", path, filename));
+    let filepath = PathBuf::from(&cds_config::get_constant().media.path)
+        .join(format!("{}/{}", path, filename));
     if metadata(&filepath).await.is_ok() {
         remove_file(&filepath).await?;
     }
@@ -71,7 +71,7 @@ pub async fn delete(path: String, filename: String) -> Result<(), MediaError> {
 }
 
 pub async fn delete_dir(path: String) -> Result<(), MediaError> {
-    let filepath = PathBuf::from(&cds_config::get_config().media.path).join(path);
+    let filepath = PathBuf::from(&cds_config::get_constant().media.path).join(path);
     if metadata(&filepath).await.is_ok() {
         remove_dir_all(&filepath).await?;
     }

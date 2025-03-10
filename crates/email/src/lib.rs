@@ -20,36 +20,38 @@ pub fn get_mailer() -> &'static AsyncSmtpTransport<Tokio1Executor> {
 }
 
 pub async fn init() -> Result<(), EmailError> {
-    if !cds_config::get_config().email.is_enabled {
+    if !cds_config::get_constant().email.is_enabled {
         return Ok(());
     }
 
     let credentials = Credentials::new(
-        cds_config::get_config().email.username.clone(),
-        cds_config::get_config().email.password.clone(),
+        cds_config::get_constant().email.username.clone(),
+        cds_config::get_constant().email.password.clone(),
     );
 
-    let builder = match cds_config::get_config().email.tls {
-        cds_config::email::Tls::Starttls => AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(
-            &cds_config::get_config().email.host,
-        ),
-        cds_config::email::Tls::Tls => Ok(AsyncSmtpTransport::<Tokio1Executor>::relay(
-            &cds_config::get_config().email.host,
+    let builder = match cds_config::get_constant().email.tls {
+        cds_config::constant::email::Tls::Starttls => {
+            AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(
+                &cds_config::get_constant().email.host,
+            )
+        }
+        cds_config::constant::email::Tls::Tls => Ok(AsyncSmtpTransport::<Tokio1Executor>::relay(
+            &cds_config::get_constant().email.host,
         )?
         .tls(Tls::Wrapper(
-            TlsParameters::builder(cds_config::get_config().email.host.clone())
+            TlsParameters::builder(cds_config::get_constant().email.host.clone())
                 .build()
                 .unwrap(),
         ))),
-        cds_config::email::Tls::None => {
+        cds_config::constant::email::Tls::None => {
             Ok(AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(
-                &cds_config::get_config().email.host,
+                &cds_config::get_constant().email.host,
             ))
         }
     }?;
 
     let mailer: AsyncSmtpTransport<Tokio1Executor> = builder
-        .port(cds_config::get_config().email.port)
+        .port(cds_config::get_constant().email.port)
         .credentials(credentials)
         .timeout(Some(std::time::Duration::from_secs(10)))
         .build();

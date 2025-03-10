@@ -4,5 +4,4 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub title: String,
     pub description: String,
-    pub logo_path: String,
 }

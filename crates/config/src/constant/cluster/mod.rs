@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
     pub namespace: String,
-    pub kube_config_path: String,
     pub traffic: Traffic,
     pub public_entries: HashMap<String, String>,
 }

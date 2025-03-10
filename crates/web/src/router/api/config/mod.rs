@@ -21,19 +21,19 @@ pub async fn get_config() -> Result<WebResponse<serde_json::Value>, WebError> {
         code: StatusCode::OK,
         data: Some(json!({
             "meta": {
-                "title": cds_config::get_config().meta.title,
-                "description": cds_config::get_config().meta.description,
+                "title": cds_config::get_variable().meta.title,
+                "description": cds_config::get_variable().meta.description,
             },
             "auth": {
-                "is_registration_enabled": cds_config::get_config().auth.is_registration_enabled,
+                "is_registration_enabled": cds_config::get_variable().auth.is_registration_enabled,
             },
             "captcha": {
-                "provider": cds_config::get_config().captcha.provider,
+                "provider": cds_config::get_variable().captcha.provider,
                 "turnstile": {
-                    "site_key": cds_config::get_config().captcha.turnstile.site_key,
+                    "site_key": cds_config::get_variable().captcha.turnstile.site_key,
                 },
                 "hcaptcha": {
-                    "site_key": cds_config::get_config().captcha.hcaptcha.site_key,
+                    "site_key": cds_config::get_variable().captcha.hcaptcha.site_key,
                 }
             },
             "version": {
@@ -46,12 +46,9 @@ pub async fn get_config() -> Result<WebResponse<serde_json::Value>, WebError> {
 }
 
 pub async fn get_icon() -> impl IntoResponse {
-    let path = &cds_config::get_config().meta.logo_path;
-    match tokio::fs::read(path).await {
-        Ok(data) => Response::builder().body(Body::from(data)).unwrap(),
-        Err(_) => {
-            Redirect::to("/logo.svg").into_response() // default frontend icon
-        }
+    match cds_media::get(".".to_owned(), "logo.webp".to_owned()).await {
+        Ok(buffer) => Response::builder().body(Body::from(buffer)).unwrap(),
+        Err(_) => Redirect::to("/logo.svg").into_response(),
     }
 }
 
