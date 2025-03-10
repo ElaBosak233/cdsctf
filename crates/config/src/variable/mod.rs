@@ -1,27 +1,48 @@
 pub mod auth;
 pub mod captcha;
+pub mod email;
 pub mod meta;
 
-use std::path::Path;
+use std::{ops::Deref, path::Path, sync::RwLock};
 
 use anyhow::anyhow;
-use once_cell::sync::OnceCell;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use tokio::fs::{create_dir_all, metadata};
 
 use crate::traits::ConfigError;
 
-static VARIABLE: OnceCell<Variable> = OnceCell::new();
+static VARIABLE: Lazy<RwLock<Variable>> = Lazy::new(|| RwLock::new(Variable::default()));
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Variable {
+    pub meta: meta::Config,
     pub auth: auth::Config,
     pub captcha: captcha::Config,
-    pub meta: meta::Config,
+    pub email: email::Config,
 }
 
-pub fn get_variable() -> &'static Variable {
-    VARIABLE.get().unwrap()
+impl Variable {
+    pub fn desensitize(&self) -> Self {
+        Self {
+            meta: self.meta.to_owned(),
+            auth: self.auth.desensitize(),
+            captcha: self.captcha.desensitize(),
+            email: self.email.desensitize(),
+        }
+    }
+}
+
+pub fn get_variable() -> Variable {
+    VARIABLE.read().unwrap().to_owned()
+}
+
+pub fn set_variable(variable: Variable) -> Result<(), ConfigError> {
+    let mut write_guard = VARIABLE
+        .write()
+        .map_err(|_| anyhow!("Failed to acquire write lock on VARIABLE"))?;
+    *write_guard = variable;
+    Ok(())
 }
 
 pub async fn init() -> Result<(), ConfigError> {
@@ -37,16 +58,14 @@ pub async fn init() -> Result<(), ConfigError> {
     }
 
     let content = tokio::fs::read_to_string(target_path).await?;
-    VARIABLE
-        .set(toml::from_str(&content)?)
-        .map_err(|_| anyhow!("Failed to set variable config into OnceCell."))?;
+    set_variable(toml::from_str(&content)?)?;
 
     Ok(())
 }
 
 pub async fn save() -> Result<(), ConfigError> {
     let target_path = Path::new("data/configs/variable.toml");
-    let content = toml::to_string(get_variable())?;
+    let content = toml::to_string(&get_variable())?;
     tokio::fs::write(target_path, content).await?;
 
     Ok(())

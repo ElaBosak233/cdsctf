@@ -1,5 +1,5 @@
 pub mod constant;
-mod traits;
+pub mod traits;
 pub mod variable;
 
 pub use constant::get_constant;

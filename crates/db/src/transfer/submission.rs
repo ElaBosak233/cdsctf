@@ -26,8 +26,11 @@ pub struct Submission {
 }
 
 impl Submission {
-    pub fn desensitize(&mut self) {
-        self.content.clear();
+    pub fn desensitize(&self) -> Self {
+        Self {
+            content: "".to_owned(),
+            ..self.to_owned()
+        }
     }
 }
 
@@ -110,7 +113,7 @@ pub async fn preload(mut submissions: Vec<Submission>) -> Result<Vec<Submission>
         }
         submission.challenge = challenges[i].clone();
         if let Some(challenge) = submission.challenge.as_mut() {
-            challenge.desensitize();
+            *challenge = challenge.desensitize();
         }
         submission.team = teams[i].clone();
         submission.game = games[i].clone();

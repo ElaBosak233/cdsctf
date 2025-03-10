@@ -3,7 +3,7 @@ pub mod turnstile;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Config {
     pub provider: Provider,
     pub difficulty: u64,
@@ -22,4 +22,14 @@ pub enum Provider {
     #[default]
     #[serde(other)]
     None,
+}
+
+impl Config {
+    pub fn desensitize(&self) -> Self {
+        Self {
+            turnstile: self.turnstile.desensitize(),
+            hcaptcha: self.hcaptcha.desensitize(),
+            ..self.to_owned()
+        }
+    }
 }
