@@ -38,7 +38,7 @@ pub async fn auth(mut req: Request<Body>, next: Next) -> Result<Response, WebErr
 
     let token = jar.get("token").map(|cookie| cookie.value()).unwrap_or("");
 
-    let decoding_key = DecodingKey::from_secret(cds_config::get_config().auth.secret.as_bytes());
+    let decoding_key = DecodingKey::from_secret(cds_config::get_variable().auth.secret.as_bytes());
     let validation = Validation::default();
 
     if let Ok(data) = decode::<crate::util::jwt::Claims>(token, &decoding_key, &validation) {
@@ -47,8 +47,8 @@ pub async fn auth(mut req: Request<Body>, next: Next) -> Result<Response, WebErr
             .filter(cds_db::entity::user::Column::DeletedAt.is_null())
             .one(get_db())
             .await?
-            .map(|user| cds_db::transfer::User::from(user)) {
-
+            .map(|user| cds_db::transfer::User::from(user))
+        {
             if user.group == Group::Banned {
                 return Err(WebError::Forbidden(json!("forbidden")));
             }

@@ -16,20 +16,24 @@ pub(crate) static RESOURCE: Lazy<Resource> =
 
 pub(crate) fn get_export_config() -> ExportConfig {
     ExportConfig {
-        endpoint: Some(cds_config::get_config().telemetry.endpoint_url.to_string()),
+        endpoint: Some(
+            cds_config::get_constant()
+                .telemetry
+                .endpoint_url
+                .to_string(),
+        ),
         timeout: Duration::from_secs(5),
-        protocol: match cds_config::get_config().telemetry.protocol {
-            cds_config::telemetry::Protocol::Json => Protocol::HttpJson,
-            cds_config::telemetry::Protocol::Binary => Protocol::HttpBinary,
-            cds_config::telemetry::Protocol::Grpc | cds_config::telemetry::Protocol::Unknown => {
-                Protocol::Grpc
-            }
+        protocol: match cds_config::get_constant().telemetry.protocol {
+            cds_config::constant::telemetry::Protocol::Json => Protocol::HttpJson,
+            cds_config::constant::telemetry::Protocol::Binary => Protocol::HttpBinary,
+            cds_config::constant::telemetry::Protocol::Grpc
+            | cds_config::constant::telemetry::Protocol::Unknown => Protocol::Grpc,
         },
     }
 }
 
 pub async fn init() -> Result<(), anyhow::Error> {
-    if !cds_config::get_config().telemetry.is_enabled {
+    if !cds_config::get_constant().telemetry.is_enabled {
         return Ok(());
     }
 
@@ -41,7 +45,7 @@ pub async fn init() -> Result<(), anyhow::Error> {
 }
 
 pub async fn shutdown() -> Result<(), anyhow::Error> {
-    if !cds_config::get_config().telemetry.is_enabled {
+    if !cds_config::get_constant().telemetry.is_enabled {
         return Ok(());
     }
 

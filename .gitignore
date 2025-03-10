@@ -5,10 +5,7 @@ target
 
 *.lock
 
-# Cloudsdale
-/application.toml
-/favicon.webp
-/k8s-config.yml
+# CdsCTF
 /db
 /media
 /caputres

@@ -192,7 +192,7 @@ pub async fn user_login(
         format!(
             "token={}; Max-Age={}; Path=/; HttpOnly; SameSite=Strict",
             token,
-            chrono::Duration::minutes(cds_config::get_config().auth.expiration).num_seconds()
+            chrono::Duration::minutes(cds_config::get_variable().auth.expiration).num_seconds()
         )
         .parse()
         .unwrap(),
@@ -219,7 +219,7 @@ pub struct UserRegisterRequest {
 pub async fn user_register(
     Extension(ext): Extension<Ext>, Json(mut body): Json<UserRegisterRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
-    if !cds_config::get_config().auth.is_registration_enabled {
+    if !cds_config::get_variable().auth.is_registration_enabled {
         return Err(WebError::BadRequest(json!("registration_disabled")));
     }
 

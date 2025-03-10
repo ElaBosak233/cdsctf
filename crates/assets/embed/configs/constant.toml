@@ -1,0 +1,49 @@
+[db]
+host = "127.0.0.1"
+port = 5432
+dbname = "cdsctf"
+username = "cdsctf"
+password = "cdsctf"
+ssl_mode = "disable"
+
+[queue]
+host = "127.0.0.1"
+port = 4222
+username = ""
+password = ""
+token = ""
+tls = false
+
+[media]
+path = "./data/media"
+
+[logger]
+level = "info,sqlx=debug,sea_orm=debug,cds_web=debug"
+
+[cache]
+url = "redis://127.0.0.1:6379"
+
+[cluster]
+namespace = "cdsctf-challenges"
+traffic = "expose"  # expose | proxy
+
+[cluster.public_entries]
+"hostname" = "127.0.0.1"
+
+[email]
+is_enabled = false
+host = ""
+port = 465
+tls = "tls"  # starttls | tls | none
+username = ""
+password = ""
+whitelist = []
+
+[telemetry]
+is_enabled = false
+protocol = "grpc"  # grpc | json | binary
+endpoint_url = "http://127.0.0.1:4317"
+
+[server]
+host = "0.0.0.0"
+port = 8888

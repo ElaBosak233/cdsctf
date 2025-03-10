@@ -8,6 +8,8 @@ pub enum ConfigError {
     IOError(#[from] std::io::Error),
     #[error("toml de error: {0}")]
     TomlDeError(#[from] toml::de::Error),
+    #[error("toml ser error: {0}")]
+    TomlSerError(#[from] toml::ser::Error),
     #[error("other error: {0}")]
     OtherError(#[from] anyhow::Error),
 }

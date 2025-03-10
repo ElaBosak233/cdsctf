@@ -1,0 +1,23 @@
+[meta]
+title = "CdsCTF"
+description = "An open-source CTF platform."
+
+[auth]
+secret = "A_R4ND0M_4TR1NG"
+expiration = 1800
+is_registration_enabled = true
+
+[captcha]
+provider = "pow"  # none | pow | image | turnstile | hcaptcha
+difficulty = 2  # only for pow and image captcha.
+
+[captcha.turnstile]
+url = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+secret_key = ""
+site_key = "-CtXcvb7"
+
+[captcha.hcaptcha]
+url = "https://api.hcaptcha.com/siteverify"
+secret_key = ""
+site_key = ""
+score = 80

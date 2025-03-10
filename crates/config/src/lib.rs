@@ -1,48 +1,12 @@
-pub mod auth;
-pub mod cache;
-pub mod captcha;
-pub mod cluster;
-pub mod db;
-pub mod email;
-pub mod logger;
-pub mod media;
-pub mod meta;
-pub mod queue;
-pub mod server;
-pub mod telemetry;
-
+pub mod constant;
 mod traits;
+pub mod variable;
 
-use std::path::Path;
-
-use anyhow::anyhow;
-use once_cell::sync::OnceCell;
+pub use constant::get_constant;
 use serde::{Deserialize, Serialize};
-use tokio::fs::{self};
+pub use variable::get_variable;
 
 use crate::traits::ConfigError;
-
-static APP_CONFIG: OnceCell<Config> = OnceCell::new();
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Config {
-    pub server: server::Config,
-    pub meta: meta::Config,
-    pub auth: auth::Config,
-    pub db: db::Config,
-    pub captcha: captcha::Config,
-    pub email: email::Config,
-    pub queue: queue::Config,
-    pub cache: cache::Config,
-    pub cluster: cluster::Config,
-    pub media: media::Config,
-    pub logger: logger::Config,
-    pub telemetry: telemetry::Config,
-}
-
-pub fn get_config() -> &'static Config {
-    APP_CONFIG.get().unwrap()
-}
 
 pub fn get_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
@@ -57,15 +21,8 @@ pub fn get_build_timestamp() -> i64 {
 }
 
 pub async fn init() -> Result<(), ConfigError> {
-    let target_path = Path::new("application.toml");
-    if !target_path.exists() {
-        return Err(ConfigError::ConfigNotFound);
-    }
-
-    let content = fs::read_to_string("application.toml").await?;
-    APP_CONFIG
-        .set(toml::from_str(&content)?)
-        .map_err(|_| anyhow!("Failed to set config into OnceCell."))?;
+    constant::init().await?;
+    variable::init().await?;
 
     Ok(())
 }

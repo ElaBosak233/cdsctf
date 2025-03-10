@@ -183,7 +183,7 @@ pub async fn get_env(
 
             let node_name = pod.spec.unwrap_or_default().node_name.unwrap_or_default();
 
-            let public_entry = cds_config::get_config()
+            let public_entry = cds_config::get_constant()
                 .cluster
                 .public_entries
                 .get(&node_name)

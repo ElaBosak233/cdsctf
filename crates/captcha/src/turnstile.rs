@@ -28,11 +28,11 @@ struct TurnstileResponse {
 
 pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
     let client = reqwest::Client::new();
-    let url = &cds_config::get_config().captcha.turnstile.url;
+    let url = &cds_config::get_variable().captcha.turnstile.url;
     let response = client
         .post(url)
         .json(&TurnstileRequest {
-            secret: cds_config::get_config()
+            secret: cds_config::get_variable()
                 .captcha
                 .turnstile
                 .secret_key
