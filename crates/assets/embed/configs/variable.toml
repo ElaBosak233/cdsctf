@@ -21,3 +21,12 @@ url = "https://api.hcaptcha.com/siteverify"
 secret_key = ""
 site_key = ""
 score = 80
+
+[email]
+is_enabled = false
+host = ""
+port = 465
+tls = "tls"  # starttls | tls | none
+username = ""
+password = ""
+whitelist = []

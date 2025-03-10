@@ -41,8 +41,11 @@ impl From<entity::challenge::Model> for Challenge {
 }
 
 impl Challenge {
-    pub fn desensitize(&mut self) {
-        self.env = None;
-        self.checker = None;
+    pub fn desensitize(&self) -> Self {
+        Self {
+            env: None,
+            checker: None,
+            ..self.to_owned()
+        }
     }
 }

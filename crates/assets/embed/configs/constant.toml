@@ -30,15 +30,6 @@ traffic = "expose"  # expose | proxy
 [cluster.public_entries]
 "hostname" = "127.0.0.1"
 
-[email]
-is_enabled = false
-host = ""
-port = 465
-tls = "tls"  # starttls | tls | none
-username = ""
-password = ""
-whitelist = []
-
 [telemetry]
 is_enabled = false
 protocol = "grpc"  # grpc | json | binary

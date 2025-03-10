@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Config {
     pub is_enabled: bool,
     pub host: String,
@@ -19,4 +19,17 @@ pub enum Tls {
     #[default]
     #[serde(other)]
     None,
+}
+
+impl Config {
+    pub fn desensitize(&self) -> Self {
+        Self {
+            username: "".to_owned(),
+            password: "".to_owned(),
+            host: "".to_owned(),
+            port: 0,
+            tls: Tls::None,
+            ..self.to_owned()
+        }
+    }
 }
