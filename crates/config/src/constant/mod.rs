@@ -1,7 +1,6 @@
 pub mod cache;
 pub mod cluster;
 pub mod db;
-pub mod email;
 pub mod logger;
 pub mod media;
 pub mod queue;
@@ -28,7 +27,6 @@ pub struct Constant {
     pub cluster: cluster::Config,
     pub media: media::Config,
     pub logger: logger::Config,
-    pub email: email::Config,
     pub telemetry: telemetry::Config,
 }
 

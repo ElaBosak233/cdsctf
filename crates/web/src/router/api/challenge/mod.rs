@@ -130,7 +130,7 @@ pub async fn get_challenge(
 
     if is_desensitized {
         for challenge in challenges.iter_mut() {
-            challenge.desensitize();
+            *challenge = challenge.desensitize();
         }
     }
 
@@ -180,7 +180,7 @@ pub async fn get_challenge_status(
     }
 
     for submission in submissions.iter_mut() {
-        submission.desensitize();
+        *submission = submission.desensitize();
         submission.challenge = None;
 
         if body.game_id.is_some() {

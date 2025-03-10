@@ -189,7 +189,7 @@ pub async fn get_game_scoreboard(
             .cloned()
             .collect::<Vec<Submission>>();
         for submission in submissions.iter_mut() {
-            submission.desensitize();
+            *submission = submission.desensitize();
             submission.team = None;
             submission.game = None;
         }

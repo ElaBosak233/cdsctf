@@ -97,7 +97,7 @@ pub async fn get_submission(
 
     if is_desensitized {
         for submission in submissions.iter_mut() {
-            submission.desensitize();
+            *submission = submission.desensitize();
         }
     }
 
