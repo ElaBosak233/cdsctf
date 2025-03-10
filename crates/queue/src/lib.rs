@@ -58,16 +58,16 @@ pub async fn subscribe(
 
 pub async fn init() -> Result<(), QueueError> {
     let client = async_nats::ConnectOptions::new()
-        .require_tls(cds_config::get_config().queue.tls)
+        .require_tls(cds_config::get_constant().queue.tls)
         .user_and_password(
-            cds_config::get_config().queue.username.clone(),
-            cds_config::get_config().queue.password.clone(),
+            cds_config::get_constant().queue.username.clone(),
+            cds_config::get_constant().queue.password.clone(),
         )
-        .token(cds_config::get_config().queue.token.clone())
+        .token(cds_config::get_constant().queue.token.clone())
         .connect(format!(
             "{}:{}",
-            cds_config::get_config().queue.host,
-            cds_config::get_config().queue.port
+            cds_config::get_constant().queue.host,
+            cds_config::get_constant().queue.port
         ))
         .await?;
     CLIENT
