@@ -16,7 +16,7 @@ cds-assets = { workspace = true }
 once_cell = { workspace = true }
 serde = { workspace = true }
 tokio = { workspace = true }
-tracing = { workspace = true }
+nanoid = { workspace = true }
 toml = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }

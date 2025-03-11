@@ -26,7 +26,7 @@ impl Variable {
     pub fn desensitize(&self) -> Self {
         Self {
             meta: self.meta.to_owned(),
-            auth: self.auth.desensitize(),
+            auth: self.auth.to_owned(),
             captcha: self.captcha.desensitize(),
             email: self.email.desensitize(),
         }

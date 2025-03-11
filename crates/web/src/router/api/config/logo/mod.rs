@@ -1,9 +1,9 @@
 use axum::{
+    Router,
     body::Body,
     extract::Multipart,
     http::Response,
     response::{IntoResponse, Redirect},
-    Router,
 };
 use cds_db::entity::user::Group;
 
@@ -27,7 +27,7 @@ pub async fn get_logo() -> Result<impl IntoResponse, WebError> {
             let buffer = cds_media::get(path, filename.to_string()).await?;
             Ok(Response::builder().body(Body::from(buffer)).unwrap())
         }
-        None => Ok(Redirect::to("/logo.svg").into_response())
+        None => Ok(Redirect::to("/logo.svg").into_response()),
     }
 }
 

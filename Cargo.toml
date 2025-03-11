@@ -29,7 +29,7 @@ cds-web = { path = "crates/web" }
 
 # Async
 async-trait = { version = "0.1" }
-tokio = { version = "1.43", features = ["full"] }
+tokio = { version = "1.44", features = ["full"] }
 tokio-util = { version = "0.7.13" }
 futures = { version = "^0.3" }
 futures-util = { version = "0.3" }
@@ -138,7 +138,7 @@ opentelemetry-appender-tracing = { version = "0.28" }
 sysinfo = { version = "0.33" }
 
 # Miscellaneous
-once_cell = { version = "1.20" }
+once_cell = { version = "1.21" }
 validator = { version = "0.20", features = ["derive"] }
 reqwest = { version = "0.12", features = [
     "json",
