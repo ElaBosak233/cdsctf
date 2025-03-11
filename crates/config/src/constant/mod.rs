@@ -1,6 +1,7 @@
 pub mod cache;
 pub mod cluster;
 pub mod db;
+mod jwt;
 pub mod logger;
 pub mod media;
 pub mod queue;
@@ -10,6 +11,7 @@ pub mod telemetry;
 use std::path::Path;
 
 use anyhow::anyhow;
+use nanoid::nanoid;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use tokio::fs::{create_dir_all, metadata};
@@ -21,6 +23,7 @@ static CONSTANT: OnceCell<Constant> = OnceCell::new();
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Constant {
     pub server: server::Config,
+    pub jwt: jwt::Config,
     pub db: db::Config,
     pub queue: queue::Config,
     pub cache: cache::Config,
@@ -42,7 +45,9 @@ pub async fn init() -> Result<(), ConfigError> {
                 create_dir_all(parent).await?;
             }
         }
-        let content = cds_assets::get("configs/constant.toml").unwrap_or_default();
+        let content =
+            std::str::from_utf8(&cds_assets::get("configs/constant.toml").unwrap_or_default())?
+                .replace("%nanoid%", &nanoid!(24));
         tokio::fs::write(target_path, content).await?;
     }
 

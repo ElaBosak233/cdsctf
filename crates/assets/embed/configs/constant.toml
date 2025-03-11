@@ -35,6 +35,10 @@ is_enabled = false
 protocol = "grpc"  # grpc | json | binary
 endpoint_url = "http://127.0.0.1:4317"
 
+[jwt]
+secret = "%nanoid%"
+expiration = 43200
+
 [server]
 host = "0.0.0.0"
 port = 8888

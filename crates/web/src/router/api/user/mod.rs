@@ -1,6 +1,8 @@
 mod profile;
 mod user_id;
 
+use std::str::FromStr;
+
 use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
     password_hash::{SaltString, rand_core::OsRng},
@@ -10,10 +12,10 @@ use axum::{
     http::{HeaderMap, StatusCode, header::SET_COOKIE},
     response::IntoResponse,
 };
-use cds_db::{entity::user::Group, get_db};
+use cds_db::{entity, entity::user::Group, get_db, transfer::User};
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, PaginatorTrait,
-    QueryFilter, QuerySelect, RelationTrait, prelude::Expr, sea_query::Func,
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, Order, PaginatorTrait,
+    QueryFilter, QueryOrder, QuerySelect, RelationTrait, prelude::Expr, sea_query::Func,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -50,17 +52,54 @@ pub struct GetUserRequest {
 pub async fn get_user(
     Query(params): Query<GetUserRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::User>>, WebError> {
-    let (mut users, total) = cds_db::transfer::user::find(
-        params.id,
-        params.name,
-        None,
-        params.group,
-        params.email,
-        params.sorts,
-        params.page,
-        params.size,
-    )
-    .await?;
+    let mut sql = entity::user::Entity::find();
+
+    if let Some(id) = params.id {
+        sql = sql.filter(entity::user::Column::Id.eq(id));
+    }
+
+    if let Some(name) = params.name {
+        let pattern = format!("%{}%", name);
+        let condition = Condition::any()
+            .add(entity::user::Column::Username.like(&pattern))
+            .add(entity::user::Column::Nickname.like(&pattern));
+        sql = sql.filter(condition);
+    }
+
+    if let Some(group) = params.group {
+        sql = sql.filter(entity::user::Column::Group.eq(group));
+    }
+
+    if let Some(email) = params.email {
+        sql = sql.filter(entity::user::Column::Email.eq(email));
+    }
+
+    sql = sql.filter(entity::user::Column::DeletedAt.is_null());
+
+    let total = sql.clone().count(get_db()).await?;
+
+    if let Some(sorts) = params.sorts {
+        let sorts = sorts.split(",").collect::<Vec<&str>>();
+        for sort in sorts {
+            let col = match cds_db::entity::user::Column::from_str(sort.replace("-", "").as_str()) {
+                Ok(col) => col,
+                Err(_) => continue,
+            };
+            if sort.starts_with("-") {
+                sql = sql.order_by(col, Order::Desc);
+            } else {
+                sql = sql.order_by(col, Order::Asc);
+            }
+        }
+    }
+
+    if let (Some(page), Some(size)) = (params.page, params.size) {
+        let offset = (page - 1) * size;
+        sql = sql.offset(offset).limit(size);
+    }
+
+    let users = sql.all(get_db()).await?;
+    let mut users = users.into_iter().map(User::from).collect::<Vec<User>>();
 
     for user in users.iter_mut() {
         user.desensitize();
@@ -192,7 +231,7 @@ pub async fn user_login(
         format!(
             "token={}; Max-Age={}; Path=/; HttpOnly; SameSite=Strict",
             token,
-            chrono::Duration::minutes(cds_config::get_variable().auth.expiration).num_seconds()
+            chrono::Duration::seconds(cds_config::get_constant().jwt.expiration).num_seconds()
         )
         .parse()
         .unwrap(),
