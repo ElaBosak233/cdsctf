@@ -139,7 +139,7 @@ pub async fn create_submission(
         return Err(WebError::BadRequest(json!("challenge_not_found")));
     }
 
-    if let (Some(game_id), Some(game_team_id)) = (body.game_id, body.team_id) {
+    if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
         let game = cds_db::entity::game::Entity::find_by_id(game_id)
             .one(get_db())
             .await?
@@ -158,13 +158,13 @@ pub async fn create_submission(
         let _ = cds_db::entity::team::Entity::find()
             .filter(
                 Condition::all()
-                    .add(cds_db::entity::team::Column::Id.eq(game_team_id))
+                    .add(cds_db::entity::team::Column::Id.eq(team_id))
                     .add(cds_db::entity::team::Column::GameId.eq(game.id))
                     .add(cds_db::entity::team::Column::State.eq(State::Passed)),
             )
             .one(get_db())
             .await?
-            .ok_or(WebError::BadRequest(json!("game_team_not_found")));
+            .ok_or(WebError::BadRequest(json!("team_not_found")));
     }
 
     let submission = cds_db::entity::submission::ActiveModel {
