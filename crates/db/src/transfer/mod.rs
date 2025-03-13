@@ -15,5 +15,5 @@ pub use game_challenge::GameChallenge;
 pub use game_notice::GameNotice;
 pub use submission::Submission;
 pub use team::Team;
-pub use team_user::GameTeamUser;
+pub use team_user::TeamUser;
 pub use user::User;

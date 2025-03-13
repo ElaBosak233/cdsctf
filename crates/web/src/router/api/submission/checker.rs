@@ -55,7 +55,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
     let mut status: Status = Status::Incorrect;
 
     let operator_id = match submission.team_id {
-        Some(game_team_id) => game_team_id,
+        Some(team_id) => team_id,
         _ => submission.user_id,
     };
 
@@ -97,7 +97,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
             status = Status::Duplicate;
         }
 
-        if let (Some(game_id), Some(_game_team_id)) = (submission.game_id, submission.team_id) {
+        if let (Some(game_id), Some(_team_id)) = (submission.game_id, submission.team_id) {
             let game_challenge = cds_db::entity::game_challenge::Entity::find()
                 .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
                 .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))

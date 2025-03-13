@@ -25,7 +25,7 @@ pub async fn router() -> Router {
 pub struct Pod {
     pub id: String,
     pub user_id: i64,
-    pub game_team_id: i64,
+    pub team_id: i64,
     pub game_id: i64,
     pub challenge_id: String,
 
@@ -42,7 +42,7 @@ pub struct Pod {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetPodRequest {
+pub struct GetEnvRequest {
     pub id: Option<String>,
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
@@ -51,7 +51,7 @@ pub struct GetPodRequest {
 }
 
 pub async fn get_env(
-    Extension(ext): Extension<Ext>, Query(params): Query<GetPodRequest>,
+    Extension(ext): Extension<Ext>, Query(params): Query<GetEnvRequest>,
 ) -> Result<WebResponse<Vec<Pod>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -193,7 +193,7 @@ pub async fn get_env(
             Pod {
                 id,
                 user_id,
-                game_team_id: team_id,
+                team_id,
                 game_id,
                 challenge_id,
                 public_entry,
@@ -216,15 +216,15 @@ pub async fn get_env(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CreatePodRequest {
+pub struct CreateEnvRequest {
     pub challenge_id: Uuid,
-    pub game_team_id: Option<i64>,
+    pub team_id: Option<i64>,
     pub user_id: Option<i64>,
     pub game_id: Option<i64>,
 }
 
 pub async fn create_env(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<CreatePodRequest>,
+    Extension(ext): Extension<Ext>, Json(mut body): Json<CreateEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -239,11 +239,11 @@ pub async fn create_env(
         .env
         .ok_or(WebError::BadRequest(json!("challenge_env_invalid")))?;
 
-    if body.game_id.is_some() != body.game_team_id.is_some() {
+    if body.game_id.is_some() != body.team_id.is_some() {
         return Err(WebError::BadRequest(json!("invalid")));
     }
 
-    if let (Some(game_id), Some(team_id)) = (body.game_id, body.game_team_id) {
+    if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
         let _ = cds_db::entity::team::Entity::find()
             .filter(
                 Condition::all()
@@ -252,7 +252,7 @@ pub async fn create_env(
             )
             .one(get_db())
             .await?
-            .ok_or(WebError::BadRequest(json!("game_team_not_found")))?;
+            .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
         let _ = cds_db::entity::game_challenge::Entity::find()
             .filter(
@@ -302,8 +302,8 @@ pub async fn create_env(
         }
     }
 
-    let team = match body.game_team_id {
-        Some(game_team_id) => cds_db::entity::team::Entity::find_by_id(game_team_id)
+    let team = match body.team_id {
+        Some(team_id) => cds_db::entity::team::Entity::find_by_id(team_id)
             .one(get_db())
             .await?
             .map(|team| cds_db::transfer::Team::from(team)),
