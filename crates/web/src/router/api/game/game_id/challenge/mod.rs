@@ -1,29 +1,19 @@
-use axum::{Router, http::StatusCode};
-use cds_db::{
-    entity::{team::State, user::Group},
-    get_db,
-};
+use axum::Router;
+use cds_db::{entity::team::State, get_db};
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, NotSet, PaginatorTrait,
-    QueryFilter, QuerySelect,
+    ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
 
 use crate::{
-    extract::{Extension, Json, Path, Query},
-    router::api::game::calculator,
+    extract::{Extension, Path, Query},
     traits::{Ext, WebError, WebResponse},
 };
 
-mod challenge_id;
-
 pub fn router() -> Router {
-    Router::new()
-        .route("/", axum::routing::get(get_game_challenge))
-        .route("/", axum::routing::post(create_game_challenge))
-        .nest("/{challenge_id}", challenge_id::router())
+    Router::new().route("/", axum::routing::get(get_game_challenge))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -31,7 +21,6 @@ pub struct GetGameChallengeRequest {
     pub game_id: Option<i64>,
     pub challenge_id: Option<Uuid>,
     pub category: Option<i32>,
-    pub is_enabled: Option<bool>,
 
     pub page: Option<u64>,
     pub size: Option<u64>,
@@ -41,7 +30,6 @@ pub struct GetGameChallengeRequest {
 ///
 /// # Prerequisite
 /// - If the operator is admin, there is no prerequisite.
-/// - Operator is in one of the `is_allowed` = `true` game teams.
 /// - Operating time is between related game's `started_at` and `ended_at`.
 pub async fn get_game_challenge(
     Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
@@ -55,16 +43,11 @@ pub async fn get_game_challenge(
         .map(|game| cds_db::transfer::Game::from(game))
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
-    if operator.group != Group::Admin {
-        let now = chrono::Utc::now().timestamp();
-        let in_game = cds_db::util::is_user_in_game(&operator, &game, Some(State::Passed)).await?;
+    let now = chrono::Utc::now().timestamp();
+    let in_game = cds_db::util::is_user_in_game(&operator, &game, Some(State::Passed)).await?;
 
-        if !in_game
-            || !(game.started_at..=game.ended_at).contains(&now)
-            || params.is_enabled != Some(true)
-        {
-            return Err(WebError::Forbidden(json!("")));
-        }
+    if !in_game || !(game.started_at..=game.ended_at).contains(&now) {
+        return Err(WebError::Forbidden(json!("")));
     }
 
     // Using inner join to access fields in related tables.
@@ -78,9 +61,7 @@ pub async fn get_game_challenge(
         sql = sql.filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id));
     }
 
-    if let Some(is_enabled) = params.is_enabled {
-        sql = sql.filter(cds_db::entity::game_challenge::Column::IsEnabled.eq(is_enabled));
-    }
+    sql = sql.filter(cds_db::entity::game_challenge::Column::IsEnabled.eq(true));
 
     if let Some(category) = params.category {
         sql = sql.filter(cds_db::entity::challenge::Column::Category.eq(category));
@@ -93,81 +74,16 @@ pub async fn get_game_challenge(
         sql = sql.offset(offset).limit(size);
     }
 
-    let game_challenges =
+    let mut game_challenges =
         cds_db::transfer::game_challenge::preload(sql.all(get_db()).await?).await?;
 
+    for game_challenge in game_challenges.iter_mut() {
+        *game_challenge = game_challenge.desensitize();
+    }
+
     Ok(WebResponse {
-        code: StatusCode::OK,
         data: Some(game_challenges),
         total: Some(total),
-        ..Default::default()
-    })
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CreateGameChallengeRequest {
-    pub challenge_id: Uuid,
-    pub is_enabled: Option<bool>,
-    pub difficulty: Option<i64>,
-    pub max_pts: Option<i64>,
-    pub min_pts: Option<i64>,
-    pub bonus_ratios: Option<Vec<i64>>,
-    pub frozen_at: Option<Option<i64>>,
-}
-
-pub async fn create_game_challenge(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
-    Json(body): Json<CreateGameChallengeRequest>,
-) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let game = cds_db::entity::game::Entity::find_by_id(game_id)
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
-
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
-
-    let is_challenge_in_game = cds_db::entity::game_challenge::Entity::find()
-        .filter(cds_db::entity::game_challenge::Column::GameId.eq(game.id))
-        .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))
-        .count(get_db())
-        .await?
-        > 0;
-
-    if is_challenge_in_game {
-        return Err(WebError::Conflict(json!("challenge_already_in_game")));
-    }
-
-    let game_challenge = cds_db::entity::game_challenge::ActiveModel {
-        game_id: Set(game.id),
-        challenge_id: Set(challenge.id),
-        difficulty: body.difficulty.map_or(NotSet, Set),
-        is_enabled: body.is_enabled.map_or(NotSet, Set),
-        max_pts: body.max_pts.map_or(NotSet, Set),
-        min_pts: body.min_pts.map_or(NotSet, Set),
-        bonus_ratios: body.bonus_ratios.map_or(Set(vec![5, 3, 1]), Set),
-        frozen_at: body.frozen_at.map_or(NotSet, Set),
-        ..Default::default()
-    }
-    .insert(get_db())
-    .await?;
-    let game_challenge = cds_db::transfer::GameChallenge::from(game_challenge);
-
-    cds_queue::publish("calculator", calculator::Payload {
-        game_id: Some(game.id),
-    })
-    .await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(game_challenge),
         ..Default::default()
     })
 }

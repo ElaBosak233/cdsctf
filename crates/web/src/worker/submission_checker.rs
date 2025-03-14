@@ -12,7 +12,7 @@ use sea_orm::{
 };
 use tracing::{error, info};
 
-use crate::router::api::game::calculator;
+use crate::worker::game_calculator;
 
 async fn check(id: i64) -> Result<(), anyhow::Error> {
     let submission = cds_db::entity::submission::Entity::find()
@@ -129,7 +129,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
     .await?;
 
     if submission.game_id.is_some() && status == Status::Correct {
-        cds_queue::publish("calculator", calculator::Payload {
+        cds_queue::publish("calculator", game_calculator::Payload {
             game_id: submission.game_id,
         })
         .await?;

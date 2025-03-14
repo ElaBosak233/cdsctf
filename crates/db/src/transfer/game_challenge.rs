@@ -19,6 +19,18 @@ pub struct GameChallenge {
     pub challenge: Option<Challenge>,
 }
 
+impl GameChallenge {
+    pub fn desensitize(&self) -> Self {
+        Self {
+            challenge: self
+                .to_owned()
+                .challenge
+                .map(|challenge| challenge.desensitize()),
+            ..self.to_owned()
+        }
+    }
+}
+
 impl From<entity::game_challenge::Model> for GameChallenge {
     fn from(entity: entity::game_challenge::Model) -> Self {
         Self {

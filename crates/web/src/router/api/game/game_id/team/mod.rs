@@ -1,13 +1,10 @@
+mod profile;
 mod team_id;
 
 use std::str::FromStr;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{
-    entity::{team::State, user::Group},
-    get_db,
-    transfer::Team,
-};
+use cds_db::{entity::team::State, get_db, transfer::Team};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, Order, PaginatorTrait,
     QueryFilter, QueryOrder, QuerySelect, RelationTrait,
@@ -22,10 +19,15 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get_team))
-        .route("/", axum::routing::post(create_team))
         .route("/register", axum::routing::post(team_register))
-        .nest("/{team_id}", team_id::router())
+        .nest(
+            "/profile",
+            profile::router(),
+        )
+        .nest(
+            "/{team_id}",
+            team_id::router(),
+        )
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -43,7 +45,7 @@ pub struct GetTeamRequest {
     /// ```sql
     /// SELECT *
     /// FROM "teams"
-    ///     INNER JOIN "team_users" ON "teams"."id" = "team_users"."team_id"
+    ///     INNER JOIN "team_users" ON "teams"."id" = "team_users"."profile"
     /// WHERE "team_users"."game_id" = ? AND "team_users"."user_id" = ?;
     /// ```
     pub user_id: Option<i64>,
@@ -126,53 +128,6 @@ pub async fn get_team(
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateTeamRequest {
-    pub name: String,
-    pub email: Option<String>,
-    pub slogan: Option<String>,
-    pub description: Option<String>,
-}
-
-/// Add a team to a game with given path and data.
-///
-/// # Prerequisite
-/// - Operator is admin.
-pub async fn create_team(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Json(body): Json<CreateTeamRequest>,
-) -> Result<WebResponse<Team>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let game = cds_db::entity::game::Entity::find_by_id(game_id)
-        .one(get_db())
-        .await?
-        .map(|game| cds_db::transfer::Game::from(game))
-        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
-
-    let team = cds_db::entity::team::ActiveModel {
-        name: Set(body.name),
-        email: Set(body.email),
-        slogan: Set(body.slogan),
-        description: Set(body.description),
-        game_id: Set(game.id),
-        state: Set(State::Preparing),
-        ..Default::default()
-    }
-    .insert(get_db())
-    .await?;
-    let team = cds_db::transfer::Team::from(team);
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(team),
-        ..Default::default()
-    })
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct TeamRegisterRequest {
     pub name: String,
     pub email: Option<String>,
     pub slogan: Option<String>,

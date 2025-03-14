@@ -3,14 +3,10 @@ mod challenge_id;
 use std::{collections::HashMap, str::FromStr};
 
 use axum::{Router, http::StatusCode, response::IntoResponse};
-use cds_db::{
-    entity::{submission::Status, user::Group},
-    get_db,
-    transfer::Challenge,
-};
+use cds_db::{entity::submission::Status, get_db, transfer::Challenge};
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden, IdenStatic,
-    Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, sea_query::Expr,
+    ActiveModelTrait, ColumnTrait, EntityName, EntityTrait, Iden, IdenStatic, Order,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, sea_query::Expr,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -23,8 +19,7 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get_challenge))
-        .route("/", axum::routing::post(create_challenge))
+        .route("/playground", axum::routing::get(get_challenge))
         .route("/status", axum::routing::post(get_challenge_status))
         .nest("/{challenge_id}", challenge_id::router())
 }
@@ -35,27 +30,16 @@ pub struct GetChallengeRequest {
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tags: Option<String>,
-    pub is_public: Option<bool>,
     pub is_dynamic: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
-
-    /// Whether the expected challenges are desensitized.
-    /// If you are not an admin, this must be true,
-    /// or you will be forbidden.
-    pub is_desensitized: Option<bool>,
 }
 
 pub async fn get_challenge(
     Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<Challenge>>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let is_desensitized = params.is_desensitized.unwrap_or(true);
-
-    if operator.group != Group::Admin && (!is_desensitized || !params.is_public.unwrap_or(false)) {
-        return Err(WebError::Forbidden(json!("")));
-    }
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let mut sql = cds_db::entity::challenge::Entity::find();
 
@@ -88,9 +72,7 @@ pub async fn get_challenge(
         ))
     }
 
-    if let Some(is_public) = params.is_public {
-        sql = sql.filter(cds_db::entity::challenge::Column::IsPublic.eq(is_public));
-    }
+    sql = sql.filter(cds_db::entity::challenge::Column::IsPublic.eq(true));
 
     if let Some(is_dynamic) = params.is_dynamic {
         sql = sql.filter(cds_db::entity::challenge::Column::IsDynamic.eq(is_dynamic));
@@ -125,17 +107,14 @@ pub async fn get_challenge(
         .all(get_db())
         .await?
         .into_iter()
-        .map(Challenge::from)
+        .map(|challenge| Challenge::from(challenge))
         .collect::<Vec<Challenge>>();
 
-    if is_desensitized {
-        for challenge in challenges.iter_mut() {
-            *challenge = challenge.desensitize();
-        }
+    for challenge in challenges.iter_mut() {
+        *challenge = challenge.desensitize();
     }
 
     Ok(WebResponse {
-        code: StatusCode::OK,
         data: Some(challenges),
         total: Some(total),
         ..Default::default()
@@ -230,51 +209,6 @@ pub async fn get_challenge_status(
     Ok(WebResponse {
         code: StatusCode::OK,
         data: Some(result),
-        ..Default::default()
-    })
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CreateChallengeRequest {
-    pub title: String,
-    pub description: String,
-    pub category: i32,
-    pub tags: Option<Vec<String>>,
-    pub is_public: Option<bool>,
-    pub is_dynamic: Option<bool>,
-    pub has_attachment: Option<bool>,
-    pub image_name: Option<String>,
-    pub env: Option<cds_db::entity::challenge::Env>,
-    pub checker: Option<String>,
-}
-
-pub async fn create_challenge(
-    Extension(ext): Extension<Ext>, Json(body): Json<CreateChallengeRequest>,
-) -> Result<WebResponse<Challenge>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let challenge = cds_db::entity::challenge::ActiveModel {
-        title: Set(body.title),
-        description: Set(body.description),
-        category: Set(body.category),
-        tags: Set(body.tags.unwrap_or(vec![])),
-        is_public: Set(body.is_public.unwrap_or(false)),
-        is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
-        has_attachment: Set(body.has_attachment.unwrap_or(false)),
-        env: Set(body.env),
-        checker: Set(body.checker),
-        ..Default::default()
-    }
-    .insert(get_db())
-    .await?;
-    let challenge = cds_db::transfer::Challenge::from(challenge);
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(challenge),
         ..Default::default()
     })
 }
