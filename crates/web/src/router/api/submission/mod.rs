@@ -1,8 +1,6 @@
-pub mod checker;
-
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::{submission::Status, team::State, user::Group},
+    entity::{submission::Status, team::State},
     get_db,
     transfer::Submission,
 };
@@ -14,17 +12,14 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Json, Path, Query},
+    extract::{Extension, Json, Query},
     traits::{Ext, WebError, WebResponse},
 };
 
-pub async fn router() -> Router {
-    checker::init().await;
-
+pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_submission))
         .route("/", axum::routing::post(create_submission))
-        .route("/{submission_id}", axum::routing::delete(delete_submission))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -37,22 +32,12 @@ pub struct GetSubmissionRequest {
     pub status: Option<Status>,
     pub page: Option<u64>,
     pub size: Option<u64>,
-
-    /// Whether the expected submissions are desensitized.
-    /// If you are not an admin, this must be true,
-    /// or you will be forbidden.
-    pub is_desensitized: Option<bool>,
 }
 
 pub async fn get_submission(
     Extension(ext): Extension<Ext>, Query(params): Query<GetSubmissionRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let is_desensitized = params.is_desensitized.unwrap_or(true);
-
-    if operator.group != Group::Admin && !is_desensitized {
-        return Err(WebError::Forbidden(json!("")));
-    }
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let mut sql = cds_db::entity::submission::Entity::find();
 
@@ -95,10 +80,8 @@ pub async fn get_submission(
 
     submissions = cds_db::transfer::submission::preload(submissions).await?;
 
-    if is_desensitized {
-        for submission in submissions.iter_mut() {
-            *submission = submission.desensitize();
-        }
+    for submission in submissions.iter_mut() {
+        *submission = submission.desensitize();
     }
 
     Ok(WebResponse {
@@ -185,24 +168,6 @@ pub async fn create_submission(
     Ok(WebResponse {
         code: StatusCode::OK,
         data: Some(submission),
-        ..Default::default()
-    })
-}
-
-pub async fn delete_submission(
-    Extension(ext): Extension<Ext>, Path(submission_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let _ = cds_db::entity::submission::Entity::delete_by_id(submission_id)
-        .exec(get_db())
-        .await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
         ..Default::default()
     })
 }

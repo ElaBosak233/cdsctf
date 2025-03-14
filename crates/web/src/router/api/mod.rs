@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod challenge;
 pub mod config;
 pub mod env;
@@ -18,9 +19,15 @@ pub async fn router() -> Router {
         .nest("/media", media::router())
         .nest("/users", user::router())
         .nest("/challenges", challenge::router())
-        .nest("/games", game::router().await)
-        .nest("/envs", env::router().await)
-        .nest("/submissions", submission::router().await)
+        .nest("/games", game::router())
+        .nest("/envs", env::router())
+        .nest("/submissions", submission::router())
+        .nest(
+            "/admin",
+            admin::router().route_layer(axum::middleware::from_fn(
+                crate::middleware::auth::admin_only,
+            )),
+        )
 }
 
 pub async fn index() -> impl IntoResponse {

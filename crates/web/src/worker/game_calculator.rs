@@ -138,14 +138,14 @@ pub async fn init() {
             let calculator_payload = serde_json::from_str::<Payload>(&payload).unwrap();
 
             if let Some(game_id) = calculator_payload.game_id {
-                calculate(game_id).await;
+                crate::worker::game_calculator::calculate(game_id).await;
             } else {
                 let games = cds_db::entity::game::Entity::find()
                     .all(get_db())
                     .await
                     .unwrap();
                 for game in games {
-                    calculate(game.id).await;
+                    crate::worker::game_calculator::calculate(game.id).await;
                 }
             }
 

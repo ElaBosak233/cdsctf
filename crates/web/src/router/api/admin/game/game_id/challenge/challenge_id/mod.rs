@@ -47,15 +47,7 @@ pub async fn update_game_challenge(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let game_challenge = cds_db::entity::game_challenge::Entity::find()
-        .filter(
-            Condition::all()
-                .add(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
-                .add(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id)),
-        )
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("game_challenge_not_found")))?;
+    let game_challenge = crate::util::loader::prepare_game_challenge(game_id, challenge_id).await?;
 
     let game_challenge = cds_db::entity::game_challenge::ActiveModel {
         game_id: Unchanged(game_challenge.game_id),
@@ -72,12 +64,9 @@ pub async fn update_game_challenge(
     .await?;
     let game_challenge = cds_db::transfer::GameChallenge::from(game_challenge);
 
-    cds_queue::publish(
-        "calculator",
-        crate::router::api::game::calculator::Payload {
-            game_id: Some(game_challenge.game_id),
-        },
-    )
+    cds_queue::publish("calculator", crate::worker::game_calculator::Payload {
+        game_id: Some(game_challenge.game_id),
+    })
     .await?;
 
     Ok(WebResponse {
@@ -95,15 +84,7 @@ pub async fn delete_game_challenge(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let game_challenge = cds_db::entity::game_challenge::Entity::find()
-        .filter(
-            Condition::all()
-                .add(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
-                .add(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id)),
-        )
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("game_challenge_not_found")))?;
+    let game_challenge = crate::util::loader::prepare_game_challenge(game_id, challenge_id).await?;
 
     let _ = cds_db::entity::game_challenge::Entity::delete_many()
         .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_challenge.game_id))

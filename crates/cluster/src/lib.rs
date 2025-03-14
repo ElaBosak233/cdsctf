@@ -239,7 +239,7 @@ pub async fn create_challenge_env(
             ("cds/env_id".to_owned(), id.to_string()),
             ("cds/user_id".to_owned(), format!("{}", user.id)),
             (
-                "cds/team_id".to_owned(),
+                "cds/profile".to_owned(),
                 format!("{}", match &team {
                     Some(team) => team.id,
                     _ => 0,

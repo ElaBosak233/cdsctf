@@ -1,3 +1,5 @@
+mod avatar;
+
 use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
     password_hash::{SaltString, rand_core::OsRng},
@@ -27,6 +29,7 @@ pub fn router() -> Router {
             "/password",
             axum::routing::put(update_user_profile_password),
         )
+        .nest("/avatar", avatar::router())
 }
 
 pub async fn get_user_profile(
