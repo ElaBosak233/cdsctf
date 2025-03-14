@@ -4,6 +4,7 @@ pub mod model;
 pub mod router;
 pub mod traits;
 pub mod util;
+mod worker;
 
 use std::{sync::Arc, time::Duration};
 
@@ -48,6 +49,8 @@ pub async fn init() -> Result<(), anyhow::Error> {
 
     APP.set(router)
         .map_err(|_| anyhow::anyhow!("Failed to set router into OnceCell"))?;
+
+    worker::init().await?;
 
     Ok(())
 }

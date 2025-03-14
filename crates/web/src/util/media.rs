@@ -26,7 +26,6 @@ pub async fn get_img(path: String) -> Result<impl IntoResponse, WebError> {
 pub async fn get_img_metadata(path: String) -> Result<WebResponse<Metadata>, WebError> {
     match cds_media::scan_dir(path.clone()).await?.first() {
         Some((filename, size)) => Ok(WebResponse {
-            code: StatusCode::OK,
             data: Some(Metadata {
                 filename: filename.to_string(),
                 size: *size,

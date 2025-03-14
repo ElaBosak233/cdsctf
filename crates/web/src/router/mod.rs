@@ -28,7 +28,7 @@ pub async fn router() -> Router {
                         debug!("[{}] in {}ms", response.status(), latency.as_millis());
                     }),
             )
-            .layer(from_fn(middleware::auth))
+            .layer(from_fn(middleware::auth::extract))
             .layer(from_fn(middleware::network::ip_record)),
     )
 }

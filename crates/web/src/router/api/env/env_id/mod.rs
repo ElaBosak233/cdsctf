@@ -1,5 +1,3 @@
-mod container;
-
 use axum::{Router, extract::WebSocketUpgrade, http::StatusCode, response::IntoResponse};
 use cds_db::{entity::user::Group, get_db};
 use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
@@ -18,7 +16,6 @@ pub fn router() -> Router {
         .route("/renew", axum::routing::post(renew_pod))
         .route("/stop", axum::routing::post(stop_pod))
         .route("/wsrx", axum::routing::get(wsrx))
-        .nest("/containers", container::router())
 }
 
 pub async fn renew_pod(
@@ -34,7 +31,7 @@ pub async fn renew_pod(
         .map(|s| s.to_string())
         .unwrap_or_default();
     let team_id = labels
-        .get("cds/team_id")
+        .get("cds/profile")
         .map(|s| s.to_string())
         .unwrap_or_default()
         .parse::<i64>()
@@ -101,7 +98,7 @@ pub async fn stop_pod(
         .map(|s| s.to_string())
         .unwrap_or_default();
     let team_id = labels
-        .get("cds/team_id")
+        .get("cds/profile")
         .map(|s| s.to_string())
         .unwrap_or_default()
         .parse::<i64>()

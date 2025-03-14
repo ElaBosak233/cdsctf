@@ -34,7 +34,10 @@ pub fn router() -> Router {
         .route("/login", axum::routing::post(user_login))
         .route("/register", axum::routing::post(user_register))
         .route("/logout", axum::routing::post(user_logout))
-        .nest("/{user_id}", user_id::router())
+        .nest(
+            "/{user_id}",
+            user_id::router(),
+        )
         .nest("/profile", profile::router())
 }
 

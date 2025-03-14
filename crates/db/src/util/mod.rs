@@ -22,7 +22,7 @@ pub async fn is_user_in_team(user_id: i64, team_id: i64) -> Result<bool, DbErr> 
 /// ```sql
 ///  SELECT u.id AS user_id, t.game_id, t.is_allowed
 ///  FROM teams t
-///     JOIN team_users tu ON t.id = tu.team_id
+///     JOIN team_users tu ON t.id = tu.profile
 ///  WHERE u.id = ? AND t.game_id = ? AND t.is_allowed = true;
 /// ```
 pub async fn is_user_in_game(
