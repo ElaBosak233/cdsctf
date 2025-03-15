@@ -24,26 +24,14 @@ pub fn router() -> Router {
 }
 
 pub async fn save_game_icon(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, multipart: Multipart,
+    Path(game_id): Path<i64>, multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     let path = format!("games/{}/icon", game_id);
 
     util::media::save_img(path, multipart).await
 }
 
-pub async fn delete_game_icon(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
+pub async fn delete_game_icon(Path(game_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
     let path = format!("games/{}/icon", game_id);
 
     util::media::delete_img(path).await
