@@ -34,7 +34,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_team(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(game_id, operator.id).await?;

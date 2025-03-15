@@ -20,14 +20,8 @@ use crate::{
 pub fn router() -> Router {
     Router::new()
         .route("/register", axum::routing::post(team_register))
-        .nest(
-            "/profile",
-            profile::router(),
-        )
-        .nest(
-            "/{team_id}",
-            team_id::router(),
-        )
+        .nest("/profile", profile::router())
+        .nest("/{team_id}", team_id::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

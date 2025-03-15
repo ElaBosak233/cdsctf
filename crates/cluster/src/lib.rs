@@ -10,14 +10,15 @@ use futures_util::{
     SinkExt, StreamExt, TryStreamExt,
     stream::{SplitSink, SplitStream},
 };
+pub use k8s_openapi;
 use k8s_openapi::{
     api::core::v1::{
         Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec,
         ResourceRequirements, Service, ServicePort, ServiceSpec,
     },
     apimachinery::pkg::{api::resource::Quantity, apis::meta::v1::ObjectMeta},
-    serde_json::json,
 };
+pub use kube;
 use kube::{
     Client as K8sClient, Config as K8sConfig, ResourceExt,
     api::{Api, AttachParams, DeleteParams, ListParams, Patch, PatchParams, PostParams},
@@ -27,6 +28,7 @@ use kube::{
 use nanoid::nanoid;
 use once_cell::sync::OnceCell;
 use regex::Regex;
+use serde_json::json;
 use tokio::io::{
     AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader,
     stdin, stdout,
@@ -239,7 +241,7 @@ pub async fn create_challenge_env(
             ("cds/env_id".to_owned(), id.to_string()),
             ("cds/user_id".to_owned(), format!("{}", user.id)),
             (
-                "cds/profile".to_owned(),
+                "cds/team_id".to_owned(),
                 format!("{}", match &team {
                     Some(team) => team.id,
                     _ => 0,

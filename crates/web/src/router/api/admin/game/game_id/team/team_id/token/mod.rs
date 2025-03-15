@@ -4,10 +4,9 @@ use nanoid::nanoid;
 use sea_orm::{ActiveModelTrait, EntityTrait};
 
 use crate::{
-    extract::Extension,
+    extract::{Extension, Path},
     traits::{WebError, WebResponse},
 };
-use crate::extract::Path;
 
 pub fn router() -> Router {
     Router::new()
@@ -32,7 +31,9 @@ pub async fn create_token(
 }
 
 /// Get invitation token.
-pub async fn get_token(Path((game_id, team_id)): Path<(i64, i64)>) -> Result<WebResponse<String>, WebError> {
+pub async fn get_token(
+    Path((game_id, team_id)): Path<(i64, i64)>,
+) -> Result<WebResponse<String>, WebError> {
     let team = crate::util::loader::prepare_team(game_id, team_id).await?;
     let token = cds_cache::get::<String>(format!("team:{}:invite", team.id)).await?;
 
@@ -44,7 +45,7 @@ pub async fn get_token(Path((game_id, team_id)): Path<(i64, i64)>) -> Result<Web
 
 /// Delete invitation token.
 pub async fn delete_token(
-    Path((game_id, team_id)): Path<(i64, i64)>
+    Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<String>, WebError> {
     let team = crate::util::loader::prepare_team(game_id, team_id).await?;
     let token = cds_cache::get_del::<String>(format!("team:{}:invite", team.id)).await?;
