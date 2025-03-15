@@ -24,10 +24,7 @@ use crate::{
 pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::post(create_user))
-        .nest(
-            "/{user_id}",
-            user_id::router(),
-        )
+        .nest("/{user_id}", user_id::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]

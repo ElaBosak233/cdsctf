@@ -11,10 +11,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Json},
+    extract::{Extension, Json, Path},
     traits::{Ext, WebError, WebResponse},
 };
-use crate::extract::Path;
 
 pub fn router() -> Router {
     Router::new()
@@ -29,8 +28,8 @@ pub struct JoinTeamRequest {
 }
 
 pub async fn join_team(
-    Extension(ext): Extension<Ext>,
-    Path((game_id, team_id)): Path<(i64, i64)>, Json(body): Json<JoinTeamRequest>,
+    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
+    Json(body): Json<JoinTeamRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let game = crate::util::loader::prepare_game(game_id).await?;

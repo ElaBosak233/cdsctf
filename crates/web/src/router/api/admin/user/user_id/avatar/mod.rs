@@ -5,11 +5,10 @@ use axum::{
 use cds_db::transfer::User;
 
 use crate::{
-    extract::Extension,
+    extract::{Extension, Path},
     traits::{WebError, WebResponse},
     util,
 };
-use crate::extract::Path;
 
 pub fn router() -> Router {
     Router::new()

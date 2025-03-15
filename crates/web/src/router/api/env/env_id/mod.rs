@@ -31,7 +31,7 @@ pub async fn renew_pod(
         .map(|s| s.to_string())
         .unwrap_or_default();
     let team_id = labels
-        .get("cds/profile")
+        .get("cds/team_id")
         .map(|s| s.to_string())
         .unwrap_or_default()
         .parse::<i64>()
@@ -98,7 +98,7 @@ pub async fn stop_pod(
         .map(|s| s.to_string())
         .unwrap_or_default();
     let team_id = labels
-        .get("cds/profile")
+        .get("cds/team_id")
         .map(|s| s.to_string())
         .unwrap_or_default()
         .parse::<i64>()
@@ -131,12 +131,12 @@ pub struct WsrxRequest {
 }
 
 pub async fn wsrx(
-    Path(pod_id): Path<String>, Query(query): Query<WsrxRequest>, ws: WebSocketUpgrade,
+    Path(env_id): Path<String>, Query(query): Query<WsrxRequest>, ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
     let port = query.port;
 
     Ok(ws.on_upgrade(move |socket| async move {
-        let result = cds_cluster::wsrx(&pod_id, port as u16, socket).await;
+        let result = cds_cluster::wsrx(&env_id, port as u16, socket).await;
         if let Err(e) = result {
             debug!("Failed to link pods: {:?}", e);
         }

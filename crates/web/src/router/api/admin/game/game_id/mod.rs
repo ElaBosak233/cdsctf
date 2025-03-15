@@ -4,20 +4,19 @@ mod notice;
 mod poster;
 mod team;
 
-use axum::{Router, http::StatusCode};
-use cds_db::{entity::user::Group, get_db, transfer::Game};
+use axum::{http::StatusCode, Router};
+use cds_db::{get_db, transfer::Game};
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{Set, Unchanged},
     ColumnTrait, EntityTrait, NotSet, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Path, VJson},
-    traits::{Ext, WebError, WebResponse},
+    extract::{Path, VJson},
+    traits::{WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -45,13 +44,12 @@ pub struct UpdateGameRequest {
     pub is_need_write_up: Option<bool>,
     pub timeslots: Option<Vec<cds_db::entity::game::Timeslot>>,
     pub started_at: Option<i64>,
-    pub ended_at: Option<i64>,
     pub frozen_at: Option<i64>,
+    pub ended_at: Option<i64>,
 }
 
 pub async fn update_game(
-    Path(game_id): Path<i64>,
-    VJson(mut body): VJson<UpdateGameRequest>,
+    Path(game_id): Path<i64>, VJson(mut body): VJson<UpdateGameRequest>,
 ) -> Result<WebResponse<Game>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 
@@ -69,8 +67,8 @@ pub async fn update_game(
 
         timeslots: body.timeslots.map_or(NotSet, Set),
         started_at: body.started_at.map_or(NotSet, Set),
-        ended_at: body.ended_at.map_or(NotSet, Set),
         frozen_at: body.frozen_at.map_or(NotSet, Set),
+        ended_at: body.ended_at.map_or(NotSet, Set),
         ..Default::default()
     }
     .update(get_db())
@@ -84,9 +82,7 @@ pub async fn update_game(
     })
 }
 
-pub async fn delete_game(
-    Path(game_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
+pub async fn delete_game(Path(game_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 
     let _ = cds_db::entity::game::Entity::delete_by_id(game.id)
@@ -100,7 +96,7 @@ pub async fn delete_game(
 }
 
 pub async fn calculate_game(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 

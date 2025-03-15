@@ -19,10 +19,7 @@ pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_game_challenge))
         .route("/", axum::routing::post(create_game_challenge))
-        .nest(
-            "/{challenge_id}",
-            challenge_id::router(),
-        )
+        .nest("/{challenge_id}", challenge_id::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

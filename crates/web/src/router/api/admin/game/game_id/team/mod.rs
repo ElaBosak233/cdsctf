@@ -24,10 +24,7 @@ pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_team))
         .route("/", axum::routing::post(create_team))
-        .nest(
-            "/{team_id}",
-            team_id::router(),
-        )
+        .nest("/{team_id}", team_id::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

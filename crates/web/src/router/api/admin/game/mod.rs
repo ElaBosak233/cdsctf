@@ -22,10 +22,7 @@ pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_game))
         .route("/", axum::routing::post(create_game))
-        .nest(
-            "/{game_id}",
-            game_id::router(),
-        )
+        .nest("/{game_id}", game_id::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

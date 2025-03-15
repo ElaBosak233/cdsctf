@@ -1,13 +1,12 @@
-use crate::extract::Path;
-use crate::traits::Ext;
-use crate::{
-    extract::Extension,
-    traits::{WebError, WebResponse},
-};
 use axum::Router;
 use nanoid::nanoid;
 use sea_orm::{ActiveModelTrait, EntityTrait};
 use serde_json::json;
+
+use crate::{
+    extract::{Extension, Path},
+    traits::{Ext, WebError, WebResponse},
+};
 
 pub fn router() -> Router {
     Router::new()
@@ -18,8 +17,7 @@ pub fn router() -> Router {
 
 /// Create an invitation token.
 pub async fn create_token(
-    Extension(ext): Extension<Ext>,
-    Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(game_id, operator.id).await?;
@@ -35,8 +33,7 @@ pub async fn create_token(
 
 /// Get invitation token.
 pub async fn get_token(
-    Extension(ext): Extension<Ext>,
-    Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(game_id, operator.id).await?;
@@ -50,8 +47,7 @@ pub async fn get_token(
 
 /// Delete invitation token.
 pub async fn delete_token(
-    Extension(ext): Extension<Ext>,
-    Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(game_id, operator.id).await?;

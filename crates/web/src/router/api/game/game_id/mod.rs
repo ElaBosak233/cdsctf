@@ -4,7 +4,7 @@ mod notice;
 mod poster;
 mod team;
 
-use axum::{http::StatusCode, Router};
+use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::submission::Status,
     get_db,
@@ -17,9 +17,8 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::extract::Path;
 use crate::{
-    extract::Query,
+    extract::{Path, Query},
     traits::{WebError, WebResponse},
 };
 

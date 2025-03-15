@@ -14,10 +14,9 @@ use serde_json::json;
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, VJson},
+    extract::{Extension, Path, VJson},
     traits::{WebError, WebResponse},
 };
-use crate::extract::Path;
 
 mod avatar;
 
