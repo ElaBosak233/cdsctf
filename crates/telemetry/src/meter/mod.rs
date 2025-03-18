@@ -1,4 +1,5 @@
 mod system;
+pub mod web;
 
 use std::{borrow::Cow, time::Duration};
 
@@ -40,6 +41,10 @@ pub fn init() -> Result<(), anyhow::Error> {
 
     system::init_cpu_usage_observable_gauge();
     system::init_ram_usage_observable_gauge();
+
+    web::init_active_requests();
+    web::init_request_bytes();
+    web::init_response_bytes();
 
     Ok(())
 }

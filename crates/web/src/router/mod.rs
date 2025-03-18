@@ -29,6 +29,7 @@ pub async fn router() -> Router {
                     }),
             )
             .layer(from_fn(middleware::auth::extract))
-            .layer(from_fn(middleware::network::ip_record)),
+            .layer(from_fn(middleware::network::ip_record))
+            .layer(from_fn(middleware::telemetry::track_metrics)),
     )
 }
