@@ -2,15 +2,16 @@ FROM rust:latest AS builder
 
 WORKDIR /app
 
-RUN rustup install nightly && rustup default nightly
+RUN rustup install nightly && \
+    rustup default nightly && \
+    rustup target add x86_64-unknown-linux-musl
+
+RUN apt update && \
+    apt install -y musl-tools musl-dev clang pkg-config lld
 
 COPY . .
 
 RUN cargo fetch
-
-RUN rustup target add x86_64-unknown-linux-musl
-
-RUN apt update && apt install -y musl-tools musl-dev clang pkg-config lld
 
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
