@@ -33,5 +33,5 @@ anyhow = { workspace = true }
 chrono = { workspace = true }
 
 [[bin]]
-name = "cdsctf"
+name = "cds-server"
 path = "src/main.rs"
