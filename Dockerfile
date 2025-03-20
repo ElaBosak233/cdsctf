@@ -12,13 +12,14 @@ RUN apt update && \
 COPY . .
 
 RUN --mount=type=cache,target=/app/target cargo fetch && \
-    cargo build --release --bin cds-server --target x86_64-unknown-linux-musl
+    cargo build --release --bin cds-server --target x86_64-unknown-linux-musl && \
+    cp /app/target/x86_64-unknown-linux-musl/release/cds-server /usr/local/bin/cds-server
 
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/cds-server .
+COPY --from=builder /usr/local/bin/cds-server ./cds-server
 
 EXPOSE 8888
 
