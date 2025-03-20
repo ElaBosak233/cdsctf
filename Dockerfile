@@ -18,7 +18,7 @@ FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/cdsctf .
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/cds-server .
 
 EXPOSE 8888
 
