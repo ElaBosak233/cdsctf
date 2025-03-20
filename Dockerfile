@@ -11,9 +11,8 @@ RUN apt update && \
 
 COPY . .
 
-RUN cargo fetch
-
-RUN cargo build --release --target x86_64-unknown-linux-musl
+RUN --mount=type=cache,target=/app/target cargo fetch && \
+    cargo build --release --bin cds-server --target x86_64-unknown-linux-musl
 
 FROM alpine:latest
 
@@ -23,4 +22,4 @@ COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/cdsctf .
 
 EXPOSE 8888
 
-CMD ["./cdsctf"]
+CMD ["./cds-server"]
