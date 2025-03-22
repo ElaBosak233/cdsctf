@@ -34,6 +34,7 @@ pub struct Model {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
 pub struct Env {
     pub duration: i64,
+    pub internet: bool,
     pub containers: Vec<Container>,
 }
 

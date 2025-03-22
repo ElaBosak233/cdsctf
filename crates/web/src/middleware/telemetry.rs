@@ -1,8 +1,8 @@
-use axum::body::{Body, HttpBody};
-use axum::response::Response;
 use axum::{
+    body::{Body, HttpBody},
     http::Request,
     middleware::Next,
+    response::Response,
 };
 use cds_telemetry::meter::web::{get_active_requests, get_request_bytes, get_response_bytes};
 
