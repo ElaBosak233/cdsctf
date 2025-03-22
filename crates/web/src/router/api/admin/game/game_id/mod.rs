@@ -4,7 +4,7 @@ mod notice;
 mod poster;
 mod team;
 
-use axum::{http::StatusCode, Router};
+use axum::{Router, http::StatusCode};
 use cds_db::{get_db, transfer::Game};
 use sea_orm::{
     ActiveModelTrait,
@@ -95,9 +95,7 @@ pub async fn delete_game(Path(game_id): Path<i64>) -> Result<WebResponse<()>, We
     })
 }
 
-pub async fn calculate_game(
-    Path(game_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
+pub async fn calculate_game(Path(game_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 
     cds_queue::publish("calculator", crate::worker::game_calculator::Payload {
