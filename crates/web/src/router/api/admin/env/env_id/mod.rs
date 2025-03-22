@@ -20,9 +20,7 @@ pub fn router() -> Router {
         .nest("/containers", container::router())
 }
 
-pub async fn renew_pod(
-    Path(pod_id): Path<String>,
-) -> Result<WebResponse<()>, WebError> {
+pub async fn renew_pod(Path(pod_id): Path<String>) -> Result<WebResponse<()>, WebError> {
     let pod = cds_cluster::get_pod(&pod_id).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
@@ -39,9 +37,7 @@ pub async fn renew_pod(
     })
 }
 
-pub async fn stop_pod(
-    Path(pod_id): Path<String>,
-) -> Result<WebResponse<()>, WebError> {
+pub async fn stop_pod(Path(pod_id): Path<String>) -> Result<WebResponse<()>, WebError> {
     let pod = cds_cluster::get_pod(&pod_id).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();

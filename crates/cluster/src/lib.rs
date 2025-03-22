@@ -12,11 +12,17 @@ use futures_util::{
 };
 pub use k8s_openapi;
 use k8s_openapi::{
-    api::core::v1::{
-        Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec,
-        ResourceRequirements, Service, ServicePort, ServiceSpec,
+    api::{
+        core::v1::{
+            Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec,
+            ResourceRequirements, SecurityContext, Service, ServicePort, ServiceSpec,
+        },
+        networking::v1::{NetworkPolicy, NetworkPolicySpec},
     },
-    apimachinery::pkg::{api::resource::Quantity, apis::meta::v1::ObjectMeta},
+    apimachinery::pkg::{
+        api::resource::Quantity,
+        apis::meta::v1::{LabelSelector, ObjectMeta},
+    },
 };
 pub use kube;
 use kube::{
@@ -67,7 +73,7 @@ pub async fn init() -> Result<(), ClusterError> {
     let _ = K8S_CLIENT.set(client);
     info!("Kubernetes client initialized successfully.");
 
-    let namespace_api: Api<Namespace> = Api::all(get_k8s_client().clone());
+    let namespace_api: Api<Namespace> = Api::all(get_k8s_client());
     let namespaces = namespace_api.list(&ListParams::default()).await?;
     if !namespaces.items.iter().any(|namespace| {
         namespace.metadata.name == Some(cds_config::get_constant().cluster.namespace.to_owned())
@@ -83,6 +89,39 @@ pub async fn init() -> Result<(), ClusterError> {
             .create(&PostParams::default(), &namespace)
             .await;
         info!("Namespace is created successfully.");
+    }
+
+    let network_policy_api: Api<NetworkPolicy> = Api::namespaced(
+        get_k8s_client(),
+        cds_config::get_constant().cluster.namespace.as_str(),
+    );
+    if network_policy_api
+        .get("cds-internet-restricted")
+        .await
+        .is_err()
+    {
+        let network_policy = NetworkPolicy {
+            metadata: ObjectMeta {
+                name: Some("cds-internet-restricted".to_owned()),
+                namespace: Some(cds_config::get_constant().cluster.namespace.to_owned()),
+                ..Default::default()
+            },
+            spec: Some(NetworkPolicySpec {
+                pod_selector: LabelSelector {
+                    match_labels: Some(BTreeMap::from([(
+                        "cds/internet".to_owned(),
+                        "false".to_owned(),
+                    )])),
+                    ..Default::default()
+                },
+                policy_types: Some(vec!["Egress".to_owned()]),
+                ..Default::default()
+            }),
+        };
+        network_policy_api
+            .create(&PostParams::default(), &network_policy)
+            .await?;
+        info!("Network policy is created successfully.");
     }
 
     worker::cleaner().await;
@@ -239,6 +278,7 @@ pub async fn create_challenge_env(
         labels: Some(BTreeMap::from([
             ("cds/app".to_owned(), "challenges".to_owned()),
             ("cds/env_id".to_owned(), id.to_string()),
+            ("cds/internet".to_owned(), format!("{}", env.internet)),
             ("cds/user_id".to_owned(), format!("{}", user.id)),
             (
                 "cds/team_id".to_owned(),
