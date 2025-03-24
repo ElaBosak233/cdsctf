@@ -24,7 +24,7 @@ COPY ./web .
 RUN npm install && \
     npm run build && \
     mkdir -p /var/www/html && \
-    cp /app/dist /var/www/html -r
+    cp /app/dist/. /var/www/html -r
 
 FROM alpine:latest
 
