@@ -1,4 +1,4 @@
-FROM rust:latest AS builder
+FROM rust:latest AS backend
 
 WORKDIR /app
 
@@ -11,15 +11,27 @@ RUN apt update && \
 
 COPY . .
 
-RUN --mount=type=cache,target=/app/target cargo fetch && \
+RUN cargo fetch && \
     cargo build --release --bin cds-server --target x86_64-unknown-linux-musl && \
     cp /app/target/x86_64-unknown-linux-musl/release/cds-server /usr/local/bin/cds-server
+
+FROM node:22 AS frontend
+
+WORKDIR /app
+
+COPY ./web .
+
+RUN npm install && \
+    npm run build && \
+    mkdir -p /var/www/html && \
+    cp /app/dist /var/www/html -r
 
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /usr/local/bin/cds-server ./cds-server
+COPY --from=backend /usr/local/bin/cds-server ./cds-server
+COPY --from=frontend /var/www/html ./dist
 
 EXPOSE 8888
 

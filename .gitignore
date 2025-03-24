@@ -5,12 +5,10 @@ target
 
 *.lock
 
-# CdsCTF
-/db
-/media
-/caputres
-/logs
 /dist
-/queue
-/cache
+
+/web/*
+!/web/.gitkeep
+
+# CdsCTF
 /data
