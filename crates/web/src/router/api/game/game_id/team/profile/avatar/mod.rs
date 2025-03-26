@@ -1,19 +1,12 @@
 use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
-    response::IntoResponse,
 };
-use cds_db::{
-    entity::user::Group,
-    get_db,
-    transfer::{Game, Team},
-};
-use sea_orm::{ColumnTrait, EntityTrait};
+use cds_db::sea_orm::ColumnTrait;
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
-    model::Metadata,
     traits::{Ext, WebError, WebResponse},
     util,
 };

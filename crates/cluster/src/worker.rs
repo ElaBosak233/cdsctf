@@ -1,15 +1,8 @@
-use std::{str::FromStr, time};
+use std::time;
 
-use cds_db::get_db;
-use futures_util::{TryStreamExt, stream::StreamExt};
-use k8s_openapi::{apimachinery::pkg::apis::meta::v1::WatchEvent, chrono};
-use kube::{
-    Api,
-    runtime::{WatchStreamExt, watcher as k8sWatcher, watcher::Event},
-};
-use tracing::{info, warn};
-
-use crate::{get_k8s_client, traits::ClusterError};
+use futures_util::stream::StreamExt;
+use k8s_openapi::chrono;
+use tracing::info;
 
 pub async fn cleaner() {
     tokio::spawn(async {

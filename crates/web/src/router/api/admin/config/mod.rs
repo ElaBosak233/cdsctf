@@ -1,13 +1,11 @@
 mod logo;
 
-use axum::{Router, response::IntoResponse};
+use axum::Router;
 use cds_db::entity::user::Group;
-use sea_orm::ActiveModelTrait;
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Json, Query},
+    extract::{Extension, Json},
     traits::{Ext, WebError, WebResponse},
 };
 

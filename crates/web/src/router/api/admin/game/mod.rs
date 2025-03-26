@@ -2,13 +2,14 @@ mod game_id;
 
 use std::str::FromStr;
 
-use axum::{Router, http::StatusCode, response::IntoResponse};
-use cds_db::get_db;
-use sea_orm::{
-    ActiveModelTrait,
-    ActiveValue::{NotSet, Set},
-    ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
-    RelationTrait,
+use axum::{Router, http::StatusCode};
+use cds_db::{
+    get_db,
+    sea_orm::{
+        ActiveModelTrait,
+        ActiveValue::{NotSet, Set},
+        ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
+    },
 };
 use serde::{Deserialize, Serialize};
 use validator::Validate;

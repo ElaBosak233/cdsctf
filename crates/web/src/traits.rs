@@ -66,7 +66,7 @@ pub enum WebError {
     #[error("unprocessable entity: {0}")]
     UnprocessableEntity(serde_json::Value),
     #[error("db error: {0}")]
-    DatabaseError(#[from] sea_orm::DbErr),
+    DatabaseError(#[from] cds_db::sea_orm::DbErr),
     #[error("cache error: {0}")]
     CacheError(#[from] cds_cache::traits::CacheError),
     #[error("config error: {0}")]
@@ -95,7 +95,7 @@ impl IntoResponse for WebError {
             Self::TooManyRequests(msg) => (StatusCode::TOO_MANY_REQUESTS, msg.clone()),
             Self::UnprocessableEntity(msg) => (StatusCode::UNPROCESSABLE_ENTITY, msg.clone()),
             Self::DatabaseError(err) => match err {
-                sea_orm::DbErr::RecordNotFound(msg) => {
+                cds_db::sea_orm::DbErr::RecordNotFound(msg) => {
                     (StatusCode::NOT_FOUND, serde_json::json!(msg.clone()))
                 }
                 _ => (

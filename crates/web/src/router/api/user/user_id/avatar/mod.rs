@@ -1,14 +1,9 @@
-use axum::{
-    Router,
-    extract::{DefaultBodyLimit, Multipart},
-    response::IntoResponse,
-};
-use cds_db::entity::user::Group;
+use axum::{Router, response::IntoResponse};
 
 use crate::{
-    extract::{Extension, Path},
+    extract::Path,
     model::Metadata,
-    traits::{Ext, WebError, WebResponse},
+    traits::{WebError, WebResponse},
     util,
 };
 

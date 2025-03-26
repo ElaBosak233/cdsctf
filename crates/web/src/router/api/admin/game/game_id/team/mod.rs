@@ -6,11 +6,11 @@ use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::{team::State, user::Group},
     get_db,
+    sea_orm::{
+        ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, Order,
+        PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
+    },
     transfer::Team,
-};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, Order, PaginatorTrait,
-    QueryFilter, QueryOrder, QuerySelect, RelationTrait,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -108,10 +108,7 @@ pub async fn get_team(
     }
 
     let teams = sql.all(get_db()).await?;
-    let mut teams = teams
-        .into_iter()
-        .map(|team| Team::from(team))
-        .collect::<Vec<Team>>();
+    let mut teams = teams.into_iter().map(Team::from).collect::<Vec<Team>>();
 
     teams = cds_db::transfer::team::preload(teams).await?;
 
@@ -147,7 +144,7 @@ pub async fn create_team(
     let game = cds_db::entity::game::Entity::find_by_id(game_id)
         .one(get_db())
         .await?
-        .map(|game| cds_db::transfer::Game::from(game))
+        .map(cds_db::transfer::Game::from)
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
     let team = cds_db::entity::team::ActiveModel {

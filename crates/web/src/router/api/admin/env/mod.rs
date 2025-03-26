@@ -2,8 +2,8 @@ mod env_id;
 
 use std::collections::BTreeMap;
 
-use axum::{Router, response::IntoResponse};
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
+use axum::Router;
+use cds_db::sea_orm::{ActiveModelTrait, EntityTrait};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -61,10 +61,7 @@ pub async fn get_env(
 
     let pods = cds_cluster::get_pods_by_label(&labels).await?;
 
-    let pods = pods
-        .into_iter()
-        .map(|pod| Env::from(pod))
-        .collect::<Vec<Env>>();
+    let pods = pods.into_iter().map(Env::from).collect::<Vec<Env>>();
 
     Ok(WebResponse {
         data: Some(pods),

@@ -3,18 +3,22 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 use axum::{Router, http::StatusCode};
-use cds_db::{entity::user::Group, get_db, transfer::User};
-use sea_orm::{
-    ActiveModelTrait,
-    ActiveValue::{Set, Unchanged},
-    ColumnTrait, EntityTrait, NotSet, QueryFilter, QuerySelect, RelationTrait,
+use cds_db::{
+    entity::user::Group,
+    get_db,
+    sea_orm::{
+        ActiveModelTrait,
+        ActiveValue::{Set, Unchanged},
+        EntityTrait, NotSet,
+    },
+    transfer::User,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Path, VJson},
+    extract::{Path, VJson},
     traits::{WebError, WebResponse},
 };
 

@@ -5,11 +5,14 @@ mod poster;
 mod team;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{get_db, transfer::Game};
-use sea_orm::{
-    ActiveModelTrait,
-    ActiveValue::{Set, Unchanged},
-    ColumnTrait, EntityTrait, NotSet, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
+use cds_db::{
+    get_db,
+    sea_orm::{
+        ActiveModelTrait,
+        ActiveValue::{Set, Unchanged},
+        EntityTrait, NotSet,
+    },
+    transfer::Game,
 };
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -49,7 +52,7 @@ pub struct UpdateGameRequest {
 }
 
 pub async fn update_game(
-    Path(game_id): Path<i64>, VJson(mut body): VJson<UpdateGameRequest>,
+    Path(game_id): Path<i64>, VJson(body): VJson<UpdateGameRequest>,
 ) -> Result<WebResponse<Game>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 

@@ -6,6 +6,7 @@ use std::time::Duration;
 
 use anyhow::anyhow;
 use once_cell::sync::OnceCell;
+pub use sea_orm;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use tracing::info;
 
