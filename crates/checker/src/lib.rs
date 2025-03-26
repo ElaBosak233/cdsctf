@@ -3,14 +3,14 @@ pub mod traits;
 pub mod util;
 pub mod worker;
 
-use std::{collections::HashMap, ops::Deref, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::anyhow;
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use once_cell::sync::{Lazy, OnceCell};
 use rune::{
-    Any, Context, Diagnostics, Source, Sources, Unit, Value, Vm,
+    Context, Diagnostics, Source, Sources, Unit, Value, Vm,
     runtime::{Object, RuntimeContext},
     termcolor::Buffer,
 };
@@ -65,7 +65,7 @@ fn get_checker_context() -> Arc<DashMap<Uuid, CheckerContext>> {
 }
 
 fn get_rune_context() -> &'static Context {
-    &RUNE_CONTEXT.get().unwrap()
+    RUNE_CONTEXT.get().unwrap()
 }
 
 pub fn lint(script: &str) -> Result<(), CheckerError> {
@@ -74,7 +74,7 @@ pub fn lint(script: &str) -> Result<(), CheckerError> {
     let mut diagnostics = Diagnostics::new();
 
     let _ = rune::prepare(&mut sources)
-        .with_context(&get_rune_context())
+        .with_context(get_rune_context())
         .with_diagnostics(&mut diagnostics)
         .build();
 
@@ -88,7 +88,7 @@ pub fn lint(script: &str) -> Result<(), CheckerError> {
     }
 
     let unit = rune::prepare(&mut sources)
-        .with_context(&get_rune_context())
+        .with_context(get_rune_context())
         .build()?;
 
     let runtime = get_rune_context().runtime()?;
@@ -125,7 +125,7 @@ async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerE
     lint(&script)?;
 
     let unit = rune::prepare(&mut sources)
-        .with_context(&get_rune_context())
+        .with_context(get_rune_context())
         .build()?;
     let runtime = get_rune_context().runtime()?;
 
@@ -141,7 +141,7 @@ async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerE
 pub async fn check(
     challenge: &cds_db::transfer::Challenge, operator_id: i64, content: &str,
 ) -> Result<Status, CheckerError> {
-    preload(&challenge).await?;
+    preload(challenge).await?;
 
     let checker_context = get_checker_context();
     let ctx = checker_context
@@ -164,7 +164,7 @@ pub async fn check(
 pub async fn generate(
     challenge: &cds_db::transfer::Challenge, operator_id: i64,
 ) -> Result<HashMap<String, String>, CheckerError> {
-    preload(&challenge).await?;
+    preload(challenge).await?;
 
     let checker_context = get_checker_context();
     let ctx = checker_context

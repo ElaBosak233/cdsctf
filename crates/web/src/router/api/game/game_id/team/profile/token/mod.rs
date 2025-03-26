@@ -1,6 +1,5 @@
 use axum::Router;
 use nanoid::nanoid;
-use sea_orm::{ActiveModelTrait, EntityTrait};
 use serde_json::json;
 
 use crate::{

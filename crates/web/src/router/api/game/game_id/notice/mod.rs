@@ -1,6 +1,9 @@
 use axum::{Router, http::StatusCode};
-use cds_db::{get_db, transfer::GameNotice};
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
+use cds_db::{
+    get_db,
+    sea_orm::{ColumnTrait, EntityTrait, QueryFilter},
+    transfer::GameNotice,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -28,7 +31,7 @@ pub async fn get_game_notice(
         .all(get_db())
         .await?
         .into_iter()
-        .map(|game_notice| cds_db::transfer::GameNotice::from(game_notice))
+        .map(cds_db::transfer::GameNotice::from)
         .collect::<Vec<GameNotice>>();
 
     Ok(WebResponse {

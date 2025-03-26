@@ -2,20 +2,16 @@ pub mod traits;
 mod util;
 pub mod worker;
 
-use std::{collections::BTreeMap, fmt::format, path::Path, process};
+use std::{collections::BTreeMap, path::Path, process};
 
 use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
-use cds_db::get_db;
-use futures_util::{
-    SinkExt, StreamExt, TryStreamExt,
-    stream::{SplitSink, SplitStream},
-};
+use futures_util::{SinkExt, StreamExt, stream::SplitStream};
 pub use k8s_openapi;
 use k8s_openapi::{
     api::{
         core::v1::{
             Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec,
-            ResourceRequirements, SecurityContext, Service, ServicePort, ServiceSpec,
+            ResourceRequirements, Service, ServicePort, ServiceSpec,
         },
         networking::v1::{NetworkPolicy, NetworkPolicySpec},
     },
@@ -29,16 +25,10 @@ use kube::{
     Client as K8sClient, Config as K8sConfig, ResourceExt,
     api::{Api, AttachParams, DeleteParams, ListParams, Patch, PatchParams, PostParams},
     config::Kubeconfig,
-    runtime::{wait::conditions, watcher},
 };
-use nanoid::nanoid;
 use once_cell::sync::OnceCell;
-use regex::Regex;
 use serde_json::json;
-use tokio::io::{
-    AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader,
-    stdin, stdout,
-};
+use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader};
 use tokio_util::codec::{BytesCodec, Framed, FramedRead};
 use tracing::{error, info, warn};
 use uuid::Uuid;
@@ -130,9 +120,9 @@ pub async fn init() -> Result<(), ClusterError> {
 }
 
 pub async fn get_service(id: Uuid) -> Result<Service, ClusterError> {
-    let service = get_services_by_label(&format!("cds/env_id={}", id.to_string()))
+    let service = get_services_by_label(&format!("cds/env_id={}", id))
         .await?
-        .get(0)
+        .first()
         .ok_or(ClusterError::NotFound("service_not_found".to_owned()))?
         .to_owned();
 
@@ -183,9 +173,9 @@ pub async fn delete_service(id: &str) -> Result<(), ClusterError> {
 }
 
 pub async fn get_pod(id: &str) -> Result<Pod, ClusterError> {
-    let pod = get_pods_by_label(&format!("cds/env_id={}", id.to_string()))
+    let pod = get_pods_by_label(&format!("cds/env_id={}", id))
         .await?
-        .get(0)
+        .first()
         .ok_or(ClusterError::NotFound("pod_not_found".to_owned()))?
         .to_owned();
 
@@ -294,10 +284,7 @@ pub async fn create_challenge_env(
                     _ => 0,
                 }),
             ),
-            (
-                "cds/challenge_id".to_owned(),
-                format!("{}", challenge.id.to_string()),
-            ),
+            ("cds/challenge_id".to_owned(), format!("{}", challenge.id)),
         ])),
         annotations: Some(BTreeMap::from([
             ("cds/challenge".to_owned(), json!(challenge).to_string()),
@@ -470,7 +457,7 @@ pub async fn create_challenge_env(
 }
 
 pub async fn renew_challenge_env(id: &str) -> Result<(), ClusterError> {
-    let name = format!("cds-{}", id.to_string());
+    let name = format!("cds-{}", id);
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
         cds_config::get_constant().cluster.namespace.as_str(),
@@ -571,7 +558,7 @@ pub async fn exec(
     }
 
     let (sender, receiver) = ws.split();
-    let name = format!("cds-{}", id.to_string());
+    let name = format!("cds-{}", id);
 
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),

@@ -78,32 +78,32 @@ pub async fn preload(mut submissions: Vec<Submission>) -> Result<Vec<Submission>
     let models = submissions
         .clone()
         .into_iter()
-        .map(|submission| entity::submission::Model::from(submission))
+        .map(entity::submission::Model::from)
         .collect::<Vec<entity::submission::Model>>();
 
     let users = models
         .load_one(entity::user::Entity, get_db())
         .await?
         .into_iter()
-        .map(|u| u.map(|u| User::from(u)))
+        .map(|u| u.map(User::from))
         .collect::<Vec<Option<User>>>();
     let challenges = models
         .load_one(entity::challenge::Entity, get_db())
         .await?
         .into_iter()
-        .map(|c| c.map(|c| Challenge::from(c)))
+        .map(|c| c.map(Challenge::from))
         .collect::<Vec<Option<Challenge>>>();
     let teams = models
         .load_one(entity::team::Entity, get_db())
         .await?
         .into_iter()
-        .map(|t| t.map(|t| Team::from(t)))
+        .map(|t| t.map(Team::from))
         .collect::<Vec<Option<Team>>>();
     let games = models
         .load_one(entity::game::Entity, get_db())
         .await?
         .into_iter()
-        .map(|g| g.map(|g| Game::from(g)))
+        .map(|g| g.map(Game::from))
         .collect::<Vec<Option<Game>>>();
 
     for (i, submission) in submissions.iter_mut().enumerate() {
@@ -130,7 +130,7 @@ pub async fn get_by_challenge_ids(challenge_ids: Vec<Uuid>) -> Result<Vec<Submis
 
     let mut submissions = submissions
         .into_iter()
-        .map(|submission| Submission::from(submission))
+        .map(Submission::from)
         .collect::<Vec<Submission>>();
     submissions = preload(submissions).await?;
     Ok(submissions)
@@ -153,7 +153,7 @@ pub async fn get_by_game_id_and_team_ids(
 
     let mut submissions = submissions
         .into_iter()
-        .map(|submission| Submission::from(submission))
+        .map(Submission::from)
         .collect::<Vec<Submission>>();
 
     submissions = preload(submissions).await?;

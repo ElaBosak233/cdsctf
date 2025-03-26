@@ -3,8 +3,11 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart},
     response::IntoResponse,
 };
-use cds_db::{entity::user::Group, get_db};
-use sea_orm::{ColumnTrait, EntityTrait};
+use cds_db::{
+    entity::user::Group,
+    get_db,
+    sea_orm::{ColumnTrait, EntityTrait},
+};
 use serde_json::json;
 
 use crate::{
@@ -52,7 +55,7 @@ pub async fn save_team_avatar(
     let team = cds_db::entity::team::Entity::find_by_id(team_id)
         .one(get_db())
         .await?
-        .map(|team| cds_db::transfer::Team::from(team))
+        .map(cds_db::transfer::Team::from)
         .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
     if operator.group != Group::Admin
@@ -77,7 +80,7 @@ pub async fn delete_team_avatar(
     let team = cds_db::entity::team::Entity::find_by_id(team_id)
         .one(get_db())
         .await?
-        .map(|team| cds_db::transfer::Team::from(team))
+        .map(cds_db::transfer::Team::from)
         .ok_or(WebError::BadRequest(json!("team_not_found")))?;
 
     if operator.group != Group::Admin

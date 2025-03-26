@@ -5,11 +5,13 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 use axum::{Router, http::StatusCode};
-use cds_db::get_db;
-use sea_orm::{
-    ActiveModelTrait,
-    ActiveValue::{Set, Unchanged},
-    EntityTrait, NotSet,
+use cds_db::{
+    get_db,
+    sea_orm::{
+        ActiveModelTrait,
+        ActiveValue::{Set, Unchanged},
+        EntityTrait, NotSet,
+    },
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -89,7 +91,7 @@ pub struct DeleteUserProfileRequest {
 }
 
 pub async fn delete_user_profile(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<DeleteUserProfileRequest>,
+    Extension(ext): Extension<Ext>, Json(body): Json<DeleteUserProfileRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
@@ -137,7 +139,7 @@ pub struct UpdateUserProfilePasswordRequest {
 }
 
 pub async fn update_user_profile_password(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<UpdateUserProfilePasswordRequest>,
+    Extension(ext): Extension<Ext>, Json(body): Json<UpdateUserProfilePasswordRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 

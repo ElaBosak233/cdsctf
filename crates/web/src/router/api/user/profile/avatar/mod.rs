@@ -1,13 +1,10 @@
 use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
-    response::IntoResponse,
 };
-use cds_db::entity::user::Group;
 
 use crate::{
-    extract::{Extension, Path},
-    model::Metadata,
+    extract::Extension,
     traits::{Ext, WebError, WebResponse},
     util,
 };

@@ -3,7 +3,7 @@ pub mod captcha;
 pub mod email;
 pub mod meta;
 
-use std::{ops::Deref, path::Path, sync::RwLock};
+use std::{path::Path, sync::RwLock};
 
 use anyhow::anyhow;
 use once_cell::sync::Lazy;

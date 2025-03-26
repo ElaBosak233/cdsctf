@@ -1,8 +1,11 @@
 use axum::{Router, http::StatusCode};
-use cds_db::{entity::user::Group, get_db};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, NotSet, PaginatorTrait,
-    QueryFilter, QuerySelect,
+use cds_db::{
+    entity::user::Group,
+    get_db,
+    sea_orm::{
+        ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, NotSet, PaginatorTrait,
+        QueryFilter, QuerySelect,
+    },
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -35,14 +38,14 @@ pub struct GetGameChallengeRequest {
 /// Get challenges by given params.
 pub async fn get_game_challenge(
     Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
-    Query(mut params): Query<GetGameChallengeRequest>,
+    Query(params): Query<GetGameChallengeRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let game = cds_db::entity::game::Entity::find_by_id(game_id)
         .one(get_db())
         .await?
-        .map(|game| cds_db::transfer::Game::from(game))
+        .map(cds_db::transfer::Game::from)
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
     // Using inner join to access fields in related tables.

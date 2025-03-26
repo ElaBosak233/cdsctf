@@ -41,7 +41,7 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
     cds_config::init().await?;
     cds_telemetry::init().await?;
 
-    let banner = cds_assets::get("banner.txt").unwrap_or(vec![]);
+    let banner = cds_assets::get("banner.txt").unwrap_or_default();
     println!(
         "{}",
         std::str::from_utf8(&banner)?

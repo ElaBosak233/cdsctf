@@ -1,4 +1,3 @@
-use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
 
 use crate::{entity, entity::challenge::Env};

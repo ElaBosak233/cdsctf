@@ -4,9 +4,8 @@ use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::team::State,
     get_db,
-    transfer::{Game, Team},
+    sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait},
 };
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 

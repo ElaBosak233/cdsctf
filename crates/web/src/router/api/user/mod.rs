@@ -12,10 +12,15 @@ use axum::{
     http::{HeaderMap, StatusCode, header::SET_COOKIE},
     response::IntoResponse,
 };
-use cds_db::{entity, entity::user::Group, get_db, transfer::User};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, Order, PaginatorTrait,
-    QueryFilter, QueryOrder, QuerySelect, RelationTrait, prelude::Expr, sea_query::Func,
+use cds_db::{
+    entity,
+    entity::user::Group,
+    get_db,
+    sea_orm::{
+        ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, Order,
+        PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, prelude::Expr, sea_query::Func,
+    },
+    transfer::User,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;

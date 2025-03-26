@@ -4,12 +4,13 @@ pub mod tracer;
 
 use std::time::Duration;
 
-use anyhow::Context;
 use once_cell::sync::Lazy;
-use opentelemetry::KeyValue;
-use opentelemetry_otlp::{ExportConfig, Protocol, WithExportConfig};
+pub use opentelemetry;
+pub use opentelemetry_otlp;
+use opentelemetry_otlp::{ExportConfig, Protocol};
+pub use opentelemetry_sdk;
 use opentelemetry_sdk::Resource;
-use tracing::{info, warn};
+use tracing::info;
 
 pub(crate) static RESOURCE: Lazy<Resource> =
     Lazy::new(|| Resource::builder().with_service_name("cdsctf").build());

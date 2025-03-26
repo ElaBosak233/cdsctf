@@ -29,5 +29,5 @@ pub async fn init() -> Result<(), anyhow::Error> {
 }
 
 pub fn get_app() -> &'static Router {
-    &APP.get().unwrap()
+    APP.get().unwrap()
 }

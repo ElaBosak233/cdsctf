@@ -1,15 +1,11 @@
 use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
-    response::IntoResponse,
 };
-use cds_db::entity::user::Group;
-use serde_json::json;
 
 use crate::{
-    extract::{Extension, Path},
-    model::Metadata,
-    traits::{Ext, WebError, WebResponse},
+    extract::Path,
+    traits::{WebError, WebResponse},
     util,
 };
 

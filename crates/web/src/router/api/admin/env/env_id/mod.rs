@@ -1,16 +1,10 @@
 mod container;
 
-use axum::{Router, extract::WebSocketUpgrade, http::StatusCode, response::IntoResponse};
-use cds_db::{entity::user::Group, get_db};
-use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
-use serde::Deserialize;
-use serde_json::json;
-use tracing::debug;
-use uuid::Uuid;
+use axum::{Router, http::StatusCode};
 
 use crate::{
-    extract::{Extension, Path, Query},
-    traits::{Ext, WebError, WebResponse},
+    extract::Path,
+    traits::{WebError, WebResponse},
 };
 
 pub fn router() -> Router {

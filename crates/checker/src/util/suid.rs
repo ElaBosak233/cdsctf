@@ -27,7 +27,7 @@ pub fn generate_aes_pair(str: &str) -> ([u8; 16], [u8; 16]) {
 ///   id.
 /// - `key`: The key for encryption.
 pub fn encode(seed: &str, data: i64, key: &str, hyphenated: bool) -> String {
-    let (aes_key, _) = generate_aes_pair(&key);
+    let (aes_key, _) = generate_aes_pair(key);
     // dump template into 16 bytes hash
     let digest = ring::digest::digest(&ring::digest::SHA256, seed.as_bytes());
     let mut hash_slice = [0u8; 16];
@@ -93,10 +93,8 @@ pub fn decode(seed: &str, payload: &str, key: &str) -> Result<i64, anyhow::Error
 
     let mut dec = [0u8; 8];
     for i in 0..8 {
-        if i % 2 != 0 {
-            if hash_slice[i * 2] != (block[i * 2]) {
-                return Err(anyhow!("flag data broken"));
-            }
+        if i % 2 != 0 && hash_slice[i * 2] != (block[i * 2]) {
+            return Err(anyhow!("flag data broken"));
         }
         dec[i] = hash_slice[i * 2 + 1] ^ block[i * 2 + 1];
     }

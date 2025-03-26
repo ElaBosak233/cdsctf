@@ -4,8 +4,10 @@ use axum::{
     http::{Response, StatusCode, header},
     response::IntoResponse,
 };
-use cds_db::get_db;
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use cds_db::{
+    get_db,
+    sea_orm::{ColumnTrait, EntityTrait, QueryFilter},
+};
 use serde_json::json;
 
 use crate::{

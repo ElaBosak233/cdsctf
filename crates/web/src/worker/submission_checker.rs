@@ -1,15 +1,16 @@
 //! Checker module is for checking submissions,
 //! it will assign a status to each submission.
 
-use std::collections::BTreeMap;
-
 use anyhow::anyhow;
-use cds_db::{entity::submission::Status, get_db};
-use futures::StreamExt;
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Unchanged, ColumnTrait, Condition, EntityTrait, IntoActiveModel,
-    PaginatorTrait, QueryFilter, QueryOrder, Set,
+use cds_db::{
+    entity::submission::Status,
+    get_db,
+    sea_orm::{
+        ActiveModelTrait, ActiveValue::Unchanged, ColumnTrait, Condition, EntityTrait,
+        PaginatorTrait, QueryFilter, QueryOrder, Set,
+    },
 };
+use futures::StreamExt;
 use tracing::{error, info};
 
 use crate::worker::game_calculator;
@@ -42,7 +43,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         cds_db::entity::challenge::Entity::find_by_id(submission.challenge_id)
             .one(get_db())
             .await?
-            .map(|challenge| cds_db::transfer::Challenge::from(challenge))
+            .map(cds_db::transfer::Challenge::from)
     {
         challenge
     } else {
@@ -103,7 +104,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
                 .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))
                 .one(get_db())
                 .await?
-                .map(|game_challenge| cds_db::transfer::GameChallenge::from(game_challenge))
+                .map(cds_db::transfer::GameChallenge::from)
                 .ok_or(anyhow!("game_challenge_not_found"))?;
 
             let now = chrono::Utc::now().timestamp();

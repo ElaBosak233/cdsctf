@@ -33,7 +33,6 @@ http-serde = { workspace = true }
 chrono = { workspace = true }
 tower-http = { workspace = true }
 jsonwebtoken = { workspace = true }
-sea-orm = { workspace = true }
 mime = { workspace = true }
 validator = { workspace = true }
 anyhow = { workspace = true }

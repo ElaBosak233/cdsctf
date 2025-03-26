@@ -1,9 +1,6 @@
-use std::str::FromStr;
-
-use sea_orm::{Condition, Order, QueryOrder, QuerySelect, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use crate::{entity, entity::user::Group, get_db};
+use crate::{entity, entity::user::Group};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct User {

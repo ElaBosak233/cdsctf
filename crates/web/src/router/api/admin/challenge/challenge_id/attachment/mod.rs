@@ -3,8 +3,11 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart},
     http::StatusCode,
 };
-use cds_db::{entity::user::Group, get_db};
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use cds_db::{
+    entity::user::Group,
+    get_db,
+    sea_orm::{ColumnTrait, EntityTrait, QueryFilter},
+};
 use serde_json::json;
 
 use crate::{

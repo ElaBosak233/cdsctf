@@ -2,9 +2,11 @@ mod env_id;
 
 use std::collections::BTreeMap;
 
-use axum::{Router, http::StatusCode, response::IntoResponse};
-use cds_db::get_db;
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter};
+use axum::{Router, http::StatusCode};
+use cds_db::{
+    get_db,
+    sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
@@ -75,7 +77,7 @@ pub async fn get_env(
 
     let envs = pods
         .into_iter()
-        .map(|pod| crate::util::cluster::Env::from(pod))
+        .map(crate::util::cluster::Env::from)
         .collect::<Vec<Env>>();
 
     Ok(WebResponse {
@@ -94,7 +96,7 @@ pub struct CreateEnvRequest {
 }
 
 pub async fn create_env(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<CreateEnvRequest>,
+    Extension(ext): Extension<Ext>, Json(body): Json<CreateEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -156,7 +158,7 @@ pub async fn create_env(
         _ => (None, None),
     };
 
-    let _ = cds_cluster::create_challenge_env(operator, team, game, challenge).await?;
+    cds_cluster::create_challenge_env(operator, team, game, challenge).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

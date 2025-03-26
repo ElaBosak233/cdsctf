@@ -8,14 +8,12 @@ use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::submission::Status,
     get_db,
+    sea_orm::{
+        ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
+    },
     transfer::{Submission, Team},
 };
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder,
-    QuerySelect,
-};
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 
 use crate::{
     extract::{Path, Query},

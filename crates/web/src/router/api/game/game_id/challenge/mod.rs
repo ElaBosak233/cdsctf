@@ -1,7 +1,8 @@
 use axum::Router;
-use cds_db::{entity::team::State, get_db};
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect,
+use cds_db::{
+    entity::team::State,
+    get_db,
+    sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -33,14 +34,14 @@ pub struct GetGameChallengeRequest {
 /// - Operating time is between related game's `started_at` and `ended_at`.
 pub async fn get_game_challenge(
     Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
-    Query(mut params): Query<GetGameChallengeRequest>,
+    Query(params): Query<GetGameChallengeRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let game = cds_db::entity::game::Entity::find_by_id(game_id)
         .one(get_db())
         .await?
-        .map(|game| cds_db::transfer::Game::from(game))
+        .map(cds_db::transfer::Game::from)
         .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
     let now = chrono::Utc::now().timestamp();

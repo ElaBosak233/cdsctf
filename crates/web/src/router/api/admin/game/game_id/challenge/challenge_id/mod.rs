@@ -1,9 +1,12 @@
 use axum::{Router, http::StatusCode};
-use cds_db::{entity::user::Group, get_db};
-use sea_orm::{
-    ActiveModelTrait,
-    ActiveValue::{Set, Unchanged},
-    ColumnTrait, Condition, EntityTrait, NotSet, QueryFilter,
+use cds_db::{
+    entity::user::Group,
+    get_db,
+    sea_orm::{
+        ActiveModelTrait,
+        ActiveValue::{Set, Unchanged},
+        ColumnTrait, EntityTrait, NotSet, QueryFilter,
+    },
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -40,7 +43,7 @@ pub struct UpdateGameChallengeRequest {
 
 pub async fn update_game_challenge(
     Extension(ext): Extension<Ext>, Path((game_id, challenge_id)): Path<(i64, Uuid)>,
-    Json(mut body): Json<UpdateGameChallengeRequest>,
+    Json(body): Json<UpdateGameChallengeRequest>,
 ) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
