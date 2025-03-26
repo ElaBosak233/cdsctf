@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -57,7 +55,7 @@ pub async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
     let models = teams
         .clone()
         .into_iter()
-        .map(|team| entity::team::Model::from(team))
+        .map(entity::team::Model::from)
         .collect::<Vec<entity::team::Model>>();
 
     let users = models
@@ -67,7 +65,7 @@ pub async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
         .map(|users| {
             users
                 .into_iter()
-                .map(|user| super::User::from(user))
+                .map(super::User::from)
                 .collect::<Vec<User>>()
         })
         .collect::<Vec<Vec<User>>>();

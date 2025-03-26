@@ -3,7 +3,6 @@ pub mod traits;
 pub mod variable;
 
 pub use constant::get_constant;
-use serde::{Deserialize, Serialize};
 pub use variable::get_variable;
 
 use crate::traits::ConfigError;

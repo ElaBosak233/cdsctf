@@ -1,17 +1,15 @@
 //! calculator module is used to calculate the pts and rank of submissions,
 //! teams and game_challenges
 
-use std::collections::HashMap;
-
 use cds_db::{
     entity::{submission::Status, team::State},
     get_db,
+    sea_orm::{
+        ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter,
+        QueryOrder, Set,
+    },
 };
 use futures::StreamExt;
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter,
-    QueryOrder, Set,
-};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 

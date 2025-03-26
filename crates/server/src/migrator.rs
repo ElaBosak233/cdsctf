@@ -1,13 +1,6 @@
-use argon2::{
-    Argon2, PasswordHasher,
-    password_hash::{SaltString, rand_core::OsRng},
-};
 use cds_db::{entity, get_db};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ConnectionTrait, DbConn, EntityTrait, PaginatorTrait,
-    Schema,
-};
-use tracing::{error, info};
+use sea_orm::{ConnectionTrait, DbConn, EntityTrait, Schema};
+use tracing::error;
 
 macro_rules! create_tables {
     ($db:expr, $($entity:expr),*) => {

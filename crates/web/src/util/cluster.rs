@@ -89,8 +89,7 @@ impl From<Pod> for Env {
         let mut status = "".to_owned();
         let mut reason = "".to_owned();
 
-        let _ = pod
-            .status
+        pod.status
             .unwrap_or_default()
             .container_statuses
             .unwrap_or_default()
@@ -103,7 +102,7 @@ impl From<Pod> for Env {
                         reason = r.clone();
                     }
                 }
-                if let Some(_) = container_state.running {
+                if container_state.running.is_some() {
                     status = "running".to_owned();
                 }
                 if let Some(terminated) = container_state.terminated {

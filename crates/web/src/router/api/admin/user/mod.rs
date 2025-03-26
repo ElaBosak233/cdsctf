@@ -1,16 +1,14 @@
 mod user_id;
 
-use std::str::FromStr;
-
 use argon2::{
-    Argon2, PasswordHasher, PasswordVerifier,
+    Argon2, PasswordHasher,
     password_hash::{SaltString, rand_core::OsRng},
 };
-use axum::{Router, http::StatusCode, response::IntoResponse};
-use cds_db::{entity::user::Group, get_db};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter,
-    QueryOrder, QuerySelect, RelationTrait,
+use axum::{Router, http::StatusCode};
+use cds_db::{
+    entity::user::Group,
+    get_db,
+    sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;

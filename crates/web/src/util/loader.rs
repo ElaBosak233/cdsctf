@@ -1,8 +1,8 @@
 use cds_db::{
     get_db,
+    sea_orm::{ColumnTrait, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait},
     transfer::{Challenge, Game, GameChallenge, Team, User},
 };
-use sea_orm::{ColumnTrait, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait};
 use serde_json::json;
 use uuid::Uuid;
 
@@ -13,7 +13,7 @@ pub async fn prepare_challenge(challenge_id: Uuid) -> Result<Challenge, WebError
         .filter(cds_db::entity::challenge::Column::Id.eq(challenge_id))
         .one(get_db())
         .await?
-        .map(|challenge| cds_db::transfer::Challenge::from(challenge))
+        .map(cds_db::transfer::Challenge::from)
         .ok_or(WebError::NotFound(json!("challenge_not_found")))?;
 
     Ok(challenge)
@@ -24,7 +24,7 @@ pub async fn prepare_game(game_id: i64) -> Result<Game, WebError> {
         .filter(cds_db::entity::game::Column::Id.eq(game_id))
         .one(get_db())
         .await?
-        .map(|game| cds_db::transfer::Game::from(game))
+        .map(cds_db::transfer::Game::from)
         .ok_or(WebError::NotFound(json!("game_not_found")))?;
 
     Ok(game)
@@ -38,7 +38,7 @@ pub async fn prepare_game_challenge(
         .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id))
         .one(get_db())
         .await?
-        .map(|game_challenge| cds_db::transfer::GameChallenge::from(game_challenge))
+        .map(cds_db::transfer::GameChallenge::from)
         .ok_or(WebError::NotFound(json!("game_challenge_not_found")))?;
 
     Ok(game_challenge)
@@ -54,7 +54,7 @@ pub async fn prepare_self_team(game_id: i64, user_id: i64) -> Result<Team, WebEr
         .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
         .one(get_db())
         .await?
-        .map(|team| cds_db::transfer::Team::from(team))
+        .map(cds_db::transfer::Team::from)
         .ok_or(WebError::NotFound(json!("team_not_found")))?;
 
     let teams = cds_db::transfer::team::preload(vec![team]).await?;
@@ -71,7 +71,7 @@ pub async fn prepare_team(game_id: i64, team_id: i64) -> Result<Team, WebError> 
         .filter(cds_db::entity::team::Column::Id.eq(team_id))
         .one(get_db())
         .await?
-        .map(|team| cds_db::transfer::Team::from(team))
+        .map(cds_db::transfer::Team::from)
         .ok_or(WebError::NotFound(json!("team_not_found")))?;
 
     let teams = cds_db::transfer::team::preload(vec![team]).await?;
@@ -87,7 +87,7 @@ pub async fn prepare_user(user_id: i64) -> Result<User, WebError> {
         .filter(cds_db::entity::user::Column::Id.eq(user_id))
         .one(get_db())
         .await?
-        .map(|user| cds_db::transfer::User::from(user))
+        .map(cds_db::transfer::User::from)
         .ok_or(WebError::NotFound(json!("user_not_found")))?;
 
     Ok(user)

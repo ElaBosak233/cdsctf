@@ -6,13 +6,12 @@ use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::{team::State, user::Group},
     get_db,
-    transfer::{Game, Team},
-};
-use sea_orm::{
-    ActiveModelTrait,
-    ActiveValue::{Set, Unchanged},
-    ColumnTrait, EntityTrait, NotSet, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
-    RelationTrait,
+    sea_orm::{
+        ActiveModelTrait,
+        ActiveValue::{Set, Unchanged},
+        ColumnTrait, EntityTrait, NotSet, PaginatorTrait, QueryFilter,
+    },
+    transfer::Team,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -55,8 +54,7 @@ pub struct UpdateTeamRequest {
 
 /// Update a team with given path and data.
 pub async fn update_team(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
-    Json(mut body): Json<UpdateTeamRequest>,
+    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Json(body): Json<UpdateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {

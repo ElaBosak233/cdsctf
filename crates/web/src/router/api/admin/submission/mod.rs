@@ -1,18 +1,15 @@
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::{submission::Status, team::State, user::Group},
+    entity::{submission::Status, user::Group},
     get_db,
+    sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect},
     transfer::Submission,
-};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, Condition, EntityTrait, PaginatorTrait,
-    QueryFilter, QuerySelect, Set,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Json, Path, Query},
+    extract::{Extension, Path, Query},
     traits::{Ext, WebError, WebResponse},
 };
 

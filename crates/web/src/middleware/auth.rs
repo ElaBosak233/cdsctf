@@ -5,9 +5,12 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use cds_db::{entity::user::Group, get_db};
+use cds_db::{
+    entity::user::Group,
+    get_db,
+    sea_orm::{ColumnTrait, EntityTrait, QueryFilter},
+};
 use jsonwebtoken::{DecodingKey, Validation, decode};
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde_json::json;
 
 use crate::{
@@ -51,7 +54,7 @@ pub async fn extract(mut req: Request<Body>, next: Next) -> Result<Response, Web
             .filter(cds_db::entity::user::Column::DeletedAt.is_null())
             .one(get_db())
             .await?
-            .map(|user| cds_db::transfer::User::from(user))
+            .map(cds_db::transfer::User::from)
         {
             if user.group == Group::Banned {
                 return Err(WebError::Forbidden(json!("forbidden")));

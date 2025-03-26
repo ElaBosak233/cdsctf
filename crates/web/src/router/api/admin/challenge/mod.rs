@@ -2,15 +2,18 @@ mod challenge_id;
 
 use std::str::FromStr;
 
-use axum::{Router, http::StatusCode, response::IntoResponse};
-use cds_db::{entity::user::Group, get_db, transfer::Challenge};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden, IdenStatic,
-    Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, sea_query::Expr,
+use axum::{Router, http::StatusCode};
+use cds_db::{
+    entity::user::Group,
+    get_db,
+    sea_orm::{
+        ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden, IdenStatic,
+        Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, sea_query::Expr,
+    },
+    transfer::Challenge,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use validator::Validate;
 
 use crate::{
     extract::{Extension, Json, Query},
@@ -110,7 +113,7 @@ pub async fn get_challenge(
         sql = sql.offset(offset).limit(size);
     }
 
-    let mut challenges = sql
+    let challenges = sql
         .all(get_db())
         .await?
         .into_iter()

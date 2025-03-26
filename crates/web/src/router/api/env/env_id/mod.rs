@@ -1,10 +1,8 @@
 use axum::{Router, extract::WebSocketUpgrade, http::StatusCode, response::IntoResponse};
-use cds_db::{entity::user::Group, get_db};
-use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
+use cds_db::entity::user::Group;
 use serde::Deserialize;
 use serde_json::json;
 use tracing::debug;
-use uuid::Uuid;
 
 use crate::{
     extract::{Extension, Path, Query},
