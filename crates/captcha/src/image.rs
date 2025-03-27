@@ -13,7 +13,7 @@ pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
             "#44CC7F".to_string(),
         ])
         .build()
-        .map_err(|err| CaptchaError::BiosvgError)?;
+        .map_err(|_err| CaptchaError::BiosvgError)?;
     let id = nanoid::nanoid!();
 
     let captcha = Captcha {

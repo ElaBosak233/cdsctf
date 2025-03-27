@@ -1,4 +1,10 @@
-use axum::{body::Body, extract::Request, middleware::Next, response::Response};
+use axum::{
+    body::Body,
+    extract::Request,
+    http::{HeaderMap, header::HOST},
+    middleware::Next,
+    response::Response,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_governor::{GovernorError, key_extractor::KeyExtractor};
@@ -39,6 +45,23 @@ pub async fn ip_record(mut req: Request<Body>, next: Next) -> Result<Response, W
     }
 
     req.extensions_mut().insert(ext);
+
+    Ok(next.run(req).await)
+}
+
+pub async fn real_host(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
+    let headers = req.headers().clone();
+
+    if let Some(x_forwarded_host) = headers.get("x-forwarded-host") {
+        if let Ok(host_str) = x_forwarded_host.to_str() {
+            let mut new_headers = HeaderMap::new();
+            for (key, value) in headers.iter() {
+                new_headers.insert(key, value.clone());
+            }
+            new_headers.insert(HOST, host_str.parse().unwrap());
+            *req.headers_mut() = new_headers;
+        }
+    }
 
     Ok(next.run(req).await)
 }
