@@ -56,6 +56,7 @@ pub async fn router() -> Router {
             config: governor_conf,
         })
         .layer(from_fn(middleware::auth::extract))
+        .layer(from_fn(middleware::network::real_host))
         .layer(from_fn(middleware::network::ip_record))
         .layer(from_fn(middleware::telemetry::track_metrics))
         .merge(proxy::router())
