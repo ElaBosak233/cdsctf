@@ -58,6 +58,7 @@ pub async fn create_user(
         username: Set(body.username),
         nickname: Set(body.nickname),
         email: Set(body.email),
+        is_verified: Set(true),
         hashed_password: Set(hashed_password),
         group: Set(body.group),
         ..Default::default()

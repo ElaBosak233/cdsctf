@@ -13,7 +13,6 @@ use axum::{
     response::IntoResponse,
 };
 use cds_db::{
-    entity,
     entity::user::Group,
     get_db,
     sea_orm::{
@@ -56,30 +55,30 @@ pub struct GetUserRequest {
 
 pub async fn get_user(
     Query(params): Query<GetUserRequest>,
-) -> Result<WebResponse<Vec<cds_db::transfer::User>>, WebError> {
-    let mut sql = entity::user::Entity::find();
+) -> Result<WebResponse<Vec<User>>, WebError> {
+    let mut sql = cds_db::entity::user::Entity::find();
 
     if let Some(id) = params.id {
-        sql = sql.filter(entity::user::Column::Id.eq(id));
+        sql = sql.filter(cds_db::entity::user::Column::Id.eq(id));
     }
 
     if let Some(name) = params.name {
         let pattern = format!("%{}%", name);
         let condition = Condition::any()
-            .add(entity::user::Column::Username.like(&pattern))
-            .add(entity::user::Column::Nickname.like(&pattern));
+            .add(cds_db::entity::user::Column::Username.like(&pattern))
+            .add(cds_db::entity::user::Column::Nickname.like(&pattern));
         sql = sql.filter(condition);
     }
 
     if let Some(group) = params.group {
-        sql = sql.filter(entity::user::Column::Group.eq(group));
+        sql = sql.filter(cds_db::entity::user::Column::Group.eq(group));
     }
 
     if let Some(email) = params.email {
-        sql = sql.filter(entity::user::Column::Email.eq(email));
+        sql = sql.filter(cds_db::entity::user::Column::Email.eq(email));
     }
 
-    sql = sql.filter(entity::user::Column::DeletedAt.is_null());
+    sql = sql.filter(cds_db::entity::user::Column::DeletedAt.is_null());
 
     let total = sql.clone().count(get_db()).await?;
 
@@ -131,7 +130,7 @@ pub struct CreateUserRequest {
 
 pub async fn create_user(
     Extension(ext): Extension<Ext>, VJson(mut body): VJson<CreateUserRequest>,
-) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
+) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Unauthorized(json!("")));
@@ -262,7 +261,7 @@ pub struct UserRegisterRequest {
 
 pub async fn user_register(
     Extension(ext): Extension<Ext>, Json(mut body): Json<UserRegisterRequest>,
-) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
+) -> Result<WebResponse<User>, WebError> {
     if !cds_config::get_variable().auth.is_registration_enabled {
         return Err(WebError::BadRequest(json!("registration_disabled")));
     }
@@ -295,6 +294,11 @@ pub async fn user_register(
         username: Set(body.username),
         nickname: Set(body.nickname),
         email: Set(body.email),
+        is_verified: Set(if cds_config::get_constant().email.is_enabled {
+            false
+        } else {
+            true
+        }),
         hashed_password: Set(hashed_password),
         group: Set(
             if cds_db::entity::user::Entity::find().count(get_db()).await? == 0 {
