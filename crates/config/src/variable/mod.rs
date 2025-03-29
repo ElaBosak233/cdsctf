@@ -1,6 +1,5 @@
 pub mod auth;
 pub mod captcha;
-pub mod email;
 pub mod meta;
 
 use std::{path::Path, sync::RwLock};
@@ -19,7 +18,6 @@ pub struct Variable {
     pub meta: meta::Config,
     pub auth: auth::Config,
     pub captcha: captcha::Config,
-    pub email: email::Config,
 }
 
 impl Variable {
@@ -28,7 +26,6 @@ impl Variable {
             meta: self.meta.to_owned(),
             auth: self.auth.to_owned(),
             captcha: self.captcha.desensitize(),
-            email: self.email.desensitize(),
         }
     }
 }

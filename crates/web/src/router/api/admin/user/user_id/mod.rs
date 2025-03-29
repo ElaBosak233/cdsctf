@@ -35,6 +35,7 @@ pub fn router() -> Router {
 pub struct UpdateUserRequest {
     pub nickname: Option<String>,
     pub email: Option<String>,
+    pub is_verified: Option<bool>,
     pub password: Option<String>,
     pub group: Option<Group>,
     pub description: Option<String>,
@@ -68,6 +69,7 @@ pub async fn update_user(
         id: Unchanged(user.id),
         nickname: body.nickname.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, Set),
+        is_verified: body.is_verified.map_or(NotSet, Set),
         hashed_password: body.password.map_or(NotSet, Set),
         group: body.group.map_or(NotSet, Set),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),

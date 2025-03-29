@@ -8,6 +8,7 @@ pub struct User {
     pub username: String,
     pub nickname: String,
     pub email: String,
+    pub is_verified: bool,
     pub group: Group,
     pub description: Option<String>,
     #[serde(skip_serializing)]
@@ -30,6 +31,7 @@ impl From<entity::user::Model> for User {
             username: model.username,
             nickname: model.nickname,
             email: model.email,
+            is_verified: model.is_verified,
             group: model.group,
             description: model.description,
             hashed_password: model.hashed_password,
@@ -47,6 +49,7 @@ impl From<User> for entity::user::Model {
             username: user.username,
             nickname: user.nickname,
             email: user.email,
+            is_verified: user.is_verified,
             group: user.group,
             description: user.description,
             hashed_password: user.hashed_password,
