@@ -74,8 +74,15 @@ pub async fn set_ex(
     Ok(())
 }
 
+pub async fn incr(key: impl Into<Key> + Send + Display) -> Result<i64, CacheError> {
+    let result = get_client().incr(key).await?;
+
+    Ok(result)
+}
+
 pub async fn exists(key: impl Into<Key> + Send + Display) -> Result<bool, CacheError> {
     let result = get_client().exists(key).await?;
+
     Ok(result)
 }
 

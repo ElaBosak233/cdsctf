@@ -1,4 +1,5 @@
 mod avatar;
+pub mod verify;
 
 use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
@@ -32,6 +33,7 @@ pub fn router() -> Router {
             axum::routing::put(update_user_profile_password),
         )
         .nest("/avatar", avatar::router())
+        .nest("/verify", verify::router())
 }
 
 pub async fn get_user_profile(
@@ -66,11 +68,28 @@ pub async fn update_user_profile(
         }
     }
 
+    let is_verified = body
+        .email
+        .as_ref()
+        .map(|email| {
+            if email != &operator.email {
+                false
+            } else {
+                operator.is_verified
+            }
+        })
+        .unwrap_or(operator.is_verified);
+
     let user = cds_db::entity::user::ActiveModel {
         id: Unchanged(operator.id),
         nickname: body.nickname.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, Set),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
+        is_verified: if is_verified != operator.is_verified {
+            Set(is_verified)
+        } else {
+            Unchanged(operator.is_verified)
+        },
         ..Default::default()
     }
     .update(get_db())

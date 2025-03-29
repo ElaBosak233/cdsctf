@@ -11,7 +11,7 @@ use tracing::{error, info, warn};
 use tracing_appender::{non_blocking, non_blocking::WorkerGuard};
 use tracing_error::ErrorLayer;
 use tracing_opentelemetry::OpenTelemetryLayer;
-use tracing_subscriber::{EnvFilter, Layer, Registry, layer::SubscriberExt};
+use tracing_subscriber::{EnvFilter, Registry, layer::SubscriberExt};
 
 use crate::traits::LoggerError;
 
@@ -37,7 +37,7 @@ pub async fn init() -> Result<(), LoggerError> {
         .with(cds_telemetry::logger::get_tracing_layer())
         .with(
             cds_telemetry::tracer::get_provider()
-                .map(|p| OpenTelemetryLayer::new(cds_telemetry::tracer::get_tracer())),
+                .map(|_p| OpenTelemetryLayer::new(cds_telemetry::tracer::get_tracer())),
         );
 
     tracing::subscriber::set_global_default(subscriber)?;
