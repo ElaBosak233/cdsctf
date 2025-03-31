@@ -36,81 +36,9 @@ traffic = "expose"  # expose | proxy
 "hostname" = "127.0.0.1"
 
 [telemetry]
-is_enabled = false
 protocol = "grpc"  # grpc | json | binary
 endpoint_url = "http://127.0.0.1:4317"
 
 [jwt]
 secret = "%nanoid%"
 expiration = 43200
-
-[email]
-is_enabled = false
-host = ""
-port = 465
-tls = "tls"  # starttls | tls | none
-username = ""
-password = ""
-whitelist = []
-
-[email.reset_password]
-subject = "%title% - Reset your password"
-body = """
-<!doctype html>
-<html
-    xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:v="urn:schemas-microsoft-com:vml"
-    xmlns:o="urn:schemas-microsoft-com:office:office"
-    lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>%title% - Reset your password</title>
-</head>
-<body style="margin: 0; width: 100%; height: 100%">
-<a
-    style="
-        color: #0991ed;
-        text-decoration: none;
-        cursor: text;
-        font-size: 14px;
-        "
-    href="%link%"
-    target="_blank"
->
-    %link%
-</a>
-</body>
-</html>
-"""
-
-[email.verify_email]
-subject = "%title% - Verify your email"
-body = """
-<!doctype html>
-<html
-    xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:v="urn:schemas-microsoft-com:vml"
-    xmlns:o="urn:schemas-microsoft-com:office:office"
-    lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>%title% - Verify your email</title>
-</head>
-<body style="margin: 0; width: 100%; height: 100%">
-<a
-    style="
-        color: #0991ed;
-        text-decoration: none;
-        cursor: text;
-        font-size: 14px;
-        "
-    href="%link%"
-    target="_blank"
->
-    %link%
-</a>
-</body>
-</html>
-"""
