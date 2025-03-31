@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod captcha;
 pub mod meta;
+pub mod email;
 
 use std::{path::Path, sync::RwLock};
 
@@ -17,6 +18,7 @@ static VARIABLE: Lazy<RwLock<Variable>> = Lazy::new(|| RwLock::new(Variable::def
 pub struct Variable {
     pub meta: meta::Config,
     pub auth: auth::Config,
+    pub email: email::Config,
     pub captcha: captcha::Config,
 }
 
@@ -25,6 +27,7 @@ impl Variable {
         Self {
             meta: self.meta.to_owned(),
             auth: self.auth.to_owned(),
+            email: self.email.desensitize(),
             captcha: self.captcha.desensitize(),
         }
     }

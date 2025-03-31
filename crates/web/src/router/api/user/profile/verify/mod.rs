@@ -63,7 +63,7 @@ pub async fn send_verify_email(
     Extension(ext): Extension<Ext>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    if !cds_config::get_constant().email.is_enabled {
+    if !cds_config::get_variable().email.is_enabled {
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
@@ -71,7 +71,7 @@ pub async fn send_verify_email(
         return Err(WebError::BadRequest(json!("email_already_verified")));
     }
 
-    if cds_cache::get::<i64>(format!("email:{}", operator.email.to_owned()))
+    if cds_cache::get::<i64>(format!("email:{}:buffer", operator.email.to_owned()))
         .await?
         .is_some()
     {
@@ -89,13 +89,13 @@ pub async fn send_verify_email(
     cds_queue::publish("email", crate::worker::email_sender::Payload {
         name: operator.nickname.to_owned(),
         email: operator.email.to_owned(),
-        subject: cds_config::get_constant()
+        subject: cds_config::get_variable()
             .to_owned()
             .email
             .verify_email
             .unwrap_or_default()
             .subject,
-        body: cds_config::get_constant()
+        body: cds_config::get_variable()
             .to_owned()
             .email
             .verify_email
@@ -105,7 +105,7 @@ pub async fn send_verify_email(
     })
     .await?;
 
-    cds_cache::set_ex(format!("email:{}", operator.email.to_owned()), 1, 60).await?;
+    cds_cache::set_ex(format!("email:{}:buffer", operator.email.to_owned()), 1, 60).await?;
 
     Ok(WebResponse {
         ..Default::default()
