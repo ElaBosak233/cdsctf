@@ -1,3 +1,4 @@
+mod forget;
 mod profile;
 mod user_id;
 
@@ -38,6 +39,7 @@ pub fn router() -> Router {
         .route("/login", axum::routing::post(user_login))
         .route("/register", axum::routing::post(user_register))
         .route("/logout", axum::routing::post(user_logout))
+        .nest("/forget", forget::router())
         .nest("/{user_id}", user_id::router())
         .nest("/profile", profile::router())
 }
@@ -294,11 +296,7 @@ pub async fn user_register(
         username: Set(body.username),
         nickname: Set(body.nickname),
         email: Set(body.email),
-        is_verified: Set(if cds_config::get_constant().email.is_enabled {
-            false
-        } else {
-            true
-        }),
+        is_verified: Set(!cds_config::get_variable().email.is_enabled),
         hashed_password: Set(hashed_password),
         group: Set(
             if cds_db::entity::user::Entity::find().count(get_db()).await? == 0 {

@@ -3,15 +3,15 @@ mod util;
 pub mod worker;
 
 use std::{collections::BTreeMap, path::Path, process};
-
+use std::collections::HashSet;
 use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
 use futures_util::{SinkExt, StreamExt, stream::SplitStream};
 pub use k8s_openapi;
 use k8s_openapi::{
     api::{
         core::v1::{
-            Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec,
-            ResourceRequirements, Service, ServicePort, ServiceSpec,
+            Container as K8sContainer, ContainerPort, EnvVar, LocalObjectReference, Namespace, Pod,
+            PodSpec, ResourceRequirements, Service, ServicePort, ServiceSpec,
         },
         networking::v1::{NetworkPolicy, NetworkPolicySpec},
     },
@@ -315,9 +315,20 @@ pub async fn create_challenge_env(
         })
         .collect::<Vec<EnvVar>>();
 
+    let image_pull_secrets = env
+        .containers
+        .to_owned()
+        .into_iter()
+        .filter_map(|container| container.secret.filter(|s| !s.is_empty()))
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .map(|secret| LocalObjectReference { name: secret })
+        .collect::<Vec<LocalObjectReference>>();
+
     let pod = Pod {
         metadata: metadata.clone(),
         spec: Some(PodSpec {
+            image_pull_secrets: Some(image_pull_secrets),
             containers: env
                 .containers
                 .into_iter()
@@ -351,11 +362,15 @@ pub async fn create_challenge_env(
                         image_pull_policy: Some("IfNotPresent".to_owned()),
                         resources: Some(ResourceRequirements {
                             requests: Some(
-                                [("cpu", "10m".to_owned()), ("memory", "32Mi".to_owned())]
-                                    .iter()
-                                    .cloned()
-                                    .map(|(k, v)| (k.to_owned(), Quantity(v)))
-                                    .collect(),
+                                [
+                                    ("cpu", "10m".to_owned()),
+                                    ("memory", "32Mi".to_owned()),
+                                    ("ephemeral-storage", "64Mi".to_owned()),
+                                ]
+                                .iter()
+                                .cloned()
+                                .map(|(k, v)| (k.to_owned(), Quantity(v)))
+                                .collect(),
                             ),
                             limits: Some(
                                 [
