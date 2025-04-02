@@ -3,12 +3,12 @@ mod util;
 
 use anyhow::anyhow;
 use lettre::{
-    message::header::ContentType, transport::smtp::{
+    AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
+    message::header::ContentType,
+    transport::smtp::{
         authentication::Credentials,
         client::{Tls, TlsParameters},
-    }, AsyncSmtpTransport,
-    AsyncTransport,
-    Tokio1Executor,
+    },
 };
 
 use crate::traits::EmailError;

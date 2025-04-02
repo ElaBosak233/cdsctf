@@ -7,19 +7,15 @@ use chrono::TimeZone;
 use tracing::info;
 
 #[tokio::main]
-async fn main() {
-    bootstrap().await.unwrap_or_else(|err| {
-        panic!("Bootstrap error: {}", err);
-    });
+async fn main() -> Result<(), anyhow::Error> {
+    bootstrap().await?;
 
     let addr = format!(
         "{}:{}",
         cds_config::get_constant().server.host,
         cds_config::get_constant().server.port
     );
-    let listener = tokio::net::TcpListener::bind(&addr)
-        .await
-        .expect("TcpListener could not bind.");
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
 
     info!(
         "CdsCTF service has been started at {}. Enjoy your hacking challenges!",
@@ -33,8 +29,9 @@ async fn main() {
             .into_make_service_with_connect_info::<SocketAddr>(),
     )
     .with_graceful_shutdown(shutdown())
-    .await
-    .expect("Failed to start axum server.");
+    .await?;
+
+    Ok(())
 }
 
 async fn bootstrap() -> Result<(), anyhow::Error> {

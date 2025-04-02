@@ -30,7 +30,7 @@ cds-web = { path = "crates/web" }
 # Async
 async-trait = { version = "0.1" }
 tokio = { version = "1.44", features = ["full"] }
-tokio-util = { version = "0.7.13" }
+tokio-util = { version = "0.7.14" }
 futures = { version = "^0.3" }
 futures-util = { version = "0.3" }
 tower = { version = "0.5" }
@@ -61,7 +61,7 @@ argon2 = { version = "0.5" }
 aes = { version = "0.8" }
 
 # Data Handling
-uuid = { version = "1.15", features = [
+uuid = { version = "1.16", features = [
     "v4",
     "fast-rng",
     "macro-diagnostics"
@@ -144,7 +144,7 @@ reqwest = { version = "0.12", features = [
     "json",
     "rustls-tls",
 ], default-features = false }
-image = { version = "0.25.5" }
+image = { version = "0.25.6" }
 webp = { version = "0.3.0", features = ["image"] }
 biosvg = { version = "0.1" }
 lettre = { version = "0.11", features = [

@@ -1,7 +1,7 @@
 pub mod auth;
 pub mod captcha;
-pub mod meta;
 pub mod email;
+pub mod meta;
 
 use std::{path::Path, sync::RwLock};
 
