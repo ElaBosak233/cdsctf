@@ -1,24 +1,24 @@
-use crate::{
-    extract::Json,
-    traits::{WebError, WebResponse},
+use argon2::{
+    Argon2, PasswordHasher,
+    password_hash::{SaltString, rand_core::OsRng},
 };
-use argon2::password_hash::rand_core::OsRng;
-use argon2::password_hash::SaltString;
-use argon2::{Argon2, PasswordHasher};
 use axum::Router;
-use cds_db::sea_orm::QueryFilter;
 use cds_db::{
     get_db,
     sea_orm::{
         ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
-        ColumnTrait,
-        EntityTrait,
+        ColumnTrait, EntityTrait, QueryFilter,
     },
 };
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+
+use crate::{
+    extract::Json,
+    traits::{WebError, WebResponse},
+};
 
 pub fn router() -> Router {
     Router::new()
@@ -33,9 +33,7 @@ pub struct UserForgetRequest {
     pub password: String,
 }
 
-pub async fn user_forget(
-    Json(body): Json<UserForgetRequest>,
-) -> Result<WebResponse<()>, WebError> {
+pub async fn user_forget(Json(body): Json<UserForgetRequest>) -> Result<WebResponse<()>, WebError> {
     let user = cds_db::entity::user::Entity::find()
         .filter(cds_db::entity::user::Column::Email.eq(body.email.to_owned().to_lowercase()))
         .one(get_db())
@@ -60,8 +58,8 @@ pub async fn user_forget(
         hashed_password: Set(hashed_password),
         ..Default::default()
     }
-        .update(get_db())
-        .await?;
+    .update(get_db())
+    .await?;
 
     let _ = cds_cache::get_del::<String>(format!("email:{}:code", user.email)).await?;
 
@@ -101,7 +99,7 @@ pub async fn send_forget_email(
         code.to_owned(),
         60 * 60,
     )
-        .await?;
+    .await?;
 
     cds_queue::publish("email", crate::worker::email_sender::Payload {
         name: user.nickname.to_owned(),
@@ -120,7 +118,7 @@ pub async fn send_forget_email(
             .body
             .replace("%code%", &code),
     })
-        .await?;
+    .await?;
 
     cds_cache::set_ex(format!("email:{}:buffer", user.email.to_owned()), 1, 60).await?;
 
