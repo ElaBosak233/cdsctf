@@ -2,8 +2,12 @@ pub mod traits;
 mod util;
 pub mod worker;
 
-use std::{collections::BTreeMap, path::Path, process};
-use std::collections::HashSet;
+use std::{
+    collections::{BTreeMap, HashSet},
+    path::Path,
+    process,
+};
+
 use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
 use futures_util::{SinkExt, StreamExt, stream::SplitStream};
 pub use k8s_openapi;
