@@ -20,3 +20,4 @@ anyhow = { workspace = true }
 image = { workspace = true }
 webp = { workspace = true }
 hex = { workspace = true }
+uuid = { workspace = true }

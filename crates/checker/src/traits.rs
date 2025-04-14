@@ -24,6 +24,8 @@ pub enum CheckerError {
     ScriptError(String),
     #[error("String UTF-8 decode error: {0}")]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
-    #[error("other error: {0}")]
+    #[error(transparent)]
+    MediaError(#[from] cds_media::traits::MediaError),
+    #[error(transparent)]
     OtherError(#[from] anyhow::Error),
 }
