@@ -168,11 +168,7 @@ pub async fn update_challenge_checker(
     .update(get_db())
     .await?;
 
-    let script = challenge
-        .checker
-        .ok_or(WebError::BadRequest(json!("null_checker_script")))?;
-
-    let lint = cds_checker::lint(&script);
+    let lint = cds_checker::lint(&Challenge::from(challenge)).await;
     let msg = if let Err(lint) = lint {
         match lint {
             CheckerError::CompileError(diagnostics) => Some(diagnostics),

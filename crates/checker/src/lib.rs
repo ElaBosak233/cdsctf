@@ -3,7 +3,7 @@ pub mod traits;
 pub mod util;
 pub mod worker;
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use anyhow::anyhow;
 use chrono::{DateTime, Utc};
@@ -29,52 +29,49 @@ struct CheckerContext {
 static CHECKER_CONTEXT: Lazy<Arc<DashMap<Uuid, CheckerContext>>> =
     Lazy::new(|| Arc::new(DashMap::new()));
 
-static RUNE_CONTEXT: OnceCell<Context> = OnceCell::new();
-
 pub async fn init() -> Result<(), CheckerError> {
-    fn init_rune_context() -> Result<(), CheckerError> {
-        let mut rune_context = Context::with_default_modules()?;
-        rune_context.install(rune_modules::http::module(true)?)?;
-        rune_context.install(rune_modules::json::module(true)?)?;
-        rune_context.install(rune_modules::toml::module(true)?)?;
-        rune_context.install(rune_modules::process::module(true)?)?;
-
-        rune_context.install(modules::audit::module(true)?)?;
-        rune_context.install(modules::crypto::module(true)?)?;
-        rune_context.install(modules::regex::module(true)?)?;
-        rune_context.install(modules::suid::module(true)?)?;
-        rune_context.install(modules::leet::module(true)?)?;
-
-        RUNE_CONTEXT
-            .set(rune_context)
-            .map_err(|_| anyhow!("Failed to set rune_context into OnceCell."))?;
-
-        info!("Checker's rune context loaded.");
-
-        Ok(())
-    }
-
-    init_rune_context()?;
     worker::cleaner().await;
 
     Ok(())
+}
+
+async fn gen_rune_context(challenge_id: &Uuid) -> Result<Context, CheckerError> {
+    let mut rune_context = Context::with_default_modules()?;
+    rune_context.install(rune_modules::http::module(true)?)?;
+    rune_context.install(rune_modules::json::module(true)?)?;
+    rune_context.install(rune_modules::toml::module(true)?)?;
+    rune_context.install(rune_modules::process::module(true)?)?;
+
+    rune_context.install(modules::audit::module(true)?)?;
+    rune_context.install(modules::crypto::module(true)?)?;
+    rune_context.install(modules::regex::module(true)?)?;
+    rune_context.install(modules::suid::module(true)?)?;
+    rune_context.install(modules::leet::module(true)?)?;
+
+    rune_context.install(modules::fs::module(
+        true,
+        cds_media::challenge::get_root_path(challenge_id).await?,
+    )?)?;
+
+    Ok(rune_context)
 }
 
 fn get_checker_context() -> Arc<DashMap<Uuid, CheckerContext>> {
     Arc::clone(&CHECKER_CONTEXT)
 }
 
-fn get_rune_context() -> &'static Context {
-    RUNE_CONTEXT.get().unwrap()
-}
-
-pub fn lint(script: &str) -> Result<(), CheckerError> {
+pub async fn lint(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerError> {
+    let context = gen_rune_context(&challenge.id).await?;
     let mut sources = Sources::new();
+    let script = challenge
+        .clone()
+        .checker
+        .ok_or(CheckerError::MissingScript("".to_owned()))?;
     sources.insert(Source::memory(script)?)?;
     let mut diagnostics = Diagnostics::new();
 
     let _ = rune::prepare(&mut sources)
-        .with_context(get_rune_context())
+        .with_context(&context)
         .with_diagnostics(&mut diagnostics)
         .build();
 
@@ -87,11 +84,9 @@ pub fn lint(script: &str) -> Result<(), CheckerError> {
         return Err(CheckerError::CompileError(out));
     }
 
-    let unit = rune::prepare(&mut sources)
-        .with_context(get_rune_context())
-        .build()?;
+    let unit = rune::prepare(&mut sources).with_context(&context).build()?;
 
-    let runtime = get_rune_context().runtime()?;
+    let runtime = context.runtime()?;
     let vm = Vm::new(Arc::new(runtime), Arc::new(unit));
 
     vm.lookup_function(["check"])
@@ -104,6 +99,7 @@ pub fn lint(script: &str) -> Result<(), CheckerError> {
 }
 
 async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerError> {
+    let rune_context = gen_rune_context(&challenge.id).await?;
     let checker_context = get_checker_context();
 
     if let Some(context) = checker_context.get(&challenge.id) {
@@ -122,12 +118,12 @@ async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerE
         .ok_or(CheckerError::MissingScript("".to_owned()))?;
 
     sources.insert(Source::memory(&script)?)?;
-    lint(&script)?;
+    lint(&challenge).await?;
 
     let unit = rune::prepare(&mut sources)
-        .with_context(get_rune_context())
+        .with_context(&rune_context)
         .build()?;
-    let runtime = get_rune_context().runtime()?;
+    let runtime = rune_context.runtime()?;
 
     checker_context.insert(challenge.id, CheckerContext {
         unit: Arc::new(unit),
