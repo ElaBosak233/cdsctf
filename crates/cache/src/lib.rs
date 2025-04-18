@@ -53,7 +53,8 @@ where
 }
 
 pub async fn set(
-    key: impl Into<Key> + Send + Display, value: impl Serialize + Send,
+    key: impl Into<Key> + Send + Display,
+    value: impl Serialize + Send,
 ) -> Result<(), CacheError> {
     let value: String = serde_json::to_string(&value)?;
     get_client()
@@ -64,7 +65,9 @@ pub async fn set(
 }
 
 pub async fn set_ex(
-    key: impl Into<Key> + Send + Display, value: impl Serialize + Send, expire: u64,
+    key: impl Into<Key> + Send + Display,
+    value: impl Serialize + Send,
+    expire: u64,
 ) -> Result<(), CacheError> {
     let value: String = serde_json::to_string(&value)?;
     get_client()

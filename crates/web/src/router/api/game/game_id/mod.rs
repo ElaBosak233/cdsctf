@@ -43,7 +43,8 @@ pub struct ScoreRecord {
 }
 
 pub async fn get_game_scoreboard(
-    Path(game_id): Path<i64>, Query(params): Query<GetGameScoreboardRequest>,
+    Path(game_id): Path<i64>,
+    Query(params): Query<GetGameScoreboardRequest>,
 ) -> Result<WebResponse<Vec<ScoreRecord>>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 

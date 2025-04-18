@@ -44,7 +44,8 @@ pub struct UpdateTeamRequest {
 /// # Prerequisite
 /// - Operator is admin or one of current team.
 pub async fn update_team(
-    Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>,
+    Path((_game_id, team_id)): Path<(i64, i64)>,
     Json(body): Json<UpdateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -79,7 +80,8 @@ pub async fn update_team(
 }
 
 pub async fn delete_team(
-    Extension(ext): Extension<Ext>, Path((_game_id, team_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>,
+    Path((_game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin

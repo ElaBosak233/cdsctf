@@ -22,7 +22,8 @@ pub struct GetGameNoticeRequest {
 }
 
 pub async fn get_game_notice(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Vec<GameNotice>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

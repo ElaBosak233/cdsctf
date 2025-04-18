@@ -57,7 +57,8 @@ pub struct UpdateUserProfileRequest {
 }
 
 pub async fn update_user_profile(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<UpdateUserProfileRequest>,
+    Extension(ext): Extension<Ext>,
+    Json(mut body): Json<UpdateUserProfileRequest>,
 ) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
@@ -110,7 +111,8 @@ pub struct DeleteUserProfileRequest {
 }
 
 pub async fn delete_user_profile(
-    Extension(ext): Extension<Ext>, Json(body): Json<DeleteUserProfileRequest>,
+    Extension(ext): Extension<Ext>,
+    Json(body): Json<DeleteUserProfileRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
@@ -158,7 +160,8 @@ pub struct UpdateUserProfilePasswordRequest {
 }
 
 pub async fn update_user_profile_password(
-    Extension(ext): Extension<Ext>, Json(body): Json<UpdateUserProfilePasswordRequest>,
+    Extension(ext): Extension<Ext>,
+    Json(body): Json<UpdateUserProfilePasswordRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 

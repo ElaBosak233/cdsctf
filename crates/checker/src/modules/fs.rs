@@ -1,6 +1,7 @@
+use std::path::PathBuf;
+
 use anyhow::anyhow;
 use rune::{ContextError, Module};
-use std::path::PathBuf;
 
 #[rune::module(::fs)]
 pub fn module(_stdio: bool, root: PathBuf) -> Result<Module, ContextError> {
@@ -10,9 +11,7 @@ pub fn module(_stdio: bool, root: PathBuf) -> Result<Module, ContextError> {
         .function("read_to_string", {
             let root = root.clone();
             move |path: String| -> Result<String, anyhow::Error> {
-                let full_path = root
-                    .join(&path)
-                    .canonicalize()?;
+                let full_path = root.join(&path).canonicalize()?;
 
                 if !full_path.starts_with(&root) {
                     return Err(anyhow!("access_denied"));
@@ -22,15 +21,14 @@ pub fn module(_stdio: bool, root: PathBuf) -> Result<Module, ContextError> {
 
                 Ok(content)
             }
-        }).build()?;
+        })
+        .build()?;
 
     module
         .function("write", {
             let root = root.clone();
             move |path: String, content: String| -> Result<(), anyhow::Error> {
-                let full_path = root
-                    .join(&path)
-                    .canonicalize()?;
+                let full_path = root.join(&path).canonicalize()?;
 
                 if !full_path.starts_with(&root) {
                     return Err(anyhow!("access_denied"));
@@ -40,7 +38,8 @@ pub fn module(_stdio: bool, root: PathBuf) -> Result<Module, ContextError> {
 
                 Ok(())
             }
-        }).build()?;
+        })
+        .build()?;
 
     Ok(module)
 }

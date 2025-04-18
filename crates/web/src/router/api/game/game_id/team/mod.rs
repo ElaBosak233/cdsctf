@@ -55,7 +55,9 @@ pub struct GetTeamRequest {
 
 /// Get game teams with given data.
 pub async fn get_team(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Query(params): Query<GetTeamRequest>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
+    Query(params): Query<GetTeamRequest>,
 ) -> Result<WebResponse<Vec<Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -134,7 +136,9 @@ pub struct CreateTeamRequest {
 /// # Prerequisite
 /// - No user in the team is already in the game.
 pub async fn team_register(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Json(body): Json<CreateTeamRequest>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
+    Json(body): Json<CreateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

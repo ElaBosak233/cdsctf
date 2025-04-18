@@ -27,7 +27,8 @@ pub struct JoinTeamRequest {
 }
 
 pub async fn join_team(
-    Extension(ext): Extension<Ext>, Path((game_id, team_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>,
+    Path((game_id, team_id)): Path<(i64, i64)>,
     Json(body): Json<JoinTeamRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

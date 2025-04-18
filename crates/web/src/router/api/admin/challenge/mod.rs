@@ -41,7 +41,8 @@ pub struct GetChallengeRequest {
 }
 
 pub async fn get_challenge(
-    Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
+    Extension(ext): Extension<Ext>,
+    Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<Challenge>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -143,7 +144,8 @@ pub struct CreateChallengeRequest {
 }
 
 pub async fn create_challenge(
-    Extension(ext): Extension<Ext>, Json(body): Json<CreateChallengeRequest>,
+    Extension(ext): Extension<Ext>,
+    Json(body): Json<CreateChallengeRequest>,
 ) -> Result<WebResponse<Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {

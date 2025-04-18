@@ -20,7 +20,8 @@ pub fn router() -> Router {
 }
 
 pub async fn save_user_avatar(
-    Extension(ext): Extension<Ext>, multipart: Multipart,
+    Extension(ext): Extension<Ext>,
+    multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 

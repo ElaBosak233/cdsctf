@@ -22,7 +22,9 @@ pub fn router() -> Router {
 }
 
 pub async fn save_game_poster(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, multipart: Multipart,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
+    multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -35,7 +37,8 @@ pub async fn save_game_poster(
 }
 
 pub async fn delete_game_poster(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {

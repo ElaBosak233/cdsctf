@@ -18,8 +18,10 @@ pub struct GetShellRequest {
 }
 
 pub async fn get_shell(
-    Extension(ext): Extension<Ext>, Path((pod_id, container_id)): Path<(String, String)>,
-    Query(params): Query<GetShellRequest>, ws: WebSocketUpgrade,
+    Extension(ext): Extension<Ext>,
+    Path((pod_id, container_id)): Path<(String, String)>,
+    Query(params): Query<GetShellRequest>,
+    ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

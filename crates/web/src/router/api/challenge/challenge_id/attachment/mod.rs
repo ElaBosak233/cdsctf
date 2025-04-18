@@ -26,7 +26,8 @@ pub fn router() -> Router {
 }
 
 pub async fn get_challenge_attachment(
-    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>,
+    Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<impl IntoResponse, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -58,7 +59,8 @@ pub async fn get_challenge_attachment(
 }
 
 pub async fn get_challenge_attachment_metadata(
-    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>,
+    Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<Metadata>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

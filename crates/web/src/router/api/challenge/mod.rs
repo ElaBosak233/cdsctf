@@ -40,7 +40,8 @@ pub struct GetChallengeRequest {
 }
 
 pub async fn get_challenge(
-    Extension(ext): Extension<Ext>, Query(params): Query<GetChallengeRequest>,
+    Extension(ext): Extension<Ext>,
+    Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<Challenge>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -141,7 +142,8 @@ pub struct ChallengeStatusResponse {
 }
 
 pub async fn get_challenge_status(
-    Extension(ext): Extension<Ext>, Json(body): Json<GetChallengeStatusRequest>,
+    Extension(ext): Extension<Ext>,
+    Json(body): Json<GetChallengeStatusRequest>,
 ) -> Result<WebResponse<HashMap<uuid::Uuid, ChallengeStatusResponse>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

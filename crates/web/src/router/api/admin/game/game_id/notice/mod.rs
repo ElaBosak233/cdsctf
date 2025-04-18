@@ -29,7 +29,8 @@ pub struct CreateGameNoticeRequest {
 }
 
 pub async fn create_game_notice(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
     Json(body): Json<CreateGameNoticeRequest>,
 ) -> Result<WebResponse<GameNotice>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -57,7 +58,8 @@ pub async fn create_game_notice(
 }
 
 pub async fn delete_game_notice(
-    Extension(ext): Extension<Ext>, Path((game_id, notice_id)): Path<(i64, i64)>,
+    Extension(ext): Extension<Ext>,
+    Path((game_id, notice_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

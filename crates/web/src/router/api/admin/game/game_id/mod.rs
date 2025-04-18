@@ -52,7 +52,8 @@ pub struct UpdateGameRequest {
 }
 
 pub async fn update_game(
-    Path(game_id): Path<i64>, VJson(body): VJson<UpdateGameRequest>,
+    Path(game_id): Path<i64>,
+    VJson(body): VJson<UpdateGameRequest>,
 ) -> Result<WebResponse<Game>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 

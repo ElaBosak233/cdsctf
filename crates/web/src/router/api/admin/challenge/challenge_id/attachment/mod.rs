@@ -26,7 +26,9 @@ pub fn router() -> Router {
 }
 
 pub async fn save_challenge_attachment(
-    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>, mut multipart: Multipart,
+    Extension(ext): Extension<Ext>,
+    Path(challenge_id): Path<uuid::Uuid>,
+    mut multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -67,7 +69,8 @@ pub async fn save_challenge_attachment(
 }
 
 pub async fn delete_challenge_attachment(
-    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>,
+    Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {

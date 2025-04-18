@@ -3,18 +3,17 @@ pub mod traits;
 pub mod util;
 pub mod worker;
 
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
-use anyhow::anyhow;
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
-use once_cell::sync::{Lazy, OnceCell};
+use once_cell::sync::Lazy;
 use rune::{
     Context, Diagnostics, Source, Sources, Unit, Value, Vm,
     runtime::{Object, RuntimeContext},
     termcolor::Buffer,
 };
-use tracing::{debug, info};
+use tracing::debug;
 use uuid::Uuid;
 
 pub use crate::modules::audit::Status;
@@ -118,7 +117,7 @@ async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerE
         .ok_or(CheckerError::MissingScript("".to_owned()))?;
 
     sources.insert(Source::memory(&script)?)?;
-    lint(&challenge).await?;
+    lint(challenge).await?;
 
     let unit = rune::prepare(&mut sources)
         .with_context(&rune_context)
@@ -135,7 +134,9 @@ async fn preload(challenge: &cds_db::transfer::Challenge) -> Result<(), CheckerE
 }
 
 pub async fn check(
-    challenge: &cds_db::transfer::Challenge, operator_id: i64, content: &str,
+    challenge: &cds_db::transfer::Challenge,
+    operator_id: i64,
+    content: &str,
 ) -> Result<Status, CheckerError> {
     preload(challenge).await?;
 
@@ -158,7 +159,8 @@ pub async fn check(
 }
 
 pub async fn generate(
-    challenge: &cds_db::transfer::Challenge, operator_id: i64,
+    challenge: &cds_db::transfer::Challenge,
+    operator_id: i64,
 ) -> Result<HashMap<String, String>, CheckerError> {
     preload(challenge).await?;
 

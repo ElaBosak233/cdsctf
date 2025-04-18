@@ -34,7 +34,8 @@ pub struct GetGameRequest {
 
 /// Get games with given params.
 pub async fn get_game(
-    Extension(ext): Extension<Ext>, Query(params): Query<GetGameRequest>,
+    Extension(ext): Extension<Ext>,
+    Query(params): Query<GetGameRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::Game>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
