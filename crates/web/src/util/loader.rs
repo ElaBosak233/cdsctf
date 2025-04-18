@@ -31,7 +31,8 @@ pub async fn prepare_game(game_id: i64) -> Result<Game, WebError> {
 }
 
 pub async fn prepare_game_challenge(
-    game_id: i64, challenge_id: Uuid,
+    game_id: i64,
+    challenge_id: Uuid,
 ) -> Result<GameChallenge, WebError> {
     let game_challenge = cds_db::entity::game_challenge::Entity::find()
         .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id))

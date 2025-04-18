@@ -72,7 +72,9 @@ pub async fn preload(
 }
 
 pub async fn find(
-    game_id: Option<i64>, challenge_id: Option<i64>, category: Option<i32>,
+    game_id: Option<i64>,
+    challenge_id: Option<i64>,
+    category: Option<i32>,
     is_enabled: Option<bool>,
 ) -> Result<(Vec<GameChallenge>, u64), DbErr> {
     let mut sql = entity::game_challenge::Entity::find()

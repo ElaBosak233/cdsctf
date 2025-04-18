@@ -17,7 +17,8 @@ pub fn router() -> Router {
 }
 
 pub async fn renew_pod(
-    Extension(ext): Extension<Ext>, Path(pod_id): Path<String>,
+    Extension(ext): Extension<Ext>,
+    Path(pod_id): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -84,7 +85,8 @@ pub async fn renew_pod(
 }
 
 pub async fn stop_pod(
-    Extension(ext): Extension<Ext>, Path(pod_id): Path<String>,
+    Extension(ext): Extension<Ext>,
+    Path(pod_id): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -129,7 +131,9 @@ pub struct WsrxRequest {
 }
 
 pub async fn wsrx(
-    Path(env_id): Path<String>, Query(query): Query<WsrxRequest>, ws: WebSocketUpgrade,
+    Path(env_id): Path<String>,
+    Query(query): Query<WsrxRequest>,
+    ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
     let port = query.port;
 

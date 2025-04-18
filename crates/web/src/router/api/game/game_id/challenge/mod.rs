@@ -33,7 +33,8 @@ pub struct GetGameChallengeRequest {
 /// - If the operator is admin, there is no prerequisite.
 /// - Operating time is between related game's `started_at` and `ended_at`.
 pub async fn get_game_challenge(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

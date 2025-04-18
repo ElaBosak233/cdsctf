@@ -34,7 +34,8 @@ pub struct GetEnvRequest {
 }
 
 pub async fn get_env(
-    Extension(ext): Extension<Ext>, Query(params): Query<GetEnvRequest>,
+    Extension(ext): Extension<Ext>,
+    Query(params): Query<GetEnvRequest>,
 ) -> Result<WebResponse<Vec<Env>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let mut map: BTreeMap<String, String> = BTreeMap::new();
@@ -96,7 +97,8 @@ pub struct CreateEnvRequest {
 }
 
 pub async fn create_env(
-    Extension(ext): Extension<Ext>, Json(body): Json<CreateEnvRequest>,
+    Extension(ext): Extension<Ext>,
+    Json(body): Json<CreateEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

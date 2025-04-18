@@ -42,7 +42,8 @@ pub struct UpdateChallengeRequest {
 }
 
 pub async fn update_challenge(
-    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>,
+    Path(challenge_id): Path<uuid::Uuid>,
     VJson(body): VJson<UpdateChallengeRequest>,
 ) -> Result<WebResponse<Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -79,7 +80,8 @@ pub async fn update_challenge(
 }
 
 pub async fn delete_challenge(
-    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>,
+    Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -112,7 +114,8 @@ pub struct UpdateChallengeEnvRequest {
 }
 
 pub async fn update_challenge_env(
-    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>,
+    Path(challenge_id): Path<uuid::Uuid>,
     VJson(body): VJson<UpdateChallengeEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -146,7 +149,8 @@ pub struct UpdateChallengeCheckerRequest {
 }
 
 pub async fn update_challenge_checker(
-    Extension(ext): Extension<Ext>, Path(challenge_id): Path<uuid::Uuid>,
+    Extension(ext): Extension<Ext>,
+    Path(challenge_id): Path<uuid::Uuid>,
     VJson(body): VJson<UpdateChallengeCheckerRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

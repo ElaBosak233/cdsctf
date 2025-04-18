@@ -37,17 +37,9 @@ pub struct GetGameChallengeRequest {
 
 /// Get challenges by given params.
 pub async fn get_game_challenge(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
 ) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
-    let game = cds_db::entity::game::Entity::find_by_id(game_id)
-        .one(get_db())
-        .await?
-        .map(cds_db::transfer::Game::from)
-        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
-
     // Using inner join to access fields in related tables.
     let mut sql = cds_db::entity::game_challenge::Entity::find()
         .inner_join(cds_db::entity::challenge::Entity)
@@ -93,7 +85,8 @@ pub struct CreateGameChallengeRequest {
 }
 
 pub async fn create_game_challenge(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
     Json(body): Json<CreateGameChallengeRequest>,
 ) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

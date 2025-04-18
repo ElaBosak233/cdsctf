@@ -137,7 +137,9 @@ pub async fn get_by_challenge_ids(challenge_ids: Vec<Uuid>) -> Result<Vec<Submis
 }
 
 pub async fn get_by_game_id_and_team_ids(
-    game_id: i64, team_ids: Vec<i64>, status: Option<Status>,
+    game_id: i64,
+    team_ids: Vec<i64>,
+    status: Option<Status>,
 ) -> Result<Vec<Submission>, DbErr> {
     let mut sql = entity::submission::Entity::find().filter(
         Condition::all()

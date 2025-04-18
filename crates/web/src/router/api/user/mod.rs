@@ -131,7 +131,8 @@ pub struct CreateUserRequest {
 }
 
 pub async fn create_user(
-    Extension(ext): Extension<Ext>, VJson(mut body): VJson<CreateUserRequest>,
+    Extension(ext): Extension<Ext>,
+    VJson(mut body): VJson<CreateUserRequest>,
 ) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -182,7 +183,8 @@ pub struct UserLoginRequest {
 }
 
 pub async fn user_login(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<UserLoginRequest>,
+    Extension(ext): Extension<Ext>,
+    Json(mut body): Json<UserLoginRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     if !cds_captcha::check(&cds_captcha::Answer {
         client_ip: Some(ext.client_ip),
@@ -262,7 +264,8 @@ pub struct UserRegisterRequest {
 }
 
 pub async fn user_register(
-    Extension(ext): Extension<Ext>, Json(mut body): Json<UserRegisterRequest>,
+    Extension(ext): Extension<Ext>,
+    Json(mut body): Json<UserRegisterRequest>,
 ) -> Result<WebResponse<User>, WebError> {
     if !cds_config::get_variable().auth.is_registration_enabled {
         return Err(WebError::BadRequest(json!("registration_disabled")));

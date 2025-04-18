@@ -1,5 +1,5 @@
 merge_derives = true
-fn_params_layout = "Compressed"
+fn_params_layout = "Tall"
 tab_spaces = 4
 reorder_imports = true
 unstable_features = true

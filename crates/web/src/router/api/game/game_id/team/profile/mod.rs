@@ -33,7 +33,8 @@ pub fn router() -> Router {
 }
 
 pub async fn get_team(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(game_id, operator.id).await?;
@@ -54,7 +55,9 @@ pub struct UpdateTeamRequest {
 
 /// Update a team with given path and data.
 pub async fn update_team(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, Json(body): Json<UpdateTeamRequest>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
+    Json(body): Json<UpdateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
@@ -84,7 +87,8 @@ pub async fn update_team(
 }
 
 pub async fn delete_team(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(game_id, operator.id).await?;
@@ -115,7 +119,8 @@ pub async fn delete_team(
 /// # Prerequisite
 /// - Operator is admin or one of the members of current team.
 pub async fn set_team_ready(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let game = crate::util::loader::prepare_game(game_id).await?;

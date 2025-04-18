@@ -20,7 +20,8 @@ pub fn router() -> Router {
 }
 
 pub async fn save_game_icon(
-    Path(game_id): Path<i64>, multipart: Multipart,
+    Path(game_id): Path<i64>,
+    multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let path = format!("games/{}/icon", game_id);
 

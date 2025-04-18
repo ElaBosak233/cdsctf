@@ -32,7 +32,8 @@ pub struct GetSubmissionRequest {
 }
 
 pub async fn get_submission(
-    Extension(ext): Extension<Ext>, Query(params): Query<GetSubmissionRequest>,
+    Extension(ext): Extension<Ext>,
+    Query(params): Query<GetSubmissionRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -90,7 +91,8 @@ pub async fn get_submission(
 }
 
 pub async fn delete_submission(
-    Extension(ext): Extension<Ext>, Path(submission_id): Path<i64>,
+    Extension(ext): Extension<Ext>,
+    Path(submission_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {

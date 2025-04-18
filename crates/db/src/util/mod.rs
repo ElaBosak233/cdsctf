@@ -26,7 +26,9 @@ pub async fn is_user_in_team(user_id: i64, team_id: i64) -> Result<bool, DbErr> 
 ///  WHERE u.id = ? AND t.game_id = ? AND t.is_allowed = true;
 /// ```
 pub async fn is_user_in_game(
-    user: &crate::transfer::User, game: &crate::transfer::Game, state: Option<State>,
+    user: &crate::transfer::User,
+    game: &crate::transfer::Game,
+    state: Option<State>,
 ) -> Result<bool, DbErr> {
     let mut sql = crate::entity::team::Entity::find()
         .join(

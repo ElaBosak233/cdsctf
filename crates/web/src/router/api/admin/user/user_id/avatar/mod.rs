@@ -21,7 +21,8 @@ pub fn router() -> Router {
 }
 
 pub async fn save_user_avatar(
-    Path(user_id): Path<i64>, multipart: Multipart,
+    Path(user_id): Path<i64>,
+    multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let path = format!("users/{}/avatar", user_id);
 

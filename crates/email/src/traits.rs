@@ -8,6 +8,6 @@ pub enum EmailError {
     SmtpError(#[from] lettre::transport::smtp::Error),
     #[error("mailer test error")]
     MailerTestError(),
-    #[error("other error: {0}")]
+    #[error(transparent)]
     OtherError(#[from] anyhow::Error),
 }

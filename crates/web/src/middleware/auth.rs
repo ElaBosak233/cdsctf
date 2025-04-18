@@ -70,7 +70,9 @@ pub async fn extract(mut req: Request<Body>, next: Next) -> Result<Response, Web
 }
 
 pub async fn admin_only(
-    Extension(ext): Extension<Ext>, req: Request, next: Next,
+    Extension(ext): Extension<Ext>,
+    req: Request,
+    next: Next,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

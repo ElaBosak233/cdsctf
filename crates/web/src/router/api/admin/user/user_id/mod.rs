@@ -46,7 +46,8 @@ pub struct UpdateUserRequest {
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn update_user(
-    Path(user_id): Path<i64>, VJson(mut body): VJson<UpdateUserRequest>,
+    Path(user_id): Path<i64>,
+    VJson(mut body): VJson<UpdateUserRequest>,
 ) -> Result<WebResponse<User>, WebError> {
     let user = crate::util::loader::prepare_user(user_id).await?;
 

@@ -26,7 +26,9 @@ pub fn router() -> Router {
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
 pub async fn save_team_avatar(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>, multipart: Multipart,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
+    multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = util::loader::prepare_self_team(game_id, operator.id).await?;
@@ -37,7 +39,8 @@ pub async fn save_team_avatar(
 
 /// Delete avatar for the team.
 pub async fn delete_team_avatar(
-    Extension(ext): Extension<Ext>, Path(game_id): Path<i64>,
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = util::loader::prepare_self_team(game_id, operator.id).await?;

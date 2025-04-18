@@ -60,7 +60,7 @@ pub async fn init() -> Result<(), ClusterError> {
     }
     let config = result?;
     let client = K8sClient::try_from(config)?;
-    if let Err(_) = client.apiserver_version().await {
+    if client.apiserver_version().await.is_err() {
         error!("Failed to connect to Kubernetes API server.");
         process::exit(1);
     }
@@ -247,8 +247,10 @@ pub async fn delete_pod(id: &str) -> Result<(), ClusterError> {
 }
 
 pub async fn create_challenge_env(
-    user: cds_db::transfer::User, team: Option<cds_db::transfer::Team>,
-    game: Option<cds_db::transfer::Game>, challenge: cds_db::transfer::Challenge,
+    user: cds_db::transfer::User,
+    team: Option<cds_db::transfer::Team>,
+    game: Option<cds_db::transfer::Game>,
+    challenge: cds_db::transfer::Challenge,
 ) -> Result<(), ClusterError> {
     let id = util::gen_safe_nanoid();
     let name = format!("cds-{}", id);
@@ -321,8 +323,8 @@ pub async fn create_challenge_env(
 
     let image_pull_secrets = env
         .containers
-        .to_owned()
-        .into_iter()
+        .iter()
+        .cloned()
         .filter_map(|container| container.secret.filter(|s| !s.is_empty()))
         .collect::<HashSet<_>>()
         .into_iter()
@@ -533,7 +535,10 @@ pub async fn wsrx(id: &str, port: u16, ws: WebSocket) -> Result<(), ClusterError
 }
 
 pub async fn exec(
-    id: &str, container_id: &str, command: String, ws: WebSocket,
+    id: &str,
+    container_id: &str,
+    command: String,
+    ws: WebSocket,
 ) -> Result<(), ClusterError> {
     async fn process_client_to_pod<W>(mut receiver: SplitStream<WebSocket>, mut stdin_writer: W)
     where

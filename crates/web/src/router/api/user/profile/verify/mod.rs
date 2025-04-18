@@ -28,7 +28,8 @@ pub struct UserVerifyRequest {
 }
 
 pub async fn user_verify(
-    Extension(ext): Extension<Ext>, Json(body): Json<UserVerifyRequest>,
+    Extension(ext): Extension<Ext>,
+    Json(body): Json<UserVerifyRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
