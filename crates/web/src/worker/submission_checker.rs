@@ -99,6 +99,12 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         }
 
         if let (Some(game_id), Some(_team_id)) = (submission.game_id, submission.team_id) {
+            let game = cds_db::entity::game::Entity::find_by_id(game_id)
+                .one(get_db())
+                .await?
+                .map(cds_db::transfer::Game::from)
+                .ok_or(anyhow!("game_not_found"))?;
+            
             let game_challenge = cds_db::entity::game_challenge::Entity::find()
                 .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
                 .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))
@@ -108,6 +114,9 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
                 .ok_or(anyhow!("game_challenge_not_found"))?;
 
             let now = chrono::Utc::now().timestamp();
+            if now > game.frozen_at || now > game.ended_at {
+                status = Status::Invalid;
+            }
             if let Some(frozen_at) = game_challenge.frozen_at {
                 if now > frozen_at {
                     status = Status::Invalid;
