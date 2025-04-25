@@ -1,10 +1,12 @@
+use std::str::FromStr;
+
 use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::{submission::Status, team::State},
     get_db,
     sea_orm::{
-        ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, Condition, EntityTrait, PaginatorTrait,
-        QueryFilter, QuerySelect, Set,
+        ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, Condition, EntityTrait, Order,
+        PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
     },
     transfer::Submission,
 };
@@ -32,6 +34,7 @@ pub struct GetSubmissionRequest {
     pub status: Option<Status>,
     pub page: Option<u64>,
     pub size: Option<u64>,
+    pub sorts: Option<String>,
 }
 
 pub async fn get_submission(
@@ -73,6 +76,23 @@ pub async fn get_submission(
         sql = sql.offset(offset).limit(size);
     }
 
+    if let Some(sorts) = params.sorts {
+        let sorts = sorts.split(",").collect::<Vec<&str>>();
+        for sort in sorts {
+            let col = match cds_db::entity::submission::Column::from_str(
+                sort.replace("-", "").as_str(),
+            ) {
+                Ok(col) => col,
+                Err(_) => continue,
+            };
+            if sort.starts_with("-") {
+                sql = sql.order_by(col, Order::Desc);
+            } else {
+                sql = sql.order_by(col, Order::Asc);
+            }
+        }
+    }
+
     let submissions = sql.all(get_db()).await?;
     let mut submissions = submissions
         .into_iter()
@@ -83,6 +103,22 @@ pub async fn get_submission(
 
     for submission in submissions.iter_mut() {
         *submission = submission.desensitize();
+
+        if params.team_id.is_some() {
+            submission.team = None;
+        }
+
+        if params.game_id.is_some() {
+            submission.game = None;
+        }
+
+        if params.user_id.is_some() {
+            submission.user = None;
+        }
+
+        if params.challenge_id.is_some() {
+            submission.challenge = None;
+        }
     }
 
     Ok(WebResponse {

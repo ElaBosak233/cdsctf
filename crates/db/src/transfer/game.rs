@@ -18,7 +18,6 @@ pub struct Game {
     pub frozen_at: i64,
     pub ended_at: i64,
     pub created_at: i64,
-    pub updated_at: i64,
 }
 
 impl From<entity::game::Model> for Game {
@@ -38,7 +37,6 @@ impl From<entity::game::Model> for Game {
             frozen_at: model.frozen_at,
             ended_at: model.ended_at,
             created_at: model.created_at,
-            updated_at: model.updated_at,
         }
     }
 }

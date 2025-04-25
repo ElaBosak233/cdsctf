@@ -13,10 +13,7 @@ pub struct Model {
     pub game_id: i64,
     pub name: String,
     pub email: Option<String>,
-    #[sea_orm(column_type = "Text")]
     pub slogan: Option<String>,
-    #[sea_orm(column_type = "Text")]
-    pub description: Option<String>,
     pub state: State,
 
     #[sea_orm(default_value = 0)]

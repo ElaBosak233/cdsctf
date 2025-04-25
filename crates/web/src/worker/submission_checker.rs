@@ -104,7 +104,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
                 .await?
                 .map(cds_db::transfer::Game::from)
                 .ok_or(anyhow!("game_not_found"))?;
-            
+
             let game_challenge = cds_db::entity::game_challenge::Entity::find()
                 .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
                 .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))
@@ -115,11 +115,11 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
 
             let now = chrono::Utc::now().timestamp();
             if now > game.frozen_at || now > game.ended_at {
-                status = Status::Invalid;
+                status = Status::Expired;
             }
             if let Some(frozen_at) = game_challenge.frozen_at {
                 if now > frozen_at {
-                    status = Status::Invalid;
+                    status = Status::Expired;
                 }
             }
         }
