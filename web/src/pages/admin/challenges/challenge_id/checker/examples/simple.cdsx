@@ -1,0 +1,39 @@
+//! simple.cdsx
+//! Static flag check.
+
+use audit::{Flag, Status};
+
+/// The flag prefix.
+const PREFIX = "flag";
+/// The flag content.
+const CONTENT = "this_is_my_flag";
+
+/// Check submitted flag.
+/// 
+/// # Params
+/// - `operator_id`: Team's id or user's id.
+/// - `content`: The original flag.
+pub async fn check(operator_id, content) {
+    let flag = Flag::parse(content)?;
+    if flag.prefix() != PREFIX {
+        return Ok(Status::Incorrect);
+    }
+
+    if flag.content() == CONTENT {
+        return Ok(Status::Correct);
+    }
+    
+    Ok(Status::Incorrect)
+}
+
+/// Generate flag when user starts the challenge env.
+/// 
+/// # Params
+/// - `operator_id`: Team's id or user's id.
+/// 
+/// # Returns
+/// A json-like Result<#{ [key: string]: string }, any>,
+/// it will be injected into the container in the form of environment variables.
+pub async fn generate(operator_id) {
+    Ok(#{})
+}

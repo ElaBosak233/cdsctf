@@ -1,0 +1,58 @@
+//! * leet.cdsx
+//! Dynamic flag check with template and steganographic data.
+
+use audit::{Flag, Status};
+
+/// the flag encryption key
+const KEY = "IT_SHOULD_BE_A_RANDOM_STRING";
+/// the flag prefix.
+const PREFIX = "flag";
+/// the flag template (readable recommended), used to generate the correct flag content.
+const TEMPLATE = "this_is_my_flag";
+
+/// Check submitted flag.
+/// 
+/// # Params
+/// - `operator_id`: Team's id or user's id.
+/// - `content`: The original flag.
+pub async fn check(operator_id, content) {
+    let flag = Flag::parse(content)?;
+    if flag.prefix() != PREFIX {
+        return Ok(Status::Incorrect);
+    }
+
+    // the flag is correct, full matched
+    let correct_content = leet::encode(TEMPLATE, operator_id, KEY);
+    if correct_content == flag.content() {
+        return Ok(Status::Correct);
+    }
+
+    // extract peer operator_id
+    let res = leet::decode(TEMPLATE, flag.content(), KEY);
+    let dec_id = match res {
+        Ok(id) => id,
+        Err(_) => return Ok(Status::Incorrect)
+    };
+
+    // the flag is wrong, let's see whether the operator has cheated
+    if dec_id != operator_id {
+        return Ok(Status::Cheat(dec_id));
+    }
+
+    Ok(Status::Incorrect)
+}
+
+/// Generate flag when user starts the challenge env.
+/// 
+/// # Params
+/// - `operator_id`: Team's id or user's id.
+/// 
+/// # Returns
+/// A json-like Result<#{ [key: string]: string }, any>,
+/// it will be injected into the container in the form of environment variables.
+pub async fn generate(operator_id) {
+    let content = leet::encode(TEMPLATE, operator_id, KEY);
+    Ok(#{
+        FLAG: Flag::new().with_prefix(PREFIX).with_content(content).format(),
+    })
+}
