@@ -2,11 +2,7 @@ pub mod traits;
 mod util;
 pub mod worker;
 
-use std::{
-    collections::{BTreeMap, HashSet},
-    path::Path,
-    process,
-};
+use std::{collections::BTreeMap, path::Path, process};
 
 use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
 use futures_util::{SinkExt, StreamExt, stream::SplitStream};
@@ -14,8 +10,8 @@ pub use k8s_openapi;
 use k8s_openapi::{
     api::{
         core::v1::{
-            Container as K8sContainer, ContainerPort, EnvVar, LocalObjectReference, Namespace, Pod,
-            PodSpec, ResourceRequirements, Service, ServicePort, ServiceSpec,
+            Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec,
+            ResourceRequirements, Service, ServicePort, ServiceSpec,
         },
         networking::v1::{NetworkPolicy, NetworkPolicySpec},
     },
@@ -32,7 +28,7 @@ use kube::{
 };
 use once_cell::sync::OnceCell;
 use serde_json::json;
-use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use tokio_util::codec::{BytesCodec, Framed, FramedRead};
 use tracing::{error, info, warn};
 use uuid::Uuid;
@@ -321,20 +317,9 @@ pub async fn create_challenge_env(
         })
         .collect::<Vec<EnvVar>>();
 
-    let image_pull_secrets = env
-        .containers
-        .iter()
-        .cloned()
-        .filter_map(|container| container.secret.filter(|s| !s.is_empty()))
-        .collect::<HashSet<_>>()
-        .into_iter()
-        .map(|secret| LocalObjectReference { name: secret })
-        .collect::<Vec<LocalObjectReference>>();
-
     let pod = Pod {
         metadata: metadata.clone(),
         spec: Some(PodSpec {
-            image_pull_secrets: Some(image_pull_secrets),
             containers: env
                 .containers
                 .into_iter()
@@ -484,15 +469,12 @@ pub async fn renew_challenge_env(id: &str) -> Result<(), ClusterError> {
         cds_config::get_constant().cluster.namespace.as_str(),
     );
 
-    warn!("{}", name);
-
     let mut pod = get_pod(id).await?;
 
     let annotations = pod.annotations_mut();
 
     if let Some(renew) = annotations.get_mut("cds/renew") {
         *renew = format!("{}", renew.parse::<i64>().unwrap_or(0) + 1);
-        warn!("{}", renew);
     }
 
     pod_api

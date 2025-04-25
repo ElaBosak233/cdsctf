@@ -12,12 +12,11 @@ pub struct Model {
     pub id: i64,
     pub content: String,
     pub status: Status,
+    pub challenge_id: Uuid,
     pub user_id: i64,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: Uuid,
     pub created_at: i64,
-    pub updated_at: i64,
 
     #[sea_orm(default_value = 0)]
     pub pts: i64,
@@ -44,7 +43,7 @@ pub enum Status {
     Correct   = 1,
     Incorrect = 2,
     Cheat     = 3,
-    Invalid   = 4,
+    Expired   = 4,
     Duplicate = 5,
 }
 
@@ -113,8 +112,6 @@ impl ActiveModelBehavior for ActiveModel {
     where
         C: ConnectionTrait, {
         let ts = chrono::Utc::now().timestamp();
-
-        self.updated_at = Set(ts);
 
         if insert {
             self.created_at = Set(ts);

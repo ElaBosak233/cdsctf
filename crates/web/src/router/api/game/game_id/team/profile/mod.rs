@@ -72,7 +72,6 @@ pub async fn update_team(
         name: body.name.map_or(NotSet, Set),
         slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
         email: body.email.map_or(NotSet, |v| Set(Some(v))),
-        description: body.description.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
     }
     .update(get_db())

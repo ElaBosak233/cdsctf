@@ -28,7 +28,6 @@ pub struct Model {
     pub frozen_at: i64,
     pub ended_at: i64,
     pub created_at: i64,
-    pub updated_at: i64,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
@@ -69,8 +68,6 @@ impl ActiveModelBehavior for ActiveModel {
     where
         C: ConnectionTrait, {
         let ts = chrono::Utc::now().timestamp();
-
-        self.updated_at = Set(ts);
 
         if insert {
             self.created_at = Set(ts);

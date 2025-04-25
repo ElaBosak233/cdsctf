@@ -10,7 +10,6 @@ pub struct Team {
     pub name: String,
     pub email: Option<String>,
     pub slogan: Option<String>,
-    pub description: Option<String>,
     pub state: State,
     pub pts: i64,
     pub rank: i64,
@@ -29,7 +28,6 @@ impl From<entity::team::Model> for Team {
             rank: entity.rank,
             email: entity.email,
             slogan: entity.slogan,
-            description: entity.description,
             users: vec![],
         }
     }
@@ -46,7 +44,6 @@ impl From<Team> for entity::team::Model {
             rank: team.rank,
             email: team.email,
             slogan: team.slogan,
-            description: team.description,
         }
     }
 }

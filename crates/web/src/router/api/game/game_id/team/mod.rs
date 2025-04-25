@@ -156,7 +156,6 @@ pub async fn team_register(
         name: Set(body.name),
         email: Set(body.email),
         slogan: Set(body.slogan),
-        description: Set(body.description),
         game_id: Set(game.id),
         state: Set(State::Preparing),
         ..Default::default()

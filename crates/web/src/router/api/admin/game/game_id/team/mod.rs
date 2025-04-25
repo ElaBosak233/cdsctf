@@ -127,7 +127,6 @@ pub struct CreateTeamRequest {
     pub name: String,
     pub email: Option<String>,
     pub slogan: Option<String>,
-    pub description: Option<String>,
 }
 
 /// Add a team to a game with given path and data.
@@ -155,7 +154,6 @@ pub async fn create_team(
         name: Set(body.name),
         email: Set(body.email),
         slogan: Set(body.slogan),
-        description: Set(body.description),
         game_id: Set(game.id),
         state: Set(State::Preparing),
         ..Default::default()

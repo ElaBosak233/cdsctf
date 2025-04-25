@@ -1,6 +1,5 @@
 use std::time;
 
-use futures_util::stream::StreamExt;
 use k8s_openapi::chrono;
 use tracing::info;
 

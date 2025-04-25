@@ -14,7 +14,6 @@ pub struct Submission {
     pub game_id: Option<i64>,
     pub challenge_id: Uuid,
     pub created_at: i64,
-    pub updated_at: i64,
 
     pub pts: i64,
     pub rank: i64,
@@ -45,7 +44,6 @@ impl From<entity::submission::Model> for Submission {
             game_id: model.game_id,
             challenge_id: model.challenge_id,
             created_at: model.created_at,
-            updated_at: model.updated_at,
             pts: model.pts,
             rank: model.rank,
             user: None,
@@ -67,7 +65,6 @@ impl From<Submission> for entity::submission::Model {
             game_id: submission.game_id,
             challenge_id: submission.challenge_id,
             created_at: submission.created_at,
-            updated_at: submission.updated_at,
             pts: submission.pts,
             rank: submission.rank,
         }
