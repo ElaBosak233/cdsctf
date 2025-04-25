@@ -1,0 +1,52 @@
+//! * suid.cdsx
+//! Dynamic uuid-like flag check with seed and steganographic data.
+
+use audit::{Flag, Status};
+
+/// the flag encryption key
+const KEY = "IT_SHOULD_BE_A_RANDOM_STRING";
+/// the flag prefix.
+const PREFIX = "flag";
+/// the flag template (readable recommended), used to generate the correct flag content.
+const SEED = "this_is_my_flag";
+
+/// Check submitted flag.
+/// 
+/// # Params
+/// - `operator_id`: Team's id or user's id.
+/// - `content`: The original flag.
+pub async fn check(operator_id, content) {
+    let flag = Flag::parse(content)?;
+    if flag.prefix() != PREFIX {
+        return Ok(Status::Incorrect);
+    }
+
+    // extract peer operator_id
+    let res = suid::decode(SEED, flag.content(), KEY);
+    let dec_id = match res {
+        Ok(id) => id,
+        Err(_) => return Ok(Status::Incorrect)
+    };
+
+    // the flag is wrong, let's see whether the operator has cheated
+    if dec_id != operator_id {
+        return Ok(Status::Cheat(dec_id));
+    }
+
+    Ok(Status::Correct)
+}
+
+/// Generate flag when user starts the challenge env.
+/// 
+/// # Params
+/// - `operator_id`: Team's id or user's id.
+/// 
+/// # Returns
+/// A json-like Result<#{ [key: string]: string }, any>,
+/// it will be injected into the container in the form of environment variables.
+pub async fn generate(operator_id) {
+    let content = suid::encode(SEED, operator_id, KEY, true);
+    Ok(#{
+        FLAG: Flag::new().with_prefix(PREFIX).with_content(content).format(),
+    })
+}

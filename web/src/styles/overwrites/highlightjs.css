@@ -1,0 +1,5 @@
+@layer base {
+    .hljs {
+        @apply !bg-transparent;
+    }
+}

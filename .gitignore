@@ -7,8 +7,6 @@ target
 
 /dist
 
-/web/*
-!/web/.gitkeep
 
 # CdsCTF
 /data
