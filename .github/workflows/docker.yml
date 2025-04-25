@@ -14,9 +14,6 @@ jobs:
         steps:
             - name: Checkout CdsCTF
               uses: actions/checkout@v4
-              with:
-                  repository: elabosak233/cdsctf
-                  ref: ${{ github.ref }}
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3

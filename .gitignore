@@ -2,11 +2,9 @@
 target
 /.idea
 /.vscode
-
-*.lock
-
 /dist
 
+*.lock
 
 # CdsCTF
 /data

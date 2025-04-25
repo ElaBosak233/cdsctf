@@ -25,3 +25,5 @@ dist-ssr
 
 yarn.lock
 pnpm-lock.yaml
+
+.env

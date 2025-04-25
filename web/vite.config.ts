@@ -3,17 +3,19 @@ import React from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
 import viteCompression from "vite-plugin-compression";
 import { execSync } from "child_process";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 
 const commitHash = execSync("git rev-parse --short HEAD").toString().trim();
 
-export default defineConfig(({}) => {
+export default defineConfig(({ mode }) => {
+    const env = loadEnv(mode, process.cwd(), "");
+
     return {
         server: {
             host: "0.0.0.0",
             proxy: {
                 "/api": {
-                    target: process.env.VITE_DEV_API || "https://ctf.tzusec.club",
+                    target: env.VITE_DEV_API || "http://127.0.0.1:8888",
                     changeOrigin: true,
                     ws: true,
                 },
