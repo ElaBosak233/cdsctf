@@ -29,6 +29,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { StatusCodes } from "http-status-codes";
 
 interface CreateUserDialogProps {
     onClose: () => void;
@@ -68,12 +69,12 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             ...values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`用户 ${values.username} 创建成功`);
                     onClose();
                 }
 
-                if (res.code === 409) {
+                if (res.code === StatusCodes.CONFLICT) {
                     toast.error("发生错误", {
                         description: res.msg,
                     });

@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { StatusCodes } from "http-status-codes";
 
 interface TeamGatheringDialogProps {
     onClose: () => void;
@@ -50,7 +51,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             ...values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`团队 ${res?.data?.name} 创建成功`);
                     onClose();
                 }
@@ -87,12 +88,12 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             token: token,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`成功加入团队`);
                     onClose();
                 }
 
-                if (res.code === 400) {
+                if (res.code === StatusCodes.BAD_REQUEST) {
                     toast.error("加入失败", {
                         description: res.msg,
                     });

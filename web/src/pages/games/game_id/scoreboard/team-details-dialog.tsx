@@ -24,6 +24,7 @@ import {
     getFilteredRowModel,
     useReactTable,
 } from "@tanstack/react-table";
+import { StatusCodes } from "http-status-codes";
 import { StarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -37,7 +38,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
 
     const [submissions, setSubmissions] = useState<Array<Submission>>([]);
     const [total, setTotal] = useState<number>(0);
-    const [size, setSize] = useState<number>(10);
+    const [size, _setSize] = useState<number>(10);
     const [page, setPage] = useState<number>(1);
 
     useEffect(() => {
@@ -49,7 +50,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
             size: size,
             sorts: "-created_at",
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 setTotal(res.total || 0);
                 setSubmissions(res.data || []);
             }

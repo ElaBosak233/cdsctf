@@ -33,6 +33,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { useSharedStore } from "@/storages/shared";
 import { Avatar } from "@/components/ui/avatar";
+import { StatusCodes } from "http-status-codes";
 
 const columns: ColumnDef<User>[] = [
     {
@@ -214,7 +215,7 @@ const columns: ColumnDef<User>[] = [
                     id,
                 })
                     .then((res) => {
-                        if (res.code === 200) {
+                        if (res.code === StatusCodes.OK) {
                             toast.success(`用户 ${username} 删除成功`);
                             setDeleteDialogOpen(false);
                         }

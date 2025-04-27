@@ -14,6 +14,7 @@ import {
 import { useSharedStore } from "@/storages/shared";
 import { getGames } from "@/api/admin/games";
 import { Game } from "@/models/game";
+import { StatusCodes } from "http-status-codes";
 
 export default function Layout() {
     const location = useLocation();
@@ -27,7 +28,7 @@ export default function Layout() {
             getGames({
                 id: Number(game_id),
             }).then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     setGame(res?.data?.[0]);
                 }
             });

@@ -40,6 +40,7 @@ import { curve } from "@/utils/math";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { updateGameChallenge } from "@/api/admin/games/game_id/challenges/challenge_id";
 import { toast } from "sonner";
+import { StatusCodes } from "http-status-codes";
 
 interface EditDialogProps {
     onClose: () => void;
@@ -128,7 +129,7 @@ function EditDialog(props: EditDialogProps) {
                 ? Math.floor(values.frozen_at.getTime() / 1000)
                 : null,
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 toast.success(
                     `赛题 ${gameChallenge?.challenge?.title} 配置更新成功`
                 );

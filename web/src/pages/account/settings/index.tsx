@@ -38,10 +38,13 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { EmailVerifyDialog } from "./email-verify-dialog";
+import { useConfigStore } from "@/storages/config";
+import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
     const authStore = useAuthStore();
     const sharedStore = useSharedStore();
+    const configStore = useConfigStore();
     const [loading, setLoading] = useState<boolean>(false);
 
     const [emailVerifyDialogOpen, setEmailVerifyDialogOpen] =
@@ -69,7 +72,7 @@ export default function Index() {
             ...values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     authStore?.setUser(res.data);
                     toast.success("个人资料更新成功");
                 }
@@ -101,7 +104,7 @@ export default function Index() {
                 }
             };
             xhr.onload = () => {
-                if (xhr.status === 200) {
+                if (xhr.status === StatusCodes.OK) {
                     toast.success("头像上传成功", {
                         id: "user-avatar-upload",
                     });
@@ -133,7 +136,7 @@ export default function Index() {
             user_id: authStore?.user?.id!,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`头像删除成功`);
                 }
             })
@@ -143,217 +146,239 @@ export default function Index() {
     }
 
     return (
-        <div
-            className={cn([
-                "flex",
-                "flex-col",
-                "flex-1",
-                "p-10",
-                "xl:mx-50",
-                "lg:mx-30",
-            ])}
-        >
-            <Form {...form}>
-                <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    autoComplete={"off"}
-                    className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
-                >
-                    <div className={cn(["flex", "gap-5", "items-center"])}>
-                        <div
-                            className={cn([
-                                "flex",
-                                "flex-col",
-                                "gap-8",
-                                "flex-1",
-                            ])}
-                        >
-                            <FormField
-                                control={form.control}
-                                name={"username"}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>用户名</FormLabel>
-                                        <FormControl>
-                                            <Field>
-                                                <FieldIcon>
-                                                    <UserRoundIcon />
-                                                </FieldIcon>
-                                                <TextField
-                                                    {...field}
-                                                    disabled
-                                                    placeholder={"用户名"}
-                                                    value={field.value || ""}
-                                                    onChange={field.onChange}
-                                                />
-                                            </Field>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={"nickname"}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>昵称</FormLabel>
-                                        <FormControl>
-                                            <Field>
-                                                <FieldIcon>
-                                                    <TypeIcon />
-                                                </FieldIcon>
-                                                <TextField
-                                                    {...field}
-                                                    placeholder={"昵称"}
-                                                    value={field.value || ""}
-                                                    onChange={field.onChange}
-                                                />
-                                            </Field>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div>
+        <>
+            <title>{`基本信息 - ${configStore?.config?.meta?.title}`}</title>
+            <div
+                className={cn([
+                    "flex",
+                    "flex-col",
+                    "flex-1",
+                    "p-10",
+                    "xl:mx-50",
+                    "lg:mx-30",
+                ])}
+            >
+                <Form {...form}>
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        autoComplete={"off"}
+                        className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
+                    >
+                        <div className={cn(["flex", "gap-5", "items-center"])}>
                             <div
                                 className={cn([
                                     "flex",
-                                    "gap-3",
+                                    "flex-col",
+                                    "gap-8",
+                                    "flex-1",
+                                ])}
+                            >
+                                <FormField
+                                    control={form.control}
+                                    name={"username"}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>用户名</FormLabel>
+                                            <FormControl>
+                                                <Field>
+                                                    <FieldIcon>
+                                                        <UserRoundIcon />
+                                                    </FieldIcon>
+                                                    <TextField
+                                                        {...field}
+                                                        disabled
+                                                        placeholder={"用户名"}
+                                                        value={
+                                                            field.value || ""
+                                                        }
+                                                        onChange={
+                                                            field.onChange
+                                                        }
+                                                    />
+                                                </Field>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name={"nickname"}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>昵称</FormLabel>
+                                            <FormControl>
+                                                <Field>
+                                                    <FieldIcon>
+                                                        <TypeIcon />
+                                                    </FieldIcon>
+                                                    <TextField
+                                                        {...field}
+                                                        placeholder={"昵称"}
+                                                        value={
+                                                            field.value || ""
+                                                        }
+                                                        onChange={
+                                                            field.onChange
+                                                        }
+                                                    />
+                                                </Field>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <div>
+                                <div
+                                    className={cn([
+                                        "flex",
+                                        "gap-3",
+                                        "items-center",
+                                        "justify-between",
+                                    ])}
+                                >
+                                    <Label>头像</Label>
+                                    <Button
+                                        type={"button"}
+                                        icon={TrashIcon}
+                                        size={"sm"}
+                                        level={"error"}
+                                        square
+                                        onClick={handleAvatarDelete}
+                                    />
+                                </div>
+                                <Dropzone {...dropzone}>
+                                    <DropZoneArea
+                                        className={cn([
+                                            "relative",
+                                            "aspect-square",
+                                            "h-36",
+                                            "p-0",
+                                            "rounded-full",
+                                            "overflow-hidden",
+                                        ])}
+                                    >
+                                        <DropzoneTrigger
+                                            className={cn([
+                                                "bg-transparent",
+                                                "text-center",
+                                                "h-full",
+                                                "aspect-square",
+                                            ])}
+                                        >
+                                            <Avatar
+                                                className={cn(["h-30", "w-30"])}
+                                                src={`/api/users/${authStore?.user?.id}/avatar?refresh=${sharedStore?.refresh}`}
+                                                fallback={authStore?.user?.username?.charAt(
+                                                    0
+                                                )}
+                                            />
+                                        </DropzoneTrigger>
+                                    </DropZoneArea>
+                                </Dropzone>
+                            </div>
+                        </div>
+                        <FormField
+                            control={form.control}
+                            name={"email"}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>电子邮箱</FormLabel>
+                                    <FormControl>
+                                        <Field>
+                                            <FieldIcon>
+                                                <MailIcon />
+                                            </FieldIcon>
+                                            <TextField
+                                                {...field}
+                                                placeholder={"电子邮箱"}
+                                                value={field.value || ""}
+                                                onChange={field.onChange}
+                                            />
+                                        </Field>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        {!authStore?.user?.is_verified && (
+                            <Alert
+                                className={cn([
+                                    "flex",
                                     "items-center",
                                     "justify-between",
                                 ])}
                             >
-                                <Label>头像</Label>
+                                <p>
+                                    你的邮箱 {authStore?.user?.email} 尚未验证！
+                                </p>
                                 <Button
-                                    type={"button"}
-                                    icon={TrashIcon}
+                                    variant={"solid"}
                                     size={"sm"}
-                                    level={"error"}
-                                    square
-                                    onClick={handleAvatarDelete}
-                                />
-                            </div>
-                            <Dropzone {...dropzone}>
-                                <DropZoneArea
+                                    className={cn(["h-8"])}
+                                    onClick={() =>
+                                        setEmailVerifyDialogOpen(true)
+                                    }
+                                >
+                                    去验证
+                                </Button>
+                                <Dialog
+                                    open={emailVerifyDialogOpen}
+                                    onOpenChange={setEmailVerifyDialogOpen}
+                                >
+                                    <DialogContent>
+                                        <EmailVerifyDialog
+                                            onClose={() =>
+                                                setEmailVerifyDialogOpen(false)
+                                            }
+                                        />
+                                    </DialogContent>
+                                </Dialog>
+                            </Alert>
+                        )}
+                        <FormField
+                            control={form.control}
+                            name={"description"}
+                            render={({ field }) => (
+                                <FormItem
                                     className={cn([
-                                        "relative",
-                                        "aspect-square",
-                                        "h-36",
-                                        "p-0",
-                                        "rounded-full",
-                                        "overflow-hidden",
+                                        "flex-1",
+                                        "flex",
+                                        "flex-col",
                                     ])}
                                 >
-                                    <DropzoneTrigger
-                                        className={cn([
-                                            "bg-transparent",
-                                            "text-center",
-                                            "h-full",
-                                            "aspect-square",
-                                        ])}
-                                    >
-                                        <Avatar
-                                            className={cn(["h-30", "w-30"])}
-                                            src={`/api/users/${authStore?.user?.id}/avatar?refresh=${sharedStore?.refresh}`}
-                                            fallback={authStore?.user?.username?.charAt(
-                                                0
-                                            )}
-                                        />
-                                    </DropzoneTrigger>
-                                </DropZoneArea>
-                            </Dropzone>
-                        </div>
-                    </div>
-                    <FormField
-                        control={form.control}
-                        name={"email"}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>电子邮箱</FormLabel>
-                                <FormControl>
-                                    <Field>
-                                        <FieldIcon>
-                                            <MailIcon />
-                                        </FieldIcon>
-                                        <TextField
+                                    <FormLabel>简介</FormLabel>
+                                    <FormControl>
+                                        <Editor
                                             {...field}
-                                            placeholder={"电子邮箱"}
+                                            lang={"markdown"}
+                                            tabSize={4}
+                                            showLineNumbers
+                                            className={cn([
+                                                "h-full",
+                                                "min-h-64",
+                                            ])}
                                             value={field.value || ""}
-                                            onChange={field.onChange}
                                         />
-                                    </Field>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    {!authStore?.user?.is_verified && (
-                        <Alert
-                            className={cn([
-                                "flex",
-                                "items-center",
-                                "justify-between",
-                            ])}
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button
+                            size={"lg"}
+                            type={"submit"}
+                            level={"primary"}
+                            variant={"solid"}
+                            icon={SaveIcon}
+                            loading={loading}
                         >
-                            <p>你的邮箱 {authStore?.user?.email} 尚未验证！</p>
-                            <Button
-                                variant={"solid"}
-                                size={"sm"}
-                                className={cn(["h-8"])}
-                                onClick={() => setEmailVerifyDialogOpen(true)}
-                            >
-                                去验证
-                            </Button>
-                            <Dialog
-                                open={emailVerifyDialogOpen}
-                                onOpenChange={setEmailVerifyDialogOpen}
-                            >
-                                <DialogContent>
-                                    <EmailVerifyDialog
-                                        onClose={() =>
-                                            setEmailVerifyDialogOpen(false)
-                                        }
-                                    />
-                                </DialogContent>
-                            </Dialog>
-                        </Alert>
-                    )}
-                    <FormField
-                        control={form.control}
-                        name={"description"}
-                        render={({ field }) => (
-                            <FormItem
-                                className={cn(["flex-1", "flex", "flex-col"])}
-                            >
-                                <FormLabel>简介</FormLabel>
-                                <FormControl>
-                                    <Editor
-                                        {...field}
-                                        lang={"markdown"}
-                                        tabSize={4}
-                                        showLineNumbers
-                                        className={cn(["h-full", "min-h-64"])}
-                                        value={field.value || ""}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <Button
-                        size={"lg"}
-                        type={"submit"}
-                        level={"primary"}
-                        variant={"solid"}
-                        icon={SaveIcon}
-                        loading={loading}
-                    >
-                        保存
-                    </Button>
-                </form>
-            </Form>
-        </div>
+                            保存
+                        </Button>
+                    </form>
+                </Form>
+            </div>
+        </>
     );
 }

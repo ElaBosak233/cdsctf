@@ -8,6 +8,7 @@ import { cn } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { UserRoundIcon, LockIcon } from "lucide-react";
 import { useSharedStore } from "@/storages/shared";
+import { StatusCodes } from "http-status-codes";
 
 export default function Layout() {
     const location = useLocation();
@@ -21,7 +22,7 @@ export default function Layout() {
             getUsers({
                 id: Number(user_id),
             }).then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     setUser(res?.data?.[0]);
                 }
             });

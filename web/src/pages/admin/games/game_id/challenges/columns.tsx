@@ -27,6 +27,7 @@ import {
     updateGameChallenge,
 } from "@/api/admin/games/game_id/challenges/challenge_id";
 import { EditDialog } from "./edit-dialog";
+import { StatusCodes } from "http-status-codes";
 
 const columns: ColumnDef<GameChallenge>[] = [
     {
@@ -52,7 +53,7 @@ const columns: ColumnDef<GameChallenge>[] = [
                     challenge_id,
                     is_enabled: newValue,
                 }).then((res) => {
-                    if (res.code === 200) {
+                    if (res.code === StatusCodes.OK) {
                         toast.success(
                             `${newValue ? "启用" : "禁用"} 赛题 ${title}`,
                             {
@@ -159,7 +160,7 @@ const columns: ColumnDef<GameChallenge>[] = [
                     challenge_id,
                 })
                     .then((res) => {
-                        if (res.code === 200) {
+                        if (res.code === StatusCodes.OK) {
                             toast.success(`赛题 ${title} 删除成功`);
                             setDeleteDialogOpen(false);
                         }

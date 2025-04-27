@@ -17,6 +17,7 @@ import { useSharedStore } from "@/storages/shared";
 import { GameNotice } from "@/models/game_notice";
 import { deleteGameNotice } from "@/api/admin/games/game_id/notices";
 import { ContentDialog } from "@/components/widgets/content-dialog";
+import { StatusCodes } from "http-status-codes";
 
 const columns: ColumnDef<GameNotice>[] = [
     {
@@ -93,7 +94,7 @@ const columns: ColumnDef<GameNotice>[] = [
                     id: row.original.id,
                 })
                     .then((res) => {
-                        if (res.code === 200) {
+                        if (res.code === StatusCodes.OK) {
                             toast.success(
                                 `赛题 ${row.original.title} 删除成功`
                             );

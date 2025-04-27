@@ -21,6 +21,7 @@ import { useAuthStore } from "@/storages/auth";
 import { useNavigate } from "react-router";
 import { useConfigStore } from "@/storages/config";
 import { forget, sendForgetEmail } from "@/api/users/forget";
+import { StatusCodes } from "http-status-codes";
 
 function ForgetForm() {
     const configStore = useConfigStore();
@@ -59,7 +60,7 @@ function ForgetForm() {
             ...values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     authStore.setUser(res.data);
                     toast.success("密码重置成功", {
                         description: "请登录",
@@ -67,7 +68,7 @@ function ForgetForm() {
                     navigate("/account/login");
                 }
 
-                if (res.code === 400) {
+                if (res.code === StatusCodes.BAD_REQUEST) {
                     toast.error("发生错误", {
                         description: res.msg,
                     });
@@ -82,17 +83,17 @@ function ForgetForm() {
         sendForgetEmail({
             email: form.getValues().email,
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 toast.success("验证码已发送，请查收");
             }
 
-            if (res.code === 400) {
+            if (res.code === StatusCodes.BAD_REQUEST) {
                 toast.error("发生错误", {
                     description: res.msg,
                 });
             }
 
-            if (res.code === 404) {
+            if (res.code === StatusCodes.NOT_FOUND) {
                 toast.error("邮箱不存在");
             }
         });

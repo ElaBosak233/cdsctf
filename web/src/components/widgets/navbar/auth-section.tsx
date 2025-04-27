@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, SettingsIcon, UserRound } from "lucide-react";
 import { useNavigate, Link } from "react-router";
+import { StatusCodes } from "http-status-codes";
 
 function AuthSection() {
     const navigate = useNavigate();
@@ -20,7 +21,7 @@ function AuthSection() {
     function handleLogout() {
         logout()
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     navigate("/account/login");
                 }
             })
@@ -60,7 +61,7 @@ function AuthSection() {
                                     "text-muted-foreground",
                                 ])}
                             >
-                                {authStore?.user?.username}
+                                {`# ${authStore?.user?.username}`}
                             </p>
                         </div>
                     </DropdownMenuItem>

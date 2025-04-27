@@ -8,6 +8,7 @@ import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { StatusCodes } from "http-status-codes";
 import {
     CheckCheckIcon,
     CheckIcon,
@@ -51,14 +52,14 @@ export default function Layout() {
             id: selfTeam?.id,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success("准备成功", {
                         description: `${selfTeam?.name} 即将登场！`,
                     });
                     setConfirmDialogOpen(false);
                 }
 
-                if (res.code === 400) {
+                if (res.code === StatusCodes.BAD_REQUEST) {
                     toast.error("发生了错误", {
                         description: res.msg,
                     });
@@ -77,7 +78,7 @@ export default function Layout() {
             game_id: currentGame?.id!,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success("解散成功", {
                         description: `已解散团队 ${selfTeam?.name}`,
                     });
@@ -98,7 +99,7 @@ export default function Layout() {
             game_id: currentGame?.id!,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success("离队成功", {
                         description: `已离开团队 ${selfTeam?.name}`,
                     });
@@ -106,7 +107,7 @@ export default function Layout() {
                     navigate(`/games/${currentGame?.id}`);
                 }
 
-                if (res.code === 400) {
+                if (res.code === StatusCodes.BAD_REQUEST) {
                     toast.success("离队失败", {
                         description: res.msg,
                     });

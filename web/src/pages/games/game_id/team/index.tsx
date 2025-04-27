@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
     const sharedStore = useSharedStore();
@@ -70,7 +71,7 @@ export default function Index() {
             ...values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`团队 ${res?.data?.name} 更新成功`);
                 }
             })
@@ -106,7 +107,7 @@ export default function Index() {
                 }
             };
             xhr.onload = () => {
-                if (xhr.status === 200) {
+                if (xhr.status === StatusCodes.OK) {
                     toast.success("头像上传成功", {
                         id: "team-avatar-upload",
                     });
@@ -139,7 +140,7 @@ export default function Index() {
             team_id: selfTeam?.id!,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`团队 ${selfTeam?.name} 头像删除成功`);
                 }
             })
@@ -149,167 +150,181 @@ export default function Index() {
     }
 
     return (
-        <div
-            className={cn([
-                "flex",
-                "flex-col",
-                "flex-1",
-                "p-10",
-                "xl:mx-50",
-                "lg:mx-30",
-            ])}
-        >
-            <Form {...form}>
-                <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    autoComplete={"off"}
-                    className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
-                >
-                    <div className={cn(["flex", "gap-5", "items-center"])}>
-                        <div
-                            className={cn([
-                                "flex",
-                                "flex-col",
-                                "gap-8",
-                                "flex-1",
-                            ])}
-                        >
-                            <FormField
-                                control={form.control}
-                                name={"name"}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>团队名</FormLabel>
-                                        <FormControl>
-                                            <Field>
-                                                <FieldIcon>
-                                                    <TypeIcon />
-                                                </FieldIcon>
-                                                <TextField
-                                                    disabled={disabled}
-                                                    placeholder={"团队名"}
-                                                    {...field}
-                                                    value={field.value || ""}
-                                                    onChange={field.onChange}
-                                                />
-                                            </Field>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={"email"}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>电子邮箱</FormLabel>
-                                        <FormControl>
-                                            <Field>
-                                                <FieldIcon>
-                                                    <MailIcon />
-                                                </FieldIcon>
-                                                <TextField
-                                                    disabled={disabled}
-                                                    placeholder={"电子邮箱"}
-                                                    {...field}
-                                                    value={field.value || ""}
-                                                    onChange={field.onChange}
-                                                />
-                                            </Field>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div>
+        <>
+            <title>{`团队 - ${currentGame?.title}`}</title>
+            <div
+                className={cn([
+                    "flex",
+                    "flex-col",
+                    "flex-1",
+                    "p-10",
+                    "xl:mx-50",
+                    "lg:mx-30",
+                ])}
+            >
+                <Form {...form}>
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        autoComplete={"off"}
+                        className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
+                    >
+                        <div className={cn(["flex", "gap-5", "items-center"])}>
                             <div
                                 className={cn([
                                     "flex",
-                                    "gap-3",
-                                    "items-center",
-                                    "justify-between",
+                                    "flex-col",
+                                    "gap-8",
+                                    "flex-1",
                                 ])}
                             >
-                                <Label>头像</Label>
-                                <Button
-                                    type={"button"}
-                                    icon={TrashIcon}
-                                    size={"sm"}
-                                    level={"error"}
-                                    square
-                                    onClick={handleAvatarDelete}
-                                    disabled={disabled}
+                                <FormField
+                                    control={form.control}
+                                    name={"name"}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>团队名</FormLabel>
+                                            <FormControl>
+                                                <Field>
+                                                    <FieldIcon>
+                                                        <TypeIcon />
+                                                    </FieldIcon>
+                                                    <TextField
+                                                        disabled={disabled}
+                                                        placeholder={"团队名"}
+                                                        {...field}
+                                                        value={
+                                                            field.value || ""
+                                                        }
+                                                        onChange={
+                                                            field.onChange
+                                                        }
+                                                    />
+                                                </Field>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name={"email"}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>电子邮箱</FormLabel>
+                                            <FormControl>
+                                                <Field>
+                                                    <FieldIcon>
+                                                        <MailIcon />
+                                                    </FieldIcon>
+                                                    <TextField
+                                                        disabled={disabled}
+                                                        placeholder={"电子邮箱"}
+                                                        {...field}
+                                                        value={
+                                                            field.value || ""
+                                                        }
+                                                        onChange={
+                                                            field.onChange
+                                                        }
+                                                    />
+                                                </Field>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
                                 />
                             </div>
-                            <Dropzone {...dropzone}>
-                                <DropZoneArea
+                            <div>
+                                <div
                                     className={cn([
-                                        "relative",
-                                        "aspect-square",
-                                        "h-36",
-                                        "p-0",
-                                        "rounded-full",
-                                        "overflow-hidden",
+                                        "flex",
+                                        "gap-3",
+                                        "items-center",
+                                        "justify-between",
                                     ])}
                                 >
-                                    <DropzoneTrigger
+                                    <Label>头像</Label>
+                                    <Button
+                                        type={"button"}
+                                        icon={TrashIcon}
+                                        size={"sm"}
+                                        level={"error"}
+                                        square
+                                        onClick={handleAvatarDelete}
+                                        disabled={disabled}
+                                    />
+                                </div>
+                                <Dropzone {...dropzone}>
+                                    <DropZoneArea
                                         className={cn([
-                                            "bg-transparent",
-                                            "text-center",
-                                            "h-full",
+                                            "relative",
                                             "aspect-square",
+                                            "h-36",
+                                            "p-0",
+                                            "rounded-full",
+                                            "overflow-hidden",
                                         ])}
                                     >
-                                        <Avatar
-                                            className={cn(["h-30", "w-30"])}
-                                            src={`/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar?refresh=${sharedStore?.refresh}`}
-                                            fallback={selfTeam?.name?.charAt(0)}
-                                        />
-                                    </DropzoneTrigger>
-                                </DropZoneArea>
-                            </Dropzone>
-                        </div>
-                    </div>
-                    <FormField
-                        control={form.control}
-                        name={"slogan"}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>口号</FormLabel>
-                                <FormControl>
-                                    <Field>
-                                        <FieldIcon>
-                                            <MessageCircleIcon />
-                                        </FieldIcon>
-                                        <TextField
+                                        <DropzoneTrigger
                                             disabled={disabled}
-                                            placeholder={"口号"}
-                                            {...field}
-                                            value={field.value || ""}
-                                            onChange={field.onChange}
-                                        />
-                                    </Field>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <div className={cn(["flex-1"])} />
-                    <Button
-                        size={"lg"}
-                        type={"submit"}
-                        level={"info"}
-                        variant={"solid"}
-                        icon={CheckIcon}
-                        loading={loading}
-                        disabled={disabled}
-                    >
-                        保存
-                    </Button>
-                </form>
-            </Form>
-        </div>
+                                            className={cn([
+                                                "bg-transparent",
+                                                "text-center",
+                                                "h-full",
+                                                "aspect-square",
+                                            ])}
+                                        >
+                                            <Avatar
+                                                className={cn(["h-30", "w-30"])}
+                                                src={`/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar?refresh=${sharedStore?.refresh}`}
+                                                fallback={selfTeam?.name?.charAt(
+                                                    0
+                                                )}
+                                            />
+                                        </DropzoneTrigger>
+                                    </DropZoneArea>
+                                </Dropzone>
+                            </div>
+                        </div>
+                        <FormField
+                            control={form.control}
+                            name={"slogan"}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>口号</FormLabel>
+                                    <FormControl>
+                                        <Field>
+                                            <FieldIcon>
+                                                <MessageCircleIcon />
+                                            </FieldIcon>
+                                            <TextField
+                                                disabled={disabled}
+                                                placeholder={"口号"}
+                                                {...field}
+                                                value={field.value || ""}
+                                                onChange={field.onChange}
+                                            />
+                                        </Field>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className={cn(["flex-1"])} />
+                        <Button
+                            size={"lg"}
+                            type={"submit"}
+                            level={"info"}
+                            variant={"solid"}
+                            icon={CheckIcon}
+                            loading={loading}
+                            disabled={disabled}
+                        >
+                            保存
+                        </Button>
+                    </form>
+                </Form>
+            </div>
+        </>
     );
 }

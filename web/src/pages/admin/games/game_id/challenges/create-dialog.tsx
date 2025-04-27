@@ -14,6 +14,7 @@ import { useContext, useEffect, useState } from "react";
 import { Context } from "../context";
 import { toast } from "sonner";
 import { useSharedStore } from "@/storages/shared";
+import { StatusCodes } from "http-status-codes";
 
 interface CreateDialogProps {
     onClose: () => void;
@@ -41,7 +42,7 @@ function CreateDialog(props: CreateDialogProps) {
             page: 1,
             sorts: "-created_at",
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 setChallenges(res.data);
             }
         });
@@ -57,7 +58,7 @@ function CreateDialog(props: CreateDialogProps) {
             difficulty: 5,
             bonus_ratios: [],
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 toast.success(`成功添加赛题 ${challenge?.title}`);
                 sharedStore?.setRefresh();
                 onClose();

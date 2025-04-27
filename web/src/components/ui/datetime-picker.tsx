@@ -634,7 +634,7 @@ function TimePicker({
                 : "yyyy-MM-dd HH:mm:ss.SSS xxxx",
         [use12HourFormat]
     );
-    const [ampm, setAmpm] = useState(
+    const [ampm, _setAmpm] = useState(
         format(value, "a") === "AM" ? AM_VALUE : PM_VALUE
     );
     const [hour, setHour] = useState(

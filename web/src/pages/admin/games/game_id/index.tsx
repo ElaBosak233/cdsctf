@@ -44,6 +44,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { deleteGamePoster } from "@/api/admin/games/game_id/poster";
 import { deleteGameIcon } from "@/api/admin/games/game_id/icon";
+import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
     const { game } = useContext(Context);
@@ -123,7 +124,7 @@ export default function Index() {
             ended_at: Math.floor(values.ended_at?.getTime() / 1000),
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`比赛 ${res?.data?.title} 更新成功`);
                 }
             })
@@ -151,7 +152,7 @@ export default function Index() {
             };
 
             xhr.onload = () => {
-                if (xhr.status === 200) {
+                if (xhr.status === StatusCodes.OK) {
                     toast.success("海报上传成功", {
                         id: "poster-upload",
                     });
@@ -195,7 +196,7 @@ export default function Index() {
             game_id: game?.id!,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`海报删除成功`);
                 }
             })
@@ -222,7 +223,7 @@ export default function Index() {
             };
 
             xhr.onload = () => {
-                if (xhr.status === 200) {
+                if (xhr.status === StatusCodes.OK) {
                     toast.success("图标上传成功", {
                         id: "icon-upload",
                     });
@@ -266,7 +267,7 @@ export default function Index() {
             game_id: game?.id!,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`图标删除成功`);
                 }
             })

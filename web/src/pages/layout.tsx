@@ -8,13 +8,13 @@ export default function () {
     globalRouter.navigate = navigate;
 
     return (
-        <div>
+        <>
             <Navbar />
             <main
                 className={cn(["flex", "flex-col", "min-h-[calc(100vh-64px)]"])}
             >
                 <Outlet />
             </main>
-        </div>
+        </>
     );
 }

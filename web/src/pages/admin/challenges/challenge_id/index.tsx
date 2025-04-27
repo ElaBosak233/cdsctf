@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { useCategoryStore } from "@/storages/category";
 import { TagsField } from "@/components/ui/tags-field";
+import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
     const { challenge } = useContext(Context);
@@ -77,7 +78,7 @@ export default function Index() {
             ...values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`题目 ${res?.data?.title} 更新成功`);
                 }
             })

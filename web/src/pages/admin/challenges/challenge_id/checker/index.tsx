@@ -24,6 +24,7 @@ import suidChecker from "./examples/suid.cdsx?raw";
 import leetChecker from "./examples/leet.cdsx?raw";
 import { Label } from "@/components/ui/label";
 import { Field, FieldIcon } from "@/components/ui/field";
+import { StatusCodes } from "http-status-codes";
 
 const checkerMap = {
     simple: simpleChecker,
@@ -63,7 +64,7 @@ export default function Index() {
             ...values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`题目 ${challenge?.title} 检查器更新成功`);
                     setLint(res?.msg || "Success");
                 }

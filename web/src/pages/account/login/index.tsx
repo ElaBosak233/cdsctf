@@ -55,9 +55,17 @@ export default function Index() {
                 </div>
                 <Separator
                     orientation={"vertical"}
-                    className={cn(["h-81", "my-auto"])}
+                    className={cn(["hidden", "md:block", "h-81", "my-auto"])}
                 />
-                <div className={cn(["flex-1/2", "flex", "flex-col", "p-6"])}>
+                <div
+                    className={cn([
+                        "hidden",
+                        "md:flex",
+                        "flex-col",
+                        "flex-1/2",
+                        "p-6",
+                    ])}
+                >
                     <div
                         className={cn([
                             "flex",
@@ -79,8 +87,22 @@ export default function Index() {
                                 "h-[8rem]",
                             ])}
                         />
-                        <span className={cn(["text-2xl", "font-semibold"])}>
+                        <span
+                            className={cn([
+                                "mt-4",
+                                "text-2xl",
+                                "font-semibold",
+                            ])}
+                        >
                             {configStore?.config?.meta?.title}
+                        </span>
+                        <span
+                            className={cn([
+                                "text-sm",
+                                "text-secondary-foreground",
+                            ])}
+                        >
+                            {configStore?.config?.meta?.description}
                         </span>
                     </div>
                     {configStore?.config?.auth?.is_registration_enabled && (

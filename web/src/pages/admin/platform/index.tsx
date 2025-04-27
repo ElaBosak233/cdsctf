@@ -43,6 +43,7 @@ import { Label } from "@/components/ui/label";
 import { Config } from "@/models/config";
 import { Select } from "@/components/ui/select";
 import { NumberField } from "@/components/ui/number-field";
+import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
     const [refresh, setRefresh] = useState<number>(0);
@@ -121,7 +122,7 @@ export default function Index() {
             ...config,
             ...values,
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 toast.success("平台配置更新成功");
             }
         });
@@ -145,7 +146,7 @@ export default function Index() {
             };
 
             xhr.onload = () => {
-                if (xhr.status === 200) {
+                if (xhr.status === StatusCodes.OK) {
                     toast.success("Logo 上传成功", {
                         id: "logo-upload",
                     });
@@ -187,7 +188,7 @@ export default function Index() {
     function handleLogoDelete() {
         deleteLogo()
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`图标删除成功`);
                 }
             })

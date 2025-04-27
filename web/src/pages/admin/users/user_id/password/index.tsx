@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Context } from "../context";
+import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
     const { user } = useContext(Context);
@@ -54,12 +55,12 @@ export default function Index() {
             password: values.new_password,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`用户 ${user?.username} 密码更新成功`);
                     form.reset();
                 }
 
-                if (res.code === 400) {
+                if (res.code === StatusCodes.BAD_REQUEST) {
                     toast.error("更新失败", {
                         description: res.msg,
                     });
@@ -126,6 +127,8 @@ export default function Index() {
                             </FormItem>
                         )}
                     />
+
+                    <div className={cn(["flex-1"])} />
 
                     <Button
                         size={"lg"}

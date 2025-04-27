@@ -20,6 +20,7 @@ import { useSharedStore } from "@/storages/shared";
 import { State, Team } from "@/models/team";
 import { updateTeam } from "@/api/admin/games/game_id/teams/team_id";
 import { Avatar } from "@/components/ui/avatar";
+import { StatusCodes } from "http-status-codes";
 
 const columns: ColumnDef<Team>[] = [
     {
@@ -162,7 +163,7 @@ const columns: ColumnDef<Team>[] = [
                     state,
                 })
                     .then((res) => {
-                        if (res.code === 200) {
+                        if (res.code === StatusCodes.OK) {
                             toast.success(
                                 `团队 ${row.original.name} 状态更新成功`
                             );

@@ -23,10 +23,14 @@ import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
 import { useSearchParams } from "react-router";
 import { Select } from "@/components/ui/select";
 import { useCategoryStore } from "@/storages/category";
+import { useConfigStore } from "@/storages/config";
+import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
     const authStore = useAuthStore();
     const categoryStore = useCategoryStore();
+    const configStore = useConfigStore();
+
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [total, setTotal] = useState<number>(0);
@@ -60,7 +64,7 @@ export default function Index() {
             size,
             category: category !== "all" ? Number(category) : undefined,
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 setTotal(res.total || 0);
                 setChallenges(res.data);
             }
@@ -80,6 +84,7 @@ export default function Index() {
 
     return (
         <>
+            <title>{`练习场 - ${configStore?.config?.meta?.title}`}</title>
             <div
                 className={cn([
                     "flex-1",

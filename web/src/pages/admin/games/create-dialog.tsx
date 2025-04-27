@@ -20,6 +20,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { StatusCodes } from "http-status-codes";
 
 interface CreateDialogProps {
     onClose: () => void;
@@ -57,7 +58,7 @@ function CreateDialog(props: CreateDialogProps) {
             ended_at: Math.floor(values.ended_at.getTime() / 1000),
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`比赛 ${res?.data?.title} 创建成功`);
                     onClose();
                 }

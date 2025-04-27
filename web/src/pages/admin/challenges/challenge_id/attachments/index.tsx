@@ -21,6 +21,7 @@ import { cn } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getChallengeAttachmentMetadata } from "@/api/challenges/challenge_id/attachment";
+import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
     const { challenge } = useContext(Context);
@@ -53,7 +54,7 @@ export default function Index() {
                 }
             };
             xhr.onload = () => {
-                if (xhr.status === 200) {
+                if (xhr.status === StatusCodes.OK) {
                     toast.success("文件上传成功", {
                         id: "attachment-upload",
                     });
@@ -83,7 +84,7 @@ export default function Index() {
     function handleDeleteAttachment() {
         deleteChallengeAttachment(challenge?.id!)
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`题目 ${challenge?.title} 附件删除成功`);
                 }
             })

@@ -5,6 +5,7 @@ import { Field } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
+import { StatusCodes } from "http-status-codes";
 import { CheckIcon, MailCheckIcon, SendIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -21,11 +22,11 @@ function EmailVerifyDialog(props: EmailVerifyDialogProps) {
 
     function handleSendVerifyEmail() {
         sendVerifyEmail().then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 toast.success("验证码已发送，请查收");
             }
 
-            if (res.code === 400) {
+            if (res.code === StatusCodes.BAD_REQUEST) {
                 toast.error("发生错误", {
                     description: res.msg,
                 });
@@ -37,7 +38,7 @@ function EmailVerifyDialog(props: EmailVerifyDialogProps) {
         verify({
             code,
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 toast.success("验证成功！");
                 authStore.setUser({
                     ...authStore.user,
@@ -46,7 +47,7 @@ function EmailVerifyDialog(props: EmailVerifyDialogProps) {
                 onClose();
             }
 
-            if (res.code === 400) {
+            if (res.code === StatusCodes.BAD_REQUEST) {
                 toast.error("发生错误", {
                     description: res.msg,
                 });

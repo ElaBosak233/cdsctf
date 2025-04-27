@@ -18,6 +18,7 @@ import {
     TrashIcon,
 } from "lucide-react";
 import { copyToClipboard } from "@/utils/clipboard";
+import { StatusCodes } from "http-status-codes";
 
 function EnvSection() {
     const { challenge, team } = useContext(Context);
@@ -53,7 +54,7 @@ function EnvSection() {
             game_id: mode === "game" ? Number(team?.game_id) : undefined,
             team_id: mode === "game" ? Number(team?.id) : undefined,
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 const p = res.data?.[0];
                 setEnv(p);
                 setTimeLeft(
@@ -90,12 +91,15 @@ function EnvSection() {
         renewEnv({
             id: env?.id!,
         }).then((res) => {
-            if (res.code === 200) {
-                toast.success("续期成功");
+            if (res.code === StatusCodes.OK) {
+                toast.success("续期成功", {
+                    id: "renew",
+                });
             }
 
-            if (res.code === 400) {
+            if (res.code === StatusCodes.BAD_REQUEST) {
                 toast.error("续期失败", {
+                    id: "renew",
                     description: res.msg,
                 });
             }
@@ -134,7 +138,7 @@ function EnvSection() {
             team_id: mode === "game" ? Number(team?.id) : undefined,
         }).then((res) => {
             switch (res.code) {
-                case 200: {
+                case StatusCodes.OK: {
                     setEnv(res.data);
                     toast.loading("已下发容器启动命令", {
                         id: "pod",

@@ -32,6 +32,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
     const { challenge } = useContext(Context);
@@ -137,7 +138,7 @@ export default function Index() {
             env: values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`题目 ${challenge?.title} 动态环境更新成功`);
                 }
             })

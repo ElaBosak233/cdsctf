@@ -15,6 +15,7 @@ import { Game } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
+import { StatusCodes } from "http-status-codes";
 import {
     ArrowDown,
     ArrowUp,
@@ -49,7 +50,7 @@ const columns: ColumnDef<Game>[] = [
                     id,
                     is_enabled: newValue,
                 }).then((res) => {
-                    if (res.code === 200) {
+                    if (res.code === StatusCodes.OK) {
                         toast.success(
                             `更新比赛 ${title} 的可见性: ${newValue ? "可见" : "不可见"}`,
                             {
@@ -207,40 +208,6 @@ const columns: ColumnDef<Game>[] = [
         },
     },
     {
-        accessorKey: "updated_at",
-        id: "updated_at",
-        header: ({ column }) => {
-            const Icon = useMemo(() => {
-                switch (column.getIsSorted()) {
-                    case "asc":
-                        return ArrowUp;
-                    case "desc":
-                        return ArrowDown;
-                    case false:
-                    default:
-                        return ArrowUpDown;
-                }
-            }, [column.getIsSorted()]);
-
-            return (
-                <div className={cn(["flex", "gap-1", "items-center"])}>
-                    更新时间
-                    <Button
-                        icon={Icon}
-                        square
-                        size={"sm"}
-                        onClick={() => column.toggleSorting()}
-                    />
-                </div>
-            );
-        },
-        cell: ({ row }) => {
-            return new Date(
-                row.getValue<number>("updated_at") * 1000
-            ).toLocaleString();
-        },
-    },
-    {
         id: "actions",
         header: () => <div className={cn(["justify-self-center"])}>操作</div>,
         cell: ({ row }) => {
@@ -257,7 +224,7 @@ const columns: ColumnDef<Game>[] = [
                     id,
                 })
                     .then((res) => {
-                        if (res.code === 200) {
+                        if (res.code === StatusCodes.OK) {
                             toast.success(`比赛 ${title} 删除成功`);
                             setDeleteDialogOpen(false);
                         }

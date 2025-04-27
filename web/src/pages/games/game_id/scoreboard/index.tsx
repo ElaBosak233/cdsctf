@@ -56,103 +56,111 @@ export default function Index() {
     });
 
     return (
-        <div
-            className={cn([
-                "mx-60",
-                "my-10",
-                "flex",
-                "flex-col",
-                "gap-10",
-                "items-center",
-            ])}
-        >
-            <ChampionChart scoreboard={scoreboard} />
-            <div className={cn(["flex", "items-center", "gap-10"])}>
-                <div className="flex-1 text-sm text-muted-foreground">
-                    {table.getFilteredRowModel().rows.length} / {total}
-                </div>
-                <Field size={"sm"} className={cn(["w-48"])}>
-                    <FieldIcon>
-                        <ListOrderedIcon />
-                    </FieldIcon>
-                    <Select
-                        placeholder={"每页显示"}
-                        options={[
-                            { value: "10" },
-                            { value: "20" },
-                            { value: "40" },
-                            { value: "60" },
-                        ]}
-                        value={String(size)}
-                        onValueChange={(value) => setSize(Number(value))}
+        <>
+            <title>{`积分榜 - ${currentGame?.title}`}</title>
+            <div
+                className={cn([
+                    "mx-60",
+                    "my-10",
+                    "flex",
+                    "flex-col",
+                    "gap-10",
+                    "items-center",
+                ])}
+            >
+                <ChampionChart scoreboard={scoreboard} />
+                <div className={cn(["flex", "items-center", "gap-10"])}>
+                    <div className="flex-1 text-sm text-muted-foreground">
+                        {table.getFilteredRowModel().rows.length} / {total}
+                    </div>
+                    <Field size={"sm"} className={cn(["w-48"])}>
+                        <FieldIcon>
+                            <ListOrderedIcon />
+                        </FieldIcon>
+                        <Select
+                            placeholder={"每页显示"}
+                            options={[
+                                { value: "10" },
+                                { value: "20" },
+                                { value: "40" },
+                                { value: "60" },
+                            ]}
+                            value={String(size)}
+                            onValueChange={(value) => setSize(Number(value))}
+                        />
+                    </Field>
+                    <Pagination
+                        value={page}
+                        onChange={setPage}
+                        total={Math.ceil(total / size)}
                     />
-                </Field>
-                <Pagination
-                    value={page}
-                    onChange={setPage}
-                    total={Math.ceil(total / size)}
-                />
-            </div>
-            <Table className={cn(["text-foreground"])}>
-                <TableHeader
-                    className={cn(["bg-muted/70", "backdrop-blur-md"])}
-                >
-                    {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
-                            {headerGroup.headers.map((header) => {
-                                return (
-                                    <TableHead key={header.id}>
-                                        {!header.isPlaceholder &&
-                                            flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext()
-                                            )}
-                                    </TableHead>
-                                );
-                            })}
-                        </TableRow>
-                    ))}
-                </TableHeader>
-                <TableBody>
-                    {table.getRowModel().rows?.length ? (
-                        table.getRowModel().rows.map((row) => (
-                            <Dialog key={row.getValue("id")}>
-                                <DialogTrigger>
-                                    <TableRow
-                                        data-state={
-                                            row.getIsSelected() && "selected"
-                                        }
-                                        className={cn(["cursor-pointer"])}
-                                    >
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>
-                                                {flexRender(
-                                                    cell.column.columnDef.cell,
-                                                    cell.getContext()
+                </div>
+                <Table className={cn(["text-foreground"])}>
+                    <TableHeader
+                        className={cn(["bg-muted/70", "backdrop-blur-md"])}
+                    >
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id}>
+                                {headerGroup.headers.map((header) => {
+                                    return (
+                                        <TableHead key={header.id}>
+                                            {!header.isPlaceholder &&
+                                                flexRender(
+                                                    header.column.columnDef
+                                                        .header,
+                                                    header.getContext()
                                                 )}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <TeamDetailsDialog
-                                        team={row.original.team!}
-                                    />
-                                </DialogContent>
-                            </Dialog>
-                        ))
-                    ) : (
-                        <TableRow>
-                            <TableCell
-                                colSpan={columns.length}
-                                className={cn(["h-24", "text-center"])}
-                            >
-                                积分榜空空如也呢
-                            </TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-        </div>
+                                        </TableHead>
+                                    );
+                                })}
+                            </TableRow>
+                        ))}
+                    </TableHeader>
+                    <TableBody>
+                        {table.getRowModel().rows?.length ? (
+                            table.getRowModel().rows.map((row) => (
+                                <Dialog key={row.getValue("id")}>
+                                    <DialogTrigger>
+                                        <TableRow
+                                            data-state={
+                                                row.getIsSelected() &&
+                                                "selected"
+                                            }
+                                            className={cn(["cursor-pointer"])}
+                                        >
+                                            {row
+                                                .getVisibleCells()
+                                                .map((cell) => (
+                                                    <TableCell key={cell.id}>
+                                                        {flexRender(
+                                                            cell.column
+                                                                .columnDef.cell,
+                                                            cell.getContext()
+                                                        )}
+                                                    </TableCell>
+                                                ))}
+                                        </TableRow>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <TeamDetailsDialog
+                                            team={row.original.team!}
+                                        />
+                                    </DialogContent>
+                                </Dialog>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={columns.length}
+                                    className={cn(["h-24", "text-center"])}
+                                >
+                                    积分榜空空如也呢
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+        </>
     );
 }

@@ -28,6 +28,7 @@ import { register } from "@/api/users";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { useConfigStore } from "@/storages/config";
+import { StatusCodes } from "http-status-codes";
 
 function RegisterForm() {
     const configStore = useConfigStore();
@@ -81,7 +82,7 @@ function RegisterForm() {
             ...values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success("注册成功", {
                         id: "register-success",
                         description: "注册成功，请登录",
@@ -89,14 +90,14 @@ function RegisterForm() {
                     navigate("/account/login");
                 }
 
-                if (res.code === 400) {
+                if (res.code === StatusCodes.BAD_REQUEST) {
                     toast.success("注册失败", {
                         id: "register-error",
                         description: res.msg,
                     });
                 }
 
-                if (res.code === 409) {
+                if (res.code === StatusCodes.CONFLICT) {
                     toast.success("注册失败", {
                         id: "register-error",
                         description: "用户名或邮箱重复",

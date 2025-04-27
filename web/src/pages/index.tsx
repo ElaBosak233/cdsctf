@@ -16,6 +16,7 @@ export default function () {
 
     return (
         <>
+            <title>{configStore?.config?.meta?.title}</title>
             <div
                 className={cn([
                     "flex-1",
@@ -49,25 +50,6 @@ export default function () {
                     {description}
                 </span>
             </div>
-            {/* <div
-                className={cn([
-                    "absolute",
-                    "bottom-4",
-                    "flex",
-                    "flex-wrap",
-                    "items-center",
-                    "justify-center",
-                    "h-auto",
-                    "p-2",
-                    "gap-2",
-                    "w-full",
-                    "text-secondary-foreground",
-                ])}
-            >
-                <Button icon={InfoIcon} square asChild>
-                    <Link to={"/about"} />
-                </Button>
-            </div> */}
         </>
     );
 }

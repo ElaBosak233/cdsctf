@@ -21,6 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createGameNotice } from "@/api/admin/games/game_id/notices";
 import { Editor } from "@/components/ui/editor";
+import { StatusCodes } from "http-status-codes";
 
 interface CreateDialogProps {
     onClose: () => void;
@@ -50,7 +51,7 @@ function CreateDialog(props: CreateDialogProps) {
             game_id: game?.id,
             ...values,
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 toast.success(`通知 ${res?.data?.title} 发布成功`);
                 sharedStore?.setRefresh();
                 onClose();

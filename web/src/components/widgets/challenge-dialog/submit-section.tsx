@@ -10,6 +10,7 @@ import { getSubmission, createSubmission } from "@/api/submissions";
 import { toast } from "sonner";
 import { useSharedStore } from "@/storages/shared";
 import { Status } from "@/models/submission";
+import { StatusCodes } from "http-status-codes";
 
 function SubmitSection() {
     const { challenge, team } = useContext(Context);
@@ -49,7 +50,7 @@ function SubmitSection() {
             game_id: mode === "game" ? Number(team?.game_id) : undefined,
             team_id: mode === "game" ? Number(team?.id) : undefined,
         }).then((res) => {
-            if (res.code === 200) {
+            if (res.code === StatusCodes.OK) {
                 setSubmissionId(res?.data?.id);
                 setFlag("");
                 toast.loading("已提交", {

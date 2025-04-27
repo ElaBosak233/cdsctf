@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { useSharedStore } from "@/storages/shared";
+import { StatusCodes } from "http-status-codes";
 
 const columns: ColumnDef<Challenge>[] = [
     {
@@ -54,7 +55,7 @@ const columns: ColumnDef<Challenge>[] = [
                     id,
                     is_public: newValue,
                 }).then((res) => {
-                    if (res.code === 200) {
+                    if (res.code === StatusCodes.OK) {
                         toast.success(
                             `更新题目 ${title} 的公开性: ${newValue ? "公开" : "私有"}`,
                             {
@@ -302,7 +303,7 @@ const columns: ColumnDef<Challenge>[] = [
                     id,
                 })
                     .then((res) => {
-                        if (res.code === 200) {
+                        if (res.code === StatusCodes.OK) {
                             toast.success(`题目 ${title} 删除成功`);
                             setDeleteDialogOpen(false);
                         }

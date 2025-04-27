@@ -1,7 +1,5 @@
 import {
-    UserRound,
-    Lock,
-    Check,
+    CheckIcon,
     CircleHelpIcon,
     UserRoundIcon,
     LockIcon,
@@ -28,6 +26,7 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/storages/auth";
 import { Link, useNavigate } from "react-router";
 import { useConfigStore } from "@/storages/config";
+import { StatusCodes } from "http-status-codes";
 
 function LoginForm() {
     const configStore = useConfigStore();
@@ -61,19 +60,26 @@ function LoginForm() {
             ...values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     authStore.setUser(res.data);
                     toast.success("登录成功", {
-                        id: "login-success",
+                        id: "login",
                         description: `欢迎回来，${res.data?.nickname}！`,
                     });
                     navigate("/");
                 }
 
-                if (res.code === 400) {
-                    toast.error("登陆失败", {
-                        id: "login-error",
-                        description: res.msg,
+                if (res.code === StatusCodes.BAD_REQUEST) {
+                    toast.error("登录失败", {
+                        id: "login",
+                        description: "用户名或密码错误",
+                    });
+                }
+
+                if (res.code === StatusCodes.GONE) {
+                    toast.error("Captcha 已失效", {
+                        id: "login",
+                        description: "请刷新 Captcha",
                     });
                 }
             })
@@ -169,7 +175,7 @@ function LoginForm() {
                     type={"submit"}
                     size={"lg"}
                     className={cn(["w-full"])}
-                    icon={Check}
+                    icon={CheckIcon}
                     loading={loading}
                 >
                     登录

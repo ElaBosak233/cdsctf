@@ -37,6 +37,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
     const { user } = useContext(Context);
@@ -90,7 +91,7 @@ export default function Index() {
             ...values,
         })
             .then((res) => {
-                if (res.code === 200) {
+                if (res.code === StatusCodes.OK) {
                     toast.success(`用户 ${res?.data?.username} 更新成功`);
                 }
             })
@@ -120,7 +121,7 @@ export default function Index() {
             };
 
             xhr.onload = () => {
-                if (xhr.status === 200) {
+                if (xhr.status === StatusCodes.OK) {
                     toast.success("头像上传成功", {
                         id: "avatar-upload",
                     });
