@@ -40,7 +40,7 @@ jobs:
                       ghcr.io/${{ github.repository_owner }}/cdsctf
                       docker.io/${{ github.repository_owner }}/cdsctf
                   flavor: |
-                      latest=${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
+                      latest=${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-') }}
                   tags: |
                       type=ref,event=branch
                       type=semver,pattern={{version}}

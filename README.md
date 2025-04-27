@@ -12,7 +12,7 @@ Thanks to everyone who has contributed to the project! Without you, CdsCTF would
 
 ## Stars
 
-![](https://starchart.cc/ElaBosak233/cdsctf.svg)
+![](https://starchart.cc/ElaBosak233/cdsctf.svg?variant=adaptive)
 
 ## License
 

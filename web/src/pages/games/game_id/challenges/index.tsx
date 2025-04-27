@@ -12,10 +12,8 @@ import { NoticeCard } from "./notice-card";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LibraryIcon, ListOrderedIcon } from "lucide-react";
 import { Select } from "@/components/ui/select";
-import { TextField } from "@/components/ui/text-field";
 import { Pagination } from "@/components/ui/pagination";
 import { useCategoryStore } from "@/storages/category";
-import { useDebounce } from "@/hooks/use-debounce";
 
 export default function Index() {
     const { currentGame, selfTeam: selfGameTeam } = useGameStore();

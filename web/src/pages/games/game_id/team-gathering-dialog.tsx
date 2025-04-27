@@ -32,7 +32,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     const { onClose } = props;
     const sharedStore = useSharedStore();
     const { currentGame } = useGameStore();
-    const [loading, setLoading] = useState<boolean>(false);
+    const [_loading, setLoading] = useState<boolean>(false);
 
     const createFormSchema = z.object({
         name: z.string({
