@@ -7,7 +7,7 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-
+use cds_db::traits::EagerLoading;
 use crate::{
     extract::{Extension, Path, Query},
     traits::{Ext, WebError, WebResponse},
@@ -74,13 +74,7 @@ pub async fn get_submission(
         sql = sql.offset(offset).limit(size);
     }
 
-    let submissions = sql.all(get_db()).await?;
-    let mut submissions = submissions
-        .into_iter()
-        .map(Submission::from)
-        .collect::<Vec<Submission>>();
-
-    submissions = cds_db::transfer::submission::preload(submissions).await?;
+    let submissions = sql.all(get_db()).await?.eager_load(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

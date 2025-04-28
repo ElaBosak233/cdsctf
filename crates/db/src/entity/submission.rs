@@ -2,7 +2,9 @@ use async_trait::async_trait;
 use sea_orm::{DeriveActiveEnum, EnumIter, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-
+use crate::{entity, get_db};
+use crate::traits::EagerLoading;
+use crate::transfer::{Challenge, Game, GameChallenge, Submission, Team, User};
 use super::{challenge, game, team, user};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
@@ -118,5 +120,56 @@ impl ActiveModelBehavior for ActiveModel {
         }
 
         Ok(self)
+    }
+}
+
+#[async_trait]
+impl EagerLoading<Vec<Submission>> for Vec<Model> {
+    async fn eager_load<C>(self, db: &C) -> Result<Vec<Submission>, DbErr>
+    where C: ConnectionTrait{
+        let users = self
+            .load_one(user::Entity, db)
+            .await?
+            .into_iter()
+            .map(|u| u.map(User::from))
+            .collect::<Vec<Option<User>>>();
+        let challenges = self
+            .load_one(challenge::Entity, db)
+            .await?
+            .into_iter()
+            .map(|c| c.map(Challenge::from))
+            .collect::<Vec<Option<Challenge>>>();
+        let teams = self
+            .load_one(team::Entity, db)
+            .await?
+            .into_iter()
+            .map(|t| t.map(Team::from))
+            .collect::<Vec<Option<Team>>>();
+        let games = self
+            .load_one(game::Entity, db)
+            .await?
+            .into_iter()
+            .map(|g| g.map(Game::from))
+            .collect::<Vec<Option<Game>>>();
+
+        let mut submissions = self
+            .into_iter()
+            .map(Submission::from)
+            .collect::<Vec<Submission>>();
+
+        for (i, submission) in submissions.iter_mut().enumerate() {
+            submission.user = users[i].clone();
+            if let Some(user) = submission.user.as_mut() {
+                user.desensitize();
+            }
+            submission.challenge = challenges[i].clone();
+            if let Some(challenge) = submission.challenge.as_mut() {
+                *challenge = challenge.desensitize();
+            }
+            submission.team = teams[i].clone();
+            submission.game = games[i].clone();
+        }
+
+        Ok(submissions)
     }
 }

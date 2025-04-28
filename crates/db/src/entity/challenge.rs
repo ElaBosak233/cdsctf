@@ -1,13 +1,9 @@
 use std::collections::HashMap;
 
-use async_trait::async_trait;
-use sea_orm::{
-    ActiveModelBehavior, ConnectionTrait, DbErr, DeriveEntityModel, DerivePrimaryKey, EntityTrait,
-    EnumIter, FromJsonQueryResult, PrimaryKeyTrait, Related, RelationDef, RelationTrait, Set,
-};
-use serde::{Deserialize, Serialize};
-
 use super::{game, game_challenge, submission};
+use async_trait::async_trait;
+use sea_orm::{ActiveModelBehavior, ConnectionTrait, DbErr, DeriveEntityModel, DerivePrimaryKey, EntityTrait, EnumIter, FromJsonQueryResult, PrimaryKeyTrait, Related, RelationDef, RelationTrait, Set};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "challenges")]

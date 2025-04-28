@@ -7,7 +7,7 @@ use cds_db::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
-
+use cds_db::traits::EagerLoading;
 use crate::{
     extract::{Extension, Path, Query},
     traits::{Ext, WebError, WebResponse},
@@ -77,7 +77,7 @@ pub async fn get_game_challenge(
     }
 
     let mut game_challenges =
-        cds_db::transfer::game_challenge::preload(sql.all(get_db()).await?).await?;
+        sql.all(get_db()).await?.eager_load(get_db()).await?;
 
     for game_challenge in game_challenges.iter_mut() {
         *game_challenge = game_challenge.desensitize();

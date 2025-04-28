@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{Challenge, Game, Team, User};
 use crate::{entity, entity::submission::Status, get_db};
+use crate::traits::EagerLoading;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Submission {
@@ -71,65 +72,13 @@ impl From<Submission> for entity::submission::Model {
     }
 }
 
-pub async fn preload(mut submissions: Vec<Submission>) -> Result<Vec<Submission>, DbErr> {
-    let models = submissions
-        .clone()
-        .into_iter()
-        .map(entity::submission::Model::from)
-        .collect::<Vec<entity::submission::Model>>();
-
-    let users = models
-        .load_one(entity::user::Entity, get_db())
-        .await?
-        .into_iter()
-        .map(|u| u.map(User::from))
-        .collect::<Vec<Option<User>>>();
-    let challenges = models
-        .load_one(entity::challenge::Entity, get_db())
-        .await?
-        .into_iter()
-        .map(|c| c.map(Challenge::from))
-        .collect::<Vec<Option<Challenge>>>();
-    let teams = models
-        .load_one(entity::team::Entity, get_db())
-        .await?
-        .into_iter()
-        .map(|t| t.map(Team::from))
-        .collect::<Vec<Option<Team>>>();
-    let games = models
-        .load_one(entity::game::Entity, get_db())
-        .await?
-        .into_iter()
-        .map(|g| g.map(Game::from))
-        .collect::<Vec<Option<Game>>>();
-
-    for (i, submission) in submissions.iter_mut().enumerate() {
-        submission.user = users[i].clone();
-        if let Some(user) = submission.user.as_mut() {
-            user.desensitize();
-        }
-        submission.challenge = challenges[i].clone();
-        if let Some(challenge) = submission.challenge.as_mut() {
-            *challenge = challenge.desensitize();
-        }
-        submission.team = teams[i].clone();
-        submission.game = games[i].clone();
-    }
-    Ok(submissions)
-}
-
 pub async fn get_by_challenge_ids(challenge_ids: Vec<Uuid>) -> Result<Vec<Submission>, DbErr> {
     let submissions = entity::submission::Entity::find()
         .filter(entity::submission::Column::ChallengeId.is_in(challenge_ids))
         .order_by_asc(entity::submission::Column::CreatedAt)
         .all(get_db())
-        .await?;
+        .await?.eager_load(get_db()).await?;
 
-    let mut submissions = submissions
-        .into_iter()
-        .map(Submission::from)
-        .collect::<Vec<Submission>>();
-    submissions = preload(submissions).await?;
     Ok(submissions)
 }
 
@@ -148,14 +97,7 @@ pub async fn get_by_game_id_and_team_ids(
         sql = sql.filter(entity::submission::Column::Status.eq(status));
     }
 
-    let submissions = sql.all(get_db()).await?;
-
-    let mut submissions = submissions
-        .into_iter()
-        .map(Submission::from)
-        .collect::<Vec<Submission>>();
-
-    submissions = preload(submissions).await?;
+    let submissions = sql.all(get_db()).await?.eager_load(get_db()).await?;
 
     Ok(submissions)
 }

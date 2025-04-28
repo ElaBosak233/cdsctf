@@ -47,32 +47,3 @@ impl From<Team> for entity::team::Model {
         }
     }
 }
-
-pub async fn preload(mut teams: Vec<Team>) -> Result<Vec<Team>, DbErr> {
-    let models = teams
-        .clone()
-        .into_iter()
-        .map(entity::team::Model::from)
-        .collect::<Vec<entity::team::Model>>();
-
-    let users = models
-        .load_many_to_many(entity::user::Entity, entity::team_user::Entity, get_db())
-        .await?
-        .into_iter()
-        .map(|users| {
-            users
-                .into_iter()
-                .map(super::User::from)
-                .collect::<Vec<User>>()
-        })
-        .collect::<Vec<Vec<User>>>();
-
-    for (i, team) in teams.iter_mut().enumerate() {
-        team.users = users[i].clone();
-        for user in team.users.iter_mut() {
-            user.desensitize();
-        }
-    }
-
-    Ok(teams)
-}

@@ -14,7 +14,7 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-
+use cds_db::traits::EagerLoading;
 use crate::{
     extract::{Extension, Json, Path, Query},
     traits::{Ext, WebError, WebResponse},
@@ -109,10 +109,7 @@ pub async fn get_team(
         sql = sql.offset(offset).limit(size);
     }
 
-    let teams = sql.all(get_db()).await?;
-    let mut teams = teams.into_iter().map(Team::from).collect::<Vec<Team>>();
-
-    teams = cds_db::transfer::team::preload(teams).await?;
+    let teams = sql.all(get_db()).await?.eager_load(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

@@ -12,7 +12,7 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-
+use cds_db::traits::EagerLoading;
 use crate::{
     extract::{Extension, Json, Query},
     traits::{Ext, WebError, WebResponse},
@@ -93,13 +93,7 @@ pub async fn get_submission(
         }
     }
 
-    let submissions = sql.all(get_db()).await?;
-    let mut submissions = submissions
-        .into_iter()
-        .map(Submission::from)
-        .collect::<Vec<Submission>>();
-
-    submissions = cds_db::transfer::submission::preload(submissions).await?;
+    let mut submissions = sql.all(get_db()).await?.eager_load(get_db()).await?;
 
     for submission in submissions.iter_mut() {
         *submission = submission.desensitize();

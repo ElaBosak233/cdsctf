@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::Challenge;
 use crate::{entity, get_db};
+use crate::traits::EagerLoading;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GameChallenge {
@@ -49,28 +50,6 @@ impl From<entity::game_challenge::Model> for GameChallenge {
     }
 }
 
-pub async fn preload(
-    models: Vec<entity::game_challenge::Model>,
-) -> Result<Vec<GameChallenge>, DbErr> {
-    let challenges = models
-        .load_one(entity::challenge::Entity, get_db())
-        .await?
-        .into_iter()
-        .map(|c| c.map(Challenge::from))
-        .collect::<Vec<Option<Challenge>>>();
-
-    let mut game_challenges = models
-        .into_iter()
-        .map(GameChallenge::from)
-        .collect::<Vec<GameChallenge>>();
-
-    for (i, game_challenge) in game_challenges.iter_mut().enumerate() {
-        game_challenge.challenge = challenges[i].clone();
-    }
-
-    Ok(game_challenges)
-}
-
 pub async fn find(
     game_id: Option<i64>,
     challenge_id: Option<i64>,
@@ -99,9 +78,7 @@ pub async fn find(
 
     let total = sql.clone().count(get_db()).await?;
 
-    let models = sql.all(get_db()).await?;
-
-    let game_challenges = preload(models).await?;
+    let game_challenges = sql.all(get_db()).await?.eager_load(get_db()).await?;
 
     Ok((game_challenges, total))
 }

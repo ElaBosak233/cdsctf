@@ -10,7 +10,7 @@ use cds_db::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
-
+use cds_db::traits::EagerLoading;
 use crate::{
     extract::{Extension, Json, Path, Query},
     traits::{Ext, WebError, WebResponse},
@@ -62,8 +62,7 @@ pub async fn get_game_challenge(
         sql = sql.offset(offset).limit(size);
     }
 
-    let game_challenges =
-        cds_db::transfer::game_challenge::preload(sql.all(get_db()).await?).await?;
+    let game_challenges = sql.all(get_db()).await?.eager_load(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

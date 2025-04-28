@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
-
+use crate::{entity, get_db};
+use crate::traits::EagerLoading;
+use crate::transfer::{Challenge, GameChallenge};
 use super::{challenge, game, user};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
@@ -75,3 +77,27 @@ impl Related<user::Entity> for Entity {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
+
+#[async_trait]
+impl EagerLoading<Vec<GameChallenge>> for Vec<Model> {
+    async fn eager_load<C>(self, db: &C) -> Result<Vec<GameChallenge>, DbErr>
+    where C: ConnectionTrait{
+        let challenges = self
+            .load_one(challenge::Entity, db)
+            .await?
+            .into_iter()
+            .map(|c| c.map(Challenge::from))
+            .collect::<Vec<Option<Challenge>>>();
+
+        let mut game_challenges = self
+            .into_iter()
+            .map(GameChallenge::from)
+            .collect::<Vec<GameChallenge>>();
+
+        for (i, game_challenge) in game_challenges.iter_mut().enumerate() {
+            game_challenge.challenge = challenges[i].clone();
+        }
+
+        Ok(game_challenges)
+    }
+}
