@@ -2,7 +2,7 @@
 
 The **CdsCTF** project is an _open-source, high-performance, Jeopardy-style's_ CTF platform.
 
-You can read more in the [Documentation](https://docs.ctf.e23.dev).
+You can read more in the [Documentation](https://cdsctf.e23.dev).
 
 ## Contributors
 
