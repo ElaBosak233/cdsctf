@@ -45,6 +45,9 @@ pub async fn get_challenge(
 ) -> Result<WebResponse<Vec<ChallengeMini>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
+    let page = params.page.unwrap_or(1);
+    let size = params.size.unwrap_or(10).min(100);
+
     let mut sql = entity::challenge::Entity::find();
 
     if let Some(id) = params.id {
@@ -97,10 +100,8 @@ pub async fn get_challenge(
         }
     }
 
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
+    let offset = (page - 1) * size;
+    sql = sql.offset(offset).limit(size);
 
     let challenges = sql.into_model::<ChallengeMini>().all(get_db()).await?;
 

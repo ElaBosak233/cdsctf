@@ -40,6 +40,9 @@ pub async fn get_game(
 ) -> Result<WebResponse<Vec<GameMini>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
+    let page = params.page.unwrap_or(1);
+    let size = params.size.unwrap_or(10).min(20);
+
     let mut sql = cds_db::entity::game::Entity::find();
 
     if let Some(id) = params.id {
@@ -69,10 +72,8 @@ pub async fn get_game(
 
     let total = sql.clone().count(get_db()).await?;
 
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
+    let offset = (page - 1) * size;
+    sql = sql.offset(offset).limit(size);
 
     let games = sql.into_model::<GameMini>().all(get_db()).await?;
 

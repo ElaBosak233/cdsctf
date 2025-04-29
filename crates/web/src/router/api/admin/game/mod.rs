@@ -40,6 +40,9 @@ pub struct GetGameRequest {
 pub async fn get_games(
     Query(params): Query<GetGameRequest>,
 ) -> Result<WebResponse<Vec<Game>>, WebError> {
+    let page = params.page.unwrap_or(1);
+    let size = params.size.unwrap_or(10).min(100);
+    
     let mut sql = cds_db::entity::game::Entity::find();
 
     if let Some(id) = params.id {
@@ -71,10 +74,8 @@ pub async fn get_games(
 
     let total = sql.clone().count(get_db()).await?;
 
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
+    let offset = (page - 1) * size;
+    sql = sql.offset(offset).limit(size);
 
     let games = sql.into_model::<Game>().all(get_db()).await?;
 

@@ -32,14 +32,10 @@ pub struct GetSubmissionsRequest {
 }
 
 pub async fn get_submissions(
-    Extension(ext): Extension<Ext>,
     Query(params): Query<GetSubmissionsRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
+    let page = params.page.unwrap_or(1);
+    let size = params.size.unwrap_or(10).max(100);
 
     let mut sql = cds_db::entity::submission::Entity::base_find();
 
@@ -69,10 +65,8 @@ pub async fn get_submissions(
 
     let total = sql.clone().count(get_db()).await?;
 
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
+    let offset = (page - 1) * size;
+    sql = sql.offset(offset).limit(size);
 
     let submissions = sql.into_model::<Submission>().all(get_db()).await?;
 

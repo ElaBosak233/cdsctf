@@ -43,6 +43,9 @@ pub struct GetChallengeRequest {
 pub async fn get_challenges(
     Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<Challenge>>, WebError> {
+    let page = params.page.unwrap_or(1);
+    let size = params.size.unwrap_or(10).min(100);
+    
     let mut sql = cds_db::entity::challenge::Entity::find();
 
     if let Some(id) = params.id {
@@ -102,10 +105,8 @@ pub async fn get_challenges(
         }
     }
 
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
+    let offset = (page - 1) * size;
+    sql = sql.offset(offset).limit(size);
 
     let challenges = sql.into_model::<Challenge>().all(get_db()).await?;
 

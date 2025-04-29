@@ -44,7 +44,7 @@ pub async fn get_submission(
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let page = params.page.unwrap_or(1);
-    let size = params.size.unwrap_or(10).min(1000);
+    let size = params.size.unwrap_or(10).min(100);
 
     let mut sql = cds_db::entity::submission::Entity::base_find();
 
