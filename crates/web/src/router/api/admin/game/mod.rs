@@ -42,7 +42,7 @@ pub async fn get_games(
 ) -> Result<WebResponse<Vec<Game>>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
-    
+
     let mut sql = cds_db::entity::game::Entity::find();
 
     if let Some(id) = params.id {

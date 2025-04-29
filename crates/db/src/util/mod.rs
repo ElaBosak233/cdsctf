@@ -2,6 +2,7 @@ use sea_orm::{
     ColumnTrait, DbErr, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect,
     RelationTrait, prelude::Expr, sea_query::Func,
 };
+use serde_json::json;
 
 use crate::{entity::team::State, get_db};
 
@@ -69,4 +70,49 @@ pub async fn is_user_username_unique(user_id: i64, username: &str) -> Result<boo
         .await?;
 
     Ok(user.map(|u| u.id == user_id).unwrap_or(true))
+}
+
+pub async fn can_user_access_challenge(
+    user_id: i64,
+    challenge_id: uuid::Uuid,
+) -> Result<bool, DbErr> {
+    let Some(challenge) = crate::entity::challenge::Entity::find_by_id(challenge_id)
+        .one(get_db())
+        .await?
+    else {
+        return Ok(false);
+    };
+
+    if challenge.is_public {
+        return Ok(true);
+    }
+
+    let now = chrono::Utc::now().timestamp();
+
+    if crate::entity::game::Entity::find()
+        .join(
+            JoinType::InnerJoin,
+            crate::entity::game_challenge::Relation::Game.def().rev(),
+        )
+        .join(
+            JoinType::InnerJoin,
+            crate::entity::team::Relation::Game.def().rev(),
+        )
+        .join(
+            JoinType::InnerJoin,
+            crate::entity::team_user::Relation::Team.def().rev(),
+        )
+        .filter(crate::entity::game_challenge::Column::ChallengeId.eq(challenge_id))
+        .filter(crate::entity::team_user::Column::UserId.eq(user_id))
+        .filter(crate::entity::team::Column::State.eq(State::Passed))
+        .filter(crate::entity::game::Column::StartedAt.lte(now))
+        .filter(crate::entity::game::Column::EndedAt.gte(now))
+        .count(get_db())
+        .await?
+        > 0
+    {
+        return Ok(true);
+    }
+
+    Ok(false)
 }

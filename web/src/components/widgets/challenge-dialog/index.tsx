@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Card } from "../../ui/card";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/utils";
 import { Challenge, ChallengeMini } from "@/models/challenge";
 import { useCategoryStore } from "@/storages/category";
-import { Separator } from "../../ui/separator";
-import { MarkdownRender } from "../../utils/markdown-render";
+import { Separator } from "@/components/ui/separator";
+import { MarkdownRender } from "@/components/utils/markdown-render";
 import { Context } from "./context";
 import { SubmitSection } from "./submit-section";
 import { Team } from "@/models/team";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { DownloadIcon, SnowflakeIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getChallenge } from "@/api/challenges/challenge_id";
+import { getChallenge as getChallengeDebug } from "@/api/admin/challenges/challenge_id";
 
 interface ChallengeDialogProps extends React.ComponentProps<typeof Card> {
     digest?: ChallengeMini;
@@ -29,10 +30,17 @@ function ChallengeDialog(props: ChallengeDialogProps) {
     const [challenge, setChallenge] = useState<Challenge>();
 
     useEffect(() => {
-        getChallenge({ id: digest?.id }).then((res) => {
+        if (!digest?.id) return;
+
+        const fetchChallenge = async () => {
+            const res = debug
+                ? await getChallengeDebug({ id: digest.id })
+                : await getChallenge({ id: digest.id });
             setChallenge(res.data);
-        });
-    }, []);
+        };
+
+        fetchChallenge();
+    }, [digest?.id, debug]);
 
     const category = useMemo(
         () => getCategory(digest?.category),
@@ -90,7 +98,11 @@ function ChallengeDialog(props: ChallengeDialogProps) {
                         <Button asChild icon={DownloadIcon} size={"sm"}>
                             <a
                                 target={"_blank"}
-                                href={`/api/challenges/${digest?.id}/attachment`}
+                                href={
+                                    debug
+                                        ? `/api/admin/challenges/${digest?.id}/attachment`
+                                        : `/api/challenges/${digest?.id}/attachment`
+                                }
                             >
                                 附件
                             </a>

@@ -1,10 +1,7 @@
 mod attachment;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{
-    get_db,
-    sea_orm::{EntityTrait, QueryFilter},
-};
+use cds_db::{get_db, sea_orm::EntityTrait};
 use serde_json::json;
 
 use crate::{
@@ -23,7 +20,7 @@ pub async fn get_challenge(
     Extension(ext): Extension<Ext>,
     Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<Challenge>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let challenge = match cds_db::entity::challenge::Entity::find_by_id(challenge_id)
         .into_model::<Challenge>()
@@ -34,9 +31,13 @@ pub async fn get_challenge(
         None => return Err(WebError::NotFound(json!("challenge_not_found"))),
     };
 
+    if !cds_db::util::can_user_access_challenge(operator.id, challenge.id).await? {
+        return Err(WebError::Forbidden(json!("")));
+    }
+
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(challenge),
+        data: Some(challenge.desensitize()),
         ..Default::default()
     })
 }

@@ -14,6 +14,7 @@ import {
     ClockFadingIcon,
     ClockIcon,
     FileCheck2Icon,
+    FlagIcon,
     LockOpenIcon,
     SaveIcon,
     TrashIcon,
@@ -389,6 +390,14 @@ export default function Index() {
                                                 "w-full",
                                                 "select-none",
                                             ])}
+                                            fallback={
+                                                <FlagIcon
+                                                    className={cn([
+                                                        "text-secondary-foreground",
+                                                        "rotate-12",
+                                                    ])}
+                                                />
+                                            }
                                         />
                                     </DropzoneTrigger>
                                 </DropZoneArea>
@@ -441,6 +450,14 @@ export default function Index() {
                                                 "w-full",
                                                 "select-none",
                                             ])}
+                                            fallback={
+                                                <FlagIcon
+                                                    className={cn([
+                                                        "text-secondary-foreground",
+                                                        "rotate-12",
+                                                    ])}
+                                                />
+                                            }
                                         />
                                     </DropzoneTrigger>
                                 </DropZoneArea>

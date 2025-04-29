@@ -29,13 +29,12 @@ pub async fn get_challenge_attachment(
     Extension(ext): Extension<Ext>,
     Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<impl IntoResponse, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
-        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
+    if !cds_db::util::can_user_access_challenge(operator.id, challenge.id).await? {
+        return Err(WebError::Forbidden(json!("")));
+    }
 
     if !challenge.has_attachment {
         return Err(WebError::NotFound(json!("challenge_has_not_attachment")));
@@ -62,13 +61,12 @@ pub async fn get_challenge_attachment_metadata(
     Extension(ext): Extension<Ext>,
     Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<Metadata>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
-        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
+    if !cds_db::util::can_user_access_challenge(operator.id, challenge.id).await? {
+        return Err(WebError::Forbidden(json!("")));
+    }
 
     if !challenge.has_attachment {
         return Err(WebError::NotFound(json!("challenge_has_not_attachment")));

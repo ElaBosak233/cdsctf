@@ -45,7 +45,7 @@ pub async fn get_challenges(
 ) -> Result<WebResponse<Vec<Challenge>>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
-    
+
     let mut sql = cds_db::entity::challenge::Entity::find();
 
     if let Some(id) = params.id {

@@ -16,7 +16,11 @@ function Image(props: ImageProps) {
         src,
         alt,
         delay = 500,
-        fallback = <CircleOff className={cn(["w-1/5", "h-1/5"])} />,
+        fallback = (
+            <CircleOff
+                className={cn(["w-1/5", "h-1/5", "text-secondary-foreground"])}
+            />
+        ),
         className,
         imgClassName,
     } = props;
