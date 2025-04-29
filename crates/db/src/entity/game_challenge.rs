@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sea_orm::{entity::prelude::*, QuerySelect};
+use sea_orm::{QuerySelect, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 use super::{challenge, game};

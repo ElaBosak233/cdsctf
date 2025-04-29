@@ -6,16 +6,17 @@ use serde_json::json;
 use uuid::Uuid;
 
 use crate::{
-    model::{game::Game, game_challenge::GameChallenge, team::Team, user::User},
+    model::{
+        challenge::Challenge, game::Game, game_challenge::GameChallenge, team::Team, user::User,
+    },
     traits::WebError,
 };
 
-pub async fn prepare_challenge(
-    challenge_id: Uuid,
-) -> Result<cds_db::entity::challenge::Model, WebError> {
+pub async fn prepare_challenge(challenge_id: Uuid) -> Result<Challenge, WebError> {
     let challenge = cds_db::entity::challenge::Entity::find()
         .filter(cds_db::entity::challenge::Column::Id.eq(challenge_id))
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
+        .into_model::<Challenge>()
         .one(get_db())
         .await?
         .ok_or(WebError::NotFound(json!("challenge_not_found")))?;

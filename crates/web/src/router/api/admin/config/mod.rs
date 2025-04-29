@@ -24,14 +24,8 @@ pub async fn get_config() -> Result<WebResponse<cds_config::variable::Variable>,
 }
 
 pub async fn update_config(
-    Extension(ext): Extension<Ext>,
     Json(body): Json<cds_config::variable::Variable>,
 ) -> Result<WebResponse<cds_config::variable::Variable>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     cds_config::variable::set_variable(body.clone())?;
     cds_config::variable::save().await?;
 

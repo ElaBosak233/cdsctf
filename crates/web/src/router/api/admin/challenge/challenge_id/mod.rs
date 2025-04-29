@@ -3,7 +3,6 @@ mod attachment;
 use axum::{Router, http::StatusCode};
 use cds_checker::traits::CheckerError;
 use cds_db::{
-    entity::user::Group,
     get_db,
     sea_orm::{
         ActiveModelTrait,
@@ -16,18 +15,30 @@ use serde_json::json;
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Path, VJson},
+    extract::{Path, VJson},
     model::challenge::Challenge,
-    traits::{Ext, WebError, WebResponse},
+    traits::{WebError, WebResponse},
 };
 
 pub fn router() -> Router {
     Router::new()
+        .route("/", axum::routing::get(get_challenge))
         .route("/", axum::routing::put(update_challenge))
         .route("/", axum::routing::delete(delete_challenge))
         .route("/env", axum::routing::put(update_challenge_env))
         .route("/checker", axum::routing::put(update_challenge_checker))
         .nest("/attachment", attachment::router())
+}
+
+pub async fn get_challenge(
+    Path(challenge_id): Path<uuid::Uuid>,
+) -> Result<WebResponse<Challenge>, WebError> {
+    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
+
+    Ok(WebResponse {
+        data: Some(challenge),
+        ..Default::default()
+    })
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -42,15 +53,9 @@ pub struct UpdateChallengeRequest {
 }
 
 pub async fn update_challenge(
-    Extension(ext): Extension<Ext>,
     Path(challenge_id): Path<uuid::Uuid>,
     VJson(body): VJson<UpdateChallengeRequest>,
 ) -> Result<WebResponse<Challenge>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
 
     let challenge = cds_db::entity::challenge::ActiveModel {
@@ -80,14 +85,8 @@ pub async fn update_challenge(
 }
 
 pub async fn delete_challenge(
-    Extension(ext): Extension<Ext>,
     Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
         .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
         .one(get_db())
@@ -114,15 +113,9 @@ pub struct UpdateChallengeEnvRequest {
 }
 
 pub async fn update_challenge_env(
-    Extension(ext): Extension<Ext>,
     Path(challenge_id): Path<uuid::Uuid>,
     VJson(body): VJson<UpdateChallengeEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
 
     let _ = cds_db::entity::challenge::ActiveModel {
@@ -145,15 +138,9 @@ pub struct UpdateChallengeCheckerRequest {
 }
 
 pub async fn update_challenge_checker(
-    Extension(ext): Extension<Ext>,
     Path(challenge_id): Path<uuid::Uuid>,
     VJson(body): VJson<UpdateChallengeCheckerRequest>,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
 
     let challenge = cds_db::entity::challenge::ActiveModel {

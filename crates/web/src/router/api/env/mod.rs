@@ -102,7 +102,10 @@ pub async fn create_env(
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = crate::util::loader::prepare_challenge(body.challenge_id).await?;
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
+        .one(get_db())
+        .await?
+        .ok_or(WebError::NotFound(json!("challenge_not_found")))?;
 
     let _ = challenge
         .clone()

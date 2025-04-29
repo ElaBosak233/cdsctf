@@ -1,18 +1,16 @@
 use axum::{
     Router,
+    body::Body,
     extract::{DefaultBodyLimit, Multipart},
-    http::StatusCode,
-};
-use cds_db::{
-    entity::user::Group,
-    get_db,
-    sea_orm::{ColumnTrait, EntityTrait, QueryFilter},
+    http::{Response, StatusCode, header},
+    response::IntoResponse,
 };
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Path},
-    traits::{Ext, WebError, WebResponse},
+    extract::Path,
+    model::Metadata,
+    traits::{WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -26,20 +24,10 @@ pub fn router() -> Router {
 }
 
 pub async fn save_challenge_attachment(
-    Extension(ext): Extension<Ext>,
     Path(challenge_id): Path<uuid::Uuid>,
     mut multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
-        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
 
     let path = format!("challenges/{}/attachment", challenge.id);
     let mut filename = String::new();
@@ -69,19 +57,9 @@ pub async fn save_challenge_attachment(
 }
 
 pub async fn delete_challenge_attachment(
-    Extension(ext): Extension<Ext>,
     Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
-        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
 
     let path = format!("challenges/{}/attachment", challenge.id);
 

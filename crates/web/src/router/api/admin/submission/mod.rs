@@ -15,12 +15,12 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get_submission))
+        .route("/", axum::routing::get(get_submissions))
         .route("/{submission_id}", axum::routing::delete(delete_submission))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetSubmissionRequest {
+pub struct GetSubmissionsRequest {
     pub id: Option<i64>,
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
@@ -31,9 +31,9 @@ pub struct GetSubmissionRequest {
     pub size: Option<u64>,
 }
 
-pub async fn get_submission(
+pub async fn get_submissions(
     Extension(ext): Extension<Ext>,
-    Query(params): Query<GetSubmissionRequest>,
+    Query(params): Query<GetSubmissionsRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

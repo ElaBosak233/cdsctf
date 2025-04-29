@@ -22,7 +22,7 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get_game))
+        .route("/", axum::routing::get(get_games))
         .route("/", axum::routing::post(create_game))
         .nest("/{game_id}", game_id::router())
 }
@@ -37,7 +37,7 @@ pub struct GetGameRequest {
     pub sorts: Option<String>,
 }
 
-pub async fn get_game(
+pub async fn get_games(
     Query(params): Query<GetGameRequest>,
 ) -> Result<WebResponse<Vec<Game>>, WebError> {
     let mut sql = cds_db::entity::game::Entity::find();

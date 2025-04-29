@@ -27,13 +27,13 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get_user))
+        .route("/", axum::routing::get(get_users))
         .route("/", axum::routing::post(create_user))
         .nest("/{user_id}", user_id::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetUserRequest {
+pub struct GetUsersRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub email: Option<String>,
@@ -43,8 +43,8 @@ pub struct GetUserRequest {
     pub sorts: Option<String>,
 }
 
-pub async fn get_user(
-    Query(params): Query<GetUserRequest>,
+pub async fn get_users(
+    Query(params): Query<GetUsersRequest>,
 ) -> Result<WebResponse<Vec<User>>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);

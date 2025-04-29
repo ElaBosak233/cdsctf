@@ -9,7 +9,7 @@ use cds_db::{
     sea_orm::{
         ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
-        EntityTrait, NotSet,
+        NotSet,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -26,9 +26,19 @@ mod avatar;
 
 pub fn router() -> Router {
     Router::new()
+        .route("/", axum::routing::get(get_user))
         .route("/", axum::routing::put(update_user))
         .route("/", axum::routing::delete(delete_user))
         .nest("/avatar", avatar::router())
+}
+
+pub async fn get_user(Path(user_id): Path<i64>) -> Result<WebResponse<User>, WebError> {
+    let user = crate::util::loader::prepare_user(user_id).await?;
+
+    Ok(WebResponse {
+        data: Some(user),
+        ..Default::default()
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]

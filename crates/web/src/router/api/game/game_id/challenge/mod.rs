@@ -1,10 +1,8 @@
-mod challenge_id;
-
 use axum::Router;
 use cds_db::{
     entity::team::State,
     get_db,
-    sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect},
+    sea_orm::{ColumnTrait, PaginatorTrait, QueryFilter},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;

@@ -1,17 +1,17 @@
 mod avatar;
 
-use axum::{http::StatusCode, Router};
+use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::team::State,
     get_db,
-    sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait},
+    sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use cds_db::sea_orm::{ColumnTrait, QueryFilter};
-use crate::model::user::UserMini;
+
 use crate::{
     extract::{Extension, Json, Path},
+    model::user::UserMini,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -22,7 +22,9 @@ pub fn router() -> Router {
         .route("/join", axum::routing::post(join_team))
 }
 
-pub async fn get_team_members(Path((game_id, team_id)): Path<(i64, i64)>) -> Result<WebResponse<Vec<UserMini>>, WebError> {
+pub async fn get_team_members(
+    Path((game_id, team_id)): Path<(i64, i64)>,
+) -> Result<WebResponse<Vec<UserMini>>, WebError> {
     let users = cds_db::entity::user::Entity::find()
         .inner_join(cds_db::entity::team::Entity)
         .filter(cds_db::entity::team::Column::Id.eq(team_id))
@@ -30,7 +32,7 @@ pub async fn get_team_members(Path((game_id, team_id)): Path<(i64, i64)>) -> Res
         .into_model::<UserMini>()
         .all(get_db())
         .await?;
-    
+
     Ok(WebResponse {
         code: StatusCode::OK,
         data: Some(users),

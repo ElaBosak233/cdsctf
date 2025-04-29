@@ -22,7 +22,7 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get_challenge))
+        .route("/", axum::routing::get(get_challenges))
         .route("/", axum::routing::post(create_challenge))
         .nest("/{challenge_id}", challenge_id::router())
 }
@@ -40,16 +40,9 @@ pub struct GetChallengeRequest {
     pub sorts: Option<String>,
 }
 
-pub async fn get_challenge(
-    Extension(ext): Extension<Ext>,
+pub async fn get_challenges(
     Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<Challenge>>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     let mut sql = cds_db::entity::challenge::Entity::find();
 
     if let Some(id) = params.id {
@@ -139,14 +132,8 @@ pub struct CreateChallengeRequest {
 }
 
 pub async fn create_challenge(
-    Extension(ext): Extension<Ext>,
     Json(body): Json<CreateChallengeRequest>,
 ) -> Result<WebResponse<Challenge>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     let challenge = cds_db::entity::challenge::ActiveModel {
         title: Set(body.title),
         description: Set(body.description),

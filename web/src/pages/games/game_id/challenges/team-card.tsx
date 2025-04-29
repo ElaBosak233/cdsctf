@@ -22,8 +22,9 @@ function TeamCard() {
                 ])}
             >
                 <Avatar
-                    className={cn(["w-12", "h-12"])}
+                    className={cn(["w-16", "h-16"])}
                     src={`/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar`}
+                    fallback={selfTeam?.name?.charAt(0)}
                 />
                 <div
                     className={cn([

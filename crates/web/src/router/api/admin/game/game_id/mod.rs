@@ -24,6 +24,7 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
+        .route("/", axum::routing::get(get_game))
         .route("/", axum::routing::put(update_game))
         .route("/", axum::routing::delete(delete_game))
         .nest("/challenges", challenge::router())
@@ -32,6 +33,15 @@ pub fn router() -> Router {
         .nest("/icon", icon::router())
         .nest("/poster", poster::router())
         .route("/calculate", axum::routing::post(calculate_game))
+}
+
+pub async fn get_game(Path(game_id): Path<i64>) -> Result<WebResponse<Game>, WebError> {
+    let game = crate::util::loader::prepare_game(game_id).await?;
+
+    Ok(WebResponse {
+        data: Some(game),
+        ..Default::default()
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]

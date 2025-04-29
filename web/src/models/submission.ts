@@ -1,5 +1,3 @@
-import { Game } from "./game";
-
 export interface Submission {
     id?: number;
     content?: string;
@@ -13,7 +11,6 @@ export interface Submission {
     team_name?: string;
     game_id?: number;
     game_title?: string;
-    game?: Game;
     pts?: number;
     rank?: number;
     created_at?: number;

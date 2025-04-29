@@ -7,7 +7,7 @@ import { MarkdownRender } from "@/components/utils/markdown-render";
 import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { ArrowRightIcon, PlayIcon, SwordsIcon } from "lucide-react";
+import { ArrowRightIcon, FlagIcon, PlayIcon, SwordsIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { TeamGatheringDialog } from "./team-gathering-dialog";
@@ -99,6 +99,12 @@ export default function Index() {
                                 "shadow-md",
                                 "select-none",
                             ])}
+                            fallback={
+                                <FlagIcon
+                                    className={cn(["size-20", "rotate-15"])}
+                                    strokeWidth={1}
+                                />
+                            }
                         />
                         <h2 className={cn(["text-2xl"])}>
                             {currentGame?.title}

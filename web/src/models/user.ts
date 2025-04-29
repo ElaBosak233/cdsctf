@@ -23,4 +23,5 @@ export enum Group {
 export interface UserMini {
     id?: number;
     name?: string;
+    username?: string;
 }
