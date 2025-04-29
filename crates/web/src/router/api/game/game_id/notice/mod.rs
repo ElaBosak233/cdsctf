@@ -2,13 +2,13 @@ use axum::{Router, http::StatusCode};
 use cds_db::{
     get_db,
     sea_orm::{ColumnTrait, EntityTrait, QueryFilter},
-    transfer::GameNotice,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
+    model::game_notice::GameNotice,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -29,11 +29,9 @@ pub async fn get_game_notice(
 
     let game_notices = cds_db::entity::game_notice::Entity::find()
         .filter(cds_db::entity::game_notice::Column::GameId.eq(game_id))
+        .into_model::<GameNotice>()
         .all(get_db())
-        .await?
-        .into_iter()
-        .map(cds_db::transfer::GameNotice::from)
-        .collect::<Vec<GameNotice>>();
+        .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

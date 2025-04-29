@@ -8,13 +8,13 @@ use cds_db::{
         ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, Condition, EntityTrait, Order,
         PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
     },
-    transfer::Submission,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use cds_db::traits::EagerLoading;
+
 use crate::{
     extract::{Extension, Json, Query},
+    model::submission::Submission,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -43,7 +43,10 @@ pub async fn get_submission(
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let mut sql = cds_db::entity::submission::Entity::find();
+    let page = params.page.unwrap_or(1);
+    let size = params.size.unwrap_or(10).min(1000);
+
+    let mut sql = cds_db::entity::submission::Entity::base_find();
 
     if let Some(id) = params.id {
         sql = sql.filter(cds_db::entity::submission::Column::Id.eq(id));
@@ -69,13 +72,6 @@ pub async fn get_submission(
         sql = sql.filter(cds_db::entity::submission::Column::Status.eq(status));
     }
 
-    let total = sql.clone().count(get_db()).await?;
-
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
-
     if let Some(sorts) = params.sorts {
         let sorts = sorts.split(",").collect::<Vec<&str>>();
         for sort in sorts {
@@ -93,27 +89,12 @@ pub async fn get_submission(
         }
     }
 
-    let mut submissions = sql.all(get_db()).await?.eager_load(get_db()).await?;
+    let total = sql.clone().count(get_db()).await?;
 
-    for submission in submissions.iter_mut() {
-        *submission = submission.desensitize();
+    let offset = (page - 1) * size;
+    sql = sql.offset(offset).limit(size);
 
-        if params.team_id.is_some() {
-            submission.team = None;
-        }
-
-        if params.game_id.is_some() {
-            submission.game = None;
-        }
-
-        if params.user_id.is_some() {
-            submission.user = None;
-        }
-
-        if params.challenge_id.is_some() {
-            submission.challenge = None;
-        }
-    }
+    let submissions = sql.into_model::<Submission>().all(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -193,13 +174,18 @@ pub async fn create_submission(
     }
     .insert(get_db())
     .await?;
-    let submission = cds_db::transfer::Submission::from(submission);
 
     cds_queue::publish("checker", submission.id).await?;
 
+    let submission = cds_db::entity::submission::Entity::base_find()
+        .filter(cds_db::entity::submission::Column::Id.eq(submission.id))
+        .into_model::<Submission>()
+        .one(get_db())
+        .await?;
+
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(submission),
+        data: submission,
         ..Default::default()
     })
 }

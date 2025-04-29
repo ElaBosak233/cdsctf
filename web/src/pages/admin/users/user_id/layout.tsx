@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation, useParams } from "react-router";
 import { Context } from "./context";
 import { useEffect, useMemo, useState } from "react";
 import { User } from "@/models/user";
-import { getUsers } from "@/api/users";
+import { getUsers } from "@/api/admin/users";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/utils";
 import { Button } from "@/components/ui/button";

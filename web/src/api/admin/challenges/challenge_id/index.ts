@@ -1,4 +1,4 @@
-import { Challenge, Env } from "@/models/challenge";
+import { Challenge } from "@/models/challenge";
 import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
 

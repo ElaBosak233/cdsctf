@@ -102,7 +102,7 @@ pub async fn send_forget_email(
     .await?;
 
     cds_queue::publish("email", crate::worker::email_sender::Payload {
-        name: user.nickname.to_owned(),
+        name: user.name.to_owned(),
         email: user.email.to_owned(),
         subject: cds_config::get_variable()
             .to_owned()

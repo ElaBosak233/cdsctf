@@ -38,7 +38,7 @@ function AuthSection() {
                         <Avatar
                             className={cn("h-8", "w-8")}
                             src={`/api/users/${authStore?.user?.id}/avatar`}
-                            fallback={authStore?.user?.username?.charAt(0)}
+                            fallback={authStore?.user?.name?.charAt(0)}
                         />
                     </Button>
                 </DropdownMenuTrigger>
@@ -49,11 +49,11 @@ function AuthSection() {
                         <Avatar
                             className={cn("h-8", "w-8")}
                             src={`/api/users/${authStore?.user?.id}/avatar`}
-                            fallback={authStore?.user?.username?.charAt(0)}
+                            fallback={authStore?.user?.name?.charAt(0)}
                         />
                         <div className={cn(["flex", "flex-col"])}>
                             <p className={cn(["text-sm"])}>
-                                {authStore?.user?.nickname}
+                                {authStore?.user?.name}
                             </p>
                             <p
                                 className={cn([

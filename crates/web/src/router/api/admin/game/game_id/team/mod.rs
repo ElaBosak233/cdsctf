@@ -10,13 +10,13 @@ use cds_db::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, Order,
         PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
     },
-    transfer::Team,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use cds_db::traits::EagerLoading;
+
 use crate::{
     extract::{Extension, Json, Path, Query},
+    model::team::Team,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -109,7 +109,7 @@ pub async fn get_team(
         sql = sql.offset(offset).limit(size);
     }
 
-    let teams = sql.all(get_db()).await?.eager_load(get_db()).await?;
+    let teams = sql.into_model::<Team>().all(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -141,11 +141,7 @@ pub async fn create_team(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let game = cds_db::entity::game::Entity::find_by_id(game_id)
-        .one(get_db())
-        .await?
-        .map(cds_db::transfer::Game::from)
-        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
+    let game = crate::util::loader::prepare_game(game_id).await?;
 
     let team = cds_db::entity::team::ActiveModel {
         name: Set(body.name),
@@ -157,7 +153,8 @@ pub async fn create_team(
     }
     .insert(get_db())
     .await?;
-    let team = cds_db::transfer::Team::from(team);
+
+    let team = crate::util::loader::prepare_team(game_id, team.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

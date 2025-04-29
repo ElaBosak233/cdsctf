@@ -66,9 +66,9 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
                     <Avatar
                         className={cn(["size-7"])}
                         src={`/api/users/${row.original.user_id}/avatar`}
-                        fallback={row.original.user?.nickname?.charAt(0)}
+                        fallback={row.original.user_name?.charAt(0)}
                     />
-                    <span>{row.original.user?.nickname}</span>
+                    <span>{row.original.user_name}</span>
                 </div>
             ),
         },
@@ -79,7 +79,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
             cell: ({ row }) => {
                 return (
                     <div className={cn(["flex", "items-center", "gap-3"])}>
-                        {row.original.challenge?.title}
+                        {row.original.challenge_title}
                     </div>
                 );
             },

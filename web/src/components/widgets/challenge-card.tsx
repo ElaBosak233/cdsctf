@@ -1,4 +1,4 @@
-import { Challenge } from "@/models/challenge";
+import { ChallengeMini } from "@/models/challenge";
 import { cn } from "@/utils";
 import * as React from "react";
 import { Flag } from "lucide-react";
@@ -12,20 +12,20 @@ import { useLocation } from "react-router";
 import { getOrdinal } from "@/utils/math";
 
 interface ChallengeCardProps extends React.ComponentProps<"div"> {
-    challenge?: Challenge;
+    digest?: ChallengeMini;
     status?: ChallengeStatus;
     debug?: boolean;
 }
 
 function ChallengeCard(props: ChallengeCardProps) {
-    const { challenge, status, debug = false, className, ...rest } = props;
+    const { digest, status, debug = false, className, ...rest } = props;
     const { getCategory } = useCategoryStore();
     const location = useLocation();
     const pathname = location.pathname;
 
     const category = React.useMemo(() => {
-        return getCategory(challenge?.category);
-    }, [challenge?.category]);
+        return getCategory(digest?.category);
+    }, [digest?.category]);
     const CategoryIcon = category?.icon!;
 
     return (
@@ -102,7 +102,7 @@ function ChallengeCard(props: ChallengeCardProps) {
                     "max-w-3/4",
                 ])}
             >
-                {challenge?.title}
+                {digest?.title}
             </h3>
             <Separator className={"my-3"} />
             <div
@@ -144,8 +144,8 @@ function ChallengeCard(props: ChallengeCardProps) {
                                     <div className={cn(["flex", "flex-col"])}>
                                         <span className={cn(["text-sm"])}>
                                             {pathname.startsWith("/games")
-                                                ? blood?.team?.name
-                                                : blood?.user?.nickname}
+                                                ? blood?.team_name
+                                                : blood?.user_name}
                                         </span>
                                         <span
                                             className={cn(["text-secondary"])}

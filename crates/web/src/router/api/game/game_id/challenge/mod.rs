@@ -1,3 +1,5 @@
+mod challenge_id;
+
 use axum::Router;
 use cds_db::{
     entity::team::State,
@@ -7,9 +9,10 @@ use cds_db::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
-use cds_db::traits::EagerLoading;
+
 use crate::{
     extract::{Extension, Path, Query},
+    model::game_challenge::GameChallengeMini,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -22,40 +25,27 @@ pub struct GetGameChallengeRequest {
     pub game_id: Option<i64>,
     pub challenge_id: Option<Uuid>,
     pub category: Option<i32>,
-
-    pub page: Option<u64>,
-    pub size: Option<u64>,
 }
 
 /// Get challenges by given params.
-///
-/// # Prerequisite
-/// - If the operator is admin, there is no prerequisite.
 /// - Operating time is between related game's `started_at` and `ended_at`.
 pub async fn get_game_challenge(
     Extension(ext): Extension<Ext>,
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
-) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
+) -> Result<WebResponse<Vec<GameChallengeMini>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let game = cds_db::entity::game::Entity::find_by_id(game_id)
-        .one(get_db())
-        .await?
-        .map(cds_db::transfer::Game::from)
-        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
+    let game = crate::util::loader::prepare_game(game_id).await?;
 
     let now = chrono::Utc::now().timestamp();
-    let in_game = cds_db::util::is_user_in_game(&operator, &game, Some(State::Passed)).await?;
+    let in_game = cds_db::util::is_user_in_game(operator.id, game.id, Some(State::Passed)).await?;
 
     if !in_game || !(game.started_at..=game.ended_at).contains(&now) {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    // Using inner join to access fields in related tables.
-    let mut sql = cds_db::entity::game_challenge::Entity::find()
-        .inner_join(cds_db::entity::challenge::Entity)
-        .inner_join(cds_db::entity::game::Entity);
+    let mut sql = cds_db::entity::game_challenge::Entity::base_find();
 
     sql = sql.filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id));
 
@@ -71,17 +61,7 @@ pub async fn get_game_challenge(
 
     let total = sql.clone().count(get_db()).await?;
 
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
-
-    let mut game_challenges =
-        sql.all(get_db()).await?.eager_load(get_db()).await?;
-
-    for game_challenge in game_challenges.iter_mut() {
-        *game_challenge = game_challenge.desensitize();
-    }
+    let game_challenges = sql.into_model::<GameChallengeMini>().all(get_db()).await?;
 
     Ok(WebResponse {
         data: Some(game_challenges),

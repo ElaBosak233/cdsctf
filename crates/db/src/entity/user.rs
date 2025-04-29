@@ -10,9 +10,9 @@ use super::{submission, team, team_user};
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
+    pub name: String,
     #[sea_orm(unique)]
     pub username: String,
-    pub nickname: String,
     #[sea_orm(unique)]
     pub email: String,
     pub is_verified: bool,

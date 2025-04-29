@@ -10,7 +10,6 @@ import { TextField } from "@/components/ui/text-field";
 import { toast } from "sonner";
 import { useSharedStore } from "@/storages/shared";
 import {
-    CalendarIcon,
     ClockAlertIcon,
     ClockFadingIcon,
     ClockIcon,
@@ -18,7 +17,6 @@ import {
     LockOpenIcon,
     SaveIcon,
     TrashIcon,
-    Type,
     TypeIcon,
     UsersRoundIcon,
 } from "lucide-react";

@@ -143,10 +143,10 @@ export default function Layout() {
 
                     <Dialog>
                         <DialogTrigger>
-                            <ChallengeCard challenge={challenge} debug />
+                            <ChallengeCard digest={challenge} debug />
                         </DialogTrigger>
                         <DialogContent>
-                            <ChallengeDialog challenge={challenge} debug />
+                            <ChallengeDialog digest={challenge} debug />
                         </DialogContent>
                     </Dialog>
                 </div>

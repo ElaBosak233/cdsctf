@@ -40,33 +40,15 @@ pub async fn create_team_user(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let user = cds_db::transfer::User::from(
-        cds_db::entity::user::Entity::find_by_id(body.user_id)
-            .filter(cds_db::entity::user::Column::DeletedAt.is_null())
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("user_not_found")))?,
-    );
-    let game = cds_db::transfer::Game::from(
-        cds_db::entity::game::Entity::find_by_id(game_id)
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("game_not_found")))?,
-    );
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find()
-            .filter(cds_db::entity::team::Column::Id.eq(team_id))
-            .filter(cds_db::entity::team::Column::GameId.eq(game_id))
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
-    );
+    let user = crate::util::loader::prepare_user(operator.id).await?;
+    let game = crate::util::loader::prepare_game(game_id).await?;
+    let team = crate::util::loader::prepare_team(game_id, team_id).await?;
 
     if team.state != State::Preparing {
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    if cds_db::util::is_user_in_game(&user, &game, None).await? {
+    if cds_db::util::is_user_in_game(user.id, game.id, None).await? {
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
@@ -92,14 +74,7 @@ pub async fn delete_team_user(
     Path((game_id, team_id, user_id)): Path<(i64, i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = cds_db::transfer::Team::from(
-        cds_db::entity::team::Entity::find()
-            .filter(cds_db::entity::team::Column::Id.eq(team_id))
-            .filter(cds_db::entity::team::Column::GameId.eq(game_id))
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")))?,
-    );
+    let team = crate::util::loader::prepare_team(game_id, team_id).await?;
 
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));

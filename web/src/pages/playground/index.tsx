@@ -1,7 +1,7 @@
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
-import { Challenge } from "@/models/challenge";
+import { ChallengeMini } from "@/models/challenge";
 import {
     SearchIcon,
     LibraryIcon,
@@ -34,7 +34,7 @@ export default function Index() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [total, setTotal] = useState<number>(0);
-    const [challenges, setChallenges] = useState<Array<Challenge>>();
+    const [challenges, setChallenges] = useState<Array<ChallengeMini>>();
     const [challengeStatus, setChallengeStatus] =
         useState<Record<string, ChallengeStatus>>();
 
@@ -219,14 +219,14 @@ export default function Index() {
                             <Dialog key={index}>
                                 <DialogTrigger>
                                     <ChallengeCard
-                                        challenge={challenge}
+                                        digest={challenge}
                                         status={
                                             challengeStatus?.[challenge?.id!]
                                         }
                                     />
                                 </DialogTrigger>
                                 <DialogContent>
-                                    <ChallengeDialog challenge={challenge} />
+                                    <ChallengeDialog digest={challenge} />
                                 </DialogContent>
                             </Dialog>
                         ))}

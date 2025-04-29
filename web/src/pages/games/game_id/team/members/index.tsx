@@ -10,7 +10,7 @@ import { KeyIcon, RefreshCcwIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function Index() {
-    const { currentGame, selfTeam } = useGameStore();
+    const { currentGame, selfTeam, members } = useGameStore();
     const [token, setToken] = useState<string>();
     const disabled = Date.now() / 1000 > currentGame?.ended_at!;
 
@@ -74,18 +74,23 @@ export default function Index() {
                 </Button>
             </div>
             <div className={cn(["grid", "grid-cols-2", "gap-5"])}>
-                {selfTeam?.users?.map((user) => (
+                {members?.map((user) => (
                     <Card
                         key={user?.id}
                         className={cn(["p-3", "flex", "gap-3", "items-center"])}
                     >
                         <Avatar
                             src={`/api/users/${user?.id}/avatar`}
-                            fallback={user?.username?.charAt(0)}
+                            fallback={user?.name?.charAt(0)}
                         />
                         <div>
-                            <p className={cn(["text-md"])}>{user?.nickname}</p>
-                            <p className={cn(["text-sm"])}>{user?.username}</p>
+                            <p className={cn(["text-md"])}>{user?.name}</p>
+                            <p
+                                className={cn([
+                                    "text-sm",
+                                    "text-secondary-foreground",
+                                ])}
+                            >{`# ${user?.id}`}</p>
                         </div>
                     </Card>
                 ))}

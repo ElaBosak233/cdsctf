@@ -9,25 +9,43 @@ use cds_db::{
     entity::submission::Status,
     get_db,
     sea_orm::{
-        ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
+        ColumnTrait, Condition, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder,
+        QuerySelect,
     },
-    transfer::{Submission, Team},
 };
 use serde::{Deserialize, Serialize};
-use cds_db::traits::EagerLoading;
+use serde_json::json;
+
 use crate::{
-    extract::{Path, Query},
-    traits::{WebError, WebResponse},
+    extract::{Extension, Path, Query},
+    model::{game::Game, submission::Submission, team::Team},
+    traits::{Ext, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
     Router::new()
+        .route("/", axum::routing::get(get_game))
         .nest("/challenges", challenge::router())
         .nest("/teams", team::router())
         .nest("/notices", notice::router())
         .nest("/icon", icon::router())
         .nest("/poster", poster::router())
         .route("/scoreboard", axum::routing::get(get_game_scoreboard))
+}
+
+pub async fn get_game(
+    Extension(ext): Extension<Ext>,
+    Path(game_id): Path<i64>,
+) -> Result<WebResponse<Game>, WebError> {
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    let game = crate::util::loader::prepare_game(game_id).await?;
+
+    Ok(WebResponse {
+        code: StatusCode::OK,
+        data: Some(game),
+        ..Default::default()
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -59,16 +77,20 @@ pub async fn get_game_scoreboard(
         sql = sql.offset(offset).limit(size);
     }
 
-    let teams = sql.all(get_db()).await?.eager_load(get_db()).await?;
+    let teams = sql.into_model::<Team>().all(get_db()).await?;
 
     let team_ids = teams.iter().map(|t| t.id).collect::<Vec<i64>>();
 
-    let submissions = cds_db::transfer::submission::get_by_game_id_and_team_ids(
-        game.id,
-        team_ids,
-        Some(Status::Correct),
-    )
-    .await?;
+    let mut submissions = cds_db::entity::submission::Entity::base_find()
+        .filter(
+            Condition::all()
+                .add(cds_db::entity::submission::Column::GameId.eq(game_id))
+                .add(cds_db::entity::submission::Column::TeamId.is_in(team_ids))
+                .add(cds_db::entity::submission::Column::Status.eq(Status::Correct)),
+        )
+        .into_model::<Submission>()
+        .all(get_db())
+        .await?;
 
     let mut result: Vec<ScoreRecord> = Vec::new();
 
@@ -78,11 +100,6 @@ pub async fn get_game_scoreboard(
             .filter(|s| s.team_id.unwrap() == team.id)
             .cloned()
             .collect::<Vec<Submission>>();
-        for submission in submissions.iter_mut() {
-            *submission = submission.desensitize();
-            submission.team = None;
-            submission.game = None;
-        }
 
         result.push(ScoreRecord { team, submissions });
     }

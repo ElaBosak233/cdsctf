@@ -131,7 +131,7 @@ function EditDialog(props: EditDialogProps) {
         }).then((res) => {
             if (res.code === StatusCodes.OK) {
                 toast.success(
-                    `赛题 ${gameChallenge?.challenge?.title} 配置更新成功`
+                    `赛题 ${gameChallenge?.challenge_title} 配置更新成功`
                 );
                 sharedStore?.setRefresh();
                 onClose();

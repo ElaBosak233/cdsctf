@@ -5,13 +5,14 @@ use cds_db::{
     sea_orm::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, QueryFilter,
     },
-    transfer::GameNotice,
 };
+use cds_media::get;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Path},
+    model::game_notice::GameNotice,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -48,11 +49,14 @@ pub async fn create_game_notice(
     .insert(get_db())
     .await?;
 
-    let game_notice = cds_db::transfer::GameNotice::from(game_notice);
+    let game_notice = cds_db::entity::game_notice::Entity::find_by_id(game_notice.id)
+        .into_model::<GameNotice>()
+        .one(get_db())
+        .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(game_notice),
+        data: game_notice,
         ..Default::default()
     })
 }

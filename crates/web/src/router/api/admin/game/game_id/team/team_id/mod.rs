@@ -11,13 +11,13 @@ use cds_db::{
         ActiveValue::{Set, Unchanged},
         ColumnTrait, EntityTrait, NotSet, QueryFilter,
     },
-    transfer::Team,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Path},
+    model::team::Team,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -45,7 +45,7 @@ pub struct UpdateTeamRequest {
 /// - Operator is admin or one of current team.
 pub async fn update_team(
     Extension(ext): Extension<Ext>,
-    Path((_game_id, team_id)): Path<(i64, i64)>,
+    Path((game_id, team_id)): Path<(i64, i64)>,
     Json(body): Json<UpdateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -69,7 +69,8 @@ pub async fn update_team(
     }
     .update(get_db())
     .await?;
-    let team = cds_db::transfer::Team::from(team);
+
+    let team = crate::util::loader::prepare_team(game_id, team.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

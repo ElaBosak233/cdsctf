@@ -105,9 +105,9 @@ function SubmitSection() {
                             sharedStore?.setRefresh();
                             break;
                         case Status.Duplicate:
-                            toast.info("重复", {
+                            toast.success("正确 (Again)", {
                                 id: `submission-${res?.data?.[0]?.id}`,
-                                description: "提交重复。",
+                                description: "你已经做出过这道题了。",
                             });
                             break;
                     }

@@ -11,7 +11,6 @@ use cds_db::{
         ActiveValue::{Set, Unchanged},
         EntityTrait, NotSet,
     },
-    transfer::User,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -19,6 +18,7 @@ use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
+    model::user::User,
     traits::{WebError, WebResponse},
 };
 
@@ -33,7 +33,7 @@ pub fn router() -> Router {
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateUserRequest {
-    pub nickname: Option<String>,
+    pub name: Option<String>,
     pub email: Option<String>,
     pub is_verified: Option<bool>,
     pub password: Option<String>,
@@ -68,7 +68,7 @@ pub async fn update_user(
 
     let user = cds_db::entity::user::ActiveModel {
         id: Unchanged(user.id),
-        nickname: body.nickname.map_or(NotSet, Set),
+        name: body.name.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, Set),
         is_verified: body.is_verified.map_or(NotSet, Set),
         hashed_password: body.password.map_or(NotSet, Set),
@@ -78,7 +78,8 @@ pub async fn update_user(
     }
     .update(get_db())
     .await?;
-    let user = cds_db::transfer::User::from(user);
+
+    let user = crate::util::loader::prepare_user(user.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

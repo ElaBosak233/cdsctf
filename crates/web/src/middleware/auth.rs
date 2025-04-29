@@ -54,7 +54,6 @@ pub async fn extract(mut req: Request<Body>, next: Next) -> Result<Response, Web
             .filter(cds_db::entity::user::Column::DeletedAt.is_null())
             .one(get_db())
             .await?
-            .map(cds_db::transfer::User::from)
         {
             if user.group == Group::Banned {
                 return Err(WebError::Forbidden(json!("forbidden")));

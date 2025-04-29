@@ -99,20 +99,19 @@ const columns: ColumnDef<GameChallenge>[] = [
         },
     },
     {
-        accessorKey: "challenge.title",
-        id: "challenge.title",
+        accessorKey: "challenge_title",
+        id: "challenge_title",
         header: "标题",
         cell: ({ row }) => {
-            const title = row.getValue("challenge.title") as string;
-            return title || "-";
+            return row.original.challenge_title || "-";
         },
     },
     {
-        accessorKey: "challenge.category",
-        id: "challenge.category",
+        accessorKey: "challenge_category",
+        id: "challenge_category",
         header: "分类",
         cell: ({ row }) => {
-            const categoryId = row.getValue("challenge.category") as number;
+            const categoryId = row.original.challenge_category;
             const category = useCategoryStore
                 .getState()
                 .getCategory(categoryId);
@@ -143,9 +142,9 @@ const columns: ColumnDef<GameChallenge>[] = [
         id: "actions",
         header: () => <div className={cn(["justify-self-center"])}>操作</div>,
         cell: ({ row }) => {
-            const challenge_id = row.getValue<string>("challenge_id");
-            const game_id = row.getValue<number>("game_id");
-            const title = row.getValue<string>("challenge.title");
+            const challenge_id = row.original.challenge_id;
+            const game_id = row.original.game_id;
+            const title = row.original.challenge_title;
 
             const sharedStore = useSharedStore();
 

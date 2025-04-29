@@ -17,162 +17,29 @@ use cds_db::{
     entity::user::Group,
     get_db,
     sea_orm::{
-        ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, Order,
-        PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, prelude::Expr, sea_query::Func,
+        ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, PaginatorTrait,
+        QueryFilter, QueryOrder, QuerySelect, prelude::Expr, sea_query::Func,
     },
-    transfer::User,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Json, Query, VJson},
+    extract::{Extension, Json},
+    model::user::User,
     traits::{Ext, WebError, WebResponse},
     util::jwt,
 };
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", axum::routing::get(get_user))
-        .route("/", axum::routing::post(create_user))
         .route("/login", axum::routing::post(user_login))
         .route("/register", axum::routing::post(user_register))
         .route("/logout", axum::routing::post(user_logout))
         .nest("/forget", forget::router())
         .nest("/{user_id}", user_id::router())
         .nest("/profile", profile::router())
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetUserRequest {
-    pub id: Option<i64>,
-    pub name: Option<String>,
-    pub email: Option<String>,
-    pub group: Option<Group>,
-    pub page: Option<u64>,
-    pub size: Option<u64>,
-    pub sorts: Option<String>,
-}
-
-pub async fn get_user(
-    Query(params): Query<GetUserRequest>,
-) -> Result<WebResponse<Vec<User>>, WebError> {
-    let mut sql = cds_db::entity::user::Entity::find();
-
-    if let Some(id) = params.id {
-        sql = sql.filter(cds_db::entity::user::Column::Id.eq(id));
-    }
-
-    if let Some(name) = params.name {
-        let pattern = format!("%{}%", name);
-        let condition = Condition::any()
-            .add(cds_db::entity::user::Column::Username.like(&pattern))
-            .add(cds_db::entity::user::Column::Nickname.like(&pattern));
-        sql = sql.filter(condition);
-    }
-
-    if let Some(group) = params.group {
-        sql = sql.filter(cds_db::entity::user::Column::Group.eq(group));
-    }
-
-    if let Some(email) = params.email {
-        sql = sql.filter(cds_db::entity::user::Column::Email.eq(email));
-    }
-
-    sql = sql.filter(cds_db::entity::user::Column::DeletedAt.is_null());
-
-    let total = sql.clone().count(get_db()).await?;
-
-    if let Some(sorts) = params.sorts {
-        let sorts = sorts.split(",").collect::<Vec<&str>>();
-        for sort in sorts {
-            let col = match cds_db::entity::user::Column::from_str(sort.replace("-", "").as_str()) {
-                Ok(col) => col,
-                Err(_) => continue,
-            };
-            if sort.starts_with("-") {
-                sql = sql.order_by(col, Order::Desc);
-            } else {
-                sql = sql.order_by(col, Order::Asc);
-            }
-        }
-    }
-
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
-
-    let users = sql.all(get_db()).await?;
-    let mut users = users.into_iter().map(User::from).collect::<Vec<User>>();
-
-    for user in users.iter_mut() {
-        user.desensitize();
-    }
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(users),
-        total: Some(total),
-        ..Default::default()
-    })
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
-pub struct CreateUserRequest {
-    #[validate(length(min = 3, max = 20))]
-    pub username: String,
-    pub nickname: String,
-    #[validate(email)]
-    pub email: String,
-    pub password: String,
-    pub group: Group,
-}
-
-pub async fn create_user(
-    Extension(ext): Extension<Ext>,
-    VJson(mut body): VJson<CreateUserRequest>,
-) -> Result<WebResponse<User>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Unauthorized(json!("")));
-    }
-
-    body.email = body.email.to_lowercase();
-    if !cds_db::util::is_user_email_unique(0, &body.email).await? {
-        return Err(WebError::Conflict(json!("email_already_exists")));
-    }
-
-    body.username = body.username.to_lowercase();
-    if !cds_db::util::is_user_username_unique(0, &body.username).await? {
-        return Err(WebError::Conflict(json!("username_already_exists")));
-    }
-
-    let hashed_password = Argon2::default()
-        .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
-        .unwrap()
-        .to_string();
-
-    let user = cds_db::entity::user::ActiveModel {
-        username: Set(body.username),
-        nickname: Set(body.nickname),
-        email: Set(body.email),
-        hashed_password: Set(hashed_password),
-        group: Set(body.group),
-        ..Default::default()
-    }
-    .insert(get_db())
-    .await?;
-    let mut user = cds_db::transfer::User::from(user);
-
-    user.desensitize();
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(user),
-        ..Default::default()
-    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -212,11 +79,10 @@ pub async fn user_login(
                 ),
         )
         .filter(cds_db::entity::user::Column::DeletedAt.is_null())
+        .into_model::<User>()
         .one(get_db())
         .await?
         .ok_or(WebError::BadRequest(json!("invalid")))?;
-
-    let mut user = cds_db::transfer::User::from(user);
 
     let hashed_password = user.hashed_password.clone();
 
@@ -231,7 +97,6 @@ pub async fn user_login(
     }
 
     let token = jwt::generate_jwt_token(user.id).await;
-    user.desensitize();
 
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -254,9 +119,9 @@ pub async fn user_login(
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct UserRegisterRequest {
+    pub name: String,
     #[validate(length(min = 3, max = 20))]
     pub username: String,
-    pub nickname: String,
     #[validate(email)]
     pub email: String,
     pub password: String,
@@ -297,7 +162,7 @@ pub async fn user_register(
 
     let user = cds_db::entity::user::ActiveModel {
         username: Set(body.username),
-        nickname: Set(body.nickname),
+        name: Set(body.name),
         email: Set(body.email),
         is_verified: Set(!cds_config::get_variable().email.is_enabled),
         hashed_password: Set(hashed_password),
@@ -312,7 +177,8 @@ pub async fn user_register(
     }
     .insert(get_db())
     .await?;
-    let user = cds_db::transfer::User::from(user);
+
+    let user = crate::util::loader::prepare_user(user.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

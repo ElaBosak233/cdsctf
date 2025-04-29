@@ -2,8 +2,8 @@ import { Team } from "./team";
 
 export interface User {
     id?: number;
+    name?: string;
     username?: string;
-    nickname?: string;
     email?: string;
     is_verified?: boolean;
     group?: Group;
@@ -18,4 +18,9 @@ export enum Group {
     Banned = 1,
     User = 2,
     Admin = 3,
+}
+
+export interface UserMini {
+    id?: number;
+    name?: string;
 }

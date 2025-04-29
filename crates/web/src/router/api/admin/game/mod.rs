@@ -16,6 +16,7 @@ use validator::Validate;
 
 use crate::{
     extract::{Query, VJson},
+    model::game::Game,
     traits::{WebError, WebResponse},
 };
 
@@ -38,7 +39,7 @@ pub struct GetGameRequest {
 
 pub async fn get_game(
     Query(params): Query<GetGameRequest>,
-) -> Result<WebResponse<Vec<cds_db::transfer::Game>>, WebError> {
+) -> Result<WebResponse<Vec<Game>>, WebError> {
     let mut sql = cds_db::entity::game::Entity::find();
 
     if let Some(id) = params.id {
@@ -75,12 +76,7 @@ pub async fn get_game(
         sql = sql.offset(offset).limit(size);
     }
 
-    let games = sql
-        .all(get_db())
-        .await?
-        .into_iter()
-        .map(cds_db::transfer::Game::from)
-        .collect::<Vec<cds_db::transfer::Game>>();
+    let games = sql.into_model::<Game>().all(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -107,7 +103,7 @@ pub struct CreateGameRequest {
 
 pub async fn create_game(
     VJson(body): VJson<CreateGameRequest>,
-) -> Result<WebResponse<cds_db::transfer::Game>, WebError> {
+) -> Result<WebResponse<Game>, WebError> {
     let game = cds_db::entity::game::ActiveModel {
         title: Set(body.title),
         sketch: Set(body.sketch),
@@ -128,7 +124,8 @@ pub async fn create_game(
     }
     .insert(get_db())
     .await?;
-    let game = cds_db::transfer::Game::from(game);
+
+    let game = crate::util::loader::prepare_game(game.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

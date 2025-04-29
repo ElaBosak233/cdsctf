@@ -1,7 +1,5 @@
 import {
-    UserRound,
-    Lock,
-    Check,
+    CheckIcon,
     TypeIcon,
     MailIcon,
     UserRoundIcon,
@@ -44,7 +42,7 @@ function RegisterForm() {
                 })
                 .regex(/^[a-z]/, "用户名必须以小写字母开头")
                 .regex(/^[a-z0-9]*$/, "用户名只能包含小写字母和数字"),
-            nickname: z.string({
+            name: z.string({
                 message: "请输入昵称",
             }),
             email: z
@@ -138,7 +136,7 @@ function RegisterForm() {
                         />
                         <FormField
                             control={form.control}
-                            name={"nickname"}
+                            name={"name"}
                             render={({ field }) => (
                                 <FormItem className={cn(["flex-1"])}>
                                     <FormLabel>昵称</FormLabel>
@@ -233,7 +231,7 @@ function RegisterForm() {
                     type={"submit"}
                     size={"lg"}
                     className={cn(["w-full"])}
-                    icon={Check}
+                    icon={CheckIcon}
                     loading={loading}
                 >
                     注册

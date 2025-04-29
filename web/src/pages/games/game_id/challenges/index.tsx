@@ -6,47 +6,25 @@ import { getGameChallenges } from "@/api/games/game_id/challenges";
 import { useGameStore } from "@/storages/game";
 import { ChallengeStatus, getChallengeStatus } from "@/api/challenges";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
 import { NoticeCard } from "./notice-card";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { LibraryIcon, ListOrderedIcon } from "lucide-react";
-import { Select } from "@/components/ui/select";
-import { Pagination } from "@/components/ui/pagination";
-import { useCategoryStore } from "@/storages/category";
 
 export default function Index() {
     const { currentGame, selfTeam: selfGameTeam } = useGameStore();
-    const categoryStore = useCategoryStore();
 
     const [gameChallenges, setGameChallenges] =
         useState<Array<GameChallenge>>();
     const [challengeStatus, setChallengeStatus] =
         useState<Record<string, ChallengeStatus>>();
 
-    // const [title, setTitle] = useState<string>("");
-    // const debouncedTitle = useDebounce(title, 500);
-    const [category, setCategory] = useState<string | "all">("all");
-    const [total, setTotal] = useState<number>(0);
-    const [page, setPage] = useState<number>(1);
-    const [size, setSize] = useState<number>(20);
-
-    const [selectedChallenge, setSelectedChallenge] = useState<GameChallenge>();
-    const [challengeDialogOpen, setChallengeDialogOpen] =
-        useState<boolean>(false);
-
     useEffect(() => {
         getGameChallenges({
             game_id: currentGame?.id!,
-            is_enabled: true,
-            category: category === "all" ? undefined : Number(category),
-            page,
-            size,
         }).then((res) => {
-            setTotal(total);
             setGameChallenges(res.data);
         });
-    }, [currentGame?.id, size, page, category]);
+    }, [currentGame?.id]);
 
     useEffect(() => {
         if (gameChallenges) {
@@ -80,107 +58,6 @@ export default function Index() {
                 ])}
             >
                 <div className={cn(["lg:w-3/4", "flex", "flex-col", "gap-8"])}>
-                    {/* <Field className={cn(["w-full"])}>
-                        <FieldIcon>
-                            <LibraryIcon />
-                        </FieldIcon>
-                        <TextField
-                            placeholder={"题目名"}
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                        />
-                    </Field> */}
-                    <div
-                        className={cn([
-                            "flex",
-                            "items-center",
-                            "md:justify-between",
-                            "justify-center",
-                        ])}
-                    >
-                        <Pagination
-                            size={"sm"}
-                            total={Math.ceil(total / size)}
-                            value={page}
-                            onChange={setPage}
-                        />
-                        <div
-                            className={cn([
-                                "hidden",
-                                "md:flex",
-                                "gap-5",
-                                "flex-1",
-                                "justify-end",
-                            ])}
-                        >
-                            <Field size={"sm"} className={cn(["w-48"])}>
-                                <FieldIcon>
-                                    <LibraryIcon />
-                                </FieldIcon>
-                                <Select
-                                    options={[
-                                        {
-                                            value: "all",
-                                            content: (
-                                                <div
-                                                    className={cn([
-                                                        "flex",
-                                                        "gap-2",
-                                                        "items-center",
-                                                    ])}
-                                                >
-                                                    全部
-                                                </div>
-                                            ),
-                                        },
-                                        ...categoryStore.categories?.map(
-                                            (category) => {
-                                                const Icon = category?.icon!;
-
-                                                return {
-                                                    value: String(category?.id),
-                                                    content: (
-                                                        <div
-                                                            className={cn([
-                                                                "flex",
-                                                                "gap-2",
-                                                                "items-center",
-                                                            ])}
-                                                        >
-                                                            <Icon />
-                                                            {category?.name?.toUpperCase()}
-                                                        </div>
-                                                    ),
-                                                };
-                                            }
-                                        ),
-                                    ]}
-                                    onValueChange={(value) =>
-                                        setCategory(value)
-                                    }
-                                    value={category}
-                                />
-                            </Field>
-                            <Field size={"sm"} className={cn(["w-48"])}>
-                                <FieldIcon>
-                                    <ListOrderedIcon />
-                                </FieldIcon>
-                                <Select
-                                    placeholder={"每页显示"}
-                                    options={[
-                                        { value: "10" },
-                                        { value: "20" },
-                                        { value: "40" },
-                                        { value: "60" },
-                                    ]}
-                                    value={String(size)}
-                                    onValueChange={(value) =>
-                                        setSize(Number(value))
-                                    }
-                                />
-                            </Field>
-                        </div>
-                    </div>
                     <div
                         className={cn([
                             "w-full",
@@ -192,19 +69,34 @@ export default function Index() {
                         ])}
                     >
                         {gameChallenges?.map((gameChallenge, index) => (
-                            <ChallengeCard
-                                key={index}
-                                challenge={gameChallenge?.challenge}
-                                status={
-                                    challengeStatus?.[
-                                        gameChallenge?.challenge_id!
-                                    ]
-                                }
-                                onClick={() => {
-                                    setSelectedChallenge(gameChallenge);
-                                    setChallengeDialogOpen(true);
-                                }}
-                            />
+                            <Dialog key={index}>
+                                <DialogTrigger>
+                                    <ChallengeCard
+                                        digest={{
+                                            id: gameChallenge.challenge_id,
+                                            title: gameChallenge.challenge_title,
+                                            category:
+                                                gameChallenge.challenge_category,
+                                        }}
+                                        status={
+                                            challengeStatus?.[
+                                                gameChallenge?.challenge_id!
+                                            ]
+                                        }
+                                    />
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <ChallengeDialog
+                                        digest={{
+                                            id: gameChallenge.challenge_id,
+                                            title: gameChallenge.challenge_title,
+                                            category:
+                                                gameChallenge.challenge_category,
+                                        }}
+                                        gameTeam={selfGameTeam}
+                                    />
+                                </DialogContent>
+                            </Dialog>
                         ))}
                     </div>
                 </div>
@@ -222,18 +114,6 @@ export default function Index() {
                     </div>
                 </div>
             </div>
-            <Dialog
-                open={challengeDialogOpen}
-                onOpenChange={setChallengeDialogOpen}
-            >
-                <DialogContent>
-                    <ChallengeDialog
-                        challenge={selectedChallenge?.challenge}
-                        gameTeam={selfGameTeam}
-                        frozenAt={selectedChallenge?.frozen_at}
-                    />
-                </DialogContent>
-            </Dialog>
         </>
     );
 }

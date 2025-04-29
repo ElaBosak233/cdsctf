@@ -54,7 +54,7 @@ export default function Index() {
 
     const formSchema = z.object({
         username: z.string({}),
-        nickname: z.string({
+        name: z.string({
             message: "请输入昵称",
         }),
         group: z.number({
@@ -231,7 +231,7 @@ export default function Index() {
 
                         <FormField
                             control={form.control}
-                            name={"nickname"}
+                            name={"name"}
                             render={({ field }) => (
                                 <FormItem className={cn(["w-full"])}>
                                     <FormLabel>昵称</FormLabel>

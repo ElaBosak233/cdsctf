@@ -12,7 +12,7 @@ import {
     UserRoundCheckIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getUsers } from "@/api/users";
+import { getUsers } from "@/api/admin/users";
 import {
     ColumnFiltersState,
     flexRender,

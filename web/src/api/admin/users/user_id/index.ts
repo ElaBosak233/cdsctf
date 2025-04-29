@@ -16,7 +16,7 @@ export async function deleteUser(request: DeleteUserRequest) {
 export interface UpdateUserRequest {
     id: number;
     username?: string;
-    nickname?: string;
+    name?: string;
     email?: string;
     group?: Group;
     password?: string;

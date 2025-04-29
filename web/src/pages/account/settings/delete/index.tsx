@@ -126,6 +126,7 @@ export default function Index() {
                         请认真阅读并确定上述内容！如果你真的确定要注销账号，请在下方输入你的完整用户名、密码并点击确认。
                     </p>
                 </Typography>
+                <div className={cn(["flex-1"])} />
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}

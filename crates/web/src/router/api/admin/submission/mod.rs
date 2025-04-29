@@ -3,13 +3,13 @@ use cds_db::{
     entity::{submission::Status, user::Group},
     get_db,
     sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect},
-    transfer::Submission,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use cds_db::traits::EagerLoading;
+
 use crate::{
     extract::{Extension, Path, Query},
+    model::submission::Submission,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -41,7 +41,7 @@ pub async fn get_submission(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let mut sql = cds_db::entity::submission::Entity::find();
+    let mut sql = cds_db::entity::submission::Entity::base_find();
 
     if let Some(id) = params.id {
         sql = sql.filter(cds_db::entity::submission::Column::Id.eq(id));
@@ -74,7 +74,7 @@ pub async fn get_submission(
         sql = sql.offset(offset).limit(size);
     }
 
-    let submissions = sql.all(get_db()).await?.eager_load(get_db()).await?;
+    let submissions = sql.into_model::<Submission>().all(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

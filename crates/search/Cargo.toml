@@ -1,0 +1,16 @@
+[package]
+name = "cds-search"
+resolver = "3"
+
+authors = { workspace = true }
+edition  = { workspace = true }
+homepage = { workspace = true }
+publish = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+tantivy = { workspace = true }
+once_cell = { workspace = true }
+tokio = { workspace = true }

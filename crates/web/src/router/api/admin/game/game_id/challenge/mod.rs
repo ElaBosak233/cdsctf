@@ -10,9 +10,10 @@ use cds_db::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
-use cds_db::traits::EagerLoading;
+
 use crate::{
     extract::{Extension, Json, Path, Query},
+    model::game_challenge::GameChallenge,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -39,11 +40,9 @@ pub struct GetGameChallengeRequest {
 pub async fn get_game_challenge(
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
-) -> Result<WebResponse<Vec<cds_db::transfer::GameChallenge>>, WebError> {
+) -> Result<WebResponse<Vec<GameChallenge>>, WebError> {
     // Using inner join to access fields in related tables.
-    let mut sql = cds_db::entity::game_challenge::Entity::find()
-        .inner_join(cds_db::entity::challenge::Entity)
-        .inner_join(cds_db::entity::game::Entity);
+    let mut sql = cds_db::entity::game_challenge::Entity::base_find();
 
     sql = sql.filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id));
 
@@ -62,7 +61,7 @@ pub async fn get_game_challenge(
         sql = sql.offset(offset).limit(size);
     }
 
-    let game_challenges = sql.all(get_db()).await?.eager_load(get_db()).await?;
+    let game_challenges = sql.into_model::<GameChallenge>().all(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -87,16 +86,13 @@ pub async fn create_game_challenge(
     Extension(ext): Extension<Ext>,
     Path(game_id): Path<i64>,
     Json(body): Json<CreateGameChallengeRequest>,
-) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
+) -> Result<WebResponse<GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let game = cds_db::entity::game::Entity::find_by_id(game_id)
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
+    let game = crate::util::loader::prepare_game(game_id).await?;
 
     let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
         .one(get_db())
@@ -127,16 +123,22 @@ pub async fn create_game_challenge(
     }
     .insert(get_db())
     .await?;
-    let game_challenge = cds_db::transfer::GameChallenge::from(game_challenge);
 
     cds_queue::publish("calculator", crate::worker::game_calculator::Payload {
         game_id: Some(game.id),
     })
     .await?;
 
+    let game_challenge = cds_db::entity::game_challenge::Entity::base_find()
+        .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_challenge.game_id))
+        .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(game_challenge.challenge_id))
+        .into_model::<GameChallenge>()
+        .one(get_db())
+        .await?;
+
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(game_challenge),
+        data: game_challenge,
         ..Default::default()
     })
 }

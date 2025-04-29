@@ -11,13 +11,13 @@ use cds_db::{
         ActiveValue::{Set, Unchanged},
         ColumnTrait, EntityTrait, NotSet, PaginatorTrait, QueryFilter,
     },
-    transfer::Team,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Path},
+    model::team::Team,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -76,7 +76,8 @@ pub async fn update_team(
     }
     .update(get_db())
     .await?;
-    let team = cds_db::transfer::Team::from(team);
+
+    let team = crate::util::loader::prepare_team(game_id, team.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -151,7 +152,8 @@ pub async fn set_team_ready(
     }
     .update(get_db())
     .await?;
-    let team = cds_db::transfer::Team::from(team);
+
+    let team = crate::util::loader::prepare_team(game_id, team.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

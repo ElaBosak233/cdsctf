@@ -10,7 +10,6 @@ use cds_db::{
         ActiveValue::{Set, Unchanged},
         ColumnTrait, EntityTrait, NotSet, QueryFilter,
     },
-    transfer::Challenge,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -18,6 +17,7 @@ use validator::Validate;
 
 use crate::{
     extract::{Extension, Path, VJson},
+    model::challenge::Challenge,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -51,11 +51,7 @@ pub async fn update_challenge(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
-        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
 
     let challenge = cds_db::entity::challenge::ActiveModel {
         id: Unchanged(challenge.id),
@@ -70,11 +66,15 @@ pub async fn update_challenge(
     }
     .update(get_db())
     .await?;
-    let challenge = cds_db::transfer::Challenge::from(challenge);
+
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge.id)
+        .into_model::<Challenge>()
+        .one(get_db())
+        .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(challenge),
+        data: challenge,
         ..Default::default()
     })
 }
@@ -123,11 +123,7 @@ pub async fn update_challenge_env(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let _ = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
-        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+    let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
 
     let _ = cds_db::entity::challenge::ActiveModel {
         id: Unchanged(challenge_id),
@@ -158,11 +154,7 @@ pub async fn update_challenge_checker(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let _ = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
-        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+    let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
 
     let challenge = cds_db::entity::challenge::ActiveModel {
         id: Unchanged(challenge_id),
@@ -172,7 +164,7 @@ pub async fn update_challenge_checker(
     .update(get_db())
     .await?;
 
-    let lint = cds_checker::lint(&Challenge::from(challenge)).await;
+    let lint = cds_checker::lint(&challenge).await;
     let msg = if let Err(lint) = lint {
         match lint {
             CheckerError::CompileError(diagnostics) => Some(diagnostics),

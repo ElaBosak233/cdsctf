@@ -15,6 +15,7 @@ use uuid::Uuid;
 
 use crate::{
     extract::{Extension, Json, Path},
+    model::game_challenge::GameChallenge,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -45,7 +46,7 @@ pub async fn update_game_challenge(
     Extension(ext): Extension<Ext>,
     Path((game_id, challenge_id)): Path<(i64, Uuid)>,
     Json(body): Json<UpdateGameChallengeRequest>,
-) -> Result<WebResponse<cds_db::transfer::GameChallenge>, WebError> {
+) -> Result<WebResponse<GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {
         return Err(WebError::Forbidden(json!("")));
@@ -66,16 +67,22 @@ pub async fn update_game_challenge(
     }
     .update(get_db())
     .await?;
-    let game_challenge = cds_db::transfer::GameChallenge::from(game_challenge);
 
     cds_queue::publish("calculator", crate::worker::game_calculator::Payload {
         game_id: Some(game_challenge.game_id),
     })
     .await?;
 
+    let game_challenge = cds_db::entity::game_challenge::Entity::base_find()
+        .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_challenge.game_id))
+        .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(game_challenge.challenge_id))
+        .into_model::<GameChallenge>()
+        .one(get_db())
+        .await?;
+
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(game_challenge),
+        data: game_challenge,
         ..Default::default()
     })
 }

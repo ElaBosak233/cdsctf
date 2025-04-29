@@ -43,7 +43,6 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         cds_db::entity::challenge::Entity::find_by_id(submission.challenge_id)
             .one(get_db())
             .await?
-            .map(cds_db::transfer::Challenge::from)
     {
         challenge
     } else {
@@ -102,7 +101,6 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
             let game = cds_db::entity::game::Entity::find_by_id(game_id)
                 .one(get_db())
                 .await?
-                .map(cds_db::transfer::Game::from)
                 .ok_or(anyhow!("game_not_found"))?;
 
             let game_challenge = cds_db::entity::game_challenge::Entity::find()
@@ -110,7 +108,6 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
                 .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))
                 .one(get_db())
                 .await?
-                .map(cds_db::transfer::GameChallenge::from)
                 .ok_or(anyhow!("game_challenge_not_found"))?;
 
             let now = chrono::Utc::now().timestamp();

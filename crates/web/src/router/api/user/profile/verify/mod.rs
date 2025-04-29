@@ -88,7 +88,7 @@ pub async fn send_verify_email(
     .await?;
 
     cds_queue::publish("email", crate::worker::email_sender::Payload {
-        name: operator.nickname.to_owned(),
+        name: operator.name.to_owned(),
         email: operator.email.to_owned(),
         subject: cds_config::get_variable()
             .to_owned()

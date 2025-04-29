@@ -3,7 +3,7 @@ import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
 
 export interface UpdateUserProfileRequest {
-    nickname?: string;
+    name?: string;
     email?: string;
     description?: string | null;
 }

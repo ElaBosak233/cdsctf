@@ -57,7 +57,7 @@ export default function Index() {
                     "flex",
                     "flex-col",
                     "lg:px-30",
-                    "xl:px-60",
+                    "xl:px-50",
                     "lg:flex-row",
                     "justify-center",
                     "gap-12",

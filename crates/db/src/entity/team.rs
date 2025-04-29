@@ -2,10 +2,9 @@ use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use crate::{entity, get_db};
-use crate::traits::EagerLoading;
-use crate::transfer::{Team, User};
+
 use super::{game, team_user, user};
+use crate::entity;
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "teams")]
@@ -48,6 +47,7 @@ pub enum State {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Game,
+    Submission,
 }
 
 impl RelationTrait for Relation {
@@ -57,6 +57,10 @@ impl RelationTrait for Relation {
                 .from(Column::GameId)
                 .to(game::Column::Id)
                 .on_delete(ForeignKeyAction::Cascade)
+                .into(),
+            Self::Submission => Entity::has_many(entity::submission::Entity)
+                .from(Column::Id)
+                .to(entity::submission::Column::TeamId)
                 .into(),
         }
     }
@@ -80,36 +84,3 @@ impl Related<user::Entity> for Entity {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
-
-#[async_trait]
-impl EagerLoading<Vec<Team>> for Vec<Model> {
-    async fn eager_load<C>(self, db: &C) -> Result<Vec<Team>, DbErr>
-    where C: ConnectionTrait {
-        let users = self
-            .load_many_to_many(user::Entity, team_user::Entity, db)
-            .await?
-            .into_iter()
-            .map(|users| {
-                users
-                    .into_iter()
-                    .map(User::from)
-                    .collect::<Vec<User>>()
-            })
-            .collect::<Vec<Vec<User>>>();
-
-        let mut teams = self
-            .clone()
-            .into_iter()
-            .map(Team::from)
-            .collect::<Vec<Team>>();
-
-        for (i, team) in teams.iter_mut().enumerate() {
-            team.users = users[i].clone();
-            for user in team.users.iter_mut() {
-                user.desensitize();
-            }
-        }
-
-        Ok(teams)
-    }
-}

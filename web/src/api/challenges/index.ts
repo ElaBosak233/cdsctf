@@ -1,4 +1,4 @@
-import { Challenge } from "@/models/challenge";
+import { ChallengeMini } from "@/models/challenge";
 import { Submission } from "@/models/submission";
 import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
@@ -15,10 +15,13 @@ export interface GetChallengeRequest {
 }
 
 export async function getPlaygroundChallenges(request: GetChallengeRequest) {
-    return alova.Get<WebResponse<Array<Challenge>>>("/challenges/playground", {
-        params: request,
-        cacheFor: 0,
-    });
+    return alova.Get<WebResponse<Array<ChallengeMini>>>(
+        "/challenges/playground",
+        {
+            params: request,
+            cacheFor: 0,
+        }
+    );
 }
 
 export interface GetChallengeStatusRequest {

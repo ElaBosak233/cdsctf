@@ -52,6 +52,7 @@ export default function Layout() {
                     </Button>
                 ))}
                 <Separator />
+                <div className={cn(["flex-1"])} />
                 <Button
                     size={"lg"}
                     className={cn(["justify-start"])}

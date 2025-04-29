@@ -26,3 +26,10 @@ export interface Container {
     envs: Record<string, string>;
     ports: Array<number>;
 }
+
+export interface ChallengeMini {
+    id?: string;
+    title?: string;
+    category?: number;
+    tags?: Array<string>;
+}

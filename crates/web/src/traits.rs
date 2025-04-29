@@ -12,7 +12,7 @@ use tracing::error;
 
 #[derive(Clone, Debug, Default)]
 pub struct Ext {
-    pub operator: Option<cds_db::transfer::User>,
+    pub operator: Option<cds_db::entity::user::Model>,
     pub client_ip: String,
 }
 

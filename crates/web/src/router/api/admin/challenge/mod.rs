@@ -10,13 +10,13 @@ use cds_db::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden, IdenStatic,
         Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, sea_query::Expr,
     },
-    transfer::Challenge,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Query},
+    model::challenge::Challenge,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -114,12 +114,7 @@ pub async fn get_challenge(
         sql = sql.offset(offset).limit(size);
     }
 
-    let challenges = sql
-        .all(get_db())
-        .await?
-        .into_iter()
-        .map(Challenge::from)
-        .collect::<Vec<Challenge>>();
+    let challenges = sql.into_model::<Challenge>().all(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -166,11 +161,15 @@ pub async fn create_challenge(
     }
     .insert(get_db())
     .await?;
-    let challenge = cds_db::transfer::Challenge::from(challenge);
+
+    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge.id)
+        .into_model::<Challenge>()
+        .one(get_db())
+        .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(challenge),
+        data: challenge,
         ..Default::default()
     })
 }

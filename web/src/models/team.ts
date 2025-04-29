@@ -1,5 +1,3 @@
-import { User } from "./user";
-
 export interface Team {
     id?: number;
     game_id?: number;
@@ -10,10 +8,6 @@ export interface Team {
 
     pts?: number;
     rank?: number;
-
-    deleted_at?: number;
-
-    users?: Array<User>;
 }
 
 export enum State {

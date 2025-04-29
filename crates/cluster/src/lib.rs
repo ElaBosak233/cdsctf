@@ -243,10 +243,10 @@ pub async fn delete_pod(id: &str) -> Result<(), ClusterError> {
 }
 
 pub async fn create_challenge_env(
-    user: cds_db::transfer::User,
-    team: Option<cds_db::transfer::Team>,
-    game: Option<cds_db::transfer::Game>,
-    challenge: cds_db::transfer::Challenge,
+    user: cds_db::entity::user::Model,
+    team: Option<cds_db::entity::team::Model>,
+    game: Option<cds_db::entity::game::Model>,
+    challenge: cds_db::entity::challenge::Model,
 ) -> Result<(), ClusterError> {
     let id = util::gen_safe_nanoid();
     let name = format!("cds-{}", id);

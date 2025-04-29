@@ -64,7 +64,7 @@ function LoginForm() {
                     authStore.setUser(res.data);
                     toast.success("登录成功", {
                         id: "login",
-                        description: `欢迎回来，${res.data?.nickname}！`,
+                        description: `欢迎回来，${res.data?.name}！`,
                     });
                     navigate("/");
                 }

@@ -1,23 +1,6 @@
-import { Group, User } from "@/models/user";
+import { User } from "@/models/user";
 import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
-
-export interface GetUserRequest {
-    id?: number;
-    name?: string;
-    username?: string;
-    email?: string;
-    group?: Group;
-    page?: number;
-    size?: number;
-    sorts?: string;
-}
-
-export async function getUsers(request: GetUserRequest) {
-    return alova.Get<WebResponse<Array<User>>>("/users", {
-        params: request,
-    });
-}
 
 export interface UserLoginRequest {
     account: string;
@@ -38,7 +21,7 @@ export async function logout() {
 
 export interface UserRegisterRequest {
     username: string;
-    nickname: string;
+    name?: string;
     email: string;
     password: string;
     captcha?: {

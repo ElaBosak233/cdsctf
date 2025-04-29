@@ -6,10 +6,12 @@ import { getTeamProfile } from "@/api/games/game_id/teams/profile";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { getGames } from "@/api/games";
+import { getTeamMembers } from "@/api/games/game_id/teams/team_id";
 
 export default function () {
     const { game_id } = useParams<{ game_id: string }>();
-    const { currentGame, setCurrentGame, setSelfTeam } = useGameStore();
+    const { currentGame, setCurrentGame, selfTeam, setSelfTeam, setMembers } =
+        useGameStore();
     const sharedStore = useSharedStore();
     const authStore = useAuthStore();
 
@@ -27,23 +29,30 @@ export default function () {
         });
     }, [game_id]);
 
-    function fetchSelfTeam() {
-        getTeamProfile({
-            game_id: Number(game_id),
-        })
-            .then((res) => {
-                setSelfTeam(res.data);
-            })
-            .finally(() => {
-                setGtLoaded(true);
-            });
-    }
-
     useEffect(() => {
         if (authStore?.user) {
-            fetchSelfTeam();
+            getTeamProfile({
+                game_id: Number(game_id),
+            })
+                .then((res) => {
+                    setSelfTeam(res.data);
+                })
+                .finally(() => {
+                    setGtLoaded(true);
+                });
         }
     }, [sharedStore?.refresh, game_id]);
+
+    useEffect(() => {
+        if (selfTeam?.id) {
+            getTeamMembers({
+                game_id: Number(game_id),
+                team_id: selfTeam?.id,
+            }).then((res) => {
+                setMembers(res.data);
+            });
+        }
+    }, [sharedStore?.refresh, selfTeam]);
 
     return (
         <Context.Provider value={{ gtLoaded }}>

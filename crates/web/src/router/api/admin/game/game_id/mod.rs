@@ -12,13 +12,13 @@ use cds_db::{
         ActiveValue::{Set, Unchanged},
         EntityTrait, NotSet,
     },
-    transfer::Game,
 };
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
+    model::game::Game,
     traits::{WebError, WebResponse},
 };
 
@@ -77,7 +77,8 @@ pub async fn update_game(
     }
     .update(get_db())
     .await?;
-    let game = cds_db::transfer::Game::from(game);
+
+    let game = crate::util::loader::prepare_game(game.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

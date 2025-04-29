@@ -1,6 +1,6 @@
 mod avatar;
 
-use axum::{Router, http::StatusCode};
+use axum::{http::StatusCode, Router};
 use cds_db::{
     entity::team::State,
     get_db,
@@ -8,7 +8,8 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-
+use cds_db::sea_orm::{ColumnTrait, QueryFilter};
+use crate::model::user::UserMini;
 use crate::{
     extract::{Extension, Json, Path},
     traits::{Ext, WebError, WebResponse},
@@ -17,7 +18,24 @@ use crate::{
 pub fn router() -> Router {
     Router::new()
         .nest("/avatar", avatar::router())
+        .route("/members", axum::routing::get(get_team_members))
         .route("/join", axum::routing::post(join_team))
+}
+
+pub async fn get_team_members(Path((game_id, team_id)): Path<(i64, i64)>) -> Result<WebResponse<Vec<UserMini>>, WebError> {
+    let users = cds_db::entity::user::Entity::find()
+        .inner_join(cds_db::entity::team::Entity)
+        .filter(cds_db::entity::team::Column::Id.eq(team_id))
+        .filter(cds_db::entity::team::Column::GameId.eq(game_id))
+        .into_model::<UserMini>()
+        .all(get_db())
+        .await?;
+    
+    Ok(WebResponse {
+        code: StatusCode::OK,
+        data: Some(users),
+        ..Default::default()
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -39,7 +57,7 @@ pub async fn join_team(
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    if cds_db::util::is_user_in_game(&operator, &game, None).await? {
+    if cds_db::util::is_user_in_game(operator.id, game.id, None).await? {
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 

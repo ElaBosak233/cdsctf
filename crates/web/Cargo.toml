@@ -19,6 +19,7 @@ cds-config = { workspace = true }
 cds-media = { workspace = true }
 cds-queue = { workspace = true }
 cds-checker = { workspace = true }
+cds-search = { workspace = true }
 cds-email = { workspace = true }
 cds-telemetry = { workspace = true }
 

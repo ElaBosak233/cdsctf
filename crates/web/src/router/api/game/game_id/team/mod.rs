@@ -11,13 +11,13 @@ use cds_db::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, Order,
         PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
     },
-    transfer::Team,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use cds_db::traits::EagerLoading;
+
 use crate::{
     extract::{Extension, Json, Path, Query},
+    model::team::Team,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -110,7 +110,7 @@ pub async fn get_team(
         sql = sql.offset(offset).limit(size);
     }
 
-    let teams = sql.all(get_db()).await?.eager_load(get_db()).await?;
+    let teams = sql.into_model::<Team>().all(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -139,13 +139,9 @@ pub async fn team_register(
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let game = cds_db::entity::game::Entity::find_by_id(game_id)
-        .one(get_db())
-        .await?
-        .map(cds_db::transfer::Game::from)
-        .ok_or(WebError::BadRequest(json!("game_not_found")))?;
+    let game = crate::util::loader::prepare_game(game_id).await?;
 
-    if cds_db::util::is_user_in_game(&operator, &game, None).await? {
+    if cds_db::util::is_user_in_game(operator.id, game.id, None).await? {
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
@@ -168,14 +164,13 @@ pub async fn team_register(
     .await?;
 
     let team = cds_db::entity::team::Entity::find_by_id(team.id)
+        .into_model::<Team>()
         .one(get_db())
-        .await?
-        .map(cds_db::transfer::Team::from)
-        .unwrap();
+        .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(team),
+        data: team,
         ..Default::default()
     })
 }

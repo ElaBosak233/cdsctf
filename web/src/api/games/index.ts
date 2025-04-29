@@ -1,4 +1,4 @@
-import { Game } from "@/models/game";
+import { GameMini } from "@/models/game";
 import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
 
@@ -11,7 +11,7 @@ export interface GetGameRequest {
 }
 
 export async function getGames(request: GetGameRequest) {
-    return alova.Get<WebResponse<Array<Game>>>("/games", {
+    return alova.Get<WebResponse<Array<GameMini>>>("/games", {
         params: request,
     });
 }

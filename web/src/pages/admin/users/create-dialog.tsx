@@ -44,7 +44,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
 
     const formSchema = z.object({
         username: z.string().min(3, { message: "用户名至少3个字符!" }),
-        nickname: z.string().min(2, { message: "昵称至少2个字符!" }),
+        name: z.string().min(2, { message: "昵称至少2个字符!" }),
         email: z.string().email({ message: "请输入有效的邮箱地址!" }),
         password: z.string().min(6, { message: "密码至少6个字符!" }),
         group: z.number({
@@ -57,7 +57,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
         defaultValues: {
             group: Group.User,
             username: "",
-            nickname: "",
+            name: "",
             email: "",
             password: "",
         },
@@ -138,7 +138,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
 
                     <FormField
                         control={form.control}
-                        name={"nickname"}
+                        name={"name"}
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>昵称</FormLabel>

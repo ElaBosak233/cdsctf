@@ -20,6 +20,14 @@ export interface Game {
     created_at?: number;
 }
 
+export interface GameMini {
+    id?: number;
+    title?: string;
+    started_at?: number;
+    frozen_at?: number;
+    ended_at?: number;
+}
+
 export interface ScoreRecord {
     team?: Team;
     submissions?: Array<Submission>;

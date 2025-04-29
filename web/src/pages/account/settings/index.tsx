@@ -52,7 +52,7 @@ export default function Index() {
 
     const formSchema = z.object({
         username: z.string().nullish(),
-        nickname: z.string({
+        name: z.string({
             message: "请输入昵称",
         }),
         email: z.string().email({
@@ -203,7 +203,7 @@ export default function Index() {
                                 />
                                 <FormField
                                     control={form.control}
-                                    name={"nickname"}
+                                    name={"name"}
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>昵称</FormLabel>

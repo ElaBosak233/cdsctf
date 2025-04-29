@@ -154,8 +154,15 @@ pub async fn create_env(
 
     let (team, game) = match (body.team_id, body.game_id) {
         (Some(team_id), Some(game_id)) => (
-            Some(crate::util::loader::prepare_team(game_id, team_id).await?),
-            Some(crate::util::loader::prepare_game(game_id).await?),
+            cds_db::entity::team::Entity::find()
+                .filter(cds_db::entity::team::Column::GameId.eq(game_id))
+                .filter(cds_db::entity::team::Column::Id.eq(team_id))
+                .one(get_db())
+                .await?,
+            cds_db::entity::game::Entity::find()
+                .filter(cds_db::entity::game::Column::Id.eq(game_id))
+                .one(get_db())
+                .await?,
         ),
         _ => (None, None),
     };

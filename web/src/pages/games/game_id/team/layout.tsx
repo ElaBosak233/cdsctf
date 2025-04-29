@@ -25,7 +25,7 @@ import { toast } from "sonner";
 
 export default function Layout() {
     const sharedStore = useSharedStore();
-    const { currentGame, selfTeam } = useGameStore();
+    const { currentGame, selfTeam, members } = useGameStore();
     const navigate = useNavigate();
     const location = useLocation();
     const pathname = location.pathname;
@@ -149,6 +149,7 @@ export default function Layout() {
                     </Button>
                 ))}
                 <Separator />
+                <div className={cn(["flex-1"])} />
                 <div className={cn(["flex", "gap-5", "justify-center"])}>
                     <Button
                         size={"md"}
@@ -210,7 +211,7 @@ export default function Layout() {
                         className={cn(["w-1/2"])}
                         disabled={
                             selfTeam?.state !== State.Preparing ||
-                            selfTeam?.users?.length === 1 ||
+                            members?.length === 1 ||
                             disabled
                         }
                         onClick={() => setLeaveDialogOpen(true)}

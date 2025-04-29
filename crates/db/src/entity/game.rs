@@ -40,14 +40,14 @@ pub struct Timeslot {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Submission,
-    GameTeam,
+    Team,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
             Self::Submission => Entity::has_many(submission::Entity).into(),
-            Self::GameTeam => Entity::has_many(team::Entity).into(),
+            Self::Team => Entity::has_many(team::Entity).into(),
         }
     }
 }

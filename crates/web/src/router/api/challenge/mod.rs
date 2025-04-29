@@ -4,19 +4,20 @@ use std::{collections::HashMap, str::FromStr};
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
+    entity,
     entity::submission::Status,
     get_db,
     sea_orm::{
-        ColumnTrait, EntityName, EntityTrait, Iden, IdenStatic, Order, PaginatorTrait, QueryFilter,
-        QueryOrder, QuerySelect, sea_query::Expr,
+        ColumnTrait, EntityName, EntityTrait, Iden, Order, PaginatorTrait, QueryFilter, QueryOrder,
+        QuerySelect, sea_query::Expr,
     },
-    transfer::Challenge,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Query},
+    model::{challenge::ChallengeMini, submission::Submission},
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -33,7 +34,6 @@ pub struct GetChallengeRequest {
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tags: Option<String>,
-    pub is_dynamic: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -42,21 +42,21 @@ pub struct GetChallengeRequest {
 pub async fn get_challenge(
     Extension(ext): Extension<Ext>,
     Query(params): Query<GetChallengeRequest>,
-) -> Result<WebResponse<Vec<Challenge>>, WebError> {
+) -> Result<WebResponse<Vec<ChallengeMini>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let mut sql = cds_db::entity::challenge::Entity::find();
+    let mut sql = entity::challenge::Entity::find();
 
     if let Some(id) = params.id {
-        sql = sql.filter(cds_db::entity::challenge::Column::Id.eq(id));
+        sql = sql.filter(entity::challenge::Column::Id.eq(id));
     }
 
     if let Some(title) = params.title {
-        sql = sql.filter(cds_db::entity::challenge::Column::Title.contains(title));
+        sql = sql.filter(entity::challenge::Column::Title.contains(title));
     }
 
     if let Some(category) = params.category {
-        sql = sql.filter(cds_db::entity::challenge::Column::Category.eq(category));
+        sql = sql.filter(entity::challenge::Column::Category.eq(category));
     }
 
     if let Some(tags) = params.tags {
@@ -77,11 +77,6 @@ pub async fn get_challenge(
     }
 
     sql = sql.filter(cds_db::entity::challenge::Column::IsPublic.eq(true));
-
-    if let Some(is_dynamic) = params.is_dynamic {
-        sql = sql.filter(cds_db::entity::challenge::Column::IsDynamic.eq(is_dynamic));
-    }
-
     sql = sql.filter(cds_db::entity::challenge::Column::DeletedAt.is_null());
 
     let total = sql.clone().count(get_db()).await?;
@@ -107,16 +102,7 @@ pub async fn get_challenge(
         sql = sql.offset(offset).limit(size);
     }
 
-    let mut challenges = sql
-        .all(get_db())
-        .await?
-        .into_iter()
-        .map(Challenge::from)
-        .collect::<Vec<Challenge>>();
-
-    for challenge in challenges.iter_mut() {
-        *challenge = challenge.desensitize();
-    }
+    let mut challenges = sql.into_model::<ChallengeMini>().all(get_db()).await?;
 
     Ok(WebResponse {
         data: Some(challenges),
@@ -138,7 +124,7 @@ pub struct ChallengeStatusResponse {
     pub is_solved: bool,
     pub solved_times: i64,
     pub pts: i64,
-    pub bloods: Vec<cds_db::transfer::Submission>,
+    pub bloods: Vec<Submission>,
 }
 
 pub async fn get_challenge_status(
@@ -147,8 +133,12 @@ pub async fn get_challenge_status(
 ) -> Result<WebResponse<HashMap<uuid::Uuid, ChallengeStatusResponse>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let mut submissions =
-        cds_db::transfer::submission::get_by_challenge_ids(body.challenge_ids.clone()).await?;
+    let mut submissions = entity::submission::Entity::base_find()
+        .filter(entity::submission::Column::ChallengeId.is_in(body.challenge_ids.to_owned()))
+        .order_by_asc(entity::submission::Column::CreatedAt)
+        .into_model::<Submission>()
+        .all(get_db())
+        .await?;
 
     let mut result: HashMap<uuid::Uuid, ChallengeStatusResponse> = HashMap::new();
 
@@ -165,10 +155,8 @@ pub async fn get_challenge_status(
 
     for submission in submissions.iter_mut() {
         *submission = submission.desensitize();
-        submission.challenge = None;
 
         if body.game_id.is_some() {
-            submission.game = None;
             if submission.game_id != body.game_id {
                 continue;
             }

@@ -20,6 +20,7 @@ use validator::Validate;
 
 use crate::{
     extract::{Extension, Json},
+    model::user::User,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -38,19 +39,21 @@ pub fn router() -> Router {
 
 pub async fn get_user_profile(
     Extension(ext): Extension<Ext>,
-) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
+) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
+
+    let user = crate::util::loader::prepare_user(operator.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(operator),
+        data: Some(user),
         ..Default::default()
     })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateUserProfileRequest {
-    pub nickname: Option<String>,
+    pub name: Option<String>,
     #[validate(email)]
     pub email: Option<String>,
     pub description: Option<String>,
@@ -59,7 +62,7 @@ pub struct UpdateUserProfileRequest {
 pub async fn update_user_profile(
     Extension(ext): Extension<Ext>,
     Json(mut body): Json<UpdateUserProfileRequest>,
-) -> Result<WebResponse<cds_db::transfer::User>, WebError> {
+) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     if let Some(email) = body.email {
@@ -83,7 +86,7 @@ pub async fn update_user_profile(
 
     let user = cds_db::entity::user::ActiveModel {
         id: Unchanged(operator.id),
-        nickname: body.nickname.map_or(NotSet, Set),
+        name: body.name.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, Set),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
         is_verified: if is_verified != operator.is_verified {
@@ -95,7 +98,8 @@ pub async fn update_user_profile(
     }
     .update(get_db())
     .await?;
-    let user = cds_db::transfer::User::from(user);
+
+    let user = crate::util::loader::prepare_user(operator.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

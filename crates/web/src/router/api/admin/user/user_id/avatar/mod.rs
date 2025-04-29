@@ -2,7 +2,6 @@ use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
 };
-use cds_db::transfer::User;
 
 use crate::{
     extract::{Extension, Path},
@@ -29,10 +28,8 @@ pub async fn save_user_avatar(
     util::media::save_img(path, multipart).await
 }
 
-pub async fn delete_user_avatar(
-    Extension(user): Extension<User>,
-) -> Result<WebResponse<()>, WebError> {
-    let path = format!("users/{}/avatar", user.id);
+pub async fn delete_user_avatar(Path(user_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
+    let path = format!("users/{}/avatar", user_id);
 
     util::media::delete_img(path).await
 }

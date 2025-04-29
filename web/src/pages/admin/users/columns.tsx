@@ -87,12 +87,12 @@ const columns: ColumnDef<User>[] = [
         },
     },
     {
-        accessorKey: "nickname",
-        id: "nickname",
+        accessorKey: "name",
+        id: "name",
         header: "昵称",
         cell: ({ row }) => {
-            const nickname = row.getValue("nickname") as string;
-            return nickname || "-";
+            const name = row.getValue("name") as string;
+            return name || "-";
         },
     },
     {

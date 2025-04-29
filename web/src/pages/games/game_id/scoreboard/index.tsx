@@ -119,7 +119,7 @@ export default function Index() {
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <Dialog key={row.getValue("id")}>
+                                <Dialog key={row.original.team?.id}>
                                     <DialogTrigger>
                                         <TableRow
                                             data-state={

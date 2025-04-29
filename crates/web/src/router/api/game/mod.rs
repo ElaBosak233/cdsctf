@@ -14,6 +14,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Query},
+    model::game::GameMini,
     traits::{Ext, WebError, WebResponse},
 };
 
@@ -36,7 +37,7 @@ pub struct GetGameRequest {
 pub async fn get_game(
     Extension(ext): Extension<Ext>,
     Query(params): Query<GetGameRequest>,
-) -> Result<WebResponse<Vec<cds_db::transfer::Game>>, WebError> {
+) -> Result<WebResponse<Vec<GameMini>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let mut sql = cds_db::entity::game::Entity::find();
@@ -73,12 +74,7 @@ pub async fn get_game(
         sql = sql.offset(offset).limit(size);
     }
 
-    let games = sql
-        .all(get_db())
-        .await?
-        .into_iter()
-        .map(cds_db::transfer::Game::from)
-        .collect::<Vec<cds_db::transfer::Game>>();
+    let games = sql.into_model::<GameMini>().all(get_db()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
