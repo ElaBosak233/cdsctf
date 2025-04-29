@@ -2,24 +2,23 @@ import { Link, Outlet, useLocation, useParams } from "react-router";
 import { Context } from "./context";
 import { useEffect, useMemo, useState } from "react";
 import { Challenge } from "@/models/challenge";
-import { getChallenges } from "@/api/admin/challenges";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/utils";
 import { Button } from "@/components/ui/button";
 import {
-    ActivityIcon,
-    ChartArea,
-    Container,
-    Folder,
-    Info,
-    Library,
+    ChartAreaIcon,
+    ContainerIcon,
+    FolderIcon,
+    InfoIcon,
+    LibraryIcon,
     PlayIcon,
-    ScrollText,
+    ScrollTextIcon,
 } from "lucide-react";
 import { useSharedStore } from "@/storages/shared";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
+import { getChallenge } from "@/api/admin/challenges/challenge_id";
 
 export default function Layout() {
     const location = useLocation();
@@ -29,10 +28,10 @@ export default function Layout() {
     const [challenge, setChallenge] = useState<Challenge>();
 
     useEffect(() => {
-        getChallenges({
+        getChallenge({
             id: challenge_id,
         }).then((res) => {
-            setChallenge(res.data?.[0]);
+            setChallenge(res.data);
         });
     }, [sharedStore?.refresh]);
 
@@ -41,29 +40,29 @@ export default function Layout() {
             {
                 link: `/admin/challenges/${challenge_id}`,
                 name: "基本信息",
-                icon: Info,
+                icon: InfoIcon,
             },
             {
                 link: `/admin/challenges/${challenge_id}/checker`,
                 name: "检查器",
-                icon: ScrollText,
+                icon: ScrollTextIcon,
             },
             {
                 link: `/admin/challenges/${challenge_id}/attachments`,
                 name: "附件",
-                icon: Folder,
+                icon: FolderIcon,
                 disabled: !challenge?.has_attachment,
             },
             {
                 link: `/admin/challenges/${challenge_id}/env`,
                 name: "动态环境",
-                icon: Container,
+                icon: ContainerIcon,
                 disabled: !challenge?.is_dynamic,
             },
             {
                 link: `/admin/challenges/${challenge_id}/statistics`,
                 name: "统计数据",
-                icon: ChartArea,
+                icon: ChartAreaIcon,
                 disabled: true,
             },
         ];
@@ -102,7 +101,7 @@ export default function Layout() {
                             "select-none",
                         ])}
                     >
-                        <Library />
+                        <LibraryIcon />
                         题目编辑
                     </div>
                     <Card className={cn(["flex", "flex-col", "p-5", "gap-3"])}>

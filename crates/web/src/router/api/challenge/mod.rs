@@ -102,7 +102,7 @@ pub async fn get_challenge(
         sql = sql.offset(offset).limit(size);
     }
 
-    let mut challenges = sql.into_model::<ChallengeMini>().all(get_db()).await?;
+    let challenges = sql.into_model::<ChallengeMini>().all(get_db()).await?;
 
     Ok(WebResponse {
         data: Some(challenges),

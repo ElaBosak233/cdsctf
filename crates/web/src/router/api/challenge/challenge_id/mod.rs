@@ -30,7 +30,7 @@ pub async fn get_challenge(
         .one(get_db())
         .await?
     {
-        Some(challenge) => challenge,
+        Some(challenge) => challenge.desensitize(),
         None => return Err(WebError::NotFound(json!("challenge_not_found"))),
     };
 
