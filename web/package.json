@@ -1,7 +1,6 @@
 {
     "name": "cdsuno",
     "private": true,
-    "version": "1.2.0",
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -88,5 +87,5 @@
         "vite": "^6.3.3",
         "vite-plugin-compression": "^0.5.1"
     },
-    "packageManager": "pnpm@10.9.0"
+    "packageManager": "pnpm@10.10.0"
 }
