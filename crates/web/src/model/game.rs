@@ -23,6 +23,7 @@ pub struct Game {
 pub struct GameMini {
     pub id: i64,
     pub title: String,
+    pub sketch: Option<String>,
     pub started_at: i64,
     pub frozen_at: i64,
     pub ended_at: i64,

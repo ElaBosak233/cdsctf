@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { getTeamProfile } from "@/api/games/game_id/teams/profile";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
-import { getGames } from "@/api/games";
 import { getTeamMembers } from "@/api/games/game_id/teams/team_id";
+import { getGame } from "@/api/games/game_id";
 
 export default function () {
     const { game_id } = useParams<{ game_id: string }>();
@@ -22,10 +22,10 @@ export default function () {
             setCurrentGame(undefined);
         }
 
-        getGames({
+        getGame({
             id: Number(game_id),
         }).then((res) => {
-            setCurrentGame(res.data?.[0]);
+            setCurrentGame(res.data);
         });
     }, [game_id]);
 

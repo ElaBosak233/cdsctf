@@ -1,6 +1,14 @@
-import { ScoreRecord } from "@/models/game";
+import { Game, ScoreRecord } from "@/models/game";
 import { alova } from "@/utils/alova";
 import { WebResponse } from "@/types";
+
+export interface GetGameRequest {
+    id?: number;
+}
+
+export async function getGame(request: GetGameRequest) {
+    return alova.Get<WebResponse<Game>>(`/games/${request.id}`);
+}
 
 export interface GetGameScoreboardRequest {
     id?: number;
