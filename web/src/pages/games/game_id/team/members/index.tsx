@@ -90,7 +90,7 @@ export default function Index() {
                                     "text-sm",
                                     "text-secondary-foreground",
                                 ])}
-                            >{`# ${user?.id}`}</p>
+                            >{`# ${user?.username}`}</p>
                         </div>
                     </Card>
                 ))}

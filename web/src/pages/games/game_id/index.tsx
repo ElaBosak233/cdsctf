@@ -88,7 +88,7 @@ export default function Index() {
                         ])}
                     >
                         <Image
-                            src={`/api/games/${currentGame?.id}/poster`}
+                            src={`/api/games/${game_id}/poster`}
                             className={cn([
                                 "object-cover",
                                 "rounded-xl",
@@ -162,9 +162,7 @@ export default function Index() {
                                     selfTeam.state !== State.Passed
                                 }
                                 onClick={() =>
-                                    navigate(
-                                        `/games/${currentGame?.id}/challenges`
-                                    )
+                                    navigate(`/games/${game_id}/challenges`)
                                 }
                             >
                                 <span>作为 {selfTeam?.name} 参赛</span>

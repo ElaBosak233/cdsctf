@@ -53,7 +53,7 @@ export default function Index() {
     });
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
         {
-            id: "challenge.category",
+            id: "challenge_category",
             value: "all",
         },
     ]);
@@ -88,10 +88,10 @@ export default function Index() {
             )?.value as string,
             category:
                 (debouncedColumnFilters.find(
-                    (c) => c.id === "challenge.category"
+                    (c) => c.id === "challenge_category"
                 )?.value as string) !== "all"
                     ? (debouncedColumnFilters.find(
-                          (c) => c.id === "challenge.category"
+                          (c) => c.id === "challenge_category"
                       )?.value as number)
                     : undefined,
             page,
@@ -201,12 +201,12 @@ export default function Index() {
                             ]}
                             onValueChange={(value) =>
                                 table
-                                    .getColumn("challenge.category")
+                                    .getColumn("challenge_category")
                                     ?.setFilterValue(value)
                             }
                             value={
                                 (table
-                                    .getColumn("challenge.category")
+                                    .getColumn("challenge_category")
                                     ?.getFilterValue() as string) ?? ""
                             }
                         />
@@ -256,7 +256,7 @@ export default function Index() {
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
-                                    key={row.getValue("challenge_id")}
+                                    key={row.original.challenge_id}
                                     data-state={
                                         row.getIsSelected() && "selected"
                                     }

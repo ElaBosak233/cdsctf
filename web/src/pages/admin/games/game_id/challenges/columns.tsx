@@ -38,10 +38,10 @@ const columns: ColumnDef<GameChallenge>[] = [
         accessorKey: "is_enabled",
         header: "启用",
         cell: ({ row }) => {
-            const isEnabled = row.getValue<boolean>("is_enabled");
-            const title = row.getValue<string>("challenge.title");
-            const challenge_id = row.getValue<string>("challenge_id");
-            const game_id = row.getValue<number>("game_id");
+            const isEnabled = row.original.is_enabled;
+            const title = row.original.challenge_title;
+            const challenge_id = row.original.challenge_id;
+            const game_id = row.original.game_id;
             const [checked, setChecked] = useState(isEnabled);
 
             function handlePublicnessChange() {
@@ -74,11 +74,10 @@ const columns: ColumnDef<GameChallenge>[] = [
         },
     },
     {
-        accessorKey: "challenge_id",
         id: "challenge_id",
         header: "ID",
         cell: ({ row }) => {
-            const id = row.getValue<string>("challenge_id");
+            const id = row.original.challenge_id!;
             const { isCopied, copyToClipboard } = useClipboard();
             return (
                 <div className={cn(["flex", "items-center", "gap-1"])}>
@@ -99,7 +98,6 @@ const columns: ColumnDef<GameChallenge>[] = [
         },
     },
     {
-        accessorKey: "challenge_title",
         id: "challenge_title",
         header: "标题",
         cell: ({ row }) => {
@@ -107,7 +105,6 @@ const columns: ColumnDef<GameChallenge>[] = [
         },
     },
     {
-        accessorKey: "challenge_category",
         id: "challenge_category",
         header: "分类",
         cell: ({ row }) => {
@@ -132,11 +129,7 @@ const columns: ColumnDef<GameChallenge>[] = [
         accessorKey: "pts",
         id: "pts",
         header: "当前分值",
-        cell: ({ row }) => {
-            const pts = row.getValue<number>("pts");
-
-            return pts;
-        },
+        cell: ({ row }) => row.original.pts,
     },
     {
         id: "actions",

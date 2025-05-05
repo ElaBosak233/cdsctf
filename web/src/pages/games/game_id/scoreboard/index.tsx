@@ -60,7 +60,8 @@ export default function Index() {
             <title>{`积分榜 - ${currentGame?.title}`}</title>
             <div
                 className={cn([
-                    "mx-60",
+                    "xl:mx-60",
+                    "mx-10",
                     "my-10",
                     "flex",
                     "flex-col",

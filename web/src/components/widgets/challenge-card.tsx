@@ -132,6 +132,7 @@ function ChallengeCard(props: ChallengeCardProps) {
                         >
                             {status?.bloods?.map((blood, index) => (
                                 <div
+                                    key={index}
                                     className={cn([
                                         "flex",
                                         "items-center",
