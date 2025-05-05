@@ -1,28 +1,32 @@
-import Markdown from "react-markdown";
+import { MarkdownHooks } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import rehypeKatex from "rehype-katex";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeSlug from "rehype-slug";
+// import rehypeAutolinkHeadings, {
+//     Options as RehypeAutolinkHeadingsOptions,
+// } from "rehype-autolink-headings";
+import rehypePrettyCode, {
+    Options as RehypePrettyCodeOptions,
+} from "rehype-pretty-code";
 import rehypeStringify from "rehype-stringify";
-import rehypeHighlight from "rehype-highlight";
 import "katex/dist/katex.min.css";
-import "highlight.js/styles/atom-one-dark.min.css";
-import { cn } from "@/utils";
 import React from "react";
-import { Typography } from "../ui/typography";
+import { Typography } from "@/components/ui/typography";
 
 interface MarkdownRenderProps extends React.ComponentProps<typeof Typography> {
     src?: string;
+    anchors?: boolean;
 }
 
 function MarkdownRender(props: MarkdownRenderProps) {
-    const { src, ...rest } = props;
+    const { src, anchors = true, ...rest } = props;
 
     return (
         <Typography {...rest}>
-            <Markdown
+            <MarkdownHooks
                 remarkPlugins={[
                     remarkGfm,
                     remarkParse,
@@ -30,28 +34,34 @@ function MarkdownRender(props: MarkdownRenderProps) {
                     remarkRehype,
                 ]}
                 rehypePlugins={[
+                    [
+                        rehypePrettyCode,
+                        {
+                            theme: "github-dark",
+                            keepBackground: false,
+                            bypassInlineCode: false,
+                        } satisfies RehypePrettyCodeOptions,
+                    ],
                     rehypeKatex,
-                    rehypeAutolinkHeadings,
+                    rehypeSlug,
+                    // [
+                    //     rehypeAutolinkHeadings,
+                    //     {
+                    //         behavior: "append",
+                    //         properties: {
+                    //             className: ["anchor"],
+                    //         },
+                    //         content: () => ({
+                    //             type: "text",
+                    //             value: "¶",
+                    //         }),
+                    //     } satisfies RehypeAutolinkHeadingsOptions,
+                    // ],
                     rehypeStringify,
-                    rehypeHighlight,
                 ]}
-                components={{
-                    pre: ({ children }) => {
-                        return (
-                            <pre
-                                className={cn([
-                                    "rounded-lg",
-                                    "overflow-hidden",
-                                ])}
-                            >
-                                {children}
-                            </pre>
-                        );
-                    },
-                }}
             >
                 {src}
-            </Markdown>
+            </MarkdownHooks>
         </Typography>
     );
 }

@@ -1,0 +1,25 @@
+@layer utilities {
+    .prose pre {
+        @apply rounded-lg block;
+    }
+
+    .prose pre code {
+        @apply p-[1em] overflow-x-auto;
+    }
+
+    .prose a.anchor {
+        @apply no-underline mx-2 opacity-50 hover:opacity-100;
+    }
+
+    .prose blockquote {
+        font-style: normal;
+    }
+
+    .prose blockquote p:first-of-type::before {
+        content: none;
+    }
+
+    .prose blockquote p:last-of-type::after {
+        content: none;
+    }
+}
