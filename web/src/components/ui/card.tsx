@@ -1,11 +1,19 @@
 import * as React from "react";
 
 import { cn } from "@/utils";
+import { Slot, Slottable } from "@radix-ui/react-slot";
 
-function Card(props: React.ComponentProps<"div">) {
-    const { className, ref, ...rest } = props;
+type CardProps = React.ComponentProps<"div"> & {
+    asChild?: boolean;
+};
+
+function Card(props: CardProps) {
+    const { className, asChild = false, ref, children, ...rest } = props;
+
+    const Comp = asChild ? Slot : "div";
+
     return (
-        <div
+        <Comp
             ref={ref}
             className={cn(
                 [
@@ -18,7 +26,9 @@ function Card(props: React.ComponentProps<"div">) {
                 className
             )}
             {...rest}
-        />
+        >
+            <Slottable>{children}</Slottable>
+        </Comp>
     );
 }
 

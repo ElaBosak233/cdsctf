@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/utils";
 import { Challenge, ChallengeMini } from "@/models/challenge";
-import { useCategoryStore } from "@/storages/category";
 import { Separator } from "@/components/ui/separator";
 import { MarkdownRender } from "@/components/utils/markdown-render";
 import { Context } from "./context";
@@ -15,6 +14,7 @@ import { DownloadIcon, SnowflakeIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getChallenge } from "@/api/challenges/challenge_id";
 import { getChallenge as getChallengeDebug } from "@/api/admin/challenges/challenge_id";
+import { getCategory } from "@/utils/category";
 
 interface ChallengeDialogProps extends React.ComponentProps<typeof Card> {
     digest?: ChallengeMini;
@@ -25,7 +25,6 @@ interface ChallengeDialogProps extends React.ComponentProps<typeof Card> {
 
 function ChallengeDialog(props: ChallengeDialogProps) {
     const { digest, gameTeam, frozenAt, debug = false, ...rest } = props;
-    const { getCategory } = useCategoryStore();
 
     const [challenge, setChallenge] = useState<Challenge>();
 
@@ -43,7 +42,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
     }, [digest?.id, debug]);
 
     const category = useMemo(
-        () => getCategory(digest?.category),
+        () => getCategory(digest?.category!),
         [digest?.category]
     );
     const CategoryIcon = category?.icon!;

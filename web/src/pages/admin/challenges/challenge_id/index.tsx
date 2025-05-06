@@ -11,17 +11,13 @@ import { updateChallenge } from "@/api/admin/challenges/challenge_id";
 import { toast } from "sonner";
 import { useSharedStore } from "@/storages/shared";
 import {
-    Box,
-    Container,
+    BoxIcon,
     ContainerIcon,
-    Folder,
     FolderIcon,
-    Library,
     LibraryIcon,
     SaveIcon,
-    ShipWheel,
+    ShipWheelIcon,
     TagIcon,
-    Type,
     TypeIcon,
 } from "lucide-react";
 import {
@@ -34,13 +30,12 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
-import { useCategoryStore } from "@/storages/category";
 import { TagsField } from "@/components/ui/tags-field";
 import { StatusCodes } from "http-status-codes";
+import { categories } from "@/utils/category";
 
 export default function Index() {
     const { challenge } = useContext(Context);
-    const categoryStore = useCategoryStore();
     const sharedStore = useSharedStore();
 
     const [loading, setLoading] = useState<boolean>(false);
@@ -132,7 +127,7 @@ export default function Index() {
                                         </FieldIcon>
                                         <Select
                                             {...field}
-                                            options={categoryStore.categories?.map(
+                                            options={categories?.map(
                                                 (category) => {
                                                     const Icon =
                                                         category?.icon!;
@@ -252,7 +247,7 @@ export default function Index() {
                                                                 "items-center",
                                                             ])}
                                                         >
-                                                            <ShipWheel />
+                                                            <ShipWheelIcon />
                                                             动态环境
                                                         </div>
                                                     ),
@@ -267,7 +262,7 @@ export default function Index() {
                                                                 "items-center",
                                                             ])}
                                                         >
-                                                            <Box />
+                                                            <BoxIcon />
                                                             静态环境
                                                         </div>
                                                     ),

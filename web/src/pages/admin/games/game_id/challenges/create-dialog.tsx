@@ -7,7 +7,6 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Challenge } from "@/models/challenge";
-import { useCategoryStore } from "@/storages/category";
 import { cn } from "@/utils";
 import { HashIcon, LibraryIcon, TypeIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
@@ -15,6 +14,7 @@ import { Context } from "../context";
 import { toast } from "sonner";
 import { useSharedStore } from "@/storages/shared";
 import { StatusCodes } from "http-status-codes";
+import { getCategory } from "@/utils/category";
 
 interface CreateDialogProps {
     onClose: () => void;
@@ -24,7 +24,6 @@ function CreateDialog(props: CreateDialogProps) {
     const { onClose } = props;
 
     const { game } = useContext(Context);
-    const categoryStore = useCategoryStore();
     const sharedStore = useSharedStore();
 
     const [id, setId] = useState<string>("");
@@ -113,9 +112,7 @@ function CreateDialog(props: CreateDialogProps) {
             </div>
             <div className={cn(["grid", "grid-cols-2", "gap-3"])}>
                 {challenges?.map((challenge) => {
-                    const Icon = categoryStore.getCategory(
-                        challenge?.category!
-                    ).icon!;
+                    const Icon = getCategory(challenge?.category!).icon!;
                     return (
                         <Button
                             className={cn(["justify-start"])}

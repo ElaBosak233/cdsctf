@@ -4,12 +4,12 @@ import * as React from "react";
 import { Flag } from "lucide-react";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
-import { useCategoryStore } from "@/storages/category";
 import { Badge } from "../ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { ChallengeStatus } from "@/api/challenges";
 import { useLocation } from "react-router";
 import { getOrdinal } from "@/utils/math";
+import { getCategory } from "@/utils/category";
 
 interface ChallengeCardProps extends React.ComponentProps<"div"> {
     digest?: ChallengeMini;
@@ -19,12 +19,11 @@ interface ChallengeCardProps extends React.ComponentProps<"div"> {
 
 function ChallengeCard(props: ChallengeCardProps) {
     const { digest, status, debug = false, className, ...rest } = props;
-    const { getCategory } = useCategoryStore();
     const location = useLocation();
     const pathname = location.pathname;
 
     const category = React.useMemo(() => {
-        return getCategory(digest?.category);
+        return getCategory(digest?.category!);
     }, [digest?.category]);
     const CategoryIcon = category?.icon!;
 
@@ -127,7 +126,8 @@ function ChallengeCard(props: ChallengeCardProps) {
                                 "flex-col",
                                 "gap-1",
                                 "py-3",
-                                "px-5",
+                                "px-4",
+                                "rounded-xl",
                             ])}
                         >
                             {status?.bloods?.map((blood, index) => (

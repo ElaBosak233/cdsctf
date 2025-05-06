@@ -22,13 +22,12 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
 import { useSearchParams } from "react-router";
 import { Select } from "@/components/ui/select";
-import { useCategoryStore } from "@/storages/category";
 import { useConfigStore } from "@/storages/config";
 import { StatusCodes } from "http-status-codes";
+import { categories } from "@/utils/category";
 
 export default function Index() {
     const authStore = useAuthStore();
-    const categoryStore = useCategoryStore();
     const configStore = useConfigStore();
 
     const [searchParams, setSearchParams] = useSearchParams();
@@ -159,27 +158,25 @@ export default function Index() {
                                             </div>
                                         ),
                                     },
-                                    ...categoryStore.categories?.map(
-                                        (category) => {
-                                            const Icon = category?.icon!;
+                                    ...categories?.map((category) => {
+                                        const Icon = category?.icon!;
 
-                                            return {
-                                                value: String(category?.id),
-                                                content: (
-                                                    <div
-                                                        className={cn([
-                                                            "flex",
-                                                            "gap-2",
-                                                            "items-center",
-                                                        ])}
-                                                    >
-                                                        <Icon />
-                                                        {category?.name?.toUpperCase()}
-                                                    </div>
-                                                ),
-                                            };
-                                        }
-                                    ),
+                                        return {
+                                            value: String(category?.id),
+                                            content: (
+                                                <div
+                                                    className={cn([
+                                                        "flex",
+                                                        "gap-2",
+                                                        "items-center",
+                                                    ])}
+                                                >
+                                                    <Icon />
+                                                    {category?.name?.toUpperCase()}
+                                                </div>
+                                            ),
+                                        };
+                                    }),
                                 ]}
                                 onValueChange={(value) => setCategory(value)}
                                 value={category}

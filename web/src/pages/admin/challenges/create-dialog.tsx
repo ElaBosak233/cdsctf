@@ -12,7 +12,6 @@ import {
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { Select } from "@/components/ui/select";
-import { useCategoryStore } from "@/storages/category";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +21,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { StatusCodes } from "http-status-codes";
+import { categories } from "@/utils/category";
 
 interface CreateDialogProps {
     onClose: () => void;
@@ -31,7 +31,6 @@ function CreateDialog(props: CreateDialogProps) {
     const { onClose } = props;
 
     const sharedStore = useSharedStore();
-    const categoryStore = useCategoryStore();
 
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -129,7 +128,7 @@ function CreateDialog(props: CreateDialogProps) {
                                         </FieldIcon>
                                         <Select
                                             {...field}
-                                            options={categoryStore.categories?.map(
+                                            options={categories?.map(
                                                 (category) => {
                                                     const Icon =
                                                         category?.icon!;

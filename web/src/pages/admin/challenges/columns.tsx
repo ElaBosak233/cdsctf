@@ -20,7 +20,6 @@ import {
 } from "@/api/admin/challenges/challenge_id";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/utils";
-import { useCategoryStore } from "@/storages/category";
 import { ContentDialog } from "@/components/widgets/content-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -36,15 +35,16 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { useSharedStore } from "@/storages/shared";
 import { StatusCodes } from "http-status-codes";
+import { getCategory } from "@/utils/category";
 
 const columns: ColumnDef<Challenge>[] = [
     {
         accessorKey: "is_public",
         header: "练习",
         cell: ({ row }) => {
-            const isPublic = row.getValue<boolean>("is_public");
-            const title = row.getValue<string>("title");
-            const id = row.getValue<string>("id");
+            const isPublic = row.original.is_public;
+            const title = row.original.title;
+            const id = row.original.id;
             const [checked, setChecked] = useState(isPublic);
 
             function handlePublicnessChange() {
@@ -84,7 +84,9 @@ const columns: ColumnDef<Challenge>[] = [
             const { isCopied, copyToClipboard } = useClipboard();
             return (
                 <div className={cn(["flex", "items-center", "gap-1"])}>
-                    <Badge>{id?.split("-")?.[0]}</Badge>
+                    <Badge className={cn(["font-mono"])}>
+                        {id?.split("-")?.[0]}
+                    </Badge>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
@@ -156,18 +158,13 @@ const columns: ColumnDef<Challenge>[] = [
         header: "分类",
         cell: ({ row }) => {
             const categoryId = row.getValue("category") as number;
-            const category = useCategoryStore
-                .getState()
-                .getCategory(categoryId);
+            const category = getCategory(categoryId);
 
             const Icon = category.icon!;
             return (
                 <div className={cn(["flex", "gap-2", "items-center"])}>
                     <Icon className={cn(["size-4"])} />
-                    {useCategoryStore
-                        .getState()
-                        .getCategory(categoryId)
-                        ?.name?.toUpperCase()}
+                    {category.name?.toUpperCase()}
                 </div>
             );
         },

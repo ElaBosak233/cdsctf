@@ -25,16 +25,15 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Select } from "@/components/ui/select";
-import { useCategoryStore } from "@/storages/category";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useSharedStore } from "@/storages/shared";
 import { GameChallenge } from "@/models/game_challenge";
 import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
 import { Context } from "../context";
 import { CreateDialog } from "./create-dialog";
+import { categories } from "@/utils/category";
 
 export default function Index() {
-    const categoryStore = useCategoryStore();
     const sharedStore = useSharedStore();
 
     const { game } = useContext(Context);
@@ -179,7 +178,7 @@ export default function Index() {
                                         </div>
                                     ),
                                 },
-                                ...categoryStore.categories?.map((category) => {
+                                ...categories?.map((category) => {
                                     const Icon = category?.icon!;
 
                                     return {

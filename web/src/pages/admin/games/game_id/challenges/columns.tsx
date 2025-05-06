@@ -3,12 +3,12 @@ import {
     ClipboardCheck,
     ClipboardCopy,
     EditIcon,
+    SettingsIcon,
     TrashIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/utils";
-import { useCategoryStore } from "@/storages/category";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,6 +28,8 @@ import {
 } from "@/api/admin/games/game_id/challenges/challenge_id";
 import { EditDialog } from "./edit-dialog";
 import { StatusCodes } from "http-status-codes";
+import { getCategory } from "@/utils/category";
+import { Link } from "react-router";
 
 const columns: ColumnDef<GameChallenge>[] = [
     {
@@ -80,8 +82,10 @@ const columns: ColumnDef<GameChallenge>[] = [
             const id = row.original.challenge_id!;
             const { isCopied, copyToClipboard } = useClipboard();
             return (
-                <div className={cn(["flex", "items-center", "gap-1"])}>
-                    <Badge>{id?.split("-")?.[0]}</Badge>
+                <div className={cn(["flex", "items-center", "gap-2"])}>
+                    <Badge className={cn(["font-mono"])}>
+                        {id?.split("-")?.[0]}
+                    </Badge>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
@@ -109,18 +113,13 @@ const columns: ColumnDef<GameChallenge>[] = [
         header: "分类",
         cell: ({ row }) => {
             const categoryId = row.original.challenge_category;
-            const category = useCategoryStore
-                .getState()
-                .getCategory(categoryId);
+            const category = getCategory(categoryId!);
 
             const Icon = category.icon!;
             return (
                 <div className={cn(["flex", "gap-2", "items-center"])}>
                     <Icon className={cn(["size-4"])} />
-                    {useCategoryStore
-                        .getState()
-                        .getCategory(categoryId)
-                        ?.name?.toUpperCase()}
+                    {category.name?.toUpperCase()}
                 </div>
             );
         },
@@ -171,11 +170,16 @@ const columns: ColumnDef<GameChallenge>[] = [
                         "gap-2",
                     ])}
                 >
+                    <Button icon={EditIcon} square size={"sm"} asChild>
+                        <Link
+                            to={`/admin/challenges/${row.original.challenge_id}`}
+                        />
+                    </Button>
                     <Button
                         variant={"ghost"}
                         size={"sm"}
                         square
-                        icon={EditIcon}
+                        icon={SettingsIcon}
                         onClick={() => setEditDialogOpen(true)}
                     />
                     <Dialog
