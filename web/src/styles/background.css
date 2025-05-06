@@ -1,0 +1,14 @@
+.draw-line {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: draw-line 3s cubic-bezier(0.215, 0.61, 0.355, 1) both;
+}
+
+@keyframes draw-line {
+    0% {
+        stroke-dashoffset: 1000;
+    }
+    100% {
+        stroke-dashoffset: 0;
+    }
+}

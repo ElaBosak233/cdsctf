@@ -4,9 +4,10 @@ import { Toaster } from "@/components/ui/sonner";
 import { useEffect } from "react";
 import { useThemeStore } from "@/storages/theme";
 import { useConfigStore } from "@/storages/config";
-import { cn } from "./utils";
-import { ScrollArea } from "./components/ui/scroll-area";
-import { getConfigs, getVersion } from "./api/configs";
+import { cn } from "@/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { getConfigs, getVersion } from "@/api/configs";
+import { Background } from "@/components/widgets/background";
 
 function App() {
     const { theme } = useThemeStore();
@@ -51,6 +52,7 @@ function App() {
                     "overflow-auto",
                 ])}
             >
+                <Background />
                 <RouterProvider router={routers} />
             </ScrollArea>
         </>

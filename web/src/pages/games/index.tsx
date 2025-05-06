@@ -206,6 +206,7 @@ export default function Index() {
                                 "flex",
                                 "items-center",
                                 "gap-3",
+                                "transition-all",
                             ])}
                             onClick={() =>
                                 navigate(`/games/${selectedGame?.id}`)
