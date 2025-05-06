@@ -56,8 +56,8 @@ export default function Index() {
                     "w-full",
                     "flex",
                     "flex-col",
-                    "lg:px-30",
-                    "xl:px-50",
+                    "lg:px-10",
+                    "xl:px-30",
                     "lg:flex-row",
                     "justify-center",
                     "gap-12",
@@ -115,8 +115,7 @@ export default function Index() {
                                 "text-sm",
                                 "text-secondary-foreground",
                                 "text-ellipsis",
-                                "text-nowrap",
-                                "whitespace-nowrap",
+                                "text-center",
                                 "overflow-hidden",
                             ])}
                         >

@@ -33,13 +33,12 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Select } from "@/components/ui/select";
-import { useCategoryStore } from "@/storages/category";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { CreateDialog } from "./create-dialog";
 import { useSharedStore } from "@/storages/shared";
+import { categories } from "@/utils/category";
 
 export default function Index() {
-    const categoryStore = useCategoryStore();
     const sharedStore = useSharedStore();
 
     const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
@@ -110,7 +109,7 @@ export default function Index() {
     }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh]);
 
     return (
-        <div className={cn(["container", "mx-auto", "py-10"])}>
+        <div className={cn(["container", "mx-auto", "p-10"])}>
             <div
                 className={cn([
                     "flex",
@@ -197,7 +196,7 @@ export default function Index() {
                                         </div>
                                     ),
                                 },
-                                ...categoryStore.categories?.map((category) => {
+                                ...categories?.map((category) => {
                                     const Icon = category?.icon!;
 
                                     return {

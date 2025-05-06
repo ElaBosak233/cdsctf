@@ -6,25 +6,26 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { Pagination } from "@/components/ui/pagination";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Game } from "@/models/game";
+import { GameMini } from "@/models/game";
 import { cn } from "@/utils";
 import { FlagIcon, PackageOpenIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useConfigStore } from "@/storages/config";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Index() {
     const configStore = useConfigStore();
     const navigate = useNavigate();
 
-    const [games, setGames] = useState<Array<Game>>();
+    const [games, setGames] = useState<Array<GameMini>>();
     const [total, setTotal] = useState<number>(0);
     const [title, setTitle] = useState<string>("");
     const debouncedTitle = useDebounce(title, 500);
     const [page, setPage] = useState<number>(1);
     const [size, _setSize] = useState<number>(10);
 
-    const [selectedGame, setSelectedGame] = useState<Game>();
+    const [selectedGame, setSelectedGame] = useState<GameMini>();
 
     function fetchGames() {
         getGames({
@@ -97,43 +98,64 @@ export default function Index() {
                     />
                     <Card
                         className={cn([
-                            "flex",
-                            "flex-col",
                             "w-full",
+                            "flex-1",
+                            "max-h-128",
                             "p-5",
-                            "gap-3",
-                            "justify-start",
-                            "overflow-auto",
                             "select-none",
+                            "overflow-hidden",
                         ])}
+                        asChild
                     >
-                        {games?.map((game) => (
-                            <Button
-                                key={game?.id}
-                                icon={FlagIcon}
-                                className={cn(["justify-start"])}
-                                variant={
-                                    selectedGame?.id === game?.id
-                                        ? "tonal"
-                                        : "ghost"
-                                }
-                                onClick={() => setSelectedGame(game)}
-                            >
-                                {game?.title}
-                            </Button>
-                        ))}
-                        {!games?.length && (
-                            <div
-                                className={cn([
-                                    "text-secondary-foreground",
-                                    "flex",
-                                    "gap-3",
-                                ])}
-                            >
-                                <PackageOpenIcon />
-                                好像还没有比赛哦。
+                        <ScrollArea className={cn(["h-full"])}>
+                            <div className={cn(["space-y-3", "h-full"])}>
+                                {games?.map((game) => (
+                                    <Button
+                                        key={game?.id}
+                                        className={cn([
+                                            "justify-start",
+                                            "w-full",
+                                        ])}
+                                        variant={
+                                            selectedGame?.id === game?.id
+                                                ? "tonal"
+                                                : "ghost"
+                                        }
+                                        onClick={() => setSelectedGame(game)}
+                                    >
+                                        <span
+                                            className={cn([
+                                                "size-1.5",
+                                                "rounded-full",
+                                                "bg-success",
+                                                Date.now() / 1000 >
+                                                    game?.ended_at! &&
+                                                    "bg-error",
+                                                Date.now() / 1000 <
+                                                    game?.started_at! &&
+                                                    "bg-info",
+                                            ])}
+                                            aria-hidden="true"
+                                        />
+                                        {game?.title}
+                                    </Button>
+                                ))}
+
+                                {!games?.length && (
+                                    <div
+                                        className={cn([
+                                            "text-secondary-foreground",
+                                            "flex",
+                                            "gap-3",
+                                            "w-full",
+                                        ])}
+                                    >
+                                        <PackageOpenIcon />
+                                        好像还没有比赛哦。
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </ScrollArea>
                     </Card>
                 </div>
                 <div
@@ -176,17 +198,31 @@ export default function Index() {
                                 "p-4",
                                 "bg-card/90",
                                 "backdrop-blur-sm",
-                                "h-24",
+                                "min-h-24",
                                 "w-128",
                                 "max-w-3/4",
                                 "hover:bg-card/80",
                                 "cursor-pointer",
+                                "flex",
+                                "items-center",
+                                "gap-3",
                             ])}
                             onClick={() =>
                                 navigate(`/games/${selectedGame?.id}`)
                             }
                         >
-                            <div className={cn(["flex", "flex-col", "gap-1"])}>
+                            <Image
+                                src={`/api/games/${selectedGame?.id}/icon`}
+                                className={cn(["aspect-square", "h-16"])}
+                                imgClassName={cn(["rounded-full"])}
+                            />
+                            <div
+                                className={cn([
+                                    "space-y-1",
+                                    "flex-1",
+                                    "max-w-100",
+                                ])}
+                            >
                                 <h2
                                     className={cn([
                                         "text-xl",
@@ -194,6 +230,7 @@ export default function Index() {
                                         "text-ellipsis",
                                         "overflow-hidden",
                                         "text-nowrap",
+                                        "font-semibold",
                                     ])}
                                 >
                                     {selectedGame?.title}
@@ -205,7 +242,7 @@ export default function Index() {
                                         "max-w-full",
                                         "text-ellipsis",
                                         "overflow-hidden",
-                                        "text-nowrap",
+                                        "max-h-24",
                                     ])}
                                 >
                                     {selectedGame?.sketch}

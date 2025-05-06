@@ -93,7 +93,7 @@ export default function Index() {
     }, [page, size, sorting, debouncedColumnFilters, sharedStore?.refresh]);
 
     return (
-        <div className={cn(["container", "mx-auto", "py-10"])}>
+        <div className={cn(["container", "mx-auto", "p-10"])}>
             <div
                 className={cn([
                     "flex",

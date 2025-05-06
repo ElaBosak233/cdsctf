@@ -36,7 +36,7 @@ export default function Index() {
     useEffect(() => {
         getGameScoreboard({
             id: currentGame?.id!,
-            size: 10,
+            size,
             page,
         }).then((res) => {
             setTotal(res.total || 0);

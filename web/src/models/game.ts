@@ -23,6 +23,7 @@ export interface Game {
 export interface GameMini {
     id?: number;
     title?: string;
+    sketch?: string;
     started_at?: number;
     frozen_at?: number;
     ended_at?: number;

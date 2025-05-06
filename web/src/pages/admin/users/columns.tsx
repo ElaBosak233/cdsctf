@@ -51,7 +51,7 @@ const columns: ColumnDef<User>[] = [
 
             return (
                 <div className={cn(["flex", "items-center", "gap-1"])}>
-                    <Badge>{displayId}</Badge>
+                    <Badge className={cn(["font-mono"])}>{displayId}</Badge>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button

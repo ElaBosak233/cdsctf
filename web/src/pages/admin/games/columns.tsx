@@ -79,7 +79,7 @@ const columns: ColumnDef<Game>[] = [
             const { isCopied, copyToClipboard } = useClipboard();
             return (
                 <div className={cn(["flex", "items-center", "gap-1"])}>
-                    <Badge>{id}</Badge>
+                    <Badge className={cn(["font-mono"])}>{id}</Badge>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button

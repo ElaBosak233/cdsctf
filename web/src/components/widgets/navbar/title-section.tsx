@@ -55,7 +55,7 @@ function TitleSection(props: TitleSectionProps) {
                     "drop-shadow-md",
                     "h-8",
                     "w-8",
-                    "rounded-lg",
+                    "rounded-full",
                     "overflow-hidden",
                 ])}
             />
