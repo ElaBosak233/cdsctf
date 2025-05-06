@@ -1,25 +1,35 @@
-@layer utilities {
-    .prose pre {
-        @apply rounded-lg block;
-    }
+.prose pre {
+    @apply m-1 rounded-lg block whitespace-pre-wrap break-all;
+}
 
-    .prose pre code {
-        @apply p-[1em] overflow-x-auto;
-    }
+.prose pre code {
+    @apply p-[1em];
+}
 
-    .prose a.anchor {
-        @apply no-underline mx-2 opacity-50 hover:opacity-100;
-    }
+.prose pre code [data-line] {
+    @apply block relative pl-[3em];
 
-    .prose blockquote {
-        font-style: normal;
-    }
+    counter-increment: line;
+}
 
-    .prose blockquote p:first-of-type::before {
-        content: none;
-    }
+.prose pre code > [data-line]::before {
+    @apply absolute left-0 w-[2em] pr-[1em] text-right border-r-2;
 
-    .prose blockquote p:last-of-type::after {
-        content: none;
-    }
+    content: counter(line);
+}
+
+.prose a.anchor {
+    @apply no-underline mx-2 opacity-50 hover:opacity-100;
+}
+
+.prose blockquote {
+    font-style: normal;
+}
+
+.prose blockquote p:first-of-type::before {
+    content: none;
+}
+
+.prose blockquote p:last-of-type::after {
+    content: none;
 }

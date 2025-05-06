@@ -37,6 +37,7 @@ function MarkdownRender(props: MarkdownRenderProps) {
                     [
                         rehypePrettyCode,
                         {
+                            grid: true,
                             theme: "github-dark",
                             keepBackground: false,
                             bypassInlineCode: false,
