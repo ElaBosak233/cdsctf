@@ -27,20 +27,22 @@ import { useAuthStore } from "@/storages/auth";
 import { Link, useNavigate } from "react-router";
 import { useConfigStore } from "@/storages/config";
 import { StatusCodes } from "http-status-codes";
+import { useTranslation } from "react-i18next";
 
 function LoginForm() {
     const configStore = useConfigStore();
     const authStore = useAuthStore();
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const [loading, setLoading] = useState<boolean>(false);
 
     const formSchema = z.object({
         account: z.string({
-            message: "请输入用户名",
+            message: t("account:login.form.message.please_input_username"),
         }),
         password: z.string({
-            message: "请输入密码",
+            message: t("account:login.form.message.please_input_password"),
         }),
         captcha: z
             .object({
@@ -62,24 +64,26 @@ function LoginForm() {
             .then((res) => {
                 if (res.code === StatusCodes.OK) {
                     authStore.setUser(res.data);
-                    toast.success("登录成功", {
+                    toast.success(t("account:login.success._"), {
                         id: "login",
-                        description: `欢迎回来，${res.data?.name}！`,
+                        description: t("account:login.success.welcome", {
+                            name: res.data?.name,
+                        }),
                     });
                     navigate("/");
                 }
 
                 if (res.code === StatusCodes.BAD_REQUEST) {
-                    toast.error("登录失败", {
+                    toast.error(t("account:login.error._"), {
                         id: "login",
-                        description: "用户名或密码错误",
+                        description: t("account:login.error.invalid"),
                     });
                 }
 
                 if (res.code === StatusCodes.GONE) {
-                    toast.error("Captcha 已失效", {
+                    toast.error(t("account:captcha.expired"), {
                         id: "login",
-                        description: "请刷新 Captcha",
+                        description: t("account:captcha.please_refresh"),
                     });
                 }
             })
@@ -101,7 +105,7 @@ function LoginForm() {
                         name={"account"}
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>用户名/邮箱</FormLabel>
+                                <FormLabel>{`${t("user:username")} / ${t("user:email")}`}</FormLabel>
                                 <FormControl>
                                     <Field>
                                         <FieldIcon>
@@ -122,7 +126,7 @@ function LoginForm() {
                         name={"password"}
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>密码</FormLabel>
+                                <FormLabel>{t("user:password")}</FormLabel>
                                 <FormControl>
                                     <Field>
                                         <FieldIcon>
@@ -153,7 +157,7 @@ function LoginForm() {
                                 ])}
                             >
                                 <CircleHelpIcon className={cn(["size-4"])} />
-                                忘记密码
+                                {t("account:forgot")}
                             </Link>
                         </div>
                     )}
@@ -162,7 +166,9 @@ function LoginForm() {
                             name={"captcha"}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>验证码</FormLabel>
+                                    <FormLabel>
+                                        {t("account:captcha._")}
+                                    </FormLabel>
                                     <Captcha onChange={field.onChange} />
                                 </FormItem>
                             )}
@@ -178,7 +184,7 @@ function LoginForm() {
                     icon={CheckIcon}
                     loading={loading}
                 >
-                    登录
+                    {t("account:login._")}
                 </Button>
             </form>
         </Form>

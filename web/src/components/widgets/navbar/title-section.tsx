@@ -51,6 +51,7 @@ function TitleSection(props: TitleSectionProps) {
             <Image
                 src={src}
                 fallback={<Flag />}
+                delay={0}
                 className={cn([
                     "drop-shadow-md",
                     "h-8",

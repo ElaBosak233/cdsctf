@@ -13,6 +13,7 @@ import { Link, useLocation } from "react-router";
 import { useGameStore } from "@/storages/game";
 import { Context } from "./context";
 import { State } from "@/models/team";
+import { useTranslation } from "react-i18next";
 
 function TabSection() {
     const location = useLocation();
@@ -20,13 +21,15 @@ function TabSection() {
     const { mode } = useContext(Context);
     const { currentGame, selfTeam } = useGameStore();
 
+    const { t, i18n } = useTranslation();
+
     const options = useMemo(() => {
         switch (mode) {
             case "game":
                 return [
                     {
                         link: `/games/${currentGame?.id}`,
-                        name: "主页",
+                        name: t("home"),
                         icon: House,
                     },
                     {
@@ -63,22 +66,22 @@ function TabSection() {
                 return [
                     {
                         link: "/",
-                        name: "主页",
+                        name: t("home"),
                         icon: House,
                     },
                     {
                         link: "/playground",
-                        name: "练习场",
+                        name: t("playground"),
                         icon: Library,
                     },
                     {
                         link: "/games",
-                        name: "比赛",
+                        name: t("game"),
                         icon: Flag,
                     },
                 ];
         }
-    }, [mode, currentGame?.id, selfTeam]);
+    }, [mode, currentGame?.id, selfTeam, i18n.language]);
 
     return (
         <>

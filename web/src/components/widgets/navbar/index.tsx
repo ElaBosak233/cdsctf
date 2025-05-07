@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { SettingsIcon } from "lucide-react";
-import { AppearanceDropdown } from "./apperance-dropdown";
+import { Appearance } from "./apperance";
 import { AuthSection } from "./auth-section";
 import { TabSection } from "./tab-section";
 import { TitleSection } from "./title-section";
@@ -69,7 +69,7 @@ function Navbar() {
                         </div>
                     </div>
                     <div className={cn(["flex", "gap-3", "items-center"])}>
-                        <AppearanceDropdown />
+                        <Appearance />
                         {authStore?.user?.group === Group.Admin && (
                             <Button
                                 asChild

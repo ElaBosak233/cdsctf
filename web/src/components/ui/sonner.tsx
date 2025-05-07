@@ -1,4 +1,4 @@
-import { useThemeStore } from "@/storages/theme";
+import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
 import {
     CircleAlertIcon,
@@ -13,7 +13,7 @@ type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 function Toaster(props: ToasterProps) {
     const { ...rest } = props;
-    const { theme } = useThemeStore();
+    const { theme } = useApperanceStore();
 
     return (
         <Sonner

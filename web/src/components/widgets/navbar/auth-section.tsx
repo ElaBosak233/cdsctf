@@ -13,8 +13,10 @@ import {
 import { LogOut, SettingsIcon, UserRound } from "lucide-react";
 import { useNavigate, Link } from "react-router";
 import { StatusCodes } from "http-status-codes";
+import { useTranslation } from "react-i18next";
 
 function AuthSection() {
+    const { t } = useTranslation("account");
     const navigate = useNavigate();
     const authStore = useAuthStore();
 
@@ -67,14 +69,14 @@ function AuthSection() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem icon={SettingsIcon} asChild>
-                        <Link to={"/account/settings"}>个人设置</Link>
+                        <Link to={"/account/settings"}>{t("setting")}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         icon={LogOut}
                         className={cn("text-error", "hover:text-error")}
                         onClick={handleLogout}
                     >
-                        退出登录
+                        {t("logout")}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -83,7 +85,7 @@ function AuthSection() {
 
     return (
         <Button asChild icon={UserRound}>
-            <Link to={"/account/login"}>登录</Link>
+            <Link to={"/account/login"}>{t("login._")}</Link>
         </Button>
     );
 }

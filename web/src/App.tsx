@@ -2,15 +2,16 @@ import { RouterProvider } from "react-router";
 import routers from "@/routers";
 import { Toaster } from "@/components/ui/sonner";
 import { useEffect } from "react";
-import { useThemeStore } from "@/storages/theme";
+import { useApperanceStore } from "@/storages/appearance";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getConfigs, getVersion } from "@/api/configs";
 import { Background } from "@/components/widgets/background";
+import "@/utils/i18n";
 
 function App() {
-    const { theme } = useThemeStore();
+    const { theme } = useApperanceStore();
     const { setConfig, setVersion } = useConfigStore();
 
     useEffect(() => {

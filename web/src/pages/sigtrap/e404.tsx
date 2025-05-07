@@ -2,9 +2,11 @@ import { Separator } from "@/components/ui/separator";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { CircleOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function E404() {
     const configStore = useConfigStore();
+    const { t } = useTranslation("sigtrap");
 
     return (
         <>
@@ -24,10 +26,10 @@ export default function E404() {
                 <div className={cn(["flex", "gap-2", "text-xl"])}>
                     <span>404</span>
                     <Separator orientation={"vertical"} />
-                    <span>Not Found</span>
+                    <span>{t("404.title")}</span>
                 </div>
                 <span className={cn(["text-secondary-foreground"])}>
-                    Don't lose your determination.
+                    {t("404.description")}
                 </span>
             </div>
         </>

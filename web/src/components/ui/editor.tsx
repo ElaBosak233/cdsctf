@@ -1,4 +1,4 @@
-import { useThemeStore } from "@/storages/theme";
+import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
 import ace, { edit } from "ace-builds";
 import "ace-builds/esm-resolver";
@@ -27,7 +27,7 @@ function Editor(props: EditorProps) {
         ...rest
     } = props;
 
-    const { theme } = useThemeStore();
+    const { theme } = useApperanceStore();
 
     const editorRef = useRef<HTMLPreElement>(null);
     const editorInstance = useRef<ace.Ace.Editor | null>(null);

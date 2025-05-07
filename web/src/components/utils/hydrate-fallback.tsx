@@ -1,7 +1,10 @@
 import { cn } from "@/utils";
 import { LoaderCircleIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function HydrateFallback() {
+    const { t } = useTranslation();
+
     return (
         <div
             className={cn([
@@ -14,7 +17,7 @@ function HydrateFallback() {
             ])}
         >
             <LoaderCircleIcon className={cn(["animate-spin", "size-10"])} />
-            <span>加载中</span>
+            <span>{t("loading")}</span>
         </div>
     );
 }

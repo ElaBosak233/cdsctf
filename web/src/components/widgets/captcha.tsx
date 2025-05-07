@@ -1,11 +1,11 @@
 import { useConfigStore } from "@/storages/config";
-import { useThemeStore } from "@/storages/theme";
+import { useApperanceStore } from "@/storages/appearance";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
 import { useSharedStore } from "@/storages/shared";
-import { Bot, RefreshCcw, Image, BotIcon, ImageIcon } from "lucide-react";
+import { RefreshCcwIcon, BotIcon, ImageIcon } from "lucide-react";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
@@ -18,7 +18,7 @@ export interface CaptchaProps {
 export function Captcha(props: CaptchaProps) {
     const { onChange } = props;
     const configStore = useConfigStore();
-    const themeStore = useThemeStore();
+    const themeStore = useApperanceStore();
 
     switch (configStore?.config?.captcha?.provider) {
         case "none":
@@ -108,7 +108,7 @@ function PowCaptcha(props: CaptchaProps) {
                 disabled={loading}
                 onClick={() => setRefresh((prev) => prev + 1)}
                 loading={loading}
-                icon={RefreshCcw}
+                icon={RefreshCcwIcon}
             />
         </Field>
     );

@@ -6,9 +6,11 @@ import { cn } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { LoginForm } from "./login-form";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 
 export default function Index() {
     const configStore = useConfigStore();
+    const { t } = useTranslation();
 
     return (
         <div
@@ -38,7 +40,7 @@ export default function Index() {
                             ])}
                         >
                             <LogIn />
-                            登录
+                            {t("account:login._")}
                         </div>
                         <div
                             className={cn([
@@ -46,7 +48,7 @@ export default function Index() {
                                 "text-secondary-foreground",
                             ])}
                         >
-                            登录以继续浏览 {configStore?.config?.meta?.title}
+                            {`${t("account:login.continue")} ${configStore?.config?.meta?.title}`}
                         </div>
                         <div className={cn(["pt-6"])}>
                             <LoginForm />
@@ -114,7 +116,7 @@ export default function Index() {
                             icon={UserRoundPlus}
                         >
                             <Link to={"/account/register"}>
-                                还没有账号？注册！
+                                {t("account:register.not_yet")}
                             </Link>
                         </Button>
                     )}
