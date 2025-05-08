@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { getConfigs, getVersion } from "@/api/configs";
 import { Background } from "@/components/widgets/background";
 import "@/utils/i18n";
+import { CheckerWatcher } from "./components/utils/checker-watcher";
 
 function App() {
     const { theme } = useApperanceStore();
@@ -54,6 +55,7 @@ function App() {
                 ])}
             >
                 <Background />
+                <CheckerWatcher />
                 <RouterProvider router={routers} />
             </ScrollArea>
         </>

@@ -10,7 +10,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set, get) => ({
+        (set, _get) => ({
             setUser: (user?: User) => set({ user }),
             clear: () => set({ user: undefined }),
         }),

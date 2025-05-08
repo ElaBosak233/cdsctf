@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { getChallenge } from "@/api/challenges/challenge_id";
 import { getChallenge as getChallengeDebug } from "@/api/admin/challenges/challenge_id";
 import { getCategory } from "@/utils/category";
+import { Typography } from "@/components/ui/typography";
 
 interface ChallengeDialogProps extends React.ComponentProps<typeof Card> {
     digest?: ChallengeMini;
@@ -90,7 +91,9 @@ function ChallengeDialog(props: ChallengeDialogProps) {
                 <ScrollArea
                     className={cn(["flex-1", "max-h-144", "overflow-auto"])}
                 >
-                    <MarkdownRender src={challenge?.description} />
+                    <Typography>
+                        <MarkdownRender src={challenge?.description} />
+                    </Typography>
                 </ScrollArea>
                 {challenge?.has_attachment && (
                     <div className={cn(["flex"])}>

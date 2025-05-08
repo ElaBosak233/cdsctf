@@ -11,6 +11,7 @@ import { ArrowRightIcon, FlagIcon, PlayIcon, SwordsIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { TeamGatheringDialog } from "./team-gathering-dialog";
+import { Typography } from "@/components/ui/typography";
 
 export default function Index() {
     const { currentGame, selfTeam } = useGameStore();
@@ -211,7 +212,9 @@ export default function Index() {
                         "shadow-md",
                     ])}
                 >
-                    <MarkdownRender src={currentGame?.description} />
+                    <Typography>
+                        <MarkdownRender src={currentGame?.description} />
+                    </Typography>
                 </Card>
             </div>
         </>

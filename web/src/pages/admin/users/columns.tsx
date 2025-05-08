@@ -19,7 +19,6 @@ import { useMemo, useState } from "react";
 import { deleteUser } from "@/api/admin/users/user_id";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/utils";
-import { ContentDialog } from "@/components/widgets/content-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
     Tooltip,
@@ -41,7 +40,7 @@ const columns: ColumnDef<User>[] = [
         id: "id",
         header: "ID",
         cell: ({ row }) => {
-            const id = row.getValue("id");
+            const id = row.original.id;
             const idString = String(id);
             const { isCopied, copyToClipboard } = useClipboard();
 
@@ -71,59 +70,33 @@ const columns: ColumnDef<User>[] = [
         accessorKey: "username",
         id: "username",
         header: "用户名",
-        cell: ({ row }) => {
-            const id = row.getValue("id") as number;
-            const username = row.getValue("username") as string;
-
-            return (
-                <div className={cn(["flex", "items-center", "gap-3"])}>
-                    <Avatar
-                        src={`/api/users/${id}/avatar`}
-                        fallback={username?.charAt(0)}
-                    />
-                    {username}
-                </div>
-            );
-        },
+        cell: ({ row }) => (
+            <div className={cn(["flex", "items-center", "gap-3"])}>
+                <Avatar
+                    src={`/api/users/${row.original.id}/avatar`}
+                    fallback={row.original.username?.charAt(0)}
+                />
+                {row.original.username}
+            </div>
+        ),
     },
     {
         accessorKey: "name",
         id: "name",
         header: "昵称",
-        cell: ({ row }) => {
-            const name = row.getValue("name") as string;
-            return name || "-";
-        },
+        cell: ({ row }) => row.original.name || "-",
     },
     {
         accessorKey: "email",
         id: "email",
         header: "邮箱",
-        cell: ({ row }) => {
-            const email = row.getValue("email") as string;
-            return email || "-";
-        },
-    },
-    {
-        accessorKey: "description",
-        header: "描述",
-        cell: ({ row }) => {
-            const description = row.getValue("description") as string;
-
-            if (!description) return "-";
-
-            return description.length > 10 ? (
-                <ContentDialog title="详细描述" content={description} />
-            ) : (
-                description
-            );
-        },
+        cell: ({ row }) => row.original.email || "-",
     },
     {
         accessorKey: "group",
         header: "用户组",
         cell: ({ row }) => {
-            const groupId = row.getValue("group") as number;
+            const groupId = row.original.group;
 
             const groupConfig = {
                 [Group.Guest]: {
@@ -194,7 +167,7 @@ const columns: ColumnDef<User>[] = [
         },
         cell: ({ row }) => {
             return new Date(
-                row.getValue<number>("created_at") * 1000
+                Number(row.original.created_at) * 1000
             ).toLocaleString();
         },
     },
@@ -202,8 +175,8 @@ const columns: ColumnDef<User>[] = [
         id: "actions",
         header: () => <div className={cn(["justify-self-center"])}>操作</div>,
         cell: ({ row }) => {
-            const id = row.getValue<number>("id");
-            const username = row.getValue<string>("username");
+            const id = row.original.id;
+            const username = row.original.username;
 
             const sharedStore = useSharedStore();
 
@@ -212,7 +185,7 @@ const columns: ColumnDef<User>[] = [
 
             function handleDelete() {
                 deleteUser({
-                    id,
+                    id: id!,
                 })
                     .then((res) => {
                         if (res.code === StatusCodes.OK) {

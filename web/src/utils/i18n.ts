@@ -7,13 +7,16 @@ i18n.use(Backend)
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
-        fallbackLng: "en",
-        debug: true,
+        fallbackLng: {
+            en: ["en-US"],
+            zh: ["zh-CN"],
+            default: ["en-US"],
+        },
         ns: ["common", "sigtrap", "account", "user"],
         defaultNS: "common",
+        load: "currentOnly",
         interpolation: {
             escapeValue: false,
         },
+        debug: process.env.NODE_ENV === "development",
     });
-
-export default i18n;

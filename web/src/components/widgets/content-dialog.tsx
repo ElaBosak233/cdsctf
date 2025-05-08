@@ -4,6 +4,7 @@ import { EyeIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { MarkdownRender } from "../utils/markdown-render";
 import { cn } from "@/utils";
+import { Typography } from "../ui/typography";
 
 interface ContentDialogProps {
     title: string;
@@ -52,7 +53,9 @@ export function ContentDialog({
                             "min-h-64",
                         ])}
                     >
-                        <MarkdownRender src={content} />
+                        <Typography>
+                            <MarkdownRender src={content} />
+                        </Typography>
                     </Card>
                 </DialogContent>
             </Dialog>
