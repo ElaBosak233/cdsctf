@@ -17,11 +17,8 @@ use crate::worker::game_calculator;
 
 async fn check(id: i64) -> Result<(), anyhow::Error> {
     let submission = cds_db::entity::submission::Entity::find()
-        .filter(
-            Condition::all()
-                .add(cds_db::entity::submission::Column::Id.eq(id))
-                .add(cds_db::entity::submission::Column::Status.eq(Status::Pending)),
-        )
+        .filter(cds_db::entity::submission::Column::Id.eq(id))
+        .filter(cds_db::entity::submission::Column::Status.eq(Status::Pending))
         .one(get_db())
         .await?
         .ok_or(anyhow!("submission_not_found"))?;
@@ -85,8 +82,6 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
             cds_db::entity::submission::Entity::find()
                 .filter(cds_db::entity::submission::Column::ChallengeId.eq(submission.challenge_id))
                 .filter(cds_db::entity::submission::Column::UserId.eq(submission.user_id))
-                .filter(cds_db::entity::submission::Column::GameId.is_null())
-                .filter(cds_db::entity::submission::Column::TeamId.is_null())
                 .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
                 .count(get_db())
                 .await?
