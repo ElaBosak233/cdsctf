@@ -4,7 +4,6 @@ use std::{collections::HashMap, str::FromStr};
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity,
     entity::submission::Status,
     get_db,
     sea_orm::{
@@ -48,18 +47,18 @@ pub async fn get_challenge(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let mut sql = entity::challenge::Entity::find();
+    let mut sql = cds_db::entity::challenge::Entity::find();
 
     if let Some(id) = params.id {
-        sql = sql.filter(entity::challenge::Column::Id.eq(id));
+        sql = sql.filter(cds_db::entity::challenge::Column::Id.eq(id));
     }
 
     if let Some(title) = params.title {
-        sql = sql.filter(entity::challenge::Column::Title.contains(title));
+        sql = sql.filter(cds_db::entity::challenge::Column::Title.contains(title));
     }
 
     if let Some(category) = params.category {
-        sql = sql.filter(entity::challenge::Column::Category.eq(category));
+        sql = sql.filter(cds_db::entity::challenge::Column::Category.eq(category));
     }
 
     if let Some(tags) = params.tags {
@@ -134,9 +133,9 @@ pub async fn get_challenge_status(
 ) -> Result<WebResponse<HashMap<uuid::Uuid, ChallengeStatusResponse>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let mut submissions = entity::submission::Entity::base_find()
-        .filter(entity::submission::Column::ChallengeId.is_in(body.challenge_ids.to_owned()))
-        .order_by_asc(entity::submission::Column::CreatedAt)
+    let mut submissions = cds_db::entity::submission::Entity::base_find()
+        .filter(cds_db::entity::submission::Column::ChallengeId.is_in(body.challenge_ids.to_owned()))
+        .order_by_asc(cds_db::entity::submission::Column::CreatedAt)
         .into_model::<Submission>()
         .all(get_db())
         .await?;

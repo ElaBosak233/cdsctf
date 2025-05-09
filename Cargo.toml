@@ -24,7 +24,6 @@ cds-db = { path = "crates/db" }
 cds-email = { path = "crates/email" }
 cds-media = { path = "crates/media" }
 cds-queue = { path = "crates/queue" }
-cds-search = { path = "crates/search" }
 cds-telemetry = { path = "crates/telemetry" }
 cds-web = { path = "crates/web" }
 
