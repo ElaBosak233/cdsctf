@@ -134,7 +134,9 @@ pub async fn get_challenge_status(
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let mut submissions = cds_db::entity::submission::Entity::base_find()
-        .filter(cds_db::entity::submission::Column::ChallengeId.is_in(body.challenge_ids.to_owned()))
+        .filter(
+            cds_db::entity::submission::Column::ChallengeId.is_in(body.challenge_ids.to_owned()),
+        )
         .order_by_asc(cds_db::entity::submission::Column::CreatedAt)
         .into_model::<Submission>()
         .all(get_db())

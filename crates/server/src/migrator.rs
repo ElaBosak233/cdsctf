@@ -1,5 +1,5 @@
-use cds_db::{entity, get_db};
-use sea_orm::{ConnectionTrait, DbConn, EntityTrait, Schema};
+use cds_db::get_db;
+use sea_orm::{ConnectionTrait, DbConn, EntityName, EntityTrait, Iden, Schema, Statement};
 use tracing::error;
 
 macro_rules! create_tables {
@@ -25,13 +25,33 @@ where
 pub async fn run() {
     create_tables!(
         get_db(),
-        entity::user::Entity,
-        entity::challenge::Entity,
-        entity::game::Entity,
-        entity::team::Entity,
-        entity::team_user::Entity,
-        entity::submission::Entity,
-        entity::game_challenge::Entity,
-        entity::game_notice::Entity
+        cds_db::entity::user::Entity,
+        cds_db::entity::challenge::Entity,
+        cds_db::entity::game::Entity,
+        cds_db::entity::team::Entity,
+        cds_db::entity::team_user::Entity,
+        cds_db::entity::submission::Entity,
+        cds_db::entity::game_challenge::Entity,
+        cds_db::entity::game_notice::Entity
     );
+
+    get_db()
+        .execute(Statement::from_string(
+            sea_orm::DatabaseBackend::Postgres,
+            "CREATE EXTENSION IF NOT EXISTS pg_trgm;",
+        ))
+        .await
+        .unwrap();
+
+    get_db()
+        .execute(Statement::from_string(
+            sea_orm::DatabaseBackend::Postgres,
+            format!(
+                "CREATE INDEX IF NOT EXISTS idx_challenges_title ON \"{}\" USING gin(\"{}\" gin_trgm_ops);",
+                cds_db::entity::challenge::Entity.table_name(),
+                cds_db::entity::challenge::Column::Title.to_string()
+            ).as_str(),
+        ))
+        .await
+        .unwrap();
 }
