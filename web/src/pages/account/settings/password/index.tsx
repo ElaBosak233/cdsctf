@@ -167,6 +167,8 @@ export default function Index() {
                             )}
                         />
 
+                        <div className={cn(["flex-1"])} />
+
                         <Button
                             size={"lg"}
                             type={"submit"}
