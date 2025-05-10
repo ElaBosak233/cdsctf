@@ -61,13 +61,13 @@ const selectTriggerVariants = cva(
         "justify-between",
         "items-center",
         "border",
-        "border-input",
         "bg-input",
         "px-3",
         "py-2",
         "text-base",
         "ring-offset-input",
         "focus:outline-hidden",
+        "focus:border-none",
         "focus:ring-2",
         "focus:ring-ring",
         "focus:ring-offset-2",
@@ -90,7 +90,7 @@ const selectTriggerVariants = cva(
                 md: "h-12",
             },
             icon: {
-                true: "rounded-l-none",
+                true: ["rounded-l-none", "border-l-0"],
             },
         },
         defaultVariants: {

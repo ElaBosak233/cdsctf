@@ -7,9 +7,10 @@ import { SettingsIcon } from "lucide-react";
 import { Appearance } from "./apperance";
 import { AuthSection } from "./auth-section";
 import { TabSection } from "./tab-section";
-import { TitleSection } from "./title-section";
+import { Title } from "./title";
 import { Button } from "@/components/ui/button";
 import { Group } from "@/models/user";
+import { MobileTab } from "./m-tab";
 
 function Navbar() {
     const authStore = useAuthStore();
@@ -53,12 +54,14 @@ function Navbar() {
                         "justify-between",
                     ])}
                 >
-                    <div className={cn(["flex", "gap-10"])}>
+                    <div className={cn(["flex", "items-center"])}>
+                        <MobileTab />
                         <Button asChild size={"lg"} className={"px-5"}>
-                            <TitleSection />
+                            <Title />
                         </Button>
                         <div
                             className={cn([
+                                "ml-10",
                                 "hidden",
                                 "lg:flex",
                                 "gap-3",

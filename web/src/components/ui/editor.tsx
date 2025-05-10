@@ -1,6 +1,6 @@
 import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
-import ace, { edit } from "ace-builds";
+import ace from "ace-builds";
 import "ace-builds/esm-resolver";
 import { useEffect, useRef, useState } from "react";
 
@@ -111,7 +111,6 @@ function Editor(props: EditorProps) {
                 "w-full",
                 "rounded-md",
                 "border",
-                "border-input",
                 "bg-input",
                 "ring-offset-input",
                 focused && [
@@ -119,6 +118,7 @@ function Editor(props: EditorProps) {
                     "ring-2",
                     "ring-ring",
                     "ring-offset-2",
+                    "border-0",
                 ],
                 className,
             ])}

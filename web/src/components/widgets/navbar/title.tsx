@@ -7,10 +7,9 @@ import { useGameStore } from "@/storages/game";
 import { Image } from "@/components/ui/image";
 import { Flag } from "lucide-react";
 
-interface TitleSectionProps
-    extends Omit<React.ComponentProps<typeof Link>, "to"> {}
+interface TitleProps extends Omit<React.ComponentProps<typeof Link>, "to"> {}
 
-function TitleSection(props: TitleSectionProps) {
+function Title(props: TitleProps) {
     const { className, ...rest } = props;
     const { mode } = useContext(Context);
     const { currentGame } = useGameStore();
@@ -65,4 +64,4 @@ function TitleSection(props: TitleSectionProps) {
     );
 }
 
-export { TitleSection };
+export { Title };

@@ -122,6 +122,7 @@ const DropdownMenuContent = React.forwardRef<
                     "p-1",
                     "text-popover-foreground",
                     "shadow-md",
+                    "mx-2",
                     "data-[state=open]:animate-in",
                     "data-[state=closed]:animate-out",
                     "data-[state=closed]:fade-out-0",

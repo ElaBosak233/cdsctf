@@ -65,12 +65,12 @@
 
 @layer base {
     :root {
-        --background: oklch(1 0 0);
-        --foreground: oklch(0.15 0.02 270);
+        --background: oklch(0.98 0 0);
+        --foreground: oklch(0.2 0.02 270);
         --card: oklch(1 0 0);
-        --card-foreground: oklch(0.15 0.02 270);
+        --card-foreground: oklch(0.2 0.02 270);
         --popover: oklch(1 0 0);
-        --popover-foreground: oklch(0.15 0.02 270);
+        --popover-foreground: oklch(0.2 0.02 270);
         --primary: oklch(0.2 0.02 270);
         --primary-foreground: oklch(0.98 0 0);
         --secondary: oklch(0.95 0.01 270);

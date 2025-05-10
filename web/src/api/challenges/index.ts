@@ -3,10 +3,10 @@ import { Submission } from "@/models/submission";
 import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
 
-export interface GetChallengeRequest {
+export interface GetPlaygroundChallengesRequest {
     id?: string;
     title?: string;
-    description?: string;
+    tags?: string;
     category?: number;
     is_dynamic?: boolean;
     page?: number;
@@ -14,7 +14,9 @@ export interface GetChallengeRequest {
     sorts?: string;
 }
 
-export async function getPlaygroundChallenges(request: GetChallengeRequest) {
+export async function getPlaygroundChallenges(
+    request: GetPlaygroundChallengesRequest
+) {
     return alova.Get<WebResponse<Array<ChallengeMini>>>(
         "/challenges/playground",
         {

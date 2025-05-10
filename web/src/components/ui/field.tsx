@@ -80,8 +80,8 @@ const iconVariants = cva(
     {
         variants: {
             size: {
-                sm: ["h-10", "min-w-10"],
-                md: ["h-12", "min-w-12"],
+                sm: ["h-10", "min-h-10", "min-w-10"],
+                md: ["h-12", "min-h-12", "min-w-12"],
             },
             autoHeight: {
                 true: "h-full",

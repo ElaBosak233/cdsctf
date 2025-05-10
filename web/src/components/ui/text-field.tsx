@@ -39,7 +39,6 @@ const inputVariants = cva(
         "w-0",
         "rounded-md",
         "border",
-        "border-input",
         "bg-input",
         "px-3",
         "py-2",
@@ -51,6 +50,7 @@ const inputVariants = cva(
         "file:font-medium",
         "file:text-foreground",
         "placeholder:text-secondary-foreground/80",
+        "focus-within:border-none",
         "focus-within:outline-hidden",
         "focus-within:ring-2",
         "focus-within:ring-ring",
@@ -62,14 +62,14 @@ const inputVariants = cva(
     {
         variants: {
             size: {
-                sm: "h-10",
-                md: "h-12",
+                sm: ["h-10", "min-h-10"],
+                md: ["h-12", "min-h-12"],
             },
             icon: {
-                true: "rounded-l-none",
+                true: ["rounded-l-none", "border-l-0"],
             },
             extraBtn: {
-                true: "rounded-r-none",
+                true: ["rounded-r-none", "border-r-0"],
             },
         },
         defaultVariants: {

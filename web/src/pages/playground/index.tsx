@@ -7,6 +7,8 @@ import {
     LibraryIcon,
     PackageOpenIcon,
     ListOrderedIcon,
+    TypeIcon,
+    TagIcon,
 } from "lucide-react";
 import { cn } from "@/utils";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,7 @@ import {
     ChallengeStatus,
     getChallengeStatus,
     getPlaygroundChallenges,
+    GetPlaygroundChallengesRequest,
 } from "@/api/challenges";
 import { useAuthStore } from "@/storages/auth";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -39,7 +42,10 @@ export default function Index() {
 
     const [doSearch, setDoSearch] = useState<number>(0);
     const [title, setTitle] = useState<string>(searchParams.get("title") || "");
-    const [category, setCategory] = useState<string | "all">("all");
+    const [tag, setTag] = useState<string>(searchParams.get("tag") || "");
+    const [category, setCategory] = useState<string | "all">(
+        searchParams.get("category") || "all"
+    );
     const [page, setPage] = useState<number>(
         Number(searchParams.get("page")) || 1
     );
@@ -48,21 +54,29 @@ export default function Index() {
     );
 
     useEffect(() => {
-        setSearchParams({
-            title: title,
+        const params: any = {
             page: String(page),
             size: String(size),
             category: category,
-        });
-    }, [title, page, size, category]);
+        };
+
+        if (title) params.title = title;
+        if (tag) params.tag = tag;
+
+        setSearchParams(params);
+    }, [title, tag, page, size, category]);
 
     useEffect(() => {
-        getPlaygroundChallenges({
-            title,
+        const params: GetPlaygroundChallengesRequest = {
             page,
             size,
             category: category !== "all" ? Number(category) : undefined,
-        }).then((res) => {
+        };
+
+        if (title) params.title = title;
+        if (tag) params.tags = tag;
+
+        getPlaygroundChallenges(params).then((res) => {
             if (res.code === StatusCodes.OK) {
                 setTotal(res.total || 0);
                 setChallenges(res.data);
@@ -88,7 +102,7 @@ export default function Index() {
                 className={cn([
                     "flex-1",
                     "p-7",
-                    "mx-auto",
+                    "xl:mx-auto",
                     "flex",
                     "flex-col",
                     "gap-7",
@@ -97,7 +111,7 @@ export default function Index() {
                 <div className={cn(["flex", "items-center", "gap-3"])}>
                     <Field className={cn(["flex-1"])}>
                         <FieldIcon>
-                            <LibraryIcon />
+                            <TypeIcon />
                         </FieldIcon>
                         <TextField
                             placeholder={"题目名"}
@@ -118,8 +132,8 @@ export default function Index() {
                 <div
                     className={cn([
                         "flex",
+                        "flex-wrap",
                         "items-center",
-                        "md:justify-between",
                         "justify-center",
                     ])}
                 >
@@ -138,6 +152,16 @@ export default function Index() {
                             "justify-end",
                         ])}
                     >
+                        <Field size={"sm"} className={cn(["w-48"])}>
+                            <FieldIcon>
+                                <TagIcon />
+                            </FieldIcon>
+                            <TextField
+                                placeholder={"标签"}
+                                value={tag}
+                                onChange={(e) => setTag(e.target.value)}
+                            />
+                        </Field>
                         <Field size={"sm"} className={cn(["w-48"])}>
                             <FieldIcon>
                                 <LibraryIcon />
@@ -205,10 +229,12 @@ export default function Index() {
                 <div className={cn(["flex-1"])}>
                     <div
                         className={cn([
-                            "w-[60vw]",
                             "grid",
+                            "w-full",
                             "sm:grid-cols-2",
+                            "md:grid-cols-3",
                             "xl:grid-cols-4",
+                            "xl:w-[60vw]",
                             "gap-4",
                         ])}
                     >

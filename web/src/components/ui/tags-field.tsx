@@ -260,13 +260,22 @@ function TagsField(props: TagsFieldProps) {
                 {...rest}
                 ref={ref}
                 dir={dir}
-                className={cn(inputVariants({ size, icon: hasIcon }), [
-                    "gap-2",
-                    "overflow-hidden",
-                    "flex-wrap",
-                    "h-auto",
-                    "items-center",
-                ])}
+                className={cn(
+                    inputVariants({
+                        size,
+                        icon: hasIcon,
+                        extraBtn: hasExtraButton,
+                    }),
+                    [
+                        "gap-2",
+                        "overflow-hidden",
+                        "flex-wrap",
+                        "py-2",
+                        "h-auto",
+                        "items-center",
+                    ]
+                )}
+                aria-disabled={disabled}
             >
                 {value.map((item, index) => (
                     <Badge
@@ -315,33 +324,37 @@ function TagsField(props: TagsFieldProps) {
                         </button>
                     </Badge>
                 ))}
-                <TextField
-                    tabIndex={0}
-                    aria-label="input tag"
-                    disabled={disableInput}
-                    onKeyDown={handleKeyDown}
-                    onPaste={handlePaste}
-                    value={inputValue}
-                    onSelect={handleSelect}
-                    onChange={activeIndex === -1 ? handleChange : undefined}
-                    placeholder={placeholder}
-                    onClick={() => setActiveIndex(-1)}
-                    className={cn([
-                        "bg-transparent",
-                        "outline-0",
-                        "border-none",
-                        "h-7",
-                        "min-w-fit",
-                        "flex-1",
-                        "focus-visible:outline-0",
-                        "focus-visible:ring-0",
-                        "focus-visible:ring-offset-0",
-                        "focus-visible:border-0",
-                        "placeholder:text-muted-foreground",
-                        "px-1",
-                        activeIndex !== -1 && "caret-transparent",
-                    ])}
-                />
+                {!disableInput && (
+                    <TextField
+                        tabIndex={0}
+                        aria-label="input tag"
+                        disabled={disableInput || disabled}
+                        onKeyDown={handleKeyDown}
+                        onPaste={handlePaste}
+                        value={inputValue}
+                        onSelect={handleSelect}
+                        onChange={activeIndex === -1 ? handleChange : undefined}
+                        placeholder={placeholder}
+                        onClick={() => setActiveIndex(-1)}
+                        className={cn([
+                            "bg-transparent",
+                            "outline-0",
+                            "border-none",
+                            "min-w-fit",
+                            "flex-1",
+                            "focus-visible:outline-0",
+                            "focus-visible:ring-0",
+                            "focus-visible:ring-offset-0",
+                            "focus-visible:border-0",
+                            "placeholder:text-muted-foreground",
+                            "px-1",
+                            "py-0",
+                            "min-h-0",
+                            "h-5",
+                            activeIndex !== -1 && "caret-transparent",
+                        ])}
+                    />
+                )}
             </div>
         </TagFieldContext.Provider>
     );

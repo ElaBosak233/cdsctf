@@ -147,7 +147,8 @@ function NumberField(props: NumberInputProps) {
                     "[&::-webkit-outer-spin-button]:appearance-none",
                     "[&::-webkit-inner-spin-button]:appearance-none",
                     "relative",
-                    hasExtraButton && "rounded-r-none",
+                    hasIcon && ["rounded-l-none", "border-l-0"],
+                    hasExtraButton && ["rounded-r-none", "border-r-0"],
                 ])}
                 getInputRef={ref}
                 type={"text"}
