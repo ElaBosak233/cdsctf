@@ -307,7 +307,7 @@ export function DateTimePicker({
                         <Button
                             size={"sm"}
                             square
-                            icon={CircleXIcon}
+                            icon={<CircleXIcon />}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();

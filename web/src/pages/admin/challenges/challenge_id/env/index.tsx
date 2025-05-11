@@ -370,7 +370,7 @@ export default function Index() {
                                                     </Field>
                                                     <Button
                                                         type={"button"}
-                                                        icon={MinusIcon}
+                                                        icon={<MinusIcon />}
                                                         size={"sm"}
                                                         square
                                                         onClick={() =>
@@ -390,7 +390,7 @@ export default function Index() {
                             <Button
                                 type={"button"}
                                 size={"sm"}
-                                icon={PlusIcon}
+                                icon={<PlusIcon />}
                                 className={cn(["self-center"])}
                                 square
                                 onClick={() => handleAddPort(containerIndex)}
@@ -465,7 +465,7 @@ export default function Index() {
                                             </Field>
                                             <Button
                                                 type={"button"}
-                                                icon={MinusIcon}
+                                                icon={<MinusIcon />}
                                                 size={"sm"}
                                                 square
                                                 onClick={() =>
@@ -481,7 +481,7 @@ export default function Index() {
                             <Button
                                 type={"button"}
                                 size={"sm"}
-                                icon={PlusIcon}
+                                icon={<PlusIcon />}
                                 className={cn(["self-center"])}
                                 square
                                 onClick={() => handleAddEnv(containerIndex)}
@@ -492,7 +492,7 @@ export default function Index() {
                             variant={"tonal"}
                             level={"error"}
                             size={"sm"}
-                            icon={TrashIcon}
+                            icon={<TrashIcon />}
                             onClick={() =>
                                 handleRemoveContainer(containerIndex)
                             }
@@ -505,7 +505,7 @@ export default function Index() {
                     type={"button"}
                     variant={"tonal"}
                     size={"sm"}
-                    icon={PlusIcon}
+                    icon={<PlusIcon />}
                     onClick={handleAddContainer}
                 >
                     添加容器
@@ -516,7 +516,7 @@ export default function Index() {
                     type={"submit"}
                     size={"lg"}
                     className={cn(["w-full"])}
-                    icon={SaveIcon}
+                    icon={<SaveIcon />}
                     loading={loading}
                 >
                     保存

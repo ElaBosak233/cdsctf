@@ -72,13 +72,17 @@ function EmailVerifyDialog(props: EmailVerifyDialogProps) {
                 </Field>
                 <Button
                     variant={"solid"}
-                    icon={SendIcon}
+                    icon={<SendIcon />}
                     onClick={handleSendVerifyEmail}
                 >
                     请求
                 </Button>
             </div>
-            <Button variant={"solid"} icon={CheckIcon} onClick={handleVerify}>
+            <Button
+                variant={"solid"}
+                icon={<CheckIcon />}
+                onClick={handleVerify}
+            >
                 提交
             </Button>
         </Card>

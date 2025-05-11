@@ -181,7 +181,7 @@ function LoginForm() {
                     type={"submit"}
                     size={"lg"}
                     className={cn(["w-full"])}
-                    icon={CheckIcon}
+                    icon={<CheckIcon />}
                     loading={loading}
                 >
                     {t("account:login._")}

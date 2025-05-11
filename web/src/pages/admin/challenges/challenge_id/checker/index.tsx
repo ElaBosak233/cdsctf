@@ -12,12 +12,7 @@ import { Editor } from "@/components/ui/editor";
 import { Card } from "@/components/ui/card";
 import { AnsiUp } from "ansi_up";
 import { Button } from "@/components/ui/button";
-import {
-    Check,
-    LayoutTemplate,
-    LayoutTemplateIcon,
-    SaveIcon,
-} from "lucide-react";
+import { LayoutTemplateIcon, SaveIcon } from "lucide-react";
 import { Select } from "@/components/ui/select";
 import simpleChecker from "./examples/simple.cdsx?raw";
 import suidChecker from "./examples/suid.cdsx?raw";
@@ -35,7 +30,7 @@ const checkerMap = {
 export default function Index() {
     const { challenge } = useContext(Context);
     const sharedStore = useSharedStore();
-    const [loading, setLoading] = useState<boolean>(false);
+    const [_loading, setLoading] = useState<boolean>(false);
     const [lint, setLint] = useState<string>();
 
     const formSchema = z.object({
@@ -122,7 +117,7 @@ export default function Index() {
                         type={"submit"}
                         variant={"solid"}
                         size={"sm"}
-                        icon={SaveIcon}
+                        icon={<SaveIcon />}
                     >
                         保存
                     </Button>

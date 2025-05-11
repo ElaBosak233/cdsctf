@@ -2,9 +2,9 @@ import { Challenge } from "@/models/challenge";
 import { Button } from "@/components/ui/button";
 import {
     HashIcon,
-    Library,
+    LibraryIcon,
     ListOrderedIcon,
-    PlusCircle,
+    PlusCircleIcon,
     TypeIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -128,7 +128,7 @@ export default function Index() {
                         "items-center",
                     ])}
                 >
-                    <Library />
+                    <LibraryIcon />
                     题库管理
                 </h1>
                 <div
@@ -178,7 +178,7 @@ export default function Index() {
                     </Field>
                     <Field size={"sm"} className={cn(["flex-1"])}>
                         <FieldIcon>
-                            <Library />
+                            <LibraryIcon />
                         </FieldIcon>
                         <Select
                             options={[
@@ -230,7 +230,7 @@ export default function Index() {
                     </Field>
 
                     <Button
-                        icon={PlusCircle}
+                        icon={<PlusCircleIcon />}
                         variant={"solid"}
                         onClick={() => setCreateDialogOpen(true)}
                     >

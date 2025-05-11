@@ -17,6 +17,7 @@ import {
     HashIcon,
     ListOrderedIcon,
     PlusCircle,
+    PlusCircleIcon,
     TypeIcon,
 } from "lucide-react";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -161,7 +162,7 @@ export default function Index() {
                         />
                     </Field>
                     <Button
-                        icon={PlusCircle}
+                        icon={<PlusCircleIcon />}
                         variant={"solid"}
                         onClick={() => setCreateDialogOpen(true)}
                     >

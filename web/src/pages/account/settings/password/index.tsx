@@ -174,7 +174,7 @@ export default function Index() {
                             type={"submit"}
                             level={"primary"}
                             variant={"solid"}
-                            icon={SaveIcon}
+                            icon={<SaveIcon />}
                             loading={loading}
                         >
                             保存

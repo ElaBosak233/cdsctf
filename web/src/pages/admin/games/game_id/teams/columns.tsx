@@ -3,8 +3,11 @@ import {
     BanIcon,
     CheckCheckIcon,
     ClipboardCheck,
+    ClipboardCheckIcon,
     ClipboardCopy,
+    ClipboardCopyIcon,
     Undo2,
+    Undo2Icon,
 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/utils";
@@ -36,7 +39,13 @@ const columns: ColumnDef<Team>[] = [
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
-                                icon={isCopied ? ClipboardCheck : ClipboardCopy}
+                                icon={
+                                    isCopied ? (
+                                        <ClipboardCheckIcon />
+                                    ) : (
+                                        <ClipboardCopyIcon />
+                                    )
+                                }
                                 square
                                 size={"sm"}
                                 onClick={() => copyToClipboard(id)}
@@ -191,7 +200,7 @@ const columns: ColumnDef<Team>[] = [
                                 size={"sm"}
                                 level={"info"}
                                 square
-                                icon={Undo2}
+                                icon={<Undo2Icon />}
                                 onClick={() =>
                                     handleStateChange(State.Preparing)
                                 }
@@ -207,7 +216,7 @@ const columns: ColumnDef<Team>[] = [
                                 size={"sm"}
                                 level={"error"}
                                 square
-                                icon={BanIcon}
+                                icon={<BanIcon />}
                                 onClick={() => handleStateChange(State.Banned)}
                             />
                         </TooltipTrigger>
@@ -221,7 +230,7 @@ const columns: ColumnDef<Team>[] = [
                                 size={"sm"}
                                 level={"success"}
                                 square
-                                icon={CheckCheckIcon}
+                                icon={<CheckCheckIcon />}
                                 onClick={() => handleStateChange(State.Passed)}
                             />
                         </TooltipTrigger>

@@ -76,7 +76,7 @@ function Navbar() {
                         {authStore?.user?.group === Group.Admin && (
                             <Button
                                 asChild
-                                icon={SettingsIcon}
+                                icon={<SettingsIcon />}
                                 size={"sm"}
                                 square
                             >

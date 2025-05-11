@@ -178,13 +178,11 @@ const dropdownMenuItemVariants = cva(
 interface DropdownMenuItemProps
     extends React.ComponentProps<typeof RadixDropdownMenu.Item>,
         VariantProps<typeof dropdownMenuItemVariants> {
-    icon?: LucideIcon;
+    icon?: React.ReactNode;
 }
 
 function DropdownMenuItem(props: DropdownMenuItemProps) {
     const { icon, inset, className, ref, children, ...rest } = props;
-
-    const Icon = icon!;
 
     return (
         <RadixDropdownMenu.Item
@@ -192,7 +190,7 @@ function DropdownMenuItem(props: DropdownMenuItemProps) {
             className={cn(dropdownMenuItemVariants({ inset, className }))}
             {...rest}
         >
-            {!!icon && <Icon />}
+            {icon}
             <Slottable>{children}</Slottable>
         </RadixDropdownMenu.Item>
     );

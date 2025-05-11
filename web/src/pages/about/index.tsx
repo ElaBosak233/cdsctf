@@ -78,7 +78,7 @@ export default function Index() {
                 >
                     <Button
                         className={cn(["rounded-full"])}
-                        icon={StarIcon}
+                        icon={<StarIcon />}
                         variant={"tonal"}
                         size={"sm"}
                         asChild
@@ -92,7 +92,7 @@ export default function Index() {
                     </Button>
                     <Button
                         className={cn(["rounded-full"])}
-                        icon={StarIcon}
+                        icon={<StarIcon />}
                         variant={"tonal"}
                         size={"sm"}
                         asChild
@@ -116,7 +116,7 @@ export default function Index() {
                 >
                     <Button
                         className={cn(["rounded-full"])}
-                        icon={StarIcon}
+                        icon={<StarIcon />}
                         variant={"tonal"}
                         size={"sm"}
                         asChild
@@ -130,7 +130,7 @@ export default function Index() {
                     </Button>
                     <Button
                         className={cn(["rounded-full"])}
-                        icon={StarIcon}
+                        icon={<StarIcon />}
                         variant={"tonal"}
                         asChild
                     >
@@ -156,7 +156,7 @@ export default function Index() {
                 >
                     <Button
                         className={cn(["rounded-full"])}
-                        icon={StarIcon}
+                        icon={<StarIcon />}
                         variant={"tonal"}
                         size={"sm"}
                         asChild

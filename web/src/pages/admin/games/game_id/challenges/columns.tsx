@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import {
-    ClipboardCheck,
-    ClipboardCopy,
+    ClipboardCheckIcon,
+    ClipboardCopyIcon,
     EditIcon,
     SettingsIcon,
     TrashIcon,
@@ -89,7 +89,13 @@ const columns: ColumnDef<GameChallenge>[] = [
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
-                                icon={isCopied ? ClipboardCheck : ClipboardCopy}
+                                icon={
+                                    isCopied ? (
+                                        <ClipboardCheckIcon />
+                                    ) : (
+                                        <ClipboardCopyIcon />
+                                    )
+                                }
                                 square
                                 size={"sm"}
                                 onClick={() => copyToClipboard(id)}
@@ -170,7 +176,7 @@ const columns: ColumnDef<GameChallenge>[] = [
                         "gap-2",
                     ])}
                 >
-                    <Button icon={EditIcon} square size={"sm"} asChild>
+                    <Button icon={<EditIcon />} square size={"sm"} asChild>
                         <Link
                             to={`/admin/challenges/${row.original.challenge_id}`}
                         />
@@ -179,7 +185,7 @@ const columns: ColumnDef<GameChallenge>[] = [
                         variant={"ghost"}
                         size={"sm"}
                         square
-                        icon={SettingsIcon}
+                        icon={<SettingsIcon />}
                         onClick={() => setEditDialogOpen(true)}
                     />
                     <Dialog
@@ -198,7 +204,7 @@ const columns: ColumnDef<GameChallenge>[] = [
                         variant={"ghost"}
                         size={"sm"}
                         square
-                        icon={TrashIcon}
+                        icon={<TrashIcon />}
                         onClick={() => setDeleteDialogOpen(true)}
                     />
                     <Dialog

@@ -120,7 +120,11 @@ function CreateDialog(props: CreateDialogProps) {
                             </FormItem>
                         )}
                     />
-                    <Button icon={SaveIcon} variant={"solid"} type={"submit"}>
+                    <Button
+                        icon={<SaveIcon />}
+                        variant={"solid"}
+                        type={"submit"}
+                    >
                         保存
                     </Button>
                 </form>

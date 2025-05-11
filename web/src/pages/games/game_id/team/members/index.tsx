@@ -64,7 +64,7 @@ export default function Index() {
                 </Field>
 
                 <Button
-                    icon={RefreshCcwIcon}
+                    icon={<RefreshCcwIcon />}
                     variant={"solid"}
                     onClick={handleCreateToken}
                     size={"lg"}

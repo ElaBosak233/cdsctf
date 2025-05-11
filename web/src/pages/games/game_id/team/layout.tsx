@@ -18,6 +18,7 @@ import {
     UserRoundMinusIcon,
     UserRoundXIcon,
     UsersRound,
+    UsersRoundIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
@@ -35,12 +36,12 @@ export default function Layout() {
         {
             link: `/games/${currentGame?.id}/team`,
             name: "基本信息",
-            icon: InfoIcon,
+            icon: <InfoIcon />,
         },
         {
             link: `/games/${currentGame?.id}/team/members`,
             name: "团队成员",
-            icon: UsersRound,
+            icon: <UsersRoundIcon />,
         },
     ];
 
@@ -153,7 +154,7 @@ export default function Layout() {
                 <div className={cn(["flex", "gap-5", "justify-center"])}>
                     <Button
                         size={"md"}
-                        icon={UserRoundXIcon}
+                        icon={<UserRoundXIcon />}
                         level={"error"}
                         className={cn(["w-1/2"])}
                         disabled={
@@ -194,7 +195,7 @@ export default function Layout() {
                                     团队将被直接删除，所有成员都可创建或加入其他赛队。
                                 </p>
                                 <Button
-                                    icon={CheckCheckIcon}
+                                    icon={<CheckCheckIcon />}
                                     level={"error"}
                                     variant={"solid"}
                                     onClick={handleDisband}
@@ -206,7 +207,7 @@ export default function Layout() {
                     </Dialog>
                     <Button
                         size={"md"}
-                        icon={UserRoundMinusIcon}
+                        icon={<UserRoundMinusIcon />}
                         level={"warning"}
                         className={cn(["w-1/2"])}
                         disabled={
@@ -249,7 +250,7 @@ export default function Layout() {
                                     你即将离开这个团队，届时你将可以创建或加入其他的团队。
                                 </p>
                                 <Button
-                                    icon={CheckCheckIcon}
+                                    icon={<CheckCheckIcon />}
                                     level={"error"}
                                     variant={"solid"}
                                     onClick={handleLeave}
@@ -264,9 +265,11 @@ export default function Layout() {
                     size={"lg"}
                     className={cn(["justify-start"])}
                     icon={
-                        selfTeam?.state === State.Preparing
-                            ? CheckIcon
-                            : LockIcon
+                        selfTeam?.state === State.Preparing ? (
+                            <CheckIcon />
+                        ) : (
+                            <LockIcon />
+                        )
                     }
                     level={
                         selfTeam?.state === State.Preparing
@@ -322,7 +325,7 @@ export default function Layout() {
                                 等任何影响团队状态的操作。
                             </p>
                             <Button
-                                icon={CheckCheckIcon}
+                                icon={<CheckCheckIcon />}
                                 level={"warning"}
                                 variant={"solid"}
                                 onClick={handleSetReady}

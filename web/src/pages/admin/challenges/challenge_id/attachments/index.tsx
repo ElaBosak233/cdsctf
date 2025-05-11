@@ -134,7 +134,7 @@ export default function Index() {
                         <Button
                             variant={"solid"}
                             level={"error"}
-                            icon={TrashIcon}
+                            icon={<TrashIcon />}
                             onClick={handleDeleteAttachment}
                         >
                             删除附件

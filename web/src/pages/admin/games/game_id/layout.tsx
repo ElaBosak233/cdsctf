@@ -40,22 +40,22 @@ export default function Layout() {
             {
                 link: `/admin/games/${game_id}`,
                 name: "基本信息",
-                icon: InfoIcon,
+                icon: <InfoIcon />,
             },
             {
                 link: `/admin/games/${game_id}/challenges`,
                 name: "题目",
-                icon: LibraryIcon,
+                icon: <LibraryIcon />,
             },
             {
                 link: `/admin/games/${game_id}/teams`,
                 name: "团队",
-                icon: UsersRoundIcon,
+                icon: <UsersRoundIcon />,
             },
             {
                 link: `/admin/games/${game_id}/notices`,
                 name: "通知",
-                icon: MessageCircleIcon,
+                icon: <MessageCircleIcon />,
             },
         ];
     }, [game]);

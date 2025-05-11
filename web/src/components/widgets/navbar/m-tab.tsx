@@ -16,7 +16,7 @@ function MobileTab() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild className={cn(["lg:hidden", "mr-3"])}>
-                <Button square size={"sm"} icon={ListIcon} />
+                <Button square size={"sm"} icon={<ListIcon />} />
             </DropdownMenuTrigger>
             <DropdownMenuContent className={cn(["space-y-1"])}>
                 {options?.map((option, index) => {

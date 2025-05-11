@@ -191,7 +191,7 @@ function EnvSection() {
                                                     value={`${env?.public_entry}:${dst}`}
                                                 />
                                                 <FieldButton
-                                                    icon={ClipboardIcon}
+                                                    icon={<ClipboardIcon />}
                                                     onClick={() => {
                                                         copyToClipboard(
                                                             `${env?.public_entry}:${dst}`
@@ -227,7 +227,7 @@ function EnvSection() {
                                                 value={`${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/envs/${env?.id}/wsrx?port=${port}`}
                                             />
                                             <FieldButton
-                                                icon={ClipboardIcon}
+                                                icon={<ClipboardIcon />}
                                                 onClick={() => {
                                                     copyToClipboard(
                                                         `${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/envs/${env?.id}/wsrx?port=${port}`
@@ -262,7 +262,7 @@ function EnvSection() {
                         </span>
                         <div className={cn(["flex", "gap-3"])}>
                             <Button
-                                icon={ClockIcon}
+                                icon={<ClockIcon />}
                                 level={"info"}
                                 variant={"solid"}
                                 onClick={() => handlePodRenew()}
@@ -272,7 +272,7 @@ function EnvSection() {
                                 续期
                             </Button>
                             <Button
-                                icon={TrashIcon}
+                                icon={<TrashIcon />}
                                 variant={"solid"}
                                 level={"error"}
                                 onClick={() => handlePodStop()}
@@ -298,7 +298,7 @@ function EnvSection() {
                         <span>点击“启动”进行容器下发。</span>
                     </div>
                     <Button
-                        icon={PlayIcon}
+                        icon={<PlayIcon />}
                         variant={"solid"}
                         level={"success"}
                         onClick={() => handlePodCreate()}

@@ -165,7 +165,7 @@ function CreateDialog(props: CreateDialogProps) {
                     />
                     <Button
                         variant={"solid"}
-                        icon={CheckIcon}
+                        icon={<CheckIcon />}
                         level={"success"}
                         loading={loading}
                         type={"submit"}

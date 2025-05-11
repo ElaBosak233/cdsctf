@@ -174,7 +174,7 @@ function PaginationPrevious({
             size={size}
             disabled={disabled}
             className={cn(["gap-1", "px-2.5", "sm:pl-2.5"], className)}
-            icon={ChevronLeftIcon}
+            icon={<ChevronLeftIcon />}
             {...props}
         />
     );
@@ -191,7 +191,7 @@ function PaginationNext({
             size={size}
             disabled={disabled}
             className={cn(["gap-1", "px-2.5", "sm:pr-2.5"], className)}
-            icon={ChevronRightIcon}
+            icon={<ChevronRightIcon />}
             {...props}
         />
     );

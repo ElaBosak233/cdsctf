@@ -188,7 +188,7 @@ export default function Index() {
                             variant={"solid"}
                             size={"lg"}
                             level={"error"}
-                            icon={CheckCheckIcon}
+                            icon={<CheckCheckIcon />}
                             type={"submit"}
                         >
                             确定

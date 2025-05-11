@@ -3,7 +3,7 @@ import { Context } from "./context";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { Button } from "@/components/ui/button";
-import { FlagIcon, Send } from "lucide-react";
+import { FlagIcon, Send, SendIcon } from "lucide-react";
 import { cn } from "@/utils";
 import { useInterval } from "@/hooks/use-interval";
 import { createSubmission } from "@/api/submissions";
@@ -79,7 +79,7 @@ function SubmitSection() {
             </Field>
             <Button
                 variant={"solid"}
-                icon={Send}
+                icon={<SendIcon />}
                 onClick={handleFlagSubmit}
                 loading={submissions.length > 0}
                 disabled={!flag?.trim()}

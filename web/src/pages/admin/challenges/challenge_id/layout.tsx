@@ -40,29 +40,29 @@ export default function Layout() {
             {
                 link: `/admin/challenges/${challenge_id}`,
                 name: "基本信息",
-                icon: InfoIcon,
+                icon: <InfoIcon />,
             },
             {
                 link: `/admin/challenges/${challenge_id}/checker`,
                 name: "检查器",
-                icon: ScrollTextIcon,
+                icon: <ScrollTextIcon />,
             },
             {
                 link: `/admin/challenges/${challenge_id}/attachments`,
                 name: "附件",
-                icon: FolderIcon,
+                icon: <FolderIcon />,
                 disabled: !challenge?.has_attachment,
             },
             {
                 link: `/admin/challenges/${challenge_id}/env`,
                 name: "动态环境",
-                icon: ContainerIcon,
+                icon: <ContainerIcon />,
                 disabled: !challenge?.is_dynamic,
             },
             {
                 link: `/admin/challenges/${challenge_id}/statistics`,
                 name: "统计数据",
-                icon: ChartAreaIcon,
+                icon: <ChartAreaIcon />,
                 disabled: true,
             },
         ];

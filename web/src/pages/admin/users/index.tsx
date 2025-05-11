@@ -239,7 +239,7 @@ export default function Index() {
                     </Field>
 
                     <Button
-                        icon={PlusCircle}
+                        icon={<PlusCircle />}
                         variant={"solid"}
                         onClick={() => setCreateDialogOpen(true)}
                     >

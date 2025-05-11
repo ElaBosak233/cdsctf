@@ -2,12 +2,17 @@ import { Challenge } from "@/models/challenge";
 import { Button } from "@/components/ui/button";
 import {
     ArrowDown,
+    ArrowDownIcon,
     ArrowUp,
     ArrowUpDown,
+    ArrowUpDownIcon,
+    ArrowUpIcon,
     Box,
     Check,
     ClipboardCheck,
+    ClipboardCheckIcon,
     ClipboardCopy,
+    ClipboardCopyIcon,
     EditIcon,
     ShipWheel,
     TrashIcon,
@@ -90,7 +95,13 @@ const columns: ColumnDef<Challenge>[] = [
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
-                                icon={isCopied ? ClipboardCheck : ClipboardCopy}
+                                icon={
+                                    isCopied ? (
+                                        <ClipboardCheckIcon />
+                                    ) : (
+                                        <ClipboardCopyIcon />
+                                    )
+                                }
                                 square
                                 size={"sm"}
                                 onClick={() => copyToClipboard(id)}
@@ -219,15 +230,15 @@ const columns: ColumnDef<Challenge>[] = [
         accessorKey: "updated_at",
         id: "updated_at",
         header: ({ column }) => {
-            const Icon = useMemo(() => {
+            const icon = useMemo(() => {
                 switch (column.getIsSorted()) {
                     case "asc":
-                        return ArrowUp;
+                        return <ArrowUpIcon />;
                     case "desc":
-                        return ArrowDown;
+                        return <ArrowDownIcon />;
                     case false:
                     default:
-                        return ArrowUpDown;
+                        return <ArrowUpDownIcon />;
                 }
             }, [column.getIsSorted()]);
 
@@ -235,7 +246,7 @@ const columns: ColumnDef<Challenge>[] = [
                 <div className={cn(["flex", "gap-1", "items-center"])}>
                     更新时间
                     <Button
-                        icon={Icon}
+                        icon={icon}
                         square
                         size={"sm"}
                         onClick={() => column.toggleSorting()}
@@ -253,15 +264,15 @@ const columns: ColumnDef<Challenge>[] = [
         accessorKey: "created_at",
         id: "created_at",
         header: ({ column }) => {
-            const Icon = useMemo(() => {
+            const icon = useMemo(() => {
                 switch (column.getIsSorted()) {
                     case "asc":
-                        return ArrowUp;
+                        return <ArrowUpIcon />;
                     case "desc":
-                        return ArrowDown;
+                        return <ArrowDownIcon />;
                     case false:
                     default:
-                        return ArrowUpDown;
+                        return <ArrowUpDownIcon />;
                 }
             }, [column.getIsSorted()]);
 
@@ -269,7 +280,7 @@ const columns: ColumnDef<Challenge>[] = [
                 <div className={cn(["flex", "gap-1", "items-center"])}>
                     创建时间
                     <Button
-                        icon={Icon}
+                        icon={icon}
                         square
                         size={"sm"}
                         onClick={() => column.toggleSorting()}
@@ -323,7 +334,7 @@ const columns: ColumnDef<Challenge>[] = [
                         variant={"ghost"}
                         size={"sm"}
                         square
-                        icon={EditIcon}
+                        icon={<EditIcon />}
                         asChild
                     >
                         <Link to={`/admin/challenges/${id}`} />
@@ -333,7 +344,7 @@ const columns: ColumnDef<Challenge>[] = [
                         variant={"ghost"}
                         size={"sm"}
                         square
-                        icon={TrashIcon}
+                        icon={<TrashIcon />}
                         onClick={() => setDeleteDialogOpen(true)}
                     />
                     <Dialog

@@ -122,7 +122,7 @@ export default function Index() {
                     <Button
                         size={"lg"}
                         className={cn(["h-12"])}
-                        icon={SearchIcon}
+                        icon={<SearchIcon />}
                         variant={"solid"}
                         onClick={() => setDoSearch((prev) => prev + 1)}
                     >

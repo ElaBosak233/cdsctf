@@ -12,12 +12,12 @@ export default function Layout() {
         {
             link: `/account/settings`,
             name: "基本信息",
-            icon: InfoIcon,
+            icon: <InfoIcon />,
         },
         {
             link: `/account/settings/password`,
             name: "修改密码",
-            icon: LockIcon,
+            icon: <LockIcon />,
         },
     ];
 
@@ -56,7 +56,7 @@ export default function Layout() {
                 <Button
                     size={"lg"}
                     className={cn(["justify-start"])}
-                    icon={UserRoundXIcon}
+                    icon={<UserRoundXIcon />}
                     level={"error"}
                     variant={
                         pathname === "/account/settings/delete"

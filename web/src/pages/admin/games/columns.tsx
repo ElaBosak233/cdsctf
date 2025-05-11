@@ -17,12 +17,12 @@ import { cn } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import {
-    ArrowDown,
-    ArrowUp,
-    ArrowUpDown,
+    ArrowDownIcon,
+    ArrowUpDownIcon,
+    ArrowUpIcon,
     CheckIcon,
-    ClipboardCheck,
-    ClipboardCopy,
+    ClipboardCheckIcon,
+    ClipboardCopyIcon,
     EditIcon,
     TrashIcon,
     XIcon,
@@ -83,7 +83,13 @@ const columns: ColumnDef<Game>[] = [
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
-                                icon={isCopied ? ClipboardCheck : ClipboardCopy}
+                                icon={
+                                    isCopied ? (
+                                        <ClipboardCheckIcon />
+                                    ) : (
+                                        <ClipboardCopyIcon />
+                                    )
+                                }
                                 square
                                 size={"sm"}
                                 onClick={() => copyToClipboard(`${id}`)}
@@ -143,15 +149,15 @@ const columns: ColumnDef<Game>[] = [
         accessorKey: "started_at",
         id: "started_at",
         header: ({ column }) => {
-            const Icon = useMemo(() => {
+            const icon = useMemo(() => {
                 switch (column.getIsSorted()) {
                     case "asc":
-                        return ArrowUp;
+                        return <ArrowUpIcon />;
                     case "desc":
-                        return ArrowDown;
+                        return <ArrowDownIcon />;
                     case false:
                     default:
-                        return ArrowUpDown;
+                        return <ArrowUpDownIcon />;
                 }
             }, [column.getIsSorted()]);
 
@@ -159,7 +165,7 @@ const columns: ColumnDef<Game>[] = [
                 <div className={cn(["flex", "gap-1", "items-center"])}>
                     开始于
                     <Button
-                        icon={Icon}
+                        icon={icon}
                         square
                         size={"sm"}
                         onClick={() => column.toggleSorting()}
@@ -177,15 +183,15 @@ const columns: ColumnDef<Game>[] = [
         accessorKey: "ended_at",
         id: "ended_at",
         header: ({ column }) => {
-            const Icon = useMemo(() => {
+            const icon = useMemo(() => {
                 switch (column.getIsSorted()) {
                     case "asc":
-                        return ArrowUp;
+                        return <ArrowUpIcon />;
                     case "desc":
-                        return ArrowDown;
+                        return <ArrowDownIcon />;
                     case false:
                     default:
-                        return ArrowUpDown;
+                        return <ArrowUpDownIcon />;
                 }
             }, [column.getIsSorted()]);
 
@@ -193,7 +199,7 @@ const columns: ColumnDef<Game>[] = [
                 <div className={cn(["flex", "gap-1", "items-center"])}>
                     结束于
                     <Button
-                        icon={Icon}
+                        icon={icon}
                         square
                         size={"sm"}
                         onClick={() => column.toggleSorting()}
@@ -247,7 +253,7 @@ const columns: ColumnDef<Game>[] = [
                         variant={"ghost"}
                         size={"sm"}
                         square
-                        icon={EditIcon}
+                        icon={<EditIcon />}
                         asChild
                     >
                         <Link to={`/admin/games/${id}`} />
@@ -257,7 +263,7 @@ const columns: ColumnDef<Game>[] = [
                         variant={"ghost"}
                         size={"sm"}
                         square
-                        icon={TrashIcon}
+                        icon={<TrashIcon />}
                         onClick={() => setDeleteDialogOpen(true)}
                     />
                     <Dialog

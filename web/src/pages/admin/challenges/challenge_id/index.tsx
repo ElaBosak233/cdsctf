@@ -307,7 +307,7 @@ export default function Index() {
                     type={"submit"}
                     size={"lg"}
                     className={cn(["w-full"])}
-                    icon={SaveIcon}
+                    icon={<SaveIcon />}
                     loading={loading}
                 >
                     保存

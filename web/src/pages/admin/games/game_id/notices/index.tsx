@@ -118,7 +118,7 @@ export default function Index() {
                     ])}
                 >
                     <Button
-                        icon={PlusCircleIcon}
+                        icon={<PlusCircleIcon />}
                         variant={"solid"}
                         onClick={() => setCreateDialogOpen(true)}
                     >

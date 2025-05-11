@@ -10,7 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, SettingsIcon, UserRound } from "lucide-react";
+import { LogOut, LogOutIcon, SettingsIcon, UserRoundIcon } from "lucide-react";
 import { useNavigate, Link } from "react-router";
 import { StatusCodes } from "http-status-codes";
 import { useTranslation } from "react-i18next";
@@ -68,11 +68,11 @@ function AuthSection() {
                         </div>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem icon={SettingsIcon} asChild>
+                    <DropdownMenuItem icon={<SettingsIcon />} asChild>
                         <Link to={"/account/settings"}>{t("setting")}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                        icon={LogOut}
+                        icon={<LogOutIcon />}
                         className={cn("text-error", "hover:text-error")}
                         onClick={handleLogout}
                     >
@@ -84,7 +84,7 @@ function AuthSection() {
     }
 
     return (
-        <Button asChild icon={UserRound}>
+        <Button asChild icon={<UserRoundIcon />}>
             <Link to={"/account/login"}>{t("login._")}</Link>
         </Button>
     );

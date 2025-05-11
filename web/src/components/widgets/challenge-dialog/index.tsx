@@ -97,7 +97,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
                 </ScrollArea>
                 {challenge?.has_attachment && (
                     <div className={cn(["flex"])}>
-                        <Button asChild icon={DownloadIcon} size={"sm"}>
+                        <Button asChild icon={<DownloadIcon />} size={"sm"}>
                             <a
                                 target={"_blank"}
                                 href={

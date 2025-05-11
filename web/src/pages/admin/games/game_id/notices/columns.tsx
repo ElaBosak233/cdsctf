@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ClipboardCheck, ClipboardCopy, TrashIcon } from "lucide-react";
+import { ClipboardCheckIcon, ClipboardCopyIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/utils";
@@ -33,7 +33,13 @@ const columns: ColumnDef<GameNotice>[] = [
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
-                                icon={isCopied ? ClipboardCheck : ClipboardCopy}
+                                icon={
+                                    isCopied ? (
+                                        <ClipboardCheckIcon />
+                                    ) : (
+                                        <ClipboardCopyIcon />
+                                    )
+                                }
                                 square
                                 size={"sm"}
                                 onClick={() => copyToClipboard(String(id))}
@@ -120,7 +126,7 @@ const columns: ColumnDef<GameNotice>[] = [
                         variant={"ghost"}
                         size={"sm"}
                         square
-                        icon={TrashIcon}
+                        icon={<TrashIcon />}
                         onClick={() => setDeleteDialogOpen(true)}
                     />
                     <Dialog

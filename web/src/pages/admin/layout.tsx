@@ -16,22 +16,22 @@ export default function Layout() {
         {
             link: "/admin/platform",
             name: "平台",
-            icon: HouseIcon,
+            icon: <HouseIcon />,
         },
         {
             link: "/admin/challenges",
             name: "题库",
-            icon: LibraryIcon,
+            icon: <LibraryIcon />,
         },
         {
             link: "/admin/games",
             name: "比赛",
-            icon: FlagIcon,
+            icon: <FlagIcon />,
         },
         {
             link: "/admin/users",
             name: "用户",
-            icon: UserRoundIcon,
+            icon: <UserRoundIcon />,
         },
     ];
 

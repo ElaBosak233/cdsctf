@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { HashIcon, Library, ListOrderedIcon, PlusCircle } from "lucide-react";
+import {
+    HashIcon,
+    Library,
+    ListOrderedIcon,
+    PlusCircle,
+    PlusCircleIcon,
+} from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import {
     ColumnFiltersState,
@@ -212,7 +218,7 @@ export default function Index() {
                     </Field>
 
                     <Button
-                        icon={PlusCircle}
+                        icon={<PlusCircleIcon />}
                         variant={"solid"}
                         onClick={() => setCreateDialogOpen(true)}
                     >

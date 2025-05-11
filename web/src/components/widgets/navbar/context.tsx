@@ -31,18 +31,18 @@ export function useOptions() {
                     {
                         link: `/games/${currentGame?.id}`,
                         name: t("home"),
-                        icon: HouseIcon,
+                        icon: <HouseIcon />,
                     },
                     {
                         link: `/games/${currentGame?.id}/team`,
                         name: "团队",
-                        icon: UsersRoundIcon,
+                        icon: <UsersRoundIcon />,
                         disabled: !selfTeam?.id,
                     },
                     {
                         link: `/games/${currentGame?.id}/challenges`,
                         name: "题目",
-                        icon: StarIcon,
+                        icon: <StarIcon />,
                         disabled:
                             selfTeam?.state !== State.Passed ||
                             new Date(Number(currentGame?.ended_at) * 1000) <
@@ -53,12 +53,12 @@ export function useOptions() {
                     {
                         link: `/games/${currentGame?.id}/scoreboard`,
                         name: "积分榜",
-                        icon: ChartNoAxesCombinedIcon,
+                        icon: <ChartNoAxesCombinedIcon />,
                     },
                     {
                         link: `/games`,
                         name: "退出",
-                        icon: LogOutIcon,
+                        icon: <LogOutIcon />,
                         warning: true,
                     },
                 ];
@@ -68,17 +68,17 @@ export function useOptions() {
                     {
                         link: "/",
                         name: t("home"),
-                        icon: HouseIcon,
+                        icon: <HouseIcon />,
                     },
                     {
                         link: "/playground",
                         name: t("playground"),
-                        icon: LibraryIcon,
+                        icon: <LibraryIcon />,
                     },
                     {
                         link: "/games",
                         name: t("game"),
-                        icon: FlagIcon,
+                        icon: <FlagIcon />,
                     },
                 ];
         }

@@ -355,7 +355,7 @@ export default function Index() {
                                 <Label>海报</Label>
                                 <Button
                                     type={"button"}
-                                    icon={TrashIcon}
+                                    icon={<TrashIcon />}
                                     size={"sm"}
                                     level={"error"}
                                     square
@@ -415,7 +415,7 @@ export default function Index() {
                                 <Label>图标</Label>
                                 <Button
                                     type={"button"}
-                                    icon={TrashIcon}
+                                    icon={<TrashIcon />}
                                     size={"sm"}
                                     level={"error"}
                                     square
@@ -676,7 +676,7 @@ export default function Index() {
                     type={"submit"}
                     size={"lg"}
                     className={cn(["w-full"])}
-                    icon={SaveIcon}
+                    icon={<SaveIcon />}
                     loading={loading}
                 >
                     保存

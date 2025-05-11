@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { LogIn, UserRoundPlus } from "lucide-react";
+import { LogIn, UserRoundPlus, UserRoundPlusIcon } from "lucide-react";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { Button } from "@/components/ui/button";
@@ -113,7 +113,7 @@ export default function Index() {
                             className={cn("w-full")}
                             size={"lg"}
                             variant={"tonal"}
-                            icon={UserRoundPlus}
+                            icon={<UserRoundPlusIcon />}
                         >
                             <Link to={"/account/register"}>
                                 {t("account:register.not_yet")}

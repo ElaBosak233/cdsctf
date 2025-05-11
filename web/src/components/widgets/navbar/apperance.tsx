@@ -7,7 +7,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
-import { Brush, Sun, Moon, Eclipse } from "lucide-react";
+import { MoonIcon, BrushIcon, SunIcon, EclipseIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 function Appearance() {
@@ -17,20 +17,25 @@ function Appearance() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant={"ghost"} square size={"sm"} icon={Brush} />
+                <Button
+                    variant={"ghost"}
+                    square
+                    size={"sm"}
+                    icon={<BrushIcon />}
+                />
             </DropdownMenuTrigger>
             <DropdownMenuContent className={cn(["space-y-1"])}>
                 <div className={cn(["flex", "h-9", "justify-evenly"])}>
                     <Button
                         size={"sm"}
                         square
-                        icon={Sun}
+                        icon={<SunIcon />}
                         onClick={() => setTheme("light")}
                     />
                     <Separator orientation="vertical" />
                     <Button
                         size={"sm"}
-                        icon={Moon}
+                        icon={<MoonIcon />}
                         square
                         onClick={() => setTheme("dark")}
                     />
@@ -38,7 +43,7 @@ function Appearance() {
                     <Button
                         size={"sm"}
                         square
-                        icon={Eclipse}
+                        icon={<EclipseIcon />}
                         onClick={() => setTheme("system")}
                     />
                 </div>

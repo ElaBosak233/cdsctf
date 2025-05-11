@@ -34,12 +34,12 @@ export default function Layout() {
             {
                 link: `/admin/users/${user_id}`,
                 name: "基本信息",
-                icon: UserRoundIcon,
+                icon: <UserRoundIcon />,
             },
             {
                 link: `/admin/users/${user_id}/password`,
                 name: "修改密码",
-                icon: LockIcon,
+                icon: <LockIcon />,
             },
         ];
     }, [user]);

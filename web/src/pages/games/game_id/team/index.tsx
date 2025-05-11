@@ -246,7 +246,7 @@ export default function Index() {
                                     <Label>头像</Label>
                                     <Button
                                         type={"button"}
-                                        icon={TrashIcon}
+                                        icon={<TrashIcon />}
                                         size={"sm"}
                                         level={"error"}
                                         square
@@ -316,7 +316,7 @@ export default function Index() {
                             type={"submit"}
                             level={"info"}
                             variant={"solid"}
-                            icon={CheckIcon}
+                            icon={<CheckIcon />}
                             loading={loading}
                             disabled={disabled}
                         >

@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { LoaderCircleIcon, LucideIcon } from "lucide-react";
 
 import { cn } from "@/utils";
-import { ButtonHTMLAttributes, CSSProperties, Ref } from "react";
+import React, { ButtonHTMLAttributes, CSSProperties, Ref } from "react";
 
 const buttonVariants = cva(
     [
@@ -25,6 +25,7 @@ const buttonVariants = cva(
         "select-none",
         "[&_svg]:pointer-events-none",
         "[&_svg]:shrink-0",
+        "[&_svg]:size-4",
     ],
     {
         variants: {
@@ -78,7 +79,7 @@ export interface ButtonProps
     extends ButtonHTMLAttributes<HTMLButtonElement>,
         VariantProps<typeof buttonVariants> {
     asChild?: boolean;
-    icon?: LucideIcon;
+    icon?: React.ReactNode;
     loading?: boolean;
     level?: "primary" | "secondary" | "info" | "success" | "warning" | "error";
     ref?: Ref<HTMLButtonElement>;
@@ -101,7 +102,11 @@ function Button(props: ButtonProps) {
         ...rest
     } = props;
 
-    const Icon = loading ? LoaderCircleIcon : icon!;
+    const Icon = loading ? (
+        <LoaderCircleIcon className={cn(["animate-spin"])} />
+    ) : (
+        icon!
+    );
     const Comp = asChild ? Slot : "button";
     return (
         <Comp
@@ -118,9 +123,7 @@ function Button(props: ButtonProps) {
             }
             {...rest}
         >
-            {(!!icon || loading) && (
-                <Icon className={cn(["size-4", loading && "animate-spin"])} />
-            )}
+            {(!!icon || loading) && Icon}
             <Slottable>{children}</Slottable>
         </Comp>
     );

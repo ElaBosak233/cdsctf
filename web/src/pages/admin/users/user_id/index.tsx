@@ -388,7 +388,7 @@ export default function Index() {
                         variant={"solid"}
                         level={"primary"}
                         type={"submit"}
-                        icon={SaveIcon}
+                        icon={<SaveIcon />}
                         loading={loading}
                         className={cn(["w-full"])}
                     >

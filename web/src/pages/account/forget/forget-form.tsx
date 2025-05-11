@@ -1,4 +1,11 @@
-import { Lock, Check, MailIcon, SendIcon, LockIcon } from "lucide-react";
+import {
+    Lock,
+    Check,
+    MailIcon,
+    SendIcon,
+    LockIcon,
+    CheckIcon,
+} from "lucide-react";
 import { cn } from "@/utils";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
@@ -152,7 +159,7 @@ function ForgetForm() {
                         />
                         <Button
                             variant={"solid"}
-                            icon={SendIcon}
+                            icon={<SendIcon />}
                             className={cn(["mt-6"])}
                             onClick={handleSendForgetEmail}
                         >
@@ -199,7 +206,7 @@ function ForgetForm() {
                     type={"submit"}
                     size={"lg"}
                     className={cn(["w-full"])}
-                    icon={Check}
+                    icon={<CheckIcon />}
                     loading={loading}
                 >
                     重置密码

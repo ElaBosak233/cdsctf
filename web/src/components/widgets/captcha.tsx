@@ -108,7 +108,7 @@ function PowCaptcha(props: CaptchaProps) {
                 disabled={loading}
                 onClick={() => setRefresh((prev) => prev + 1)}
                 loading={loading}
-                icon={RefreshCcwIcon}
+                icon={<RefreshCcwIcon />}
             />
         </Field>
     );

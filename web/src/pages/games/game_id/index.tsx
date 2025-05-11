@@ -156,7 +156,7 @@ export default function Index() {
                                 variant={"solid"}
                                 level={"success"}
                                 size={"lg"}
-                                icon={PlayIcon}
+                                icon={<PlayIcon />}
                                 disabled={
                                     status !== "ongoing" ||
                                     selfTeam.state !== State.Passed
@@ -177,7 +177,7 @@ export default function Index() {
                                     level={"info"}
                                     size={"lg"}
                                     className={cn(["w-full"])}
-                                    icon={SwordsIcon}
+                                    icon={<SwordsIcon />}
                                     onClick={() =>
                                         setTeamGatheringDialogOpen(true)
                                     }

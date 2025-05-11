@@ -287,7 +287,7 @@ export default function Index() {
                         >
                             <Label>图标</Label>
                             <Button
-                                icon={TrashIcon}
+                                icon={<TrashIcon />}
                                 size={"sm"}
                                 level={"error"}
                                 square
@@ -656,7 +656,7 @@ export default function Index() {
                     type={"submit"}
                     variant={"solid"}
                     size={"lg"}
-                    icon={SaveIcon}
+                    icon={<SaveIcon />}
                     className={cn(["mt-2"])}
                 >
                     保存

@@ -1,11 +1,11 @@
 import { Group, User } from "@/models/user";
 import { Button } from "@/components/ui/button";
 import {
-    ArrowDown,
-    ArrowUp,
-    ArrowUpDown,
-    ClipboardCheck,
-    ClipboardCopy,
+    ArrowDownIcon,
+    ArrowUpDownIcon,
+    ArrowUpIcon,
+    ClipboardCheckIcon,
+    ClipboardCopyIcon,
     EditIcon,
     TrashIcon,
 } from "lucide-react";
@@ -54,7 +54,13 @@ const columns: ColumnDef<User>[] = [
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
-                                icon={isCopied ? ClipboardCheck : ClipboardCopy}
+                                icon={
+                                    isCopied ? (
+                                        <ClipboardCheckIcon />
+                                    ) : (
+                                        <ClipboardCopyIcon />
+                                    )
+                                }
                                 square
                                 size={"sm"}
                                 onClick={() => copyToClipboard(idString)}
@@ -141,15 +147,15 @@ const columns: ColumnDef<User>[] = [
         accessorKey: "created_at",
         id: "created_at",
         header: ({ column }) => {
-            const Icon = useMemo(() => {
+            const icon = useMemo(() => {
                 switch (column.getIsSorted()) {
                     case "asc":
-                        return ArrowUp;
+                        return <ArrowUpIcon />;
                     case "desc":
-                        return ArrowDown;
+                        return <ArrowDownIcon />;
                     case false:
                     default:
-                        return ArrowUpDown;
+                        return <ArrowUpDownIcon />;
                 }
             }, [column.getIsSorted()]);
 
@@ -157,7 +163,7 @@ const columns: ColumnDef<User>[] = [
                 <div className={cn(["flex", "gap-1", "items-center"])}>
                     注册时间
                     <Button
-                        icon={Icon}
+                        icon={icon}
                         square
                         size={"sm"}
                         onClick={() => column.toggleSorting()}
@@ -211,7 +217,7 @@ const columns: ColumnDef<User>[] = [
                         variant={"ghost"}
                         size={"sm"}
                         square
-                        icon={EditIcon}
+                        icon={<EditIcon />}
                         asChild
                     >
                         <Link to={`/admin/users/${id}`} />
@@ -221,7 +227,7 @@ const columns: ColumnDef<User>[] = [
                         variant={"ghost"}
                         size={"sm"}
                         square
-                        icon={TrashIcon}
+                        icon={<TrashIcon />}
                         disabled={row.original.group === Group.Admin}
                         onClick={() => setDeleteDialogOpen(true)}
                     />

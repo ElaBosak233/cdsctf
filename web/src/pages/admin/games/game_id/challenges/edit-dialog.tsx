@@ -336,7 +336,9 @@ function EditDialog(props: EditDialogProps) {
                                                             </Field>
                                                             <Button
                                                                 type={"button"}
-                                                                icon={MinusIcon}
+                                                                icon={
+                                                                    <MinusIcon />
+                                                                }
                                                                 size={"sm"}
                                                                 square
                                                                 onClick={() =>
@@ -355,7 +357,7 @@ function EditDialog(props: EditDialogProps) {
                                 <Button
                                     type={"button"}
                                     size={"sm"}
-                                    icon={PlusIcon}
+                                    icon={<PlusIcon />}
                                     className={cn(["self-center"])}
                                     square
                                     onClick={() => handleAddBonusRatio()}
@@ -403,7 +405,7 @@ function EditDialog(props: EditDialogProps) {
                         <Button
                             type={"submit"}
                             variant={"solid"}
-                            icon={SaveIcon}
+                            icon={<SaveIcon />}
                         >
                             保存
                         </Button>

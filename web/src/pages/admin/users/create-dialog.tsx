@@ -257,7 +257,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                     <Button
                         type={"submit"}
                         variant={"solid"}
-                        icon={CheckIcon}
+                        icon={<CheckIcon />}
                         level={"success"}
                         loading={loading}
                     >
