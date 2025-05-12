@@ -9,7 +9,7 @@ permissions:
 
 jobs:
     build:
-        if: github.repository == "cdsctf/cdsctf"
+        if: github.repository == 'cdsctf/cdsctf'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout CdsCTF
