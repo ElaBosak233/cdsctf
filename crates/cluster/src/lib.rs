@@ -45,17 +45,11 @@ pub async fn init() -> Result<(), ClusterError> {
     let client = if cds_config::get_constant().cluster.auto_infer {
         K8sClient::try_from(K8sConfig::infer().await?)?
     } else {
-        let kube_config_path = Path::new(
-            cds_config::get_constant()
-                .cluster
-                .config_path
-                .as_ref()
-                .unwrap(),
-        );
-        let kube_config = Kubeconfig::read_from(kube_config_path)?;
         let kube_config =
-            K8sConfig::from_custom_kubeconfig(kube_config, &KubeConfigOptions::default()).await?;
-        K8sClient::try_from(kube_config)?
+            Kubeconfig::read_from(Path::new(&cds_config::get_constant().cluster.config_path))?;
+        K8sClient::try_from(
+            K8sConfig::from_custom_kubeconfig(kube_config, &KubeConfigOptions::default()).await?,
+        )?
     };
     if client.apiserver_version().await.is_err() {
         error!("Failed to connect to Kubernetes API server.");

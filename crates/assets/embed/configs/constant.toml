@@ -30,6 +30,8 @@ url = "redis://127.0.0.1:6379"
 
 [cluster]
 namespace = "cdsctf-challenges"
+auto_infer = true
+config_path = "~/.kube/config"
 traffic = "expose"  # expose | proxy
 
 [cluster.public_entries]
