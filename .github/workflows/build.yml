@@ -10,6 +10,7 @@ permissions:
 
 jobs:
     build:
+        if: github.repository == "cdsctf/cdsctf"
         runs-on: ubuntu-latest
         steps:
             - name: Checkout CdsCTF
@@ -22,7 +23,7 @@ jobs:
               uses: docker/login-action@v3
               with:
                   registry: ghcr.io
-                  username: elabosak233
+                  username: cdsctf
                   password: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Login to Docker Hub Registry
