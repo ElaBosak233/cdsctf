@@ -113,9 +113,12 @@ pub async fn delete_game(Path(game_id): Path<i64>) -> Result<WebResponse<()>, We
 pub async fn calculate_game(Path(game_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 
-    cds_queue::publish("calculator", crate::worker::game_calculator::Payload {
-        game_id: Some(game.id),
-    })
+    cds_queue::publish(
+        "calculator",
+        crate::worker::game_calculator::Payload {
+            game_id: Some(game.id),
+        },
+    )
     .await?;
 
     Ok(WebResponse {

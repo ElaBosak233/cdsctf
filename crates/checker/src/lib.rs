@@ -124,11 +124,14 @@ async fn preload(challenge: &cds_db::entity::challenge::Model) -> Result<(), Che
         .build()?;
     let runtime = rune_context.runtime()?;
 
-    checker_context.insert(challenge.id, CheckerContext {
-        unit: Arc::new(unit),
-        runtime_context: Arc::new(runtime),
-        created_at: Utc::now(),
-    });
+    checker_context.insert(
+        challenge.id,
+        CheckerContext {
+            unit: Arc::new(unit),
+            runtime_context: Arc::new(runtime),
+            created_at: Utc::now(),
+        },
+    );
 
     Ok(())
 }

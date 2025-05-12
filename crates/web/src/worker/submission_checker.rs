@@ -131,9 +131,12 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
     .await?;
 
     if submission.game_id.is_some() && status == Status::Correct {
-        cds_queue::publish("calculator", game_calculator::Payload {
-            game_id: submission.game_id,
-        })
+        cds_queue::publish(
+            "calculator",
+            game_calculator::Payload {
+                game_id: submission.game_id,
+            },
+        )
         .await?;
     }
 

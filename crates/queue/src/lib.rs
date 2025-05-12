@@ -41,10 +41,13 @@ pub async fn subscribe(
         .await?;
 
     let subscriber = stream
-        .get_or_create_consumer(subject, async_nats::jetstream::consumer::pull::Config {
-            durable_name: Some(String::from(subject)),
-            ..Default::default()
-        })
+        .get_or_create_consumer(
+            subject,
+            async_nats::jetstream::consumer::pull::Config {
+                durable_name: Some(String::from(subject)),
+                ..Default::default()
+            },
+        )
         .await?;
 
     let messages = subscriber
