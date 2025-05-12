@@ -1,0 +1,27 @@
+name: Docker Test Build
+
+on:
+    pull_request:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        if: github.repository == "cdsctf/cdsctf"
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout CdsCTF
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Test Build
+              uses: docker/build-push-action@v6
+              with:
+                  context: ./
+                  file: ./Dockerfile
+                  platforms: linux/amd64
+                  push: false
