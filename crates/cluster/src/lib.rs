@@ -24,7 +24,7 @@ pub use kube;
 use kube::{
     Client as K8sClient, Config as K8sConfig, ResourceExt,
     api::{Api, AttachParams, DeleteParams, ListParams, Patch, PatchParams, PostParams},
-    config::Kubeconfig,
+    config::{KubeConfigOptions, Kubeconfig},
 };
 use once_cell::sync::OnceCell;
 use serde_json::json;
@@ -42,20 +42,15 @@ pub fn get_k8s_client() -> K8sClient {
 }
 
 pub async fn init() -> Result<(), ClusterError> {
-    let result = K8sConfig::from_custom_kubeconfig(
-        Kubeconfig::read_from(Path::new("data/configs/k8s.yml"))?,
-        &Default::default(),
-    )
-    .await;
-    if let Err(e) = result {
-        error!(
-            "Failed to create Kubernetes client from custom config: {:?}",
-            e
-        );
-        process::exit(1);
-    }
-    let config = result?;
-    let client = K8sClient::try_from(config)?;
+    let client = if cds_config::get_constant().cluster.auto_infer {
+        K8sClient::try_from(K8sConfig::infer().await?)?
+    } else {
+        let kube_config =
+            Kubeconfig::read_from(Path::new(&cds_config::get_constant().cluster.config_path))?;
+        K8sClient::try_from(
+            K8sConfig::from_custom_kubeconfig(kube_config, &KubeConfigOptions::default()).await?,
+        )?
+    };
     if client.apiserver_version().await.is_err() {
         error!("Failed to connect to Kubernetes API server.");
         process::exit(1);
@@ -274,17 +269,23 @@ pub async fn create_challenge_env(
             ("cds/user_id".to_owned(), format!("{}", user.id)),
             (
                 "cds/team_id".to_owned(),
-                format!("{}", match &team {
-                    Some(team) => team.id,
-                    _ => 0,
-                }),
+                format!(
+                    "{}",
+                    match &team {
+                        Some(team) => team.id,
+                        _ => 0,
+                    }
+                ),
             ),
             (
                 "cds/game_id".to_owned(),
-                format!("{}", match &game {
-                    Some(game) => game.id,
-                    _ => 0,
-                }),
+                format!(
+                    "{}",
+                    match &game {
+                        Some(game) => game.id,
+                        _ => 0,
+                    }
+                ),
             ),
             ("cds/challenge_id".to_owned(), format!("{}", challenge.id)),
         ])),

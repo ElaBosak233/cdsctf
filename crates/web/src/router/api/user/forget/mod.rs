@@ -101,23 +101,26 @@ pub async fn send_forget_email(
     )
     .await?;
 
-    cds_queue::publish("email", crate::worker::email_sender::Payload {
-        name: user.name.to_owned(),
-        email: user.email.to_owned(),
-        subject: cds_config::get_variable()
-            .to_owned()
-            .email
-            .reset_password
-            .unwrap_or_default()
-            .subject,
-        body: cds_config::get_variable()
-            .to_owned()
-            .email
-            .reset_password
-            .unwrap_or_default()
-            .body
-            .replace("%code%", &code),
-    })
+    cds_queue::publish(
+        "email",
+        crate::worker::email_sender::Payload {
+            name: user.name.to_owned(),
+            email: user.email.to_owned(),
+            subject: cds_config::get_variable()
+                .to_owned()
+                .email
+                .reset_password
+                .unwrap_or_default()
+                .subject,
+            body: cds_config::get_variable()
+                .to_owned()
+                .email
+                .reset_password
+                .unwrap_or_default()
+                .body
+                .replace("%code%", &code),
+        },
+    )
     .await?;
 
     cds_cache::set_ex(format!("email:{}:buffer", user.email.to_owned()), 1, 60).await?;

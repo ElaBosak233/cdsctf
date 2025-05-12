@@ -110,11 +110,15 @@ pub async fn user_login(
         .unwrap(),
     );
 
-    Ok((StatusCode::OK, headers, WebResponse {
-        code: StatusCode::OK,
-        data: Some(user),
-        ..Default::default()
-    }))
+    Ok((
+        StatusCode::OK,
+        headers,
+        WebResponse {
+            code: StatusCode::OK,
+            data: Some(user),
+            ..Default::default()
+        },
+    ))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
@@ -201,8 +205,12 @@ pub async fn user_logout(Extension(ext): Extension<Ext>) -> Result<impl IntoResp
         .unwrap(),
     );
 
-    Ok((StatusCode::OK, headers, WebResponse::<()> {
-        code: StatusCode::OK,
-        ..Default::default()
-    }))
+    Ok((
+        StatusCode::OK,
+        headers,
+        WebResponse::<()> {
+            code: StatusCode::OK,
+            ..Default::default()
+        },
+    ))
 }

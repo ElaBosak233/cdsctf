@@ -68,9 +68,12 @@ pub async fn update_game_challenge(
     .update(get_db())
     .await?;
 
-    cds_queue::publish("calculator", crate::worker::game_calculator::Payload {
-        game_id: Some(game_challenge.game_id),
-    })
+    cds_queue::publish(
+        "calculator",
+        crate::worker::game_calculator::Payload {
+            game_id: Some(game_challenge.game_id),
+        },
+    )
     .await?;
 
     let game_challenge = cds_db::entity::game_challenge::Entity::base_find()
