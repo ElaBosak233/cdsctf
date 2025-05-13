@@ -17,18 +17,14 @@ pub(crate) static RESOURCE: Lazy<Resource> =
 
 pub(crate) fn get_export_config() -> ExportConfig {
     ExportConfig {
-        endpoint: Some(
-            cds_config::get_constant()
-                .telemetry
-                .endpoint_url
-                .to_string(),
-        ),
+        endpoint: Some(cds_env::get_constant().telemetry.endpoint_url.to_string()),
         timeout: Some(Duration::from_secs(5)),
-        protocol: match cds_config::get_constant().telemetry.protocol {
-            cds_config::constant::telemetry::Protocol::Json => Protocol::HttpJson,
-            cds_config::constant::telemetry::Protocol::Binary => Protocol::HttpBinary,
-            cds_config::constant::telemetry::Protocol::Grpc
-            | cds_config::constant::telemetry::Protocol::Unknown => Protocol::Grpc,
+        protocol: match cds_env::get_constant().telemetry.protocol {
+            cds_env::telemetry::Protocol::Json => Protocol::HttpJson,
+            cds_env::telemetry::Protocol::Binary => Protocol::HttpBinary,
+            cds_env::telemetry::Protocol::Grpc | cds_env::telemetry::Protocol::Unknown => {
+                Protocol::Grpc
+            }
         },
     }
 }
