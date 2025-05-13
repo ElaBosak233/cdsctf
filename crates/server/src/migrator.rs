@@ -24,7 +24,7 @@ where
     }
 }
 
-pub async fn run() {
+pub async fn run() -> Result<(), anyhow::Error> {
     create_tables!(
         get_db(),
         cds_db::entity::config::Entity,
@@ -43,8 +43,7 @@ pub async fn run() {
             sea_orm::DatabaseBackend::Postgres,
             "CREATE EXTENSION IF NOT EXISTS pg_trgm;",
         ))
-        .await
-        .unwrap();
+        .await?;
 
     get_db()
         .execute(Statement::from_string(
@@ -55,13 +54,11 @@ pub async fn run() {
                 cds_db::entity::challenge::Column::Title.to_string()
             ).as_str(),
         ))
-        .await
-        .unwrap();
+        .await?;
 
     if cds_db::entity::config::Entity::find()
         .count(get_db())
-        .await
-        .unwrap()
+        .await?
         < 1
     {
         cds_db::entity::config::Entity::insert(cds_db::entity::config::ActiveModel {
@@ -72,7 +69,8 @@ pub async fn run() {
             captcha: sea_orm::ActiveValue::Set(cds_db::entity::config::captcha::Config::default()),
         })
         .exec(get_db())
-        .await
-        .unwrap();
+        .await?;
     }
+    
+    Ok(())
 }
