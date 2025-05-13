@@ -15,7 +15,7 @@ cds-db = { workspace = true }
 cds-cluster = { workspace = true }
 cds-captcha = { workspace = true }
 cds-cache = { workspace = true }
-cds-config = { workspace = true }
+cds-env = { workspace = true }
 cds-media = { workspace = true }
 cds-queue = { workspace = true }
 cds-checker = { workspace = true }

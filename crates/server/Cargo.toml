@@ -12,7 +12,7 @@ version = { workspace = true }
 
 [dependencies]
 cds-assets = { workspace = true }
-cds-config = { workspace = true }
+cds-env = { workspace = true }
 cds-db = { workspace = true }
 cds-cluster = { workspace = true }
 cds-queue = { workspace = true }
@@ -20,7 +20,6 @@ cds-web = { workspace = true }
 cds-cache = { workspace = true }
 cds-checker = { workspace = true }
 cds-telemetry = { workspace = true }
-cds-email = { workspace = true }
 cds-logger = { workspace = true }
 
 tracing = { workspace = true }
@@ -28,7 +27,6 @@ tokio = { workspace = true }
 rustls = { workspace = true }
 axum = { workspace = true }
 sea-orm = { workspace = true }
-argon2 = { workspace = true }
 anyhow = { workspace = true }
 chrono = { workspace = true }
 

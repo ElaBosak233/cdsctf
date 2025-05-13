@@ -7,6 +7,7 @@ pub mod media;
 pub mod queue;
 pub mod server;
 pub mod telemetry;
+pub mod traits;
 
 use std::path::Path;
 
@@ -54,7 +55,19 @@ pub async fn init() -> Result<(), ConfigError> {
     let content = tokio::fs::read_to_string(target_path).await?;
     CONSTANT
         .set(toml::from_str(&content)?)
-        .map_err(|_| anyhow!("Failed to set constant config into OnceCell."))?;
+        .map_err(|_| anyhow!("Failed to set constant env into OnceCell."))?;
 
     Ok(())
+}
+
+pub fn get_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}
+
+pub fn get_commit() -> String {
+    env!("GIT_COMMIT").to_string()
+}
+
+pub fn get_build_timestamp() -> i64 {
+    env!("BUILD_AT").parse::<i64>().unwrap_or_default()
 }

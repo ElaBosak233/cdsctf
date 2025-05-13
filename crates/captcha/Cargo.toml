@@ -12,7 +12,7 @@ version = { workspace = true }
 
 [dependencies]
 cds-cache = { workspace = true }
-cds-config = { workspace = true }
+cds-db = { workspace = true }
 
 hex = { workspace = true }
 ring = { workspace = true }

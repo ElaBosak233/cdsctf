@@ -6,7 +6,7 @@ use std::time::Duration;
 use anyhow::anyhow;
 use once_cell::sync::OnceCell;
 pub use sea_orm;
-use sea_orm::{ConnectOptions, Database, DatabaseConnection};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection, EntityTrait};
 use tracing::info;
 
 static DB: OnceCell<DatabaseConnection> = OnceCell::new();
@@ -14,11 +14,11 @@ static DB: OnceCell<DatabaseConnection> = OnceCell::new();
 pub async fn init() -> Result<(), anyhow::Error> {
     let url = format!(
         "postgres://{}:{}@{}:{}/{}",
-        cds_config::get_constant().db.username,
-        cds_config::get_constant().db.password,
-        cds_config::get_constant().db.host,
-        cds_config::get_constant().db.port,
-        cds_config::get_constant().db.dbname,
+        cds_env::get_constant().db.username,
+        cds_env::get_constant().db.password,
+        cds_env::get_constant().db.host,
+        cds_env::get_constant().db.port,
+        cds_env::get_constant().db.dbname,
     );
     let mut opt = ConnectOptions::new(url);
     opt.max_connections(100)
@@ -40,4 +40,12 @@ pub async fn init() -> Result<(), anyhow::Error> {
 
 pub fn get_db() -> &'static DatabaseConnection {
     DB.get().unwrap()
+}
+
+pub async fn get_config() -> entity::config::Model {
+    entity::config::Entity::find()
+        .one(get_db())
+        .await
+        .unwrap()
+        .unwrap()
 }

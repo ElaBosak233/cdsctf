@@ -4,9 +4,9 @@ use thiserror::Error;
 pub enum ClusterError {
     #[error("kube error: {0}")]
     KubeError(#[from] kube::Error),
-    #[error("failed to infer config: {0}")]
+    #[error("failed to infer env: {0}")]
     InferConfigError(#[from] kube::config::InferConfigError),
-    #[error("failed to load kube config: {0}")]
+    #[error("failed to load kube env: {0}")]
     KubeConfigError(#[from] kube::config::KubeconfigError),
     #[error("kube runtime wait error: {0}")]
     KubeRuntimeWaitError(#[from] kube::runtime::wait::Error),

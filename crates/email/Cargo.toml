@@ -11,11 +11,8 @@ rust-version = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
-cds-config = { workspace = true }
-cds-queue = { workspace = true }
+cds-db = { workspace = true }
 
 lettre = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
-once_cell = { workspace = true }
-tracing = { workspace = true }

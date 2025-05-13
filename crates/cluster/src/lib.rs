@@ -29,8 +29,10 @@ use kube::{
 use once_cell::sync::OnceCell;
 use serde_json::json;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
-use tokio_util::codec::{BytesCodec, Framed, FramedRead};
-use tokio_util::sync::CancellationToken;
+use tokio_util::{
+    codec::{BytesCodec, Framed, FramedRead},
+    sync::CancellationToken,
+};
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
@@ -43,11 +45,11 @@ pub fn get_k8s_client() -> K8sClient {
 }
 
 pub async fn init() -> Result<(), ClusterError> {
-    let client = if cds_config::get_constant().cluster.auto_infer {
+    let client = if cds_env::get_constant().cluster.auto_infer {
         K8sClient::try_from(K8sConfig::infer().await?)?
     } else {
         let kube_config =
-            Kubeconfig::read_from(Path::new(&cds_config::get_constant().cluster.config_path))?;
+            Kubeconfig::read_from(Path::new(&cds_env::get_constant().cluster.config_path))?;
         K8sClient::try_from(
             K8sConfig::from_custom_kubeconfig(kube_config, &KubeConfigOptions::default()).await?,
         )?
@@ -62,11 +64,11 @@ pub async fn init() -> Result<(), ClusterError> {
     let namespace_api: Api<Namespace> = Api::all(get_k8s_client());
     let namespaces = namespace_api.list(&ListParams::default()).await?;
     if !namespaces.items.iter().any(|namespace| {
-        namespace.metadata.name == Some(cds_config::get_constant().cluster.namespace.to_owned())
+        namespace.metadata.name == Some(cds_env::get_constant().cluster.namespace.to_owned())
     }) {
         let namespace = Namespace {
             metadata: ObjectMeta {
-                name: Some(cds_config::get_constant().cluster.namespace.to_owned()),
+                name: Some(cds_env::get_constant().cluster.namespace.to_owned()),
                 ..Default::default()
             },
             ..Default::default()
@@ -79,7 +81,7 @@ pub async fn init() -> Result<(), ClusterError> {
 
     let network_policy_api: Api<NetworkPolicy> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
     if network_policy_api
         .get("cds-internet-restricted")
@@ -89,7 +91,7 @@ pub async fn init() -> Result<(), ClusterError> {
         let network_policy = NetworkPolicy {
             metadata: ObjectMeta {
                 name: Some("cds-internet-restricted".to_owned()),
-                namespace: Some(cds_config::get_constant().cluster.namespace.to_owned()),
+                namespace: Some(cds_env::get_constant().cluster.namespace.to_owned()),
                 ..Default::default()
             },
             spec: Some(NetworkPolicySpec {
@@ -128,7 +130,7 @@ pub async fn get_service(id: Uuid) -> Result<Service, ClusterError> {
 pub async fn get_services_by_label(label: &str) -> Result<Vec<Service>, ClusterError> {
     let service_api: Api<Service> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
 
     let services = service_api
@@ -144,7 +146,7 @@ pub async fn get_services_by_label(label: &str) -> Result<Vec<Service>, ClusterE
 pub async fn create_service(service: Service) -> Result<Service, ClusterError> {
     let service_api: Api<Service> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
 
     let service = service_api.create(&Default::default(), &service).await?;
@@ -155,7 +157,7 @@ pub async fn create_service(service: Service) -> Result<Service, ClusterError> {
 pub async fn delete_service(id: &str) -> Result<(), ClusterError> {
     let service_api: Api<Service> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
 
     let _ = service_api
@@ -181,7 +183,7 @@ pub async fn get_pod(id: &str) -> Result<Pod, ClusterError> {
 pub async fn get_pods_list() -> Result<Vec<Pod>, ClusterError> {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
 
     let pods = pod_api.list(&ListParams::default()).await?;
@@ -192,7 +194,7 @@ pub async fn get_pods_list() -> Result<Vec<Pod>, ClusterError> {
 pub async fn get_pods_by_label(label: &str) -> Result<Vec<Pod>, ClusterError> {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
 
     let pods = pod_api
@@ -211,7 +213,7 @@ pub async fn get_pods_by_label(label: &str) -> Result<Vec<Pod>, ClusterError> {
 pub async fn create_pod(pod: Pod) -> Result<Pod, ClusterError> {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
 
     let pod = pod_api.create(&Default::default(), &pod).await?;
@@ -222,7 +224,7 @@ pub async fn create_pod(pod: Pod) -> Result<Pod, ClusterError> {
 pub async fn delete_pod(id: &str) -> Result<(), ClusterError> {
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
 
     let _ = pod_api
@@ -388,9 +390,9 @@ pub async fn create_challenge_env(
 
     let mut pod = create_pod(pod).await?;
 
-    let service_type = match cds_config::get_constant().cluster.traffic {
-        cds_config::constant::cluster::Traffic::Expose => "NodePort",
-        cds_config::constant::cluster::Traffic::Proxy => "ClusterIP",
+    let service_type = match cds_env::get_constant().cluster.traffic {
+        cds_env::cluster::Traffic::Expose => "NodePort",
+        cds_env::cluster::Traffic::Proxy => "ClusterIP",
     };
 
     let service = Service {
@@ -437,7 +439,7 @@ pub async fn create_challenge_env(
 
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
 
     let annotations = pod.annotations_mut();
@@ -468,7 +470,7 @@ pub async fn renew_challenge_env(id: &str) -> Result<(), ClusterError> {
     let name = format!("cds-{}", id);
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
 
     let mut pod = get_pod(id).await?;
@@ -506,7 +508,7 @@ pub async fn wsrx(id: &str, port: u16, ws: WebSocket) -> Result<(), ClusterError
 
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
     let mut pf = pod_api.portforward(&name, &[port]).await?;
     let pfw = pf.take_stream(port);
@@ -571,7 +573,7 @@ pub async fn exec(
 
     let pod_api: Api<Pod> = Api::namespaced(
         get_k8s_client(),
-        cds_config::get_constant().cluster.namespace.as_str(),
+        cds_env::get_constant().cluster.namespace.as_str(),
     );
 
     let attach_params = AttachParams {

@@ -12,8 +12,8 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let addr = format!(
         "{}:{}",
-        cds_config::get_constant().server.host,
-        cds_config::get_constant().server.port
+        cds_env::get_constant().server.host,
+        cds_env::get_constant().server.port
     );
     let listener = tokio::net::TcpListener::bind(&addr).await?;
 
@@ -35,19 +35,19 @@ async fn main() -> Result<(), anyhow::Error> {
 }
 
 async fn bootstrap() -> Result<(), anyhow::Error> {
-    cds_config::init().await?;
+    cds_env::init().await?;
     cds_telemetry::init().await?;
 
     let banner = cds_assets::get("banner.txt").unwrap_or_default();
     println!(
         "{}",
         std::str::from_utf8(&banner)?
-            .replace("{{version}}", &cds_config::get_version())
-            .replace("{{git_commit}}", &cds_config::get_commit())
+            .replace("{{version}}", &cds_env::get_version())
+            .replace("{{git_commit}}", &cds_env::get_commit())
             .replace(
                 "{{build_at}}",
                 chrono::Local
-                    .timestamp_opt(cds_config::get_build_timestamp(), 0)
+                    .timestamp_opt(cds_env::get_build_timestamp(), 0)
                     .single()
                     .unwrap()
                     .format("%Y-%m-%d %H:%M:%S UTC %:z")

@@ -2,7 +2,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
-    #[error("config file not found")]
+    #[error("env file not found")]
     ConfigNotFound,
     #[error("io error: {0}")]
     IOError(#[from] std::io::Error),

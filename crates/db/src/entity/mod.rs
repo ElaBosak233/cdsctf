@@ -1,4 +1,5 @@
 pub mod challenge;
+pub mod config;
 pub mod game;
 pub mod game_challenge;
 pub mod game_notice;

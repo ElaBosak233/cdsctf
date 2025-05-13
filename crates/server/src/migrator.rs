@@ -1,5 +1,7 @@
 use cds_db::get_db;
-use sea_orm::{ConnectionTrait, DbConn, EntityName, EntityTrait, Iden, Schema, Statement};
+use sea_orm::{
+    ConnectionTrait, DbConn, EntityName, EntityTrait, Iden, PaginatorTrait, Schema, Statement,
+};
 use tracing::error;
 
 macro_rules! create_tables {
@@ -25,6 +27,7 @@ where
 pub async fn run() {
     create_tables!(
         get_db(),
+        cds_db::entity::config::Entity,
         cds_db::entity::user::Entity,
         cds_db::entity::challenge::Entity,
         cds_db::entity::game::Entity,
@@ -54,4 +57,22 @@ pub async fn run() {
         ))
         .await
         .unwrap();
+
+    if cds_db::entity::config::Entity::find()
+        .count(get_db())
+        .await
+        .unwrap()
+        < 1
+    {
+        cds_db::entity::config::Entity::insert(cds_db::entity::config::ActiveModel {
+            id: sea_orm::ActiveValue::Set(1),
+            meta: sea_orm::ActiveValue::Set(cds_db::entity::config::meta::Config::default()),
+            auth: sea_orm::ActiveValue::Set(cds_db::entity::config::auth::Config::default()),
+            email: sea_orm::ActiveValue::Set(cds_db::entity::config::email::Config::default()),
+            captcha: sea_orm::ActiveValue::Set(cds_db::entity::config::captcha::Config::default()),
+        })
+        .exec(get_db())
+        .await
+        .unwrap();
+    }
 }

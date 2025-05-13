@@ -3,7 +3,7 @@ use crate::{Answer, Captcha, traits::CaptchaError};
 pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
     let (answer, challenge) = biosvg::BiosvgBuilder::new()
         .length(4)
-        .difficulty(cds_config::get_variable().captcha.difficulty as u16)
+        .difficulty(cds_db::get_config().await.captcha.difficulty as u16)
         .colors(vec![
             "#0078D6".to_string(),
             "#aa3333".to_string(),

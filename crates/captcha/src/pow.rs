@@ -9,7 +9,7 @@ pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
         id: nanoid!(),
         challenge: format!(
             "{}#{}",
-            cds_config::get_variable().captcha.difficulty,
+            cds_db::get_config().await.captcha.difficulty,
             challenge
         ),
         criteria: Some(challenge),
@@ -41,7 +41,7 @@ pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
 
     if answer.content.trim().starts_with(challenge.trim())
         && result.starts_with(
-            "0".repeat((cds_config::get_variable().captcha.difficulty + 1) as usize)
+            "0".repeat((cds_db::get_config().await.captcha.difficulty + 1) as usize)
                 .as_str(),
         )
     {
