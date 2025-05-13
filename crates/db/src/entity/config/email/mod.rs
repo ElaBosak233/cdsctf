@@ -1,6 +1,7 @@
+use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq)]
 pub struct Config {
     pub is_enabled: bool,
     pub host: String,
@@ -9,19 +10,15 @@ pub struct Config {
     pub username: String,
     pub password: String,
     pub whitelist: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reset_password: Option<Mail>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub verify_email: Option<Mail>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default, Eq, PartialEq)]
 pub struct Mail {
     pub subject: String,
     pub body: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Tls {
     Starttls,
@@ -39,9 +36,21 @@ impl Config {
             host: "".to_owned(),
             port: 0,
             tls: Tls::None,
-            reset_password: None,
-            verify_email: None,
             ..self.to_owned()
+        }
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            is_enabled: false,
+            host: "".to_owned(),
+            port: 0,
+            tls: Tls::None,
+            username: "".to_owned(),
+            password: "".to_owned(),
+            whitelist: vec![],
         }
     }
 }

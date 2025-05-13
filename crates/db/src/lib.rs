@@ -6,7 +6,7 @@ use std::time::Duration;
 use anyhow::anyhow;
 use once_cell::sync::OnceCell;
 pub use sea_orm;
-use sea_orm::{ConnectOptions, Database, DatabaseConnection};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection, EntityTrait};
 use tracing::info;
 
 static DB: OnceCell<DatabaseConnection> = OnceCell::new();
@@ -40,4 +40,12 @@ pub async fn init() -> Result<(), anyhow::Error> {
 
 pub fn get_db() -> &'static DatabaseConnection {
     DB.get().unwrap()
+}
+
+pub async fn get_config() -> entity::config::Model {
+    entity::config::Entity::find()
+        .one(get_db())
+        .await
+        .unwrap()
+        .unwrap()
 }

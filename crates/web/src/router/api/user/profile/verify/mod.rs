@@ -64,7 +64,7 @@ pub async fn send_verify_email(
     Extension(ext): Extension<Ext>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    if !cds_config::get_variable().email.is_enabled {
+    if !cds_db::get_config().await.email.is_enabled {
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
@@ -92,19 +92,8 @@ pub async fn send_verify_email(
         crate::worker::email_sender::Payload {
             name: operator.name.to_owned(),
             email: operator.email.to_owned(),
-            subject: cds_config::get_variable()
-                .to_owned()
-                .email
-                .verify_email
-                .unwrap_or_default()
-                .subject,
-            body: cds_config::get_variable()
-                .to_owned()
-                .email
-                .verify_email
-                .unwrap_or_default()
-                .body
-                .replace("%code%", &code),
+            subject: "Verify your email".to_owned(),
+            body: code,
         },
     )
     .await?;

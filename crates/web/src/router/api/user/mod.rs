@@ -136,7 +136,7 @@ pub async fn user_register(
     Extension(ext): Extension<Ext>,
     Json(mut body): Json<UserRegisterRequest>,
 ) -> Result<WebResponse<User>, WebError> {
-    if !cds_config::get_variable().auth.is_registration_enabled {
+    if !cds_db::get_config().await.auth.is_registration_enabled {
         return Err(WebError::BadRequest(json!("registration_disabled")));
     }
 
@@ -168,7 +168,7 @@ pub async fn user_register(
         username: Set(body.username),
         name: Set(body.name),
         email: Set(body.email),
-        is_verified: Set(!cds_config::get_variable().email.is_enabled),
+        is_verified: Set(!cds_db::get_config().await.email.is_enabled),
         hashed_password: Set(hashed_password),
         group: Set(
             if cds_db::entity::user::Entity::find().count(get_db()).await? == 0 {

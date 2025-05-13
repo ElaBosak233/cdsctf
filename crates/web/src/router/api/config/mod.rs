@@ -14,9 +14,9 @@ pub fn router() -> Router {
         .route("/version", axum::routing::get(get_version))
 }
 
-pub async fn get_config() -> Result<WebResponse<cds_config::variable::Variable>, WebError> {
+pub async fn get_config() -> Result<WebResponse<cds_db::entity::config::Model>, WebError> {
     Ok(WebResponse {
-        data: Some(cds_config::get_variable().desensitize()),
+        data: Some(cds_db::get_config().await.desensitize()),
         ..Default::default()
     })
 }

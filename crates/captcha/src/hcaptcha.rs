@@ -29,18 +29,19 @@ struct HCaptchaResponse {
 
 pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
     let client = reqwest::Client::new();
-    let url = &cds_config::get_variable().captcha.turnstile.url;
+    let url = &cds_db::get_config().await.captcha.turnstile.url;
     let response = client
         .post(url)
         .json(&HCaptchaRequest {
-            secret: cds_config::get_variable()
+            secret: cds_db::get_config()
+                .await
                 .captcha
                 .hcaptcha
                 .secret_key
                 .clone(),
             response: answer.content.clone(),
             remote_ip: answer.client_ip.clone(),
-            site_key: Some(cds_config::get_variable().captcha.hcaptcha.site_key.clone()),
+            site_key: Some(cds_db::get_config().await.captcha.hcaptcha.site_key.clone()),
         })
         .send()
         .await?
@@ -48,15 +49,6 @@ pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
         .await?;
 
     debug!("{:?}", response);
-
-    if let (Some(expected_score), Some(score)) = (
-        cds_config::get_variable().captcha.hcaptcha.score,
-        response.score,
-    ) {
-        if score < expected_score {
-            return Ok(false);
-        }
-    }
 
     Ok(response.success)
 }

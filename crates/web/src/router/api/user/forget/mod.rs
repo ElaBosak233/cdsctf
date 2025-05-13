@@ -76,7 +76,7 @@ pub struct UserSendForgetEmailRequest {
 pub async fn send_forget_email(
     Json(body): Json<UserSendForgetEmailRequest>,
 ) -> Result<WebResponse<()>, WebError> {
-    if !cds_config::get_variable().email.is_enabled {
+    if !cds_db::get_config().await.email.is_enabled {
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
@@ -106,19 +106,8 @@ pub async fn send_forget_email(
         crate::worker::email_sender::Payload {
             name: user.name.to_owned(),
             email: user.email.to_owned(),
-            subject: cds_config::get_variable()
-                .to_owned()
-                .email
-                .reset_password
-                .unwrap_or_default()
-                .subject,
-            body: cds_config::get_variable()
-                .to_owned()
-                .email
-                .reset_password
-                .unwrap_or_default()
-                .body
-                .replace("%code%", &code),
+            subject: "Reset Password".to_owned(),
+            body: code,
         },
     )
     .await?;

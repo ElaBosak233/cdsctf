@@ -29,8 +29,10 @@ use kube::{
 use once_cell::sync::OnceCell;
 use serde_json::json;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
-use tokio_util::codec::{BytesCodec, Framed, FramedRead};
-use tokio_util::sync::CancellationToken;
+use tokio_util::{
+    codec::{BytesCodec, Framed, FramedRead},
+    sync::CancellationToken,
+};
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
