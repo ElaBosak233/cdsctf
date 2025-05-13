@@ -81,7 +81,7 @@ pub async fn get_game_scoreboard(
 
     let team_ids = teams.iter().map(|t| t.id).collect::<Vec<i64>>();
 
-    let mut submissions = cds_db::entity::submission::Entity::base_find()
+    let submissions = cds_db::entity::submission::Entity::base_find()
         .filter(
             Condition::all()
                 .add(cds_db::entity::submission::Column::GameId.eq(game_id))
@@ -95,7 +95,7 @@ pub async fn get_game_scoreboard(
     let mut result: Vec<ScoreRecord> = Vec::new();
 
     for team in teams {
-        let mut submissions = submissions
+        let submissions = submissions
             .iter()
             .filter(|s| s.team_id.unwrap() == team.id)
             .cloned()

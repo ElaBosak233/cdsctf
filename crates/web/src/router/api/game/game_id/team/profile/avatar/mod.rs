@@ -2,7 +2,6 @@ use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
 };
-use cds_db::sea_orm::ColumnTrait;
 use serde_json::json;
 
 use crate::{

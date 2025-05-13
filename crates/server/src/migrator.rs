@@ -71,6 +71,6 @@ pub async fn run() -> Result<(), anyhow::Error> {
         .exec(get_db())
         .await?;
     }
-    
+
     Ok(())
 }

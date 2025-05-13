@@ -33,7 +33,7 @@ use tokio_util::{
     codec::{BytesCodec, Framed, FramedRead},
     sync::CancellationToken,
 };
-use tracing::{error, info, warn};
+use tracing::{error, info};
 use uuid::Uuid;
 
 use crate::traits::ClusterError;

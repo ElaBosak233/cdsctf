@@ -1,9 +1,7 @@
 use axum::{Router, extract::Multipart};
-use cds_db::entity::user::Group;
 
 use crate::{
-    extract::Extension,
-    traits::{Ext, WebError, WebResponse},
+    traits::{WebError, WebResponse},
     util,
 };
 

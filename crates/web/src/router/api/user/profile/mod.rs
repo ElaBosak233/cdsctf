@@ -11,7 +11,7 @@ use cds_db::{
     sea_orm::{
         ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
-        EntityTrait, NotSet,
+        NotSet,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -84,7 +84,7 @@ pub async fn update_user_profile(
         })
         .unwrap_or(operator.is_verified);
 
-    let user = cds_db::entity::user::ActiveModel {
+    cds_db::entity::user::ActiveModel {
         id: Unchanged(operator.id),
         name: body.name.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, Set),

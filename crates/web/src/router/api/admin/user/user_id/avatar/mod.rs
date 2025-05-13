@@ -4,7 +4,7 @@ use axum::{
 };
 
 use crate::{
-    extract::{Extension, Path},
+    extract::Path,
     traits::{WebError, WebResponse},
     util,
 };

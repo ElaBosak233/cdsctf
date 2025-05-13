@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sea_orm::{DeriveActiveEnum, EnumIter, JoinType, QuerySelect, Set, entity::prelude::*};
+use sea_orm::{DeriveActiveEnum, EnumIter, QuerySelect, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 

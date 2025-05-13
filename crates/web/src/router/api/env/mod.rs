@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use axum::{Router, http::StatusCode};
 use cds_db::{
     get_db,
-    sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter},
+    sea_orm::{ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;

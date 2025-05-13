@@ -6,7 +6,6 @@ use cds_db::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, QueryFilter,
     },
 };
-use cds_media::get;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 

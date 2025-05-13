@@ -4,7 +4,6 @@ use cds_db::{
     sea_orm::{
         ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
-        EntityTrait,
     },
 };
 use nanoid::nanoid;
