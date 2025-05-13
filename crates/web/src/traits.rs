@@ -70,7 +70,7 @@ pub enum WebError {
     #[error("cache error: {0}")]
     CacheError(#[from] cds_cache::traits::CacheError),
     #[error("env error: {0}")]
-    ConfigError(#[from] cds_env::traits::ConfigError),
+    ConfigError(#[from] cds_env::traits::EnvError),
     #[error("captcha error: {0}")]
     CaptchaError(#[from] cds_captcha::traits::CaptchaError),
     #[error("media error: {0}")]

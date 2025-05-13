@@ -20,7 +20,7 @@ fn get_client() -> Client {
 }
 
 pub async fn init() -> Result<(), CacheError> {
-    let config = Config::from_url(&cds_env::get_constant().cache.url)?;
+    let config = Config::from_url(&cds_env::get_config().cache.url)?;
     let client = Client::new(config, None, None, None);
     client.init().await?;
 

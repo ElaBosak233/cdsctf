@@ -12,8 +12,8 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let addr = format!(
         "{}:{}",
-        cds_env::get_constant().server.host,
-        cds_env::get_constant().server.port
+        cds_env::get_config().server.host,
+        cds_env::get_config().server.port
     );
     let listener = tokio::net::TcpListener::bind(&addr).await?;
 

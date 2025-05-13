@@ -104,7 +104,7 @@ pub async fn user_login(
         format!(
             "token={}; Max-Age={}; Path=/; HttpOnly; SameSite=Strict",
             token,
-            chrono::Duration::seconds(cds_env::get_constant().jwt.expiration).num_seconds()
+            chrono::Duration::seconds(cds_env::get_config().jwt.expiration).num_seconds()
         )
         .parse()
         .unwrap(),
