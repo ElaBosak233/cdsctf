@@ -10,8 +10,10 @@ pub enum CheckerError {
     BuildError(#[from] rune::BuildError),
     #[error("rune alloc error: {0}")]
     AllocError(#[from] rune::alloc::Error),
-    #[error("rune runtime error: {0}")]
-    RuntimeError(#[from] rune::runtime::VmError),
+    #[error("rune vm error: {0}")]
+    RuntimeError(#[from] rune::runtime::RuntimeError),
+    #[error("rune vm error: {0}")]
+    VmError(#[from] rune::runtime::VmError),
     #[error("rune diagnostics error: {0}")]
     DiagnosticsError(#[from] rune::diagnostics::EmitError),
     #[error("compile error: {0}")]

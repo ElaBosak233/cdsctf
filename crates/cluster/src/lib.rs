@@ -30,6 +30,7 @@ use once_cell::sync::OnceCell;
 use serde_json::json;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use tokio_util::codec::{BytesCodec, Framed, FramedRead};
+use tokio_util::sync::CancellationToken;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
@@ -512,7 +513,8 @@ pub async fn wsrx(id: &str, port: u16, ws: WebSocket) -> Result<(), ClusterError
     if let Some(pfw) = pfw {
         let stream = Framed::new(pfw, wsrx::proxy::MessageCodec::new());
         let ws: wsrx::WrappedWsStream = ws.into();
-        wsrx::proxy::proxy_stream(stream, ws).await?;
+        let cancel_token = CancellationToken::new();
+        wsrx::proxy::proxy_stream(stream, ws, cancel_token).await?;
     }
     Ok(())
 }

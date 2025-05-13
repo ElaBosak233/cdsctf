@@ -23,7 +23,7 @@ pub(crate) fn get_export_config() -> ExportConfig {
                 .endpoint_url
                 .to_string(),
         ),
-        timeout: Duration::from_secs(5),
+        timeout: Some(Duration::from_secs(5)),
         protocol: match cds_config::get_constant().telemetry.protocol {
             cds_config::constant::telemetry::Protocol::Json => Protocol::HttpJson,
             cds_config::constant::telemetry::Protocol::Binary => Protocol::HttpBinary,
