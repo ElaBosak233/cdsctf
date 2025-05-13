@@ -15,9 +15,17 @@ use anyhow::anyhow;
 use nanoid::nanoid;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
-use tokio::fs::{create_dir_all, metadata};
 
-use crate::traits::ConfigError;
+use crate::traits::EnvError;
+
+const CONFIG_PREDEFINED_PATH: [&str; 4] = [
+    "/etc/cdsctf/",
+    "~/.config/cdsctf/",
+    "./config/",
+    "./data/config/",
+];
+
+const CONFIG_PREDEFINED_FILE_NAME: &str = "config.toml";
 
 static CONSTANT: OnceCell<Constant> = OnceCell::new();
 
@@ -34,30 +42,27 @@ pub struct Constant {
     pub telemetry: telemetry::Config,
 }
 
-pub fn get_constant() -> &'static Constant {
+pub fn get_config() -> &'static Constant {
     CONSTANT.get().unwrap()
 }
 
-pub async fn init() -> Result<(), ConfigError> {
-    let target_path = Path::new("data/configs/constant.toml");
-    if !target_path.exists() {
-        if let Some(parent) = target_path.parent() {
-            if metadata(parent).await.is_err() {
-                create_dir_all(parent).await?;
+pub async fn init() -> Result<(), EnvError> {
+    for raw_path in CONFIG_PREDEFINED_PATH.into_iter() {
+        let file_path = Path::new(raw_path).join(CONFIG_PREDEFINED_FILE_NAME);
+        match tokio::fs::read_to_string(file_path).await {
+            Ok(content) => {
+                let content = content.replace("%nanoid%", &nanoid!(24));
+                CONSTANT
+                    .set(toml::from_str(&content)?)
+                    .map_err(|_| anyhow!("Failed to set constant env into OnceCell."))?;
+
+                return Ok(());
             }
+            _ => continue,
         }
-        let content =
-            std::str::from_utf8(&cds_assets::get("configs/constant.toml").unwrap_or_default())?
-                .replace("%nanoid%", &nanoid!(24));
-        tokio::fs::write(target_path, content).await?;
     }
 
-    let content = tokio::fs::read_to_string(target_path).await?;
-    CONSTANT
-        .set(toml::from_str(&content)?)
-        .map_err(|_| anyhow!("Failed to set constant env into OnceCell."))?;
-
-    Ok(())
+    Err(EnvError::NotFound)
 }
 
 pub fn get_version() -> String {

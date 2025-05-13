@@ -18,7 +18,7 @@ use crate::traits::LoggerError;
 static CONSOLE_GUARD: OnceCell<WorkerGuard> = OnceCell::new();
 
 pub async fn init() -> Result<(), LoggerError> {
-    let filter = EnvFilter::new(&cds_env::get_constant().logger.level);
+    let filter = EnvFilter::new(&cds_env::get_config().logger.level);
 
     let (non_blocking_console, console_guard) = non_blocking(std::io::stdout());
 

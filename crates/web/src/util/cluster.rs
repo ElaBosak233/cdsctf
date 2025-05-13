@@ -117,7 +117,7 @@ impl From<Pod> for Env {
 
         let node_name = pod.spec.unwrap_or_default().node_name.unwrap_or_default();
 
-        let public_entry = cds_env::get_constant()
+        let public_entry = cds_env::get_config()
             .cluster
             .public_entries
             .get(&node_name)

@@ -6,8 +6,8 @@ use cds_db::{
     entity::submission::Status,
     get_db,
     sea_orm::{
-        ActiveModelTrait, ActiveValue::Unchanged, ColumnTrait, Condition, EntityTrait,
-        PaginatorTrait, QueryFilter, QueryOrder, Set,
+        ActiveModelTrait, ActiveValue::Unchanged, ColumnTrait, EntityTrait, PaginatorTrait,
+        QueryFilter, QueryOrder, Set,
     },
 };
 use futures::StreamExt;
@@ -49,20 +49,18 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         return Err(anyhow!("challenge_not_found"));
     };
 
-    let mut status: Status = Status::Incorrect;
-
     let operator_id = match submission.team_id {
         Some(team_id) => team_id,
         _ => submission.user_id,
     };
 
-    match cds_checker::check(&challenge, operator_id, &submission.content).await {
+    let mut status = match cds_checker::check(&challenge, operator_id, &submission.content).await {
         Ok(c_status) => match c_status {
-            cds_checker::Status::Correct => status = Status::Correct,
-            cds_checker::Status::Incorrect => status = Status::Incorrect,
-            cds_checker::Status::Cheat(_peer_team_id) => status = Status::Cheat,
+            cds_checker::Status::Correct => Status::Correct,
+            cds_checker::Status::Incorrect => Status::Incorrect,
+            cds_checker::Status::Cheat(_peer_team_id) => Status::Cheat,
         },
-        Err(_) => status = Status::Incorrect,
+        Err(_) => Status::Incorrect,
     };
 
     if status == Status::Correct {

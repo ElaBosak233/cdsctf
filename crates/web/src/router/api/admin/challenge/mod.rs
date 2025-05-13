@@ -4,20 +4,18 @@ use std::str::FromStr;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::user::Group,
     get_db,
     sea_orm::{
-        ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden, IdenStatic,
-        Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, sea_query::Expr,
+        ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden, Order,
+        PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, sea_query::Expr,
     },
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 use crate::{
-    extract::{Extension, Json, Query},
+    extract::{Json, Query},
     model::challenge::Challenge,
-    traits::{Ext, WebError, WebResponse},
+    traits::{WebError, WebResponse},
 };
 
 pub fn router() -> Router {

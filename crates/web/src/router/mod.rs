@@ -17,12 +17,12 @@ pub async fn router() -> Router {
     let governor_conf = Arc::new(
         GovernorConfigBuilder::default()
             .per_millisecond(
-                cds_env::get_constant()
+                cds_env::get_config()
                     .server
                     .burst_restore_rate
                     .unwrap_or(100),
             )
-            .burst_size(cds_env::get_constant().server.burst_limit.unwrap_or(512))
+            .burst_size(cds_env::get_config().server.burst_limit.unwrap_or(512))
             .key_extractor(GovernorKeyExtractor)
             .use_headers()
             .error_handler(governor_error)

@@ -2,8 +2,6 @@ mod forget;
 mod profile;
 mod user_id;
 
-use std::str::FromStr;
-
 use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
     password_hash::{SaltString, rand_core::OsRng},
@@ -18,7 +16,7 @@ use cds_db::{
     get_db,
     sea_orm::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, PaginatorTrait,
-        QueryFilter, QueryOrder, QuerySelect, prelude::Expr, sea_query::Func,
+        QueryFilter, prelude::Expr, sea_query::Func,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -104,7 +102,7 @@ pub async fn user_login(
         format!(
             "token={}; Max-Age={}; Path=/; HttpOnly; SameSite=Strict",
             token,
-            chrono::Duration::seconds(cds_env::get_constant().jwt.expiration).num_seconds()
+            chrono::Duration::seconds(cds_env::get_config().jwt.expiration).num_seconds()
         )
         .parse()
         .unwrap(),

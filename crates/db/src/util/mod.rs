@@ -2,7 +2,6 @@ use sea_orm::{
     ColumnTrait, DbErr, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect,
     RelationTrait, prelude::Expr, sea_query::Func,
 };
-use serde_json::json;
 
 use crate::{entity::team::State, get_db};
 

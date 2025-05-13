@@ -70,7 +70,7 @@ pub enum WebError {
     #[error("cache error: {0}")]
     CacheError(#[from] cds_cache::traits::CacheError),
     #[error("env error: {0}")]
-    ConfigError(#[from] cds_env::traits::ConfigError),
+    EnvError(#[from] cds_env::traits::EnvError),
     #[error("captcha error: {0}")]
     CaptchaError(#[from] cds_captcha::traits::CaptchaError),
     #[error("media error: {0}")]
@@ -107,7 +107,7 @@ impl IntoResponse for WebError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),
             ),
-            Self::ConfigError(err) => (
+            Self::EnvError(err) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),
             ),

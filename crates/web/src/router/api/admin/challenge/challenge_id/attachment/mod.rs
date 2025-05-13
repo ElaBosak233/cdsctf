@@ -5,16 +5,12 @@ use axum::{
     http::{Response, StatusCode, header},
     response::IntoResponse,
 };
-use cds_db::{
-    get_db,
-    sea_orm::{ColumnTrait, EntityTrait},
-};
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Path},
+    extract::Path,
     model::Metadata,
-    traits::{Ext, WebError, WebResponse},
+    traits::{WebError, WebResponse},
 };
 
 pub fn router() -> Router {

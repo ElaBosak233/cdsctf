@@ -1,9 +1,9 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum ConfigError {
+pub enum EnvError {
     #[error("env file not found")]
-    ConfigNotFound,
+    NotFound,
     #[error("io error: {0}")]
     IOError(#[from] std::io::Error),
     #[error("toml de error: {0}")]

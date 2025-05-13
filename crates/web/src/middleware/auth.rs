@@ -45,7 +45,7 @@ pub async fn extract(mut req: Request<Body>, next: Next) -> Result<Response, Web
 
     let token = jar.get("token").map(|cookie| cookie.value()).unwrap_or("");
 
-    let decoding_key = DecodingKey::from_secret(cds_env::get_constant().jwt.secret.as_bytes());
+    let decoding_key = DecodingKey::from_secret(cds_env::get_config().jwt.secret.as_bytes());
     let validation = Validation::default();
 
     if let Ok(data) = decode::<crate::util::jwt::Claims>(token, &decoding_key, &validation) {

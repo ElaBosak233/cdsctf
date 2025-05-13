@@ -12,8 +12,8 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let addr = format!(
         "{}:{}",
-        cds_env::get_constant().server.host,
-        cds_env::get_constant().server.port
+        cds_env::get_config().server.host,
+        cds_env::get_config().server.port
     );
     let listener = tokio::net::TcpListener::bind(&addr).await?;
 
@@ -66,7 +66,7 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
     cds_cache::init().await?;
     cds_db::init().await?;
 
-    migrator::run().await;
+    migrator::run().await?;
 
     cds_cluster::init().await?;
     cds_checker::init().await?;
