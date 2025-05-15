@@ -23,16 +23,16 @@ import { alova } from "@/utils/alova";
 // }
 
 export interface TeamRegisterRequest {
-    game_id?: number;
-    name?: string;
-    email?: string;
-    slogan?: string;
-    description?: string;
+  game_id?: number;
+  name?: string;
+  email?: string;
+  slogan?: string;
+  description?: string;
 }
 
 export async function teamRegister(request: TeamRegisterRequest) {
-    return alova.Post<WebResponse<Team>>(
-        `/games/${request.game_id}/teams/register`,
-        request
-    );
+  return alova.Post<WebResponse<Team>>(
+    `/games/${request.game_id}/teams/register`,
+    request
+  );
 }

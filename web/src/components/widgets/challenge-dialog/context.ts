@@ -3,6 +3,6 @@ import { Team } from "@/models/team";
 import { createContext } from "react";
 
 export const Context = createContext<{
-    challenge?: Challenge;
-    team?: Team;
+  challenge?: Challenge;
+  team?: Team;
 }>({});

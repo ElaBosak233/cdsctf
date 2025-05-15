@@ -1,7 +1,7 @@
 import { NavigateFunction } from "react-router";
 
 const globalRouter = { navigate: undefined } as {
-    navigate?: NavigateFunction;
+  navigate?: NavigateFunction;
 };
 
 export default globalRouter;

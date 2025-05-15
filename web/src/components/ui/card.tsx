@@ -4,32 +4,32 @@ import { cn } from "@/utils";
 import { Slot, Slottable } from "@radix-ui/react-slot";
 
 type CardProps = React.ComponentProps<"div"> & {
-    asChild?: boolean;
+  asChild?: boolean;
 };
 
 function Card(props: CardProps) {
-    const { className, asChild = false, ref, children, ...rest } = props;
+  const { className, asChild = false, ref, children, ...rest } = props;
 
-    const Comp = asChild ? Slot : "div";
+  const Comp = asChild ? Slot : "div";
 
-    return (
-        <Comp
-            ref={ref}
-            className={cn(
-                [
-                    "rounded-lg",
-                    "border",
-                    "bg-card",
-                    "text-card-foreground",
-                    "shadow-xs",
-                ],
-                className
-            )}
-            {...rest}
-        >
-            <Slottable>{children}</Slottable>
-        </Comp>
-    );
+  return (
+    <Comp
+      ref={ref}
+      className={cn(
+        [
+          "rounded-lg",
+          "border",
+          "bg-card",
+          "text-card-foreground",
+          "shadow-xs",
+        ],
+        className
+      )}
+      {...rest}
+    >
+      <Slottable>{children}</Slottable>
+    </Comp>
+  );
 }
 
 export { Card };

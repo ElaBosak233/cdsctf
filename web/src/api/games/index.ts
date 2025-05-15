@@ -3,15 +3,15 @@ import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
 
 export interface GetGameRequest {
-    id?: number;
-    title?: string;
-    sorts?: string;
-    page?: number;
-    size?: number;
+  id?: number;
+  title?: string;
+  sorts?: string;
+  page?: number;
+  size?: number;
 }
 
 export async function getGames(request: GetGameRequest) {
-    return alova.Get<WebResponse<Array<GameMini>>>("/games", {
-        params: request,
-    });
+  return alova.Get<WebResponse<Array<GameMini>>>("/games", {
+    params: request,
+  });
 }

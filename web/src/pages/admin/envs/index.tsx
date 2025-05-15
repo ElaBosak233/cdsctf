@@ -1,3 +1,3 @@
 export default function Index() {
-    return <div>envs</div>;
+  return <div>envs</div>;
 }

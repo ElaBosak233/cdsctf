@@ -3,9 +3,9 @@ import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
 
 export interface GetChallengeRequest {
-    id?: string;
+  id?: string;
 }
 
 export async function getChallenge(request: GetChallengeRequest) {
-    return alova.Get<WebResponse<Challenge>>(`/challenges/${request.id}`);
+  return alova.Get<WebResponse<Challenge>>(`/challenges/${request.id}`);
 }

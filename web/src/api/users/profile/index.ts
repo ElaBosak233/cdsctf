@@ -3,34 +3,34 @@ import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
 
 export interface UpdateUserProfileRequest {
-    name?: string;
-    email?: string;
-    description?: string | null;
+  name?: string;
+  email?: string;
+  description?: string | null;
 }
 
 export async function updateUserProfile(request: UpdateUserProfileRequest) {
-    return alova.Put<WebResponse<User>>("/users/profile", request);
+  return alova.Put<WebResponse<User>>("/users/profile", request);
 }
 
 export interface UpdateUserProfilePasswordRequest {
-    old_password: string;
-    new_password: string;
+  old_password: string;
+  new_password: string;
 }
 
 export async function updateUserProfilePassword(
-    request: UpdateUserProfilePasswordRequest
+  request: UpdateUserProfilePasswordRequest
 ) {
-    return alova.Put<WebResponse<never>>("/users/profile/password", request);
+  return alova.Put<WebResponse<never>>("/users/profile/password", request);
 }
 
 export interface DeleteUserProfileRequest {
-    password: string;
-    captcha?: {
-        id?: string;
-        content?: string;
-    } | null;
+  password: string;
+  captcha?: {
+    id?: string;
+    content?: string;
+  } | null;
 }
 
 export async function deleteUserProfile(request: DeleteUserProfileRequest) {
-    return alova.Delete<WebResponse<never>>("/users/profile", request);
+  return alova.Delete<WebResponse<never>>("/users/profile", request);
 }
