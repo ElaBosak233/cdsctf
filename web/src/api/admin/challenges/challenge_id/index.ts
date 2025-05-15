@@ -3,38 +3,38 @@ import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
 
 export interface GetChallengeRequest {
-    id?: string;
+  id?: string;
 }
 
 export async function getChallenge(request: GetChallengeRequest) {
-    return alova.Get<WebResponse<Challenge>>(`/admin/challenges/${request.id}`);
+  return alova.Get<WebResponse<Challenge>>(`/admin/challenges/${request.id}`);
 }
 
 export interface UpdateChallengeRequest {
-    id?: string | null;
-    title?: string | null;
-    tags?: Array<string> | null;
-    description?: string | null;
-    category?: number | null;
-    has_attachment?: boolean | null;
-    is_public?: boolean | null;
-    is_dynamic?: boolean | null;
+  id?: string | null;
+  title?: string | null;
+  tags?: Array<string> | null;
+  description?: string | null;
+  category?: number | null;
+  has_attachment?: boolean | null;
+  is_public?: boolean | null;
+  is_dynamic?: boolean | null;
 }
 
 export async function updateChallenge(request: UpdateChallengeRequest) {
-    return alova.Put<WebResponse<Challenge>>(
-        `/admin/challenges/${request?.id}`,
-        request,
-        {
-            cacheFor: 0,
-        }
-    );
+  return alova.Put<WebResponse<Challenge>>(
+    `/admin/challenges/${request?.id}`,
+    request,
+    {
+      cacheFor: 0,
+    }
+  );
 }
 
 export interface DeleteChallengeRequest {
-    id?: string;
+  id?: string;
 }
 
 export async function deleteChallenge(request: DeleteChallengeRequest) {
-    return alova.Delete<WebResponse<never>>(`/admin/challenges/${request.id}`);
+  return alova.Delete<WebResponse<never>>(`/admin/challenges/${request.id}`);
 }

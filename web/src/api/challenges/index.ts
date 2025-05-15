@@ -4,48 +4,48 @@ import { WebResponse } from "@/types";
 import { alova } from "@/utils/alova";
 
 export interface GetPlaygroundChallengesRequest {
-    id?: string;
-    title?: string;
-    tags?: string;
-    category?: number;
-    is_dynamic?: boolean;
-    page?: number;
-    size?: number;
-    sorts?: string;
+  id?: string;
+  title?: string;
+  tags?: string;
+  category?: number;
+  is_dynamic?: boolean;
+  page?: number;
+  size?: number;
+  sorts?: string;
 }
 
 export async function getPlaygroundChallenges(
-    request: GetPlaygroundChallengesRequest
+  request: GetPlaygroundChallengesRequest
 ) {
-    return alova.Get<WebResponse<Array<ChallengeMini>>>(
-        "/challenges/playground",
-        {
-            params: request,
-            cacheFor: 0,
-        }
-    );
+  return alova.Get<WebResponse<Array<ChallengeMini>>>(
+    "/challenges/playground",
+    {
+      params: request,
+      cacheFor: 0,
+    }
+  );
 }
 
 export interface GetChallengeStatusRequest {
-    challenge_ids: Array<string>;
-    user_id?: number;
-    team_id?: number;
-    game_id?: number;
+  challenge_ids: Array<string>;
+  user_id?: number;
+  team_id?: number;
+  game_id?: number;
 }
 
 export interface ChallengeStatus {
-    is_solved?: boolean;
-    solved_times?: number;
-    pts?: number;
-    bloods?: Array<Submission>;
+  is_solved?: boolean;
+  solved_times?: number;
+  pts?: number;
+  bloods?: Array<Submission>;
 }
 
 export async function getChallengeStatus(request: GetChallengeStatusRequest) {
-    return alova.Post<WebResponse<Record<string, ChallengeStatus>>>(
-        "/challenges/status",
-        request,
-        {
-            cacheFor: 0,
-        }
-    );
+  return alova.Post<WebResponse<Record<string, ChallengeStatus>>>(
+    "/challenges/status",
+    request,
+    {
+      cacheFor: 0,
+    }
+  );
 }

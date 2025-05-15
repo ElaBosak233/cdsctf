@@ -10,58 +10,58 @@ import { Flag } from "lucide-react";
 interface TitleProps extends Omit<React.ComponentProps<typeof Link>, "to"> {}
 
 function Title(props: TitleProps) {
-    const { className, ...rest } = props;
-    const { mode } = useContext(Context);
-    const { currentGame } = useGameStore();
-    const configStore = useConfigStore();
+  const { className, ...rest } = props;
+  const { mode } = useContext(Context);
+  const { currentGame } = useGameStore();
+  const configStore = useConfigStore();
 
-    const modeConfig = {
-        game: {
-            to: `/games/${currentGame?.id}`,
-            src: `/api/games/${currentGame?.id}/icon`,
-            title: currentGame?.title,
-        },
-        admin: {
-            to: "/admin/platform",
-            src: "/api/configs/logo",
-            title: configStore?.config?.meta?.title,
-        },
-        default: {
-            to: "/",
-            src: "/api/configs/logo",
-            title: configStore?.config?.meta?.title,
-        },
-    };
+  const modeConfig = {
+    game: {
+      to: `/games/${currentGame?.id}`,
+      src: `/api/games/${currentGame?.id}/icon`,
+      title: currentGame?.title,
+    },
+    admin: {
+      to: "/admin/platform",
+      src: "/api/configs/logo",
+      title: configStore?.config?.meta?.title,
+    },
+    default: {
+      to: "/",
+      src: "/api/configs/logo",
+      title: configStore?.config?.meta?.title,
+    },
+  };
 
-    const { to, src, title } = modeConfig[mode] || modeConfig.default;
+  const { to, src, title } = modeConfig[mode] || modeConfig.default;
 
-    return (
-        <Link
-            className={cn([
-                "flex",
-                "gap-3",
-                "items-center",
-                "text-foreground",
-                className,
-            ])}
-            to={to}
-            {...rest}
-        >
-            <Image
-                src={src}
-                fallback={<Flag />}
-                delay={0}
-                className={cn([
-                    "drop-shadow-md",
-                    "h-8",
-                    "w-8",
-                    "rounded-full",
-                    "overflow-hidden",
-                ])}
-            />
-            <h1 className={cn(["text-xl", "font-semibold"])}>{title}</h1>
-        </Link>
-    );
+  return (
+    <Link
+      className={cn([
+        "flex",
+        "gap-3",
+        "items-center",
+        "text-foreground",
+        className,
+      ])}
+      to={to}
+      {...rest}
+    >
+      <Image
+        src={src}
+        fallback={<Flag />}
+        delay={0}
+        className={cn([
+          "drop-shadow-md",
+          "h-8",
+          "w-8",
+          "rounded-full",
+          "overflow-hidden",
+        ])}
+      />
+      <h1 className={cn(["text-xl", "font-semibold"])}>{title}</h1>
+    </Link>
+  );
 }
 
 export { Title };

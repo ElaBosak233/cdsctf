@@ -4,17 +4,15 @@ import globalRouter from "@/utils/global-router";
 import { cn } from "@/utils";
 
 export default function () {
-    const navigate = useNavigate();
-    globalRouter.navigate = navigate;
+  const navigate = useNavigate();
+  globalRouter.navigate = navigate;
 
-    return (
-        <>
-            <Navbar />
-            <main
-                className={cn(["flex", "flex-col", "min-h-[calc(100vh-64px)]"])}
-            >
-                <Outlet />
-            </main>
-        </>
-    );
+  return (
+    <>
+      <Navbar />
+      <main className={cn(["flex", "flex-col", "min-h-[calc(100vh-64px)]"])}>
+        <Outlet />
+      </main>
+    </>
+  );
 }

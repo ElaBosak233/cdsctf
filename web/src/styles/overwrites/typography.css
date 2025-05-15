@@ -1,35 +1,35 @@
 .prose pre {
-    @apply m-1 rounded-lg block whitespace-pre-wrap break-all;
+  @apply m-1 rounded-lg block whitespace-pre-wrap break-all;
 }
 
 .prose pre code {
-    @apply p-[1em];
+  @apply p-[1em];
 }
 
 .prose pre code [data-line] {
-    @apply block relative pl-[3em];
+  @apply block relative pl-[3em];
 
-    counter-increment: line;
+  counter-increment: line;
 }
 
 .prose pre code > [data-line]::before {
-    @apply absolute left-0 w-[2em] pr-[1em] text-right border-r-2;
+  @apply absolute left-0 w-[2em] pr-[1em] text-right border-r-2;
 
-    content: counter(line);
+  content: counter(line);
 }
 
 .prose a.anchor {
-    @apply no-underline mx-2 opacity-50 hover:opacity-100;
+  @apply no-underline mx-2 opacity-50 hover:opacity-100;
 }
 
 .prose blockquote {
-    font-style: normal;
+  font-style: normal;
 }
 
 .prose blockquote p:first-of-type::before {
-    content: none;
+  content: none;
 }
 
 .prose blockquote p:last-of-type::after {
-    content: none;
+  content: none;
 }

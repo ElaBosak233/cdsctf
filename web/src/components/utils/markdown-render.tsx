@@ -9,56 +9,56 @@ import rehypeSlug from "rehype-slug";
 //     Options as RehypeAutolinkHeadingsOptions,
 // } from "rehype-autolink-headings";
 import rehypePrettyCode, {
-    Options as RehypePrettyCodeOptions,
+  Options as RehypePrettyCodeOptions,
 } from "rehype-pretty-code";
 import rehypeStringify from "rehype-stringify";
 import "katex/dist/katex.min.css";
 import React from "react";
 
 interface MarkdownRenderProps
-    extends React.ComponentProps<typeof MarkdownHooks> {
-    src?: string;
-    anchors?: boolean;
+  extends React.ComponentProps<typeof MarkdownHooks> {
+  src?: string;
+  anchors?: boolean;
 }
 
 function MarkdownRender(props: MarkdownRenderProps) {
-    const { src, anchors = true, ...rest } = props;
+  const { src, anchors = true, ...rest } = props;
 
-    return (
-        <MarkdownHooks
-            remarkPlugins={[remarkGfm, remarkParse, remarkMath, remarkRehype]}
-            rehypePlugins={[
-                [
-                    rehypePrettyCode,
-                    {
-                        grid: true,
-                        theme: "github-dark",
-                        keepBackground: false,
-                        bypassInlineCode: false,
-                    } satisfies RehypePrettyCodeOptions,
-                ],
-                rehypeKatex,
-                rehypeSlug,
-                // [
-                //     rehypeAutolinkHeadings,
-                //     {
-                //         behavior: "append",
-                //         properties: {
-                //             className: ["anchor"],
-                //         },
-                //         content: () => ({
-                //             type: "text",
-                //             value: "¶",
-                //         }),
-                //     } satisfies RehypeAutolinkHeadingsOptions,
-                // ],
-                rehypeStringify,
-            ]}
-            {...rest}
-        >
-            {src}
-        </MarkdownHooks>
-    );
+  return (
+    <MarkdownHooks
+      remarkPlugins={[remarkGfm, remarkParse, remarkMath, remarkRehype]}
+      rehypePlugins={[
+        [
+          rehypePrettyCode,
+          {
+            grid: true,
+            theme: "github-dark",
+            keepBackground: false,
+            bypassInlineCode: false,
+          } satisfies RehypePrettyCodeOptions,
+        ],
+        rehypeKatex,
+        rehypeSlug,
+        // [
+        //     rehypeAutolinkHeadings,
+        //     {
+        //         behavior: "append",
+        //         properties: {
+        //             className: ["anchor"],
+        //         },
+        //         content: () => ({
+        //             type: "text",
+        //             value: "¶",
+        //         }),
+        //     } satisfies RehypeAutolinkHeadingsOptions,
+        // ],
+        rehypeStringify,
+      ]}
+      {...rest}
+    >
+      {src}
+    </MarkdownHooks>
+  );
 }
 
 export { MarkdownRender };

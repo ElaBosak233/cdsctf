@@ -11,82 +11,78 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 interface EmailVerifyDialogProps {
-    onClose: () => void;
+  onClose: () => void;
 }
 
 function EmailVerifyDialog(props: EmailVerifyDialogProps) {
-    const { onClose } = props;
-    const authStore = useAuthStore();
+  const { onClose } = props;
+  const authStore = useAuthStore();
 
-    const [code, setCode] = useState<string>("");
+  const [code, setCode] = useState<string>("");
 
-    function handleSendVerifyEmail() {
-        sendVerifyEmail().then((res) => {
-            if (res.code === StatusCodes.OK) {
-                toast.success("验证码已发送，请查收");
-            }
+  function handleSendVerifyEmail() {
+    sendVerifyEmail().then((res) => {
+      if (res.code === StatusCodes.OK) {
+        toast.success("验证码已发送，请查收");
+      }
 
-            if (res.code === StatusCodes.BAD_REQUEST) {
-                toast.error("发生错误", {
-                    description: res.msg,
-                });
-            }
+      if (res.code === StatusCodes.BAD_REQUEST) {
+        toast.error("发生错误", {
+          description: res.msg,
         });
-    }
+      }
+    });
+  }
 
-    function handleVerify() {
-        verify({
-            code,
-        }).then((res) => {
-            if (res.code === StatusCodes.OK) {
-                toast.success("验证成功！");
-                authStore.setUser({
-                    ...authStore.user,
-                    is_verified: true,
-                });
-                onClose();
-            }
-
-            if (res.code === StatusCodes.BAD_REQUEST) {
-                toast.error("发生错误", {
-                    description: res.msg,
-                });
-            }
+  function handleVerify() {
+    verify({
+      code,
+    }).then((res) => {
+      if (res.code === StatusCodes.OK) {
+        toast.success("验证成功！");
+        authStore.setUser({
+          ...authStore.user,
+          is_verified: true,
         });
-    }
+        onClose();
+      }
 
-    return (
-        <Card className={cn(["w-128", "p-5", "flex", "flex-col", "gap-5"])}>
-            <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
-                <MailCheckIcon className={cn(["size-4"])} />
-                验证邮箱
-            </h3>
-            <p>你正在验证邮箱 {authStore?.user?.email}，请接收验证码</p>
-            <div className={cn(["flex", "gap-2", "items-center"])}>
-                <Field size={"sm"} className={cn(["flex-1"])}>
-                    <TextField
-                        placeholder={"验证码"}
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                    />
-                </Field>
-                <Button
-                    variant={"solid"}
-                    icon={<SendIcon />}
-                    onClick={handleSendVerifyEmail}
-                >
-                    请求
-                </Button>
-            </div>
-            <Button
-                variant={"solid"}
-                icon={<CheckIcon />}
-                onClick={handleVerify}
-            >
-                提交
-            </Button>
-        </Card>
-    );
+      if (res.code === StatusCodes.BAD_REQUEST) {
+        toast.error("发生错误", {
+          description: res.msg,
+        });
+      }
+    });
+  }
+
+  return (
+    <Card className={cn(["w-128", "p-5", "flex", "flex-col", "gap-5"])}>
+      <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
+        <MailCheckIcon className={cn(["size-4"])} />
+        验证邮箱
+      </h3>
+      <p>你正在验证邮箱 {authStore?.user?.email}，请接收验证码</p>
+      <div className={cn(["flex", "gap-2", "items-center"])}>
+        <Field size={"sm"} className={cn(["flex-1"])}>
+          <TextField
+            placeholder={"验证码"}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+          />
+        </Field>
+        <Button
+          variant={"solid"}
+          icon={<SendIcon />}
+          onClick={handleSendVerifyEmail}
+        >
+          请求
+        </Button>
+      </div>
+      <Button variant={"solid"} icon={<CheckIcon />} onClick={handleVerify}>
+        提交
+      </Button>
+    </Card>
+  );
 }
 
 export { EmailVerifyDialog };

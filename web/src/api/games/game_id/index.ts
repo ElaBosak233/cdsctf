@@ -3,25 +3,25 @@ import { alova } from "@/utils/alova";
 import { WebResponse } from "@/types";
 
 export interface GetGameRequest {
-    id?: number;
+  id?: number;
 }
 
 export async function getGame(request: GetGameRequest) {
-    return alova.Get<WebResponse<Game>>(`/games/${request.id}`);
+  return alova.Get<WebResponse<Game>>(`/games/${request.id}`);
 }
 
 export interface GetGameScoreboardRequest {
-    id?: number;
-    size?: number;
-    page?: number;
+  id?: number;
+  size?: number;
+  page?: number;
 }
 
 export async function getGameScoreboard(request: GetGameScoreboardRequest) {
-    return alova.Get<WebResponse<Array<ScoreRecord>>>(
-        `/games/${request.id}/scoreboard`,
-        {
-            params: request,
-            cacheFor: 30 * 1000,
-        }
-    );
+  return alova.Get<WebResponse<Array<ScoreRecord>>>(
+    `/games/${request.id}/scoreboard`,
+    {
+      params: request,
+      cacheFor: 30 * 1000,
+    }
+  );
 }
