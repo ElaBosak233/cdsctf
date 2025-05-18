@@ -9,7 +9,7 @@ publish = false
 homepage = "https://cdsctf.e23.dev"
 repository = "https://github.com/cdsctf/cdsctf"
 rust-version = "1.87.0"
-version = "1.3.3"
+version = "1.4.0"
 
 [workspace.dependencies]
 # Local Libraries
@@ -98,7 +98,7 @@ sea-orm = { version = "1.1", features = [
 ] }
 
 # Message Queue
-async-nats = { version = "0.40" }
+async-nats = { version = "0.41" }
 
 # Cache
 fred = { version = "10.1", features = [
