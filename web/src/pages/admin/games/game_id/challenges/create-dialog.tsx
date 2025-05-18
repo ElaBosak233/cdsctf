@@ -1,3 +1,10 @@
+import { StatusCodes } from "http-status-codes";
+import { HashIcon, LibraryIcon, TypeIcon } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { Context } from "../context";
+
 import { getChallenges } from "@/api/admin/challenges";
 import { createGameChallenge } from "@/api/admin/games/game_id/challenges";
 import { Badge } from "@/components/ui/badge";
@@ -7,13 +14,8 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Challenge } from "@/models/challenge";
-import { cn } from "@/utils";
-import { HashIcon, LibraryIcon, TypeIcon } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import { Context } from "../context";
-import { toast } from "sonner";
 import { useSharedStore } from "@/storages/shared";
-import { StatusCodes } from "http-status-codes";
+import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 
 interface CreateDialogProps {
@@ -48,9 +50,11 @@ function CreateDialog(props: CreateDialogProps) {
   }, [debounceTitle, debouncedId]);
 
   function handleCreateGameChallenge(challenge: Challenge) {
+    if (!game) return;
+
     createGameChallenge({
-      game_id: game?.id!,
-      challenge_id: challenge?.id!,
+      game_id: game.id!,
+      challenge_id: challenge.id!,
       is_enabled: false,
       max_pts: 2000,
       min_pts: 500,
@@ -105,7 +109,7 @@ function CreateDialog(props: CreateDialogProps) {
       </div>
       <div className={cn(["grid", "grid-cols-2", "gap-3"])}>
         {challenges?.map((challenge) => {
-          const Icon = getCategory(challenge?.category!).icon!;
+          const Icon = getCategory(challenge.category!).icon!;
           return (
             <Button
               className={cn(["justify-start"])}

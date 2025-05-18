@@ -3,7 +3,7 @@ export interface Submission {
   content?: string;
   status?: Status;
   user_id?: number;
-  user_name?: String;
+  user_name?: string;
   challenge_id?: string;
   challenge_title?: string;
   challenge_category?: number;

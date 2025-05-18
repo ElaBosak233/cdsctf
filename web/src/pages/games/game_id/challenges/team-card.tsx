@@ -1,9 +1,10 @@
-import { Card } from "@/components/ui/card";
-import { cn } from "@/utils";
-import { Avatar } from "@/components/ui/avatar";
-import { useGameStore } from "@/storages/game";
 import { ChartNoAxesCombined, Star } from "lucide-react";
+
+import { Avatar } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useGameStore } from "@/storages/game";
+import { cn } from "@/utils";
 
 function TeamCard() {
   const { currentGame, selfTeam } = useGameStore();

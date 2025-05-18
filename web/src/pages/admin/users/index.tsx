@@ -1,18 +1,3 @@
-import { User, Group } from "@/models/user";
-import { Button } from "@/components/ui/button";
-import {
-  HashIcon,
-  ListOrderedIcon,
-  PlusCircle,
-  TypeIcon,
-  ShieldIcon,
-  MailIcon,
-  UserRoundIcon,
-  UserRoundXIcon,
-  UserRoundCheckIcon,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { getUsers } from "@/api/admin/users";
 import {
   ColumnFiltersState,
   flexRender,
@@ -23,6 +8,29 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
+  HashIcon,
+  ListOrderedIcon,
+  MailIcon,
+  PlusCircle,
+  ShieldIcon,
+  TypeIcon,
+  UserRoundCheckIcon,
+  UserRoundIcon,
+  UserRoundXIcon,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { columns } from "./columns";
+import { CreateUserDialog } from "./create-dialog";
+
+import { getUsers } from "@/api/admin/users";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Field, FieldIcon } from "@/components/ui/field";
+import { Pagination } from "@/components/ui/pagination";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select } from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -30,17 +38,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pagination } from "@/components/ui/pagination";
-import { cn } from "@/utils";
-import { columns } from "./columns";
-import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Select } from "@/components/ui/select";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { CreateUserDialog } from "./create-dialog";
+import { Group, User } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/utils";
 
 export default function Index() {
   const sharedStore = useSharedStore();

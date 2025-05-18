@@ -1,9 +1,11 @@
-import React from "react";
-import { FieldContext } from "./field";
-import { cn } from "@/utils";
 import { cva } from "class-variance-authority";
+import React from "react";
 
-interface TextFieldProps extends React.ComponentProps<"input"> {}
+import { FieldContext } from "./field";
+
+import { cn } from "@/utils";
+
+type TextFieldProps = React.ComponentProps<"input"> & {};
 
 function TextField(props: TextFieldProps) {
   const { className, ref, ...rest } = props;
@@ -80,4 +82,4 @@ const inputVariants = cva(
   }
 );
 
-export { TextField, inputVariants };
+export { inputVariants, TextField };

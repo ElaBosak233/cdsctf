@@ -1,8 +1,10 @@
-import * as React from "react";
-import { cn } from "@/utils";
 import { cva } from "class-variance-authority";
+import * as React from "react";
+
 import { Button } from "./button";
 import { TagsField } from "./tags-field";
+
+import { cn } from "@/utils";
 
 const FieldContext = React.createContext<{
   size?: "sm" | "md";
@@ -12,10 +14,11 @@ const FieldContext = React.createContext<{
   autoHeight?: boolean;
 }>({});
 
-interface FieldRootProps extends React.ComponentProps<"div"> {
+type FieldRootProps = React.ComponentProps<"div"> & {
   size?: "sm" | "md";
   disabled?: boolean;
-}
+};
+
 function FieldRoot(props: FieldRootProps) {
   const { className, size, disabled, children, ref, ...rest } = props;
 
@@ -94,7 +97,7 @@ const iconVariants = cva(
   }
 );
 
-interface FieldButtonProps extends React.ComponentProps<typeof Button> {}
+type FieldButtonProps = React.ComponentProps<typeof Button> & {};
 
 function FieldButton(props: FieldButtonProps) {
   const { className, children, ref, ...rest } = props;
@@ -138,4 +141,4 @@ const extraBtnSection = cva(
   }
 );
 
-export { FieldRoot as Field, FieldIcon, FieldButton, FieldContext };
+export { FieldRoot as Field, FieldButton, FieldContext, FieldIcon };

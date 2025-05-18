@@ -1,13 +1,15 @@
-import { cn } from "@/utils";
-import { Link } from "react-router";
-import { useConfigStore } from "@/storages/config";
-import { useContext } from "react";
-import { Context } from "./context";
-import { useGameStore } from "@/storages/game";
-import { Image } from "@/components/ui/image";
 import { Flag } from "lucide-react";
+import { useContext } from "react";
+import { Link } from "react-router";
 
-interface TitleProps extends Omit<React.ComponentProps<typeof Link>, "to"> {}
+import { Context } from "./context";
+
+import { Image } from "@/components/ui/image";
+import { useConfigStore } from "@/storages/config";
+import { useGameStore } from "@/storages/game";
+import { cn } from "@/utils";
+
+type TitleProps = Omit<React.ComponentProps<typeof Link>, "to"> & {};
 
 function Title(props: TitleProps) {
   const { className, ...rest } = props;

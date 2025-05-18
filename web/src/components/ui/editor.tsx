@@ -1,11 +1,12 @@
+import ace from "ace-builds";
+
 import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
-import ace from "ace-builds";
+
 import "ace-builds/esm-resolver";
 import { useEffect, useRef, useState } from "react";
 
-export interface EditorProps
-  extends Omit<React.ComponentProps<"div">, "onChange"> {
+type EditorProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   value?: string;
   onChange?: (value: string) => void;
   placeholder?: string;
@@ -13,7 +14,7 @@ export interface EditorProps
   tabSize?: number;
   showLineNumbers?: boolean;
   className?: string;
-}
+};
 
 function Editor(props: EditorProps) {
   const {
@@ -149,4 +150,4 @@ function Editor(props: EditorProps) {
   );
 }
 
-export { Editor };
+export { Editor, type EditorProps };

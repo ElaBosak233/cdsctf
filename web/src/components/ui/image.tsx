@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
 import { CircleOff, LoaderCircle } from "lucide-react";
+import React, { useEffect, useState } from "react";
+
 import { cn } from "@/utils";
 
-interface ImageProps {
+type ImageProps = {
   src: string;
   alt?: string;
   delay?: number;
   fallback?: React.ReactNode;
   className?: string;
   imgClassName?: string;
-}
+};
 
 function Image(props: ImageProps) {
   const {
@@ -89,4 +90,4 @@ function Image(props: ImageProps) {
   );
 }
 
-export { Image };
+export { Image, type ImageProps };

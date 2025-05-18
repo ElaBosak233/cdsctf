@@ -1,6 +1,23 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
+import {
+  CheckIcon,
+  KeyIcon,
+  MailIcon,
+  ShieldIcon,
+  UserRoundCheckIcon,
+  UserRoundIcon,
+  UserRoundPlusIcon,
+} from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
 import { createUser } from "@/api/admin/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
@@ -9,27 +26,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
 import { Select } from "@/components/ui/select";
+import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  CheckIcon,
-  UserRoundIcon,
-  MailIcon,
-  UserRoundCheckIcon,
-  KeyIcon,
-  UserRoundPlusIcon,
-  ShieldIcon,
-} from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
-import { StatusCodes } from "http-status-codes";
 
 interface CreateUserDialogProps {
   onClose: () => void;

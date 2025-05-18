@@ -1,16 +1,17 @@
-import { Card } from "@/components/ui/card";
-import { cn } from "@/utils";
-import { useGameStore } from "@/storages/game";
 import { Rss } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { getGameNotice } from "@/api/games/game_id/notices";
 import { useState } from "react";
-import { GameNotice } from "@/models/game_notice";
-import { useInterval } from "@/hooks/use-interval";
+
+import { getGameNotice } from "@/api/games/game_id/notices";
+import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { MarkdownRender } from "@/components/utils/markdown-render";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
+import { MarkdownRender } from "@/components/utils/markdown-render";
+import { useInterval } from "@/hooks/use-interval";
+import { GameNotice } from "@/models/game_notice";
+import { useGameStore } from "@/storages/game";
+import { cn } from "@/utils";
 
 function NoticeCard() {
   const { currentGame } = useGameStore();

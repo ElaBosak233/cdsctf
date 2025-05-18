@@ -1,9 +1,9 @@
 import { Slot, Slottable } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import { LoaderCircleIcon, LucideIcon } from "lucide-react";
+import { LoaderCircleIcon } from "lucide-react";
+import React, { ButtonHTMLAttributes, CSSProperties, Ref } from "react";
 
 import { cn } from "@/utils";
-import React, { ButtonHTMLAttributes, CSSProperties, Ref } from "react";
 
 const buttonVariants = cva(
   [
@@ -75,15 +75,14 @@ const buttonVariants = cva(
   }
 );
 
-export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
-  icon?: React.ReactNode;
-  loading?: boolean;
-  level?: "primary" | "secondary" | "info" | "success" | "warning" | "error";
-  ref?: Ref<HTMLButtonElement>;
-}
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean;
+    icon?: React.ReactNode;
+    loading?: boolean;
+    level?: "primary" | "secondary" | "info" | "success" | "warning" | "error";
+    ref?: Ref<HTMLButtonElement>;
+  };
 
 function Button(props: ButtonProps) {
   const {
@@ -129,4 +128,4 @@ function Button(props: ButtonProps) {
   );
 }
 
-export { Button, buttonVariants };
+export { Button, buttonVariants, type ButtonProps };

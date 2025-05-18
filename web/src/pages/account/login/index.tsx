@@ -1,12 +1,14 @@
+import { LogInIcon, UserRoundPlusIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
+
+import { LoginForm } from "./login-form";
+
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { LogInIcon, UserRoundPlusIcon } from "lucide-react";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { Button } from "@/components/ui/button";
-import { LoginForm } from "./login-form";
-import { Link } from "react-router";
-import { useTranslation } from "react-i18next";
 
 export default function Index() {
   const configStore = useConfigStore();

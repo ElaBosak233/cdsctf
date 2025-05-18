@@ -1,17 +1,22 @@
-import { cn } from "@/utils";
-import { ChampionChart } from "./champion-chart";
-import { useEffect, useState } from "react";
-import { ScoreRecord } from "@/models/game";
-import { useGameStore } from "@/storages/game";
-import { getGameScoreboard } from "@/api/games/game_id";
-import { Pagination } from "@/components/ui/pagination";
 import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { ListOrderedIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { ChampionChart } from "./champion-chart";
 import { columns } from "./columns";
+import { TeamDetailsDialog } from "./team-details-dialog";
+
+import { getGameScoreboard } from "@/api/games/game_id";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Field, FieldIcon } from "@/components/ui/field";
+import { Pagination } from "@/components/ui/pagination";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -20,12 +25,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { ListOrderedIcon } from "lucide-react";
-import { Select } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { TeamDetailsDialog } from "./team-details-dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScoreRecord } from "@/models/game";
+import { useGameStore } from "@/storages/game";
+import { cn } from "@/utils";
 
 export default function Index() {
   const { currentGame } = useGameStore();
@@ -35,15 +37,17 @@ export default function Index() {
   const [page, setPage] = useState<number>(1);
 
   useEffect(() => {
+    if (!currentGame) return;
+
     getGameScoreboard({
-      id: currentGame?.id!,
+      id: currentGame.id!,
       size,
       page,
     }).then((res) => {
       setTotal(res.total || 0);
       setScoreboard(res.data || []);
     });
-  }, [currentGame?.id, page, size]);
+  }, [currentGame, page, size]);
 
   const table = useReactTable<ScoreRecord>({
     data: scoreboard,
@@ -93,7 +97,7 @@ export default function Index() {
           </Field>
           <Pagination
             value={page}
-            onChange={setPage}
+            onChange={(value) => setPage(value)}
             total={Math.ceil(total / size)}
           />
         </div>

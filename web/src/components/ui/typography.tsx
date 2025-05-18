@@ -1,6 +1,6 @@
 import { cn } from "@/utils";
 
-interface TypographyProps extends React.ComponentProps<"article"> {}
+type TypographyProps = React.ComponentProps<"article"> & {};
 
 function Typography(props: TypographyProps) {
   const { children, className, ...rest } = props;

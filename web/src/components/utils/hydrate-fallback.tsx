@@ -1,6 +1,7 @@
-import { cn } from "@/utils";
 import { LoaderCircleIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+import { cn } from "@/utils";
 
 function HydrateFallback() {
   const { t } = useTranslation();

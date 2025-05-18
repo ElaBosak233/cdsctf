@@ -1,3 +1,14 @@
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { StatusCodes } from "http-status-codes";
+import { StarIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { getSubmission } from "@/api/submissions";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,16 +27,6 @@ import { Status, Submission } from "@/models/submission";
 import { Team } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
-import { StarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
 
 interface TeamDetailsDialogProps {
   team: Team;
@@ -41,22 +42,24 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
   const [page, setPage] = useState<number>(1);
 
   useEffect(() => {
-    getSubmission({
-      game_id: currentGame?.id!,
-      team_id: team.id,
-      status: Status.Correct,
-      page: page,
-      size: size,
-      sorts: "-created_at",
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
-        setTotal(res.total || 0);
-        setSubmissions(res.data || []);
-      }
-    });
-  }, []);
+    if (currentGame) {
+      getSubmission({
+        game_id: currentGame.id,
+        team_id: team.id,
+        status: Status.Correct,
+        page: page,
+        size: size,
+        sorts: "-created_at",
+      }).then((res) => {
+        if (res.code === StatusCodes.OK) {
+          setTotal(res.total || 0);
+          setSubmissions(res.data || []);
+        }
+      });
+    }
+  }, [currentGame]);
 
-  const columns: ColumnDef<Submission>[] = [
+  const columns: Array<ColumnDef<Submission>> = [
     {
       accessorKey: "user_id",
       id: "user_id",

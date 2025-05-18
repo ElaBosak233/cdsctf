@@ -1,6 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { MessageCircleIcon, PlusCircleIcon } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
 import {
   ColumnFiltersState,
   flexRender,
@@ -10,6 +7,18 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
+import { MessageCircleIcon, PlusCircleIcon } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
+
+import { Context } from "../context";
+
+import { columns } from "./columns";
+import { CreateDialog } from "./create-dialog";
+
+import { getGameNotice } from "@/api/games/game_id/notices";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -18,16 +27,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/utils";
-import { columns } from "./columns";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useSharedStore } from "@/storages/shared";
-import { Context } from "../context";
-import { CreateDialog } from "./create-dialog";
 import { GameNotice } from "@/models/game_notice";
-import { getGameNotice } from "@/api/games/game_id/notices";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 
 export default function Index() {
   const sharedStore = useSharedStore();
@@ -69,10 +72,10 @@ export default function Index() {
   });
 
   useEffect(() => {
-    if (!game?.id) return;
+    if (!game) return;
 
     getGameNotice({
-      game_id: game?.id!,
+      game_id: game.id!,
     }).then((res) => {
       setTotal(res?.total || 0);
       setNotices(res?.data || []);

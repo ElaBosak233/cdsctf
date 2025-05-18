@@ -1,8 +1,8 @@
-import * as React from "react";
 import * as RadixAvatar from "@radix-ui/react-avatar";
+import { cva, VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 import { cn } from "@/utils";
-import { cva, VariantProps } from "class-variance-authority";
 
 const avatarVariants = cva(
   ["relative", "flex", "h-10", "w-10", "shrink-0", "overflow-hidden"],
@@ -19,12 +19,11 @@ const avatarVariants = cva(
   }
 );
 
-export interface AvatarProps
-  extends React.ComponentProps<typeof RadixAvatar.Root>,
-    VariantProps<typeof avatarVariants> {
-  src: string;
-  fallback?: React.ReactNode;
-}
+type AvatarProps = React.ComponentProps<typeof RadixAvatar.Root> &
+  VariantProps<typeof avatarVariants> & {
+    src: string;
+    fallback?: React.ReactNode;
+  };
 
 function Avatar(props: AvatarProps) {
   const { src, fallback, square, className, ref, ...rest } = props;

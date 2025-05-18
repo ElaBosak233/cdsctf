@@ -1,5 +1,6 @@
-import { copyToClipboard } from "@/utils/clipboard";
 import { useState } from "react";
+
+import { copyToClipboard } from "@/utils/clipboard";
 
 function useClipboard(): {
   isCopied: boolean;

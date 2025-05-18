@@ -4,29 +4,28 @@
  * Find the latest source code at https://github.com/huybuidac/shadcn-datetime-picker
  */
 
-import * as React from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { cva, VariantProps } from "class-variance-authority";
 import {
+  addMonths,
   endOfHour,
   endOfMinute,
+  endOfMonth,
+  endOfYear,
   format,
-  parse,
   getMonth,
   getYear,
+  parse,
   setHours,
+  setMilliseconds,
   setMinutes,
   setMonth as setMonthFns,
   setSeconds,
   setYear,
   startOfHour,
   startOfMinute,
-  startOfYear,
   startOfMonth,
-  endOfMonth,
-  endOfYear,
-  addMonths,
+  startOfYear,
   subMonths,
-  setMilliseconds,
 } from "date-fns";
 import {
   CheckIcon,
@@ -37,18 +36,20 @@ import {
   CircleXIcon,
   Clock,
 } from "lucide-react";
+import * as React from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DayPicker, type Matcher, TZDate } from "react-day-picker";
 
-import { cn } from "@/utils";
+import { FieldContext } from "./field";
+import { ScrollArea } from "./scroll-area";
+
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cva, VariantProps } from "class-variance-authority";
-import { ScrollArea } from "./scroll-area";
-import { FieldContext } from "./field";
+import { cn } from "@/utils";
 
 export type CalendarProps = Omit<
   React.ComponentProps<typeof DayPicker>,
@@ -384,7 +385,7 @@ export function DateTimePicker({
               [
                 max ? { after: max } : null,
                 min ? { before: min } : null,
-              ].filter(Boolean) as Matcher[]
+              ].filter(Boolean) as Array<Matcher>
             }
             onMonthChange={setMonth}
             classNames={{
@@ -426,7 +427,7 @@ export function DateTimePicker({
           ></div>
           <MonthYearPicker
             value={month}
-            mode={monthYearPicker as any}
+            mode={monthYearPicker || "month"}
             onChange={onMonthYearChanged}
             minDate={minDate}
             maxDate={maxDate}
@@ -481,7 +482,7 @@ function MonthYearPicker({
 }) {
   const yearRef = useRef<HTMLDivElement>(null);
   const years = useMemo(() => {
-    const years: TimeOption[] = [];
+    const years: Array<TimeOption> = [];
     for (let i = 1912; i < 2100; i++) {
       let disabled = false;
       const startY = startOfYear(setYear(value, i));
@@ -493,7 +494,7 @@ function MonthYearPicker({
     return years;
   }, [value]);
   const months = useMemo(() => {
-    const months: TimeOption[] = [];
+    const months: Array<TimeOption> = [];
     for (let i = 0; i < 12; i++) {
       let disabled = false;
       const startM = startOfMonth(setMonthFns(value, i));
@@ -631,7 +632,7 @@ function TimePicker({
     return use12HourFormat ? (hour % 12) + ampm * 12 : hour;
   }, [value, use12HourFormat, ampm]);
 
-  const hours: TimeOption[] = useMemo(
+  const hours: Array<TimeOption> = useMemo(
     () =>
       Array.from({ length: use12HourFormat ? 12 : 24 }, (_, i) => {
         let disabled = false;
@@ -649,7 +650,7 @@ function TimePicker({
       }),
     [value, min, max, use12HourFormat, ampm]
   );
-  const minutes: TimeOption[] = useMemo(() => {
+  const minutes: Array<TimeOption> = useMemo(() => {
     const anchorDate = setHours(value, _hourIn24h);
     return Array.from({ length: 60 }, (_, i) => {
       let disabled = false;
@@ -665,7 +666,7 @@ function TimePicker({
       };
     });
   }, [value, min, max, _hourIn24h]);
-  const seconds: TimeOption[] = useMemo(() => {
+  const seconds: Array<TimeOption> = useMemo(() => {
     const anchorDate = setMilliseconds(
       setMinutes(setHours(value, _hourIn24h), minute),
       0

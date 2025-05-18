@@ -1,14 +1,16 @@
-import { cn } from "@/utils";
-import { TeamCard } from "./team-card";
 import { useEffect, useState } from "react";
-import { GameChallenge } from "@/models/game_challenge";
-import { getGameChallenges } from "@/api/games/game_id/challenges";
-import { useGameStore } from "@/storages/game";
-import { ChallengeStatus, getChallengeStatus } from "@/api/challenges";
-import { ChallengeCard } from "@/components/widgets/challenge-card";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
+
 import { NoticeCard } from "./notice-card";
+import { TeamCard } from "./team-card";
+
+import { ChallengeStatus, getChallengeStatus } from "@/api/challenges";
+import { getGameChallenges } from "@/api/games/game_id/challenges";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ChallengeCard } from "@/components/widgets/challenge-card";
+import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
+import { GameChallenge } from "@/models/game_challenge";
+import { useGameStore } from "@/storages/game";
+import { cn } from "@/utils";
 
 export default function Index() {
   const { currentGame, selfTeam: selfGameTeam } = useGameStore();
@@ -18,25 +20,25 @@ export default function Index() {
     useState<Record<string, ChallengeStatus>>();
 
   useEffect(() => {
+    if (!currentGame) return;
     getGameChallenges({
-      game_id: currentGame?.id!,
+      game_id: currentGame.id!,
     }).then((res) => {
       setGameChallenges(res.data);
     });
-  }, [currentGame?.id]);
+  }, [currentGame]);
 
   useEffect(() => {
-    if (gameChallenges) {
-      getChallengeStatus({
-        challenge_ids: gameChallenges?.map(
-          (gameChallenge) => gameChallenge?.challenge_id!
-        ),
-        team_id: selfGameTeam?.id,
-        game_id: currentGame?.id,
-      }).then((res) => {
-        setChallengeStatus(res.data);
-      });
-    }
+    if (!gameChallenges) return;
+    getChallengeStatus({
+      challenge_ids: gameChallenges?.map(
+        (gameChallenge) => gameChallenge.challenge_id!
+      ),
+      team_id: selfGameTeam?.id,
+      game_id: currentGame?.id,
+    }).then((res) => {
+      setChallengeStatus(res.data);
+    });
   }, [gameChallenges]);
 
   return (
@@ -76,7 +78,7 @@ export default function Index() {
                       title: gameChallenge.challenge_title,
                       category: gameChallenge.challenge_category,
                     }}
-                    status={challengeStatus?.[gameChallenge?.challenge_id!]}
+                    status={challengeStatus?.[gameChallenge.challenge_id!]}
                   />
                 </DialogTrigger>
                 <DialogContent>

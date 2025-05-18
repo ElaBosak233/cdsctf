@@ -1,3 +1,18 @@
+import { StatusCodes } from "http-status-codes";
+import {
+  CheckCheckIcon,
+  CheckIcon,
+  InfoIcon,
+  LockIcon,
+  TriangleAlertIcon,
+  UserRoundMinusIcon,
+  UserRoundXIcon,
+  UsersRoundIcon,
+} from "lucide-react";
+import { useState } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import { toast } from "sonner";
+
 import { deleteTeam, setTeamReady } from "@/api/games/game_id/teams/profile";
 import { leaveTeam } from "@/api/games/game_id/teams/profile/users";
 import { Button } from "@/components/ui/button";
@@ -8,21 +23,6 @@ import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { StatusCodes } from "http-status-codes";
-import {
-  CheckCheckIcon,
-  CheckIcon,
-  InfoIcon,
-  LockIcon,
-  TriangleAlertIcon,
-  UserRoundMinusIcon,
-  UserRoundXIcon,
-  UsersRound,
-  UsersRoundIcon,
-} from "lucide-react";
-import { useState } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router";
-import { toast } from "sonner";
 
 export default function Layout() {
   const sharedStore = useSharedStore();
@@ -30,7 +30,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
-  const disabled = Date.now() / 1000 > currentGame?.ended_at!;
+  const disabled = Date.now() / 1000 > Number(currentGame?.ended_at);
 
   const options = [
     {
@@ -74,9 +74,10 @@ export default function Layout() {
   const [disbandDialogOpen, setDisbandDialogOpen] = useState<boolean>(false);
 
   function handleDisband() {
+    if (!selfTeam?.id || !currentGame?.id) return;
     deleteTeam({
-      team_id: selfTeam?.id!,
-      game_id: currentGame?.id!,
+      team_id: selfTeam.id!,
+      game_id: currentGame.id!,
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
@@ -95,9 +96,10 @@ export default function Layout() {
   const [leaveDialogOpen, setLeaveDialogOpen] = useState<boolean>(false);
 
   function handleLeave() {
+    if (!selfTeam?.id || !currentGame?.id) return;
     leaveTeam({
-      team_id: selfTeam?.id!,
-      game_id: currentGame?.id!,
+      team_id: selfTeam.id!,
+      game_id: currentGame.id!,
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {

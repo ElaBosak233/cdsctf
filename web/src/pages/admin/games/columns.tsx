@@ -1,19 +1,3 @@
-import { deleteGame, updateGame } from "@/api/admin/games/game_id";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { ContentDialog } from "@/components/widgets/content-dialog";
-import { useClipboard } from "@/hooks/use-clipboard";
-import { Game } from "@/models/game";
-import { useSharedStore } from "@/storages/shared";
-import { cn } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import {
@@ -31,15 +15,32 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
-const columns: ColumnDef<Game>[] = [
+import { deleteGame, updateGame } from "@/api/admin/games/game_id";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ContentDialog } from "@/components/widgets/content-dialog";
+import { useClipboard } from "@/hooks/use-clipboard";
+import { Game } from "@/models/game";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
+
+const columns: Array<ColumnDef<Game>> = [
   {
     accessorKey: "is_enabled",
     id: "is_enabled",
     header: "启用",
-    cell: ({ row }) => {
-      const isEnabled = row.getValue<boolean>("is_enabled");
-      const title = row.getValue<string>("title");
-      const id = row.getValue<number>("id");
+    cell: function IsEnabled({ row }) {
+      const isEnabled = row.original.is_enabled;
+      const title = row.original.title;
+      const id = row.original.id;
       const [checked, setChecked] = useState(isEnabled);
 
       function handlePublicnessChange() {
@@ -74,8 +75,8 @@ const columns: ColumnDef<Game>[] = [
     accessorKey: "id",
     id: "id",
     header: "ID",
-    cell: ({ row }) => {
-      const id = row.getValue<number>("id");
+    cell: function IdCell({ row }) {
+      const id = row.original.id;
       const { isCopied, copyToClipboard } = useClipboard();
       return (
         <div className={cn(["flex", "items-center", "gap-1"])}>
@@ -99,17 +100,14 @@ const columns: ColumnDef<Game>[] = [
     accessorKey: "title",
     id: "title",
     header: "标题",
-    cell: ({ row }) => {
-      const title = row.getValue("title") as string;
-      return title || "-";
-    },
+    cell: ({ row }) => row.original.title || "-",
   },
   {
     accessorKey: "is_public",
     id: "is_public",
     header: "公开赛",
     cell: ({ row }) => {
-      const isPublic = row.getValue<boolean>("is_public");
+      const isPublic = row.original.is_public;
 
       return (
         <Badge
@@ -128,7 +126,7 @@ const columns: ColumnDef<Game>[] = [
     accessorKey: "sketch",
     header: "简述",
     cell: ({ row }) => {
-      const sketch = row.getValue("sketch") as string;
+      const sketch = row.original.sketch;
 
       if (!sketch) return "-";
 
@@ -142,7 +140,7 @@ const columns: ColumnDef<Game>[] = [
   {
     accessorKey: "started_at",
     id: "started_at",
-    header: ({ column }) => {
+    header: function StartedAtHeader({ column }) {
       const icon = useMemo(() => {
         switch (column.getIsSorted()) {
           case "asc":
@@ -167,16 +165,13 @@ const columns: ColumnDef<Game>[] = [
         </div>
       );
     },
-    cell: ({ row }) => {
-      return new Date(
-        row.getValue<number>("started_at") * 1000
-      ).toLocaleString();
-    },
+    cell: ({ row }) =>
+      new Date(row.getValue<number>("started_at") * 1000).toLocaleString(),
   },
   {
     accessorKey: "ended_at",
     id: "ended_at",
-    header: ({ column }) => {
+    header: function EndedAtHeader({ column }) {
       const icon = useMemo(() => {
         switch (column.getIsSorted()) {
           case "asc":
@@ -201,16 +196,15 @@ const columns: ColumnDef<Game>[] = [
         </div>
       );
     },
-    cell: ({ row }) => {
-      return new Date(row.getValue<number>("ended_at") * 1000).toLocaleString();
-    },
+    cell: ({ row }) =>
+      new Date(row.getValue<number>("ended_at") * 1000).toLocaleString(),
   },
   {
     id: "actions",
     header: () => <div className={cn(["justify-self-center"])}>操作</div>,
-    cell: ({ row }) => {
-      const id = row.getValue<number>("id");
-      const title = row.getValue<string>("title");
+    cell: function ActionsCell({ row }) {
+      const id = row.original.id;
+      const title = row.original.title;
 
       const sharedStore = useSharedStore();
 

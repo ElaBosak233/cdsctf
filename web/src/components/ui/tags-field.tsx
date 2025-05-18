@@ -1,9 +1,11 @@
+import { X as RemoveIcon } from "lucide-react";
+import React from "react";
+
+import { FieldContext } from "./field";
+
 import { Badge } from "@/components/ui/badge";
 import { inputVariants, TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
-import { X as RemoveIcon } from "lucide-react";
-import React from "react";
-import { FieldContext } from "./field";
 
 /**
  * used for identifying the split char and use will pasting
@@ -15,28 +17,27 @@ const SPLITTER_REGEX = /[\n#?=&\t,./-]+/;
  */
 const FORMATTING_REGEX = /^[^a-zA-Z0-9]*|[^a-zA-Z0-9]*$/g;
 
-interface TagsFieldProps extends React.ComponentProps<"div"> {
-  value: string[];
-  onValueChange: (value: string[]) => void;
+type TagsFieldProps = React.ComponentProps<"div"> & {
+  value: Array<string>;
+  onValueChange: (value: Array<string>) => void;
   placeholder?: string;
   maxItems?: number;
   minItems?: number;
-}
+};
 
-interface TagsFieldContextProps {
-  value: string[];
-  onValueChange: (value: any) => void;
+type TagsFieldContextProps = {
+  value: Array<string>;
+  onValueChange: (value: Array<string>) => void;
   inputValue: string;
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
   activeIndex: number;
   setActiveIndex: React.Dispatch<React.SetStateAction<number>>;
-}
+};
 
 const TagFieldContext = React.createContext<TagsFieldContextProps | null>(null);
 
 function TagsField(props: TagsFieldProps) {
   const {
-    children,
     value,
     onValueChange,
     placeholder,
@@ -214,8 +215,7 @@ function TagsField(props: TagsFieldProps) {
           break;
 
         case "Escape":
-          const newIndex = activeIndex === -1 ? value.length - 1 : -1;
-          setActiveIndex(newIndex);
+          setActiveIndex(activeIndex === -1 ? value.length - 1 : -1);
           break;
 
         case "Enter":
@@ -270,7 +270,8 @@ function TagsField(props: TagsFieldProps) {
             "py-2",
             "h-auto",
             "items-center",
-          ]
+          ],
+          className
         )}
         aria-disabled={disabled}
       >

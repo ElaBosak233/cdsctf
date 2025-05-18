@@ -1,3 +1,19 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
+import {
+  MailIcon,
+  SaveIcon,
+  TrashIcon,
+  TypeIcon,
+  UserRoundIcon,
+} from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import { EmailVerifyDialog } from "./email-verify-dialog";
+
 import { updateUserProfile } from "@/api/users/profile";
 import { deleteUserAvatar } from "@/api/users/profile/avatar";
 import { Alert } from "@/components/ui/alert";
@@ -11,6 +27,7 @@ import {
   useDropzone,
 } from "@/components/ui/dropzone";
 import { Editor } from "@/components/ui/editor";
+import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
@@ -19,27 +36,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
 import { Label } from "@/components/ui/label";
+import { TextField } from "@/components/ui/text-field";
 import { useAuthStore } from "@/storages/auth";
+import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  MailIcon,
-  SaveIcon,
-  TrashIcon,
-  TypeIcon,
-  UserRoundIcon,
-} from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
-import { EmailVerifyDialog } from "./email-verify-dialog";
-import { useConfigStore } from "@/storages/config";
-import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
   const authStore = useAuthStore();
@@ -132,8 +134,10 @@ export default function Index() {
   });
 
   function handleAvatarDelete() {
+    if (!authStore?.user) return;
+
     deleteUserAvatar({
-      user_id: authStore?.user?.id!,
+      user_id: authStore.user.id!,
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {

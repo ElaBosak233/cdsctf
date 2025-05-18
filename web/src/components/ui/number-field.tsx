@@ -1,26 +1,27 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { NumericFormat, NumericFormatProps } from "react-number-format";
-import { TextField } from "./text-field";
+
 import { FieldContext } from "./field";
+import { TextField } from "./text-field";
+
 import { cn } from "@/utils";
 
-export interface NumberInputProps
-  extends Omit<React.ComponentProps<"input">, "type">,
-    Omit<NumericFormatProps, "value" | "onValueChange"> {
-  stepper?: number;
-  thousandSeparator?: string;
-  placeholder?: string;
-  defaultValue?: number;
-  min?: number;
-  max?: number;
-  value?: number;
-  suffix?: string;
-  prefix?: string;
-  onValueChange?: (value: number | undefined) => void;
-  fixedDecimalScale?: boolean;
-  decimalScale?: number;
-}
+type NumberInputProps = Omit<React.ComponentProps<"input">, "type"> &
+  Omit<NumericFormatProps, "value" | "onValueChange"> & {
+    stepper?: number;
+    thousandSeparator?: string;
+    placeholder?: string;
+    defaultValue?: number;
+    min?: number;
+    max?: number;
+    value?: number;
+    suffix?: string;
+    prefix?: string;
+    onValueChange?: (value: number | undefined) => void;
+    fixedDecimalScale?: boolean;
+    decimalScale?: number;
+  };
 
 function NumberField(props: NumberInputProps) {
   const {
@@ -196,4 +197,4 @@ function NumberField(props: NumberInputProps) {
   );
 }
 
-export { NumberField };
+export { NumberField, type NumberInputProps };

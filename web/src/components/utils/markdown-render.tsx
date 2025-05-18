@@ -1,18 +1,18 @@
 import { MarkdownHooks } from "react-markdown";
+import rehypeExternalLinks from "rehype-external-links";
+import rehypeKatex from "rehype-katex";
+import rehypePrettyCode, {
+  Options as RehypePrettyCodeOptions,
+} from "rehype-pretty-code";
+import rehypeSlug from "rehype-slug";
+import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
-import rehypeKatex from "rehype-katex";
-import rehypeSlug from "rehype-slug";
-import rehypeExternalLinks from "rehype-external-links";
 // import rehypeAutolinkHeadings, {
 //     Options as RehypeAutolinkHeadingsOptions,
 // } from "rehype-autolink-headings";
-import rehypePrettyCode, {
-  Options as RehypePrettyCodeOptions,
-} from "rehype-pretty-code";
-import rehypeStringify from "rehype-stringify";
 import "katex/dist/katex.min.css";
 import React from "react";
 

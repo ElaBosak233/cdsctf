@@ -1,14 +1,3 @@
-import { Challenge } from "@/models/challenge";
-import { Button } from "@/components/ui/button";
-import {
-  HashIcon,
-  LibraryIcon,
-  ListOrderedIcon,
-  PlusCircleIcon,
-  TypeIcon,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { getChallenges } from "@/api/admin/challenges";
 import {
   ColumnFiltersState,
   flexRender,
@@ -19,6 +8,25 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
+  HashIcon,
+  LibraryIcon,
+  ListOrderedIcon,
+  PlusCircleIcon,
+  TypeIcon,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { columns } from "./columns";
+import { CreateDialog } from "./create-dialog";
+
+import { getChallenges } from "@/api/admin/challenges";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Field, FieldIcon } from "@/components/ui/field";
+import { Pagination } from "@/components/ui/pagination";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select } from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -26,18 +34,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pagination } from "@/components/ui/pagination";
-import { cn } from "@/utils";
-import { columns } from "./columns";
-import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Select } from "@/components/ui/select";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { CreateDialog } from "./create-dialog";
+import { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 import { categories } from "@/utils/category";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Index() {
   const sharedStore = useSharedStore();
@@ -187,8 +189,8 @@ export default function Index() {
                     </div>
                   ),
                 },
-                ...categories?.map((category) => {
-                  const Icon = category?.icon!;
+                ...(categories || []).map((category) => {
+                  const Icon = category.icon!;
 
                   return {
                     value: String(category?.id),

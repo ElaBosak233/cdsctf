@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import { cn } from "@/utils";
 
 function Alert({ className, ...props }: React.ComponentProps<"div">) {
@@ -77,4 +78,4 @@ function AlertDescription({
   );
 }
 
-export { Alert, AlertTitle, AlertDescription };
+export { Alert, AlertDescription, AlertTitle };

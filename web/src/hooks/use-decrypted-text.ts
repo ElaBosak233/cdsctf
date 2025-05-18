@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 type RevealDirection = "start" | "end" | "center";
 
@@ -75,10 +75,9 @@ const useDecryptedText = ({
   };
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
     let currentIteration = 0;
 
-    interval = setInterval(() => {
+    const interval = setInterval(() => {
       setRevealedIndices((prevRevealed) => {
         if (sequential) {
           if (prevRevealed.size < text.length) {

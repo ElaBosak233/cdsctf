@@ -1,10 +1,11 @@
-import { cn } from "@/utils";
 import { LoaderCircleIcon } from "lucide-react";
 
-interface LoadingOverlayProps {
+import { cn } from "@/utils";
+
+type LoadingOverlayProps = {
   loading: boolean;
   className?: string;
-}
+};
 
 function LoadingOverlay(props: LoadingOverlayProps) {
   const { className } = props;

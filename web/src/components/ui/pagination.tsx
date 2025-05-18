@@ -1,23 +1,23 @@
-import * as React from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   MoreHorizontalIcon,
 } from "lucide-react";
+import * as React from "react";
 
-import { cn } from "@/utils";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/utils";
 
-interface PaginationProps
-  extends Partial<
-    Omit<React.ComponentProps<typeof PaginationPrimitive>, "onChange">
-  > {
+type PaginationProps = Omit<
+  React.ComponentProps<typeof PaginationPrimitive>,
+  "onChange"
+> & {
   size?: "sm" | "md" | "lg";
   total: number;
   value: number;
   max?: number;
   onChange: (value: number) => void;
-}
+};
 
 function Pagination(props: PaginationProps) {
   const { size = "md", total, value, max, onChange, ...rest } = props;
@@ -68,7 +68,7 @@ function Pagination(props: PaginationProps) {
 type PaginationNode = number | "...";
 
 function generatePaginationNodes(total: number, value: number, max?: number) {
-  const items: PaginationNode[] = [];
+  const items: Array<PaginationNode> = [];
   const maxPages = max || 5;
   const halfMaxPages = Math.floor(maxPages / 2);
 
@@ -138,9 +138,9 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
   return <li data-slot="pagination-item" {...props} />;
 }
 
-interface PaginationLinkProps extends React.ComponentProps<typeof Button> {
+type PaginationLinkProps = React.ComponentProps<typeof Button> & {
   isActive?: boolean;
-}
+};
 
 function PaginationLink({
   className,
@@ -214,4 +214,4 @@ function PaginationEllipsis({
   );
 }
 
-export { Pagination };
+export { Pagination, type PaginationProps };

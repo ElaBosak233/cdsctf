@@ -1,31 +1,37 @@
+import { Flag } from "lucide-react";
+import * as React from "react";
+import { useLocation } from "react-router";
+
+import { ChallengeStatus } from "@/api/challenges";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ChallengeMini } from "@/models/challenge";
 import { cn } from "@/utils";
-import * as React from "react";
-import { Flag } from "lucide-react";
-import { Card } from "../ui/card";
-import { Separator } from "../ui/separator";
-import { Badge } from "../ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { ChallengeStatus } from "@/api/challenges";
-import { useLocation } from "react-router";
-import { getOrdinal } from "@/utils/math";
 import { getCategory } from "@/utils/category";
+import { getOrdinal } from "@/utils/math";
 
-interface ChallengeCardProps extends React.ComponentProps<"div"> {
+type ChallengeCardProps = React.ComponentProps<"div"> & {
   digest?: ChallengeMini;
   status?: ChallengeStatus;
   debug?: boolean;
-}
+};
 
 function ChallengeCard(props: ChallengeCardProps) {
   const { digest, status, debug = false, className, ...rest } = props;
   const location = useLocation();
   const pathname = location.pathname;
 
-  const category = React.useMemo(() => {
-    return getCategory(digest?.category!);
-  }, [digest?.category]);
-  const CategoryIcon = category?.icon!;
+  const category = React.useMemo(
+    () => getCategory(digest?.category || 1),
+    [digest?.category]
+  );
+  const CategoryIcon = category.icon!;
 
   return (
     <Card
@@ -66,8 +72,8 @@ function ChallengeCard(props: ChallengeCardProps) {
           <TooltipTrigger asChild>
             <Flag
               className={cn(["absolute", "top-[10%]", "right-[7%]", "size-5"])}
-              fill={category.color}
-              color={category.color}
+              fill={category?.color}
+              color={category?.color}
             />
           </TooltipTrigger>
           <TooltipContent sideOffset={0}>已解决</TooltipContent>
@@ -81,11 +87,11 @@ function ChallengeCard(props: ChallengeCardProps) {
         ])}
         style={
           {
-            "--color-badge": category.color,
+            "--color-badge": category?.color,
           } as React.CSSProperties
         }
       >
-        {category.name?.toUpperCase()}
+        {category?.name?.toUpperCase()}
       </Badge>
       <h3
         className={cn([

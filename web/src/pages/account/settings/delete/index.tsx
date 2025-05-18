@@ -1,21 +1,5 @@
-import { deleteUserProfile } from "@/api/users/profile";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { Separator } from "@/components/ui/separator";
-import { Typography } from "@/components/ui/typography";
-import { Captcha } from "@/components/widgets/captcha";
-import { useAuthStore } from "@/storages/auth";
-import { useConfigStore } from "@/storages/config";
-import { cn } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
 import {
   CheckCheckIcon,
   LockIcon,
@@ -26,7 +10,24 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-import { StatusCodes } from "http-status-codes";
+
+import { deleteUserProfile } from "@/api/users/profile";
+import { Button } from "@/components/ui/button";
+import { Field, FieldIcon } from "@/components/ui/field";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Separator } from "@/components/ui/separator";
+import { TextField } from "@/components/ui/text-field";
+import { Typography } from "@/components/ui/typography";
+import { Captcha } from "@/components/widgets/captcha";
+import { useAuthStore } from "@/storages/auth";
+import { useConfigStore } from "@/storages/config";
+import { cn } from "@/utils";
 
 export default function Index() {
   const configStore = useConfigStore();

@@ -1,5 +1,3 @@
-import { State } from "@/models/team";
-import { useGameStore } from "@/storages/game";
 import {
   ChartNoAxesCombinedIcon,
   FlagIcon,
@@ -11,6 +9,9 @@ import {
 } from "lucide-react";
 import { createContext, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+
+import { State } from "@/models/team";
+import { useGameStore } from "@/storages/game";
 
 export const Context = createContext<{
   mode: "default" | "game";

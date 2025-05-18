@@ -1,5 +1,16 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
+import { LockIcon, SaveIcon } from "lucide-react";
+import { useContext, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import { Context } from "../context";
+
 import { updateUser } from "@/api/admin/users/user_id";
 import { Button } from "@/components/ui/button";
+import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
@@ -8,17 +19,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { LockIcon, SaveIcon } from "lucide-react";
-import { useContext, useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
-import { Context } from "../context";
-import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
   const { user } = useContext(Context);
@@ -49,9 +51,11 @@ export default function Index() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) return;
+
     setLoading(true);
     updateUser({
-      id: user?.id!,
+      id: user.id!,
       password: values.new_password,
     })
       .then((res) => {

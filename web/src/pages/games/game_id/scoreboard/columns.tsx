@@ -1,26 +1,23 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { cn } from "@/utils";
-import { Badge } from "@/components/ui/badge";
+
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { ScoreRecord } from "@/models/game";
 import { useGameStore } from "@/storages/game";
+import { cn } from "@/utils";
 
-const columns: ColumnDef<ScoreRecord>[] = [
+const columns: Array<ColumnDef<ScoreRecord>> = [
   {
     accessorKey: "team.rank",
     id: "team.rank",
     header: "排名",
-    cell: ({ row }) => {
-      const rank = row.getValue<number>("team.rank");
-
-      return <Badge>{rank}</Badge>;
-    },
+    cell: ({ row }) => <Badge>{row.original.team?.rank}</Badge>,
   },
   {
     accessorKey: "team.name",
     id: "team.name",
     header: "团队名",
-    cell: ({ row }) => {
+    cell: function TeamNameCell({ row }) {
       const id = row.original?.team?.id;
       const name = row.original?.team?.name;
       const { currentGame } = useGameStore();
@@ -40,21 +37,13 @@ const columns: ColumnDef<ScoreRecord>[] = [
     accessorKey: "team.pts",
     id: "team.pts",
     header: "分数",
-    cell: ({ row }) => {
-      const pts = row.getValue<number>("team.pts");
-
-      return <span>{pts}</span>;
-    },
+    cell: ({ row }) => <span>{row.original.team?.pts}</span>,
   },
   {
     accessorKey: "team.slogan",
     id: "team.slogan",
     header: "口号",
-    cell: ({ row }) => {
-      const slogan = row.getValue<string>("team.slogan");
-
-      return <span>{slogan}</span>;
-    },
+    cell: ({ row }) => <span>{row.original.team?.slogan}</span>,
   },
 ];
 

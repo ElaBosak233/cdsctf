@@ -1,27 +1,5 @@
-import { getConfigs, updateConfig } from "@/api/admin/configs";
-import { deleteLogo } from "@/api/admin/configs/logo";
-import { Button } from "@/components/ui/button";
-import {
-  Dropzone,
-  DropZoneArea,
-  DropzoneTrigger,
-  useDropzone,
-} from "@/components/ui/dropzone";
-import { Image } from "@/components/ui/image";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
 import {
   BadgeCheckIcon,
   BotIcon,
@@ -40,11 +18,34 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+
+import { getConfigs, updateConfig } from "@/api/admin/configs";
+import { deleteLogo } from "@/api/admin/configs/logo";
+import { Button } from "@/components/ui/button";
+import {
+  Dropzone,
+  DropZoneArea,
+  DropzoneTrigger,
+  useDropzone,
+} from "@/components/ui/dropzone";
+import { Field, FieldIcon } from "@/components/ui/field";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Image } from "@/components/ui/image";
 import { Label } from "@/components/ui/label";
-import { Config } from "@/models/config";
-import { Select } from "@/components/ui/select";
 import { NumberField } from "@/components/ui/number-field";
-import { StatusCodes } from "http-status-codes";
+import { Select } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { TextField } from "@/components/ui/text-field";
+import { Config } from "@/models/config";
+import { cn } from "@/utils";
 
 export default function Index() {
   const [refresh, setRefresh] = useState<number>(0);

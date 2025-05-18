@@ -1,6 +1,6 @@
-import * as React from "react";
 import * as RadixLabel from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
+import * as React from "react";
 import {
   Controller,
   ControllerProps,
@@ -11,8 +11,8 @@ import {
   useFormState,
 } from "react-hook-form";
 
-import { cn } from "@/utils";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/utils";
 
 const Form = FormProvider;
 
@@ -158,12 +158,12 @@ function FormMessage({ className, ...props }: React.ComponentProps<"span">) {
 }
 
 export {
-  useFormField,
   Form,
-  FormItem,
-  FormLabel,
   FormControl,
   FormDescription,
-  FormMessage,
   FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  useFormField,
 };

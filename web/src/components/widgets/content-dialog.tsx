@@ -1,18 +1,20 @@
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { EyeIcon } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { MarkdownRender } from "../utils/markdown-render";
-import { cn } from "@/utils";
-import { Typography } from "../ui/typography";
 
-interface ContentDialogProps {
+import { MarkdownRender } from "../utils/markdown-render";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Typography } from "@/components/ui/typography";
+import { cn } from "@/utils";
+
+type ContentDialogProps = {
   title: string;
   content: string;
   triggerText?: string;
   maxPreviewLength?: number;
   showPreview?: boolean;
-}
+};
 
 export function ContentDialog({
   content,
