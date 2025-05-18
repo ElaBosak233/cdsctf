@@ -1,8 +1,9 @@
+import { InfoIcon, LockIcon, UserRoundXIcon } from "lucide-react";
+import { Link, Outlet, useLocation } from "react-router";
+
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils";
-import { InfoIcon, LockIcon, UserRoundXIcon } from "lucide-react";
-import { Link, Outlet, useLocation } from "react-router";
 
 export default function Layout() {
   const location = useLocation();

@@ -1,5 +1,5 @@
-import { Challenge } from "@/models/challenge";
-import { Button } from "@/components/ui/button";
+import { ColumnDef } from "@tanstack/react-table";
+import { StatusCodes } from "http-status-codes";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -14,34 +14,35 @@ import {
   XIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Link } from "react-router";
+import { toast } from "sonner";
+
 import {
   deleteChallenge,
   updateChallenge,
 } from "@/api/admin/challenges/challenge_id";
-import { ColumnDef } from "@tanstack/react-table";
-import { cn } from "@/utils";
-import { ContentDialog } from "@/components/widgets/content-dialog";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ContentDialog } from "@/components/widgets/content-dialog";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { Link } from "react-router";
-import { toast } from "sonner";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
+import { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
-import { StatusCodes } from "http-status-codes";
+import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 
-const columns: ColumnDef<Challenge>[] = [
+const columns: Array<ColumnDef<Challenge>> = [
   {
     accessorKey: "is_public",
     header: "练习",
-    cell: ({ row }) => {
+    cell: function IsPublicCell({ row }) {
       const isPublic = row.original.is_public;
       const title = row.original.title;
       const id = row.original.id;
@@ -79,8 +80,8 @@ const columns: ColumnDef<Challenge>[] = [
     accessorKey: "id",
     id: "id",
     header: "ID",
-    cell: ({ row }) => {
-      const id = row.getValue<string>("id");
+    cell: function IdCell({ row }) {
+      const id = row.original.id!;
       const { isCopied, copyToClipboard } = useClipboard();
       return (
         <div className={cn(["flex", "items-center", "gap-1"])}>
@@ -104,17 +105,14 @@ const columns: ColumnDef<Challenge>[] = [
     accessorKey: "title",
     id: "title",
     header: "标题",
-    cell: ({ row }) => {
-      const title = row.getValue("title") as string;
-      return title || "-";
-    },
+    cell: ({ row }) => row.original.title || "-",
   },
   {
     accessorKey: "tags",
     id: "tags",
     header: "标签",
     cell: ({ row }) => {
-      const tags = row.getValue("tags") as string[] | undefined;
+      const tags = row.original.tags;
 
       if (!tags || !Array.isArray(tags) || tags.length === 0) {
         return "-";
@@ -140,7 +138,7 @@ const columns: ColumnDef<Challenge>[] = [
     accessorKey: "description",
     header: "描述",
     cell: ({ row }) => {
-      const description = row.getValue("description") as string;
+      const description = row.original.description;
 
       if (!description) return "-";
 
@@ -155,7 +153,7 @@ const columns: ColumnDef<Challenge>[] = [
     accessorKey: "category",
     header: "分类",
     cell: ({ row }) => {
-      const categoryId = row.getValue("category") as number;
+      const categoryId = row.original.category!;
       const category = getCategory(categoryId);
 
       const Icon = category.icon!;
@@ -171,7 +169,7 @@ const columns: ColumnDef<Challenge>[] = [
     accessorKey: "has_attachment",
     header: "附件",
     cell: ({ row }) => {
-      const hasAttachment = row.getValue<boolean>("has_attachment");
+      const hasAttachment = row.original.has_attachment;
 
       const options = [
         {
@@ -195,7 +193,7 @@ const columns: ColumnDef<Challenge>[] = [
     accessorKey: "is_dynamic",
     header: "动态性",
     cell: ({ row }) => {
-      const isDynamic = row.getValue<boolean>("is_dynamic");
+      const isDynamic = row.original.is_dynamic;
 
       return (
         <Badge
@@ -214,7 +212,7 @@ const columns: ColumnDef<Challenge>[] = [
   {
     accessorKey: "updated_at",
     id: "updated_at",
-    header: ({ column }) => {
+    header: function UpdatedAtHeader({ column }) {
       const icon = useMemo(() => {
         switch (column.getIsSorted()) {
           case "asc":
@@ -239,16 +237,13 @@ const columns: ColumnDef<Challenge>[] = [
         </div>
       );
     },
-    cell: ({ row }) => {
-      return new Date(
-        row.getValue<number>("updated_at") * 1000
-      ).toLocaleString();
-    },
+    cell: ({ row }) =>
+      new Date(row.getValue<number>("updated_at") * 1000).toLocaleString(),
   },
   {
     accessorKey: "created_at",
     id: "created_at",
-    header: ({ column }) => {
+    header: function CreatedAtHeader({ column }) {
       const icon = useMemo(() => {
         switch (column.getIsSorted()) {
           case "asc":
@@ -273,18 +268,15 @@ const columns: ColumnDef<Challenge>[] = [
         </div>
       );
     },
-    cell: ({ row }) => {
-      return new Date(
-        row.getValue<number>("created_at") * 1000
-      ).toLocaleString();
-    },
+    cell: ({ row }) =>
+      new Date(row.getValue<number>("created_at") * 1000).toLocaleString(),
   },
   {
     id: "actions",
     header: () => <div className={cn(["justify-self-center"])}>操作</div>,
-    cell: ({ row }) => {
-      const id = row.getValue<string>("id");
-      const title = row.getValue<string>("title");
+    cell: function ActionsCell({ row }) {
+      const id = row.original.id;
+      const title = row.original.title;
 
       const sharedStore = useSharedStore();
 

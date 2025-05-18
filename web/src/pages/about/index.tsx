@@ -1,8 +1,9 @@
+import { CodeXmlIcon, HandshakeIcon, HeartIcon, StarIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { CodeXmlIcon, HandshakeIcon, HeartIcon, StarIcon } from "lucide-react";
 
 export default function Index() {
   const { version } = useConfigStore();

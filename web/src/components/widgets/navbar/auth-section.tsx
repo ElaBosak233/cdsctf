@@ -1,19 +1,20 @@
+import { StatusCodes } from "http-status-codes";
+import { LogOutIcon, SettingsIcon, UserRoundIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router";
+
 import { logout } from "@/api/users";
-import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/storages/auth";
-import { cn } from "@/utils";
 import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuSeparator,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, LogOutIcon, SettingsIcon, UserRoundIcon } from "lucide-react";
-import { useNavigate, Link } from "react-router";
-import { StatusCodes } from "http-status-codes";
-import { useTranslation } from "react-i18next";
+import { useAuthStore } from "@/storages/auth";
+import { cn } from "@/utils";
 
 function AuthSection() {
   const { t } = useTranslation("account");

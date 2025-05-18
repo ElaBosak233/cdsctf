@@ -1,6 +1,15 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
+import { CheckIcon, LibraryIcon, TypeIcon } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
 import { createChallenge } from "@/api/admin/challenges";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
@@ -9,18 +18,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
 import { Select } from "@/components/ui/select";
+import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckIcon, LibraryIcon, TypeIcon } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
-import { StatusCodes } from "http-status-codes";
 import { categories } from "@/utils/category";
 
 interface CreateDialogProps {
@@ -122,7 +123,7 @@ function CreateDialog(props: CreateDialogProps) {
                     <Select
                       {...field}
                       options={categories?.map((category) => {
-                        const Icon = category?.icon!;
+                        const Icon = category.icon!;
 
                         return {
                           value: String(category?.id),

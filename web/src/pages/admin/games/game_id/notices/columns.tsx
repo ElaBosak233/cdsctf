@@ -1,31 +1,32 @@
-import { Button } from "@/components/ui/button";
+import { ColumnDef } from "@tanstack/react-table";
+import { StatusCodes } from "http-status-codes";
 import { ClipboardCheckIcon, ClipboardCopyIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
-import { cn } from "@/utils";
+import { toast } from "sonner";
+
+import { deleteGameNotice } from "@/api/admin/games/game_id/notices";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useClipboard } from "@/hooks/use-clipboard";
-import { toast } from "sonner";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
-import { useSharedStore } from "@/storages/shared";
-import { GameNotice } from "@/models/game_notice";
-import { deleteGameNotice } from "@/api/admin/games/game_id/notices";
 import { ContentDialog } from "@/components/widgets/content-dialog";
-import { StatusCodes } from "http-status-codes";
+import { useClipboard } from "@/hooks/use-clipboard";
+import { GameNotice } from "@/models/game_notice";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 
-const columns: ColumnDef<GameNotice>[] = [
+const columns: Array<ColumnDef<GameNotice>> = [
   {
     accessorKey: "id",
     id: "id",
     header: "ID",
-    cell: ({ row }) => {
-      const id = row.getValue<number>("id");
+    cell: function IdCell({ row }) {
+      const id = row.original.id;
       const { isCopied, copyToClipboard } = useClipboard();
       return (
         <div className={cn(["flex", "items-center", "gap-1"])}>
@@ -49,16 +50,13 @@ const columns: ColumnDef<GameNotice>[] = [
     accessorKey: "title",
     id: "title",
     header: "标题",
-    cell: ({ row }) => {
-      const title = row.getValue("title") as string;
-      return title || "-";
-    },
+    cell: ({ row }) => row.original.title,
   },
   {
     accessorKey: "content",
     header: "详情",
     cell: ({ row }) => {
-      const content = row.getValue("content") as string;
+      const content = row.original.content;
 
       if (!content) return "-";
 
@@ -82,7 +80,7 @@ const columns: ColumnDef<GameNotice>[] = [
   {
     id: "actions",
     header: () => <div className={cn(["justify-self-center"])}>操作</div>,
-    cell: ({ row }) => {
+    cell: function ActionsCell({ row }) {
       const sharedStore = useSharedStore();
 
       const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);

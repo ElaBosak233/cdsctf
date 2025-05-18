@@ -1,37 +1,35 @@
-import { Button } from "@/components/ui/button";
+import { ColumnDef } from "@tanstack/react-table";
+import { StatusCodes } from "http-status-codes";
 import {
   BanIcon,
   CheckCheckIcon,
-  ClipboardCheck,
   ClipboardCheckIcon,
-  ClipboardCopy,
   ClipboardCopyIcon,
-  Undo2,
   Undo2Icon,
 } from "lucide-react";
-import { ColumnDef } from "@tanstack/react-table";
-import { cn } from "@/utils";
+import { toast } from "sonner";
+
+import { updateTeam } from "@/api/admin/games/game_id/teams/team_id";
+import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { toast } from "sonner";
-import { useSharedStore } from "@/storages/shared";
 import { State, Team } from "@/models/team";
-import { updateTeam } from "@/api/admin/games/game_id/teams/team_id";
-import { Avatar } from "@/components/ui/avatar";
-import { StatusCodes } from "http-status-codes";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 
-const columns: ColumnDef<Team>[] = [
+const columns: Array<ColumnDef<Team>> = [
   {
     accessorKey: "id",
     id: "id",
     header: "ID",
-    cell: ({ row }) => {
-      const id = row.getValue<string>("id");
+    cell: function IdCell({ row }) {
+      const id = row.original.id;
       const { isCopied, copyToClipboard } = useClipboard();
       return (
         <div className={cn(["flex", "items-center", "gap-1"])}>
@@ -42,7 +40,7 @@ const columns: ColumnDef<Team>[] = [
                 icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
                 square
                 size={"sm"}
-                onClick={() => copyToClipboard(id)}
+                onClick={() => copyToClipboard(String(id))}
               />
             </TooltipTrigger>
             <TooltipContent>复制到剪贴板</TooltipContent>
@@ -56,7 +54,7 @@ const columns: ColumnDef<Team>[] = [
     id: "name",
     header: "团队名",
     cell: ({ row }) => {
-      const name = row.getValue<string>("name");
+      const name = row.original.name!;
       return (
         <div className={cn(["flex", "gap-2", "items-center"])}>
           <Avatar
@@ -72,37 +70,26 @@ const columns: ColumnDef<Team>[] = [
     accessorKey: "slogan",
     id: "slogan",
     header: "口号",
-    cell: ({ row }) => {
-      const slogan = row.getValue<string>("slogan");
-      return slogan || "-";
-    },
+    cell: ({ row }) => row.original.slogan || "-",
   },
   {
     accessorKey: "rank",
     id: "rank",
     header: "排名",
-    cell: ({ row }) => {
-      const rank = row.getValue<number>("rank");
-
-      return rank;
-    },
+    cell: ({ row }) => row.original.rank,
   },
   {
     accessorKey: "pts",
     id: "pts",
     header: "当前分值",
-    cell: ({ row }) => {
-      const pts = row.getValue<number>("pts");
-
-      return pts;
-    },
+    cell: ({ row }) => row.original.pts,
   },
   {
     accessorKey: "state",
     id: "state",
     header: "当前状态",
     cell: ({ row }) => {
-      const state = row.getValue<State>("state");
+      const state = row.original.state;
 
       switch (state) {
         case State.Banned:
@@ -135,7 +122,7 @@ const columns: ColumnDef<Team>[] = [
   {
     id: "actions",
     header: () => <div className={cn(["justify-self-center"])}>操作</div>,
-    cell: ({ row }) => {
+    cell: function ActionsCell({ row }) {
       const id = row.original.id;
       const game_id = row.original.game_id;
       const state = row.original.state;

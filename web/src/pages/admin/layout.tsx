@@ -1,3 +1,6 @@
+import { FlagIcon, HouseIcon, LibraryIcon, UserRoundIcon } from "lucide-react";
+import { Link, Outlet, useLocation } from "react-router";
+
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -5,8 +8,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/utils";
-import { FlagIcon, HouseIcon, LibraryIcon, UserRoundIcon } from "lucide-react";
-import { Link, Outlet, useLocation } from "react-router";
 
 export default function Layout() {
   const location = useLocation();

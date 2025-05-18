@@ -1,9 +1,9 @@
-import * as React from "react";
 import * as RadixDialog from "@radix-ui/react-dialog";
+import * as React from "react";
 
 import { cn } from "@/utils";
 
-interface DialogProps extends React.ComponentProps<typeof RadixDialog.Root> {}
+type DialogProps = React.ComponentProps<typeof RadixDialog.Root> & {};
 
 function Dialog(props: DialogProps) {
   const { ...rest } = props;
@@ -17,12 +17,11 @@ function DialogTrigger({
   return <RadixDialog.Trigger data-slot="dialog-trigger" asChild {...props} />;
 }
 
-interface DialogContentProps
-  extends Omit<React.ComponentProps<typeof RadixDialog.Content>, "asChild"> {
+type DialogContentProps = React.ComponentProps<typeof RadixDialog.Content> & {
   slotProps?: {
     title?: React.ComponentProps<typeof RadixDialog.DialogTitle>;
   };
-}
+};
 
 function DialogContent(props: DialogContentProps) {
   const { children, className, slotProps, ...rest } = props;
@@ -94,4 +93,4 @@ function DialogOverlay({
   );
 }
 
-export { Dialog, DialogTrigger, DialogContent };
+export { Dialog, DialogContent, DialogTrigger };

@@ -1,7 +1,16 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
+import { KeyIcon, SwordsIcon, TypeIcon } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
 import { teamRegister } from "@/api/games/game_id/teams";
 import { joinTeam } from "@/api/games/game_id/teams/team_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
@@ -10,19 +19,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
 import { Separator } from "@/components/ui/separator";
+import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { KeyIcon, SwordsIcon, TypeIcon } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
-import { StatusCodes } from "http-status-codes";
 
 interface TeamGatheringDialogProps {
   onClose: () => void;
@@ -45,9 +46,11 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
   });
 
   function onCreateFormSubmit(values: z.infer<typeof createFormSchema>) {
+    if (!currentGame) return;
+
     setLoading(true);
     teamRegister({
-      game_id: currentGame?.id!,
+      game_id: currentGame.id!,
       ...values,
     })
       .then((res) => {
@@ -81,9 +84,11 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     const team_id = Number(tokens[0]);
     const token = tokens[1];
 
+    if (!currentGame) return;
+
     setLoading(true);
     joinTeam({
-      game_id: currentGame?.id!,
+      game_id: currentGame.id!,
       team_id: team_id,
       token: token,
     })

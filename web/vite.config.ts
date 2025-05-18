@@ -1,8 +1,9 @@
 import path from "path";
-import React from "@vitejs/plugin-react-swc";
+
 import tailwindcss from "@tailwindcss/vite";
-import viteCompression from "vite-plugin-compression";
+import React from "@vitejs/plugin-react-swc";
 import { defineConfig, loadEnv } from "vite";
+import viteCompression from "vite-plugin-compression";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");

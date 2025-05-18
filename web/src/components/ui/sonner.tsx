@@ -1,5 +1,3 @@
-import { useApperanceStore } from "@/storages/appearance";
-import { cn } from "@/utils";
 import {
   CircleAlertIcon,
   CircleCheckIcon,
@@ -8,6 +6,9 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 import { Toaster as Sonner } from "sonner";
+
+import { useApperanceStore } from "@/storages/appearance";
+import { cn } from "@/utils";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 

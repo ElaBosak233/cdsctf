@@ -1,32 +1,33 @@
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { ChallengeCard } from "@/components/widgets/challenge-card";
-import { ChallengeMini } from "@/models/challenge";
+import { StatusCodes } from "http-status-codes";
 import {
-  SearchIcon,
   LibraryIcon,
-  PackageOpenIcon,
   ListOrderedIcon,
-  TypeIcon,
+  PackageOpenIcon,
+  SearchIcon,
   TagIcon,
+  TypeIcon,
 } from "lucide-react";
-import { cn } from "@/utils";
-import { Button } from "@/components/ui/button";
-import { Pagination } from "@/components/ui/pagination";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
+
 import {
   ChallengeStatus,
   getChallengeStatus,
   getPlaygroundChallenges,
   GetPlaygroundChallengesRequest,
 } from "@/api/challenges";
-import { useAuthStore } from "@/storages/auth";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
-import { useSearchParams } from "react-router";
+import { Field, FieldIcon } from "@/components/ui/field";
+import { Pagination } from "@/components/ui/pagination";
 import { Select } from "@/components/ui/select";
+import { TextField } from "@/components/ui/text-field";
+import { ChallengeCard } from "@/components/widgets/challenge-card";
+import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
+import { ChallengeMini } from "@/models/challenge";
+import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
-import { StatusCodes } from "http-status-codes";
+import { cn } from "@/utils";
 import { categories } from "@/utils/category";
 
 export default function Index() {
@@ -54,7 +55,13 @@ export default function Index() {
   );
 
   useEffect(() => {
-    const params: any = {
+    const params: {
+      page: string;
+      size: string;
+      category: string;
+      title?: string;
+      tag?: string;
+    } = {
       page: String(page),
       size: String(size),
       category: category,
@@ -176,8 +183,8 @@ export default function Index() {
                       </div>
                     ),
                   },
-                  ...categories?.map((category) => {
-                    const Icon = category?.icon!;
+                  ...(categories || []).map((category) => {
+                    const Icon = category.icon!;
 
                     return {
                       value: String(category?.id),
@@ -229,7 +236,7 @@ export default function Index() {
                 <DialogTrigger>
                   <ChallengeCard
                     digest={challenge}
-                    status={challengeStatus?.[challenge?.id!]}
+                    status={challengeStatus?.[challenge.id!]}
                   />
                 </DialogTrigger>
                 <DialogContent>

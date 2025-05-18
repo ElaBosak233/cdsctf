@@ -1,7 +1,5 @@
-import { Card } from "@/components/ui/card";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { cn } from "@/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
 import {
   ClockFadingIcon,
   HashIcon,
@@ -12,35 +10,39 @@ import {
   StarIcon,
 } from "lucide-react";
 import { useContext, useEffect, useMemo } from "react";
-import { Context } from "../context";
-import { useSharedStore } from "@/storages/shared";
-import { GameChallenge } from "@/models/game_challenge";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import { Context } from "../context";
+
+import { updateGameChallenge } from "@/api/admin/games/game_id/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { curve } from "@/utils/math";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
+import { Field, FieldIcon } from "@/components/ui/field";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { updateGameChallenge } from "@/api/admin/games/game_id/challenges/challenge_id";
-import { toast } from "sonner";
-import { StatusCodes } from "http-status-codes";
+import { TextField } from "@/components/ui/text-field";
+import { GameChallenge } from "@/models/game_challenge";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
+import { curve } from "@/utils/math";
 
 interface EditDialogProps {
   onClose: () => void;

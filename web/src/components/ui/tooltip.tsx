@@ -1,15 +1,17 @@
-import * as React from "react";
 import * as RadixTooltip from "@radix-ui/react-tooltip";
+import * as React from "react";
 
 import { cn } from "@/utils";
 
-interface TooltipProps
-  extends Omit<React.ComponentProps<typeof RadixTooltip.Provider>, "children"> {
+type TooltipProps = Omit<
+  React.ComponentProps<typeof RadixTooltip.Provider>,
+  "children"
+> & {
   children?: React.ComponentProps<typeof RadixTooltip.Root>["children"];
   slotProps?: {
     root?: Partial<React.ComponentProps<typeof RadixTooltip.Root>>;
   };
-}
+};
 
 function Tooltip(props: TooltipProps) {
   const { delayDuration = 0, children, slotProps, ...rest } = props;
@@ -57,4 +59,4 @@ function TooltipContent({
   );
 }
 
-export { Tooltip, TooltipTrigger, TooltipContent };
+export { Tooltip, TooltipContent, TooltipTrigger };

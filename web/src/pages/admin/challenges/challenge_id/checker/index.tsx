@@ -1,25 +1,28 @@
-import { useContext, useEffect, useState } from "react";
-import { Context } from "../context";
-import { updateChallengeChecker } from "@/api/admin/challenges/challenge_id/checker";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import { useSharedStore } from "@/storages/shared";
-import { cn } from "@/utils";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { Editor } from "@/components/ui/editor";
-import { Card } from "@/components/ui/card";
 import { AnsiUp } from "ansi_up";
-import { Button } from "@/components/ui/button";
+import { StatusCodes } from "http-status-codes";
 import { LayoutTemplateIcon, SaveIcon } from "lucide-react";
-import { Select } from "@/components/ui/select";
+import { useContext, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import { Context } from "../context";
+
+import leetChecker from "./examples/leet.cdsx?raw";
 import simpleChecker from "./examples/simple.cdsx?raw";
 import suidChecker from "./examples/suid.cdsx?raw";
-import leetChecker from "./examples/leet.cdsx?raw";
-import { Label } from "@/components/ui/label";
+
+import { updateChallengeChecker } from "@/api/admin/challenges/challenge_id/checker";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
-import { StatusCodes } from "http-status-codes";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 
 const checkerMap = {
   simple: simpleChecker,

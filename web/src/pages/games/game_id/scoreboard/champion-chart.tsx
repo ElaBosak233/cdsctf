@@ -1,3 +1,14 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  Brush,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+} from "recharts";
+
 import { Card } from "@/components/ui/card";
 import {
   ChartConfig,
@@ -7,16 +18,6 @@ import {
 } from "@/components/ui/chart";
 import { ScoreRecord } from "@/models/game";
 import { cn } from "@/utils";
-import { useEffect, useMemo, useState } from "react";
-import {
-  CartesianGrid,
-  XAxis,
-  LineChart,
-  Line,
-  Legend,
-  Brush,
-  YAxis,
-} from "recharts";
 
 const COLORS = [
   "#ff4d4f", // 红
@@ -95,8 +96,8 @@ function ChampionChart(props: ChampionChartProps) {
       if (!team) return;
 
       result.push({
-        id: team?.id!,
-        name: team?.name,
+        id: team.id!,
+        name: team.name,
       });
     });
 

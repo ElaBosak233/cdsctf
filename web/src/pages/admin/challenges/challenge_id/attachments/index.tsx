@@ -1,27 +1,28 @@
+import { StatusCodes } from "http-status-codes";
+import {
+  CloudUploadIcon,
+  HardDriveIcon,
+  TextIcon,
+  TrashIcon,
+} from "lucide-react";
+import { useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { Context } from "../context";
+
+import { deleteChallengeAttachment } from "@/api/admin/challenges/challenge_id/attachment";
+import { getChallengeAttachmentMetadata } from "@/api/challenges/challenge_id/attachment";
+import { Button } from "@/components/ui/button";
 import {
   Dropzone,
   DropZoneArea,
   DropzoneTrigger,
   useDropzone,
 } from "@/components/ui/dropzone";
-import { Metadata } from "@/models/media";
-import {
-  CloudUploadIcon,
-  HardDrive,
-  HardDriveIcon,
-  TextIcon,
-  TrashIcon,
-} from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import { Context } from "../context";
-import { deleteChallengeAttachment } from "@/api/admin/challenges/challenge_id/attachment";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
+import { Metadata } from "@/models/media";
 import { cn } from "@/utils";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { getChallengeAttachmentMetadata } from "@/api/challenges/challenge_id/attachment";
-import { StatusCodes } from "http-status-codes";
 
 export default function Index() {
   const { challenge } = useContext(Context);
@@ -30,7 +31,7 @@ export default function Index() {
 
   useEffect(() => {
     if (!challenge?.id) return;
-    getChallengeAttachmentMetadata(challenge?.id!).then((res) => {
+    getChallengeAttachmentMetadata(challenge.id!).then((res) => {
       setMetadata(res.data);
     });
   }, [challenge?.id, refresh]);
@@ -82,10 +83,12 @@ export default function Index() {
   });
 
   function handleDeleteAttachment() {
-    deleteChallengeAttachment(challenge?.id!)
+    if (!challenge) return;
+
+    deleteChallengeAttachment(challenge.id!)
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`题目 ${challenge?.title} 附件删除成功`);
+          toast.success(`题目 ${challenge.title} 附件删除成功`);
         }
       })
       .finally(() => {

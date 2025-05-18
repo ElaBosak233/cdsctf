@@ -1,11 +1,3 @@
-import { Button } from "@/components/ui/button";
-import {
-  HashIcon,
-  LibraryIcon,
-  ListOrderedIcon,
-  PlusCircleIcon,
-} from "lucide-react";
-import { useContext, useEffect, useState } from "react";
 import {
   ColumnFiltersState,
   flexRender,
@@ -16,6 +8,26 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
+  HashIcon,
+  LibraryIcon,
+  ListOrderedIcon,
+  PlusCircleIcon,
+} from "lucide-react";
+import { useContext, useEffect, useState } from "react";
+
+import { Context } from "../context";
+
+import { columns } from "./columns";
+import { CreateDialog } from "./create-dialog";
+
+import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Field, FieldIcon } from "@/components/ui/field";
+import { Pagination } from "@/components/ui/pagination";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select } from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -23,21 +35,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pagination } from "@/components/ui/pagination";
-import { cn } from "@/utils";
-import { columns } from "./columns";
-import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Select } from "@/components/ui/select";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useSharedStore } from "@/storages/shared";
 import { GameChallenge } from "@/models/game_challenge";
-import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
-import { Context } from "../context";
-import { CreateDialog } from "./create-dialog";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 import { categories } from "@/utils/category";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Index() {
   const sharedStore = useSharedStore();
@@ -84,10 +87,10 @@ export default function Index() {
   });
 
   useEffect(() => {
-    if (!game?.id) return;
+    if (!game) return;
 
     getGameChallenges({
-      game_id: game?.id!,
+      game_id: game.id!,
       challenge_id: debouncedColumnFilters.find((c) => c.id === "challenge_id")
         ?.value as string,
       category:
@@ -165,8 +168,8 @@ export default function Index() {
                     </div>
                   ),
                 },
-                ...categories?.map((category) => {
-                  const Icon = category?.icon!;
+                ...(categories || []).map((category) => {
+                  const Icon = category.icon!;
 
                   return {
                     value: String(category?.id),

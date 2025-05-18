@@ -1,3 +1,8 @@
+import { StatusCodes } from "http-status-codes";
+import { CheckIcon, MailCheckIcon, SendIcon } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
 import { sendVerifyEmail, verify } from "@/api/users/profile/verify";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -5,10 +10,6 @@ import { Field } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import { StatusCodes } from "http-status-codes";
-import { CheckIcon, MailCheckIcon, SendIcon } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 interface EmailVerifyDialogProps {
   onClose: () => void;

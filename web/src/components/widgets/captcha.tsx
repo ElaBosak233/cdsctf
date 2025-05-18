@@ -1,19 +1,20 @@
-import { useConfigStore } from "@/storages/config";
-import { useApperanceStore } from "@/storages/appearance";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { Turnstile } from "@marsidev/react-turnstile";
-import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
-import { useSharedStore } from "@/storages/shared";
-import { RefreshCcwIcon, BotIcon, ImageIcon } from "lucide-react";
+import { BotIcon, ImageIcon, RefreshCcwIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { generateCaptcha } from "@/api/configs/captcha";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
+import { useApperanceStore } from "@/storages/appearance";
+import { useConfigStore } from "@/storages/config";
+import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { generateCaptcha } from "@/api/configs/captcha";
 
-export interface CaptchaProps {
+type CaptchaProps = {
   onChange: (captcha?: { id?: string; content?: string }) => void;
-}
+};
 
 export function Captcha(props: CaptchaProps) {
   const { onChange } = props;

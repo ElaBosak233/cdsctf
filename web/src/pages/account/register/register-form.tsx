@@ -1,16 +1,21 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
 import {
   CheckIcon,
-  TypeIcon,
-  MailIcon,
-  UserRoundIcon,
   LockIcon,
+  MailIcon,
+  TypeIcon,
+  UserRoundIcon,
 } from "lucide-react";
-import { cn } from "@/utils";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { z } from "zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import { register } from "@/api/users";
+import { Button } from "@/components/ui/button";
+import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
@@ -19,14 +24,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
+import { TextField } from "@/components/ui/text-field";
 import { Captcha } from "@/components/widgets/captcha";
-import { useState } from "react";
-import { register } from "@/api/users";
-import { toast } from "sonner";
-import { useNavigate } from "react-router";
 import { useConfigStore } from "@/storages/config";
-import { StatusCodes } from "http-status-codes";
+import { cn } from "@/utils";
 
 function RegisterForm() {
   const configStore = useConfigStore();

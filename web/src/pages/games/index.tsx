@@ -1,18 +1,19 @@
-import { getGames } from "@/api/games";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Image } from "@/components/ui/image";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { Pagination } from "@/components/ui/pagination";
-import { useDebounce } from "@/hooks/use-debounce";
-import { GameMini } from "@/models/game";
-import { cn } from "@/utils";
 import { FlagIcon, PackageOpenIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useConfigStore } from "@/storages/config";
+
+import { getGames } from "@/api/games";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Field, FieldIcon } from "@/components/ui/field";
+import { Image } from "@/components/ui/image";
+import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TextField } from "@/components/ui/text-field";
+import { useDebounce } from "@/hooks/use-debounce";
+import { GameMini } from "@/models/game";
+import { useConfigStore } from "@/storages/config";
+import { cn } from "@/utils";
 
 export default function Index() {
   const configStore = useConfigStore();
@@ -121,8 +122,8 @@ export default function Index() {
                         "size-1.5",
                         "rounded-full",
                         "bg-success",
-                        Date.now() / 1000 > game?.ended_at! && "bg-error",
-                        Date.now() / 1000 < game?.started_at! && "bg-info",
+                        Date.now() / 1000 > game.ended_at! && "bg-error",
+                        Date.now() / 1000 < game.started_at! && "bg-info",
                       ])}
                       aria-hidden="true"
                     />
@@ -135,6 +136,7 @@ export default function Index() {
                     className={cn([
                       "text-secondary-foreground",
                       "flex",
+                      "justify-center",
                       "gap-3",
                       "w-full",
                     ])}

@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button";
+import { ColumnDef } from "@tanstack/react-table";
+import { StatusCodes } from "http-status-codes";
 import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
@@ -7,31 +8,32 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
-import { cn } from "@/utils";
-import { Switch } from "@/components/ui/switch";
+import { Link } from "react-router";
+import { toast } from "sonner";
+
+import { EditDialog } from "./edit-dialog";
+
+import {
+  deleteGameChallenge,
+  updateGameChallenge,
+} from "@/api/admin/games/game_id/challenges/challenge_id";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { toast } from "sonner";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
-import { useSharedStore } from "@/storages/shared";
 import { GameChallenge } from "@/models/game_challenge";
-import {
-  deleteGameChallenge,
-  updateGameChallenge,
-} from "@/api/admin/games/game_id/challenges/challenge_id";
-import { EditDialog } from "./edit-dialog";
-import { StatusCodes } from "http-status-codes";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import { Link } from "react-router";
 
-const columns: ColumnDef<GameChallenge>[] = [
+const columns: Array<ColumnDef<GameChallenge>> = [
   {
     accessorKey: "game_id",
     enableHiding: false,
@@ -39,7 +41,7 @@ const columns: ColumnDef<GameChallenge>[] = [
   {
     accessorKey: "is_enabled",
     header: "启用",
-    cell: ({ row }) => {
+    cell: function IsEnabledCell({ row }) {
       const isEnabled = row.original.is_enabled;
       const title = row.original.challenge_title;
       const challenge_id = row.original.challenge_id;
@@ -75,7 +77,7 @@ const columns: ColumnDef<GameChallenge>[] = [
   {
     id: "challenge_id",
     header: "ID",
-    cell: ({ row }) => {
+    cell: function ChallengeIdCell({ row }) {
       const id = row.original.challenge_id!;
       const { isCopied, copyToClipboard } = useClipboard();
       return (
@@ -99,9 +101,7 @@ const columns: ColumnDef<GameChallenge>[] = [
   {
     id: "challenge_title",
     header: "标题",
-    cell: ({ row }) => {
-      return row.original.challenge_title || "-";
-    },
+    cell: ({ row }) => row.original.challenge_title || "-",
   },
   {
     id: "challenge_category",
@@ -128,7 +128,7 @@ const columns: ColumnDef<GameChallenge>[] = [
   {
     id: "actions",
     header: () => <div className={cn(["justify-self-center"])}>操作</div>,
-    cell: ({ row }) => {
+    cell: function ActionsCell({ row }) {
       const challenge_id = row.original.challenge_id;
       const game_id = row.original.game_id;
       const title = row.original.challenge_title;

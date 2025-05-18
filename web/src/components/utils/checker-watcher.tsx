@@ -1,8 +1,9 @@
+import { useEffect } from "react";
+import { toast } from "sonner";
+
 import { getSubmission } from "@/api/submissions";
 import { Status } from "@/models/submission";
 import { useCheckerStore } from "@/storages/checker";
-import { useEffect } from "react";
-import { toast } from "sonner";
 
 function CheckerWatcher() {
   const { submissions, pop } = useCheckerStore();

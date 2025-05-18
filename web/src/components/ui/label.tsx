@@ -1,14 +1,13 @@
-"use client";
-
-import * as React from "react";
 import * as RadixLabel from "@radix-ui/react-label";
+import * as React from "react";
 
 import { cn } from "@/utils";
 
-function Label({
-  className,
-  ...props
-}: React.ComponentProps<typeof RadixLabel.Root>) {
+type LabelProps = React.ComponentProps<typeof RadixLabel.Root>;
+
+function Label(props: LabelProps) {
+  const { className, ...rest } = props;
+
   return (
     <RadixLabel.Root
       data-slot="label"
@@ -25,7 +24,7 @@ function Label({
         ],
         className
       )}
-      {...props}
+      {...rest}
     />
   );
 }

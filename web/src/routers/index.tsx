@@ -1,7 +1,8 @@
-import { HydrateFallback } from "@/components/utils/hydrate-fallback";
 import { createBrowserRouter } from "react-router";
 
-export default createBrowserRouter([
+import { HydrateFallback } from "@/components/utils/hydrate-fallback";
+
+const router = createBrowserRouter([
   {
     hydrateFallbackElement: <HydrateFallback />,
     path: "/",
@@ -333,3 +334,5 @@ export default createBrowserRouter([
     ],
   },
 ]);
+
+export default router;

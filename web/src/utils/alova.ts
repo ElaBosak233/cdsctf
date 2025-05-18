@@ -1,10 +1,12 @@
 import { createAlova } from "alova";
-import ReactHook from "alova/react";
-import globalRouter from "./global-router";
-import { toast } from "sonner";
 import adapterFetch from "alova/fetch";
-import { useAuthStore } from "@/storages/auth";
+import ReactHook from "alova/react";
 import { t } from "i18next";
+import { toast } from "sonner";
+
+import globalRouter from "./global-router";
+
+import { useAuthStore } from "@/storages/auth";
 
 export const alova = createAlova({
   baseURL: "/api",

@@ -1,5 +1,14 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
+import { LockIcon, LockOpenIcon, SaveIcon } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
 import { updateUserProfilePassword } from "@/api/users/profile";
 import { Button } from "@/components/ui/button";
+import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
@@ -8,17 +17,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
-import { cn } from "@/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { LockIcon, LockOpenIcon, SaveIcon } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
 import { useConfigStore } from "@/storages/config";
-import { StatusCodes } from "http-status-codes";
+import { cn } from "@/utils";
 
 export default function Index() {
   const configStore = useConfigStore();

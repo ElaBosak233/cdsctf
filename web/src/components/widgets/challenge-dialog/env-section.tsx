@@ -1,15 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react";
-import { Context } from "./context";
-import { cn } from "@/utils";
-import { Env } from "@/models/env";
-import { createEnv, getEnvs } from "@/api/envs";
-import { renewEnv, stopEnv } from "@/api/envs/env_id";
-import { useAuthStore } from "@/storages/auth";
-import { toast } from "sonner";
-import { useInterval } from "@/hooks/use-interval";
-import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { Button } from "@/components/ui/button";
+import { StatusCodes } from "http-status-codes";
 import {
   ClipboardIcon,
   ClockIcon,
@@ -17,8 +6,21 @@ import {
   PlayIcon,
   TrashIcon,
 } from "lucide-react";
+import { useContext, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import { Context } from "./context";
+
+import { createEnv, getEnvs } from "@/api/envs";
+import { renewEnv, stopEnv } from "@/api/envs/env_id";
+import { Button } from "@/components/ui/button";
+import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
+import { TextField } from "@/components/ui/text-field";
+import { useInterval } from "@/hooks/use-interval";
+import { Env } from "@/models/env";
+import { useAuthStore } from "@/storages/auth";
+import { cn } from "@/utils";
 import { copyToClipboard } from "@/utils/clipboard";
-import { StatusCodes } from "http-status-codes";
 
 function EnvSection() {
   const { challenge, team } = useContext(Context);
@@ -85,8 +87,10 @@ function EnvSection() {
   }
 
   function handlePodRenew() {
+    if (!env) return;
+
     renewEnv({
-      id: env?.id!,
+      id: env.id!,
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
         toast.success("续期成功", {
@@ -104,8 +108,10 @@ function EnvSection() {
   }
 
   function handlePodStop() {
+    if (!env) return;
+
     stopEnv({
-      id: env?.id!,
+      id: env.id!,
     })
       .then((_) => {
         toast.info("已下发容器停止命令", {

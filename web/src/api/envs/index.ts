@@ -1,6 +1,6 @@
 import { Env } from "@/models/env";
-import { alova } from "@/utils/alova";
 import { WebResponse } from "@/types";
+import { alova } from "@/utils/alova";
 
 export interface GetEnvRequest {
   id?: string;

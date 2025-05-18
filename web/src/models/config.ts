@@ -2,7 +2,8 @@ export interface Config {
   meta?: {
     title?: string;
     description?: string;
-    keywords?: string;
+    keywords?: Array<string>;
+    footer?: string;
   };
   auth?: {
     is_registration_enabled?: boolean;

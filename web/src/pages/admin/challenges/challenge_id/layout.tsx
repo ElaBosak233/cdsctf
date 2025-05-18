@@ -1,10 +1,3 @@
-import { Link, Outlet, useLocation, useParams } from "react-router";
-import { Context } from "./context";
-import { useEffect, useMemo, useState } from "react";
-import { Challenge } from "@/models/challenge";
-import { Card } from "@/components/ui/card";
-import { cn } from "@/utils";
-import { Button } from "@/components/ui/button";
 import {
   ChartAreaIcon,
   ContainerIcon,
@@ -14,11 +7,20 @@ import {
   PlayIcon,
   ScrollTextIcon,
 } from "lucide-react";
-import { useSharedStore } from "@/storages/shared";
-import { ChallengeCard } from "@/components/widgets/challenge-card";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
+import { useEffect, useMemo, useState } from "react";
+import { Link, Outlet, useLocation, useParams } from "react-router";
+
+import { Context } from "./context";
+
 import { getChallenge } from "@/api/admin/challenges/challenge_id";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ChallengeCard } from "@/components/widgets/challenge-card";
+import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
+import { Challenge } from "@/models/challenge";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 
 export default function Layout() {
   const location = useLocation();

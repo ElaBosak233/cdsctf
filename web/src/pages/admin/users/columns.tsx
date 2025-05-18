@@ -1,5 +1,5 @@
-import { Group, User } from "@/models/user";
-import { Button } from "@/components/ui/button";
+import { ColumnDef } from "@tanstack/react-table";
+import { StatusCodes } from "http-status-codes";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -7,39 +7,38 @@ import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
-  TrashIcon,
-} from "lucide-react";
-import {
-  UserRoundIcon,
   ShieldIcon,
-  UserRoundXIcon,
+  TrashIcon,
   UserRoundCheckIcon,
+  UserRoundIcon,
+  UserRoundXIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Link } from "react-router";
+import { toast } from "sonner";
+
 import { deleteUser } from "@/api/admin/users/user_id";
-import { ColumnDef } from "@tanstack/react-table";
-import { cn } from "@/utils";
+import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { Link } from "react-router";
-import { toast } from "sonner";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
+import { Group, User } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
-import { Avatar } from "@/components/ui/avatar";
-import { StatusCodes } from "http-status-codes";
+import { cn } from "@/utils";
 
-const columns: ColumnDef<User>[] = [
+const columns: Array<ColumnDef<User>> = [
   {
     accessorKey: "id",
     id: "id",
     header: "ID",
-    cell: ({ row }) => {
+    cell: function IdCell({ row }) {
       const id = row.original.id;
       const idString = String(id);
       const { isCopied, copyToClipboard } = useClipboard();
@@ -139,7 +138,7 @@ const columns: ColumnDef<User>[] = [
   {
     accessorKey: "created_at",
     id: "created_at",
-    header: ({ column }) => {
+    header: function CreatedAtHeader({ column }) {
       const icon = useMemo(() => {
         switch (column.getIsSorted()) {
           case "asc":
@@ -171,7 +170,7 @@ const columns: ColumnDef<User>[] = [
   {
     id: "actions",
     header: () => <div className={cn(["justify-self-center"])}>操作</div>,
-    cell: ({ row }) => {
+    cell: function ActionsCell({ row }) {
       const id = row.original.id;
       const username = row.original.username;
 

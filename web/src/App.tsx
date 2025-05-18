@@ -1,13 +1,14 @@
-import { RouterProvider } from "react-router";
-import routers from "@/routers";
-import { Toaster } from "@/components/ui/sonner";
 import { useEffect } from "react";
+import { RouterProvider } from "react-router";
+
+import { getConfigs, getVersion } from "@/api/configs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Toaster } from "@/components/ui/sonner";
+import { CheckerWatcher } from "@/components/utils/checker-watcher";
+import { Background } from "@/components/widgets/background";
+import routers from "@/routers";
 import { useApperanceStore } from "@/storages/appearance";
 import { useConfigStore } from "@/storages/config";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { getConfigs, getVersion } from "@/api/configs";
-import { Background } from "@/components/widgets/background";
-import { CheckerWatcher } from "@/components/utils/checker-watcher";
 import { cn } from "@/utils";
 import "@/utils/i18n";
 

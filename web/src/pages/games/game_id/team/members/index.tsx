@@ -1,3 +1,6 @@
+import { KeyIcon, RefreshCcwIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { createToken, getToken } from "@/api/games/game_id/teams/profile/token";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -6,29 +9,28 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { KeyIcon, RefreshCcwIcon } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export default function Index() {
   const { currentGame, selfTeam, members } = useGameStore();
   const [token, setToken] = useState<string>();
-  const disabled = Date.now() / 1000 > currentGame?.ended_at!;
+
+  const disabled = Date.now() / 1000 > Number(currentGame?.ended_at);
 
   useEffect(() => {
-    if (currentGame?.id && selfTeam?.id) {
-      getToken({
-        game_id: currentGame?.id!,
-        team_id: selfTeam?.id!,
-      }).then((res) => {
-        setToken(res.data);
-      });
-    }
+    if (!currentGame?.id || !selfTeam?.id) return;
+    getToken({
+      game_id: currentGame.id!,
+      team_id: selfTeam.id!,
+    }).then((res) => {
+      setToken(res.data);
+    });
   }, [currentGame?.id, selfTeam?.id]);
 
   function handleCreateToken() {
+    if (!currentGame || !selfTeam) return;
     createToken({
-      game_id: currentGame?.id!,
-      team_id: selfTeam?.id!,
+      game_id: currentGame.id!,
+      team_id: selfTeam.id!,
     }).then((res) => {
       setToken(res.data);
     });

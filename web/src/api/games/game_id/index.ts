@@ -1,6 +1,6 @@
 import { Game, ScoreRecord } from "@/models/game";
-import { alova } from "@/utils/alova";
 import { WebResponse } from "@/types";
+import { alova } from "@/utils/alova";
 
 export interface GetGameRequest {
   id?: number;

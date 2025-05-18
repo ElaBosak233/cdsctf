@@ -1,17 +1,19 @@
+import { ArrowRightIcon, FlagIcon, PlayIcon, SwordsIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router";
+
+import { TeamGatheringDialog } from "./team-gathering-dialog";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Image } from "@/components/ui/image";
+import { Typography } from "@/components/ui/typography";
 import { MarkdownRender } from "@/components/utils/markdown-render";
 import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { ArrowRightIcon, FlagIcon, PlayIcon, SwordsIcon } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import { TeamGatheringDialog } from "./team-gathering-dialog";
-import { Typography } from "@/components/ui/typography";
 
 export default function Index() {
   const { currentGame, selfTeam } = useGameStore();

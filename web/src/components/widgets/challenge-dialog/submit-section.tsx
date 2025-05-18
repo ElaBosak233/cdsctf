@@ -1,15 +1,17 @@
+import { StatusCodes } from "http-status-codes";
+import { FlagIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
+import { toast } from "sonner";
+
 import { Context } from "./context";
+
+import { createSubmission } from "@/api/submissions";
+import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
-import { Button } from "@/components/ui/button";
-import { FlagIcon, Send, SendIcon } from "lucide-react";
-import { cn } from "@/utils";
 import { useInterval } from "@/hooks/use-interval";
-import { createSubmission } from "@/api/submissions";
-import { toast } from "sonner";
-import { StatusCodes } from "http-status-codes";
 import { useCheckerStore } from "@/storages/checker";
+import { cn } from "@/utils";
 
 function SubmitSection() {
   const { challenge, team } = useContext(Context);

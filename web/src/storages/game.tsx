@@ -1,7 +1,8 @@
+import { create } from "zustand";
+
 import { Game } from "@/models/game";
 import { Team } from "@/models/team";
 import { UserMini } from "@/models/user";
-import { create } from "zustand";
 
 interface GameState {
   currentGame?: Game;

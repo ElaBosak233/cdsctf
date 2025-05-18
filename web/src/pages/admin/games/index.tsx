@@ -1,4 +1,3 @@
-import { Game } from "@/models/game";
 import {
   ColumnFiltersState,
   flexRender,
@@ -8,10 +7,6 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
-import { columns } from "./columns";
-import { getGames } from "@/api/admin/games";
-import { useDebounce } from "@/hooks/use-debounce";
 import {
   FlagIcon,
   HashIcon,
@@ -19,11 +14,18 @@ import {
   PlusCircleIcon,
   TypeIcon,
 } from "lucide-react";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { cn } from "@/utils";
+import { useEffect, useState } from "react";
+
+import { columns } from "./columns";
+import { CreateDialog } from "./create-dialog";
+
+import { getGames } from "@/api/admin/games";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Field, FieldIcon } from "@/components/ui/field";
+import { Pagination } from "@/components/ui/pagination";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -32,11 +34,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Select } from "@/components/ui/select";
-import { Pagination } from "@/components/ui/pagination";
-import { CreateDialog } from "./create-dialog";
+import { TextField } from "@/components/ui/text-field";
+import { useDebounce } from "@/hooks/use-debounce";
+import { Game } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/utils";
 
 export default function Index() {
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);

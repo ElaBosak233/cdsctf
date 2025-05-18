@@ -1,16 +1,18 @@
-import { Link, useLocation, useParams } from "react-router";
-import { Context } from "./context";
-import { useMemo } from "react";
-import { useAuthStore } from "@/storages/auth";
-import { cn } from "@/utils";
 import { SettingsIcon } from "lucide-react";
+import { useMemo } from "react";
+import { Link, useLocation, useParams } from "react-router";
+
 import { Appearance } from "./apperance";
 import { AuthSection } from "./auth-section";
+import { Context } from "./context";
+import { MobileTab } from "./m-tab";
 import { TabSection } from "./tab-section";
 import { Title } from "./title";
+
 import { Button } from "@/components/ui/button";
 import { Group } from "@/models/user";
-import { MobileTab } from "./m-tab";
+import { useAuthStore } from "@/storages/auth";
+import { cn } from "@/utils";
 
 function Navbar() {
   const authStore = useAuthStore();

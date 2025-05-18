@@ -1,14 +1,5 @@
-import { useContext, useEffect, useState } from "react";
-import { Context } from "./context";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Editor } from "@/components/ui/editor";
-import { cn } from "@/utils";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { toast } from "sonner";
-import { useSharedStore } from "@/storages/shared";
+import { StatusCodes } from "http-status-codes";
 import {
   ClockAlertIcon,
   ClockFadingIcon,
@@ -21,6 +12,26 @@ import {
   TypeIcon,
   UsersRoundIcon,
 } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import { Context } from "./context";
+
+import { updateGame } from "@/api/admin/games/game_id";
+import { deleteGameIcon } from "@/api/admin/games/game_id/icon";
+import { deleteGamePoster } from "@/api/admin/games/game_id/poster";
+import { Button } from "@/components/ui/button";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
+import {
+  Dropzone,
+  DropZoneArea,
+  DropzoneTrigger,
+  useDropzone,
+} from "@/components/ui/dropzone";
+import { Editor } from "@/components/ui/editor";
+import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
@@ -29,21 +40,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 import { Image } from "@/components/ui/image";
-import { Select } from "@/components/ui/select";
-import { updateGame } from "@/api/admin/games/game_id";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
-import {
-  Dropzone,
-  DropZoneArea,
-  DropzoneTrigger,
-  useDropzone,
-} from "@/components/ui/dropzone";
 import { Label } from "@/components/ui/label";
-import { deleteGamePoster } from "@/api/admin/games/game_id/poster";
-import { deleteGameIcon } from "@/api/admin/games/game_id/icon";
-import { StatusCodes } from "http-status-codes";
+import { Select } from "@/components/ui/select";
+import { TextField } from "@/components/ui/text-field";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 
 export default function Index() {
   const { game } = useContext(Context);
@@ -191,8 +193,10 @@ export default function Index() {
   });
 
   function handlePosterDelete() {
+    if (!game) return;
+
     deleteGamePoster({
-      game_id: game?.id!,
+      game_id: game.id!,
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
@@ -262,8 +266,10 @@ export default function Index() {
   });
 
   function handleIconDelete() {
+    if (!game) return;
+
     deleteGameIcon({
-      game_id: game?.id!,
+      game_id: game.id!,
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {

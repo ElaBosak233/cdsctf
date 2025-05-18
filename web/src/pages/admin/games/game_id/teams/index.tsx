@@ -1,12 +1,4 @@
 import {
-  HashIcon,
-  ListOrderedIcon,
-  SatelliteIcon,
-  TypeIcon,
-  UsersRoundIcon,
-} from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import {
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
@@ -16,6 +8,24 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
+  HashIcon,
+  ListOrderedIcon,
+  SatelliteIcon,
+  TypeIcon,
+  UsersRoundIcon,
+} from "lucide-react";
+import { useContext, useEffect, useState } from "react";
+
+import { Context } from "../context";
+
+import { columns } from "./columns";
+
+import { getTeams } from "@/api/admin/games/game_id/teams";
+import { Field, FieldIcon } from "@/components/ui/field";
+import { Pagination } from "@/components/ui/pagination";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select } from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -23,18 +33,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pagination } from "@/components/ui/pagination";
-import { cn } from "@/utils";
-import { columns } from "./columns";
-import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Select } from "@/components/ui/select";
-import { useSharedStore } from "@/storages/shared";
-import { Context } from "../context";
 import { State, Team } from "@/models/team";
-import { getTeams } from "@/api/admin/games/game_id/teams";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 
 export default function Index() {
   const sharedStore = useSharedStore();
@@ -86,10 +89,10 @@ export default function Index() {
   ];
 
   useEffect(() => {
-    if (!game?.id) return;
+    if (!game) return;
 
     getTeams({
-      game_id: game?.id!,
+      game_id: game.id!,
       id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
       name: debouncedColumnFilters.find((c) => c.id === "name")
         ?.value as string,

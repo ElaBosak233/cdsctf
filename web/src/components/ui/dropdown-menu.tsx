@@ -1,10 +1,10 @@
-import * as React from "react";
 import * as RadixDropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Check, ChevronRight, Circle, LucideIcon } from "lucide-react";
+import { Slottable } from "@radix-ui/react-slot";
+import { cva, VariantProps } from "class-variance-authority";
+import { Check, ChevronRight, Circle } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@/utils";
-import { cva, VariantProps } from "class-variance-authority";
-import { Slottable } from "@radix-ui/react-slot";
 
 const DropdownMenu = RadixDropdownMenu.Root;
 
@@ -344,18 +344,18 @@ DropdownMenuShortcut.displayName = "DropdownMenuShortcut";
 
 export {
   DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuCheckboxItem,
-  DropdownMenuRadioItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
-  DropdownMenuGroup,
-  DropdownMenuPortal,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuRadioGroup,
+  DropdownMenuTrigger,
 };

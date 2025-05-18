@@ -1,28 +1,5 @@
-import { updateTeam } from "@/api/games/game_id/teams/profile";
-import { deleteTeamAvatar } from "@/api/games/game_id/teams/profile/avatar";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Dropzone,
-  DropZoneArea,
-  DropzoneTrigger,
-  useDropzone,
-} from "@/components/ui/dropzone";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { Label } from "@/components/ui/label";
-import { useGameStore } from "@/storages/game";
-import { useSharedStore } from "@/storages/shared";
-import { cn } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
 import {
   CheckIcon,
   MailIcon,
@@ -34,14 +11,38 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { StatusCodes } from "http-status-codes";
+
+import { updateTeam } from "@/api/games/game_id/teams/profile";
+import { deleteTeamAvatar } from "@/api/games/game_id/teams/profile/avatar";
+import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Dropzone,
+  DropZoneArea,
+  DropzoneTrigger,
+  useDropzone,
+} from "@/components/ui/dropzone";
+import { Field, FieldIcon } from "@/components/ui/field";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { TextField } from "@/components/ui/text-field";
+import { useGameStore } from "@/storages/game";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 
 export default function Index() {
   const sharedStore = useSharedStore();
   const { currentGame, selfTeam } = useGameStore();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const disabled = Date.now() / 1000 > currentGame?.ended_at!;
+  const disabled = Date.now() / 1000 > Number(currentGame?.ended_at);
 
   const formSchema = z.object({
     name: z.string({
@@ -64,10 +65,11 @@ export default function Index() {
   }, [selfTeam, form.reset]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!selfTeam || !currentGame) return;
     setLoading(true);
     updateTeam({
-      id: selfTeam?.id!,
-      game_id: currentGame?.id!,
+      id: selfTeam.id!,
+      game_id: currentGame.id!,
       ...values,
     })
       .then((res) => {
@@ -135,9 +137,10 @@ export default function Index() {
   });
 
   function handleAvatarDelete() {
+    if (!selfTeam || !currentGame) return;
     deleteTeamAvatar({
-      game_id: currentGame?.id!,
-      team_id: selfTeam?.id!,
+      game_id: currentGame.id!,
+      team_id: selfTeam.id!,
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {

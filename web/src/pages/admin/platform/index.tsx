@@ -1,32 +1,11 @@
-import { getConfigs, updateConfig } from "@/api/admin/configs";
-import { deleteLogo } from "@/api/admin/configs/logo";
-import { Button } from "@/components/ui/button";
-import {
-  Dropzone,
-  DropZoneArea,
-  DropzoneTrigger,
-  useDropzone,
-} from "@/components/ui/dropzone";
-import { Image } from "@/components/ui/image";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { StatusCodes } from "http-status-codes";
 import {
   BadgeCheckIcon,
   BotIcon,
   ClockIcon,
   InfoIcon,
+  ListEndIcon,
   LockIcon,
   SaveIcon,
   SendIcon,
@@ -39,11 +18,34 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+
+import { getConfigs, updateConfig } from "@/api/admin/configs";
+import { deleteLogo } from "@/api/admin/configs/logo";
+import { Button } from "@/components/ui/button";
+import {
+  Dropzone,
+  DropZoneArea,
+  DropzoneTrigger,
+  useDropzone,
+} from "@/components/ui/dropzone";
+import { Field, FieldIcon } from "@/components/ui/field";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Image } from "@/components/ui/image";
 import { Label } from "@/components/ui/label";
-import { Config } from "@/models/config";
-import { Select } from "@/components/ui/select";
 import { NumberField } from "@/components/ui/number-field";
-import { StatusCodes } from "http-status-codes";
+import { Select } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { TextField } from "@/components/ui/text-field";
+import { Config } from "@/models/config";
+import { cn } from "@/utils";
 
 export default function Index() {
   const [refresh, setRefresh] = useState<number>(0);
@@ -60,7 +62,8 @@ export default function Index() {
       .object({
         title: z.string().optional(),
         description: z.string().optional(),
-        keywords: z.string().optional(),
+        keywords: z.array(z.string()).optional(),
+        footer: z.string().optional(),
       })
       .optional(),
     auth: z
@@ -320,6 +323,29 @@ export default function Index() {
             </Dropzone>
           </div>
         </div>
+        <FormField
+          control={form.control}
+          name={"meta.footer"}
+          render={({ field }) => (
+            <FormItem className={cn(["w-full"])}>
+              <FormLabel>页脚（支持 Markdown）</FormLabel>
+              <FormControl>
+                <Field>
+                  <FieldIcon>
+                    <ListEndIcon />
+                  </FieldIcon>
+                  <TextField
+                    {...field}
+                    placeholder="请输入页脚"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                  />
+                </Field>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <h2
           className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
         >

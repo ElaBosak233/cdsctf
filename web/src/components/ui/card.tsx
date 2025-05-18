@@ -1,7 +1,7 @@
+import { Slot, Slottable } from "@radix-ui/react-slot";
 import * as React from "react";
 
 import { cn } from "@/utils";
-import { Slot, Slottable } from "@radix-ui/react-slot";
 
 type CardProps = React.ComponentProps<"div"> & {
   asChild?: boolean;

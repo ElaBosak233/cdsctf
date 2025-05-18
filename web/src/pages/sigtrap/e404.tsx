@@ -1,8 +1,9 @@
+import { CircleOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
 import { Separator } from "@/components/ui/separator";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { CircleOff } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 export default function E404() {
   const configStore = useConfigStore();

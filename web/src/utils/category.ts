@@ -136,4 +136,4 @@ function getCategory(id: number): Category {
   return categories[0];
 }
 
-export { type Category, categories, getCategory };
+export { categories, getCategory, type Category };

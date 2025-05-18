@@ -1,19 +1,20 @@
-import * as React from "react";
 import * as RadixSelect from "@radix-ui/react-select";
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-
-import { cn } from "@/utils";
 import { cva } from "class-variance-authority";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import * as React from "react";
+
 import { FieldContext } from "./field";
 
-interface SelectProps extends React.ComponentProps<typeof RadixSelect.Root> {
+import { cn } from "@/utils";
+
+type SelectProps = React.ComponentProps<typeof RadixSelect.Root> & {
   className?: string;
   placeholder?: string;
   options?: Array<{
     value: string;
     content?: React.ReactNode;
   }>;
-}
+};
 
 function Select(props: SelectProps) {
   const { placeholder, options, className, children, ...rest } = props;
@@ -98,8 +99,7 @@ const selectTriggerVariants = cva(
   }
 );
 
-interface SelectTrigger
-  extends React.ComponentProps<typeof RadixSelect.Trigger> {}
+type SelectTrigger = React.ComponentProps<typeof RadixSelect.Trigger> & {};
 
 function SelectTrigger(props: SelectTrigger) {
   const context = React.useContext(FieldContext);

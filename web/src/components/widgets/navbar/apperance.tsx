@@ -1,3 +1,6 @@
+import { BrushIcon, EclipseIcon, MoonIcon, SunIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,8 +10,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
-import { MoonIcon, BrushIcon, SunIcon, EclipseIcon } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 function Appearance() {
   const { setTheme } = useApperanceStore();
