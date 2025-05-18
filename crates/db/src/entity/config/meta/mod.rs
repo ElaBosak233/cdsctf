@@ -1,4 +1,4 @@
-use sea_orm::{FromJsonQueryResult, Iden};
+use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq)]
