@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { LogIn, UserRoundPlus, UserRoundPlusIcon } from "lucide-react";
+import { LogInIcon, UserRoundPlusIcon } from "lucide-react";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ export default function Index() {
                 "items-center",
               ])}
             >
-              <LogIn />
+              <LogInIcon />
               {t("account:login._")}
             </div>
             <div className={cn(["text-sm", "text-secondary-foreground"])}>

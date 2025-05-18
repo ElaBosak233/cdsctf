@@ -27,6 +27,7 @@ import {
   BotIcon,
   ClockIcon,
   InfoIcon,
+  ListEndIcon,
   LockIcon,
   SaveIcon,
   SendIcon,
@@ -60,7 +61,8 @@ export default function Index() {
       .object({
         title: z.string().optional(),
         description: z.string().optional(),
-        keywords: z.string().optional(),
+        keywords: z.array(z.string()).optional(),
+        footer: z.string().optional(),
       })
       .optional(),
     auth: z
@@ -320,6 +322,29 @@ export default function Index() {
             </Dropzone>
           </div>
         </div>
+        <FormField
+          control={form.control}
+          name={"meta.footer"}
+          render={({ field }) => (
+            <FormItem className={cn(["w-full"])}>
+              <FormLabel>页脚（支持 Markdown）</FormLabel>
+              <FormControl>
+                <Field>
+                  <FieldIcon>
+                    <ListEndIcon />
+                  </FieldIcon>
+                  <TextField
+                    {...field}
+                    placeholder="请输入页脚"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                  />
+                </Field>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <h2
           className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
         >
