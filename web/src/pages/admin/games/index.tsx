@@ -13,10 +13,9 @@ import { columns } from "./columns";
 import { getGames } from "@/api/admin/games";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
-  Flag,
+  FlagIcon,
   HashIcon,
   ListOrderedIcon,
-  PlusCircle,
   PlusCircleIcon,
   TypeIcon,
 } from "lucide-react";
@@ -37,6 +36,7 @@ import { Select } from "@/components/ui/select";
 import { Pagination } from "@/components/ui/pagination";
 import { CreateDialog } from "./create-dialog";
 import { useSharedStore } from "@/storages/shared";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Index() {
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
@@ -110,7 +110,7 @@ export default function Index() {
             "items-center",
           ])}
         >
-          <Flag />
+          <FlagIcon />
           比赛管理
         </h1>
         <div
@@ -162,9 +162,25 @@ export default function Index() {
           </Dialog>
         </div>
       </div>
-      <div className={cn(["rounded-md", "border", "bg-card"])}>
+      <ScrollArea
+        className={cn([
+          "rounded-md",
+          "border",
+          "bg-card",
+          "min-h-100",
+          "h-[calc(100vh-18rem)]",
+        ])}
+      >
         <Table className={cn(["text-foreground"])}>
-          <TableHeader>
+          <TableHeader
+            className={cn([
+              "sticky",
+              "top-0",
+              "z-2",
+              "bg-muted/70",
+              "backdrop-blur-md",
+            ])}
+          >
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -210,35 +226,35 @@ export default function Index() {
             )}
           </TableBody>
         </Table>
-        <div className="flex items-center justify-between space-x-2 py-4 px-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} / {total}
-          </div>
-          <div className={cn(["flex", "items-center", "gap-5"])}>
-            <Field size={"sm"} className={cn(["w-48"])}>
-              <FieldIcon>
-                <ListOrderedIcon />
-              </FieldIcon>
-              <Select
-                placeholder={"每页显示"}
-                options={[
-                  { value: "10" },
-                  { value: "20" },
-                  { value: "40" },
-                  { value: "60" },
-                ]}
-                value={String(size)}
-                onValueChange={(value) => setSize(Number(value))}
-              />
-            </Field>
-
-            <Pagination
-              size={"sm"}
-              value={page}
-              total={Math.ceil(total / size)}
-              onChange={setPage}
+      </ScrollArea>
+      <div className="flex items-center justify-between space-x-2 py-4 px-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredRowModel().rows.length} / {total}
+        </div>
+        <div className={cn(["flex", "items-center", "gap-5"])}>
+          <Field size={"sm"} className={cn(["w-48"])}>
+            <FieldIcon>
+              <ListOrderedIcon />
+            </FieldIcon>
+            <Select
+              placeholder={"每页显示"}
+              options={[
+                { value: "10" },
+                { value: "20" },
+                { value: "40" },
+                { value: "60" },
+              ]}
+              value={String(size)}
+              onValueChange={(value) => setSize(Number(value))}
             />
-          </div>
+          </Field>
+
+          <Pagination
+            size={"sm"}
+            value={page}
+            total={Math.ceil(total / size)}
+            onChange={setPage}
+          />
         </div>
       </div>
     </div>

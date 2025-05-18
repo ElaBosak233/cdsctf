@@ -27,6 +27,7 @@ import { Context } from "../context";
 import { CreateDialog } from "./create-dialog";
 import { GameNotice } from "@/models/game_notice";
 import { getGameNotice } from "@/api/games/game_id/notices";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Index() {
   const sharedStore = useSharedStore();
@@ -125,9 +126,25 @@ export default function Index() {
         </div>
       </div>
 
-      <div className={cn(["rounded-md", "border", "bg-card"])}>
+      <ScrollArea
+        className={cn([
+          "rounded-md",
+          "border",
+          "bg-card",
+          "min-h-100",
+          "h-[calc(100vh-15rem)]",
+        ])}
+      >
         <Table className={cn(["text-foreground"])}>
-          <TableHeader>
+          <TableHeader
+            className={cn([
+              "sticky",
+              "top-0",
+              "z-2",
+              "bg-muted/70",
+              "backdrop-blur-md",
+            ])}
+          >
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -173,7 +190,7 @@ export default function Index() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

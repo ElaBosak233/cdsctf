@@ -148,7 +148,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
               {team.name}
             </span>
             <span className={cn(["text-secondary-foreground", "text-sm"])}>
-              {team.slogan || "这个小队很懒，什么也没留下"}
+              {team.slogan || "这个小队很懒，什么也没留下。"}
             </span>
           </div>
         </div>
@@ -207,7 +207,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
                   colSpan={columns.length}
                   className={cn(["h-24", "text-center"])}
                 >
-                  积分榜空空如也呢
+                  积分榜空空如也呢。
                 </TableCell>
               </TableRow>
             )}

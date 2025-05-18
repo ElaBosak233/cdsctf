@@ -1,6 +1,7 @@
 {
   "login": {
     "_": "Login",
+    "please": "Please login",
     "continue": "Login to continue browsing",
     "success": {
       "_": "Login successfully",

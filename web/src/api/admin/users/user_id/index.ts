@@ -21,7 +21,7 @@ export interface UpdateUserRequest {
   group?: Group;
   password?: string;
   is_verified?: boolean;
-  description?: string;
+  description?: string | null;
 }
 
 export async function updateUser(request: UpdateUserRequest) {

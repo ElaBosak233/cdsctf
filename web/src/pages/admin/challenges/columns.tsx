@@ -1,22 +1,17 @@
 import { Challenge } from "@/models/challenge";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowDown,
   ArrowDownIcon,
-  ArrowUp,
-  ArrowUpDown,
   ArrowUpDownIcon,
   ArrowUpIcon,
-  Box,
-  Check,
-  ClipboardCheck,
+  BoxIcon,
+  CheckIcon,
   ClipboardCheckIcon,
-  ClipboardCopy,
   ClipboardCopyIcon,
   EditIcon,
-  ShipWheel,
+  ShipWheelIcon,
   TrashIcon,
-  X,
+  XIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
@@ -181,11 +176,11 @@ const columns: ColumnDef<Challenge>[] = [
       const options = [
         {
           className: ["bg-warning", "text-warning-foreground"],
-          icon: <X />,
+          icon: <XIcon />,
         },
         {
           className: ["bg-info", "text-info-foreground"],
-          icon: <Check />,
+          icon: <CheckIcon />,
         },
       ];
 
@@ -210,7 +205,7 @@ const columns: ColumnDef<Challenge>[] = [
               : ["bg-success", "text-success-foreground"],
           ])}
         >
-          {isDynamic ? <ShipWheel /> : <Box />}
+          {isDynamic ? <ShipWheelIcon /> : <BoxIcon />}
           {isDynamic ? "动态" : "静态"}
         </Badge>
       );

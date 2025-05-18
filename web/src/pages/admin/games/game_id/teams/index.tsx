@@ -34,6 +34,7 @@ import { useSharedStore } from "@/storages/shared";
 import { Context } from "../context";
 import { State, Team } from "@/models/team";
 import { getTeams } from "@/api/admin/games/game_id/teams";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Index() {
   const sharedStore = useSharedStore();
@@ -199,9 +200,25 @@ export default function Index() {
         </div>
       </div>
 
-      <div className={cn(["rounded-md", "border", "bg-card"])}>
+      <ScrollArea
+        className={cn([
+          "rounded-md",
+          "border",
+          "bg-card",
+          "min-h-100",
+          "h-[calc(100vh-18rem)]",
+        ])}
+      >
         <Table className={cn(["text-foreground"])}>
-          <TableHeader>
+          <TableHeader
+            className={cn([
+              "sticky",
+              "top-0",
+              "z-2",
+              "bg-muted/70",
+              "backdrop-blur-md",
+            ])}
+          >
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -241,41 +258,41 @@ export default function Index() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  哎呀，好像还没有参赛团队呢。
+                  但是谁也没有来。
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-        <div className="flex items-center justify-between space-x-2 py-4 px-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} / {total}
-          </div>
-          <div className={cn(["flex", "items-center", "gap-5"])}>
-            <Field size={"sm"} className={cn(["w-48"])}>
-              <FieldIcon>
-                <ListOrderedIcon />
-              </FieldIcon>
-              <Select
-                placeholder={"每页显示"}
-                options={[
-                  { value: "10" },
-                  { value: "20" },
-                  { value: "40" },
-                  { value: "60" },
-                ]}
-                value={String(size)}
-                onValueChange={(value) => setSize(Number(value))}
-              />
-            </Field>
-
-            <Pagination
-              size={"sm"}
-              value={page}
-              total={Math.ceil(total / size)}
-              onChange={setPage}
+      </ScrollArea>
+      <div className="flex items-center justify-between space-x-2 py-4 px-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredRowModel().rows.length} / {total}
+        </div>
+        <div className={cn(["flex", "items-center", "gap-5"])}>
+          <Field size={"sm"} className={cn(["w-48"])}>
+            <FieldIcon>
+              <ListOrderedIcon />
+            </FieldIcon>
+            <Select
+              placeholder={"每页显示"}
+              options={[
+                { value: "10" },
+                { value: "20" },
+                { value: "40" },
+                { value: "60" },
+              ]}
+              value={String(size)}
+              onValueChange={(value) => setSize(Number(value))}
             />
-          </div>
+          </Field>
+
+          <Pagination
+            size={"sm"}
+            value={page}
+            total={Math.ceil(total / size)}
+            onChange={setPage}
+          />
         </div>
       </div>
     </div>

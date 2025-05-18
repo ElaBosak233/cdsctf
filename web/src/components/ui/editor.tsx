@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 export interface EditorProps
   extends Omit<React.ComponentProps<"div">, "onChange"> {
-  value: string;
+  value?: string;
   onChange?: (value: string) => void;
   placeholder?: string;
   lang?: string;

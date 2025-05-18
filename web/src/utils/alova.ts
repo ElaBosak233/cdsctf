@@ -4,6 +4,7 @@ import globalRouter from "./global-router";
 import { toast } from "sonner";
 import adapterFetch from "alova/fetch";
 import { useAuthStore } from "@/storages/auth";
+import { t } from "i18next";
 
 export const alova = createAlova({
   baseURL: "/api",
@@ -20,7 +21,7 @@ export const alova = createAlova({
     onSuccess: async (response, _method) => {
       if (response.status === 401) {
         globalRouter?.navigate?.("/account/login");
-        toast.warning("请先登录", {
+        toast.warning(t("account:login.please"), {
           id: "please-login",
           description: "登录后才能继续操作",
         });

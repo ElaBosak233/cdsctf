@@ -5,6 +5,7 @@ import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
+import rehypeExternalLinks from "rehype-external-links";
 // import rehypeAutolinkHeadings, {
 //     Options as RehypeAutolinkHeadingsOptions,
 // } from "rehype-autolink-headings";
@@ -39,6 +40,10 @@ function MarkdownRender(props: MarkdownRenderProps) {
         ],
         rehypeKatex,
         rehypeSlug,
+        [
+          rehypeExternalLinks,
+          { target: "_blank", rel: ["noopener", "noreferrer"] },
+        ],
         // [
         //     rehypeAutolinkHeadings,
         //     {

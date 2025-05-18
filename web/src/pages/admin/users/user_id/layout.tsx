@@ -58,14 +58,15 @@ export default function Layout() {
       >
         <div
           className={cn([
-            "lg:w-64",
-            "lg:sticky",
-            "lg:top-25",
             "space-y-6",
             "h-fit",
             "my-10",
             "mx-10",
-            "lg:mx-0",
+            "xl:mx-0",
+            "xl:my-0",
+            "xl:w-64",
+            "xl:sticky",
+            "xl:top-25",
           ])}
         >
           <div
