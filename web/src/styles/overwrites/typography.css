@@ -18,6 +18,10 @@
   content: counter(line);
 }
 
+.prose a {
+  @apply underline underline-offset-3 decoration-dashed hover:decoration-solid;
+}
+
 .prose a.anchor {
   @apply no-underline mx-2 opacity-50 hover:opacity-100;
 }

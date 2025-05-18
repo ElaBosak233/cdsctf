@@ -60,9 +60,7 @@ export default function Index() {
     group: z.number({
       message: "请选择用户组",
     }),
-    description: z.string({
-      message: "请输入描述",
-    }),
+    description: z.string().nullish(),
     email: z
       .string({
         message: "请输入邮箱",
@@ -355,6 +353,7 @@ export default function Index() {
                 <FormControl>
                   <Editor
                     {...field}
+                    value={field.value ?? ""}
                     className={cn(["h-full", "min-h-64"])}
                     lang="markdown"
                     tabSize={2}

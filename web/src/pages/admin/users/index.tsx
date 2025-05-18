@@ -40,6 +40,7 @@ import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { CreateUserDialog } from "./create-dialog";
 import { useSharedStore } from "@/storages/shared";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Index() {
   const sharedStore = useSharedStore();
@@ -92,6 +93,7 @@ export default function Index() {
       columnFilters,
     },
   });
+
   useEffect(() => {
     getUsers({
       id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
@@ -115,7 +117,16 @@ export default function Index() {
   }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh]);
 
   return (
-    <div className={cn(["container", "mx-auto", "p-10"])}>
+    <div
+      className={cn([
+        "container",
+        "mx-auto",
+        "p-10",
+        "flex",
+        "flex-col",
+        "flex-1",
+      ])}
+    >
       <div
         className={cn([
           "flex",
@@ -224,9 +235,25 @@ export default function Index() {
         </div>
       </div>
 
-      <div className={cn(["rounded-md", "border", "bg-card"])}>
+      <ScrollArea
+        className={cn([
+          "rounded-md",
+          "border",
+          "bg-card",
+          "min-h-100",
+          "h-[calc(100vh-18rem)]",
+        ])}
+      >
         <Table className={cn(["text-foreground"])}>
-          <TableHeader>
+          <TableHeader
+            className={cn([
+              "sticky",
+              "top-0",
+              "z-2",
+              "bg-muted/70",
+              "backdrop-blur-md",
+            ])}
+          >
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -247,7 +274,7 @@ export default function Index() {
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
-                  key={row.getValue("id")}
+                  key={row.original.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -266,42 +293,50 @@ export default function Index() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  用户列表空空如也呢...要不要加我一个?
-                  天天给你干活，也有点无聊呢=v=
+                  但是谁也没有来。
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-        <div className="flex items-center justify-between space-x-2 py-4 px-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} / {total}
-          </div>
-          <div className={cn(["flex", "items-center", "gap-5"])}>
-            <Field size={"sm"} className={cn(["w-48"])}>
-              <FieldIcon>
-                <ListOrderedIcon />
-              </FieldIcon>
-              <Select
-                placeholder={"每页显示"}
-                options={[
-                  { value: "10" },
-                  { value: "20" },
-                  { value: "40" },
-                  { value: "60" },
-                ]}
-                value={String(size)}
-                onValueChange={(value) => setSize(Number(value))}
-              />
-            </Field>
-
-            <Pagination
-              size={"sm"}
-              value={page}
-              total={Math.ceil(total / size)}
-              onChange={setPage}
+      </ScrollArea>
+      <div
+        className={cn([
+          "flex",
+          "items-center",
+          "justify-between",
+          "space-x-2",
+          "py-4",
+          "px-4",
+        ])}
+      >
+        <div className={cn(["flex-1", "text-sm", "text-muted-foreground"])}>
+          {table.getFilteredRowModel().rows.length} / {total}
+        </div>
+        <div className={cn(["flex", "items-center", "gap-5"])}>
+          <Field size={"sm"} className={cn(["w-48"])}>
+            <FieldIcon>
+              <ListOrderedIcon />
+            </FieldIcon>
+            <Select
+              placeholder={"每页显示"}
+              options={[
+                { value: "10" },
+                { value: "20" },
+                { value: "40" },
+                { value: "60" },
+              ]}
+              value={String(size)}
+              onValueChange={(value) => setSize(Number(value))}
             />
-          </div>
+          </Field>
+
+          <Pagination
+            size={"sm"}
+            value={page}
+            total={Math.ceil(total / size)}
+            onChange={setPage}
+          />
         </div>
       </div>
     </div>

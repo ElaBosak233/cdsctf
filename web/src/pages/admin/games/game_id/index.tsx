@@ -282,15 +282,7 @@ export default function Index() {
         autoComplete={"off"}
         className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
       >
-        <div
-          className={cn([
-            "flex",
-            "gap-8",
-            "flex-col",
-            "xl:flex-row",
-            "items-center",
-          ])}
-        >
+        <div className={cn(["flex", "gap-8", "flex-wrap", "items-center"])}>
           <div
             className={cn(["flex", "flex-col", "flex-1", "gap-8", "w-full"])}
           >
@@ -467,7 +459,7 @@ export default function Index() {
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>是否为公开赛（免审核）</FormLabel>
                 <FormControl>
-                  <Field size={"sm"}>
+                  <Field>
                     <FieldIcon>
                       <LockOpenIcon />
                     </FieldIcon>
@@ -501,7 +493,7 @@ export default function Index() {
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>是否需要提交 Write-up</FormLabel>
                 <FormControl>
-                  <Field size={"sm"}>
+                  <Field>
                     <FieldIcon>
                       <FileCheck2Icon />
                     </FieldIcon>
@@ -535,7 +527,7 @@ export default function Index() {
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>团队所需最小人数</FormLabel>
                 <FormControl>
-                  <Field size={"sm"}>
+                  <Field>
                     <FieldIcon>
                       <UsersRoundIcon />
                     </FieldIcon>
@@ -559,7 +551,7 @@ export default function Index() {
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>团队所需最大人数</FormLabel>
                 <FormControl>
-                  <Field size={"sm"}>
+                  <Field>
                     <FieldIcon>
                       <UsersRoundIcon />
                     </FieldIcon>

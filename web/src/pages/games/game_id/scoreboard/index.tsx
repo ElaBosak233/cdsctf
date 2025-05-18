@@ -25,6 +25,7 @@ import { ListOrderedIcon } from "lucide-react";
 import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { TeamDetailsDialog } from "./team-details-dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Index() {
   const { currentGame } = useGameStore();
@@ -96,60 +97,62 @@ export default function Index() {
             total={Math.ceil(total / size)}
           />
         </div>
-        <Table className={cn(["text-foreground"])}>
-          <TableHeader className={cn(["bg-muted/70", "backdrop-blur-md"])}>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {!header.isPlaceholder &&
-                        flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <Dialog key={row.original.team?.id}>
-                  <DialogTrigger>
-                    <TableRow
-                      data-state={row.getIsSelected() && "selected"}
-                      className={cn(["cursor-pointer"])}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
+        <ScrollArea className={cn(["rounded-md", "w-full"])}>
+          <Table className={cn(["text-foreground"])}>
+            <TableHeader className={cn(["bg-muted/70", "backdrop-blur-md"])}>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {!header.isPlaceholder &&
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
                           )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <TeamDetailsDialog team={row.original.team!} />
-                  </DialogContent>
-                </Dialog>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className={cn(["h-24", "text-center"])}
-                >
-                  积分榜空空如也呢
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <Dialog key={row.original.team?.id}>
+                    <DialogTrigger>
+                      <TableRow
+                        data-state={row.getIsSelected() && "selected"}
+                        className={cn(["cursor-pointer"])}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <TeamDetailsDialog team={row.original.team!} />
+                    </DialogContent>
+                  </Dialog>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className={cn(["h-24", "text-center"])}
+                  >
+                    但是谁也没有来。
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       </div>
     </>
   );
