@@ -6,6 +6,7 @@ import { TeamCard } from "./team-card";
 import { ChallengeStatus, getChallengeStatus } from "@/api/challenges";
 import { getGameChallenges } from "@/api/games/game_id/challenges";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
 import { GameChallenge } from "@/models/game_challenge";
@@ -18,15 +19,21 @@ export default function Index() {
   const [gameChallenges, setGameChallenges] = useState<Array<GameChallenge>>();
   const [challengeStatus, setChallengeStatus] =
     useState<Record<string, ChallengeStatus>>();
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!currentGame) return;
 
+    setLoading(true);
     getGameChallenges({
       game_id: currentGame.id!,
-    }).then((res) => {
-      setGameChallenges(res.data);
-    });
+    })
+      .then((res) => {
+        setGameChallenges(res.data);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [currentGame]);
 
   useEffect(() => {
@@ -60,7 +67,10 @@ export default function Index() {
           "gap-10",
         ])}
       >
-        <div className={cn(["lg:w-3/4", "flex", "flex-col", "gap-8"])}>
+        <div
+          className={cn(["lg:w-3/4", "flex", "flex-col", "gap-8", "relative"])}
+        >
+          <LoadingOverlay loading={loading} />
           <div
             className={cn([
               "w-full",

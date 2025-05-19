@@ -5,8 +5,8 @@ use cds_db::{
     entity::{submission::Status, team::State},
     get_db,
     sea_orm::{
-        ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, Condition, EntityTrait, Order,
-        PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
+        ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, Condition, EntityTrait, JoinType,
+        Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait, Set,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -121,6 +121,17 @@ pub async fn create_submission(
 
     body.user_id = Some(operator.id);
 
+    let token = format!("submission_{}", operator.id);
+    if let Some(limit) = cds_cache::get::<i32>(&token).await? {
+        if limit > 10 {
+            return Err(WebError::TooManyRequests(json!("submission")));
+        } else {
+            cds_cache::set_ex(&token, limit + 1, 60).await?;
+        }
+    } else {
+        cds_cache::set_ex(&token, 1, 60).await?;
+    }
+
     let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
         .one(get_db())
         .await?
@@ -152,12 +163,14 @@ pub async fn create_submission(
             .ok_or(WebError::BadRequest(json!("game_challenge_not_found")));
 
         let _ = cds_db::entity::team::Entity::find()
-            .filter(
-                Condition::all()
-                    .add(cds_db::entity::team::Column::Id.eq(team_id))
-                    .add(cds_db::entity::team::Column::GameId.eq(game.id))
-                    .add(cds_db::entity::team::Column::State.eq(State::Passed)),
+            .join(
+                JoinType::InnerJoin,
+                cds_db::entity::team_user::Relation::Team.def().rev(),
             )
+            .filter(cds_db::entity::team_user::Column::UserId.eq(operator.id))
+            .filter(cds_db::entity::team::Column::Id.eq(team_id))
+            .filter(cds_db::entity::team::Column::GameId.eq(game.id))
+            .filter(cds_db::entity::team::Column::State.eq(State::Passed))
             .one(get_db())
             .await?
             .ok_or(WebError::BadRequest(json!("team_not_found")));
