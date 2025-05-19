@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/form";
 import { Image } from "@/components/ui/image";
 import { Label } from "@/components/ui/label";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
@@ -213,8 +214,10 @@ export default function Index() {
           "xl:mx-60",
           "lg:mx-30",
           "min-h-[calc(100vh-64px)]",
+          "relative",
         ])}
       >
+        <LoadingOverlay loading={!config} />
         <h2
           className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
         >

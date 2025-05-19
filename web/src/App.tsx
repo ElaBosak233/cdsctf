@@ -53,6 +53,7 @@ function App() {
           "m-0",
           "overflow-auto",
         ])}
+        horizontal={false}
       >
         <Background />
         <CheckerWatcher />

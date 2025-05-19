@@ -61,7 +61,19 @@ function Title(props: TitleProps) {
           "overflow-hidden",
         ])}
       />
-      <h1 className={cn(["text-xl", "font-semibold"])}>{title}</h1>
+      <h1
+        className={cn([
+          "text-xl",
+          "font-semibold",
+          "overflow-hidden",
+          "text-ellipsis",
+          "text-nowrap",
+          "max-w-24",
+          "sm:max-w-full",
+        ])}
+      >
+        {title}
+      </h1>
     </Link>
   );
 }

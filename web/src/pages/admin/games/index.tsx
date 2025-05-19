@@ -23,6 +23,7 @@ import { getGames } from "@/api/admin/games";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select } from "@/components/ui/select";
@@ -58,6 +59,8 @@ export default function Index() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
   const [games, setGames] = useState<Array<Game>>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
   const table = useReactTable<Game>({
     data: games,
     columns,
@@ -77,6 +80,7 @@ export default function Index() {
   });
 
   useEffect(() => {
+    setLoading(true);
     getGames({
       id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
       title: debouncedColumnFilters.find((c) => c.id === "title")
@@ -86,10 +90,14 @@ export default function Index() {
         .join(","),
       page,
       size,
-    }).then((res) => {
-      setTotal(res?.total || 0);
-      setGames(res?.data || []);
-    });
+    })
+      .then((res) => {
+        setTotal(res?.total || 0);
+        setGames(res?.data || []);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [page, size, sorting, debouncedColumnFilters, sharedStore?.refresh]);
 
   return (
@@ -174,6 +182,7 @@ export default function Index() {
         ])}
       >
         <Table className={cn(["text-foreground"])}>
+          <LoadingOverlay loading={loading} />
           <TableHeader
             className={cn([
               "sticky",

@@ -27,6 +27,7 @@ import { getUsers } from "@/api/admin/users";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select } from "@/components/ui/select";
@@ -51,6 +52,7 @@ export default function Index() {
 
   const [total, setTotal] = useState<number>(0);
   const [users, setUsers] = useState<Array<User>>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(10);
@@ -97,6 +99,7 @@ export default function Index() {
   });
 
   useEffect(() => {
+    setLoading(true);
     getUsers({
       id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
       name: debouncedColumnFilters.find((c) => c.id === "username")
@@ -112,10 +115,14 @@ export default function Index() {
         .join(","),
       page,
       size,
-    }).then((res) => {
-      setTotal(res?.total || 0);
-      setUsers(res?.data || []);
-    });
+    })
+      .then((res) => {
+        setTotal(res?.total || 0);
+        setUsers(res?.data || []);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh]);
 
   return (
@@ -247,6 +254,7 @@ export default function Index() {
         ])}
       >
         <Table className={cn(["text-foreground"])}>
+          <LoadingOverlay loading={loading} />
           <TableHeader
             className={cn([
               "sticky",

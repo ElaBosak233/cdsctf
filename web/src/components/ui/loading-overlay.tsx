@@ -8,16 +8,29 @@ type LoadingOverlayProps = {
 };
 
 function LoadingOverlay(props: LoadingOverlayProps) {
-  const { className } = props;
+  const { loading, className } = props;
+
+  if (!loading) return null;
 
   return (
     <div
       className={cn(
-        "inset-0 z-50 flex items-center justify-center backdrop-blur-sm",
+        [
+          "absolute",
+          "inset-0",
+          "z-1",
+          "flex",
+          "items-center",
+          "justify-center",
+          "backdrop-blur-sm",
+          "rounded",
+        ],
         className
       )}
     >
-      <LoaderCircleIcon className={cn("h-8 w-8 animate-spin text-primary")} />
+      <LoaderCircleIcon
+        className={cn([["h-8", "w-8", "animate-spin", "text-primary"]])}
+      />
     </div>
   );
 }

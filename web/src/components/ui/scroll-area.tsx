@@ -3,16 +3,25 @@ import * as React from "react";
 
 import { cn } from "@/utils";
 
-function ScrollArea({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof RadixScrollArea.Root>) {
+type ScrollAreaProps = React.ComponentProps<typeof RadixScrollArea.Root> & {
+  vertical?: boolean;
+  horizontal?: boolean;
+};
+
+function ScrollArea(props: ScrollAreaProps) {
+  const {
+    className,
+    children,
+    vertical = true,
+    horizontal = true,
+    ...rest
+  } = props;
+
   return (
     <RadixScrollArea.Root
       data-slot="scroll-area"
       className={cn("relative", className)}
-      {...props}
+      {...rest}
     >
       <RadixScrollArea.Viewport
         data-slot="scroll-area-viewport"
@@ -31,7 +40,8 @@ function ScrollArea({
       >
         {children}
       </RadixScrollArea.Viewport>
-      <ScrollBar />
+      {vertical && <ScrollBar orientation={"vertical"} />}
+      {horizontal && <ScrollBar orientation={"horizontal"} />}
       <RadixScrollArea.Corner />
     </RadixScrollArea.Root>
   );

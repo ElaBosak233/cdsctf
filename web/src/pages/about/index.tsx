@@ -103,6 +103,7 @@ export default function Index() {
             className={cn(["rounded-full"])}
             icon={<StarIcon />}
             variant={"tonal"}
+            size={"sm"}
             asChild
           >
             <a href={"https://github.com/skyhaibara"} target={"_blank"}>

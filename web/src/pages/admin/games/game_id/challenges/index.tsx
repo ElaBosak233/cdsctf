@@ -24,6 +24,7 @@ import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select } from "@/components/ui/select";
@@ -51,6 +52,7 @@ export default function Index() {
 
   const [total, setTotal] = useState<number>(0);
   const [challenges, setChallenges] = useState<Array<GameChallenge>>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(10);
@@ -89,6 +91,7 @@ export default function Index() {
   useEffect(() => {
     if (!game) return;
 
+    setLoading(true);
     getGameChallenges({
       game_id: game.id!,
       challenge_id: debouncedColumnFilters.find((c) => c.id === "challenge_id")
@@ -101,10 +104,14 @@ export default function Index() {
           : undefined,
       page,
       size,
-    }).then((res) => {
-      setTotal(res?.total || 0);
-      setChallenges(res?.data || []);
-    });
+    })
+      .then((res) => {
+        setTotal(res?.total || 0);
+        setChallenges(res?.data || []);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh, game]);
 
   return (
@@ -218,6 +225,7 @@ export default function Index() {
         ])}
       >
         <Table className={cn(["text-foreground"])}>
+          <LoadingOverlay loading={loading} />
           <TableHeader
             className={cn([
               "sticky",
@@ -264,7 +272,7 @@ export default function Index() {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className={cn(["h-24", "text-center"])}
                 >
                   哎呀，好像还没有题目呢。
                 </TableCell>

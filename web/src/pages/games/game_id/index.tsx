@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Image } from "@/components/ui/image";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Typography } from "@/components/ui/typography";
 import { MarkdownRender } from "@/components/utils/markdown-render";
 import { State } from "@/models/team";
@@ -184,9 +185,11 @@ export default function Index() {
             "rounded-none",
             "border-y-0",
             "shadow-md",
+            "relative",
           ])}
         >
           <Typography>
+            <LoadingOverlay loading={!currentGame} />
             <MarkdownRender src={currentGame?.description} />
           </Typography>
         </Card>

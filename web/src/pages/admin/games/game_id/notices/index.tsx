@@ -18,6 +18,7 @@ import { CreateDialog } from "./create-dialog";
 import { getGameNotice } from "@/api/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
@@ -41,6 +42,7 @@ export default function Index() {
 
   const [total, setTotal] = useState<number>(0);
   const [notices, setNotices] = useState<Array<GameNotice>>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [page, _setPage] = useState<number>(1);
   const [size, _setSize] = useState<number>(10);
@@ -74,12 +76,17 @@ export default function Index() {
   useEffect(() => {
     if (!game) return;
 
+    setLoading(true);
     getGameNotice({
       game_id: game.id!,
-    }).then((res) => {
-      setTotal(res?.total || 0);
-      setNotices(res?.data || []);
-    });
+    })
+      .then((res) => {
+        setTotal(res?.total || 0);
+        setNotices(res?.data || []);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh, game]);
 
   return (
@@ -139,6 +146,7 @@ export default function Index() {
         ])}
       >
         <Table className={cn(["text-foreground"])}>
+          <LoadingOverlay loading={loading} />
           <TableHeader
             className={cn([
               "sticky",
@@ -185,7 +193,7 @@ export default function Index() {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className={cn(["h-24", "text-center"])}
                 >
                   哎呀，好像还没有通知呢。
                 </TableCell>

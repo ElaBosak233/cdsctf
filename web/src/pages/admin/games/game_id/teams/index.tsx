@@ -22,6 +22,7 @@ import { columns } from "./columns";
 
 import { getTeams } from "@/api/admin/games/game_id/teams";
 import { Field, FieldIcon } from "@/components/ui/field";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select } from "@/components/ui/select";
@@ -46,6 +47,7 @@ export default function Index() {
 
   const [total, setTotal] = useState<number>(0);
   const [teams, setTeams] = useState<Array<Team>>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(10);
@@ -91,6 +93,7 @@ export default function Index() {
   useEffect(() => {
     if (!game) return;
 
+    setLoading(true);
     getTeams({
       game_id: game.id!,
       id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
@@ -103,10 +106,14 @@ export default function Index() {
       sorts: "rank",
       page,
       size,
-    }).then((res) => {
-      setTotal(res?.total || 0);
-      setTeams(res?.data || []);
-    });
+    })
+      .then((res) => {
+        setTotal(res?.total || 0);
+        setTeams(res?.data || []);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh, game]);
 
   return (
@@ -213,6 +220,7 @@ export default function Index() {
         ])}
       >
         <Table className={cn(["text-foreground"])}>
+          <LoadingOverlay loading={loading} />
           <TableHeader
             className={cn([
               "sticky",
@@ -259,7 +267,7 @@ export default function Index() {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className={cn(["h-24", "text-center"])}
                 >
                   但是谁也没有来。
                 </TableCell>
