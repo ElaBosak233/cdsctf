@@ -10,6 +10,7 @@ import { getChallenge } from "@/api/challenges/challenge_id";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
@@ -85,6 +86,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
           <Separator />
         </div>
         <ScrollArea className={cn(["flex-1", "max-h-144", "overflow-auto"])}>
+          <LoadingOverlay loading={!challenge} />
           <Typography>
             <MarkdownRender src={challenge?.description} />
           </Typography>

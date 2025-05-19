@@ -23,6 +23,7 @@ import { getChallenges } from "@/api/admin/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select } from "@/components/ui/select";
@@ -51,6 +52,7 @@ export default function Index() {
 
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(10);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -87,6 +89,7 @@ export default function Index() {
   });
 
   useEffect(() => {
+    setLoading(true);
     getChallenges({
       id: debouncedColumnFilters.find((c) => c.id === "id")?.value as string,
       title: debouncedColumnFilters.find((c) => c.id === "title")
@@ -102,10 +105,14 @@ export default function Index() {
         .join(","),
       page,
       size,
-    }).then((res) => {
-      setTotal(res?.total || 0);
-      setChallenges(res?.data || []);
-    });
+    })
+      .then((res) => {
+        setTotal(res?.total || 0);
+        setChallenges(res?.data || []);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh]);
 
   return (
@@ -237,6 +244,7 @@ export default function Index() {
         ])}
       >
         <Table className={cn(["text-foreground"])}>
+          <LoadingOverlay loading={loading} />
           <TableHeader
             className={cn([
               "sticky",
@@ -283,7 +291,7 @@ export default function Index() {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className={cn(["h-24", "text-center"])}
                 >
                   哎呀，好像还没有题目呢。
                 </TableCell>

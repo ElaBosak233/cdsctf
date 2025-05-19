@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
@@ -40,6 +41,7 @@ export default function Index() {
   const [challenges, setChallenges] = useState<Array<ChallengeMini>>();
   const [challengeStatus, setChallengeStatus] =
     useState<Record<string, ChallengeStatus>>();
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [doSearch, setDoSearch] = useState<number>(0);
   const [title, setTitle] = useState<string>(searchParams.get("title") || "");
@@ -83,12 +85,17 @@ export default function Index() {
     if (title) params.title = title;
     if (tag) params.tags = tag;
 
-    getPlaygroundChallenges(params).then((res) => {
-      if (res.code === StatusCodes.OK) {
-        setTotal(res.total || 0);
-        setChallenges(res.data);
-      }
-    });
+    setLoading(true);
+    getPlaygroundChallenges(params)
+      .then((res) => {
+        if (res.code === StatusCodes.OK) {
+          setTotal(res.total || 0);
+          setChallenges(res.data);
+        }
+      })
+      .then(() => {
+        setLoading(false);
+      });
   }, [doSearch, page, category]);
 
   useEffect(() => {
@@ -219,7 +226,8 @@ export default function Index() {
             </Field>
           </div>
         </div>
-        <div className={cn(["flex-1"])}>
+        <div className={cn(["flex-1", "relative"])}>
+          <LoadingOverlay loading={loading} />
           <div
             className={cn([
               "grid",
@@ -245,7 +253,7 @@ export default function Index() {
               </Dialog>
             ))}
           </div>
-          {!challenges?.length && (
+          {!challenges?.length && !loading && (
             <div
               className={cn([
                 "text-secondary-foreground",

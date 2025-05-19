@@ -36,7 +36,15 @@ export default function () {
         ])}
       >
         <div />
-        <div className={cn(["flex", "flex-col", "items-center"])}>
+        <div
+          className={cn([
+            "flex",
+            "flex-col",
+            "items-center",
+            "flex-1",
+            "justify-center",
+          ])}
+        >
           <Image
             src={"/api/configs/logo"}
             className={cn(["drop-shadow-md", "aspect-square", "h-[8rem]"])}
@@ -56,7 +64,7 @@ export default function () {
             {description}
           </span>
         </div>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
+        <div className={cn(["hidden", "sm:flex", "items-center", "gap-3"])}>
           <Button>
             <Typography className={cn(["text-secondary-foreground"])}>
               <MarkdownRender src={configStore?.config?.meta?.footer} />

@@ -168,8 +168,24 @@ export default function Index() {
             autoComplete={"off"}
             className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
           >
-            <div className={cn(["flex", "gap-5", "items-center"])}>
-              <div className={cn(["flex", "flex-col", "gap-8", "flex-1"])}>
+            <div
+              className={cn([
+                "flex",
+                "flex-wrap-reverse",
+                "gap-5",
+                "items-center",
+                "justify-center",
+              ])}
+            >
+              <div
+                className={cn([
+                  "flex",
+                  "flex-col",
+                  "gap-8",
+                  "flex-1",
+                  "min-w-2xs",
+                ])}
+              >
                 <FormField
                   control={form.control}
                   name={"username"}

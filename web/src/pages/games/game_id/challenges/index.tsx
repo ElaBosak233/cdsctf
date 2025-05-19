@@ -21,6 +21,7 @@ export default function Index() {
 
   useEffect(() => {
     if (!currentGame) return;
+
     getGameChallenges({
       game_id: currentGame.id!,
     }).then((res) => {
@@ -30,6 +31,7 @@ export default function Index() {
 
   useEffect(() => {
     if (!gameChallenges) return;
+
     getChallengeStatus({
       challenge_ids: gameChallenges?.map(
         (gameChallenge) => gameChallenge.challenge_id!

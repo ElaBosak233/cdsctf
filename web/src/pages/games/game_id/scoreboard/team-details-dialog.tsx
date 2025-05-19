@@ -13,6 +13,7 @@ import { getSubmission } from "@/api/submissions";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -37,26 +38,33 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
   const { currentGame } = useGameStore();
 
   const [submissions, setSubmissions] = useState<Array<Submission>>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
   const [total, setTotal] = useState<number>(0);
   const [size, _setSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
 
   useEffect(() => {
-    if (currentGame) {
-      getSubmission({
-        game_id: currentGame.id,
-        team_id: team.id,
-        status: Status.Correct,
-        page: page,
-        size: size,
-        sorts: "-created_at",
-      }).then((res) => {
+    if (!currentGame) return;
+
+    setLoading(true);
+    getSubmission({
+      game_id: currentGame.id,
+      team_id: team.id,
+      status: Status.Correct,
+      page: page,
+      size: size,
+      sorts: "-created_at",
+    })
+      .then((res) => {
         if (res.code === StatusCodes.OK) {
           setTotal(res.total || 0);
           setSubmissions(res.data || []);
         }
+      })
+      .finally(() => {
+        setLoading(false);
       });
-    }
   }, [currentGame]);
 
   const columns: Array<ColumnDef<Submission>> = [
@@ -162,6 +170,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
       </div>
       <ScrollArea className={cn(["h-128", "rounded-md", "border"])}>
         <Table className={cn(["text-foreground"])}>
+          <LoadingOverlay loading={loading} />
           <TableHeader
             className={cn([
               "sticky",
