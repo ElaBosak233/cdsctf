@@ -1,4 +1,3 @@
-import { StatusCodes } from "http-status-codes";
 import {
   LibraryIcon,
   ListOrderedIcon,
@@ -11,7 +10,6 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 
 import {
-  ChallengeStatus,
   getChallengeStatus,
   getPlaygroundChallenges,
   GetPlaygroundChallengesRequest,
@@ -30,18 +28,44 @@ import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
+import { useQuery } from "@tanstack/react-query";
+
+function usePlaygroundChallengeQuery(
+  params: GetPlaygroundChallengesRequest,
+  trigger: number = 0
+) {
+  return useQuery({
+    queryKey: ["playground", params, trigger],
+    queryFn: () => getPlaygroundChallenges(params),
+    select: (response) => ({
+      challenges: response.data || [],
+      total: response.total || 0,
+    }),
+    enabled: !!params,
+  });
+}
+
+function useChallengeStatusQuery(
+  challenges: ChallengeMini[] | undefined,
+  userId: number
+) {
+  return useQuery({
+    queryKey: ["challenge_status", challenges?.map((c) => c.id), userId],
+    queryFn: () =>
+      getChallengeStatus({
+        challenge_ids: challenges?.map((challenge) => challenge.id!) || [],
+        user_id: userId,
+      }),
+    select: (response) => response.data || {},
+    enabled: !!challenges?.length && !!userId,
+  });
+}
 
 export default function Index() {
   const authStore = useAuthStore();
   const configStore = useConfigStore();
 
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const [total, setTotal] = useState<number>(0);
-  const [challenges, setChallenges] = useState<Array<ChallengeMini>>();
-  const [challengeStatus, setChallengeStatus] =
-    useState<Record<string, ChallengeStatus>>();
-  const [loading, setLoading] = useState<boolean>(false);
 
   const [doSearch, setDoSearch] = useState<number>(0);
   const [title, setTitle] = useState<string>(searchParams.get("title") || "");
@@ -56,6 +80,24 @@ export default function Index() {
     Number(searchParams.get("size")) || 20
   );
 
+  const queryParams: GetPlaygroundChallengesRequest = {
+    page,
+    size,
+    category: category !== "all" ? Number(category) : undefined,
+    title: title || undefined,
+    tags: tag || undefined,
+  };
+
+  const {
+    data: { challenges, total } = { challenges: [], total: 0 },
+    isLoading,
+  } = usePlaygroundChallengeQuery(queryParams, doSearch);
+
+  const { data: challengeStatus } = useChallengeStatusQuery(
+    challenges,
+    authStore.user!.id!
+  );
+
   useEffect(() => {
     const params: {
       page: string;
@@ -66,48 +108,12 @@ export default function Index() {
     } = {
       page: String(page),
       size: String(size),
-      category: category,
+      category,
     };
-
     if (title) params.title = title;
     if (tag) params.tag = tag;
-
     setSearchParams(params);
-  }, [title, tag, page, size, category]);
-
-  useEffect(() => {
-    const params: GetPlaygroundChallengesRequest = {
-      page,
-      size,
-      category: category !== "all" ? Number(category) : undefined,
-    };
-
-    if (title) params.title = title;
-    if (tag) params.tags = tag;
-
-    setLoading(true);
-    getPlaygroundChallenges(params)
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          setTotal(res.total || 0);
-          setChallenges(res.data);
-        }
-      })
-      .then(() => {
-        setLoading(false);
-      });
-  }, [doSearch, page, category]);
-
-  useEffect(() => {
-    if (!challenges?.length) return;
-
-    getChallengeStatus({
-      challenge_ids: challenges?.map((challenge) => challenge.id!),
-      user_id: authStore?.user?.id,
-    }).then((res) => {
-      setChallengeStatus(res.data);
-    });
-  }, [challenges]);
+  }, [title, tag, page, size, category, setSearchParams]);
 
   return (
     <>
@@ -227,7 +233,7 @@ export default function Index() {
           </div>
         </div>
         <div className={cn(["flex-1", "relative"])}>
-          <LoadingOverlay loading={loading} />
+          <LoadingOverlay loading={isLoading} />
           <div
             className={cn([
               "grid",
@@ -253,7 +259,7 @@ export default function Index() {
               </Dialog>
             ))}
           </div>
-          {!challenges?.length && !loading && (
+          {!challenges?.length && !isLoading && (
             <div
               className={cn([
                 "text-secondary-foreground",

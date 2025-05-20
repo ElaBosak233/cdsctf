@@ -1,5 +1,5 @@
 import { DownloadIcon, SnowflakeIcon } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 
 import { Context } from "./context";
 import { EnvSection } from "./env-section";
@@ -15,10 +15,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import { MarkdownRender } from "@/components/utils/markdown-render";
-import { Challenge, ChallengeMini } from "@/models/challenge";
+import { ChallengeMini } from "@/models/challenge";
 import { Team } from "@/models/team";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { useQuery } from "@tanstack/react-query";
 
 type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   digest?: ChallengeMini;
@@ -27,23 +28,25 @@ type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   debug?: boolean;
 };
 
+function useChallengeQuery(
+  challengeId: string | undefined,
+  debug: boolean = false
+) {
+  return useQuery({
+    queryKey: ["challenge", challengeId, debug],
+    queryFn: () =>
+      debug
+        ? getChallengeDebug({ id: challengeId! })
+        : getChallenge({ id: challengeId! }),
+    select: (response) => response.data,
+    enabled: !!challengeId,
+  });
+}
+
 function ChallengeDialog(props: ChallengeDialogProps) {
   const { digest, gameTeam, frozenAt, debug = false, ...rest } = props;
 
-  const [challenge, setChallenge] = useState<Challenge>();
-
-  useEffect(() => {
-    if (!digest?.id) return;
-
-    const fetchChallenge = async () => {
-      const res = debug
-        ? await getChallengeDebug({ id: digest.id })
-        : await getChallenge({ id: digest.id });
-      setChallenge(res.data);
-    };
-
-    fetchChallenge();
-  }, [digest?.id, debug]);
+  const { data: challenge, isLoading } = useChallengeQuery(digest?.id, debug);
 
   const category = useMemo(
     () => getCategory(digest?.category || 1),
@@ -86,7 +89,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
           <Separator />
         </div>
         <ScrollArea className={cn(["flex-1", "max-h-144", "overflow-auto"])}>
-          <LoadingOverlay loading={!challenge} />
+          <LoadingOverlay loading={isLoading} />
           <Typography>
             <MarkdownRender src={challenge?.description} />
           </Typography>

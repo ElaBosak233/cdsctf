@@ -28,7 +28,7 @@ export interface Container {
 }
 
 export interface Port {
-  value: number;
+  port: number;
   protocol: "TCP" | "UDP";
 }
 

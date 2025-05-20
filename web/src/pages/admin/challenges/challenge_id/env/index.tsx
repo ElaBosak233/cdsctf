@@ -11,6 +11,7 @@ import {
   NetworkIcon,
   PlusIcon,
   SaveIcon,
+  TextIcon,
   TrashIcon,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
@@ -70,7 +71,7 @@ export default function Index() {
         ),
         ports: z.array(
           z.object({
-            value: z.number(),
+            port: z.number(),
             protocol: z.enum(["TCP", "UDP"]),
           })
         ),
@@ -118,7 +119,7 @@ export default function Index() {
     const ports = containers[containerIndex]?.ports || [];
     containers[containerIndex].ports = [
       ...ports,
-      { value: 9999, protocol: "TCP" },
+      { port: 9999, protocol: "TCP" },
     ];
     form.setValue("containers", containers);
   };
@@ -326,7 +327,7 @@ export default function Index() {
                 >
                   <FormField
                     control={form.control}
-                    name={`containers.${containerIndex}.ports.${portIndex}.value`}
+                    name={`containers.${containerIndex}.ports.${portIndex}.port`}
                     render={({ field }) => (
                       <FormItem className={cn(["flex-1"])}>
                         <FormControl>
@@ -335,7 +336,6 @@ export default function Index() {
                               <MemoryStickIcon />
                             </FieldIcon>
                             <NumberField
-                              placeholder={"9999"}
                               value={field.value}
                               onValueChange={(value) => field.onChange(value)}
                             />
@@ -424,6 +424,9 @@ export default function Index() {
                       <FormItem className={cn(["flex-1"])}>
                         <FormControl>
                           <Field size={"sm"}>
+                            <FieldIcon>
+                              <TextIcon />
+                            </FieldIcon>
                             <TextField
                               {...field}
                               placeholder={"值"}
