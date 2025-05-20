@@ -43,7 +43,7 @@ function NumberField(props: NumberInputProps) {
 
   const context = React.useContext(FieldContext);
 
-  const { hasIcon, hasExtraButton } = context;
+  const { size, hasIcon, hasExtraButton } = context;
 
   const [value, setValue] = useState<number | undefined>(
     controlledValue ?? defaultValue
@@ -166,12 +166,13 @@ function NumberField(props: NumberInputProps) {
             "border-b-[0.5px]",
             "focus-visible:relative",
             "cursor-pointer",
+            "text-secondary-foreground",
           ])}
           onClick={handleIncrement}
           disabled={value === max}
           type={"button"}
         >
-          <ChevronUp size={15} />
+          <ChevronUp size={size === "md" ? 15 : 12} />
         </button>
         <button
           aria-label="Decrease value"
@@ -185,12 +186,13 @@ function NumberField(props: NumberInputProps) {
             "border-t-[0.5px]",
             "focus-visible:relative",
             "cursor-pointer",
+            "text-secondary-foreground",
           ])}
           onClick={handleDecrement}
           disabled={value === min}
           type={"button"}
         >
-          <ChevronDown size={15} />
+          <ChevronDown size={size === "md" ? 15 : 12} />
         </button>
       </div>
     </div>

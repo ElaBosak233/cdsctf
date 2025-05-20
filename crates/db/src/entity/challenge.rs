@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
 use async_trait::async_trait;
 use sea_orm::{
@@ -43,8 +43,20 @@ pub struct Container {
     pub image: String,
     pub cpu_limit: i64,
     pub memory_limit: i64,
-    pub ports: Vec<i32>,
-    pub envs: HashMap<String, String>,
+    pub ports: Vec<Port>,
+    pub envs: Vec<EnvVar>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+pub struct Port {
+    pub port: i32,
+    pub protocol: String,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+pub struct EnvVar {
+    pub key: String,
+    pub value: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

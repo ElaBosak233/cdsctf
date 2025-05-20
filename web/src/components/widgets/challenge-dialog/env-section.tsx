@@ -169,56 +169,57 @@ function EnvSection() {
           <div className={cn(["flex-1", "flex", "flex-col", "gap-3"])}>
             {env?.nats ? (
               <>
-                {env?.nats
-                  ?.split(",")
-                  .map((pair) => pair.split("="))
-                  .map(([src, dst]: Array<string>) => (
-                    <div className={cn(["flex"])} key={src}>
+                {env?.nats.map((nat) => {
+                  const address = `${env?.public_entry}:${nat.node_port}`;
+
+                  return (
+                    <div className={cn(["flex"])} key={nat.node_port}>
                       <Field size={"sm"} className={cn(["flex-1"])}>
                         <FieldIcon className={cn(["w-fit", "px-4"])}>
                           <EthernetPortIcon />
-                          <span>{src}</span>
+                          <span
+                            className={cn(["text-xs"])}
+                          >{`${nat.protocol} | ${nat.port}`}</span>
                         </FieldIcon>
-                        <TextField
-                          readOnly
-                          value={`${env?.public_entry}:${dst}`}
-                        />
+                        <TextField readOnly value={address} />
                         <FieldButton
                           icon={<ClipboardIcon />}
                           onClick={() => {
-                            copyToClipboard(`${env?.public_entry}:${dst}`);
+                            copyToClipboard(address);
                             toast.success("已复制到剪贴板");
                           }}
                         />
                       </Field>
                     </div>
-                  ))}
+                  );
+                })}
               </>
             ) : (
               <>
-                {env?.ports?.map((port) => (
-                  <div className={cn(["flex"])} key={port}>
-                    <Field size={"sm"} className={cn(["flex-1"])}>
-                      <FieldIcon className={cn(["w-fit", "px-4"])}>
-                        <EthernetPortIcon />
-                        <span>{port}</span>
-                      </FieldIcon>
-                      <TextField
-                        readOnly
-                        value={`${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/envs/${env?.id}/wsrx?port=${port}`}
-                      />
-                      <FieldButton
-                        icon={<ClipboardIcon />}
-                        onClick={() => {
-                          copyToClipboard(
-                            `${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/envs/${env?.id}/wsrx?port=${port}`
-                          );
-                          toast.success("已复制到剪贴板");
-                        }}
-                      />
-                    </Field>
-                  </div>
-                ))}
+                {env?.ports?.map((port) => {
+                  const url = `${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/envs/${env?.id}/wsrx?port=${port.value}`;
+
+                  return (
+                    <div className={cn(["flex"])} key={port.value}>
+                      <Field size={"sm"} className={cn(["flex-1"])}>
+                        <FieldIcon className={cn(["w-fit", "px-4"])}>
+                          <EthernetPortIcon />
+                          <span
+                            className={cn(["text-xs"])}
+                          >{`${port.protocol} | ${port.value}`}</span>
+                        </FieldIcon>
+                        <TextField readOnly value={url} />
+                        <FieldButton
+                          icon={<ClipboardIcon />}
+                          onClick={() => {
+                            copyToClipboard(url);
+                            toast.success("已复制到剪贴板");
+                          }}
+                        />
+                      </Field>
+                    </div>
+                  );
+                })}
               </>
             )}
           </div>

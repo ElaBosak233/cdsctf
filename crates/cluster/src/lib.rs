@@ -2,9 +2,14 @@ pub mod traits;
 mod util;
 pub mod worker;
 
-use std::{collections::BTreeMap, path::Path, process};
+use std::{
+    collections::{BTreeMap, HashMap},
+    path::Path,
+    process,
+};
 
 use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
+use cds_db::entity::challenge::Port;
 use futures_util::{SinkExt, StreamExt, stream::SplitStream};
 pub use k8s_openapi;
 use k8s_openapi::{
@@ -36,7 +41,7 @@ use tokio_util::{
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::traits::ClusterError;
+use crate::traits::{ClusterError, Nat};
 
 static K8S_CLIENT: OnceCell<K8sClient> = OnceCell::new();
 
@@ -251,17 +256,11 @@ pub async fn create_challenge_env(
 
     let env = challenge.clone().env.unwrap();
 
-    let all_ports: Vec<i32> = env
+    let all_ports = env
         .containers
         .iter()
-        .flat_map(|container| container.ports.iter().copied())
-        .collect();
-
-    let unique_ports: Vec<i32> = all_ports
-        .into_iter()
-        .collect::<std::collections::HashSet<_>>()
-        .into_iter()
-        .collect();
+        .flat_map(|container| container.ports.clone())
+        .collect::<Vec<Port>>();
 
     let metadata = ObjectMeta {
         name: Some(name.clone()),
@@ -299,7 +298,7 @@ pub async fn create_challenge_env(
             ("cds/game".to_owned(), json!(game).to_string()),
             ("cds/renew".to_owned(), format!("{}", 0)),
             ("cds/duration".to_owned(), format!("{}", env.duration)),
-            ("cds/ports".to_owned(), json!(unique_ports).to_string()),
+            ("cds/ports".to_owned(), json!(all_ports).to_string()),
         ])),
         ..Default::default()
     };
@@ -331,9 +330,9 @@ pub async fn create_challenge_env(
                     let merged_env_vars = container
                         .envs
                         .into_iter()
-                        .map(|(k, v)| EnvVar {
-                            name: k,
-                            value: Some(v),
+                        .map(|env_var| EnvVar {
+                            name: env_var.key,
+                            value: Some(env_var.value),
                             ..Default::default()
                         })
                         .chain(checker_env_vars.clone())
@@ -348,8 +347,8 @@ pub async fn create_challenge_env(
                                 .ports
                                 .into_iter()
                                 .map(|port| ContainerPort {
-                                    container_port: port,
-                                    protocol: Some("TCP".to_owned()),
+                                    container_port: port.port,
+                                    protocol: Some(port.protocol),
                                     ..Default::default()
                                 })
                                 .collect::<Vec<ContainerPort>>(),
@@ -400,13 +399,13 @@ pub async fn create_challenge_env(
         spec: Some(ServiceSpec {
             selector: Some(BTreeMap::from([("cds/env_id".to_owned(), id.to_string())])),
             ports: Some(
-                unique_ports
+                all_ports
                     .into_iter()
                     .map(|port| ServicePort {
-                        name: Some(port.to_string()),
-                        port,
+                        name: Some(port.port.to_string()),
+                        port: port.port,
                         target_port: None,
-                        protocol: Some("TCP".to_owned()),
+                        protocol: Some(port.protocol),
                         ..Default::default()
                     })
                     .collect::<Vec<ServicePort>>(),
@@ -425,13 +424,17 @@ pub async fn create_challenge_env(
         }
     };
 
-    let mut nats: BTreeMap<i32, i32> = BTreeMap::new();
+    let mut nats: Vec<Nat> = vec![];
 
     if let Some(spec) = service.spec {
         if let Some(ports) = spec.ports {
             for port in ports {
-                if let Some(node_port) = port.node_port {
-                    nats.insert(port.port, node_port);
+                if let (Some(node_port), Some(protocol)) = (port.node_port, port.protocol) {
+                    nats.push(Nat {
+                        port: port.port,
+                        protocol: protocol.to_string(),
+                        node_port,
+                    });
                 }
             }
         }
@@ -443,13 +446,7 @@ pub async fn create_challenge_env(
     );
 
     let annotations = pod.annotations_mut();
-    annotations.insert(
-        "cds/nats".to_owned(),
-        nats.iter()
-            .map(|(k, v)| format!("{}={}", k, v))
-            .collect::<Vec<String>>()
-            .join(","),
-    );
+    annotations.insert("cds/nats".to_owned(), json!(nats).to_string());
 
     pod_api
         .patch(

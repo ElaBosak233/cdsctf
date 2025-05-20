@@ -26,7 +26,7 @@ thiserror = { workspace = true }
 wsrx = { workspace = true }
 anyhow = { workspace = true }
 uuid = { workspace = true }
-regex = { workspace = true }
 futures-util = { workspace = true }
 serde_json = { workspace = true }
 nanoid = { workspace = true }
+serde = { workspace = true }
