@@ -1,6 +1,6 @@
 import { User } from "@/models/user";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface UpdateUserProfileRequest {
   name?: string;
@@ -9,7 +9,7 @@ export interface UpdateUserProfileRequest {
 }
 
 export async function updateUserProfile(request: UpdateUserProfileRequest) {
-  return alova.Put<WebResponse<User>>("/users/profile", request);
+  return api.put("/users/profile", { json: request }).json<WebResponse<User>>();
 }
 
 export interface UpdateUserProfilePasswordRequest {
@@ -20,7 +20,9 @@ export interface UpdateUserProfilePasswordRequest {
 export async function updateUserProfilePassword(
   request: UpdateUserProfilePasswordRequest
 ) {
-  return alova.Put<WebResponse<never>>("/users/profile/password", request);
+  return api
+    .put("users/profile/password", { json: request })
+    .json<WebResponse<never>>();
 }
 
 export interface DeleteUserProfileRequest {
@@ -32,5 +34,7 @@ export interface DeleteUserProfileRequest {
 }
 
 export async function deleteUserProfile(request: DeleteUserProfileRequest) {
-  return alova.Delete<WebResponse<never>>("/users/profile", request);
+  return api
+    .delete("users/profile", { json: request })
+    .json<WebResponse<never>>();
 }

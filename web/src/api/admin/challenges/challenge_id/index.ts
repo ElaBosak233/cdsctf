@@ -1,13 +1,15 @@
 import { Challenge } from "@/models/challenge";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface GetChallengeRequest {
   id?: string;
 }
 
 export async function getChallenge(request: GetChallengeRequest) {
-  return alova.Get<WebResponse<Challenge>>(`/admin/challenges/${request.id}`);
+  return api
+    .get(`admin/challenges/${request.id}`)
+    .json<WebResponse<Challenge>>();
 }
 
 export interface UpdateChallengeRequest {
@@ -22,13 +24,9 @@ export interface UpdateChallengeRequest {
 }
 
 export async function updateChallenge(request: UpdateChallengeRequest) {
-  return alova.Put<WebResponse<Challenge>>(
-    `/admin/challenges/${request?.id}`,
-    request,
-    {
-      cacheFor: 0,
-    }
-  );
+  return api
+    .put(`admin/challenges/${request?.id}`, { json: request })
+    .json<WebResponse<Challenge>>();
 }
 
 export interface DeleteChallengeRequest {
@@ -36,5 +34,7 @@ export interface DeleteChallengeRequest {
 }
 
 export async function deleteChallenge(request: DeleteChallengeRequest) {
-  return alova.Delete<WebResponse<never>>(`/admin/challenges/${request.id}`);
+  return api
+    .delete(`admin/challenges/${request.id}`)
+    .json<WebResponse<never>>();
 }

@@ -1,10 +1,6 @@
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
-interface DeleteUserAvatarRequest {
-  user_id: number;
-}
-
-export async function deleteUserAvatar(request: DeleteUserAvatarRequest) {
-  return alova.Delete<WebResponse<never>>(`/users/${request.user_id}/avatar`);
+export async function deleteUserAvatar() {
+  return api.delete(`users/profile/avatar`).json<WebResponse<never>>();
 }

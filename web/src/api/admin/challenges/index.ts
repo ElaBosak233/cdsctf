@@ -1,6 +1,6 @@
 import { Challenge } from "@/models/challenge";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api, toSearchParams } from "@/utils/ky";
 
 export interface GetChallengeRequest {
   id?: string;
@@ -15,10 +15,11 @@ export interface GetChallengeRequest {
 }
 
 export async function getChallenges(request: GetChallengeRequest) {
-  return alova.Get<WebResponse<Array<Challenge>>>("/admin/challenges", {
-    params: request,
-    cacheFor: 0,
-  });
+  return api
+    .get("admin/challenges", {
+      searchParams: toSearchParams(request),
+    })
+    .json<WebResponse<Array<Challenge>>>();
 }
 
 export interface CreateChallengeRequest {
@@ -31,7 +32,7 @@ export interface CreateChallengeRequest {
 }
 
 export async function createChallenge(request: CreateChallengeRequest) {
-  return alova.Post<WebResponse<Challenge>>("/admin/challenges", request, {
-    cacheFor: 0,
-  });
+  return api
+    .post("admin/challenges", { json: request })
+    .json<WebResponse<Challenge>>();
 }

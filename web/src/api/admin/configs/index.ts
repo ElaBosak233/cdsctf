@@ -1,11 +1,13 @@
 import { Config } from "@/models/config";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export async function getConfigs() {
-  return alova.Get<WebResponse<Config>>("/admin/configs");
+  return api.get("admin/configs").json<WebResponse<Config>>();
 }
 
 export async function updateConfig(request: Config) {
-  return alova.Put<WebResponse<Config>>("/admin/configs", request);
+  return api
+    .put("admin/configs", { json: request })
+    .json<WebResponse<Config>>();
 }

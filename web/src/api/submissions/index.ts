@@ -1,6 +1,6 @@
 import { Submission } from "@/models/submission";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api, toSearchParams } from "@/utils/ky";
 
 export interface CreateSubmissionRequest {
   content?: string;
@@ -10,7 +10,11 @@ export interface CreateSubmissionRequest {
 }
 
 export async function createSubmission(request: CreateSubmissionRequest) {
-  return alova.Post<WebResponse<Submission>>("/submissions", request);
+  return api
+    .post("submissions", {
+      json: request,
+    })
+    .json<WebResponse<Submission>>();
 }
 
 export interface GetSubmissionRequest {
@@ -30,8 +34,9 @@ export interface GetSubmissionRequest {
 }
 
 export async function getSubmission(request: GetSubmissionRequest) {
-  return alova.Get<WebResponse<Array<Submission>>>("/submissions", {
-    params: request,
-    cacheFor: 0,
-  });
+  return api
+    .get("submissions", {
+      searchParams: toSearchParams(request),
+    })
+    .json<WebResponse<Array<Submission>>>();
 }

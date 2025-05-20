@@ -1,7 +1,7 @@
 import { Metadata } from "@/models/media";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export async function getUserAvatarMetadata(id: number) {
-  return alova.Get<WebResponse<Metadata>>(`/users/${id}/avatar/metadata`);
+  return api.get(`users/${id}/avatar/metadata`).json<WebResponse<Metadata>>();
 }

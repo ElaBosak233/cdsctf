@@ -1,6 +1,6 @@
 import { Group, User } from "@/models/user";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api, toSearchParams } from "@/utils/ky";
 
 export interface GetUserRequest {
   id?: number;
@@ -14,9 +14,11 @@ export interface GetUserRequest {
 }
 
 export async function getUsers(request: GetUserRequest) {
-  return alova.Get<WebResponse<Array<User>>>("/admin/users", {
-    params: request,
-  });
+  return api
+    .get("admin/users", {
+      searchParams: toSearchParams(request),
+    })
+    .json<WebResponse<Array<User>>>();
 }
 
 export interface CreateUserRequest {
@@ -28,5 +30,9 @@ export interface CreateUserRequest {
 }
 
 export async function createUser(request: CreateUserRequest) {
-  return alova.Post<WebResponse<User>>("/admin/users", request);
+  return api
+    .post("admin/users", {
+      json: request,
+    })
+    .json<WebResponse<User>>();
 }

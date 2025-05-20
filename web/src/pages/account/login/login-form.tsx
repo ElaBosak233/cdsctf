@@ -112,7 +112,12 @@ function LoginForm() {
                     <FieldIcon>
                       <UserRoundIcon />
                     </FieldIcon>
-                    <TextField placeholder={"Account"} {...field} />
+                    <TextField
+                      {...field}
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      placeholder={"Account"}
+                    />
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -131,9 +136,11 @@ function LoginForm() {
                       <LockIcon />
                     </FieldIcon>
                     <TextField
+                      {...field}
+                      value={field.value || ""}
+                      onChange={field.onChange}
                       placeholder={"Password"}
                       type={"password"}
-                      {...field}
                     />
                   </Field>
                 </FormControl>

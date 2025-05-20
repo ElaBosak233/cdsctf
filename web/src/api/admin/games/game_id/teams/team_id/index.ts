@@ -1,6 +1,6 @@
 import { State, Team } from "@/models/team";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface UpdateTeamRequest {
   team_id: number;
@@ -13,10 +13,11 @@ export interface UpdateTeamRequest {
 }
 
 export async function updateTeam(request: UpdateTeamRequest) {
-  return alova.Put<WebResponse<Team>>(
-    `/admin/games/${request.game_id}/teams/${request.team_id}`,
-    request
-  );
+  return api
+    .put(`admin/games/${request.game_id}/teams/${request.team_id}`, {
+      json: request,
+    })
+    .json<WebResponse<Team>>();
 }
 
 export interface DeleteTeamRequest {
@@ -25,8 +26,9 @@ export interface DeleteTeamRequest {
 }
 
 export async function deleteTeam(request: DeleteTeamRequest) {
-  return alova.Delete<WebResponse<never>>(
-    `/admin/games/${request.game_id}/teams/${request.team_id}`,
-    request
-  );
+  return api
+    .delete(`admin/games/${request.game_id}/teams/${request.team_id}`, {
+      json: request,
+    })
+    .json<WebResponse<never>>();
 }

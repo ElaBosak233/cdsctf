@@ -1,6 +1,6 @@
 import { GameMini } from "@/models/game";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api, toSearchParams } from "@/utils/ky";
 
 export interface GetGameRequest {
   id?: number;
@@ -11,7 +11,9 @@ export interface GetGameRequest {
 }
 
 export async function getGames(request: GetGameRequest) {
-  return alova.Get<WebResponse<Array<GameMini>>>("/games", {
-    params: request,
-  });
+  return api
+    .get("games", {
+      searchParams: toSearchParams(request),
+    })
+    .json<WebResponse<Array<GameMini>>>();
 }

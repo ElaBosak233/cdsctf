@@ -1,6 +1,6 @@
 import { GameChallenge } from "@/models/game_challenge";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api, toSearchParams } from "@/utils/ky";
 
 export interface GetGameChallengeRequest {
   game_id?: number;
@@ -12,12 +12,11 @@ export interface GetGameChallengeRequest {
 }
 
 export async function getGameChallenges(request: GetGameChallengeRequest) {
-  return alova.Get<WebResponse<Array<GameChallenge>>>(
-    `/admin/games/${request.game_id}/challenges`,
-    {
-      params: request,
-    }
-  );
+  return api
+    .get(`admin/games/${request.game_id}/challenges`, {
+      searchParams: toSearchParams(request),
+    })
+    .json<WebResponse<Array<GameChallenge>>>();
 }
 
 export interface CreateGameChallengeRequest {
@@ -31,8 +30,9 @@ export interface CreateGameChallengeRequest {
 }
 
 export async function createGameChallenge(request: CreateGameChallengeRequest) {
-  return alova.Post<WebResponse<GameChallenge>>(
-    `/admin/games/${request.game_id}/challenges`,
-    request
-  );
+  return api
+    .post(`admin/games/${request.game_id}/challenges`, {
+      json: request,
+    })
+    .json<WebResponse<GameChallenge>>();
 }

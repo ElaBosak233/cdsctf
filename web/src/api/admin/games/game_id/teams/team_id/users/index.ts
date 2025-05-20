@@ -1,5 +1,5 @@
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface CreateTeamUserRequest {
   team_id?: number;
@@ -8,10 +8,11 @@ export interface CreateTeamUserRequest {
 }
 
 export async function createTeamUser(request: CreateTeamUserRequest) {
-  return alova.Post<WebResponse<never>>(
-    `/admin/games/${request.game_id}/teams/${request.team_id}/users`,
-    request
-  );
+  return api
+    .post(`admin/games/${request.game_id}/teams/${request.team_id}/users`, {
+      json: request,
+    })
+    .json<WebResponse<never>>();
 }
 
 export interface DeleteTeamUserRequest {
@@ -21,8 +22,10 @@ export interface DeleteTeamUserRequest {
 }
 
 export async function deleteTeamUser(request: DeleteTeamUserRequest) {
-  return alova.Delete<WebResponse<never>>(
-    `/admin/games/${request.game_id}/teams/${request.team_id}/users/${request.user_id}`,
-    request
-  );
+  return api
+    .delete(
+      `admin/games/${request.game_id}/teams/${request.team_id}/users/${request.user_id}`,
+      { json: request }
+    )
+    .json<WebResponse<never>>();
 }

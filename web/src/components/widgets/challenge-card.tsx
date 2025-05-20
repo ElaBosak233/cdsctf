@@ -116,30 +116,25 @@ function ChallengeCard(props: ChallengeCardProps) {
           {!!status?.solved_times && (
             <TooltipContent
               side={"bottom"}
-              className={cn([
-                "flex",
-                "flex-col",
-                "gap-1",
-                "py-3",
-                "px-4",
-                "rounded-xl",
-              ])}
+              className={cn(["flex", "flex-col", "gap-2", "p-4", "rounded-lg"])}
             >
               {status?.bloods?.map((blood, index) => (
                 <div
                   key={index}
                   className={cn(["flex", "items-center", "gap-3"])}
                 >
-                  <span className={cn(["font-semibold"])}>
-                    {getOrdinal(index + 1)}
-                  </span>
                   <div className={cn(["flex", "flex-col"])}>
-                    <span className={cn(["text-sm"])}>
-                      {pathname.startsWith("/games")
-                        ? blood?.team_name
-                        : blood?.user_name}
-                    </span>
-                    <span className={cn(["text-secondary"])}>
+                    <div className={cn(["flex", "gap-2"])}>
+                      <span className={cn(["font-semibold", "font-mono"])}>
+                        {getOrdinal(index + 1)}
+                      </span>
+                      <span className={cn(["text-xs"])}>
+                        {pathname.startsWith("/games")
+                          ? blood?.team_name
+                          : blood?.user_name}
+                      </span>
+                    </div>
+                    <span className={cn(["text-secondary", "text-xs"])}>
                       {new Date(
                         Number(blood?.created_at) * 1000
                       ).toLocaleString()}

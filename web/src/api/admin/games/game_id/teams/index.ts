@@ -1,6 +1,6 @@
 import { State, Team } from "@/models/team";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api, toSearchParams } from "@/utils/ky";
 
 export interface GetTeamRequest {
   id?: number;
@@ -14,12 +14,11 @@ export interface GetTeamRequest {
 }
 
 export async function getTeams(request: GetTeamRequest) {
-  return alova.Get<WebResponse<Array<Team>>>(
-    `/admin/games/${request.game_id}/teams`,
-    {
-      params: request,
-    }
-  );
+  return api
+    .get(`admin/games/${request.game_id}/teams`, {
+      searchParams: toSearchParams(request),
+    })
+    .json<WebResponse<Array<Team>>>();
 }
 
 export interface CreateTeamRequest {
@@ -31,8 +30,7 @@ export interface CreateTeamRequest {
 }
 
 export async function createTeam(request: CreateTeamRequest) {
-  return alova.Post<WebResponse<Team>>(
-    `/admin/games/${request.game_id}/teams`,
-    request
-  );
+  return api
+    .post(`admin/games/${request.game_id}/teams`, { json: request })
+    .json<WebResponse<Team>>();
 }

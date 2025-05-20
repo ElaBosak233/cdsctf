@@ -1,11 +1,11 @@
 use std::str::FromStr;
 
-use axum::{Router, http::StatusCode};
+use axum::{http::StatusCode, Router};
 use cds_db::{
     entity::{submission::Status, team::State},
     get_db,
     sea_orm::{
-        ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, Condition, EntityTrait, JoinType,
+        ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, EntityTrait, JoinType,
         Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait, Set,
     },
 };
@@ -121,7 +121,7 @@ pub async fn create_submission(
 
     body.user_id = Some(operator.id);
 
-    let token = format!("submission_{}", operator.id);
+    let token = format!("submission:user:{}", operator.id);
     if let Some(limit) = cds_cache::get::<i32>(&token).await? {
         if limit > 10 {
             return Err(WebError::TooManyRequests(json!("submission")));
@@ -153,11 +153,8 @@ pub async fn create_submission(
             .ok_or(WebError::BadRequest(json!("game_not_found")))?;
 
         let _ = cds_db::entity::game_challenge::Entity::find()
-            .filter(
-                Condition::all()
-                    .add(cds_db::entity::game_challenge::Column::GameId.eq(game.id))
-                    .add(cds_db::entity::game_challenge::Column::ChallengeId.eq(body.challenge_id)),
-            )
+            .filter(cds_db::entity::game_challenge::Column::GameId.eq(game.id))
+            .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(body.challenge_id))
             .one(get_db())
             .await?
             .ok_or(WebError::BadRequest(json!("game_challenge_not_found")));

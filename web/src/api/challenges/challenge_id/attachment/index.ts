@@ -1,9 +1,9 @@
 import { Metadata } from "@/models/media";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export async function getChallengeAttachmentMetadata(id: string) {
-  return alova.Get<WebResponse<Metadata>>(
-    `/challenges/${id}/attachment/metadata`
-  );
+  return api
+    .get(`challenges/${id}/attachment/metadata`)
+    .json<WebResponse<Metadata>>();
 }
