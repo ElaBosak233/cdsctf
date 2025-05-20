@@ -58,6 +58,7 @@ function Image(props: ImageProps) {
             "backdrop-blur-sm",
             "bg-opacity-50",
             "text-foreground",
+            "bg-transparent",
           ])}
         >
           {isLoading ? (

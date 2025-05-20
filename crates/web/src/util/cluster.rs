@@ -1,4 +1,5 @@
-use cds_cluster::k8s_openapi::api::core::v1::Pod;
+use cds_cluster::{k8s_openapi::api::core::v1::Pod, traits::Nat};
+use cds_db::entity::challenge::Port;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -10,9 +11,9 @@ pub struct Env {
     pub game_id: i64,
     pub challenge_id: Uuid,
 
-    pub ports: Vec<i32>,
+    pub ports: Vec<Port>,
     pub public_entry: Option<String>,
-    pub nats: Option<String>,
+    pub nats: Vec<Nat>,
 
     pub status: String,
     pub reason: String,
@@ -63,14 +64,20 @@ impl From<Pod> for Env {
 
         let annotations = pod.metadata.annotations.unwrap_or_default();
 
-        let ports = serde_json::from_str::<Vec<i32>>(
+        let ports = serde_json::from_str::<Vec<Port>>(
             &annotations
                 .get("cds/ports")
                 .map(|s| s.to_owned())
                 .unwrap_or_default(),
         )
         .unwrap_or_default();
-        let nats = annotations.get("cds/nats").map(|s| s.to_owned()).to_owned();
+        let nats = serde_json::from_str::<Vec<Nat>>(
+            &annotations
+                .get("cds/nats")
+                .map(|s| s.to_owned())
+                .unwrap_or_default(),
+        )
+        .unwrap_or_default();
         let duration = annotations
             .get("cds/duration")
             .map(|s| s.to_owned())

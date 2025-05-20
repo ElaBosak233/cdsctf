@@ -23,8 +23,18 @@ export interface Container {
   image: string;
   cpu_limit: number;
   memory_limit: number;
-  envs: Record<string, string>;
-  ports: Array<number>;
+  ports: Array<Port>;
+  envs: Array<EnvVar>;
+}
+
+export interface Port {
+  value: number;
+  protocol: "TCP" | "UDP";
+}
+
+export interface EnvVar {
+  key: string;
+  value: string;
 }
 
 export interface ChallengeMini {

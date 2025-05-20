@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -20,4 +21,11 @@ pub enum ClusterError {
     OtherError(#[from] anyhow::Error),
     #[error("checker error: {0}")]
     CheckerError(#[from] cds_checker::traits::CheckerError),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Nat {
+    pub port: i32,
+    pub node_port: i32,
+    pub protocol: String,
 }

@@ -4,6 +4,7 @@ import {
   ClockIcon,
   ContainerIcon,
   CpuIcon,
+  HandshakeIcon,
   KeyIcon,
   MemoryStickIcon,
   MinusIcon,
@@ -31,6 +32,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
+import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
@@ -60,8 +62,18 @@ export default function Index() {
         memory_limit: z.number({
           message: "请输入内存限制参数",
         }),
-        envs: z.record(z.string()),
-        ports: z.array(z.number()),
+        envs: z.array(
+          z.object({
+            key: z.string(),
+            value: z.string(),
+          })
+        ),
+        ports: z.array(
+          z.object({
+            value: z.number(),
+            protocol: z.enum(["TCP", "UDP"]),
+          })
+        ),
       })
     ),
   });
@@ -87,7 +99,7 @@ export default function Index() {
         image: "",
         cpu_limit: 1,
         memory_limit: 1024,
-        envs: {},
+        envs: [],
         ports: [],
       },
     ]);
@@ -104,7 +116,10 @@ export default function Index() {
   const handleAddPort = (containerIndex: number) => {
     const containers = form.getValues("containers") || [];
     const ports = containers[containerIndex]?.ports || [];
-    containers[containerIndex].ports = [...ports, 9999];
+    containers[containerIndex].ports = [
+      ...ports,
+      { value: 9999, protocol: "TCP" },
+    ];
     form.setValue("containers", containers);
   };
 
@@ -117,17 +132,15 @@ export default function Index() {
 
   const handleAddEnv = (containerIndex: number) => {
     const containers = form.getValues("containers") || [];
-    const envs = containers[containerIndex]?.envs || {};
-    containers[containerIndex].envs = { ...envs, "": "" };
+    const envs = containers[containerIndex]?.envs || [];
+    containers[containerIndex].envs = [...envs, { key: "", value: "" }];
     form.setValue("containers", containers);
   };
 
-  const handleRemoveEnv = (containerIndex: number, key: string) => {
+  const handleRemoveEnv = (containerIndex: number, envIndex: number) => {
     const containers = form.getValues("containers") || [];
-    const envs = containers[containerIndex]?.envs || {};
-    const newEnvs = { ...envs };
-    delete newEnvs[key];
-    containers[containerIndex].envs = newEnvs;
+    const envs = containers[containerIndex]?.envs || [];
+    containers[containerIndex].envs = envs.filter((_, i) => i !== envIndex);
     form.setValue("containers", containers);
   };
 
@@ -305,45 +318,66 @@ export default function Index() {
               />
             </div>
             <Label>暴露端口</Label>
-            <div className={cn(["grid", "grid-cols-4", "gap-5"])}>
+            <div className={cn(["grid", "grid-cols-3", "gap-5"])}>
               {container.ports?.map((_port, portIndex) => (
-                <FormField
+                <div
                   key={portIndex}
-                  control={form.control}
-                  name={`containers.${containerIndex}.ports.${portIndex}`}
-                  render={({ field }) => (
-                    <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-                      <FormControl>
-                        <div className={cn(["flex", "items-center", "gap-3"])}>
-                          <Field size={"sm"} className={cn(["flex-1"])}>
+                  className={cn(["flex", "items-center", "gap-3"])}
+                >
+                  <FormField
+                    control={form.control}
+                    name={`containers.${containerIndex}.ports.${portIndex}.value`}
+                    render={({ field }) => (
+                      <FormItem className={cn(["flex-1"])}>
+                        <FormControl>
+                          <Field size={"sm"}>
                             <FieldIcon>
                               <MemoryStickIcon />
                             </FieldIcon>
-                            <TextField
-                              {...field}
-                              type={"number"}
-                              placeholder={"2"}
-                              value={field.value || ""}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
+                            <NumberField
+                              placeholder={"9999"}
+                              value={field.value}
+                              onValueChange={(value) => field.onChange(value)}
                             />
                           </Field>
-                          <Button
-                            type={"button"}
-                            icon={<MinusIcon />}
-                            size={"sm"}
-                            square
-                            onClick={() =>
-                              handleRemovePort(containerIndex, portIndex)
-                            }
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`containers.${containerIndex}.ports.${portIndex}.protocol`}
+                    render={({ field }) => (
+                      <FormItem className={cn(["flex-1"])}>
+                        <FormControl>
+                          <Field size={"sm"}>
+                            <FieldIcon>
+                              <HandshakeIcon />
+                            </FieldIcon>
+                            <Select
+                              {...field}
+                              options={[
+                                { value: "TCP", content: "TCP" },
+                                { value: "UDP", content: "UDP" },
+                              ]}
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            />
+                          </Field>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type={"button"}
+                    icon={<MinusIcon />}
+                    size={"sm"}
+                    square
+                    onClick={() => handleRemovePort(containerIndex, portIndex)}
+                  />
+                </div>
               ))}
               <Button
                 type={"button"}
@@ -356,64 +390,61 @@ export default function Index() {
             </div>
             <Label>环境变量</Label>
             <div className={cn(["grid", "grid-cols-2", "gap-5"])}>
-              {container.envs &&
-                Object.keys(container.envs).map((key, envIndex) => (
-                  <div
-                    key={envIndex}
-                    className={cn(["flex", "items-center", "gap-3"])}
-                  >
-                    <Field size={"sm"} className={cn(["flex-1/2"])}>
-                      <FieldIcon>
-                        <KeyIcon />
-                      </FieldIcon>
-                      <TextField
-                        placeholder="键"
-                        value={key}
-                        onChange={(e) => {
-                          const newKey = e.target.value;
-                          const envs =
-                            form.getValues(
-                              `containers.${containerIndex}.envs`
-                            ) || {};
-                          const value = envs[key];
-                          const newEnvs = {
-                            ...envs,
-                          };
-                          delete newEnvs[key];
-                          newEnvs[newKey] = value;
-                          form.setValue(
-                            `containers.${containerIndex}.envs`,
-                            newEnvs
-                          );
-                        }}
-                      />
-                    </Field>
-                    <Field size={"sm"} className={cn(["flex-1/2"])}>
-                      <TextField
-                        placeholder="值"
-                        value={container.envs[key]}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          const envs =
-                            form.getValues(
-                              `containers.${containerIndex}.envs`
-                            ) || {};
-                          form.setValue(`containers.${containerIndex}.envs`, {
-                            ...envs,
-                            [key]: newValue,
-                          });
-                        }}
-                      />
-                    </Field>
-                    <Button
-                      type={"button"}
-                      icon={<MinusIcon />}
-                      size={"sm"}
-                      square
-                      onClick={() => handleRemoveEnv(containerIndex, key)}
-                    />
-                  </div>
-                ))}
+              {container.envs?.map((_env, envIndex) => (
+                <div
+                  key={envIndex}
+                  className={cn(["flex", "items-center", "gap-3"])}
+                >
+                  <FormField
+                    control={form.control}
+                    name={`containers.${containerIndex}.envs.${envIndex}.key`}
+                    render={({ field }) => (
+                      <FormItem className={cn(["flex-1"])}>
+                        <FormControl>
+                          <Field size={"sm"}>
+                            <FieldIcon>
+                              <KeyIcon />
+                            </FieldIcon>
+                            <TextField
+                              {...field}
+                              placeholder={"键"}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                            />
+                          </Field>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`containers.${containerIndex}.envs.${envIndex}.value`}
+                    render={({ field }) => (
+                      <FormItem className={cn(["flex-1"])}>
+                        <FormControl>
+                          <Field size={"sm"}>
+                            <TextField
+                              {...field}
+                              placeholder={"值"}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                            />
+                          </Field>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type={"button"}
+                    icon={<MinusIcon />}
+                    size={"sm"}
+                    square
+                    onClick={() => handleRemoveEnv(containerIndex, envIndex)}
+                  />
+                </div>
+              ))}
               <Button
                 type={"button"}
                 size={"sm"}
