@@ -6,6 +6,7 @@ import { FieldContext } from "./field";
 import { TextField } from "./text-field";
 
 import { cn } from "@/utils";
+import { Separator } from "./separator";
 
 type NumberInputProps = Omit<
   React.ComponentProps<"input">,
@@ -155,21 +156,21 @@ function NumberField(props: NumberInputProps) {
           "-translate-y-1/2",
           "flex",
           "flex-col",
+          "mx-3",
         ])}
       >
         <button
           aria-label="Increase value"
           className={cn([
-            "px-2",
             "h-4",
+            "px-1",
             "rounded-l-none",
             "rounded-br-none",
-            "border-input",
-            "border-l-0",
-            "border-b-[0.5px]",
             "focus-visible:relative",
             "cursor-pointer",
             "text-secondary-foreground",
+            "hover:opacity-50",
+            "transition-all",
           ])}
           onClick={handleIncrement}
           disabled={value === max}
@@ -177,19 +178,19 @@ function NumberField(props: NumberInputProps) {
         >
           <ChevronUp size={size === "md" ? 15 : 12} />
         </button>
+        <Separator className={cn(["bg-secondary-foreground/30"])} />
         <button
           aria-label="Decrease value"
           className={cn([
-            "px-2",
             "h-4",
+            "px-1",
             "rounded-l-none",
             "rounded-tr-none",
-            "border-input",
-            "border-l-0",
-            "border-t-[0.5px]",
             "focus-visible:relative",
             "cursor-pointer",
             "text-secondary-foreground",
+            "hover:opacity-50",
+            "transition-all",
           ])}
           onClick={handleDecrement}
           disabled={value === min}

@@ -167,7 +167,7 @@ function EnvSection() {
       {env?.id ? (
         <>
           <div className={cn(["flex-1", "flex", "flex-col", "gap-3"])}>
-            {env?.nats ? (
+            {env?.nats?.length ? (
               <>
                 {env?.nats.map((nat) => {
                   const address = `${env?.public_entry}:${nat.node_port}`;
@@ -197,16 +197,16 @@ function EnvSection() {
             ) : (
               <>
                 {env?.ports?.map((port) => {
-                  const url = `${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/envs/${env?.id}/wsrx?port=${port.value}`;
+                  const url = `${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/envs/${env?.id}/wsrx?port=${port.port}`;
 
                   return (
-                    <div className={cn(["flex"])} key={port.value}>
+                    <div className={cn(["flex"])} key={port.port}>
                       <Field size={"sm"} className={cn(["flex-1"])}>
                         <FieldIcon className={cn(["w-fit", "px-4"])}>
                           <EthernetPortIcon />
                           <span
                             className={cn(["text-xs"])}
-                          >{`${port.protocol} | ${port.value}`}</span>
+                          >{`${port.protocol} | ${port.port}`}</span>
                         </FieldIcon>
                         <TextField readOnly value={url} />
                         <FieldButton

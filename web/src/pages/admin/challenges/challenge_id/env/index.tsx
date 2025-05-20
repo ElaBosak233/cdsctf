@@ -11,6 +11,7 @@ import {
   NetworkIcon,
   PlusIcon,
   SaveIcon,
+  TextIcon,
   TrashIcon,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
@@ -423,6 +424,9 @@ export default function Index() {
                       <FormItem className={cn(["flex-1"])}>
                         <FormControl>
                           <Field size={"sm"}>
+                            <FieldIcon>
+                              <TextIcon />
+                            </FieldIcon>
                             <TextField
                               {...field}
                               placeholder={"值"}
