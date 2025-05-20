@@ -7,8 +7,11 @@ import { TextField } from "./text-field";
 
 import { cn } from "@/utils";
 
-type NumberInputProps = Omit<React.ComponentProps<"input">, "type"> &
-  Omit<NumericFormatProps, "value" | "onValueChange"> & {
+type NumberInputProps = Omit<
+  React.ComponentProps<"input">,
+  "type" | "onChange"
+> &
+  Omit<NumericFormatProps, "value" | "onValueChange" | "onChange"> & {
     stepper?: number;
     thousandSeparator?: string;
     placeholder?: string;

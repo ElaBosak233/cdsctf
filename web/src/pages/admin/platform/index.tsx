@@ -456,7 +456,6 @@ export default function Index() {
                       <ClockIcon />
                     </FieldIcon>
                     <NumberField
-                      {...field}
                       placeholder="请输入难度"
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
