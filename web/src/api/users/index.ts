@@ -1,6 +1,6 @@
 import { User } from "@/models/user";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface UserLoginRequest {
   account: string;
@@ -12,11 +12,11 @@ export interface UserLoginRequest {
 }
 
 export async function login(request: UserLoginRequest) {
-  return alova.Post<WebResponse<User>>("/users/login", request);
+  return api.post("users/login", { json: request }).json<WebResponse<User>>();
 }
 
 export async function logout() {
-  return alova.Post<WebResponse<never>>("/users/logout");
+  return api.post("users/logout").json<WebResponse<never>>();
 }
 
 export interface UserRegisterRequest {
@@ -31,5 +31,7 @@ export interface UserRegisterRequest {
 }
 
 export async function register(request: UserRegisterRequest) {
-  return alova.Post<WebResponse<User>>("/users/register", request);
+  return api
+    .post("users/register", { json: request })
+    .json<WebResponse<User>>();
 }

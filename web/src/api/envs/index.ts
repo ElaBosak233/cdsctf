@@ -1,6 +1,6 @@
 import { Env } from "@/models/env";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api, toSearchParams } from "@/utils/ky";
 
 export interface GetEnvRequest {
   id?: string;
@@ -11,9 +11,11 @@ export interface GetEnvRequest {
 }
 
 export async function getEnvs(request: GetEnvRequest) {
-  return alova.Get<WebResponse<Array<Env>>>("/envs", {
-    params: request,
-  });
+  return api
+    .get("envs", {
+      searchParams: toSearchParams(request),
+    })
+    .json<WebResponse<Array<Env>>>();
 }
 
 export interface CreateEnvRequest {
@@ -23,7 +25,5 @@ export interface CreateEnvRequest {
 }
 
 export async function createEnv(request: CreateEnvRequest) {
-  return alova.Post<WebResponse<Env>>("/envs", request, {
-    timeout: 0,
-  });
+  return api.post("envs", { json: request }).json<WebResponse<Env>>();
 }

@@ -1,6 +1,6 @@
 import { GameNotice } from "@/models/game_notice";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface CreateGameNoticeRequest {
   game_id?: number;
@@ -9,10 +9,9 @@ export interface CreateGameNoticeRequest {
 }
 
 export async function createGameNotice(request: CreateGameNoticeRequest) {
-  return alova.Post<WebResponse<GameNotice>>(
-    `/admin/games/${request.game_id}/notices`,
-    request
-  );
+  return api
+    .post(`admin/games/${request.game_id}/notices`, { json: request })
+    .json<WebResponse<GameNotice>>();
 }
 
 export interface DeleteGameNoticeRequest {
@@ -21,8 +20,9 @@ export interface DeleteGameNoticeRequest {
 }
 
 export async function deleteGameNotice(request: DeleteGameNoticeRequest) {
-  return alova.Delete<WebResponse<never>>(
-    `/admin/games/${request.game_id}/notices/${request.id}`,
-    request
-  );
+  return api
+    .delete(`admin/games/${request.game_id}/notices/${request.id}`, {
+      json: request,
+    })
+    .json<WebResponse<never>>();
 }

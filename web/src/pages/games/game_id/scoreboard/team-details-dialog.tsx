@@ -168,9 +168,9 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
           <span>{team?.pts} pts</span>
         </Badge>
       </div>
-      <ScrollArea className={cn(["h-128", "rounded-md", "border"])}>
+      <ScrollArea className={cn(["h-128", "rounded-md", "border", "relative"])}>
+        <LoadingOverlay loading={loading} />
         <Table className={cn(["text-foreground"])}>
-          <LoadingOverlay loading={loading} />
           <TableHeader
             className={cn([
               "sticky",

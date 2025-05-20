@@ -1,5 +1,5 @@
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface UserForgetRequest {
   email?: string;
@@ -8,7 +8,7 @@ export interface UserForgetRequest {
 }
 
 export async function forget(request: UserForgetRequest) {
-  return alova.Post<WebResponse<never>>(`/users/forget`, request);
+  return api.post(`users/forget`, { json: request }).json<WebResponse<never>>();
 }
 
 export interface UserSendForgetEmailRequest {
@@ -16,5 +16,7 @@ export interface UserSendForgetEmailRequest {
 }
 
 export async function sendForgetEmail(request: UserSendForgetEmailRequest) {
-  return alova.Post<WebResponse<never>>(`/users/forget/send`, request);
+  return api
+    .post(`users/forget/send`, { json: request })
+    .json<WebResponse<never>>();
 }

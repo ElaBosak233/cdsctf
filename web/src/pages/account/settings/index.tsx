@@ -136,9 +136,7 @@ export default function Index() {
   function handleAvatarDelete() {
     if (!authStore?.user) return;
 
-    deleteUserAvatar({
-      user_id: authStore.user.id!,
-    })
+    deleteUserAvatar()
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           toast.success(`头像删除成功`);

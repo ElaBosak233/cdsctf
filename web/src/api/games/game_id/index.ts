@@ -1,13 +1,13 @@
 import { Game, ScoreRecord } from "@/models/game";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api, toSearchParams } from "@/utils/ky";
 
 export interface GetGameRequest {
   id?: number;
 }
 
 export async function getGame(request: GetGameRequest) {
-  return alova.Get<WebResponse<Game>>(`/games/${request.id}`);
+  return api.get(`games/${request.id}`).json<WebResponse<Game>>();
 }
 
 export interface GetGameScoreboardRequest {
@@ -17,11 +17,9 @@ export interface GetGameScoreboardRequest {
 }
 
 export async function getGameScoreboard(request: GetGameScoreboardRequest) {
-  return alova.Get<WebResponse<Array<ScoreRecord>>>(
-    `/games/${request.id}/scoreboard`,
-    {
-      params: request,
-      cacheFor: 30 * 1000,
-    }
-  );
+  return api
+    .get(`games/${request.id}/scoreboard`, {
+      searchParams: toSearchParams(request),
+    })
+    .json<WebResponse<Array<ScoreRecord>>>();
 }

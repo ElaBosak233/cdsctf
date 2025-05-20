@@ -1,5 +1,5 @@
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface DeleteTeamAvatarRequest {
   game_id: number;
@@ -7,7 +7,7 @@ export interface DeleteTeamAvatarRequest {
 }
 
 export function deleteTeamAvatar(request: DeleteTeamAvatarRequest) {
-  return alova.Delete<WebResponse<never>>(
-    `/admin/games/${request.game_id}/teams/${request.team_id}/avatar`
-  );
+  return api
+    .delete(`admin/games/${request.game_id}/teams/${request.team_id}/avatar`)
+    .json<WebResponse<never>>();
 }

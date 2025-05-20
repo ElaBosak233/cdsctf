@@ -1,5 +1,5 @@
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface UpdateChallengeCheckerRequest {
   id?: string;
@@ -9,11 +9,7 @@ export interface UpdateChallengeCheckerRequest {
 export async function updateChallengeChecker(
   request: UpdateChallengeCheckerRequest
 ) {
-  return alova.Put<WebResponse<never>>(
-    `/admin/challenges/${request?.id}/checker`,
-    request,
-    {
-      cacheFor: 0,
-    }
-  );
+  return api
+    .put(`admin/challenges/${request?.id}/checker`, { json: request })
+    .json<WebResponse<never>>();
 }

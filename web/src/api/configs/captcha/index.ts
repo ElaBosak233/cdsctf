@@ -1,11 +1,11 @@
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export async function generateCaptcha() {
-  return alova.Get<
+  return api.get("configs/captcha/generate").json<
     WebResponse<{
       id?: string;
       challenge?: string;
     }>
-  >("/configs/captcha/generate");
+  >();
 }

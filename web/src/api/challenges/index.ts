@@ -1,7 +1,7 @@
 import { ChallengeMini } from "@/models/challenge";
 import { Submission } from "@/models/submission";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api, toSearchParams } from "@/utils/ky";
 
 export interface GetPlaygroundChallengesRequest {
   id?: string;
@@ -17,13 +17,11 @@ export interface GetPlaygroundChallengesRequest {
 export async function getPlaygroundChallenges(
   request: GetPlaygroundChallengesRequest
 ) {
-  return alova.Get<WebResponse<Array<ChallengeMini>>>(
-    "/challenges/playground",
-    {
-      params: request,
-      cacheFor: 0,
-    }
-  );
+  return api
+    .get("challenges/playground", {
+      searchParams: toSearchParams(request),
+    })
+    .json<WebResponse<Array<ChallengeMini>>>();
 }
 
 export interface GetChallengeStatusRequest {
@@ -41,11 +39,9 @@ export interface ChallengeStatus {
 }
 
 export async function getChallengeStatus(request: GetChallengeStatusRequest) {
-  return alova.Post<WebResponse<Record<string, ChallengeStatus>>>(
-    "/challenges/status",
-    request,
-    {
-      cacheFor: 0,
-    }
-  );
+  return api
+    .post("challenges/status", {
+      json: request,
+    })
+    .json<WebResponse<Record<string, ChallengeStatus>>>();
 }

@@ -1,5 +1,5 @@
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface LeaveTeamRequest {
   game_id?: number;
@@ -7,8 +7,9 @@ export interface LeaveTeamRequest {
 }
 
 export async function leaveTeam(request: LeaveTeamRequest) {
-  return alova.Delete<WebResponse<never>>(
-    `/games/${request?.game_id}/teams/profile/users/leave`,
-    request
-  );
+  return api
+    .delete(`games/${request?.game_id}/teams/profile/users/leave`, {
+      json: request,
+    })
+    .json<WebResponse<never>>();
 }

@@ -1,14 +1,16 @@
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface UserVerifyRequest {
   code?: string;
 }
 
 export async function verify(request: UserVerifyRequest) {
-  return alova.Post<WebResponse<never>>(`/users/profile/verify`, request);
+  return api
+    .post(`users/profile/verify`, { json: request })
+    .json<WebResponse<never>>();
 }
 
 export async function sendVerifyEmail() {
-  return alova.Post<WebResponse<never>>(`/users/profile/verify/send`);
+  return api.post(`users/profile/verify/send`).json<WebResponse<never>>();
 }

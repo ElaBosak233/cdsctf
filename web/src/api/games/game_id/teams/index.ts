@@ -1,6 +1,6 @@
 import { Team } from "@/models/team";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 // export interface GetTeamRequest {
 //     id?: number;
@@ -31,8 +31,9 @@ export interface TeamRegisterRequest {
 }
 
 export async function teamRegister(request: TeamRegisterRequest) {
-  return alova.Post<WebResponse<Team>>(
-    `/games/${request.game_id}/teams/register`,
-    request
-  );
+  return api
+    .post(`games/${request.game_id}/teams/register`, {
+      json: request,
+    })
+    .json<WebResponse<Team>>();
 }

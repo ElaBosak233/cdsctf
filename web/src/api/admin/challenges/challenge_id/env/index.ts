@@ -1,6 +1,6 @@
 import { Env } from "@/models/challenge";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface UpdateChallengeEnvRequest {
   id?: string;
@@ -8,11 +8,7 @@ export interface UpdateChallengeEnvRequest {
 }
 
 export async function updateChallengeEnv(request: UpdateChallengeEnvRequest) {
-  return alova.Put<WebResponse<never>>(
-    `/admin/challenges/${request?.id}/env`,
-    request,
-    {
-      cacheFor: 0,
-    }
-  );
+  return api
+    .put(`admin/challenges/${request?.id}/env`, { json: request })
+    .json<WebResponse<never>>();
 }

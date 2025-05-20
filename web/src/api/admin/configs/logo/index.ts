@@ -1,6 +1,6 @@
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export async function deleteLogo() {
-  return alova.Delete<WebResponse<never>>("/admin/configs/logo");
+  return api.delete("admin/configs/logo").json<WebResponse<never>>();
 }

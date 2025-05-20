@@ -1,13 +1,15 @@
 import { Env } from "@/models/challenge";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface StopEnvRequest {
   id: string;
 }
 
 export async function stopEnv(request: StopEnvRequest) {
-  return alova.Post<WebResponse<unknown>>(`/envs/${request.id}/stop`, request);
+  return api
+    .post(`envs/${request.id}/stop`, { json: request })
+    .json<WebResponse<unknown>>();
 }
 
 export interface RenewEnvRequest {
@@ -17,5 +19,7 @@ export interface RenewEnvRequest {
 }
 
 export async function renewEnv(request: RenewEnvRequest) {
-  return alova.Post<WebResponse<Env>>(`/envs/${request.id}/renew`, request);
+  return api
+    .post(`envs/${request.id}/renew`, { json: request })
+    .json<WebResponse<Env>>();
 }

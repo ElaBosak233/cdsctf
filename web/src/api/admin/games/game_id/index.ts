@@ -1,6 +1,6 @@
 import { Game } from "@/models/game";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface UpdateGameRequest {
   id?: number;
@@ -18,7 +18,9 @@ export interface UpdateGameRequest {
 }
 
 export async function updateGame(request: UpdateGameRequest) {
-  return alova.Put<WebResponse<Game>>(`/admin/games/${request.id}`, request);
+  return api
+    .put(`admin/games/${request.id}`, { json: request })
+    .json<WebResponse<Game>>();
 }
 
 export interface DeleteGameRequest {
@@ -26,5 +28,5 @@ export interface DeleteGameRequest {
 }
 
 export async function deleteGame(request: DeleteGameRequest) {
-  return alova.Delete<WebResponse<never>>(`/admin/games/${request.id}`);
+  return api.delete(`admin/games/${request.id}`).json<WebResponse<never>>();
 }

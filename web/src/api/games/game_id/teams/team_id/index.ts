@@ -1,6 +1,6 @@
 import { UserMini } from "@/models/user";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface JoinTeamRequest {
   game_id?: number;
@@ -9,10 +9,11 @@ export interface JoinTeamRequest {
 }
 
 export async function joinTeam(request: JoinTeamRequest) {
-  return alova.Post<WebResponse<never>>(
-    `/games/${request?.game_id}/teams/${request?.team_id}/join`,
-    request
-  );
+  return api
+    .post(`games/${request?.game_id}/teams/${request?.team_id}/join`, {
+      json: request,
+    })
+    .json<WebResponse<never>>();
 }
 
 export interface GetTeamMemberRequest {
@@ -21,7 +22,7 @@ export interface GetTeamMemberRequest {
 }
 
 export async function getTeamMembers(request: GetTeamMemberRequest) {
-  return alova.Get<WebResponse<Array<UserMini>>>(
-    `/games/${request.game_id}/teams/${request.team_id}/members`
-  );
+  return api
+    .get(`games/${request.game_id}/teams/${request.team_id}/members`)
+    .json<WebResponse<Array<UserMini>>>();
 }

@@ -1,11 +1,11 @@
 import { Config, Version } from "@/models/config";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export async function getConfigs() {
-  return alova.Get<WebResponse<Config>>("/configs");
+  return api.get("configs").json<WebResponse<Config>>();
 }
 
 export async function getVersion() {
-  return alova.Get<WebResponse<Version>>("/configs/version");
+  return api.get("configs/version").json<WebResponse<Version>>();
 }

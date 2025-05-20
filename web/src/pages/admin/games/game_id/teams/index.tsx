@@ -219,8 +219,8 @@ export default function Index() {
           "h-[calc(100vh-18rem)]",
         ])}
       >
+        <LoadingOverlay loading={loading} />
         <Table className={cn(["text-foreground"])}>
-          <LoadingOverlay loading={loading} />
           <TableHeader
             className={cn([
               "sticky",

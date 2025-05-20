@@ -1,16 +1,15 @@
 import { GameNotice } from "@/models/game_notice";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api, toSearchParams } from "@/utils/ky";
 
 export interface GetGameNoticeRequest {
   game_id?: number;
 }
 
 export async function getGameNotice(request: GetGameNoticeRequest) {
-  return alova.Get<WebResponse<Array<GameNotice>>>(
-    `/games/${request.game_id}/notices`,
-    {
-      params: request,
-    }
-  );
+  return api
+    .get(`games/${request.game_id}/notices`, {
+      searchParams: toSearchParams(request),
+    })
+    .json<WebResponse<Array<GameNotice>>>();
 }

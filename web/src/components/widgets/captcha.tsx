@@ -56,7 +56,7 @@ function PowCaptcha(props: CaptchaProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const sharedStore = useSharedStore();
 
-  const [result, setResult] = useState<string>();
+  const [result, setResult] = useState<string>("");
   const [id, setId] = useState<string>();
 
   useEffect(() => {
@@ -100,7 +100,7 @@ function PowCaptcha(props: CaptchaProps) {
       <FieldIcon>
         <BotIcon />
       </FieldIcon>
-      <TextField readOnly disabled value={result} />
+      <TextField readOnly disabled value={result} onChange={() => {}} />
       <FieldButton
         disabled={loading}
         onClick={() => setRefresh((prev) => prev + 1)}

@@ -1,6 +1,6 @@
 import { GameChallenge } from "@/models/game_challenge";
 import { WebResponse } from "@/types";
-import { alova } from "@/utils/alova";
+import { api } from "@/utils/ky";
 
 export interface UpdateGameChallengeRequest {
   game_id?: number;
@@ -14,10 +14,11 @@ export interface UpdateGameChallengeRequest {
 }
 
 export async function updateGameChallenge(request: UpdateGameChallengeRequest) {
-  return alova.Put<WebResponse<GameChallenge>>(
-    `/admin/games/${request.game_id}/challenges/${request.challenge_id}`,
-    request
-  );
+  return api
+    .put(`admin/games/${request.game_id}/challenges/${request.challenge_id}`, {
+      json: request,
+    })
+    .json<WebResponse<GameChallenge>>();
 }
 
 export interface DeleteGameChallengeRequest {
@@ -26,8 +27,10 @@ export interface DeleteGameChallengeRequest {
 }
 
 export async function deleteGameChallenge(request: DeleteGameChallengeRequest) {
-  return alova.Delete<WebResponse<never>>(
-    `/admin/games/${request.game_id}/challenges/${request.challenge_id}`,
-    request
-  );
+  return api
+    .delete(
+      `admin/games/${request.game_id}/challenges/${request.challenge_id}`,
+      { json: request }
+    )
+    .json<WebResponse<never>>();
 }
