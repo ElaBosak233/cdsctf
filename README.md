@@ -1,18 +1,20 @@
 # CdsCTF
 
-The **CdsCTF** project is an _open-source, high-performance, Jeopardy-style's_ CTF platform.
+The **CdsCTF** project is an _innovative and high-performance_ CTF platform. Originally developed by [ElaBosak233 (Ela)](https://github.com/ElaBosak233), and continuously maintained by the community.
 
-You can read more in the [Documentation](https://cdsctf.e23.dev).
+If you want to know how to deploy and how to use it, please refer to the [Documentation](https://cdsctf.e23.dev). If you want to contribute in various forms, please refer to [Contributing](./.github/CONTRIBUTING.md) and [Code of Conduct](./.github/CODE_OF_CONDUCT.md) first.
 
-## Contributors
+## Acknowledgements
+
+### Contributors
 
 Thanks to everyone who has contributed to the project! Without you, CdsCTF would not be what it is today.
 
-![](https://contrib.rocks/image?repo=cdsctf/cdsctf)
+![Contributors of CdsCTF](https://contrib.rocks/image?repo=cdsctf/cdsctf)
 
-## Stars
+### Stars
 
-![](https://starchart.cc/cdsctf/cdsctf.svg?variant=adaptive)
+![Stars of CdsCTF](https://starchart.cc/cdsctf/cdsctf.svg?variant=adaptive)
 
 ## License
 
