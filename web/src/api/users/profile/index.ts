@@ -1,6 +1,10 @@
 import { User } from "@/models/user";
 import { WebResponse } from "@/types";
-import { api } from "@/utils/ky";
+import { api } from "@/utils/query";
+
+export async function getUserProfile() {
+  return api.get("users/profile").json<WebResponse<User>>();
+}
 
 export interface UpdateUserProfileRequest {
   name?: string;
@@ -9,7 +13,7 @@ export interface UpdateUserProfileRequest {
 }
 
 export async function updateUserProfile(request: UpdateUserProfileRequest) {
-  return api.put("/users/profile", { json: request }).json<WebResponse<User>>();
+  return api.put("users/profile", { json: request }).json<WebResponse<User>>();
 }
 
 export interface UpdateUserProfilePasswordRequest {

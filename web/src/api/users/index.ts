@@ -1,6 +1,6 @@
 import { User } from "@/models/user";
 import { WebResponse } from "@/types";
-import { api } from "@/utils/ky";
+import { api } from "@/utils/query";
 
 export interface UserLoginRequest {
   account: string;

@@ -1,12 +1,12 @@
 use std::str::FromStr;
 
-use axum::{http::StatusCode, Router};
+use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::{submission::Status, team::State},
     get_db,
     sea_orm::{
-        ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, EntityTrait, JoinType,
-        Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait, Set,
+        ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, EntityTrait, JoinType, Order,
+        PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait, Set,
     },
 };
 use serde::{Deserialize, Serialize};

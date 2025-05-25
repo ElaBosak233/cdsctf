@@ -1,6 +1,6 @@
 import { Submission } from "@/models/submission";
 import { WebResponse } from "@/types";
-import { api, toSearchParams } from "@/utils/ky";
+import { api, toSearchParams } from "@/utils/query";
 
 export interface CreateSubmissionRequest {
   content?: string;

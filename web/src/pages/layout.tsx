@@ -1,16 +1,16 @@
-import { Outlet, useNavigate } from "react-router";
+import { Outlet } from "react-router";
 
 import { getConfigs, getVersion } from "@/api/configs";
+import { getUserProfile } from "@/api/users/profile";
 import { Navbar } from "@/components/widgets/navbar";
+import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import globalRouter from "@/utils/global-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 export default function () {
-  const navigate = useNavigate();
-  globalRouter.navigate = navigate;
+  const { setUser } = useAuthStore();
   const { setConfig, setVersion } = useConfigStore();
 
   const { data: configData } = useQuery({
@@ -25,17 +25,30 @@ export default function () {
     select: (response) => response.data,
   });
 
+  const { data: profileData } = useQuery({
+    queryKey: ["profile"],
+    queryFn: getUserProfile,
+    retry: false,
+    select: (response) => response.data,
+  });
+
   useEffect(() => {
-    if (configData) {
-      setConfig(configData);
-    }
+    if (!configData) return;
+
+    setConfig(configData);
   }, [configData, setConfig]);
 
   useEffect(() => {
-    if (versionData) {
-      setVersion(versionData);
-    }
+    if (!versionData) return;
+
+    setVersion(versionData);
   }, [versionData, setVersion]);
+
+  useEffect(() => {
+    if (!profileData) return;
+
+    setUser(profileData);
+  }, [profileData, setUser]);
 
   return (
     <>

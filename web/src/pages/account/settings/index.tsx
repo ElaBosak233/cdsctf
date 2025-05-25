@@ -95,6 +95,7 @@ export default function Index() {
     onDropFile: async (file) => {
       const formData = new FormData();
       formData.append("file", file);
+
       const xhr = new XMLHttpRequest();
       xhr.open("POST", `/api/users/profile/avatar`, true);
       xhr.upload.onprogress = (event) => {

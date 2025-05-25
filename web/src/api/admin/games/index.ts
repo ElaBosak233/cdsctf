@@ -1,6 +1,6 @@
 import { Game } from "@/models/game";
 import { WebResponse } from "@/types";
-import { api, toSearchParams } from "@/utils/ky";
+import { api, toSearchParams } from "@/utils/query";
 
 export interface GetGameRequest {
   id?: number;

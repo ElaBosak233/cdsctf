@@ -17,6 +17,25 @@ const router = createBrowserRouter([
         }),
       },
       {
+        path: "users",
+        children: [
+          {
+            path: ":user_id",
+            lazy: async () => ({
+              Component: (await import("@/pages/users/user_id/layout")).default,
+            }),
+            children: [
+              {
+                index: true,
+                lazy: async () => ({
+                  Component: (await import("@/pages/users/user_id")).default,
+                }),
+              },
+            ],
+          },
+        ],
+      },
+      {
         path: "playground",
         lazy: async () => ({
           Component: (await import("@/pages/playground")).default,

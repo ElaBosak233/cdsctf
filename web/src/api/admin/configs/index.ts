@@ -1,6 +1,6 @@
 import { Config } from "@/models/config";
 import { WebResponse } from "@/types";
-import { api } from "@/utils/ky";
+import { api } from "@/utils/query";
 
 export async function getConfigs() {
   return api.get("admin/configs").json<WebResponse<Config>>();

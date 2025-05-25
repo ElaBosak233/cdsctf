@@ -1,6 +1,6 @@
 import { Env } from "@/models/env";
 import { WebResponse } from "@/types";
-import { api, toSearchParams } from "@/utils/ky";
+import { api, toSearchParams } from "@/utils/query";
 
 export interface GetEnvRequest {
   id?: string;

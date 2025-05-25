@@ -1,6 +1,6 @@
 import { GameChallenge } from "@/models/game_challenge";
 import { WebResponse } from "@/types";
-import { api } from "@/utils/ky";
+import { api } from "@/utils/query";
 
 export interface UpdateGameChallengeRequest {
   game_id?: number;

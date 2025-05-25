@@ -46,18 +46,23 @@ function AuthSection() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-42">
-          <DropdownMenuItem className={cn(["flex", "items-center", "gap-2"])}>
-            <Avatar
-              className={cn("h-8", "w-8")}
-              src={`/api/users/${authStore?.user?.id}/avatar`}
-              fallback={authStore?.user?.name?.charAt(0)}
-            />
-            <div className={cn(["flex", "flex-col"])}>
-              <p className={cn(["text-sm"])}>{authStore?.user?.name}</p>
-              <p className={cn(["text-xs", "text-muted-foreground"])}>
-                {`# ${authStore?.user?.username}`}
-              </p>
-            </div>
+          <DropdownMenuItem
+            className={cn(["flex", "items-center", "gap-2"])}
+            asChild
+          >
+            <Link to={`/users/${authStore?.user?.id}`}>
+              <Avatar
+                className={cn("h-8", "w-8")}
+                src={`/api/users/${authStore?.user?.id}/avatar`}
+                fallback={authStore?.user?.name?.charAt(0)}
+              />
+              <div className={cn(["flex", "flex-col"])}>
+                <p className={cn(["text-sm"])}>{authStore?.user?.name}</p>
+                <p className={cn(["text-xs", "text-muted-foreground"])}>
+                  {`# ${authStore?.user?.username}`}
+                </p>
+              </div>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem icon={<SettingsIcon />} asChild>
