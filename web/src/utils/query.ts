@@ -1,29 +1,37 @@
-import ky from "ky";
+import ky, { HTTPError } from "ky";
 import { toast } from "sonner";
 
 import { useAuthStore } from "@/storages/auth";
+import { WebResponse } from "@/types";
+import { StatusCodes } from "http-status-codes";
 
 const api = ky.extend({
   prefixUrl: "/api",
   timeout: 5000,
   hooks: {
-    afterResponse: [
-      (_request, _options, response) => {
-        if (response.status === 401) {
+    beforeError: [
+      async (error) => {
+        if (!(error instanceof HTTPError)) return error;
+
+        const res = await parseErrorResponse(error);
+        if (
+          res.code === StatusCodes.UNAUTHORIZED &&
+          !error.request.headers.get("Ignore-Unauthorized")
+        ) {
           useAuthStore?.getState()?.clear();
           toast.error("请先登录", {
             id: "please-login-first",
           });
-          return Promise.reject(response);
         }
 
-        if (response.status === 502) {
+        if (res.code === StatusCodes.BAD_GATEWAY) {
           toast.error("服务器离线", {
             id: "502-backend-offline",
             description: "服务器暂时无法处理请求",
           });
-          return Promise.reject(response);
         }
+
+        return error;
       },
     ],
   },
@@ -37,4 +45,10 @@ function toSearchParams(
   ) as Record<string, string | number | boolean>;
 }
 
-export { api, toSearchParams };
+async function parseErrorResponse(
+  error: HTTPError
+): Promise<WebResponse<unknown>> {
+  return await error.response.clone().json();
+}
+
+export { api, parseErrorResponse, toSearchParams };

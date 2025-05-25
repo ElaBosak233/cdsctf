@@ -3,7 +3,13 @@ import { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export async function getUserProfile() {
-  return api.get("users/profile").json<WebResponse<User>>();
+  return api
+    .get("users/profile", {
+      headers: {
+        "ignore-unauthorized": "OK",
+      },
+    })
+    .json<WebResponse<User>>();
 }
 
 export interface UpdateUserProfileRequest {

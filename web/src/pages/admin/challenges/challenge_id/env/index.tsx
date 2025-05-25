@@ -65,13 +65,22 @@ export default function Index() {
         }),
         envs: z.array(
           z.object({
-            key: z.string(),
-            value: z.string(),
+            key: z.string().min(1, {
+              message: "请输入键",
+            }),
+            value: z.string().min(1, {
+              message: "请输入值",
+            }),
           })
         ),
         ports: z.array(
           z.object({
-            port: z.number(),
+            port: z
+              .number({
+                message: "请输入端口号",
+              })
+              .min(0)
+              .max(65535),
             protocol: z.enum(["TCP", "UDP"]),
           })
         ),
@@ -119,7 +128,7 @@ export default function Index() {
     const ports = containers[containerIndex]?.ports || [];
     containers[containerIndex].ports = [
       ...ports,
-      { port: 9999, protocol: "TCP" },
+      { port: NaN, protocol: "TCP" },
     ];
     form.setValue("containers", containers);
   };
@@ -181,12 +190,10 @@ export default function Index() {
                     <FieldIcon>
                       <ClockIcon />
                     </FieldIcon>
-                    <TextField
-                      {...field}
-                      type={"number"}
+                    <NumberField
                       placeholder={"1800"}
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={field.value}
+                      onValueChange={(value) => field.onChange(value)}
                     />
                   </Field>
                 </FormControl>
@@ -276,14 +283,9 @@ export default function Index() {
                         <FieldIcon>
                           <CpuIcon />
                         </FieldIcon>
-                        <TextField
-                          {...field}
-                          type={"number"}
-                          placeholder={"2"}
-                          value={field.value || ""}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
+                        <NumberField
+                          value={field.value}
+                          onValueChange={(value) => field.onChange(value)}
                         />
                       </Field>
                     </FormControl>
@@ -302,14 +304,9 @@ export default function Index() {
                         <FieldIcon>
                           <MemoryStickIcon />
                         </FieldIcon>
-                        <TextField
-                          {...field}
-                          type={"number"}
-                          placeholder={"2"}
-                          value={field.value || ""}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
+                        <NumberField
+                          value={field.value}
+                          onValueChange={(value) => field.onChange(value)}
                         />
                       </Field>
                     </FormControl>
@@ -319,7 +316,7 @@ export default function Index() {
               />
             </div>
             <Label>暴露端口</Label>
-            <div className={cn(["grid", "grid-cols-3", "gap-5"])}>
+            <div className={cn(["grid", "grid-cols-3", "gap-7"])}>
               {container.ports?.map((_port, portIndex) => (
                 <div
                   key={portIndex}
@@ -341,7 +338,7 @@ export default function Index() {
                             />
                           </Field>
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className={cn(["-top-5"])} />
                       </FormItem>
                     )}
                   />
@@ -389,7 +386,7 @@ export default function Index() {
               />
             </div>
             <Label>环境变量</Label>
-            <div className={cn(["grid", "grid-cols-2", "gap-5"])}>
+            <div className={cn(["grid", "grid-cols-2", "gap-7"])}>
               {container.envs?.map((_env, envIndex) => (
                 <div
                   key={envIndex}
@@ -413,7 +410,7 @@ export default function Index() {
                             />
                           </Field>
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className={cn(["-top-5"])} />
                       </FormItem>
                     )}
                   />
@@ -435,7 +432,7 @@ export default function Index() {
                             />
                           </Field>
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className={cn(["-top-5"])} />
                       </FormItem>
                     )}
                   />

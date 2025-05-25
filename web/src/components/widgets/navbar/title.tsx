@@ -1,4 +1,4 @@
-import { Flag } from "lucide-react";
+import { FlagIcon } from "lucide-react";
 import { useContext } from "react";
 import { Link } from "react-router";
 
@@ -51,7 +51,7 @@ function Title(props: TitleProps) {
     >
       <Image
         src={src}
-        fallback={<Flag />}
+        fallback={<FlagIcon className={cn("size-6", "rotate-15")} />}
         delay={0}
         className={cn([
           "drop-shadow-md",

@@ -9,7 +9,6 @@ type ImageProps = {
   delay?: number;
   fallback?: React.ReactNode;
   className?: string;
-  imgClassName?: string;
 };
 
 function Image(props: ImageProps) {
@@ -23,7 +22,6 @@ function Image(props: ImageProps) {
       />
     ),
     className,
-    imgClassName,
   } = props;
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -84,7 +82,6 @@ function Image(props: ImageProps) {
           "h-full",
           "object-cover",
           isLoading || hasError ? "hidden" : "block",
-          imgClassName,
         ])}
       />
     </div>
