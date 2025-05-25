@@ -65,8 +65,12 @@ export default function Index() {
         }),
         envs: z.array(
           z.object({
-            key: z.string(),
-            value: z.string(),
+            key: z.string().min(1, {
+              message: "请输入键",
+            }),
+            value: z.string().min(1, {
+              message: "请输入值",
+            }),
           })
         ),
         ports: z.array(
@@ -389,7 +393,7 @@ export default function Index() {
               />
             </div>
             <Label>环境变量</Label>
-            <div className={cn(["grid", "grid-cols-2", "gap-5"])}>
+            <div className={cn(["grid", "grid-cols-2", "gap-7"])}>
               {container.envs?.map((_env, envIndex) => (
                 <div
                   key={envIndex}
@@ -413,7 +417,7 @@ export default function Index() {
                             />
                           </Field>
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className={cn(["-top-5"])} />
                       </FormItem>
                     )}
                   />
@@ -435,7 +439,7 @@ export default function Index() {
                             />
                           </Field>
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className={cn(["-top-5"])} />
                       </FormItem>
                     )}
                   />
