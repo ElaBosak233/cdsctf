@@ -29,6 +29,8 @@ import { Captcha } from "@/components/widgets/captcha";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { parseErrorResponse } from "@/utils/query";
+import { HTTPError } from "ky";
 
 function LoginForm() {
   const configStore = useConfigStore();
@@ -57,40 +59,40 @@ function LoginForm() {
     resolver: zodResolver(formSchema),
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    login({
-      ...values,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          authStore.setUser(res.data);
-          toast.success(t("account:login.success._"), {
-            id: "login",
-            description: t("account:login.success.welcome", {
-              name: res.data?.name,
-            }),
-          });
-          navigate("/");
-        }
-
-        if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.error(t("account:login.error._"), {
-            id: "login",
-            description: t("account:login.error.invalid"),
-          });
-        }
-
-        if (res.code === StatusCodes.GONE) {
-          toast.error(t("account:captcha.expired"), {
-            id: "login",
-            description: t("account:captcha.please_refresh"),
-          });
-        }
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      const res = await login({
+        ...values,
       });
+
+      authStore.setUser(res.data);
+      toast.success(t("account:login.success._"), {
+        id: "login",
+        description: t("account:login.success.welcome", {
+          name: res.data?.name,
+        }),
+      });
+      navigate("/");
+    } catch (error) {
+      if (!(error instanceof HTTPError)) throw error;
+      const res = await parseErrorResponse(error);
+
+      if (res.code === StatusCodes.BAD_REQUEST) {
+        toast.error(t("account:login.error._"), {
+          id: "login",
+          description: t("account:login.error.invalid"),
+        });
+      }
+
+      if (res.code === StatusCodes.GONE) {
+        toast.error(t("account:captcha.expired"), {
+          id: "login",
+          description: t("account:captcha.please_refresh"),
+        });
+      }
+    }
+    setLoading(false);
   }
 
   return (

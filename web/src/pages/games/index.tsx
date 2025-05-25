@@ -163,7 +163,11 @@ export default function Index() {
             ])}
             fallback={
               <FlagIcon
-                className={cn(["size-25", "rotate-15"])}
+                className={cn([
+                  "size-25",
+                  "rotate-15",
+                  "text-secondary-foreground",
+                ])}
                 strokeWidth={1}
               />
             }
@@ -196,8 +200,21 @@ export default function Index() {
             >
               <Image
                 src={`/api/games/${selectedGame?.id}/icon`}
-                className={cn(["aspect-square", "h-16"])}
-                imgClassName={cn(["rounded-full"])}
+                fallback={
+                  <FlagIcon
+                    className={cn([
+                      "rotate-15",
+                      "text-secondary-foreground",
+                      "size-6",
+                    ])}
+                  />
+                }
+                className={cn([
+                  "aspect-square",
+                  "h-16",
+                  "rounded-full",
+                  "overflow-hidden",
+                ])}
               />
               <div className={cn(["space-y-1", "flex-1", "max-w-100"])}>
                 <h2

@@ -28,6 +28,8 @@ import { TextField } from "@/components/ui/text-field";
 import { Captcha } from "@/components/widgets/captcha";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { parseErrorResponse } from "@/utils/query";
+import { HTTPError } from "ky";
 
 function RegisterForm() {
   const configStore = useConfigStore();
@@ -74,38 +76,40 @@ function RegisterForm() {
     resolver: zodResolver(formSchema),
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    register({
-      captcha,
-      ...values,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success("注册成功", {
-            id: "register-success",
-            description: "注册成功，请登录",
-          });
-          navigate("/account/login");
-        }
-
-        if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.success("注册失败", {
-            id: "register-error",
-            description: res.msg,
-          });
-        }
-
-        if (res.code === StatusCodes.CONFLICT) {
-          toast.success("注册失败", {
-            id: "register-error",
-            description: "用户名或邮箱重复",
-          });
-        }
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      const res = await register({
+        captcha,
+        ...values,
       });
+
+      if (res.code === StatusCodes.OK) {
+        toast.success("注册成功", {
+          id: "register-success",
+          description: "注册成功，请登录",
+        });
+        navigate("/account/login");
+      }
+    } catch (error) {
+      if (!(error instanceof HTTPError)) throw error;
+      const res = await parseErrorResponse(error);
+
+      if (res.code === StatusCodes.BAD_REQUEST) {
+        toast.success("注册失败", {
+          id: "register-error",
+          description: res.msg,
+        });
+      }
+
+      if (res.code === StatusCodes.CONFLICT) {
+        toast.success("注册失败", {
+          id: "register-error",
+          description: "用户名或邮箱重复",
+        });
+      }
+    }
+    setLoading(false);
   }
 
   return (

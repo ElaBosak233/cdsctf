@@ -116,6 +116,7 @@ export default function Index() {
       category: category !== "all" ? Number(category) : undefined,
       title: title || undefined,
       tags: tag || undefined,
+      sorts: "-created_at",
     },
     doSearch
   );

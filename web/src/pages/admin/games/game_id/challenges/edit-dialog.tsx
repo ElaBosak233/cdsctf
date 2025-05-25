@@ -37,8 +37,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
+import { NumberField } from "@/components/ui/number-field";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { TextField } from "@/components/ui/text-field";
 import { GameChallenge } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -162,14 +162,10 @@ function EditDialog(props: EditDialogProps) {
                         <FieldIcon>
                           <HashIcon />
                         </FieldIcon>
-                        <TextField
-                          {...field}
-                          type={"number"}
+                        <NumberField
                           placeholder={"最大分值"}
-                          value={field.value || ""}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
+                          value={field.value}
+                          onValueChange={(value) => field.onChange(value)}
                         />
                       </Field>
                     </FormControl>
@@ -188,14 +184,10 @@ function EditDialog(props: EditDialogProps) {
                         <FieldIcon>
                           <HashIcon />
                         </FieldIcon>
-                        <TextField
-                          {...field}
-                          type={"number"}
+                        <NumberField
                           placeholder={"最小分值"}
-                          value={field.value || ""}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
+                          value={field.value}
+                          onValueChange={(value) => field.onChange(value)}
                         />
                       </Field>
                     </FormControl>
@@ -214,14 +206,10 @@ function EditDialog(props: EditDialogProps) {
                         <FieldIcon>
                           <HashIcon />
                         </FieldIcon>
-                        <TextField
-                          {...field}
-                          type={"number"}
+                        <NumberField
                           placeholder={"难度系数"}
-                          value={field.value || ""}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
+                          value={field.value}
+                          onValueChange={(value) => field.onChange(value)}
                         />
                       </Field>
                     </FormControl>
@@ -266,14 +254,10 @@ function EditDialog(props: EditDialogProps) {
                               <FieldIcon>
                                 <StarIcon />
                               </FieldIcon>
-                              <TextField
-                                {...field}
-                                type={"number"}
+                              <NumberField
                                 placeholder={`No. ${ratioIndex + 1}`}
-                                value={field.value || ""}
-                                onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
-                                }
+                                value={field.value}
+                                onValueChange={(value) => field.onChange(value)}
                               />
                             </Field>
                             <Button

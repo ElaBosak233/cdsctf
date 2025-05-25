@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/form";
 import { Image } from "@/components/ui/image";
 import { Label } from "@/components/ui/label";
+import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
@@ -537,12 +538,10 @@ export default function Index() {
                     <FieldIcon>
                       <UsersRoundIcon />
                     </FieldIcon>
-                    <TextField
-                      {...field}
-                      type={"number"}
+                    <NumberField
                       placeholder={"3"}
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={field.value}
+                      onValueChange={(value) => field.onChange(value)}
                     />
                   </Field>
                 </FormControl>
@@ -561,12 +560,10 @@ export default function Index() {
                     <FieldIcon>
                       <UsersRoundIcon />
                     </FieldIcon>
-                    <TextField
-                      {...field}
-                      type={"number"}
+                    <NumberField
                       placeholder={"3"}
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={field.value}
+                      onValueChange={(value) => field.onChange(value)}
                     />
                   </Field>
                 </FormControl>
