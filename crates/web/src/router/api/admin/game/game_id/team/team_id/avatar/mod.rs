@@ -22,22 +22,6 @@ pub fn router() -> Router {
         .route("/", axum::routing::delete(delete_team_avatar))
 }
 
-pub async fn get_team_avatar(
-    Path((game_id, team_id)): Path<(i64, i64)>,
-) -> Result<impl IntoResponse, WebError> {
-    let path = format!("games/{game_id}/teams/{team_id}/avatar");
-
-    crate::util::media::get_img(path).await
-}
-
-pub async fn get_team_avatar_metadata(
-    Path((game_id, team_id)): Path<(i64, i64)>,
-) -> Result<WebResponse<Metadata>, WebError> {
-    let path = format!("games/{game_id}/teams/{team_id}/avatar");
-
-    crate::util::media::get_img_metadata(path).await
-}
-
 /// Save an avatar for the team.
 ///
 /// # Prerequisite

@@ -1,6 +1,6 @@
 import { Challenge } from "@/models/challenge";
 import { WebResponse } from "@/types";
-import { api, toSearchParams } from "@/utils/ky";
+import { api, toSearchParams } from "@/utils/query";
 
 export interface GetChallengeRequest {
   id?: string;

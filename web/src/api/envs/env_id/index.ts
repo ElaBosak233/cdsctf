@@ -1,6 +1,6 @@
 import { Env } from "@/models/challenge";
 import { WebResponse } from "@/types";
-import { api } from "@/utils/ky";
+import { api } from "@/utils/query";
 
 export interface StopEnvRequest {
   id: string;

@@ -1,8 +1,8 @@
 import { Group, User } from "@/models/user";
 import { WebResponse } from "@/types";
-import { api, toSearchParams } from "@/utils/ky";
+import { api, toSearchParams } from "@/utils/query";
 
-export interface GetUserRequest {
+export interface GetUsersRequest {
   id?: number;
   name?: string;
   username?: string;
@@ -13,7 +13,7 @@ export interface GetUserRequest {
   sorts?: string;
 }
 
-export async function getUsers(request: GetUserRequest) {
+export async function getUsers(request: GetUsersRequest) {
   return api
     .get("admin/users", {
       searchParams: toSearchParams(request),

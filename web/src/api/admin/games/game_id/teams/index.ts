@@ -1,6 +1,6 @@
 import { State, Team } from "@/models/team";
 import { WebResponse } from "@/types";
-import { api, toSearchParams } from "@/utils/ky";
+import { api, toSearchParams } from "@/utils/query";
 
 export interface GetTeamRequest {
   id?: number;

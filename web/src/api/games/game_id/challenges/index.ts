@@ -1,6 +1,6 @@
 import { GameChallenge } from "@/models/game_challenge";
 import { WebResponse } from "@/types";
-import { api, toSearchParams } from "@/utils/ky";
+import { api, toSearchParams } from "@/utils/query";
 
 export interface GetGameChallengeRequest {
   game_id?: number;

@@ -2,11 +2,7 @@ pub mod traits;
 mod util;
 pub mod worker;
 
-use std::{
-    collections::{BTreeMap, HashMap},
-    path::Path,
-    process,
-};
+use std::{collections::BTreeMap, path::Path, process};
 
 use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
 use cds_db::entity::challenge::Port;

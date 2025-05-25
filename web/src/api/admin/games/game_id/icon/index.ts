@@ -1,5 +1,5 @@
 import { WebResponse } from "@/types";
-import { api } from "@/utils/ky";
+import { api } from "@/utils/query";
 
 interface DeleteGameIconRequest {
   game_id: number;

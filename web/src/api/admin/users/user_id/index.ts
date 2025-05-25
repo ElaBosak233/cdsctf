@@ -1,6 +1,6 @@
 import { Group, User } from "@/models/user";
 import { WebResponse } from "@/types";
-import { api } from "@/utils/ky";
+import { api } from "@/utils/query";
 
 export interface DeleteUserRequest {
   id: number;

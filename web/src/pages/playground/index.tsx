@@ -7,7 +7,7 @@ import {
   TypeIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 
 import {
   getChallengeStatus,
@@ -47,7 +47,7 @@ function usePlaygroundChallengeQuery(
 
 function useChallengeStatusQuery(
   challenges: ChallengeMini[] | undefined,
-  userId: number
+  userId?: number
 ) {
   return useQuery({
     queryKey: ["challenge_status", challenges?.map((c) => c.id), userId],
@@ -64,6 +64,13 @@ function useChallengeStatusQuery(
 export default function Index() {
   const authStore = useAuthStore();
   const configStore = useConfigStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (authStore?.user) return;
+
+    navigate(`/account/login?redirect=/playground`, { replace: true });
+  }, []);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -80,40 +87,43 @@ export default function Index() {
     Number(searchParams.get("size")) || 20
   );
 
-  const queryParams: GetPlaygroundChallengesRequest = {
-    page,
-    size,
-    category: category !== "all" ? Number(category) : undefined,
-    title: title || undefined,
-    tags: tag || undefined,
-  };
-
-  const {
-    data: { challenges, total } = { challenges: [], total: 0 },
-    isLoading,
-  } = usePlaygroundChallengeQuery(queryParams, doSearch);
-
-  const { data: challengeStatus } = useChallengeStatusQuery(
-    challenges,
-    authStore.user!.id!
-  );
-
   useEffect(() => {
-    const params: {
+    if (doSearch < 1) return;
+
+    const searchParams: {
       page: string;
       size: string;
-      category: string;
+      category?: string;
       title?: string;
       tag?: string;
     } = {
       page: String(page),
       size: String(size),
-      category,
     };
-    if (title) params.title = title;
-    if (tag) params.tag = tag;
-    setSearchParams(params);
-  }, [title, tag, page, size, category, setSearchParams]);
+    if (title) searchParams.title = title;
+    if (tag) searchParams.tag = tag;
+    if (category) searchParams.category = String(category);
+    setSearchParams(searchParams);
+  }, [doSearch]);
+
+  const {
+    data: { challenges, total } = { challenges: [], total: 0 },
+    isLoading,
+  } = usePlaygroundChallengeQuery(
+    {
+      page,
+      size,
+      category: category !== "all" ? Number(category) : undefined,
+      title: title || undefined,
+      tags: tag || undefined,
+    },
+    doSearch
+  );
+
+  const { data: challengeStatus } = useChallengeStatusQuery(
+    challenges,
+    authStore?.user?.id
+  );
 
   return (
     <>

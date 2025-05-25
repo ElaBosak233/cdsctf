@@ -1,6 +1,6 @@
 import { State, Team } from "@/models/team";
 import { WebResponse } from "@/types";
-import { api } from "@/utils/ky";
+import { api } from "@/utils/query";
 
 export interface UpdateTeamRequest {
   team_id: number;

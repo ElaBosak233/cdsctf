@@ -1,6 +1,6 @@
 import { GameNotice } from "@/models/game_notice";
 import { WebResponse } from "@/types";
-import { api } from "@/utils/ky";
+import { api } from "@/utils/query";
 
 export interface CreateGameNoticeRequest {
   game_id?: number;

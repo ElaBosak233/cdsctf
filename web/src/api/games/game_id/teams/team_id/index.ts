@@ -1,6 +1,6 @@
 import { UserMini } from "@/models/user";
 import { WebResponse } from "@/types";
-import { api } from "@/utils/ky";
+import { api } from "@/utils/query";
 
 export interface JoinTeamRequest {
   game_id?: number;
