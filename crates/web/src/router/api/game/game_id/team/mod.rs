@@ -1,22 +1,20 @@
 mod profile;
 mod team_id;
 
-use std::str::FromStr;
-
 use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::team::State,
     get_db,
     sea_orm::{
-        ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, JoinType, Order,
-        PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
+        ActiveModelTrait, ActiveValue::Set, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
+        QuerySelect, RelationTrait,
     },
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Json, Path, Query},
+    extract::{Extension, Json, Path},
     model::team::Team,
     traits::{Ext, WebError, WebResponse},
 };

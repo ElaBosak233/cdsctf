@@ -26,7 +26,7 @@ export default function Index() {
     toast.warning("你已经登录了", {
       id: "login-already",
     });
-  }, [authStore?.user]);
+  }, []);
 
   return (
     <>
