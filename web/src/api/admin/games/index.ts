@@ -35,7 +35,7 @@ export interface CreateGameRequest {
 export async function createGame(request: CreateGameRequest) {
   return api
     .post("admin/games", {
-      searchParams: toSearchParams(request),
+      json: request,
     })
     .json<WebResponse<Game>>();
 }

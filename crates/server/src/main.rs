@@ -1,5 +1,3 @@
-mod migrator;
-
 use std::net::SocketAddr;
 
 use anyhow::anyhow;
@@ -66,7 +64,7 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
     cds_cache::init().await?;
     cds_db::init().await?;
 
-    migrator::run().await?;
+    cds_migrator::run().await?;
 
     cds_cluster::init().await?;
     cds_checker::init().await?;

@@ -23,6 +23,8 @@ import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseErrorResponse } from "@/utils/query";
+import { HTTPError } from "ky";
 
 export default function Layout() {
   const sharedStore = useSharedStore();
@@ -47,28 +49,30 @@ export default function Layout() {
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
 
-  function handleSetReady() {
-    setTeamReady({
-      game_id: currentGame?.id,
-      id: selfTeam?.id,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success("准备成功", {
-            description: `${selfTeam?.name} 即将登场！`,
-          });
-          setConfirmDialogOpen(false);
-        }
-
-        if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.error("发生了错误", {
-            description: res.msg,
-          });
-        }
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
+  async function handleSetReady() {
+    try {
+      const res = await setTeamReady({
+        game_id: currentGame?.id,
+        id: selfTeam?.id,
       });
+
+      if (res.code === StatusCodes.OK) {
+        toast.success("准备成功", {
+          description: `${selfTeam?.name} 即将登场！`,
+        });
+        setConfirmDialogOpen(false);
+      }
+    } catch (error) {
+      if (!(error instanceof HTTPError)) throw error;
+      const res = await parseErrorResponse(error);
+
+      if (res.code === StatusCodes.BAD_REQUEST) {
+        toast.error("发生了错误", {
+          description: res.msg,
+        });
+      }
+    }
+    sharedStore.setRefresh();
   }
 
   const [disbandDialogOpen, setDisbandDialogOpen] = useState<boolean>(false);

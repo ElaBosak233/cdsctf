@@ -1,0 +1,9 @@
+pub mod m20250501_000001_create_config;
+pub mod m20250501_000002_create_user;
+pub mod m20250501_000003_create_game;
+pub mod m20250501_000004_create_challenge;
+pub mod m20250501_000005_create_team;
+pub mod m20250501_000006_create_game_notice;
+pub mod m20250501_000007_create_game_challenge;
+pub mod m20250501_000008_create_team_user;
+pub mod m20250501_000009_create_submission;

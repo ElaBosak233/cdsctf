@@ -1,0 +1,19 @@
+[package]
+name = "cds-migrator"
+resolver = "3"
+
+authors = { workspace = true }
+edition  = { workspace = true }
+homepage = { workspace = true }
+publish = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+cds-db = { workspace = true }
+
+sea-orm = { workspace = true }
+async-trait = { workspace = true }
+tracing = { workspace = true }
+sea-orm-migration = { workspace = true }

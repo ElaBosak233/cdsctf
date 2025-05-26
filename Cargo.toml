@@ -9,7 +9,7 @@ publish = false
 homepage = "https://cdsctf.e23.dev"
 repository = "https://github.com/cdsctf/cdsctf"
 rust-version = "1.87.0"
-version = "1.5.3"
+version = "1.5.4"
 
 [workspace.dependencies]
 # Local Libraries
@@ -23,6 +23,7 @@ cds-logger = { path = "crates/logger" }
 cds-db = { path = "crates/db" }
 cds-email = { path = "crates/email" }
 cds-media = { path = "crates/media" }
+cds-migrator = { path = "crates/migrator" }
 cds-queue = { path = "crates/queue" }
 cds-telemetry = { path = "crates/telemetry" }
 cds-web = { path = "crates/web" }
@@ -96,6 +97,7 @@ sea-orm = { version = "1.1", features = [
     "with-json",
     "runtime-tokio-rustls",
 ] }
+sea-orm-migration = { version = "1.1" }
 
 # Message Queue
 async-nats = { version = "0.41" }

@@ -5,10 +5,7 @@ use axum::{Router, http::StatusCode};
 use cds_db::{
     entity::team::State,
     get_db,
-    sea_orm::{
-        ActiveModelTrait, ActiveValue::Set, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
-        QuerySelect, RelationTrait,
-    },
+    sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
