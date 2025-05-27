@@ -6,7 +6,7 @@ import { api, toSearchParams } from "@/utils/query";
 export interface GetPlaygroundChallengesRequest {
   id?: string;
   title?: string;
-  tags?: string;
+  tag?: string;
   category?: number;
   is_dynamic?: boolean;
   page?: number;

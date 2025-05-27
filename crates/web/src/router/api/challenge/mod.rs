@@ -32,7 +32,7 @@ pub struct GetChallengeRequest {
     pub id: Option<uuid::Uuid>,
     pub title: Option<String>,
     pub category: Option<i32>,
-    pub tags: Option<String>,
+    pub tag: Option<String>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -61,20 +61,15 @@ pub async fn get_challenge(
         sql = sql.filter(cds_db::entity::challenge::Column::Category.eq(category));
     }
 
-    if let Some(tags) = params.tags {
-        let tags = tags
-            .split(",")
-            .map(|s| s.to_owned())
-            .collect::<Vec<String>>();
-
+    if let Some(tag) = params.tag {
         sql = sql.filter(Expr::cust_with_expr(
             format!(
-                "\"{}\".\"{}\" @> $1::varchar[]",
+                "\"{}\".\"{}\" @> $1::text[]",
                 cds_db::entity::challenge::Entity.table_name(),
                 cds_db::entity::challenge::Column::Tags.to_string()
             )
             .as_str(),
-            tags,
+            vec![tag],
         ))
     }
 

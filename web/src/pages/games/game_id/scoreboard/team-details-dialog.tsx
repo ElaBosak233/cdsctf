@@ -214,14 +214,18 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className={cn(["h-24", "text-center"])}
-                >
-                  积分榜空空如也呢。
-                </TableCell>
-              </TableRow>
+              <>
+                {!loading && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className={cn(["h-24", "text-center"])}
+                    >
+                      积分榜空空如也呢。
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
             )}
           </TableBody>
         </Table>
