@@ -9,7 +9,7 @@ publish = false
 homepage = "https://cdsctf.e23.dev"
 repository = "https://github.com/cdsctf/cdsctf"
 rust-version = "1.87.0"
-version = "1.5.4"
+version = "1.5.5"
 
 [workspace.dependencies]
 # Local Libraries
@@ -62,7 +62,7 @@ argon2 = { version = "0.5" }
 aes = { version = "0.8" }
 
 # Data Handling
-uuid = { version = "1.16", features = ["v4", "fast-rng", "macro-diagnostics"] }
+uuid = { version = "1.17", features = ["v4", "fast-rng", "macro-diagnostics"] }
 nanoid = { version = "0.4" }
 regex = { version = "1.11" }
 chrono = { version = "0.4", features = ["serde"] }
@@ -114,7 +114,7 @@ fred = { version = "10.1", features = [
 ] }
 
 # Containerization & Orchestration
-kube = { version = "1.0", features = [
+kube = { version = "1.1", features = [
     "client",
     "config",
     "runtime",

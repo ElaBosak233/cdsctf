@@ -288,14 +288,18 @@ export default function Index() {
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className={cn(["h-24", "text-center"])}
-                >
-                  哎呀，好像还没有题目呢。
-                </TableCell>
-              </TableRow>
+              <>
+                {!loading && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className={cn(["h-24", "text-center"])}
+                    >
+                      哎呀，好像还没有题目呢。
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
             )}
           </TableBody>
         </Table>

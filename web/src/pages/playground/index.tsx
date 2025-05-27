@@ -35,7 +35,13 @@ function usePlaygroundChallengeQuery(
   trigger: number = 0
 ) {
   return useQuery({
-    queryKey: ["playground", params, trigger],
+    queryKey: [
+      "playground",
+      trigger,
+      params.size,
+      params.page,
+      params.category,
+    ],
     queryFn: () => getPlaygroundChallenges(params),
     select: (response) => ({
       challenges: response.data || [],
@@ -115,7 +121,7 @@ export default function Index() {
       size,
       category: category !== "all" ? Number(category) : undefined,
       title: title || undefined,
-      tags: tag || undefined,
+      tag: tag || undefined,
       sorts: "-created_at",
     },
     doSearch

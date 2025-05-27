@@ -85,6 +85,7 @@ pub async fn prepare_team(game_id: i64, team_id: i64) -> Result<Team, WebError> 
 pub async fn prepare_user(user_id: i64) -> Result<User, WebError> {
     let user = cds_db::entity::user::Entity::find()
         .filter(cds_db::entity::user::Column::Id.eq(user_id))
+        .filter(cds_db::entity::user::Column::DeletedAt.is_null())
         .into_model::<User>()
         .one(get_db())
         .await?

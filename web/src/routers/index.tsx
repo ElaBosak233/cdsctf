@@ -1,10 +1,12 @@
 import { createBrowserRouter } from "react-router";
 
+import { ErrorBoundary } from "@/components/utils/error-boundary";
 import { HydrateFallback } from "@/components/utils/hydrate-fallback";
 
 const router = createBrowserRouter([
   {
     hydrateFallbackElement: <HydrateFallback />,
+    errorElement: <ErrorBoundary />,
     path: "/",
     lazy: async () => ({
       Component: (await import("@/pages/layout")).default,
