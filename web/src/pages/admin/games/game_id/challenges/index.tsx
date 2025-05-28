@@ -7,12 +7,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import {
-  HashIcon,
-  LibraryIcon,
-  ListOrderedIcon,
-  PlusCircleIcon,
-} from "lucide-react";
+import { HashIcon, LibraryIcon, PlusCircleIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 
 import { Context } from "../context";
@@ -25,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
-import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select } from "@/components/ui/select";
 import {
@@ -50,12 +44,8 @@ export default function Index() {
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 
-  const [total, setTotal] = useState<number>(0);
   const [challenges, setChallenges] = useState<Array<GameChallenge>>([]);
   const [loading, setLoading] = useState<boolean>(false);
-
-  const [page, setPage] = useState<number>(1);
-  const [size, setSize] = useState<number>(10);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
@@ -74,7 +64,6 @@ export default function Index() {
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    rowCount: total,
     manualFiltering: true,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
@@ -102,20 +91,17 @@ export default function Index() {
           ? (debouncedColumnFilters.find((c) => c.id === "challenge_category")
               ?.value as number)
           : undefined,
-      page,
-      size,
     })
       .then((res) => {
-        setTotal(res?.total || 0);
         setChallenges(res?.data || []);
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh, game]);
+  }, [sorting, debouncedColumnFilters, sharedStore.refresh, game]);
 
   return (
-    <div className={cn(["container", "mx-auto"])}>
+    <div className={cn(["container", "mx-auto", "flex-1", "flex", "flex-col"])}>
       <div
         className={cn([
           "flex",
@@ -221,7 +207,7 @@ export default function Index() {
           "border",
           "bg-card",
           "min-h-100",
-          "h-[calc(100vh-18rem)]",
+          "flex-1",
         ])}
       >
         <LoadingOverlay loading={loading} />
@@ -285,35 +271,6 @@ export default function Index() {
           </TableBody>
         </Table>
       </ScrollArea>
-      <div className="flex items-center justify-between space-x-2 py-4 px-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} / {total}
-        </div>
-        <div className={cn(["flex", "items-center", "gap-5"])}>
-          <Field size={"sm"} className={cn(["w-48"])}>
-            <FieldIcon>
-              <ListOrderedIcon />
-            </FieldIcon>
-            <Select
-              placeholder={"每页显示"}
-              options={[
-                { value: "10" },
-                { value: "20" },
-                { value: "40" },
-                { value: "60" },
-              ]}
-              value={String(size)}
-              onValueChange={(value) => setSize(Number(value))}
-            />
-          </Field>
-          <Pagination
-            size={"sm"}
-            value={page}
-            total={Math.ceil(total / size)}
-            onChange={setPage}
-          />
-        </div>
-      </div>
     </div>
   );
 }

@@ -7,8 +7,6 @@ export interface GetGameChallengeRequest {
   challenge_id?: string;
   category?: number;
   is_enabled?: boolean;
-  page?: number;
-  size?: number;
 }
 
 export async function getGameChallenges(request: GetGameChallengeRequest) {
