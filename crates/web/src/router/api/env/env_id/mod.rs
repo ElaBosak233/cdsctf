@@ -71,7 +71,7 @@ pub async fn renew_pod(
     }
 
     let now = chrono::Utc::now().timestamp();
-    if started_at + (renew + 1) * duration - now < chrono::Duration::minutes(10).num_seconds() {
+    if started_at + (renew + 1) * duration - now > chrono::Duration::minutes(10).num_seconds() {
         return Err(WebError::BadRequest(json!("renewal_within_10_minutes")));
     }
 

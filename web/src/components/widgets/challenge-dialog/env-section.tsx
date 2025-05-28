@@ -21,6 +21,8 @@ import { Env } from "@/models/env";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { copyToClipboard } from "@/utils/clipboard";
+import { parseErrorResponse } from "@/utils/query";
+import { HTTPError } from "ky";
 
 function EnvSection() {
   const { challenge, team } = useContext(Context);
@@ -86,17 +88,24 @@ function EnvSection() {
     });
   }
 
-  function handlePodRenew() {
+  async function handlePodRenew() {
     if (!env) return;
 
-    renewEnv({
-      id: env.id!,
-    }).then((res) => {
+    try {
+      const res = await renewEnv({
+        id: env.id!,
+      });
+
       if (res.code === StatusCodes.OK) {
         toast.success("续期成功", {
           id: "renew",
+          description: null,
         });
       }
+    } catch (error) {
+      if (!(error instanceof HTTPError)) return;
+
+      const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
         toast.error("续期失败", {
@@ -104,24 +113,23 @@ function EnvSection() {
           description: res.msg,
         });
       }
-    });
+    }
   }
 
-  function handlePodStop() {
+  async function handlePodStop() {
     if (!env) return;
 
-    stopEnv({
-      id: env.id!,
-    })
-      .then((_) => {
-        toast.info("已下发容器停止命令", {
-          id: "pod-stop",
-        });
-        setEnv(undefined);
-      })
-      .finally(() => {
-        envPodStopLoading(false);
+    try {
+      await stopEnv({
+        id: env.id!,
       });
+
+      toast.info("已下发容器停止命令", {
+        id: "pod-stop",
+      });
+      setEnv(undefined);
+    } catch (error) {}
+    envPodStopLoading(false);
   }
 
   useEffect(() => {
