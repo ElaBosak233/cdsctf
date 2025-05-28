@@ -6,7 +6,9 @@ import { EnvSection } from "./env-section";
 import { SubmitSection } from "./submit-section";
 
 import { getChallenge as getChallengeDebug } from "@/api/admin/challenges/challenge_id";
+import { getChallengeAttachments as getChallengeAttachmentsDebug } from "@/api/admin/challenges/challenge_id/attachments";
 import { getChallenge } from "@/api/challenges/challenge_id";
+import { getChallengeAttachments } from "@/api/challenges/challenge_id/attachments";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,10 +30,7 @@ type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   debug?: boolean;
 };
 
-function useChallengeQuery(
-  challengeId: string | undefined,
-  debug: boolean = false
-) {
+function useChallengeQuery(challengeId?: string, debug: boolean = false) {
   return useQuery({
     queryKey: ["challenge", challengeId, debug],
     queryFn: () =>
@@ -43,10 +42,31 @@ function useChallengeQuery(
   });
 }
 
+function useChallengeAttachmentsQuery(
+  challengeId?: string,
+  hasAttachment?: boolean,
+  debug: boolean = false
+) {
+  return useQuery({
+    queryKey: ["challenge_attachments", challengeId],
+    queryFn: () =>
+      debug
+        ? getChallengeAttachmentsDebug(challengeId!)
+        : getChallengeAttachments(challengeId!),
+    select: (response) => response.data,
+    enabled: !!challengeId && hasAttachment,
+  });
+}
+
 function ChallengeDialog(props: ChallengeDialogProps) {
   const { digest, gameTeam, frozenAt, debug = false, ...rest } = props;
 
   const { data: challenge, isLoading } = useChallengeQuery(digest?.id, debug);
+  const { data: metadata } = useChallengeAttachmentsQuery(
+    digest?.id,
+    challenge?.has_attachment,
+    debug
+  );
 
   const category = useMemo(
     () => getCategory(digest?.category || 1),
@@ -95,19 +115,26 @@ function ChallengeDialog(props: ChallengeDialogProps) {
           </Typography>
         </ScrollArea>
         {challenge?.has_attachment && (
-          <div className={cn(["flex"])}>
-            <Button asChild icon={<DownloadIcon />} size={"sm"}>
-              <a
-                target={"_blank"}
-                href={
-                  debug
-                    ? `/api/admin/challenges/${digest?.id}/attachment`
-                    : `/api/challenges/${digest?.id}/attachment`
-                }
+          <div className={cn(["flex", "gap-3", "flex-wrap"])}>
+            {metadata?.map((m) => (
+              <Button
+                asChild
+                icon={<DownloadIcon />}
+                size={"sm"}
+                key={m.filename}
               >
-                附件
-              </a>
-            </Button>
+                <a
+                  target={"_blank"}
+                  href={
+                    debug
+                      ? `/api/admin/challenges/${digest?.id}/attachments/${m.filename}`
+                      : `/api/challenges/${digest?.id}/attachments/${m.filename}`
+                  }
+                >
+                  {m.filename}
+                </a>
+              </Button>
+            ))}
           </div>
         )}
         {challenge?.is_dynamic && <EnvSection />}

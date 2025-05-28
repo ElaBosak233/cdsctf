@@ -13,7 +13,7 @@ use crate::{
 pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_challenge))
-        .nest("/attachment", attachment::router())
+        .nest("/attachments", attachment::router())
 }
 
 pub async fn get_challenge(

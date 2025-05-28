@@ -7,11 +7,16 @@ use axum::{
 use cds_media::util::hash;
 use mime::Mime;
 use serde_json::json;
+use uuid::Uuid;
 
 use crate::{
     model::Metadata,
     traits::{WebError, WebResponse},
 };
+
+pub fn build_challenge_attachment_path(challenge_id: Uuid) -> String {
+    format!("challenges/{}/attachments", challenge_id)
+}
 
 pub async fn get_img(path: String) -> Result<impl IntoResponse, WebError> {
     match cds_media::scan_dir(path.clone()).await?.first() {

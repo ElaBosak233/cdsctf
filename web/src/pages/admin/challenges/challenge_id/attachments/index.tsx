@@ -1,40 +1,56 @@
 import { StatusCodes } from "http-status-codes";
-import {
-  CloudUploadIcon,
-  HardDriveIcon,
-  TextIcon,
-  TrashIcon,
-} from "lucide-react";
+import { CloudUploadIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Context } from "../context";
 
-import { deleteChallengeAttachment } from "@/api/admin/challenges/challenge_id/attachment";
-import { getChallengeAttachmentMetadata } from "@/api/challenges/challenge_id/attachment";
-import { Button } from "@/components/ui/button";
+import { getChallengeAttachments } from "@/api/admin/challenges/challenge_id/attachments";
 import {
   Dropzone,
   DropZoneArea,
   DropzoneTrigger,
   useDropzone,
 } from "@/components/ui/dropzone";
-import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Metadata } from "@/models/media";
+import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { columns } from "./columns";
 
 export default function Index() {
   const { challenge } = useContext(Context);
-  const [metadata, setMetadata] = useState<Metadata>();
-  const [refresh, setRefresh] = useState<number>(0);
+  const sharedStore = useSharedStore();
+
+  const [metadata, setMetadata] = useState<Array<Metadata>>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!challenge?.id) return;
-    getChallengeAttachmentMetadata(challenge.id!).then((res) => {
-      setMetadata(res.data);
-    });
-  }, [challenge?.id, refresh]);
+    setLoading(true);
+    getChallengeAttachments(challenge.id!)
+      .then((res) => {
+        setMetadata(res.data || []);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [challenge?.id, sharedStore.refresh]);
 
   const dropzone = useDropzone({
     onDropFile: async (file) => {
@@ -43,7 +59,7 @@ export default function Index() {
       const xhr = new XMLHttpRequest();
       xhr.open(
         "POST",
-        `/api/admin/challenges/${challenge?.id}/attachment`,
+        `/api/admin/challenges/${challenge?.id}/attachments`,
         true
       );
       xhr.upload.onprogress = (event) => {
@@ -59,7 +75,7 @@ export default function Index() {
           toast.success("文件上传成功", {
             id: "attachment-upload",
           });
-          setRefresh((prev) => prev + 1);
+          sharedStore.setRefresh();
         } else {
           toast.error("文件上传失败", {
             id: "attachment-upload",
@@ -82,19 +98,15 @@ export default function Index() {
     },
   });
 
-  function handleDeleteAttachment() {
-    if (!challenge) return;
-
-    deleteChallengeAttachment(challenge.id!)
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(`题目 ${challenge.title} 附件删除成功`);
-        }
-      })
-      .finally(() => {
-        setRefresh((prev) => prev + 1);
-      });
-  }
+  const table = useReactTable<Metadata>({
+    data: metadata,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    manualFiltering: true,
+    getFilteredRowModel: getFilteredRowModel(),
+    manualSorting: true,
+  });
 
   return (
     <div className={cn(["flex", "flex-col", "gap-5"])}>
@@ -109,42 +121,76 @@ export default function Index() {
           </DropzoneTrigger>
         </DropZoneArea>
       </Dropzone>
-      <div className={cn(["flex", "gap-3", "items-center"])}>
-        {metadata && (
-          <>
-            <Field className={cn(["w-1/2"])}>
-              <FieldIcon>
-                <TextIcon />
-              </FieldIcon>
-              <TextField
-                disabled
-                placeholder={"文件名"}
-                value={metadata?.filename}
-                onChange={() => {}}
-              />
-            </Field>
-            <Field className={cn(["flex-1"])}>
-              <FieldIcon>
-                <HardDriveIcon />
-              </FieldIcon>
-              <TextField
-                disabled
-                placeholder={"文件大小"}
-                value={`${metadata?.size} Bytes`}
-                onChange={() => {}}
-              />
-            </Field>
-            <Button
-              variant={"solid"}
-              level={"error"}
-              icon={<TrashIcon />}
-              onClick={handleDeleteAttachment}
-            >
-              删除附件
-            </Button>
-          </>
-        )}
-      </div>
+      <ScrollArea
+        className={cn([
+          "rounded-md",
+          "border",
+          "bg-card",
+          "min-h-100",
+          "h-[calc(100vh-22rem)]",
+        ])}
+      >
+        <LoadingOverlay loading={loading} />
+        <Table className={cn(["text-foreground"])}>
+          <TableHeader
+            className={cn([
+              "sticky",
+              "top-0",
+              "z-2",
+              "bg-muted/70",
+              "backdrop-blur-md",
+            ])}
+          >
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {!header.isPlaceholder &&
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.original.filename}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <>
+                {!loading && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className={cn(["h-24", "text-center"])}
+                    >
+                      哎呀，好像还没有附件呢。
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
+            )}
+          </TableBody>
+        </Table>
+      </ScrollArea>
     </div>
   );
 }

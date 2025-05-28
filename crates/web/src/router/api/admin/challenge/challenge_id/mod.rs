@@ -27,7 +27,7 @@ pub fn router() -> Router {
         .route("/", axum::routing::delete(delete_challenge))
         .route("/env", axum::routing::put(update_challenge_env))
         .route("/checker", axum::routing::put(update_challenge_checker))
-        .nest("/attachment", attachment::router())
+        .nest("/attachments", attachment::router())
 }
 
 pub async fn get_challenge(
