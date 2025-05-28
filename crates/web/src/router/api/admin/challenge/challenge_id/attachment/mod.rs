@@ -1,9 +1,9 @@
+mod filename;
+
 use axum::{
     Router,
-    body::Body,
     extract::{DefaultBodyLimit, Multipart},
-    http::{Response, StatusCode, header},
-    response::IntoResponse,
+    http::StatusCode,
 };
 use serde_json::json;
 
@@ -17,73 +17,45 @@ pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_challenge_attachment))
         .route(
-            "/metadata",
-            axum::routing::get(get_challenge_attachment_metadata),
-        )
-        .route(
             "/",
             axum::routing::post(save_challenge_attachment)
                 .layer(DefaultBodyLimit::max(512 * 1024 * 1024 /* MB */)),
         )
-        .route("/", axum::routing::delete(delete_challenge_attachment))
+        .nest("/{filename}", filename::router())
 }
 
 pub async fn get_challenge_attachment(
     Path(challenge_id): Path<uuid::Uuid>,
-) -> Result<impl IntoResponse, WebError> {
-    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
+) -> Result<WebResponse<Vec<Metadata>>, WebError> {
+    let _ = crate::util::loader::prepare_challenge(challenge_id)
+        .await?
+        .has_attachment
+        .then_some(())
+        .ok_or_else(|| WebError::NotFound(json!("challenge_has_not_attachment")))?;
 
-    if !challenge.has_attachment {
-        return Err(WebError::NotFound(json!("challenge_has_not_attachment")));
-    }
+    let path = crate::util::media::build_challenge_attachment_path(challenge_id);
+    let metadata = cds_media::scan_dir(path.clone())
+        .await?
+        .into_iter()
+        .map(|(filename, size)| Metadata {
+            filename: filename.to_string(),
+            size,
+        })
+        .collect::<Vec<Metadata>>();
 
-    let path = format!("challenges/{}/attachment", challenge_id);
-    match cds_media::scan_dir(path.clone()).await?.first() {
-        Some((filename, _size)) => {
-            let buffer = cds_media::get(path, filename.to_string()).await?;
-            Ok(Response::builder()
-                .header(header::CONTENT_TYPE, "application/octet-stream")
-                .header(
-                    header::CONTENT_DISPOSITION,
-                    format!("attachment; filename=\"{}\"", filename),
-                )
-                .body(Body::from(buffer))
-                .unwrap())
-        }
-        None => Err(WebError::NotFound(json!(""))),
-    }
-}
-
-pub async fn get_challenge_attachment_metadata(
-    Path(challenge_id): Path<uuid::Uuid>,
-) -> Result<WebResponse<Metadata>, WebError> {
-    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
-
-    if !challenge.has_attachment {
-        return Err(WebError::NotFound(json!("challenge_has_not_attachment")));
-    }
-
-    let path = format!("challenges/{}/attachment", challenge_id);
-    match cds_media::scan_dir(path.clone()).await?.first() {
-        Some((filename, size)) => Ok(WebResponse {
-            code: StatusCode::OK,
-            data: Some(Metadata {
-                filename: filename.to_string(),
-                size: *size,
-            }),
-            ..Default::default()
-        }),
-        None => Err(WebError::NotFound(json!(""))),
-    }
+    Ok(WebResponse {
+        data: Some(metadata),
+        ..Default::default()
+    })
 }
 
 pub async fn save_challenge_attachment(
     Path(challenge_id): Path<uuid::Uuid>,
     mut multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
-    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
+    let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
 
-    let path = format!("challenges/{}/attachment", challenge.id);
+    let path = crate::util::media::build_challenge_attachment_path(challenge_id);
     let mut filename = String::new();
     let mut data = Vec::<u8>::new();
     while let Some(field) = multipart.next_field().await.unwrap() {
@@ -98,26 +70,7 @@ pub async fn save_challenge_attachment(
         }
     }
 
-    cds_media::delete_dir(path.clone()).await?;
-
     cds_media::save(path, filename, data)
-        .await
-        .map_err(|_| WebError::InternalServerError(json!("")))?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
-}
-
-pub async fn delete_challenge_attachment(
-    Path(challenge_id): Path<uuid::Uuid>,
-) -> Result<WebResponse<()>, WebError> {
-    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
-
-    let path = format!("challenges/{}/attachment", challenge.id);
-
-    cds_media::delete_dir(path)
         .await
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
