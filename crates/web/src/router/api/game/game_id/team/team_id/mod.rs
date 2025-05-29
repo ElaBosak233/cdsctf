@@ -12,7 +12,7 @@ use serde_json::json;
 use crate::{
     extract::{Extension, Json, Path},
     model::user::UserMini,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -47,7 +47,7 @@ pub struct JoinTeamRequest {
 }
 
 pub async fn join_team(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, team_id)): Path<(i64, i64)>,
     Json(body): Json<JoinTeamRequest>,
 ) -> Result<WebResponse<()>, WebError> {

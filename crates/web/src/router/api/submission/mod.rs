@@ -15,7 +15,7 @@ use serde_json::json;
 use crate::{
     extract::{Extension, Json, Query},
     model::submission::Submission,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -38,7 +38,7 @@ pub struct GetSubmissionRequest {
 }
 
 pub async fn get_submission(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetSubmissionRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -114,7 +114,7 @@ pub struct CreateSubmissionRequest {
 }
 
 pub async fn create_submission(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Json(mut body): Json<CreateSubmissionRequest>,
 ) -> Result<WebResponse<Submission>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

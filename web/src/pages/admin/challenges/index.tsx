@@ -8,6 +8,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
+  EyeIcon,
   HashIcon,
   LibraryIcon,
   ListOrderedIcon,
@@ -66,6 +67,10 @@ export default function Index() {
       id: "category",
       value: "all",
     },
+    {
+      id: "is_public",
+      value: "all",
+    },
   ]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
@@ -90,16 +95,29 @@ export default function Index() {
 
   useEffect(() => {
     setLoading(true);
+
+    const category =
+      (debouncedColumnFilters.find((c) => c.id === "category")
+        ?.value as string) !== "all"
+        ? (debouncedColumnFilters.find((c) => c.id === "category")
+            ?.value as number)
+        : undefined;
+
+    const isPublic =
+      (debouncedColumnFilters.find((c) => c.id === "is_public")
+        ?.value as string) !== "all"
+        ? (debouncedColumnFilters.find((c) => c.id === "is_public")
+            ?.value as string) !== "true"
+          ? false
+          : true
+        : undefined;
+
     getChallenges({
       id: debouncedColumnFilters.find((c) => c.id === "id")?.value as string,
       title: debouncedColumnFilters.find((c) => c.id === "title")
         ?.value as string,
-      category:
-        (debouncedColumnFilters.find((c) => c.id === "category")
-          ?.value as string) !== "all"
-          ? (debouncedColumnFilters.find((c) => c.id === "category")
-              ?.value as number)
-          : undefined,
+      category: category,
+      is_public: isPublic,
       sorts: sorting
         .map((value) => (value.desc ? `-${value.id}` : `${value.id}`))
         .join(","),
@@ -156,7 +174,7 @@ export default function Index() {
             "gap-3",
           ])}
         >
-          <Field size={"sm"} className={cn(["flex-1"])}>
+          <Field size={"sm"} className={cn(["flex-1/6"])}>
             <FieldIcon>
               <HashIcon />
             </FieldIcon>
@@ -168,7 +186,7 @@ export default function Index() {
               }
             />
           </Field>
-          <Field size={"sm"} className={cn(["flex-1/2"])}>
+          <Field size={"sm"} className={cn(["flex-3/6"])}>
             <FieldIcon>
               <TypeIcon />
             </FieldIcon>
@@ -182,7 +200,8 @@ export default function Index() {
               }
             />
           </Field>
-          <Field size={"sm"} className={cn(["flex-1"])}>
+
+          <Field size={"sm"} className={cn(["flex-1/6"])}>
             <FieldIcon>
               <LibraryIcon />
             </FieldIcon>
@@ -219,10 +238,43 @@ export default function Index() {
             />
           </Field>
 
+          <Field size={"sm"} className={cn(["flex-1/6"])}>
+            <FieldIcon>
+              <EyeIcon />
+            </FieldIcon>
+            <Select
+              options={[
+                {
+                  value: "all",
+                  content: "全部",
+                },
+                {
+                  value: "true",
+                  content: "公开",
+                },
+                {
+                  value: "false",
+                  content: "非公开",
+                },
+              ]}
+              onValueChange={(value) =>
+                setColumnFilters((prev) => {
+                  const otherFilters = prev.filter((f) => f.id !== "is_public");
+                  return [...otherFilters, { id: "is_public", value }];
+                })
+              }
+              value={
+                (columnFilters.find((f) => f.id === "is_public")
+                  ?.value as string) ?? "all"
+              }
+            />
+          </Field>
+
           <Button
             icon={<PlusCircleIcon />}
             variant={"solid"}
             onClick={() => setCreateDialogOpen(true)}
+            className={cn(["flex-1/6"])}
           >
             添加题目
           </Button>

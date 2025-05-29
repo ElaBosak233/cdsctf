@@ -14,7 +14,7 @@ use uuid::Uuid;
 use crate::{
     extract::{Extension, Json, Path, Query},
     model::game_challenge::GameChallenge,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 mod challenge_id;
@@ -71,7 +71,7 @@ pub struct CreateGameChallengeRequest {
 }
 
 pub async fn create_game_challenge(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Json(body): Json<CreateGameChallengeRequest>,
 ) -> Result<WebResponse<GameChallenge>, WebError> {

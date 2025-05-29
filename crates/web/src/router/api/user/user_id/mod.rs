@@ -3,7 +3,7 @@ use axum::Router;
 use crate::{
     extract::{Extension, Path},
     model::user::User,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 mod avatar;
@@ -15,7 +15,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_user(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(user_id): Path<i64>,
 ) -> Result<WebResponse<User>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;

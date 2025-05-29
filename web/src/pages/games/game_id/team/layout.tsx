@@ -77,52 +77,55 @@ export default function Layout() {
 
   const [disbandDialogOpen, setDisbandDialogOpen] = useState<boolean>(false);
 
-  function handleDisband() {
+  async function handleDisband() {
     if (!selfTeam?.id || !currentGame?.id) return;
-    deleteTeam({
-      team_id: selfTeam.id!,
-      game_id: currentGame.id!,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success("解散成功", {
-            description: `已解散团队 ${selfTeam?.name}`,
-          });
-          setDisbandDialogOpen(false);
-          navigate(`/games/${currentGame?.id}`);
-        }
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
+    try {
+      const res = await deleteTeam({
+        team_id: selfTeam.id!,
+        game_id: currentGame.id!,
       });
+
+      if (res.code === StatusCodes.OK) {
+        toast.success("解散成功", {
+          description: `已解散团队 ${selfTeam?.name}`,
+        });
+        setDisbandDialogOpen(false);
+        navigate(`/games/${currentGame?.id}`);
+      }
+    } finally {
+      sharedStore.setRefresh();
+    }
   }
 
   const [leaveDialogOpen, setLeaveDialogOpen] = useState<boolean>(false);
 
-  function handleLeave() {
+  async function handleLeave() {
     if (!selfTeam?.id || !currentGame?.id) return;
-    leaveTeam({
-      team_id: selfTeam.id!,
-      game_id: currentGame.id!,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success("离队成功", {
-            description: `已离开团队 ${selfTeam?.name}`,
-          });
-          setDisbandDialogOpen(false);
-          navigate(`/games/${currentGame?.id}`);
-        }
-
-        if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.success("离队失败", {
-            description: res.msg,
-          });
-        }
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
+    try {
+      const res = await leaveTeam({
+        team_id: selfTeam.id!,
+        game_id: currentGame.id!,
       });
+
+      if (res.code === StatusCodes.OK) {
+        toast.success("离队成功", {
+          description: `已离开团队 ${selfTeam?.name}`,
+        });
+        setDisbandDialogOpen(false);
+        navigate(`/games/${currentGame?.id}`);
+      }
+    } catch (error) {
+      if (!(error instanceof HTTPError)) return;
+      const res = await parseErrorResponse(error);
+
+      if (res.code === StatusCodes.BAD_REQUEST) {
+        toast.error("离队失败", {
+          description: res.msg,
+        });
+      }
+    } finally {
+      sharedStore.setRefresh();
+    }
   }
 
   return (

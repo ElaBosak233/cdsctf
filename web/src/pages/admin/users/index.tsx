@@ -166,7 +166,7 @@ export default function Index() {
             "gap-3",
           ])}
         >
-          <Field size={"sm"} className={cn(["flex-1"])}>
+          <Field size={"sm"} className={cn(["flex-1/6"])}>
             <FieldIcon>
               <HashIcon />
             </FieldIcon>
@@ -178,7 +178,7 @@ export default function Index() {
               }
             />
           </Field>
-          <Field size={"sm"} className={cn(["flex-1"])}>
+          <Field size={"sm"} className={cn(["flex-1/6"])}>
             <FieldIcon>
               <TypeIcon />
             </FieldIcon>
@@ -192,7 +192,7 @@ export default function Index() {
               }
             />
           </Field>
-          <Field size={"sm"} className={cn(["flex-1"])}>
+          <Field size={"sm"} className={cn(["flex-2/6"])}>
             <FieldIcon>
               <MailIcon />
             </FieldIcon>
@@ -206,7 +206,7 @@ export default function Index() {
               }
             />
           </Field>
-          <Field size={"sm"} className={cn(["flex-1"])}>
+          <Field size={"sm"} className={cn(["flex-1/6"])}>
             <FieldIcon>
               <UserRoundIcon />
             </FieldIcon>
@@ -233,6 +233,7 @@ export default function Index() {
             icon={<PlusCircle />}
             variant={"solid"}
             onClick={() => setCreateDialogOpen(true)}
+            className={cn(["flex-1/6"])}
           >
             添加用户
           </Button>

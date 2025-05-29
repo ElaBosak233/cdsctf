@@ -7,7 +7,7 @@ use serde_json::json;
 use crate::{
     extract::{Extension, Path},
     model::challenge::Challenge,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -17,7 +17,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_challenge(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

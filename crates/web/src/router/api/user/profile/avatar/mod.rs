@@ -5,7 +5,7 @@ use axum::{
 
 use crate::{
     extract::Extension,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
     util,
 };
 
@@ -20,7 +20,7 @@ pub fn router() -> Router {
 }
 
 pub async fn save_user_avatar(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
@@ -31,7 +31,7 @@ pub async fn save_user_avatar(
 }
 
 pub async fn delete_user_avatar(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 

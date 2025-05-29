@@ -6,7 +6,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
     util,
 };
 
@@ -25,7 +25,7 @@ pub fn router() -> Router {
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
 pub async fn save_team_avatar(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
@@ -38,7 +38,7 @@ pub async fn save_team_avatar(
 
 /// Delete avatar for the team.
 pub async fn delete_team_avatar(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

@@ -7,7 +7,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
     util,
 };
 
@@ -22,7 +22,7 @@ pub fn router() -> Router {
 }
 
 pub async fn save_game_poster(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
@@ -37,7 +37,7 @@ pub async fn save_game_poster(
 }
 
 pub async fn delete_game_poster(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

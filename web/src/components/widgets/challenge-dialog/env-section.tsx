@@ -1,5 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import {
+  ClipboardCheckIcon,
   ClipboardIcon,
   ClockIcon,
   EthernetPortIcon,
@@ -16,13 +17,60 @@ import { renewEnv, stopEnv } from "@/api/envs/env_id";
 import { Button } from "@/components/ui/button";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
+import { useClipboard } from "@/hooks/use-clipboard";
 import { useInterval } from "@/hooks/use-interval";
-import { Env } from "@/models/env";
+import { Port } from "@/models/challenge";
+import { Env, Nat } from "@/models/env";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import { copyToClipboard } from "@/utils/clipboard";
 import { parseErrorResponse } from "@/utils/query";
 import { HTTPError } from "ky";
+
+function PortInfo({ env, port }: { env: Env; port: Port }) {
+  const { isCopied, copyToClipboard } = useClipboard();
+  const url = `${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/envs/${env?.id}/wsrx?port=${port.port}`;
+
+  return (
+    <div className={cn(["flex"])}>
+      <Field size={"sm"} className={cn(["flex-1"])}>
+        <FieldIcon className={cn(["w-fit", "px-4"])}>
+          <EthernetPortIcon />
+          <span
+            className={cn(["text-xs"])}
+          >{`${port.protocol} | ${port.port}`}</span>
+        </FieldIcon>
+        <TextField readOnly value={url} />
+        <FieldButton
+          icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardIcon />}
+          onClick={() => copyToClipboard(url)}
+        />
+      </Field>
+    </div>
+  );
+}
+
+function NatInfo({ env, nat }: { env: Env; nat: Nat }) {
+  const { isCopied, copyToClipboard } = useClipboard();
+  const address = `${env.public_entry}:${nat.node_port}`;
+
+  return (
+    <div className={cn(["flex"])}>
+      <Field size={"sm"} className={cn(["flex-1"])}>
+        <FieldIcon className={cn(["w-fit", "px-4"])}>
+          <EthernetPortIcon />
+          <span
+            className={cn(["text-xs"])}
+          >{`${nat.protocol} | ${nat.port}`}</span>
+        </FieldIcon>
+        <TextField readOnly value={address} />
+        <FieldButton
+          icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardIcon />}
+          onClick={() => copyToClipboard(address)}
+        />
+      </Field>
+    </div>
+  );
+}
 
 function EnvSection() {
   const { challenge, team } = useContext(Context);
@@ -104,7 +152,6 @@ function EnvSection() {
       }
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
-
       const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
@@ -177,57 +224,15 @@ function EnvSection() {
           <div className={cn(["flex-1", "flex", "flex-col", "gap-3"])}>
             {env?.nats?.length ? (
               <>
-                {env?.nats.map((nat) => {
-                  const address = `${env?.public_entry}:${nat.node_port}`;
-
-                  return (
-                    <div className={cn(["flex"])} key={nat.node_port}>
-                      <Field size={"sm"} className={cn(["flex-1"])}>
-                        <FieldIcon className={cn(["w-fit", "px-4"])}>
-                          <EthernetPortIcon />
-                          <span
-                            className={cn(["text-xs"])}
-                          >{`${nat.protocol} | ${nat.port}`}</span>
-                        </FieldIcon>
-                        <TextField readOnly value={address} />
-                        <FieldButton
-                          icon={<ClipboardIcon />}
-                          onClick={() => {
-                            copyToClipboard(address);
-                            toast.success("已复制到剪贴板");
-                          }}
-                        />
-                      </Field>
-                    </div>
-                  );
-                })}
+                {env?.nats.map((nat) => (
+                  <NatInfo nat={nat} env={env} key={nat.node_port} />
+                ))}
               </>
             ) : (
               <>
-                {env?.ports?.map((port) => {
-                  const url = `${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/envs/${env?.id}/wsrx?port=${port.port}`;
-
-                  return (
-                    <div className={cn(["flex"])} key={port.port}>
-                      <Field size={"sm"} className={cn(["flex-1"])}>
-                        <FieldIcon className={cn(["w-fit", "px-4"])}>
-                          <EthernetPortIcon />
-                          <span
-                            className={cn(["text-xs"])}
-                          >{`${port.protocol} | ${port.port}`}</span>
-                        </FieldIcon>
-                        <TextField readOnly value={url} />
-                        <FieldButton
-                          icon={<ClipboardIcon />}
-                          onClick={() => {
-                            copyToClipboard(url);
-                            toast.success("已复制到剪贴板");
-                          }}
-                        />
-                      </Field>
-                    </div>
-                  );
-                })}
+                {env?.ports?.map((port) => (
+                  <PortInfo env={env} port={port} key={port.port} />
+                ))}
               </>
             )}
           </div>

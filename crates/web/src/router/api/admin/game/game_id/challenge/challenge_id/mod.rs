@@ -16,7 +16,7 @@ use uuid::Uuid;
 use crate::{
     extract::{Extension, Json, Path},
     model::game_challenge::GameChallenge,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -43,7 +43,7 @@ pub struct UpdateGameChallengeRequest {
 }
 
 pub async fn update_game_challenge(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, challenge_id)): Path<(i64, Uuid)>,
     Json(body): Json<UpdateGameChallengeRequest>,
 ) -> Result<WebResponse<GameChallenge>, WebError> {
@@ -91,7 +91,7 @@ pub async fn update_game_challenge(
 }
 
 pub async fn delete_game_challenge(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, challenge_id)): Path<(i64, Uuid)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

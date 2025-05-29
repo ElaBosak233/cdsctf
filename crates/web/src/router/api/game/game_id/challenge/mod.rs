@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::{
     extract::{Extension, Path, Query},
     model::game_challenge::GameChallengeMini,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -28,7 +28,7 @@ pub struct GetGameChallengeRequest {
 /// Get challenges by given params.
 /// - Operating time is between related game's `started_at` and `ended_at`.
 pub async fn get_game_challenge(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
 ) -> Result<WebResponse<Vec<GameChallengeMini>>, WebError> {

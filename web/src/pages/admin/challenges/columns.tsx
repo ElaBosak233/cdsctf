@@ -9,6 +9,8 @@ import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
+  EyeClosedIcon,
+  EyeIcon,
   ShipWheelIcon,
   TrashIcon,
   XIcon,
@@ -25,7 +27,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -40,43 +41,6 @@ import { getCategory } from "@/utils/category";
 
 const columns: Array<ColumnDef<Challenge>> = [
   {
-    accessorKey: "is_public",
-    header: "练习",
-    cell: function IsPublicCell({ row }) {
-      const isPublic = row.original.is_public;
-      const title = row.original.title;
-      const id = row.original.id;
-      const [checked, setChecked] = useState(isPublic);
-
-      function handlePublicnessChange() {
-        const newValue = !checked;
-        setChecked(newValue);
-
-        updateChallenge({
-          id,
-          is_public: newValue,
-        }).then((res) => {
-          if (res.code === StatusCodes.OK) {
-            toast.success(
-              `更新题目 ${title} 的公开性: ${newValue ? "公开" : "私有"}`,
-              {
-                id: "publicness_change",
-              }
-            );
-          }
-        });
-      }
-
-      return (
-        <Switch
-          checked={checked}
-          onCheckedChange={handlePublicnessChange}
-          aria-label="公开性开关"
-        />
-      );
-    },
-  },
-  {
     accessorKey: "id",
     id: "id",
     header: "ID",
@@ -84,7 +48,7 @@ const columns: Array<ColumnDef<Challenge>> = [
       const id = row.original.id!;
       const { isCopied, copyToClipboard } = useClipboard();
       return (
-        <div className={cn(["flex", "items-center", "gap-1"])}>
+        <div className={cn(["flex", "items-center", "gap-2"])}>
           <Badge className={cn(["font-mono"])}>{id?.split("-")?.[0]}</Badge>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -131,21 +95,6 @@ const columns: Array<ColumnDef<Challenge>> = [
             />
           )}
         </div>
-      );
-    },
-  },
-  {
-    accessorKey: "description",
-    header: "描述",
-    cell: ({ row }) => {
-      const description = row.original.description;
-
-      if (!description) return "-";
-
-      return description.length > 10 ? (
-        <ContentDialog title="详细描述" content={description} />
-      ) : (
-        description
       );
     },
   },
@@ -227,7 +176,7 @@ const columns: Array<ColumnDef<Challenge>> = [
 
       return (
         <div className={cn(["flex", "gap-1", "items-center"])}>
-          更新时间
+          更新于
           <Button
             icon={icon}
             square
@@ -258,7 +207,7 @@ const columns: Array<ColumnDef<Challenge>> = [
 
       return (
         <div className={cn(["flex", "gap-1", "items-center"])}>
-          创建时间
+          创建于
           <Button
             icon={icon}
             square
@@ -277,24 +226,46 @@ const columns: Array<ColumnDef<Challenge>> = [
     cell: function ActionsCell({ row }) {
       const id = row.original.id;
       const title = row.original.title;
+      const isPublic = row.original.is_public;
 
       const sharedStore = useSharedStore();
 
       const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-      function handleDelete() {
-        deleteChallenge({
+      const [checked, setChecked] = useState(isPublic);
+
+      async function handlePublicnessChange() {
+        const newValue = !checked;
+        setChecked(newValue);
+
+        const res = await updateChallenge({
           id,
-        })
-          .then((res) => {
-            if (res.code === StatusCodes.OK) {
-              toast.success(`题目 ${title} 删除成功`);
-              setDeleteDialogOpen(false);
+          is_public: newValue,
+        });
+
+        if (res.code === StatusCodes.OK) {
+          toast.success(
+            `更新题目 ${title} 的公开性: ${newValue ? "公开" : "私有"}`,
+            {
+              id: "publicness_change",
             }
-          })
-          .finally(() => {
-            sharedStore?.setRefresh();
+          );
+        }
+      }
+
+      async function handleDelete() {
+        try {
+          const res = await deleteChallenge({
+            id,
           });
+
+          if (res.code === StatusCodes.OK) {
+            toast.success(`题目 ${title} 删除成功`);
+            setDeleteDialogOpen(false);
+          }
+        } finally {
+          sharedStore?.setRefresh();
+        }
       }
 
       return (
@@ -310,6 +281,21 @@ const columns: Array<ColumnDef<Challenge>> = [
           >
             <Link to={`/admin/challenges/${id}`} />
           </Button>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                level={checked ? "warning" : "success"}
+                variant={"ghost"}
+                size={"sm"}
+                square
+                icon={checked ? <EyeClosedIcon /> : <EyeIcon />}
+                onClick={handlePublicnessChange}
+              />
+            </TooltipTrigger>
+            <TooltipContent>{checked ? "隐藏" : "公开"}</TooltipContent>
+          </Tooltip>
+
           <Button
             level={"error"}
             variant={"ghost"}

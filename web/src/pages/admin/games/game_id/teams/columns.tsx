@@ -32,7 +32,7 @@ const columns: Array<ColumnDef<Team>> = [
       const id = row.original.id;
       const { isCopied, copyToClipboard } = useClipboard();
       return (
-        <div className={cn(["flex", "items-center", "gap-1"])}>
+        <div className={cn(["flex", "items-center", "gap-2"])}>
           <Badge>{id}</Badge>
           <Tooltip>
             <TooltipTrigger asChild>

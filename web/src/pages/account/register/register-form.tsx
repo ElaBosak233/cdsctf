@@ -108,8 +108,9 @@ function RegisterForm() {
           description: "用户名或邮箱重复",
         });
       }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (

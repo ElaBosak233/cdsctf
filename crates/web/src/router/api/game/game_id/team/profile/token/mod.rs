@@ -4,7 +4,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -16,7 +16,7 @@ pub fn router() -> Router {
 
 /// Create an invitation token.
 pub async fn create_token(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -33,7 +33,7 @@ pub async fn create_token(
 
 /// Get invitation token.
 pub async fn get_token(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -48,7 +48,7 @@ pub async fn get_token(
 
 /// Delete invitation token.
 pub async fn delete_token(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<String>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

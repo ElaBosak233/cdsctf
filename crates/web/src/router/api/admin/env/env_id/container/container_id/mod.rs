@@ -5,7 +5,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Path, Query},
-    traits::{Ext, WebError},
+    traits::{AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router {
@@ -18,7 +18,7 @@ pub struct GetShellRequest {
 }
 
 pub async fn get_shell(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path((pod_id, container_id)): Path<(String, String)>,
     Query(params): Query<GetShellRequest>,
     ws: WebSocketUpgrade,

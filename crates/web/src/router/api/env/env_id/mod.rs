@@ -6,7 +6,7 @@ use tracing::debug;
 
 use crate::{
     extract::{Extension, Path, Query},
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -17,7 +17,7 @@ pub fn router() -> Router {
 }
 
 pub async fn renew_pod(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(pod_id): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -84,7 +84,7 @@ pub async fn renew_pod(
 }
 
 pub async fn stop_pod(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(pod_id): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

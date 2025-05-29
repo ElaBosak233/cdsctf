@@ -26,7 +26,7 @@ use validator::Validate;
 use crate::{
     extract::{Extension, Json},
     model::user::User,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
     util::jwt,
 };
 
@@ -48,7 +48,7 @@ pub struct UserLoginRequest {
 }
 
 pub async fn user_login(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Json(mut body): Json<UserLoginRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     if !cds_captcha::check(&cds_captcha::Answer {
@@ -131,7 +131,7 @@ pub struct UserRegisterRequest {
 }
 
 pub async fn user_register(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Json(mut body): Json<UserRegisterRequest>,
 ) -> Result<WebResponse<User>, WebError> {
     if !cds_db::get_config().await.auth.is_registration_enabled {
@@ -189,7 +189,9 @@ pub async fn user_register(
     })
 }
 
-pub async fn user_logout(Extension(ext): Extension<Ext>) -> Result<impl IntoResponse, WebError> {
+pub async fn user_logout(
+    Extension(ext): Extension<AuthPrincipal>,
+) -> Result<impl IntoResponse, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     let mut headers = HeaderMap::new();

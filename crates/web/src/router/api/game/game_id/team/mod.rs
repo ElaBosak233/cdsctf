@@ -13,7 +13,7 @@ use serde_json::json;
 use crate::{
     extract::{Extension, Json, Path},
     model::team::Team,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -36,7 +36,7 @@ pub struct TeamRegisterRequest {
 /// # Prerequisite
 /// - No user in the team is already in the game.
 pub async fn team_register(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Json(body): Json<TeamRegisterRequest>,
 ) -> Result<WebResponse<Team>, WebError> {

@@ -10,6 +10,8 @@ import { Field } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
+import { parseErrorResponse } from "@/utils/query";
+import { HTTPError } from "ky";
 
 interface EmailVerifyDialogProps {
   onClose: () => void;
@@ -21,24 +23,30 @@ function EmailVerifyDialog(props: EmailVerifyDialogProps) {
 
   const [code, setCode] = useState<string>("");
 
-  function handleSendVerifyEmail() {
-    sendVerifyEmail().then((res) => {
+  async function handleSendVerifyEmail() {
+    try {
+      const res = await sendVerifyEmail();
       if (res.code === StatusCodes.OK) {
         toast.success("验证码已发送，请查收");
       }
+    } catch (error) {
+      if (!(error instanceof HTTPError)) return;
+      const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
         toast.error("发生错误", {
           description: res.msg,
         });
       }
-    });
+    }
   }
 
-  function handleVerify() {
-    verify({
-      code,
-    }).then((res) => {
+  async function handleVerify() {
+    try {
+      const res = await verify({
+        code,
+      });
+
       if (res.code === StatusCodes.OK) {
         toast.success("验证成功！");
         authStore.setUser({
@@ -47,13 +55,16 @@ function EmailVerifyDialog(props: EmailVerifyDialogProps) {
         });
         onClose();
       }
+    } catch (error) {
+      if (!(error instanceof HTTPError)) return;
+      const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
         toast.error("发生错误", {
           description: res.msg,
         });
       }
-    });
+    }
   }
 
   return (
