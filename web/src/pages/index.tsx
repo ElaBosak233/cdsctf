@@ -1,4 +1,4 @@
-import { InfoIcon } from "lucide-react";
+import { FlagIcon, InfoIcon } from "lucide-react";
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,8 @@ export default function () {
         >
           <Image
             src={"/api/configs/logo"}
-            className={cn(["drop-shadow-md", "aspect-square", "h-[8rem]"])}
+            fallback={<FlagIcon className={cn("size-16", "rotate-15")} />}
+            className={cn(["drop-shadow-md", "aspect-square", "h-32"])}
             alt={"logo"}
           />
           <h1
