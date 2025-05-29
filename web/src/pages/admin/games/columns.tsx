@@ -8,6 +8,8 @@ import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
+  EyeClosedIcon,
+  EyeIcon,
   TrashIcon,
   XIcon,
 } from "lucide-react";
@@ -20,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -34,44 +35,6 @@ import { cn } from "@/utils";
 
 const columns: Array<ColumnDef<Game>> = [
   {
-    accessorKey: "is_enabled",
-    id: "is_enabled",
-    header: "启用",
-    cell: function IsEnabled({ row }) {
-      const isEnabled = row.original.is_enabled;
-      const title = row.original.title;
-      const id = row.original.id;
-      const [checked, setChecked] = useState(isEnabled);
-
-      function handlePublicnessChange() {
-        const newValue = !checked;
-        setChecked(newValue);
-
-        updateGame({
-          id,
-          is_enabled: newValue,
-        }).then((res) => {
-          if (res.code === StatusCodes.OK) {
-            toast.success(
-              `更新比赛 ${title} 的可见性: ${newValue ? "可见" : "不可见"}`,
-              {
-                id: "enablement_change",
-              }
-            );
-          }
-        });
-      }
-
-      return (
-        <Switch
-          checked={checked}
-          onCheckedChange={handlePublicnessChange}
-          aria-label="启用性开关"
-        />
-      );
-    },
-  },
-  {
     accessorKey: "id",
     id: "id",
     header: "ID",
@@ -79,7 +42,7 @@ const columns: Array<ColumnDef<Game>> = [
       const id = row.original.id;
       const { isCopied, copyToClipboard } = useClipboard();
       return (
-        <div className={cn(["flex", "items-center", "gap-1"])}>
+        <div className={cn(["flex", "items-center", "gap-2"])}>
           <Badge className={cn(["font-mono"])}>{id}</Badge>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -210,19 +173,41 @@ const columns: Array<ColumnDef<Game>> = [
 
       const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-      function handleDelete() {
-        deleteGame({
+      const isEnabled = row.original.is_enabled;
+      const [checked, setChecked] = useState(isEnabled);
+
+      async function handlePublicnessChange() {
+        const newValue = !checked;
+        setChecked(newValue);
+
+        const res = await updateGame({
           id,
-        })
-          .then((res) => {
-            if (res.code === StatusCodes.OK) {
-              toast.success(`比赛 ${title} 删除成功`);
-              setDeleteDialogOpen(false);
+          is_enabled: newValue,
+        });
+
+        if (res.code === StatusCodes.OK) {
+          toast.success(
+            `更新比赛 ${title} 的可见性: ${newValue ? "可见" : "不可见"}`,
+            {
+              id: "enablement_change",
             }
-          })
-          .finally(() => {
-            sharedStore?.setRefresh();
+          );
+        }
+      }
+
+      async function handleDelete() {
+        try {
+          const res = await deleteGame({
+            id,
           });
+
+          if (res.code === StatusCodes.OK) {
+            toast.success(`比赛 ${title} 删除成功`);
+            setDeleteDialogOpen(false);
+          }
+        } finally {
+          sharedStore?.setRefresh();
+        }
       }
 
       return (
@@ -238,6 +223,21 @@ const columns: Array<ColumnDef<Game>> = [
           >
             <Link to={`/admin/games/${id}`} />
           </Button>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                level={checked ? "warning" : "success"}
+                variant={"ghost"}
+                size={"sm"}
+                square
+                icon={checked ? <EyeClosedIcon /> : <EyeIcon />}
+                onClick={handlePublicnessChange}
+              />
+            </TooltipTrigger>
+            <TooltipContent>{checked ? "隐藏" : "公开"}</TooltipContent>
+          </Tooltip>
+
           <Button
             level={"error"}
             variant={"ghost"}

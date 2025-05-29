@@ -76,7 +76,9 @@ function ChallengeCard(props: ChallengeCardProps) {
               color={category?.color}
             />
           </TooltipTrigger>
-          <TooltipContent sideOffset={0}>已解决</TooltipContent>
+          <TooltipContent onClick={(e) => e.stopPropagation()} sideOffset={0}>
+            已解决
+          </TooltipContent>
         </Tooltip>
       )}
       <Badge
@@ -116,7 +118,15 @@ function ChallengeCard(props: ChallengeCardProps) {
           {!!status?.solved_times && (
             <TooltipContent
               side={"bottom"}
-              className={cn(["flex", "flex-col", "gap-2", "p-4", "rounded-lg"])}
+              className={cn([
+                "flex",
+                "flex-col",
+                "gap-2",
+                "px-4",
+                "py-2.5",
+                "rounded-lg",
+              ])}
+              onClick={(e) => e.stopPropagation()}
             >
               {status?.bloods?.map((blood, index) => (
                 <div

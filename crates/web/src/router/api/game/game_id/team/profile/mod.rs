@@ -18,7 +18,7 @@ use serde_json::json;
 use crate::{
     extract::{Extension, Json, Path},
     model::team::Team,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -33,7 +33,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_team(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -55,7 +55,7 @@ pub struct UpdateTeamRequest {
 
 /// Update a team with given path and data.
 pub async fn update_team(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Json(body): Json<UpdateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
@@ -87,7 +87,7 @@ pub async fn update_team(
 }
 
 pub async fn delete_team(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -119,7 +119,7 @@ pub async fn delete_team(
 /// # Prerequisite
 /// - Operator is admin or one of the members of current team.
 pub async fn set_team_ready(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

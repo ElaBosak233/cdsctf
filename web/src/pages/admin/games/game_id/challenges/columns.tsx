@@ -158,9 +158,6 @@ const columns: Array<ColumnDef<GameChallenge>> = [
         <div
           className={cn(["flex", "items-center", "justify-center", "gap-2"])}
         >
-          <Button icon={<EditIcon />} square size={"sm"} asChild>
-            <Link to={`/admin/challenges/${row.original.challenge_id}`} />
-          </Button>
           <Button
             variant={"ghost"}
             size={"sm"}
@@ -176,6 +173,9 @@ const columns: Array<ColumnDef<GameChallenge>> = [
               />
             </DialogContent>
           </Dialog>
+          <Button icon={<EditIcon />} square size={"sm"} asChild>
+            <Link to={`/admin/challenges/${row.original.challenge_id}`} />
+          </Button>
           <Button
             level={"error"}
             variant={"ghost"}

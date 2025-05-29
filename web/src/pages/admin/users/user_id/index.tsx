@@ -40,9 +40,12 @@ import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { useParams } from "react-router";
 
 export default function Index() {
   const { user } = useContext(Context);
+  const { user_id } = useParams<{ user_id: string }>();
+
   const sharedStore = useSharedStore();
   const [loading, setLoading] = useState<boolean>(false);
   const [refresh, setRefresh] = useState<number>(0);
@@ -186,7 +189,7 @@ export default function Index() {
             >
               <Avatar
                 className={cn(["h-30", "w-30"])}
-                src={`/api/users/${user?.id}/avatar?refresh=${refresh}`}
+                src={`/api/users/${user_id}/avatar?refresh=${refresh}`}
                 fallback={user?.username?.charAt(0)}
               />
             </DropzoneTrigger>

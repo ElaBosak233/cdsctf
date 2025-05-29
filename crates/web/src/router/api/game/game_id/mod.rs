@@ -19,7 +19,7 @@ use serde_json::json;
 use crate::{
     extract::{Extension, Path, Query},
     model::{game::Game, submission::Submission, team::Team},
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -34,7 +34,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_game(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Game>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

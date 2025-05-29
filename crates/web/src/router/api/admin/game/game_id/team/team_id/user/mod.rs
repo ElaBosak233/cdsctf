@@ -9,7 +9,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Path},
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -30,7 +30,7 @@ pub struct CreateTeamUserRequest {
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn create_team_user(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, team_id)): Path<(i64, i64)>,
     Json(body): Json<CreateTeamUserRequest>,
 ) -> Result<WebResponse<()>, WebError> {
@@ -70,7 +70,7 @@ pub async fn create_team_user(
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn delete_team_user(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, team_id, user_id)): Path<(i64, i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

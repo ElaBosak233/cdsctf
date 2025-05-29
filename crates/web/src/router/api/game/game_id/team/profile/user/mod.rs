@@ -8,7 +8,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -16,7 +16,7 @@ pub fn router() -> Router {
 }
 
 pub async fn leave_team(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

@@ -48,7 +48,7 @@ const columns: Array<ColumnDef<User>> = [
         : idString;
 
       return (
-        <div className={cn(["flex", "items-center", "gap-1"])}>
+        <div className={cn(["flex", "items-center", "gap-2"])}>
           <Badge className={cn(["font-mono"])}>{displayId}</Badge>
           <Tooltip>
             <TooltipTrigger asChild>

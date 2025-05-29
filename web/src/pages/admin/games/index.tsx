@@ -132,7 +132,7 @@ export default function Index() {
             "gap-3",
           ])}
         >
-          <Field size={"sm"} className={cn(["flex-1"])}>
+          <Field size={"sm"} className={cn(["flex-1/6"])}>
             <FieldIcon>
               <HashIcon />
             </FieldIcon>
@@ -144,7 +144,7 @@ export default function Index() {
               }
             />
           </Field>
-          <Field size={"sm"} className={cn(["flex-1"])}>
+          <Field size={"sm"} className={cn(["flex-5/6"])}>
             <FieldIcon>
               <TypeIcon />
             </FieldIcon>
@@ -162,6 +162,7 @@ export default function Index() {
             icon={<PlusCircleIcon />}
             variant={"solid"}
             onClick={() => setCreateDialogOpen(true)}
+            className={cn(["flex-1/6"])}
           >
             添加比赛
           </Button>
@@ -212,7 +213,7 @@ export default function Index() {
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
-                  key={row.getValue("id")}
+                  key={row.original.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -231,7 +232,7 @@ export default function Index() {
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      className="h-24 text-center"
+                      className={cn(["h-24", "text-center"])}
                     >
                       哎呀，好像还没有比赛呢。
                     </TableCell>
@@ -242,8 +243,17 @@ export default function Index() {
           </TableBody>
         </Table>
       </ScrollArea>
-      <div className="flex items-center justify-between space-x-2 py-4 px-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+      <div
+        className={cn([
+          "flex",
+          "items-center",
+          "justify-between",
+          "space-x-2",
+          "py-4",
+          "px-4",
+        ])}
+      >
+        <div className={cn(["flex-1", "text-sm", "text-muted-foreground"])}>
           {table.getFilteredRowModel().rows.length} / {total}
         </div>
         <div className={cn(["flex", "items-center", "gap-5"])}>

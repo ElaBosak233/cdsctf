@@ -4,7 +4,7 @@ use cds_db::{
     get_db,
     sea_orm::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, NotSet, PaginatorTrait,
-        QueryFilter, QuerySelect,
+        QueryFilter,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,7 @@ use uuid::Uuid;
 use crate::{
     extract::{Extension, Json, Path, Query},
     model::game_challenge::GameChallenge,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 mod challenge_id;
@@ -31,9 +31,6 @@ pub struct GetGameChallengeRequest {
     pub game_id: Option<i64>,
     pub challenge_id: Option<Uuid>,
     pub category: Option<i32>,
-
-    pub page: Option<u64>,
-    pub size: Option<u64>,
 }
 
 /// Get challenges by given params.
@@ -54,19 +51,10 @@ pub async fn get_game_challenge(
         sql = sql.filter(cds_db::entity::challenge::Column::Category.eq(category));
     }
 
-    let total = sql.clone().count(get_db()).await?;
-
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
-
     let game_challenges = sql.into_model::<GameChallenge>().all(get_db()).await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK,
         data: Some(game_challenges),
-        total: Some(total),
         ..Default::default()
     })
 }
@@ -83,7 +71,7 @@ pub struct CreateGameChallengeRequest {
 }
 
 pub async fn create_game_challenge(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Json(body): Json<CreateGameChallengeRequest>,
 ) -> Result<WebResponse<GameChallenge>, WebError> {

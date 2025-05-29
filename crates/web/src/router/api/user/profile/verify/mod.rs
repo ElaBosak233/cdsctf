@@ -12,7 +12,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Json},
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -27,7 +27,7 @@ pub struct UserVerifyRequest {
 }
 
 pub async fn user_verify(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<UserVerifyRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
@@ -60,7 +60,7 @@ pub async fn user_verify(
 }
 
 pub async fn send_verify_email(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     if !cds_db::get_config().await.email.is_enabled {

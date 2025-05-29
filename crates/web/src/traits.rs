@@ -11,7 +11,7 @@ use thiserror::Error;
 use tracing::error;
 
 #[derive(Clone, Debug, Default)]
-pub struct Ext {
+pub struct AuthPrincipal {
     pub operator: Option<cds_db::entity::user::Model>,
     pub client_ip: String,
 }

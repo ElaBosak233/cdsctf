@@ -10,7 +10,7 @@ use serde_json::json;
 use tower_governor::{GovernorError, key_extractor::KeyExtractor};
 
 use crate::{
-    traits::{Ext, WebError},
+    traits::{AuthPrincipal, WebError},
     util::network::get_client_ip,
 };
 
@@ -29,8 +29,8 @@ impl KeyExtractor for GovernorKeyExtractor {
 pub async fn ip_record(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
     let mut ext = req
         .extensions()
-        .get::<Ext>()
-        .unwrap_or(&Ext::default())
+        .get::<AuthPrincipal>()
+        .unwrap_or(&AuthPrincipal::default())
         .to_owned();
 
     let client_ip = get_client_ip(&req);

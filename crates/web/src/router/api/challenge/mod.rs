@@ -2,7 +2,7 @@ mod challenge_id;
 
 use std::{collections::HashMap, str::FromStr};
 
-use axum::{Router, http::StatusCode};
+use axum::Router;
 use cds_db::{
     entity::submission::Status,
     get_db,
@@ -17,7 +17,7 @@ use serde_json::json;
 use crate::{
     extract::{Extension, Json, Query},
     model::{challenge::ChallengeMini, submission::Submission},
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -39,7 +39,7 @@ pub struct GetChallengeRequest {
 }
 
 pub async fn get_challenge(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<ChallengeMini>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -123,10 +123,14 @@ pub struct ChallengeStatusResponse {
 }
 
 pub async fn get_challenge_status(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<GetChallengeStatusRequest>,
 ) -> Result<WebResponse<HashMap<uuid::Uuid, ChallengeStatusResponse>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    if body.user_id.is_some() && (body.team_id.is_some() || body.game_id.is_some()) {
+        return Err(WebError::BadRequest(json!("either_user_or_team")));
+    }
 
     let mut submissions = cds_db::entity::submission::Entity::base_find()
         .filter(
@@ -139,47 +143,42 @@ pub async fn get_challenge_status(
 
     let mut result: HashMap<uuid::Uuid, ChallengeStatusResponse> = HashMap::new();
 
-    for challenge_id in body.challenge_ids {
-        result
-            .entry(challenge_id)
-            .or_insert_with(|| ChallengeStatusResponse {
+    for challenge_id in body.challenge_ids.iter() {
+        result.insert(
+            *challenge_id,
+            ChallengeStatusResponse {
                 is_solved: false,
                 solved_times: 0,
                 pts: 0,
                 bloods: Vec::new(),
-            });
+            },
+        );
     }
 
     for submission in submissions.iter_mut() {
         *submission = submission.desensitize();
 
-        if body.game_id.is_some() {
-            if submission.game_id != body.game_id {
-                continue;
-            }
-        }
+        let valid = if let Some(user_id) = body.user_id {
+            submission.user_id == user_id
+                && submission.team_id.is_none()
+                && submission.game_id.is_none()
+        } else if let (Some(team_id), Some(game_id)) = (body.team_id, body.game_id) {
+            submission.team_id == Some(team_id) && submission.game_id == Some(game_id)
+        } else {
+            false
+        };
 
-        if submission.status != Status::Correct {
+        if !valid || submission.status != Status::Correct {
             continue;
         }
 
-        let status_response = result.get_mut(&submission.challenge_id).unwrap();
+        if let Some(status_response) = result.get_mut(&submission.challenge_id) {
+            status_response.is_solved = true;
+            status_response.solved_times += 1;
 
-        if let Some(user_id) = body.user_id {
-            if submission.user_id == user_id {
-                status_response.is_solved = true;
+            if status_response.bloods.len() < 3 {
+                status_response.bloods.push(submission.clone());
             }
-        }
-
-        if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
-            if submission.team_id == Some(team_id) && submission.game_id == Some(game_id) {
-                status_response.is_solved = true;
-            }
-        }
-
-        status_response.solved_times += 1;
-        if status_response.bloods.len() < 3 {
-            status_response.bloods.push(submission.clone());
         }
     }
 
@@ -197,7 +196,6 @@ pub async fn get_challenge_status(
     }
 
     Ok(WebResponse {
-        code: StatusCode::OK,
         data: Some(result),
         ..Default::default()
     })

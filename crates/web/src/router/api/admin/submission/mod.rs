@@ -10,7 +10,7 @@ use serde_json::json;
 use crate::{
     extract::{Extension, Path, Query},
     model::submission::Submission,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -79,7 +79,7 @@ pub async fn get_submissions(
 }
 
 pub async fn delete_submission(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(submission_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

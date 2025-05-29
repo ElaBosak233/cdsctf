@@ -8,7 +8,7 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
-    traits::{Ext, WebError},
+    traits::{AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router {
@@ -16,7 +16,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_attachment(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path((challenge_id, filename)): Path<(uuid::Uuid, String)>,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;

@@ -15,14 +15,14 @@ use serde_json::json;
 
 use crate::{
     extract::Extension,
-    traits::{Ext, WebError},
+    traits::{AuthPrincipal, WebError},
 };
 
 pub async fn extract(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
     let mut ext = req
         .extensions()
-        .get::<Ext>()
-        .unwrap_or(&Ext::default())
+        .get::<AuthPrincipal>()
+        .unwrap_or(&AuthPrincipal::default())
         .to_owned();
 
     let cookies = req
@@ -59,7 +59,7 @@ pub async fn extract(mut req: Request<Body>, next: Next) -> Result<Response, Web
                 return Err(WebError::Forbidden(json!("forbidden")));
             }
 
-            ext.operator = Some(user);
+            ext.operator = Some(user.clone());
         }
     }
 
@@ -69,13 +69,11 @@ pub async fn extract(mut req: Request<Body>, next: Next) -> Result<Response, Web
 }
 
 pub async fn admin_only(
-    Extension(ext): Extension<Ext>,
+    Extension(ap): Extension<AuthPrincipal>,
     req: Request,
     next: Next,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
-    if operator.group != Group::Admin {
+    if ap.operator.ok_or(WebError::Unauthorized(json!("")))?.group < Group::Admin {
         return Err(WebError::Forbidden(json!("forbidden")));
     }
 

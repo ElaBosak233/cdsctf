@@ -20,15 +20,15 @@ export default function Layout() {
   const [user, setUser] = useState<User>();
 
   useEffect(() => {
-    if (user_id) {
-      getUsers({
-        id: Number(user_id),
-      }).then((res) => {
-        if (res.code === StatusCodes.OK) {
-          setUser(res?.data?.[0]);
-        }
-      });
-    }
+    if (!user_id) return;
+
+    getUsers({
+      id: Number(user_id),
+    }).then((res) => {
+      if (res.code === StatusCodes.OK) {
+        setUser(res?.data?.[0]);
+      }
+    });
   }, [user_id, sharedStore?.refresh]);
 
   const options = useMemo(() => {
@@ -84,19 +84,17 @@ export default function Layout() {
             用户编辑
           </div>
           <Card className={cn(["flex", "flex-col", "p-5", "gap-3"])}>
-            {options?.map((option, index) => {
-              return (
-                <Button
-                  key={index}
-                  icon={option?.icon}
-                  variant={pathname === option?.link ? "tonal" : "ghost"}
-                  className={cn(["justify-start"])}
-                  asChild
-                >
-                  <Link to={option?.link}>{option?.name}</Link>
-                </Button>
-              );
-            })}
+            {options?.map((option, index) => (
+              <Button
+                key={index}
+                icon={option?.icon}
+                variant={pathname === option?.link ? "tonal" : "ghost"}
+                className={cn(["justify-start"])}
+                asChild
+              >
+                <Link to={option?.link}>{option?.name}</Link>
+              </Button>
+            ))}
           </Card>
         </div>
         <Card

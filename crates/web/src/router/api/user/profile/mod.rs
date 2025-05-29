@@ -21,7 +21,7 @@ use validator::Validate;
 use crate::{
     extract::{Extension, Json},
     model::user::User,
-    traits::{Ext, WebError, WebResponse},
+    traits::{AuthPrincipal, WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -38,7 +38,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_user_profile(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
@@ -60,7 +60,7 @@ pub struct UpdateUserProfileRequest {
 }
 
 pub async fn update_user_profile(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Json(mut body): Json<UpdateUserProfileRequest>,
 ) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
@@ -115,7 +115,7 @@ pub struct DeleteUserProfileRequest {
 }
 
 pub async fn delete_user_profile(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<DeleteUserProfileRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
@@ -164,7 +164,7 @@ pub struct UpdateUserProfilePasswordRequest {
 }
 
 pub async fn update_user_profile_password(
-    Extension(ext): Extension<Ext>,
+    Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<UpdateUserProfilePasswordRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
