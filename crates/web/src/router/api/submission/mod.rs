@@ -94,7 +94,13 @@ pub async fn get_submission(
     let offset = (page - 1) * size;
     sql = sql.offset(offset).limit(size);
 
-    let submissions = sql.into_model::<Submission>().all(get_db()).await?;
+    let submissions = sql
+        .into_model::<Submission>()
+        .all(get_db())
+        .await?
+        .into_iter()
+        .map(|submission| submission.desensitize())
+        .collect::<Vec<Submission>>();
 
     Ok(WebResponse {
         code: StatusCode::OK,

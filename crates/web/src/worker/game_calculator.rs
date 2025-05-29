@@ -1,11 +1,13 @@
 //! calculator module is used to calculate the pts and rank of submissions,
 //! teams and game_challenges
 
+use std::collections::HashMap;
+
 use cds_db::{
     entity::{submission::Status, team::State},
     get_db,
     sea_orm::{
-        ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter,
+        ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, Order, QueryFilter,
         QueryOrder, Set,
     },
 };
@@ -20,38 +22,34 @@ pub struct Payload {
 
 pub async fn calculate(game_id: i64) {
     let submissions = cds_db::entity::submission::Entity::find()
-        .filter(
-            Condition::all()
-                .add(cds_db::entity::submission::Column::GameId.eq(game_id))
-                .add(cds_db::entity::submission::Column::Status.eq(Status::Correct)),
-        )
+        .filter(cds_db::entity::submission::Column::GameId.eq(game_id))
+        .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
+        .order_by(cds_db::entity::submission::Column::CreatedAt, Order::Asc)
         .all(get_db())
         .await
         .unwrap();
 
     let game_challenges = cds_db::entity::game_challenge::Entity::find()
-        .filter(Condition::all().add(cds_db::entity::game_challenge::Column::GameId.eq(game_id)))
+        .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
         .all(get_db())
         .await
         .unwrap();
 
     for game_challenge in game_challenges {
-        let mut submissions = submissions
+        let challenge_submissions = submissions
             .clone()
             .into_iter()
             .filter(|submission| submission.challenge_id == game_challenge.challenge_id)
             .collect::<Vec<_>>();
 
-        submissions.sort_by_key(|submission| submission.created_at);
-
         let base_pts = crate::util::math::curve(
             game_challenge.max_pts,
             game_challenge.min_pts,
             game_challenge.difficulty,
-            submissions.len() as i64,
+            challenge_submissions.len() as i64,
         );
 
-        for (rank, submission) in submissions.iter().enumerate() {
+        for (rank, submission) in challenge_submissions.iter().enumerate() {
             let mut submission = submission.clone().into_active_model();
             submission.pts =
                 Set(base_pts * (100 + game_challenge.bonus_ratios.get(rank).unwrap_or(&0)) / 100);
@@ -73,54 +71,43 @@ pub async fn calculate(game_id: i64) {
 
     // calculate pts rank for each team
     let submissions = cds_db::entity::submission::Entity::find()
-        .filter(
-            Condition::all()
-                .add(cds_db::entity::submission::Column::GameId.eq(game_id))
-                .add(cds_db::entity::submission::Column::Status.eq(Status::Correct)),
-        )
+        .filter(cds_db::entity::submission::Column::GameId.eq(game_id))
+        .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
+        .order_by(cds_db::entity::submission::Column::CreatedAt, Order::Asc)
         .all(get_db())
         .await
         .unwrap();
 
-    let teams = cds_db::entity::team::Entity::find()
-        .filter(
-            Condition::all()
-                .add(cds_db::entity::team::Column::GameId.eq(game_id))
-                .add(cds_db::entity::team::Column::State.eq(State::Passed)),
-        )
+    let mut teams = cds_db::entity::team::Entity::find()
+        .filter(cds_db::entity::team::Column::GameId.eq(game_id))
+        .filter(cds_db::entity::team::Column::State.eq(State::Passed))
         .all(get_db())
         .await
         .unwrap();
 
-    for team in teams {
-        let mut submissions = submissions
-            .clone()
-            .into_iter()
-            .filter(|submission| submission.team_id == Some(team.id))
-            .collect::<Vec<_>>();
-
-        submissions.sort_by_key(|submission| submission.created_at);
-        let mut team = team.into_active_model();
-        team.pts = Set(submissions.iter().map(|s| s.pts).sum());
-        team.update(get_db()).await.unwrap();
+    let mut team_score_map: HashMap<i64, (i64, Option<i64>)> = HashMap::new();
+    for submission in &submissions {
+        if let Some(team_id) = submission.team_id {
+            let entry = team_score_map.entry(team_id).or_insert((0, None));
+            entry.0 += submission.pts;
+            entry.1 = Some(submission.created_at);
+        }
     }
 
-    // calculate rank for each team
-    let teams = cds_db::entity::team::Entity::find()
-        .filter(
-            Condition::all()
-                .add(cds_db::entity::team::Column::GameId.eq(game_id))
-                .add(cds_db::entity::team::Column::State.eq(State::Passed)),
-        )
-        .order_by_desc(cds_db::entity::team::Column::Pts)
-        .all(get_db())
-        .await
-        .unwrap();
+    teams.sort_by(|a, b| {
+        let (a_pts, a_time) = team_score_map.get(&a.id).unwrap_or(&(0, None));
+        let (b_pts, b_time) = team_score_map.get(&b.id).unwrap_or(&(0, None));
+
+        b_pts.cmp(a_pts).then_with(|| a_time.cmp(b_time))
+    });
 
     for (i, team) in teams.into_iter().enumerate() {
-        let mut team = team.into_active_model();
-        team.rank = Set(i as i64 + 1);
-        team.update(get_db()).await.unwrap();
+        let mut team_model = team.clone().into_active_model();
+        if let Some((pts, _)) = team_score_map.get(&team.id) {
+            team_model.pts = Set(*pts);
+        }
+        team_model.rank = Set(i as i64 + 1);
+        team_model.update(get_db()).await.unwrap();
     }
 }
 

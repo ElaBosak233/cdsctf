@@ -9,8 +9,7 @@ use cds_db::{
     entity::submission::Status,
     get_db,
     sea_orm::{
-        ColumnTrait, Condition, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder,
-        QuerySelect,
+        ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -68,6 +67,7 @@ pub async fn get_game_scoreboard(
 
     let mut sql = cds_db::entity::team::Entity::find()
         .filter(cds_db::entity::team::Column::GameId.eq(game.id))
+        .order_by(cds_db::entity::team::Column::Rank, Order::Asc)
         .order_by(cds_db::entity::team::Column::Pts, Order::Desc);
 
     let total = sql.clone().count(get_db()).await?;
@@ -82,12 +82,9 @@ pub async fn get_game_scoreboard(
     let team_ids = teams.iter().map(|t| t.id).collect::<Vec<i64>>();
 
     let submissions = cds_db::entity::submission::Entity::base_find()
-        .filter(
-            Condition::all()
-                .add(cds_db::entity::submission::Column::GameId.eq(game_id))
-                .add(cds_db::entity::submission::Column::TeamId.is_in(team_ids))
-                .add(cds_db::entity::submission::Column::Status.eq(Status::Correct)),
-        )
+        .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
+        .filter(cds_db::entity::submission::Column::GameId.eq(game_id))
+        .filter(cds_db::entity::submission::Column::TeamId.is_in(team_ids))
         .into_model::<Submission>()
         .all(get_db())
         .await?;
@@ -97,7 +94,7 @@ pub async fn get_game_scoreboard(
     for team in teams {
         let submissions = submissions
             .iter()
-            .filter(|s| s.team_id.unwrap() == team.id)
+            .filter(|s| s.team_id.is_some_and(|t| t == team.id))
             .cloned()
             .collect::<Vec<Submission>>();
 
