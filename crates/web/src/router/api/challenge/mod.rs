@@ -171,12 +171,12 @@ pub async fn get_challenge_status(
         }
 
         if let Some(status_response) = result.get_mut(&submission.challenge_id) {
-            if Some(submission.user_id) == body.user_id {
-                status_response.is_solved = true;
-            } else if let Some(team_id) = submission.team_id
-                && Some(team_id) == body.team_id
+            if Some(submission.user_id) == body.user_id
+                || submission
+                    .team_id
+                    .is_some_and(|team_id| Some(team_id) == body.team_id)
             {
-                status_response.is_solved = true
+                status_response.is_solved = true;
             }
 
             status_response.solved_times += 1;
