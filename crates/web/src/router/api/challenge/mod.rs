@@ -132,10 +132,20 @@ pub async fn get_challenge_status(
         return Err(WebError::BadRequest(json!("either_user_or_team")));
     }
 
-    let mut submissions = cds_db::entity::submission::Entity::base_find()
-        .filter(
-            cds_db::entity::submission::Column::ChallengeId.is_in(body.challenge_ids.to_owned()),
-        )
+    let mut sql = cds_db::entity::submission::Entity::base_find().filter(
+        cds_db::entity::submission::Column::ChallengeId.is_in(body.challenge_ids.to_owned()),
+    );
+
+    if let (Some(_), Some(game_id)) = (body.team_id, body.game_id) {
+        sql = sql.filter(cds_db::entity::submission::Column::GameId.eq(game_id));
+    } else {
+        sql = sql
+            .filter(cds_db::entity::submission::Column::GameId.is_null())
+            .filter(cds_db::entity::submission::Column::TeamId.is_null())
+    }
+
+    let mut submissions = sql
+        .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
         .order_by_asc(cds_db::entity::submission::Column::CreatedAt)
         .into_model::<Submission>()
         .all(get_db())
@@ -157,18 +167,6 @@ pub async fn get_challenge_status(
 
     for submission in submissions.iter_mut() {
         *submission = submission.desensitize();
-
-        let valid = if let Some(_) = body.user_id {
-            submission.team_id.is_none() && submission.game_id.is_none()
-        } else if let (Some(_), Some(game_id)) = (body.team_id, body.game_id) {
-            submission.game_id == Some(game_id)
-        } else {
-            false
-        };
-
-        if !valid || submission.status != Status::Correct {
-            continue;
-        }
 
         if let Some(status_response) = result.get_mut(&submission.challenge_id) {
             if Some(submission.user_id) == body.user_id

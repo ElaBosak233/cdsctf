@@ -81,6 +81,8 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
                 .filter(cds_db::entity::submission::Column::ChallengeId.eq(submission.challenge_id))
                 .filter(cds_db::entity::submission::Column::UserId.eq(submission.user_id))
                 .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
+                .filter(cds_db::entity::submission::Column::GameId.is_null())
+                .filter(cds_db::entity::submission::Column::TeamId.is_null())
                 .count(get_db())
                 .await?
                 > 0
