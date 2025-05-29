@@ -24,6 +24,8 @@ import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseErrorResponse } from "@/utils/query";
+import { HTTPError } from "ky";
 
 interface TeamGatheringDialogProps {
   onClose: () => void;
@@ -97,6 +99,10 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
           toast.success(`成功加入团队`);
           onClose();
         }
+      })
+      .catch(async (error) => {
+        if (!(error instanceof HTTPError)) return;
+        const res = await parseErrorResponse(error);
 
         if (res.code === StatusCodes.BAD_REQUEST) {
           toast.error("加入失败", {

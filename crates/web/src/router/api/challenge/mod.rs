@@ -158,12 +158,10 @@ pub async fn get_challenge_status(
     for submission in submissions.iter_mut() {
         *submission = submission.desensitize();
 
-        let valid = if let Some(user_id) = body.user_id {
-            submission.user_id == user_id
-                && submission.team_id.is_none()
-                && submission.game_id.is_none()
-        } else if let (Some(team_id), Some(game_id)) = (body.team_id, body.game_id) {
-            submission.team_id == Some(team_id) && submission.game_id == Some(game_id)
+        let valid = if let Some(_) = body.user_id {
+            submission.team_id.is_none() && submission.game_id.is_none()
+        } else if let (Some(_), Some(game_id)) = (body.team_id, body.game_id) {
+            submission.game_id == Some(game_id)
         } else {
             false
         };
@@ -173,7 +171,9 @@ pub async fn get_challenge_status(
         }
 
         if let Some(status_response) = result.get_mut(&submission.challenge_id) {
-            status_response.is_solved = true;
+            status_response.is_solved = Some(submission.user_id) == body.user_id
+                || (submission.team_id.is_some() && submission.team_id == body.team_id);
+
             status_response.solved_times += 1;
 
             if status_response.bloods.len() < 3 {
