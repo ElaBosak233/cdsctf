@@ -14,7 +14,7 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-
+use cds_db::entity::team::State;
 use crate::{
     extract::{Extension, Path, Query},
     model::{game::Game, submission::Submission, team::Team},
@@ -67,6 +67,7 @@ pub async fn get_game_scoreboard(
 
     let mut sql = cds_db::entity::team::Entity::find()
         .filter(cds_db::entity::team::Column::GameId.eq(game.id))
+        .filter(cds_db::entity::team::Column::State.eq(State::Passed))
         .order_by(cds_db::entity::team::Column::Rank, Order::Asc)
         .order_by(cds_db::entity::team::Column::Pts, Order::Desc);
 
