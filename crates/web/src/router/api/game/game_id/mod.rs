@@ -6,7 +6,7 @@ mod team;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::submission::Status,
+    entity::{submission::Status, team::State},
     get_db,
     sea_orm::{
         ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
@@ -14,7 +14,7 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use cds_db::entity::team::State;
+
 use crate::{
     extract::{Extension, Path, Query},
     model::{game::Game, submission::Submission, team::Team},

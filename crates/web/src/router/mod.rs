@@ -39,7 +39,7 @@ pub async fn router() -> Router {
         }
     });
 
-    Router::new()
+    let base = Router::new()
         .nest("/api", api::router().await)
         .layer(
             TraceLayer::new_for_http()
@@ -62,7 +62,16 @@ pub async fn router() -> Router {
         })
         .layer(from_fn(middleware::auth::extract))
         .layer(from_fn(middleware::network::real_host))
-        .layer(from_fn(middleware::network::ip_record))
-        .layer(from_fn(middleware::telemetry::track_metrics))
-        .merge(proxy::router())
+        .layer(from_fn(middleware::network::ip_record));
+
+    let base = cds_env::get_config()
+        .telemetry
+        .is_enabled
+        .then(|| {
+            base.clone()
+                .layer(from_fn(middleware::telemetry::track_metrics))
+        })
+        .unwrap_or(base);
+
+    base.merge(proxy::router())
 }
