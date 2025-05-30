@@ -10,7 +10,6 @@
 @import "@fontsource-variable/ubuntu-sans/wght-italic";
 
 @import "./overwrites";
-@import "./background";
 
 @custom-variant dark (&:is(.dark *));
 

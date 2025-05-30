@@ -30,6 +30,10 @@ pub(crate) fn get_export_config() -> ExportConfig {
 }
 
 pub async fn init() -> Result<(), anyhow::Error> {
+    if !cds_env::get_config().telemetry.is_enabled {
+        return Ok(());
+    }
+
     meter::init()?;
     logger::init()?;
     tracer::init()?;
@@ -38,6 +42,10 @@ pub async fn init() -> Result<(), anyhow::Error> {
 }
 
 pub async fn shutdown() -> Result<(), anyhow::Error> {
+    if !cds_env::get_config().telemetry.is_enabled {
+        return Ok(());
+    }
+
     info!("Shutting down telemetry...");
 
     tracer::shutdown().await?;

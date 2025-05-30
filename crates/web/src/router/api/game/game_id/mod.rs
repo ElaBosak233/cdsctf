@@ -6,7 +6,7 @@ mod team;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::submission::Status,
+    entity::{submission::Status, team::State},
     get_db,
     sea_orm::{
         ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
@@ -67,6 +67,7 @@ pub async fn get_game_scoreboard(
 
     let mut sql = cds_db::entity::team::Entity::find()
         .filter(cds_db::entity::team::Column::GameId.eq(game.id))
+        .filter(cds_db::entity::team::Column::State.eq(State::Passed))
         .order_by(cds_db::entity::team::Column::Rank, Order::Asc)
         .order_by(cds_db::entity::team::Column::Pts, Order::Desc);
 
