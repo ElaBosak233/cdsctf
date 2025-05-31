@@ -1,4 +1,11 @@
-import { ArrowRightIcon, FlagIcon, PlayIcon, SwordsIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  CalendarCheckIcon,
+  FlagIcon,
+  PlayIcon,
+  SwordsIcon,
+  ThumbsDownIcon,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -140,43 +147,58 @@ export default function Index() {
             </Badge>
           </div>
           <div>
-            {selfTeam ? (
+            {status === "ended" ? (
               <Button
                 className={cn(["w-full"])}
                 variant={"solid"}
-                level={"success"}
+                level={"error"}
                 size={"lg"}
-                icon={<PlayIcon />}
-                disabled={
-                  status !== "ongoing" || selfTeam.state !== State.Passed
-                }
-                onClick={() => navigate(`/games/${game_id}/challenges`)}
+                icon={<CalendarCheckIcon />}
+                disabled
               >
-                <span>作为 {selfTeam?.name} 参赛</span>
-                {invalidMessage && <span>（{invalidMessage}）</span>}
+                比赛已结束
               </Button>
             ) : (
               <>
-                <Button
-                  variant={"solid"}
-                  level={"info"}
-                  size={"lg"}
-                  className={cn(["w-full"])}
-                  icon={<SwordsIcon />}
-                  onClick={() => setTeamGatheringDialogOpen(true)}
-                >
-                  集结你的队伍
-                </Button>
-                <Dialog
-                  open={teamGatheringDialogOpen}
-                  onOpenChange={setTeamGatheringDialogOpen}
-                >
-                  <DialogContent>
-                    <TeamGatheringDialog
-                      onClose={() => setTeamGatheringDialogOpen(false)}
-                    />
-                  </DialogContent>
-                </Dialog>
+                {selfTeam ? (
+                  <Button
+                    className={cn(["w-full"])}
+                    variant={"solid"}
+                    level={"success"}
+                    size={"lg"}
+                    icon={<PlayIcon />}
+                    disabled={
+                      status !== "ongoing" || selfTeam.state !== State.Passed
+                    }
+                    onClick={() => navigate(`/games/${game_id}/challenges`)}
+                  >
+                    <span>作为 {selfTeam?.name} 参赛</span>
+                    {invalidMessage && <span>（{invalidMessage}）</span>}
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant={"solid"}
+                      level={"info"}
+                      size={"lg"}
+                      className={cn(["w-full"])}
+                      icon={<SwordsIcon />}
+                      onClick={() => setTeamGatheringDialogOpen(true)}
+                    >
+                      集结你的队伍
+                    </Button>
+                    <Dialog
+                      open={teamGatheringDialogOpen}
+                      onOpenChange={setTeamGatheringDialogOpen}
+                    >
+                      <DialogContent>
+                        <TeamGatheringDialog
+                          onClose={() => setTeamGatheringDialogOpen(false)}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -194,7 +216,29 @@ export default function Index() {
         >
           <Typography>
             <LoadingOverlay loading={!currentGame} />
-            <MarkdownRender src={currentGame?.description} />
+            {currentGame && (
+              <>
+                {currentGame?.description ? (
+                  <MarkdownRender src={currentGame?.description} />
+                ) : (
+                  <div
+                    className={cn([
+                      "absolute",
+                      "inset-0",
+                      "flex",
+                      "flex-col",
+                      "justify-center",
+                      "items-center",
+                      "gap-5",
+                      "select-none",
+                    ])}
+                  >
+                    <ThumbsDownIcon className={cn(["size-12"])} />
+                    这个主办方很懒，什么也没留下。
+                  </div>
+                )}
+              </>
+            )}
           </Typography>
         </Card>
       </div>

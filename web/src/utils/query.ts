@@ -1,4 +1,4 @@
-import ky, { HTTPError } from "ky";
+import ky, { HTTPError, TimeoutError } from "ky";
 import { toast } from "sonner";
 
 import { useAuthStore } from "@/storages/auth";
@@ -12,16 +12,16 @@ const api = ky.extend({
     beforeError: [
       async (error) => {
         if (!(error instanceof HTTPError)) return error;
-
         const res = await parseErrorResponse(error);
-        if (
-          res.code === StatusCodes.UNAUTHORIZED &&
-          !error.request.headers.get("Ignore-Unauthorized")
-        ) {
+
+        if (res.code === StatusCodes.UNAUTHORIZED) {
           useAuthStore?.getState()?.clear();
-          toast.error("请先登录", {
-            id: "please-login-first",
-          });
+
+          if (!error.request.headers.get("Ignore-Unauthorized")) {
+            toast.error("请先登录", {
+              id: "please-login-first",
+            });
+          }
         }
 
         if (res.code === StatusCodes.BAD_GATEWAY) {
@@ -30,6 +30,15 @@ const api = ky.extend({
             description: "服务器暂时无法处理请求",
           });
         }
+
+        return error;
+      },
+      async (error) => {
+        if (!(error instanceof TimeoutError)) return error;
+
+        toast.error("请求超时", {
+          id: "timeout",
+        });
 
         return error;
       },

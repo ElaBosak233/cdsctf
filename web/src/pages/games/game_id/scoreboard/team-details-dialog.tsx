@@ -5,9 +5,8 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
 import { StarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { getSubmission } from "@/api/submissions";
 import { Avatar } from "@/components/ui/avatar";
@@ -28,6 +27,7 @@ import { Status, Submission } from "@/models/submission";
 import { Team } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 interface TeamDetailsDialogProps {
   team: Team;
@@ -37,35 +37,26 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
   const { team } = props;
   const { currentGame } = useGameStore();
 
-  const [submissions, setSubmissions] = useState<Array<Submission>>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const [total, setTotal] = useState<number>(0);
   const [size, _setSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
 
-  useEffect(() => {
-    if (!currentGame) return;
-
-    setLoading(true);
-    getSubmission({
-      game_id: currentGame.id,
-      team_id: team.id,
-      status: Status.Correct,
-      page: page,
-      size: size,
-      sorts: "-created_at",
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          setTotal(res.total || 0);
-          setSubmissions(res.data || []);
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [currentGame]);
+  const { data: submissionData, isFetching: loading } = useQuery({
+    queryKey: ["submissions", currentGame?.id, team.id, page],
+    queryFn: () =>
+      getSubmission({
+        game_id: currentGame?.id,
+        team_id: team.id,
+        status: Status.Correct,
+        page: page,
+        size: size,
+        sorts: "-created_at",
+      }),
+    select: (response) => ({
+      submissions: response.data || [],
+      total: response.total || 0,
+    }),
+    placeholderData: keepPreviousData,
+  });
 
   const columns: Array<ColumnDef<Submission>> = [
     {
@@ -116,11 +107,11 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
   ];
 
   const table = useReactTable<Submission>({
-    data: submissions,
+    data: submissionData?.submissions || [],
     columns: columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    rowCount: total,
+    rowCount: submissionData?.total,
     manualFiltering: true,
     getFilteredRowModel: getFilteredRowModel(),
     manualSorting: true,
@@ -240,13 +231,13 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         ])}
       >
         <div className={cn(["flex-1", "text-sm", "text-muted-foreground"])}>
-          {table.getFilteredRowModel().rows.length} / {total}
+          {table.getFilteredRowModel().rows.length} / {submissionData?.total}
         </div>
         <div className={cn(["flex", "items-center", "gap-5"])}>
           <Pagination
             size={"sm"}
             value={page}
-            total={Math.ceil(total / size)}
+            total={Math.ceil((submissionData?.total || 0) / size)}
             onChange={setPage}
           />
         </div>

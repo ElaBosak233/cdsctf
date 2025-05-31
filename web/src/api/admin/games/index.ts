@@ -2,7 +2,7 @@ import { Game } from "@/models/game";
 import { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetGameRequest {
+export interface GetGamesRequest {
   id?: number;
   title?: string;
   is_enabled?: boolean;
@@ -11,7 +11,7 @@ export interface GetGameRequest {
   size?: number;
 }
 
-export async function getGames(request: GetGameRequest) {
+export async function getGames(request: GetGamesRequest) {
   return api
     .get("admin/games", {
       searchParams: toSearchParams(request),

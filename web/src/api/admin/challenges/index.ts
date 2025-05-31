@@ -2,7 +2,7 @@ import { Challenge } from "@/models/challenge";
 import { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetChallengeRequest {
+export interface GetChallengesRequest {
   id?: string;
   title?: string;
   description?: string;
@@ -14,7 +14,7 @@ export interface GetChallengeRequest {
   sorts?: string;
 }
 
-export async function getChallenges(request: GetChallengeRequest) {
+export async function getChallenges(request: GetChallengesRequest) {
   return api
     .get("admin/challenges", {
       searchParams: toSearchParams(request),

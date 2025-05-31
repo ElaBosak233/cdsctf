@@ -112,14 +112,7 @@ function ChampionChart(props: ChampionChartProps) {
         config={chartConfig}
         className={cn(["h-[20rem]", "w-full"])}
       >
-        <LineChart
-          accessibilityLayer
-          data={data}
-          margin={{
-            left: 12,
-            right: 12,
-          }}
-        >
+        <LineChart accessibilityLayer data={data}>
           <CartesianGrid vertical={false} />
           <XAxis
             dataKey={"ts"}
@@ -135,7 +128,11 @@ function ChampionChart(props: ChampionChartProps) {
             scale={"auto"}
           />
           <YAxis />
-          <Legend />
+          <Legend
+            verticalAlign={"top"}
+            align={"center"}
+            wrapperStyle={{ marginTop: -15 }}
+          />
           <Brush
             dataKey={"ts"}
             height={25}
@@ -148,6 +145,7 @@ function ChampionChart(props: ChampionChartProps) {
                 second: "2-digit",
               })
             }
+            fill={"none"}
           />
           <ChartTooltip
             cursor={false}

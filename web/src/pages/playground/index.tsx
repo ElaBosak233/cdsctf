@@ -28,7 +28,7 @@ import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 function usePlaygroundChallengeQuery(
   params: GetPlaygroundChallengesRequest,
@@ -48,6 +48,7 @@ function usePlaygroundChallengeQuery(
       total: response.total || 0,
     }),
     enabled: !!params,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -114,7 +115,7 @@ export default function Index() {
 
   const {
     data: { challenges, total } = { challenges: [], total: 0 },
-    isLoading,
+    isFetching: loading,
   } = usePlaygroundChallengeQuery(
     {
       page,
@@ -250,7 +251,7 @@ export default function Index() {
           </div>
         </div>
         <div className={cn(["flex-1", "relative"])}>
-          <LoadingOverlay loading={isLoading} />
+          <LoadingOverlay loading={loading} />
           <div
             className={cn([
               "grid",
@@ -276,7 +277,7 @@ export default function Index() {
               </Dialog>
             ))}
           </div>
-          {!challenges?.length && !isLoading && (
+          {!challenges?.length && !loading && (
             <div
               className={cn([
                 "text-secondary-foreground",

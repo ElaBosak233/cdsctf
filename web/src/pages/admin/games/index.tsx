@@ -14,12 +14,12 @@ import {
   PlusCircleIcon,
   TypeIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { columns } from "./columns";
 import { CreateDialog } from "./create-dialog";
 
-import { getGames } from "@/api/admin/games";
+import { getGames, GetGamesRequest } from "@/api/admin/games";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -40,14 +40,36 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { Game } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+
+function useGameQuery(params: GetGamesRequest) {
+  const { refresh } = useSharedStore();
+
+  return useQuery({
+    queryKey: [
+      "games",
+      params.id,
+      params.title,
+      params.size,
+      params.page,
+      params.is_enabled,
+      refresh,
+    ],
+    queryFn: () => getGames(params),
+    select: (response) => ({
+      games: response.data || [],
+      total: response.total || 0,
+    }),
+    enabled: !!params,
+    placeholderData: keepPreviousData,
+  });
+}
 
 export default function Index() {
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
-  const sharedStore = useSharedStore();
 
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(10);
-  const [total, setTotal] = useState<number>(0);
   const [sorting, setSorting] = useState<SortingState>([
     {
       id: "started_at",
@@ -58,15 +80,24 @@ export default function Index() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
-  const [games, setGames] = useState<Array<Game>>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+
+  const { data: gamesData, isFetching: loading } = useGameQuery({
+    id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
+    title: debouncedColumnFilters.find((c) => c.id === "title")
+      ?.value as string,
+    sorts: sorting
+      .map((value) => (value.desc ? `-${value.id}` : `${value.id}`))
+      .join(","),
+    page,
+    size,
+  });
 
   const table = useReactTable<Game>({
-    data: games,
+    data: gamesData?.games || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    rowCount: total,
+    rowCount: gamesData?.total,
     manualFiltering: true,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
@@ -78,27 +109,6 @@ export default function Index() {
       columnVisibility,
     },
   });
-
-  useEffect(() => {
-    setLoading(true);
-    getGames({
-      id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
-      title: debouncedColumnFilters.find((c) => c.id === "title")
-        ?.value as string,
-      sorts: sorting
-        .map((value) => (value.desc ? `-${value.id}` : `${value.id}`))
-        .join(","),
-      page,
-      size,
-    })
-      .then((res) => {
-        setTotal(res?.total || 0);
-        setGames(res?.data || []);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [page, size, sorting, debouncedColumnFilters, sharedStore?.refresh]);
 
   return (
     <div className={cn(["container", "mx-auto", "p-10"])}>
@@ -138,7 +148,7 @@ export default function Index() {
             </FieldIcon>
             <TextField
               placeholder="ID"
-              value={(table.getColumn("id")?.getFilterValue() as number) ?? ""}
+              value={table.getColumn("id")?.getFilterValue() as number}
               onChange={(e) =>
                 table.getColumn("id")?.setFilterValue(e.target.value)
               }
@@ -150,9 +160,7 @@ export default function Index() {
             </FieldIcon>
             <TextField
               placeholder={"比赛名"}
-              value={
-                (table.getColumn("title")?.getFilterValue() as string) ?? ""
-              }
+              value={table.getColumn("title")?.getFilterValue() as string}
               onChange={(e) =>
                 table.getColumn("title")?.setFilterValue(e.target.value)
               }
@@ -254,7 +262,7 @@ export default function Index() {
         ])}
       >
         <div className={cn(["flex-1", "text-sm", "text-muted-foreground"])}>
-          {table.getFilteredRowModel().rows.length} / {total}
+          {table.getFilteredRowModel().rows.length} / {gamesData?.total}
         </div>
         <div className={cn(["flex", "items-center", "gap-5"])}>
           <Field size={"sm"} className={cn(["w-48"])}>
@@ -277,7 +285,7 @@ export default function Index() {
           <Pagination
             size={"sm"}
             value={page}
-            total={Math.ceil(total / size)}
+            total={Math.ceil((gamesData?.total || 0) / size)}
             onChange={setPage}
           />
         </div>
