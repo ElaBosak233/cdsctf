@@ -9,6 +9,9 @@ import { getTeamMembers } from "@/api/games/game_id/teams/team_id";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
+import { parseErrorResponse } from "@/utils/query";
+import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 
 export default function () {
   const { game_id } = useParams<{ game_id: string }>();
@@ -32,28 +35,36 @@ export default function () {
   }, [game_id]);
 
   useEffect(() => {
-    if (authStore?.user) {
-      getTeamProfile({
-        game_id: Number(game_id),
-      })
-        .then((res) => {
-          setSelfTeam(res.data);
-        })
-        .finally(() => {
-          setGtLoaded(true);
+    if (!authStore?.user) return;
+
+    (async () => {
+      try {
+        const res = await getTeamProfile({
+          game_id: Number(game_id),
         });
-    }
+        setSelfTeam(res.data);
+      } catch (error) {
+        if (!(error instanceof HTTPError)) return;
+        const res = await parseErrorResponse(error);
+
+        if (res.code === StatusCodes.NOT_FOUND) {
+          setSelfTeam(undefined);
+        }
+      } finally {
+        setGtLoaded(true);
+      }
+    })();
   }, [sharedStore?.refresh, game_id]);
 
   useEffect(() => {
-    if (selfTeam?.id) {
-      getTeamMembers({
-        game_id: Number(game_id),
-        team_id: selfTeam?.id,
-      }).then((res) => {
-        setMembers(res.data);
-      });
-    }
+    if (!selfTeam?.id) return;
+
+    getTeamMembers({
+      game_id: Number(game_id),
+      team_id: selfTeam?.id,
+    }).then((res) => {
+      setMembers(res.data);
+    });
   }, [sharedStore?.refresh, selfTeam]);
 
   return (

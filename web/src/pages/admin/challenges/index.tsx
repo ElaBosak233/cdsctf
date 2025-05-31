@@ -15,12 +15,12 @@ import {
   PlusCircleIcon,
   TypeIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { columns } from "./columns";
 import { CreateDialog } from "./create-dialog";
 
-import { getChallenges } from "@/api/admin/challenges";
+import { getChallenges, GetChallengesRequest } from "@/api/admin/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -42,18 +42,37 @@ import { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+
+function useChallengeQuery(params: GetChallengesRequest) {
+  const { refresh } = useSharedStore();
+
+  return useQuery({
+    queryKey: [
+      "challenges",
+      params.id,
+      params.title,
+      params.size,
+      params.page,
+      params.category,
+      params.is_public,
+      refresh,
+    ],
+    queryFn: () => getChallenges(params),
+    select: (response) => ({
+      challenges: response.data || [],
+      total: response.total || 0,
+    }),
+    enabled: !!params,
+    placeholderData: keepPreviousData,
+  });
+}
 
 export default function Index() {
-  const sharedStore = useSharedStore();
-
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
-
-  const [total, setTotal] = useState<number>(0);
-  const [challenges, setChallenges] = useState<Array<Challenge>>([]);
 
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(10);
-  const [loading, setLoading] = useState<boolean>(false);
 
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -74,12 +93,41 @@ export default function Index() {
   ]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
+  const category =
+    (debouncedColumnFilters.find((c) => c.id === "category")
+      ?.value as string) !== "all"
+      ? (debouncedColumnFilters.find((c) => c.id === "category")
+          ?.value as number)
+      : undefined;
+
+  const isPublic =
+    (debouncedColumnFilters.find((c) => c.id === "is_public")
+      ?.value as string) !== "all"
+      ? (debouncedColumnFilters.find((c) => c.id === "is_public")
+          ?.value as string) !== "true"
+        ? false
+        : true
+      : undefined;
+
+  const { data: challengesData, isFetching: loading } = useChallengeQuery({
+    id: debouncedColumnFilters.find((c) => c.id === "id")?.value as string,
+    title: debouncedColumnFilters.find((c) => c.id === "title")
+      ?.value as string,
+    category: category,
+    is_public: isPublic,
+    sorts: sorting
+      .map((value) => (value.desc ? `-${value.id}` : `${value.id}`))
+      .join(","),
+    page,
+    size,
+  });
+
   const table = useReactTable<Challenge>({
-    data: challenges,
+    data: challengesData?.challenges || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    rowCount: total,
+    rowCount: challengesData?.total,
     manualFiltering: true,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
@@ -92,46 +140,6 @@ export default function Index() {
       columnFilters,
     },
   });
-
-  useEffect(() => {
-    setLoading(true);
-
-    const category =
-      (debouncedColumnFilters.find((c) => c.id === "category")
-        ?.value as string) !== "all"
-        ? (debouncedColumnFilters.find((c) => c.id === "category")
-            ?.value as number)
-        : undefined;
-
-    const isPublic =
-      (debouncedColumnFilters.find((c) => c.id === "is_public")
-        ?.value as string) !== "all"
-        ? (debouncedColumnFilters.find((c) => c.id === "is_public")
-            ?.value as string) !== "true"
-          ? false
-          : true
-        : undefined;
-
-    getChallenges({
-      id: debouncedColumnFilters.find((c) => c.id === "id")?.value as string,
-      title: debouncedColumnFilters.find((c) => c.id === "title")
-        ?.value as string,
-      category: category,
-      is_public: isPublic,
-      sorts: sorting
-        .map((value) => (value.desc ? `-${value.id}` : `${value.id}`))
-        .join(","),
-      page,
-      size,
-    })
-      .then((res) => {
-        setTotal(res?.total || 0);
-        setChallenges(res?.data || []);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh]);
 
   return (
     <div
@@ -180,7 +188,7 @@ export default function Index() {
             </FieldIcon>
             <TextField
               placeholder="ID"
-              value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
+              value={table.getColumn("id")?.getFilterValue() as string}
               onChange={(e) =>
                 table.getColumn("id")?.setFilterValue(e.target.value)
               }
@@ -192,9 +200,7 @@ export default function Index() {
             </FieldIcon>
             <TextField
               placeholder={"题目名"}
-              value={
-                (table.getColumn("title")?.getFilterValue() as string) ?? ""
-              }
+              value={table.getColumn("title")?.getFilterValue() as string}
               onChange={(e) =>
                 table.getColumn("title")?.setFilterValue(e.target.value)
               }
@@ -358,7 +364,7 @@ export default function Index() {
       </ScrollArea>
       <div className="flex items-center justify-between space-x-2 py-4 px-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} / {total}
+          {table.getFilteredRowModel().rows.length} / {challengesData?.total}
         </div>
         <div className={cn(["flex", "items-center", "gap-5"])}>
           <Field size={"sm"} className={cn(["w-48"])}>
@@ -381,7 +387,7 @@ export default function Index() {
           <Pagination
             size={"sm"}
             value={page}
-            total={Math.ceil(total / size)}
+            total={Math.ceil((challengesData?.total || 0) / size)}
             onChange={setPage}
           />
         </div>

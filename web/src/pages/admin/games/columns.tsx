@@ -62,13 +62,13 @@ const columns: Array<ColumnDef<Game>> = [
   {
     accessorKey: "title",
     id: "title",
-    header: "标题",
+    header: () => "标题",
     cell: ({ row }) => row.original.title || "-",
   },
   {
     accessorKey: "is_public",
     id: "is_public",
-    header: "公开赛",
+    header: () => "公开赛",
     cell: ({ row }) => {
       const isPublic = row.original.is_public;
 
@@ -87,7 +87,7 @@ const columns: Array<ColumnDef<Game>> = [
   },
   {
     accessorKey: "sketch",
-    header: "简述",
+    header: () => "简述",
     cell: ({ row }) => {
       const sketch = row.original.sketch;
 

@@ -5,7 +5,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ListOrderedIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { ChampionChart } from "./champion-chart";
 import { columns } from "./columns";
@@ -28,33 +28,34 @@ import {
 import { ScoreRecord } from "@/models/game";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 export default function Index() {
   const { currentGame } = useGameStore();
-  const [scoreboard, setScoreboard] = useState<Array<ScoreRecord>>([]);
-  const [total, setTotal] = useState<number>(0);
   const [size, setSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
 
-  useEffect(() => {
-    if (!currentGame) return;
-
-    getGameScoreboard({
-      id: currentGame.id!,
-      size,
-      page,
-    }).then((res) => {
-      setTotal(res.total || 0);
-      setScoreboard(res.data || []);
-    });
-  }, [currentGame, page, size]);
+  const { data: scoreboardData } = useQuery({
+    queryKey: ["scoreboard", currentGame?.id, size, page],
+    queryFn: () =>
+      getGameScoreboard({
+        id: currentGame?.id,
+        size,
+        page,
+      }),
+    select: (response) => ({
+      scoreboard: response.data || [],
+      total: response.total || 0,
+    }),
+    placeholderData: keepPreviousData,
+  });
 
   const table = useReactTable<ScoreRecord>({
-    data: scoreboard,
+    data: scoreboardData?.scoreboard || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    rowCount: total,
+    rowCount: scoreboardData?.total,
     manualFiltering: true,
     getFilteredRowModel: getFilteredRowModel(),
     manualSorting: true,
@@ -74,10 +75,10 @@ export default function Index() {
           "items-center",
         ])}
       >
-        <ChampionChart scoreboard={scoreboard} />
+        <ChampionChart scoreboard={scoreboardData?.scoreboard} />
         <div className={cn(["flex", "items-center", "gap-10"])}>
           <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} / {total}
+            {table.getFilteredRowModel().rows.length} / {scoreboardData?.total}
           </div>
           <Field size={"sm"} className={cn(["w-48"])}>
             <FieldIcon>
@@ -98,7 +99,7 @@ export default function Index() {
           <Pagination
             value={page}
             onChange={(value) => setPage(value)}
-            total={Math.ceil(total / size)}
+            total={Math.ceil((scoreboardData?.total || 0) / size)}
           />
         </div>
         <ScrollArea className={cn(["rounded-md", "w-full"])}>
