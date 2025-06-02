@@ -27,7 +27,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ContentDialog } from "@/components/widgets/content-dialog";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { Game } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
@@ -63,7 +62,18 @@ const columns: Array<ColumnDef<Game>> = [
     accessorKey: "title",
     id: "title",
     header: () => "标题",
-    cell: ({ row }) => row.original.title || "-",
+    cell: ({ row }) => (
+      <div
+        className={cn([
+          "w-64",
+          "overflow-hidden",
+          "text-ellipsis",
+          "whitespace-nowrap",
+        ])}
+      >
+        {row.original.title || "-"}
+      </div>
+    ),
   },
   {
     accessorKey: "is_public",
@@ -88,17 +98,9 @@ const columns: Array<ColumnDef<Game>> = [
   {
     accessorKey: "sketch",
     header: () => "简述",
-    cell: ({ row }) => {
-      const sketch = row.original.sketch;
-
-      if (!sketch) return "-";
-
-      return sketch.length > 10 ? (
-        <ContentDialog title="详细描述" content={sketch} />
-      ) : (
-        sketch
-      );
-    },
+    cell: ({ row }) => (
+      <div className={cn(["w-42", "text-wrap"])}>{row.original.sketch}</div>
+    ),
   },
   {
     accessorKey: "started_at",
@@ -128,8 +130,11 @@ const columns: Array<ColumnDef<Game>> = [
         </div>
       );
     },
-    cell: ({ row }) =>
-      new Date(row.getValue<number>("started_at") * 1000).toLocaleString(),
+    cell: ({ row }) => (
+      <span className={cn(["text-sm", "text-secondary-foreground"])}>
+        {new Date(Number(row.original.started_at) * 1000).toLocaleString()}
+      </span>
+    ),
   },
   {
     accessorKey: "ended_at",
@@ -159,8 +164,11 @@ const columns: Array<ColumnDef<Game>> = [
         </div>
       );
     },
-    cell: ({ row }) =>
-      new Date(row.getValue<number>("ended_at") * 1000).toLocaleString(),
+    cell: ({ row }) => (
+      <span className={cn(["text-sm", "text-secondary-foreground"])}>
+        {new Date(Number(row.original.ended_at) * 1000).toLocaleString()}
+      </span>
+    ),
   },
   {
     id: "actions",

@@ -160,6 +160,7 @@ function ChampionChart(props: ChampionChartProps) {
               name={line.name}
               stroke={COLORS[index % COLORS.length]}
               connectNulls
+              dot={false}
             />
           ))}
         </LineChart>

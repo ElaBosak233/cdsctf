@@ -32,7 +32,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ContentDialog } from "@/components/widgets/content-dialog";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
@@ -69,7 +68,18 @@ const columns: Array<ColumnDef<Challenge>> = [
     accessorKey: "title",
     id: "title",
     header: "标题",
-    cell: ({ row }) => row.original.title || "-",
+    cell: ({ row }) => (
+      <div
+        className={cn([
+          "w-42",
+          "overflow-hidden",
+          "text-ellipsis",
+          "whitespace-nowrap",
+        ])}
+      >
+        {row.original.title || "-"}
+      </div>
+    ),
   },
   {
     accessorKey: "tags",
@@ -78,22 +88,9 @@ const columns: Array<ColumnDef<Challenge>> = [
     cell: ({ row }) => {
       const tags = row.original.tags;
 
-      if (!tags || !Array.isArray(tags) || tags.length === 0) {
-        return "-";
-      }
-
       return (
-        <div className="flex flex-wrap gap-1">
-          {tags.slice(0, 3).map((tag, index) => (
-            <Badge key={index}>{tag}</Badge>
-          ))}
-          {tags.length > 3 && (
-            <ContentDialog
-              title="所有标签"
-              content={tags.join(", ")}
-              triggerText={`+${tags.length - 3}`}
-            />
-          )}
+        <div className={cn(["flex", "flex-wrap", "gap-1", "w-36"])}>
+          {tags?.map((tag, index) => <Badge key={index}>{tag}</Badge>)}
         </div>
       );
     },
@@ -186,8 +183,11 @@ const columns: Array<ColumnDef<Challenge>> = [
         </div>
       );
     },
-    cell: ({ row }) =>
-      new Date(row.getValue<number>("updated_at") * 1000).toLocaleString(),
+    cell: ({ row }) => (
+      <span className={cn(["text-secondary-foreground", "text-sm"])}>
+        {new Date(row.getValue<number>("updated_at") * 1000).toLocaleString()}
+      </span>
+    ),
   },
   {
     accessorKey: "created_at",
@@ -217,8 +217,11 @@ const columns: Array<ColumnDef<Challenge>> = [
         </div>
       );
     },
-    cell: ({ row }) =>
-      new Date(row.getValue<number>("created_at") * 1000).toLocaleString(),
+    cell: ({ row }) => (
+      <span className={cn(["text-secondary-foreground", "text-sm"])}>
+        {new Date(row.getValue<number>("created_at") * 1000).toLocaleString()}
+      </span>
+    ),
   },
   {
     id: "actions",

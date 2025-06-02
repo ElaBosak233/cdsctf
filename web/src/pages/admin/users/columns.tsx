@@ -153,7 +153,7 @@ const columns: Array<ColumnDef<User>> = [
 
       return (
         <div className={cn(["flex", "gap-1", "items-center"])}>
-          注册时间
+          注册于
           <Button
             icon={icon}
             square
@@ -163,9 +163,11 @@ const columns: Array<ColumnDef<User>> = [
         </div>
       );
     },
-    cell: ({ row }) => {
-      return new Date(Number(row.original.created_at) * 1000).toLocaleString();
-    },
+    cell: ({ row }) => (
+      <span className={cn(["text-sm", "text-secondary-foreground"])}>
+        {new Date(Number(row.original.created_at) * 1000).toLocaleString()}
+      </span>
+    ),
   },
   {
     id: "actions",
