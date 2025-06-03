@@ -37,7 +37,7 @@ export default function Index() {
             decoding={"async"}
             src={"/logo.svg"}
             draggable={false}
-            className={cn(["drop-shadow-md", "aspect-square", "h-17.5"])}
+            className={cn(["aspect-square", "h-17.5"])}
           />
           <div className={cn(["flex", "flex-col", "gap-1"])}>
             <h1 className={cn(["text-2xl", "lg:text-3xl", "font-extrabold"])}>

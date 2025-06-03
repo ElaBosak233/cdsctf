@@ -1,54 +1,70 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import { NoticeCard } from "./notice-card";
 import { TeamCard } from "./team-card";
 
-import { ChallengeStatus, getChallengeStatus } from "@/api/challenges";
+import { getChallengeStatus } from "@/api/challenges";
 import { getGameChallenges } from "@/api/games/game_id/challenges";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
-import { GameChallenge } from "@/models/game_challenge";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { useQuery } from "@tanstack/react-query";
+import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 export default function Index() {
   const { currentGame, selfTeam: selfGameTeam } = useGameStore();
+  const navigate = useNavigate();
 
-  const [gameChallenges, setGameChallenges] = useState<Array<GameChallenge>>();
-  const [challengeStatus, setChallengeStatus] =
-    useState<Record<string, ChallengeStatus>>();
-  const [loading, setLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (!currentGame) return;
-
-    setLoading(true);
-    getGameChallenges({
-      game_id: currentGame.id!,
-    })
-      .then((res) => {
-        setGameChallenges(res.data);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [currentGame]);
+  const {
+    data: gameChallenges,
+    error,
+    isFetching: challengeLoading,
+  } = useQuery({
+    queryKey: ["game_challenges", currentGame?.id],
+    queryFn: () =>
+      getGameChallenges({
+        game_id: currentGame?.id,
+      }),
+    select: (response) => response.data,
+  });
 
   useEffect(() => {
-    if (!gameChallenges) return;
+    if (!(error instanceof HTTPError)) return;
 
-    getChallengeStatus({
-      challenge_ids: gameChallenges?.map(
-        (gameChallenge) => gameChallenge.challenge_id!
-      ),
-      team_id: selfGameTeam?.id,
-      game_id: currentGame?.id,
-    }).then((res) => {
-      setChallengeStatus(res.data);
-    });
-  }, [gameChallenges]);
+    if (error.response.status === StatusCodes.FORBIDDEN) {
+      navigate(`/games/${currentGame?.id}`);
+      toast.error("你没有权限查看本场比赛的题目");
+    }
+  }, [error]);
+
+  const { data: challengeStatus, isFetching: statusLoading } = useQuery({
+    queryKey: [
+      "game_challenge_status",
+      gameChallenges?.map((gameChallenge) => gameChallenge.challenge_id!),
+      currentGame?.id,
+      selfGameTeam?.id,
+      currentGame?.id,
+    ],
+    queryFn: () =>
+      getChallengeStatus({
+        challenge_ids:
+          gameChallenges?.map((gameChallenge) => gameChallenge.challenge_id!) ||
+          [],
+        team_id: selfGameTeam?.id,
+        game_id: currentGame?.id,
+      }),
+    select: (response) => response.data,
+  });
+
+  const loading = useMemo(() => {
+    return statusLoading || challengeLoading;
+  }, [statusLoading, challengeLoading]);
 
   return (
     <>

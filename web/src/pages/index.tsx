@@ -48,7 +48,7 @@ export default function () {
           <Image
             src={"/api/configs/logo"}
             fallback={<FlagIcon className={cn("size-16", "rotate-15")} />}
-            className={cn(["drop-shadow-md", "aspect-square", "h-32"])}
+            className={cn(["aspect-square", "h-32"])}
             alt={"logo"}
           />
           <h1
