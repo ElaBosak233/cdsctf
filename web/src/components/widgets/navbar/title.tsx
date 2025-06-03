@@ -53,13 +53,7 @@ function Title(props: TitleProps) {
         src={src}
         fallback={<FlagIcon className={cn("size-6", "rotate-15")} />}
         delay={0}
-        className={cn([
-          "drop-shadow-md",
-          "h-8",
-          "w-8",
-          "rounded-full",
-          "overflow-hidden",
-        ])}
+        className={cn(["h-8", "w-8", "rounded-full", "overflow-hidden"])}
       />
       <h1
         className={cn([

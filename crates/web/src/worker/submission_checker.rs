@@ -3,11 +3,11 @@
 
 use anyhow::anyhow;
 use cds_db::{
-    entity::submission::Status,
+    entity::{submission::Status, team::State},
     get_db,
     sea_orm::{
-        ActiveModelTrait, ActiveValue::Unchanged, ColumnTrait, EntityTrait, PaginatorTrait,
-        QueryFilter, QueryOrder, Set,
+        ActiveModelTrait, ActiveValue::Unchanged, ColumnTrait, EntityTrait, IntoActiveModel,
+        PaginatorTrait, QueryFilter, QueryOrder, Set,
     },
 };
 use futures::StreamExt;
@@ -58,7 +58,9 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         Ok(c_status) => match c_status {
             cds_checker::Status::Correct => Status::Correct,
             cds_checker::Status::Incorrect => Status::Incorrect,
-            cds_checker::Status::Cheat(_peer_team_id) => Status::Cheat,
+            cds_checker::Status::Cheat(peer_team_id) => handle_cheat(&submission, peer_team_id)
+                .await
+                .unwrap_or_else(|_| Status::Incorrect),
         },
         Err(_) => Status::Incorrect,
     };
@@ -141,6 +143,42 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
     }
 
     Ok(())
+}
+
+async fn handle_cheat(
+    submission: &cds_db::entity::submission::Model,
+    peer_team_id: i64,
+) -> Result<Status, anyhow::Error> {
+    let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) else {
+        return Ok(Status::Incorrect);
+    };
+
+    async fn find_team(
+        game_id: i64,
+        team_id: i64,
+    ) -> Result<cds_db::entity::team::Model, anyhow::Error> {
+        cds_db::entity::team::Entity::find()
+            .filter(cds_db::entity::team::Column::Id.eq(team_id))
+            .filter(cds_db::entity::team::Column::GameId.eq(game_id))
+            .one(get_db())
+            .await?
+            .ok_or_else(|| anyhow!("team_not_found"))
+    }
+
+    let team = find_team(game_id, team_id).await?;
+    let peer_team = find_team(game_id, peer_team_id).await?;
+
+    for t in &[team, peer_team] {
+        cds_db::entity::team::ActiveModel {
+            id: Unchanged(t.id),
+            state: Set(State::Banned),
+            ..t.clone().into_active_model()
+        }
+        .update(get_db())
+        .await?;
+    }
+
+    Ok(Status::Cheat)
 }
 
 async fn recover() {
