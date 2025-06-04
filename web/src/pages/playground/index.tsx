@@ -263,8 +263,8 @@ export default function Index() {
               "gap-4",
             ])}
           >
-            {challenges?.map((challenge, index) => (
-              <Dialog key={index}>
+            {challenges?.map((challenge) => (
+              <Dialog key={challenge?.id}>
                 <DialogTrigger>
                   <ChallengeCard
                     digest={challenge}
