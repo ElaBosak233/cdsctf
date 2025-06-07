@@ -86,7 +86,7 @@ tracing-subscriber = { version = "0.3", features = [
 ] }
 tracing-appender = "0.2"
 tracing-error = { version = "0.2" }
-tracing-opentelemetry = { version = "0.30" }
+tracing-opentelemetry = { version = "0.31" }
 
 # Database
 sea-orm = { version = "1.1", features = [
@@ -129,10 +129,10 @@ rune = { version = "0.14", features = ["tokio"] }
 rune-modules = { version = "0.14", features = ["full"] }
 
 # Telemetry
-opentelemetry = { version = "0.29", features = ["metrics"] }
-opentelemetry-otlp = { version = "0.29", features = ["metrics", "grpc-tonic"] }
-opentelemetry_sdk = { version = "0.29", features = ["rt-tokio"] }
-opentelemetry-appender-tracing = { version = "0.29" }
+opentelemetry = { version = "0.30", features = ["metrics"] }
+opentelemetry-otlp = { version = "0.30", features = ["metrics", "grpc-tonic"] }
+opentelemetry_sdk = { version = "0.30", features = ["rt-tokio"] }
+opentelemetry-appender-tracing = { version = "0.30" }
 sysinfo = { version = "0.35" }
 
 # Miscellaneous
