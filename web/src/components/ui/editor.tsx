@@ -119,7 +119,7 @@ function Editor(props: EditorProps) {
           "ring-2",
           "ring-ring",
           "ring-offset-2",
-          "border-0",
+          "border-transparent",
         ],
         className,
       ])}

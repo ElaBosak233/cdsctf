@@ -127,7 +127,7 @@ export default function Index() {
                   lang={"rust"}
                   tabSize={4}
                   showLineNumbers
-                  className={cn(["h-full", "min-h-64"])}
+                  className={cn(["h-full", "min-h-128"])}
                 />
               </FormControl>
             </FormItem>

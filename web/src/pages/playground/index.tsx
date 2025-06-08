@@ -115,7 +115,7 @@ export default function Index() {
 
   const {
     data: { challenges, total } = { challenges: [], total: 0 },
-    isFetching: loading,
+    isFetching: isChallengeFetching,
   } = usePlaygroundChallengeQuery(
     {
       page,
@@ -128,10 +128,10 @@ export default function Index() {
     doSearch
   );
 
-  const { data: challengeStatus } = useChallengeStatusQuery(
-    challenges,
-    authStore?.user?.id
-  );
+  const { data: challengeStatus, isFetching: isChallengeStatusFetching } =
+    useChallengeStatusQuery(challenges, authStore?.user?.id);
+
+  const loading = isChallengeFetching || isChallengeStatusFetching;
 
   return (
     <>
