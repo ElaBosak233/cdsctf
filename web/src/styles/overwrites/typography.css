@@ -75,7 +75,7 @@ code[data-theme] span {
 }
 
 .prose a {
-  @apply underline underline-offset-3 decoration-dashed hover:decoration-solid;
+  @apply underline underline-offset-3 decoration-1 decoration-secondary-foreground decoration-dashed hover:decoration-solid;
 }
 
 .prose a.anchor {
