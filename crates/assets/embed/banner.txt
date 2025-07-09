@@ -8,4 +8,4 @@
 Commit: {{git_commit}}
 Build At: {{build_at}}
 GitHub: https://github.com/cdsctf/cdsctf
-Authors: ElaBosak233, Ec3o et, al.
+Authors: ElaBosak233 et, al.

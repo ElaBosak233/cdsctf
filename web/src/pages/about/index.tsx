@@ -1,4 +1,4 @@
-import { CodeXmlIcon, HandshakeIcon, HeartIcon, StarIcon } from "lucide-react";
+import { CodeXmlIcon, HeartIcon, MoonIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -56,58 +56,70 @@ export default function Index() {
         </div>
         <Separator className={cn(["w-full"])} />
         <h3 className={cn(["flex", "gap-2", "items-center"])}>
-          <CodeXmlIcon className={cn(["size-5"])} />
-          Developers
+          <MoonIcon className={cn(["size-5"])} />
+          Founder
         </h3>
         <div className={cn(["flex", "flex-wrap", "justify-center", "gap-3"])}>
           <Button
             className={cn(["rounded-full"])}
-            icon={<StarIcon />}
             variant={"tonal"}
             size={"sm"}
             asChild
           >
             <a href={"https://github.com/ElaBosak233"} target={"_blank"}>
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-info"])}
+                aria-hidden="true"
+              />
               ElaBosak233
             </a>
           </Button>
+        </div>
+        <h3 className={cn(["flex", "gap-2", "items-center"])}>
+          <CodeXmlIcon className={cn(["size-5"])} />
+          Contributors
+        </h3>
+        <div className={cn(["flex", "flex-wrap", "justify-center", "gap-3"])}>
           <Button
             className={cn(["rounded-full"])}
-            icon={<StarIcon />}
             variant={"tonal"}
             size={"sm"}
             asChild
           >
             <a href={"https://github.com/Ec3o"} target={"_blank"}>
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                aria-hidden="true"
+              />
               Ec3o
             </a>
           </Button>
-        </div>
-        <h3 className={cn(["flex", "gap-2", "items-center"])}>
-          <HandshakeIcon className={cn(["size-5"])} />
-          Additional Supports
-        </h3>
-        <div className={cn(["flex", "flex-wrap", "justify-center", "gap-3"])}>
           <Button
             className={cn(["rounded-full"])}
-            icon={<StarIcon />}
             variant={"tonal"}
             size={"sm"}
             asChild
           >
             <a href={"https://github.com/Albertknight2023"} target={"_blank"}>
-              AlbertKnight - Art
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                aria-hidden="true"
+              />
+              AlbertKnight
             </a>
           </Button>
           <Button
             className={cn(["rounded-full"])}
-            icon={<StarIcon />}
             variant={"tonal"}
             size={"sm"}
             asChild
           >
             <a href={"https://github.com/skyhaibara"} target={"_blank"}>
-              Skyhaibara - Paper works
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                aria-hidden="true"
+              />
+              Skyhaibara
             </a>
           </Button>
         </div>
@@ -118,12 +130,15 @@ export default function Index() {
         <div className={cn(["flex", "flex-wrap", "justify-center", "gap-3"])}>
           <Button
             className={cn(["rounded-full"])}
-            icon={<StarIcon />}
             variant={"tonal"}
             size={"sm"}
             asChild
           >
             <a href={"https://github.com/Reverier-Xu"} target={"_blank"}>
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-pink-400"])}
+                aria-hidden="true"
+              />
               Reverier-Xu & Ret 2 Shell
             </a>
           </Button>

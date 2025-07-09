@@ -75,16 +75,14 @@ export default function Index() {
           "flex-col-reverse",
           "lg:flex-row",
           "justify-evenly",
-          "mx-10",
-          "lg:mx-20",
-          "xl:mx-[10vw]",
-          "2xl:mx-[15vw]",
           "my-10",
+          "mx-10",
+          "xl:mx-20",
           "gap-10",
         ])}
       >
         <div
-          className={cn(["lg:w-3/4", "flex", "flex-col", "gap-8", "relative"])}
+          className={cn(["flex-1", "flex", "flex-col", "gap-8", "relative"])}
         >
           <LoadingOverlay loading={loading} />
           <div
@@ -94,6 +92,7 @@ export default function Index() {
               "sm:grid-cols-2",
               "lg:grid-cols-3",
               "xl:grid-cols-4",
+              "2xl:grid-cols-5",
               "gap-4",
             ])}
           >
@@ -123,7 +122,7 @@ export default function Index() {
             ))}
           </div>
         </div>
-        <div className={cn(["lg:sticky", "lg:w-1/4", "lg:top-16"])}>
+        <div className={cn(["lg:sticky", "lg:top-16", "lg:w-80"])}>
           <div
             className={cn([
               "flex",

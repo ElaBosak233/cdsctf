@@ -90,7 +90,9 @@ const columns: Array<ColumnDef<Challenge>> = [
 
       return (
         <div className={cn(["flex", "flex-wrap", "gap-1", "w-36"])}>
-          {tags?.map((tag, index) => <Badge key={index}>{tag}</Badge>)}
+          {tags?.map((tag, index) => (
+            <Badge key={index}>{tag}</Badge>
+          ))}
         </div>
       );
     },

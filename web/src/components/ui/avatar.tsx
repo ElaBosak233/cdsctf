@@ -3,9 +3,19 @@ import { cva, VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 import { cn } from "@/utils";
+import { LoaderCircleIcon } from "lucide-react";
+import { useState } from "react";
 
 const avatarVariants = cva(
-  ["relative", "flex", "h-10", "w-10", "shrink-0", "overflow-hidden"],
+  [
+    "relative",
+    "flex",
+    "h-10",
+    "w-10",
+    "shrink-0",
+    "overflow-hidden",
+    "bg-card/80",
+  ],
   {
     variants: {
       square: {
@@ -23,10 +33,23 @@ type AvatarProps = React.ComponentProps<typeof RadixAvatar.Root> &
   VariantProps<typeof avatarVariants> & {
     src: string;
     fallback?: React.ReactNode;
+    onLoadingStatusChange?: (
+      status: "idle" | "loading" | "loaded" | "error"
+    ) => void;
   };
 
 function Avatar(props: AvatarProps) {
-  const { src, fallback, square, className, ref, ...rest } = props;
+  const {
+    src,
+    fallback,
+    square,
+    className,
+    ref,
+    children,
+    onLoadingStatusChange,
+    ...rest
+  } = props;
+  const [loading, setLoading] = useState<boolean>(true);
 
   return (
     <RadixAvatar.Root
@@ -34,8 +57,32 @@ function Avatar(props: AvatarProps) {
       className={cn(avatarVariants({ square, className }))}
       {...rest}
     >
-      <AvatarImage src={src} />
-      <AvatarFallback>{fallback}</AvatarFallback>
+      <AvatarImage
+        src={src}
+        onLoadingStatusChange={(status) => {
+          setLoading(status == "loading");
+          onLoadingStatusChange?.(status);
+        }}
+      />
+      <AvatarFallback>{!loading && fallback}</AvatarFallback>
+      {children}
+      <div
+        className={cn([
+          "absolute",
+          "top-0",
+          "left-0",
+          "w-full",
+          "h-full",
+          "flex",
+          "items-center",
+          "justify-center",
+          !loading && "hidden",
+        ])}
+      >
+        <LoaderCircleIcon
+          className={cn(["h-5", "w-5", "animate-spin", "text-primary"])}
+        />
+      </div>
     </RadixAvatar.Root>
   );
 }
