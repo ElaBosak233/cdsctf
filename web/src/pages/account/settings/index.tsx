@@ -5,9 +5,10 @@ import {
   SaveIcon,
   TrashIcon,
   TypeIcon,
+  UploadCloudIcon,
   UserRoundIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -20,12 +21,6 @@ import { Alert } from "@/components/ui/alert";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import {
-  Dropzone,
-  DropZoneArea,
-  DropzoneTrigger,
-  useDropzone,
-} from "@/components/ui/dropzone";
 import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
@@ -48,6 +43,9 @@ export default function Index() {
   const sharedStore = useSharedStore();
   const configStore = useConfigStore();
   const [loading, setLoading] = useState<boolean>(false);
+
+  const avatarInput = useRef<HTMLInputElement>(null);
+  const [hasAvatar, setHasAvatar] = useState<boolean>(false);
 
   const [emailVerifyDialogOpen, setEmailVerifyDialogOpen] =
     useState<boolean>(false);
@@ -84,55 +82,47 @@ export default function Index() {
       });
   }
 
-  const dropzone = useDropzone({
-    validation: {
-      accept: {
-        "image/*": [".png", ".jpg", ".jpeg", ".webp"],
-      },
-      maxSize: 3 * 1024 * 1024,
-      maxFiles: 1,
-    },
-    onDropFile: async (file) => {
-      const formData = new FormData();
-      formData.append("file", file);
+  function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
 
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", `/api/users/profile/avatar`, true);
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          toast.loading(`上传进度 ${percentComplete}%`, {
-            id: "user-avatar-upload",
-          });
-        }
-      };
-      xhr.onload = () => {
-        if (xhr.status === StatusCodes.OK) {
-          toast.success("头像上传成功", {
-            id: "user-avatar-upload",
-          });
-          sharedStore?.setRefresh();
-        } else {
-          toast.error("头像上传失败", {
-            id: "user-avatar-upload",
-            description: xhr.responseText,
-          });
-        }
-      };
-      xhr.onerror = () => {
-        return {
-          status: "error",
-        };
-      };
+    if (!file) return;
 
-      xhr.send(formData);
+    const formData = new FormData();
+    formData.append("file", file);
 
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/users/profile/avatar`, true);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100;
+        toast.loading(`上传进度 ${percentComplete}%`, {
+          id: "user-avatar-upload",
+        });
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status === StatusCodes.OK) {
+        toast.success("头像上传成功", {
+          id: "user-avatar-upload",
+        });
+        sharedStore?.setRefresh();
+      } else {
+        toast.error("头像上传失败", {
+          id: "user-avatar-upload",
+          description: xhr.responseText,
+        });
+      }
+    };
+    xhr.onerror = () => {
       return {
-        status: "success",
-        result: "",
+        status: "error",
       };
-    },
-  });
+    };
+
+    xhr.send(formData);
+
+    event.target.value = "";
+  }
 
   function handleAvatarDelete() {
     if (!authStore?.user) return;
@@ -233,7 +223,7 @@ export default function Index() {
                   )}
                 />
               </div>
-              <div>
+              <div className={cn(["flex", "flex-col", "gap-3"])}>
                 <div
                   className={cn([
                     "flex",
@@ -243,42 +233,56 @@ export default function Index() {
                   ])}
                 >
                   <Label>头像</Label>
-                  <Button
-                    type={"button"}
-                    icon={<TrashIcon />}
-                    size={"sm"}
-                    level={"error"}
-                    square
-                    onClick={handleAvatarDelete}
-                  />
                 </div>
-                <Dropzone {...dropzone}>
-                  <DropZoneArea
+                <Avatar
+                  className={cn([
+                    "h-30",
+                    "w-30",
+                    "transition-all",
+                    "duration-300",
+                    "border",
+                  ])}
+                  src={`/api/users/${authStore?.user?.id}/avatar?refresh=${sharedStore?.refresh}`}
+                  onLoadingStatusChange={(status) =>
+                    setHasAvatar(status === "loaded")
+                  }
+                  fallback={authStore?.user?.name?.charAt(0)}
+                >
+                  <Button
                     className={cn([
-                      "relative",
-                      "aspect-square",
-                      "h-36",
-                      "p-0",
-                      "rounded-full",
-                      "overflow-hidden",
+                      "absolute",
+                      "top-0",
+                      "left-0",
+                      "w-full",
+                      "h-full",
+                      "opacity-0",
+                      "backdrop-blur-xs",
+                      "transition-all",
+                      "hover:opacity-100",
                     ])}
+                    onClick={() => {
+                      if (hasAvatar) {
+                        handleAvatarDelete();
+                      } else {
+                        avatarInput?.current?.click();
+                      }
+                    }}
                   >
-                    <DropzoneTrigger
-                      className={cn([
-                        "bg-transparent",
-                        "text-center",
-                        "h-full",
-                        "aspect-square",
-                      ])}
-                    >
-                      <Avatar
-                        className={cn(["h-30", "w-30"])}
-                        src={`/api/users/${authStore?.user?.id}/avatar?refresh=${sharedStore?.refresh}`}
-                        fallback={authStore?.user?.username?.charAt(0)}
-                      />
-                    </DropzoneTrigger>
-                  </DropZoneArea>
-                </Dropzone>
+                    <input
+                      type={"file"}
+                      className={"hidden"}
+                      ref={avatarInput}
+                      accept={".png,.jpg,.jpeg,.webp"}
+                      onChange={handleAvatarUpload}
+                    />
+
+                    {hasAvatar ? (
+                      <TrashIcon className={cn(["shrink-0", "text-error"])} />
+                    ) : (
+                      <UploadCloudIcon className="shrink-0" />
+                    )}
+                  </Button>
+                </Avatar>
               </div>
             </div>
             <FormField

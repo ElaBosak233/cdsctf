@@ -100,7 +100,8 @@ export default function Index() {
                 "border",
                 "aspect-16/9",
                 "w-full",
-                "shadow-md",
+                "bg-card/50",
+                "shadow-sm",
                 "select-none",
               ])}
               fallback={

@@ -34,6 +34,11 @@ export default function Layout() {
       name: "用户",
       icon: <UserRoundIcon />,
     },
+    // {
+    //   link: "/admin/email",
+    //   name: "邮箱",
+    //   icon: <MailCheckIcon />,
+    // },
   ];
 
   return (
@@ -44,7 +49,7 @@ export default function Layout() {
           "h-[calc(100vh-64px)]",
           "sticky",
           "top-16",
-          "bg-card",
+          "bg-card/30",
           "border-r-1",
           "p-4",
           "flex",

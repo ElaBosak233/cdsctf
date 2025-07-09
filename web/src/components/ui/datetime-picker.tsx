@@ -66,7 +66,6 @@ const dateTimePickerVariants = cva(
     "w-0",
     "rounded-md",
     "border",
-    "border-input",
     "bg-input",
     "px-3",
     "py-2",

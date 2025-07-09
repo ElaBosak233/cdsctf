@@ -1,4 +1,4 @@
-import { CircleOff } from "lucide-react";
+import { MessageCircleDashedIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Separator } from "@/components/ui/separator";
@@ -23,7 +23,10 @@ export default function E404() {
         ])}
       >
         <title>{`404 - ${configStore?.config?.meta?.title}`}</title>
-        <CircleOff className={cn(["size-32"])} strokeWidth={1.2} />
+        <MessageCircleDashedIcon
+          className={cn(["size-32"])}
+          strokeWidth={1.2}
+        />
         <div className={cn(["flex", "gap-2", "text-xl"])}>
           <span>404</span>
           <Separator orientation={"vertical"} />

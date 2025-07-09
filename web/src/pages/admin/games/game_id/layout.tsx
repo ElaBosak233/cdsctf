@@ -66,6 +66,7 @@ export default function Layout() {
     <Context.Provider value={{ game }}>
       <div
         className={cn([
+          "relative",
           "flex",
           "flex-col",
           "xl:flex-row",

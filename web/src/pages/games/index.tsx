@@ -159,7 +159,8 @@ export default function Index() {
               "border",
               "aspect-16/9",
               "w-full",
-              "shadow-xl",
+              "bg-card/50",
+              "shadow-sm",
             ])}
             fallback={
               <FlagIcon
