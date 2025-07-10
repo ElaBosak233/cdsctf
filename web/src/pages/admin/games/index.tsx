@@ -38,6 +38,7 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Game } from "@/models/game";
+import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -66,6 +67,8 @@ function useGameQuery(params: GetGamesRequest) {
 }
 
 export default function Index() {
+  const configStore = useConfigStore();
+
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 
   const [page, setPage] = useState<number>(1);
@@ -111,185 +114,188 @@ export default function Index() {
   });
 
   return (
-    <div className={cn(["container", "mx-auto", "p-10"])}>
-      <div
-        className={cn([
-          "flex",
-          "justify-between",
-          "items-center",
-          "mb-6",
-          "gap-10",
-        ])}
-      >
-        <h1
-          className={cn([
-            "text-2xl",
-            "font-bold",
-            "flex",
-            "gap-2",
-            "items-center",
-          ])}
-        >
-          <FlagIcon />
-          比赛管理
-        </h1>
+    <>
+      <title>{`比赛 - ${configStore?.config?.meta?.title}`}</title>
+      <div className={cn(["container", "mx-auto", "p-10"])}>
         <div
           className={cn([
             "flex",
-            "flex-1",
-            "justify-center",
+            "justify-between",
             "items-center",
-            "gap-3",
+            "mb-6",
+            "gap-10",
           ])}
         >
-          <Field size={"sm"} className={cn(["flex-1/6"])}>
-            <FieldIcon>
-              <HashIcon />
-            </FieldIcon>
-            <TextField
-              placeholder="ID"
-              value={table.getColumn("id")?.getFilterValue() as number}
-              onChange={(e) =>
-                table.getColumn("id")?.setFilterValue(e.target.value)
-              }
-            />
-          </Field>
-          <Field size={"sm"} className={cn(["flex-5/6"])}>
-            <FieldIcon>
-              <TypeIcon />
-            </FieldIcon>
-            <TextField
-              placeholder={"比赛名"}
-              value={table.getColumn("title")?.getFilterValue() as string}
-              onChange={(e) =>
-                table.getColumn("title")?.setFilterValue(e.target.value)
-              }
-            />
-          </Field>
-          <Button
-            icon={<PlusCircleIcon />}
-            variant={"solid"}
-            onClick={() => setCreateDialogOpen(true)}
-            className={cn(["flex-1/6"])}
-          >
-            添加比赛
-          </Button>
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent>
-              <CreateDialog onClose={() => setCreateDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-      <ScrollArea
-        className={cn([
-          "rounded-md",
-          "border",
-          "bg-card",
-          "min-h-100",
-          "h-[calc(100vh-18rem)]",
-        ])}
-      >
-        <LoadingOverlay loading={loading} />
-        <Table className={cn(["text-foreground"])}>
-          <TableHeader
+          <h1
             className={cn([
-              "sticky",
-              "top-0",
-              "z-2",
-              "bg-muted/70",
-              "backdrop-blur-md",
+              "text-2xl",
+              "font-bold",
+              "flex",
+              "gap-2",
+              "items-center",
             ])}
           >
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {!header.isPlaceholder &&
-                        flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.original.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <>
-                {!loading && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className={cn(["h-24", "text-center"])}
-                    >
-                      哎呀，好像还没有比赛呢。
-                    </TableCell>
-                  </TableRow>
-                )}
-              </>
-            )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
-      <div
-        className={cn([
-          "flex",
-          "items-center",
-          "justify-between",
-          "space-x-2",
-          "py-4",
-          "px-4",
-        ])}
-      >
-        <div className={cn(["flex-1", "text-sm", "text-muted-foreground"])}>
-          {table.getFilteredRowModel().rows.length} / {gamesData?.total}
+            <FlagIcon />
+            比赛
+          </h1>
+          <div
+            className={cn([
+              "flex",
+              "flex-1",
+              "justify-center",
+              "items-center",
+              "gap-3",
+            ])}
+          >
+            <Field size={"sm"} className={cn(["flex-1/6"])}>
+              <FieldIcon>
+                <HashIcon />
+              </FieldIcon>
+              <TextField
+                placeholder="ID"
+                value={table.getColumn("id")?.getFilterValue() as number}
+                onChange={(e) =>
+                  table.getColumn("id")?.setFilterValue(e.target.value)
+                }
+              />
+            </Field>
+            <Field size={"sm"} className={cn(["flex-5/6"])}>
+              <FieldIcon>
+                <TypeIcon />
+              </FieldIcon>
+              <TextField
+                placeholder={"比赛名"}
+                value={table.getColumn("title")?.getFilterValue() as string}
+                onChange={(e) =>
+                  table.getColumn("title")?.setFilterValue(e.target.value)
+                }
+              />
+            </Field>
+            <Button
+              icon={<PlusCircleIcon />}
+              variant={"solid"}
+              onClick={() => setCreateDialogOpen(true)}
+              className={cn(["flex-1/6"])}
+            >
+              添加比赛
+            </Button>
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogContent>
+                <CreateDialog onClose={() => setCreateDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
-        <div className={cn(["flex", "items-center", "gap-5"])}>
-          <Field size={"sm"} className={cn(["w-48"])}>
-            <FieldIcon>
-              <ListOrderedIcon />
-            </FieldIcon>
-            <Select
-              placeholder={"每页显示"}
-              options={[
-                { value: "10" },
-                { value: "20" },
-                { value: "40" },
-                { value: "60" },
-              ]}
-              value={String(size)}
-              onValueChange={(value) => setSize(Number(value))}
-            />
-          </Field>
+        <ScrollArea
+          className={cn([
+            "rounded-md",
+            "border",
+            "bg-card",
+            "min-h-100",
+            "h-[calc(100vh-18rem)]",
+          ])}
+        >
+          <LoadingOverlay loading={loading} />
+          <Table className={cn(["text-foreground"])}>
+            <TableHeader
+              className={cn([
+                "sticky",
+                "top-0",
+                "z-2",
+                "bg-muted/70",
+                "backdrop-blur-md",
+              ])}
+            >
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {!header.isPlaceholder &&
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.original.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <>
+                  {!loading && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className={cn(["h-24", "text-center"])}
+                      >
+                        哎呀，好像还没有比赛呢。
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
+              )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+        <div
+          className={cn([
+            "flex",
+            "items-center",
+            "justify-between",
+            "space-x-2",
+            "py-4",
+            "px-4",
+          ])}
+        >
+          <div className={cn(["flex-1", "text-sm", "text-muted-foreground"])}>
+            {table.getFilteredRowModel().rows.length} / {gamesData?.total}
+          </div>
+          <div className={cn(["flex", "items-center", "gap-5"])}>
+            <Field size={"sm"} className={cn(["w-48"])}>
+              <FieldIcon>
+                <ListOrderedIcon />
+              </FieldIcon>
+              <Select
+                placeholder={"每页显示"}
+                options={[
+                  { value: "10" },
+                  { value: "20" },
+                  { value: "40" },
+                  { value: "60" },
+                ]}
+                value={String(size)}
+                onValueChange={(value) => setSize(Number(value))}
+              />
+            </Field>
 
-          <Pagination
-            size={"sm"}
-            value={page}
-            total={Math.ceil((gamesData?.total || 0) / size)}
-            onChange={setPage}
-          />
+            <Pagination
+              size={"sm"}
+              value={page}
+              total={Math.ceil((gamesData?.total || 0) / size)}
+              onChange={setPage}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

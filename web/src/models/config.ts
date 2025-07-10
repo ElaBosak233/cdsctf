@@ -38,3 +38,16 @@ export interface Version {
   tag?: string;
   commit?: string;
 }
+
+export interface Statistics {
+  users?: number;
+  games?: number;
+  challenges?: {
+    total?: number;
+    in_game?: number;
+  };
+  submissions?: {
+    total?: number;
+    solved?: number;
+  };
+}

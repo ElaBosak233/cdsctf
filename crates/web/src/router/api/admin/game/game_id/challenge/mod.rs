@@ -1,6 +1,5 @@
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::user::Group,
     get_db,
     sea_orm::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, NotSet, PaginatorTrait,
@@ -12,9 +11,9 @@ use serde_json::json;
 use uuid::Uuid;
 
 use crate::{
-    extract::{Extension, Json, Path, Query},
+    extract::{Json, Path, Query},
     model::game_challenge::GameChallenge,
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{WebError, WebResponse},
 };
 
 mod challenge_id;
@@ -71,15 +70,9 @@ pub struct CreateGameChallengeRequest {
 }
 
 pub async fn create_game_challenge(
-    Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Json(body): Json<CreateGameChallengeRequest>,
 ) -> Result<WebResponse<GameChallenge>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     let game = crate::util::loader::prepare_game(game_id).await?;
 
     let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
@@ -102,10 +95,10 @@ pub async fn create_game_challenge(
         game_id: Set(game.id),
         challenge_id: Set(challenge.id),
         difficulty: body.difficulty.map_or(NotSet, Set),
-        is_enabled: body.is_enabled.map_or(NotSet, Set),
+        is_enabled: body.is_enabled.map_or(Set(false), Set),
         max_pts: body.max_pts.map_or(NotSet, Set),
         min_pts: body.min_pts.map_or(NotSet, Set),
-        bonus_ratios: body.bonus_ratios.map_or(Set(vec![5, 3, 1]), Set),
+        bonus_ratios: body.bonus_ratios.map_or(Set(vec![]), Set),
         frozen_at: body.frozen_at.map_or(NotSet, Set),
         ..Default::default()
     }

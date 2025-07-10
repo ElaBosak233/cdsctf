@@ -77,7 +77,7 @@ function Navbar() {
             <Appearance />
             {authStore?.user?.group === Group.Admin && (
               <Button asChild icon={<SettingsIcon />} size={"sm"} square>
-                <Link to={"/admin/platform"} />
+                <Link to={"/admin"} />
               </Button>
             )}
             <AuthSection />

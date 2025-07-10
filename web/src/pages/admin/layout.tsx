@@ -1,4 +1,10 @@
-import { FlagIcon, HouseIcon, LibraryIcon, UserRoundIcon } from "lucide-react";
+import {
+  FlagIcon,
+  HousePlugIcon,
+  LibraryIcon,
+  TypeIcon,
+  UserRoundIcon,
+} from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -15,9 +21,14 @@ export default function Layout() {
 
   const options = [
     {
+      link: "/admin",
+      name: "主页",
+      icon: <HousePlugIcon />,
+    },
+    {
       link: "/admin/platform",
       name: "平台",
-      icon: <HouseIcon />,
+      icon: <TypeIcon />,
     },
     {
       link: "/admin/challenges",

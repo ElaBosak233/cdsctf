@@ -11,11 +11,8 @@ pub struct Model {
     pub game_id: i64,
     #[sea_orm(primary_key)]
     pub challenge_id: Uuid,
-    #[sea_orm(default_value = 1)]
     pub difficulty: i64,
-    #[sea_orm(default_value = 2000)]
     pub max_pts: i64,
-    #[sea_orm(default_value = 200)]
     pub min_pts: i64,
     pub bonus_ratios: Vec<i64>,
     #[sea_orm(default_value = false)]

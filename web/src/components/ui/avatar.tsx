@@ -14,7 +14,7 @@ const avatarVariants = cva(
     "w-10",
     "shrink-0",
     "overflow-hidden",
-    "bg-card/80",
+    "bg-input",
   ],
   {
     variants: {
@@ -114,14 +114,7 @@ function AvatarFallback({
     <RadixAvatar.Fallback
       ref={ref}
       className={cn(
-        [
-          "flex",
-          "h-full",
-          "w-full",
-          "items-center",
-          "justify-center",
-          "bg-foreground/10",
-        ],
+        ["flex", "h-full", "w-full", "items-center", "justify-center"],
         className
       )}
       {...rest}
