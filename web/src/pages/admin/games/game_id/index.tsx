@@ -5,14 +5,14 @@ import {
   ClockFadingIcon,
   ClockIcon,
   FileCheck2Icon,
-  FlagIcon,
   LockOpenIcon,
   SaveIcon,
   TrashIcon,
   TypeIcon,
+  UploadCloudIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -22,14 +22,9 @@ import { Context } from "./context";
 import { updateGame } from "@/api/admin/games/game_id";
 import { deleteGameIcon } from "@/api/admin/games/game_id/icon";
 import { deleteGamePoster } from "@/api/admin/games/game_id/poster";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
-import {
-  Dropzone,
-  DropZoneArea,
-  DropzoneTrigger,
-  useDropzone,
-} from "@/components/ui/dropzone";
 import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
@@ -40,7 +35,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Image } from "@/components/ui/image";
 import { Label } from "@/components/ui/label";
 import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
@@ -54,6 +48,12 @@ export default function Index() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [refresh, setRefresh] = useState<number>(0);
+
+  const iconInput = useRef<HTMLInputElement>(null);
+  const [hasIcon, setHasIcon] = useState<boolean>(false);
+
+  const posterInput = useRef<HTMLInputElement>(null);
+  const [hasPoster, setHasPoster] = useState<boolean>(false);
 
   const formSchema = z.object({
     title: z.string({
@@ -136,62 +136,53 @@ export default function Index() {
       });
   }
 
-  const posterDropzone = useDropzone({
-    onDropFile: async (file) => {
-      const formData = new FormData();
-      formData.append("file", file);
+  function handlePosterUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", `/api/admin/games/${game?.id}/poster`, true);
+    const formData = new FormData();
+    formData.append("file", file);
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          toast.loading(`上传进度 ${percentComplete.toFixed(0)}%`, {
-            id: "poster-upload",
-          });
-        }
-      };
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/admin/games/${game?.id}/poster`, true);
 
-      xhr.onload = () => {
-        if (xhr.status === StatusCodes.OK) {
-          toast.success("海报上传成功", {
-            id: "poster-upload",
-          });
-          setRefresh((prev) => prev + 1);
-        } else {
-          toast.error("海报上传失败", {
-            id: "poster-upload",
-            description: xhr.responseText,
-          });
-        }
-      };
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100;
+        toast.loading(`上传进度 ${percentComplete.toFixed(0)}%`, {
+          id: "poster-upload",
+        });
+      }
+    };
 
-      xhr.onerror = () => {
+    xhr.onload = () => {
+      if (xhr.status === StatusCodes.OK) {
+        toast.success("海报上传成功", {
+          id: "poster-upload",
+        });
+        setRefresh((prev) => prev + 1);
+      } else {
         toast.error("海报上传失败", {
           id: "poster-upload",
-          description: "网络错误",
+          description: xhr.responseText,
         });
-        return {
-          status: "error",
-        };
-      };
+      }
+    };
 
-      xhr.send(formData);
-
+    xhr.onerror = () => {
+      toast.error("海报上传失败", {
+        id: "poster-upload",
+        description: "网络错误",
+      });
       return {
-        status: "success",
-        result: "",
+        status: "error",
       };
-    },
-    validation: {
-      accept: {
-        "image/*": [".png", ".jpg", ".jpeg", ".webp"],
-      },
-      maxSize: 3 * 1024 * 1024,
-      maxFiles: 1,
-    },
-  });
+    };
+
+    xhr.send(formData);
+    event.target.value = "";
+    setRefresh((prev) => prev + 1);
+  }
 
   function handlePosterDelete() {
     if (!game) return;
@@ -209,62 +200,54 @@ export default function Index() {
       });
   }
 
-  const iconDropzone = useDropzone({
-    onDropFile: async (file) => {
-      const formData = new FormData();
-      formData.append("file", file);
+  function handleIconUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
 
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", `/api/admin/games/${game?.id}/icon`, true);
+    if (!file) return;
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          toast.loading(`上传进度 ${percentComplete.toFixed(0)}%`, {
-            id: "icon-upload",
-          });
-        }
-      };
+    const formData = new FormData();
+    formData.append("file", file);
 
-      xhr.onload = () => {
-        if (xhr.status === StatusCodes.OK) {
-          toast.success("图标上传成功", {
-            id: "icon-upload",
-          });
-          setRefresh((prev) => prev + 1);
-        } else {
-          toast.error("图标上传失败", {
-            id: "icon-upload",
-            description: xhr.responseText,
-          });
-        }
-      };
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/admin/games/${game?.id}/icon`, true);
 
-      xhr.onerror = () => {
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100;
+        toast.loading(`上传进度 ${percentComplete.toFixed(0)}%`, {
+          id: "icon-upload",
+        });
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === StatusCodes.OK) {
+        toast.success("图标上传成功", {
+          id: "icon-upload",
+        });
+        setRefresh((prev) => prev + 1);
+      } else {
         toast.error("图标上传失败", {
           id: "icon-upload",
-          description: "网络错误",
+          description: xhr.responseText,
         });
-        return {
-          status: "error",
-        };
-      };
+      }
+    };
 
-      xhr.send(formData);
-
+    xhr.onerror = () => {
+      toast.error("图标上传失败", {
+        id: "icon-upload",
+        description: "网络错误",
+      });
       return {
-        status: "success",
-        result: "",
+        status: "error",
       };
-    },
-    validation: {
-      accept: {
-        "image/*": [".png", ".jpg", ".jpeg", ".webp"],
-      },
-      maxSize: 3 * 1024 * 1024,
-      maxFiles: 1,
-    },
-  });
+    };
+
+    xhr.send(formData);
+    event.target.value = "";
+    setRefresh((prev) => prev + 1);
+  }
 
   function handleIconDelete() {
     if (!game) return;
@@ -336,7 +319,7 @@ export default function Index() {
             />
           </div>
           <div className={cn(["flex", "gap-8"])}>
-            <div className={cn(["flex", "flex-col", "gap-1"])}>
+            <div className={cn(["flex", "flex-col", "gap-3"])}>
               <div
                 className={cn([
                   "flex",
@@ -345,58 +328,61 @@ export default function Index() {
                   "justify-between",
                 ])}
               >
-                <Label>海报</Label>
-                <Button
-                  type={"button"}
-                  icon={<TrashIcon />}
-                  size={"sm"}
-                  level={"error"}
-                  square
-                  onClick={handlePosterDelete}
-                />
+                <Label className="py-1.5">海报</Label>
               </div>
-              <Dropzone {...posterDropzone}>
-                <DropZoneArea
+              <div className={cn(["h-36", "aspect-16/9"])}>
+                <Avatar
                   className={cn([
-                    "relative",
-                    "aspect-16/9",
-                    "h-52",
-                    "p-0",
-                    "overflow-hidden",
+                    "h-full",
+                    "w-full",
+                    "rounded-lg",
+                    "transition-all",
+                    "duration-300",
+                    "border",
                   ])}
+                  src={`/api/games/${game?.id}/poster?r=${refresh}`}
+                  onLoadingStatusChange={(status) =>
+                    setHasPoster(status === "loaded")
+                  }
                 >
-                  <DropzoneTrigger
+                  <Button
                     className={cn([
-                      "bg-transparent",
-                      "text-center",
+                      "absolute",
+                      "top-0",
+                      "left-0",
+                      "w-full",
                       "h-full",
-                      "aspect-16/9",
+                      "opacity-0",
+                      "backdrop-blur-xs",
+                      "transition-all",
+                      "hover:opacity-100",
                     ])}
-                  >
-                    <Image
-                      src={`/api/games/${game?.id}/poster?r=${refresh}`}
-                      className={cn([
-                        "object-cover",
-                        "rounded-md",
-                        "overflow-hidden",
-                        "aspect-16/9",
-                        "w-full",
-                        "select-none",
-                      ])}
-                      fallback={
-                        <FlagIcon
-                          className={cn([
-                            "text-secondary-foreground",
-                            "rotate-12",
-                          ])}
-                        />
+                    onClick={() => {
+                      if (hasPoster) {
+                        handlePosterDelete();
+                      } else {
+                        posterInput?.current?.click();
                       }
+                    }}
+                  >
+                    <input
+                      type={"file"}
+                      className={"hidden"}
+                      ref={posterInput}
+                      accept={".png,.jpg,.jpeg,.webp"}
+                      onChange={handlePosterUpload}
                     />
-                  </DropzoneTrigger>
-                </DropZoneArea>
-              </Dropzone>
+
+                    {hasPoster ? (
+                      <TrashIcon className={cn(["shrink-0", "text-error"])} />
+                    ) : (
+                      <UploadCloudIcon className="shrink-0" />
+                    )}
+                  </Button>
+                </Avatar>
+              </div>
             </div>
-            <div className={cn(["flex", "flex-col", "gap-1"])}>
+            <div className={cn(["flex", "flex-col", "gap-3"])}>
               <div
                 className={cn([
                   "flex",
@@ -405,56 +391,59 @@ export default function Index() {
                   "justify-between",
                 ])}
               >
-                <Label>图标</Label>
-                <Button
-                  type={"button"}
-                  icon={<TrashIcon />}
-                  size={"sm"}
-                  level={"error"}
-                  square
-                  onClick={handleIconDelete}
-                />
+                <Label className="py-1.5">图标</Label>
               </div>
-              <Dropzone {...iconDropzone}>
-                <DropZoneArea
+              <div className={cn(["h-36", "aspect-square"])}>
+                <Avatar
                   className={cn([
-                    "relative",
-                    "aspect-square",
-                    "h-52",
-                    "p-0",
-                    "overflow-hidden",
+                    "h-full",
+                    "w-full",
+                    "rounded-lg",
+                    "transition-all",
+                    "duration-300",
+                    "border",
                   ])}
+                  src={`/api/games/${game?.id}/icon?r=${refresh}`}
+                  onLoadingStatusChange={(status) =>
+                    setHasIcon(status === "loaded")
+                  }
                 >
-                  <DropzoneTrigger
+                  <Button
                     className={cn([
-                      "bg-transparent",
-                      "text-center",
+                      "absolute",
+                      "top-0",
+                      "left-0",
+                      "w-full",
                       "h-full",
-                      "aspect-square",
+                      "opacity-0",
+                      "backdrop-blur-xs",
+                      "transition-all",
+                      "hover:opacity-100",
                     ])}
-                  >
-                    <Image
-                      src={`/api/games/${game?.id}/icon?r=${refresh}`}
-                      className={cn([
-                        "object-cover",
-                        "rounded-md",
-                        "overflow-hidden",
-                        "aspect-square",
-                        "w-full",
-                        "select-none",
-                      ])}
-                      fallback={
-                        <FlagIcon
-                          className={cn([
-                            "text-secondary-foreground",
-                            "rotate-12",
-                          ])}
-                        />
+                    onClick={() => {
+                      if (hasIcon) {
+                        handleIconDelete();
+                      } else {
+                        iconInput?.current?.click();
                       }
+                    }}
+                  >
+                    <input
+                      type={"file"}
+                      className={"hidden"}
+                      ref={iconInput}
+                      accept={".png,.jpg,.jpeg,.webp"}
+                      onChange={handleIconUpload}
                     />
-                  </DropzoneTrigger>
-                </DropZoneArea>
-              </Dropzone>
+
+                    {hasIcon ? (
+                      <TrashIcon className={cn(["shrink-0", "text-error"])} />
+                    ) : (
+                      <UploadCloudIcon className="shrink-0" />
+                    )}
+                  </Button>
+                </Avatar>
+              </div>
             </div>
           </div>
         </div>

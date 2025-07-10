@@ -108,7 +108,7 @@ export default function Layout() {
               "select-none",
             ])}
           >
-            注册于 {new Date(Number(user?.created_at) * 1000).toLocaleString()}
+            {`注册于 ${new Date(Number(user?.created_at) * 1000).toLocaleDateString()}`}
           </span>
         </div>
         <div className={cn(["flex-1", "flex", "flex-col"])}>

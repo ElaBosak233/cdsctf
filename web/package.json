@@ -38,7 +38,7 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "http-status-codes": "^2.3.0",
-    "i18next": "^25.3.1",
+    "i18next": "^25.3.2",
     "i18next-browser-languagedetector": "^8.2.0",
     "i18next-http-backend": "^3.0.2",
     "katex": "^0.16.22",

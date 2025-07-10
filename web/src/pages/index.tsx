@@ -10,7 +10,7 @@ import { useDecryptedText } from "@/hooks/use-decrypted-text";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
-export default function () {
+export default function Index() {
   const configStore = useConfigStore();
   const title = useDecryptedText({
     text: configStore?.config?.meta?.title || "",

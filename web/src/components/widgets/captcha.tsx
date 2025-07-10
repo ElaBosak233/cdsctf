@@ -2,7 +2,14 @@ import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { Turnstile } from "@marsidev/react-turnstile";
 import CryptoJS from "crypto-js";
 import { BotIcon, ImageIcon, RefreshCcwIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  Ref,
+  useContext,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 
 import { generateCaptcha } from "@/api/configs/captcha";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
@@ -12,47 +19,81 @@ import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
+export const Context = createContext<{
+  refresh: number;
+  setRefresh?: () => void;
+}>({
+  refresh: 0,
+});
+
+export type CaptchaRef = {
+  refresh: () => void;
+};
+
 type CaptchaProps = {
   onChange: (captcha?: { id?: string; content?: string }) => void;
+  ref?: Ref<CaptchaRef>;
 };
 
 export function Captcha(props: CaptchaProps) {
-  const { onChange } = props;
+  const { onChange, ref } = props;
   const configStore = useConfigStore();
   const themeStore = useApperanceStore();
+  const [refresh, setRefresh] = useState<number>(0);
 
-  switch (configStore?.config?.captcha?.provider) {
-    case "none":
-      return <></>;
-    case "turnstile":
-      return (
-        <Turnstile
-          siteKey={String(configStore?.config?.captcha?.turnstile?.site_key)}
-          onSuccess={(token) => onChange({ content: token })}
-          options={{
-            size: "flexible",
-            theme: themeStore?.theme === "dark" ? "dark" : "light",
-          }}
-        />
-      );
-    case "hcaptcha":
-      return (
-        <HCaptcha
-          sitekey={String(configStore?.config?.captcha?.hcaptcha?.site_key)}
-          onVerify={(token) => onChange({ content: token })}
-        />
-      );
-    case "pow":
-      return <PowCaptcha onChange={onChange} />;
-    case "image":
-      return <ImageCaptcha onChange={onChange} />;
+  useImperativeHandle(ref, () => ({
+    refresh: () => setRefresh((prev) => prev + 1),
+  }));
+
+  function renderCaptcha() {
+    switch (configStore?.config?.captcha?.provider) {
+      case "none":
+        return null;
+      case "turnstile":
+        return (
+          <Turnstile
+            siteKey={String(configStore?.config?.captcha?.turnstile?.site_key)}
+            onSuccess={(token) => onChange({ content: token })}
+            options={{
+              size: "flexible",
+              theme: themeStore?.theme === "dark" ? "dark" : "light",
+            }}
+          />
+        );
+      case "hcaptcha":
+        return (
+          <HCaptcha
+            sitekey={String(configStore?.config?.captcha?.hcaptcha?.site_key)}
+            onVerify={(token) => onChange({ content: token })}
+          />
+        );
+      case "pow":
+        return <PowCaptcha onChange={onChange} />;
+      case "image":
+        return <ImageCaptcha onChange={onChange} />;
+      default:
+        return null;
+    }
   }
+
+  return (
+    <Context.Provider
+      value={{
+        refresh,
+        setRefresh: () => {
+          setRefresh((prev) => prev + 1);
+        },
+      }}
+    >
+      {renderCaptcha()}
+    </Context.Provider>
+  );
 }
 
 function PowCaptcha(props: CaptchaProps) {
   const { onChange } = props;
 
-  const [refresh, setRefresh] = useState<number>(0);
+  const { refresh, setRefresh } = useContext(Context);
   const [loading, setLoading] = useState<boolean>(false);
   const sharedStore = useSharedStore();
 
@@ -103,7 +144,7 @@ function PowCaptcha(props: CaptchaProps) {
       <TextField readOnly disabled value={result} onChange={() => {}} />
       <FieldButton
         disabled={loading}
-        onClick={() => setRefresh((prev) => prev + 1)}
+        onClick={() => setRefresh?.()}
         loading={loading}
         icon={<RefreshCcwIcon />}
       />
@@ -115,7 +156,7 @@ function ImageCaptcha(props: CaptchaProps) {
   const { onChange } = props;
   const sharedStore = useSharedStore();
 
-  const [refresh, setRefresh] = useState<number>(0);
+  const { refresh, setRefresh } = useContext(Context);
   const [_loading, setLoading] = useState<boolean>(false);
 
   const [result, setResult] = useState<string>();
@@ -154,7 +195,7 @@ function ImageCaptcha(props: CaptchaProps) {
       </Field>
       <img
         src={`data:image/svg+xml;base64,${CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(String(challenge)))}`}
-        onClick={() => setRefresh((prev) => prev + 1)}
+        onClick={() => setRefresh?.()}
         draggable={false}
         style={{
           height: 40,

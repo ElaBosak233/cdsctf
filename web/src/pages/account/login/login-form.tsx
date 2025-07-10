@@ -6,7 +6,7 @@ import {
   LockIcon,
   UserRoundIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
@@ -25,7 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
-import { Captcha } from "@/components/widgets/captcha";
+import { Captcha, CaptchaRef } from "@/components/widgets/captcha";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
@@ -37,6 +37,8 @@ function LoginForm() {
   const authStore = useAuthStore();
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const captchaRef = useRef<CaptchaRef>(null);
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -67,13 +69,22 @@ function LoginForm() {
       });
 
       authStore.setUser(res.data);
-      toast.success(t("account:login.success._"), {
-        id: "login",
-        description: t("account:login.success.welcome", {
-          name: res.data?.name,
-        }),
-      });
-      navigate("/");
+
+      if (res.data?.is_verified) {
+        toast.success(t("account:login.success._"), {
+          id: "login",
+          description: t("account:login.success.welcome", {
+            name: res.data?.name,
+          }),
+        });
+        navigate("/");
+      } else {
+        toast.warning("你还未经过验证", {
+          id: "verify",
+          description: "请先验证你的邮箱",
+        });
+        navigate("/account/settings");
+      }
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
       const res = await parseErrorResponse(error);
@@ -91,8 +102,11 @@ function LoginForm() {
           description: t("account:captcha.please_refresh"),
         });
       }
+
+      captchaRef?.current?.refresh();
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -174,7 +188,7 @@ function LoginForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("account:captcha._")}</FormLabel>
-                  <Captcha onChange={field.onChange} />
+                  <Captcha ref={captchaRef} onChange={field.onChange} />
                 </FormItem>
               )}
             />

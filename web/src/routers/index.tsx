@@ -165,6 +165,12 @@ const router = createBrowserRouter([
         }),
         children: [
           {
+            index: true,
+            lazy: async () => ({
+              Component: (await import("@/pages/admin")).default,
+            }),
+          },
+          {
             path: "platform",
             lazy: async () => ({
               Component: (await import("@/pages/admin/platform")).default,
