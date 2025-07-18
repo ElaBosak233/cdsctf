@@ -60,6 +60,7 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
         .install_default()
         .map_err(|_| anyhow!("Failed to install `ring` as default crypto provider."))?;
 
+    cds_media::init().await?;
     cds_queue::init().await?;
     cds_cache::init().await?;
     cds_db::init().await?;

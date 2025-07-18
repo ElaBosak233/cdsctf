@@ -1,7 +1,9 @@
 import {
+  BotIcon,
   FlagIcon,
   HousePlugIcon,
   LibraryIcon,
+  MailCheckIcon,
   TypeIcon,
   UserRoundIcon,
 } from "lucide-react";
@@ -45,11 +47,16 @@ export default function Layout() {
       name: "用户",
       icon: <UserRoundIcon />,
     },
-    // {
-    //   link: "/admin/email",
-    //   name: "邮箱",
-    //   icon: <MailCheckIcon />,
-    // },
+    {
+      link: "/admin/email",
+      name: "邮箱",
+      icon: <MailCheckIcon />,
+    },
+    {
+      link: "/admin/captcha",
+      name: "人机验证",
+      icon: <BotIcon />,
+    },
   ];
 
   return (

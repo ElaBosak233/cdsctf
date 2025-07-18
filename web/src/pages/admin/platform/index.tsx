@@ -2,13 +2,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
 import {
   BadgeCheckIcon,
-  BotIcon,
-  ClockIcon,
   InfoIcon,
   ListEndIcon,
-  LockIcon,
   SaveIcon,
-  SendIcon,
   TextIcon,
   TrashIcon,
   TypeIcon,
@@ -32,7 +28,6 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -41,7 +36,6 @@ import {
 import { Image } from "@/components/ui/image";
 import { Label } from "@/components/ui/label";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
-import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
@@ -388,263 +382,6 @@ export default function Index() {
             </FormItem>
           )}
         />
-        <h2
-          className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
-        >
-          <BotIcon />
-          人机验证
-        </h2>
-        <Separator />
-        <div className={cn(["flex", "gap-3"])}>
-          <FormField
-            control={form.control}
-            name={"captcha.provider"}
-            render={({ field }) => (
-              <FormItem className={cn(["w-full"])}>
-                <FormLabel>提供方</FormLabel>
-                <FormDescription>
-                  若启用，则在必要的界面中启用人机验证。
-                </FormDescription>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <LockIcon />
-                    </FieldIcon>
-                    <Select
-                      {...field}
-                      options={[
-                        {
-                          value: "none",
-                          content: "不启用",
-                        },
-                        {
-                          value: "pow",
-                          content: "工作量验证",
-                        },
-                        {
-                          value: "image",
-                          content: "图形验证",
-                        },
-                        {
-                          value: "turnstile",
-                          content: "Cloudflare Trunstile",
-                        },
-                        {
-                          value: "hcaptcha",
-                          content: "HCaptcha",
-                        },
-                      ]}
-                      onValueChange={(value) => field.onChange(value)}
-                      value={String(field.value)}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name={"captcha.difficulty"}
-            render={({ field }) => (
-              <FormItem className={cn(["w-full"])}>
-                <FormLabel>难度</FormLabel>
-                <FormDescription>适用于图形验证和工作量验证。</FormDescription>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <ClockIcon />
-                    </FieldIcon>
-                    <NumberField
-                      placeholder="请输入难度"
-                      value={field.value}
-                      onValueChange={(value) => field.onChange(value)}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        {form.watch("captcha.provider") === "turnstile" && (
-          <>
-            <FormField
-              control={form.control}
-              name={"captcha.turnstile.url"}
-              render={({ field }) => (
-                <FormItem className={cn(["w-full"])}>
-                  <FormLabel>API URL</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <SendIcon />
-                      </FieldIcon>
-                      <TextField
-                        {...field}
-                        placeholder="请输入 API URL"
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                      />
-                    </Field>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className={cn(["flex", "gap-3"])}>
-              <FormField
-                control={form.control}
-                name={"captcha.turnstile.site_key"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>SITE_KEY</FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <SendIcon />
-                        </FieldIcon>
-                        <TextField
-                          {...field}
-                          placeholder="请输入 SITE_KEY"
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={"captcha.turnstile.secret_key"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>SECRET_KEY</FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <SendIcon />
-                        </FieldIcon>
-                        <TextField
-                          {...field}
-                          placeholder="请输入 SECRET_KEY"
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </>
-        )}
-        {form.watch("captcha.provider") === "hcaptcha" && (
-          <>
-            <div className={cn(["flex", "gap-3"])}>
-              <FormField
-                control={form.control}
-                name={"captcha.hcaptcha.url"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>API URL</FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <SendIcon />
-                        </FieldIcon>
-                        <TextField
-                          {...field}
-                          placeholder="请输入 API URL"
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={"captcha.hcaptcha.score"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>分数要求</FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <ClockIcon />
-                        </FieldIcon>
-                        <TextField
-                          {...field}
-                          type={"number"}
-                          placeholder="请输入分数要求"
-                          value={field.value || ""}
-                          onChange={(e) =>
-                            field.onChange(e.target.valueAsNumber)
-                          }
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className={cn(["flex", "gap-3"])}>
-              <FormField
-                control={form.control}
-                name={"captcha.hcaptcha.site_key"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>SITE_KEY</FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <SendIcon />
-                        </FieldIcon>
-                        <TextField
-                          {...field}
-                          placeholder="请输入 SITE_KEY"
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={"captcha.hcaptcha.secret_key"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>SECRET_KEY</FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <SendIcon />
-                        </FieldIcon>
-                        <TextField
-                          {...field}
-                          placeholder={"请输入 SECRET_KEY"}
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </>
-        )}
         <div className={cn(["flex-1"])} />
         <Button
           type={"submit"}

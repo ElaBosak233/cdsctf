@@ -177,6 +177,18 @@ const router = createBrowserRouter([
             }),
           },
           {
+            path: "email",
+            lazy: async () => ({
+              Component: (await import("@/pages/admin/email")).default,
+            }),
+          },
+          {
+            path: "captcha",
+            lazy: async () => ({
+              Component: (await import("@/pages/admin/captcha")).default,
+            }),
+          },
+          {
             path: "challenges",
             children: [
               {

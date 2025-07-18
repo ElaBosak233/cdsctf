@@ -17,7 +17,7 @@ type SelectProps = React.ComponentProps<typeof RadixSelect.Root> & {
 };
 
 function Select(props: SelectProps) {
-  const { placeholder, options, className, children, ...rest } = props;
+  const { placeholder, options, className, ...rest } = props;
 
   return (
     <RadixSelect.Root data-slot="select" {...rest}>
@@ -109,7 +109,7 @@ function SelectTrigger(props: SelectTrigger) {
   return (
     <RadixSelect.Trigger
       data-slot="select-trigger"
-      className={cn(selectTriggerVariants({ icon: hasIcon, size }))}
+      className={cn(selectTriggerVariants({ icon: hasIcon, size, className }))}
       {...rest}
     >
       {children}

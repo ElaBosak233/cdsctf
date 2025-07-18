@@ -133,7 +133,7 @@ opentelemetry = { version = "0.30", features = ["metrics"] }
 opentelemetry-otlp = { version = "0.30", features = ["metrics", "grpc-tonic"] }
 opentelemetry_sdk = { version = "0.30", features = ["rt-tokio"] }
 opentelemetry-appender-tracing = { version = "0.30" }
-sysinfo = { version = "0.35" }
+sysinfo = { version = "0.36" }
 
 # Miscellaneous
 once_cell = { version = "1.21" }
@@ -142,6 +142,7 @@ reqwest = { version = "0.12", features = [
     "json",
     "rustls-tls",
 ], default-features = false }
+scraper = { version = "0.23" }
 image = { version = "0.25.6" }
 webp = { version = "0.3.0", features = ["image"] }
 biosvg = { version = "0.1" }

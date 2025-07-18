@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset Your Password - CdsCTF</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #f4f4f7;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        .header {
+            padding: 32px;
+            text-align: center;
+            background-color: #0a84ff;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 32px;
+        }
+        .content h2 {
+            margin-top: 0;
+        }
+        .content p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .code {
+            text-align: center;
+            margin: 24px 0;
+        }
+        .button a {
+            background-color: #0a84ff;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        .disclaimer {
+            font-size: 14px;
+            color: #999;
+            margin-top: 32px;
+        }
+        .note {
+            font-size: 12px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>CdsCTF</h1>
+    </div>
+    <div class="content">
+        <h2>Reset your password</h2>
+        <p>Hello <strong>%USER%</strong>,</p>
+        <p>
+            You’ve requested to reset your password. Here is your reset code:
+        </p>
+        <div class="code">
+            %CODE%
+        </div>
+        <p class="disclaimer">
+            If you didn’t request a password reset, you can safely ignore this email.
+        </p>
+        <p class="note">
+            This is an automated message. Please do not reply.
+        </p>
+    </div>
+</div>
+</body>
+</html>

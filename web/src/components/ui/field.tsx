@@ -40,7 +40,11 @@ function FieldRoot(props: FieldRootProps) {
     <FieldContext.Provider
       value={{ size, disabled, hasIcon, hasExtraButton, autoHeight }}
     >
-      <div className={cn(["flex", "items-center"], className)} {...rest}>
+      <div
+        className={cn(["flex", "items-center"], className)}
+        ref={ref}
+        {...rest}
+      >
         {children}
       </div>
     </FieldContext.Provider>

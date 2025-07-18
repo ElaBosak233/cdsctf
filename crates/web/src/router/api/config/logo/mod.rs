@@ -12,7 +12,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_logo() -> Result<impl IntoResponse, WebError> {
-    let path = "logo".to_owned();
+    let path = "configs/logo".to_owned();
     match cds_media::scan_dir(path.clone()).await?.first() {
         Some((filename, _size)) => {
             let buffer = cds_media::get(path, filename.to_string()).await?;

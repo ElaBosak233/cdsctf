@@ -12,6 +12,7 @@ version = { workspace = true }
 
 [dependencies]
 cds-assets = { workspace = true }
+cds-media = { workspace = true }
 cds-migrator = { workspace = true }
 cds-env = { workspace = true }
 cds-db = { workspace = true }

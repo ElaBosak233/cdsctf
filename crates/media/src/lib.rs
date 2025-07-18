@@ -1,15 +1,40 @@
 pub mod challenge;
+pub mod config;
 pub mod traits;
 pub mod util;
 
 use std::path::PathBuf;
 
+use rust_embed::Embed;
 use tokio::{
-    fs::{File, create_dir_all, metadata, read_dir, remove_dir_all, remove_file},
+    fs::{File, create_dir_all, metadata, read_dir, remove_dir_all, remove_file, write},
     io::{AsyncReadExt, AsyncWriteExt},
 };
 
 use crate::traits::MediaError;
+
+#[derive(Embed)]
+#[folder = "./embed/"]
+pub struct Embeds;
+
+pub async fn init() -> Result<(), MediaError> {
+    let path = PathBuf::from(&cds_env::get_config().media.path);
+    if metadata(&path).await.is_err() {
+        create_dir_all(&path).await?;
+
+        for file in Embeds::iter() {
+            if let Some(content) = Embeds::get(&file) {
+                let file_path = path.join(&file.as_ref());
+                if let Some(parent) = file_path.parent() {
+                    create_dir_all(parent).await?;
+                }
+                write(&file_path, content.data.as_ref()).await?;
+            }
+        }
+    }
+
+    Ok(())
+}
 
 pub async fn get(path: String, filename: String) -> Result<Vec<u8>, MediaError> {
     let filepath =
