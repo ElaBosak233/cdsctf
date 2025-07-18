@@ -43,3 +43,4 @@ tokio = { workspace = true }
 uuid = { workspace = true }
 futures = { workspace = true }
 tower_governor = { workspace = true }
+scraper = { workspace = true }

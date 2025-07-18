@@ -1,4 +1,5 @@
 use cds_db::sea_orm::PaginatorTrait;
+mod email;
 mod logo;
 
 use axum::Router;
@@ -18,6 +19,7 @@ pub fn router() -> Router {
         .route("/", axum::routing::get(get_config))
         .route("/", axum::routing::put(update_config))
         .nest("/logo", logo::router())
+        .nest("/email", email::router())
         .route("/statistics", axum::routing::get(get_statistics))
 }
 

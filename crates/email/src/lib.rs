@@ -4,7 +4,7 @@ mod util;
 use anyhow::anyhow;
 use lettre::{
     AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
-    message::header::ContentType,
+    message::{SinglePart, header::ContentType},
     transport::smtp::{
         authentication::Credentials,
         client::{Tls, TlsParameters},
@@ -65,9 +65,12 @@ pub async fn send(to: &str, subject: &str, body: &str) -> Result<(), EmailError>
             .unwrap(),
         )
         .to(to.to_string().parse().unwrap())
-        .header(ContentType::TEXT_HTML)
         .subject(util::inject(subject).await)
-        .body(util::inject(body).await)?;
+        .singlepart(
+            SinglePart::builder()
+                .header(ContentType::TEXT_HTML)
+                .body(util::inject(body).await),
+        )?;
 
     get_mailer().await?.send(envelope).await?;
 

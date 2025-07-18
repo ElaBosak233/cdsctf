@@ -6,6 +6,7 @@ use cds_db::{
         ActiveValue::{Set, Unchanged},
     },
 };
+use cds_media::config::email::EmailType;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -13,6 +14,7 @@ use serde_json::json;
 use crate::{
     extract::{Extension, Json},
     traits::{AuthPrincipal, WebError, WebResponse},
+    util,
 };
 
 pub fn router() -> Router {
@@ -86,13 +88,17 @@ pub async fn send_verify_email(
     )
     .await?;
 
+    let body = cds_media::config::email::get_email(EmailType::Verify).await?;
+
     cds_queue::publish(
         "email",
         crate::worker::email_sender::Payload {
             name: operator.name.to_owned(),
             email: operator.email.to_owned(),
-            subject: "Verify your email".to_owned(),
-            body: code,
+            subject: util::email::extract_title(&body).unwrap_or("Verify Your Email".to_owned()),
+            body: body
+                .replace("%CODE%", &code)
+                .replace("%USER%", &operator.name),
         },
     )
     .await?;
