@@ -7,7 +7,7 @@ authors = ["ElaBosak233 <i@e23.dev>"]
 edition = "2024"
 publish = false
 homepage = "https://cdsctf.e23.dev"
-repository = "https://github.com/cdsctf/cdsctf"
+repository = "https://github.com/elabosak233/cdsctf"
 rust-version = "1.87.0"
 version = "1.6.5"
 

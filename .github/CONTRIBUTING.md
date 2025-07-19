@@ -7,7 +7,7 @@ But let's make sure we play by the same rules.
 ## Issues
 
 If you have an idea for a new feature or a bug fix, please open an issue first.
-Specially, if you found a vulnerability, please check our [Security Policy](https://github.com/cdsctf/cdsctf/security/policy) first.
+Specially, if you found a vulnerability, please check our [Security Policy](https://github.com/elabosak233/cdsctf/security/policy) first.
 
 Please describe your requirements or the problems you encounter as detailed as possible.
 

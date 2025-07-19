@@ -10,11 +10,11 @@ If you want to know how to deploy and how to use it, please refer to the [Docume
 
 Thanks to everyone who has contributed to the project! Without you, CdsCTF would not be what it is today.
 
-![Contributors of CdsCTF](https://contrib.rocks/image?repo=cdsctf/cdsctf)
+![Contributors of CdsCTF](https://contrib.rocks/image?repo=elabosak233/cdsctf)
 
 ### Stars
 
-![Stars of CdsCTF](https://starchart.cc/cdsctf/cdsctf.svg?variant=adaptive)
+![Stars of CdsCTF](https://starchart.cc/elabosak233/cdsctf.svg?variant=adaptive)
 
 ## License
 

@@ -58,7 +58,7 @@ export default function () {
         %cCds%cCTF %cv%c${versionData?.tag}\n
         %cOriginally developed by ElaBosak233.\n
         %cAttacks on the platform are generally not part of CTF challenges.\n
-        %cIf you run into any issues, please consider opening an issue on GitHub: https://github.com/cdsctf/cdsctf.
+        %cIf you run into any issues, please consider opening an issue on GitHub: https://github.com/elabosak233/cdsctf.
         `),
       "color: #44b2fc; font-weight: bold; font-size: 1.75rem; font-style: italic; font-family: consolas;",
       "color: #ffda5c; font-weight: bold; font-size: 1.75rem; font-style: italic; font-family: consolas;",
