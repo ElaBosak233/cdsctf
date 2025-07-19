@@ -1,12 +1,23 @@
 use std::net::SocketAddr;
 
 use anyhow::anyhow;
+use cds_server::{router::router, worker};
 use chrono::TimeZone;
+use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     bootstrap().await?;
+
+    let cors = CorsLayer::new()
+        .allow_methods(Any)
+        .allow_headers(Any)
+        .allow_origin(Any);
+
+    let router = router().await.layer(cors);
+
+    worker::init().await?;
 
     let addr = format!(
         "{}:{}",
@@ -22,7 +33,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     axum::serve(
         listener,
-        cds_web::get_app()
+        router
             .to_owned()
             .into_make_service_with_connect_info::<SocketAddr>(),
     )
@@ -69,7 +80,6 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
 
     cds_cluster::init().await?;
     cds_checker::init().await?;
-    cds_web::init().await?;
 
     Ok(())
 }

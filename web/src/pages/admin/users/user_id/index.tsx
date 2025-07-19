@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
+import { useRefresh } from "@/hooks/use-refresh";
 import { Group } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -48,7 +49,7 @@ export default function Index() {
 
   const sharedStore = useSharedStore();
   const [loading, setLoading] = useState<boolean>(false);
-  const [refresh, setRefresh] = useState<number>(0);
+  const { tick, bump } = useRefresh();
 
   const groupOptions = [
     { id: Group.Guest.toString(), name: "访客", icon: UserRoundIcon },
@@ -130,7 +131,7 @@ export default function Index() {
           toast.success("头像上传成功", {
             id: "avatar-upload",
           });
-          setRefresh((prev) => prev + 1);
+          bump();
         } else {
           toast.error("头像上传失败", {
             id: "avatar-upload",
@@ -189,7 +190,7 @@ export default function Index() {
             >
               <Avatar
                 className={cn(["h-30", "w-30"])}
-                src={`/api/users/${user_id}/avatar?refresh=${refresh}`}
+                src={`/api/users/${user_id}/avatar?refresh=${tick}`}
                 fallback={user?.username?.charAt(0)}
               />
             </DropzoneTrigger>

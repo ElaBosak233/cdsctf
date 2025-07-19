@@ -3,84 +3,140 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reset Your Password - CdsCTF</title>
+    <title>Reset Your Password - %TITLE%</title>
     <style>
         body {
             margin: 0;
-            background-color: #f4f4f7;
-            font-family: 'Segoe UI', sans-serif;
+            background-color: #fafafa;
+            font-family: 'Ubuntu Sans Variable', 'Ubuntu Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #2d2d3d;
+            line-height: 1.6;
         }
         .container {
             max-width: 600px;
             margin: 40px auto;
             background-color: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 0 20px rgba(45, 45, 61, 0.08);
             overflow: hidden;
+            border: 1px solid #e4e4e7;
         }
         .header {
-            padding: 32px;
+            padding: 24px;
             text-align: center;
-            background-color: #0a84ff;
-            color: white;
+            background-color: #2d2d3d;
+            color: #fafafa;
         }
         .header h1 {
             margin: 0;
             font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.025em;
         }
         .content {
             padding: 32px;
+            background-color: #ffffff;
         }
         .content h2 {
             margin-top: 0;
+            margin-bottom: 16px;
+            color: #2d2d3d;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.025em;
         }
         .content p {
             font-size: 16px;
-            line-height: 1.5;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            color: #2d2d3d;
         }
         .code {
             text-align: center;
-            margin: 24px 0;
+            margin: 32px 0;
+            padding: 24px;
+            background-color: #f1f1f3;
+            border-radius: 8px;
+            border: 1px solid #e4e4e7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .button a {
-            background-color: #0a84ff;
-            color: white;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            display: inline-block;
-            font-weight: bold;
+        .code-text {
+            font-family: 'Ubuntu Sans Mono Variable', 'Ubuntu Mono', 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d2d3d;
+            letter-spacing: 0.1em;
+            margin: 0;
         }
         .disclaimer {
             font-size: 14px;
-            color: #999;
+            color: #6b6b7d;
             margin-top: 32px;
+            padding: 16px;
+            background-color: #f1f1f3;
+            border-radius: 6px;
+            border-left: 3px solid #2d2d3d;
         }
         .note {
             font-size: 12px;
-            color: #ccc;
+            color: #6b6b7d;
+            margin-top: 24px;
+            text-align: center;
+            font-style: italic;
+        }
+        .footer {
+            padding: 24px 32px;
+            background-color: #f1f1f3;
+            border-top: 1px solid #e4e4e7;
+            text-align: center;
+        }
+        .footer p {
+            margin: 0;
+            font-size: 12px;
+            color: #6b6b7d;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .container {
+                margin: 20px auto;
+                border-radius: 0;
+            }
+            .header, .content {
+                padding: 24px;
+            }
+            .code {
+                margin: 24px 0;
+                padding: 20px;
+            }
+            .code-text {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>CdsCTF</h1>
+        <h1>%TITLE%</h1>
     </div>
     <div class="content">
         <h2>Reset your password</h2>
         <p>Hello <strong>%USER%</strong>,</p>
         <p>
-            You’ve requested to reset your password. Here is your reset code:
+            You've requested to reset your password. Please use the verification code below to complete the process:
         </p>
         <div class="code">
-            %CODE%
+            <span class="code-text">%CODE%</span>
         </div>
-        <p class="disclaimer">
-            If you didn’t request a password reset, you can safely ignore this email.
-        </p>
+        <div class="disclaimer">
+            <strong>Security Notice:</strong> If you didn't request a password reset, please ignore this email. Your account remains secure and no changes have been made.
+        </div>
+    </div>
+    <div class="footer">
         <p class="note">
-            This is an automated message. Please do not reply.
+            This is an automated message. Please do not reply to this email.
         </p>
     </div>
 </div>

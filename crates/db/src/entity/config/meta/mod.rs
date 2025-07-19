@@ -17,9 +17,9 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             title: "CdsCTF".to_string(),
-            description: "Stay determined".to_string(),
+            description: "Innovative!".to_string(),
             keywords: vec!["CTF"].into_iter().map(|s| s.to_string()).collect(),
-            footer: "Stay determined".to_string(),
+            footer: "Despite everything, it's still you.".to_string(),
         }
     }
 }

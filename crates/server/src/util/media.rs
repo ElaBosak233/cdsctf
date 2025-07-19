@@ -72,7 +72,7 @@ pub async fn delete_img(path: String) -> Result<WebResponse<()>, WebError> {
 
 pub async fn handle_image_multipart(mut multipart: Multipart) -> Result<Vec<u8>, WebError> {
     while let Some(field) = multipart.next_field().await.unwrap() {
-        if field.name() == Some("file") {
+        if field.file_name().is_some() {
             let content_type = field.content_type().unwrap().to_string();
             let mime: Mime = content_type.parse().unwrap();
             if mime.type_() != mime::IMAGE {

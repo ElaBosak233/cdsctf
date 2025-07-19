@@ -14,6 +14,7 @@ import {
 import { generateCaptcha } from "@/api/configs/captcha";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
+import { useRefresh } from "@/hooks/use-refresh";
 import { useApperanceStore } from "@/storages/appearance";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
@@ -39,10 +40,10 @@ export function Captcha(props: CaptchaProps) {
   const { onChange, ref } = props;
   const configStore = useConfigStore();
   const themeStore = useApperanceStore();
-  const [refresh, setRefresh] = useState<number>(0);
+  const { tick, bump } = useRefresh();
 
   useImperativeHandle(ref, () => ({
-    refresh: () => setRefresh((prev) => prev + 1),
+    refresh: () => bump(),
   }));
 
   function renderCaptcha() {
@@ -79,10 +80,8 @@ export function Captcha(props: CaptchaProps) {
   return (
     <Context.Provider
       value={{
-        refresh,
-        setRefresh: () => {
-          setRefresh((prev) => prev + 1);
-        },
+        refresh: tick,
+        setRefresh: bump,
       }}
     >
       {renderCaptcha()}

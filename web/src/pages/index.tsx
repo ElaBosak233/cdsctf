@@ -11,19 +11,19 @@ import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
 export default function Index() {
-  const configStore = useConfigStore();
+  const { config } = useConfigStore();
   const title = useDecryptedText({
-    text: configStore?.config?.meta?.title || "",
+    text: config?.meta?.title || "",
     speed: 100,
   });
   const description = useDecryptedText({
-    text: configStore?.config?.meta?.description || "",
+    text: config?.meta?.description || "",
     speed: 25,
   });
 
   return (
     <>
-      <title>{configStore?.config?.meta?.title}</title>
+      <title>{config?.meta?.title}</title>
       <div
         className={cn([
           "flex-1",
@@ -61,14 +61,14 @@ export default function Index() {
           >
             {title}
           </h1>
-          <span className={cn(["text-secondary-foreground"])}>
+          <span className={cn(["text-secondary-foreground", "mt-2"])}>
             {description}
           </span>
         </div>
         <div className={cn(["hidden", "sm:flex", "items-center", "gap-3"])}>
           <Button>
             <Typography className={cn(["text-secondary-foreground"])}>
-              <MarkdownRender src={configStore?.config?.meta?.footer} />
+              <MarkdownRender src={config?.meta?.footer} />
             </Typography>
           </Button>
           <Separator orientation={"vertical"} className={cn(["h-5"])} />

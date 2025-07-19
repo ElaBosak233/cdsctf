@@ -6,7 +6,7 @@ import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
 export default function E404() {
-  const configStore = useConfigStore();
+  const { config } = useConfigStore();
   const { t } = useTranslation("sigtrap");
 
   return (
@@ -22,7 +22,7 @@ export default function E404() {
           "text-foreground",
         ])}
       >
-        <title>{`404 - ${configStore?.config?.meta?.title}`}</title>
+        <title>{`404 - ${config?.meta?.title}`}</title>
         <MessageCircleDashedIcon
           className={cn(["size-32"])}
           strokeWidth={1.2}
