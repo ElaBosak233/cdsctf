@@ -48,11 +48,7 @@ function RegisterForm() {
       name: z.string({
         message: "请输入昵称",
       }),
-      email: z
-        .string({
-          message: "请输入邮箱",
-        })
-        .email("邮箱格式不合法"),
+      email: z.email("邮箱不合法"),
       password: z
         .string({
           message: "请输入密码",

@@ -1,9 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import {
+  AlertCircleIcon,
   ArrowDownIcon,
   ArrowUpDownIcon,
   ArrowUpIcon,
+  CircleCheckIcon,
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
@@ -89,7 +91,16 @@ const columns: Array<ColumnDef<User>> = [
     accessorKey: "email",
     id: "email",
     header: "邮箱",
-    cell: ({ row }) => row.original.email || "-",
+    cell: ({ row }) => (
+      <div className={cn(["flex", "gap-2", "items-center"])}>
+        {row.original.email}
+        {row.original.is_verified ? (
+          <CircleCheckIcon className={cn(["text-success", "size-4"])} />
+        ) : (
+          <AlertCircleIcon className={cn(["text-warning", "size-4"])} />
+        )}
+      </div>
+    ),
   },
   {
     accessorKey: "group",

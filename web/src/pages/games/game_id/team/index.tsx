@@ -28,12 +28,13 @@ import {
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { TextField } from "@/components/ui/text-field";
+import { useRefresh } from "@/hooks/use-refresh";
 import { useGameStore } from "@/storages/game";
-import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { uploadFile } from "@/utils/file";
 
 export default function Index() {
-  const sharedStore = useSharedStore();
+  const { tick, bump } = useRefresh();
   const { currentGame, selfTeam } = useGameStore();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -62,84 +63,66 @@ export default function Index() {
     });
   }, [selfTeam, form.reset]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!selfTeam || !currentGame) return;
     setLoading(true);
-    updateTeam({
-      id: selfTeam.id!,
-      game_id: currentGame.id!,
-      ...values,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(`团队 ${res?.data?.name} 更新成功`);
-        }
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      const res = await updateTeam({
+        id: selfTeam.id!,
+        game_id: currentGame.id!,
+        ...values,
       });
+      if (res.code === StatusCodes.OK) {
+        toast.success(`团队 ${res?.data?.name} 更新成功`);
+      }
+    } finally {
+      bump();
+      setLoading(false);
+    }
   }
 
-  function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleAvatarUpload(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
     const file = event.target.files?.[0];
 
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    const xhr = new XMLHttpRequest();
-    xhr.open(
-      "POST",
-      `/api/games/${currentGame?.id}/teams/profile/avatar`,
-      true
-    );
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percentComplete = (event.loaded / event.total) * 100;
-        toast.loading(`上传进度 ${percentComplete}%`, {
-          id: "team-avatar-upload",
-        });
-      }
-    };
-    xhr.onload = () => {
-      if (xhr.status === StatusCodes.OK) {
+    try {
+      const res = await uploadFile(
+        `/api/games/${currentGame?.id}/teams/profile/avatar`,
+        [file],
+        ({ percent }) => {
+          toast.loading(`上传进度 ${percent.toFixed(0)}%`, {
+            id: "team-avatar-upload",
+          });
+        }
+      );
+      if (res.code === StatusCodes.OK) {
         toast.success("头像上传成功", {
           id: "team-avatar-upload",
         });
-        sharedStore?.setRefresh();
-      } else {
-        toast.error("头像上传失败", {
-          id: "team-avatar-upload",
-          description: xhr.responseText,
-        });
       }
-    };
-    xhr.onerror = () => {
-      return {
-        status: "error",
-      };
-    };
-
-    xhr.send(formData);
+    } catch {
+      toast.error("头像上传失败");
+    }
 
     event.target.value = "";
   }
 
-  function handleAvatarDelete() {
+  async function handleAvatarDelete() {
     if (!selfTeam || !currentGame) return;
-    deleteTeamAvatar({
-      game_id: currentGame.id!,
-      team_id: selfTeam.id!,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(`团队 ${selfTeam?.name} 头像删除成功`);
-        }
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
+    try {
+      const res = await deleteTeamAvatar({
+        game_id: currentGame.id!,
+        team_id: selfTeam.id!,
       });
+      if (res.code === StatusCodes.OK) {
+        toast.success(`团队 ${selfTeam?.name} 头像删除成功`);
+      }
+    } finally {
+      bump();
+    }
   }
 
   return (
@@ -231,7 +214,7 @@ export default function Index() {
                     "duration-300",
                     "border",
                   ])}
-                  src={`/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar?refresh=${sharedStore?.refresh}`}
+                  src={`/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar?refresh=${tick}`}
                   fallback={selfTeam?.name?.charAt(0)}
                   onLoadingStatusChange={(status) =>
                     setHasAvatar(status === "loaded")

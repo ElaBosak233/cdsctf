@@ -59,14 +59,13 @@ pub async fn save_challenge_attachment(
     let mut filename = String::new();
     let mut data = Vec::<u8>::new();
     while let Some(field) = multipart.next_field().await.unwrap() {
-        if field.name() == Some("file") {
-            filename = field.file_name().unwrap().to_string();
+        if let Some(name) = field.file_name() {
+            filename = name.to_string();
             data = match field.bytes().await {
                 Ok(bytes) => bytes.to_vec(),
-                Err(_err) => {
-                    return Err(WebError::BadRequest(json!("size_too_large")));
-                }
+                _ => return Err(WebError::BadRequest(json!("size_too_large"))),
             };
+            break;
         }
     }
 

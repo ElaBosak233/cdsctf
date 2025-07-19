@@ -37,6 +37,7 @@ import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { uploadFile } from "@/utils/file";
 
 export default function Index() {
   const authStore = useAuthStore();
@@ -55,7 +56,7 @@ export default function Index() {
     name: z.string({
       message: "请输入昵称",
     }),
-    email: z.string().email({
+    email: z.email({
       message: "请输入合法的邮箱",
     }),
     description: z.string().nullish(),
@@ -66,76 +67,58 @@ export default function Index() {
     defaultValues: authStore?.user,
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    updateUserProfile({
-      ...values,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          authStore?.setUser(res.data);
-          toast.success("个人资料更新成功");
-        }
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      const res = await updateUserProfile({
+        ...values,
       });
+      if (res.code === StatusCodes.OK) {
+        authStore?.setUser(res.data);
+        toast.success("个人资料更新成功");
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleAvatarUpload(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
     const file = event.target.files?.[0];
 
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `/api/users/profile/avatar`, true);
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percentComplete = (event.loaded / event.total) * 100;
-        toast.loading(`上传进度 ${percentComplete}%`, {
-          id: "user-avatar-upload",
-        });
-      }
-    };
-    xhr.onload = () => {
-      if (xhr.status === StatusCodes.OK) {
+    try {
+      const res = await uploadFile(
+        "/api/users/profile/avatar",
+        [file],
+        ({ percent }) => {
+          toast.loading(`上传进度 ${percent.toFixed(0)}%`, {
+            id: "user-avatar-upload",
+          });
+        }
+      );
+      if (res.code === StatusCodes.OK) {
         toast.success("头像上传成功", {
           id: "user-avatar-upload",
         });
-        sharedStore?.setRefresh();
-      } else {
-        toast.error("头像上传失败", {
-          id: "user-avatar-upload",
-          description: xhr.responseText,
-        });
       }
-    };
-    xhr.onerror = () => {
-      return {
-        status: "error",
-      };
-    };
-
-    xhr.send(formData);
+    } catch {
+      toast.error("头像上传失败");
+    }
 
     event.target.value = "";
   }
 
-  function handleAvatarDelete() {
+  async function handleAvatarDelete() {
     if (!authStore?.user) return;
 
-    deleteUserAvatar()
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(`头像删除成功`);
-        }
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-      });
+    const res = await deleteUserAvatar();
+    if (res.code === StatusCodes.OK) {
+      toast.success("头像删除成功");
+    }
+    sharedStore.setRefresh();
   }
 
   return (

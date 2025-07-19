@@ -16,9 +16,10 @@ cds-media = { workspace = true }
 cds-migrator = { workspace = true }
 cds-env = { workspace = true }
 cds-db = { workspace = true }
+cds-captcha = { workspace = true }
+cds-email = { workspace = true }
 cds-cluster = { workspace = true }
 cds-queue = { workspace = true }
-cds-web = { workspace = true }
 cds-cache = { workspace = true }
 cds-checker = { workspace = true }
 cds-telemetry = { workspace = true }
@@ -31,6 +32,25 @@ axum = { workspace = true }
 sea-orm = { workspace = true }
 anyhow = { workspace = true }
 chrono = { workspace = true }
+argon2 = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_with = { workspace = true }
+http-serde = { workspace = true }
+tower-http = { workspace = true }
+jsonwebtoken = { workspace = true }
+mime = { workspace = true }
+validator = { workspace = true }
+nanoid = { workspace = true }
+cookie = { workspace = true }
+uuid = { workspace = true }
+futures = { workspace = true }
+tower_governor = { workspace = true }
+scraper = { workspace = true }
+
+[lib]
+path = "src/lib.rs"
 
 [[bin]]
 name = "cds-server"

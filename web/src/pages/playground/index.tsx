@@ -70,7 +70,7 @@ function useChallengeStatusQuery(
 
 export default function Index() {
   const authStore = useAuthStore();
-  const configStore = useConfigStore();
+  const { config } = useConfigStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -135,7 +135,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`练习场 - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`练习场 - ${config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex-1",

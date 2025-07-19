@@ -32,7 +32,13 @@ function Tooltip(props: TooltipProps) {
 function TooltipTrigger({
   ...props
 }: React.ComponentProps<typeof RadixTooltip.Trigger>) {
-  return <RadixTooltip.Trigger data-slot="tooltip-trigger" {...props} />;
+  return (
+    <RadixTooltip.Trigger
+      data-slot="tooltip-trigger"
+      {...props}
+      type={"button"}
+    />
+  );
 }
 
 function TooltipContent({

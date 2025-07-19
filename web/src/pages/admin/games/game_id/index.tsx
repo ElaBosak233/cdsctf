@@ -39,6 +39,7 @@ import { Label } from "@/components/ui/label";
 import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
+import { useRefresh } from "@/hooks/use-refresh";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
@@ -47,7 +48,7 @@ export default function Index() {
   const sharedStore = useSharedStore();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [refresh, setRefresh] = useState<number>(0);
+  const { tick, bump } = useRefresh();
 
   const iconInput = useRef<HTMLInputElement>(null);
   const [hasIcon, setHasIcon] = useState<boolean>(false);
@@ -160,7 +161,7 @@ export default function Index() {
         toast.success("海报上传成功", {
           id: "poster-upload",
         });
-        setRefresh((prev) => prev + 1);
+        bump();
       } else {
         toast.error("海报上传失败", {
           id: "poster-upload",
@@ -181,7 +182,7 @@ export default function Index() {
 
     xhr.send(formData);
     event.target.value = "";
-    setRefresh((prev) => prev + 1);
+    bump();
   }
 
   function handlePosterDelete() {
@@ -196,7 +197,7 @@ export default function Index() {
         }
       })
       .finally(() => {
-        setRefresh((prev) => prev + 1);
+        bump();
       });
   }
 
@@ -225,7 +226,7 @@ export default function Index() {
         toast.success("图标上传成功", {
           id: "icon-upload",
         });
-        setRefresh((prev) => prev + 1);
+        bump();
       } else {
         toast.error("图标上传失败", {
           id: "icon-upload",
@@ -246,7 +247,7 @@ export default function Index() {
 
     xhr.send(formData);
     event.target.value = "";
-    setRefresh((prev) => prev + 1);
+    bump();
   }
 
   function handleIconDelete() {
@@ -261,7 +262,7 @@ export default function Index() {
         }
       })
       .finally(() => {
-        setRefresh((prev) => prev + 1);
+        bump();
       });
   }
 
@@ -340,7 +341,7 @@ export default function Index() {
                     "duration-300",
                     "border",
                   ])}
-                  src={`/api/games/${game?.id}/poster?r=${refresh}`}
+                  src={`/api/games/${game?.id}/poster?r=${tick}`}
                   onLoadingStatusChange={(status) =>
                     setHasPoster(status === "loaded")
                   }
@@ -403,7 +404,7 @@ export default function Index() {
                     "duration-300",
                     "border",
                   ])}
-                  src={`/api/games/${game?.id}/icon?r=${refresh}`}
+                  src={`/api/games/${game?.id}/icon?r=${tick}`}
                   onLoadingStatusChange={(status) =>
                     setHasIcon(status === "loaded")
                   }

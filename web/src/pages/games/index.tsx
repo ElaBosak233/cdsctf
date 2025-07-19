@@ -16,7 +16,7 @@ import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
 export default function Index() {
-  const configStore = useConfigStore();
+  const { config } = useConfigStore();
   const navigate = useNavigate();
 
   const [games, setGames] = useState<Array<GameMini>>();
@@ -52,7 +52,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`比赛 - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`比赛 - ${config?.meta?.title}`}</title>
       <div
         className={cn([
           "w-full",

@@ -6,8 +6,8 @@ import {
   ListEndIcon,
   SaveIcon,
   TextIcon,
-  TrashIcon,
   TypeIcon,
+  UndoIcon,
   UserRoundCheckIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -39,11 +39,13 @@ import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
+import { useRefresh } from "@/hooks/use-refresh";
 import { Config } from "@/models/config";
 import { cn } from "@/utils";
+import { uploadFile } from "@/utils/file";
 
 export default function Index() {
-  const [refresh, setRefresh] = useState<number>(0);
+  const { tick, bump } = useRefresh();
   const [config, setConfig] = useState<Config>();
 
   useEffect(() => {
@@ -65,42 +67,6 @@ export default function Index() {
       .object({
         is_registration_enabled: z.boolean().optional(),
       })
-      .optional(),
-    captcha: z
-      .object({
-        provider: z
-          .enum(["none", "pow", "image", "turnstile", "hcaptcha"])
-          .optional(),
-        difficulty: z.number().default(1).optional(),
-        turnstile: z
-          .object({
-            url: z.string().default("").optional(),
-            site_key: z.string().default("").optional(),
-            secret_key: z.string().default("").optional(),
-          })
-
-          .optional(),
-        hcaptcha: z
-          .object({
-            url: z.string().default("").optional(),
-            site_key: z.string().default("").optional(),
-            secret_key: z.string().default("").optional(),
-            score: z.number().default(0).optional(),
-          })
-          .optional(),
-      })
-      .optional(),
-    email: z
-      .object({
-        is_enabled: z.boolean().default(false).optional(),
-        host: z.string().default("").optional(),
-        port: z.number().default(587).optional(),
-        tls: z.enum(["starttls", "tls", "none"]).optional(),
-        username: z.string().default("").optional(),
-        password: z.string().default("").optional(),
-        whitelist: z.array(z.string()).default([]).optional(),
-      })
-      .default({})
       .optional(),
   });
 
@@ -128,46 +94,22 @@ export default function Index() {
 
   const iconDropzone = useDropzone({
     onDropFile: async (file) => {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/api/admin/configs/logo", true);
-
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          toast.loading(`上传进度 ${percentComplete.toFixed(0)}%`, {
+      try {
+        await uploadFile("/api/admin/configs/logo", [file], ({ percent }) => {
+          toast.loading(`上传进度 ${percent.toFixed(0)}%`, {
             id: "logo-upload",
           });
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status === StatusCodes.OK) {
-          toast.success("Logo 上传成功", {
-            id: "logo-upload",
-          });
-          setRefresh((prev) => prev + 1);
-        } else {
-          toast.error("Logo 上传失败", {
-            id: "logo-upload",
-            description: xhr.responseText,
-          });
-        }
-      };
-
-      xhr.onerror = () => {
-        toast.error("Logo 上传失败", {
-          id: "logo-upload",
-          description: "网络错误",
         });
-        return {
-          status: "error",
-        };
-      };
-
-      xhr.send(formData);
+        toast.success("标志更新成功", {
+          id: "logo-upload",
+        });
+      } catch {
+        toast.error("标志上传失败", {
+          id: "logo-upload",
+        });
+      } finally {
+        bump();
+      }
 
       return {
         status: "success",
@@ -183,16 +125,12 @@ export default function Index() {
     },
   });
 
-  function handleLogoDelete() {
-    deleteLogo()
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(`图标删除成功`);
-        }
-      })
-      .finally(() => {
-        setRefresh((prev) => prev + 1);
-      });
+  async function handleLogoDelete() {
+    const res = await deleteLogo();
+    if (res.code === StatusCodes.OK) {
+      toast.success("标志重置成功");
+    }
+    bump();
   }
 
   return (
@@ -268,7 +206,7 @@ export default function Index() {
               )}
             />
           </div>
-          <div>
+          <div className={cn(["space-y-1"])}>
             <div
               className={cn([
                 "flex",
@@ -277,11 +215,11 @@ export default function Index() {
                 "justify-between",
               ])}
             >
-              <Label>图标</Label>
+              <Label>标志</Label>
               <Button
-                icon={<TrashIcon />}
+                icon={<UndoIcon />}
                 size={"sm"}
-                level={"error"}
+                level={"warning"}
                 square
                 onClick={handleLogoDelete}
               />
@@ -291,7 +229,7 @@ export default function Index() {
                 className={cn([
                   "relative",
                   "aspect-square",
-                  "h-28",
+                  "h-27",
                   "p-0",
                   "overflow-hidden",
                 ])}
@@ -305,7 +243,7 @@ export default function Index() {
                   ])}
                 >
                   <Image
-                    src={`/api/configs/logo?r=${refresh}`}
+                    src={`/api/configs/logo?r=${tick}`}
                     className={cn([
                       "object-cover",
                       "rounded-md",

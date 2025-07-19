@@ -5,7 +5,7 @@ import { getUserProfile } from "@/api/users/profile";
 import { Navbar } from "@/components/widgets/navbar";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
-import { cn } from "@/utils";
+import { cn, stripIndent } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
@@ -49,6 +49,26 @@ export default function () {
 
     setUser(profileData);
   }, [profileData, setUser]);
+
+  useEffect(() => {
+    if (!versionData?.tag) return;
+
+    console.log(
+      stripIndent(`\n
+        %cCds%cCTF %cv%c${versionData?.tag}\n
+        %cOriginally developed by ElaBosak233.\n
+        %cAttacks on the platform are generally not part of CTF challenges.\n
+        %cIf you run into any issues, please consider opening an issue on GitHub: https://github.com/cdsctf/cdsctf.
+        `),
+      "color: #44b2fc; font-weight: bold; font-size: 1.75rem; font-style: italic; font-family: consolas;",
+      "color: #ffda5c; font-weight: bold; font-size: 1.75rem; font-style: italic; font-family: consolas;",
+      "color: #44b2fc",
+      "color: currentColor",
+      "color: #ababab; font-wight: semibold; font-size: 0.9em; font-style: italic;",
+      "color: #d96a42",
+      "color: currentColor;"
+    );
+  }, [versionData]);
 
   return (
     <>
