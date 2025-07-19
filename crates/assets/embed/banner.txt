@@ -7,5 +7,5 @@
 
 Commit: {{git_commit}}
 Build At: {{build_at}}
-GitHub: https://github.com/cdsctf/cdsctf
+GitHub: https://github.com/elabosak233/cdsctf
 Authors: ElaBosak233 et, al.

@@ -59,7 +59,7 @@ export default function Index() {
           <Separator className={cn(["w-full"])} />
           <h3 className={cn(["flex", "gap-2", "items-center"])}>
             <MoonIcon className={cn(["size-5"])} />
-            Founder
+            Developer
           </h3>
           <div className={cn(["flex", "flex-wrap", "justify-center", "gap-3"])}>
             <Button
