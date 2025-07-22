@@ -121,14 +121,7 @@ impl From<Pod> for Env {
             });
 
         let started_at = pod.metadata.creation_timestamp.unwrap().0.timestamp();
-
-        let node_name = pod.spec.unwrap_or_default().node_name.unwrap_or_default();
-
-        let public_entry = cds_env::get_config()
-            .cluster
-            .public_entries
-            .get(&node_name)
-            .cloned();
+        let public_entry = Some(cds_env::get_config().cluster.public_entry.to_owned());
 
         Env {
             id,

@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 
 use anyhow::anyhow;
+use axum::http::HeaderValue;
 use cds_server::{router::router, worker};
 use chrono::TimeZone;
 use tower_http::cors::{Any, CorsLayer};
@@ -13,7 +14,12 @@ async fn main() -> Result<(), anyhow::Error> {
     let cors = CorsLayer::new()
         .allow_methods(Any)
         .allow_headers(Any)
-        .allow_origin(Any);
+        .allow_origin(
+            cds_env::get_config()
+                .server
+                .cors_origins
+                .parse::<HeaderValue>()?,
+        );
 
     let router = router().await.layer(cors);
 
