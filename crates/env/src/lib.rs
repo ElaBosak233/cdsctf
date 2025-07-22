@@ -29,7 +29,8 @@ const CONFIG_PREDEFINED_FILE_NAME: &str = "config.toml";
 
 static CONSTANT: OnceCell<Constant> = OnceCell::new();
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Constant {
     pub server: server::Config,
     pub jwt: jwt::Config,
