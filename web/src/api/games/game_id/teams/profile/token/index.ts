@@ -1,4 +1,4 @@
-import { WebResponse } from "@/types";
+import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface CreateTokenRequest {

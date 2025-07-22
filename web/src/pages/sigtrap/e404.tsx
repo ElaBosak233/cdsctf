@@ -11,6 +11,7 @@ export default function E404() {
 
   return (
     <>
+      <title>{`404 - ${config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex-1",

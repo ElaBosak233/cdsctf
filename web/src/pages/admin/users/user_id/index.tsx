@@ -11,17 +11,16 @@ import {
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { Context } from "./context";
 
 import { updateUser } from "@/api/admin/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Dropzone,
   DropZoneArea,
+  Dropzone,
   DropzoneTrigger,
   useDropzone,
 } from "@/components/ui/dropzone";
@@ -41,7 +40,7 @@ import { useRefresh } from "@/hooks/use-refresh";
 import { Group } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { useParams } from "react-router";
+import { Context } from "./context";
 
 export default function Index() {
   const { user } = useContext(Context);

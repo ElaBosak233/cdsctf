@@ -61,7 +61,6 @@ export function useOptions() {
             warning: true,
           },
         ];
-      case "default":
       default:
         return [
           {

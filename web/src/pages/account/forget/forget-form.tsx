@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import { forget, sendForgetEmail } from "@/api/users/forget";
 import { Button } from "@/components/ui/button";
-import { Field, FieldIcon } from "@/components/ui/field";
+import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
@@ -139,27 +139,27 @@ function ForgetForm() {
                         <MailIcon />
                       </FieldIcon>
                       <TextField placeholder={"Code"} {...field} />
+                      <FieldButton
+                        icon={<SendIcon />}
+                        onClick={handleSendForgetEmail}
+                        className={cn(["aspect-auto"])}
+                        disabled={!form.watch("email")?.trim()}
+                      >
+                        请求
+                      </FieldButton>
                     </Field>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button
-              variant={"solid"}
-              icon={<SendIcon />}
-              className={cn(["mt-6"])}
-              onClick={handleSendForgetEmail}
-            >
-              请求
-            </Button>
           </div>
           <FormField
             control={form.control}
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>密码</FormLabel>
+                <FormLabel>新密码</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>

@@ -19,8 +19,8 @@ import { getConfigs, updateConfig } from "@/api/admin/configs";
 import { deleteLogo } from "@/api/admin/configs/logo";
 import { Button } from "@/components/ui/button";
 import {
-  Dropzone,
   DropZoneArea,
+  Dropzone,
   DropzoneTrigger,
   useDropzone,
 } from "@/components/ui/dropzone";
@@ -40,7 +40,7 @@ import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { useRefresh } from "@/hooks/use-refresh";
-import { Config } from "@/models/config";
+import type { Config } from "@/models/config";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 

@@ -1,7 +1,3 @@
-import { getStatistics } from "@/api/admin/configs";
-import { Card } from "@/components/ui/card";
-import { useConfigStore } from "@/storages/config";
-import { cn } from "@/utils";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   FlagIcon,
@@ -10,6 +6,10 @@ import {
   SendIcon,
   UserRoundIcon,
 } from "lucide-react";
+import { getStatistics } from "@/api/admin/configs";
+import { Card } from "@/components/ui/card";
+import { useConfigStore } from "@/storages/config";
+import { cn } from "@/utils";
 
 function useStatisticsQuery() {
   return useQuery({

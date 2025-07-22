@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import {
   ClipboardCheckIcon,
@@ -10,9 +10,6 @@ import {
 import { useState } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
-
-import { EditDialog } from "./edit-dialog";
-
 import {
   deleteGameChallenge,
   updateGameChallenge,
@@ -28,10 +25,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { GameChallenge } from "@/models/game_challenge";
+import type { GameChallenge } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { EditDialog } from "./edit-dialog";
 
 const columns: Array<ColumnDef<GameChallenge>> = [
   {

@@ -1,17 +1,15 @@
 import { LogInIcon, UserRoundPlusIcon } from "lucide-react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
-
-import { LoginForm } from "./login-form";
-
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { useEffect } from "react";
-import { toast } from "sonner";
+import { LoginForm } from "./login-form";
 
 export default function Index() {
   const authStore = useAuthStore();

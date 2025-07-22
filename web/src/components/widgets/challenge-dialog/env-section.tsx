@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import {
   ClipboardCheckIcon,
   ClipboardIcon,
@@ -10,8 +11,6 @@ import {
 import { useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { Context } from "./context";
-
 import { createEnv, getEnvs } from "@/api/envs";
 import { renewEnv, stopEnv } from "@/api/envs/env_id";
 import { Button } from "@/components/ui/button";
@@ -19,12 +18,12 @@ import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useInterval } from "@/hooks/use-interval";
-import { Port } from "@/models/challenge";
-import { Env, Nat } from "@/models/env";
+import type { Port } from "@/models/challenge";
+import type { Env, Nat } from "@/models/env";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
-import { HTTPError } from "ky";
+import { Context } from "./context";
 
 function PortInfo({ env, port }: { env: Env; port: Port }) {
   const { isCopied, copyToClipboard } = useClipboard();
@@ -166,16 +165,14 @@ function EnvSection() {
   async function handlePodStop() {
     if (!env) return;
 
-    try {
-      await stopEnv({
-        id: env.id!,
-      });
+    await stopEnv({
+      id: env.id!,
+    });
 
-      toast.info("已下发容器停止命令", {
-        id: "pod-stop",
-      });
-      setEnv(undefined);
-    } catch (error) {}
+    toast.info("已下发容器停止命令", {
+      id: "pod-stop",
+    });
+    setEnv(undefined);
     envPodStopLoading(false);
   }
 
@@ -222,19 +219,13 @@ function EnvSection() {
       {env?.id ? (
         <>
           <div className={cn(["flex-1", "flex", "flex-col", "gap-3"])}>
-            {env?.nats?.length ? (
-              <>
-                {env?.nats.map((nat) => (
+            {env?.nats?.length
+              ? env?.nats.map((nat) => (
                   <NatInfo nat={nat} env={env} key={nat.node_port} />
-                ))}
-              </>
-            ) : (
-              <>
-                {env?.ports?.map((port) => (
+                ))
+              : env?.ports?.map((port) => (
                   <PortInfo env={env} port={port} key={port.port} />
                 ))}
-              </>
-            )}
           </div>
           <div className={cn(["flex", "flex-col", "gap-2", "items-center"])}>
             <span

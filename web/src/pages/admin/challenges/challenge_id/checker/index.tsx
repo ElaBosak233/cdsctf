@@ -6,13 +6,6 @@ import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { Context } from "../context";
-
-import leetChecker from "./examples/leet.cdsx?raw";
-import simpleChecker from "./examples/simple.cdsx?raw";
-import suidChecker from "./examples/suid.cdsx?raw";
-
 import { updateChallengeChecker } from "@/api/admin/challenges/challenge_id/checker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,6 +16,10 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { Context } from "../context";
+import leetChecker from "./examples/leet.cdsx?raw";
+import simpleChecker from "./examples/simple.cdsx?raw";
+import suidChecker from "./examples/suid.cdsx?raw";
 
 const checkerMap = {
   simple: simpleChecker,

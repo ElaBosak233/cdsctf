@@ -1,4 +1,4 @@
-import { WebResponse } from "@/types";
+import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export async function deleteUserAvatar() {

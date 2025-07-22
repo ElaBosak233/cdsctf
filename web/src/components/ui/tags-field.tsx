@@ -1,11 +1,9 @@
 import { X as RemoveIcon } from "lucide-react";
 import React from "react";
-
-import { FieldContext } from "./field";
-
 import { Badge } from "@/components/ui/badge";
 import { inputVariants, TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
+import { FieldContext } from "./field";
 
 /**
  * used for identifying the split char and use will pasting

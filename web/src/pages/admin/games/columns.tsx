@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import {
   ArrowDownIcon,
@@ -28,7 +28,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { Game } from "@/models/game";
+import type { Game } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
@@ -112,7 +112,6 @@ const columns: Array<ColumnDef<Game>> = [
             return <ArrowUpIcon />;
           case "desc":
             return <ArrowDownIcon />;
-          case false:
           default:
             return <ArrowUpDownIcon />;
         }
@@ -146,7 +145,6 @@ const columns: Array<ColumnDef<Game>> = [
             return <ArrowUpIcon />;
           case "desc":
             return <ArrowDownIcon />;
-          case false:
           default:
             return <ArrowUpDownIcon />;
         }

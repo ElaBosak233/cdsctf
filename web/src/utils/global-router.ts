@@ -1,4 +1,4 @@
-import { NavigateFunction } from "react-router";
+import type { NavigateFunction } from "react-router";
 
 const globalRouter = { navigate: undefined } as {
   navigate?: NavigateFunction;

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { Submission } from "@/models/submission";
+import type { Submission } from "@/models/submission";
 
 interface CheckerState {
   loading: boolean;

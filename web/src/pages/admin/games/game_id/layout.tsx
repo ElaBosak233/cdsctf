@@ -8,15 +8,13 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation, useParams } from "react-router";
-
-import { Context } from "./context";
-
 import { getGames } from "@/api/admin/games";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Game } from "@/models/game";
+import type { Game } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { Context } from "./context";
 
 export default function Layout() {
   const location = useLocation();

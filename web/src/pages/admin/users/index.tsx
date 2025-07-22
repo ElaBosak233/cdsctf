@@ -1,11 +1,11 @@
 import {
-  ColumnFiltersState,
+  type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  SortingState,
+  type SortingState,
   useReactTable,
-  VisibilityState,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import {
   HashIcon,
@@ -19,10 +19,6 @@ import {
   UserRoundXIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-
-import { columns } from "./columns";
-import { CreateUserDialog } from "./create-dialog";
-
 import { getUsers } from "@/api/admin/users";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -41,10 +37,12 @@ import {
 } from "@/components/ui/table";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Group, User } from "@/models/user";
+import { Group, type User } from "@/models/user";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { columns } from "./columns";
+import { CreateUserDialog } from "./create-dialog";
 
 export default function Index() {
   const configStore = useConfigStore();
@@ -290,25 +288,23 @@ export default function Index() {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.original.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <>
-                  {!loading && (
+              {table.getRowModel().rows?.length
+                ? table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.original.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : !loading && (
                     <TableRow>
                       <TableCell
                         colSpan={columns.length}
@@ -318,8 +314,6 @@ export default function Index() {
                       </TableCell>
                     </TableRow>
                   )}
-                </>
-              )}
             </TableBody>
           </Table>
         </ScrollArea>

@@ -1,9 +1,7 @@
 import { MailIcon } from "lucide-react";
-
-import { ForgetForm } from "./forget-form";
-
 import { Card } from "@/components/ui/card";
 import { cn } from "@/utils";
+import { ForgetForm } from "./forget-form";
 
 export default function Index() {
   return (

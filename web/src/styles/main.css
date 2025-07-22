@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@plugin "tailwindcss-animate";
-@plugin "@tailwindcss/typography";
 
 @import "@fontsource-variable/ubuntu-sans-mono";
 @import "@fontsource-variable/ubuntu-sans-mono/wght";
@@ -10,6 +8,9 @@
 @import "@fontsource-variable/ubuntu-sans/wght-italic";
 
 @import "./overwrites";
+
+@plugin "tailwindcss-animate";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 

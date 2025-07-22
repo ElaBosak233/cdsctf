@@ -1,5 +1,5 @@
-import { Submission } from "@/models/submission";
-import { WebResponse } from "@/types";
+import type { Submission } from "@/models/submission";
+import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface CreateSubmissionRequest {

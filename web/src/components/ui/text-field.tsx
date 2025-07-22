@@ -1,9 +1,7 @@
 import { cva } from "class-variance-authority";
 import React from "react";
-
-import { FieldContext } from "./field";
-
 import { cn } from "@/utils";
+import { FieldContext } from "./field";
 
 type TextFieldProps = React.ComponentProps<"input"> & {};
 

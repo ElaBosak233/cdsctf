@@ -1,5 +1,6 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
-  ColumnDef,
+  type ColumnDef,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -7,7 +8,6 @@ import {
 } from "@tanstack/react-table";
 import { StarIcon } from "lucide-react";
 import { useState } from "react";
-
 import { getSubmission } from "@/api/submissions";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -23,11 +23,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Status, Submission } from "@/models/submission";
-import { Team } from "@/models/team";
+import { Status, type Submission } from "@/models/submission";
+import type { Team } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { Link } from "react-router";
 
 interface TeamDetailsDialogProps {
   team: Team;
@@ -70,7 +70,12 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
             src={`/api/users/${row.original.user_id}/avatar`}
             fallback={row.original.user_name?.charAt(0)}
           />
-          <span>{row.original.user_name}</span>
+          <Link
+            to={`/users/${row.original.user_id}`}
+            className={cn(["hover:underline"])}
+          >
+            {row.original.user_name}
+          </Link>
         </div>
       ),
     },
@@ -188,25 +193,23 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.original.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <>
-                {!loading && (
+            {table.getRowModel().rows?.length
+              ? table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.original.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : !loading && (
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
@@ -216,8 +219,6 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
-            )}
           </TableBody>
         </Table>
       </ScrollArea>

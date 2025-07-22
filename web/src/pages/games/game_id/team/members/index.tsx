@@ -9,6 +9,7 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { Link } from "react-router";
 
 export default function Index() {
   const { currentGame, selfTeam, members } = useGameStore();
@@ -75,21 +76,20 @@ export default function Index() {
       </div>
       <div className={cn(["grid", "grid-cols-2", "gap-5"])}>
         {members?.map((user) => (
-          <Card
-            key={user?.id}
-            className={cn(["p-3", "flex", "gap-3", "items-center"])}
-          >
-            <Avatar
-              src={`/api/users/${user?.id}/avatar`}
-              fallback={user?.name?.charAt(0)}
-            />
-            <div>
-              <p className={cn(["text-md"])}>{user?.name}</p>
-              <p
-                className={cn(["text-sm", "text-secondary-foreground"])}
-              >{`# ${user?.username}`}</p>
-            </div>
-          </Card>
+          <Link key={user?.id} to={`/users/${user?.id}`}>
+            <Card className={cn(["p-3", "flex", "gap-3", "items-center"])}>
+              <Avatar
+                src={`/api/users/${user?.id}/avatar`}
+                fallback={user?.name?.charAt(0)}
+              />
+              <div>
+                <p className={cn(["text-md"])}>{user?.name}</p>
+                <p
+                  className={cn(["text-sm", "text-secondary-foreground"])}
+                >{`# ${user?.username}`}</p>
+              </div>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>

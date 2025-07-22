@@ -12,9 +12,6 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { EmailVerifyDialog } from "./email-verify-dialog";
-
 import { updateUserProfile } from "@/api/users/profile";
 import { deleteUserAvatar } from "@/api/users/profile/avatar";
 import { Alert } from "@/components/ui/alert";
@@ -38,6 +35,7 @@ import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { EmailVerifyDialog } from "./email-verify-dialog";
 
 export default function Index() {
   const authStore = useAuthStore();

@@ -1,13 +1,11 @@
 import { FlagIcon } from "lucide-react";
 import { useContext } from "react";
 import { Link } from "react-router";
-
-import { Context } from "./context";
-
 import { Image } from "@/components/ui/image";
 import { useConfigStore } from "@/storages/config";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { Context } from "./context";
 
 type TitleProps = Omit<React.ComponentProps<typeof Link>, "to"> & {};
 

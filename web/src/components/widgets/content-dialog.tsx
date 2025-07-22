@@ -1,12 +1,10 @@
 import { EyeIcon } from "lucide-react";
-
-import { MarkdownRender } from "../utils/markdown-render";
-
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/utils";
+import { MarkdownRender } from "../utils/markdown-render";
 
 type ContentDialogProps = {
   title: string;
@@ -25,7 +23,7 @@ export function ContentDialog({
     typeof content === "string" ? content : JSON.stringify(content);
   const preview =
     contentString.length > maxPreviewLength
-      ? contentString.substring(0, maxPreviewLength) + "..."
+      ? `${contentString.substring(0, maxPreviewLength)}...`
       : contentString;
 
   return (

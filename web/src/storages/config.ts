@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { Config, Version } from "@/models/config";
+import type { Config, Version } from "@/models/config";
 
 export interface ConfigState {
   config?: Config;

@@ -16,9 +16,6 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { Context } from "./context";
-
 import { updateGame } from "@/api/admin/games/game_id";
 import { deleteGameIcon } from "@/api/admin/games/game_id/icon";
 import { deleteGamePoster } from "@/api/admin/games/game_id/poster";
@@ -42,6 +39,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useRefresh } from "@/hooks/use-refresh";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { Context } from "./context";
 
 export default function Index() {
   const { game } = useContext(Context);

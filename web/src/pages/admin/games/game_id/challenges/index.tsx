@@ -1,20 +1,14 @@
 import {
-  ColumnFiltersState,
+  type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  SortingState,
+  type SortingState,
   useReactTable,
-  VisibilityState,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import { HashIcon, LibraryIcon, PlusCircleIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-
-import { Context } from "../context";
-
-import { columns } from "./columns";
-import { CreateDialog } from "./create-dialog";
-
 import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -32,10 +26,13 @@ import {
 } from "@/components/ui/table";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { GameChallenge } from "@/models/game_challenge";
+import type { GameChallenge } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
+import { Context } from "../context";
+import { columns } from "./columns";
+import { CreateDialog } from "./create-dialog";
 
 export default function Index() {
   const sharedStore = useSharedStore();
@@ -238,25 +235,23 @@ export default function Index() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.original.challenge_id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <>
-                {!loading && (
+            {table.getRowModel().rows?.length
+              ? table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.original.challenge_id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : !loading && (
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
@@ -266,8 +261,6 @@ export default function Index() {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
-            )}
           </TableBody>
         </Table>
       </ScrollArea>

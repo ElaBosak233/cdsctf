@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import { TrashIcon } from "lucide-react";
 import { useContext, useState } from "react";
@@ -8,7 +8,7 @@ import { deleteChallengeAttachment } from "@/api/admin/challenges/challenge_id/a
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Metadata } from "@/models/media";
+import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";

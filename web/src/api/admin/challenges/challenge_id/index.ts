@@ -1,5 +1,5 @@
-import { Challenge } from "@/models/challenge";
-import { WebResponse } from "@/types";
+import type { Challenge } from "@/models/challenge";
+import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface GetChallengeRequest {

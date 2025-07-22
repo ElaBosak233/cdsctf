@@ -1,8 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
+import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import { useEffect, useMemo } from "react";
-
-import { NoticeCard } from "./notice-card";
-import { TeamCard } from "./team-card";
-
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { getChallengeStatus } from "@/api/challenges";
 import { getGameChallenges } from "@/api/games/game_id/challenges";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -11,11 +12,8 @@ import { ChallengeCard } from "@/components/widgets/challenge-card";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { useQuery } from "@tanstack/react-query";
-import { StatusCodes } from "http-status-codes";
-import { HTTPError } from "ky";
-import { useNavigate } from "react-router";
-import { toast } from "sonner";
+import { NoticeCard } from "./notice-card";
+import { TeamCard } from "./team-card";
 
 export default function Index() {
   const { currentGame, selfTeam: selfGameTeam } = useGameStore();

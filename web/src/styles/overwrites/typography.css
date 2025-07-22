@@ -46,7 +46,7 @@ code[data-theme] span {
   content: counter(line);
 }
 
-.prose :where(pre): not(:where([class~=not-prose],[class~=not-prose] *)) {
+.prose :where(pre):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   color: var(--tw-prose-pre-code);
   background-color: var(--tw-prose-pre-bg);
   padding-top: 0.857143em;
@@ -62,7 +62,8 @@ code[data-theme] span {
   overflow-x: auto;
 }
 
-.prose :where(pre code): not(:where([class~=not-prose],[class~=not-prose] *)) {
+.prose
+  :where(pre code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   font-weight: inherit;
   color: inherit;
   font-size: inherit;
@@ -75,7 +76,7 @@ code[data-theme] span {
 }
 
 .prose a {
-  @apply underline underline-offset-3 decoration-1 decoration-secondary-foreground decoration-dashed hover:decoration-solid;
+  @apply underline underline-offset-3 decoration-secondary-foreground hover:decoration-primary;
 }
 
 .prose a.anchor {
