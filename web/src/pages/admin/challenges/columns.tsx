@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import {
   ArrowDownIcon,
@@ -33,7 +33,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { Challenge } from "@/models/challenge";
+import type { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
@@ -167,7 +167,6 @@ const columns: Array<ColumnDef<Challenge>> = [
             return <ArrowUpIcon />;
           case "desc":
             return <ArrowDownIcon />;
-          case false:
           default:
             return <ArrowUpDownIcon />;
         }
@@ -201,7 +200,6 @@ const columns: Array<ColumnDef<Challenge>> = [
             return <ArrowUpIcon />;
           case "desc":
             return <ArrowDownIcon />;
-          case false:
           default:
             return <ArrowUpDownIcon />;
         }

@@ -1,10 +1,8 @@
 import { cva } from "class-variance-authority";
 import * as React from "react";
-
+import { cn } from "@/utils";
 import { Button } from "./button";
 import { TagsField } from "./tags-field";
-
-import { cn } from "@/utils";
 
 const FieldContext = React.createContext<{
   size?: "sm" | "md";

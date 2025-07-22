@@ -1,5 +1,5 @@
-import { Config, Statistics } from "@/models/config";
-import { WebResponse } from "@/types";
+import type { Config, Statistics } from "@/models/config";
+import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export async function getConfigs() {

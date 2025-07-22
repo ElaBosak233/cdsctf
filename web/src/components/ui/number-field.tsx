@@ -1,12 +1,10 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
-import { NumericFormat, NumericFormatProps } from "react-number-format";
-
-import { FieldContext } from "./field";
-import { TextField } from "./text-field";
-
+import { NumericFormat, type NumericFormatProps } from "react-number-format";
 import { cn } from "@/utils";
+import { FieldContext } from "./field";
 import { Separator } from "./separator";
+import { TextField } from "./text-field";
 
 type NumberInputProps = Omit<
   React.ComponentProps<"input">,

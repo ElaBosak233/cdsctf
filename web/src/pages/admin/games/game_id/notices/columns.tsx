@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import { ClipboardCheckIcon, ClipboardCopyIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ContentDialog } from "@/components/widgets/content-dialog";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { GameNotice } from "@/models/game_notice";
+import type { GameNotice } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 

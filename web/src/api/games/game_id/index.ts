@@ -1,5 +1,5 @@
-import { Game, ScoreRecord } from "@/models/game";
-import { WebResponse } from "@/types";
+import type { Game, ScoreRecord } from "@/models/game";
+import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetGameRequest {

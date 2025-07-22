@@ -1,10 +1,8 @@
 import { UserRoundPlusIcon } from "lucide-react";
-
-import { RegisterForm } from "./register-form";
-
 import { Card } from "@/components/ui/card";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { RegisterForm } from "./register-form";
 
 export default function Index() {
   const configStore = useConfigStore();

@@ -68,7 +68,11 @@ export default function Index() {
               size={"sm"}
               asChild
             >
-              <a href={"https://github.com/ElaBosak233"} target={"_blank"}>
+              <a
+                href={"https://github.com/ElaBosak233"}
+                target={"_blank"}
+                rel="noopener"
+              >
                 <span
                   className={cn(["size-1.5", "rounded-full", "bg-info"])}
                   aria-hidden="true"
@@ -88,7 +92,11 @@ export default function Index() {
               size={"sm"}
               asChild
             >
-              <a href={"https://github.com/Ec3o"} target={"_blank"}>
+              <a
+                href={"https://github.com/Ec3o"}
+                target={"_blank"}
+                rel="noopener"
+              >
                 <span
                   className={cn(["size-1.5", "rounded-full", "bg-success"])}
                   aria-hidden="true"
@@ -102,7 +110,11 @@ export default function Index() {
               size={"sm"}
               asChild
             >
-              <a href={"https://github.com/Albertknight2023"} target={"_blank"}>
+              <a
+                href={"https://github.com/Albertknight2023"}
+                target={"_blank"}
+                rel="noopener"
+              >
                 <span
                   className={cn(["size-1.5", "rounded-full", "bg-success"])}
                   aria-hidden="true"
@@ -116,7 +128,11 @@ export default function Index() {
               size={"sm"}
               asChild
             >
-              <a href={"https://github.com/skyhaibara"} target={"_blank"}>
+              <a
+                href={"https://github.com/skyhaibara"}
+                target={"_blank"}
+                rel="noopener"
+              >
                 <span
                   className={cn(["size-1.5", "rounded-full", "bg-success"])}
                   aria-hidden="true"
@@ -136,7 +152,11 @@ export default function Index() {
               size={"sm"}
               asChild
             >
-              <a href={"https://github.com/Reverier-Xu"} target={"_blank"}>
+              <a
+                href={"https://github.com/Reverier-Xu"}
+                target={"_blank"}
+                rel="noopener"
+              >
                 <span
                   className={cn(["size-1.5", "rounded-full", "bg-pink-400"])}
                   aria-hidden="true"

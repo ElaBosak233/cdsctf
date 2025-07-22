@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import {
   AlertCircleIcon,
@@ -31,7 +31,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { Group, User } from "@/models/user";
+import { Group, type User } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
@@ -156,7 +156,6 @@ const columns: Array<ColumnDef<User>> = [
             return <ArrowUpIcon />;
           case "desc":
             return <ArrowDownIcon />;
-          case false:
           default:
             return <ArrowUpDownIcon />;
         }

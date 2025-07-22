@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import { KeyIcon, SwordsIcon, TypeIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { teamRegister } from "@/api/games/game_id/teams";
 import { joinTeam } from "@/api/games/game_id/teams/team_id";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,6 @@ import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
-import { HTTPError } from "ky";
 
 interface TeamGatheringDialogProps {
   onClose: () => void;

@@ -2,15 +2,13 @@ import { StatusCodes } from "http-status-codes";
 import { LockIcon, UserRoundIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation, useParams } from "react-router";
-
-import { Context } from "./context";
-
 import { getUsers } from "@/api/admin/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { User } from "@/models/user";
+import type { User } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { Context } from "./context";
 
 export default function Layout() {
   const location = useLocation();

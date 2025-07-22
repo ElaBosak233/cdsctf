@@ -9,18 +9,16 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation, useParams } from "react-router";
-
-import { Context } from "./context";
-
 import { getChallenge } from "@/api/admin/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
-import { Challenge } from "@/models/challenge";
+import type { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { Context } from "./context";
 
 export default function Layout() {
   const location = useLocation();

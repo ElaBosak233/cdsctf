@@ -1,3 +1,4 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   LibraryIcon,
   ListOrderedIcon,
@@ -8,11 +9,10 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-
 import {
+  type GetPlaygroundChallengesRequest,
   getChallengeStatus,
   getPlaygroundChallenges,
-  GetPlaygroundChallengesRequest,
 } from "@/api/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -23,12 +23,11 @@ import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
-import { ChallengeMini } from "@/models/challenge";
+import type { ChallengeMini } from "@/models/challenge";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 function usePlaygroundChallengeQuery(
   params: GetPlaygroundChallengesRequest,

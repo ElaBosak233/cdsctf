@@ -1,5 +1,5 @@
-import { Submission } from "./submission";
-import { Team } from "./team";
+import type { Submission } from "./submission";
+import type { Team } from "./team";
 
 export interface Game {
   id?: number;

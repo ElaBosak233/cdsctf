@@ -1,14 +1,18 @@
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import { CloudUploadIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { Context } from "../context";
-
 import { getChallengeAttachments } from "@/api/admin/challenges/challenge_id/attachments";
 import {
-  Dropzone,
   DropZoneArea,
+  Dropzone,
   DropzoneTrigger,
   useDropzone,
 } from "@/components/ui/dropzone";
@@ -22,15 +26,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Metadata } from "@/models/media";
+import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { Context } from "../context";
 import { columns } from "./columns";
 
 export default function Index() {
@@ -158,25 +157,23 @@ export default function Index() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.original.filename}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <>
-                {!loading && (
+            {table.getRowModel().rows?.length
+              ? table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.original.filename}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : !loading && (
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
@@ -186,8 +183,6 @@ export default function Index() {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
-            )}
           </TableBody>
         </Table>
       </ScrollArea>

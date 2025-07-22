@@ -1,7 +1,7 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/utils";
 import { DatabaseZapIcon, HeartCrackIcon, RefreshCcwIcon } from "lucide-react";
 import { useRouteError } from "react-router";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/utils";
 import { Button } from "../ui/button";
 
 function ErrorBoundary() {

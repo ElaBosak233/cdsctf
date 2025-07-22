@@ -1,6 +1,6 @@
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { cva } from "class-variance-authority";
-import * as React from "react";
+import type * as React from "react";
 
 import { cn } from "@/utils";
 

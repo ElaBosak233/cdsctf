@@ -1,10 +1,9 @@
 import * as RadixAvatar from "@radix-ui/react-avatar";
-import { cva, VariantProps } from "class-variance-authority";
-import * as React from "react";
-
-import { cn } from "@/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 import { LoaderCircleIcon } from "lucide-react";
+import type * as React from "react";
 import { useState } from "react";
+import { cn } from "@/utils";
 
 const avatarVariants = cva(
   [
@@ -60,7 +59,7 @@ function Avatar(props: AvatarProps) {
       <AvatarImage
         src={src}
         onLoadingStatusChange={(status) => {
-          setLoading(status == "loading");
+          setLoading(status === "loading");
           onLoadingStatusChange?.(status);
         }}
       />

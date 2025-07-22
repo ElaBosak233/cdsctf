@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
-import React, {
+import type React from "react";
+import {
   createContext,
   forwardRef,
   useCallback,
@@ -10,14 +11,12 @@ import React, {
   useState,
 } from "react";
 import {
-  Accept,
-  FileRejection,
+  type Accept,
+  type FileRejection,
   useDropzone as rootUseDropzone,
 } from "react-dropzone";
-
-import { Button, ButtonProps } from "./button";
-
 import { cn } from "@/utils";
+import { Button, type ButtonProps } from "./button";
 
 type DropzoneResult<TUploadRes, TUploadError> =
   | {
@@ -90,7 +89,7 @@ function fileStatusReducer<TUploadRes, TUploadError>(
     case "update-status":
       return state.map((fileStatus) => {
         if (fileStatus.id === action.id) {
-          const { id, type, ...rest } = action;
+          const { ...rest } = action;
 
           return {
             ...fileStatus,
@@ -783,7 +782,7 @@ const valueTextMap = {
 };
 
 function InfiniteProgress(props: InfiniteProgressProps) {
-  const { ref, className, children, ...rest } = props;
+  const { ref, className, ...rest } = props;
   const done = props.status === "success" || props.status === "error";
   const error = props.status === "error";
   return (

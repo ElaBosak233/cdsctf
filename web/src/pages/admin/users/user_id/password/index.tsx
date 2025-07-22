@@ -5,9 +5,6 @@ import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { Context } from "../context";
-
 import { updateUser } from "@/api/admin/users/user_id";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -21,6 +18,7 @@ import {
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
+import { Context } from "../context";
 
 export default function Index() {
   const { user } = useContext(Context);

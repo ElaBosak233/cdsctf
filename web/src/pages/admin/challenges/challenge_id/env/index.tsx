@@ -18,9 +18,6 @@ import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { Context } from "../context";
-
 import { updateChallengeEnv } from "@/api/admin/challenges/challenge_id/env";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -38,6 +35,7 @@ import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { Context } from "../context";
 
 export default function Index() {
   const { challenge } = useContext(Context);

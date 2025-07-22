@@ -1,11 +1,12 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
-  ColumnFiltersState,
+  type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  SortingState,
+  type SortingState,
   useReactTable,
-  VisibilityState,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import {
   EyeIcon,
@@ -16,11 +17,10 @@ import {
   TypeIcon,
 } from "lucide-react";
 import { useState } from "react";
-
-import { columns } from "./columns";
-import { CreateDialog } from "./create-dialog";
-
-import { getChallenges, GetChallengesRequest } from "@/api/admin/challenges";
+import {
+  type GetChallengesRequest,
+  getChallenges,
+} from "@/api/admin/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -38,12 +38,13 @@ import {
 } from "@/components/ui/table";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Challenge } from "@/models/challenge";
+import type { Challenge } from "@/models/challenge";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { columns } from "./columns";
+import { CreateDialog } from "./create-dialog";
 
 function useChallengeQuery(params: GetChallengesRequest) {
   const { refresh } = useSharedStore();
@@ -107,9 +108,7 @@ export default function Index() {
     (debouncedColumnFilters.find((c) => c.id === "is_public")
       ?.value as string) !== "all"
       ? (debouncedColumnFilters.find((c) => c.id === "is_public")
-          ?.value as string) !== "true"
-        ? false
-        : true
+          ?.value as string) === "true"
       : undefined;
 
   const { data: challengesData, isFetching: loading } = useChallengeQuery({
@@ -337,25 +336,23 @@ export default function Index() {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.getValue("id")}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <>
-                  {!loading && (
+              {table.getRowModel().rows?.length
+                ? table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.getValue("id")}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : !loading && (
                     <TableRow>
                       <TableCell
                         colSpan={columns.length}
@@ -365,8 +362,6 @@ export default function Index() {
                       </TableCell>
                     </TableRow>
                   )}
-                </>
-              )}
             </TableBody>
           </Table>
         </ScrollArea>

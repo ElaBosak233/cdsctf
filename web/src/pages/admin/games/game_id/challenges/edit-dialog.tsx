@@ -14,14 +14,11 @@ import { useForm } from "react-hook-form";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { Context } from "../context";
-
 import { updateGameChallenge } from "@/api/admin/games/game_id/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -39,10 +36,11 @@ import {
 import { Label } from "@/components/ui/label";
 import { NumberField } from "@/components/ui/number-field";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { GameChallenge } from "@/models/game_challenge";
+import type { GameChallenge } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { curve } from "@/utils/math";
+import { Context } from "../context";
 
 interface EditDialogProps {
   onClose: () => void;

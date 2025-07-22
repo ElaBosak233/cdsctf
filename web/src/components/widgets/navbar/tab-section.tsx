@@ -1,8 +1,6 @@
 import { Link, useLocation } from "react-router";
-
-import { useOptions } from "./context";
-
 import { Button } from "@/components/ui/button";
+import { useOptions } from "./context";
 
 function TabSection() {
   const location = useLocation();

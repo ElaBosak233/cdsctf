@@ -2,7 +2,7 @@ import { Flag } from "lucide-react";
 import * as React from "react";
 import { useLocation } from "react-router";
 
-import { ChallengeStatus } from "@/api/challenges";
+import type { ChallengeStatus } from "@/api/challenges";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChallengeMini } from "@/models/challenge";
+import type { ChallengeMini } from "@/models/challenge";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { getOrdinal } from "@/utils/math";

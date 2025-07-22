@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import {
   CheckCheckIcon,
   CheckIcon,
@@ -12,7 +13,6 @@ import {
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
-
 import { deleteTeam, setTeamReady } from "@/api/games/game_id/teams/profile";
 import { leaveTeam } from "@/api/games/game_id/teams/profile/users";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,6 @@ import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
-import { HTTPError } from "ky";
 
 export default function Layout() {
   const sharedStore = useSharedStore();

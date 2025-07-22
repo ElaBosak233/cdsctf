@@ -1,8 +1,5 @@
 import { ListIcon } from "lucide-react";
 import { Link } from "react-router";
-
-import { useOptions } from "./context";
-
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/utils";
+import { useOptions } from "./context";
 
 function MobileTab() {
   const options = useOptions();

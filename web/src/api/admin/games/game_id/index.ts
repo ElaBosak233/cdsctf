@@ -1,5 +1,5 @@
-import { Game } from "@/models/game";
-import { WebResponse } from "@/types";
+import type { Game } from "@/models/game";
+import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface UpdateGameRequest {

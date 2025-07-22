@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-import { Game } from "@/models/game";
+import type { Game } from "@/models/game";
 
 export const Context = createContext<{
   game?: Game;

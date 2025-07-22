@@ -4,7 +4,7 @@
  * Find the latest source code at https://github.com/huybuidac/shadcn-datetime-picker
  */
 
-import { cva, VariantProps } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 import {
   addMonths,
   endOfHour,
@@ -39,10 +39,6 @@ import {
 import * as React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DayPicker, type Matcher, TZDate } from "react-day-picker";
-
-import { FieldContext } from "./field";
-import { ScrollArea } from "./scroll-area";
-
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Popover,
@@ -50,6 +46,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/utils";
+import { FieldContext } from "./field";
+import { ScrollArea } from "./scroll-area";
 
 export type CalendarProps = Omit<
   React.ComponentProps<typeof DayPicker>,
@@ -288,7 +286,6 @@ export function DateTimePicker({
             "items-center",
             classNames?.trigger,
           ])}
-          tabIndex={0}
         >
           <Button
             type={"button"}
@@ -926,7 +923,7 @@ function buildTime(options: BuildTimeOptions) {
       dateStr.slice(19);
     dateStr =
       dateStr.slice(0, 24) +
-      (ampm == AM_VALUE ? "AM" : "PM") +
+      (ampm === AM_VALUE ? "AM" : "PM") +
       dateStr.slice(26);
     date = parse(dateStr, formatStr, value);
   } else {

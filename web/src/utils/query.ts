@@ -1,9 +1,8 @@
+import { StatusCodes } from "http-status-codes";
 import ky, { HTTPError, TimeoutError } from "ky";
 import { toast } from "sonner";
-
 import { useAuthStore } from "@/storages/auth";
-import { WebResponse } from "@/types";
-import { StatusCodes } from "http-status-codes";
+import type { WebResponse } from "@/types";
 
 const api = ky.extend({
   prefixUrl: "/api",
@@ -47,7 +46,7 @@ const api = ky.extend({
 });
 
 function toSearchParams(
-  obj: Record<string, any>
+  obj: Record<string, unknown>
 ): Record<string, string | number | boolean> {
   return Object.fromEntries(
     Object.entries(obj).filter(([_, v]) => v !== undefined)

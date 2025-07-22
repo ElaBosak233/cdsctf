@@ -1,3 +1,4 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   flexRender,
   getCoreRowModel,
@@ -6,11 +7,6 @@ import {
 } from "@tanstack/react-table";
 import { ListOrderedIcon } from "lucide-react";
 import { useState } from "react";
-
-import { ChampionChart } from "./champion-chart";
-import { columns } from "./columns";
-import { TeamDetailsDialog } from "./team-details-dialog";
-
 import { getGameScoreboard } from "@/api/games/game_id";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -25,10 +21,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ScoreRecord } from "@/models/game";
+import type { ScoreRecord } from "@/models/game";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { ChampionChart } from "./champion-chart";
+import { columns } from "./columns";
+import { TeamDetailsDialog } from "./team-details-dialog";
 
 export default function Index() {
   const { currentGame } = useGameStore();

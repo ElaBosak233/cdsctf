@@ -2,7 +2,7 @@ import { MarkdownHooks } from "react-markdown";
 import rehypeExternalLinks from "rehype-external-links";
 import rehypeKatex from "rehype-katex";
 import rehypePrettyCode, {
-  Options as RehypePrettyCodeOptions,
+  type Options as RehypePrettyCodeOptions,
 } from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import rehypeStringify from "rehype-stringify";
@@ -14,7 +14,7 @@ import remarkRehype from "remark-rehype";
 //     Options as RehypeAutolinkHeadingsOptions,
 // } from "rehype-autolink-headings";
 import "katex/dist/katex.min.css";
-import React from "react";
+import type React from "react";
 
 interface MarkdownRenderProps
   extends React.ComponentProps<typeof MarkdownHooks> {
@@ -23,7 +23,7 @@ interface MarkdownRenderProps
 }
 
 function MarkdownRender(props: MarkdownRenderProps) {
-  const { src, anchors = true, ...rest } = props;
+  const { src, ...rest } = props;
 
   return (
     <MarkdownHooks

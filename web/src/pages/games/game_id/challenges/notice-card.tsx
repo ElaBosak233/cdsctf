@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import { MarkdownRender } from "@/components/utils/markdown-render";
 import { useInterval } from "@/hooks/use-interval";
-import { GameNotice } from "@/models/game_notice";
+import type { GameNotice } from "@/models/game_notice";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 
@@ -55,7 +55,7 @@ function NoticeCard() {
           ])}
         >
           {gameNotices?.map((gameNotice) => (
-            <Dialog>
+            <Dialog key={gameNotice?.id}>
               <DialogTrigger>
                 <Card
                   className={cn([

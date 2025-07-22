@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import {
   CheckIcon,
   LockIcon,
@@ -12,7 +13,6 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { register } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -29,7 +29,6 @@ import { Captcha } from "@/components/widgets/captcha";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
-import { HTTPError } from "ky";
 
 function RegisterForm() {
   const configStore = useConfigStore();

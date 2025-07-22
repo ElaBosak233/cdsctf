@@ -2,9 +2,6 @@ import { StatusCodes } from "http-status-codes";
 import { HashIcon, LibraryIcon, TypeIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
-
-import { Context } from "../context";
-
 import { getChallenges } from "@/api/admin/challenges";
 import { createGameChallenge } from "@/api/admin/games/game_id/challenges";
 import { Badge } from "@/components/ui/badge";
@@ -13,10 +10,11 @@ import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Challenge } from "@/models/challenge";
+import type { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { Context } from "../context";
 
 interface CreateDialogProps {
   onClose: () => void;
@@ -112,6 +110,7 @@ function CreateDialog(props: CreateDialogProps) {
           const Icon = getCategory(challenge.category!).icon!;
           return (
             <Button
+              key={challenge?.id}
               className={cn(["justify-start"])}
               variant={"ghost"}
               onClick={() => handleCreateGameChallenge(challenge)}

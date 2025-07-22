@@ -2,8 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MailCheckIcon, SaveIcon, TypeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
-
 import { getConfigs, updateConfig } from "@/api/admin/configs";
 import { getEmail, saveEmail } from "@/api/admin/configs/email";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,9 @@ import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
-import { Config } from "@/models/config";
+import type { Config } from "@/models/config";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { toast } from "sonner";
 
 export default function Index() {
   const { config: globalConfig } = useConfigStore();

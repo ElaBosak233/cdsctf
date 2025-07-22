@@ -1,8 +1,8 @@
 import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import { CheckIcon, MailCheckIcon, SendIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-
 import { sendVerifyEmail, verify } from "@/api/users/profile/verify";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,7 +11,6 @@ import { TextField } from "@/components/ui/text-field";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
-import { HTTPError } from "ky";
 
 interface EmailVerifyDialogProps {
   onClose: () => void;

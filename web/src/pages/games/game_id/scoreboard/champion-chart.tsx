@@ -11,12 +11,12 @@ import {
 
 import { Card } from "@/components/ui/card";
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { ScoreRecord } from "@/models/game";
+import type { ScoreRecord } from "@/models/game";
 import { cn } from "@/utils";
 
 const COLORS = [
@@ -77,12 +77,13 @@ function ChampionChart(props: ChampionChartProps) {
     return result;
   }, [scoreboard]);
 
-  const [lines, setLines] = useState<
-    Array<{
-      id: number;
-      name?: string;
-    }>
-  >();
+  const [lines, setLines] =
+    useState<
+      Array<{
+        id: number;
+        name?: string;
+      }>
+    >();
 
   useEffect(() => {
     const result: Array<{

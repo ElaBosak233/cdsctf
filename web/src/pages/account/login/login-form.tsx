@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import {
   CheckIcon,
   CircleHelpIcon,
@@ -12,7 +13,6 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { login } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -25,12 +25,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
-import { Captcha, CaptchaRef } from "@/components/widgets/captcha";
+import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
-import { HTTPError } from "ky";
 
 function LoginForm() {
   const configStore = useConfigStore();
@@ -145,7 +144,26 @@ function LoginForm() {
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("user:password")}</FormLabel>
+                <FormLabel
+                  className={cn(["flex", "justify-between", "items-end"])}
+                >
+                  {t("user:password")}{" "}
+                  {configStore?.config?.email?.is_enabled && (
+                    <Link
+                      to={"/account/forget"}
+                      className={cn([
+                        "hover:underline",
+                        "underline-offset-3",
+                        "items-end",
+                        "flex",
+                        "gap-1",
+                      ])}
+                    >
+                      <CircleHelpIcon className={cn(["size-3.5"])} />
+                      {t("account:forgot")}
+                    </Link>
+                  )}
+                </FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -164,24 +182,6 @@ function LoginForm() {
               </FormItem>
             )}
           />
-          {configStore?.config?.email?.is_enabled && (
-            <div className={cn(["flex", "justify-end"])}>
-              <Link
-                to={"/account/forget"}
-                className={cn([
-                  "hover:underline",
-                  "underline-offset-3",
-                  "items-center",
-                  "text-sm",
-                  "flex",
-                  "gap-1",
-                ])}
-              >
-                <CircleHelpIcon className={cn(["size-4"])} />
-                {t("account:forgot")}
-              </Link>
-            </div>
-          )}
           {configStore?.config?.captcha?.provider !== "none" && (
             <FormField
               name={"captcha"}

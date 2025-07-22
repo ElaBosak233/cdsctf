@@ -9,7 +9,7 @@ import {
   HashIcon,
   ImageIcon,
   LightbulbIcon,
-  LucideIcon,
+  type LucideIcon,
   RewindIcon,
   SearchIcon,
   SettingsIcon,

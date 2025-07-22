@@ -1,11 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
+import { MailIcon } from "lucide-react";
 import { Outlet, useParams } from "react-router";
-
 import { getUser } from "@/api/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils";
-import { useQuery } from "@tanstack/react-query";
-import { MailIcon } from "lucide-react";
 import { Context } from "./context";
 
 function useUserQuery(userId?: number) {
@@ -90,6 +89,7 @@ export default function Layout() {
               href={`mailto:${user?.email}`}
               className={cn([
                 "hover:underline",
+                "underline-offset-3",
                 "cursor-pointer",
                 "overflow-ellipsis",
                 "whitespace-nowrap",

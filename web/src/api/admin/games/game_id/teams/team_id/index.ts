@@ -1,5 +1,5 @@
-import { State, Team } from "@/models/team";
-import { WebResponse } from "@/types";
+import type { State, Team } from "@/models/team";
+import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface UpdateTeamRequest {

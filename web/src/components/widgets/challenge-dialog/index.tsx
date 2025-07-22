@@ -1,10 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { DownloadIcon, SnowflakeIcon } from "lucide-react";
-import React, { useMemo } from "react";
-
-import { Context } from "./context";
-import { EnvSection } from "./env-section";
-import { SubmitSection } from "./submit-section";
-
+import type React from "react";
+import { useMemo } from "react";
 import { getChallenge as getChallengeDebug } from "@/api/admin/challenges/challenge_id";
 import { getChallengeAttachments as getChallengeAttachmentsDebug } from "@/api/admin/challenges/challenge_id/attachments";
 import { getChallenge } from "@/api/challenges/challenge_id";
@@ -17,11 +14,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import { MarkdownRender } from "@/components/utils/markdown-render";
-import { ChallengeMini } from "@/models/challenge";
-import { Team } from "@/models/team";
+import type { ChallengeMini } from "@/models/challenge";
+import type { Team } from "@/models/team";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import { useQuery } from "@tanstack/react-query";
+import { Context } from "./context";
+import { EnvSection } from "./env-section";
+import { SubmitSection } from "./submit-section";
 
 type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   digest?: ChallengeMini;

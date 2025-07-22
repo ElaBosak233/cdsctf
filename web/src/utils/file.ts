@@ -1,5 +1,5 @@
-import { WebResponse } from "@/types";
-import { Progress } from "ky";
+import type { Progress } from "ky";
+import type { WebResponse } from "@/types";
 
 export async function uploadFile(
   url: string,

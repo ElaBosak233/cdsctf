@@ -1,5 +1,5 @@
-import { UserMini } from "@/models/user";
-import { WebResponse } from "@/types";
+import type { UserMini } from "@/models/user";
+import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface JoinTeamRequest {

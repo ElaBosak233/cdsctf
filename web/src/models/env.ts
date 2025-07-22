@@ -1,4 +1,4 @@
-import { Port } from "./challenge";
+import type { Port } from "./challenge";
 
 export interface Env {
   id: string;

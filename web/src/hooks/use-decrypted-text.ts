@@ -22,7 +22,7 @@ const useDecryptedText = ({
   characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+",
 }: UseDecryptedTextProps): string => {
   const [displayText, setDisplayText] = useState<string>(text);
-  const [revealedIndices, setRevealedIndices] = useState<Set<number>>(
+  const [_revealedIndices, setRevealedIndices] = useState<Set<number>>(
     new Set()
   );
 

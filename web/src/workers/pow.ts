@@ -1,6 +1,6 @@
 import CryptoJS from "crypto-js";
 
-self.onmessage = async function (e) {
+self.onmessage = async (e) => {
   const { c, d } = e.data;
   let nonce = 0;
   let result = "";

@@ -1,5 +1,5 @@
-import { GameNotice } from "@/models/game_notice";
-import { WebResponse } from "@/types";
+import type { GameNotice } from "@/models/game_notice";
+import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetGameNoticeRequest {

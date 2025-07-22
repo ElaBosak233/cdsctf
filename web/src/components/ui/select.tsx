@@ -2,10 +2,8 @@ import * as RadixSelect from "@radix-ui/react-select";
 import { cva } from "class-variance-authority";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import * as React from "react";
-
-import { FieldContext } from "./field";
-
 import { cn } from "@/utils";
+import { FieldContext } from "./field";
 
 type SelectProps = React.ComponentProps<typeof RadixSelect.Root> & {
   className?: string;

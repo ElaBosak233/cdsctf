@@ -4,7 +4,7 @@ import CryptoJS from "crypto-js";
 import { BotIcon, ImageIcon, RefreshCcwIcon } from "lucide-react";
 import {
   createContext,
-  Ref,
+  type Ref,
   useContext,
   useEffect,
   useImperativeHandle,
@@ -194,6 +194,7 @@ function ImageCaptcha(props: CaptchaProps) {
       </Field>
       <img
         src={`data:image/svg+xml;base64,${CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(String(challenge)))}`}
+        alt={"captcha"}
         onClick={() => setRefresh?.()}
         draggable={false}
         style={{

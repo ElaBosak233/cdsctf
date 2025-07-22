@@ -11,7 +11,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { GameMini } from "@/models/game";
+import type { GameMini } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 

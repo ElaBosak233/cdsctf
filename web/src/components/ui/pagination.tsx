@@ -112,7 +112,6 @@ function PaginationPrimitive({
 }: React.ComponentProps<"nav">) {
   return (
     <nav
-      role="navigation"
       aria-label="pagination"
       data-slot="pagination"
       className={cn(["flex"], className)}
@@ -143,7 +142,6 @@ type PaginationLinkProps = React.ComponentProps<typeof Button> & {
 };
 
 function PaginationLink({
-  className,
   isActive,
   disabled = false,
   size = "md",
