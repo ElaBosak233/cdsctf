@@ -88,6 +88,9 @@ export default function Index() {
   ];
 
   useEffect(() => {
+    void sorting;
+    void sharedStore.refresh;
+
     if (!game) return;
 
     setLoading(true);

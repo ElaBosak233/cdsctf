@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import { HashIcon, LibraryIcon, TypeIcon } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getChallenges } from "@/api/admin/challenges";
 import { createGameChallenge } from "@/api/admin/games/game_id/challenges";
@@ -32,7 +32,7 @@ function CreateDialog(props: CreateDialogProps) {
   const debounceTitle = useDebounce(title, 100);
   const [challenges, setChallenges] = useState<Array<Challenge>>();
 
-  useEffect(() => {
+  const fetchChallenges = useCallback(() => {
     getChallenges({
       id: id || undefined,
       title,
@@ -45,7 +45,14 @@ function CreateDialog(props: CreateDialogProps) {
         setChallenges(res.data);
       }
     });
-  }, [debounceTitle, debouncedId]);
+  }, [id, title]);
+
+  useEffect(() => {
+    void debounceTitle;
+    void debouncedId;
+
+    fetchChallenges();
+  }, [fetchChallenges, debounceTitle, debouncedId]);
 
   function handleCreateGameChallenge(challenge: Challenge) {
     if (!game) return;

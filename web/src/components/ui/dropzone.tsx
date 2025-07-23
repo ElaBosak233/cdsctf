@@ -235,7 +235,7 @@ function useDropzone<TUploadRes, TUploadError = string>(
         pOnRootError(error);
       }
     },
-    [pOnRootError, _setRootError]
+    [pOnRootError]
   );
 
   const [fileStatuses, dispatch] = useReducer(fileStatusReducer, []);
@@ -246,6 +246,14 @@ function useDropzone<TUploadRes, TUploadError = string>(
       rootError !== undefined
     );
   }, [fileStatuses, rootError]);
+
+  const onRemoveFile = useCallback(
+    async (id: string) => {
+      await pOnRemoveFile?.(id);
+      dispatch({ type: "remove", id });
+    },
+    [pOnRemoveFile]
+  );
 
   const _uploadFile = useCallback(
     async (file: File, id: string, tries = 0) => {
@@ -291,15 +299,8 @@ function useDropzone<TUploadRes, TUploadError = string>(
       pShapeUploadError,
       pOnFileUploadError,
       pOnFileUploaded,
+      onRemoveFile,
     ]
-  );
-
-  const onRemoveFile = useCallback(
-    async (id: string) => {
-      await pOnRemoveFile?.(id);
-      dispatch({ type: "remove", id });
-    },
-    [pOnRemoveFile]
   );
 
   const canRetry = useCallback(

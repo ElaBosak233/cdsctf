@@ -39,7 +39,7 @@ export default function Index() {
       navigate(`/games/${currentGame?.id}`);
       toast.error("你没有权限查看本场比赛的题目");
     }
-  }, [error]);
+  }, [error, navigate, currentGame?.id]);
 
   const { data: challengeStatus, isFetching: statusLoading } = useQuery({
     queryKey: [

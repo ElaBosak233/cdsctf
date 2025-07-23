@@ -106,8 +106,10 @@ const columns: Array<ColumnDef<Game>> = [
     accessorKey: "started_at",
     id: "started_at",
     header: function StartedAtHeader({ column }) {
+      const sort = column.getIsSorted();
+
       const icon = useMemo(() => {
-        switch (column.getIsSorted()) {
+        switch (sort) {
           case "asc":
             return <ArrowUpIcon />;
           case "desc":
@@ -115,7 +117,7 @@ const columns: Array<ColumnDef<Game>> = [
           default:
             return <ArrowUpDownIcon />;
         }
-      }, [column.getIsSorted()]);
+      }, [sort]);
 
       return (
         <div className={cn(["flex", "gap-1", "items-center"])}>
@@ -139,8 +141,10 @@ const columns: Array<ColumnDef<Game>> = [
     accessorKey: "ended_at",
     id: "ended_at",
     header: function EndedAtHeader({ column }) {
+      const sort = column.getIsSorted();
+
       const icon = useMemo(() => {
-        switch (column.getIsSorted()) {
+        switch (sort) {
           case "asc":
             return <ArrowUpIcon />;
           case "desc":
@@ -148,7 +152,7 @@ const columns: Array<ColumnDef<Game>> = [
           default:
             return <ArrowUpDownIcon />;
         }
-      }, [column.getIsSorted()]);
+      }, [sort]);
 
       return (
         <div className={cn(["flex", "gap-1", "items-center"])}>

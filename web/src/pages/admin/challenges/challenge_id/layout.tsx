@@ -28,12 +28,14 @@ export default function Layout() {
   const [challenge, setChallenge] = useState<Challenge>();
 
   useEffect(() => {
+    void sharedStore.refresh;
+
     getChallenge({
       id: challenge_id,
     }).then((res) => {
       setChallenge(res.data);
     });
-  }, [sharedStore?.refresh]);
+  }, [challenge_id, sharedStore?.refresh]);
 
   const options = useMemo(() => {
     return [
@@ -66,7 +68,7 @@ export default function Layout() {
         disabled: true,
       },
     ];
-  }, [challenge]);
+  }, [challenge_id, challenge]);
 
   return (
     <Context.Provider value={{ challenge }}>

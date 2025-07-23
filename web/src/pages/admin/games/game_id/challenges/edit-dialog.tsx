@@ -89,19 +89,18 @@ function EditDialog(props: EditDialogProps) {
     );
   }, [gameChallenge, form.reset]);
 
+  const maxPts = form.watch("max_pts");
+  const minPts = form.watch("min_pts");
+  const difficulty = form.watch("difficulty");
+
   const data = useMemo(() => {
     return [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((x) => {
       return {
         times: x,
-        pts: curve(
-          Number(form.getValues("max_pts")),
-          Number(form.getValues("min_pts")),
-          Number(form.getValues("difficulty")),
-          x
-        ),
+        pts: curve(Number(maxPts), Number(minPts), Number(difficulty), x),
       };
     });
-  }, [form.watch("max_pts"), form.watch("min_pts"), form.watch("difficulty")]);
+  }, [maxPts, minPts, difficulty]);
 
   function handleAddBonusRatio() {
     const bonus_ratios = form.getValues("bonus_ratios") || [];

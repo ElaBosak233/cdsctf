@@ -24,6 +24,8 @@ export default function Layout() {
   const [game, setGame] = useState<Game>();
 
   useEffect(() => {
+    void sharedStore.refresh;
+
     if (game_id) {
       getGames({
         id: Number(game_id),
@@ -58,7 +60,7 @@ export default function Layout() {
         icon: <MessageCircleIcon />,
       },
     ];
-  }, [game]);
+  }, [game_id]);
 
   return (
     <Context.Provider value={{ game }}>

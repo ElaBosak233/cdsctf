@@ -99,6 +99,8 @@ export default function Index() {
   });
 
   useEffect(() => {
+    void sharedStore.refresh;
+
     setLoading(true);
     getUsers({
       id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,

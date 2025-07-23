@@ -58,6 +58,7 @@ function useChallengeQuery(params: GetChallengesRequest) {
       params.page,
       params.category,
       params.is_public,
+      params.sorts,
       refresh,
     ],
     queryFn: () => getChallenges(params),

@@ -228,27 +228,26 @@ export function DateTimePicker({
       }
       setDate(d);
     },
-    [setDate, setMonth]
+    [date, max, min]
   );
   const onSubmit = useCallback(() => {
     onChange(new Date(date));
     setOpen(false);
   }, [date, onChange]);
 
-  const onMonthYearChanged = useCallback(
-    (d: Date, mode: "month" | "year") => {
-      setMonth(d);
-      if (mode === "year") {
-        setMonthYearPicker("month");
-      } else {
-        setMonthYearPicker(false);
-      }
-    },
-    [setMonth, setMonthYearPicker]
-  );
+  const onMonthYearChanged = useCallback((d: Date, mode: "month" | "year") => {
+    setMonth(d);
+    if (mode === "year") {
+      setMonthYearPicker("month");
+    } else {
+      setMonthYearPicker(false);
+    }
+  }, []);
+
   const onNextMonth = useCallback(() => {
     setMonth(addMonths(month, 1));
   }, [month]);
+
   const onPrevMonth = useCallback(() => {
     setMonth(subMonths(month, 1));
   }, [month]);
@@ -264,9 +263,9 @@ export function DateTimePicker({
   const displayValue = useMemo(() => {
     if (!open && !value) return value;
     return open ? date : initDate;
-  }, [date, value, open]);
+  }, [date, value, open, initDate]);
 
-  const dislayFormat = useMemo(() => {
+  const displayFormat = useMemo(() => {
     if (!displayValue) return "Pick a date";
     return format(
       displayValue,
@@ -298,7 +297,7 @@ export function DateTimePicker({
               "justify-start"
             )}
           >
-            {dislayFormat}
+            {displayFormat}
           </Button>
           {clearable && value && (
             <Button
@@ -488,7 +487,8 @@ function MonthYearPicker({
       years.push({ value: i, label: i.toString(), disabled });
     }
     return years;
-  }, [value]);
+  }, [value, maxDate, minDate]);
+
   const months = useMemo(() => {
     const months: Array<TimeOption> = [];
     for (let i = 0; i < 12; i++) {
@@ -504,7 +504,7 @@ function MonthYearPicker({
       });
     }
     return months;
-  }, [value]);
+  }, [value, maxDate, minDate]);
 
   const onYearChange = useCallback(
     (v: TimeOption) => {
@@ -521,6 +521,8 @@ function MonthYearPicker({
   );
 
   useEffect(() => {
+    void value;
+
     if (mode === "year") {
       yearRef.current?.scrollIntoView({
         behavior: "auto",
@@ -528,6 +530,7 @@ function MonthYearPicker({
       });
     }
   }, [mode, value]);
+
   return (
     <div className={cn(className)}>
       <ScrollArea className="h-full">
@@ -610,11 +613,13 @@ function TimePicker({
   const [minute, setMinute] = useState(value.getMinutes());
   const [second, setSecond] = useState(value.getSeconds());
 
+  const initValueRef = useRef(value);
+
   useEffect(() => {
     onChange(
       buildTime({
         use12HourFormat,
-        value,
+        value: initValueRef.current,
         formatStr,
         hour,
         minute,
@@ -622,11 +627,13 @@ function TimePicker({
         ampm,
       })
     );
-  }, [hour, minute, second, ampm, formatStr, use12HourFormat]);
+  }, [hour, minute, second, ampm, formatStr, use12HourFormat, onChange]);
 
   const _hourIn24h = useMemo(() => {
+    void value;
+
     return use12HourFormat ? (hour % 12) + ampm * 12 : hour;
-  }, [value, use12HourFormat, ampm]);
+  }, [value, use12HourFormat, ampm, hour]);
 
   const hours: Array<TimeOption> = useMemo(
     () =>
@@ -733,7 +740,7 @@ function TimePicker({
       }
       setHour(v.value);
     },
-    [setHour, use12HourFormat, value, formatStr, minute, second, ampm]
+    [use12HourFormat, value, formatStr, minute, second, ampm, max, min]
   );
 
   const onMinuteChange = useCallback(
@@ -768,7 +775,7 @@ function TimePicker({
       }
       setMinute(v.value);
     },
-    [setMinute, use12HourFormat, value, formatStr, hour, second, ampm]
+    [use12HourFormat, value, formatStr, minute, second, ampm, max, min]
   );
 
   const display = useMemo(() => {

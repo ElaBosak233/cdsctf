@@ -1,6 +1,6 @@
 import { KeyIcon, RefreshCcwIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-
+import { Link } from "react-router";
 import { createToken, getToken } from "@/api/games/game_id/teams/profile/token";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { Link } from "react-router";
 
 export default function Index() {
   const { currentGame, selfTeam, members } = useGameStore();

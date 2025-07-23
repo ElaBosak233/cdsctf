@@ -8,7 +8,7 @@ import {
   PlayIcon,
   TrashIcon,
 } from "lucide-react";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { createEnv, getEnvs } from "@/api/envs";
@@ -162,7 +162,7 @@ function EnvSection() {
     }
   }
 
-  async function handlePodStop() {
+  const handlePodStop = useCallback(async () => {
     if (!env) return;
 
     await stopEnv({
@@ -174,13 +174,13 @@ function EnvSection() {
     });
     setEnv(undefined);
     envPodStopLoading(false);
-  }
+  }, [env]);
 
   useEffect(() => {
     if (envStopLoading) {
       handlePodStop();
     }
-  }, [envStopLoading]);
+  }, [handlePodStop, envStopLoading]);
 
   function handlePodCreate() {
     envPodCreateLoading(true);

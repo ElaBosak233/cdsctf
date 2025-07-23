@@ -41,9 +41,6 @@ export default function Index() {
   const [notices, setNotices] = useState<Array<GameNotice>>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const [page, _setPage] = useState<number>(1);
-  const [size, _setSize] = useState<number>(10);
-
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     game_id: false,
@@ -71,6 +68,10 @@ export default function Index() {
   });
 
   useEffect(() => {
+    void debouncedColumnFilters;
+    void sorting;
+    void sharedStore.refresh;
+
     if (!game) return;
 
     setLoading(true);
@@ -84,7 +85,7 @@ export default function Index() {
       .finally(() => {
         setLoading(false);
       });
-  }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh, game]);
+  }, [sorting, debouncedColumnFilters, sharedStore.refresh, game]);
 
   return (
     <div className={cn(["container", "mx-auto"])}>

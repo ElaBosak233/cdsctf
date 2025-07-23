@@ -75,6 +75,8 @@ export default function Index() {
   });
 
   useEffect(() => {
+    void sharedStore.refresh;
+
     if (!game) return;
 
     setLoading(true);
@@ -95,7 +97,7 @@ export default function Index() {
       .finally(() => {
         setLoading(false);
       });
-  }, [sorting, debouncedColumnFilters, sharedStore.refresh, game]);
+  }, [debouncedColumnFilters, sharedStore.refresh, game]);
 
   return (
     <div className={cn(["container", "mx-auto", "flex-1", "flex", "flex-col"])}>
