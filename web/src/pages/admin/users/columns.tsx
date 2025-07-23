@@ -150,8 +150,10 @@ const columns: Array<ColumnDef<User>> = [
     accessorKey: "created_at",
     id: "created_at",
     header: function CreatedAtHeader({ column }) {
+      const sort = column.getIsSorted();
+
       const icon = useMemo(() => {
-        switch (column.getIsSorted()) {
+        switch (sort) {
           case "asc":
             return <ArrowUpIcon />;
           case "desc":
@@ -159,7 +161,7 @@ const columns: Array<ColumnDef<User>> = [
           default:
             return <ArrowUpDownIcon />;
         }
-      }, [column.getIsSorted()]);
+      }, [sort]);
 
       return (
         <div className={cn(["flex", "gap-1", "items-center"])}>

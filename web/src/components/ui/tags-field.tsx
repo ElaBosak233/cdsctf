@@ -1,5 +1,5 @@
 import { X as RemoveIcon } from "lucide-react";
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { inputVariants, TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
@@ -55,35 +55,35 @@ function TagsField(props: TagsFieldProps) {
 
   const { size, disabled, hasIcon, hasExtraButton } = context;
 
-  const [activeIndex, setActiveIndex] = React.useState(-1);
-  const [inputValue, setInputValue] = React.useState("");
-  const [disableInput, setDisableInput] = React.useState(false);
-  const [disableButton, setDisableButton] = React.useState(false);
-  const [isValueSelected, setIsValueSelected] = React.useState(false);
-  const [selectedValue, setSelectedValue] = React.useState("");
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [inputValue, setInputValue] = useState("");
+  const [disableInput, setDisableInput] = useState(false);
+  const [disableButton, setDisableButton] = useState(false);
+  const [isValueSelected, setIsValueSelected] = useState(false);
+  const [selectedValue, setSelectedValue] = useState("");
 
   const parseMinItems = minItems ?? 0;
   const parseMaxItems = maxItems ?? Infinity;
 
-  const onValueChangeHandler = React.useCallback(
+  const onValueChangeHandler = useCallback(
     (val: string) => {
       if (!value.includes(val) && value.length < parseMaxItems) {
         onValueChange([...value, val]);
       }
     },
-    [value]
+    [value, onValueChange, parseMaxItems]
   );
 
-  const RemoveValue = React.useCallback(
+  const RemoveValue = useCallback(
     (val: string) => {
       if (value.includes(val) && value.length > parseMinItems) {
         onValueChange(value.filter((item) => item !== val));
       }
     },
-    [value]
+    [value, onValueChange, parseMinItems]
   );
 
-  const handlePaste = React.useCallback(
+  const handlePaste = useCallback(
     (e: React.ClipboardEvent<HTMLInputElement>) => {
       e.preventDefault();
       const tags = e.clipboardData.getData("text").split(SPLITTER_REGEX);
@@ -101,7 +101,7 @@ function TagsField(props: TagsFieldProps) {
       onValueChange(newValue);
       setInputValue("");
     },
-    [value]
+    [value, onValueChange, parseMaxItems]
   );
 
   const handleSelect = React.useCallback(
@@ -120,7 +120,7 @@ function TagsField(props: TagsFieldProps) {
 
   // ? suggest : a refactor rather then using a useEffect
 
-  React.useEffect(() => {
+  useEffect(() => {
     const VerifyDisable = () => {
       if (value.length - 1 >= parseMinItems) {
         setDisableButton(false);
@@ -134,7 +134,7 @@ function TagsField(props: TagsFieldProps) {
       }
     };
     VerifyDisable();
-  }, [value]);
+  }, [value, parseMinItems, parseMaxItems]);
 
   // ? check: Under build , default option support
   // * support : for the uncontrolled && controlled ui
@@ -144,7 +144,7 @@ function TagsField(props: TagsFieldProps) {
         onValueChange([...value, ...defaultOptions]);
         }, []); */
 
-  const handleKeyDown = React.useCallback(
+  const handleKeyDown = useCallback(
     async (e: React.KeyboardEvent<HTMLInputElement>) => {
       e.stopPropagation();
 
@@ -225,7 +225,16 @@ function TagsField(props: TagsFieldProps) {
           break;
       }
     },
-    [activeIndex, value, inputValue, RemoveValue]
+    [
+      activeIndex,
+      value,
+      inputValue,
+      RemoveValue,
+      dir,
+      isValueSelected,
+      selectedValue,
+      onValueChangeHandler,
+    ]
   );
 
   const mousePreventDefault = React.useCallback((e: React.MouseEvent) => {

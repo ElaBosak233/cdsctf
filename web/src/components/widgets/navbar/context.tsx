@@ -23,7 +23,7 @@ export function useOptions() {
   const { mode } = useContext(Context);
   const { currentGame, selfTeam } = useGameStore();
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const options = useMemo(() => {
     switch (mode) {
@@ -80,7 +80,15 @@ export function useOptions() {
           },
         ];
     }
-  }, [mode, currentGame?.id, selfTeam, i18n.language]);
+  }, [
+    mode,
+    currentGame?.id,
+    currentGame?.started_at,
+    currentGame?.ended_at,
+    selfTeam?.id,
+    selfTeam?.state,
+    t,
+  ]);
 
   return options;
 }

@@ -29,6 +29,8 @@ function Image(props: ImageProps) {
   const [hasError, setHasError] = useState<boolean>(false);
 
   useEffect(() => {
+    void src;
+
     setIsLoading(true);
     setHasError(false);
   }, [src]);

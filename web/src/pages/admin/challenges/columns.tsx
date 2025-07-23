@@ -161,8 +161,10 @@ const columns: Array<ColumnDef<Challenge>> = [
     accessorKey: "updated_at",
     id: "updated_at",
     header: function UpdatedAtHeader({ column }) {
+      const sort = column.getIsSorted();
+
       const icon = useMemo(() => {
-        switch (column.getIsSorted()) {
+        switch (sort) {
           case "asc":
             return <ArrowUpIcon />;
           case "desc":
@@ -170,7 +172,7 @@ const columns: Array<ColumnDef<Challenge>> = [
           default:
             return <ArrowUpDownIcon />;
         }
-      }, [column.getIsSorted()]);
+      }, [sort]);
 
       return (
         <div className={cn(["flex", "gap-1", "items-center"])}>
@@ -194,8 +196,10 @@ const columns: Array<ColumnDef<Challenge>> = [
     accessorKey: "created_at",
     id: "created_at",
     header: function CreatedAtHeader({ column }) {
+      const sort = column.getIsSorted();
+
       const icon = useMemo(() => {
-        switch (column.getIsSorted()) {
+        switch (sort) {
           case "asc":
             return <ArrowUpIcon />;
           case "desc":
@@ -203,7 +207,7 @@ const columns: Array<ColumnDef<Challenge>> = [
           default:
             return <ArrowUpDownIcon />;
         }
-      }, [column.getIsSorted()]);
+      }, [sort]);
 
       return (
         <div className={cn(["flex", "gap-1", "items-center"])}>

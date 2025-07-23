@@ -40,6 +40,8 @@ export default function Index() {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    void sharedStore.refresh;
+
     if (!challenge?.id) return;
     setLoading(true);
     getChallengeAttachments(challenge.id!)

@@ -27,9 +27,6 @@
       "style": {
         "noNonNullAssertion": "off"
       },
-      "correctness": {
-        "useExhaustiveDependencies": "off"
-      },
       "security": {
         "noDangerouslySetInnerHtml": "off"
       },

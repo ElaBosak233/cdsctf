@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { StarIcon } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router";
 import { getSubmission } from "@/api/submissions";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +28,6 @@ import { Status, type Submission } from "@/models/submission";
 import type { Team } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { Link } from "react-router";
 
 interface TeamDetailsDialogProps {
   team: Team;

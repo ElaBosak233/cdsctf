@@ -30,9 +30,11 @@ export default function () {
     }).then((res) => {
       setCurrentGame(res.data);
     });
-  }, [game_id]);
+  }, [game_id, currentGame?.id, setCurrentGame]);
 
   useEffect(() => {
+    void sharedStore?.refresh;
+
     if (!authStore?.user) return;
 
     (async () => {
@@ -52,9 +54,11 @@ export default function () {
         setGtLoaded(true);
       }
     })();
-  }, [sharedStore?.refresh, game_id]);
+  }, [sharedStore?.refresh, game_id, setSelfTeam, authStore?.user]);
 
   useEffect(() => {
+    void sharedStore?.refresh;
+
     if (!selfTeam?.id) return;
 
     getTeamMembers({
@@ -63,7 +67,7 @@ export default function () {
     }).then((res) => {
       setMembers(res.data);
     });
-  }, [sharedStore?.refresh, selfTeam]);
+  }, [sharedStore?.refresh, selfTeam, game_id, setMembers]);
 
   return (
     <Context.Provider value={{ gtLoaded }}>

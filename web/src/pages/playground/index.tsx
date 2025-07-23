@@ -73,10 +73,10 @@ export default function Index() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (authStore?.user) return;
+    if (useAuthStore.getState().user) return;
 
     navigate(`/account/login?redirect=/playground`, { replace: true });
-  }, []);
+  }, [navigate]);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -110,7 +110,7 @@ export default function Index() {
     if (tag) searchParams.tag = tag;
     if (category) searchParams.category = String(category);
     setSearchParams(searchParams);
-  }, [doSearch]);
+  }, [doSearch, page, size, category, title, tag, setSearchParams]);
 
   const {
     data: { challenges, total } = { challenges: [], total: 0 },

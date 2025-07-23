@@ -1,8 +1,8 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { FlagIcon, PackageOpenIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-
-import { getGames } from "@/api/games";
+import { type GetGameRequest, getGames } from "@/api/games";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -15,34 +15,43 @@ import type { GameMini } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
+function useGameQuery(params: GetGameRequest, trigger: number = 0) {
+  return useQuery({
+    queryKey: [
+      "games",
+      trigger,
+      params.size,
+      params.page,
+      params.title,
+      params.sorts,
+    ],
+    queryFn: () => getGames(params),
+    select: (response) => ({
+      games: response.data || [],
+      total: response.total || 0,
+    }),
+    enabled: !!params,
+    placeholderData: keepPreviousData,
+  });
+}
+
 export default function Index() {
   const { config } = useConfigStore();
   const navigate = useNavigate();
 
-  const [games, setGames] = useState<Array<GameMini>>();
-  const [total, setTotal] = useState<number>(0);
   const [title, setTitle] = useState<string>("");
   const debouncedTitle = useDebounce(title, 500);
   const [page, setPage] = useState<number>(1);
   const [size, _setSize] = useState<number>(10);
 
+  const { data: { games, total } = { games: [], total: 0 } } = useGameQuery({
+    title: debouncedTitle,
+    page,
+    size,
+    sorts: "-started_at",
+  });
+
   const [selectedGame, setSelectedGame] = useState<GameMini>();
-
-  function fetchGames() {
-    getGames({
-      title: debouncedTitle,
-      page,
-      size,
-      sorts: "-started_at",
-    }).then((res) => {
-      setTotal(res.total || 0);
-      setGames(res.data);
-    });
-  }
-
-  useEffect(() => {
-    fetchGames();
-  }, [page, size, debouncedTitle]);
 
   useEffect(() => {
     if (games) {

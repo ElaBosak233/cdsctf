@@ -18,6 +18,8 @@ export default function Layout() {
   const [user, setUser] = useState<User>();
 
   useEffect(() => {
+    void sharedStore.refresh;
+
     if (!user_id) return;
 
     getUsers({
@@ -42,7 +44,7 @@ export default function Layout() {
         icon: <LockIcon />,
       },
     ];
-  }, [user]);
+  }, [user_id]);
 
   return (
     <Context.Provider value={{ user }}>

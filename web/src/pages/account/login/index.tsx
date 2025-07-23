@@ -12,23 +12,22 @@ import { cn } from "@/utils";
 import { LoginForm } from "./login-form";
 
 export default function Index() {
-  const authStore = useAuthStore();
-  const configStore = useConfigStore();
+  const { config } = useConfigStore();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (!authStore?.user) return;
+    if (!useAuthStore.getState().user) return;
 
     navigate("/");
     toast.warning("你已经登录了", {
       id: "login-already",
     });
-  }, []);
+  }, [navigate]);
 
   return (
     <>
-      <title>{`登录 - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`登录 - ${config?.meta?.title}`}</title>
       <div className={cn(["flex-1", "flex", "items-center", "justify-center"])}>
         <Card className={cn(["p-2", "w-[50rem]", "flex", "justify-between"])}>
           <div className={cn(["flex-1/2", "flex", "flex-col"])}>
@@ -48,7 +47,7 @@ export default function Index() {
                 {t("account:login._")}
               </div>
               <div className={cn(["text-sm", "text-secondary-foreground"])}>
-                {`${t("account:login.continue")} ${configStore?.config?.meta?.title}`}
+                {`${t("account:login.continue")} ${config?.meta?.title}`}
               </div>
               <div className={cn(["pt-6"])}>
                 <LoginForm />
@@ -80,13 +79,13 @@ export default function Index() {
                 className={cn(["drop-shadow-md", "aspect-square", "h-[8rem]"])}
               />
               <span className={cn(["mt-4", "text-2xl", "font-semibold"])}>
-                {configStore?.config?.meta?.title}
+                {config?.meta?.title}
               </span>
               <span className={cn(["text-sm", "text-secondary-foreground"])}>
-                {configStore?.config?.meta?.description}
+                {config?.meta?.description}
               </span>
             </div>
-            {configStore?.config?.auth?.is_registration_enabled && (
+            {config?.auth?.is_registration_enabled && (
               <Button
                 asChild
                 className={cn("w-full")}

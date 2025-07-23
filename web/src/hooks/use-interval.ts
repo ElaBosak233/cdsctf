@@ -25,7 +25,7 @@ function useInterval(
     }
     const id = setInterval(tick, delay);
     return () => clearInterval(id);
-  }, [delay, ...deps]);
+  }, [delay, options?.immediate, ...deps]);
 }
 
 export { useInterval };

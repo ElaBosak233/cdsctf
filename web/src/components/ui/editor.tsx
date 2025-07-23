@@ -33,6 +33,8 @@ function Editor(props: EditorProps) {
   const editorRef = useRef<HTMLPreElement>(null);
   const editorInstance = useRef<ace.Ace.Editor | null>(null);
 
+  const initialValueRef = useRef(value);
+
   const [focused, setFocused] = useState<boolean>(false);
 
   useEffect(() => {
@@ -63,7 +65,7 @@ function Editor(props: EditorProps) {
       useWorker: false,
     });
 
-    editor.session.setValue(value || "");
+    editor.session.setValue(initialValueRef.current || "");
     editor.clearSelection();
 
     editor.container.style.lineHeight = "1.5";
@@ -85,7 +87,7 @@ function Editor(props: EditorProps) {
     return () => {
       editor.destroy();
     };
-  }, [lang, showLineNumbers, tabSize, placeholder]);
+  }, [lang, showLineNumbers, tabSize, placeholder, onChange]);
 
   useEffect(() => {
     const editor = editorInstance.current;

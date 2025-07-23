@@ -5,6 +5,7 @@ import { BotIcon, ImageIcon, RefreshCcwIcon } from "lucide-react";
 import {
   createContext,
   type Ref,
+  useCallback,
   useContext,
   useEffect,
   useImperativeHandle,
@@ -100,6 +101,9 @@ function PowCaptcha(props: CaptchaProps) {
   const [id, setId] = useState<string>();
 
   useEffect(() => {
+    void refresh;
+    void sharedStore.refresh;
+
     const calculateWorker = new Worker(
       new URL("@/workers/pow.ts", import.meta.url),
       { type: "module" }
@@ -133,7 +137,7 @@ function PowCaptcha(props: CaptchaProps) {
       id,
       content: result,
     });
-  }, [id, result]);
+  }, [id, result, onChange]);
 
   return (
     <Field>
@@ -162,23 +166,25 @@ function ImageCaptcha(props: CaptchaProps) {
   const [id, setId] = useState<string>();
   const [challenge, setChallenge] = useState<string>();
 
-  async function fetchCaptchaData() {
+  const fetchCaptchaData = useCallback(async () => {
     setLoading(true);
     const res = await generateCaptcha();
     setId(res.data?.id);
     setChallenge(res.data?.challenge);
-  }
+  }, []);
 
   useEffect(() => {
+    void refresh;
+    void sharedStore.refresh;
     fetchCaptchaData();
-  }, [refresh, sharedStore.refresh]);
+  }, [fetchCaptchaData, refresh, sharedStore.refresh]);
 
   useEffect(() => {
     onChange({
       id,
       content: result,
     });
-  }, [id, result]);
+  }, [id, result, onChange]);
 
   return (
     <div className={cn(["flex", "items-center", "gap-2"])}>
