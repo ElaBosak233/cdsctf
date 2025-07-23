@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
 import { useEffect, useState } from "react";
 import { Outlet, useParams } from "react-router";
-import { getGame } from "@/api/games/game_id";
+import { getGame, type GetGameRequest } from "@/api/games/game_id";
 import { getTeamProfile } from "@/api/games/game_id/teams/profile";
 import { getTeamMembers } from "@/api/games/game_id/teams/team_id";
 import { useAuthStore } from "@/storages/auth";
@@ -10,27 +10,35 @@ import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { parseErrorResponse } from "@/utils/query";
 import { Context } from "./context";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+
+function useGameQuery(params: GetGameRequest, trigger: number = 0) {
+  return useQuery({
+    queryKey: ["game", trigger, params.id],
+    queryFn: () => getGame(params),
+    select: (response) => response.data,
+    enabled: !!params,
+    placeholderData: keepPreviousData,
+  });
+}
 
 export default function () {
   const { game_id } = useParams<{ game_id: string }>();
-  const { currentGame, setCurrentGame, selfTeam, setSelfTeam, setMembers } =
-    useGameStore();
+  const { setCurrentGame, selfTeam, setSelfTeam, setMembers } = useGameStore();
   const sharedStore = useSharedStore();
   const authStore = useAuthStore();
 
   const [gtLoaded, setGtLoaded] = useState<boolean>(false);
 
+  const { data: game } = useGameQuery({ id: Number(game_id) });
+
   useEffect(() => {
-    if (game_id !== currentGame?.id) {
+    if (game_id !== useGameStore.getState().currentGame?.id) {
       setCurrentGame(undefined);
     }
 
-    getGame({
-      id: Number(game_id),
-    }).then((res) => {
-      setCurrentGame(res.data);
-    });
-  }, [game_id, currentGame?.id, setCurrentGame]);
+    setCurrentGame(game);
+  }, [game_id, game, setCurrentGame]);
 
   useEffect(() => {
     void sharedStore?.refresh;

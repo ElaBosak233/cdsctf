@@ -5,7 +5,7 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ListOrderedIcon } from "lucide-react";
+import { ListOrderedIcon, MessageCircleDashedIcon } from "lucide-react";
 import { useState } from "react";
 import { getGameScoreboard } from "@/api/games/game_id";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -46,6 +46,7 @@ export default function Index() {
       total: response.total || 0,
     }),
     placeholderData: keepPreviousData,
+    enabled: !!currentGame?.id,
   });
 
   const table = useReactTable<ScoreRecord>({
@@ -71,91 +72,103 @@ export default function Index() {
           "flex-col",
           "gap-10",
           "items-center",
+          "flex-1",
         ])}
       >
-        <ChampionChart scoreboard={scoreboardData?.scoreboard} />
-        <div className={cn(["flex", "items-center", "gap-10"])}>
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} / {scoreboardData?.total}
+        {scoreboardData?.total ? (
+          <>
+            <ChampionChart scoreboard={scoreboardData?.scoreboard} />
+            <div className={cn(["flex", "items-center", "gap-10"])}>
+              <div className="flex-1 text-sm text-muted-foreground">
+                {table.getFilteredRowModel().rows.length} /{" "}
+                {scoreboardData?.total}
+              </div>
+              <Field size={"sm"} className={cn(["w-48"])}>
+                <FieldIcon>
+                  <ListOrderedIcon />
+                </FieldIcon>
+                <Select
+                  placeholder={"每页显示"}
+                  options={[
+                    { value: "10" },
+                    { value: "20" },
+                    { value: "40" },
+                    { value: "60" },
+                  ]}
+                  value={String(size)}
+                  onValueChange={(value) => setSize(Number(value))}
+                />
+              </Field>
+              <Pagination
+                value={page}
+                onChange={(value) => setPage(value)}
+                total={Math.ceil((scoreboardData?.total || 0) / size)}
+              />
+            </div>
+            <ScrollArea className={cn(["rounded-md", "w-full"])}>
+              <Table className={cn(["text-foreground"])}>
+                <TableHeader
+                  className={cn(["bg-muted/70", "backdrop-blur-md"])}
+                >
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id}>
+                            {!header.isPlaceholder &&
+                              flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                          </TableHead>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <Dialog key={row.original.team?.id}>
+                      <DialogTrigger>
+                        <TableRow
+                          data-state={row.getIsSelected() && "selected"}
+                          className={cn(["cursor-pointer"])}
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <TeamDetailsDialog team={row.original.team!} />
+                      </DialogContent>
+                    </Dialog>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </>
+        ) : (
+          <div
+            className={cn([
+              "flex",
+              "flex-col",
+              "items-center",
+              "justify-center",
+              "flex-1",
+              "gap-5",
+              "select-none",
+            ])}
+          >
+            <MessageCircleDashedIcon className={cn(["size-12"])} />
+            <span>但是谁也没有来</span>
           </div>
-          <Field size={"sm"} className={cn(["w-48"])}>
-            <FieldIcon>
-              <ListOrderedIcon />
-            </FieldIcon>
-            <Select
-              placeholder={"每页显示"}
-              options={[
-                { value: "10" },
-                { value: "20" },
-                { value: "40" },
-                { value: "60" },
-              ]}
-              value={String(size)}
-              onValueChange={(value) => setSize(Number(value))}
-            />
-          </Field>
-          <Pagination
-            value={page}
-            onChange={(value) => setPage(value)}
-            total={Math.ceil((scoreboardData?.total || 0) / size)}
-          />
-        </div>
-        <ScrollArea className={cn(["rounded-md", "w-full"])}>
-          <Table className={cn(["text-foreground"])}>
-            <TableHeader className={cn(["bg-muted/70", "backdrop-blur-md"])}>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {!header.isPlaceholder &&
-                          flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <Dialog key={row.original.team?.id}>
-                    <DialogTrigger>
-                      <TableRow
-                        data-state={row.getIsSelected() && "selected"}
-                        className={cn(["cursor-pointer"])}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <TeamDetailsDialog team={row.original.team!} />
-                    </DialogContent>
-                  </Dialog>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className={cn(["h-24", "text-center"])}
-                  >
-                    但是谁也没有来。
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+        )}
       </div>
     </>
   );
