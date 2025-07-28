@@ -42,7 +42,7 @@ impl<T> Default for WebResponse<T> {
 
 impl<T: Serialize + Debug> IntoResponse for WebResponse<T> {
     fn into_response(mut self) -> Response<Body> {
-        self.ts = chrono::Utc::now().timestamp();
+        self.ts = time::OffsetDateTime::now_utc().unix_timestamp();
         (self.code, Json(self)).into_response()
     }
 }
@@ -65,8 +65,10 @@ pub enum WebError {
     TooManyRequests(serde_json::Value),
     #[error("unprocessable entity: {0}")]
     UnprocessableEntity(serde_json::Value),
+    #[error("tower sessions error: {0}")]
+    TowerSessionsError(#[from] tower_sessions::session::Error),
     #[error("db error: {0}")]
-    DatabaseError(#[from] cds_db::sea_orm::DbErr),
+    DBError(#[from] cds_db::sea_orm::DbErr),
     #[error("cache error: {0}")]
     CacheError(#[from] cds_cache::traits::CacheError),
     #[error("env error: {0}")]
@@ -94,7 +96,11 @@ impl IntoResponse for WebError {
             Self::Conflict(msg) => (StatusCode::CONFLICT, msg.clone()),
             Self::TooManyRequests(msg) => (StatusCode::TOO_MANY_REQUESTS, msg.clone()),
             Self::UnprocessableEntity(msg) => (StatusCode::UNPROCESSABLE_ENTITY, msg.clone()),
-            Self::DatabaseError(err) => match err {
+            Self::TowerSessionsError(err) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!(err.to_string()),
+            ),
+            Self::DBError(err) => match err {
                 cds_db::sea_orm::DbErr::RecordNotFound(msg) => {
                     (StatusCode::NOT_FOUND, serde_json::json!(msg.clone()))
                 }

@@ -1,7 +1,6 @@
 use axum::{
     body::Body,
-    extract::Request,
-    http::header::COOKIE,
+    extract::{FromRequestParts, Request},
     middleware::Next,
     response::{IntoResponse, Response},
 };
@@ -10,47 +9,32 @@ use cds_db::{
     get_db,
     sea_orm::{ColumnTrait, EntityTrait, QueryFilter},
 };
-use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde_json::json;
+use tower_sessions::Session;
 
 use crate::{
     extract::Extension,
     traits::{AuthPrincipal, WebError},
 };
 
-pub async fn extract(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
+pub async fn extract(req: Request<Body>, next: Next) -> Result<Response, WebError> {
+    let (mut parts, body) = req.into_parts();
+
+    let session = Session::from_request_parts(&mut parts, &())
+        .await
+        .map_err(|_| WebError::Unauthorized(json!("session_error")))?;
+
+    let mut req = Request::from_parts(parts, body);
+
     let mut ext = req
         .extensions()
         .get::<AuthPrincipal>()
         .unwrap_or(&AuthPrincipal::default())
         .to_owned();
 
-    let cookies = req
-        .headers()
-        .get(COOKIE)
-        .and_then(|header| header.to_str().ok())
-        .unwrap_or("")
-        .to_string();
-
-    let mut jar = cookie::CookieJar::new();
-    let cookies: Vec<String> = cookies
-        .split(";")
-        .map(|cookie| cookie.trim().to_string())
-        .collect();
-    for cookie in cookies {
-        if let Ok(parsed_cookie) = cookie::Cookie::parse(cookie) {
-            jar.add(parsed_cookie);
-        }
-    }
-
-    let token = jar.get("token").map(|cookie| cookie.value()).unwrap_or("");
-
-    let decoding_key = DecodingKey::from_secret(cds_env::get_config().jwt.secret.as_bytes());
-    let validation = Validation::default();
-
-    if let Ok(data) = decode::<crate::util::jwt::Claims>(token, &decoding_key, &validation) {
+    if let Ok(Some(user_id)) = session.get::<i64>("user_id").await {
         if let Some(user) = cds_db::entity::user::Entity::find()
-            .filter(cds_db::entity::user::Column::Id.eq(data.claims.id))
+            .filter(cds_db::entity::user::Column::Id.eq(user_id))
             .filter(cds_db::entity::user::Column::DeletedAt.is_null())
             .one(get_db())
             .await?
@@ -59,7 +43,10 @@ pub async fn extract(mut req: Request<Body>, next: Next) -> Result<Response, Web
                 return Err(WebError::Forbidden(json!("forbidden")));
             }
 
-            ext.operator = Some(user.clone());
+            ext.operator = Some(user);
+
+            let called_times = session.get::<i64>("called_times").await?.unwrap_or(0);
+            session.insert("called_times", called_times + 1).await?;
         }
     }
 

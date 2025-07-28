@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 use tracing::debug;
 
 use crate::traits::{Answer, CaptchaError};
@@ -17,7 +17,7 @@ struct TurnstileRequest {
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 struct TurnstileResponse {
     success: bool,
-    challenge_ts: DateTime<Utc>,
+    challenge_ts: Option<OffsetDateTime>,
     hostname: Option<String>,
     #[serde(rename = "error-codes", default)]
     error_codes: Vec<String>,

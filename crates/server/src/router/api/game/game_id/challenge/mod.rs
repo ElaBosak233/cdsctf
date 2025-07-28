@@ -36,7 +36,7 @@ pub async fn get_game_challenge(
 
     let game = crate::util::loader::prepare_game(game_id).await?;
 
-    let now = chrono::Utc::now().timestamp();
+    let now = time::OffsetDateTime::now_utc().unix_timestamp();
     let in_game = cds_db::util::is_user_in_game(operator.id, game.id, Some(State::Passed)).await?;
 
     if !in_game || !(game.started_at..=game.ended_at).contains(&now) {

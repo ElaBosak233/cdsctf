@@ -86,7 +86,7 @@ pub async fn can_user_access_challenge(
         return Ok(true);
     }
 
-    let now = chrono::Utc::now().timestamp();
+    let now = time::OffsetDateTime::now_utc().unix_timestamp();
 
     if crate::entity::game::Entity::find()
         .join(

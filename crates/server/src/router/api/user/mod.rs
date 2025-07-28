@@ -6,11 +6,7 @@ use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
     password_hash::{SaltString, rand_core::OsRng},
 };
-use axum::{
-    Router,
-    http::{HeaderMap, StatusCode, header::SET_COOKIE},
-    response::IntoResponse,
-};
+use axum::{Router, http::StatusCode, response::IntoResponse};
 use cds_db::{
     entity::user::Group,
     get_db,
@@ -21,13 +17,13 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tower_sessions::Session;
 use validator::Validate;
 
 use crate::{
     extract::{Extension, Json},
     model::user::User,
     traits::{AuthPrincipal, WebError, WebResponse},
-    util::jwt,
 };
 
 pub fn router() -> Router {
@@ -48,6 +44,7 @@ pub struct UserLoginRequest {
 }
 
 pub async fn user_login(
+    session: Session,
     Extension(ext): Extension<AuthPrincipal>,
     Json(mut body): Json<UserLoginRequest>,
 ) -> Result<impl IntoResponse, WebError> {
@@ -94,29 +91,12 @@ pub async fn user_login(
         return Err(WebError::BadRequest(json!("invalid")));
     }
 
-    let token = jwt::generate_jwt_token(user.id).await;
+    session.insert("user_id", user.id).await?;
 
-    let mut headers = HeaderMap::new();
-    headers.insert(
-        SET_COOKIE,
-        format!(
-            "token={}; Max-Age={}; Path=/; HttpOnly; SameSite=Strict",
-            token,
-            chrono::Duration::seconds(cds_env::get_config().jwt.expiration).num_seconds()
-        )
-        .parse()
-        .unwrap(),
-    );
-
-    Ok((
-        StatusCode::OK,
-        headers,
-        WebResponse {
-            code: StatusCode::OK,
-            data: Some(user),
-            ..Default::default()
-        },
-    ))
+    Ok(WebResponse {
+        data: Some(user),
+        ..Default::default()
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
@@ -190,27 +170,14 @@ pub async fn user_register(
 }
 
 pub async fn user_logout(
+    session: Session,
     Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<impl IntoResponse, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let mut headers = HeaderMap::new();
-    headers.insert(
-        SET_COOKIE,
-        format!(
-            "token=unknown; Max-Age={}; Path=/; HttpOnly; SameSite=Strict",
-            chrono::Duration::minutes(0).num_seconds()
-        )
-        .parse()
-        .unwrap(),
-    );
+    let _ = session.remove::<Option<i64>>("user_id").await?;
 
-    Ok((
-        StatusCode::OK,
-        headers,
-        WebResponse::<()> {
-            code: StatusCode::OK,
-            ..Default::default()
-        },
-    ))
+    Ok(WebResponse::<()> {
+        ..Default::default()
+    })
 }

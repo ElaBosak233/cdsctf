@@ -5,7 +5,6 @@ pub mod worker;
 
 use std::{collections::HashMap, sync::Arc};
 
-use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use rune::{
@@ -13,6 +12,7 @@ use rune::{
     runtime::{Object, RuntimeContext},
     termcolor::Buffer,
 };
+use time::OffsetDateTime;
 use tracing::debug;
 use uuid::Uuid;
 
@@ -22,7 +22,7 @@ use crate::traits::CheckerError;
 struct CheckerContext {
     pub unit: Arc<Unit>,
     pub runtime_context: Arc<RuntimeContext>,
-    pub created_at: DateTime<Utc>,
+    pub created_at: OffsetDateTime,
 }
 
 static CHECKER_CONTEXT: Lazy<Arc<DashMap<Uuid, CheckerContext>>> =
@@ -102,7 +102,7 @@ async fn preload(challenge: &cds_db::entity::challenge::Model) -> Result<(), Che
     let checker_context = get_checker_context();
 
     if let Some(context) = checker_context.get(&challenge.id) {
-        if context.created_at.timestamp() > challenge.updated_at {
+        if context.created_at.unix_timestamp() > challenge.updated_at {
             return Ok(());
         }
     }
@@ -129,7 +129,7 @@ async fn preload(challenge: &cds_db::entity::challenge::Model) -> Result<(), Che
         CheckerContext {
             unit: Arc::new(unit),
             runtime_context: Arc::new(runtime),
-            created_at: Utc::now(),
+            created_at: OffsetDateTime::now_utc(),
         },
     );
 

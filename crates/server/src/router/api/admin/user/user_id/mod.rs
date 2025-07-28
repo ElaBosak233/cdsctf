@@ -109,7 +109,7 @@ pub async fn delete_user(Path(user_id): Path<i64>) -> Result<WebResponse<()>, We
         id: Unchanged(user.id),
         username: Set(format!("[DELETED]_{}", user.username)),
         email: Set(format!("deleted_{}@del.cdsctf", user.email)),
-        deleted_at: Set(Some(chrono::Utc::now().timestamp())),
+        deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
         ..Default::default()
     }
     .update(get_db())

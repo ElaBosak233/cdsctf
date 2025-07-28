@@ -145,7 +145,7 @@ pub async fn delete_user_profile(
         id: Unchanged(operator.id),
         username: Set(format!("[DELETED]_{}", operator.username)),
         email: Set(format!("deleted_{}@del.cdsctf", operator.email)),
-        deleted_at: Set(Some(chrono::Utc::now().timestamp())),
+        deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
         ..Default::default()
     }
     .update(get_db())

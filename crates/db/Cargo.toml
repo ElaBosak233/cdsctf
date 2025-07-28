@@ -19,7 +19,7 @@ tracing = { workspace = true }
 sea-orm = { workspace = true }
 serde_repr = { workspace = true }
 once_cell = { workspace = true }
-chrono = { workspace = true }
+time = { workspace = true }
 serde_json = { workspace = true }
 uuid = { workspace = true }
 anyhow = { workspace = true }

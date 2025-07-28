@@ -23,5 +23,5 @@ anyhow = { workspace = true }
 nanoid = { workspace = true }
 reqwest = { workspace = true }
 tracing = { workspace = true }
-chrono = { workspace = true }
+time = { workspace = true }
 biosvg = { workspace = true }

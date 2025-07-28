@@ -1,5 +1,5 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 use tracing::debug;
 
 use crate::traits::{Answer, CaptchaError};
@@ -17,7 +17,7 @@ struct HCaptchaRequest {
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 struct HCaptchaResponse {
     success: bool,
-    challenge_ts: Option<DateTime<Utc>>,
+    challenge_ts: Option<OffsetDateTime>,
     hostname: Option<String>,
     credit: Option<bool>,
     #[serde(rename = "error-codes", default)]

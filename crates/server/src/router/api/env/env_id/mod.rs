@@ -70,8 +70,9 @@ pub async fn renew_pod(
         return Err(WebError::BadRequest(json!("no_more_renewal")));
     }
 
-    let now = chrono::Utc::now().timestamp();
-    if started_at + (renew + 1) * duration - now > chrono::Duration::minutes(10).num_seconds() {
+    let now = time::OffsetDateTime::now_utc().unix_timestamp();
+    let next_start = started_at + (renew + 1) * duration;
+    if next_start - now > time::Duration::minutes(10).whole_seconds() {
         return Err(WebError::BadRequest(json!("renewal_within_10_minutes")));
     }
 
