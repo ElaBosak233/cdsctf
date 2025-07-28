@@ -3,7 +3,6 @@ use std::net::SocketAddr;
 use anyhow::anyhow;
 use axum::http::HeaderValue;
 use cds_server::{router::router, worker};
-use chrono::TimeZone;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
 
@@ -54,21 +53,13 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
     cds_telemetry::init().await?;
 
     let banner = cds_assets::get("banner.txt").unwrap_or_default();
+
     println!(
         "{}",
         std::str::from_utf8(&banner)?
-            .replace("{{version}}", &cds_env::get_version())
-            .replace("{{git_commit}}", &cds_env::get_commit())
-            .replace(
-                "{{build_at}}",
-                chrono::Local
-                    .timestamp_opt(cds_env::get_build_timestamp(), 0)
-                    .single()
-                    .unwrap()
-                    .format("%Y-%m-%d %H:%M:%S UTC %:z")
-                    .to_string()
-                    .as_str()
-            )
+            .replace("{{version}}", cds_env::get_version())
+            .replace("{{git_commit}}", cds_env::get_commit_hash())
+            .replace("{{build_at}}", cds_env::get_build_time())
     );
 
     cds_logger::init().await?;

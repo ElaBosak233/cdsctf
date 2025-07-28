@@ -95,7 +95,7 @@ pub async fn delete_challenge(
 
     let _ = cds_db::entity::challenge::ActiveModel {
         id: Set(challenge.id),
-        deleted_at: Set(Some(chrono::Utc::now().timestamp())),
+        deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
         ..Default::default()
     }
     .update(get_db())

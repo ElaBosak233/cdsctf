@@ -15,7 +15,7 @@ pub mod traits;
 
 static CLIENT: OnceCell<Client> = OnceCell::new();
 
-fn get_client() -> Client {
+pub fn get_client() -> Client {
     CLIENT.get().unwrap().clone()
 }
 

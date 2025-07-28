@@ -1,11 +1,15 @@
 pub mod api;
 mod proxy;
 
-use std::{net::IpAddr, sync::Arc, time::Duration};
+use std::{net::IpAddr, sync::Arc};
 
 use axum::{Router, body::Body, http::Request, middleware::from_fn, response::Response};
+use cookie::SameSite;
+use time::Duration;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::trace::TraceLayer;
+use tower_sessions::{Expiry, SessionManagerLayer};
+use tower_sessions_redis_store::RedisStore;
 use tracing::{Span, debug, debug_span};
 
 use crate::{
@@ -26,13 +30,21 @@ pub async fn router() -> Router {
     );
 
     let governor_limiter = governor_conf.limiter().clone();
-    let interval = Duration::from_secs(60);
     tokio::spawn(async move {
         loop {
-            tokio::time::sleep(interval).await;
+            tokio::time::sleep(std::time::Duration::from_secs(60)).await;
             governor_limiter.retain_recent();
         }
     });
+
+    let session_store = RedisStore::new(cds_cache::get_client());
+    let session_layer = SessionManagerLayer::new(session_store)
+        .with_name("cds.id")
+        .with_secure(false)
+        .with_http_only(true)
+        .with_path("/")
+        .with_same_site(SameSite::Strict)
+        .with_expiry(Expiry::OnInactivity(Duration::minutes(30)));
 
     let base = Router::new()
         .nest("/api", api::router().await)
@@ -48,14 +60,17 @@ pub async fn router() -> Router {
                     )
                 })
                 .on_request(())
-                .on_response(|response: &Response, latency: Duration, _span: &Span| {
-                    debug!("[{}] in {}ms", response.status(), latency.as_millis());
-                }),
+                .on_response(
+                    |response: &Response, latency: std::time::Duration, _span: &Span| {
+                        debug!("[{}] in {}ms", response.status(), latency.as_millis());
+                    },
+                ),
         )
         .layer(GovernorLayer {
             config: governor_conf,
         })
         .layer(from_fn(middleware::auth::extract))
+        .layer(session_layer)
         .layer(from_fn(middleware::network::real_host))
         .layer(from_fn(middleware::network::ip_record));
 

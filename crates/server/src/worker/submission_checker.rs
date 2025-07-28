@@ -107,7 +107,7 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
                 .await?
                 .ok_or(anyhow!("game_challenge_not_found"))?;
 
-            let now = chrono::Utc::now().timestamp();
+            let now = time::OffsetDateTime::now_utc().unix_timestamp();
             if now > game.frozen_at || now > game.ended_at {
                 status = Status::Expired;
             }

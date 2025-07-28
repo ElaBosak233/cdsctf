@@ -15,8 +15,11 @@ use anyhow::anyhow;
 use nanoid::nanoid;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
+use shadow_rs::shadow;
 
 use crate::traits::EnvError;
+
+shadow!(build);
 
 const CONFIG_PREDEFINED_PATH: [&str; 4] = [
     "/etc/cdsctf/",
@@ -66,14 +69,14 @@ pub async fn init() -> Result<(), EnvError> {
     Err(EnvError::NotFound)
 }
 
-pub fn get_version() -> String {
-    env!("CARGO_PKG_VERSION").to_string()
+pub fn get_version() -> &'static str {
+    build::PKG_VERSION
 }
 
-pub fn get_commit() -> String {
-    env!("GIT_COMMIT").to_string()
+pub fn get_commit_hash() -> &'static str {
+    build::COMMIT_HASH
 }
 
-pub fn get_build_timestamp() -> i64 {
-    env!("BUILD_AT").parse::<i64>().unwrap_or_default()
+pub fn get_build_time() -> &'static str {
+    build::BUILD_TIME
 }

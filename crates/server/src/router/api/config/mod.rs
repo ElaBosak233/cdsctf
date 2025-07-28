@@ -30,8 +30,8 @@ pub struct Version {
 pub async fn get_version() -> Result<WebResponse<Version>, WebError> {
     Ok(WebResponse {
         data: Some(Version {
-            tag: cds_env::get_version(),
-            commit: cds_env::get_commit(),
+            tag: cds_env::get_version().to_owned(),
+            commit: cds_env::get_commit_hash().to_owned(),
         }),
         ..Default::default()
     })
