@@ -8,6 +8,7 @@ use cds_db::{
         ColumnTrait, EntityTrait, NotSet, QueryFilter,
     },
 };
+use cds_event::types::game_challenge::{GameChallengeEvent, GameChallengeEventType};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serde_with::serde_as;
@@ -54,7 +55,7 @@ pub async fn update_game_challenge(
 
     let game_challenge = crate::util::loader::prepare_game_challenge(game_id, challenge_id).await?;
 
-    let game_challenge = cds_db::entity::game_challenge::ActiveModel {
+    let new_game_challenge = cds_db::entity::game_challenge::ActiveModel {
         game_id: Unchanged(game_challenge.game_id),
         challenge_id: Unchanged(game_challenge.challenge_id),
         is_enabled: body.is_enabled.map_or(NotSet, Set),
@@ -71,14 +72,27 @@ pub async fn update_game_challenge(
     cds_queue::publish(
         "calculator",
         crate::worker::game_calculator::Payload {
-            game_id: Some(game_challenge.game_id),
+            game_id: Some(new_game_challenge.game_id),
         },
     )
     .await?;
 
+    if new_game_challenge.is_enabled != game_challenge.is_enabled {
+        cds_event::push(cds_event::types::Event::GameChallenge(GameChallengeEvent {
+            type_: if new_game_challenge.is_enabled {
+                GameChallengeEventType::Up
+            } else {
+                GameChallengeEventType::Down
+            },
+        }))
+        .await?;
+    }
+
     let game_challenge = cds_db::entity::game_challenge::Entity::base_find()
-        .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_challenge.game_id))
-        .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(game_challenge.challenge_id))
+        .filter(cds_db::entity::game_challenge::Column::GameId.eq(new_game_challenge.game_id))
+        .filter(
+            cds_db::entity::game_challenge::Column::ChallengeId.eq(new_game_challenge.challenge_id),
+        )
         .into_model::<GameChallenge>()
         .one(get_db())
         .await?;

@@ -6,13 +6,14 @@ use axum::{
     http::{Response, StatusCode},
     response::IntoResponse,
 };
+use cds_db::User;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tracing::error;
 
 #[derive(Clone, Debug, Default)]
 pub struct AuthPrincipal {
-    pub operator: Option<cds_db::entity::user::Model>,
+    pub operator: Option<User>,
     pub client_ip: String,
 }
 
@@ -73,6 +74,8 @@ pub enum WebError {
     CacheError(#[from] cds_cache::traits::CacheError),
     #[error("env error: {0}")]
     EnvError(#[from] cds_env::traits::EnvError),
+    #[error("event error: {0}")]
+    EventError(#[from] cds_event::traits::EventError),
     #[error("captcha error: {0}")]
     CaptchaError(#[from] cds_captcha::traits::CaptchaError),
     #[error("media error: {0}")]
@@ -114,6 +117,10 @@ impl IntoResponse for WebError {
                 serde_json::json!(err.to_string()),
             ),
             Self::EnvError(err) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!(err.to_string()),
+            ),
+            Self::EventError(err) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),
             ),

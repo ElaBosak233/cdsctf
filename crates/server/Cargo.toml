@@ -15,6 +15,7 @@ cds-assets = { workspace = true }
 cds-media = { workspace = true }
 cds-migrator = { workspace = true }
 cds-env = { workspace = true }
+cds-event = { workspace = true }
 cds-db = { workspace = true }
 cds-captcha = { workspace = true }
 cds-email = { workspace = true }
@@ -27,6 +28,8 @@ cds-logger = { workspace = true }
 
 tracing = { workspace = true }
 tokio = { workspace = true }
+async-stream = { workspace = true }
+tokio-stream = { workspace = true }
 rustls = { workspace = true }
 axum = { workspace = true }
 anyhow = { workspace = true }

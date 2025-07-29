@@ -92,7 +92,7 @@ pub async fn send_verify_email(
 
     cds_queue::publish(
         "email",
-        crate::worker::email_sender::Payload {
+        cds_email::Payload {
             name: operator.name.to_owned(),
             email: operator.email.to_owned(),
             subject: util::email::extract_title(&body).unwrap_or("Verify Your Email".to_owned()),

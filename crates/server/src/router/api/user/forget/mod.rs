@@ -5,11 +5,7 @@ use argon2::{
 use axum::Router;
 use cds_db::{
     get_db,
-    sea_orm::{
-        ActiveModelTrait,
-        ActiveValue::{Set, Unchanged},
-        ColumnTrait, EntityTrait, QueryFilter,
-    },
+    sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter},
 };
 use cds_media::config::email::EmailType;
 use nanoid::nanoid;
@@ -55,13 +51,7 @@ pub async fn user_forget(Json(body): Json<UserForgetRequest>) -> Result<WebRespo
         .unwrap()
         .to_string();
 
-    let _ = cds_db::entity::user::ActiveModel {
-        id: Unchanged(user.id),
-        hashed_password: Set(hashed_password),
-        ..Default::default()
-    }
-    .update(get_db())
-    .await?;
+    cds_db::user::update_password(user.id, hashed_password).await?;
 
     let _ = cds_cache::get_del::<String>(format!("email:{}:code", user.email)).await?;
 
@@ -107,7 +97,7 @@ pub async fn send_forget_email(
 
     cds_queue::publish(
         "email",
-        crate::worker::email_sender::Payload {
+        cds_email::Payload {
             name: user.name.to_owned(),
             email: user.email.to_owned(),
             subject: util::email::extract_title(&body).unwrap_or("Reset Your Password".to_owned()),

@@ -1,4 +1,5 @@
 pub mod entity;
+pub mod user;
 pub mod util;
 
 use std::time::Duration;
@@ -8,6 +9,7 @@ use once_cell::sync::OnceCell;
 pub use sea_orm;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection, EntityTrait};
 use tracing::info;
+pub use user::{User, UserMini};
 
 static DB: OnceCell<DatabaseConnection> = OnceCell::new();
 

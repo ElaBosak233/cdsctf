@@ -8,6 +8,7 @@ use argon2::{
 };
 use axum::{Router, http::StatusCode, response::IntoResponse};
 use cds_db::{
+    User,
     entity::user::Group,
     get_db,
     sea_orm::{
@@ -22,7 +23,6 @@ use validator::Validate;
 
 use crate::{
     extract::{Extension, Json},
-    model::user::User,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -128,12 +128,12 @@ pub async fn user_register(
     }
 
     body.email = body.email.to_lowercase();
-    if !cds_db::util::is_user_email_unique(0, &body.email).await? {
+    if !cds_db::user::is_email_unique(0, &body.email).await? {
         return Err(WebError::Conflict(json!("email_already_exists")));
     }
 
     body.username = body.username.to_lowercase();
-    if !cds_db::util::is_user_username_unique(0, &body.username).await? {
+    if !cds_db::user::is_username_unique(0, &body.username).await? {
         return Err(WebError::Conflict(json!("username_already_exists")));
     }
 
@@ -142,7 +142,7 @@ pub async fn user_register(
         .unwrap()
         .to_string();
 
-    let user = cds_db::entity::user::ActiveModel {
+    let user = cds_db::user::create::<User>(cds_db::entity::user::ActiveModel {
         username: Set(body.username),
         name: Set(body.name),
         email: Set(body.email),
@@ -156,11 +156,8 @@ pub async fn user_register(
             },
         ),
         ..Default::default()
-    }
-    .insert(get_db())
+    })
     .await?;
-
-    let user = crate::util::loader::prepare_user(user.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

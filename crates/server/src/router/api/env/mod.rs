@@ -102,6 +102,10 @@ pub async fn create_env(
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
+    let user = cds_db::user::find_by_id::<cds_db::entity::user::Model>(operator.id)
+        .await?
+        .unwrap();
+
     let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
         .one(get_db())
         .await?
@@ -170,7 +174,7 @@ pub async fn create_env(
         _ => (None, None),
     };
 
-    cds_cluster::create_challenge_env(operator, team, game, challenge).await?;
+    cds_cluster::create_challenge_env(user, team, game, challenge).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

@@ -195,24 +195,29 @@ async fn recover() {
     }
 }
 
+async fn process_messages() -> Result<(), anyhow::Error> {
+    let mut messages = cds_queue::subscribe("checker", None).await?;
+    while let Some(Ok(message)) = messages.next().await {
+        let payload = String::from_utf8(message.payload.to_vec())?;
+        let id = payload.parse::<i64>()?;
+
+        if let Err(err) = check(id).await {
+            error!("{:?}", err);
+        }
+
+        message.ack().await.unwrap();
+    }
+
+    Ok(())
+}
+
 pub async fn init() {
     tokio::spawn(async move {
-        let mut messages = cds_queue::subscribe("checker").await.unwrap();
-        while let Some(result) = messages.next().await {
-            if result.is_err() {
-                continue;
-            }
-            let message = result.unwrap();
-            let payload = String::from_utf8(message.payload.to_vec()).unwrap();
-            let id = payload.parse::<i64>().unwrap();
-
-            if let Err(err) = check(id).await {
-                error!("{:?}", err);
-            }
-
-            message.ack().await.unwrap();
+        if let Err(err) = process_messages().await {
+            error!("{:?}", err);
         }
     });
+
     recover().await;
     info!("Submission checker initialized successfully.");
 }

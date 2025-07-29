@@ -13,7 +13,7 @@ use cds_db::{
 };
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
-use tracing::info;
+use tracing::{error, info};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Payload {
@@ -111,31 +111,33 @@ pub async fn calculate(game_id: i64) {
     }
 }
 
+async fn process_messages() -> Result<(), anyhow::Error> {
+    let mut messages = cds_queue::subscribe("calculator", None).await?;
+    while let Some(Ok(message)) = messages.next().await {
+        let payload = String::from_utf8(message.payload.to_vec())?;
+        let calculator_payload = serde_json::from_str::<Payload>(&payload)?;
+
+        if let Some(game_id) = calculator_payload.game_id {
+            calculate(game_id).await;
+        } else {
+            let games = cds_db::entity::game::Entity::find().all(get_db()).await?;
+            for game in games {
+                calculate(game.id).await;
+            }
+        }
+
+        message.ack().await.unwrap();
+    }
+
+    Ok(())
+}
+
 pub async fn init() {
     tokio::spawn(async move {
-        let mut messages = cds_queue::subscribe("calculator").await.unwrap();
-        while let Some(result) = messages.next().await {
-            if result.is_err() {
-                continue;
-            }
-            let message = result.unwrap();
-            let payload = String::from_utf8(message.payload.to_vec()).unwrap();
-            let calculator_payload = serde_json::from_str::<Payload>(&payload).unwrap();
-
-            if let Some(game_id) = calculator_payload.game_id {
-                calculate(game_id).await;
-            } else {
-                let games = cds_db::entity::game::Entity::find()
-                    .all(get_db())
-                    .await
-                    .unwrap();
-                for game in games {
-                    calculate(game.id).await;
-                }
-            }
-
-            message.ack().await.unwrap();
+        if let Err(err) = process_messages().await {
+            error!("{:?}", err);
         }
     });
+
     info!("Game calculator initialized successfully.");
 }

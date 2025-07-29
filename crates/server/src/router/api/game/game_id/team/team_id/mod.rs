@@ -2,6 +2,7 @@ mod avatar;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
+    UserMini,
     entity::team::State,
     get_db,
     sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter},
@@ -11,7 +12,6 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Path},
-    model::user::UserMini,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 

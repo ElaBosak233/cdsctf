@@ -7,7 +7,7 @@ use argon2::{
 };
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    get_db,
+    User,
     sea_orm::{
         ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
@@ -20,7 +20,6 @@ use validator::Validate;
 
 use crate::{
     extract::{Extension, Json},
-    model::user::User,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -42,11 +41,11 @@ pub async fn get_user_profile(
 ) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let user = crate::util::loader::prepare_user(operator.id).await?;
+    let user = cds_db::user::find_by_id::<User>(operator.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(user),
+        data: user,
         ..Default::default()
     })
 }
@@ -67,7 +66,7 @@ pub async fn update_user_profile(
 
     if let Some(email) = body.email {
         body.email = Some(email.to_lowercase());
-        if !cds_db::util::is_user_email_unique(operator.id, &email.to_lowercase()).await? {
+        if !cds_db::user::is_email_unique(operator.id, &email.to_lowercase()).await? {
             return Err(WebError::Conflict(json!("email_already_exists")));
         }
     }
@@ -84,7 +83,7 @@ pub async fn update_user_profile(
         })
         .unwrap_or(operator.is_verified);
 
-    cds_db::entity::user::ActiveModel {
+    let user = cds_db::user::update::<User>(cds_db::entity::user::ActiveModel {
         id: Unchanged(operator.id),
         name: body.name.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, Set),
@@ -95,11 +94,8 @@ pub async fn update_user_profile(
             Unchanged(operator.is_verified)
         },
         ..Default::default()
-    }
-    .update(get_db())
+    })
     .await?;
-
-    let user = crate::util::loader::prepare_user(operator.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -141,15 +137,7 @@ pub async fn delete_user_profile(
         return Err(WebError::BadRequest(json!("password_invalid")));
     }
 
-    let _ = cds_db::entity::user::ActiveModel {
-        id: Unchanged(operator.id),
-        username: Set(format!("[DELETED]_{}", operator.username)),
-        email: Set(format!("deleted_{}@del.cdsctf", operator.email)),
-        deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
-        ..Default::default()
-    }
-    .update(get_db())
-    .await?;
+    cds_db::user::delete(operator.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -189,13 +177,7 @@ pub async fn update_user_profile_password(
         .unwrap()
         .to_string();
 
-    let _ = cds_db::entity::user::ActiveModel {
-        id: Unchanged(operator.id),
-        hashed_password: Set(hashed_password),
-        ..Default::default()
-    }
-    .update(get_db())
-    .await?;
+    cds_db::user::update_password(operator.id, hashed_password).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

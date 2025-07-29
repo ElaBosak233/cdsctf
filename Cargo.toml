@@ -19,6 +19,7 @@ cds-captcha = { path = "crates/captcha" }
 cds-checker = { path = "crates/checker" }
 cds-cluster = { path = "crates/cluster" }
 cds-env = { path = "crates/env" }
+cds-event = { path = "crates/event" }
 cds-logger = { path = "crates/logger" }
 cds-db = { path = "crates/db" }
 cds-email = { path = "crates/email" }
@@ -31,6 +32,8 @@ cds-telemetry = { path = "crates/telemetry" }
 async-trait = { version = "0.1" }
 tokio = { version = "1.47", features = ["full"] }
 tokio-util = { version = "0.7.15" }
+async-stream = { version = "0.3" }
+tokio-stream = { version = "0.1" }
 futures = { version = "^0.3" }
 futures-util = { version = "0.3" }
 tower = { version = "0.5" }

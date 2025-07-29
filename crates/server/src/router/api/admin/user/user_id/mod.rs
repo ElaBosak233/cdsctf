@@ -4,8 +4,8 @@ use argon2::{
 };
 use axum::{Router, http::StatusCode};
 use cds_db::{
+    User,
     entity::user::Group,
-    get_db,
     sea_orm::{
         ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
@@ -18,7 +18,6 @@ use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
-    model::user::User,
     traits::{WebError, WebResponse},
 };
 
@@ -63,7 +62,7 @@ pub async fn update_user(
 
     if let Some(email) = body.email {
         body.email = Some(email.to_lowercase());
-        if !cds_db::util::is_user_email_unique(user.id, &email.to_lowercase()).await? {
+        if !cds_db::user::is_email_unique(user.id, &email.to_lowercase()).await? {
             return Err(WebError::Conflict(json!("email_already_exists")));
         }
     }
@@ -76,7 +75,7 @@ pub async fn update_user(
         body.password = Some(hashed_password);
     }
 
-    let user = cds_db::entity::user::ActiveModel {
+    let user = cds_db::user::update::<User>(cds_db::entity::user::ActiveModel {
         id: Unchanged(user.id),
         name: body.name.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, Set),
@@ -85,11 +84,8 @@ pub async fn update_user(
         group: body.group.map_or(NotSet, Set),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
-    }
-    .update(get_db())
+    })
     .await?;
-
-    let user = crate::util::loader::prepare_user(user.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -103,17 +99,7 @@ pub async fn update_user(
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn delete_user(Path(user_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
-    let user = crate::util::loader::prepare_user(user_id).await?;
-
-    let _ = cds_db::entity::user::ActiveModel {
-        id: Unchanged(user.id),
-        username: Set(format!("[DELETED]_{}", user.username)),
-        email: Set(format!("deleted_{}@del.cdsctf", user.email)),
-        deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
-        ..Default::default()
-    }
-    .update(get_db())
-    .await?;
+    cds_db::user::delete(user_id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

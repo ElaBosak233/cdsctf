@@ -1,14 +1,12 @@
 use cds_db::{
-    get_db,
+    User, get_db,
     sea_orm::{ColumnTrait, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait},
 };
 use serde_json::json;
 use uuid::Uuid;
 
 use crate::{
-    model::{
-        challenge::Challenge, game::Game, game_challenge::GameChallenge, team::Team, user::User,
-    },
+    model::{challenge::Challenge, game::Game, game_challenge::GameChallenge, team::Team},
     traits::WebError,
 };
 
@@ -83,11 +81,7 @@ pub async fn prepare_team(game_id: i64, team_id: i64) -> Result<Team, WebError> 
 }
 
 pub async fn prepare_user(user_id: i64) -> Result<User, WebError> {
-    let user = cds_db::entity::user::Entity::find()
-        .filter(cds_db::entity::user::Column::Id.eq(user_id))
-        .filter(cds_db::entity::user::Column::DeletedAt.is_null())
-        .into_model::<User>()
-        .one(get_db())
+    let user = cds_db::user::find_by_id(user_id)
         .await?
         .ok_or(WebError::NotFound(json!("user_not_found")))?;
 

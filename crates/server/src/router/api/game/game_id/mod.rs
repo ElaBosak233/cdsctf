@@ -4,7 +4,16 @@ mod notice;
 mod poster;
 mod team;
 
-use axum::{Router, http::StatusCode};
+use std::convert::Infallible;
+
+use axum::{
+    Router,
+    http::StatusCode,
+    response::{
+        IntoResponse, Sse,
+        sse::{Event as SseEvent, KeepAlive},
+    },
+};
 use cds_db::{
     entity::{submission::Status, team::State},
     get_db,
@@ -12,6 +21,8 @@ use cds_db::{
         ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
     },
 };
+use cds_event::SubscribeOptions;
+use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -30,6 +41,7 @@ pub fn router() -> Router {
         .nest("/icon", icon::router())
         .nest("/poster", poster::router())
         .route("/scoreboard", axum::routing::get(get_game_scoreboard))
+        .route("/events", axum::routing::get(get_events))
 }
 
 pub async fn get_game(
@@ -108,4 +120,30 @@ pub async fn get_game_scoreboard(
         total: Some(total),
         ..Default::default()
     })
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GetEventsRequest {
+    pub token: String,
+}
+
+pub async fn get_events(
+    Path(game_id): Path<i64>,
+    Query(params): Query<GetEventsRequest>,
+) -> Result<impl IntoResponse, WebError> {
+    let stream = cds_event::subscribe(SubscribeOptions {
+        game_id: Some(game_id),
+        token: Some(params.token),
+    })
+    .await?;
+
+    let sse_stream = stream.map(|event| {
+        if let Ok(evt) = event {
+            return Ok::<SseEvent, Infallible>(SseEvent::default().json_data(evt).unwrap());
+        }
+
+        Ok(SseEvent::default().data("error"))
+    });
+
+    Ok(Sse::new(sse_stream).keep_alive(KeepAlive::default()))
 }
