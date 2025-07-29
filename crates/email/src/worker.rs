@@ -2,7 +2,7 @@ use futures::StreamExt as _;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
-use crate::{traits::EmailError, util};
+use crate::util;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Payload {

@@ -1,9 +1,9 @@
-pub mod challenge;
+pub(crate) mod challenge;
 pub mod config;
-pub mod game;
-pub mod game_challenge;
-pub mod game_notice;
-pub mod submission;
-pub mod team;
-pub mod team_user;
-pub mod user;
+pub(crate) mod game;
+pub(crate) mod game_challenge;
+pub(crate) mod game_notice;
+pub(crate) mod submission;
+pub(crate) mod team;
+pub(crate) mod team_user;
+pub(crate) mod user;

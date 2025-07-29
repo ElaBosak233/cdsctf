@@ -5,7 +5,7 @@ pub mod worker;
 use std::{collections::BTreeMap, path::Path, process};
 
 use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
-use cds_db::entity::challenge::Port;
+use cds_db::challenge::Port;
 use futures_util::{SinkExt, StreamExt, stream::SplitStream};
 pub use k8s_openapi;
 use k8s_openapi::{
@@ -242,10 +242,10 @@ pub async fn delete_pod(id: &str) -> Result<(), ClusterError> {
 }
 
 pub async fn create_challenge_env(
-    user: cds_db::entity::user::Model,
-    team: Option<cds_db::entity::team::Model>,
-    game: Option<cds_db::entity::game::Model>,
-    challenge: cds_db::entity::challenge::Model,
+    user: cds_db::User,
+    team: Option<cds_db::Team>,
+    game: Option<cds_db::Game>,
+    challenge: cds_db::Challenge,
 ) -> Result<(), ClusterError> {
     let id = util::gen_safe_nanoid();
     let name = format!("cds-{}", id);

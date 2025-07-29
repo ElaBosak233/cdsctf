@@ -4,7 +4,7 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use cds_db::{User, entity::user::Group, sea_orm::EntityTrait};
+use cds_db::{User, user::Group};
 use serde_json::json;
 use tower_sessions::Session;
 

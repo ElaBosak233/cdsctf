@@ -59,7 +59,7 @@ fn get_checker_context() -> Arc<DashMap<Uuid, CheckerContext>> {
     Arc::clone(&CHECKER_CONTEXT)
 }
 
-pub async fn lint(challenge: &cds_db::entity::challenge::Model) -> Result<(), CheckerError> {
+pub async fn lint(challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
     let context = gen_rune_context(&challenge.id).await?;
     let mut sources = Sources::new();
     let script = challenge
@@ -97,7 +97,7 @@ pub async fn lint(challenge: &cds_db::entity::challenge::Model) -> Result<(), Ch
     Ok(())
 }
 
-async fn preload(challenge: &cds_db::entity::challenge::Model) -> Result<(), CheckerError> {
+async fn preload(challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
     let rune_context = gen_rune_context(&challenge.id).await?;
     let checker_context = get_checker_context();
 
@@ -137,7 +137,7 @@ async fn preload(challenge: &cds_db::entity::challenge::Model) -> Result<(), Che
 }
 
 pub async fn check(
-    challenge: &cds_db::entity::challenge::Model,
+    challenge: &cds_db::Challenge,
     operator_id: i64,
     content: &str,
 ) -> Result<Status, CheckerError> {
@@ -162,7 +162,7 @@ pub async fn check(
 }
 
 pub async fn generate(
-    challenge: &cds_db::entity::challenge::Model,
+    challenge: &cds_db::Challenge,
     operator_id: i64,
 ) -> Result<HashMap<String, String>, CheckerError> {
     preload(challenge).await?;

@@ -107,10 +107,14 @@ impl IntoResponse for WebError {
                 cds_db::sea_orm::DbErr::RecordNotFound(msg) => {
                     (StatusCode::NOT_FOUND, serde_json::json!(msg.clone()))
                 }
-                _ => (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    serde_json::json!(err.to_string()),
-                ),
+                _ => {
+                    error!("{:?}", err);
+
+                    (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        serde_json::json!(err.to_string()),
+                    )
+                },
             },
             Self::CacheError(err) => (
                 StatusCode::INTERNAL_SERVER_ERROR,

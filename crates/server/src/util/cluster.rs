@@ -1,5 +1,5 @@
 use cds_cluster::{k8s_openapi::api::core::v1::Pod, traits::Nat};
-use cds_db::entity::challenge::Port;
+use cds_db::challenge::Port;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

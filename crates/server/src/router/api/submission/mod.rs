@@ -1,20 +1,16 @@
-use std::str::FromStr;
-
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::{submission::Status, team::State},
-    get_db,
-    sea_orm::{
-        ActiveModelTrait, ActiveValue::NotSet, ColumnTrait, EntityTrait, JoinType, Order,
-        PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait, Set,
-    },
+    Submission,
+    sea_orm::{ActiveValue::NotSet, Set},
+    submission::{FindSubmissionsOptions, Status},
+    team::{FindTeamOptions, State, Team},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use uuid::Uuid;
 
 use crate::{
     extract::{Extension, Json, Query},
-    model::submission::Submission,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -30,7 +26,7 @@ pub struct GetSubmissionRequest {
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: Option<i64>,
+    pub challenge_id: Option<Uuid>,
     pub status: Option<Status>,
     pub page: Option<u64>,
     pub size: Option<u64>,
@@ -46,58 +42,20 @@ pub async fn get_submission(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let mut sql = cds_db::entity::submission::Entity::base_find();
+    let (submissions, total) = cds_db::submission::find::<Submission>(FindSubmissionsOptions {
+        id: params.id,
+        user_id: params.user_id,
+        team_id: Some(params.team_id),
+        game_id: Some(params.game_id),
+        challenge_id: params.challenge_id,
+        status: params.status,
+        page: Some(page),
+        size: Some(size),
+        sorts: params.sorts,
+    })
+    .await?;
 
-    if let Some(id) = params.id {
-        sql = sql.filter(cds_db::entity::submission::Column::Id.eq(id));
-    }
-
-    if let Some(user_id) = params.user_id {
-        sql = sql.filter(cds_db::entity::submission::Column::UserId.eq(user_id));
-    }
-
-    if let Some(team_id) = params.team_id {
-        sql = sql.filter(cds_db::entity::submission::Column::TeamId.eq(team_id));
-    }
-
-    if let Some(game_id) = params.game_id {
-        sql = sql.filter(cds_db::entity::submission::Column::GameId.eq(game_id));
-    }
-
-    if let Some(challenge_id) = params.challenge_id {
-        sql = sql.filter(cds_db::entity::submission::Column::ChallengeId.eq(challenge_id));
-    }
-
-    if let Some(status) = params.status {
-        sql = sql.filter(cds_db::entity::submission::Column::Status.eq(status));
-    }
-
-    if let Some(sorts) = params.sorts {
-        let sorts = sorts.split(",").collect::<Vec<&str>>();
-        for sort in sorts {
-            let col = match cds_db::entity::submission::Column::from_str(
-                sort.replace("-", "").as_str(),
-            ) {
-                Ok(col) => col,
-                Err(_) => continue,
-            };
-            if sort.starts_with("-") {
-                sql = sql.order_by(col, Order::Desc);
-            } else {
-                sql = sql.order_by(col, Order::Asc);
-            }
-        }
-    }
-
-    let total = sql.clone().count(get_db()).await?;
-
-    let offset = (page - 1) * size;
-    sql = sql.offset(offset).limit(size);
-
-    let submissions = sql
-        .into_model::<Submission>()
-        .all(get_db())
-        .await?
+    let submissions = submissions
         .into_iter()
         .map(|submission| submission.desensitize())
         .collect::<Vec<Submission>>();
@@ -138,10 +96,7 @@ pub async fn create_submission(
         cds_cache::set_ex(&token, 1, 60).await?;
     }
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+    let challenge = crate::util::loader::prepare_challenge(body.challenge_id).await?;
 
     if body.game_id.is_some() != body.team_id.is_some() {
         return Err(WebError::BadRequest(json!("invalid")));
@@ -153,33 +108,25 @@ pub async fn create_submission(
     }
 
     if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
-        let game = cds_db::entity::game::Entity::find_by_id(game_id)
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("game_not_found")))?;
+        let game = crate::util::loader::prepare_game(game_id).await?;
 
-        let _ = cds_db::entity::game_challenge::Entity::find()
-            .filter(cds_db::entity::game_challenge::Column::GameId.eq(game.id))
-            .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(body.challenge_id))
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("game_challenge_not_found")));
+        let _ = crate::util::loader::prepare_game_challenge(game_id, challenge.id).await?;
 
-        let _ = cds_db::entity::team::Entity::find()
-            .join(
-                JoinType::InnerJoin,
-                cds_db::entity::team_user::Relation::Team.def().rev(),
-            )
-            .filter(cds_db::entity::team_user::Column::UserId.eq(operator.id))
-            .filter(cds_db::entity::team::Column::Id.eq(team_id))
-            .filter(cds_db::entity::team::Column::GameId.eq(game.id))
-            .filter(cds_db::entity::team::Column::State.eq(State::Passed))
-            .one(get_db())
-            .await?
-            .ok_or(WebError::BadRequest(json!("team_not_found")));
+        if cds_db::team::find::<Team>(FindTeamOptions {
+            id: Some(team_id),
+            game_id: Some(game.id),
+            state: Some(State::Passed),
+            user_id: Some(operator.id),
+            ..Default::default()
+        })
+        .await?
+        .1 == 0
+        {
+            return Err(WebError::BadRequest(json!("team_not_found")));
+        };
     }
 
-    let submission = cds_db::entity::submission::ActiveModel {
+    let submission = cds_db::submission::create::<Submission>(cds_db::submission::ActiveModel {
         content: Set(body.content),
         user_id: body.user_id.map_or(NotSet, Set),
         team_id: body.team_id.map_or(NotSet, |v| Set(Some(v))),
@@ -187,17 +134,12 @@ pub async fn create_submission(
         challenge_id: Set(body.challenge_id),
         status: Set(Status::Pending),
         ..Default::default()
-    }
-    .insert(get_db())
+    })
     .await?;
 
     cds_queue::publish("checker", submission.id).await?;
 
-    let submission = cds_db::entity::submission::Entity::base_find()
-        .filter(cds_db::entity::submission::Column::Id.eq(submission.id))
-        .into_model::<Submission>()
-        .one(get_db())
-        .await?;
+    let submission = cds_db::submission::find_by_id::<Submission>(submission.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

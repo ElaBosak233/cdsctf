@@ -7,7 +7,10 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::user::Group, get_db};
+pub use super::team_user::find_users as find_by_team_id;
+pub use crate::entity::user::{ActiveModel, Group, Model};
+pub(crate) use crate::entity::user::{Column, Entity};
+use crate::get_db;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -33,6 +36,7 @@ pub struct UserMini {
     pub username: String,
 }
 
+#[derive(Clone, Debug, Default)]
 pub struct FindUserOptions {
     pub id: Option<i64>,
     pub name: Option<String>,
@@ -56,29 +60,29 @@ pub async fn find<T>(
 ) -> Result<(Vec<T>, u64), DbErr>
 where
     T: FromQueryResult, {
-    let mut sql = crate::entity::user::Entity::find();
+    let mut sql = Entity::find();
 
     if let Some(id) = id {
-        sql = sql.filter(crate::entity::user::Column::Id.eq(id));
+        sql = sql.filter(Column::Id.eq(id));
     }
 
     if let Some(name) = name {
         let pattern = format!("%{}%", name);
         let condition = Condition::any()
-            .add(crate::entity::user::Column::Username.like(&pattern))
-            .add(crate::entity::user::Column::Name.like(&pattern));
+            .add(Column::Username.like(&pattern))
+            .add(Column::Name.like(&pattern));
         sql = sql.filter(condition);
     }
 
     if let Some(group) = group {
-        sql = sql.filter(crate::entity::user::Column::Group.eq(group));
+        sql = sql.filter(Column::Group.eq(group));
     }
 
     if let Some(email) = email {
-        sql = sql.filter(crate::entity::user::Column::Email.eq(email));
+        sql = sql.filter(Column::Email.eq(email));
     }
 
-    sql = sql.filter(crate::entity::user::Column::DeletedAt.is_null());
+    sql = sql.filter(Column::DeletedAt.is_null());
 
     let total = sql.clone().count(get_db()).await?;
 
@@ -110,20 +114,44 @@ where
 pub async fn find_by_id<T>(user_id: i64) -> Result<Option<T>, DbErr>
 where
     T: FromQueryResult, {
-    Ok(crate::entity::user::Entity::find_by_id(user_id)
+    Ok(Entity::find_by_id(user_id)
+        .filter(Column::DeletedAt.is_null())
+        .into_model::<T>()
+        .one(get_db())
+        .await?)
+}
+
+pub async fn find_by_account<T>(account: String) -> Result<Option<T>, DbErr>
+where
+    T: FromQueryResult, {
+    Ok(Entity::find()
+        .filter(
+            Condition::any()
+                .add(
+                    Expr::expr(Func::lower(Expr::col(Column::Username))).eq(account.to_lowercase()),
+                )
+                .add(Expr::expr(Func::lower(Expr::col(Column::Email))).eq(account.to_lowercase())),
+        )
+        .filter(Column::DeletedAt.is_null())
+        .into_model::<T>()
+        .one(get_db())
+        .await?)
+}
+
+pub async fn find_by_email<T>(email: String) -> Result<Option<T>, DbErr>
+where
+    T: FromQueryResult, {
+    Ok(Entity::find()
+        .filter(Expr::expr(Func::lower(Expr::col(Column::Email))).eq(email.to_lowercase()))
+        .filter(crate::entity::challenge::Column::DeletedAt.is_null())
         .into_model::<T>()
         .one(get_db())
         .await?)
 }
 
 pub async fn is_username_unique(user_id: i64, username: &str) -> Result<bool, DbErr> {
-    let user = crate::entity::user::Entity::find()
-        .filter(
-            Expr::expr(Func::lower(Expr::col(
-                crate::entity::user::Column::Username,
-            )))
-            .eq(username.to_lowercase()),
-        )
+    let user = Entity::find()
+        .filter(Expr::expr(Func::lower(Expr::col(Column::Username))).eq(username.to_lowercase()))
         .one(get_db())
         .await?;
 
@@ -131,18 +159,15 @@ pub async fn is_username_unique(user_id: i64, username: &str) -> Result<bool, Db
 }
 
 pub async fn is_email_unique(user_id: i64, email: &str) -> Result<bool, DbErr> {
-    let user = crate::entity::user::Entity::find()
-        .filter(
-            Expr::expr(Func::lower(Expr::col(crate::entity::user::Column::Email)))
-                .eq(email.to_lowercase()),
-        )
+    let user = Entity::find()
+        .filter(Expr::expr(Func::lower(Expr::col(Column::Email))).eq(email.to_lowercase()))
         .one(get_db())
         .await?;
 
     Ok(user.map(|u| u.id == user_id).unwrap_or(true))
 }
 
-pub async fn create<T>(model: crate::entity::user::ActiveModel) -> Result<T, DbErr>
+pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
     T: FromQueryResult, {
     let user = model.insert(get_db()).await?;
@@ -150,7 +175,7 @@ where
     Ok(find_by_id::<T>(user.id).await?.unwrap())
 }
 
-pub async fn update<T>(model: crate::entity::user::ActiveModel) -> Result<T, DbErr>
+pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
 where
     T: FromQueryResult, {
     let user = model.update(get_db()).await?;
@@ -159,7 +184,7 @@ where
 }
 
 pub async fn update_password(user_id: i64, hashed_password: String) -> Result<(), DbErr> {
-    let _ = update::<crate::entity::user::Model>(crate::entity::user::ActiveModel {
+    let _ = update::<Model>(ActiveModel {
         id: Unchanged(user_id),
         hashed_password: Set(hashed_password),
         ..Default::default()
@@ -170,11 +195,9 @@ pub async fn update_password(user_id: i64, hashed_password: String) -> Result<()
 }
 
 pub async fn delete(user_id: i64) -> Result<(), DbErr> {
-    let user = find_by_id::<crate::entity::user::Model>(user_id)
-        .await?
-        .unwrap();
+    let user = find_by_id::<Model>(user_id).await?.unwrap();
 
-    let _ = update::<crate::entity::user::Model>(crate::entity::user::ActiveModel {
+    let _ = update::<Model>(ActiveModel {
         id: Unchanged(user.id),
         username: Set(format!("[DELETED]_{}", user.username)),
         email: Set(format!("deleted_{}@del.cdsctf", user.email)),

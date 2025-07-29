@@ -4,20 +4,19 @@ mod user;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::{team::State, user::Group},
-    get_db,
+    TeamUser,
     sea_orm::{
-        ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
-        ColumnTrait, EntityTrait, NotSet, PaginatorTrait, QueryFilter,
+        NotSet,
     },
+    team::{State, Team},
+    team_user::FindTeamUserOptions,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Path},
-    model::team::Team,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -60,24 +59,18 @@ pub async fn update_team(
     Json(body): Json<UpdateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
 
     let team = crate::util::loader::prepare_self_team(game_id, operator.id).await?;
 
-    let team = cds_db::entity::team::ActiveModel {
+    let team = cds_db::team::update(cds_db::team::ActiveModel {
         id: Unchanged(team.id),
         game_id: Unchanged(team.game_id),
         name: body.name.map_or(NotSet, Set),
         slogan: body.slogan.map_or(NotSet, |v| Set(Some(v))),
         email: body.email.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
-    }
-    .update(get_db())
+    })
     .await?;
-
-    let team = crate::util::loader::prepare_team(game_id, team.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -97,16 +90,9 @@ pub async fn delete_team(
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    let _ = cds_db::entity::team_user::Entity::delete_many()
-        .filter(cds_db::entity::team_user::Column::TeamId.eq(team.id))
-        .exec(get_db())
-        .await?;
+    cds_db::team_user::delete_by_team_id(team.id).await?;
 
-    let _ = cds_db::entity::team::Entity::delete_many()
-        .filter(cds_db::entity::team::Column::GameId.eq(team.game_id))
-        .filter(cds_db::entity::team::Column::Id.eq(team.id))
-        .exec(get_db())
-        .await?;
+    cds_db::team::delete(team.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -131,16 +117,17 @@ pub async fn set_team_ready(
     }
 
     // Review the number of members
-    let team_users = cds_db::entity::team_user::Entity::find()
-        .filter(cds_db::entity::team_user::Column::TeamId.eq(team.id))
-        .count(get_db())
-        .await?;
+    let (_, team_users) = cds_db::team_user::find::<TeamUser>(FindTeamUserOptions {
+        team_id: Some(team.id),
+        ..Default::default()
+    })
+    .await?;
 
     if team_users < game.member_limit_min as u64 || team_users > game.member_limit_max as u64 {
         return Err(WebError::BadRequest(json!("member_limit_not_satisfied")));
     }
 
-    let team = cds_db::entity::team::ActiveModel {
+    let team = cds_db::team::update::<Team>(cds_db::team::ActiveModel {
         id: Unchanged(team.id),
         game_id: Unchanged(team.game_id),
         state: Set(if game.is_public {
@@ -149,11 +136,8 @@ pub async fn set_team_ready(
             State::Pending
         }),
         ..Default::default()
-    }
-    .update(get_db())
+    })
     .await?;
-
-    let team = crate::util::loader::prepare_team(game_id, team.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

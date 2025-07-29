@@ -1,22 +1,17 @@
 mod challenge_id;
 
-use std::{collections::HashMap, str::FromStr};
+use std::collections::HashMap;
 
 use axum::Router;
 use cds_db::{
-    entity::submission::Status,
-    get_db,
-    sea_orm::{
-        ColumnTrait, EntityName, EntityTrait, Iden, Order, PaginatorTrait, QueryFilter, QueryOrder,
-        QuerySelect, sea_query::Expr,
-    },
+    ChallengeMini, GameChallenge, Submission, challenge::FindChallengeOptions,
+    game_challenge::FindGameChallengeOptions,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Query},
-    model::{challenge::ChallengeMini, submission::Submission},
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -47,57 +42,18 @@ pub async fn get_challenge(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let mut sql = cds_db::entity::challenge::Entity::find();
-
-    if let Some(id) = params.id {
-        sql = sql.filter(cds_db::entity::challenge::Column::Id.eq(id));
-    }
-
-    if let Some(title) = params.title {
-        sql = sql.filter(cds_db::entity::challenge::Column::Title.contains(title));
-    }
-
-    if let Some(category) = params.category {
-        sql = sql.filter(cds_db::entity::challenge::Column::Category.eq(category));
-    }
-
-    if let Some(tag) = params.tag {
-        sql = sql.filter(Expr::cust_with_expr(
-            format!(
-                "\"{}\".\"{}\" @> $1::text[]",
-                cds_db::entity::challenge::Entity.table_name(),
-                cds_db::entity::challenge::Column::Tags.to_string()
-            )
-            .as_str(),
-            vec![tag],
-        ))
-    }
-
-    sql = sql.filter(cds_db::entity::challenge::Column::IsPublic.eq(true));
-    sql = sql.filter(cds_db::entity::challenge::Column::DeletedAt.is_null());
-
-    let total = sql.clone().count(get_db()).await?;
-
-    if let Some(sorts) = params.sorts {
-        let sorts = sorts.split(",").collect::<Vec<&str>>();
-        for sort in sorts {
-            let col =
-                match cds_db::entity::challenge::Column::from_str(sort.replace("-", "").as_str()) {
-                    Ok(col) => col,
-                    Err(_) => continue,
-                };
-            if sort.starts_with("-") {
-                sql = sql.order_by(col, Order::Desc);
-            } else {
-                sql = sql.order_by(col, Order::Asc);
-            }
-        }
-    }
-
-    let offset = (page - 1) * size;
-    sql = sql.offset(offset).limit(size);
-
-    let challenges = sql.into_model::<ChallengeMini>().all(get_db()).await?;
+    let (challenges, total) = cds_db::challenge::find::<ChallengeMini>(FindChallengeOptions {
+        id: params.id,
+        title: params.title,
+        category: params.category,
+        tag: params.tag,
+        is_public: Some(true),
+        sorts: params.sorts,
+        page: Some(page),
+        size: Some(size),
+        ..Default::default()
+    })
+    .await?;
 
     Ok(WebResponse {
         data: Some(challenges),
@@ -132,23 +88,12 @@ pub async fn get_challenge_status(
         return Err(WebError::BadRequest(json!("either_user_or_team")));
     }
 
-    let mut sql = cds_db::entity::submission::Entity::base_find().filter(
-        cds_db::entity::submission::Column::ChallengeId.is_in(body.challenge_ids.to_owned()),
-    );
-
-    if let (Some(_), Some(game_id)) = (body.team_id, body.game_id) {
-        sql = sql.filter(cds_db::entity::submission::Column::GameId.eq(game_id));
-    } else {
-        sql = sql
-            .filter(cds_db::entity::submission::Column::GameId.is_null())
-            .filter(cds_db::entity::submission::Column::TeamId.is_null())
-    }
-
-    let mut submissions = sql
-        .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
-        .order_by_asc(cds_db::entity::submission::Column::CreatedAt)
-        .into_model::<Submission>()
-        .all(get_db())
+    let mut submissions =
+        cds_db::submission::find_correct_by_challenge_ids_and_optional_team_game::<Submission>(
+            body.challenge_ids.clone(),
+            body.team_id,
+            body.game_id,
+        )
         .await?;
 
     let mut result: HashMap<uuid::Uuid, ChallengeStatusResponse> = HashMap::new();
@@ -186,9 +131,11 @@ pub async fn get_challenge_status(
     }
 
     if let Some(game_id) = body.game_id {
-        let game_challenges = cds_db::entity::game_challenge::Entity::find()
-            .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
-            .all(get_db())
+        let (game_challenges, _) =
+            cds_db::game_challenge::find::<GameChallenge>(FindGameChallengeOptions {
+                game_id: Some(game_id),
+                ..Default::default()
+            })
             .await?;
 
         for game_challenge in game_challenges {

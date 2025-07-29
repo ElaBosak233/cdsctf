@@ -1,15 +1,11 @@
 use axum::{Router, http::StatusCode};
-use cds_db::{
-    entity::{team::State, user::Group},
-    get_db,
-    sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter},
-};
+use cds_db::{TeamUser, sea_orm::ActiveValue::Set, team::State};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    extract::{Extension, Json, Path},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    extract::{Json, Path},
+    traits::{WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -30,17 +26,10 @@ pub struct CreateTeamUserRequest {
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn create_team_user(
-    Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, team_id)): Path<(i64, i64)>,
     Json(body): Json<CreateTeamUserRequest>,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
-    let user = crate::util::loader::prepare_user(operator.id).await?;
+    let user = crate::util::loader::prepare_user(body.user_id).await?;
     let game = crate::util::loader::prepare_game(game_id).await?;
     let team = crate::util::loader::prepare_team(game_id, team_id).await?;
 
@@ -52,11 +41,10 @@ pub async fn create_team_user(
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
-    let _ = cds_db::entity::team_user::ActiveModel {
+    let _ = cds_db::team_user::create::<TeamUser>(cds_db::team_user::ActiveModel {
         user_id: Set(body.user_id),
         team_id: Set(team.id),
-    }
-    .insert(get_db())
+    })
     .await?;
 
     Ok(WebResponse {
@@ -70,25 +58,15 @@ pub async fn create_team_user(
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn delete_team_user(
-    Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, team_id, user_id)): Path<(i64, i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_team(game_id, team_id).await?;
-
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
 
     if team.state != State::Preparing {
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    let _ = cds_db::entity::team_user::Entity::delete_many()
-        .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
-        .filter(cds_db::entity::team_user::Column::TeamId.eq(team_id))
-        .exec(get_db())
-        .await?;
+    cds_db::team_user::delete(team_id, user_id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

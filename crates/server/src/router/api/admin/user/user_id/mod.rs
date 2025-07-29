@@ -5,12 +5,11 @@ use argon2::{
 use axum::{Router, http::StatusCode};
 use cds_db::{
     User,
-    entity::user::Group,
     sea_orm::{
-        ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
         NotSet,
     },
+    user::Group,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -75,7 +74,7 @@ pub async fn update_user(
         body.password = Some(hashed_password);
     }
 
-    let user = cds_db::user::update::<User>(cds_db::entity::user::ActiveModel {
+    let user = cds_db::user::update::<User>(cds_db::user::ActiveModel {
         id: Unchanged(user.id),
         name: body.name.map_or(NotSet, Set),
         email: body.email.map_or(NotSet, Set),

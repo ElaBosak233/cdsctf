@@ -1,10 +1,7 @@
 use axum::Router;
 use cds_db::{
-    get_db,
-    sea_orm::{
-        ActiveModelTrait,
-        ActiveValue::{Set, Unchanged},
-    },
+    User,
+    sea_orm::ActiveValue::{Set, Unchanged},
 };
 use cds_media::config::email::EmailType;
 use nanoid::nanoid;
@@ -46,12 +43,11 @@ pub async fn user_verify(
         return Err(WebError::BadRequest(json!("email_code_incorrect")));
     }
 
-    let _ = cds_db::entity::user::ActiveModel {
+    let _ = cds_db::user::update::<User>(cds_db::user::ActiveModel {
         id: Unchanged(operator.id),
         is_verified: Set(true),
         ..Default::default()
-    }
-    .update(get_db())
+    })
     .await?;
 
     let _ = cds_cache::get_del::<String>(format!("email:{}:code", operator.email)).await?;

@@ -1,12 +1,11 @@
 mod attachment;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{get_db, sea_orm::EntityTrait};
+use cds_db::Challenge;
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
-    model::challenge::Challenge,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -22,14 +21,9 @@ pub async fn get_challenge(
 ) -> Result<WebResponse<Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = match cds_db::entity::challenge::Entity::find_by_id(challenge_id)
-        .into_model::<Challenge>()
-        .one(get_db())
+    let challenge = crate::util::loader::prepare_challenge(challenge_id)
         .await?
-    {
-        Some(challenge) => challenge.desensitize(),
-        None => return Err(WebError::NotFound(json!("challenge_not_found"))),
-    };
+        .desensitize();
 
     if !cds_db::util::can_user_access_challenge(operator.id, challenge.id).await? {
         return Err(WebError::Forbidden(json!("")));

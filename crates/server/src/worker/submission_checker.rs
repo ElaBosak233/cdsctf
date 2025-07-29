@@ -3,12 +3,10 @@
 
 use anyhow::anyhow;
 use cds_db::{
-    entity::{submission::Status, team::State},
-    get_db,
-    sea_orm::{
-        ActiveModelTrait, ActiveValue::Unchanged, ColumnTrait, EntityTrait, IntoActiveModel,
-        PaginatorTrait, QueryFilter, QueryOrder, Set,
-    },
+    Submission, Team, User,
+    sea_orm::{ActiveValue::Unchanged, IntoActiveModel, Set},
+    submission::{FindSubmissionsOptions, Status},
+    team::State,
 };
 use futures::StreamExt;
 use tracing::{error, info};
@@ -16,38 +14,25 @@ use tracing::{error, info};
 use crate::worker::game_calculator;
 
 async fn check(id: i64) -> Result<(), anyhow::Error> {
-    let submission = cds_db::entity::submission::Entity::find()
-        .filter(cds_db::entity::submission::Column::Id.eq(id))
-        .filter(cds_db::entity::submission::Column::Status.eq(Status::Pending))
-        .one(get_db())
+    let submission = cds_db::submission::find_pending_by_id::<Submission>(id)
         .await?
         .ok_or(anyhow!("submission_not_found"))?;
 
-    let user = if let Some(user) = cds_db::entity::user::Entity::find_by_id(submission.user_id)
-        .one(get_db())
-        .await?
-    {
+    let user = if let Some(user) = cds_db::user::find_by_id::<User>(submission.user_id).await? {
         user
     } else {
-        cds_db::entity::submission::Entity::delete_by_id(submission.id)
-            .exec(get_db())
-            .await?;
+        cds_db::submission::delete(submission.id).await?;
         return Err(anyhow!("user_not_found"));
     };
 
     // Get related challenge
-    let challenge = if let Some(challenge) =
-        cds_db::entity::challenge::Entity::find_by_id(submission.challenge_id)
-            .one(get_db())
-            .await?
-    {
-        challenge
-    } else {
-        cds_db::entity::submission::Entity::delete_by_id(submission.id)
-            .exec(get_db())
-            .await?;
-        return Err(anyhow!("challenge_not_found"));
-    };
+    let challenge =
+        if let Some(challenge) = cds_db::challenge::find_by_id(submission.challenge_id).await? {
+            challenge
+        } else {
+            cds_db::submission::delete(submission.id).await?;
+            return Err(anyhow!("challenge_not_found"));
+        };
 
     let operator_id = match submission.team_id {
         Some(team_id) => team_id,
@@ -67,45 +52,39 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
 
     if status == Status::Correct {
         // Check whether the submission is duplicate.
-        let is_already_correct = if let (Some(game_id), Some(team_id)) =
-            (submission.game_id, submission.team_id)
-        {
-            cds_db::entity::submission::Entity::find()
-                .filter(cds_db::entity::submission::Column::ChallengeId.eq(submission.challenge_id))
-                .filter(cds_db::entity::submission::Column::GameId.eq(game_id))
-                .filter(cds_db::entity::submission::Column::TeamId.eq(team_id))
-                .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
-                .count(get_db())
+        let is_already_correct =
+            if let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) {
+                cds_db::submission::find::<Submission>(FindSubmissionsOptions {
+                    challenge_id: Some(submission.challenge_id),
+                    game_id: Some(Some(game_id)),
+                    team_id: Some(Some(team_id)),
+                    status: Some(Status::Correct),
+                    ..Default::default()
+                })
                 .await?
-                > 0
-        } else {
-            cds_db::entity::submission::Entity::find()
-                .filter(cds_db::entity::submission::Column::ChallengeId.eq(submission.challenge_id))
-                .filter(cds_db::entity::submission::Column::UserId.eq(submission.user_id))
-                .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
-                .filter(cds_db::entity::submission::Column::GameId.is_null())
-                .filter(cds_db::entity::submission::Column::TeamId.is_null())
-                .count(get_db())
+                .1 > 0
+            } else {
+                cds_db::submission::find::<Submission>(FindSubmissionsOptions {
+                    challenge_id: Some(submission.challenge_id),
+                    user_id: Some(submission.user_id),
+                    status: Some(Status::Correct),
+                    team_id: Some(None),
+                    game_id: Some(None),
+                    ..Default::default()
+                })
                 .await?
-                > 0
-        };
+                .1 > 0
+            };
 
         if is_already_correct {
             status = Status::Duplicate;
         }
 
         if let (Some(game_id), Some(_team_id)) = (submission.game_id, submission.team_id) {
-            let game = cds_db::entity::game::Entity::find_by_id(game_id)
-                .one(get_db())
-                .await?
-                .ok_or(anyhow!("game_not_found"))?;
+            let game = crate::util::loader::prepare_game(game_id).await?;
 
-            let game_challenge = cds_db::entity::game_challenge::Entity::find()
-                .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
-                .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge.id))
-                .one(get_db())
-                .await?
-                .ok_or(anyhow!("game_challenge_not_found"))?;
+            let game_challenge =
+                crate::util::loader::prepare_game_challenge(game_id, challenge.id).await?;
 
             let now = time::OffsetDateTime::now_utc().unix_timestamp();
             if now > game.frozen_at || now > game.ended_at {
@@ -124,12 +103,11 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
         submission.id, status, user.username
     );
 
-    let submission = cds_db::entity::submission::ActiveModel {
+    let submission = cds_db::submission::update::<Submission>(cds_db::submission::ActiveModel {
         id: Unchanged(submission.id),
         status: Set(status.clone()),
         ..Default::default()
-    }
-    .update(get_db())
+    })
     .await?;
 
     if submission.game_id.is_some() && status == Status::Correct {
@@ -145,54 +123,43 @@ async fn check(id: i64) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-async fn handle_cheat(
-    submission: &cds_db::entity::submission::Model,
-    peer_team_id: i64,
-) -> Result<Status, anyhow::Error> {
+async fn handle_cheat(submission: &Submission, peer_team_id: i64) -> Result<Status, anyhow::Error> {
     let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) else {
         return Ok(Status::Incorrect);
     };
 
-    async fn find_team(
-        game_id: i64,
-        team_id: i64,
-    ) -> Result<cds_db::entity::team::Model, anyhow::Error> {
-        cds_db::entity::team::Entity::find()
-            .filter(cds_db::entity::team::Column::Id.eq(team_id))
-            .filter(cds_db::entity::team::Column::GameId.eq(game_id))
-            .one(get_db())
-            .await?
-            .ok_or_else(|| anyhow!("team_not_found"))
-    }
-
-    let team = find_team(game_id, team_id).await?;
-    let peer_team = find_team(game_id, peer_team_id).await?;
-
-    for t in &[team, peer_team] {
-        cds_db::entity::team::ActiveModel {
-            id: Unchanged(t.id),
-            state: Set(State::Banned),
-            ..t.clone().into_active_model()
+    if let (Some(team), Some(peer_team)) = (
+        cds_db::team::find_by_id::<cds_db::team::Model>(team_id, game_id).await?,
+        cds_db::team::find_by_id::<cds_db::team::Model>(peer_team_id, game_id).await?,
+    ) {
+        for t in &[team, peer_team] {
+            let _ = cds_db::team::update::<Team>(cds_db::team::ActiveModel {
+                id: Unchanged(t.id),
+                state: Set(State::Banned),
+                ..t.clone().into_active_model()
+            })
+            .await?;
         }
-        .update(get_db())
-        .await?;
     }
 
     Ok(Status::Cheat)
 }
 
-async fn recover() {
-    let unchecked_submissions = cds_db::entity::submission::Entity::find()
-        .filter(cds_db::entity::submission::Column::Status.eq(Status::Pending))
-        .order_by_asc(cds_db::entity::submission::Column::CreatedAt)
-        .all(get_db())
-        .await
-        .unwrap();
+async fn recover() -> Result<(), anyhow::Error> {
+    let (unchecked_submissions, _) =
+        cds_db::submission::find::<Submission>(FindSubmissionsOptions {
+            status: Some(Status::Pending),
+            sorts: Some("created_at".to_owned()),
+            ..Default::default()
+        })
+        .await?;
 
     for submission in unchecked_submissions {
         let id = submission.id;
         cds_queue::publish("checker", id).await.unwrap();
     }
+
+    Ok(())
 }
 
 async fn process_messages() -> Result<(), anyhow::Error> {
@@ -218,6 +185,6 @@ pub async fn init() {
         }
     });
 
-    recover().await;
+    recover().await.unwrap();
     info!("Submission checker initialized successfully.");
 }

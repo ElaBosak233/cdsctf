@@ -1,11 +1,15 @@
-use cds_db::sea_orm::PaginatorTrait;
 mod email;
 mod logo;
 
 use axum::Router;
 use cds_db::{
-    entity::submission::Status,
-    sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set, Unchanged},
+    ChallengeMini, GameChallengeMini, GameMini, Submission, UserMini,
+    challenge::FindChallengeOptions,
+    game::FindGameOptions,
+    game_challenge::FindGameChallengeOptions,
+    sea_orm::{EntityTrait, Set, Unchanged},
+    submission::{FindSubmissionsOptions, Status},
+    user::FindUserOptions,
 };
 use serde::{Deserialize, Serialize};
 
@@ -72,29 +76,46 @@ pub struct SubmissionStatistics {
 pub async fn get_statistics() -> Result<WebResponse<Statistics>, WebError> {
     Ok(WebResponse {
         data: Some(Statistics {
-            users: cds_db::entity::user::Entity::find()
-                .filter(cds_db::entity::user::Column::DeletedAt.is_null())
-                .count(cds_db::get_db())
-                .await?,
-            games: cds_db::entity::game::Entity::find()
-                .count(cds_db::get_db())
-                .await?,
+            users: cds_db::user::find::<UserMini>(FindUserOptions {
+                page: Some(1),
+                size: Some(1),
+                ..Default::default()
+            })
+            .await?
+            .1,
+            games: cds_db::game::find::<GameMini>(FindGameOptions {
+                page: Some(1),
+                size: Some(1),
+                ..Default::default()
+            })
+            .await?
+            .1,
             challenges: ChallengeStatistics {
-                total: cds_db::entity::challenge::Entity::find()
-                    .count(cds_db::get_db())
-                    .await?,
-                in_game: cds_db::entity::game_challenge::Entity::find()
-                    .count(cds_db::get_db())
-                    .await?,
+                total: cds_db::challenge::find::<ChallengeMini>(FindChallengeOptions {
+                    page: Some(1),
+                    size: Some(1),
+                    ..Default::default()
+                })
+                .await?
+                .1,
+                in_game: cds_db::game_challenge::find::<GameChallengeMini>(
+                    FindGameChallengeOptions::default(),
+                )
+                .await?
+                .1,
             },
             submissions: SubmissionStatistics {
-                total: cds_db::entity::submission::Entity::find()
-                    .count(cds_db::get_db())
-                    .await?,
-                solved: cds_db::entity::submission::Entity::find()
-                    .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
-                    .count(cds_db::get_db())
-                    .await?,
+                total: cds_db::submission::find::<Submission>(FindSubmissionsOptions::default())
+                    .await?
+                    .1,
+                solved: cds_db::submission::find::<Submission>(FindSubmissionsOptions {
+                    status: Some(Status::Correct),
+                    page: Some(1),
+                    size: Some(1),
+                    ..Default::default()
+                })
+                .await?
+                .1,
             },
         }),
         ..Default::default()

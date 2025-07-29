@@ -2,6 +2,7 @@ use sea_orm::{
     ColumnTrait, DbErr, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect,
     RelationTrait,
 };
+use uuid::Uuid;
 
 use crate::{entity::team::State, get_db};
 
@@ -88,4 +89,13 @@ pub async fn can_user_access_challenge(
     }
 
     Ok(false)
+}
+
+pub async fn is_challenge_in_game(challenge_id: Uuid, game_id: i64) -> Result<bool, DbErr> {
+    Ok(crate::entity::game_challenge::Entity::find()
+        .filter(crate::entity::game_challenge::Column::GameId.eq(game_id))
+        .filter(crate::entity::game_challenge::Column::ChallengeId.eq(challenge_id))
+        .count(get_db())
+        .await?
+        > 0)
 }

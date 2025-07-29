@@ -1,12 +1,7 @@
 mod avatar;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{
-    UserMini,
-    entity::team::State,
-    get_db,
-    sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter},
-};
+use cds_db::{TeamUser, UserMini, sea_orm::ActiveValue::Set, team::State};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -23,15 +18,9 @@ pub fn router() -> Router {
 }
 
 pub async fn get_team_members(
-    Path((game_id, team_id)): Path<(i64, i64)>,
+    Path((_game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<Vec<UserMini>>, WebError> {
-    let users = cds_db::entity::user::Entity::find()
-        .inner_join(cds_db::entity::team::Entity)
-        .filter(cds_db::entity::team::Column::Id.eq(team_id))
-        .filter(cds_db::entity::team::Column::GameId.eq(game_id))
-        .into_model::<UserMini>()
-        .all(get_db())
-        .await?;
+    let users = cds_db::user::find_by_team_id::<UserMini>(team_id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -71,11 +60,10 @@ pub async fn join_team(
         return Err(WebError::BadRequest(json!("invalid_invite_token")));
     }
 
-    let _ = cds_db::entity::team_user::ActiveModel {
+    let _ = cds_db::team_user::create::<TeamUser>(cds_db::team_user::ActiveModel {
         team_id: Set(team.id),
         user_id: Set(operator.id),
-    }
-    .insert(get_db())
+    })
     .await?;
 
     Ok(WebResponse {

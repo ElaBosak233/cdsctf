@@ -43,12 +43,13 @@ function Navbar() {
       >
         <div
           className={cn([
-            "container",
-            "ml-auto",
-            "mr-auto",
+            // "container",
+            // "ml-auto",
+            // "mr-auto",
+            "w-full",
             "pl-5",
             "pr-5",
-            "max-w-[1300px]",
+            // "max-w-[1300px]",
             "flex",
             "items-center",
             "justify-between",

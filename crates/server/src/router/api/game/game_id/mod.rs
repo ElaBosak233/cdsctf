@@ -15,11 +15,8 @@ use axum::{
     },
 };
 use cds_db::{
-    entity::{submission::Status, team::State},
-    get_db,
-    sea_orm::{
-        ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
-    },
+    Game, Submission, Team,
+    team::{FindTeamOptions, State},
 };
 use cds_event::SubscribeOptions;
 use futures::StreamExt;
@@ -28,7 +25,6 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Path, Query},
-    model::{game::Game, submission::Submission, team::Team},
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -77,30 +73,21 @@ pub async fn get_game_scoreboard(
 ) -> Result<WebResponse<Vec<ScoreRecord>>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 
-    let mut sql = cds_db::entity::team::Entity::find()
-        .filter(cds_db::entity::team::Column::GameId.eq(game.id))
-        .filter(cds_db::entity::team::Column::State.eq(State::Passed))
-        .order_by(cds_db::entity::team::Column::Rank, Order::Asc)
-        .order_by(cds_db::entity::team::Column::Pts, Order::Desc);
+    let (teams, total) = cds_db::team::find(FindTeamOptions {
+        game_id: Some(game.id),
+        state: Some(State::Passed),
+        sorts: Some("rank,-pts".to_string()),
+        page: params.page,
+        size: params.size,
+        ..Default::default()
+    })
+    .await?;
 
-    let total = sql.clone().count(get_db()).await?;
+    let team_ids = teams.iter().map(|t: &Team| t.id).collect::<Vec<i64>>();
 
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
-
-    let teams = sql.into_model::<Team>().all(get_db()).await?;
-
-    let team_ids = teams.iter().map(|t| t.id).collect::<Vec<i64>>();
-
-    let submissions = cds_db::entity::submission::Entity::base_find()
-        .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
-        .filter(cds_db::entity::submission::Column::GameId.eq(game_id))
-        .filter(cds_db::entity::submission::Column::TeamId.is_in(team_ids))
-        .into_model::<Submission>()
-        .all(get_db())
-        .await?;
+    let submissions =
+        cds_db::submission::find_correct_by_team_ids_and_game_id::<Submission>(team_ids, game_id)
+            .await?;
 
     let mut result: Vec<ScoreRecord> = Vec::new();
 

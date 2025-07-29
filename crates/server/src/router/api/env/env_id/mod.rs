@@ -1,5 +1,5 @@
 use axum::{Router, extract::WebSocketUpgrade, http::StatusCode, response::IntoResponse};
-use cds_db::entity::user::Group;
+use cds_db::user::Group;
 use serde::Deserialize;
 use serde_json::json;
 use tracing::debug;

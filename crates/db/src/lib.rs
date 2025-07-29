@@ -1,13 +1,28 @@
+pub mod challenge;
 pub mod entity;
+pub mod game;
+pub mod game_challenge;
+pub mod game_notice;
+pub mod submission;
+pub mod team;
+pub mod team_user;
+pub mod traits;
 pub mod user;
 pub mod util;
 
 use std::time::Duration;
 
 use anyhow::anyhow;
+pub use challenge::{Challenge, ChallengeMini};
+pub use game::{Game, GameMini};
+pub use game_challenge::{GameChallenge, GameChallengeMini};
+pub use game_notice::GameNotice;
 use once_cell::sync::OnceCell;
 pub use sea_orm;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection, EntityTrait};
+pub use submission::Submission;
+pub use team::Team;
+pub use team_user::TeamUser;
 use tracing::info;
 pub use user::{User, UserMini};
 
@@ -29,7 +44,7 @@ pub async fn init() -> Result<(), anyhow::Error> {
         .acquire_timeout(Duration::from_secs(8))
         .idle_timeout(Duration::from_secs(8))
         .max_lifetime(Duration::from_secs(8))
-        .sqlx_logging(false)
+        .sqlx_logging(true)
         .set_schema_search_path("public");
 
     let db: DatabaseConnection = Database::connect(opt).await?;

@@ -7,9 +7,8 @@ use argon2::{
 use axum::{Router, http::StatusCode};
 use cds_db::{
     User,
-    entity::user::Group,
-    sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait},
-    user::FindUserOptions,
+    sea_orm::ActiveValue::Set,
+    user::{FindUserOptions, Group},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -92,7 +91,7 @@ pub async fn create_user(
         .unwrap()
         .to_string();
 
-    let user = cds_db::user::create::<User>(cds_db::entity::user::ActiveModel {
+    let user = cds_db::user::create::<User>(cds_db::user::ActiveModel {
         name: Set(body.name),
         username: Set(body.username),
         email: Set(body.email),

@@ -1,9 +1,5 @@
 use axum::{Router, http::StatusCode};
-use cds_db::{
-    entity::team::State,
-    get_db,
-    sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter},
-};
+use cds_db::{TeamUser, team::State, team_user::FindTeamUserOptions};
 use serde_json::json;
 
 use crate::{
@@ -26,20 +22,17 @@ pub async fn leave_team(
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    let count = cds_db::entity::team_user::Entity::find()
-        .filter(cds_db::entity::team_user::Column::TeamId.eq(team.id))
-        .count(get_db())
-        .await?;
+    let (_, count) = cds_db::team_user::find::<TeamUser>(FindTeamUserOptions {
+        team_id: Some(team.id),
+        user_id: Some(operator.id),
+    })
+    .await?;
 
     if count <= 1 {
         return Err(WebError::BadRequest(json!("team_has_no_other_member")));
     }
 
-    let _ = cds_db::entity::team_user::Entity::delete_many()
-        .filter(cds_db::entity::team_user::Column::UserId.eq(operator.id))
-        .filter(cds_db::entity::team_user::Column::TeamId.eq(team.id))
-        .exec(get_db())
-        .await?;
+    cds_db::team_user::delete(team.id, operator.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

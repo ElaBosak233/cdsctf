@@ -3,11 +3,10 @@ mod attachment;
 use axum::{Router, http::StatusCode};
 use cds_checker::traits::CheckerError;
 use cds_db::{
-    get_db,
+    Challenge,
     sea_orm::{
-        ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
-        ColumnTrait, EntityTrait, NotSet, QueryFilter,
+        NotSet,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -16,7 +15,6 @@ use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
-    model::challenge::Challenge,
     traits::{WebError, WebResponse},
 };
 
@@ -58,7 +56,7 @@ pub async fn update_challenge(
 ) -> Result<WebResponse<Challenge>, WebError> {
     let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
 
-    let challenge = cds_db::entity::challenge::ActiveModel {
+    let challenge = cds_db::challenge::update(cds_db::challenge::ActiveModel {
         id: Unchanged(challenge.id),
         title: body.title.map_or(NotSet, Set),
         description: body.description.map_or(NotSet, Set),
@@ -68,14 +66,8 @@ pub async fn update_challenge(
         is_dynamic: body.is_dynamic.map_or(NotSet, Set),
         has_attachment: body.has_attachment.map_or(NotSet, Set),
         ..Default::default()
-    }
-    .update(get_db())
+    })
     .await?;
-
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge.id)
-        .into_model::<Challenge>()
-        .one(get_db())
-        .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -87,19 +79,9 @@ pub async fn update_challenge(
 pub async fn delete_challenge(
     Path(challenge_id): Path<uuid::Uuid>,
 ) -> Result<WebResponse<()>, WebError> {
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge_id)
-        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
-        .one(get_db())
-        .await?
-        .ok_or(WebError::BadRequest(json!("challenge_not_found")))?;
+    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
 
-    let _ = cds_db::entity::challenge::ActiveModel {
-        id: Set(challenge.id),
-        deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
-        ..Default::default()
-    }
-    .update(get_db())
-    .await?;
+    cds_db::challenge::delete(challenge.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -109,7 +91,7 @@ pub async fn delete_challenge(
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateChallengeEnvRequest {
-    pub env: Option<cds_db::entity::challenge::Env>,
+    pub env: Option<cds_db::challenge::Env>,
 }
 
 pub async fn update_challenge_env(
@@ -118,12 +100,11 @@ pub async fn update_challenge_env(
 ) -> Result<WebResponse<()>, WebError> {
     let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
 
-    let _ = cds_db::entity::challenge::ActiveModel {
+    let _ = cds_db::challenge::update::<Challenge>(cds_db::challenge::ActiveModel {
         id: Unchanged(challenge_id),
         env: body.env.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
-    }
-    .update(get_db())
+    })
     .await?;
 
     Ok(WebResponse {
@@ -143,12 +124,11 @@ pub async fn update_challenge_checker(
 ) -> Result<WebResponse<()>, WebError> {
     let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
 
-    let challenge = cds_db::entity::challenge::ActiveModel {
+    let challenge = cds_db::challenge::update::<Challenge>(cds_db::challenge::ActiveModel {
         id: Unchanged(challenge_id),
         checker: body.checker.map_or(NotSet, |v| Set(Some(v))),
         ..Default::default()
-    }
-    .update(get_db())
+    })
     .await?;
 
     let lint = cds_checker::lint(&challenge).await;

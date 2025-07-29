@@ -3,10 +3,7 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 use axum::Router;
-use cds_db::{
-    get_db,
-    sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter},
-};
+use cds_db::User;
 use cds_media::config::email::EmailType;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
@@ -32,9 +29,7 @@ pub struct UserForgetRequest {
 }
 
 pub async fn user_forget(Json(body): Json<UserForgetRequest>) -> Result<WebResponse<()>, WebError> {
-    let user = cds_db::entity::user::Entity::find()
-        .filter(cds_db::entity::user::Column::Email.eq(body.email.to_owned().to_lowercase()))
-        .one(get_db())
+    let user = cds_db::user::find_by_email::<User>(body.email)
         .await?
         .ok_or(WebError::BadRequest("user_not_found".into()))?;
 
@@ -72,9 +67,7 @@ pub async fn send_forget_email(
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
-    let user = cds_db::entity::user::Entity::find()
-        .filter(cds_db::entity::user::Column::Email.eq(body.email.to_owned().to_lowercase()))
-        .one(get_db())
+    let user = cds_db::user::find_by_email::<User>(body.email)
         .await?
         .ok_or(WebError::BadRequest("user_not_found".into()))?;
 
