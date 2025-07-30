@@ -12,7 +12,13 @@ version = { workspace = true }
 
 [dependencies]
 cds-db = { workspace = true }
+cds-queue = { workspace = true }
 
 lettre = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
+tracing = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

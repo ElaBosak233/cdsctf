@@ -1,20 +1,12 @@
 mod game_id;
 
-use std::str::FromStr;
-
 use axum::{Router, http::StatusCode};
-use cds_db::{
-    get_db,
-    sea_orm::{
-        ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
-    },
-};
+use cds_db::{GameMini, game::FindGameOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Query},
-    model::game::GameMini,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -43,39 +35,15 @@ pub async fn get_game(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(20);
 
-    let mut sql = cds_db::entity::game::Entity::find();
-
-    if let Some(id) = params.id {
-        sql = sql.filter(cds_db::entity::game::Column::Id.eq(id));
-    }
-
-    if let Some(title) = params.title {
-        sql = sql.filter(cds_db::entity::game::Column::Title.contains(title));
-    }
-
-    sql = sql.filter(cds_db::entity::game::Column::IsEnabled.eq(true));
-
-    if let Some(sorts) = params.sorts {
-        let sorts = sorts.split(",").collect::<Vec<&str>>();
-        for sort in sorts {
-            let col = match cds_db::entity::game::Column::from_str(sort.replace("-", "").as_str()) {
-                Ok(col) => col,
-                Err(_) => continue,
-            };
-            if sort.starts_with("-") {
-                sql = sql.order_by(col, Order::Desc);
-            } else {
-                sql = sql.order_by(col, Order::Asc);
-            }
-        }
-    }
-
-    let total = sql.clone().count(get_db()).await?;
-
-    let offset = (page - 1) * size;
-    sql = sql.offset(offset).limit(size);
-
-    let games = sql.into_model::<GameMini>().all(get_db()).await?;
+    let (games, total) = cds_db::game::find(FindGameOptions {
+        id: params.id,
+        title: params.title,
+        page: Some(page),
+        size: Some(size),
+        sorts: params.sorts,
+        ..Default::default()
+    })
+    .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

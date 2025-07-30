@@ -1,7 +1,8 @@
 use sea_orm::{
     ColumnTrait, DbErr, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect,
-    RelationTrait, prelude::Expr, sea_query::Func,
+    RelationTrait,
 };
+use uuid::Uuid;
 
 use crate::{entity::team::State, get_db};
 
@@ -43,32 +44,6 @@ pub async fn is_user_in_game(
     }
 
     Ok(sql.count(get_db()).await? > 0)
-}
-
-pub async fn is_user_email_unique(user_id: i64, email: &str) -> Result<bool, DbErr> {
-    let user = crate::entity::user::Entity::find()
-        .filter(
-            Expr::expr(Func::lower(Expr::col(crate::entity::user::Column::Email)))
-                .eq(email.to_lowercase()),
-        )
-        .one(get_db())
-        .await?;
-
-    Ok(user.map(|u| u.id == user_id).unwrap_or(true))
-}
-
-pub async fn is_user_username_unique(user_id: i64, username: &str) -> Result<bool, DbErr> {
-    let user = crate::entity::user::Entity::find()
-        .filter(
-            Expr::expr(Func::lower(Expr::col(
-                crate::entity::user::Column::Username,
-            )))
-            .eq(username.to_lowercase()),
-        )
-        .one(get_db())
-        .await?;
-
-    Ok(user.map(|u| u.id == user_id).unwrap_or(true))
 }
 
 pub async fn can_user_access_challenge(
@@ -114,4 +89,13 @@ pub async fn can_user_access_challenge(
     }
 
     Ok(false)
+}
+
+pub async fn is_challenge_in_game(challenge_id: Uuid, game_id: i64) -> Result<bool, DbErr> {
+    Ok(crate::entity::game_challenge::Entity::find()
+        .filter(crate::entity::game_challenge::Column::GameId.eq(game_id))
+        .filter(crate::entity::game_challenge::Column::ChallengeId.eq(challenge_id))
+        .count(get_db())
+        .await?
+        > 0)
 }

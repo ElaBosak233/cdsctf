@@ -1,20 +1,11 @@
 mod challenge_id;
 
-use std::str::FromStr;
-
 use axum::{Router, http::StatusCode};
-use cds_db::{
-    get_db,
-    sea_orm::{
-        ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityName, EntityTrait, Iden, Order,
-        PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, sea_query::Expr,
-    },
-};
+use cds_db::{Challenge, challenge::FindChallengeOptions, sea_orm::ActiveValue::Set};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     extract::{Json, Query},
-    model::challenge::Challenge,
     traits::{WebError, WebResponse},
 };
 
@@ -44,64 +35,18 @@ pub async fn get_challenges(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let mut sql = cds_db::entity::challenge::Entity::find();
-
-    if let Some(id) = params.id {
-        sql = sql.filter(cds_db::entity::challenge::Column::Id.eq(id));
-    }
-
-    if let Some(title) = params.title {
-        sql = sql.filter(cds_db::entity::challenge::Column::Title.contains(title));
-    }
-
-    if let Some(category) = params.category {
-        sql = sql.filter(cds_db::entity::challenge::Column::Category.eq(category));
-    }
-
-    if let Some(tag) = params.tag {
-        sql = sql.filter(Expr::cust_with_expr(
-            format!(
-                "\"{}\".\"{}\" @> $1::text[]",
-                cds_db::entity::challenge::Entity.table_name(),
-                cds_db::entity::challenge::Column::Tags.to_string()
-            )
-            .as_str(),
-            vec![tag],
-        ))
-    }
-
-    if let Some(is_public) = params.is_public {
-        sql = sql.filter(cds_db::entity::challenge::Column::IsPublic.eq(is_public));
-    }
-
-    if let Some(is_dynamic) = params.is_dynamic {
-        sql = sql.filter(cds_db::entity::challenge::Column::IsDynamic.eq(is_dynamic));
-    }
-
-    sql = sql.filter(cds_db::entity::challenge::Column::DeletedAt.is_null());
-
-    let total = sql.clone().count(get_db()).await?;
-
-    if let Some(sorts) = params.sorts {
-        let sorts = sorts.split(",").collect::<Vec<&str>>();
-        for sort in sorts {
-            let col =
-                match cds_db::entity::challenge::Column::from_str(sort.replace("-", "").as_str()) {
-                    Ok(col) => col,
-                    Err(_) => continue,
-                };
-            if sort.starts_with("-") {
-                sql = sql.order_by(col, Order::Desc);
-            } else {
-                sql = sql.order_by(col, Order::Asc);
-            }
-        }
-    }
-
-    let offset = (page - 1) * size;
-    sql = sql.offset(offset).limit(size);
-
-    let challenges = sql.into_model::<Challenge>().all(get_db()).await?;
+    let (challenges, total) = cds_db::challenge::find::<Challenge>(FindChallengeOptions {
+        id: params.id,
+        title: params.title,
+        category: params.category,
+        tag: params.tag,
+        is_public: params.is_public,
+        is_dynamic: params.is_dynamic,
+        sorts: params.sorts,
+        page: Some(page),
+        size: Some(size),
+    })
+    .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -121,14 +66,14 @@ pub struct CreateChallengeRequest {
     pub is_dynamic: Option<bool>,
     pub has_attachment: Option<bool>,
     pub image_name: Option<String>,
-    pub env: Option<cds_db::entity::challenge::Env>,
+    pub env: Option<cds_db::challenge::Env>,
     pub checker: Option<String>,
 }
 
 pub async fn create_challenge(
     Json(body): Json<CreateChallengeRequest>,
 ) -> Result<WebResponse<Challenge>, WebError> {
-    let challenge = cds_db::entity::challenge::ActiveModel {
+    let challenge = cds_db::challenge::create::<Challenge>(cds_db::challenge::ActiveModel {
         title: Set(body.title),
         description: Set(body.description),
         category: Set(body.category),
@@ -139,18 +84,12 @@ pub async fn create_challenge(
         env: Set(body.env),
         checker: Set(body.checker),
         ..Default::default()
-    }
-    .insert(get_db())
+    })
     .await?;
-
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(challenge.id)
-        .into_model::<Challenge>()
-        .one(get_db())
-        .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: challenge,
+        data: Some(challenge),
         ..Default::default()
     })
 }

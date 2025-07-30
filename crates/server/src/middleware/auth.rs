@@ -4,11 +4,7 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use cds_db::{
-    entity::user::Group,
-    get_db,
-    sea_orm::{ColumnTrait, EntityTrait, QueryFilter},
-};
+use cds_db::{User, user::Group};
 use serde_json::json;
 use tower_sessions::Session;
 
@@ -33,12 +29,7 @@ pub async fn extract(req: Request<Body>, next: Next) -> Result<Response, WebErro
         .to_owned();
 
     if let Ok(Some(user_id)) = session.get::<i64>("user_id").await {
-        if let Some(user) = cds_db::entity::user::Entity::find()
-            .filter(cds_db::entity::user::Column::Id.eq(user_id))
-            .filter(cds_db::entity::user::Column::DeletedAt.is_null())
-            .one(get_db())
-            .await?
-        {
+        if let Some(user) = cds_db::user::find_by_id::<User>(user_id).await? {
             if user.group == Group::Banned {
                 return Err(WebError::Forbidden(json!("forbidden")));
             }

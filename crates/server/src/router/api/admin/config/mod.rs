@@ -1,12 +1,8 @@
-use cds_db::sea_orm::PaginatorTrait;
 mod email;
 mod logo;
 
 use axum::Router;
-use cds_db::{
-    entity::submission::Status,
-    sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set, Unchanged},
-};
+use cds_db::sea_orm::Set;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -23,7 +19,7 @@ pub fn router() -> Router {
         .route("/statistics", axum::routing::get(get_statistics))
 }
 
-pub async fn get_config() -> Result<WebResponse<cds_db::entity::config::Model>, WebError> {
+pub async fn get_config() -> Result<WebResponse<cds_db::config::Model>, WebError> {
     Ok(WebResponse {
         data: Some(cds_db::get_config().await),
         ..Default::default()
@@ -31,16 +27,15 @@ pub async fn get_config() -> Result<WebResponse<cds_db::entity::config::Model>, 
 }
 
 pub async fn update_config(
-    Json(body): Json<cds_db::entity::config::Model>,
-) -> Result<WebResponse<cds_db::entity::config::Model>, WebError> {
-    let config = cds_db::entity::config::Entity::update(cds_db::entity::config::ActiveModel {
-        id: Unchanged(1),
+    Json(body): Json<cds_db::config::Model>,
+) -> Result<WebResponse<cds_db::config::Model>, WebError> {
+    let config = cds_db::config::save(cds_db::config::ActiveModel {
         meta: Set(body.meta),
         auth: Set(body.auth),
         email: Set(body.email),
         captcha: Set(body.captcha),
+        ..Default::default()
     })
-    .exec(cds_db::get_db())
     .await?;
 
     Ok(WebResponse {
@@ -72,29 +67,15 @@ pub struct SubmissionStatistics {
 pub async fn get_statistics() -> Result<WebResponse<Statistics>, WebError> {
     Ok(WebResponse {
         data: Some(Statistics {
-            users: cds_db::entity::user::Entity::find()
-                .filter(cds_db::entity::user::Column::DeletedAt.is_null())
-                .count(cds_db::get_db())
-                .await?,
-            games: cds_db::entity::game::Entity::find()
-                .count(cds_db::get_db())
-                .await?,
+            users: cds_db::user::count().await?,
+            games: cds_db::game::count().await?,
             challenges: ChallengeStatistics {
-                total: cds_db::entity::challenge::Entity::find()
-                    .count(cds_db::get_db())
-                    .await?,
-                in_game: cds_db::entity::game_challenge::Entity::find()
-                    .count(cds_db::get_db())
-                    .await?,
+                total: cds_db::challenge::count().await?,
+                in_game: cds_db::game_challenge::count().await?,
             },
             submissions: SubmissionStatistics {
-                total: cds_db::entity::submission::Entity::find()
-                    .count(cds_db::get_db())
-                    .await?,
-                solved: cds_db::entity::submission::Entity::find()
-                    .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
-                    .count(cds_db::get_db())
-                    .await?,
+                total: cds_db::submission::count().await?,
+                solved: cds_db::submission::count_correct().await?,
             },
         }),
         ..Default::default()

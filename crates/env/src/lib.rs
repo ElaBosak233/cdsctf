@@ -1,7 +1,6 @@
 pub mod cache;
 pub mod cluster;
 pub mod db;
-mod jwt;
 pub mod logger;
 pub mod media;
 pub mod queue;
@@ -36,7 +35,6 @@ static CONSTANT: OnceCell<Constant> = OnceCell::new();
 #[serde(default)]
 pub struct Constant {
     pub server: server::Config,
-    pub jwt: jwt::Config,
     pub db: db::Config,
     pub queue: queue::Config,
     pub cache: cache::Config,

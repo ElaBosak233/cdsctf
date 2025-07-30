@@ -3,10 +3,7 @@ mod env_id;
 use std::collections::BTreeMap;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{
-    get_db,
-    sea_orm::{ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter},
-};
+use cds_db::{TeamUser, team_user::FindTeamUserOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
@@ -102,10 +99,7 @@ pub async fn create_env(
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = cds_db::entity::challenge::Entity::find_by_id(body.challenge_id)
-        .one(get_db())
-        .await?
-        .ok_or(WebError::NotFound(json!("challenge_not_found")))?;
+    let challenge = crate::util::loader::prepare_challenge(body.challenge_id).await?;
 
     let _ = challenge
         .clone()
@@ -120,10 +114,11 @@ pub async fn create_env(
         let _ = crate::util::loader::prepare_team(game_id, team_id).await?;
         let _ = crate::util::loader::prepare_game_challenge(game_id, challenge.id).await?;
 
-        let member_count = cds_db::entity::team_user::Entity::find()
-            .filter(Condition::all().add(cds_db::entity::team_user::Column::TeamId.eq(team_id)))
-            .count(get_db())
-            .await?;
+        let (_, member_count) = cds_db::team_user::find::<TeamUser>(FindTeamUserOptions {
+            team_id: Some(team_id),
+            ..Default::default()
+        })
+        .await?;
 
         let existing_pods = cds_cluster::get_pods_by_label(
             &BTreeMap::from([
@@ -157,15 +152,8 @@ pub async fn create_env(
 
     let (team, game) = match (body.team_id, body.game_id) {
         (Some(team_id), Some(game_id)) => (
-            cds_db::entity::team::Entity::find()
-                .filter(cds_db::entity::team::Column::GameId.eq(game_id))
-                .filter(cds_db::entity::team::Column::Id.eq(team_id))
-                .one(get_db())
-                .await?,
-            cds_db::entity::game::Entity::find()
-                .filter(cds_db::entity::game::Column::Id.eq(game_id))
-                .one(get_db())
-                .await?,
+            cds_db::team::find_by_id(team_id, game_id).await?,
+            cds_db::game::find_by_id(game_id).await?,
         ),
         _ => (None, None),
     };

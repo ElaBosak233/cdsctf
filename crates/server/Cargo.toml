@@ -15,6 +15,7 @@ cds-assets = { workspace = true }
 cds-media = { workspace = true }
 cds-migrator = { workspace = true }
 cds-env = { workspace = true }
+cds-event = { workspace = true }
 cds-db = { workspace = true }
 cds-captcha = { workspace = true }
 cds-email = { workspace = true }
@@ -43,9 +44,8 @@ tower-sessions-redis-store = { workspace = true }
 mime = { workspace = true }
 validator = { workspace = true }
 nanoid = { workspace = true }
-cookie = { workspace = true }
 uuid = { workspace = true }
-futures = { workspace = true }
+futures-util = { workspace = true }
 tower_governor = { workspace = true }
 scraper = { workspace = true }
 

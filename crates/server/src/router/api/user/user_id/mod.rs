@@ -1,8 +1,8 @@
 use axum::Router;
+use cds_db::User;
 
 use crate::{
     extract::{Extension, Path},
-    model::user::User,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -20,10 +20,10 @@ pub async fn get_user(
 ) -> Result<WebResponse<User>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let user = crate::util::loader::prepare_user(user_id).await?;
+    let user = cds_db::user::find_by_id::<User>(user_id).await?;
 
     Ok(WebResponse {
-        data: Some(user),
+        data: user,
         ..Default::default()
     })
 }

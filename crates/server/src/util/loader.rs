@@ -1,23 +1,14 @@
 use cds_db::{
-    get_db,
-    sea_orm::{ColumnTrait, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait},
+    Challenge, Game, GameChallenge, User,
+    team::{FindTeamOptions, Team},
 };
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::{
-    model::{
-        challenge::Challenge, game::Game, game_challenge::GameChallenge, team::Team, user::User,
-    },
-    traits::WebError,
-};
+use crate::traits::WebError;
 
 pub async fn prepare_challenge(challenge_id: Uuid) -> Result<Challenge, WebError> {
-    let challenge = cds_db::entity::challenge::Entity::find()
-        .filter(cds_db::entity::challenge::Column::Id.eq(challenge_id))
-        .filter(cds_db::entity::challenge::Column::DeletedAt.is_null())
-        .into_model::<Challenge>()
-        .one(get_db())
+    let challenge = cds_db::challenge::find_by_id(challenge_id)
         .await?
         .ok_or(WebError::NotFound(json!("challenge_not_found")))?;
 
@@ -25,12 +16,9 @@ pub async fn prepare_challenge(challenge_id: Uuid) -> Result<Challenge, WebError
 }
 
 pub async fn prepare_game(game_id: i64) -> Result<Game, WebError> {
-    let game = cds_db::entity::game::Entity::find()
-        .filter(cds_db::entity::game::Column::Id.eq(game_id))
-        .into_model::<Game>()
-        .one(get_db())
+    let game = cds_db::game::find_by_id(game_id)
         .await?
-        .ok_or(WebError::NotFound(json!("game_not_found")))?;
+        .ok_or(WebError::NotFound(json!("challenge_not_found")))?;
 
     Ok(game)
 }
@@ -39,28 +27,20 @@ pub async fn prepare_game_challenge(
     game_id: i64,
     challenge_id: Uuid,
 ) -> Result<GameChallenge, WebError> {
-    let game_challenge = cds_db::entity::game_challenge::Entity::base_find()
-        .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id))
-        .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id))
-        .into_model::<GameChallenge>()
-        .one(get_db())
+    let game_challenge = cds_db::game_challenge::find_by_id::<GameChallenge>(game_id, challenge_id)
         .await?
-        .ok_or(WebError::NotFound(json!("game_challenge_not_found")))?;
+        .unwrap();
 
     Ok(game_challenge)
 }
 
 pub async fn prepare_self_team(game_id: i64, user_id: i64) -> Result<Team, WebError> {
-    let teams = cds_db::entity::team::Entity::find()
-        .filter(cds_db::entity::team::Column::GameId.eq(game_id))
-        .join(
-            JoinType::InnerJoin,
-            cds_db::entity::team_user::Relation::Team.def().rev(),
-        )
-        .filter(cds_db::entity::team_user::Column::UserId.eq(user_id))
-        .into_model::<Team>()
-        .all(get_db())
-        .await?;
+    let (teams, _) = cds_db::team::find::<Team>(FindTeamOptions {
+        game_id: Some(game_id),
+        user_id: Some(user_id),
+        ..Default::default()
+    })
+    .await?;
 
     teams
         .into_iter()
@@ -69,25 +49,13 @@ pub async fn prepare_self_team(game_id: i64, user_id: i64) -> Result<Team, WebEr
 }
 
 pub async fn prepare_team(game_id: i64, team_id: i64) -> Result<Team, WebError> {
-    let teams = cds_db::entity::team::Entity::find()
-        .filter(cds_db::entity::team::Column::GameId.eq(game_id))
-        .filter(cds_db::entity::team::Column::Id.eq(team_id))
-        .into_model::<Team>()
-        .all(get_db())
-        .await?;
-
-    teams
-        .into_iter()
-        .next()
+    cds_db::team::find_by_id::<Team>(team_id, game_id)
+        .await?
         .ok_or(WebError::NotFound(json!("team_not_found")))
 }
 
 pub async fn prepare_user(user_id: i64) -> Result<User, WebError> {
-    let user = cds_db::entity::user::Entity::find()
-        .filter(cds_db::entity::user::Column::Id.eq(user_id))
-        .filter(cds_db::entity::user::Column::DeletedAt.is_null())
-        .into_model::<User>()
-        .one(get_db())
+    let user = cds_db::user::find_by_id(user_id)
         .await?
         .ok_or(WebError::NotFound(json!("user_not_found")))?;
 

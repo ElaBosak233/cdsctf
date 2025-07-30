@@ -1,13 +1,13 @@
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::user::Group,
-    get_db,
+    GameChallenge,
     sea_orm::{
-        ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
-        ColumnTrait, EntityTrait, NotSet, QueryFilter,
+        NotSet,
     },
+    user::Group,
 };
+use cds_event::types::game_challenge::{GameChallengeEvent, GameChallengeEventType};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serde_with::serde_as;
@@ -15,7 +15,6 @@ use uuid::Uuid;
 
 use crate::{
     extract::{Extension, Json, Path},
-    model::game_challenge::GameChallenge,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -54,38 +53,42 @@ pub async fn update_game_challenge(
 
     let game_challenge = crate::util::loader::prepare_game_challenge(game_id, challenge_id).await?;
 
-    let game_challenge = cds_db::entity::game_challenge::ActiveModel {
-        game_id: Unchanged(game_challenge.game_id),
-        challenge_id: Unchanged(game_challenge.challenge_id),
-        is_enabled: body.is_enabled.map_or(NotSet, Set),
-        difficulty: body.difficulty.map_or(NotSet, Set),
-        max_pts: body.max_pts.map_or(NotSet, Set),
-        min_pts: body.min_pts.map_or(NotSet, Set),
-        bonus_ratios: body.bonus_ratios.map_or(NotSet, Set),
-        frozen_at: body.frozen_at.map_or(NotSet, Set),
-        ..Default::default()
-    }
-    .update(get_db())
-    .await?;
+    let new_game_challenge =
+        cds_db::game_challenge::update::<GameChallenge>(cds_db::game_challenge::ActiveModel {
+            game_id: Unchanged(game_challenge.game_id),
+            challenge_id: Unchanged(game_challenge.challenge_id),
+            is_enabled: body.is_enabled.map_or(NotSet, Set),
+            difficulty: body.difficulty.map_or(NotSet, Set),
+            max_pts: body.max_pts.map_or(NotSet, Set),
+            min_pts: body.min_pts.map_or(NotSet, Set),
+            bonus_ratios: body.bonus_ratios.map_or(NotSet, Set),
+            frozen_at: body.frozen_at.map_or(NotSet, Set),
+            ..Default::default()
+        })
+        .await?;
 
     cds_queue::publish(
         "calculator",
         crate::worker::game_calculator::Payload {
-            game_id: Some(game_challenge.game_id),
+            game_id: Some(new_game_challenge.game_id),
         },
     )
     .await?;
 
-    let game_challenge = cds_db::entity::game_challenge::Entity::base_find()
-        .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_challenge.game_id))
-        .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(game_challenge.challenge_id))
-        .into_model::<GameChallenge>()
-        .one(get_db())
+    if new_game_challenge.is_enabled != game_challenge.is_enabled {
+        cds_event::push(cds_event::types::Event::GameChallenge(GameChallengeEvent {
+            type_: if new_game_challenge.is_enabled {
+                GameChallengeEventType::Up
+            } else {
+                GameChallengeEventType::Down
+            },
+        }))
         .await?;
+    }
 
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: game_challenge,
+        data: Some(new_game_challenge),
         ..Default::default()
     })
 }
@@ -101,11 +104,7 @@ pub async fn delete_game_challenge(
 
     let game_challenge = crate::util::loader::prepare_game_challenge(game_id, challenge_id).await?;
 
-    let _ = cds_db::entity::game_challenge::Entity::delete_many()
-        .filter(cds_db::entity::game_challenge::Column::GameId.eq(game_challenge.game_id))
-        .filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(game_challenge.challenge_id))
-        .exec(get_db())
-        .await?;
+    cds_db::game_challenge::delete(game_challenge.game_id, game_challenge.challenge_id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

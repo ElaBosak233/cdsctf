@@ -1,16 +1,11 @@
 use axum::Router;
-use cds_db::{
-    entity::team::State,
-    get_db,
-    sea_orm::{ColumnTrait, PaginatorTrait, QueryFilter},
-};
+use cds_db::{GameChallengeMini, game_challenge::FindGameChallengeOptions, team::State};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
 
 use crate::{
     extract::{Extension, Path, Query},
-    model::game_challenge::GameChallengeMini,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -43,23 +38,14 @@ pub async fn get_game_challenge(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let mut sql = cds_db::entity::game_challenge::Entity::base_find();
-
-    sql = sql.filter(cds_db::entity::game_challenge::Column::GameId.eq(game_id));
-
-    if let Some(challenge_id) = params.challenge_id {
-        sql = sql.filter(cds_db::entity::game_challenge::Column::ChallengeId.eq(challenge_id));
-    }
-
-    sql = sql.filter(cds_db::entity::game_challenge::Column::IsEnabled.eq(true));
-
-    if let Some(category) = params.category {
-        sql = sql.filter(cds_db::entity::challenge::Column::Category.eq(category));
-    }
-
-    let total = sql.clone().count(get_db()).await?;
-
-    let game_challenges = sql.into_model::<GameChallengeMini>().all(get_db()).await?;
+    let (game_challenges, total) =
+        cds_db::game_challenge::find::<GameChallengeMini>(FindGameChallengeOptions {
+            game_id: Some(game.id),
+            challenge_id: params.challenge_id,
+            is_enabled: Some(true),
+            category: params.category,
+        })
+        .await?;
 
     Ok(WebResponse {
         data: Some(game_challenges),

@@ -1,14 +1,10 @@
 use axum::{Router, http::StatusCode};
-use cds_db::{
-    get_db,
-    sea_orm::{ColumnTrait, EntityTrait, QueryFilter},
-};
+use cds_db::GameNotice;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
-    model::game_notice::GameNotice,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -27,11 +23,7 @@ pub async fn get_game_notice(
 ) -> Result<WebResponse<Vec<GameNotice>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let game_notices = cds_db::entity::game_notice::Entity::find()
-        .filter(cds_db::entity::game_notice::Column::GameId.eq(game_id))
-        .into_model::<GameNotice>()
-        .all(get_db())
-        .await?;
+    let game_notices = cds_db::game_notice::find_by_game_id::<GameNotice>(game_id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

@@ -6,11 +6,10 @@ mod team;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    get_db,
+    Game,
     sea_orm::{
-        ActiveModelTrait,
         ActiveValue::{Set, Unchanged},
-        EntityTrait, NotSet,
+        NotSet,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -18,7 +17,6 @@ use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
-    model::game::Game,
     traits::{WebError, WebResponse},
 };
 
@@ -55,7 +53,7 @@ pub struct UpdateGameRequest {
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
     pub is_need_write_up: Option<bool>,
-    pub timeslots: Option<Vec<cds_db::entity::game::Timeslot>>,
+    pub timeslots: Option<Vec<cds_db::game::Timeslot>>,
     pub started_at: Option<i64>,
     pub frozen_at: Option<i64>,
     pub ended_at: Option<i64>,
@@ -67,7 +65,7 @@ pub async fn update_game(
 ) -> Result<WebResponse<Game>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 
-    let game = cds_db::entity::game::ActiveModel {
+    let game = cds_db::game::update(cds_db::game::ActiveModel {
         id: Unchanged(game.id),
         title: body.title.map_or(NotSet, Set),
         sketch: body.sketch.map_or(NotSet, |v| Set(Some(v))),
@@ -84,11 +82,8 @@ pub async fn update_game(
         frozen_at: body.frozen_at.map_or(NotSet, Set),
         ended_at: body.ended_at.map_or(NotSet, Set),
         ..Default::default()
-    }
-    .update(get_db())
+    })
     .await?;
-
-    let game = crate::util::loader::prepare_game(game.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -100,9 +95,7 @@ pub async fn update_game(
 pub async fn delete_game(Path(game_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 
-    let _ = cds_db::entity::game::Entity::delete_by_id(game.id)
-        .exec(get_db())
-        .await?;
+    let _ = cds_db::game::delete(game.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

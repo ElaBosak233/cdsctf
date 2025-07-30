@@ -2,7 +2,7 @@ use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
 };
-use cds_db::entity::user::Group;
+use cds_db::user::Group;
 use serde_json::json;
 
 use crate::{

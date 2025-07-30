@@ -1,22 +1,16 @@
 mod game_id;
 
-use std::str::FromStr;
-
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    get_db,
-    sea_orm::{
-        ActiveModelTrait,
-        ActiveValue::{NotSet, Set},
-        ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
-    },
+    Game,
+    game::FindGameOptions,
+    sea_orm::ActiveValue::{NotSet, Set},
 };
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::{
     extract::{Query, VJson},
-    model::game::Game,
     traits::{WebError, WebResponse},
 };
 
@@ -43,41 +37,15 @@ pub async fn get_games(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let mut sql = cds_db::entity::game::Entity::find();
-
-    if let Some(id) = params.id {
-        sql = sql.filter(cds_db::entity::game::Column::Id.eq(id));
-    }
-
-    if let Some(title) = params.title {
-        sql = sql.filter(cds_db::entity::game::Column::Title.contains(title));
-    }
-
-    if let Some(is_enabled) = params.is_enabled {
-        sql = sql.filter(cds_db::entity::game::Column::IsEnabled.eq(is_enabled));
-    }
-
-    if let Some(sorts) = params.sorts {
-        let sorts = sorts.split(",").collect::<Vec<&str>>();
-        for sort in sorts {
-            let col = match cds_db::entity::game::Column::from_str(sort.replace("-", "").as_str()) {
-                Ok(col) => col,
-                Err(_) => continue,
-            };
-            if sort.starts_with("-") {
-                sql = sql.order_by(col, Order::Desc);
-            } else {
-                sql = sql.order_by(col, Order::Asc);
-            }
-        }
-    }
-
-    let total = sql.clone().count(get_db()).await?;
-
-    let offset = (page - 1) * size;
-    sql = sql.offset(offset).limit(size);
-
-    let games = sql.into_model::<Game>().all(get_db()).await?;
+    let (games, total) = cds_db::game::find::<Game>(FindGameOptions {
+        id: params.id,
+        title: params.title,
+        is_enabled: params.is_enabled,
+        page: Some(page),
+        size: Some(size),
+        sorts: params.sorts,
+    })
+    .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -97,7 +65,7 @@ pub struct CreateGameRequest {
     pub is_need_write_up: Option<bool>,
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
-    pub timeslots: Option<Vec<cds_db::entity::game::Timeslot>>,
+    pub timeslots: Option<Vec<cds_db::game::Timeslot>>,
     pub started_at: i64,
     pub ended_at: i64,
 }
@@ -105,7 +73,7 @@ pub struct CreateGameRequest {
 pub async fn create_game(
     VJson(body): VJson<CreateGameRequest>,
 ) -> Result<WebResponse<Game>, WebError> {
-    let game = cds_db::entity::game::ActiveModel {
+    let game = cds_db::game::create(cds_db::game::ActiveModel {
         title: Set(body.title),
         sketch: Set(body.sketch),
         description: Set(body.description),
@@ -122,11 +90,8 @@ pub async fn create_game(
         ended_at: Set(body.ended_at),
         frozen_at: Set(body.ended_at),
         ..Default::default()
-    }
-    .insert(get_db())
+    })
     .await?;
-
-    let game = crate::util::loader::prepare_game(game.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

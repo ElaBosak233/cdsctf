@@ -3,16 +3,15 @@ mod team_id;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    entity::team::State,
-    get_db,
-    sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait},
+    TeamUser,
+    sea_orm::ActiveValue::Set,
+    team::{State, Team},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Path},
-    model::team::Team,
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -48,28 +47,23 @@ pub async fn team_register(
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
-    let team = cds_db::entity::team::ActiveModel {
+    let team = cds_db::team::create::<Team>(cds_db::team::ActiveModel {
         name: Set(body.name),
         email: Set(body.email),
         slogan: Set(body.slogan),
         game_id: Set(game.id),
         state: Set(State::Preparing),
         ..Default::default()
-    }
-    .insert(get_db())
+    })
     .await?;
 
-    let _ = cds_db::entity::team_user::ActiveModel {
+    let _ = cds_db::team_user::create::<TeamUser>(cds_db::team_user::ActiveModel {
         team_id: Set(team.id),
         user_id: Set(operator.id),
-    }
-    .insert(get_db())
+    })
     .await?;
 
-    let team = cds_db::entity::team::Entity::find_by_id(team.id)
-        .into_model::<Team>()
-        .one(get_db())
-        .await?;
+    let team = cds_db::team::find_by_id(team.id, team.game_id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

@@ -3,14 +3,7 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 use axum::Router;
-use cds_db::{
-    get_db,
-    sea_orm::{
-        ActiveModelTrait,
-        ActiveValue::{Set, Unchanged},
-        ColumnTrait, EntityTrait, QueryFilter,
-    },
-};
+use cds_db::User;
 use cds_media::config::email::EmailType;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
@@ -36,9 +29,7 @@ pub struct UserForgetRequest {
 }
 
 pub async fn user_forget(Json(body): Json<UserForgetRequest>) -> Result<WebResponse<()>, WebError> {
-    let user = cds_db::entity::user::Entity::find()
-        .filter(cds_db::entity::user::Column::Email.eq(body.email.to_owned().to_lowercase()))
-        .one(get_db())
+    let user = cds_db::user::find_by_email::<User>(body.email)
         .await?
         .ok_or(WebError::BadRequest("user_not_found".into()))?;
 
@@ -55,13 +46,7 @@ pub async fn user_forget(Json(body): Json<UserForgetRequest>) -> Result<WebRespo
         .unwrap()
         .to_string();
 
-    let _ = cds_db::entity::user::ActiveModel {
-        id: Unchanged(user.id),
-        hashed_password: Set(hashed_password),
-        ..Default::default()
-    }
-    .update(get_db())
-    .await?;
+    cds_db::user::update_password(user.id, hashed_password).await?;
 
     let _ = cds_cache::get_del::<String>(format!("email:{}:code", user.email)).await?;
 
@@ -82,9 +67,7 @@ pub async fn send_forget_email(
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
-    let user = cds_db::entity::user::Entity::find()
-        .filter(cds_db::entity::user::Column::Email.eq(body.email.to_owned().to_lowercase()))
-        .one(get_db())
+    let user = cds_db::user::find_by_email::<User>(body.email)
         .await?
         .ok_or(WebError::BadRequest("user_not_found".into()))?;
 
@@ -107,7 +90,7 @@ pub async fn send_forget_email(
 
     cds_queue::publish(
         "email",
-        crate::worker::email_sender::Payload {
+        cds_email::Payload {
             name: user.name.to_owned(),
             email: user.email.to_owned(),
             subject: util::email::extract_title(&body).unwrap_or("Reset Your Password".to_owned()),

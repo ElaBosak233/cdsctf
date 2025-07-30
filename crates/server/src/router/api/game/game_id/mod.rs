@@ -4,20 +4,27 @@ mod notice;
 mod poster;
 mod team;
 
-use axum::{Router, http::StatusCode};
-use cds_db::{
-    entity::{submission::Status, team::State},
-    get_db,
-    sea_orm::{
-        ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
+use std::convert::Infallible;
+
+use axum::{
+    Router,
+    http::StatusCode,
+    response::{
+        IntoResponse, Sse,
+        sse::{Event as SseEvent, KeepAlive},
     },
 };
+use cds_db::{
+    Game, Submission, Team,
+    team::{FindTeamOptions, State},
+};
+use cds_event::SubscribeOptions;
+use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Path, Query},
-    model::{game::Game, submission::Submission, team::Team},
     traits::{AuthPrincipal, WebError, WebResponse},
 };
 
@@ -30,6 +37,7 @@ pub fn router() -> Router {
         .nest("/icon", icon::router())
         .nest("/poster", poster::router())
         .route("/scoreboard", axum::routing::get(get_game_scoreboard))
+        .route("/events", axum::routing::get(get_events))
 }
 
 pub async fn get_game(
@@ -65,30 +73,21 @@ pub async fn get_game_scoreboard(
 ) -> Result<WebResponse<Vec<ScoreRecord>>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 
-    let mut sql = cds_db::entity::team::Entity::find()
-        .filter(cds_db::entity::team::Column::GameId.eq(game.id))
-        .filter(cds_db::entity::team::Column::State.eq(State::Passed))
-        .order_by(cds_db::entity::team::Column::Rank, Order::Asc)
-        .order_by(cds_db::entity::team::Column::Pts, Order::Desc);
+    let (teams, total) = cds_db::team::find(FindTeamOptions {
+        game_id: Some(game.id),
+        state: Some(State::Passed),
+        sorts: Some("rank,-pts".to_string()),
+        page: params.page,
+        size: params.size,
+        ..Default::default()
+    })
+    .await?;
 
-    let total = sql.clone().count(get_db()).await?;
+    let team_ids = teams.iter().map(|t: &Team| t.id).collect::<Vec<i64>>();
 
-    if let (Some(page), Some(size)) = (params.page, params.size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
-
-    let teams = sql.into_model::<Team>().all(get_db()).await?;
-
-    let team_ids = teams.iter().map(|t| t.id).collect::<Vec<i64>>();
-
-    let submissions = cds_db::entity::submission::Entity::base_find()
-        .filter(cds_db::entity::submission::Column::Status.eq(Status::Correct))
-        .filter(cds_db::entity::submission::Column::GameId.eq(game_id))
-        .filter(cds_db::entity::submission::Column::TeamId.is_in(team_ids))
-        .into_model::<Submission>()
-        .all(get_db())
-        .await?;
+    let submissions =
+        cds_db::submission::find_correct_by_team_ids_and_game_id::<Submission>(team_ids, game_id)
+            .await?;
 
     let mut result: Vec<ScoreRecord> = Vec::new();
 
@@ -108,4 +107,27 @@ pub async fn get_game_scoreboard(
         total: Some(total),
         ..Default::default()
     })
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GetEventsRequest {
+    pub token: String,
+}
+
+pub async fn get_events(
+    Path(game_id): Path<i64>,
+    Query(params): Query<GetEventsRequest>,
+) -> Result<impl IntoResponse, WebError> {
+    let stream = cds_event::subscribe(SubscribeOptions {
+        game_id: Some(game_id),
+        token: Some(params.token),
+    })
+    .await?;
+
+    let sse_stream = stream.map(|event| {
+        let Ok(evt) = event;
+        Ok::<SseEvent, Infallible>(SseEvent::default().json_data(evt).unwrap())
+    });
+
+    Ok(Sse::new(sse_stream).keep_alive(KeepAlive::default()))
 }

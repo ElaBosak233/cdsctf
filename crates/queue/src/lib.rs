@@ -1,6 +1,7 @@
 pub mod traits;
 
 use anyhow::anyhow;
+pub use async_nats;
 use once_cell::sync::OnceCell;
 use serde::Serialize;
 use tracing::info;
@@ -17,11 +18,11 @@ fn get_jetstream() -> async_nats::jetstream::Context {
     async_nats::jetstream::new(client)
 }
 
-pub async fn publish(subject: &'static str, payload: impl Serialize) -> Result<(), QueueError> {
+pub async fn publish(subject: &str, payload: impl Serialize) -> Result<(), QueueError> {
     let jetstream = get_jetstream();
 
     jetstream
-        .publish(subject, serde_json::to_string(&payload).unwrap().into())
+        .publish(subject.to_owned(), serde_json::to_string(&payload)?.into())
         .await?;
 
     Ok(())
@@ -29,6 +30,7 @@ pub async fn publish(subject: &'static str, payload: impl Serialize) -> Result<(
 
 pub async fn subscribe(
     subject: &str,
+    durable_name: Option<&str>,
 ) -> Result<async_nats::jetstream::consumer::pull::Stream, QueueError> {
     let jetstream = get_jetstream();
 
@@ -44,7 +46,7 @@ pub async fn subscribe(
         .get_or_create_consumer(
             subject,
             async_nats::jetstream::consumer::pull::Config {
-                durable_name: Some(String::from(subject)),
+                durable_name: Some(durable_name.unwrap_or("worker").to_owned()),
                 ..Default::default()
             },
         )
