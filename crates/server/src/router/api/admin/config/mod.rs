@@ -2,15 +2,7 @@ mod email;
 mod logo;
 
 use axum::Router;
-use cds_db::{
-    ChallengeMini, GameChallengeMini, GameMini, Submission, UserMini,
-    challenge::FindChallengeOptions,
-    game::FindGameOptions,
-    game_challenge::FindGameChallengeOptions,
-    sea_orm::{EntityTrait, Set, Unchanged},
-    submission::{FindSubmissionsOptions, Status},
-    user::FindUserOptions,
-};
+use cds_db::sea_orm::Set;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -27,7 +19,7 @@ pub fn router() -> Router {
         .route("/statistics", axum::routing::get(get_statistics))
 }
 
-pub async fn get_config() -> Result<WebResponse<cds_db::entity::config::Model>, WebError> {
+pub async fn get_config() -> Result<WebResponse<cds_db::config::Model>, WebError> {
     Ok(WebResponse {
         data: Some(cds_db::get_config().await),
         ..Default::default()
@@ -35,16 +27,15 @@ pub async fn get_config() -> Result<WebResponse<cds_db::entity::config::Model>, 
 }
 
 pub async fn update_config(
-    Json(body): Json<cds_db::entity::config::Model>,
-) -> Result<WebResponse<cds_db::entity::config::Model>, WebError> {
-    let config = cds_db::entity::config::Entity::update(cds_db::entity::config::ActiveModel {
-        id: Unchanged(1),
+    Json(body): Json<cds_db::config::Model>,
+) -> Result<WebResponse<cds_db::config::Model>, WebError> {
+    let config = cds_db::config::save(cds_db::config::ActiveModel {
         meta: Set(body.meta),
         auth: Set(body.auth),
         email: Set(body.email),
         captcha: Set(body.captcha),
+        ..Default::default()
     })
-    .exec(cds_db::get_db())
     .await?;
 
     Ok(WebResponse {
@@ -76,46 +67,15 @@ pub struct SubmissionStatistics {
 pub async fn get_statistics() -> Result<WebResponse<Statistics>, WebError> {
     Ok(WebResponse {
         data: Some(Statistics {
-            users: cds_db::user::find::<UserMini>(FindUserOptions {
-                page: Some(1),
-                size: Some(1),
-                ..Default::default()
-            })
-            .await?
-            .1,
-            games: cds_db::game::find::<GameMini>(FindGameOptions {
-                page: Some(1),
-                size: Some(1),
-                ..Default::default()
-            })
-            .await?
-            .1,
+            users: cds_db::user::count().await?,
+            games: cds_db::game::count().await?,
             challenges: ChallengeStatistics {
-                total: cds_db::challenge::find::<ChallengeMini>(FindChallengeOptions {
-                    page: Some(1),
-                    size: Some(1),
-                    ..Default::default()
-                })
-                .await?
-                .1,
-                in_game: cds_db::game_challenge::find::<GameChallengeMini>(
-                    FindGameChallengeOptions::default(),
-                )
-                .await?
-                .1,
+                total: cds_db::challenge::count().await?,
+                in_game: cds_db::game_challenge::count().await?,
             },
             submissions: SubmissionStatistics {
-                total: cds_db::submission::find::<Submission>(FindSubmissionsOptions::default())
-                    .await?
-                    .1,
-                solved: cds_db::submission::find::<Submission>(FindSubmissionsOptions {
-                    status: Some(Status::Correct),
-                    page: Some(1),
-                    size: Some(1),
-                    ..Default::default()
-                })
-                .await?
-                .1,
+                total: cds_db::submission::count().await?,
+                solved: cds_db::submission::count_correct().await?,
             },
         }),
         ..Default::default()

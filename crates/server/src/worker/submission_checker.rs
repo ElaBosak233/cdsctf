@@ -8,7 +8,7 @@ use cds_db::{
     submission::{FindSubmissionsOptions, Status},
     team::State,
 };
-use futures::StreamExt;
+use futures_util::StreamExt as _;
 use tracing::{error, info};
 
 use crate::worker::game_calculator;

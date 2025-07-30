@@ -4,7 +4,7 @@ mod pow;
 pub mod traits;
 mod turnstile;
 
-use cds_db::entity::config::captcha::Provider;
+use cds_db::config::captcha::Provider;
 
 use crate::traits::CaptchaError;
 pub use crate::traits::{Answer, Captcha};

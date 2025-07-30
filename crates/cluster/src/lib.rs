@@ -6,7 +6,7 @@ use std::{collections::BTreeMap, path::Path, process};
 
 use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
 use cds_db::challenge::Port;
-use futures_util::{SinkExt, StreamExt, stream::SplitStream};
+use futures_util::{SinkExt, StreamExt as _, stream::SplitStream};
 pub use k8s_openapi;
 use k8s_openapi::{
     api::{

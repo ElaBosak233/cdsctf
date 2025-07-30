@@ -149,6 +149,13 @@ where
         .await?)
 }
 
+pub async fn count() -> Result<u64, DbErr> {
+    Ok(Entity::find()
+        .filter(Column::DeletedAt.is_null())
+        .count(get_db())
+        .await?)
+}
+
 pub async fn is_username_unique(user_id: i64, username: &str) -> Result<bool, DbErr> {
     let user = Entity::find()
         .filter(Expr::expr(Func::lower(Expr::col(Column::Username))).eq(username.to_lowercase()))

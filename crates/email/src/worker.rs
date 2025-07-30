@@ -1,4 +1,4 @@
-use futures::StreamExt as _;
+use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 

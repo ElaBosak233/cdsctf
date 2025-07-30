@@ -1,7 +1,6 @@
 use std::convert::Infallible;
 
-use futures::{Stream, StreamExt};
-use tracing::error;
+use futures_util::{Stream, StreamExt as _};
 
 use crate::{traits::EventError, types::Event};
 
@@ -29,13 +28,8 @@ pub async fn subscribe(
         while let Some(Ok(message)) = messages.next().await {
             let payload = String::from_utf8(message.payload.to_vec()).unwrap_or("".to_owned());
 
-            match serde_json::from_str::<Event>(&payload) {
-                Ok(event) => {
-                    yield Ok(event)
-                },
-                Err(err) => {
-                    error!("{:?}", err);
-                }
+            if let Ok(event) = serde_json::from_str::<Event>(&payload) {
+                yield Ok(event)
             }
 
             let _ = message.ack().await;

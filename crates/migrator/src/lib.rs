@@ -2,7 +2,6 @@ mod migrations;
 
 use async_trait::async_trait;
 use cds_db::get_db;
-use sea_orm::{EntityTrait, PaginatorTrait};
 use sea_orm_migration::prelude::*;
 use tracing::info;
 
@@ -31,19 +30,14 @@ pub async fn run() -> Result<(), DbErr> {
         Migrator::up(get_db(), None).await?;
     }
 
-    if cds_db::entity::config::Entity::find()
-        .count(get_db())
-        .await?
-        < 1
-    {
-        cds_db::entity::config::Entity::insert(cds_db::entity::config::ActiveModel {
+    if cds_db::config::count().await? < 1 {
+        cds_db::config::save(cds_db::config::ActiveModel {
             id: sea_orm::ActiveValue::Set(1),
-            meta: sea_orm::ActiveValue::Set(cds_db::entity::config::meta::Config::default()),
-            auth: sea_orm::ActiveValue::Set(cds_db::entity::config::auth::Config::default()),
-            email: sea_orm::ActiveValue::Set(cds_db::entity::config::email::Config::default()),
-            captcha: sea_orm::ActiveValue::Set(cds_db::entity::config::captcha::Config::default()),
+            meta: sea_orm::ActiveValue::Set(cds_db::config::meta::Config::default()),
+            auth: sea_orm::ActiveValue::Set(cds_db::config::auth::Config::default()),
+            email: sea_orm::ActiveValue::Set(cds_db::config::email::Config::default()),
+            captcha: sea_orm::ActiveValue::Set(cds_db::config::captcha::Config::default()),
         })
-        .exec(get_db())
         .await?;
     }
 

@@ -28,8 +28,6 @@ cds-logger = { workspace = true }
 
 tracing = { workspace = true }
 tokio = { workspace = true }
-async-stream = { workspace = true }
-tokio-stream = { workspace = true }
 rustls = { workspace = true }
 axum = { workspace = true }
 anyhow = { workspace = true }
@@ -46,9 +44,8 @@ tower-sessions-redis-store = { workspace = true }
 mime = { workspace = true }
 validator = { workspace = true }
 nanoid = { workspace = true }
-cookie = { workspace = true }
 uuid = { workspace = true }
-futures = { workspace = true }
+futures-util = { workspace = true }
 tower_governor = { workspace = true }
 scraper = { workspace = true }
 

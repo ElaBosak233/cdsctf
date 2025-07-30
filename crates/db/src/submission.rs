@@ -191,6 +191,17 @@ where
     Ok(submissions)
 }
 
+pub async fn count() -> Result<u64, DbErr> {
+    Ok(Entity::base_find().count(get_db()).await?)
+}
+
+pub async fn count_correct() -> Result<u64, DbErr> {
+    Ok(Entity::base_find()
+        .filter(Column::Status.eq(Status::Correct))
+        .count(get_db())
+        .await?)
+}
+
 pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
     T: FromQueryResult, {

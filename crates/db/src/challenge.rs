@@ -7,7 +7,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub use crate::entity::challenge::{ActiveModel, Container, Env, EnvVar, Model, Port, Relation};
+pub use crate::entity::challenge::{ActiveModel, Container, Env, EnvVar, Model, Port};
 pub(crate) use crate::entity::challenge::{Column, Entity};
 use crate::get_db;
 
@@ -117,11 +117,10 @@ where
     if let Some(sorts) = sorts {
         let sorts = sorts.split(",").collect::<Vec<&str>>();
         for sort in sorts {
-            let col =
-                match Column::from_str(sort.replace("-", "").as_str()) {
-                    Ok(col) => col,
-                    Err(_) => continue,
-                };
+            let col = match Column::from_str(sort.replace("-", "").as_str()) {
+                Ok(col) => col,
+                Err(_) => continue,
+            };
             if sort.starts_with("-") {
                 sql = sql.order_by(col, Order::Desc);
             } else {
@@ -147,6 +146,13 @@ where
         .filter(Column::DeletedAt.is_null())
         .into_model::<T>()
         .one(get_db())
+        .await?)
+}
+
+pub async fn count() -> Result<u64, DbErr> {
+    Ok(Entity::find()
+        .filter(Column::DeletedAt.is_null())
+        .count(get_db())
         .await?)
 }
 

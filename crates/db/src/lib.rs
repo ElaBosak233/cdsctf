@@ -1,5 +1,5 @@
 pub mod challenge;
-pub mod entity;
+pub mod config;
 pub mod game;
 pub mod game_challenge;
 pub mod game_notice;
@@ -10,6 +10,8 @@ pub mod traits;
 pub mod user;
 pub mod util;
 
+pub(crate) mod entity;
+
 use std::time::Duration;
 
 use anyhow::anyhow;
@@ -19,16 +21,17 @@ pub use game_challenge::{GameChallenge, GameChallengeMini};
 pub use game_notice::GameNotice;
 use once_cell::sync::OnceCell;
 pub use sea_orm;
-use sea_orm::{ConnectOptions, Database, DatabaseConnection, EntityTrait};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 pub use submission::Submission;
 pub use team::Team;
 pub use team_user::TeamUser;
 use tracing::info;
+pub use traits::Error;
 pub use user::{User, UserMini};
 
 static DB: OnceCell<DatabaseConnection> = OnceCell::new();
 
-pub async fn init() -> Result<(), anyhow::Error> {
+pub async fn init() -> Result<(), Error> {
     let url = format!(
         "postgres://{}:{}@{}:{}/{}",
         cds_env::get_config().db.username,
@@ -59,10 +62,6 @@ pub fn get_db() -> &'static DatabaseConnection {
     DB.get().unwrap()
 }
 
-pub async fn get_config() -> entity::config::Model {
-    entity::config::Entity::find()
-        .one(get_db())
-        .await
-        .unwrap()
-        .unwrap()
+pub async fn get_config() -> config::Model {
+    config::get().await.unwrap()
 }

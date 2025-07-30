@@ -33,11 +33,7 @@ async-trait = { version = "0.1" }
 tokio = { version = "1.47", features = ["full"] }
 tokio-util = { version = "0.7.15" }
 async-stream = { version = "0.3" }
-tokio-stream = { version = "0.1" }
-futures = { version = "^0.3" }
 futures-util = { version = "0.3" }
-tower = { version = "0.5" }
-tower-http = { version = "0.6", features = ["cors", "fs", "trace"] }
 
 # Web
 axum = { version = "0.8", features = [
@@ -49,13 +45,13 @@ axum = { version = "0.8", features = [
     "tracing",
     "json",
 ] }
-rust-embed = { version = "8.7" }
-mime = { version = "0.3" }
-wsrx = { version = "0.5", features = ["server"] }
-cookie = { version = "0.18.1" }
+tower = { version = "0.5" }
+tower-http = { version = "0.6", features = ["cors", "fs", "trace"] }
 tower_governor = { version = "0.7" }
 tower-sessions = { version = "0.14" }
 tower-sessions-redis-store = { version = "0.16" }
+mime = { version = "0.3" }
+wsrx = { version = "0.5", features = ["server"] }
 
 # Security
 rustls = { version = "0.23", features = ["ring"] }
@@ -141,6 +137,7 @@ sysinfo = { version = "0.36" }
 # Miscellaneous
 once_cell = { version = "1.21" }
 shadow-rs = { version = "1.2" }
+rust-embed = { version = "8.7" }
 validator = { version = "0.20", features = ["derive"] }
 reqwest = { version = "0.12", features = [
     "json",

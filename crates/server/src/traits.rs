@@ -114,7 +114,7 @@ impl IntoResponse for WebError {
                         StatusCode::INTERNAL_SERVER_ERROR,
                         serde_json::json!(err.to_string()),
                     )
-                },
+                }
             },
             Self::CacheError(err) => (
                 StatusCode::INTERNAL_SERVER_ERROR,

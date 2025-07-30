@@ -19,7 +19,7 @@ use cds_db::{
     team::{FindTeamOptions, State},
 };
 use cds_event::SubscribeOptions;
-use futures::StreamExt;
+use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -125,11 +125,8 @@ pub async fn get_events(
     .await?;
 
     let sse_stream = stream.map(|event| {
-        if let Ok(evt) = event {
-            return Ok::<SseEvent, Infallible>(SseEvent::default().json_data(evt).unwrap());
-        }
-
-        Ok(SseEvent::default().data("error"))
+        let Ok(evt) = event;
+        Ok::<SseEvent, Infallible>(SseEvent::default().json_data(evt).unwrap())
     });
 
     Ok(Sse::new(sse_stream).keep_alive(KeepAlive::default()))

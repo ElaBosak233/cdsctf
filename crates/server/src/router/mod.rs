@@ -4,11 +4,10 @@ mod proxy;
 use std::{net::IpAddr, sync::Arc};
 
 use axum::{Router, body::Body, http::Request, middleware::from_fn, response::Response};
-use cookie::SameSite;
 use time::Duration;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::trace::TraceLayer;
-use tower_sessions::{Expiry, SessionManagerLayer};
+use tower_sessions::{Expiry, SessionManagerLayer, cookie::SameSite};
 use tower_sessions_redis_store::RedisStore;
 use tracing::{Span, debug, debug_span};
 

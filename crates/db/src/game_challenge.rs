@@ -88,6 +88,10 @@ where
         .await?)
 }
 
+pub async fn count() -> Result<u64, DbErr> {
+    Ok(Entity::find().count(get_db()).await?)
+}
+
 pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
     T: FromQueryResult, {

@@ -8,7 +8,7 @@ use lettre::{
     },
 };
 
-use crate::{traits::EmailError, util};
+use crate::traits::EmailError;
 
 pub(crate) async fn inject(body: &str) -> String {
     body.replace("%TITLE%", &cds_db::get_config().await.meta.title)
@@ -25,12 +25,12 @@ pub(crate) async fn get_mailer() -> Result<AsyncSmtpTransport<Tokio1Executor>, E
     );
 
     let builder = match cds_db::get_config().await.email.tls {
-        cds_db::entity::config::email::Tls::Starttls => {
+        cds_db::config::email::Tls::Starttls => {
             AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(
                 &cds_db::get_config().await.email.host,
             )
         }
-        cds_db::entity::config::email::Tls::Tls => Ok(AsyncSmtpTransport::<Tokio1Executor>::relay(
+        cds_db::config::email::Tls::Tls => Ok(AsyncSmtpTransport::<Tokio1Executor>::relay(
             &cds_db::get_config().await.email.host,
         )?
         .tls(Tls::Wrapper(
@@ -38,7 +38,7 @@ pub(crate) async fn get_mailer() -> Result<AsyncSmtpTransport<Tokio1Executor>, E
                 .build()
                 .unwrap(),
         ))),
-        cds_db::entity::config::email::Tls::None => {
+        cds_db::config::email::Tls::None => {
             Ok(AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(
                 &cds_db::get_config().await.email.host,
             ))
@@ -66,11 +66,11 @@ pub(crate) async fn send(to: &str, subject: &str, body: &str) -> Result<(), Emai
             .unwrap(),
         )
         .to(to.to_string().parse().unwrap())
-        .subject(util::inject(subject).await)
+        .subject(inject(subject).await)
         .singlepart(
             SinglePart::builder()
                 .header(ContentType::TEXT_HTML)
-                .body(util::inject(body).await),
+                .body(inject(body).await),
         )?;
 
     get_mailer().await?.send(envelope).await?;
