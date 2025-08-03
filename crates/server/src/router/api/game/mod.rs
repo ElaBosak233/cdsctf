@@ -3,11 +3,10 @@ mod game_id;
 use axum::{Router, http::StatusCode};
 use cds_db::{GameMini, game::FindGameOptions};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 use crate::{
-    extract::{Extension, Query},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    extract::Query,
+    traits::{WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -27,11 +26,8 @@ pub struct GetGameRequest {
 
 /// Get games with given params.
 pub async fn get_game(
-    Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetGameRequest>,
 ) -> Result<WebResponse<Vec<GameMini>>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(20);
 

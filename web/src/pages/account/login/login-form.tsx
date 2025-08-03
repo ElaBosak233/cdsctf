@@ -144,10 +144,8 @@ function LoginForm() {
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel
-                  className={cn(["flex", "justify-between", "items-end"])}
-                >
-                  {t("user:password")}{" "}
+                <FormLabel className={cn(["flex", "items-end"])}>
+                  <span className={cn(["flex-1"])}>{t("user:password")}</span>
                   {configStore?.config?.email?.is_enabled && (
                     <Link
                       to={"/account/forget"}

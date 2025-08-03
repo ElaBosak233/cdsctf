@@ -14,7 +14,6 @@ function Label(props: LabelProps) {
       className={cn(
         [
           "text-sm",
-          "leading-none",
           "font-medium",
           "select-none",
           "group-data-[disabled=true]:pointer-events-none",

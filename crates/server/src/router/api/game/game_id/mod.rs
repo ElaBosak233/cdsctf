@@ -21,11 +21,10 @@ use cds_db::{
 use cds_event::SubscribeOptions;
 use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 use crate::{
-    extract::{Extension, Path, Query},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    extract::{Path, Query},
+    traits::{WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -40,12 +39,7 @@ pub fn router() -> Router {
         .route("/events", axum::routing::get(get_events))
 }
 
-pub async fn get_game(
-    Extension(ext): Extension<AuthPrincipal>,
-    Path(game_id): Path<i64>,
-) -> Result<WebResponse<Game>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
+pub async fn get_game(Path(game_id): Path<i64>) -> Result<WebResponse<Game>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 
     Ok(WebResponse {
