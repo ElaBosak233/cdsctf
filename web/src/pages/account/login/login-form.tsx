@@ -144,23 +144,21 @@ function LoginForm() {
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel
-                  className={cn(["flex", "justify-between", "items-end"])}
-                >
-                  {t("user:password")}{" "}
+                <FormLabel className={cn(["flex", "items-end"])}>
+                  <span className={cn(["flex-1"])}>{t("user:password")}</span>
                   {configStore?.config?.email?.is_enabled && (
                     <Link
                       to={"/account/forget"}
                       className={cn([
                         "hover:underline",
                         "underline-offset-3",
-                        "items-end",
+                        "items-center",
                         "flex",
                         "gap-1",
                       ])}
                     >
-                      <CircleHelpIcon className={cn(["size-3.5"])} />
-                      {t("account:forgot")}
+                      <CircleHelpIcon className={cn(["size-4"])} />
+                      <span>{t("account:forgot")}</span>
                     </Link>
                   )}
                 </FormLabel>
