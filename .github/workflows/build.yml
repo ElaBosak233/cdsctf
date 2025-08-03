@@ -53,7 +53,7 @@ jobs:
           flavor: |
             latest=${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-') }}
           tags: |
-            develop
+            dev
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,enable=true,priority=100,prefix=,suffix=,format=short

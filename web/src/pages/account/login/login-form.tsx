@@ -154,13 +154,13 @@ function LoginForm() {
                       className={cn([
                         "hover:underline",
                         "underline-offset-3",
-                        "items-end",
+                        "items-center",
                         "flex",
                         "gap-1",
                       ])}
                     >
-                      <CircleHelpIcon className={cn(["size-3.5"])} />
-                      {t("account:forgot")}
+                      <CircleHelpIcon className={cn(["size-4"])} />
+                      <span>{t("account:forgot")}</span>
                     </Link>
                   )}
                 </FormLabel>
