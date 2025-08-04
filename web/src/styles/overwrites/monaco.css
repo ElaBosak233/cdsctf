@@ -1,0 +1,20 @@
+.monaco-editor .sticky-widget {
+  @apply !bg-card;
+}
+
+.monaco-editor .margin {
+  @apply !border-r !border-r-foreground/20;
+}
+
+.monaco-editor .lines-content,
+.monaco-editor .sticky-line-content {
+  @apply pl-[10px];
+}
+
+.monaco-scrollable-element > .scrollbar > .slider {
+  @apply !bg-foreground rounded-[4px] !opacity-30;
+}
+
+.monaco-scrollable-element > .scrollbar > .slider:hover {
+  @apply opacity-60;
+}

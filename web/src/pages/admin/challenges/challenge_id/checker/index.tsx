@@ -1,19 +1,21 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AnsiUp } from "ansi_up";
 import { StatusCodes } from "http-status-codes";
 import { LayoutTemplateIcon, SaveIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateChallengeChecker } from "@/api/admin/challenges/challenge_id/checker";
+import {
+  type DiagnosticMarker,
+  lintChallengeChecker,
+  updateChallengeChecker,
+} from "@/api/admin/challenges/challenge_id/checker";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";
@@ -31,7 +33,7 @@ export default function Index() {
   const { challenge } = useContext(Context);
   const sharedStore = useSharedStore();
   const [_loading, setLoading] = useState<boolean>(false);
-  const [lint, setLint] = useState<string>();
+  const [lint, setLint] = useState<Array<DiagnosticMarker>>();
 
   const formSchema = z.object({
     checker: z.string({
@@ -61,7 +63,6 @@ export default function Index() {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           toast.success(`题目 ${challenge?.title} 检查器更新成功`);
-          setLint(res?.msg || "Success");
         }
       })
       .finally(() => {
@@ -69,6 +70,19 @@ export default function Index() {
         setLoading(false);
       });
   }
+
+  const debouncedChecker = useDebounce(form.watch("checker"), 500);
+
+  useEffect(() => {
+    if (debouncedChecker) {
+      lintChallengeChecker({
+        id: challenge?.id,
+        checker: debouncedChecker,
+      }).then((res) => {
+        setLint(res.data);
+      });
+    }
+  }, [challenge?.id, debouncedChecker]);
 
   return (
     <Form {...form}>
@@ -121,16 +135,18 @@ export default function Index() {
               <FormControl>
                 <Editor
                   {...field}
+                  value={field.value ?? ""}
                   lang={"rust"}
                   tabSize={4}
                   showLineNumbers
-                  className={cn(["h-full", "min-h-128"])}
+                  className={cn(["h-full", "min-h-120"])}
+                  diagnostics={lint}
                 />
               </FormControl>
             </FormItem>
           )}
         />
-        <Label>Lint 输出</Label>
+        {/* <Label>Lint 输出</Label>
         <Card className={cn(["min-h-40", "p-3", "overflow-auto", "bg-input"])}>
           <pre
             className={cn(["font-mono"])}
@@ -138,7 +154,7 @@ export default function Index() {
               __html: new AnsiUp().ansi_to_html(lint || ""),
             }}
           />
-        </Card>
+        </Card> */}
       </form>
     </Form>
   );

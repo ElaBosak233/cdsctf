@@ -1,7 +1,7 @@
 mod attachment;
+mod checker;
 
 use axum::{Router, http::StatusCode};
-use cds_checker::traits::CheckerError;
 use cds_db::{
     Challenge,
     sea_orm::{
@@ -10,7 +10,6 @@ use cds_db::{
     },
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use validator::Validate;
 
 use crate::{
@@ -24,7 +23,7 @@ pub fn router() -> Router {
         .route("/", axum::routing::put(update_challenge))
         .route("/", axum::routing::delete(delete_challenge))
         .route("/env", axum::routing::put(update_challenge_env))
-        .route("/checker", axum::routing::put(update_challenge_checker))
+        .nest("/checker", checker::router())
         .nest("/attachments", attachment::router())
 }
 
@@ -109,41 +108,6 @@ pub async fn update_challenge_env(
 
     Ok(WebResponse {
         code: StatusCode::OK,
-        ..Default::default()
-    })
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-pub struct UpdateChallengeCheckerRequest {
-    pub checker: Option<String>,
-}
-
-pub async fn update_challenge_checker(
-    Path(challenge_id): Path<uuid::Uuid>,
-    VJson(body): VJson<UpdateChallengeCheckerRequest>,
-) -> Result<WebResponse<()>, WebError> {
-    let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
-
-    let challenge = cds_db::challenge::update::<Challenge>(cds_db::challenge::ActiveModel {
-        id: Unchanged(challenge_id),
-        checker: body.checker.map_or(NotSet, |v| Set(Some(v))),
-        ..Default::default()
-    })
-    .await?;
-
-    let lint = cds_checker::lint(&challenge).await;
-    let msg = if let Err(lint) = lint {
-        match lint {
-            CheckerError::CompileError(diagnostics) => Some(diagnostics),
-            err => Some(err.to_string()),
-        }
-    } else {
-        None
-    };
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        msg: msg.map(|msg| json!(msg)),
         ..Default::default()
     })
 }

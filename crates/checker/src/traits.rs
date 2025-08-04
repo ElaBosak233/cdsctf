@@ -1,3 +1,4 @@
+use serde::Serialize;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -14,8 +15,8 @@ pub enum CheckerError {
     RuntimeError(#[from] rune::runtime::RuntimeError),
     #[error("rune vm error: {0}")]
     VmError(#[from] rune::runtime::VmError),
-    #[error("rune diagnostics error: {0}")]
-    DiagnosticsError(#[from] rune::diagnostics::EmitError),
+    #[error("rune diagnostics error")]
+    DiagnosticsError(Vec<DiagnosticMarker>),
     #[error("compile error: {0}")]
     CompileError(String),
     #[error("missing function: {0}")]
@@ -30,4 +31,22 @@ pub enum CheckerError {
     MediaError(#[from] cds_media::traits::MediaError),
     #[error(transparent)]
     OtherError(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct DiagnosticMarker {
+    pub kind: DiagnosticKind,
+    pub message: String,
+    pub start_line: usize,
+    pub start_column: usize,
+    pub end_line: usize,
+    pub end_column: usize,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DiagnosticKind {
+    Error,
+    Warning,
 }

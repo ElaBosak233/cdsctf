@@ -1,7 +1,7 @@
-export interface WebResponse<T> {
+export interface WebResponse<T, S = string> {
   code: number;
   data?: T;
-  msg?: string;
+  msg?: S;
   ts: number;
   total?: number;
 }
