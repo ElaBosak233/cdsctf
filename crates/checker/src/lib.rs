@@ -3,21 +3,25 @@ pub mod traits;
 pub mod util;
 pub mod worker;
 
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use rune::{
     Context, Diagnostics, Source, Sources, Unit, Value, Vm,
+    ast::Spanned,
+    diagnostics::{Diagnostic, FatalDiagnosticKind},
     runtime::{Object, RuntimeContext},
-    termcolor::Buffer,
 };
 use time::OffsetDateTime;
-use tracing::debug;
+use tracing::{debug, warn};
 use uuid::Uuid;
 
 pub use crate::modules::audit::Status;
-use crate::traits::CheckerError;
+use crate::traits::{CheckerError, DiagnosticKind, DiagnosticMarker};
 
 struct CheckerContext {
     pub unit: Arc<Unit>,
@@ -65,34 +69,69 @@ pub async fn lint(challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
     let script = challenge
         .clone()
         .checker
-        .ok_or(CheckerError::MissingScript("".to_owned()))?;
+        .ok_or_else(|| CheckerError::MissingScript("".to_owned()))?;
     sources.insert(Source::memory(script)?)?;
-    let mut diagnostics = Diagnostics::new();
 
-    let _ = rune::prepare(&mut sources)
+    let mut diagnostics = Diagnostics::new();
+    let result = rune::prepare(&mut sources)
         .with_context(&context)
         .with_diagnostics(&mut diagnostics)
         .build();
 
-    if !diagnostics.is_empty() {
-        let mut out = Buffer::ansi();
-        diagnostics.emit(&mut out, &sources)?;
+    let mut markers_set: HashSet<String> = HashSet::new();
+    let mut markers: Vec<DiagnosticMarker> = Vec::new();
 
-        let out = String::from_utf8(out.into_inner())?.to_string();
-
-        return Err(CheckerError::CompileError(out));
+    for diagnostic in diagnostics.diagnostics() {
+        if let Some(marker) = util::diagnostic_to_marker(diagnostic, &sources) {
+            let key = format!(
+                "{:?}:{:?}:{:?}",
+                marker.kind, marker.message, marker.start_line
+            );
+            if markers_set.insert(key) {
+                markers.push(marker);
+            }
+        }
     }
 
-    let unit = rune::prepare(&mut sources).with_context(&context).build()?;
+    let unit = match result {
+        Ok(unit) => unit,
+        Err(error) => {
+            if markers.is_empty() {
+                markers.push(DiagnosticMarker {
+                    kind: DiagnosticKind::Error,
+                    message: format!("Script failed to compile: {}", error),
+                    start_line: 0,
+                    start_column: 0,
+                    end_line: 0,
+                    end_column: 0,
+                });
+            }
+            return Err(CheckerError::DiagnosticsError(markers));
+        }
+    };
 
     let runtime = context.runtime()?;
     let vm = Vm::new(Arc::new(runtime), Arc::new(unit));
 
-    vm.lookup_function(["check"])
-        .map_err(|_| CheckerError::MissingFunction("check".to_owned()))?;
+    for func in ["check", "generate"] {
+        if vm.lookup_function([func]).is_err() {
+            let msg = format!("Missing required function: {}", func);
+            if markers_set.insert(msg.clone()) {
+                markers.push(DiagnosticMarker {
+                    kind: DiagnosticKind::Error,
+                    message: msg,
+                    start_line: 0,
+                    start_column: 0,
+                    end_line: 0,
+                    end_column: 0,
+                });
+            }
+        }
+    }
 
-    vm.lookup_function(["generate"])
-        .map_err(|_| CheckerError::MissingFunction("generate".to_owned()))?;
+    if !markers.is_empty() {
+        return Err(CheckerError::DiagnosticsError(markers));
+    }
 
     Ok(())
 }

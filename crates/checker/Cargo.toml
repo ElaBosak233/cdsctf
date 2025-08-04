@@ -24,7 +24,8 @@ tokio = { workspace = true }
 time = { workspace = true }
 dashmap = { workspace = true }
 ring = { workspace = true }
-hex = { workspace = true }
 regex = { workspace = true }
+hex = { workspace = true }
 aes = { workspace = true }
 tracing = { workspace = true }
+serde = { workspace = true }
