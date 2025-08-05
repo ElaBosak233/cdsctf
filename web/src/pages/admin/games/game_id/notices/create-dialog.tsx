@@ -105,7 +105,6 @@ function CreateDialog(props: CreateDialogProps) {
                   <Editor
                     {...field}
                     lang={"markdown"}
-                    showLineNumbers
                     className={cn(["h-full", "min-h-64"])}
                   />
                 </FormControl>

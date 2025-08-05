@@ -311,10 +311,11 @@ export default function Index() {
                           {...field}
                           lang="html"
                           placeholder="xHTML (RFC 2557)"
-                          value={field.value || ""}
+                          value={field.value ?? ""}
+                          tabSize={4}
                           onChange={field.onChange}
                           showLineNumbers
-                          className={cn(["h-80"])}
+                          className={cn(["h-120"])}
                         />
                       </Field>
                     </FormControl>
@@ -335,10 +336,11 @@ export default function Index() {
                           {...field}
                           lang="html"
                           placeholder="xHTML (RFC 2557)"
-                          value={field.value || ""}
+                          value={field.value ?? ""}
+                          tabSize={4}
                           onChange={field.onChange}
                           showLineNumbers
-                          className={cn(["h-80"])}
+                          className={cn(["h-120"])}
                         />
                       </Field>
                     </FormControl>

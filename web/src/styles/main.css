@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
-@import "@fontsource-variable/ubuntu-sans-mono";
-@import "@fontsource-variable/ubuntu-sans-mono/wght-italic";
 @import "@fontsource-variable/ubuntu-sans";
 @import "@fontsource-variable/ubuntu-sans/wght-italic";
 @import "@fontsource-variable/ubuntu-sans/wdth";
 @import "@fontsource-variable/ubuntu-sans/wdth-italic";
+
+@import "@fontsource-variable/ubuntu-sans-mono";
+@import "@fontsource-variable/ubuntu-sans-mono/wght-italic";
 
 @import "./overwrites";
 

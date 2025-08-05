@@ -627,7 +627,6 @@ export default function Index() {
                   {...field}
                   value={field.value || ""}
                   lang={"markdown"}
-                  showLineNumbers
                   className={cn(["h-full", "min-h-128"])}
                 />
               </FormControl>

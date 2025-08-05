@@ -325,7 +325,6 @@ export default function Index() {
                       {...field}
                       lang={"markdown"}
                       tabSize={4}
-                      showLineNumbers
                       className={cn(["h-full", "min-h-64"])}
                       value={field.value || ""}
                     />
