@@ -364,7 +364,6 @@ export default function Index() {
                     className={cn(["h-full", "min-h-64"])}
                     lang="markdown"
                     tabSize={2}
-                    showLineNumbers
                   />
                 </FormControl>
                 <FormMessage />

@@ -66,27 +66,6 @@ function NumberField(props: NumberInputProps) {
   }, [stepper, min]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        document.activeElement ===
-        (ref as React.RefObject<HTMLInputElement>).current
-      ) {
-        if (e.key === "ArrowUp") {
-          handleIncrement();
-        } else if (e.key === "ArrowDown") {
-          handleDecrement();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleIncrement, handleDecrement, ref]);
-
-  useEffect(() => {
     if (controlledValue !== undefined) {
       setValue(controlledValue);
     }
