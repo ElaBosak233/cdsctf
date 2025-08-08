@@ -30,8 +30,8 @@ code[data-theme] span {
   min-width: calc(var(--spacing) * 0) !important;
 }
 
-.prose pre code {
-  @apply p-[1em];
+.prose pre:focus-within {
+  outline: none;
 }
 
 .prose pre code [data-line] {

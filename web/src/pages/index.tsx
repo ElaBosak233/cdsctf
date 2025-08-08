@@ -3,9 +3,9 @@ import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Image } from "@/components/ui/image";
+import { MarkdownRender } from "@/components/ui/markdown-render";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
-import { MarkdownRender } from "@/components/utils/markdown-render";
 import { useDecryptedText } from "@/hooks/use-decrypted-text";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";

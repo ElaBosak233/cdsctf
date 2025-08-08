@@ -15,6 +15,7 @@ import remarkRehype from "remark-rehype";
 // } from "rehype-autolink-headings";
 import "katex/dist/katex.min.css";
 import type React from "react";
+import { createHighlighter } from "./shiki";
 
 interface MarkdownRenderProps
   extends React.ComponentProps<typeof MarkdownHooks> {
@@ -37,6 +38,7 @@ function MarkdownRender(props: MarkdownRenderProps) {
               dark: "github-dark",
               light: "github-light",
             },
+            getHighlighter: (_options) => createHighlighter(),
             keepBackground: false,
             bypassInlineCode: false,
           } satisfies RehypePrettyCodeOptions,

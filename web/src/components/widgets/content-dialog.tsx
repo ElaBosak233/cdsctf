@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/utils";
-import { MarkdownRender } from "../utils/markdown-render";
+import { MarkdownRender } from "../ui/markdown-render";
 
 type ContentDialogProps = {
   title: string;

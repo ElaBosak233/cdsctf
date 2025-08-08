@@ -14,12 +14,12 @@ type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 function Toaster(props: ToasterProps) {
   const { ...rest } = props;
-  const { theme } = useApperanceStore();
+  const { computedTheme } = useApperanceStore();
 
   return (
     <Sonner
       richColors
-      theme={theme as ToasterProps["theme"]}
+      theme={computedTheme as ToasterProps["theme"]}
       className={cn(["toaster", "group"])}
       icons={{
         info: <InfoIcon />,

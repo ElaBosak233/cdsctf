@@ -1,3 +1,9 @@
+.monaco-editor,
+.monaco-editor-background,
+.monaco-editor .margin {
+  @apply !bg-transparent !outline-none;
+}
+
 .monaco-editor .sticky-widget {
   @apply !bg-card;
 }
