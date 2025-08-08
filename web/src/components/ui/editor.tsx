@@ -1,12 +1,10 @@
-import * as monaco from "monaco-editor";
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
-import CssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
-import HtmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
-import JsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
-import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
+import { shikiToMonaco } from "@shikijs/monaco";
+import * as monaco from "monaco-editor-core";
+import EditorWorker from "monaco-editor-core/esm/vs/editor/editor.worker?worker";
 import { useEffect, useRef, useState } from "react";
 import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
+import { createHighlighter } from "./shiki";
 
 declare global {
   interface Window {
@@ -15,56 +13,19 @@ declare global {
 }
 
 (window as Window).MonacoEnvironment = {
-  getWorker: (_: string, label: string) => {
-    if (label === "json") {
-      return new JsonWorker();
-    }
-    if (label === "css" || label === "scss" || label === "less") {
-      return new CssWorker();
-    }
-    if (label === "html" || label === "handlebars" || label === "razor") {
-      return new HtmlWorker();
-    }
-    if (label === "typescript" || label === "javascript") {
-      return new TsWorker();
-    }
+  getWorker: (_: string, _label: string) => {
     return new EditorWorker();
   },
 };
 
-monaco.editor.defineTheme("cds-vs", {
-  base: "vs",
-  inherit: true,
-  rules: [],
-  colors: {
-    "editor.background": "#00000000",
-    "editor.selectionBackground": "#66666640",
-    "editor.inactiveSelectionBackground": "#44444440",
-    focusBorder: "#00000000",
-    "scrollbarSlider.background": "#88888850",
-    "scrollbarSlider.hoverBackground": "#88888880",
-    "scrollbarSlider.activeBackground": "#888888aa",
-    "editorGutter.background": "#00000000",
-    "editorGutter.border": "#ffffff20",
-  },
-});
+monaco.languages.register({ id: "markdown" });
+monaco.languages.register({ id: "rust" });
+monaco.languages.register({ id: "html" });
+monaco.languages.register({ id: "css" });
+monaco.languages.register({ id: "javascript" });
+monaco.languages.register({ id: "typescript" });
 
-monaco.editor.defineTheme("cds-vs-dark", {
-  base: "vs-dark",
-  inherit: true,
-  rules: [],
-  colors: {
-    "editor.background": "#00000000",
-    "editor.selectionBackground": "#66666640",
-    "editor.inactiveSelectionBackground": "#44444440",
-    focusBorder: "#00000000",
-    "scrollbarSlider.background": "#88888850",
-    "scrollbarSlider.hoverBackground": "#88888880",
-    "scrollbarSlider.activeBackground": "#888888aa",
-    "editorGutter.background": "#00000000",
-    "editorGutter.border": "#ffffff20",
-  },
-});
+shikiToMonaco(await createHighlighter(), monaco);
 
 type EditorProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   value?: string;
@@ -98,12 +59,14 @@ function Editor(props: EditorProps) {
   } = props;
 
   const valueRef = useRef<string>(value);
+
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const containerRef = useRef<HTMLPreElement | null>(null);
-  const [focused, setFocused] = useState<boolean>(false);
-  const { theme } = useApperanceStore();
 
-  const monacoTheme = theme === "dark" ? "cds-vs-dark" : "cds-vs";
+  const [focused, setFocused] = useState<boolean>(false);
+  const { computedTheme } = useApperanceStore();
+
+  const monacoTheme = computedTheme === "dark" ? "github-dark" : "github-light";
 
   useEffect(() => {
     if (containerRef.current) {

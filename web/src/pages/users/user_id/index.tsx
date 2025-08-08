@@ -1,9 +1,9 @@
 import { UserRoundPenIcon } from "lucide-react";
 import { useContext } from "react";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { MarkdownRender } from "@/components/ui/markdown-render";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
-import { MarkdownRender } from "@/components/utils/markdown-render";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { Context } from "./context";
