@@ -27,6 +27,64 @@ monaco.languages.register({ id: "typescript" });
 
 shikiToMonaco(await createHighlighter(), monaco);
 
+declare global {
+  interface Window {
+    MonacoEnvironment?: monaco.Environment;
+  }
+}
+
+(window as Window).MonacoEnvironment = {
+  getWorker: (_: string, label: string) => {
+    if (label === "json") {
+      return new JsonWorker();
+    }
+    if (label === "css" || label === "scss" || label === "less") {
+      return new CssWorker();
+    }
+    if (label === "html" || label === "handlebars" || label === "razor") {
+      return new HtmlWorker();
+    }
+    if (label === "typescript" || label === "javascript") {
+      return new TsWorker();
+    }
+    return new EditorWorker();
+  },
+};
+
+monaco.editor.defineTheme("cds-vs", {
+  base: "vs",
+  inherit: true,
+  rules: [],
+  colors: {
+    "editor.background": "#00000000",
+    "editor.selectionBackground": "#66666640",
+    "editor.inactiveSelectionBackground": "#44444440",
+    focusBorder: "#00000000",
+    "scrollbarSlider.background": "#88888850",
+    "scrollbarSlider.hoverBackground": "#88888880",
+    "scrollbarSlider.activeBackground": "#888888aa",
+    "editorGutter.background": "#00000000",
+    "editorGutter.border": "#ffffff20",
+  },
+});
+
+monaco.editor.defineTheme("cds-vs-dark", {
+  base: "vs-dark",
+  inherit: true,
+  rules: [],
+  colors: {
+    "editor.background": "#00000000",
+    "editor.selectionBackground": "#66666640",
+    "editor.inactiveSelectionBackground": "#44444440",
+    focusBorder: "#00000000",
+    "scrollbarSlider.background": "#88888850",
+    "scrollbarSlider.hoverBackground": "#88888880",
+    "scrollbarSlider.activeBackground": "#888888aa",
+    "editorGutter.background": "#00000000",
+    "editorGutter.border": "#ffffff20",
+  },
+});
+
 type EditorProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   value?: string;
   onChange?: (value: string) => void;
@@ -59,7 +117,6 @@ function Editor(props: EditorProps) {
   } = props;
 
   const valueRef = useRef<string>(value);
-
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const containerRef = useRef<HTMLPreElement | null>(null);
 
