@@ -1,31 +1,12 @@
-import { shikiToMonaco } from "@shikijs/monaco";
-import * as monaco from "monaco-editor-core";
-import EditorWorker from "monaco-editor-core/esm/vs/editor/editor.worker?worker";
-import { useEffect, useRef, useState } from "react";
+import { type Diagnostic, linter } from "@codemirror/lint";
+import { langs, loadLanguage } from "@uiw/codemirror-extensions-langs";
+import { vscodeDark, vscodeLight } from "@uiw/codemirror-theme-vscode";
+import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
-import { createHighlighter } from "./shiki";
 
-declare global {
-  interface Window {
-    MonacoEnvironment?: monaco.Environment;
-  }
-}
-
-(window as Window).MonacoEnvironment = {
-  getWorker: (_: string, _label: string) => {
-    return new EditorWorker();
-  },
-};
-
-monaco.languages.register({ id: "markdown" });
-monaco.languages.register({ id: "rust" });
-monaco.languages.register({ id: "html" });
-monaco.languages.register({ id: "css" });
-monaco.languages.register({ id: "javascript" });
-monaco.languages.register({ id: "typescript" });
-
-shikiToMonaco(await createHighlighter(), monaco);
+loadLanguage("rust");
+loadLanguage("markdown");
 
 type EditorProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   value?: string;
@@ -58,143 +39,63 @@ function Editor(props: EditorProps) {
     ...rest
   } = props;
 
-  const valueRef = useRef<string>(value);
-
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const containerRef = useRef<HTMLPreElement | null>(null);
-
-  const [focused, setFocused] = useState<boolean>(false);
   const { computedTheme } = useApperanceStore();
 
-  const monacoTheme = computedTheme === "dark" ? "github-dark" : "github-light";
+  const theme = computedTheme === "dark" ? vscodeDark : vscodeLight;
 
-  useEffect(() => {
-    if (containerRef.current) {
-      const editor = monaco.editor.create(containerRef.current, {
-        value: valueRef.current,
-        language: lang,
-        theme: monacoTheme,
-        fontSize: 15,
-        fontFamily: ["Ubuntu Sans Mono"].join(","),
-        lineHeight: 1.5,
-        tabSize,
-        insertSpaces: true,
-        lineNumbers: showLineNumbers ? "on" : "off",
-        glyphMargin: false,
-        lineNumbersMinChars: 4,
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        automaticLayout: true,
-        cursorStyle: "line",
-        cursorBlinking: "smooth",
-        renderWhitespace: "none",
-        renderControlCharacters: false,
-        hideCursorInOverviewRuler: true,
-        overviewRulerLanes: 0,
-        renderLineHighlight: "none",
-        renderValidationDecorations: "on",
-        folding: showLineNumbers,
-        showFoldingControls: showLineNumbers ? "mouseover" : "never",
-        matchBrackets: "never",
-        selectionHighlight: false,
-        codeLens: false,
-        contextmenu: false,
-        links: false,
-        colorDecorators: false,
-        scrollbar: {
-          vertical: "auto",
-          horizontal: "auto",
-          verticalScrollbarSize: 6,
-          horizontalScrollbarSize: 6,
-          alwaysConsumeMouseWheel: false,
-        },
-        find: {
-          addExtraSpaceOnTop: false,
-          autoFindInSelection: "never",
-          seedSearchStringFromSelection: "always",
-        },
-      });
-
-      editorRef.current = editor;
-
-      if (placeholder && !valueRef.current) {
-        const decorationCollection = editor.createDecorationsCollection([
-          {
-            range: new monaco.Range(1, 1, 1, 1),
-            options: {
-              after: {
-                content: placeholder,
-                inlineClassName: "monaco-placeholder",
-              },
-            },
-          },
-        ]);
-
-        const disposable = editor.onDidChangeModelContent(() => {
-          const currentValue = editor.getValue();
-          if (currentValue) {
-            decorationCollection.clear();
-            disposable.dispose();
-          }
-        });
-      }
-
-      editor.onDidChangeModelContent(() => {
-        const currentValue = editor.getValue();
-        if (onChange) onChange(currentValue);
-      });
-
-      editor.onDidFocusEditorText(() => {
-        setFocused(true);
-      });
-
-      editor.onDidBlurEditorText(() => {
-        setFocused(false);
-      });
-
-      return () => {
-        editor.dispose();
-      };
+  function getLanguage() {
+    switch (lang) {
+      case "rust":
+      case "rune":
+        return langs.rust();
+      default:
+        return langs.markdown();
     }
-  }, [lang, tabSize, showLineNumbers, placeholder, onChange, monacoTheme]);
+  }
 
-  useEffect(() => {
-    if (editorRef.current && value !== editorRef.current.getValue()) {
-      editorRef.current.setValue(value);
-    }
+  function getDiagnosticsExtension() {
+    return linter((view) => {
+      const doc = view.state.doc;
+      const result: Diagnostic[] =
+        diagnostics?.map((d) => {
+          const from = doc.line(d.start_line + 1).from + d.start_column;
+          const to = doc.line(d.end_line + 1).from + d.end_column;
 
-    valueRef.current = value;
-  }, [value]);
+          return {
+            from,
+            to,
+            severity: d.kind,
+            message: d.message,
+          };
+        }) ?? [];
 
-  useEffect(() => {
-    if (!editorRef.current) return;
+      return result;
+    });
+  }
 
-    if (!diagnostics) {
-      monaco.editor.setModelMarkers(
-        editorRef.current.getModel()!,
-        "diagnostics",
-        []
-      );
-      return;
-    }
-
-    const model = editorRef.current.getModel();
-    if (!model) return;
-
-    const markers: monaco.editor.IMarkerData[] = diagnostics.map((d) => ({
-      startLineNumber: d.start_line + 1,
-      startColumn: d.start_column + 1,
-      endLineNumber: d.end_line + 1,
-      endColumn: d.end_column + 1,
-      message: d.message,
-      severity:
-        d.kind === "error"
-          ? monaco.MarkerSeverity.Error
-          : monaco.MarkerSeverity.Warning,
-    }));
-
-    monaco.editor.setModelMarkers(model, "diagnostics", markers);
-  }, [diagnostics]);
+  const themeOverwrite = EditorView.theme({
+    "&": {
+      fontSize: "14px",
+      backgroundColor: "transparent",
+      height: "100%",
+      width: "100%",
+      position: "relative",
+    },
+    "&.cm-editor .cm-scroller": {
+      fontFamily: ["Ubuntu Sans Mono Variable"].join(","),
+      lineHeight: "1.6",
+    },
+    ".cm-gutters": {
+      backgroundColor: "transparent",
+    },
+    "&.cm-editor.cm-focused": {
+      outline: "none",
+    },
+    ".cm-scroller::-webkit-scrollbar": {
+      width: "6px",
+      height: "6px",
+    },
+  });
 
   return (
     <div
@@ -205,18 +106,29 @@ function Editor(props: EditorProps) {
         "border",
         "bg-input",
         "ring-offset-input",
-        focused && [
-          "outline-hidden",
-          "ring-2",
-          "ring-ring",
-          "ring-offset-2",
-          "border-transparent",
-        ],
+        "focus-within:outline-hidden",
+        "focus-within:ring-2",
+        "focus-within:ring-ring",
+        "focus-within:ring-offset-2",
+        "focus-within:border-transparent",
         className,
       ])}
       {...rest}
     >
-      <div
+      <CodeMirror
+        basicSetup={{
+          lineNumbers: showLineNumbers,
+          highlightActiveLine: false,
+          highlightActiveLineGutter: false,
+          syntaxHighlighting: true,
+          foldGutter: false,
+          tabSize: tabSize,
+        }}
+        value={value}
+        onChange={(value) => onChange?.(value)}
+        theme={[themeOverwrite, theme]}
+        placeholder={placeholder}
+        extensions={[getLanguage(), getDiagnosticsExtension()]}
         className={cn([
           "absolute",
           "left-0",
@@ -226,12 +138,7 @@ function Editor(props: EditorProps) {
           "inset-0",
           "p-2",
         ])}
-      >
-        <pre
-          ref={containerRef}
-          className={cn(["w-full", "h-full", "relative"])}
-        />
-      </div>
+      />
     </div>
   );
 }
