@@ -1,0 +1,7 @@
+.cm-scroller::-webkit-scrollbar-thumb {
+  @apply bg-foreground/30 rounded-full;
+}
+
+.cm-scroller::-webkit-scrollbar-thumb:hover {
+  @apply bg-foreground/40;
+}

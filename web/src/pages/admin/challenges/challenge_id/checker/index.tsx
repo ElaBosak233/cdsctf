@@ -136,7 +136,7 @@ export default function Index() {
                 <Editor
                   {...field}
                   value={field.value ?? ""}
-                  lang={"rust"}
+                  lang={"rune"}
                   tabSize={4}
                   showLineNumbers
                   className={cn(["h-full", "min-h-120"])}

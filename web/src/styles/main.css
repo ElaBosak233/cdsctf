@@ -144,6 +144,6 @@
 
   body {
     @apply bg-background text-foreground;
-    @apply selection:bg-primary selection:text-primary-foreground;
+    /* @apply selection:bg-primary selection:text-primary-foreground; */
   }
 }

@@ -130,8 +130,8 @@ function SelectContent({
         data-slot="select-content"
         className={cn(
           [
-            "bg-popover",
-            "text-popover-foreground",
+            "bg-input",
+            "text-input-foreground",
             "data-[state=open]:animate-in",
             "data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0",
@@ -149,6 +149,7 @@ function SelectContent({
             "overflow-hidden",
             "rounded-md",
             "border",
+            "border-border",
             "shadow-md",
           ],
           position === "popper" && [
