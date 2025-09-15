@@ -23,7 +23,6 @@ pub async fn router() -> Router {
             .burst_size(cds_env::get_config().server.burst_limit)
             .key_extractor(GovernorKeyExtractor)
             .use_headers()
-            .error_handler(governor_error)
             .finish()
             .unwrap(),
     );
@@ -65,9 +64,7 @@ pub async fn router() -> Router {
                     },
                 ),
         )
-        .layer(GovernorLayer {
-            config: governor_conf,
-        })
+        .layer(GovernorLayer::new(governor_conf).error_handler(governor_error))
         .layer(from_fn(middleware::auth::extract))
         .layer(session_layer)
         .layer(from_fn(middleware::network::real_host))
