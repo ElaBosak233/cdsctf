@@ -19,10 +19,14 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "complexity": {
+        "noImportantStyles": "off"
+      },
       "suspicious": {
         "noArrayIndexKey": "off",
         "noExplicitAny": "warn",
-        "noConfusingVoidType": "off"
+        "noConfusingVoidType": "off",
+        "noUnknownAtRules": "off"
       },
       "style": {
         "noNonNullAssertion": "off"

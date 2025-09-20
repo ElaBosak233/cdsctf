@@ -1,4 +1,4 @@
-use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, NotSet, PaginatorTrait, Set, Unchanged};
+use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, NotSet, PaginatorTrait, Unchanged};
 
 pub(crate) use crate::entity::config::Entity;
 pub use crate::entity::config::{ActiveModel, Model, auth, captcha, email, meta};

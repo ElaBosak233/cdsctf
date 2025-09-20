@@ -10,8 +10,8 @@ use super::{game, game_challenge, submission};
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "challenges")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub id: uuid::Uuid,
+    #[sea_orm(primary_key)]
+    pub id: i64,
     pub title: String,
     #[sea_orm(column_type = "Text")]
     pub description: String,
@@ -96,7 +96,6 @@ impl ActiveModelBehavior for ActiveModel {
         self.updated_at = Set(ts);
 
         if insert {
-            self.id = Set(uuid::Uuid::new_v4());
             self.created_at = Set(ts);
         }
 

@@ -2,7 +2,7 @@ import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export async function deleteChallengeAttachment(
-  id?: string,
+  id?: number,
   filename?: string
 ) {
   return api

@@ -5,7 +5,7 @@ export interface Env {
   game_id: number;
   user_id: number;
   team_id: number;
-  challenge_id: string;
+  challenge_id: number;
   nats?: Array<Nat>;
   ports?: Array<Port>;
   public_entry?: string;

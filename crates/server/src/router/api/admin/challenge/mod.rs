@@ -18,7 +18,7 @@ pub fn router() -> Router {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetChallengeRequest {
-    pub id: Option<uuid::Uuid>,
+    pub id: Option<i64>,
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tag: Option<String>,

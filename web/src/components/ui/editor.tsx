@@ -47,7 +47,7 @@ function Editor(props: EditorProps) {
     switch (lang) {
       case "rust":
       case "rune":
-        return langs.rust();
+        return langs.rs();
       default:
         return langs.markdown();
     }

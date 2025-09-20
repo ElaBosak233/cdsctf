@@ -48,14 +48,14 @@ const columns: Array<ColumnDef<Challenge>> = [
       const { isCopied, copyToClipboard } = useClipboard();
       return (
         <div className={cn(["flex", "items-center", "gap-2"])}>
-          <Badge className={cn(["font-mono"])}>{id?.split("-")?.[0]}</Badge>
+          <Badge className={cn(["font-mono"])}>{id}</Badge>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
                 square
                 size={"sm"}
-                onClick={() => copyToClipboard(id)}
+                onClick={() => copyToClipboard(String(id))}
               />
             </TooltipTrigger>
             <TooltipContent>复制到剪贴板</TooltipContent>

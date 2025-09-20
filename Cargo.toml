@@ -9,7 +9,7 @@ publish = false
 homepage = "https://cdsctf.e23.dev"
 repository = "https://github.com/elabosak233/cdsctf"
 rust-version = "1.90.0"
-version = "1.6.6"
+version = "1.7.0"
 
 [workspace.dependencies]
 # Local Libraries
@@ -26,7 +26,7 @@ cds-email = { path = "crates/email" }
 cds-media = { path = "crates/media" }
 cds-migrator = { path = "crates/migrator" }
 cds-queue = { path = "crates/queue" }
-cds-telemetry = { path = "crates/telemetry" }
+cds-observe = { path = "crates/observe" }
 
 # Async
 async-trait = { version = "0.1" }

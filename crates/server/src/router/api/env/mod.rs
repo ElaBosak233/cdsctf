@@ -87,7 +87,7 @@ pub async fn get_env(
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateEnvRequest {
-    pub challenge_id: Uuid,
+    pub challenge_id: i64,
     pub team_id: Option<i64>,
     pub user_id: Option<i64>,
     pub game_id: Option<i64>,

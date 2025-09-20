@@ -24,7 +24,7 @@ pub fn router() -> Router {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetChallengeRequest {
-    pub id: Option<uuid::Uuid>,
+    pub id: Option<i64>,
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tag: Option<String>,
@@ -64,7 +64,7 @@ pub async fn get_challenge(
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetChallengeStatusRequest {
-    pub challenge_ids: Vec<uuid::Uuid>,
+    pub challenge_ids: Vec<i64>,
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
@@ -81,7 +81,7 @@ pub struct ChallengeStatusResponse {
 pub async fn get_challenge_status(
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<GetChallengeStatusRequest>,
-) -> Result<WebResponse<HashMap<uuid::Uuid, ChallengeStatusResponse>>, WebError> {
+) -> Result<WebResponse<HashMap<i64, ChallengeStatusResponse>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     if body.user_id.is_some() && (body.team_id.is_some() || body.game_id.is_some()) {
@@ -96,7 +96,7 @@ pub async fn get_challenge_status(
         )
         .await?;
 
-    let mut result: HashMap<uuid::Uuid, ChallengeStatusResponse> = HashMap::new();
+    let mut result: HashMap<i64, ChallengeStatusResponse> = HashMap::new();
 
     for challenge_id in body.challenge_ids.iter() {
         result.insert(

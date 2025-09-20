@@ -1,8 +1,7 @@
 use axum::Router;
-use cds_db::{GameChallengeMini, game_challenge::FindGameChallengeOptions, team::State};
+use cds_db::{game_challenge::FindGameChallengeOptions, team::State, GameChallengeMini};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use uuid::Uuid;
 
 use crate::{
     extract::{Extension, Path, Query},
@@ -16,7 +15,7 @@ pub fn router() -> Router {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetGameChallengeRequest {
     pub game_id: Option<i64>,
-    pub challenge_id: Option<Uuid>,
+    pub challenge_id: Option<i64>,
     pub category: Option<i32>,
 }
 

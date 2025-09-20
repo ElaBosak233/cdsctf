@@ -23,7 +23,7 @@ cds-cluster = { workspace = true }
 cds-queue = { workspace = true }
 cds-cache = { workspace = true }
 cds-checker = { workspace = true }
-cds-telemetry = { workspace = true }
+cds-observe = { workspace = true }
 cds-logger = { workspace = true }
 
 tracing = { workspace = true }

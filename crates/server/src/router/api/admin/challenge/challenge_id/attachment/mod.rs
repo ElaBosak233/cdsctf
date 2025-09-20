@@ -25,7 +25,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_challenge_attachment(
-    Path(challenge_id): Path<uuid::Uuid>,
+    Path(challenge_id): Path<i64>,
 ) -> Result<WebResponse<Vec<Metadata>>, WebError> {
     let _ = crate::util::loader::prepare_challenge(challenge_id)
         .await?
@@ -50,7 +50,7 @@ pub async fn get_challenge_attachment(
 }
 
 pub async fn save_challenge_attachment(
-    Path(challenge_id): Path<uuid::Uuid>,
+    Path(challenge_id): Path<i64>,
     mut multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let _ = crate::util::loader::prepare_challenge(challenge_id).await?;

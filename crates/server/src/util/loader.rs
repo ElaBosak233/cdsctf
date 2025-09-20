@@ -1,13 +1,12 @@
 use cds_db::{
-    Challenge, Game, GameChallenge, User,
-    team::{FindTeamOptions, Team},
+    team::{FindTeamOptions, Team}, Challenge, Game, GameChallenge,
+    User,
 };
 use serde_json::json;
-use uuid::Uuid;
 
 use crate::traits::WebError;
 
-pub async fn prepare_challenge(challenge_id: Uuid) -> Result<Challenge, WebError> {
+pub async fn prepare_challenge(challenge_id: i64) -> Result<Challenge, WebError> {
     let challenge = cds_db::challenge::find_by_id(challenge_id)
         .await?
         .ok_or(WebError::NotFound(json!("challenge_not_found")))?;
@@ -25,7 +24,7 @@ pub async fn prepare_game(game_id: i64) -> Result<Game, WebError> {
 
 pub async fn prepare_game_challenge(
     game_id: i64,
-    challenge_id: Uuid,
+    challenge_id: i64,
 ) -> Result<GameChallenge, WebError> {
     let game_challenge = cds_db::game_challenge::find_by_id::<GameChallenge>(game_id, challenge_id)
         .await?

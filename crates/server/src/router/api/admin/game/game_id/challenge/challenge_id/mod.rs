@@ -43,7 +43,7 @@ pub struct UpdateGameChallengeRequest {
 
 pub async fn update_game_challenge(
     Extension(ext): Extension<AuthPrincipal>,
-    Path((game_id, challenge_id)): Path<(i64, Uuid)>,
+    Path((game_id, challenge_id)): Path<(i64, i64)>,
     Json(body): Json<UpdateGameChallengeRequest>,
 ) -> Result<WebResponse<GameChallenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
@@ -95,7 +95,7 @@ pub async fn update_game_challenge(
 
 pub async fn delete_game_challenge(
     Extension(ext): Extension<AuthPrincipal>,
-    Path((game_id, challenge_id)): Path<(i64, Uuid)>,
+    Path((game_id, challenge_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     if operator.group != Group::Admin {

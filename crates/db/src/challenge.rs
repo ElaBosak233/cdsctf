@@ -14,7 +14,7 @@ use crate::get_db;
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
 pub struct Challenge {
-    pub id: Uuid,
+    pub id: i64,
     pub title: String,
     pub description: String,
     pub category: i32,
@@ -50,7 +50,7 @@ pub struct ChallengeMini {
 
 #[derive(Clone, Debug, Default)]
 pub struct FindChallengeOptions {
-    pub id: Option<Uuid>,
+    pub id: Option<i64>,
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tag: Option<String>,
@@ -139,7 +139,7 @@ where
     Ok((challenges, total))
 }
 
-pub async fn find_by_id<T>(challenge_id: Uuid) -> Result<Option<T>, DbErr>
+pub async fn find_by_id<T>(challenge_id: i64) -> Result<Option<T>, DbErr>
 where
     T: FromQueryResult, {
     Ok(Entity::find_by_id(challenge_id)
@@ -172,7 +172,7 @@ where
     Ok(find_by_id::<T>(challenge.id).await?.unwrap())
 }
 
-pub async fn delete(challenge_id: Uuid) -> Result<(), DbErr> {
+pub async fn delete(challenge_id: i64) -> Result<(), DbErr> {
     let challenge = find_by_id::<Model>(challenge_id).await?.unwrap();
 
     let _ = update::<Model>(ActiveModel {

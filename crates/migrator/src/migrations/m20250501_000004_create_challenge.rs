@@ -19,7 +19,7 @@ impl MigrationTrait for Migration {
             manager.get_database_backend(),
             r#"
                 CREATE TABLE IF NOT EXISTS "challenges" (
-                    "id" UUID PRIMARY KEY,
+                    "id" BIGSERIAL PRIMARY KEY,
                     "title" VARCHAR NOT NULL,
                     "description" TEXT NOT NULL,
                     "category" INTEGER NOT NULL,

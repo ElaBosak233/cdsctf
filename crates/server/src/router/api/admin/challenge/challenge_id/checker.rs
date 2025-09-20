@@ -25,7 +25,7 @@ pub struct UpdateCheckerRequest {
 }
 
 pub async fn update_checker(
-    Path(challenge_id): Path<uuid::Uuid>,
+    Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateCheckerRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
@@ -49,7 +49,7 @@ pub struct LintCheckerRequest {
 }
 
 pub async fn lint_checker(
-    Path(challenge_id): Path<uuid::Uuid>,
+    Path(challenge_id): Path<i64>,
     VJson(body): VJson<LintCheckerRequest>,
 ) -> Result<WebResponse<Vec<DiagnosticMarker>>, WebError> {
     let mut challenge = crate::util::loader::prepare_challenge(challenge_id).await?;

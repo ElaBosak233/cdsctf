@@ -4,7 +4,7 @@ export interface Submission {
   status?: Status;
   user_id?: number;
   user_name?: string;
-  challenge_id?: string;
+  challenge_id?: number;
   challenge_title?: string;
   challenge_category?: number;
   team_id?: number;

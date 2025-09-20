@@ -4,7 +4,7 @@ import { api, toSearchParams } from "@/utils/query";
 
 export interface CreateSubmissionRequest {
   content?: string;
-  challenge_id?: string;
+  challenge_id?: number;
   team_id?: number;
   game_id?: number;
 }
@@ -23,7 +23,7 @@ export interface GetSubmissionRequest {
   status?: number;
   user_id?: number;
   is_detailed?: boolean;
-  challenge_id?: string;
+  challenge_id?: number;
   team_id?: number;
   game_id?: number;
   size?: number;

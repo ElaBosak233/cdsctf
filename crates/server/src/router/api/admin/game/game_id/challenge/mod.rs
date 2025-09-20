@@ -1,12 +1,11 @@
 use axum::Router;
 use cds_db::{
-    GameChallenge,
     game_challenge::FindGameChallengeOptions,
     sea_orm::{ActiveValue::Set, NotSet},
+    GameChallenge,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use uuid::Uuid;
 
 use crate::{
     extract::{Json, Path, Query},
@@ -25,7 +24,7 @@ pub fn router() -> Router {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetGameChallengeRequest {
     pub game_id: Option<i64>,
-    pub challenge_id: Option<Uuid>,
+    pub challenge_id: Option<i64>,
     pub category: Option<i32>,
 }
 
@@ -50,7 +49,7 @@ pub async fn get_game_challenge(
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateGameChallengeRequest {
-    pub challenge_id: Uuid,
+    pub challenge_id: i64,
     pub is_enabled: Option<bool>,
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,

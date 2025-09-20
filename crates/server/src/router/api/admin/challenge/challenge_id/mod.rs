@@ -28,7 +28,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_challenge(
-    Path(challenge_id): Path<uuid::Uuid>,
+    Path(challenge_id): Path<i64>,
 ) -> Result<WebResponse<Challenge>, WebError> {
     let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
 
@@ -50,7 +50,7 @@ pub struct UpdateChallengeRequest {
 }
 
 pub async fn update_challenge(
-    Path(challenge_id): Path<uuid::Uuid>,
+    Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeRequest>,
 ) -> Result<WebResponse<Challenge>, WebError> {
     let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
@@ -76,7 +76,7 @@ pub async fn update_challenge(
 }
 
 pub async fn delete_challenge(
-    Path(challenge_id): Path<uuid::Uuid>,
+    Path(challenge_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
 
@@ -94,7 +94,7 @@ pub struct UpdateChallengeEnvRequest {
 }
 
 pub async fn update_challenge_env(
-    Path(challenge_id): Path<uuid::Uuid>,
+    Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let _ = crate::util::loader::prepare_challenge(challenge_id).await?;

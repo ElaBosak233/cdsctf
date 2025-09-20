@@ -2,7 +2,6 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, FromQueryResult, PaginatorTrait, QueryFilter,
 };
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 pub(crate) use crate::entity::game_challenge::Entity;
 pub use crate::entity::game_challenge::{ActiveModel, Column, Model, Relation};
@@ -12,7 +11,7 @@ use crate::get_db;
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
 pub struct GameChallenge {
     pub game_id: i64,
-    pub challenge_id: Uuid,
+    pub challenge_id: i64,
     pub challenge_title: String,
     pub challenge_category: i32,
     pub difficulty: i64,
@@ -28,7 +27,7 @@ pub struct GameChallenge {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
 pub struct GameChallengeMini {
     pub game_id: i64,
-    pub challenge_id: Uuid,
+    pub challenge_id: i64,
     pub challenge_title: String,
     pub challenge_category: i32,
     pub pts: i64,
@@ -38,7 +37,7 @@ pub struct GameChallengeMini {
 #[derive(Clone, Debug, Default)]
 pub struct FindGameChallengeOptions {
     pub game_id: Option<i64>,
-    pub challenge_id: Option<Uuid>,
+    pub challenge_id: Option<i64>,
     pub is_enabled: Option<bool>,
     pub category: Option<i32>,
 }
@@ -77,10 +76,10 @@ where
     Ok((game_challenges, total))
 }
 
-pub async fn find_by_id<T>(game_id: i64, challenge_id: Uuid) -> Result<Option<T>, DbErr>
+pub async fn find_by_id<T>(game_id: i64, challenge_id: i64) -> Result<Option<T>, DbErr>
 where
     T: FromQueryResult, {
-    Ok(Entity::find()
+    Ok(Entity::base_find()
         .filter(Column::GameId.eq(game_id))
         .filter(Column::ChallengeId.eq(challenge_id))
         .into_model::<T>()
@@ -116,7 +115,7 @@ where
     )
 }
 
-pub async fn delete(game_id: i64, challenge_id: Uuid) -> Result<(), DbErr> {
+pub async fn delete(game_id: i64, challenge_id: i64) -> Result<(), DbErr> {
     Entity::delete_many()
         .filter(Column::GameId.eq(game_id))
         .filter(Column::ChallengeId.eq(challenge_id))

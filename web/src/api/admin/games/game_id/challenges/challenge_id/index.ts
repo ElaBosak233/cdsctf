@@ -4,7 +4,7 @@ import { api } from "@/utils/query";
 
 export interface UpdateGameChallengeRequest {
   game_id?: number;
-  challenge_id?: string;
+  challenge_id?: number;
   is_enabled?: boolean;
   max_pts?: number;
   min_pts?: number;
@@ -22,7 +22,7 @@ export async function updateGameChallenge(request: UpdateGameChallengeRequest) {
 }
 
 export interface DeleteGameChallengeRequest {
-  challenge_id?: string;
+  challenge_id?: number;
   game_id?: number;
 }
 

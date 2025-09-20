@@ -7,14 +7,13 @@ use axum::{
 use cds_media::util::hash;
 use mime::Mime;
 use serde_json::json;
-use uuid::Uuid;
 
 use crate::{
     model::Metadata,
     traits::{WebError, WebResponse},
 };
 
-pub fn build_challenge_attachment_path(challenge_id: Uuid) -> String {
+pub fn build_challenge_attachment_path(challenge_id: i64) -> String {
     format!("challenges/{}/attachments", challenge_id)
 }
 

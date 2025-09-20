@@ -18,7 +18,7 @@ pub fn router() -> Router {
 }
 
 pub async fn get_attachment(
-    Path((challenge_id, filename)): Path<(uuid::Uuid, String)>,
+    Path((challenge_id, filename)): Path<(i64, String)>,
 ) -> Result<impl IntoResponse, WebError> {
     let _ = crate::util::loader::prepare_challenge(challenge_id)
         .await?
@@ -42,7 +42,7 @@ pub async fn get_attachment(
 }
 
 pub async fn delete_attachment(
-    Path((challenge_id, filename)): Path<(uuid::Uuid, String)>,
+    Path((challenge_id, filename)): Path<(i64, String)>,
 ) -> Result<WebResponse<()>, WebError> {
     let _ = crate::util::loader::prepare_challenge(challenge_id)
         .await?

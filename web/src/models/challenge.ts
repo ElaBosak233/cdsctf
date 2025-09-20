@@ -1,5 +1,5 @@
 export interface Challenge {
-  id?: string;
+  id?: number;
   title?: string;
   tags?: Array<string>;
   description?: string;
@@ -38,7 +38,7 @@ export interface EnvVar {
 }
 
 export interface ChallengeMini {
-  id?: string;
+  id?: number;
   title?: string;
   category?: number;
   tags?: Array<string>;
