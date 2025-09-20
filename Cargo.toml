@@ -8,7 +8,7 @@ edition = "2024"
 publish = false
 homepage = "https://cdsctf.e23.dev"
 repository = "https://github.com/elabosak233/cdsctf"
-rust-version = "1.89.0"
+rust-version = "1.90.0"
 version = "1.6.6"
 
 [workspace.dependencies]
