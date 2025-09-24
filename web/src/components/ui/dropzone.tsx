@@ -156,6 +156,8 @@ function getRootError(
       case "too-many-files": {
         return `max ${limits.maxFiles} files`;
       }
+      default:
+        return `unknown error: ${error}`;
     }
   });
   const joinedErrors = errors.join(", ");

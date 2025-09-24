@@ -20,7 +20,7 @@ impl MigrationTrait for Migration {
             r#"
                 CREATE TABLE IF NOT EXISTS "game_challenges" (
                     "game_id" BIGINT NOT NULL,
-                    "challenge_id" UUID NOT NULL,
+                    "challenge_id" BIGINT NOT NULL,
                     "difficulty" BIGINT NOT NULL DEFAULT 1,
                     "max_pts" BIGINT NOT NULL DEFAULT 2000,
                     "min_pts" BIGINT NOT NULL DEFAULT 200,

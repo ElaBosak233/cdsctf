@@ -7,7 +7,7 @@ export interface GetEnvRequest {
   game_id?: number;
   user_id?: number;
   team_id?: number;
-  challenge_id?: string;
+  challenge_id?: number;
 }
 
 export async function getEnvs(request: GetEnvRequest) {
@@ -21,7 +21,7 @@ export async function getEnvs(request: GetEnvRequest) {
 export interface CreateEnvRequest {
   game_id?: number;
   team_id?: number;
-  challenge_id?: string;
+  challenge_id?: number;
 }
 
 export async function createEnv(request: CreateEnvRequest) {

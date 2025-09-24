@@ -12,13 +12,10 @@ use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use rune::{
     Context, Diagnostics, Source, Sources, Unit, Value, Vm,
-    ast::Spanned,
-    diagnostics::{Diagnostic, FatalDiagnosticKind},
     runtime::{Object, RuntimeContext},
 };
 use time::OffsetDateTime;
-use tracing::{debug, warn};
-use uuid::Uuid;
+use tracing::{debug};
 
 pub use crate::modules::audit::Status;
 use crate::traits::{CheckerError, DiagnosticKind, DiagnosticMarker};
@@ -29,7 +26,7 @@ struct CheckerContext {
     pub created_at: OffsetDateTime,
 }
 
-static CHECKER_CONTEXT: Lazy<Arc<DashMap<Uuid, CheckerContext>>> =
+static CHECKER_CONTEXT: Lazy<Arc<DashMap<i64, CheckerContext>>> =
     Lazy::new(|| Arc::new(DashMap::new()));
 
 pub async fn init() -> Result<(), CheckerError> {
@@ -38,7 +35,7 @@ pub async fn init() -> Result<(), CheckerError> {
     Ok(())
 }
 
-async fn gen_rune_context(challenge_id: &Uuid) -> Result<Context, CheckerError> {
+async fn gen_rune_context(challenge_id: i64) -> Result<Context, CheckerError> {
     let mut rune_context = Context::with_default_modules()?;
     rune_context.install(rune_modules::http::module(true)?)?;
     rune_context.install(rune_modules::json::module(true)?)?;
@@ -59,12 +56,12 @@ async fn gen_rune_context(challenge_id: &Uuid) -> Result<Context, CheckerError> 
     Ok(rune_context)
 }
 
-fn get_checker_context() -> Arc<DashMap<Uuid, CheckerContext>> {
+fn get_checker_context() -> Arc<DashMap<i64, CheckerContext>> {
     Arc::clone(&CHECKER_CONTEXT)
 }
 
 pub async fn lint(challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
-    let context = gen_rune_context(&challenge.id).await?;
+    let context = gen_rune_context(challenge.id).await?;
     let mut sources = Sources::new();
     let script = challenge
         .clone()
@@ -137,7 +134,7 @@ pub async fn lint(challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
 }
 
 async fn preload(challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
-    let rune_context = gen_rune_context(&challenge.id).await?;
+    let rune_context = gen_rune_context(challenge.id).await?;
     let checker_context = get_checker_context();
 
     if let Some(context) = checker_context.get(&challenge.id) {

@@ -1,10 +1,9 @@
-use axum::{Router, http::StatusCode};
+use axum::{http::StatusCode, Router};
 use cds_db::{
-    Submission,
     submission::{FindSubmissionsOptions, Status},
+    Submission,
 };
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{
     extract::{Path, Query},
@@ -23,7 +22,7 @@ pub struct GetSubmissionsRequest {
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: Option<Uuid>,
+    pub challenge_id: Option<i64>,
     pub status: Option<Status>,
     pub page: Option<u64>,
     pub size: Option<u64>,

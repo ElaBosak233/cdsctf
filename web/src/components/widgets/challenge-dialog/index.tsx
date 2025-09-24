@@ -29,7 +29,7 @@ type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   debug?: boolean;
 };
 
-function useChallengeQuery(challengeId?: string, debug: boolean = false) {
+function useChallengeQuery(challengeId?: number, debug: boolean = false) {
   return useQuery({
     queryKey: ["challenge", challengeId, debug],
     queryFn: () =>
@@ -42,7 +42,7 @@ function useChallengeQuery(challengeId?: string, debug: boolean = false) {
 }
 
 function useChallengeAttachmentsQuery(
-  challengeId?: string,
+  challengeId?: number,
   hasAttachment?: boolean,
   debug: boolean = false
 ) {

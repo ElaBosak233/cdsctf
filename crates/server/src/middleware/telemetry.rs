@@ -4,7 +4,7 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use cds_telemetry::meter::web::{get_active_requests, get_request_bytes, get_response_bytes};
+use cds_observe::meter::web::{get_active_requests, get_request_bytes, get_response_bytes};
 
 pub async fn track_metrics(req: Request<Body>, next: Next) -> Response {
     get_active_requests().add(1, &[]);

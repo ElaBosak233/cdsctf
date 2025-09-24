@@ -83,7 +83,7 @@ export default function Index() {
     getGameChallenges({
       game_id: game.id!,
       challenge_id: debouncedColumnFilters.find((c) => c.id === "challenge_id")
-        ?.value as string,
+        ?.value as number,
       category:
         (debouncedColumnFilters.find((c) => c.id === "challenge_category")
           ?.value as string) !== "all"

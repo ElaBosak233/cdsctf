@@ -96,13 +96,13 @@ pub async fn init() -> Result<(), ClusterError> {
                 ..Default::default()
             },
             spec: Some(NetworkPolicySpec {
-                pod_selector: LabelSelector {
+                pod_selector: Some(LabelSelector {
                     match_labels: Some(BTreeMap::from([(
                         "cds/internet".to_owned(),
                         "false".to_owned(),
                     )])),
                     ..Default::default()
-                },
+                }),
                 policy_types: Some(vec!["Egress".to_owned()]),
                 ..Default::default()
             }),

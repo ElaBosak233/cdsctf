@@ -25,7 +25,7 @@ export async function getPlaygroundChallenges(
 }
 
 export interface GetChallengeStatusRequest {
-  challenge_ids: Array<string>;
+  challenge_ids: Array<number>;
   user_id?: number;
   team_id?: number;
   game_id?: number;

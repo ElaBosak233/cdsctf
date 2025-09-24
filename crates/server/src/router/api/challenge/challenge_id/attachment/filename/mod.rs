@@ -17,7 +17,7 @@ pub fn router() -> Router {
 
 pub async fn get_attachment(
     Extension(ext): Extension<AuthPrincipal>,
-    Path((challenge_id, filename)): Path<(uuid::Uuid, String)>,
+    Path((challenge_id, filename)): Path<(i64, String)>,
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let _ = crate::util::loader::prepare_challenge(challenge_id)

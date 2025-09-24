@@ -5,7 +5,7 @@ pub mod logger;
 pub mod media;
 pub mod queue;
 pub mod server;
-pub mod telemetry;
+pub mod observe;
 pub mod traits;
 
 use std::path::Path;
@@ -41,7 +41,7 @@ pub struct Constant {
     pub cluster: cluster::Config,
     pub media: media::Config,
     pub logger: logger::Config,
-    pub telemetry: telemetry::Config,
+    pub observe: observe::Config,
 }
 
 pub fn get_config() -> &'static Constant {

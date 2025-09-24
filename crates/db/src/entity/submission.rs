@@ -12,7 +12,7 @@ pub struct Model {
     pub id: i64,
     pub content: String,
     pub status: Status,
-    pub challenge_id: Uuid,
+    pub challenge_id: i64,
     pub user_id: i64,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,

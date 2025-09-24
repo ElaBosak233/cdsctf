@@ -5,7 +5,6 @@ use sea_orm::{
     QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 pub use crate::entity::submission::{ActiveModel, Status};
 pub(crate) use crate::entity::submission::{Column, Entity};
@@ -22,7 +21,7 @@ pub struct Submission {
     pub team_name: Option<String>,
     pub game_id: Option<i64>,
     pub game_title: Option<String>,
-    pub challenge_id: Uuid,
+    pub challenge_id: i64,
     pub challenge_title: String,
     pub challenge_category: i32,
     pub created_at: i64,
@@ -46,7 +45,7 @@ pub struct FindSubmissionsOptions {
     pub user_id: Option<i64>,
     pub team_id: Option<Option<i64>>,
     pub game_id: Option<Option<i64>>,
-    pub challenge_id: Option<Uuid>,
+    pub challenge_id: Option<i64>,
     pub status: Option<Status>,
     pub page: Option<u64>,
     pub size: Option<u64>,
@@ -165,7 +164,7 @@ where
 }
 
 pub async fn find_correct_by_challenge_ids_and_optional_team_game<T>(
-    challenge_ids: Vec<Uuid>,
+    challenge_ids: Vec<i64>,
     team_id: Option<i64>,
     game_id: Option<i64>,
 ) -> Result<Vec<T>, DbErr>

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
+import { NumberField } from "@/components/ui/number-field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { Challenge } from "@/models/challenge";
@@ -26,7 +27,7 @@ function CreateDialog(props: CreateDialogProps) {
   const { game } = useContext(Context);
   const sharedStore = useSharedStore();
 
-  const [id, setId] = useState<string>("");
+  const [id, setId] = useState<number>(NaN);
   const debouncedId = useDebounce(id, 100);
   const [title, setTitle] = useState<string>("");
   const debounceTitle = useDebounce(title, 100);
@@ -95,9 +96,9 @@ function CreateDialog(props: CreateDialogProps) {
           <FieldIcon>
             <HashIcon />
           </FieldIcon>
-          <TextField
-            value={id || ""}
-            onChange={(e) => setId(e.target.value)}
+          <NumberField
+            value={id}
+            onValueChange={(value) => setId(value || NaN)}
             placeholder={"ID"}
           />
         </Field>
@@ -122,9 +123,7 @@ function CreateDialog(props: CreateDialogProps) {
               variant={"ghost"}
               onClick={() => handleCreateGameChallenge(challenge)}
             >
-              <Badge className={cn(["font-mono"])}>
-                {challenge?.id?.split("-")?.[0]}
-              </Badge>
+              <Badge className={cn(["font-mono"])}>{challenge?.id}</Badge>
               <Icon className={cn(["size-4"])} />
               <span>{challenge?.title}</span>
             </Button>

@@ -50,7 +50,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
 async fn bootstrap() -> Result<(), anyhow::Error> {
     cds_env::init().await?;
-    cds_telemetry::init().await?;
+    cds_observe::init().await?;
 
     let banner = cds_assets::get("banner.txt").unwrap_or_default();
 
@@ -113,9 +113,9 @@ async fn shutdown() {
         .await
         .expect("Failed to shutdown queue.");
 
-    cds_telemetry::shutdown()
+    cds_observe::shutdown()
         .await
-        .expect("Failed to shutdown telemetry.");
+        .expect("Failed to shutdown observability.");
 
     std::process::exit(0);
 }

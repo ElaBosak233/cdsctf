@@ -3,7 +3,7 @@ import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetChallengesRequest {
-  id?: string;
+  id?: number;
   title?: string;
   description?: string;
   category?: number;

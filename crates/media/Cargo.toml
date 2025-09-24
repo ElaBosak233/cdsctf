@@ -22,4 +22,4 @@ webp = { workspace = true }
 hex = { workspace = true }
 uuid = { workspace = true }
 rust-embed = { workspace = true }
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { workspace = true }

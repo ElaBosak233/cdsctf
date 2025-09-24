@@ -2,7 +2,7 @@ import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface UpdateCheckerRequest {
-  id?: string;
+  id?: number;
   checker?: string;
 }
 
@@ -13,7 +13,7 @@ export async function updateChallengeChecker(request: UpdateCheckerRequest) {
 }
 
 export interface LintCheckerRequest {
-  id?: string;
+  id?: number;
   checker?: string;
 }
 

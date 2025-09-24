@@ -121,7 +121,7 @@ function TagsField(props: TagsFieldProps) {
   // ? suggest : a refactor rather then using a useEffect
 
   useEffect(() => {
-    const VerifyDisable = () => {
+    const verifyDisable = () => {
       if (value.length - 1 >= parseMinItems) {
         setDisableButton(false);
       } else {
@@ -133,7 +133,8 @@ function TagsField(props: TagsFieldProps) {
         setDisableInput(true);
       }
     };
-    VerifyDisable();
+
+    verifyDisable();
   }, [value, parseMinItems, parseMaxItems]);
 
   // ? check: Under build , default option support

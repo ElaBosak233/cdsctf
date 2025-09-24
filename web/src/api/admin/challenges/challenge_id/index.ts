@@ -3,7 +3,7 @@ import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface GetChallengeRequest {
-  id?: string;
+  id?: number;
 }
 
 export async function getChallenge(request: GetChallengeRequest) {
@@ -13,7 +13,7 @@ export async function getChallenge(request: GetChallengeRequest) {
 }
 
 export interface UpdateChallengeRequest {
-  id?: string | null;
+  id?: number | null;
   title?: string | null;
   tags?: Array<string> | null;
   description?: string | null;
@@ -30,7 +30,7 @@ export async function updateChallenge(request: UpdateChallengeRequest) {
 }
 
 export interface DeleteChallengeRequest {
-  id?: string;
+  id?: number;
 }
 
 export async function deleteChallenge(request: DeleteChallengeRequest) {

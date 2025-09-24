@@ -45,12 +45,12 @@ const api = ky.extend({
   },
 });
 
-function toSearchParams(
-  obj: Record<string, unknown>
-): Record<string, string | number | boolean> {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([_, v]) => v !== undefined)
-  ) as Record<string, string | number | boolean>;
+function toSearchParams<T extends object>(obj: T): URLSearchParams {
+  const sp = new URLSearchParams();
+  for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+    if (v !== undefined && v !== null) sp.append(k, String(v));
+  }
+  return sp;
 }
 
 async function parseErrorResponse(

@@ -17,7 +17,7 @@ pub fn router() -> Router {
 
 pub async fn get_challenge_attachment(
     Extension(ext): Extension<AuthPrincipal>,
-    Path(challenge_id): Path<uuid::Uuid>,
+    Path(challenge_id): Path<i64>,
 ) -> Result<WebResponse<Vec<Metadata>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

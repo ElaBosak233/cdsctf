@@ -1,4 +1,4 @@
-use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, PaginatorTrait, Set};
+use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, NotSet, PaginatorTrait, Unchanged};
 
 pub(crate) use crate::entity::config::Entity;
 pub use crate::entity::config::{ActiveModel, Model, auth, captcha, email, meta};
@@ -13,7 +13,11 @@ pub async fn count() -> Result<u64, DbErr> {
 }
 
 pub async fn save(mut model: ActiveModel) -> Result<Model, DbErr> {
-    model.id = Set(1);
+    model.id = if count().await? == 0 {
+        NotSet
+    } else {
+        Unchanged(1)
+    };
     let _ = model.save(get_db()).await?;
 
     Ok(get().await?)

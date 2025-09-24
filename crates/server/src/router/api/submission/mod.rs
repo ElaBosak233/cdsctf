@@ -1,13 +1,12 @@
-use axum::{Router, http::StatusCode};
+use axum::{http::StatusCode, Router};
 use cds_db::{
-    Submission,
     sea_orm::{ActiveValue::NotSet, Set},
     submission::{FindSubmissionsOptions, Status},
     team::{FindTeamOptions, State, Team},
+    Submission,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use uuid::Uuid;
 
 use crate::{
     extract::{Extension, Json, Query},
@@ -26,7 +25,7 @@ pub struct GetSubmissionRequest {
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: Option<Uuid>,
+    pub challenge_id: Option<i64>,
     pub status: Option<Status>,
     pub page: Option<u64>,
     pub size: Option<u64>,
@@ -74,7 +73,7 @@ pub struct CreateSubmissionRequest {
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: uuid::Uuid,
+    pub challenge_id: i64,
 }
 
 pub async fn create_submission(

@@ -22,7 +22,7 @@ impl MigrationTrait for Migration {
                     "id" BIGSERIAL PRIMARY KEY,
                     "content" TEXT NOT NULL,
                     "status" INTEGER NOT NULL DEFAULT 0,
-                    "challenge_id" UUID NOT NULL,
+                    "challenge_id" BIGINT NOT NULL,
                     "user_id" BIGINT NOT NULL,
                     "team_id" BIGINT,
                     "game_id" BIGINT,

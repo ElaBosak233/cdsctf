@@ -1,6 +1,6 @@
 export interface GameChallenge {
   game_id?: number;
-  challenge_id?: string;
+  challenge_id?: number;
   challenge_title?: string;
   challenge_category?: number;
   is_enabled?: boolean;

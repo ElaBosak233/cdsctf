@@ -1,5 +1,5 @@
 [package]
-name = "cds-telemetry"
+name = "cds-observe"
 resolver = "3"
 
 authors = { workspace = true }

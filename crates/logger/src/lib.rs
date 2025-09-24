@@ -36,14 +36,14 @@ pub async fn init() -> Result<(), LoggerError> {
         .with(console_layer)
         .with(
             cds_env::get_config()
-                .telemetry
+                .observe
                 .is_enabled
-                .then_some(cds_telemetry::logger::get_tracing_layer()),
+                .then_some(cds_observe::logger::get_tracing_layer()),
         )
         .with(
-            cds_env::get_config().telemetry.is_enabled.then_some(
-                cds_telemetry::tracer::get_provider()
-                    .map(|_p| OpenTelemetryLayer::new(cds_telemetry::tracer::get_tracer())),
+            cds_env::get_config().observe.is_enabled.then_some(
+                cds_observe::tracer::get_provider()
+                    .map(|_p| OpenTelemetryLayer::new(cds_observe::tracer::get_tracer())),
             ),
         );
 

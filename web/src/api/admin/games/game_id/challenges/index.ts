@@ -4,7 +4,7 @@ import { api, toSearchParams } from "@/utils/query";
 
 export interface GetGameChallengeRequest {
   game_id?: number;
-  challenge_id?: string;
+  challenge_id?: number;
   category?: number;
   is_enabled?: boolean;
 }
@@ -19,7 +19,7 @@ export async function getGameChallenges(request: GetGameChallengeRequest) {
 
 export interface CreateGameChallengeRequest {
   game_id?: number;
-  challenge_id?: string;
+  challenge_id?: number;
   is_enabled?: boolean;
   max_pts?: number;
   min_pts?: number;
