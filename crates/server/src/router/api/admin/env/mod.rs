@@ -4,7 +4,6 @@ use std::collections::BTreeMap;
 
 use axum::Router;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{
     extract::Query,
@@ -24,7 +23,7 @@ pub struct GetEnvRequest {
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: Option<Uuid>,
+    pub challenge_id: Option<i64>,
 }
 
 pub async fn get_env(

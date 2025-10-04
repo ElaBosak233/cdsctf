@@ -3,7 +3,7 @@ name = "cds-server"
 resolver = "3"
 
 authors = { workspace = true }
-edition  = { workspace = true }
+edition = { workspace = true }
 homepage = { workspace = true }
 publish = { workspace = true }
 repository = { workspace = true }
