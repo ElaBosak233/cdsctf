@@ -6,7 +6,6 @@ use axum::{Router, http::StatusCode};
 use cds_db::{TeamUser, team_user::FindTeamUserOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use uuid::Uuid;
 
 use crate::{
     extract::{Extension, Json, Query},
@@ -27,7 +26,7 @@ pub struct GetEnvRequest {
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub challenge_id: Option<Uuid>,
+    pub challenge_id: Option<i64>,
 }
 
 pub async fn get_env(

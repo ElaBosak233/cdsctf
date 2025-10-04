@@ -5,7 +5,6 @@ use sea_orm::{
     Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, prelude::Expr,
 };
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 pub use crate::entity::challenge::{ActiveModel, Container, Env, EnvVar, Model, Port};
 pub(crate) use crate::entity::challenge::{Column, Entity};
@@ -42,7 +41,7 @@ impl Challenge {
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
 pub struct ChallengeMini {
-    pub id: Uuid,
+    pub id: i64,
     pub title: String,
     pub category: i32,
     pub tags: Vec<String>,

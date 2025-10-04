@@ -11,7 +11,6 @@ use cds_event::types::game_challenge::{GameChallengeEvent, GameChallengeEventTyp
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serde_with::serde_as;
-use uuid::Uuid;
 
 use crate::{
     extract::{Extension, Json, Path},
@@ -27,7 +26,7 @@ pub fn router() -> Router {
 #[serde_as]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UpdateGameChallengeRequest {
-    pub challenge_id: Option<Uuid>,
+    pub challenge_id: Option<i64>,
     pub is_enabled: Option<bool>,
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,

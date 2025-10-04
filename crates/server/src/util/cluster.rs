@@ -1,7 +1,6 @@
 use cds_cluster::{k8s_openapi::api::core::v1::Pod, traits::Nat};
 use cds_db::challenge::Port;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Env {
@@ -9,7 +8,7 @@ pub struct Env {
     pub user_id: i64,
     pub team_id: i64,
     pub game_id: i64,
-    pub challenge_id: Uuid,
+    pub challenge_id: i64,
 
     pub ports: Vec<Port>,
     pub public_entry: Option<String>,
@@ -53,14 +52,13 @@ impl From<Pod> for Env {
             .to_owned()
             .parse::<i64>()
             .unwrap_or(0);
-        let challenge_id = Uuid::parse_str(
-            &labels
-                .get("cds/challenge_id")
-                .map(|s| s.to_owned())
-                .unwrap_or_default()
-                .to_owned(),
-        )
-        .unwrap_or_default();
+        let challenge_id = labels
+            .get("cds/challenge_id")
+            .map(|s| s.to_owned())
+            .unwrap_or_default()
+            .to_owned()
+            .parse::<i64>()
+            .unwrap_or(0);
 
         let annotations = pod.metadata.annotations.unwrap_or_default();
 
