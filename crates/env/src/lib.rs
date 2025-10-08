@@ -3,9 +3,9 @@ pub mod cluster;
 pub mod db;
 pub mod logger;
 pub mod media;
+pub mod observe;
 pub mod queue;
 pub mod server;
-pub mod observe;
 pub mod traits;
 
 use std::path::Path;

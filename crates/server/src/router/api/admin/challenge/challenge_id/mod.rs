@@ -75,9 +75,7 @@ pub async fn update_challenge(
     })
 }
 
-pub async fn delete_challenge(
-    Path(challenge_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
+pub async fn delete_challenge(Path(challenge_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
     let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
 
     cds_db::challenge::delete(challenge.id).await?;

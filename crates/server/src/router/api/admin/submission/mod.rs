@@ -1,7 +1,7 @@
-use axum::{http::StatusCode, Router};
+use axum::{Router, http::StatusCode};
 use cds_db::{
-    submission::{FindSubmissionsOptions, Status},
     Submission,
+    submission::{FindSubmissionsOptions, Status},
 };
 use serde::{Deserialize, Serialize};
 
