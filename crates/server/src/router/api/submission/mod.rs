@@ -1,9 +1,9 @@
-use axum::{http::StatusCode, Router};
+use axum::{Router, http::StatusCode};
 use cds_db::{
+    Submission,
     sea_orm::{ActiveValue::NotSet, Set},
     submission::{FindSubmissionsOptions, Status},
     team::{FindTeamOptions, State, Team},
-    Submission,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;

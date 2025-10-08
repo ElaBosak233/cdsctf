@@ -1,6 +1,6 @@
 use cds_db::{
-    team::{FindTeamOptions, Team}, Challenge, Game, GameChallenge,
-    User,
+    Challenge, Game, GameChallenge, User,
+    team::{FindTeamOptions, Team},
 };
 use serde_json::json;
 

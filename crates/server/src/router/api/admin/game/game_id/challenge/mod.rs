@@ -1,8 +1,8 @@
 use axum::Router;
 use cds_db::{
+    GameChallenge,
     game_challenge::FindGameChallengeOptions,
     sea_orm::{ActiveValue::Set, NotSet},
-    GameChallenge,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;

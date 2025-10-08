@@ -1,5 +1,5 @@
 use axum::Router;
-use cds_db::{game_challenge::FindGameChallengeOptions, team::State, GameChallengeMini};
+use cds_db::{GameChallengeMini, game_challenge::FindGameChallengeOptions, team::State};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 

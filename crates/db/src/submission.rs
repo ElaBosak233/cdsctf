@@ -102,11 +102,10 @@ where
     if let Some(sorts) = sorts {
         let sorts = sorts.split(",").collect::<Vec<&str>>();
         for sort in sorts {
-            let col =
-                match crate::entity::submission::Column::from_str(sort.replace("-", "").as_str()) {
-                    Ok(col) => col,
-                    Err(_) => continue,
-                };
+            let col = match Column::from_str(sort.replace("-", "").as_str()) {
+                Ok(col) => col,
+                Err(_) => continue,
+            };
             if sort.starts_with("-") {
                 sql = sql.order_by(col, Order::Desc);
             } else {

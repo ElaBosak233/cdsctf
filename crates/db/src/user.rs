@@ -89,7 +89,7 @@ where
     if let Some(sorts) = sorts {
         let sorts = sorts.split(",").collect::<Vec<&str>>();
         for sort in sorts {
-            let col = match crate::entity::user::Column::from_str(sort.replace("-", "").as_str()) {
+            let col = match Column::from_str(sort.replace("-", "").as_str()) {
                 Ok(col) => col,
                 Err(_) => continue,
             };
@@ -143,7 +143,7 @@ where
     T: FromQueryResult, {
     Ok(Entity::find()
         .filter(Expr::expr(Func::lower(Expr::col(Column::Email))).eq(email.to_lowercase()))
-        .filter(crate::entity::challenge::Column::DeletedAt.is_null())
+        .filter(Column::DeletedAt.is_null())
         .into_model::<T>()
         .one(get_db())
         .await?)

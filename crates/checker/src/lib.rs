@@ -15,7 +15,7 @@ use rune::{
     runtime::{Object, RuntimeContext},
 };
 use time::OffsetDateTime;
-use tracing::{debug};
+use tracing::debug;
 
 pub use crate::modules::audit::Status;
 use crate::traits::{CheckerError, DiagnosticKind, DiagnosticMarker};

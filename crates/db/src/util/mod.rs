@@ -45,10 +45,7 @@ pub async fn is_user_in_game(
     Ok(sql.count(get_db()).await? > 0)
 }
 
-pub async fn can_user_access_challenge(
-    user_id: i64,
-    challenge_id: i64,
-) -> Result<bool, DbErr> {
+pub async fn can_user_access_challenge(user_id: i64, challenge_id: i64) -> Result<bool, DbErr> {
     let Some(challenge) = crate::entity::challenge::Entity::find_by_id(challenge_id)
         .one(get_db())
         .await?
