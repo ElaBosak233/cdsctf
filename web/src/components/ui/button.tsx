@@ -4,7 +4,7 @@ import { LoaderCircleIcon } from "lucide-react";
 import type React from "react";
 import type { ButtonHTMLAttributes, CSSProperties, Ref } from "react";
 
-import { cn } from "@/utils";
+import { cn } from "@/utils/index";
 
 const buttonVariants = cva(
   [

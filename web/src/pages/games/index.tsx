@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { FlagIcon, PackageOpenIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useOutletContext } from "react-router";
 import { type GetGameRequest, getGames } from "@/api/games";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -37,7 +37,9 @@ function useGameQuery(params: GetGameRequest, trigger: number = 0) {
 
 export default function Index() {
   const { config } = useConfigStore();
-  const navigate = useNavigate();
+  const { setEntranceGame } = useOutletContext<{
+    setEntranceGame: (game: GameMini) => void;
+  }>();
 
   const [title, setTitle] = useState<string>("");
   const debouncedTitle = useDebounce(title, 500);
@@ -52,6 +54,10 @@ export default function Index() {
   });
 
   const [selectedGame, setSelectedGame] = useState<GameMini>();
+
+  const handleClick = (game: GameMini) => {
+    setEntranceGame(game);
+  };
 
   useEffect(() => {
     if (games) {
@@ -206,7 +212,7 @@ export default function Index() {
                 "gap-3",
                 "transition-all",
               ])}
-              onClick={() => navigate(`/games/${selectedGame?.id}`)}
+              onClick={() => handleClick(selectedGame)}
             >
               <Image
                 src={`/api/games/${selectedGame?.id}/icon`}
@@ -219,12 +225,7 @@ export default function Index() {
                     ])}
                   />
                 }
-                className={cn([
-                  "aspect-square",
-                  "h-16",
-                  "rounded-full",
-                  "overflow-hidden",
-                ])}
+                className={cn(["h-16", "min-w-16"])}
               />
               <div className={cn(["space-y-1", "flex-1", "max-w-100"])}>
                 <h2

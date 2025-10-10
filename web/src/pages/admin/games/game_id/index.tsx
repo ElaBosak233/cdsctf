@@ -394,6 +394,7 @@ export default function Index() {
               </div>
               <div className={cn(["h-36", "aspect-square"])}>
                 <Avatar
+                  fit="contain"
                   className={cn([
                     "h-full",
                     "w-full",
