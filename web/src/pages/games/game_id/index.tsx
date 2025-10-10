@@ -5,6 +5,7 @@ import {
   PlayIcon,
   SwordsIcon,
   ThumbsDownIcon,
+  UserRoundIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -17,14 +18,14 @@ import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { MarkdownRender } from "@/components/ui/markdown-render";
 import { Typography } from "@/components/ui/typography";
 import { State } from "@/models/team";
+import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 import { TeamGatheringDialog } from "./team-gathering-dialog";
 
 export default function Index() {
-  const { currentGame, selfTeam } = useGameStore();
+  const { currentGame } = useGameStore();
   const { game_id } = useParams<{ game_id: string }>();
-  const navigate = useNavigate();
 
   const status = useMemo(() => {
     if (!currentGame) return "loading";
@@ -36,20 +37,6 @@ export default function Index() {
     if (endedAt < new Date()) return "ended";
     return "ongoing";
   }, [currentGame]);
-
-  const invalidMessage = useMemo(() => {
-    if (selfTeam?.state === State.Banned) {
-      return "禁赛中";
-    } else if (selfTeam?.state === State.Preparing) {
-      return "赛前准备中";
-    } else if (selfTeam?.state === State.Pending) {
-      return "审核中";
-    }
-    return undefined;
-  }, [selfTeam]);
-
-  const [teamGatheringDialogOpen, setTeamGatheringDialogOpen] =
-    useState<boolean>(false);
 
   return (
     <>
@@ -146,56 +133,9 @@ export default function Index() {
             </Badge>
           </div>
           <div>
-            {status === "ended" ? (
-              <Button
-                className={cn(["w-full"])}
-                variant={"solid"}
-                level={"error"}
-                size={"lg"}
-                icon={<CalendarCheckIcon />}
-                disabled
-              >
-                比赛已结束
-              </Button>
-            ) : selfTeam ? (
-              <Button
-                className={cn(["w-full"])}
-                variant={"solid"}
-                level={"success"}
-                size={"lg"}
-                icon={<PlayIcon />}
-                disabled={
-                  status !== "ongoing" || selfTeam.state !== State.Passed
-                }
-                onClick={() => navigate(`/games/${game_id}/challenges`)}
-              >
-                <span>作为 {selfTeam?.name} 参赛</span>
-                {invalidMessage && <span>（{invalidMessage}）</span>}
-              </Button>
-            ) : (
-              <>
-                <Button
-                  variant={"solid"}
-                  level={"info"}
-                  size={"lg"}
-                  className={cn(["w-full"])}
-                  icon={<SwordsIcon />}
-                  onClick={() => setTeamGatheringDialogOpen(true)}
-                >
-                  集结你的队伍
-                </Button>
-                <Dialog
-                  open={teamGatheringDialogOpen}
-                  onOpenChange={setTeamGatheringDialogOpen}
-                >
-                  <DialogContent>
-                    <TeamGatheringDialog
-                      onClose={() => setTeamGatheringDialogOpen(false)}
-                    />
-                  </DialogContent>
-                </Dialog>
-              </>
-            )}
+            <GameActionButton
+              status={status as "ongoing" | "ended" | "upcoming"}
+            />
           </div>
         </div>
         <Card
@@ -235,5 +175,109 @@ export default function Index() {
         </Card>
       </div>
     </>
+  );
+}
+
+interface GameActionProps {
+  status: "ongoing" | "ended" | "upcoming";
+}
+
+export function GameActionButton({ status }: GameActionProps) {
+  const { user } = useAuthStore();
+  const { selfTeam } = useGameStore();
+  const navigate = useNavigate();
+  const { game_id } = useParams<{ game_id: string }>();
+
+  const [teamGatheringDialogOpen, setTeamGatheringDialogOpen] = useState(false);
+
+  const invalidMessage = useMemo(() => {
+    if (selfTeam?.state === State.Banned) {
+      return "禁赛中";
+    } else if (selfTeam?.state === State.Preparing) {
+      return "赛前准备中";
+    } else if (selfTeam?.state === State.Pending) {
+      return "审核中";
+    }
+    return undefined;
+  }, [selfTeam]);
+
+  /** --- 比赛已结束 --- */
+  if (status === "ended") {
+    return (
+      <Button
+        className="w-full"
+        variant="solid"
+        level="error"
+        size="lg"
+        icon={<CalendarCheckIcon />}
+        disabled
+      >
+        比赛已结束
+      </Button>
+    );
+  }
+
+  /** --- 未登录用户 --- */
+  if (!user?.id) {
+    return (
+      <Button
+        className="w-full"
+        variant="solid"
+        level="warning"
+        size="lg"
+        icon={<UserRoundIcon />}
+        disabled
+      >
+        登录以参加比赛
+      </Button>
+    );
+  }
+
+  /** --- 已登录但无队伍 --- */
+  if (!selfTeam) {
+    return (
+      <>
+        <Button
+          className="w-full"
+          variant="solid"
+          level="info"
+          size="lg"
+          icon={<SwordsIcon />}
+          onClick={() => setTeamGatheringDialogOpen(true)}
+        >
+          集结你的队伍
+        </Button>
+
+        <Dialog
+          open={teamGatheringDialogOpen}
+          onOpenChange={setTeamGatheringDialogOpen}
+        >
+          <DialogContent>
+            <TeamGatheringDialog
+              onClose={() => setTeamGatheringDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
+  /** --- 已登录且有队伍 --- */
+  const isOngoing = status === "ongoing";
+  const canParticipate = isOngoing && selfTeam.state === State.Passed;
+
+  return (
+    <Button
+      className="w-full"
+      variant="solid"
+      level="success"
+      size="lg"
+      icon={<PlayIcon />}
+      disabled={!canParticipate}
+      onClick={() => navigate(`/games/${game_id}/challenges`)}
+    >
+      <span>作为 {selfTeam.name} 参赛</span>
+      {invalidMessage && <span>（{invalidMessage}）</span>}
+    </Button>
   );
 }

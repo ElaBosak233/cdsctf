@@ -56,7 +56,6 @@ function Image(props: ImageProps) {
             "flex",
             "items-center",
             "justify-center",
-            "backdrop-blur-sm",
             "bg-opacity-50",
             "text-foreground",
             "bg-transparent",

@@ -45,6 +45,9 @@ const router = createBrowserRouter([
       },
       {
         path: "games",
+        lazy: async () => ({
+          Component: (await import("@/pages/games/layout")).default,
+        }),
         children: [
           {
             index: true,
