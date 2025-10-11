@@ -23,8 +23,18 @@ pub fn router() -> Router {
 pub struct GetSubmissionRequest {
     pub id: Option<i64>,
     pub user_id: Option<i64>,
-    pub team_id: Option<i64>,
-    pub game_id: Option<i64>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub team_id: Option<Option<i64>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub game_id: Option<Option<i64>>,
     pub challenge_id: Option<i64>,
     pub status: Option<Status>,
     pub page: Option<u64>,
@@ -44,8 +54,8 @@ pub async fn get_submission(
     let (submissions, total) = cds_db::submission::find::<Submission>(FindSubmissionsOptions {
         id: params.id,
         user_id: params.user_id,
-        team_id: Some(params.team_id),
-        game_id: Some(params.game_id),
+        team_id: params.team_id,
+        game_id: params.game_id,
         challenge_id: params.challenge_id,
         status: params.status,
         page: Some(page),

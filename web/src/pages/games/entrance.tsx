@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { LoaderCircleIcon } from "lucide-react";
+import { FlagIcon, LoaderCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { Image } from "@/components/ui/image";
 import type { GameMini } from "@/models/game";
 import { cn } from "@/utils";
 
@@ -88,10 +89,11 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
               }}
               className="aspect-square h-40"
             >
-              <img
+              <Image
                 src={`/api/games/${game.id}/icon`}
-                alt={game.title}
-                className="w-full h-full object-contain"
+                fallback={<FlagIcon className={cn("size-12", "rotate-15")} />}
+                delay={0}
+                className={cn(["w-full", "h-full", "object-contain"])}
               />
             </motion.div>
 
