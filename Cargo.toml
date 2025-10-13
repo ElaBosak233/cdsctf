@@ -63,7 +63,7 @@ aes = { version = "0.8" }
 # Data Handling
 uuid = { version = "1.18", features = ["v4", "fast-rng", "macro-diagnostics"] }
 nanoid = { version = "0.4" }
-regex = { version = "1.11" }
+regex = { version = "1.12" }
 time = { version = "0.3", features = ["serde", "macros", "local-offset"] }
 toml = { version = "0.9" }
 serde = { version = "1.0", features = ["derive"] }

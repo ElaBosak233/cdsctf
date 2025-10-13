@@ -47,7 +47,7 @@ pub async fn update_team(
 ) -> Result<WebResponse<Team>, WebError> {
     let team = crate::util::loader::prepare_team(game_id, team_id).await?;
 
-    let team = cds_db::team::update(cds_db::team::ActiveModel {
+    let new_team = cds_db::team::update::<Team>(cds_db::team::ActiveModel {
         id: Unchanged(team.id),
         game_id: Unchanged(team.game_id),
         name: body.name.map_or(NotSet, Set),
@@ -58,9 +58,19 @@ pub async fn update_team(
     })
     .await?;
 
+    if team.state != new_team.state {
+        cds_queue::publish(
+            "calculator",
+            crate::worker::game_calculator::Payload {
+                game_id: Some(game_id),
+            },
+        )
+        .await?;
+    }
+
     Ok(WebResponse {
         code: StatusCode::OK,
-        data: Some(team),
+        data: Some(new_team),
         ..Default::default()
     })
 }

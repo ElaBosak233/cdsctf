@@ -143,6 +143,8 @@ export default function Index() {
         <div
           className={cn([
             "flex",
+            "flex-col",
+            "lg:flex-row",
             "justify-between",
             "items-center",
             "mb-6",
@@ -165,12 +167,15 @@ export default function Index() {
             className={cn([
               "flex",
               "flex-1",
+              "flex-col",
+              "lg:flex-row",
               "justify-center",
               "items-center",
               "gap-3",
+              "w-full",
             ])}
           >
-            <Field size={"sm"} className={cn(["flex-1/6"])}>
+            <Field size={"sm"} className={cn(["w-full", "lg:w-1/6"])}>
               <FieldIcon>
                 <HashIcon />
               </FieldIcon>
@@ -184,7 +189,7 @@ export default function Index() {
                 }
               />
             </Field>
-            <Field size={"sm"} className={cn(["flex-1/6"])}>
+            <Field size={"sm"} className={cn(["w-full", "lg:w-1/6"])}>
               <FieldIcon>
                 <TypeIcon />
               </FieldIcon>
@@ -199,7 +204,7 @@ export default function Index() {
                 }
               />
             </Field>
-            <Field size={"sm"} className={cn(["flex-2/6"])}>
+            <Field size={"sm"} className={cn(["w-full", "lg:w-2/6"])}>
               <FieldIcon>
                 <MailIcon />
               </FieldIcon>
@@ -213,7 +218,7 @@ export default function Index() {
                 }
               />
             </Field>
-            <Field size={"sm"} className={cn(["flex-1/6"])}>
+            <Field size={"sm"} className={cn(["w-full", "lg:w-1/6"])}>
               <FieldIcon>
                 <UserRoundIcon />
               </FieldIcon>
@@ -241,7 +246,7 @@ export default function Index() {
               icon={<PlusCircle />}
               variant={"solid"}
               onClick={() => setCreateDialogOpen(true)}
-              className={cn(["flex-1/6"])}
+              className={cn(["w-full", "lg:w-1/6"])}
             >
               添加用户
             </Button>

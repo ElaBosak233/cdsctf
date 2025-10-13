@@ -4,6 +4,7 @@ import rehypeKatex from "rehype-katex";
 import rehypePrettyCode, {
   type Options as RehypePrettyCodeOptions,
 } from "rehype-pretty-code";
+import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
@@ -28,8 +29,14 @@ function MarkdownRender(props: MarkdownRenderProps) {
 
   return (
     <MarkdownHooks
-      remarkPlugins={[remarkGfm, remarkParse, remarkMath, remarkRehype]}
+      remarkPlugins={[
+        remarkGfm,
+        remarkParse,
+        remarkMath,
+        [remarkRehype, { allowDangerousHtml: true }],
+      ]}
       rehypePlugins={[
+        rehypeRaw,
         [
           rehypePrettyCode,
           {
@@ -62,7 +69,7 @@ function MarkdownRender(props: MarkdownRenderProps) {
         //         }),
         //     } satisfies RehypeAutolinkHeadingsOptions,
         // ],
-        rehypeStringify,
+        [rehypeStringify, { allowDangerousHtml: true }],
       ]}
       {...rest}
     >

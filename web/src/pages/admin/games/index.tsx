@@ -118,6 +118,8 @@ export default function Index() {
         <div
           className={cn([
             "flex",
+            "flex-col",
+            "lg:flex-row",
             "justify-between",
             "items-center",
             "mb-6",
@@ -140,12 +142,14 @@ export default function Index() {
             className={cn([
               "flex",
               "flex-1",
-              "justify-center",
+              "flex-col",
+              "lg:flex-row",
               "items-center",
               "gap-3",
+              "w-full",
             ])}
           >
-            <Field size={"sm"} className={cn(["flex-1/6"])}>
+            <Field size={"sm"} className={cn(["w-full", "lg:w-1/6"])}>
               <FieldIcon>
                 <HashIcon />
               </FieldIcon>
@@ -157,7 +161,7 @@ export default function Index() {
                 }
               />
             </Field>
-            <Field size={"sm"} className={cn(["flex-5/6"])}>
+            <Field size={"sm"} className={cn(["w-full", "lg:w-4/6"])}>
               <FieldIcon>
                 <TypeIcon />
               </FieldIcon>
@@ -173,7 +177,7 @@ export default function Index() {
               icon={<PlusCircleIcon />}
               variant={"solid"}
               onClick={() => setCreateDialogOpen(true)}
-              className={cn(["flex-1/6"])}
+              className={cn(["w-full", "lg:w-1/6"])}
             >
               添加比赛
             </Button>

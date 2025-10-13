@@ -8,12 +8,18 @@ import {
   type ChevronProps,
   type DayButton,
   DayPicker,
+  type DayPickerProps,
   getDefaultClassNames,
   type RootProps,
   type WeekNumberProps,
 } from "react-day-picker";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { useLocale } from "@/hooks/use-locale";
 import { cn } from "@/utils/index";
+
+type CalendarProps = DayPickerProps & {
+  buttonVariant?: React.ComponentProps<typeof Button>["variant"];
+};
 
 function Calendar({
   className,
@@ -24,10 +30,11 @@ function Calendar({
   formatters,
   components,
   ...props
-}: React.ComponentProps<typeof DayPicker> & {
-  buttonVariant?: React.ComponentProps<typeof Button>["variant"];
-}) {
+}: CalendarProps) {
   const defaultClassNames = getDefaultClassNames();
+  const defaultLocale = useLocale();
+
+  const locale = props.locale || defaultLocale;
 
   return (
     <DayPicker
@@ -135,6 +142,7 @@ function Calendar({
         WeekNumber: WeekNumber,
         ...components,
       }}
+      locale={locale}
       {...props}
     />
   );
