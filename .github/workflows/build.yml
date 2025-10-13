@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "*"
     paths:
       - ".github/workflows/build.yml"
       - "crates/**"
@@ -25,6 +23,40 @@ jobs:
     steps:
       - name: Checkout CdsCTF
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read current version
+        id: current
+        run: |
+          VERSION=$(awk -F '"' '/^\[workspace\.package\]/{f=1} f && /^version *=/{print $2; exit}' Cargo.toml)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Read previous version
+        id: previous
+        run: |
+          git fetch origin main --depth=2 || true
+          
+          if [ "$(git rev-list --count HEAD)" -lt 2 ]; then
+            echo "version=none" >> $GITHUB_OUTPUT
+            echo "Only one commit found, skipping previous version check."
+          else
+            PREV_VERSION=$(git show HEAD~1:Cargo.toml | awk -F '"' '/^\[workspace\.package\]/{f=1} f && /^version *=/{print $2; exit}' || echo "none")
+            echo "version=$PREV_VERSION" >> $GITHUB_OUTPUT
+            echo "Previous version: $PREV_VERSION"
+          fi
+
+      - name: Check if version changed
+        id: is_version_changed
+        run: |
+          if [ "${{ steps.current.outputs.version }}" != "${{ steps.previous.outputs.version }}" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "${{ steps.previous.outputs.version }} → ${{ steps.current.outputs.version }}"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "${{ steps.current.outputs.version }}"
+          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -43,27 +75,46 @@ jobs:
           username: elabosak233
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Metadata
-        uses: docker/metadata-action@v5
+      - name: Define tags
         id: meta
-        with:
-          images: |
-            ghcr.io/${{ github.repository_owner }}/cdsctf
-            docker.io/elabosak233/cdsctf
-          flavor: |
-            latest=${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-') }}
-          tags: |
-            dev
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha,enable=true,priority=100,prefix=,suffix=,format=short
+        run: |
+          set -e
+          
+          IMAGES=(
+            "ghcr.io/${{ github.repository_owner }}/cdsctf"
+            "docker.io/elabosak233/cdsctf"
+          )
+          
+          TAGS=("dev")
+          
+          if [ "${{ steps.version_changed.outputs.changed }}" = "true" ]; then
+            VERSION="${{ steps.current.outputs.version }}"
+            TAGS+=("${VERSION}" "latest")
+          fi
+          
+          COMBINED_TAGS=()
+          for img in "${IMAGES[@]}"; do
+            for tag in "${TAGS[@]}"; do
+              COMBINED_TAGS+=("${img}:${tag}")
+            done
+          done
+          
+          OUTPUT=$(IFS=, ; echo "${COMBINED_TAGS[*]}")
+          echo "tags=$OUTPUT" >> $GITHUB_OUTPUT
+          echo "$OUTPUT"
 
       - name: Build and Push
         uses: docker/build-push-action@v6
         with:
           context: ./
           file: ./Dockerfile
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
           push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=cdsctf
+            org.opencontainers.image.version=${{ steps.current.outputs.version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+            maintainer=ElaBosak233 <i@e23.dev>

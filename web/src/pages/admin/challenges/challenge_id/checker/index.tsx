@@ -146,15 +146,6 @@ export default function Index() {
             </FormItem>
           )}
         />
-        {/* <Label>Lint 输出</Label>
-        <Card className={cn(["min-h-40", "p-3", "overflow-auto", "bg-input"])}>
-          <pre
-            className={cn(["font-mono"])}
-            dangerouslySetInnerHTML={{
-              __html: new AnsiUp().ansi_to_html(lint || ""),
-            }}
-          />
-        </Card> */}
       </form>
     </Form>
   );

@@ -64,7 +64,7 @@ function EditDialog(props: EditDialogProps) {
       message: "请填写最小分数",
     }),
     bonus_ratios: z.array(z.number()),
-    frozen_at: z.date().nullish(),
+    frozen_at: z.date().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -94,12 +94,19 @@ function EditDialog(props: EditDialogProps) {
   const difficulty = form.watch("difficulty");
 
   const data = useMemo(() => {
-    return [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((x) => {
-      return {
+    const rangeFactor = Math.max(1, difficulty);
+    const maxTime = 15 * rangeFactor;
+    const step = Math.max(5, Math.ceil(maxTime / 20));
+    const points: { times: number; pts: number }[] = [];
+
+    for (let x = 0; x <= maxTime; x += step) {
+      points.push({
         times: x,
         pts: curve(Number(maxPts), Number(minPts), Number(difficulty), x),
-      };
-    });
+      });
+    }
+
+    return points;
   }, [maxPts, minPts, difficulty]);
 
   function handleAddBonusRatio() {
@@ -303,7 +310,7 @@ function EditDialog(props: EditDialogProps) {
                 <YAxis dataKey={"pts"} />
                 <Area
                   dataKey="pts"
-                  type="natural"
+                  type="monotone"
                   fill="var(--color-foreground)"
                   fillOpacity={0.4}
                   stroke="var(--color-foreground)"

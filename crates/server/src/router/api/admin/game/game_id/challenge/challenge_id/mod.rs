@@ -5,16 +5,14 @@ use cds_db::{
         ActiveValue::{Set, Unchanged},
         NotSet,
     },
-    user::Group,
 };
 use cds_event::types::game_challenge::{GameChallengeEvent, GameChallengeEventType};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use serde_with::serde_as;
 
 use crate::{
-    extract::{Extension, Json, Path},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    extract::{Json, Path},
+    traits::{WebError, WebResponse},
 };
 
 pub fn router() -> Router {
@@ -41,15 +39,9 @@ pub struct UpdateGameChallengeRequest {
 }
 
 pub async fn update_game_challenge(
-    Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, challenge_id)): Path<(i64, i64)>,
     Json(body): Json<UpdateGameChallengeRequest>,
 ) -> Result<WebResponse<GameChallenge>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     let game_challenge = crate::util::loader::prepare_game_challenge(game_id, challenge_id).await?;
 
     let new_game_challenge =
@@ -66,13 +58,19 @@ pub async fn update_game_challenge(
         })
         .await?;
 
-    cds_queue::publish(
-        "calculator",
-        crate::worker::game_calculator::Payload {
-            game_id: Some(new_game_challenge.game_id),
-        },
-    )
-    .await?;
+    if game_challenge.difficulty != new_game_challenge.difficulty
+        || game_challenge.max_pts != new_game_challenge.max_pts
+        || game_challenge.min_pts != new_game_challenge.min_pts
+        || game_challenge.bonus_ratios != new_game_challenge.bonus_ratios
+    {
+        cds_queue::publish(
+            "calculator",
+            crate::worker::game_calculator::Payload {
+                game_id: Some(new_game_challenge.game_id),
+            },
+        )
+        .await?;
+    }
 
     if new_game_challenge.is_enabled != game_challenge.is_enabled {
         cds_event::push(cds_event::types::Event::GameChallenge(GameChallengeEvent {
@@ -93,14 +91,8 @@ pub async fn update_game_challenge(
 }
 
 pub async fn delete_game_challenge(
-    Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, challenge_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    if operator.group != Group::Admin {
-        return Err(WebError::Forbidden(json!("")));
-    }
-
     let game_challenge = crate::util::loader::prepare_game_challenge(game_id, challenge_id).await?;
 
     cds_db::game_challenge::delete(game_challenge.game_id, game_challenge.challenge_id).await?;

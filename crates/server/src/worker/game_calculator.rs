@@ -1,7 +1,7 @@
 //! calculator module is used to calculate the pts and rank of submissions,
 //! teams and game_challenges
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use cds_db::{
     Game, GameChallenge, Submission,
@@ -11,23 +11,29 @@ use cds_db::{
     submission::{FindSubmissionsOptions, Status},
     team::{FindTeamOptions, State, Team},
 };
-use futures_util::StreamExt as _;
+use futures_util::{StreamExt as _, future::join_all, stream};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Payload {
-    pub game_id: Option<i64>,
-}
+async fn calculate(game_id: i64) -> Result<(), anyhow::Error> {
+    let submissions = async || -> Result<Vec<Submission>, anyhow::Error> {
+        let (submissions, _) = cds_db::submission::find::<Submission>(FindSubmissionsOptions {
+            game_id: Some(Some(game_id)),
+            status: Some(Status::Correct),
+            sorts: Some("created_at".to_string()),
+            ..Default::default()
+        })
+        .await?;
 
-pub async fn calculate(game_id: i64) -> Result<(), anyhow::Error> {
-    let (submissions, _) = cds_db::submission::find::<Submission>(FindSubmissionsOptions {
-        game_id: Some(Some(game_id)),
-        status: Some(Status::Correct),
-        sorts: Some("created_at".to_string()),
-        ..Default::default()
-    })
-    .await?;
+        Ok(submissions)
+    };
+
+    let mut sc: HashMap<i64, Vec<Submission>> = HashMap::new(); // submissions by challenge
+    for s in submissions().await? {
+        sc.entry(s.challenge_id).or_default().push(s);
+    }
+
+    let sc = Arc::new(sc);
 
     let (game_challenges, _) =
         cds_db::game_challenge::find::<GameChallenge>(FindGameChallengeOptions {
@@ -36,57 +42,69 @@ pub async fn calculate(game_id: i64) -> Result<(), anyhow::Error> {
         })
         .await?;
 
-    for game_challenge in game_challenges {
-        let challenge_submissions = submissions
-            .clone()
-            .into_iter()
-            .filter(|submission| submission.challenge_id == game_challenge.challenge_id)
-            .collect::<Vec<_>>();
+    let futures = game_challenges.into_iter().map(|game_challenge| {
+        let sc = Arc::clone(&sc);
+        async move {
+            let challenge_submissions = sc
+                .get(&game_challenge.challenge_id)
+                .cloned()
+                .unwrap_or_default();
 
-        let base_pts = crate::util::math::curve(
-            game_challenge.max_pts,
-            game_challenge.min_pts,
-            game_challenge.difficulty,
-            challenge_submissions.len() as i64,
-        );
+            let base_pts = crate::util::math::curve(
+                game_challenge.max_pts,
+                game_challenge.min_pts,
+                game_challenge.difficulty,
+                challenge_submissions.len() as i64,
+            );
 
-        for (rank, submission) in challenge_submissions.iter().enumerate() {
-            let mut model = cds_db::submission::ActiveModel {
-                id: Unchanged(submission.id),
-                ..Default::default()
-            };
-            model.pts =
-                Set(base_pts * (100 + game_challenge.bonus_ratios.get(rank).unwrap_or(&0)) / 100);
-            model.rank = Set(rank as i64 + 1);
-            let _ = cds_db::submission::update::<Submission>(model).await?;
+            let futures = challenge_submissions
+                .iter()
+                .enumerate()
+                .map(|(rank, submission)| {
+                    let bonus = game_challenge.bonus_ratios.get(rank).cloned().unwrap_or(0);
+                    let pts = base_pts * (100 + bonus) / 100;
+
+                    async move {
+                        let model = cds_db::submission::ActiveModel {
+                            id: Unchanged(submission.id),
+                            pts: Set(pts),
+                            rank: Set(rank as i64 + 1),
+                            ..Default::default()
+                        };
+                        let _ = cds_db::submission::update::<Submission>(model)
+                            .await
+                            .map_err(|e| error!("{:?}", e));
+                    }
+                });
+
+            join_all(futures).await;
+
+            let pts = base_pts
+                * (100
+                    + game_challenge
+                        .bonus_ratios
+                        .get(challenge_submissions.len())
+                        .unwrap_or(&0))
+                / 100;
+
+            if pts == game_challenge.pts {
+                return;
+            }
+
+            let _ = cds_db::game_challenge::update::<GameChallenge>(
+                cds_db::game_challenge::ActiveModel {
+                    game_id: Unchanged(game_challenge.game_id),
+                    challenge_id: Unchanged(game_challenge.challenge_id),
+                    pts: Set(pts),
+                    ..Default::default()
+                },
+            )
+            .await
+            .map_err(|e| error!("{:?}", e));
         }
+    });
 
-        let pts = base_pts
-            * (100
-                + game_challenge
-                    .bonus_ratios
-                    .get(submissions.len())
-                    .unwrap_or(&0))
-            / 100;
-
-        let _ =
-            cds_db::game_challenge::update::<GameChallenge>(cds_db::game_challenge::ActiveModel {
-                game_id: Unchanged(game_challenge.game_id),
-                challenge_id: Unchanged(game_challenge.challenge_id),
-                pts: Set(pts),
-                ..Default::default()
-            })
-            .await?;
-    }
-
-    // calculate pts rank for each team
-    let (submissions, _) = cds_db::submission::find::<Submission>(FindSubmissionsOptions {
-        game_id: Some(Some(game_id)),
-        status: Some(Status::Correct),
-        sorts: Some("created_at".to_string()),
-        ..Default::default()
-    })
-    .await?;
+    join_all(futures).await;
 
     let (mut teams, _) = cds_db::team::find::<Team>(FindTeamOptions {
         game_id: Some(game_id),
@@ -96,7 +114,7 @@ pub async fn calculate(game_id: i64) -> Result<(), anyhow::Error> {
     .await?;
 
     let mut team_score_map: HashMap<i64, (i64, Option<i64>)> = HashMap::new();
-    for submission in &submissions {
+    for submission in submissions().await? {
         if let Some(team_id) = submission.team_id {
             let entry = team_score_map.entry(team_id).or_insert((0, None));
             entry.0 += submission.pts;
@@ -111,21 +129,31 @@ pub async fn calculate(game_id: i64) -> Result<(), anyhow::Error> {
         b_pts.cmp(a_pts).then_with(|| a_time.cmp(b_time))
     });
 
-    for (i, team) in teams.into_iter().enumerate() {
-        let mut team_model = cds_db::team::ActiveModel {
-            id: Set(team.id),
-            ..Default::default()
-        };
+    let futures = teams.iter().enumerate().map(|(rank, team)| {
+        let pts = team_score_map.get(&team.id).map(|v| v.0).unwrap_or(0);
 
-        if let Some((pts, _)) = team_score_map.get(&team.id) {
-            team_model.pts = Set(*pts);
+        async move {
+            let team_model = cds_db::team::ActiveModel {
+                id: Set(team.id),
+                pts: Set(pts),
+                rank: Set(rank as i64 + 1),
+                ..Default::default()
+            };
+
+            let _ = cds_db::team::update::<Team>(team_model)
+                .await
+                .map_err(|e| error!("{:?}", e));
         }
-        team_model.rank = Set(i as i64 + 1);
+    });
 
-        let _ = cds_db::team::update::<Team>(team_model).await?;
-    }
+    join_all(futures).await;
 
     Ok(())
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Payload {
+    pub game_id: Option<i64>,
 }
 
 async fn process_messages() -> Result<(), anyhow::Error> {

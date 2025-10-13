@@ -1,6 +1,5 @@
 import { cva } from "class-variance-authority";
 import { add, format } from "date-fns";
-import { enUS } from "date-fns/locale";
 import { CircleXIcon, Clock } from "lucide-react";
 import type * as React from "react";
 import {
@@ -11,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type { DayPickerProps } from "react-day-picker";
+import type { DayPickerProps, Locale } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import {
@@ -26,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLocale } from "@/hooks/use-locale";
 import { cn } from "@/utils";
 import { Calendar } from "./calendar";
 import { TextField } from "./text-field";
@@ -594,7 +594,6 @@ type DateTimePickerRef = {
 } & Omit<HTMLButtonElement, "value">;
 
 function DateTimePicker({
-  locale = enUS,
   defaultPopupValue = new Date(new Date().setHours(0, 0, 0, 0)),
   value,
   onChange,
@@ -612,6 +611,9 @@ function DateTimePicker({
   const [month, setMonth] = useState<Date>(value ?? defaultPopupValue);
   const [displayDate, setDisplayDate] = useState<Date | undefined>(value);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const defaultLocale = useLocale();
+  const locale = props.locale || defaultLocale;
 
   onMonthChange ||= onChange;
 
@@ -693,11 +695,11 @@ function DateTimePicker({
       `PP hh:mm${!granularity || granularity === "second" ? ":ss" : ""} b`,
   };
 
-  let loc = enUS;
+  let loc = locale;
   const { options, localize, formatLong } = locale;
   if (options && localize && formatLong) {
     loc = {
-      ...enUS,
+      ...locale,
       options,
       localize,
       formatLong,
@@ -724,7 +726,7 @@ function DateTimePicker({
                 hourCycle === 24
                   ? initHourFormat.hour24
                   : initHourFormat.hour12,
-                { locale: loc }
+                { locale: loc as Locale }
               )
             ) : (
               <span>{placeholder}</span>
