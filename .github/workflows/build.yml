@@ -80,8 +80,9 @@ jobs:
         run: |
           set -e
           
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGES=(
-            "ghcr.io/${{ github.repository_owner }}/cdsctf"
+            "ghcr.io/${REPO_OWNER}/cdsctf"
             "docker.io/elabosak233/cdsctf"
           )
           
