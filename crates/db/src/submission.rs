@@ -17,6 +17,7 @@ pub struct Submission {
     pub status: Status,
     pub user_id: i64,
     pub user_name: String,
+    pub user_has_avatar: bool,
     pub team_id: Option<i64>,
     pub team_name: Option<String>,
     pub game_id: Option<i64>,

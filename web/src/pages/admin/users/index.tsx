@@ -10,7 +10,6 @@ import {
 import {
   HashIcon,
   ListOrderedIcon,
-  MailIcon,
   PlusCircle,
   ShieldIcon,
   TypeIcon,
@@ -106,8 +105,6 @@ export default function Index() {
       id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
       name: debouncedColumnFilters.find((c) => c.id === "username")
         ?.value as string,
-      email: debouncedColumnFilters.find((c) => c.id === "email")
-        ?.value as string,
       group:
         debouncedColumnFilters.find((c) => c.id === "group")?.value !== "all"
           ? Number(debouncedColumnFilters.find((c) => c.id === "group")?.value)
@@ -189,7 +186,7 @@ export default function Index() {
                 }
               />
             </Field>
-            <Field size={"sm"} className={cn(["w-full", "lg:w-1/6"])}>
+            <Field size={"sm"} className={cn(["w-full", "lg:w-3/6"])}>
               <FieldIcon>
                 <TypeIcon />
               </FieldIcon>
@@ -201,20 +198,6 @@ export default function Index() {
                 }
                 onChange={(e) =>
                   table.getColumn("username")?.setFilterValue(e.target.value)
-                }
-              />
-            </Field>
-            <Field size={"sm"} className={cn(["w-full", "lg:w-2/6"])}>
-              <FieldIcon>
-                <MailIcon />
-              </FieldIcon>
-              <TextField
-                placeholder={"邮箱"}
-                value={
-                  (table.getColumn("email")?.getFilterValue() as string) ?? ""
-                }
-                onChange={(e) =>
-                  table.getColumn("email")?.setFilterValue(e.target.value)
                 }
               />
             </Field>

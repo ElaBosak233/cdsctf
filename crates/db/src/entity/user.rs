@@ -1,9 +1,9 @@
 use async_trait::async_trait;
-use sea_orm::{Set, entity::prelude::*};
+use sea_orm::{QuerySelect, Set, entity::prelude::*, sea_query::Query};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::{submission, team, team_user};
+use super::{email, submission, team, team_user};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "users")]
@@ -13,13 +13,11 @@ pub struct Model {
     pub name: String,
     #[sea_orm(unique)]
     pub username: String,
-    #[sea_orm(unique)]
-    pub email: String,
-    pub is_verified: bool,
     #[sea_orm(column_type = "Text")]
     pub description: Option<String>,
     pub group: Group,
     pub hashed_password: String,
+    pub has_avatar: bool,
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
@@ -50,12 +48,14 @@ pub enum Group {
 
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
+    Email,
     Submission,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
+            Self::Email => Entity::has_one(email::Entity).into(),
             Self::Submission => Entity::has_many(submission::Entity).into(),
         }
     }
@@ -85,5 +85,26 @@ impl ActiveModelBehavior for ActiveModel {
         }
 
         Ok(self)
+    }
+}
+
+impl Entity {
+    pub fn base_find() -> Select<Entity> {
+        Self::find().column_as(
+            Expr::exists(
+                Query::select()
+                    .expr(Expr::val(1))
+                    .from(email::Entity.table_name())
+                    .and_where(
+                        Expr::col((email::Entity.table_name(), email::Column::UserId))
+                            .eq(Expr::col((Entity.table_name(), Column::Id))),
+                    )
+                    .and_where(
+                        Expr::col((email::Entity.table_name(), email::Column::IsVerified)).eq(true),
+                    )
+                    .to_owned(),
+            ),
+            "is_verified",
+        )
     }
 }

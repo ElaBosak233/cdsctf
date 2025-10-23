@@ -30,7 +30,7 @@ const avatarVariants = cva(
 
 type AvatarProps = React.ComponentProps<typeof RadixAvatar.Root> &
   VariantProps<typeof avatarVariants> & {
-    src: string;
+    src?: string | false;
     fallback?: React.ReactNode;
     fit?: "cover" | "contain" | "fill" | "none" | "scale-down";
     onLoadingStatusChange?: (
@@ -59,7 +59,7 @@ function Avatar(props: AvatarProps) {
       {...rest}
     >
       <AvatarImage
-        src={src}
+        src={src || undefined}
         fit={fit}
         onLoadingStatusChange={(status) => {
           setLoading(status === "loading");

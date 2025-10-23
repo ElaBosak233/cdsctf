@@ -129,6 +129,7 @@ impl Entity {
             .left_join(team::Entity)
             .left_join(game::Entity)
             .column_as(user::Column::Name, "user_name")
+            .column_as(user::Column::HasAvatar, "user_has_avatar")
             .column_as(team::Column::Name, "team_name")
             .column_as(game::Column::Title, "game_title")
             .column_as(challenge::Column::Title, "challenge_title")

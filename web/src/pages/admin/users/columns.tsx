@@ -74,10 +74,17 @@ const columns: Array<ColumnDef<User>> = [
     cell: ({ row }) => (
       <div className={cn(["flex", "items-center", "gap-3"])}>
         <Avatar
-          src={`/api/users/${row.original.id}/avatar`}
+          src={
+            row.original.has_avatar && `/api/users/${row.original.id}/avatar`
+          }
           fallback={row.original.username?.charAt(0)}
         />
         {row.original.username}
+        {row.original.is_verified ? (
+          <CircleCheckIcon className={cn(["text-success", "size-3.5"])} />
+        ) : (
+          <AlertCircleIcon className={cn(["text-warning", "size-3.5"])} />
+        )}
       </div>
     ),
   },
@@ -86,21 +93,6 @@ const columns: Array<ColumnDef<User>> = [
     id: "name",
     header: "昵称",
     cell: ({ row }) => row.original.name || "-",
-  },
-  {
-    accessorKey: "email",
-    id: "email",
-    header: "邮箱",
-    cell: ({ row }) => (
-      <div className={cn(["flex", "gap-2", "items-center"])}>
-        {row.original.email}
-        {row.original.is_verified ? (
-          <CircleCheckIcon className={cn(["text-success", "size-4"])} />
-        ) : (
-          <AlertCircleIcon className={cn(["text-warning", "size-4"])} />
-        )}
-      </div>
-    ),
   },
   {
     accessorKey: "group",

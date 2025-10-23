@@ -8,7 +8,7 @@ use argon2::{
 };
 use axum::{Router, http::StatusCode, response::IntoResponse};
 use cds_db::{
-    User,
+    Email, User,
     sea_orm::ActiveValue::Set,
     user::{FindUserOptions, Group},
 };
@@ -108,7 +108,7 @@ pub async fn user_register(
     }
 
     body.email = body.email.to_lowercase();
-    if !cds_db::user::is_email_unique(0, &body.email).await? {
+    if !cds_db::user::is_email_unique(&body.email).await? {
         return Err(WebError::Conflict(json!("email_already_exists")));
     }
 
@@ -125,8 +125,6 @@ pub async fn user_register(
     let user = cds_db::user::create::<User>(cds_db::user::ActiveModel {
         username: Set(body.username),
         name: Set(body.name),
-        email: Set(body.email),
-        is_verified: Set(!cds_db::get_config().await.email.is_enabled),
         hashed_password: Set(hashed_password),
         group: Set(
             if cds_db::user::find::<User>(FindUserOptions::default())
@@ -140,6 +138,13 @@ pub async fn user_register(
             },
         ),
         ..Default::default()
+    })
+    .await?;
+
+    let _ = cds_db::email::create::<Email>(cds_db::email::ActiveModel {
+        user_id: Set(user.id),
+        email: Set(body.email),
+        is_verified: Set(!cds_db::get_config().await.email.is_enabled),
     })
     .await?;
 

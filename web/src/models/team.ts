@@ -4,6 +4,8 @@ export interface Team {
   name?: string;
   email?: string;
   slogan?: string;
+  has_avatar?: boolean;
+
   state?: State;
 
   pts?: number;

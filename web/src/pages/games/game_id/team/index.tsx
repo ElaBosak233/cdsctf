@@ -34,7 +34,7 @@ import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 
 export default function Index() {
-  const { tick, bump } = useRefresh();
+  const { bump } = useRefresh();
   const { currentGame, selfTeam } = useGameStore();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -61,7 +61,7 @@ export default function Index() {
     form.reset(selfTeam, {
       keepDefaultValues: false,
     });
-  }, [selfTeam, form.reset]);
+  }, [selfTeam, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!selfTeam || !currentGame) return;
@@ -214,7 +214,10 @@ export default function Index() {
                     "duration-300",
                     "border",
                   ])}
-                  src={`/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar?refresh=${tick}`}
+                  src={
+                    selfTeam?.has_avatar &&
+                    `/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar`
+                  }
                   fallback={selfTeam?.name?.charAt(0)}
                   onLoadingStatusChange={(status) =>
                     setHasAvatar(status === "loaded")

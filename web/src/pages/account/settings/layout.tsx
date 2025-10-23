@@ -1,4 +1,4 @@
-import { InfoIcon, LockIcon, UserRoundXIcon } from "lucide-react";
+import { InfoIcon, LockIcon, MailsIcon, UserRoundXIcon } from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,11 @@ export default function Layout() {
       link: `/account/settings`,
       name: "基本信息",
       icon: <InfoIcon />,
+    },
+    {
+      link: `/account/settings/emails`,
+      name: "电子邮箱",
+      icon: <MailsIcon />,
     },
     {
       link: `/account/settings/password`,

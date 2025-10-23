@@ -4,10 +4,10 @@ export interface User {
   id?: number;
   name?: string;
   username?: string;
-  email?: string;
   is_verified?: boolean;
   group?: Group;
   description?: string;
+  has_avatar?: boolean;
   teams?: Array<Team>;
   created_at?: string;
   updated_at?: string;
@@ -24,4 +24,5 @@ export interface UserMini {
   id?: number;
   name?: string;
   username?: string;
+  has_avatar?: boolean;
 }

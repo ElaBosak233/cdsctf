@@ -67,7 +67,10 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         <div className={cn(["flex", "items-center", "gap-4"])}>
           <Avatar
             className={cn(["size-7"])}
-            src={`/api/users/${row.original.user_id}/avatar`}
+            src={
+              row.original.user_has_avatar &&
+              `/api/users/${row.original.user_id}/avatar`
+            }
             fallback={row.original.user_name?.charAt(0)}
           />
           <Link
@@ -147,7 +150,10 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         <div className={cn(["flex", "gap-5", "my-5"])}>
           <Avatar
             className={cn(["size-15"])}
-            src={`/api/games/${currentGame?.id}/teams/${team.id}/avatar`}
+            src={
+              team?.has_avatar &&
+              `/api/games/${currentGame?.id}/teams/${team.id}/avatar`
+            }
             fallback={team.name?.charAt(0)}
           />
           <div className={cn(["flex", "flex-col", "gap-1"])}>

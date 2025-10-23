@@ -2,7 +2,8 @@ use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
 };
-
+use cds_db::sea_orm::{Set, Unchanged};
+use cds_db::User;
 use crate::{
     extract::Extension,
     traits::{AuthPrincipal, WebError, WebResponse},
@@ -26,8 +27,15 @@ pub async fn save_user_avatar(
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     let path = format!("users/{}/avatar", operator.id);
+    let _ = util::media::save_img(path, multipart).await?;
 
-    util::media::save_img(path, multipart).await
+    let _ = cds_db::user::update::<User>(cds_db::user::ActiveModel {
+        id: Unchanged(operator.id),
+        has_avatar: Set(true),
+        ..Default::default()
+    }).await?;
+
+    Ok(WebResponse::default())
 }
 
 pub async fn delete_user_avatar(
@@ -36,6 +44,13 @@ pub async fn delete_user_avatar(
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     let path = format!("users/{}/avatar", operator.id);
+    let _ = util::media::delete_img(path).await?;
 
-    util::media::delete_img(path).await
+    let _ = cds_db::user::update::<User>(cds_db::user::ActiveModel {
+        id: Unchanged(operator.id),
+        has_avatar: Set(false),
+        ..Default::default()
+    }).await?;
+
+    Ok(WebResponse::default())
 }

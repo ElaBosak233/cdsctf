@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { MailIcon } from "lucide-react";
 import { Outlet, useParams } from "react-router";
 import { getUser } from "@/api/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
@@ -45,7 +44,7 @@ export default function Layout() {
           <div className={cn(["flex", "flex-row", "items-center", "gap-5"])}>
             <Avatar
               className={cn("h-12", "w-12")}
-              src={`/api/users/${user?.id}/avatar`}
+              src={user?.has_avatar && `/api/users/${user?.id}/avatar`}
               fallback={user?.name?.charAt(0)}
             />
             <div className={cn(["flex", "flex-col", "flex-1", "min-w-0"])}>
@@ -74,31 +73,6 @@ export default function Layout() {
             </div>
           </div>
           <Separator />
-          <div
-            className={cn([
-              "flex",
-              "items-center",
-              "justify-center",
-              "gap-2",
-              "text-sm",
-              "min-w-0",
-            ])}
-          >
-            <MailIcon className={cn(["size-4"])} />
-            <a
-              href={`mailto:${user?.email}`}
-              className={cn([
-                "hover:underline",
-                "underline-offset-3",
-                "cursor-pointer",
-                "overflow-ellipsis",
-                "whitespace-nowrap",
-                "overflow-hidden",
-              ])}
-            >
-              {user?.email}
-            </a>
-          </div>
           <div className={cn(["flex-1"])} />
           <span
             className={cn([

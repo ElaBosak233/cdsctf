@@ -113,7 +113,7 @@ export default function Index() {
         keepDefaultValues: false,
       }
     );
-  }, [game, form.reset]);
+  }, [game, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);

@@ -6,7 +6,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20250501_000005_create_team"
+        "m20251024_000006_create_team"
     }
 }
 
@@ -24,6 +24,7 @@ impl MigrationTrait for Migration {
                     "name" VARCHAR NOT NULL,
                     "email" VARCHAR,
                     "slogan" VARCHAR,
+                    "has_avatar" BOOLEAN NOT NULL DEFAULT FALSE,
                     "state" INT NOT NULL,
                     "pts" BIGINT NOT NULL DEFAULT 0,
                     "rank" BIGINT NOT NULL DEFAULT 0,

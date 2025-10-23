@@ -3,11 +3,12 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 use axum::Router;
-use cds_db::User;
+use cds_db::{Email, User};
 use cds_media::config::email::EmailType;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use validator::Validate;
 
 use crate::{
     extract::Json,
@@ -21,19 +22,20 @@ pub fn router() -> Router {
         .route("/send", axum::routing::post(send_forget_email))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct UserForgetRequest {
+    #[validate(email)]
     pub email: String,
     pub code: String,
     pub password: String,
 }
 
 pub async fn user_forget(Json(body): Json<UserForgetRequest>) -> Result<WebResponse<()>, WebError> {
-    let user = cds_db::user::find_by_email::<User>(body.email)
+    let user = cds_db::user::find_by_email::<User>(body.email.to_lowercase())
         .await?
         .ok_or(WebError::BadRequest("user_not_found".into()))?;
 
-    let code = cds_cache::get::<String>(format!("email:{}:code", user.email))
+    let code = cds_cache::get::<String>(format!("email:{}:code", body.email.to_lowercase()))
         .await?
         .ok_or(WebError::BadRequest("email_code_expired".into()))?;
 
@@ -48,15 +50,17 @@ pub async fn user_forget(Json(body): Json<UserForgetRequest>) -> Result<WebRespo
 
     cds_db::user::update_password(user.id, hashed_password).await?;
 
-    let _ = cds_cache::get_del::<String>(format!("email:{}:code", user.email)).await?;
+    let _ =
+        cds_cache::get_del::<String>(format!("email:{}:code", body.email.to_lowercase())).await?;
 
     Ok(WebResponse {
         ..Default::default()
     })
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct UserSendForgetEmailRequest {
+    #[validate(email)]
     pub email: String,
 }
 
@@ -67,11 +71,15 @@ pub async fn send_forget_email(
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
-    let user = cds_db::user::find_by_email::<User>(body.email)
+    let email = cds_db::email::find_by_email::<Email>(body.email.to_owned())
+        .await?
+        .ok_or(WebError::BadRequest("email_not_found".into()))?;
+
+    let user = cds_db::user::find_by_email::<User>(email.email.to_owned())
         .await?
         .ok_or(WebError::BadRequest("user_not_found".into()))?;
 
-    if cds_cache::get::<i64>(format!("email:{}:buffer", user.email.to_owned()))
+    if cds_cache::get::<i64>(format!("email:{}:buffer", email.email.to_owned()))
         .await?
         .is_some()
     {
@@ -80,7 +88,7 @@ pub async fn send_forget_email(
 
     let code = nanoid!();
     cds_cache::set_ex(
-        format!("email:{}:code", user.email.to_owned()),
+        format!("email:{}:code", email.email.to_owned()),
         code.to_owned(),
         60 * 60,
     )
@@ -92,14 +100,14 @@ pub async fn send_forget_email(
         "email",
         cds_email::Payload {
             name: user.name.to_owned(),
-            email: user.email.to_owned(),
+            email: email.email.to_owned(),
             subject: util::email::extract_title(&body).unwrap_or("Reset Your Password".to_owned()),
             body: body.replace("%CODE%", &code).replace("%USER%", &user.name),
         },
     )
     .await?;
 
-    cds_cache::set_ex(format!("email:{}:buffer", user.email.to_owned()), 1, 60).await?;
+    cds_cache::set_ex(format!("email:{}:buffer", email.email.to_owned()), 1, 60).await?;
 
     Ok(WebResponse {
         ..Default::default()
