@@ -64,7 +64,7 @@ export default function Index() {
     form.reset(challenge, {
       keepDefaultValues: false,
     });
-  }, [challenge, form.reset]);
+  }, [challenge, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);

@@ -41,12 +41,6 @@ export default function Index() {
   return (
     <>
       <title>{`${currentGame?.title}`}</title>
-      <link
-        id={"favicon"}
-        rel="icon"
-        type="image"
-        href={`/api/games/${game_id}/icon`}
-      />
       <div
         className={cn([
           "w-full",
@@ -77,7 +71,7 @@ export default function Index() {
         >
           <div className={cn(["flex", "flex-col", "gap-5", "items-center"])}>
             <Image
-              src={`/api/games/${game_id}/poster`}
+              src={currentGame?.has_poster && `/api/games/${game_id}/poster`}
               className={cn([
                 "object-cover",
                 "rounded-xl",

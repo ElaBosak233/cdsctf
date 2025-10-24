@@ -6,7 +6,7 @@ use argon2::{
 };
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    User,
+    Email, User,
     sea_orm::ActiveValue::Set,
     user::{FindUserOptions, Group},
 };
@@ -65,6 +65,8 @@ pub struct CreateUserRequest {
     pub name: String,
     #[validate(length(min = 3, max = 20))]
     pub username: String,
+    #[validate(email)]
+    pub email: String,
     pub password: String,
     pub group: Group,
 }
@@ -88,6 +90,13 @@ pub async fn create_user(
         hashed_password: Set(hashed_password),
         group: Set(body.group),
         ..Default::default()
+    })
+    .await?;
+
+    let _ = cds_db::email::create::<Email>(cds_db::email::ActiveModel {
+        user_id: Set(user.id),
+        email: Set(body.email),
+        is_verified: Set(true),
     })
     .await?;
 

@@ -1,5 +1,5 @@
 use axum::{Router, http::StatusCode};
-use cds_db::{TeamUser, sea_orm::ActiveValue::Set, team::State};
+use cds_db::{TeamUser, UserMini, sea_orm::ActiveValue::Set, team::State};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -10,8 +10,22 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
+        .route("/", axum::routing::get(get_team_user))
         .route("/", axum::routing::post(create_team_user))
         .route("/{user_id}", axum::routing::delete(delete_team_user))
+}
+
+pub async fn get_team_user(
+    Path((game_id, team_id)): Path<(i64, i64)>,
+) -> Result<WebResponse<Vec<UserMini>>, WebError> {
+    let team = crate::util::loader::prepare_team(game_id, team_id).await?;
+
+    let team_users = cds_db::user::find_by_team_id::<UserMini>(team.id).await?;
+
+    Ok(WebResponse {
+        data: Some(team_users),
+        ..Default::default()
+    })
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/utils";
 
 type ImageProps = {
-  src: string;
+  src?: string | false;
   alt?: string;
   delay?: number;
   fallback?: React.ReactNode;
@@ -29,10 +29,8 @@ function Image(props: ImageProps) {
   const [hasError, setHasError] = useState<boolean>(false);
 
   useEffect(() => {
-    void src;
-
-    setIsLoading(true);
-    setHasError(false);
+    setIsLoading(!!src);
+    setHasError(!src);
   }, [src]);
 
   function handleLoad() {
@@ -73,7 +71,7 @@ function Image(props: ImageProps) {
       )}
 
       <img
-        src={src}
+        src={src || undefined}
         alt={alt}
         decoding={"async"}
         onLoad={handleLoad}

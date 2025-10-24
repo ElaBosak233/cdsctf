@@ -2,9 +2,12 @@ use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
 };
+use cds_db::{
+    Team,
+    sea_orm::{Set, Unchanged},
+};
 use serde_json::json;
-use cds_db::sea_orm::{Set, Unchanged};
-use cds_db::Team;
+
 use crate::{
     extract::{Extension, Path},
     traits::{AuthPrincipal, WebError, WebResponse},
@@ -39,7 +42,8 @@ pub async fn save_team_avatar(
         id: Unchanged(team.id),
         has_avatar: Set(true),
         ..Default::default()
-    }).await?;
+    })
+    .await?;
 
     Ok(WebResponse::default())
 }
@@ -58,7 +62,8 @@ pub async fn delete_team_avatar(
         id: Unchanged(team.id),
         has_avatar: Set(false),
         ..Default::default()
-    }).await?;
+    })
+    .await?;
 
     Ok(WebResponse::default())
 }

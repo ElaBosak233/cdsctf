@@ -2,6 +2,7 @@ mod team_id;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
+    UserMini,
     sea_orm::ActiveValue::Set,
     team::{FindTeamOptions, State, Team},
 };
@@ -39,7 +40,7 @@ pub async fn get_team(
 ) -> Result<WebResponse<Vec<Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let (teams, total) = cds_db::team::find(FindTeamOptions {
+    let (teams, total) = cds_db::team::find::<Team>(FindTeamOptions {
         id: params.id,
         name: params.name,
         state: params.state,

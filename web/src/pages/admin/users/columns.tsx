@@ -42,23 +42,18 @@ const columns: Array<ColumnDef<User>> = [
     header: "ID",
     cell: function IdCell({ row }) {
       const id = row.original.id;
-      const idString = String(id);
       const { isCopied, copyToClipboard } = useClipboard();
-
-      const displayId = idString.includes("-")
-        ? idString.split("-")[0]
-        : idString;
 
       return (
         <div className={cn(["flex", "items-center", "gap-2"])}>
-          <Badge className={cn(["font-mono"])}>{displayId}</Badge>
+          <Badge className={cn(["font-mono"])}># {id}</Badge>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
                 square
                 size={"sm"}
-                onClick={() => copyToClipboard(idString)}
+                onClick={() => copyToClipboard(String(id))}
               />
             </TooltipTrigger>
             <TooltipContent>复制到剪贴板</TooltipContent>

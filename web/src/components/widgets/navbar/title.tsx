@@ -18,7 +18,9 @@ function Title(props: TitleProps) {
   const modeConfig = {
     game: {
       to: `/games/${currentGame?.id}`,
-      src: `/api/games/${currentGame?.id}/icon`,
+      src: currentGame?.has_icon
+        ? `/api/games/${currentGame?.id}/icon`
+        : "/api/configs/logo",
       title: currentGame?.title,
     },
     admin: {

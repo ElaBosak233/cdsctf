@@ -62,17 +62,15 @@ pub async fn delete(user_id: i64, email: String) -> Result<(), DbErr> {
         .await?
         .ok_or(DbErr::RecordNotFound("Email not found".to_string()))?;
 
-    if email.is_verified {
-        if Entity::find()
-            .filter(Column::UserId.eq(email.user_id))
-            .count(get_db())
-            .await?
-            <= 1
-        {
-            return Err(DbErr::RecordNotFound(
-                "User has no other emails".to_string(),
-            ));
-        }
+    if Entity::find()
+        .filter(Column::UserId.eq(email.user_id))
+        .count(get_db())
+        .await?
+        <= 1
+    {
+        return Err(DbErr::RecordNotFound(
+            "User has no other emails".to_string(),
+        ));
     }
 
     let _ = Entity::delete_many()

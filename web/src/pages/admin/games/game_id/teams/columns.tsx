@@ -3,8 +3,8 @@ import { StatusCodes } from "http-status-codes";
 import {
   BanIcon,
   CheckCheckIcon,
-  ClipboardCheckIcon,
-  ClipboardCopyIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   Undo2Icon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -18,7 +18,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useClipboard } from "@/hooks/use-clipboard";
 import { State, type Team } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -30,21 +29,9 @@ const columns: Array<ColumnDef<Team>> = [
     header: "ID",
     cell: function IdCell({ row }) {
       const id = row.original.id;
-      const { isCopied, copyToClipboard } = useClipboard();
       return (
         <div className={cn(["flex", "items-center", "gap-2"])}>
-          <Badge>{id}</Badge>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-                square
-                size={"sm"}
-                onClick={() => copyToClipboard(String(id))}
-              />
-            </TooltipTrigger>
-            <TooltipContent>复制到剪贴板</TooltipContent>
-          </Tooltip>
+          <Badge># {id}</Badge>
         </div>
       );
     },
@@ -68,12 +55,6 @@ const columns: Array<ColumnDef<Team>> = [
         </div>
       );
     },
-  },
-  {
-    accessorKey: "slogan",
-    id: "slogan",
-    header: "口号",
-    cell: ({ row }) => row.original.slogan || "-",
   },
   {
     accessorKey: "rank",
@@ -197,6 +178,19 @@ const columns: Array<ColumnDef<Team>> = [
         </div>
       );
     },
+  },
+  {
+    id: "expand",
+    cell: ({ row }) => (
+      <div className="flex justify-end">
+        <Button
+          onClick={() => row.toggleExpanded()}
+          icon={row.getIsExpanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
+          square
+          size={"sm"}
+        />
+      </div>
+    ),
   },
 ];
 

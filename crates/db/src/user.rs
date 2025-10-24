@@ -1,17 +1,17 @@
 use std::{fmt::Debug, str::FromStr};
 
 use sea_orm::{
-    prelude::Expr, sea_query::{Func, Query}, ActiveModelTrait, ColumnTrait, Condition, DbErr, EntityName,
-    EntityTrait, FromQueryResult, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
-    Set,
-    Unchanged,
+    ActiveModelTrait, ColumnTrait, Condition, DbErr, EntityName, EntityTrait, FromQueryResult,
+    Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, Unchanged,
+    prelude::Expr,
+    sea_query::{Func, Query},
 };
 use serde::{Deserialize, Serialize};
 
 pub use super::team_user::find_users as find_by_team_id;
 pub use crate::entity::user::{ActiveModel, Group, Model};
 pub(crate) use crate::entity::user::{Column, Entity};
-use crate::{get_db, Email};
+use crate::{Email, get_db};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]

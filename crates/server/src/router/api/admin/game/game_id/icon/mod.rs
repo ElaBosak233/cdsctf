@@ -2,8 +2,11 @@ use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
 };
-use cds_db::Game;
-use cds_db::sea_orm::{Set, Unchanged};
+use cds_db::{
+    Game,
+    sea_orm::{Set, Unchanged},
+};
+
 use crate::{
     extract::Path,
     traits::{WebError, WebResponse},
@@ -31,7 +34,8 @@ pub async fn save_game_icon(
         id: Unchanged(game_id),
         has_icon: Set(true),
         ..Default::default()
-    }).await?;
+    })
+    .await?;
 
     Ok(WebResponse::default())
 }
@@ -45,7 +49,8 @@ pub async fn delete_game_icon(Path(game_id): Path<i64>) -> Result<WebResponse<()
         id: Unchanged(game_id),
         has_icon: Set(false),
         ..Default::default()
-    }).await?;
+    })
+    .await?;
 
     Ok(WebResponse::default())
 }

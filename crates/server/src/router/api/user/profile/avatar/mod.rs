@@ -2,8 +2,11 @@ use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
 };
-use cds_db::sea_orm::{Set, Unchanged};
-use cds_db::User;
+use cds_db::{
+    User,
+    sea_orm::{Set, Unchanged},
+};
+
 use crate::{
     extract::Extension,
     traits::{AuthPrincipal, WebError, WebResponse},
@@ -33,7 +36,8 @@ pub async fn save_user_avatar(
         id: Unchanged(operator.id),
         has_avatar: Set(true),
         ..Default::default()
-    }).await?;
+    })
+    .await?;
 
     Ok(WebResponse::default())
 }
@@ -50,7 +54,8 @@ pub async fn delete_user_avatar(
         id: Unchanged(operator.id),
         has_avatar: Set(false),
         ..Default::default()
-    }).await?;
+    })
+    .await?;
 
     Ok(WebResponse::default())
 }

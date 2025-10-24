@@ -34,6 +34,7 @@ pub async fn get_game(
     let (games, total) = cds_db::game::find(FindGameOptions {
         id: params.id,
         title: params.title,
+        is_enabled: Some(true),
         page: Some(page),
         size: Some(size),
         sorts: params.sorts,

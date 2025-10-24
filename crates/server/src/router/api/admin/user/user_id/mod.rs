@@ -19,7 +19,6 @@ use crate::{
     traits::{WebError, WebResponse},
 };
 
-
 pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_user))

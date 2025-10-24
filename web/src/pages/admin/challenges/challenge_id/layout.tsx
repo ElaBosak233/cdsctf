@@ -31,7 +31,7 @@ export default function Layout() {
     void sharedStore.refresh;
 
     getChallenge({
-      id: challenge_id,
+      id: Number(challenge_id),
     }).then((res) => {
       setChallenge(res.data);
     });

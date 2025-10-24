@@ -1,5 +1,10 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { FlagIcon, PackageOpenIcon, SearchIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  FlagIcon,
+  PackageOpenIcon,
+  SearchIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router";
 import { type GetGameRequest, getGames } from "@/api/games";
@@ -8,7 +13,6 @@ import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { Image } from "@/components/ui/image";
 import { Pagination } from "@/components/ui/pagination";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { GameMini } from "@/models/game";
@@ -44,7 +48,7 @@ export default function Index() {
   const [title, setTitle] = useState<string>("");
   const debouncedTitle = useDebounce(title, 500);
   const [page, setPage] = useState<number>(1);
-  const [size, _setSize] = useState<number>(10);
+  const size = 10;
 
   const { data: { games, total } = { games: [], total: 0 } } = useGameQuery({
     title: debouncedTitle,
@@ -112,61 +116,105 @@ export default function Index() {
             value={page}
             onChange={setPage}
           />
-          <Card
+          <div
             className={cn([
               "w-full",
               "flex-1",
-              "max-h-128",
-              "p-5",
               "select-none",
-              "overflow-hidden",
+              "h-full",
+              "space-y-3",
             ])}
-            asChild
           >
-            <ScrollArea className={cn(["h-full"])}>
-              <div className={cn(["space-y-3", "h-full"])}>
-                {games?.map((game) => (
-                  <Button
-                    key={game?.id}
-                    className={cn(["justify-start", "w-full"])}
-                    variant={selectedGame?.id === game?.id ? "tonal" : "ghost"}
-                    onClick={() => setSelectedGame(game)}
-                  >
-                    <span
-                      className={cn([
-                        "size-1.5",
-                        "rounded-full",
-                        "bg-success",
-                        Date.now() / 1000 > game.ended_at! && "bg-error",
-                        Date.now() / 1000 < game.started_at! && "bg-info",
-                      ])}
-                      aria-hidden="true"
-                    />
-                    {game?.title}
-                  </Button>
-                ))}
-
-                {!games?.length && (
-                  <div
+            {games?.map((game) => (
+              <Button
+                key={game?.id}
+                className={cn([
+                  "justify-start",
+                  "w-full",
+                  "rounded-[10px]",
+                  "transition-all",
+                  selectedGame?.id === game?.id && "h-16",
+                  "gap-5",
+                ])}
+                variant={selectedGame?.id === game?.id ? "tonal" : "ghost"}
+                onClick={() => setSelectedGame(game)}
+              >
+                <span
+                  className={cn([
+                    "size-1.5",
+                    selectedGame?.id === game?.id && "size-2",
+                    "rounded-full",
+                    "bg-success",
+                    Date.now() / 1000 > game.ended_at! && "bg-error",
+                    Date.now() / 1000 < game.started_at! && "bg-info",
+                  ])}
+                  aria-hidden="true"
+                />
+                <div
+                  className={cn([
+                    "flex",
+                    "flex-col",
+                    "justify-center",
+                    "items-start",
+                    "gap-1",
+                  ])}
+                >
+                  <h3
                     className={cn([
-                      "text-secondary-foreground",
-                      "flex",
-                      "justify-center",
-                      "gap-3",
-                      "w-full",
+                      "transition-all",
+                      selectedGame?.id === game?.id && "text-lg",
                     ])}
                   >
-                    <PackageOpenIcon />
-                    好像还没有比赛哦。
-                  </div>
-                )}
+                    {game?.title}
+                  </h3>
+                  {selectedGame?.id === game?.id && (
+                    <div
+                      className={cn([
+                        "flex",
+                        "gap-1",
+                        "text-xs",
+                        "text-secondary-foreground",
+                      ])}
+                    >
+                      <span>
+                        {new Date(
+                          Number(game?.started_at) * 1000
+                        ).toLocaleString()}
+                      </span>
+                      <ArrowRightIcon />
+                      <span>
+                        {new Date(
+                          Number(game?.ended_at) * 1000
+                        ).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </Button>
+            ))}
+
+            {!games?.length && (
+              <div
+                className={cn([
+                  "text-secondary-foreground",
+                  "flex",
+                  "justify-center",
+                  "gap-3",
+                  "w-full",
+                ])}
+              >
+                <PackageOpenIcon />
+                好像还没有比赛哦。
               </div>
-            </ScrollArea>
-          </Card>
+            )}
+          </div>
         </div>
         <div className={cn(["relative", "select-none", "w-full", "xl:w-1/2"])}>
           <Image
-            src={`/api/games/${selectedGame?.id}/poster`}
+            src={
+              selectedGame?.has_poster &&
+              `/api/games/${selectedGame?.id}/poster`
+            }
             className={cn([
               "object-cover",
               "rounded-xl",
@@ -215,7 +263,10 @@ export default function Index() {
               onClick={() => handleClick(selectedGame)}
             >
               <Image
-                src={`/api/games/${selectedGame?.id}/icon`}
+                src={
+                  selectedGame?.has_icon &&
+                  `/api/games/${selectedGame?.id}/icon`
+                }
                 fallback={
                   <FlagIcon
                     className={cn([

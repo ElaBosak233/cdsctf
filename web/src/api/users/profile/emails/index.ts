@@ -3,7 +3,7 @@ import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export async function getEmails() {
-  return api.post(`users/profile/emails`).json<WebResponse<Array<Email>>>();
+  return api.get(`users/profile/emails`).json<WebResponse<Array<Email>>>();
 }
 
 export interface AddEmailRequest {
@@ -23,7 +23,7 @@ export interface DeleteEmailRequest {
 export async function deleteEmail(request: DeleteEmailRequest) {
   return api
     .delete(`users/profile/emails/${request.email}`, { json: request })
-    .json<WebResponse<Email>>();
+    .json<WebResponse<unknown>>();
 }
 
 export interface VerifyEmailRequest {

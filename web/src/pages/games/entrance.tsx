@@ -90,7 +90,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
               className="aspect-square h-40"
             >
               <Image
-                src={`/api/games/${game.id}/icon`}
+                src={game?.has_icon && `/api/games/${game.id}/icon`}
                 fallback={<FlagIcon className={cn("size-12", "rotate-15")} />}
                 delay={0}
                 className={cn(["w-full", "h-full", "object-contain"])}

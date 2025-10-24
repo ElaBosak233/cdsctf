@@ -53,7 +53,7 @@ pub async fn add_email(
 
     let _ = cds_db::email::create::<Email>(cds_db::email::ActiveModel {
         user_id: Set(operator.id),
-        email: Set(body.email),
+        email: Set(body.email.to_lowercase()),
         is_verified: Set(!cds_db::get_config().await.email.is_enabled),
     })
     .await?;
@@ -93,12 +93,17 @@ pub async fn verify_email(
         return Err(WebError::BadRequest(json!("email_already_verified")));
     }
 
-    let code = cds_cache::get::<String>(format!("email:{}:code", email.email.to_owned()))
-        .await?
-        .ok_or(WebError::BadRequest("email_code_expired".into()))?;
+    if cds_db::get_config().await.email.is_enabled {
+        let code = cds_cache::get::<String>(format!("email:{}:code", email.email.to_owned()))
+            .await?
+            .ok_or(WebError::BadRequest("email_code_expired".into()))?;
 
-    if code != body.code {
-        return Err(WebError::BadRequest(json!("email_code_incorrect")));
+        if code != body.code {
+            return Err(WebError::BadRequest(json!("email_code_incorrect")));
+        }
+
+        let _ =
+            cds_cache::get_del::<String>(format!("email:{}:code", email.email.to_owned())).await?;
     }
 
     let _ = cds_db::email::update::<Email>(cds_db::email::ActiveModel {
@@ -108,8 +113,6 @@ pub async fn verify_email(
         ..Default::default()
     })
     .await?;
-
-    let _ = cds_cache::get_del::<String>(format!("email:{}:code", email.email.to_owned())).await?;
 
     Ok(WebResponse::default())
 }
