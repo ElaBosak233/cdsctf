@@ -113,7 +113,7 @@ function CreateDialog(props: CreateDialogProps) {
               <FormItem>
                 <FormLabel>开始时间</FormLabel>
                 <FormControl>
-                  <Field>
+                  <Field size={"sm"}>
                     <FieldIcon>
                       <CalendarIcon />
                     </FieldIcon>
@@ -131,7 +131,7 @@ function CreateDialog(props: CreateDialogProps) {
               <FormItem>
                 <FormLabel>结束时间</FormLabel>
                 <FormControl>
-                  <Field>
+                  <Field size={"sm"}>
                     <FieldIcon>
                       <CalendarIcon />
                     </FieldIcon>

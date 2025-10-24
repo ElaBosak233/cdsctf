@@ -79,7 +79,7 @@ export default function Index() {
     form.reset(config, {
       keepDefaultValues: false,
     });
-  }, [config, form.reset]);
+  }, [config, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     updateConfig({
