@@ -15,7 +15,7 @@ use rune::{
     runtime::{Object, RuntimeContext},
 };
 use time::OffsetDateTime;
-use tracing::debug;
+use tracing::{debug, warn};
 
 pub use crate::modules::audit::Status;
 use crate::traits::{CheckerError, DiagnosticKind, DiagnosticMarker};
@@ -48,10 +48,7 @@ async fn gen_rune_context(challenge_id: i64) -> Result<Context, CheckerError> {
     rune_context.install(modules::suid::module(true)?)?;
     rune_context.install(modules::leet::module(true)?)?;
 
-    rune_context.install(modules::fs::module(
-        true,
-        cds_media::challenge::get_root_path(challenge_id).await?,
-    )?)?;
+    rune_context.install(modules::fs::module(true, challenge_id).await?)?;
 
     Ok(rune_context)
 }
@@ -216,7 +213,7 @@ pub async fn generate(
         .into_result()?;
     let output = rune::from_value::<Result<Object, Value>>(result)?;
 
-    let object = output.map_err(|_| CheckerError::ScriptError("".to_owned()))?;
+    let object = output.map_err(|err| CheckerError::ScriptError(format!("{:?}", err)))?;
 
     let mut environs = HashMap::new();
     for (key, value) in object.iter() {

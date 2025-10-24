@@ -112,7 +112,7 @@ export default function Index() {
           ?.value as string) === "true"
       : undefined;
 
-  const { data: challengesData, isFetching: loading } = useChallengeQuery({
+  const { data: challengesData, isLoading: loading } = useChallengeQuery({
     id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
     title: debouncedColumnFilters.find((c) => c.id === "title")
       ?.value as string,

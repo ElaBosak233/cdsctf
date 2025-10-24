@@ -81,7 +81,7 @@ pub fn decode(seed: &str, payload: &str, key: &str) -> Result<i64, anyhow::Error
         hex::decode(input_data).map_err(|_| io::Error::other("suid format mismatch"))?;
 
     let (aes_key, _) = generate_aes_pair(key);
-    let cipher = aes::Aes128::new_from_slice(&aes_key).unwrap();
+    let cipher = aes::Aes128::new_from_slice(&aes_key)?;
     let mut block = aes::Block::default();
     block.copy_from_slice(&data_slice);
     cipher.decrypt_block(&mut block);

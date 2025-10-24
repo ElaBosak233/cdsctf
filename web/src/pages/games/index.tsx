@@ -129,7 +129,7 @@ export default function Index() {
               <Button
                 key={game?.id}
                 className={cn([
-                  "justify-start",
+                  "justify-between",
                   "w-full",
                   "rounded-[10px]",
                   "transition-all",
@@ -139,10 +139,58 @@ export default function Index() {
                 variant={selectedGame?.id === game?.id ? "tonal" : "ghost"}
                 onClick={() => setSelectedGame(game)}
               >
+                <div className={cn(["flex", "gap-3", "items-center"])}>
+                  <FlagIcon
+                    className={cn([
+                      "text-muted-foreground",
+                      selectedGame?.id === game?.id && "fill-primary",
+                      selectedGame?.id === game?.id && "text-primary",
+                    ])}
+                  />
+                  <div
+                    className={cn([
+                      "flex",
+                      "flex-col",
+                      "justify-center",
+                      "items-start",
+                      "gap-1",
+                    ])}
+                  >
+                    <h3
+                      className={cn([
+                        "transition-all",
+                        selectedGame?.id === game?.id && "text-lg",
+                      ])}
+                    >
+                      {game?.title}
+                    </h3>
+                    {selectedGame?.id === game?.id && (
+                      <div
+                        className={cn([
+                          "flex",
+                          "gap-1",
+                          "text-xs",
+                          "text-secondary-foreground",
+                        ])}
+                      >
+                        <span>
+                          {new Date(
+                            Number(game?.started_at) * 1000
+                          ).toLocaleString()}
+                        </span>
+                        <ArrowRightIcon />
+                        <span>
+                          {new Date(
+                            Number(game?.ended_at) * 1000
+                          ).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <span
                   className={cn([
                     "size-1.5",
-                    selectedGame?.id === game?.id && "size-2",
                     "rounded-full",
                     "bg-success",
                     Date.now() / 1000 > game.ended_at! && "bg-error",
@@ -150,46 +198,6 @@ export default function Index() {
                   ])}
                   aria-hidden="true"
                 />
-                <div
-                  className={cn([
-                    "flex",
-                    "flex-col",
-                    "justify-center",
-                    "items-start",
-                    "gap-1",
-                  ])}
-                >
-                  <h3
-                    className={cn([
-                      "transition-all",
-                      selectedGame?.id === game?.id && "text-lg",
-                    ])}
-                  >
-                    {game?.title}
-                  </h3>
-                  {selectedGame?.id === game?.id && (
-                    <div
-                      className={cn([
-                        "flex",
-                        "gap-1",
-                        "text-xs",
-                        "text-secondary-foreground",
-                      ])}
-                    >
-                      <span>
-                        {new Date(
-                          Number(game?.started_at) * 1000
-                        ).toLocaleString()}
-                      </span>
-                      <ArrowRightIcon />
-                      <span>
-                        {new Date(
-                          Number(game?.ended_at) * 1000
-                        ).toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-                </div>
               </Button>
             ))}
 

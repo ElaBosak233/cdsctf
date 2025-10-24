@@ -257,6 +257,7 @@ const columns: Array<ColumnDef<Challenge>> = [
               id: "publicness_change",
             }
           );
+          sharedStore?.setRefresh();
         }
       }
 

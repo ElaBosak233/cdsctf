@@ -145,6 +145,13 @@ where
                             ))))
                             .eq(account.to_lowercase()),
                         )
+                        .and_where(
+                            Expr::col((
+                                crate::entity::email::Entity.table_name(),
+                                crate::entity::email::Column::IsVerified,
+                            ))
+                            .eq(true),
+                        )
                         .to_owned(),
                 )),
         )

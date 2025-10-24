@@ -82,7 +82,7 @@ export default function Index() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
-  const { data: gamesData, isFetching: loading } = useGameQuery({
+  const { data: gamesData, isLoading: loading } = useGameQuery({
     id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
     title: debouncedColumnFilters.find((c) => c.id === "title")
       ?.value as string,

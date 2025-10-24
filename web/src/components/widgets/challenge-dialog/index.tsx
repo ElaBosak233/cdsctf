@@ -20,6 +20,7 @@ import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { Context } from "./context";
 import { EnvSection } from "./env-section";
+import { FrozenBadge } from "./frozen-badge";
 import { SubmitSection } from "./submit-section";
 
 type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
@@ -96,14 +97,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
               />
               <h3>{digest?.title}</h3>
             </div>
-            {frozenAt && (
-              <Badge className={cn(["flex"])}>
-                <SnowflakeIcon />
-                <span>
-                  {`冻结 ${new Date(frozenAt * 1000).toLocaleString()}`}
-                </span>
-              </Badge>
-            )}
+            {frozenAt && <FrozenBadge frozenAt={frozenAt} />}
           </div>
           <Separator />
         </div>
@@ -137,7 +131,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
           </div>
         )}
         {challenge?.is_dynamic && <EnvSection />}
-        {!debug && (
+        {!debug && (!frozenAt || Date.now() / 1000 < frozenAt) && (
           <div className={cn("flex", "flex-col", "gap-3")}>
             <Separator />
             <SubmitSection />

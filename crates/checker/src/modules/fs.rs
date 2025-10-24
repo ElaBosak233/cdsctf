@@ -1,11 +1,39 @@
 use std::path::PathBuf;
 
 use anyhow::anyhow;
+use ring::rand::{SecureRandom, SystemRandom};
 use rune::{ContextError, Module};
+use tracing::debug;
 
 #[rune::module(::fs)]
-pub fn module(_stdio: bool, root: PathBuf) -> Result<Module, ContextError> {
+pub async fn module(_stdio: bool, challenge_id: i64) -> Result<Module, anyhow::Error> {
     let mut module = Module::from_meta(module_meta)?;
+    let root = cds_media::challenge::get_root_path(challenge_id).await?;
+
+    module
+        .function("key", {
+            let root = root.clone();
+            move || -> Result<String, anyhow::Error> {
+                let full_path = root.join(".key");
+
+                let key = if full_path.exists() {
+                    std::fs::read_to_string(full_path)?
+                } else {
+                    debug!("Generating new key for challenge #{}", challenge_id);
+
+                    let rng = SystemRandom::new();
+                    let mut bytes = [0u8; 64];
+                    rng.fill(&mut bytes).unwrap();
+                    let key = hex::encode(bytes);
+                    std::fs::write(full_path, format!("{}", key))?;
+
+                    key
+                };
+
+                Ok(key)
+            }
+        })
+        .build()?;
 
     module
         .function("read_to_string", {

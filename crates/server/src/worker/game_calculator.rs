@@ -11,7 +11,7 @@ use cds_db::{
     submission::{FindSubmissionsOptions, Status},
     team::{FindTeamOptions, State, Team},
 };
-use futures_util::{StreamExt as _, future::join_all, stream};
+use futures_util::{StreamExt as _, future::join_all};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 

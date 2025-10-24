@@ -202,6 +202,7 @@ const columns: Array<ColumnDef<Game>> = [
               id: "enablement_change",
             }
           );
+          sharedStore?.setRefresh();
         }
       }
 

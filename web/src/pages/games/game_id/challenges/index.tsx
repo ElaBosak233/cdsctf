@@ -114,6 +114,7 @@ export default function Index() {
                       category: gameChallenge.challenge_category,
                     }}
                     gameTeam={selfGameTeam}
+                    frozenAt={gameChallenge?.frozen_at}
                   />
                 </DialogContent>
               </Dialog>
