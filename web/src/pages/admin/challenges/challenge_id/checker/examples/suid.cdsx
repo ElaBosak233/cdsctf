@@ -3,12 +3,8 @@
 
 use audit::{Flag, Status};
 
-/// the flag encryption key
-const KEY = "IT_SHOULD_BE_A_RANDOM_STRING";
 /// the flag prefix.
 const PREFIX = "flag";
-/// the flag template (readable recommended), used to generate the correct flag content.
-const SEED = "this_is_my_flag";
 
 /// Check submitted flag.
 /// 
@@ -22,7 +18,7 @@ pub async fn check(operator_id, content) {
     }
 
     // extract peer operator_id
-    let res = suid::decode(SEED, flag.content(), KEY);
+    let res = suid::decode(flag.content(), fs::key()?);
     let dec_id = match res {
         Ok(id) => id,
         Err(_) => return Ok(Status::Incorrect)
@@ -45,7 +41,7 @@ pub async fn check(operator_id, content) {
 /// A json-like Result<#{ [key: string]: string }, any>,
 /// it will be injected into the container in the form of environment variables.
 pub async fn generate(operator_id) {
-    let content = suid::encode(SEED, operator_id, KEY, true);
+    let content = suid::encode(operator_id, fs::key()?, true);
     Ok(#{
         FLAG: Flag::new().with_prefix(PREFIX).with_content(content).format(),
     })

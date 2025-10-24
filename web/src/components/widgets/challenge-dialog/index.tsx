@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { DownloadIcon, SnowflakeIcon } from "lucide-react";
+import { DownloadIcon } from "lucide-react";
 import type React from "react";
 import { useMemo } from "react";
 import { getChallenge as getChallengeDebug } from "@/api/admin/challenges/challenge_id";
 import { getChallengeAttachments as getChallengeAttachmentsDebug } from "@/api/admin/challenges/challenge_id/attachments";
 import { getChallenge } from "@/api/challenges/challenge_id";
 import { getChallengeAttachments } from "@/api/challenges/challenge_id/attachments";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
