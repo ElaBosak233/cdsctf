@@ -72,7 +72,7 @@ function useColumns(): Array<ColumnDef<Team>> {
     {
       accessorKey: "pts",
       id: "pts",
-      header: "当前分值",
+      header: "得分",
       cell: ({ row }) => row.original.pts,
     },
     {

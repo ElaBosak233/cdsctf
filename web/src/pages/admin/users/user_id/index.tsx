@@ -114,7 +114,7 @@ export default function Index() {
                 <FormItem className={cn(["w-full"])}>
                   <FormLabel>用户名</FormLabel>
                   <FormControl>
-                    <Field>
+                    <Field disabled>
                       <FieldIcon>
                         <UserRoundIcon />
                       </FieldIcon>

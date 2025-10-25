@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use lettre::{
-    AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
-    message::{SinglePart, header::ContentType},
+    Address, AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
+    message::{Mailbox, SinglePart, header::ContentType},
     transport::smtp::{
         authentication::Credentials,
         client::{Tls, TlsParameters},
@@ -54,18 +54,17 @@ pub(crate) async fn get_mailer() -> Result<AsyncSmtpTransport<Tokio1Executor>, E
     Ok(mailer)
 }
 
-pub(crate) async fn send(to: &str, subject: &str, body: &str) -> Result<(), EmailError> {
+pub(crate) async fn send(to: Mailbox, subject: &str, body: &str) -> Result<(), EmailError> {
     let envelope = lettre::Message::builder()
-        .from(
-            format!(
-                "{} <{}>",
-                cds_db::get_config().await.meta.title,
-                cds_db::get_config().await.email.username
-            )
-            .parse()
-            .unwrap(),
-        )
-        .to(to.to_string().parse().unwrap())
+        .from(Mailbox::new(
+            Some(cds_db::get_config().await.meta.title),
+            cds_db::get_config()
+                .await
+                .email
+                .username
+                .parse::<Address>()?,
+        ))
+        .to(to)
         .subject(inject(subject).await)
         .singlepart(
             SinglePart::builder()

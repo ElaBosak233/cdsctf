@@ -1,21 +1,21 @@
 use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
+    response::IntoResponse,
 };
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use cds_db::{
     Team,
     sea_orm::{Set, Unchanged},
 };
-use serde_json::json;
 use cds_media::util::hash;
+use serde_json::json;
+
 use crate::{
     extract::{Extension, Path},
     traits::{AuthPrincipal, WebError, WebResponse},
     util,
+    util::media::handle_multipart,
 };
-use crate::util::media::handle_multipart;
 
 pub fn router() -> Router {
     Router::new()
@@ -33,9 +33,8 @@ pub async fn get_team_write_up(
 ) -> Result<impl IntoResponse, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = util::loader::prepare_self_team(game_id, operator.id).await?;
-    let path = format!("games/{}/teams/{}/writeup", game_id, team.id);
 
-    util::media::get_first_file(path).await
+    util::media::get_write_up(game_id, team.id).await
 }
 
 /// Save a write-up for the team.
@@ -62,7 +61,7 @@ pub async fn save_team_write_up(
         has_write_up: Set(true),
         ..Default::default()
     })
-        .await?;
+    .await?;
 
     cds_media::save(path, filename, data)
         .await

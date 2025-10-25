@@ -15,6 +15,7 @@ import {
   PlusCircleIcon,
   TypeIcon,
 } from "lucide-react";
+import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
 import { type GetGamesRequest, getGames } from "@/api/admin/games";
 import { Button } from "@/components/ui/button";
@@ -69,8 +70,8 @@ export default function Index() {
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 
-  const [page, setPage] = useState<number>(1);
-  const [size, setSize] = useState<number>(10);
+  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
   const [sorting, setSorting] = useState<SortingState>([
     {
       id: "started_at",
@@ -108,6 +109,7 @@ export default function Index() {
     state: {
       sorting,
       columnVisibility,
+      columnFilters,
     },
   });
 

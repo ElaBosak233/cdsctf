@@ -6,26 +6,26 @@ mod team;
 
 use std::convert::Infallible;
 
-use crate::{
-    extract::{Path, Query},
-    traits::{WebError, WebResponse},
-};
 use axum::{
-    response::{
-        sse::{Event as SseEvent, KeepAlive}, IntoResponse,
-        Sse,
-    }
-    ,
     Router,
+    response::{
+        IntoResponse, Sse,
+        sse::{Event as SseEvent, KeepAlive},
+    },
 };
 use cds_db::{
-    team::{FindTeamOptions, State}, Game, Submission,
-    Team,
+    Game, Submission, Team,
+    team::{FindTeamOptions, State},
 };
 use cds_event::SubscribeOptions;
 use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+
+use crate::{
+    extract::{Path, Query},
+    traits::{WebError, WebResponse},
+};
 
 pub fn router() -> Router {
     Router::new()

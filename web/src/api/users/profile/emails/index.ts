@@ -43,6 +43,6 @@ export interface SendVerifyEmailRequest {
 
 export async function sendVerifyEmail(request: SendVerifyEmailRequest) {
   return api
-    .post(`users/profile/${request.email}/verify/send`)
+    .post(`users/profile/emails/${request.email}/verify/send`)
     .json<WebResponse<never>>();
 }

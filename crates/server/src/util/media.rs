@@ -1,12 +1,13 @@
 use axum::{
     body::Body,
     extract::Multipart,
-    http::{Response, StatusCode},
+    http::{HeaderValue, Response, StatusCode},
     response::IntoResponse,
 };
 use cds_media::util::hash;
 use mime::Mime;
 use serde_json::json;
+
 use crate::{
     model::Metadata,
     traits::{WebError, WebResponse},
@@ -14,6 +15,25 @@ use crate::{
 
 pub fn build_challenge_attachment_path(challenge_id: i64) -> String {
     format!("challenges/{}/attachments", challenge_id)
+}
+
+pub async fn get_write_up(game_id: i64, team_id: i64) -> Result<impl IntoResponse, WebError> {
+    let path = format!("games/{}/teams/{}/writeup", game_id, team_id);
+    match cds_media::scan_dir(path.clone()).await?.first() {
+        Some((filename, _size)) => {
+            let buffer = cds_media::get(path, filename.to_string()).await?;
+            let filename = format!("writeup-{}-{}.pdf", game_id, team_id);
+            Ok(Response::builder()
+                .header(
+                    "Content-Disposition",
+                    &format!("inline; filename=\"{}\"", filename),
+                )
+                .header("Content-Type", HeaderValue::from_static("application/pdf"))
+                .body(Body::from(buffer))
+                .unwrap())
+        }
+        None => Err(WebError::NotFound(json!(""))),
+    }
 }
 
 pub async fn get_first_file(path: String) -> Result<impl IntoResponse, WebError> {
@@ -68,7 +88,10 @@ pub async fn delete_img(path: String) -> Result<WebResponse<()>, WebError> {
     })
 }
 
-pub async fn handle_multipart(mut multipart: Multipart, mime_type: mime::Name<'_>) -> Result<Vec<u8>, WebError> {
+pub async fn handle_multipart(
+    mut multipart: Multipart,
+    mime_type: mime::Name<'_>,
+) -> Result<Vec<u8>, WebError> {
     while let Some(field) = multipart.next_field().await.unwrap() {
         if field.file_name().is_some() {
             let content_type = field.content_type().unwrap().to_string();

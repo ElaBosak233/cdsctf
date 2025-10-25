@@ -15,6 +15,7 @@ use cds_db::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_sessions::Session;
+use tracing::debug;
 use validator::Validate;
 
 use crate::{
@@ -72,6 +73,8 @@ pub async fn user_login(
     }
 
     session.insert("user_id", user.id).await?;
+
+    debug!(user_id = user.id, username = user.username, "User logged in");
 
     Ok(WebResponse {
         data: Some(user),
@@ -147,6 +150,8 @@ pub async fn user_register(
         is_verified: Set(!cds_db::get_config().await.email.is_enabled),
     })
     .await?;
+
+    debug!(user_id = user.id, username = user.username, "New user registered");
 
     Ok(WebResponse {
         code: StatusCode::OK,

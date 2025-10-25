@@ -5,6 +5,7 @@ import {
   PackageOpenIcon,
   SearchIcon,
 } from "lucide-react";
+import { parseAsInteger, useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router";
 import { type GetGameRequest, getGames } from "@/api/games";
@@ -45,13 +46,13 @@ export default function Index() {
     setEntranceGame: (game: GameMini) => void;
   }>();
 
-  const [title, setTitle] = useState<string>("");
+  const [title, setTitle] = useQueryState("title");
   const debouncedTitle = useDebounce(title, 500);
-  const [page, setPage] = useState<number>(1);
+  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const size = 10;
 
   const { data: { games, total } = { games: [], total: 0 } } = useGameQuery({
-    title: debouncedTitle,
+    title: debouncedTitle || undefined,
     page,
     size,
     sorts: "-started_at",
@@ -105,7 +106,7 @@ export default function Index() {
             </FieldIcon>
             <TextField
               placeholder={"比赛名"}
-              value={title}
+              value={title || undefined}
               onChange={(e) => setTitle(e.target.value)}
             />
           </Field>
@@ -144,8 +145,8 @@ export default function Index() {
                   <FlagIcon
                     className={cn([
                       "text-muted-foreground",
-                      selectedGame?.id === game?.id && "fill-primary",
-                      selectedGame?.id === game?.id && "text-primary",
+                      selectedGame?.id === game?.id && "fill-info",
+                      selectedGame?.id === game?.id && "text-info",
                     ])}
                   />
                   <div

@@ -50,6 +50,7 @@
     "ky": "^1.11.0",
     "lucide-react": "^0.545.0",
     "nanoid": "^5.1.6",
+    "nuqs": "^2.7.2",
     "pdfjs-dist": "^5.4.296",
     "react": "^19.2.0",
     "react-day-picker": "^9.11.1",
