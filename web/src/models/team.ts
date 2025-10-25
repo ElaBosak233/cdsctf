@@ -5,6 +5,7 @@ export interface Team {
   email?: string;
   slogan?: string;
   has_avatar?: boolean;
+  has_write_up?: boolean;
 
   state?: State;
 

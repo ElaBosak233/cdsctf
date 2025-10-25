@@ -1,6 +1,5 @@
-import { Rss } from "lucide-react";
-import { useState } from "react";
-
+import { useQuery } from "@tanstack/react-query";
+import { RssIcon } from "lucide-react";
 import { getGameNotice } from "@/api/games/game_id/notices";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -8,25 +7,19 @@ import { MarkdownRender } from "@/components/ui/markdown-render";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
-import { useInterval } from "@/hooks/use-interval";
-import type { GameNotice } from "@/models/game_notice";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 
 function NoticeCard() {
   const { currentGame } = useGameStore();
-  const [gameNotices, setGameNotices] = useState<Array<GameNotice>>();
-
-  function fetchNotices() {
-    getGameNotice({
-      game_id: currentGame?.id,
-    }).then((res) => {
-      setGameNotices(res.data);
-    });
-  }
-
-  useInterval(fetchNotices, 1000 * 30, [currentGame?.id], {
-    immediate: true,
+  const { data: gameNotices } = useQuery({
+    queryKey: ["game_notices", currentGame?.id],
+    queryFn: () =>
+      getGameNotice({
+        game_id: currentGame?.id,
+      }),
+    select: (response) => response.data,
+    refetchInterval: 15000,
   });
 
   return (
@@ -41,7 +34,7 @@ function NoticeCard() {
       ])}
     >
       <div className={cn(["flex", "gap-3", "items-center", "select-none"])}>
-        <Rss className={cn(["size-4"])} />
+        <RssIcon className={cn(["size-4"])} />
         <h3 className={cn(["text-sm"])}>公告栏</h3>
       </div>
       <ScrollArea>
@@ -99,7 +92,7 @@ function NoticeCard() {
                       ])}
                     >
                       <div className={cn(["flex", "gap-3", "items-center"])}>
-                        <Rss className={cn(["size-5"])} />
+                        <RssIcon className={cn(["size-5"])} />
                         <h3>{gameNotice?.title}</h3>
                       </div>
                       <span

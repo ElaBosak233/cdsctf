@@ -25,4 +25,3 @@ regex = { workspace = true }
 hex = { workspace = true }
 aes = { workspace = true }
 tracing = { workspace = true }
-serde = { workspace = true }

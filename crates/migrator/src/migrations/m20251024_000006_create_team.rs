@@ -25,6 +25,7 @@ impl MigrationTrait for Migration {
                     "email" VARCHAR,
                     "slogan" VARCHAR,
                     "has_avatar" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "has_write_up" BOOLEAN NOT NULL DEFAULT FALSE,
                     "state" INT NOT NULL,
                     "pts" BIGINT NOT NULL DEFAULT 0,
                     "rank" BIGINT NOT NULL DEFAULT 0,

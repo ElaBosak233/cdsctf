@@ -1,17 +1,16 @@
 import { SnowflakeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { useTickerTime } from "@/hooks/use-ticker-time";
 import { cn } from "@/utils";
 
 function FrozenBadge({ frozenAt }: { frozenAt: number }) {
   const [remaining, setRemaining] = useState(frozenAt * 1000 - Date.now());
+  const now = useTickerTime();
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setRemaining(frozenAt * 1000 - Date.now());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [frozenAt]);
+    setRemaining(frozenAt * 1000 - now.getTime());
+  }, [frozenAt, now]);
 
   const formatRemaining = (ms: number) => {
     if (ms <= 0) return "已冻结";

@@ -22,7 +22,6 @@ impl MigrationTrait for Migration {
                     "id" BIGSERIAL PRIMARY KEY,
                     "name" VARCHAR NOT NULL,
                     "username" VARCHAR UNIQUE NOT NULL,
-                    "realname" VARCHAR,
                     "description" TEXT,
                     "group" INTEGER NOT NULL,
                     "hashed_password" VARCHAR NOT NULL,

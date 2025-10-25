@@ -36,7 +36,7 @@ import { State, type Team } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 import { ExpandedCard } from "./expanded-card";
 
 export default function Index() {
@@ -62,6 +62,8 @@ export default function Index() {
     },
   ]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
+
+  const columns = useColumns();
 
   const table = useReactTable<Team>({
     data: teams,

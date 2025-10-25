@@ -16,6 +16,7 @@ pub struct Model {
     pub email: Option<String>,
     pub slogan: Option<String>,
     pub has_avatar: bool,
+    pub has_write_up: bool,
 
     pub state: State,
 

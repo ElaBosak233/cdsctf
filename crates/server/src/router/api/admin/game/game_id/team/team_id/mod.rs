@@ -1,6 +1,7 @@
 mod avatar;
 mod token;
 mod user;
+mod writeup;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
@@ -26,6 +27,7 @@ pub fn router() -> Router {
         .nest("/avatar", avatar::router())
         .nest("/users", user::router())
         .nest("/token", token::router())
+        .nest("/writeup", writeup::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -20,6 +20,7 @@ pub struct Team {
     pub email: Option<String>,
     pub slogan: Option<String>,
     pub has_avatar: bool,
+    pub has_write_up: bool,
     pub state: State,
     pub pts: i64,
     pub rank: i64,
@@ -31,6 +32,7 @@ pub struct FindTeamOptions {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub state: Option<State>,
+    pub has_write_up: Option<bool>,
     pub game_id: Option<i64>,
 
     /// The user id of expected game teams.
@@ -56,6 +58,7 @@ pub async fn find<T>(
         id,
         name,
         state,
+        has_write_up,
         game_id,
         user_id,
         page,
@@ -79,6 +82,10 @@ where
 
     if let Some(state) = state {
         sql = sql.filter(Column::State.eq(state));
+    }
+
+    if let Some(has_write_up) = has_write_up {
+        sql = sql.filter(Column::HasWriteUp.eq(has_write_up));
     }
 
     if let Some(user_id) = user_id {

@@ -17,6 +17,7 @@ import { Image } from "@/components/ui/image";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { MarkdownRender } from "@/components/ui/markdown-render";
 import { Typography } from "@/components/ui/typography";
+import { useTickerTime } from "@/hooks/use-ticker-time";
 import { State } from "@/models/team";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
@@ -37,6 +38,8 @@ export default function Index() {
     if (endedAt < new Date()) return "ended";
     return "ongoing";
   }, [currentGame]);
+
+  const now = useTickerTime();
 
   return (
     <>
@@ -95,21 +98,23 @@ export default function Index() {
               }
             />
             <h2 className={cn(["text-2xl"])}>{currentGame?.title}</h2>
-            <p
-              className={cn([
-                "max-w-3/4",
-                "text-sm",
-                "text-secondary-foreground",
-                "text-ellipsis",
-                "text-center",
-                "overflow-hidden",
-              ])}
-            >
-              {currentGame?.sketch}
-            </p>
+            {currentGame?.sketch && (
+              <p
+                className={cn([
+                  "max-w-3/4",
+                  "text-sm",
+                  "text-secondary-foreground",
+                  "text-ellipsis",
+                  "text-center",
+                  "overflow-hidden",
+                ])}
+              >
+                {currentGame?.sketch}
+              </p>
+            )}
             <Badge
               className={cn(
-                ["bg-info", "text-info-foreground"],
+                ["bg-info", "text-info-foreground", "select-none"],
                 status === "ongoing" && [
                   "bg-success",
                   "text-success-foreground",
@@ -125,6 +130,76 @@ export default function Index() {
               <ArrowRightIcon />
               {new Date(Number(currentGame?.ended_at) * 1000).toLocaleString()}
             </Badge>
+            <div
+              className={cn([
+                "w-full",
+                "flex",
+                "flex-col",
+                "items-center",
+                "select-none",
+              ])}
+            >
+              {(() => {
+                const startTime = new Date(
+                  Number(currentGame?.started_at) * 1000
+                );
+                const freezeTime = new Date(
+                  Number(currentGame?.frozen_at) * 1000
+                );
+                const endTime = new Date(Number(currentGame?.ended_at) * 1000);
+
+                const diff = (target: Date) =>
+                  Math.max(
+                    0,
+                    Math.floor((target.getTime() - now.getTime()) / 1000)
+                  );
+                const formatTime = (seconds: number) => {
+                  const h = Math.floor(seconds / 3600);
+                  const m = Math.floor((seconds % 3600) / 60);
+                  const s = seconds % 60;
+                  return `${h.toString().padStart(2, "0")} 时 ${m.toString().padStart(2, "0")} 分 ${s
+                    .toString()
+                    .padStart(2, "0")} 秒`;
+                };
+
+                if (now < startTime) {
+                  const remain = diff(startTime);
+                  return (
+                    <span
+                      className={cn(["text-sm", "text-secondary-foreground"])}
+                    >
+                      {`距开始还有 ${formatTime(remain)}`}
+                    </span>
+                  );
+                } else if (now < freezeTime) {
+                  const remain = diff(freezeTime);
+                  return (
+                    <span
+                      className={cn(["text-sm", "text-secondary-foreground"])}
+                    >
+                      {`距冻结还有 ${formatTime(remain)}`}
+                    </span>
+                  );
+                } else if (now < endTime) {
+                  const remain = diff(endTime);
+                  return (
+                    <span
+                      className={cn(["text-sm", "text-secondary-foreground"])}
+                    >
+                      {`距结束还有 ${formatTime(remain)}`}
+                    </span>
+                  );
+                } else {
+                  return (
+                    <span
+                      className={cn(["text-sm", "text-secondary-foreground"])}
+                    >
+                      比赛已结束
+                    </span>
+                  );
+                }
+              })()}
+            </div>
           </div>
           <div>
             <GameActionButton

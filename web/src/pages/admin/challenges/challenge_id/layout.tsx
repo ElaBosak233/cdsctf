@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   ChartAreaIcon,
   ContainerIcon,
@@ -36,6 +36,7 @@ export default function Layout() {
       });
       return res.data;
     },
+    placeholderData: keepPreviousData,
   });
 
   const options = useMemo(() => {

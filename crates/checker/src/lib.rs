@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use cds_engine::{
     rune::{Context, Value, runtime::Object},
     rune_modules,
+    traits::EngineError,
 };
 use time::OffsetDateTime;
 use tracing::debug;
@@ -16,16 +17,18 @@ use crate::traits::CheckerError;
 
 async fn gen_rune_context(challenge_id: i64) -> Result<Context, CheckerError> {
     Ok(cds_engine::gen_rune_context(vec![
-        rune_modules::http::module(true)?,
-        rune_modules::json::module(true)?,
-        rune_modules::toml::module(true)?,
-        rune_modules::process::module(true)?,
-        modules::audit::module(true)?,
-        modules::crypto::module(true)?,
-        modules::regex::module(true)?,
-        modules::suid::module(true)?,
-        modules::leet::module(true)?,
-        modules::fs::module(true, challenge_id).await?,
+        rune_modules::http::module(true).map_err(EngineError::from)?,
+        rune_modules::json::module(true).map_err(EngineError::from)?,
+        rune_modules::toml::module(true).map_err(EngineError::from)?,
+        rune_modules::process::module(true).map_err(EngineError::from)?,
+        modules::audit::module(true).map_err(EngineError::from)?,
+        modules::crypto::module(true).map_err(EngineError::from)?,
+        modules::regex::module(true).map_err(EngineError::from)?,
+        modules::suid::module(true).map_err(EngineError::from)?,
+        modules::leet::module(true).map_err(EngineError::from)?,
+        modules::fs::module(true, challenge_id)
+            .await
+            .map_err(EngineError::from)?,
     ])
     .await?)
 }
@@ -81,7 +84,8 @@ pub async fn check(
         (operator_id, content),
     )
     .await?;
-    let output = cds_engine::rune::from_value::<Result<Status, Value>>(result)?;
+    let output =
+        cds_engine::rune::from_value::<Result<Status, Value>>(result).map_err(EngineError::from)?;
 
     let is_correct = output.map_err(|_| CheckerError::ScriptError("".to_owned()))?;
 
@@ -104,7 +108,8 @@ pub async fn generate(
         (operator_id,),
     )
     .await?;
-    let output = cds_engine::rune::from_value::<Result<Object, Value>>(result)?;
+    let output =
+        cds_engine::rune::from_value::<Result<Object, Value>>(result).map_err(EngineError::from)?;
 
     let object = output.map_err(|err| CheckerError::ScriptError(format!("{:?}", err)))?;
 
@@ -112,7 +117,7 @@ pub async fn generate(
     for (key, value) in object.iter() {
         environs.insert(
             key.to_string(),
-            cds_engine::rune::from_value(value.to_owned())?,
+            cds_engine::rune::from_value(value.to_owned()).map_err(EngineError::from)?,
         );
     }
 

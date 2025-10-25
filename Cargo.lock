@@ -714,7 +714,6 @@ dependencies = [
  "once_cell",
  "regex",
  "ring",
- "serde",
  "thiserror 2.0.16",
  "time",
  "tracing",

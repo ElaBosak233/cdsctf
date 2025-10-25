@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   FlagIcon,
   InfoIcon,
@@ -31,6 +31,7 @@ export default function Layout() {
       });
       return res?.data?.[0];
     },
+    placeholderData: keepPreviousData,
   });
 
   const options = useMemo(() => {

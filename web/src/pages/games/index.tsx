@@ -134,6 +134,7 @@ export default function Index() {
                   "rounded-[10px]",
                   "transition-all",
                   selectedGame?.id === game?.id && "h-16",
+                  selectedGame?.id === game?.id && "px-5",
                   "gap-5",
                 ])}
                 variant={selectedGame?.id === game?.id ? "tonal" : "ghost"}

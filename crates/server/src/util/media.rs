@@ -7,7 +7,6 @@ use axum::{
 use cds_media::util::hash;
 use mime::Mime;
 use serde_json::json;
-
 use crate::{
     model::Metadata,
     traits::{WebError, WebResponse},
@@ -17,7 +16,7 @@ pub fn build_challenge_attachment_path(challenge_id: i64) -> String {
     format!("challenges/{}/attachments", challenge_id)
 }
 
-pub async fn get_img(path: String) -> Result<impl IntoResponse, WebError> {
+pub async fn get_first_file(path: String) -> Result<impl IntoResponse, WebError> {
     match cds_media::scan_dir(path.clone()).await?.first() {
         Some((filename, _size)) => {
             let buffer = cds_media::get(path, filename.to_string()).await?;
@@ -27,7 +26,7 @@ pub async fn get_img(path: String) -> Result<impl IntoResponse, WebError> {
     }
 }
 
-pub async fn get_img_metadata(path: String) -> Result<WebResponse<Metadata>, WebError> {
+pub async fn get_first_file_metadata(path: String) -> Result<WebResponse<Metadata>, WebError> {
     match cds_media::scan_dir(path.clone()).await?.first() {
         Some((filename, size)) => Ok(WebResponse {
             data: Some(Metadata {
@@ -41,7 +40,7 @@ pub async fn get_img_metadata(path: String) -> Result<WebResponse<Metadata>, Web
 }
 
 pub async fn save_img(path: String, multipart: Multipart) -> Result<WebResponse<()>, WebError> {
-    let data = handle_image_multipart(multipart).await?;
+    let data = handle_multipart(multipart, mime::IMAGE).await?;
 
     cds_media::delete_dir(path.clone()).await?;
 
@@ -69,12 +68,13 @@ pub async fn delete_img(path: String) -> Result<WebResponse<()>, WebError> {
     })
 }
 
-pub async fn handle_image_multipart(mut multipart: Multipart) -> Result<Vec<u8>, WebError> {
+pub async fn handle_multipart(mut multipart: Multipart, mime_type: mime::Name<'_>) -> Result<Vec<u8>, WebError> {
     while let Some(field) = multipart.next_field().await.unwrap() {
         if field.file_name().is_some() {
             let content_type = field.content_type().unwrap().to_string();
             let mime: Mime = content_type.parse().unwrap();
-            if mime.type_() != mime::IMAGE {
+
+            if mime.type_() != mime_type && mime.subtype() != mime_type {
                 return Err(WebError::BadRequest(json!("forbidden_file_type")));
             }
             let data = match field.bytes().await {
