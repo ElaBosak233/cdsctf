@@ -2,7 +2,6 @@ mod team_id;
 
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    UserMini,
     sea_orm::ActiveValue::Set,
     team::{FindTeamOptions, State, Team},
 };

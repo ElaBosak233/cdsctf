@@ -1,6 +1,9 @@
 use std::{io, str::FromStr};
 
-use rune::{Any, ContextError, Module};
+use cds_engine::{
+    rune,
+    rune::{Any, ContextError, Module},
+};
 
 #[rune::module(::audit)]
 pub fn module(_stdio: bool) -> Result<Module, ContextError> {

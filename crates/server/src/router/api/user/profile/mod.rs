@@ -57,7 +57,7 @@ pub struct UpdateUserProfileRequest {
 
 pub async fn update_user_profile(
     Extension(ext): Extension<AuthPrincipal>,
-    Json(mut body): Json<UpdateUserProfileRequest>,
+    Json(body): Json<UpdateUserProfileRequest>,
 ) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 

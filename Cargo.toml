@@ -23,6 +23,7 @@ cds-event = { path = "crates/event" }
 cds-logger = { path = "crates/logger" }
 cds-db = { path = "crates/db" }
 cds-email = { path = "crates/email" }
+cds-engine = { path = "crates/engine" }
 cds-media = { path = "crates/media" }
 cds-migrator = { path = "crates/migrator" }
 cds-queue = { path = "crates/queue" }

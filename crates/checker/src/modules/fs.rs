@@ -1,8 +1,6 @@
-use std::path::PathBuf;
-
 use anyhow::anyhow;
+use cds_engine::{rune, rune::Module};
 use ring::rand::{SecureRandom, SystemRandom};
-use rune::{ContextError, Module};
 use tracing::debug;
 
 #[rune::module(::fs)]
@@ -19,7 +17,7 @@ pub async fn module(_stdio: bool, challenge_id: i64) -> Result<Module, anyhow::E
                 let key = if full_path.exists() {
                     std::fs::read_to_string(full_path)?
                 } else {
-                    debug!("Generating new key for challenge #{}", challenge_id);
+                    debug!(challenge_id = challenge_id, "Generating new key");
 
                     let rng = SystemRandom::new();
                     let mut bytes = [0u8; 64];

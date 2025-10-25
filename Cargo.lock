@@ -708,18 +708,15 @@ dependencies = [
  "aes",
  "anyhow",
  "cds-db",
+ "cds-engine",
  "cds-media",
- "dashmap",
  "hex",
  "once_cell",
  "regex",
  "ring",
- "rune",
- "rune-modules",
  "serde",
  "thiserror 2.0.16",
  "time",
- "tokio",
  "tracing",
  "uuid",
 ]
@@ -778,6 +775,22 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.16",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "cds-engine"
+version = "1.8.0"
+dependencies = [
+ "anyhow",
+ "dashmap",
+ "once_cell",
+ "rune",
+ "rune-modules",
+ "serde",
+ "thiserror 2.0.16",
+ "time",
  "tokio",
  "tracing",
 ]
@@ -898,6 +911,7 @@ dependencies = [
  "cds-cluster",
  "cds-db",
  "cds-email",
+ "cds-engine",
  "cds-env",
  "cds-event",
  "cds-logger",

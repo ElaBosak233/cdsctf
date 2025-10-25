@@ -76,7 +76,7 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
     cds_migrator::run().await?;
 
     cds_cluster::init().await?;
-    cds_checker::init().await?;
+    cds_engine::init().await?;
     cds_email::init().await?;
 
     Ok(())
