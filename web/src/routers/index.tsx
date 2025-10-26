@@ -89,6 +89,14 @@ const router = createBrowserRouter([
                       ).default,
                     }),
                   },
+                  {
+                    path: "writeup",
+                    lazy: async () => ({
+                      Component: (
+                        await import("@/pages/games/game_id/team/writeup")
+                      ).default,
+                    }),
+                  },
                 ],
               },
               {
@@ -147,6 +155,13 @@ const router = createBrowserRouter([
                 path: "password",
                 lazy: async () => ({
                   Component: (await import("@/pages/account/settings/password"))
+                    .default,
+                }),
+              },
+              {
+                path: "emails",
+                lazy: async () => ({
+                  Component: (await import("@/pages/account/settings/emails"))
                     .default,
                 }),
               },

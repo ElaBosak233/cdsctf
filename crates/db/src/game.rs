@@ -28,6 +28,8 @@ pub struct Game {
     pub started_at: i64,
     pub frozen_at: i64,
     pub ended_at: i64,
+    pub has_icon: bool,
+    pub has_poster: bool,
     pub created_at: i64,
 }
 
@@ -40,6 +42,8 @@ pub struct GameMini {
     pub started_at: i64,
     pub frozen_at: i64,
     pub ended_at: i64,
+    pub has_icon: bool,
+    pub has_poster: bool,
 }
 
 #[derive(Clone, Debug, Default)]

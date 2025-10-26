@@ -2,6 +2,10 @@ use axum::{
     Router,
     extract::{DefaultBodyLimit, Multipart},
 };
+use cds_db::{
+    Team,
+    sea_orm::{Set, Unchanged},
+};
 use serde_json::json;
 
 use crate::{
@@ -32,8 +36,16 @@ pub async fn save_team_avatar(
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = util::loader::prepare_self_team(game_id, operator.id).await?;
     let path = format!("games/{}/teams/{}/avatar", game_id, team.id);
+    let _ = util::media::save_img(path, multipart).await?;
 
-    util::media::save_img(path, multipart).await
+    let _ = cds_db::team::update::<Team>(cds_db::team::ActiveModel {
+        id: Unchanged(team.id),
+        has_avatar: Set(true),
+        ..Default::default()
+    })
+    .await?;
+
+    Ok(WebResponse::default())
 }
 
 /// Delete avatar for the team.
@@ -44,6 +56,14 @@ pub async fn delete_team_avatar(
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = util::loader::prepare_self_team(game_id, operator.id).await?;
     let path = format!("games/{}/teams/{}/avatar", game_id, team.id);
+    let _ = util::media::delete_img(path).await;
 
-    util::media::delete_img(path).await
+    let _ = cds_db::team::update::<Team>(cds_db::team::ActiveModel {
+        id: Unchanged(team.id),
+        has_avatar: Set(false),
+        ..Default::default()
+    })
+    .await?;
+
+    Ok(WebResponse::default())
 }

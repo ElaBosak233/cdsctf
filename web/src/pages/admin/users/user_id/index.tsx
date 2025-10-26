@@ -1,8 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
 import {
-  MailCheckIcon,
-  MailIcon,
   SaveIcon,
   ShieldIcon,
   UserRoundCheckIcon,
@@ -18,12 +16,6 @@ import { z } from "zod";
 import { updateUser } from "@/api/admin/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropZoneArea,
-  Dropzone,
-  DropzoneTrigger,
-  useDropzone,
-} from "@/components/ui/dropzone";
 import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
@@ -36,7 +28,6 @@ import {
 } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
-import { useRefresh } from "@/hooks/use-refresh";
 import { Group } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -48,7 +39,6 @@ export default function Index() {
 
   const sharedStore = useSharedStore();
   const [loading, setLoading] = useState<boolean>(false);
-  const { tick, bump } = useRefresh();
 
   const groupOptions = [
     { id: Group.Guest.toString(), name: "访客", icon: UserRoundIcon },
@@ -66,13 +56,6 @@ export default function Index() {
       message: "请选择用户组",
     }),
     description: z.string().nullish(),
-    email: z
-      .string({
-        message: "请输入邮箱",
-      })
-      .email({
-        message: "邮箱不合法",
-      }),
     is_verified: z.boolean(),
   });
 
@@ -85,7 +68,7 @@ export default function Index() {
     form.reset(user, {
       keepDefaultValues: false,
     });
-  }, [user, form.reset]);
+  }, [user, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user) return;
@@ -106,95 +89,14 @@ export default function Index() {
       });
   }
 
-  const dropzone = useDropzone({
-    onDropFile: async (file) => {
-      if (!user?.id) return { status: "error", error: "用户 ID 不存在" };
-
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", `/api/users/${user.id}/avatar`, true);
-
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          toast.loading(`上传进度 ${percentComplete.toFixed(0)}%`, {
-            id: "avatar-upload",
-          });
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status === StatusCodes.OK) {
-          toast.success("头像上传成功", {
-            id: "avatar-upload",
-          });
-          bump();
-        } else {
-          toast.error("头像上传失败", {
-            id: "avatar-upload",
-            description: xhr.responseText,
-          });
-        }
-      };
-
-      xhr.onerror = () => {
-        toast.error("头像上传失败", {
-          id: "avatar-upload",
-          description: "网络错误",
-        });
-        return {
-          status: "error",
-        };
-      };
-
-      xhr.send(formData);
-
-      return {
-        status: "success",
-        result: "",
-      };
-    },
-    validation: {
-      accept: {
-        "image/*": [".png", ".jpg", ".jpeg", ".webp"],
-      },
-      maxSize: 3 * 1024 * 1024,
-      maxFiles: 1,
-    },
-  });
-
   return (
     <div className={cn(["flex", "flex-col", "gap-6", "flex-1"])}>
       <div className={cn(["flex", "flex-col", "items-center", "gap-4"])}>
-        <Dropzone {...dropzone}>
-          <DropZoneArea
-            className={cn([
-              "relative",
-              "aspect-square",
-              "h-36",
-              "p-0",
-              "rounded-full",
-              "overflow-hidden",
-            ])}
-          >
-            <DropzoneTrigger
-              className={cn([
-                "bg-transparent",
-                "text-center",
-                "h-full",
-                "aspect-square",
-              ])}
-            >
-              <Avatar
-                className={cn(["h-30", "w-30"])}
-                src={`/api/users/${user_id}/avatar?refresh=${tick}`}
-                fallback={user?.username?.charAt(0)}
-              />
-            </DropzoneTrigger>
-          </DropZoneArea>
-        </Dropzone>
+        <Avatar
+          className={cn(["h-30", "w-30"])}
+          src={user?.has_avatar && `/api/users/${user_id}/avatar`}
+          fallback={user?.username?.charAt(0)}
+        />
       </div>
       <Form {...form}>
         <form
@@ -212,7 +114,7 @@ export default function Index() {
                 <FormItem className={cn(["w-full"])}>
                   <FormLabel>用户名</FormLabel>
                   <FormControl>
-                    <Field>
+                    <Field disabled>
                       <FieldIcon>
                         <UserRoundIcon />
                       </FieldIcon>
@@ -279,67 +181,6 @@ export default function Index() {
                         }))}
                         onValueChange={(value) => {
                           field.onChange(Number(value));
-                        }}
-                        value={String(field.value)}
-                      />
-                    </Field>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className={cn(["flex", "gap-3"])}>
-            <FormField
-              control={form.control}
-              name={"email"}
-              render={({ field }) => (
-                <FormItem className={cn(["basis-3/4"])}>
-                  <FormLabel>邮箱</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <MailIcon />
-                      </FieldIcon>
-                      <TextField
-                        {...field}
-                        type={"email"}
-                        placeholder="请输入邮箱"
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                      />
-                    </Field>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={"is_verified"}
-              render={({ field }) => (
-                <FormItem className={cn(["basis-1/4"])}>
-                  <FormLabel>是否已验证</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <MailCheckIcon />
-                      </FieldIcon>
-                      <Select
-                        {...field}
-                        options={[
-                          {
-                            value: String(true),
-                            content: "是",
-                          },
-                          {
-                            value: String(false),
-                            content: "否",
-                          },
-                        ]}
-                        onValueChange={(value) => {
-                          field.onChange(value === "true");
                         }}
                         value={String(field.value)}
                       />

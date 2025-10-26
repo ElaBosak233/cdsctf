@@ -5,6 +5,7 @@ import {
   InfoIcon,
   ListEndIcon,
   SaveIcon,
+  TagsIcon,
   TextIcon,
   TypeIcon,
   UndoIcon,
@@ -38,6 +39,7 @@ import { Label } from "@/components/ui/label";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { TagsField } from "@/components/ui/tags-field";
 import { TextField } from "@/components/ui/text-field";
 import { useRefresh } from "@/hooks/use-refresh";
 import type { Config } from "@/models/config";
@@ -79,7 +81,7 @@ export default function Index() {
     form.reset(config, {
       keepDefaultValues: false,
     });
-  }, [config, form.reset]);
+  }, [config, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     updateConfig({
@@ -184,20 +186,18 @@ export default function Index() {
             />
             <FormField
               control={form.control}
-              name={"meta.description"}
+              name={"meta.keywords"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>描述</FormLabel>
+                  <FormLabel>关键词</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
-                        <TextIcon />
+                        <TagsIcon />
                       </FieldIcon>
-                      <TextField
-                        {...field}
-                        placeholder="请输入描述"
-                        value={field.value || ""}
-                        onChange={field.onChange}
+                      <TagsField
+                        value={field.value || []}
+                        onValueChange={(value) => field.onChange(value)}
                       />
                     </Field>
                   </FormControl>
@@ -258,6 +258,29 @@ export default function Index() {
             </Dropzone>
           </div>
         </div>
+        <FormField
+          control={form.control}
+          name={"meta.description"}
+          render={({ field }) => (
+            <FormItem className={cn(["w-full"])}>
+              <FormLabel>描述</FormLabel>
+              <FormControl>
+                <Field>
+                  <FieldIcon>
+                    <TextIcon />
+                  </FieldIcon>
+                  <TextField
+                    {...field}
+                    placeholder="请输入描述"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                  />
+                </Field>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name={"meta.footer"}

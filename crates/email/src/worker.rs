@@ -1,4 +1,5 @@
 use futures_util::StreamExt as _;
+use lettre::{Address, message::Mailbox};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
@@ -16,17 +17,29 @@ async fn process_messages() -> Result<(), anyhow::Error> {
     let mut messages = cds_queue::subscribe("email", None).await?;
     while let Some(Ok(message)) = messages.next().await {
         if let Ok(payload) = serde_json::from_slice::<Payload>(&message.payload) {
-            let to = format!("{} <{}>", payload.name, payload.email);
-            match util::send(&to, &payload.subject, &payload.body).await {
+            match util::send(
+                Mailbox::new(
+                    Some(payload.name.clone()),
+                    payload.email.parse::<Address>()?,
+                ),
+                &payload.subject,
+                &payload.body,
+            )
+            .await
+            {
                 Ok(_) => {
-                    info!("Email sent to {}", to);
+                    info!(
+                        name = payload.name,
+                        email = payload.email,
+                        "An email has been sent",
+                    );
                 }
                 Err(err) => {
                     error!("Email send failed: {}", err);
                 }
             };
         }
-        message.ack().await.unwrap();
+        message.ack().await.map_err(|err| anyhow::anyhow!(err))?;
     }
 
     Ok(())

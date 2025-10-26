@@ -10,12 +10,14 @@ pub mod traits;
 pub mod user;
 pub mod util;
 
+pub mod email;
 pub(crate) mod entity;
 
 use std::time::Duration;
 
 use anyhow::anyhow;
 pub use challenge::{Challenge, ChallengeMini};
+pub use email::Email;
 pub use game::{Game, GameMini};
 pub use game_challenge::{GameChallenge, GameChallengeMini};
 pub use game_notice::GameNotice;

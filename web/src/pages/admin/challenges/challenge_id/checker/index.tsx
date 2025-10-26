@@ -52,7 +52,7 @@ export default function Index() {
     form.reset({
       checker: challenge?.checker,
     });
-  }, [challenge, form.reset]);
+  }, [challenge, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);

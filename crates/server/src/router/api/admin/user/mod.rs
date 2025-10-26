@@ -6,7 +6,7 @@ use argon2::{
 };
 use axum::{Router, http::StatusCode};
 use cds_db::{
-    User,
+    Email, User,
     sea_orm::ActiveValue::Set,
     user::{FindUserOptions, Group},
 };
@@ -30,7 +30,6 @@ pub fn router() -> Router {
 pub struct GetUsersRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
-    pub email: Option<String>,
     pub group: Option<Group>,
     pub page: Option<u64>,
     pub size: Option<u64>,
@@ -46,7 +45,6 @@ pub async fn get_users(
     let (users, total) = cds_db::user::find::<User>(FindUserOptions {
         id: params.id,
         name: params.name,
-        email: params.email,
         group: params.group,
         sorts: params.sorts,
         page: Some(page),
@@ -76,11 +74,6 @@ pub struct CreateUserRequest {
 pub async fn create_user(
     VJson(mut body): VJson<CreateUserRequest>,
 ) -> Result<WebResponse<User>, WebError> {
-    body.email = body.email.to_lowercase();
-    if !cds_db::user::is_email_unique(0, &body.email).await? {
-        return Err(WebError::Conflict(json!("email_already_exists")));
-    }
-
     body.username = body.username.to_lowercase();
     if !cds_db::user::is_username_unique(0, &body.username).await? {
         return Err(WebError::Conflict(json!("username_already_exists")));
@@ -94,11 +87,16 @@ pub async fn create_user(
     let user = cds_db::user::create::<User>(cds_db::user::ActiveModel {
         name: Set(body.name),
         username: Set(body.username),
-        email: Set(body.email),
-        is_verified: Set(true),
         hashed_password: Set(hashed_password),
         group: Set(body.group),
         ..Default::default()
+    })
+    .await?;
+
+    let _ = cds_db::email::create::<Email>(cds_db::email::ActiveModel {
+        user_id: Set(user.id),
+        email: Set(body.email),
+        is_verified: Set(true),
     })
     .await?;
 

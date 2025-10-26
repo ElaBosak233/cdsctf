@@ -1,5 +1,8 @@
+use cds_engine::{
+    rune,
+    rune::{ContextError, Module},
+};
 use ring::digest::{SHA256, SHA512};
-use rune::{ContextError, Module};
 
 #[rune::module(::crypto)]
 pub fn module(_stdio: bool) -> Result<Module, ContextError> {

@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
 import {
-  MailIcon,
   SaveIcon,
   TrashIcon,
   TypeIcon,
@@ -14,10 +13,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { updateUserProfile } from "@/api/users/profile";
 import { deleteUserAvatar } from "@/api/users/profile/avatar";
-import { Alert } from "@/components/ui/alert";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
@@ -35,7 +32,6 @@ import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
-import { EmailVerifyDialog } from "./email-verify-dialog";
 
 export default function Index() {
   const authStore = useAuthStore();
@@ -46,16 +42,10 @@ export default function Index() {
   const avatarInput = useRef<HTMLInputElement>(null);
   const [hasAvatar, setHasAvatar] = useState<boolean>(false);
 
-  const [emailVerifyDialogOpen, setEmailVerifyDialogOpen] =
-    useState<boolean>(false);
-
   const formSchema = z.object({
     username: z.string().nullish(),
     name: z.string({
       message: "请输入昵称",
-    }),
-    email: z.email({
-      message: "请输入合法的邮箱",
     }),
     description: z.string().nullish(),
   });
@@ -223,7 +213,10 @@ export default function Index() {
                     "duration-300",
                     "border",
                   ])}
-                  src={`/api/users/${authStore?.user?.id}/avatar?refresh=${sharedStore?.refresh}`}
+                  src={
+                    authStore?.user?.has_avatar &&
+                    `/api/users/${authStore?.user?.id}/avatar`
+                  }
                   onLoadingStatusChange={(status) =>
                     setHasAvatar(status === "loaded")
                   }
@@ -266,54 +259,6 @@ export default function Index() {
                 </Avatar>
               </div>
             </div>
-            <FormField
-              control={form.control}
-              name={"email"}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>电子邮箱</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <MailIcon />
-                      </FieldIcon>
-                      <TextField
-                        {...field}
-                        placeholder={"电子邮箱"}
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                      />
-                    </Field>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {!authStore?.user?.is_verified && (
-              <Alert
-                className={cn(["flex", "items-center", "justify-between"])}
-              >
-                <p>你的邮箱 {authStore?.user?.email} 尚未验证！</p>
-                <Button
-                  variant={"solid"}
-                  size={"sm"}
-                  className={cn(["h-8"])}
-                  onClick={() => setEmailVerifyDialogOpen(true)}
-                >
-                  去验证
-                </Button>
-                <Dialog
-                  open={emailVerifyDialogOpen}
-                  onOpenChange={setEmailVerifyDialogOpen}
-                >
-                  <DialogContent>
-                    <EmailVerifyDialog
-                      onClose={() => setEmailVerifyDialogOpen(false)}
-                    />
-                  </DialogContent>
-                </Dialog>
-              </Alert>
-            )}
             <FormField
               control={form.control}
               name={"description"}

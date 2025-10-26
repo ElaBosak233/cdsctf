@@ -16,6 +16,7 @@ import {
   PlusCircleIcon,
   TypeIcon,
 } from "lucide-react";
+import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
 import {
   type GetChallengesRequest,
@@ -76,8 +77,8 @@ export default function Index() {
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 
-  const [page, setPage] = useState<number>(1);
-  const [size, setSize] = useState<number>(10);
+  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
 
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -85,6 +86,7 @@ export default function Index() {
       desc: true,
     },
   ]);
+
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
@@ -112,7 +114,7 @@ export default function Index() {
           ?.value as string) === "true"
       : undefined;
 
-  const { data: challengesData, isFetching: loading } = useChallengeQuery({
+  const { data: challengesData, isLoading: loading } = useChallengeQuery({
     id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
     title: debouncedColumnFilters.find((c) => c.id === "title")
       ?.value as string,

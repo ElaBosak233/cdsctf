@@ -35,7 +35,7 @@ function Background() {
           "left-0",
           "bottom-0",
           "h-screen",
-          "opacity-15",
+          "opacity-5",
           "print:hidden",
         ])}
       >
@@ -65,7 +65,7 @@ function Background() {
           "right-0",
           "top-0",
           "h-screen",
-          "opacity-15",
+          "opacity-5",
           "print:hidden",
         ])}
       >

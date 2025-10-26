@@ -10,7 +10,7 @@ function TextField(props: TextFieldProps) {
   const context = React.useContext(FieldContext);
 
   if (!context) {
-    throw new Error("TextField must be used with in an Input");
+    throw new Error("TextField must be used with in an Field");
   }
 
   const { size, disabled, hasIcon, hasExtraButton } = context;

@@ -7,8 +7,9 @@ import {
   TagIcon,
   TypeIcon,
 } from "lucide-react";
+import { parseAsInteger, useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate } from "react-router";
 import {
   type GetPlaygroundChallengesRequest,
   getChallengeStatus,
@@ -78,43 +79,18 @@ export default function Index() {
     navigate(`/account/login?redirect=/playground`, { replace: true });
   }, [navigate]);
 
-  const [searchParams, setSearchParams] = useSearchParams();
-
   const [doSearch, setDoSearch] = useState<number>(0);
-  const [title, setTitle] = useState<string>(searchParams.get("title") || "");
-  const [tag, setTag] = useState<string>(searchParams.get("tag") || "");
-  const [category, setCategory] = useState<string | "all">(
-    searchParams.get("category") || "all"
-  );
-  const [page, setPage] = useState<number>(
-    Number(searchParams.get("page")) || 1
-  );
-  const [size, setSize] = useState<number>(
-    Number(searchParams.get("size")) || 20
-  );
-
-  useEffect(() => {
-    if (doSearch < 1) return;
-
-    const searchParams: {
-      page: string;
-      size: string;
-      category?: string;
-      title?: string;
-      tag?: string;
-    } = {
-      page: String(page),
-      size: String(size),
-    };
-    if (title) searchParams.title = title;
-    if (tag) searchParams.tag = tag;
-    if (category) searchParams.category = String(category);
-    setSearchParams(searchParams);
-  }, [doSearch, page, size, category, title, tag, setSearchParams]);
+  const [title, setTitle] = useQueryState("title");
+  const [tag, setTag] = useQueryState("tag");
+  const [category, setCategory] = useQueryState("category", {
+    defaultValue: "all",
+  });
+  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
 
   const {
     data: { challenges, total } = { challenges: [], total: 0 },
-    isFetching: isChallengeFetching,
+    isLoading: isChallengeFetching,
   } = usePlaygroundChallengeQuery(
     {
       page,
@@ -127,7 +103,7 @@ export default function Index() {
     doSearch
   );
 
-  const { data: challengeStatus, isFetching: isChallengeStatusFetching } =
+  const { data: challengeStatus, isLoading: isChallengeStatusFetching } =
     useChallengeStatusQuery(challenges, authStore?.user?.id);
 
   const loading = isChallengeFetching || isChallengeStatusFetching;
@@ -152,7 +128,7 @@ export default function Index() {
             </FieldIcon>
             <TextField
               placeholder={"题目名"}
-              value={title}
+              value={title || undefined}
               onChange={(e) => setTitle(e.target.value)}
             />
           </Field>
@@ -195,7 +171,7 @@ export default function Index() {
               </FieldIcon>
               <TextField
                 placeholder={"标签"}
-                value={tag}
+                value={tag || undefined}
                 onChange={(e) => setTag(e.target.value)}
               />
             </Field>

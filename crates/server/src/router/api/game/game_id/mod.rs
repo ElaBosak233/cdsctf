@@ -8,7 +8,6 @@ use std::convert::Infallible;
 
 use axum::{
     Router,
-    http::StatusCode,
     response::{
         IntoResponse, Sse,
         sse::{Event as SseEvent, KeepAlive},
@@ -21,6 +20,7 @@ use cds_db::{
 use cds_event::SubscribeOptions;
 use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 use crate::{
     extract::{Path, Query},
@@ -42,8 +42,11 @@ pub fn router() -> Router {
 pub async fn get_game(Path(game_id): Path<i64>) -> Result<WebResponse<Game>, WebError> {
     let game = crate::util::loader::prepare_game(game_id).await?;
 
+    if !game.is_enabled {
+        return Err(WebError::NotFound(json!("")));
+    }
+
     Ok(WebResponse {
-        code: StatusCode::OK,
         data: Some(game),
         ..Default::default()
     })
@@ -96,7 +99,6 @@ pub async fn get_game_scoreboard(
     }
 
     Ok(WebResponse {
-        code: StatusCode::OK,
         data: Some(result),
         total: Some(total),
         ..Default::default()

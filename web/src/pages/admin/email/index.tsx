@@ -76,7 +76,7 @@ export default function Index() {
         keepDefaultValues: false,
       }
     );
-  }, [config?.email, verifyBody, forgetBody, form.reset]);
+  }, [config?.email, verifyBody, forgetBody, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {

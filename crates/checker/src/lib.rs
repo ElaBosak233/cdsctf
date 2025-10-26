@@ -1,173 +1,67 @@
 pub mod modules;
 pub mod traits;
 pub mod util;
-pub mod worker;
 
-use std::{
-    collections::{HashMap, HashSet},
-    sync::Arc,
-};
+use std::collections::HashMap;
 
-use dashmap::DashMap;
-use once_cell::sync::Lazy;
-use rune::{
-    Context, Diagnostics, Source, Sources, Unit, Value, Vm,
-    runtime::{Object, RuntimeContext},
+use cds_engine::{
+    rune::{Context, Value, runtime::Object},
+    rune_modules,
+    traits::EngineError,
 };
 use time::OffsetDateTime;
 use tracing::debug;
 
 pub use crate::modules::audit::Status;
-use crate::traits::{CheckerError, DiagnosticKind, DiagnosticMarker};
-
-struct CheckerContext {
-    pub unit: Arc<Unit>,
-    pub runtime_context: Arc<RuntimeContext>,
-    pub created_at: OffsetDateTime,
-}
-
-static CHECKER_CONTEXT: Lazy<Arc<DashMap<i64, CheckerContext>>> =
-    Lazy::new(|| Arc::new(DashMap::new()));
-
-pub async fn init() -> Result<(), CheckerError> {
-    worker::cleaner().await;
-
-    Ok(())
-}
+use crate::traits::CheckerError;
 
 async fn gen_rune_context(challenge_id: i64) -> Result<Context, CheckerError> {
-    let mut rune_context = Context::with_default_modules()?;
-    rune_context.install(rune_modules::http::module(true)?)?;
-    rune_context.install(rune_modules::json::module(true)?)?;
-    rune_context.install(rune_modules::toml::module(true)?)?;
-    rune_context.install(rune_modules::process::module(true)?)?;
-
-    rune_context.install(modules::audit::module(true)?)?;
-    rune_context.install(modules::crypto::module(true)?)?;
-    rune_context.install(modules::regex::module(true)?)?;
-    rune_context.install(modules::suid::module(true)?)?;
-    rune_context.install(modules::leet::module(true)?)?;
-
-    rune_context.install(modules::fs::module(
-        true,
-        cds_media::challenge::get_root_path(challenge_id).await?,
-    )?)?;
-
-    Ok(rune_context)
-}
-
-fn get_checker_context() -> Arc<DashMap<i64, CheckerContext>> {
-    Arc::clone(&CHECKER_CONTEXT)
+    Ok(cds_engine::gen_rune_context(vec![
+        rune_modules::http::module(true).map_err(EngineError::from)?,
+        rune_modules::json::module(true).map_err(EngineError::from)?,
+        rune_modules::toml::module(true).map_err(EngineError::from)?,
+        rune_modules::process::module(true).map_err(EngineError::from)?,
+        modules::audit::module(true).map_err(EngineError::from)?,
+        modules::crypto::module(true).map_err(EngineError::from)?,
+        modules::regex::module(true).map_err(EngineError::from)?,
+        modules::suid::module(true).map_err(EngineError::from)?,
+        modules::leet::module(true).map_err(EngineError::from)?,
+        modules::fs::module(true, challenge_id)
+            .await
+            .map_err(EngineError::from)?,
+    ])
+    .await?)
 }
 
 pub async fn lint(challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
-    let context = gen_rune_context(challenge.id).await?;
-    let mut sources = Sources::new();
-    let script = challenge
-        .clone()
-        .checker
-        .ok_or_else(|| CheckerError::MissingScript("".to_owned()))?;
-    sources.insert(Source::memory(script)?)?;
-
-    let mut diagnostics = Diagnostics::new();
-    let result = rune::prepare(&mut sources)
-        .with_context(&context)
-        .with_diagnostics(&mut diagnostics)
-        .build();
-
-    let mut markers_set: HashSet<String> = HashSet::new();
-    let mut markers: Vec<DiagnosticMarker> = Vec::new();
-
-    for diagnostic in diagnostics.diagnostics() {
-        if let Some(marker) = util::diagnostic_to_marker(diagnostic, &sources) {
-            let key = format!(
-                "{:?}:{:?}:{:?}",
-                marker.kind, marker.message, marker.start_line
-            );
-            if markers_set.insert(key) {
-                markers.push(marker);
-            }
-        }
-    }
-
-    let unit = match result {
-        Ok(unit) => unit,
-        Err(error) => {
-            if markers.is_empty() {
-                markers.push(DiagnosticMarker {
-                    kind: DiagnosticKind::Error,
-                    message: format!("Script failed to compile: {}", error),
-                    start_line: 0,
-                    start_column: 0,
-                    end_line: 0,
-                    end_column: 0,
-                });
-            }
-            return Err(CheckerError::DiagnosticsError(markers));
-        }
-    };
-
-    let runtime = context.runtime()?;
-    let vm = Vm::new(Arc::new(runtime), Arc::new(unit));
-
-    for func in ["check", "generate"] {
-        if vm.lookup_function([func]).is_err() {
-            let msg = format!("Missing required function: {}", func);
-            if markers_set.insert(msg.clone()) {
-                markers.push(DiagnosticMarker {
-                    kind: DiagnosticKind::Error,
-                    message: msg,
-                    start_line: 0,
-                    start_column: 0,
-                    end_line: 0,
-                    end_column: 0,
-                });
-            }
-        }
-    }
-
-    if !markers.is_empty() {
-        return Err(CheckerError::DiagnosticsError(markers));
-    }
+    cds_engine::lint(
+        gen_rune_context(challenge.id).await?,
+        challenge
+            .checker
+            .clone()
+            .ok_or(CheckerError::MissingScript("".to_owned()))?,
+        &["check", "generate"],
+    )
+    .await?;
 
     Ok(())
 }
 
 async fn preload(challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
-    let rune_context = gen_rune_context(challenge.id).await?;
-    let checker_context = get_checker_context();
-
-    if let Some(context) = checker_context.get(&challenge.id) {
-        if context.created_at.unix_timestamp() > challenge.updated_at {
-            return Ok(());
-        }
-    }
-
-    debug!("Preloading checker for challenge {}", challenge.id);
-
-    let mut sources = Sources::new();
-
-    let script = challenge
-        .clone()
-        .checker
-        .ok_or(CheckerError::MissingScript("".to_owned()))?;
-
-    sources.insert(Source::memory(&script)?)?;
-    lint(challenge).await?;
-
-    let unit = rune::prepare(&mut sources)
-        .with_context(&rune_context)
-        .build()?;
-    let runtime = rune_context.runtime()?;
-
-    checker_context.insert(
-        challenge.id,
-        CheckerContext {
-            unit: Arc::new(unit),
-            runtime_context: Arc::new(runtime),
-            created_at: OffsetDateTime::now_utc(),
-        },
-    );
+    cds_engine::preload(
+        gen_rune_context(challenge.id).await?,
+        format!("challenge/{}", challenge.id),
+        challenge
+            .checker
+            .clone()
+            .ok_or(CheckerError::MissingScript("".to_owned()))?,
+        Some(
+            OffsetDateTime::from_unix_timestamp(challenge.created_at)
+                .ok()
+                .unwrap_or(OffsetDateTime::now_utc()),
+        ),
+    )
+    .await?;
 
     Ok(())
 }
@@ -178,19 +72,20 @@ pub async fn check(
     content: &str,
 ) -> Result<Status, CheckerError> {
     preload(challenge).await?;
-
-    let checker_context = get_checker_context();
-    let ctx = checker_context
-        .get(&challenge.id)
-        .ok_or(CheckerError::MissingScript("".to_owned()))?;
-    let vm = Vm::new(ctx.runtime_context.clone(), ctx.unit.clone());
-
-    let result = vm
-        .send_execute(["check"], (operator_id, content))?
-        .async_complete()
-        .await
-        .into_result()?;
-    let output = rune::from_value::<Result<Status, Value>>(result)?;
+    debug!(
+        challenge_id = challenge.id,
+        operator_id = operator_id,
+        content = content,
+        "Checking answers"
+    );
+    let result = cds_engine::execute(
+        format!("challenge/{}", challenge.id),
+        "check",
+        (operator_id, content),
+    )
+    .await?;
+    let output =
+        cds_engine::rune::from_value::<Result<Status, Value>>(result).map_err(EngineError::from)?;
 
     let is_correct = output.map_err(|_| CheckerError::ScriptError("".to_owned()))?;
 
@@ -202,25 +97,28 @@ pub async fn generate(
     operator_id: i64,
 ) -> Result<HashMap<String, String>, CheckerError> {
     preload(challenge).await?;
+    debug!(
+        challenge_id = challenge.id,
+        operator_id = operator_id,
+        "Generating environment variables"
+    );
+    let result = cds_engine::execute(
+        format!("challenge/{}", challenge.id),
+        "generate",
+        (operator_id,),
+    )
+    .await?;
+    let output =
+        cds_engine::rune::from_value::<Result<Object, Value>>(result).map_err(EngineError::from)?;
 
-    let checker_context = get_checker_context();
-    let ctx = checker_context
-        .get(&challenge.id)
-        .ok_or(CheckerError::MissingScript("".to_owned()))?;
-    let vm = Vm::new(ctx.runtime_context.clone(), ctx.unit.clone());
-
-    let result = vm
-        .send_execute(["generate"], (operator_id,))?
-        .async_complete()
-        .await
-        .into_result()?;
-    let output = rune::from_value::<Result<Object, Value>>(result)?;
-
-    let object = output.map_err(|_| CheckerError::ScriptError("".to_owned()))?;
+    let object = output.map_err(|err| CheckerError::ScriptError(format!("{:?}", err)))?;
 
     let mut environs = HashMap::new();
     for (key, value) in object.iter() {
-        environs.insert(key.to_string(), rune::from_value(value.to_owned())?);
+        environs.insert(
+            key.to_string(),
+            cds_engine::rune::from_value(value.to_owned()).map_err(EngineError::from)?,
+        );
     }
 
     Ok(environs)

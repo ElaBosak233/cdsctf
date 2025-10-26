@@ -1,3 +1,4 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   ChartAreaIcon,
   ContainerIcon,
@@ -7,7 +8,7 @@ import {
   PlayIcon,
   ScrollTextIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, Outlet, useLocation, useParams } from "react-router";
 import { getChallenge } from "@/api/admin/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
-import type { Challenge } from "@/models/challenge";
+import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "./context";
@@ -24,18 +25,19 @@ export default function Layout() {
   const location = useLocation();
   const pathname = location.pathname;
   const sharedStore = useSharedStore();
+  const configStore = useConfigStore();
   const { challenge_id } = useParams<{ challenge_id: string }>();
-  const [challenge, setChallenge] = useState<Challenge>();
 
-  useEffect(() => {
-    void sharedStore.refresh;
-
-    getChallenge({
-      id: challenge_id,
-    }).then((res) => {
-      setChallenge(res.data);
-    });
-  }, [challenge_id, sharedStore?.refresh]);
+  const { data: challenge } = useQuery({
+    queryKey: ["admin", "challenge", challenge_id, sharedStore.refresh],
+    queryFn: async () => {
+      const res = await getChallenge({
+        id: Number(challenge_id),
+      });
+      return res.data;
+    },
+    placeholderData: keepPreviousData,
+  });
 
   const options = useMemo(() => {
     return [
@@ -71,94 +73,97 @@ export default function Layout() {
   }, [challenge_id, challenge]);
 
   return (
-    <Context.Provider value={{ challenge }}>
-      <div
-        className={cn([
-          "flex",
-          "flex-col",
-          "xl:flex-row",
-          "flex-1",
-          "gap-10",
-          "xl:mx-30",
-        ])}
-      >
+    <>
+      <title>{`${challenge?.title} - ${configStore?.config?.meta?.title}`}</title>
+      <Context.Provider value={{ challenge }}>
         <div
           className={cn([
-            "space-y-6",
-            "h-fit",
-            "my-10",
-            "mx-10",
-            "xl:mx-0",
-            "xl:my-0",
-            "xl:w-64",
-            "xl:sticky",
-            "xl:top-24",
-          ])}
-        >
-          <div
-            className={cn([
-              "flex",
-              "flex-wrap",
-              "justify-center",
-              "gap-3",
-              "select-none",
-            ])}
-          >
-            <LibraryIcon />
-            题目编辑
-          </div>
-          <Card className={cn(["flex", "flex-col", "p-5", "gap-3"])}>
-            {options?.map((option, index) => {
-              const Comp = option?.disabled ? Button : Link;
-              return (
-                <Button
-                  key={index}
-                  icon={option?.icon}
-                  variant={pathname === option?.link ? "tonal" : "ghost"}
-                  className={cn(["justify-start"])}
-                  asChild
-                  disabled={option?.disabled}
-                >
-                  <Comp to={option?.link}>{option?.name}</Comp>
-                </Button>
-              );
-            })}
-          </Card>
-          <div
-            className={cn([
-              "flex",
-              "flex-wrap",
-              "justify-center",
-              "gap-3",
-              "select-none",
-            ])}
-          >
-            <PlayIcon />
-            题目预览
-          </div>
-
-          <Dialog>
-            <DialogTrigger>
-              <ChallengeCard digest={challenge} debug />
-            </DialogTrigger>
-            <DialogContent>
-              <ChallengeDialog digest={challenge} debug />
-            </DialogContent>
-          </Dialog>
-        </div>
-        <Card
-          className={cn([
-            "flex-1",
-            "p-10",
-            "border-y-0",
-            "rounded-none",
             "flex",
             "flex-col",
+            "xl:flex-row",
+            "flex-1",
+            "gap-10",
+            "xl:mx-30",
           ])}
         >
-          <Outlet />
-        </Card>
-      </div>
-    </Context.Provider>
+          <div
+            className={cn([
+              "space-y-6",
+              "h-fit",
+              "my-10",
+              "mx-10",
+              "xl:mx-0",
+              "xl:my-0",
+              "xl:w-64",
+              "xl:sticky",
+              "xl:top-24",
+            ])}
+          >
+            <div
+              className={cn([
+                "flex",
+                "flex-wrap",
+                "justify-center",
+                "gap-3",
+                "select-none",
+              ])}
+            >
+              <LibraryIcon />
+              题目编辑
+            </div>
+            <Card className={cn(["flex", "flex-col", "p-5", "gap-3"])}>
+              {options?.map((option, index) => {
+                const Comp = option?.disabled ? Button : Link;
+                return (
+                  <Button
+                    key={index}
+                    icon={option?.icon}
+                    variant={pathname === option?.link ? "tonal" : "ghost"}
+                    className={cn(["justify-start"])}
+                    asChild
+                    disabled={option?.disabled}
+                  >
+                    <Comp to={option?.link}>{option?.name}</Comp>
+                  </Button>
+                );
+              })}
+            </Card>
+            <div
+              className={cn([
+                "flex",
+                "flex-wrap",
+                "justify-center",
+                "gap-3",
+                "select-none",
+              ])}
+            >
+              <PlayIcon />
+              题目预览
+            </div>
+
+            <Dialog>
+              <DialogTrigger>
+                <ChallengeCard digest={challenge} debug />
+              </DialogTrigger>
+              <DialogContent>
+                <ChallengeDialog digest={challenge} debug />
+              </DialogContent>
+            </Dialog>
+          </div>
+          <Card
+            className={cn([
+              "flex-1",
+              "p-10",
+              "border-y-0",
+              "rounded-none",
+              "flex",
+              "flex-col",
+            ])}
+          >
+            <Outlet />
+          </Card>
+        </div>
+      </Context.Provider>
+    </>
   );
 }

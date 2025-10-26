@@ -6,7 +6,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20250501_000001_create_config"
+        "m20251024_000006_create_team"
     }
 }
 
@@ -18,12 +18,21 @@ impl MigrationTrait for Migration {
         db.execute(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "configs" (
+                CREATE TABLE IF NOT EXISTS "teams" (
                     "id" BIGSERIAL PRIMARY KEY,
-                    "meta" JSONB,
-                    "auth" JSONB,
-                    "email" JSONB,
-                    "captcha" JSONB
+                    "game_id" BIGINT NOT NULL,
+                    "name" VARCHAR NOT NULL,
+                    "email" VARCHAR,
+                    "slogan" VARCHAR,
+                    "has_avatar" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "has_write_up" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "state" INT NOT NULL,
+                    "pts" BIGINT NOT NULL DEFAULT 0,
+                    "rank" BIGINT NOT NULL DEFAULT 0,
+                    
+                    CONSTRAINT "fk_teams_game_id"
+                        FOREIGN KEY ("game_id") REFERENCES "games" ("id")
+                        ON DELETE CASCADE
                 );
             "#
             .to_owned(),
@@ -39,7 +48,7 @@ impl MigrationTrait for Migration {
         db.execute(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "configs";
+                DROP TABLE IF EXISTS "teams";
             "#
             .to_owned(),
         ))

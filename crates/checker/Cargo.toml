@@ -13,19 +13,15 @@ version = { workspace = true }
 [dependencies]
 cds-db = { workspace = true }
 cds-media = { workspace = true }
+cds-engine = { workspace = true }
 
-rune = { workspace = true }
-rune-modules = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 once_cell = { workspace = true }
 uuid = { workspace = true }
-tokio = { workspace = true }
 time = { workspace = true }
-dashmap = { workspace = true }
 ring = { workspace = true }
 regex = { workspace = true }
 hex = { workspace = true }
 aes = { workspace = true }
 tracing = { workspace = true }
-serde = { workspace = true }

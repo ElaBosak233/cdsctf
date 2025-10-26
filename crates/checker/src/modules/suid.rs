@@ -1,4 +1,7 @@
-use rune::{ContextError, Module};
+use cds_engine::{
+    rune,
+    rune::{ContextError, Module},
+};
 
 #[rune::module(::suid)]
 pub fn module(_stdio: bool) -> Result<Module, ContextError> {
@@ -10,11 +13,11 @@ pub fn module(_stdio: bool) -> Result<Module, ContextError> {
 }
 
 #[rune::function]
-pub fn encode(seed: &str, data: i64, key: &str, hyphenated: bool) -> String {
-    crate::util::suid::encode(seed, data, key, hyphenated)
+pub fn encode(data: i64, key: &str, hyphenated: bool) -> String {
+    crate::util::suid::encode(data, key, hyphenated)
 }
 
 #[rune::function]
-pub fn decode(seed: &str, payload: &str, key: &str) -> Result<i64, anyhow::Error> {
-    crate::util::suid::decode(seed, payload, key)
+pub fn decode(payload: &str, key: &str) -> Result<i64, anyhow::Error> {
+    crate::util::suid::decode(payload, key)
 }

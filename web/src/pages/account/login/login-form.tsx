@@ -82,7 +82,7 @@ function LoginForm() {
           id: "verify",
           description: "请先验证你的邮箱",
         });
-        navigate("/account/settings");
+        navigate("/account/settings/emails");
       }
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;

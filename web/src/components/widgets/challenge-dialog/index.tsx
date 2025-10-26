@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { DownloadIcon, SnowflakeIcon } from "lucide-react";
+import { DownloadIcon } from "lucide-react";
 import type React from "react";
 import { useMemo } from "react";
 import { getChallenge as getChallengeDebug } from "@/api/admin/challenges/challenge_id";
 import { getChallengeAttachments as getChallengeAttachmentsDebug } from "@/api/admin/challenges/challenge_id/attachments";
 import { getChallenge } from "@/api/challenges/challenge_id";
 import { getChallengeAttachments } from "@/api/challenges/challenge_id/attachments";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -20,6 +19,7 @@ import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { Context } from "./context";
 import { EnvSection } from "./env-section";
+import { FrozenBadge } from "./frozen-badge";
 import { SubmitSection } from "./submit-section";
 
 type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
@@ -96,14 +96,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
               />
               <h3>{digest?.title}</h3>
             </div>
-            {frozenAt && (
-              <Badge className={cn(["flex"])}>
-                <SnowflakeIcon />
-                <span>
-                  {`冻结 ${new Date(frozenAt * 1000).toLocaleString()}`}
-                </span>
-              </Badge>
-            )}
+            {frozenAt && <FrozenBadge frozenAt={frozenAt} />}
           </div>
           <Separator />
         </div>
@@ -137,7 +130,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
           </div>
         )}
         {challenge?.is_dynamic && <EnvSection />}
-        {!debug && (
+        {!debug && (!frozenAt || Date.now() / 1000 < frozenAt) && (
           <div className={cn("flex", "flex-col", "gap-3")}>
             <Separator />
             <SubmitSection />

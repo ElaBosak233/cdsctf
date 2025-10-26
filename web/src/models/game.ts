@@ -17,6 +17,9 @@ export interface Game {
   frozen_at?: number;
   ended_at?: number;
 
+  has_icon?: boolean;
+  has_poster?: boolean;
+
   created_at?: number;
 }
 
@@ -27,6 +30,8 @@ export interface GameMini {
   started_at?: number;
   frozen_at?: number;
   ended_at?: number;
+  has_icon?: boolean;
+  has_poster?: boolean;
 }
 
 export interface ScoreRecord {

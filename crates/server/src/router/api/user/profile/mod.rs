@@ -1,5 +1,5 @@
 mod avatar;
-pub mod verify;
+mod email;
 
 use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
@@ -31,8 +31,8 @@ pub fn router() -> Router {
             "/password",
             axum::routing::put(update_user_profile_password),
         )
+        .nest("/emails", email::router())
         .nest("/avatar", avatar::router())
-        .nest("/verify", verify::router())
 }
 
 pub async fn get_user_profile(
@@ -52,46 +52,19 @@ pub async fn get_user_profile(
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateUserProfileRequest {
     pub name: Option<String>,
-    #[validate(email)]
-    pub email: Option<String>,
     pub description: Option<String>,
 }
 
 pub async fn update_user_profile(
     Extension(ext): Extension<AuthPrincipal>,
-    Json(mut body): Json<UpdateUserProfileRequest>,
+    Json(body): Json<UpdateUserProfileRequest>,
 ) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-
-    if let Some(email) = body.email {
-        body.email = Some(email.to_lowercase());
-        if !cds_db::user::is_email_unique(operator.id, &email.to_lowercase()).await? {
-            return Err(WebError::Conflict(json!("email_already_exists")));
-        }
-    }
-
-    let is_verified = body
-        .email
-        .as_ref()
-        .map(|email| {
-            if email != &operator.email {
-                false
-            } else {
-                operator.is_verified
-            }
-        })
-        .unwrap_or(operator.is_verified);
 
     let user = cds_db::user::update::<User>(cds_db::user::ActiveModel {
         id: Unchanged(operator.id),
         name: body.name.map_or(NotSet, Set),
-        email: body.email.map_or(NotSet, Set),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
-        is_verified: if is_verified != operator.is_verified {
-            Set(is_verified)
-        } else {
-            Unchanged(operator.is_verified)
-        },
         ..Default::default()
     })
     .await?;

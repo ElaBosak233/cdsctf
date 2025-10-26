@@ -4,7 +4,8 @@ use crate::traits::MediaError;
 
 pub async fn get_root_path(challenge_id: i64) -> Result<PathBuf, MediaError> {
     let filepath = PathBuf::from(&cds_env::get_config().media.path)
-        .join(format!("challenges/{}", challenge_id));
+        .join("challenges")
+        .join(challenge_id.to_string());
 
     if !filepath.exists() {
         tokio::fs::create_dir_all(&filepath).await?;

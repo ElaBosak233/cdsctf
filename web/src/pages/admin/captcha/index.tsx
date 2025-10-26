@@ -69,7 +69,7 @@ export default function Index() {
     form.reset(config?.captcha, {
       keepDefaultValues: false,
     });
-  }, [config?.captcha, form.reset]);
+  }, [config?.captcha, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     updateConfig({

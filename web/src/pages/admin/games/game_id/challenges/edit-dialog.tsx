@@ -87,7 +87,7 @@ function EditDialog(props: EditDialogProps) {
         keepDefaultValues: false,
       }
     );
-  }, [gameChallenge, form.reset]);
+  }, [gameChallenge, form]);
 
   const maxPts = form.watch("max_pts");
   const minPts = form.watch("min_pts");

@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority";
 import { add, format } from "date-fns";
 import { CircleXIcon, Clock } from "lucide-react";
-import type * as React from "react";
+import * as React from "react";
 import {
   useEffect,
   useId,
@@ -12,7 +12,7 @@ import {
 } from "react";
 import type { DayPickerProps, Locale } from "react-day-picker";
 import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
+import { Field, FieldContext } from "@/components/ui/field";
 import {
   Popover,
   PopoverContent,
@@ -542,8 +542,8 @@ const dateTimePickerVariants = cva(
   {
     variants: {
       size: {
-        sm: "h-10",
-        md: "h-12",
+        sm: ["h-10", "min-h-10"],
+        md: ["h-12", "min-h-12"],
       },
       icon: {
         true: "rounded-l-none",
@@ -599,7 +599,6 @@ function DateTimePicker({
   onChange,
   onMonthChange,
   hourCycle = 24,
-  disabled = false,
   displayFormat,
   granularity = "second",
   placeholder = "Pick a date",
@@ -611,6 +610,15 @@ function DateTimePicker({
   const [month, setMonth] = useState<Date>(value ?? defaultPopupValue);
   const [displayDate, setDisplayDate] = useState<Date | undefined>(value);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const context = React.useContext(FieldContext);
+
+  if (!context) {
+    throw new Error("DateTimePicker must be used with in an Field");
+  }
+
+  const disabled = context.disabled || false;
+  const { size, hasIcon, hasExtraButton } = context;
 
   const defaultLocale = useLocale();
   const locale = props.locale || defaultLocale;
@@ -714,7 +722,11 @@ function DateTimePicker({
             type="button"
             disabled={disabled}
             className={cn(
-              dateTimePickerVariants({ icon: true }),
+              dateTimePickerVariants({
+                size,
+                icon: !!hasIcon,
+                extraBtn: !!hasExtraButton,
+              }),
               "justify-start w-full",
               className
             )}

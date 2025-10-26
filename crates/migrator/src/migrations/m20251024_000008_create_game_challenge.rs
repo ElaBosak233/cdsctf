@@ -6,7 +6,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20250501_000007_create_game_challenge"
+        "m20251024_000008_create_game_challenge"
     }
 }
 
@@ -21,9 +21,9 @@ impl MigrationTrait for Migration {
                 CREATE TABLE IF NOT EXISTS "game_challenges" (
                     "game_id" BIGINT NOT NULL,
                     "challenge_id" BIGINT NOT NULL,
-                    "difficulty" BIGINT NOT NULL DEFAULT 1,
+                    "difficulty" BIGINT NOT NULL DEFAULT 5,
                     "max_pts" BIGINT NOT NULL DEFAULT 2000,
-                    "min_pts" BIGINT NOT NULL DEFAULT 200,
+                    "min_pts" BIGINT NOT NULL DEFAULT 500,
                     "bonus_ratios" BIGINT[] NOT NULL,
                     "is_enabled" BOOLEAN NOT NULL DEFAULT FALSE,
                     "frozen_at" BIGINT,

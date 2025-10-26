@@ -1,9 +1,10 @@
 use axum::{Router, http::StatusCode};
-use cds_checker::traits::{CheckerError, DiagnosticMarker};
+use cds_checker::traits::CheckerError;
 use cds_db::{
     Challenge,
     sea_orm::{NotSet, Set, Unchanged},
 };
+use cds_engine::traits::{DiagnosticMarker, EngineError};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 use validator::Validate;
@@ -59,7 +60,9 @@ pub async fn lint_checker(
     let lint = cds_checker::lint(&challenge).await;
     let diagnostics = if let Err(lint) = lint {
         match lint {
-            CheckerError::DiagnosticsError(diagnostics) => Some(diagnostics),
+            CheckerError::EngineError(EngineError::DiagnosticsError(diagnostics)) => {
+                Some(diagnostics)
+            }
             _ => {
                 error!("{:?}", lint);
                 None

@@ -22,7 +22,7 @@ export default function Index() {
   const {
     data: gameChallenges,
     error,
-    isFetching: challengeLoading,
+    isLoading: challengeLoading,
   } = useQuery({
     queryKey: ["game_challenges", currentGame?.id],
     queryFn: () =>
@@ -41,7 +41,7 @@ export default function Index() {
     }
   }, [error, navigate, currentGame?.id]);
 
-  const { data: challengeStatus, isFetching: statusLoading } = useQuery({
+  const { data: challengeStatus, isLoading: statusLoading } = useQuery({
     queryKey: [
       "game_challenge_status",
       gameChallenges?.map((gameChallenge) => gameChallenge.challenge_id!),
@@ -58,6 +58,7 @@ export default function Index() {
         game_id: currentGame?.id,
       }),
     select: (response) => response.data,
+    refetchInterval: 15000,
   });
 
   const loading = useMemo(() => {
@@ -114,6 +115,7 @@ export default function Index() {
                       category: gameChallenge.challenge_category,
                     }}
                     gameTeam={selfGameTeam}
+                    frozenAt={gameChallenge?.frozen_at}
                   />
                 </DialogContent>
               </Dialog>

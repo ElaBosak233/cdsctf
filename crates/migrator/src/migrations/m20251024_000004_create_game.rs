@@ -6,7 +6,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20250501_000003_create_game"
+        "m20251024_000004_create_game"
     }
 }
 
@@ -32,6 +32,8 @@ impl MigrationTrait for Migration {
                     "started_at" BIGINT NOT NULL,
                     "frozen_at" BIGINT NOT NULL,
                     "ended_at" BIGINT NOT NULL,
+                    "has_icon" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "has_poster" BOOLEAN NOT NULL DEFAULT FALSE,
                     "created_at" BIGINT NOT NULL
                 );
             "#

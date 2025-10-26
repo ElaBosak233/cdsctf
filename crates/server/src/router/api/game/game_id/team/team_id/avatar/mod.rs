@@ -18,7 +18,7 @@ pub async fn get_team_avatar(
 ) -> Result<impl IntoResponse, WebError> {
     let path = format!("games/{game_id}/teams/{team_id}/avatar");
 
-    util::media::get_img(path).await
+    util::media::get_first_file(path).await
 }
 
 pub async fn get_team_avatar_metadata(
@@ -26,5 +26,5 @@ pub async fn get_team_avatar_metadata(
 ) -> Result<WebResponse<Metadata>, WebError> {
     let path = format!("games/{game_id}/teams/{team_id}/avatar");
 
-    util::media::get_img_metadata(path).await
+    util::media::get_first_file_metadata(path).await
 }

@@ -28,14 +28,14 @@ import {
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { TextField } from "@/components/ui/text-field";
-import { useRefresh } from "@/hooks/use-refresh";
 import { useGameStore } from "@/storages/game";
+import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 
 export default function Index() {
-  const { tick, bump } = useRefresh();
   const { currentGame, selfTeam } = useGameStore();
+  const { setRefresh } = useSharedStore();
 
   const [loading, setLoading] = useState<boolean>(false);
   const disabled = Date.now() / 1000 > Number(currentGame?.ended_at);
@@ -61,7 +61,7 @@ export default function Index() {
     form.reset(selfTeam, {
       keepDefaultValues: false,
     });
-  }, [selfTeam, form.reset]);
+  }, [selfTeam, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!selfTeam || !currentGame) return;
@@ -76,7 +76,7 @@ export default function Index() {
         toast.success(`团队 ${res?.data?.name} 更新成功`);
       }
     } finally {
-      bump();
+      setRefresh();
       setLoading(false);
     }
   }
@@ -102,6 +102,7 @@ export default function Index() {
         toast.success("头像上传成功", {
           id: "team-avatar-upload",
         });
+        setRefresh();
       }
     } catch {
       toast.error("头像上传失败");
@@ -121,7 +122,7 @@ export default function Index() {
         toast.success(`团队 ${selfTeam?.name} 头像删除成功`);
       }
     } finally {
-      bump();
+      setRefresh();
     }
   }
 
@@ -214,7 +215,10 @@ export default function Index() {
                     "duration-300",
                     "border",
                   ])}
-                  src={`/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar?refresh=${tick}`}
+                  src={
+                    selfTeam?.has_avatar &&
+                    `/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar`
+                  }
                   fallback={selfTeam?.name?.charAt(0)}
                   onLoadingStatusChange={(status) =>
                     setHasAvatar(status === "loaded")

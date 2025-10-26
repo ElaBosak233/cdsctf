@@ -25,7 +25,10 @@ const columns: Array<ColumnDef<ScoreRecord>> = [
       return (
         <div className={cn(["flex", "items-center", "gap-3"])}>
           <Avatar
-            src={`/api/games/${currentGame?.id}/teams/${id}/avatar`}
+            src={
+              row.original.team?.has_avatar &&
+              `/api/games/${currentGame?.id}/teams/${id}/avatar`
+            }
             fallback={name?.charAt(0)}
           />
           {name}

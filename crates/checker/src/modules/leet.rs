@@ -1,6 +1,9 @@
 use std::io;
 
-use rune::{ContextError, Module};
+use cds_engine::{
+    rune,
+    rune::{ContextError, Module},
+};
 
 #[rune::module(::leet)]
 pub fn module(_stdio: bool) -> Result<Module, ContextError> {

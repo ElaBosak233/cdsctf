@@ -42,7 +42,7 @@ pub async fn router() -> Router {
         .with_http_only(true)
         .with_path("/")
         .with_same_site(SameSite::Strict)
-        .with_expiry(Expiry::OnInactivity(Duration::minutes(30)));
+        .with_expiry(Expiry::OnInactivity(Duration::hours(2)));
 
     let base = Router::new()
         .nest("/api", api::router().await)

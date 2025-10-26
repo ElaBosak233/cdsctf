@@ -42,7 +42,7 @@ const columns: Array<ColumnDef<Game>> = [
       const { isCopied, copyToClipboard } = useClipboard();
       return (
         <div className={cn(["flex", "items-center", "gap-2"])}>
-          <Badge className={cn(["font-mono"])}>{id}</Badge>
+          <Badge className={cn(["font-mono"])}># {id}</Badge>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -202,6 +202,7 @@ const columns: Array<ColumnDef<Game>> = [
               id: "enablement_change",
             }
           );
+          sharedStore?.setRefresh();
         }
       }
 

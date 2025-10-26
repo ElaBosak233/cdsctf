@@ -25,6 +25,7 @@ pub struct GetTeamRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub state: Option<State>,
+    pub has_write_up: Option<bool>,
     pub user_id: Option<i64>,
     pub page: Option<u64>,
     pub size: Option<u64>,
@@ -39,10 +40,11 @@ pub async fn get_team(
 ) -> Result<WebResponse<Vec<Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let (teams, total) = cds_db::team::find(FindTeamOptions {
+    let (teams, total) = cds_db::team::find::<Team>(FindTeamOptions {
         id: params.id,
         name: params.name,
         state: params.state,
+        has_write_up: params.has_write_up,
         game_id: Some(game_id),
         user_id: params.user_id,
         page: params.page,

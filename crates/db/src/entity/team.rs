@@ -15,6 +15,9 @@ pub struct Model {
     pub name: String,
     pub email: Option<String>,
     pub slogan: Option<String>,
+    pub has_avatar: bool,
+    pub has_write_up: bool,
+
     pub state: State,
 
     #[sea_orm(default_value = 0)]

@@ -7,6 +7,7 @@ import routers from "@/routers";
 import { cn } from "@/utils";
 import "@/utils/i18n";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { ThemeWatcher } from "./components/utils/theme-watcher";
 
 const queryClient = new QueryClient();
@@ -28,7 +29,9 @@ function App() {
         <Background />
         <CheckerWatcher />
         <ThemeWatcher />
-        <RouterProvider router={routers} />
+        <NuqsAdapter>
+          <RouterProvider router={routers} />
+        </NuqsAdapter>
       </ScrollArea>
     </QueryClientProvider>
   );

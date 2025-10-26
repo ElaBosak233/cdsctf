@@ -3,6 +3,7 @@ import { HTTPError } from "ky";
 import {
   CheckCheckIcon,
   CheckIcon,
+  FilePenIcon,
   InfoIcon,
   LockIcon,
   TriangleAlertIcon,
@@ -44,6 +45,15 @@ export default function Layout() {
       name: "团队成员",
       icon: <UsersRoundIcon />,
     },
+    ...(currentGame?.is_need_write_up
+      ? [
+          {
+            link: `/games/${currentGame?.id}/team/writeup`,
+            name: "Write-up",
+            icon: <FilePenIcon />,
+          },
+        ]
+      : []),
   ];
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);

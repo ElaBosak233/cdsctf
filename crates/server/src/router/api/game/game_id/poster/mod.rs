@@ -16,7 +16,7 @@ pub fn router() -> Router {
 pub async fn get_game_poster(Path(game_id): Path<i64>) -> Result<impl IntoResponse, WebError> {
     let path = format!("games/{}/poster", game_id);
 
-    util::media::get_img(path).await
+    util::media::get_first_file(path).await
 }
 
 pub async fn get_game_poster_metadata(
@@ -24,5 +24,5 @@ pub async fn get_game_poster_metadata(
 ) -> Result<WebResponse<Metadata>, WebError> {
     let path = format!("games/{}/poster", game_id);
 
-    util::media::get_img_metadata(path).await
+    util::media::get_first_file_metadata(path).await
 }

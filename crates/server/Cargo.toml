@@ -19,6 +19,7 @@ cds-event = { workspace = true }
 cds-db = { workspace = true }
 cds-captcha = { workspace = true }
 cds-email = { workspace = true }
+cds-engine = { workspace = true }
 cds-cluster = { workspace = true }
 cds-queue = { workspace = true }
 cds-cache = { workspace = true }

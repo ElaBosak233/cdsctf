@@ -663,14 +663,14 @@ dependencies = [
 
 [[package]]
 name = "cds-assets"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "rust-embed",
 ]
 
 [[package]]
 name = "cds-cache"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -684,7 +684,7 @@ dependencies = [
 
 [[package]]
 name = "cds-captcha"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "biosvg",
@@ -703,30 +703,26 @@ dependencies = [
 
 [[package]]
 name = "cds-checker"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "aes",
  "anyhow",
  "cds-db",
+ "cds-engine",
  "cds-media",
- "dashmap",
  "hex",
  "once_cell",
  "regex",
  "ring",
- "rune",
- "rune-modules",
- "serde",
  "thiserror 2.0.16",
  "time",
- "tokio",
  "tracing",
  "uuid",
 ]
 
 [[package]]
 name = "cds-cluster"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -750,7 +746,7 @@ dependencies = [
 
 [[package]]
 name = "cds-db"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -768,7 +764,7 @@ dependencies = [
 
 [[package]]
 name = "cds-email"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "cds-db",
@@ -783,8 +779,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "cds-engine"
+version = "1.8.0"
+dependencies = [
+ "anyhow",
+ "dashmap",
+ "once_cell",
+ "rune",
+ "rune-modules",
+ "serde",
+ "thiserror 2.0.16",
+ "time",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "cds-env"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "nanoid",
@@ -798,7 +810,7 @@ dependencies = [
 
 [[package]]
 name = "cds-event"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -812,7 +824,7 @@ dependencies = [
 
 [[package]]
 name = "cds-logger"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -828,7 +840,7 @@ dependencies = [
 
 [[package]]
 name = "cds-media"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -845,7 +857,7 @@ dependencies = [
 
 [[package]]
 name = "cds-migrator"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "async-trait",
  "cds-db",
@@ -856,7 +868,7 @@ dependencies = [
 
 [[package]]
 name = "cds-observe"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -872,7 +884,7 @@ dependencies = [
 
 [[package]]
 name = "cds-queue"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -886,7 +898,7 @@ dependencies = [
 
 [[package]]
 name = "cds-server"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "anyhow",
  "argon2",
@@ -898,6 +910,7 @@ dependencies = [
  "cds-cluster",
  "cds-db",
  "cds-email",
+ "cds-engine",
  "cds-env",
  "cds-event",
  "cds-logger",

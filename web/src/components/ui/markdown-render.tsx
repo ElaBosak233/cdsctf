@@ -16,12 +16,26 @@ import remarkRehype from "remark-rehype";
 // } from "rehype-autolink-headings";
 import "katex/dist/katex.min.css";
 import type React from "react";
-import { createHighlighter } from "./shiki";
+import {
+  type BundledLanguage,
+  type BundledTheme,
+  type HighlighterGeneric,
+  createHighlighter as shikiCreateHighlighter,
+} from "shiki";
 
 interface MarkdownRenderProps
   extends React.ComponentProps<typeof MarkdownHooks> {
   src?: string;
   anchors?: boolean;
+}
+
+async function createHighlighter(): Promise<
+  HighlighterGeneric<BundledLanguage, BundledTheme>
+> {
+  return shikiCreateHighlighter({
+    themes: ["github-dark", "github-light"],
+    langs: ["javascript", "typescript", "markdown", "rust", "python", "php"],
+  });
 }
 
 function MarkdownRender(props: MarkdownRenderProps) {

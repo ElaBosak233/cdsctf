@@ -27,6 +27,8 @@ pub struct Model {
     pub started_at: i64,
     pub frozen_at: i64,
     pub ended_at: i64,
+    pub has_icon: bool,
+    pub has_poster: bool,
     pub created_at: i64,
 }
 

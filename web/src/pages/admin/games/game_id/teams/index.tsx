@@ -2,6 +2,7 @@ import {
   type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFilteredRowModel,
   type SortingState,
   useReactTable,
@@ -14,7 +15,7 @@ import {
   TypeIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { getTeams } from "@/api/admin/games/game_id/teams";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -35,7 +36,8 @@ import { State, type Team } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
+import { ExpandedCard } from "./expanded-card";
 
 export default function Index() {
   const sharedStore = useSharedStore();
@@ -61,6 +63,8 @@ export default function Index() {
   ]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
+  const columns = useColumns();
+
   const table = useReactTable<Team>({
     data: teams,
     columns,
@@ -69,6 +73,7 @@ export default function Index() {
     rowCount: total,
     manualFiltering: true,
     getFilteredRowModel: getFilteredRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,
@@ -249,19 +254,44 @@ export default function Index() {
           <TableBody className={cn(["flex-1"])}>
             {table.getRowModel().rows?.length
               ? table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.getValue("id")}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+                  <React.Fragment key={row.id}>
+                    <TableRow
+                      key={row.getValue("id")}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+
+                    <TableRow
+                      data-state={row.getIsExpanded() ? "open" : "closed"}
+                      className={cn([
+                        "overflow-hidden",
+                        "bg-muted/30",
+                        "transition-all",
+                        "data-[state=open]:animate-accordion-down",
+                        "data-[state=closed]:animate-accordion-up",
+                      ])}
+                      style={{
+                        display: row.getIsExpanded() ? "table-row" : "none",
+                      }}
+                    >
+                      {row.getIsExpanded() && (
+                        <TableCell
+                          colSpan={row.getVisibleCells().length}
+                          className="p-0"
+                        >
+                          <ExpandedCard team={row.original} />
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  </React.Fragment>
                 ))
               : !loading && (
                   <TableRow>

@@ -12,7 +12,6 @@ use cds_db::{
     user::Group,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use validator::Validate;
 
 use crate::{
@@ -20,14 +19,11 @@ use crate::{
     traits::{WebError, WebResponse},
 };
 
-mod avatar;
-
 pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_user))
         .route("/", axum::routing::put(update_user))
         .route("/", axum::routing::delete(delete_user))
-        .nest("/avatar", avatar::router())
 }
 
 pub async fn get_user(Path(user_id): Path<i64>) -> Result<WebResponse<User>, WebError> {
@@ -42,8 +38,6 @@ pub async fn get_user(Path(user_id): Path<i64>) -> Result<WebResponse<User>, Web
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateUserRequest {
     pub name: Option<String>,
-    pub email: Option<String>,
-    pub is_verified: Option<bool>,
     pub password: Option<String>,
     pub group: Option<Group>,
     pub description: Option<String>,
@@ -59,13 +53,6 @@ pub async fn update_user(
 ) -> Result<WebResponse<User>, WebError> {
     let user = crate::util::loader::prepare_user(user_id).await?;
 
-    if let Some(email) = body.email {
-        body.email = Some(email.to_lowercase());
-        if !cds_db::user::is_email_unique(user.id, &email.to_lowercase()).await? {
-            return Err(WebError::Conflict(json!("email_already_exists")));
-        }
-    }
-
     if let Some(password) = body.password {
         let hashed_password = Argon2::default()
             .hash_password(password.as_bytes(), &SaltString::generate(&mut OsRng))
@@ -77,8 +64,6 @@ pub async fn update_user(
     let user = cds_db::user::update::<User>(cds_db::user::ActiveModel {
         id: Unchanged(user.id),
         name: body.name.map_or(NotSet, Set),
-        email: body.email.map_or(NotSet, Set),
-        is_verified: body.is_verified.map_or(NotSet, Set),
         hashed_password: body.password.map_or(NotSet, Set),
         group: body.group.map_or(NotSet, Set),
         description: body.description.map_or(NotSet, |v| Set(Some(v))),
