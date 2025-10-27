@@ -25,20 +25,25 @@ function PDFViewer(props: PDFViewerProps) {
   return (
     <Document
       key={`${url}-${numPages}`}
-      file={{
-        url: url,
-      }}
+      file={url}
       onLoadSuccess={onDocumentLoadSuccess}
       onError={(err) => console.log(err)}
       className={className}
-      loading={<LoaderCircleIcon className={cn(["animate-spin"])} />}
+      loading={
+        <div
+          className={cn(["flex", "justify-center", "items-center", "gap-5"])}
+        >
+          <LoaderCircleIcon className={cn(["animate-spin"])} />
+          <span>加载中...</span>
+        </div>
+      }
     >
       <div
         className={cn(["flex", "flex-col", "gap-4", "w-full", "max-w-full"])}
       >
         {Array.from(new Array(numPages), (_, index) => (
           <Page
-            key={`page_${index + 1}`}
+            key={`page-${index + 1}`}
             pageNumber={index + 1}
             renderAnnotationLayer={false}
             renderTextLayer={false}
@@ -46,6 +51,8 @@ function PDFViewer(props: PDFViewerProps) {
               "w-full",
               "[&>canvas]:w-full!",
               "[&>canvas]:h-auto!",
+              "rounded-lg",
+              "overflow-hidden",
             ])}
           />
         ))}

@@ -74,7 +74,11 @@ pub async fn user_login(
 
     session.insert("user_id", user.id).await?;
 
-    debug!(user_id = user.id, username = user.username, "User logged in");
+    debug!(
+        user_id = user.id,
+        username = user.username,
+        "User logged in"
+    );
 
     Ok(WebResponse {
         data: Some(user),
@@ -151,7 +155,11 @@ pub async fn user_register(
     })
     .await?;
 
-    debug!(user_id = user.id, username = user.username, "New user registered");
+    debug!(
+        user_id = user.id,
+        username = user.username,
+        "New user registered"
+    );
 
     Ok(WebResponse {
         code: StatusCode::OK,

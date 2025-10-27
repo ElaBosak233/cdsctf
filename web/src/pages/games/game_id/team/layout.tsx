@@ -34,6 +34,10 @@ export default function Layout() {
   const pathname = location.pathname;
   const disabled = Date.now() / 1000 > Number(currentGame?.ended_at);
 
+  const isGameOngoing =
+    Number(currentGame?.started_at) * 1000 < Date.now() &&
+    Number(currentGame?.ended_at) * 1000 > Date.now();
+
   const options = [
     {
       link: `/games/${currentGame?.id}/team`,
@@ -45,15 +49,12 @@ export default function Layout() {
       name: "团队成员",
       icon: <UsersRoundIcon />,
     },
-    ...(currentGame?.is_need_write_up
-      ? [
-          {
-            link: `/games/${currentGame?.id}/team/writeup`,
-            name: "Write-up",
-            icon: <FilePenIcon />,
-          },
-        ]
-      : []),
+    {
+      link: `/games/${currentGame?.id}/team/writeup`,
+      name: "Write-up",
+      icon: <FilePenIcon />,
+      disabled: !currentGame?.is_need_write_up || !isGameOngoing,
+    },
   ];
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
@@ -162,7 +163,8 @@ export default function Layout() {
             className={cn(["justify-start"])}
             icon={option.icon}
             variant={pathname === option.link ? "tonal" : "ghost"}
-            asChild
+            disabled={option.disabled}
+            asChild={!option.disabled}
           >
             <Link to={option.link}>{option.name}</Link>
           </Button>

@@ -663,14 +663,14 @@ dependencies = [
 
 [[package]]
 name = "cds-assets"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "rust-embed",
 ]
 
 [[package]]
 name = "cds-cache"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -684,7 +684,7 @@ dependencies = [
 
 [[package]]
 name = "cds-captcha"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "biosvg",
@@ -703,7 +703,7 @@ dependencies = [
 
 [[package]]
 name = "cds-checker"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "aes",
  "anyhow",
@@ -722,7 +722,7 @@ dependencies = [
 
 [[package]]
 name = "cds-cluster"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -746,7 +746,7 @@ dependencies = [
 
 [[package]]
 name = "cds-db"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -764,7 +764,7 @@ dependencies = [
 
 [[package]]
 name = "cds-email"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "cds-db",
@@ -780,7 +780,7 @@ dependencies = [
 
 [[package]]
 name = "cds-engine"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "dashmap",
@@ -796,7 +796,7 @@ dependencies = [
 
 [[package]]
 name = "cds-env"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "nanoid",
@@ -810,7 +810,7 @@ dependencies = [
 
 [[package]]
 name = "cds-event"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -824,7 +824,7 @@ dependencies = [
 
 [[package]]
 name = "cds-logger"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -840,7 +840,7 @@ dependencies = [
 
 [[package]]
 name = "cds-media"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -857,7 +857,7 @@ dependencies = [
 
 [[package]]
 name = "cds-migrator"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "async-trait",
  "cds-db",
@@ -868,7 +868,7 @@ dependencies = [
 
 [[package]]
 name = "cds-observe"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -884,7 +884,7 @@ dependencies = [
 
 [[package]]
 name = "cds-queue"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -898,7 +898,7 @@ dependencies = [
 
 [[package]]
 name = "cds-server"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "argon2",

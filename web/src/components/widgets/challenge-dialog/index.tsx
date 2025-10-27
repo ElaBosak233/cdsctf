@@ -130,7 +130,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
           </div>
         )}
         {challenge?.is_dynamic && <EnvSection />}
-        {!debug && (!frozenAt || Date.now() / 1000 < frozenAt) && (
+        {!debug && (
           <div className={cn("flex", "flex-col", "gap-3")}>
             <Separator />
             <SubmitSection />

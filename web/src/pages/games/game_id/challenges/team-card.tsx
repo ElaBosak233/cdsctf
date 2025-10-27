@@ -68,34 +68,38 @@ function TeamCard() {
             <span>{selfTeam?.rank}</span>
           </div>
         </div>
+
         {currentGame?.is_need_write_up && (
-          <div
-            className={cn([
-              "flex",
-              "gap-3",
-              "items-center",
-              "select-none",
-              "justify-between",
-            ])}
-          >
-            <Button
+          <>
+            <Separator className={"w-full"} />
+            <div
               className={cn([
                 "flex",
                 "gap-3",
                 "items-center",
-                "text-secondary-foreground",
+                "select-none",
+                "justify-between",
               ])}
-              size={"sm"}
-              icon={<FilePenIcon />}
-              asChild
             >
-              <Link to={`/games/${selfTeam?.game_id}/team/writeup`}>
-                {selfTeam?.has_write_up
-                  ? "你已提交 Write-up"
-                  : "你还未提交 Write-up"}
-              </Link>
-            </Button>
-          </div>
+              <Button
+                className={cn([
+                  "flex",
+                  "gap-3",
+                  "items-center",
+                  "text-secondary-foreground",
+                ])}
+                size={"sm"}
+                icon={<FilePenIcon />}
+                asChild
+              >
+                <Link to={`/games/${selfTeam?.game_id}/team/writeup`}>
+                  {selfTeam?.has_write_up
+                    ? "你已提交 Write-up"
+                    : "你还未提交 Write-up"}
+                </Link>
+              </Button>
+            </div>
+          </>
         )}
       </div>
     </Card>

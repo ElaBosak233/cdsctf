@@ -86,7 +86,7 @@ export default function Index() {
     defaultValue: "all",
   });
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
+  const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(20));
 
   const {
     data: { challenges, total } = { challenges: [], total: 0 },

@@ -92,6 +92,12 @@ jobs:
           if [ "${{ steps.is_version_changed.outputs.changed }}" = "true" ]; then
             VERSION="${{ steps.current.outputs.version }}"
             TAGS+=("${VERSION}" "latest")
+          
+            if [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.[0-9]+$ ]]; then
+                MAJOR="${BASH_REMATCH[1]}"
+                MINOR="${BASH_REMATCH[2]}"
+                TAGS+=("${MAJOR}.${MINOR}")
+            fi
           fi
           
           COMBINED_TAGS=()

@@ -139,66 +139,46 @@ export default function Index() {
                 "select-none",
               ])}
             >
-              {(() => {
-                const startTime = new Date(
-                  Number(currentGame?.started_at) * 1000
-                );
-                const freezeTime = new Date(
-                  Number(currentGame?.frozen_at) * 1000
-                );
-                const endTime = new Date(Number(currentGame?.ended_at) * 1000);
+              <span className={cn(["text-sm", "text-secondary-foreground"])}>
+                {(() => {
+                  const startTime = new Date(
+                    Number(currentGame?.started_at) * 1000
+                  );
+                  const freezeTime = new Date(
+                    Number(currentGame?.frozen_at) * 1000
+                  );
+                  const endTime = new Date(
+                    Number(currentGame?.ended_at) * 1000
+                  );
 
-                const diff = (target: Date) =>
-                  Math.max(
-                    0,
-                    Math.floor((target.getTime() - now.getTime()) / 1000)
-                  );
-                const formatTime = (seconds: number) => {
-                  const h = Math.floor(seconds / 3600);
-                  const m = Math.floor((seconds % 3600) / 60);
-                  const s = seconds % 60;
-                  return `${h.toString().padStart(2, "0")} 时 ${m.toString().padStart(2, "0")} 分 ${s
-                    .toString()
-                    .padStart(2, "0")} 秒`;
-                };
+                  const diff = (target: Date) =>
+                    Math.max(
+                      0,
+                      Math.floor((target.getTime() - now.getTime()) / 1000)
+                    );
+                  const formatTime = (seconds: number) => {
+                    const h = Math.floor(seconds / 3600);
+                    const m = Math.floor((seconds % 3600) / 60);
+                    const s = seconds % 60;
+                    return `${h.toString().padStart(2, "0")} 时 ${m.toString().padStart(2, "0")} 分 ${s
+                      .toString()
+                      .padStart(2, "0")} 秒`;
+                  };
 
-                if (now < startTime) {
-                  const remain = diff(startTime);
-                  return (
-                    <span
-                      className={cn(["text-sm", "text-secondary-foreground"])}
-                    >
-                      {`距开始还有 ${formatTime(remain)}`}
-                    </span>
-                  );
-                } else if (now < freezeTime) {
-                  const remain = diff(freezeTime);
-                  return (
-                    <span
-                      className={cn(["text-sm", "text-secondary-foreground"])}
-                    >
-                      {`距冻结还有 ${formatTime(remain)}`}
-                    </span>
-                  );
-                } else if (now < endTime) {
-                  const remain = diff(endTime);
-                  return (
-                    <span
-                      className={cn(["text-sm", "text-secondary-foreground"])}
-                    >
-                      {`距结束还有 ${formatTime(remain)}`}
-                    </span>
-                  );
-                } else {
-                  return (
-                    <span
-                      className={cn(["text-sm", "text-secondary-foreground"])}
-                    >
-                      比赛已结束
-                    </span>
-                  );
-                }
-              })()}
+                  if (now < startTime) {
+                    const remain = diff(startTime);
+                    return `距开始还有 ${formatTime(remain)}`;
+                  } else if (now < freezeTime) {
+                    const remain = diff(freezeTime);
+                    return `距冻结还有 ${formatTime(remain)}`;
+                  } else if (now < endTime) {
+                    const remain = diff(endTime);
+                    return `距结束还有 ${formatTime(remain)}`;
+                  } else {
+                    return "比赛已结束";
+                  }
+                })()}
+              </span>
             </div>
           </div>
           <div>
