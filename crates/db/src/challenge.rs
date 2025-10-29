@@ -116,15 +116,17 @@ where
 
     if let Some(sorts) = sorts {
         for sort in sorts.split(",") {
-            let col = match Column::from_str(sort.replace("-", "").as_str()) {
+            let (col_name, order) = if let Some(name) = sort.strip_prefix("-") {
+                (name, Order::Desc)
+            } else {
+                (sort, Order::Asc)
+            };
+            
+            let col = match Column::from_str(col_name) {
                 Ok(col) => col,
                 Err(_) => continue,
             };
-            if sort.starts_with("-") {
-                sql = sql.order_by(col, Order::Desc);
-            } else {
-                sql = sql.order_by(col, Order::Asc);
-            }
+            sql = sql.order_by(col, order);
         }
     }
 
