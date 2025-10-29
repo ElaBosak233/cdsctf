@@ -84,7 +84,7 @@ pub async fn get_game_scoreboard(
     let team_ids = teams.iter().map(|t: &Team| t.id).collect::<Vec<i64>>();
 
     let submissions =
-        cds_db::submission::find_correct_by_team_ids_and_game_id::<Submission>(team_ids, game_id)
+        cds_db::submission::find_correct_by_team_ids_and_game_id::<Submission>(&team_ids, game_id)
             .await?;
 
     // Group submissions by team_id for O(1) lookup instead of O(n) iteration per team

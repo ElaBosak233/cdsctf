@@ -153,14 +153,14 @@ where
 }
 
 pub async fn find_correct_by_team_ids_and_game_id<T>(
-    team_ids: Vec<i64>,
+    team_ids: &[i64],
     game_id: i64,
 ) -> Result<Vec<T>, DbErr>
 where
     T: FromQueryResult,
 {
     Ok(Entity::base_find()
-        .filter(Column::TeamId.is_in(team_ids))
+        .filter(Column::TeamId.is_in(team_ids.iter().copied()))
         .filter(Column::GameId.eq(game_id))
         .filter(Column::Status.eq(Status::Correct))
         .into_model::<T>()
@@ -169,14 +169,14 @@ where
 }
 
 pub async fn find_correct_by_challenge_ids_and_optional_team_game<T>(
-    challenge_ids: Vec<i64>,
+    challenge_ids: &[i64],
     team_id: Option<i64>,
     game_id: Option<i64>,
 ) -> Result<Vec<T>, DbErr>
 where
     T: FromQueryResult,
 {
-    let mut sql = Entity::base_find().filter(Column::ChallengeId.is_in(challenge_ids));
+    let mut sql = Entity::base_find().filter(Column::ChallengeId.is_in(challenge_ids.iter().copied()));
 
     if let (Some(_), Some(game_id)) = (team_id, game_id) {
         sql = sql.filter(Column::GameId.eq(game_id));

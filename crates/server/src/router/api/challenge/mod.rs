@@ -90,7 +90,7 @@ pub async fn get_challenge_status(
 
     let mut submissions =
         cds_db::submission::find_correct_by_challenge_ids_and_optional_team_game::<Submission>(
-            body.challenge_ids.clone(),
+            &body.challenge_ids,
             body.team_id,
             body.game_id,
         )
