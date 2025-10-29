@@ -51,7 +51,8 @@ pub async fn find<T>(
     }: FindGameChallengeOptions,
 ) -> Result<(Vec<T>, u64), DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     // Using inner join to access fields in related tables.
     let mut sql = Entity::base_find();
 
@@ -78,7 +79,8 @@ where
 
 pub async fn find_by_id<T>(game_id: i64, challenge_id: i64) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(Entity::base_find()
         .filter(Column::GameId.eq(game_id))
         .filter(Column::ChallengeId.eq(challenge_id))
@@ -93,7 +95,8 @@ pub async fn count() -> Result<u64, DbErr> {
 
 pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let game_challenge = model.insert(get_db()).await?;
 
     Ok(
@@ -105,7 +108,8 @@ where
 
 pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let game_challenge = model.update(get_db()).await?;
 
     Ok(

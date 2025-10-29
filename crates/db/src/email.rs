@@ -17,7 +17,8 @@ pub struct Email {
 
 pub async fn find_by_user_id<T>(user_id: i64) -> Result<Vec<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let emails = Entity::find()
         .filter(Column::UserId.eq(user_id))
         .into_model::<T>()
@@ -29,7 +30,8 @@ where
 
 pub async fn find_by_email<T>(email: String) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let email = Entity::find_by_id(email)
         .into_model::<T>()
         .one(get_db())
@@ -40,7 +42,8 @@ where
 
 pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let email = model.insert(get_db()).await?;
 
     Ok(find_by_email::<T>(email.email).await?.unwrap())
@@ -48,7 +51,8 @@ where
 
 pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let email = model.update(get_db()).await?;
 
     Ok(find_by_email::<T>(email.email).await?.unwrap())

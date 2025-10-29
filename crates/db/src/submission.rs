@@ -67,7 +67,8 @@ pub async fn find<T>(
     }: FindSubmissionsOptions,
 ) -> Result<(Vec<T>, u64), DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let mut sql = Entity::base_find();
 
     if let Some(id) = id {
@@ -101,8 +102,7 @@ where
     }
 
     if let Some(sorts) = sorts {
-        let sorts = sorts.split(",").collect::<Vec<&str>>();
-        for sort in sorts {
+        for sort in sorts.split(",") {
             let col = match Column::from_str(sort.replace("-", "").as_str()) {
                 Ok(col) => col,
                 Err(_) => continue,
@@ -129,7 +129,8 @@ where
 
 pub async fn find_by_id<T>(submission_id: i64) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(Entity::base_find()
         .filter(Column::Id.eq(submission_id))
         .into_model::<T>()
@@ -139,7 +140,8 @@ where
 
 pub async fn find_pending_by_id<T>(submission_id: i64) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(Entity::base_find()
         .filter(Column::Id.eq(submission_id))
         .filter(Column::Status.eq(Status::Pending))
@@ -153,7 +155,8 @@ pub async fn find_correct_by_team_ids_and_game_id<T>(
     game_id: i64,
 ) -> Result<Vec<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(Entity::base_find()
         .filter(Column::TeamId.is_in(team_ids))
         .filter(Column::GameId.eq(game_id))
@@ -169,7 +172,8 @@ pub async fn find_correct_by_challenge_ids_and_optional_team_game<T>(
     game_id: Option<i64>,
 ) -> Result<Vec<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let mut sql = Entity::base_find().filter(Column::ChallengeId.is_in(challenge_ids));
 
     if let (Some(_), Some(game_id)) = (team_id, game_id) {
@@ -203,7 +207,8 @@ pub async fn count_correct() -> Result<u64, DbErr> {
 
 pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let submission = model.insert(get_db()).await?;
 
     Ok(find_by_id::<T>(submission.id).await?.unwrap())
@@ -211,7 +216,8 @@ where
 
 pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let submission = model.update(get_db()).await?;
 
     Ok(find_by_id::<T>(submission.id).await?.unwrap())

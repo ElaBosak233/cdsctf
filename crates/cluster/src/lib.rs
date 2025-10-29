@@ -522,7 +522,8 @@ pub async fn exec(
 ) -> Result<(), ClusterError> {
     async fn process_client_to_pod<W>(mut receiver: SplitStream<WebSocket>, mut stdin_writer: W)
     where
-        W: AsyncWrite + Unpin + Sized, {
+        W: AsyncWrite + Unpin + Sized,
+    {
         while let Some(Ok(msg)) = receiver.next().await {
             match msg {
                 Message::Text(text) => {
@@ -540,7 +541,8 @@ pub async fn exec(
     async fn process_pod_to_client<R, S>(stdout_reader: R, mut sender: S)
     where
         R: AsyncRead + Unpin,
-        S: SinkExt<Message> + Unpin, {
+        S: SinkExt<Message> + Unpin,
+    {
         let mut reader = FramedRead::new(stdout_reader, BytesCodec::new());
         while let Some(result) = reader.next().await {
             match result {

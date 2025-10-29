@@ -38,7 +38,8 @@ pub async fn init() -> Result<(), EngineError> {
 
 pub async fn gen_rune_context<M>(modules: Vec<M>) -> Result<Context, EngineError>
 where
-    M: AsRef<Module>, {
+    M: AsRef<Module>,
+{
     let mut context = Context::with_default_modules()?;
     for module in modules {
         context.install(module)?;

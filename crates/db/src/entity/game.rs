@@ -68,7 +68,8 @@ impl Related<challenge::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
-        C: ConnectionTrait, {
+        C: ConnectionTrait,
+    {
         let ts = time::OffsetDateTime::now_utc().unix_timestamp();
 
         if insert {

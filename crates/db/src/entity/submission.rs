@@ -39,11 +39,11 @@ pub struct Model {
 #[repr(i32)]
 pub enum Status {
     #[default]
-    Pending   = 0,
-    Correct   = 1,
+    Pending = 0,
+    Correct = 1,
     Incorrect = 2,
-    Cheat     = 3,
-    Expired   = 4,
+    Cheat = 3,
+    Expired = 4,
     Duplicate = 5,
 }
 
@@ -110,7 +110,8 @@ impl Related<game::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
-        C: ConnectionTrait, {
+        C: ConnectionTrait,
+    {
         let ts = time::OffsetDateTime::now_utc().unix_timestamp();
 
         if insert {

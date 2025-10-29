@@ -40,11 +40,11 @@ pub struct Model {
 #[sea_orm(rs_type = "i32", db_type = "Integer")]
 #[repr(i32)]
 pub enum State {
-    Banned    = 0,
+    Banned = 0,
     #[default]
     Preparing = 1,
-    Pending   = 2,
-    Passed    = 3,
+    Pending = 2,
+    Passed = 3,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

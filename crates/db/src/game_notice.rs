@@ -16,7 +16,8 @@ pub struct GameNotice {
 
 pub async fn find_by_id<T>(notice_id: i64, game_id: i64) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Entity::find_by_id(notice_id)
         .filter(Column::GameId.eq(game_id))
         .into_model::<T>()
@@ -26,7 +27,8 @@ where
 
 pub async fn find_by_game_id<T>(game_id: i64) -> Result<Vec<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Entity::find()
         .filter(Column::GameId.eq(game_id))
         .into_model::<T>()
@@ -36,7 +38,8 @@ where
 
 pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let game_notice = model.insert(get_db()).await?;
 
     Ok(find_by_id::<T>(game_notice.id, game_notice.game_id)

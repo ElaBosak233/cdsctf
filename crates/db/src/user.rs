@@ -59,7 +59,8 @@ pub async fn find<T>(
     }: FindUserOptions,
 ) -> Result<(Vec<T>, u64), DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let mut sql = Entity::base_find();
 
     if let Some(id) = id {
@@ -83,8 +84,7 @@ where
     let total = sql.clone().count(get_db()).await?;
 
     if let Some(sorts) = sorts {
-        let sorts = sorts.split(",").collect::<Vec<&str>>();
-        for sort in sorts {
+        for sort in sorts.split(",") {
             let col = match Column::from_str(sort.replace("-", "").as_str()) {
                 Ok(col) => col,
                 Err(_) => continue,
@@ -109,7 +109,8 @@ where
 
 pub async fn find_by_id<T>(user_id: i64) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(Entity::base_find()
         .filter(Column::Id.eq(user_id))
         .filter(Column::DeletedAt.is_null())
@@ -120,7 +121,8 @@ where
 
 pub async fn find_by_account<T>(account: String) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult + Debug, {
+    T: FromQueryResult + Debug,
+{
     Ok(Entity::base_find()
         .filter(
             Condition::any()
@@ -163,7 +165,8 @@ where
 
 pub async fn find_by_email<T>(email: String) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(Entity::base_find()
         .filter(Expr::exists(
             Query::select()
@@ -215,7 +218,8 @@ pub async fn is_email_unique(email: &str) -> Result<bool, DbErr> {
 
 pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let user = model.insert(get_db()).await?;
 
     Ok(find_by_id::<T>(user.id).await?.unwrap())
@@ -223,7 +227,8 @@ where
 
 pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let user = model.update(get_db()).await?;
 
     Ok(find_by_id::<T>(user.id).await?.unwrap())

@@ -67,7 +67,8 @@ pub async fn find<T>(
     }: FindTeamOptions,
 ) -> Result<(Vec<T>, u64), DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let mut sql = Entity::find();
 
     sql = sql.filter(Column::GameId.eq(game_id));
@@ -102,8 +103,7 @@ where
     let total = sql.clone().count(get_db()).await?;
 
     if let Some(sorts) = sorts {
-        let sorts = sorts.split(",").collect::<Vec<&str>>();
-        for sort in sorts {
+        for sort in sorts.split(",") {
             let col = match Column::from_str(sort.replace("-", "").as_str()) {
                 Ok(col) => col,
                 Err(_) => continue,
@@ -128,7 +128,8 @@ where
 
 pub async fn find_by_id<T>(team_id: i64, game_id: i64) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(Entity::find_by_id(team_id)
         .filter(Column::GameId.eq(game_id))
         .into_model::<T>()
@@ -138,7 +139,8 @@ where
 
 pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let team = model.insert(get_db()).await?;
 
     Ok(find_by_id::<T>(team.id, team.game_id).await?.unwrap())
@@ -146,7 +148,8 @@ where
 
 pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let team = model.update(get_db()).await?;
 
     Ok(find_by_id::<T>(team.id, team.game_id).await?.unwrap())

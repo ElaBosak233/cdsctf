@@ -34,7 +34,8 @@ pub async fn init() -> Result<(), CacheError> {
 
 pub async fn get<T>(key: impl Into<Key> + Send + Display) -> Result<Option<T>, CacheError>
 where
-    T: for<'de> Deserialize<'de>, {
+    T: for<'de> Deserialize<'de>,
+{
     let result = get_client().get::<Option<Value>, _>(key).await?;
     match result {
         Some(value) => Ok(Some(serde_json::from_value(value)?)),
@@ -44,7 +45,8 @@ where
 
 pub async fn get_del<T>(key: impl Into<Key> + Send + Display) -> Result<Option<T>, CacheError>
 where
-    T: for<'de> Deserialize<'de>, {
+    T: for<'de> Deserialize<'de>,
+{
     let result = get_client().getdel::<Option<Value>, _>(key).await?;
     match result {
         Some(value) => Ok(Some(serde_json::from_value(value)?)),

@@ -74,7 +74,8 @@ pub async fn find<T>(
     }: FindChallengeOptions,
 ) -> Result<(Vec<T>, u64), DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let mut sql = Entity::find();
 
     if let Some(id) = id {
@@ -114,8 +115,7 @@ where
     let total = sql.clone().count(get_db()).await?;
 
     if let Some(sorts) = sorts {
-        let sorts = sorts.split(",").collect::<Vec<&str>>();
-        for sort in sorts {
+        for sort in sorts.split(",") {
             let col = match Column::from_str(sort.replace("-", "").as_str()) {
                 Ok(col) => col,
                 Err(_) => continue,
@@ -140,7 +140,8 @@ where
 
 pub async fn find_by_id<T>(challenge_id: i64) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(Entity::find_by_id(challenge_id)
         .filter(Column::DeletedAt.is_null())
         .into_model::<T>()
@@ -157,7 +158,8 @@ pub async fn count() -> Result<u64, DbErr> {
 
 pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let challenge = model.insert(get_db()).await?;
 
     Ok(find_by_id::<T>(challenge.id).await?.unwrap())
@@ -165,7 +167,8 @@ where
 
 pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let challenge = model.update(get_db()).await?;
 
     Ok(find_by_id::<T>(challenge.id).await?.unwrap())

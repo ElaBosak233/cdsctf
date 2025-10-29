@@ -4,6 +4,7 @@ mod notice;
 mod poster;
 mod team;
 
+use std::collections::HashMap;
 use std::convert::Infallible;
 
 use axum::{
@@ -86,14 +87,21 @@ pub async fn get_game_scoreboard(
         cds_db::submission::find_correct_by_team_ids_and_game_id::<Submission>(team_ids, game_id)
             .await?;
 
+    // Group submissions by team_id for O(1) lookup instead of O(n) iteration per team
+    let mut submissions_by_team: HashMap<i64, Vec<Submission>> = HashMap::new();
+    for submission in submissions {
+        if let Some(team_id) = submission.team_id {
+            submissions_by_team
+                .entry(team_id)
+                .or_insert_with(Vec::new)
+                .push(submission);
+        }
+    }
+
     let mut result: Vec<ScoreRecord> = Vec::new();
 
     for team in teams {
-        let submissions = submissions
-            .iter()
-            .filter(|s| s.team_id.is_some_and(|t| t == team.id))
-            .cloned()
-            .collect::<Vec<Submission>>();
+        let submissions = submissions_by_team.remove(&team.id).unwrap_or_default();
 
         result.push(ScoreRecord { team, submissions });
     }

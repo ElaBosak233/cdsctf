@@ -28,7 +28,8 @@ pub async fn find<T>(
     FindTeamUserOptions { team_id, user_id }: FindTeamUserOptions,
 ) -> Result<(Vec<T>, u64), DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let mut sql = Entity::find();
 
     if let Some(team_id) = team_id {
@@ -47,7 +48,8 @@ where
 
 pub async fn find_by_id<T>(team_id: i64, user_id: i64) -> Result<Option<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(Entity::find()
         .filter(Column::TeamId.eq(team_id))
         .filter(Column::UserId.eq(user_id))
@@ -58,7 +60,8 @@ where
 
 pub async fn find_users<T>(team_id: i64) -> Result<Vec<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(UserEntity::find()
         .inner_join(TeamEntity)
         .filter(TeamColumn::Id.eq(team_id))
@@ -69,7 +72,8 @@ where
 
 pub async fn find_teams<T>(user_id: i64) -> Result<Vec<T>, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     Ok(TeamEntity::find()
         .inner_join(UserEntity)
         .filter(UserColumn::Id.eq(user_id))
@@ -80,7 +84,8 @@ where
 
 pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
 where
-    T: FromQueryResult, {
+    T: FromQueryResult,
+{
     let team_user = model.insert(get_db()).await?;
 
     Ok(find_by_id::<T>(team_user.team_id, team_user.user_id)
