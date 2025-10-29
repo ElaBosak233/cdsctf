@@ -96,7 +96,7 @@ pub async fn get_challenge_status(
         )
         .await?;
 
-    let mut result: HashMap<i64, ChallengeStatusResponse> = HashMap::new();
+    let mut result: HashMap<i64, ChallengeStatusResponse> = HashMap::with_capacity(body.challenge_ids.len());
 
     for challenge_id in body.challenge_ids.iter() {
         result.insert(

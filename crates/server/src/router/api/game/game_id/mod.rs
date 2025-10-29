@@ -88,7 +88,7 @@ pub async fn get_game_scoreboard(
             .await?;
 
     // Group submissions by team_id for O(1) lookup instead of O(n) iteration per team
-    let mut submissions_by_team: HashMap<i64, Vec<Submission>> = HashMap::new();
+    let mut submissions_by_team: HashMap<i64, Vec<Submission>> = HashMap::with_capacity(teams.len());
     for submission in submissions {
         if let Some(team_id) = submission.team_id {
             submissions_by_team
@@ -98,7 +98,7 @@ pub async fn get_game_scoreboard(
         }
     }
 
-    let mut result: Vec<ScoreRecord> = Vec::new();
+    let mut result: Vec<ScoreRecord> = Vec::with_capacity(teams.len());
 
     for team in teams {
         let submissions = submissions_by_team.remove(&team.id).unwrap_or_default();
