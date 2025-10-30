@@ -59,7 +59,7 @@ function TooltipContent({
         {...props}
       >
         {children}
-        <RadixTooltip.Arrow className="bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+        <RadixTooltip.Arrow className="bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-[2px]" />
       </RadixTooltip.Content>
     </RadixTooltip.Portal>
   );

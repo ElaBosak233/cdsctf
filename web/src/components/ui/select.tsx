@@ -146,7 +146,7 @@ function SelectContent({
             "relative",
             "z-50",
             "max-h-96",
-            "min-w-[8rem]",
+            "min-w-32",
             "overflow-hidden",
             "rounded-md",
             "border",
@@ -169,9 +169,9 @@ function SelectContent({
           className={cn(
             "p-1",
             position === "popper" && [
-              "h-[var(--radix-select-trigger-height)]",
+              "h-(--radix-select-trigger-height)",
               "w-full",
-              "min-w-[var(--radix-select-trigger-width)]",
+              "min-w-(--radix-select-trigger-width)",
               "scroll-my-1",
             ]
           )}
@@ -223,8 +223,8 @@ function SelectItem({
           "text-sm",
           "outline-hidden",
           "select-none",
-          "data-[disabled]:pointer-events-none",
-          "data-[disabled]:opacity-50",
+          "data-disabled:pointer-events-none",
+          "data-disabled:opacity-50",
           "[&_svg]:pointer-events-none",
           "[&_svg]:shrink-0",
           "[&_svg:not([class*='size-'])]:size-4",

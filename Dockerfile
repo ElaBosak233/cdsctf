@@ -13,7 +13,7 @@ RUN cargo fetch && \
     cargo build --release --bin cds-server --target x86_64-unknown-linux-musl && \
     cp /app/target/x86_64-unknown-linux-musl/release/cds-server /usr/local/bin/cds-server
 
-FROM node:24 AS frontend
+FROM node:25 AS frontend
 
 WORKDIR /app
 

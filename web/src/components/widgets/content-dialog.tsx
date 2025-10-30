@@ -41,7 +41,7 @@ export function ContentDialog({
           </Button>
         </DialogTrigger>
         <DialogContent>
-          <Card className={cn(["sm:max-w-2xl", "p-5", "w-128", "min-h-64"])}>
+          <Card className={cn(["sm:max-w-2xl", "p-5", "w-lg", "min-h-64"])}>
             <Typography>
               <MarkdownRender src={content} />
             </Typography>

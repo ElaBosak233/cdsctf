@@ -120,16 +120,18 @@ export default function Index() {
       >
         <div className={cn(["flex-1", "flex", "flex-col", "gap-8"])}>
           <div className={cn(["flex", "gap-5", "flex-wrap"])}>
-            <Button
-              icon={<LibraryIcon />}
-              onClick={() => {
-                setCategory("all");
-              }}
-              className={cn(["flex-1", "min-w-fit"])}
-              variant={category === "all" ? "solid" : "ghost"}
-            >
-              ALL
-            </Button>
+            {categories?.length > 0 && (
+              <Button
+                icon={<LibraryIcon />}
+                onClick={() => {
+                  setCategory("all");
+                }}
+                className={cn(["flex-1", "min-w-fit"])}
+                variant={category === "all" ? "solid" : "ghost"}
+              >
+                ALL
+              </Button>
+            )}
             {categories?.map((c) => {
               const Icon = c.icon!;
 
@@ -226,7 +228,8 @@ export default function Index() {
                   "size-1.5",
                   "rounded-full",
                   "bg-success",
-                  Date.now() / 1000 > currentGame?.frozen_at! && "bg-error",
+                  Date.now() / 1000 > Number(currentGame?.frozen_at) &&
+                    "bg-error",
                 ])}
                 aria-hidden="true"
               />
