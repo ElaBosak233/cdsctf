@@ -75,7 +75,7 @@ function DropdownMenuSubContent(
       className={cn(
         [
           "z-50",
-          "min-w-[8rem]",
+          "min-w-32",
           "overflow-hidden",
           "rounded-md",
           "border",
@@ -114,7 +114,7 @@ const DropdownMenuContent = React.forwardRef<
       className={cn(
         [
           "z-50",
-          "min-w-[8rem]",
+          "min-w-32",
           "overflow-hidden",
           "rounded-md",
           "border",

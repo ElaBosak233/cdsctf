@@ -9,7 +9,6 @@ import {
   YAxis,
 } from "recharts";
 
-import { Card } from "@/components/ui/card";
 import {
   type ChartConfig,
   ChartContainer,
@@ -108,65 +107,60 @@ function ChampionChart(props: ChampionChartProps) {
   const chartConfig = {} satisfies ChartConfig;
 
   return (
-    <Card className={cn(["p-10", "w-full"])}>
-      <ChartContainer
-        config={chartConfig}
-        className={cn(["h-[20rem]", "w-full"])}
-      >
-        <LineChart accessibilityLayer data={data}>
-          <CartesianGrid vertical={false} />
-          <XAxis
-            dataKey={"ts"}
-            tickFormatter={(value: number) =>
-              new Date(value * 1000).toLocaleString(undefined, {
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-              })
-            }
-            scale={"auto"}
-          />
-          <YAxis />
-          <Legend
-            verticalAlign={"top"}
-            align={"center"}
-            wrapperStyle={{ marginTop: -15 }}
-          />
-          <Brush
-            dataKey={"ts"}
-            height={25}
-            tickFormatter={(value: number) =>
-              new Date(value * 1000).toLocaleString(undefined, {
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-              })
-            }
-            fill={"none"}
-          />
-          <ChartTooltip
-            cursor={false}
-            content={<ChartTooltipContent indicator="dot" hideLabel />}
-          />
+    <ChartContainer config={chartConfig} className={cn(["h-100", "w-full"])}>
+      <LineChart accessibilityLayer data={data}>
+        <CartesianGrid vertical={false} />
+        <XAxis
+          dataKey={"ts"}
+          tickFormatter={(value: number) =>
+            new Date(value * 1000).toLocaleString(undefined, {
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })
+          }
+          scale={"auto"}
+        />
+        <YAxis />
+        <Legend
+          verticalAlign={"top"}
+          align={"center"}
+          wrapperStyle={{ marginTop: -15 }}
+        />
+        <Brush
+          dataKey={"ts"}
+          height={25}
+          tickFormatter={(value: number) =>
+            new Date(value * 1000).toLocaleString(undefined, {
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })
+          }
+          fill={"none"}
+        />
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent indicator="dot" hideLabel />}
+        />
 
-          {lines?.map((line, index) => (
-            <Line
-              key={line?.id}
-              type="stepAfter"
-              dataKey={line.id}
-              name={line.name}
-              stroke={COLORS[index % COLORS.length]}
-              connectNulls
-              dot={false}
-            />
-          ))}
-        </LineChart>
-      </ChartContainer>
-    </Card>
+        {lines?.map((line, index) => (
+          <Line
+            key={line?.id}
+            type="stepAfter"
+            dataKey={line.id}
+            name={line.name}
+            stroke={COLORS[index % COLORS.length]}
+            connectNulls
+            dot={false}
+          />
+        ))}
+      </LineChart>
+    </ChartContainer>
   );
 }
 

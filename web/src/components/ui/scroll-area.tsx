@@ -32,7 +32,7 @@ function ScrollArea(props: ScrollAreaProps) {
           "outline-ring/50",
           "size-full",
           "rounded-[inherit]",
-          "[&>div]:!block",
+          "[&>div]:block!",
           "transition-[color,box-shadow]",
           "focus-visible:ring-4",
           "focus-visible:outline-1",

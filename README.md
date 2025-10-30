@@ -18,4 +18,4 @@ Thanks to everyone who has contributed to the project! Without you, CdsCTF would
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0](./LICENSE).
+This project is licensed under the [GNU Affero General Public License v3.0](./LICENSE).

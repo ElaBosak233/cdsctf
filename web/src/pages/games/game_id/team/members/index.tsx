@@ -25,8 +25,8 @@ export default function Index() {
     queryKey: ["game_token", currentGame?.id, selfTeam?.id, tick],
     queryFn: () =>
       getToken({
-        game_id: currentGame?.id!,
-        team_id: selfTeam?.id!,
+        game_id: currentGame?.id,
+        team_id: selfTeam?.id,
       }),
     enabled: !!currentGame?.id && !!selfTeam?.id,
     select: (res) => res.data,

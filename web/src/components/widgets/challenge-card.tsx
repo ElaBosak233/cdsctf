@@ -83,10 +83,7 @@ function ChallengeCard(props: ChallengeCardProps) {
       )}
       <Badge
         variant={"tonal"}
-        className={cn([
-          "bg-[var(--color-badge)]/10",
-          "text-[var(--color-badge)]",
-        ])}
+        className={cn(["bg-(--color-badge)/10", "text-(--color-badge)"])}
         style={
           {
             "--color-badge": category?.color,
@@ -95,18 +92,7 @@ function ChallengeCard(props: ChallengeCardProps) {
       >
         {category?.name?.toUpperCase()}
       </Badge>
-      <h3
-        className={cn([
-          "my-2",
-          "text-xl",
-          "text-ellipsis",
-          "overflow-hidden",
-          "text-nowrap",
-          "max-w-3/4",
-        ])}
-      >
-        {digest?.title}
-      </h3>
+      <h3 className={cn(["my-2", "text-xl", "truncate"])}>{digest?.title}</h3>
       <Separator className={"my-3"} />
       <div className={cn(["flex", "justify-between", "items-center", "h-5"])}>
         <Tooltip>
