@@ -113,6 +113,10 @@ pub async fn create_env(
         let _ = crate::util::loader::prepare_team(game_id, team_id).await?;
         let _ = crate::util::loader::prepare_game_challenge(game_id, challenge.id).await?;
 
+        if !cds_db::util::is_user_in_team(operator.id, team_id).await? {
+            return Err(WebError::Forbidden(json!("team_not_found")));
+        }
+
         let (_, member_count) = cds_db::team_user::find::<TeamUser>(FindTeamUserOptions {
             team_id: Some(team_id),
             ..Default::default()
