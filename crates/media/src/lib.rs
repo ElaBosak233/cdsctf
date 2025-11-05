@@ -3,7 +3,7 @@ pub mod config;
 pub mod traits;
 pub mod util;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf, Component};
 
 use rust_embed::Embed;
 use tokio::{
@@ -37,8 +37,12 @@ pub async fn init() -> Result<(), MediaError> {
 }
 
 pub async fn get(path: String, filename: String) -> Result<Vec<u8>, MediaError> {
-    let filepath =
-        PathBuf::from(&cds_env::get_config().media.path).join(format!("{}/{}", path, filename));
+    let joined = Path::new(&path).join(&filename);
+    if joined.is_absolute() || joined.components().any(|c| !matches!(c, Component::Normal(_))) {
+        return Err(MediaError::NotFound(String::new()));
+    }
+
+    let filepath = PathBuf::from(&cds_env::get_config().media.path).join(joined);
 
     match File::open(&filepath).await {
         Ok(mut file) => {
@@ -53,7 +57,12 @@ pub async fn get(path: String, filename: String) -> Result<Vec<u8>, MediaError> 
 }
 
 pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, MediaError> {
-    let filepath = PathBuf::from(&cds_env::get_config().media.path).join(path);
+    let rel = Path::new(&path);
+    if rel.is_absolute() || rel.components().any(|c| !matches!(c, Component::Normal(_))) {
+        return Ok(Vec::new());
+    }
+
+    let filepath = PathBuf::from(&cds_env::get_config().media.path).join(rel);
     let mut files = Vec::new();
 
     if metadata(&filepath).await.is_err() {
@@ -75,8 +84,12 @@ pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, MediaError> {
 }
 
 pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), MediaError> {
-    let filepath =
-        PathBuf::from(&cds_env::get_config().media.path).join(format!("{}/{}", path, filename));
+    let joined = Path::new(&path).join(&filename);
+    if joined.is_absolute() || joined.components().any(|c| !matches!(c, Component::Normal(_))) {
+        return Err(MediaError::InternalServerError(String::new()));
+    }
+
+    let filepath = PathBuf::from(&cds_env::get_config().media.path).join(joined);
     if let Some(parent) = filepath.parent() {
         if metadata(parent).await.is_err() {
             create_dir_all(parent).await?;
@@ -88,8 +101,12 @@ pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), M
 }
 
 pub async fn delete(path: String, filename: String) -> Result<(), MediaError> {
-    let filepath =
-        PathBuf::from(&cds_env::get_config().media.path).join(format!("{}/{}", path, filename));
+    let joined = Path::new(&path).join(&filename);
+    if joined.is_absolute() || joined.components().any(|c| !matches!(c, Component::Normal(_))) {
+        return Ok(());
+    }
+
+    let filepath = PathBuf::from(&cds_env::get_config().media.path).join(joined);
     if metadata(&filepath).await.is_ok() {
         remove_file(&filepath).await?;
     }
@@ -97,7 +114,12 @@ pub async fn delete(path: String, filename: String) -> Result<(), MediaError> {
 }
 
 pub async fn delete_dir(path: String) -> Result<(), MediaError> {
-    let filepath = PathBuf::from(&cds_env::get_config().media.path).join(path);
+    let rel = Path::new(&path);
+    if rel.is_absolute() || rel.components().any(|c| !matches!(c, Component::Normal(_))) {
+        return Ok(());
+    }
+
+    let filepath = PathBuf::from(&cds_env::get_config().media.path).join(rel);
     if metadata(&filepath).await.is_ok() {
         remove_dir_all(&filepath).await?;
     }

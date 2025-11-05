@@ -52,7 +52,11 @@ pub async fn join_team(
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
-    let criteria = cds_cache::get::<String>(format!("team:{}:invite", body.team_id))
+    if body.team_id != team.id {
+        return Err(WebError::BadRequest(json!("invalid_team")));
+    }
+
+    let criteria = cds_cache::get::<String>(format!("team:{}:invite", team.id))
         .await?
         .ok_or(WebError::BadRequest(json!("no_invite_token")))?;
 

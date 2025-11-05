@@ -44,7 +44,7 @@ pub async fn renew_pod(
 
     if !(operator.group == Group::Admin
         || operator.id == user_id
-        || cds_db::util::is_user_in_team(user_id, team_id).await?)
+        || cds_db::util::is_user_in_team(operator.id, team_id).await?)
     {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -112,7 +112,7 @@ pub async fn stop_pod(
 
     if !(operator.group == Group::Admin
         || operator.id == user_id
-        || cds_db::util::is_user_in_team(user_id, team_id).await?)
+        || cds_db::util::is_user_in_team(operator.id, team_id).await?)
     {
         return Err(WebError::Forbidden(json!("")));
     }

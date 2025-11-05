@@ -93,6 +93,9 @@ pub async fn get_game_scoreboard(
             .iter()
             .filter(|s| s.team_id.is_some_and(|t| t == team.id))
             .cloned()
+            .map(|submission| {
+                submission.desensitize()
+            })
             .collect::<Vec<Submission>>();
 
         result.push(ScoreRecord { team, submissions });
