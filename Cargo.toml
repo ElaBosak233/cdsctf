@@ -9,7 +9,7 @@ publish = false
 homepage = "https://cdsctf.e23.dev"
 repository = "https://github.com/elabosak233/cdsctf"
 rust-version = "1.90.0"
-version = "1.8.1"
+version = "1.8.2"
 
 [workspace.dependencies]
 # Local Libraries
@@ -32,7 +32,7 @@ cds-observe = { path = "crates/observe" }
 # Async
 async-trait = { version = "0.1" }
 tokio = { version = "1.48", features = ["full"] }
-tokio-util = { version = "0.7.16" }
+tokio-util = { version = "0.7.17" }
 async-stream = { version = "0.3" }
 futures-util = { version = "0.3" }
 
@@ -100,7 +100,7 @@ sea-orm = { version = "1.1", features = [
 sea-orm-migration = { version = "1.1" }
 
 # Message Queue
-async-nats = { version = "0.44" }
+async-nats = { version = "0.45" }
 
 # Cache
 fred = { version = "10.1", features = [
@@ -138,7 +138,7 @@ sysinfo = { version = "0.37" }
 # Miscellaneous
 once_cell = { version = "1.21" }
 shadow-rs = { version = "1.4" }
-rust-embed = { version = "8.8" }
+rust-embed = { version = "8.9" }
 validator = { version = "0.20", features = ["derive"] }
 reqwest = { version = "0.12", features = [
     "json",

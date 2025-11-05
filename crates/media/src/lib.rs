@@ -3,7 +3,7 @@ pub mod config;
 pub mod traits;
 pub mod util;
 
-use std::path::{Path, PathBuf, Component};
+use std::path::{Component, Path, PathBuf};
 
 use rust_embed::Embed;
 use tokio::{
@@ -38,7 +38,11 @@ pub async fn init() -> Result<(), MediaError> {
 
 pub async fn get(path: String, filename: String) -> Result<Vec<u8>, MediaError> {
     let joined = Path::new(&path).join(&filename);
-    if joined.is_absolute() || joined.components().any(|c| !matches!(c, Component::Normal(_))) {
+    if joined.is_absolute()
+        || joined
+            .components()
+            .any(|c| !matches!(c, Component::Normal(_)))
+    {
         return Err(MediaError::NotFound(String::new()));
     }
 
@@ -85,7 +89,11 @@ pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, MediaError> {
 
 pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), MediaError> {
     let joined = Path::new(&path).join(&filename);
-    if joined.is_absolute() || joined.components().any(|c| !matches!(c, Component::Normal(_))) {
+    if joined.is_absolute()
+        || joined
+            .components()
+            .any(|c| !matches!(c, Component::Normal(_)))
+    {
         return Err(MediaError::InternalServerError(String::new()));
     }
 
@@ -102,7 +110,11 @@ pub async fn save(path: String, filename: String, data: Vec<u8>) -> Result<(), M
 
 pub async fn delete(path: String, filename: String) -> Result<(), MediaError> {
     let joined = Path::new(&path).join(&filename);
-    if joined.is_absolute() || joined.components().any(|c| !matches!(c, Component::Normal(_))) {
+    if joined.is_absolute()
+        || joined
+            .components()
+            .any(|c| !matches!(c, Component::Normal(_)))
+    {
         return Ok(());
     }
 

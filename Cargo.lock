@@ -206,9 +206,9 @@ dependencies = [
 
 [[package]]
 name = "async-nats"
-version = "0.44.1"
+version = "0.45.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58f1564b878e64608a4fc8ab74c0b499b566400b9ab6e5097f21ba1945dab5bb"
+checksum = "86dde77d8a733a9dbaf865a9eb65c72e09c88f3d14d3dd0d2aecf511920ee4fe"
 dependencies = [
  "base64",
  "bytes",
@@ -639,14 +639,14 @@ dependencies = [
 
 [[package]]
 name = "cds-assets"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "rust-embed",
 ]
 
 [[package]]
 name = "cds-cache"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -660,7 +660,7 @@ dependencies = [
 
 [[package]]
 name = "cds-captcha"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "biosvg",
@@ -679,7 +679,7 @@ dependencies = [
 
 [[package]]
 name = "cds-checker"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "aes",
  "anyhow",
@@ -698,7 +698,7 @@ dependencies = [
 
 [[package]]
 name = "cds-cluster"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "axum",
@@ -722,7 +722,7 @@ dependencies = [
 
 [[package]]
 name = "cds-db"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -740,7 +740,7 @@ dependencies = [
 
 [[package]]
 name = "cds-email"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "cds-db",
@@ -756,7 +756,7 @@ dependencies = [
 
 [[package]]
 name = "cds-engine"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "dashmap",
@@ -772,7 +772,7 @@ dependencies = [
 
 [[package]]
 name = "cds-env"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "nanoid",
@@ -786,7 +786,7 @@ dependencies = [
 
 [[package]]
 name = "cds-event"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -800,7 +800,7 @@ dependencies = [
 
 [[package]]
 name = "cds-logger"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -816,7 +816,7 @@ dependencies = [
 
 [[package]]
 name = "cds-media"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -833,7 +833,7 @@ dependencies = [
 
 [[package]]
 name = "cds-migrator"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "async-trait",
  "cds-db",
@@ -844,7 +844,7 @@ dependencies = [
 
 [[package]]
 name = "cds-observe"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -860,7 +860,7 @@ dependencies = [
 
 [[package]]
 name = "cds-queue"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -874,7 +874,7 @@ dependencies = [
 
 [[package]]
 name = "cds-server"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "anyhow",
  "argon2",
@@ -2412,7 +2412,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.5.10",
+ "socket2 0.6.0",
  "tokio",
  "tower-service",
  "tracing",
@@ -4128,7 +4128,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.5.10",
+ "socket2 0.6.0",
  "thiserror 2.0.16",
  "tokio",
  "tracing",
@@ -4165,7 +4165,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.5.10",
+ "socket2 0.6.0",
  "tracing",
  "windows-sys 0.60.2",
 ]
@@ -4666,9 +4666,9 @@ dependencies = [
 
 [[package]]
 name = "rust-embed"
-version = "8.8.0"
+version = "8.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb44e1917075637ee8c7bcb865cf8830e3a92b5b1189e44e3a0ab5a0d5be314b"
+checksum = "947d7f3fad52b283d261c4c99a084937e2fe492248cb9a68a8435a861b8798ca"
 dependencies = [
  "rust-embed-impl",
  "rust-embed-utils",
@@ -4677,9 +4677,9 @@ dependencies = [
 
 [[package]]
 name = "rust-embed-impl"
-version = "8.8.0"
+version = "8.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "382499b49db77a7c19abd2a574f85ada7e9dbe125d5d1160fa5cad7c4cf71fc9"
+checksum = "5fa2c8c9e8711e10f9c4fd2d64317ef13feaab820a4c51541f1a8c8e2e851ab2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4690,9 +4690,9 @@ dependencies = [
 
 [[package]]
 name = "rust-embed-utils"
-version = "8.8.0"
+version = "8.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21fcbee55c2458836bcdbfffb6ec9ba74bbc23ca7aa6816015a3dd2c4d8fc185"
+checksum = "60b161f275cb337fe0a44d924a5f4df0ed69c2c39519858f931ce61c779d3475"
 dependencies = [
  "sha2",
  "walkdir",
@@ -5713,7 +5713,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "psm",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -6092,9 +6092,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.16"
+version = "0.7.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14307c986784f72ef81c89db7d9e28d6ac26d16213b109ea501696195e6e3ce5"
+checksum = "2efa149fe76073d6e8fd97ef4f4eca7b67f599660115591483572e406e165594"
 dependencies = [
  "bytes",
  "futures-core",
@@ -7039,7 +7039,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.0",
 ]
 
 [[package]]
