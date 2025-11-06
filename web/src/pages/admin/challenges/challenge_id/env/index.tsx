@@ -4,6 +4,7 @@ import {
   ClockIcon,
   ContainerIcon,
   CpuIcon,
+  DownloadIcon,
   HandshakeIcon,
   KeyIcon,
   MemoryStickIcon,
@@ -61,6 +62,9 @@ export default function Index() {
         memory_limit: z.number({
           message: "请输入内存限制参数",
         }),
+        image_pull_policy: z.string({
+          message: "请选择镜像拉取策略",
+        }),
         envs: z.array(
           z.object({
             key: z.string().min(1, {
@@ -109,6 +113,7 @@ export default function Index() {
         memory_limit: 1024,
         envs: [],
         ports: [],
+        image_pull_policy: "Always",
       },
     ]);
   };
@@ -274,7 +279,7 @@ export default function Index() {
                 control={form.control}
                 name={`containers.${containerIndex}.cpu_limit`}
                 render={({ field }) => (
-                  <FormItem className={cn(["w-1/2"])}>
+                  <FormItem className={cn(["w-1/3"])}>
                     <FormLabel>CPU 限制</FormLabel>
                     <FormControl>
                       <Field>
@@ -295,7 +300,7 @@ export default function Index() {
                 control={form.control}
                 name={`containers.${containerIndex}.memory_limit`}
                 render={({ field }) => (
-                  <FormItem className={cn(["w-1/2"])}>
+                  <FormItem className={cn(["w-1/3"])}>
                     <FormLabel>内存限制（MB）</FormLabel>
                     <FormControl>
                       <Field>
@@ -305,6 +310,36 @@ export default function Index() {
                         <NumberField
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
+                        />
+                      </Field>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name={`containers.${containerIndex}.image_pull_policy`}
+                render={({ field }) => (
+                  <FormItem className={cn(["w-1/3"])}>
+                    <FormLabel>镜像拉取策略</FormLabel>
+                    <FormControl>
+                      <Field>
+                        <FieldIcon>
+                          <DownloadIcon />
+                        </FieldIcon>
+                        <Select
+                          {...field}
+                          options={[
+                            { value: "Always", content: "总是拉取 (Always)" },
+                            {
+                              value: "IfNotPresent",
+                              content: "本地优先 (IfNotPresent)",
+                            },
+                            { value: "Never", content: "从不拉取 (Never)" },
+                          ]}
+                          onValueChange={field.onChange}
+                          value={field.value}
                         />
                       </Field>
                     </FormControl>

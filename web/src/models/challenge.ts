@@ -25,6 +25,7 @@ export interface Container {
   memory_limit: number;
   ports: Array<Port>;
   envs: Array<EnvVar>;
+  image_pull_policy: string;
 }
 
 export interface Port {
