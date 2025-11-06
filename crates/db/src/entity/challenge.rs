@@ -43,6 +43,7 @@ pub struct Container {
     pub memory_limit: i64,
     pub ports: Vec<Port>,
     pub envs: Vec<EnvVar>,
+    pub image_pull_policy: String,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
