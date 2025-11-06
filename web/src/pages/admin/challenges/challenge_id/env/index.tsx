@@ -4,6 +4,7 @@ import {
   ClockIcon,
   ContainerIcon,
   CpuIcon,
+  DownloadIcon,
   HandshakeIcon,
   KeyIcon,
   MemoryStickIcon,
@@ -13,7 +14,6 @@ import {
   SaveIcon,
   TextIcon,
   TrashIcon,
-  DownloadIcon
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -113,6 +113,7 @@ export default function Index() {
         memory_limit: 1024,
         envs: [],
         ports: [],
+        image_pull_policy: "Always",
       },
     ]);
   };
@@ -328,10 +329,13 @@ export default function Index() {
                           <DownloadIcon />
                         </FieldIcon>
                         <Select
+                          {...field}
                           options={[
-                            { value: "", content: "默认 (Always)" },
                             { value: "Always", content: "总是拉取 (Always)" },
-                            { value: "IfNotPresent", content: "本地优先 (IfNotPresent)" },
+                            {
+                              value: "IfNotPresent",
+                              content: "本地优先 (IfNotPresent)",
+                            },
                             { value: "Never", content: "从不拉取 (Never)" },
                           ]}
                           onValueChange={field.onChange}

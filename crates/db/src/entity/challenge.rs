@@ -43,7 +43,12 @@ pub struct Container {
     pub memory_limit: i64,
     pub ports: Vec<Port>,
     pub envs: Vec<EnvVar>,
+    #[serde(default = "default_image_pull_policy")]
     pub image_pull_policy: String,
+}
+
+fn default_image_pull_policy() -> String {
+    "Always".to_string()
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]

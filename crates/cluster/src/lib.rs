@@ -349,12 +349,7 @@ pub async fn create_challenge_env(
                                 })
                                 .collect::<Vec<ContainerPort>>(),
                         ),
-                        image_pull_policy: Some(
-                            if container.image_pull_policy.is_empty() {
-                                "Always".to_owned()
-                            } else {
-                                container.image_pull_policy.to_string()
-                        }),
+                        image_pull_policy: Some(container.image_pull_policy),
                         resources: Some(ResourceRequirements {
                             requests: Some(
                                 [
