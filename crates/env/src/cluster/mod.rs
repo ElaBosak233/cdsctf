@@ -8,6 +8,7 @@ pub struct Config {
     pub config_path: String,
     pub traffic: Traffic,
     pub public_entry: String,
+    pub egress_excluded_cidrs: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -25,6 +26,7 @@ impl Default for Config {
             config_path: "".to_owned(),
             traffic: Traffic::Proxy,
             public_entry: "0.0.0.0".to_owned(),
+            egress_excluded_cidrs: vec![],
         }
     }
 }
