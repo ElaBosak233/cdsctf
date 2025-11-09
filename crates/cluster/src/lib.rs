@@ -14,11 +14,15 @@ use k8s_openapi::{
             Container as K8sContainer, ContainerPort, EnvVar, Namespace, Pod, PodSpec,
             ResourceRequirements, Service, ServicePort, ServiceSpec,
         },
-        networking::v1::{NetworkPolicy, NetworkPolicySpec},
+        networking::v1::{
+            IPBlock, NetworkPolicy, NetworkPolicyEgressRule, NetworkPolicyPeer, NetworkPolicyPort,
+            NetworkPolicySpec,
+        },
     },
     apimachinery::pkg::{
         api::resource::Quantity,
         apis::meta::v1::{LabelSelector, ObjectMeta},
+        util::intstr::IntOrString,
     },
 };
 pub use kube;
@@ -84,6 +88,7 @@ pub async fn init() -> Result<(), ClusterError> {
         get_k8s_client(),
         cds_env::get_config().cluster.namespace.as_str(),
     );
+
     if network_policy_api
         .get("cds-internet-restricted")
         .await
@@ -110,7 +115,103 @@ pub async fn init() -> Result<(), ClusterError> {
         network_policy_api
             .create(&PostParams::default(), &network_policy)
             .await?;
-        info!("Network policy is created successfully.");
+
+        info!("Restricted network policy is created successfully.");
+    }
+
+    let desired_excluded_cidrs = cds_env::get_config().cluster.egress_excluded_cidrs.clone();
+    let network_policy = NetworkPolicy {
+        metadata: ObjectMeta {
+            name: Some("cds-internet-allowed".to_owned()),
+            namespace: Some(cds_env::get_config().cluster.namespace.to_owned()),
+            ..Default::default()
+        },
+        spec: Some(NetworkPolicySpec {
+            pod_selector: Some(LabelSelector {
+                match_labels: Some(BTreeMap::from([(
+                    "cds/internet".to_owned(),
+                    "true".to_owned(),
+                )])),
+                ..Default::default()
+            }),
+            policy_types: Some(vec!["Egress".to_owned()]),
+            egress: Some(vec![
+                NetworkPolicyEgressRule {
+                    to: Some(vec![NetworkPolicyPeer {
+                        namespace_selector: Some(LabelSelector {
+                            match_labels: Some(BTreeMap::from([(
+                                "kubernetes.io/metadata.name".to_string(),
+                                "kube-system".to_string(),
+                            )])),
+                            ..Default::default()
+                        }),
+                        pod_selector: Some(LabelSelector {
+                            match_labels: Some(BTreeMap::from([(
+                                "k8s-app".to_string(),
+                                "kube-dns".to_string(),
+                            )])),
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    }]),
+                    ports: Some(vec![
+                        NetworkPolicyPort {
+                            protocol: Some("UDP".to_string()),
+                            port: Some(IntOrString::Int(53)),
+                            ..Default::default()
+                        },
+                        NetworkPolicyPort {
+                            protocol: Some("TCP".to_string()),
+                            port: Some(IntOrString::Int(53)),
+                            ..Default::default()
+                        },
+                    ]),
+                    ..Default::default()
+                },
+                NetworkPolicyEgressRule {
+                    to: Some(vec![NetworkPolicyPeer {
+                        ip_block: Some(IPBlock {
+                            cidr: "0.0.0.0/0".to_owned(),
+                            except: Some(desired_excluded_cidrs.clone()),
+                        }),
+                        ..Default::default()
+                    }]),
+                    ..Default::default()
+                },
+            ]),
+            ..Default::default()
+        }),
+    };
+    match network_policy_api.get("cds-internet-allowed").await {
+        Err(_) => {
+            network_policy_api
+                .create(&PostParams::default(), &network_policy)
+                .await?;
+            info!("Allowed network policy is created successfully.");
+        }
+        Ok(np) => {
+            let current_excluded = np
+                .spec
+                .as_ref()
+                .and_then(|s| s.egress.as_ref())
+                .and_then(|egress| egress.first())
+                .and_then(|rule| rule.to.as_ref())
+                .and_then(|to| to.first())
+                .and_then(|peer| peer.ip_block.as_ref())
+                .and_then(|ipb| ipb.except.clone());
+
+            if current_excluded != Some(desired_excluded_cidrs.clone()) {
+                network_policy_api
+                    .patch(
+                        "cds-internet-allowed",
+                        &PatchParams::default(),
+                        &Patch::Merge(&network_policy),
+                    )
+                    .await?;
+
+                info!("Allowed network policy updated due to excluded CIDRs change.");
+            }
+        }
     }
 
     worker::cleaner().await;

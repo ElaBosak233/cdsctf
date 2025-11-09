@@ -94,7 +94,7 @@ export default function Index() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       duration: challenge?.env?.duration || 1800,
-      internet: challenge?.env?.internet || true,
+      internet: challenge?.env?.internet || false,
       containers: challenge?.env?.containers || [],
     },
   });
