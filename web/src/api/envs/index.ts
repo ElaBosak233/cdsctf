@@ -25,5 +25,8 @@ export interface CreateEnvRequest {
 }
 
 export async function createEnv(request: CreateEnvRequest) {
-  return api.post("envs", { json: request }).json<WebResponse<Env>>();
+  return api
+    .post("envs", { json: request })
+    .then((res) => res.json<WebResponse<Env>>())
+    .catch((error) => error.response.clone().json());
 }
