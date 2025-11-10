@@ -1,3 +1,5 @@
+mod email;
+
 use argon2::{
     Argon2, PasswordHasher,
     password_hash::{SaltString, rand_core::OsRng},
@@ -24,6 +26,7 @@ pub fn router() -> Router {
         .route("/", axum::routing::get(get_user))
         .route("/", axum::routing::put(update_user))
         .route("/", axum::routing::delete(delete_user))
+        .nest("/emails", email::router())
 }
 
 pub async fn get_user(Path(user_id): Path<i64>) -> Result<WebResponse<User>, WebError> {

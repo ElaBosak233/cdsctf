@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { LockIcon, UserRoundIcon } from "lucide-react";
+import { LockIcon, MailIcon, UserRoundIcon } from "lucide-react";
 import { useMemo } from "react";
 import { Link, Outlet, useLocation, useParams } from "react-router";
 import { getUsers } from "@/api/admin/users";
@@ -34,6 +34,11 @@ export default function Layout() {
         link: `/admin/users/${user_id}`,
         name: "基本信息",
         icon: <UserRoundIcon />,
+      },
+      {
+        link: `/admin/users/${user_id}/emails`,
+        name: "邮箱管理",
+        icon: <MailIcon />,
       },
       {
         link: `/admin/users/${user_id}/password`,
