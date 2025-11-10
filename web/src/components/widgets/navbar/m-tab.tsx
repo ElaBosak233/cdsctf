@@ -23,13 +23,11 @@ function MobileTab() {
           const Comp = option?.disabled ? DropdownMenuItem : Link;
 
           return (
-            <DropdownMenuItem
-              key={index}
-              disabled={option?.disabled}
-              icon={option?.icon}
-              asChild
-            >
-              <Comp to={option.link}>{option.name}</Comp>
+            <DropdownMenuItem key={index} disabled={option?.disabled} asChild>
+              <Comp to={option.link}>
+                {option?.icon}
+                {option.name}
+              </Comp>
             </DropdownMenuItem>
           );
         })}
