@@ -6,4 +6,5 @@ import type { Team } from "@/models/team";
 export const Context = createContext<{
   challenge?: Challenge;
   team?: Team;
+  debug?: boolean;
 }>({});

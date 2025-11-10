@@ -4,16 +4,18 @@ use std::collections::BTreeMap;
 
 use axum::Router;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 use crate::{
-    extract::Query,
-    traits::{WebError, WebResponse},
+    extract::{Extension, Json, Query},
+    traits::{AuthPrincipal, WebError, WebResponse},
     util::cluster::Env,
 };
 
 pub fn router() -> Router {
     Router::new()
         .route("/", axum::routing::get(get_env))
+        .route("/", axum::routing::post(create_env))
         .nest("/{env_id}", env_id::router())
 }
 
@@ -59,10 +61,46 @@ pub async fn get_env(
 
     let pods = cds_cluster::get_pods_by_label(&labels).await?;
 
-    let pods = pods.into_iter().map(Env::from).collect::<Vec<Env>>();
+    let envs = pods.into_iter().map(Env::from).collect::<Vec<Env>>();
 
     Ok(WebResponse {
-        data: Some(pods),
+        data: Some(envs),
         ..Default::default()
     })
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CreateEnvRequest {
+    pub challenge_id: i64,
+}
+
+pub async fn create_env(
+    Extension(ext): Extension<AuthPrincipal>,
+    Json(body): Json<crate::router::api::env::CreateEnvRequest>,
+) -> Result<WebResponse<()>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    let challenge = crate::util::loader::prepare_challenge(body.challenge_id).await?;
+
+    let _ = challenge
+        .clone()
+        .env
+        .ok_or(WebError::BadRequest(json!("challenge_env_invalid")))?;
+
+    let existing_pods = cds_cluster::get_pods_by_label(
+        &BTreeMap::from([("cds/user_id", format!("{}", operator.id))])
+            .iter()
+            .map(|(k, v)| format!("{}={}", k, v))
+            .collect::<Vec<String>>()
+            .join(","),
+    )
+    .await?;
+
+    if existing_pods.len() >= 1 {
+        return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
+    }
+
+    cds_cluster::create_challenge_env(operator, None, None, challenge).await?;
+
+    Ok(WebResponse::default())
 }

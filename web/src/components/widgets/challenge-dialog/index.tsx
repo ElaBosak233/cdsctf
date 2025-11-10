@@ -74,7 +74,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
   const CategoryIcon = category.icon!;
 
   return (
-    <Context.Provider value={{ challenge: digest, team: gameTeam }}>
+    <Context.Provider value={{ challenge: digest, team: gameTeam, debug }}>
       <Card
         className={cn([
           "p-6",

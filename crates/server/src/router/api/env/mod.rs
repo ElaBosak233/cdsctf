@@ -3,7 +3,7 @@ mod env_id;
 use std::collections::BTreeMap;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{TeamUser, team_user::FindTeamUserOptions};
+use cds_db::{TeamUser, team_user::FindTeamUserOptions, user::Group};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -101,7 +101,7 @@ pub async fn create_env(
     let challenge = crate::util::loader::prepare_challenge(body.challenge_id).await?;
 
     if !cds_db::util::can_user_access_challenge(operator.id, challenge.id).await? {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::NotFound(json!("challenge_not_found")));
     }
 
     let _ = challenge

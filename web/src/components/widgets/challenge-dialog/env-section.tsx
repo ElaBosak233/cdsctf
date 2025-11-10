@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-
+import { createEnv as createDebugEnv } from "@/api/admin/envs";
 import { createEnv, getEnvs } from "@/api/envs";
 import { renewEnv, stopEnv } from "@/api/envs/env_id";
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,7 @@ function NatInfo({ env, nat }: { env: Env; nat: Nat }) {
 }
 
 function EnvSection() {
-  const { challenge, team } = useContext(Context);
+  const { challenge, team, debug } = useContext(Context);
   const authStore = useAuthStore();
 
   const mode = useMemo(() => {
@@ -188,11 +188,15 @@ function EnvSection() {
       id: "pod",
     });
     try {
-      const res = await createEnv({
-        challenge_id: challenge?.id,
-        game_id: mode === "game" ? Number(team?.game_id) : undefined,
-        team_id: mode === "game" ? Number(team?.id) : undefined,
-      });
+      const res = debug
+        ? await createDebugEnv({
+            challenge_id: challenge?.id,
+          })
+        : await createEnv({
+            challenge_id: challenge?.id,
+            game_id: mode === "game" ? Number(team?.game_id) : undefined,
+            team_id: mode === "game" ? Number(team?.id) : undefined,
+          });
 
       setEnv(res.data);
       toast.loading("已下发容器启动命令", {

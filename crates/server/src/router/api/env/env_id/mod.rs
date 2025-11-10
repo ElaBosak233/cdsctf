@@ -42,10 +42,7 @@ pub async fn renew_pod(
         .parse::<i64>()
         .unwrap_or_default();
 
-    if !(operator.group == Group::Admin
-        || operator.id == user_id
-        || cds_db::util::is_user_in_team(operator.id, team_id).await?)
-    {
+    if !(operator.id == user_id || cds_db::util::is_user_in_team(operator.id, team_id).await?) {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -110,10 +107,7 @@ pub async fn stop_pod(
         .parse::<i64>()
         .unwrap_or_default();
 
-    if !(operator.group == Group::Admin
-        || operator.id == user_id
-        || cds_db::util::is_user_in_team(operator.id, team_id).await?)
-    {
+    if !(operator.id == user_id || cds_db::util::is_user_in_team(operator.id, team_id).await?) {
         return Err(WebError::Forbidden(json!("")));
     }
 
