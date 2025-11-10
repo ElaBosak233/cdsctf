@@ -71,14 +71,17 @@ function AuthSection() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem icon={<SettingsIcon />} asChild>
-            <Link to={"/account/settings"}>{t("setting")}</Link>
+          <DropdownMenuItem asChild>
+            <Link to={"/account/settings"}>
+              <SettingsIcon />
+              {t("setting")}
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem
-            icon={<LogOutIcon />}
             className={cn("text-error", "hover:text-error")}
             onClick={handleLogout}
           >
+            <LogOutIcon />
             {t("logout")}
           </DropdownMenuItem>
         </DropdownMenuContent>
