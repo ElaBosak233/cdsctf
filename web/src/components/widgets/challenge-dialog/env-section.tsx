@@ -182,34 +182,33 @@ function EnvSection() {
     }
   }, [handlePodStop, envStopLoading]);
 
-  function handlePodCreate() {
+  async function handlePodCreate() {
     envPodCreateLoading(true);
     toast.loading("正在发送容器创建请求", {
       id: "pod",
     });
-    createEnv({
-      challenge_id: challenge?.id,
-      game_id: mode === "game" ? Number(team?.game_id) : undefined,
-      team_id: mode === "game" ? Number(team?.id) : undefined,
-    }).then((res) => {
-      switch (res.code) {
-        case StatusCodes.OK: {
-          setEnv(res.data);
-          toast.loading("已下发容器启动命令", {
-            id: "pod",
-            description: "这可能需要一些时间",
-          });
-          fetchPods();
-          break;
-        }
-        default: {
-          toast.error("发生错误", {
-            id: "pod",
-            description: res.msg,
-          });
-        }
-      }
-    });
+    try {
+      const res = await createEnv({
+        challenge_id: challenge?.id,
+        game_id: mode === "game" ? Number(team?.game_id) : undefined,
+        team_id: mode === "game" ? Number(team?.id) : undefined,
+      });
+
+      setEnv(res.data);
+      toast.loading("已下发容器启动命令", {
+        id: "pod",
+        description: "这可能需要一些时间",
+      });
+      fetchPods();
+    } catch (error) {
+      if (!(error instanceof HTTPError)) return;
+      const res = await parseErrorResponse(error);
+
+      toast.error("发生错误", {
+        id: "pod",
+        description: res.msg,
+      });
+    }
   }
 
   useInterval(fetchPods, 2000, [], { immediate: true });
@@ -278,7 +277,7 @@ function EnvSection() {
             icon={<PlayIcon />}
             variant={"solid"}
             level={"success"}
-            onClick={() => handlePodCreate()}
+            onClick={handlePodCreate}
             loading={envCreateLoading}
           >
             启动
