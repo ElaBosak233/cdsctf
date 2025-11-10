@@ -100,6 +100,10 @@ pub async fn create_env(
 
     let challenge = crate::util::loader::prepare_challenge(body.challenge_id).await?;
 
+    if !cds_db::util::can_user_access_challenge(operator.id, challenge.id).await? {
+        return Err(WebError::Forbidden(json!("")));
+    }
+
     let _ = challenge
         .clone()
         .env
