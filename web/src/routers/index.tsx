@@ -363,6 +363,14 @@ const router = createBrowserRouter([
                     }),
                   },
                   {
+                    path: "emails",
+                    lazy: async () => ({
+                      Component: (
+                        await import("@/pages/admin/users/user_id/emails")
+                      ).default,
+                    }),
+                  },
+                  {
                     path: "password",
                     lazy: async () => ({
                       Component: (

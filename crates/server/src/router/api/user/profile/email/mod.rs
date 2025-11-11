@@ -89,6 +89,10 @@ pub async fn verify_email(
         .await?
         .ok_or(WebError::BadRequest(json!("email_not_found")))?;
 
+    if email.user_id != operator.id {
+        return Err(WebError::Forbidden(json!("email_not_found")));
+    }
+
     if email.is_verified {
         return Err(WebError::BadRequest(json!("email_already_verified")));
     }
@@ -108,7 +112,7 @@ pub async fn verify_email(
 
     let _ = cds_db::email::update::<Email>(cds_db::email::ActiveModel {
         email: Unchanged(email.email.to_owned()),
-        user_id: Unchanged(operator.id),
+        user_id: Unchanged(email.user_id),
         is_verified: Set(true),
         ..Default::default()
     })
@@ -129,6 +133,10 @@ pub async fn send_verify_email(
     let email = cds_db::email::find_by_email::<Email>(email.to_lowercase())
         .await?
         .ok_or(WebError::BadRequest(json!("email_not_found")))?;
+
+    if email.user_id != operator.id {
+        return Err(WebError::Forbidden(json!("email_not_found")));
+    }
 
     if email.is_verified {
         return Err(WebError::BadRequest(json!("email_already_verified")));
