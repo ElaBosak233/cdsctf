@@ -2,75 +2,56 @@ import type { Email } from "@/models/email";
 import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
-export interface AdminUserScope {
+export interface GetEmailsRequest {
   user_id: number;
 }
 
-export async function getAdminUserEmails(request: AdminUserScope) {
+export async function getEmails(request: GetEmailsRequest) {
   return api
     .get(`admin/users/${request.user_id}/emails`)
     .json<WebResponse<Array<Email>>>();
 }
 
-export interface AdminAddEmailRequest extends AdminUserScope {
+export interface AddEmailRequest {
+  user_id: number;
   email: string;
   is_verified?: boolean;
 }
 
-export async function addAdminUserEmail(request: AdminAddEmailRequest) {
-  const { user_id, email, is_verified } = request;
-
+export async function addEmail(request: AddEmailRequest) {
   return api
-    .post(`admin/users/${user_id}/emails`, {
-      json: {
-        email,
-        is_verified,
-      },
+    .post(`admin/users/${request.user_id}/emails`, {
+      json: request,
     })
     .json<WebResponse<Email>>();
 }
 
-export interface AdminUpdateEmailRequest extends AdminUserScope {
+export interface UpdateEmailRequest {
+  user_id: number;
   email: string;
   is_verified: boolean;
 }
 
-export async function updateAdminUserEmail(request: AdminUpdateEmailRequest) {
-  const { user_id, email, is_verified } = request;
-
+export async function updateEmail(request: UpdateEmailRequest) {
   return api
-    .put(`admin/users/${user_id}/emails/${encodeURIComponent(email)}`, {
-      json: {
-        is_verified,
-      },
-    })
+    .put(
+      `admin/users/${request.user_id}/emails/${encodeURIComponent(request.email)}`,
+      {
+        json: request,
+      }
+    )
     .json<WebResponse<Email>>();
 }
 
-export interface AdminDeleteEmailRequest extends AdminUserScope {
+export interface DeleteEmailRequest {
+  user_id: number;
   email: string;
 }
 
-export async function deleteAdminUserEmail(request: AdminDeleteEmailRequest) {
-  const { user_id, email } = request;
-
+export async function deleteEmail(request: DeleteEmailRequest) {
   return api
-    .delete(`admin/users/${user_id}/emails/${encodeURIComponent(email)}`)
-    .json<WebResponse<never>>();
-}
-
-export interface AdminSendVerifyEmailRequest extends AdminUserScope {
-  email: string;
-}
-
-export async function sendAdminVerifyEmail(
-  request: AdminSendVerifyEmailRequest
-) {
-  const { user_id, email } = request;
-
-  return api
-    .post(
-      `admin/users/${user_id}/emails/${encodeURIComponent(email)}/verify/send`
+    .delete(
+      `admin/users/${request.user_id}/emails/${encodeURIComponent(request.email)}`
     )
     .json<WebResponse<never>>();
 }

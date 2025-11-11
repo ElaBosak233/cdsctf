@@ -1,21 +1,11 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { StatusCodes } from "http-status-codes";
-import {
-  CheckIcon,
-  MailIcon,
-  MailPlusIcon,
-  RefreshCwIcon,
-  TrashIcon,
-} from "lucide-react";
+import { CheckIcon, MailIcon, MailPlusIcon, TrashIcon } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 
-import {
-  getAdminUserEmails,
-  sendAdminVerifyEmail,
-  updateAdminUserEmail,
-} from "@/api/admin/users/user_id/emails";
+import { getEmails, updateEmail } from "@/api/admin/users/user_id/emails";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -45,17 +35,12 @@ export default function Emails() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string>();
   const [updatingEmail, setUpdatingEmail] = useState<string>();
-  const [resendingEmail, setResendingEmail] = useState<string>();
 
-  const {
-    data: emails = [],
-    refetch,
-    isFetching,
-  } = useQuery<Array<Email>>({
+  const { data: emails = [], refetch } = useQuery<Array<Email>>({
     queryKey: ["admin", "users", user_id, "emails", sharedStore.refresh],
     queryFn: async () => {
       if (!user_id) return [];
-      const res = await getAdminUserEmails({
+      const res = await getEmails({
         user_id: userId,
       });
 
@@ -75,7 +60,7 @@ export default function Emails() {
   function handleToggle(email: string, is_verified: boolean) {
     if (!user_id) return;
     setUpdatingEmail(email);
-    updateAdminUserEmail({
+    updateEmail({
       user_id: userId,
       email,
       is_verified,
@@ -89,59 +74,35 @@ export default function Emails() {
       .finally(() => setUpdatingEmail(undefined));
   }
 
-  function handleResend(email: string) {
-    if (!user_id) return;
-    setResendingEmail(email);
-    sendAdminVerifyEmail({
-      user_id: userId,
-      email,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(`验证邮件已发送到 ${email}`);
-        }
-      })
-      .finally(() => setResendingEmail(undefined));
-  }
-
   return (
     <div className={cn(["flex", "flex-col", "gap-8", "flex-1"])}>
       <div
         className={cn([
           "flex",
-          "flex-col",
           "gap-2",
-          "md:flex-row",
-          "md:items-center",
-          "md:justify-between",
+          "flex-row",
+          "items-center",
+          "justify-between",
         ])}
       >
         <div className={cn(["space-y-1"])}>
-          <h3
+          <h1
             className={cn([
-              "text-lg",
-              "font-semibold",
+              "text-2xl",
+              "font-bold",
               "flex",
-              "items-center",
               "gap-2",
+              "items-center",
             ])}
           >
-            <MailIcon className={cn(["size-5"])} />
+            <MailIcon />
             邮箱管理
-          </h3>
+          </h1>
           <p className={cn(["text-muted-foreground", "text-sm"])}>
-            查看、编辑并手动重发该用户的验证邮件。
+            添加、编辑该用户的绑定邮箱
           </p>
         </div>
         <div className={cn(["flex", "items-center", "gap-2"])}>
-          <Button
-            variant={"ghost"}
-            size={"sm"}
-            onClick={handleRefresh}
-            loading={isFetching}
-          >
-            刷新
-          </Button>
           <Button
             size={"sm"}
             variant={"solid"}
@@ -204,26 +165,14 @@ export default function Emails() {
                   <Button
                     variant={"ghost"}
                     size={"sm"}
-                    level={"info"}
-                    icon={<RefreshCwIcon />}
-                    disabled={email.is_verified}
-                    loading={resendingEmail === email.email}
-                    onClick={() => handleResend(email.email)}
-                  >
-                    重发
-                  </Button>
-                  <Button
-                    variant={"ghost"}
-                    size={"sm"}
                     level={"error"}
+                    square
                     icon={<TrashIcon />}
                     onClick={() => {
                       setDeleteTarget(email.email);
                       setDeleteDialogOpen(true);
                     }}
-                  >
-                    删除
-                  </Button>
+                  />
                 </ItemActions>
               </Item>
               {index !== emails.length - 1 && <ItemSeparator />}

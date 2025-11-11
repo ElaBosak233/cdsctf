@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { addAdminUserEmail } from "@/api/admin/users/user_id/emails";
+import { addEmail } from "@/api/admin/users/user_id/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -29,12 +29,10 @@ interface CreateEmailDialogProps {
 }
 
 const formSchema = z.object({
-  email: z
-    .string({
-      message: "请输入邮箱",
-    })
-    .email("请输入有效的邮箱地址"),
-  is_verified: z.boolean().default(false),
+  email: z.email({
+    message: "请输入有效的邮箱地址",
+  }),
+  is_verified: z.boolean(),
 });
 
 export function CreateEmailDialog(props: CreateEmailDialogProps) {
@@ -51,7 +49,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    const res = await addAdminUserEmail({
+    const res = await addEmail({
       user_id: userId,
       email: values.email,
       is_verified: values.is_verified,

@@ -3,7 +3,7 @@ import { TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { deleteAdminUserEmail } from "@/api/admin/users/user_id/emails";
+import { deleteEmail } from "@/api/admin/users/user_id/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/utils";
@@ -22,7 +22,7 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
   async function handleDelete() {
     if (!email) return;
     setLoading(true);
-    const res = await deleteAdminUserEmail({
+    const res = await deleteEmail({
       user_id: userId,
       email,
     });
