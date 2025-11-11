@@ -1,4 +1,4 @@
-import { CodeXmlIcon, HeartIcon, MoonIcon } from "lucide-react";
+import { CodeXmlIcon, HandshakeIcon, HeartIcon, MoonIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -19,6 +19,7 @@ export default function Index() {
           "items-center",
           "justify-center",
           "select-none",
+          "my-10",
         ])}
       >
         <div
@@ -111,7 +112,7 @@ export default function Index() {
               asChild
             >
               <a
-                href={"https://github.com/Albertknight2023"}
+                href={"https://github.com/Reverier-Xu"}
                 target={"_blank"}
                 rel="noopener"
               >
@@ -119,7 +120,70 @@ export default function Index() {
                   className={cn(["size-1.5", "rounded-full", "bg-success"])}
                   aria-hidden="true"
                 />
-                AlbertKnight
+                Reverier-Xu
+              </a>
+            </Button>
+            <Button
+              className={cn(["rounded-full"])}
+              variant={"tonal"}
+              size={"sm"}
+              asChild
+            >
+              <a
+                href={"https://github.com/security-s3ven"}
+                target={"_blank"}
+                rel="noopener"
+              >
+                <span
+                  className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                  aria-hidden="true"
+                />
+                s3ven
+              </a>
+            </Button>
+            <Button
+              className={cn(["rounded-full"])}
+              variant={"tonal"}
+              size={"sm"}
+              asChild
+            >
+              <a
+                href={"https://github.com/fR0Z863xF"}
+                target={"_blank"}
+                rel="noopener"
+              >
+                <span
+                  className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                  aria-hidden="true"
+                />
+                fR0Z863xF
+              </a>
+            </Button>
+          </div>
+          <h3 className={cn(["flex", "gap-2", "items-center"])}>
+            <HandshakeIcon className={cn(["size-5"])} />
+            Extra Contributors
+          </h3>
+          <div className={cn(["flex", "flex-wrap", "justify-center", "gap-3"])}>
+            <Button
+              className={cn(["rounded-full"])}
+              variant={"tonal"}
+              size={"sm"}
+              asChild
+            >
+              <a
+                href={"https://github.com/Albertknight2023"}
+                target={"_blank"}
+                rel="noopener"
+              >
+                <span
+                  className={cn(["size-1.5", "rounded-full", "bg-orange-400"])}
+                  aria-hidden="true"
+                />
+                Albert
+                <span className={cn(["text-sm", "text-muted-foreground"])}>
+                  Art Design
+                </span>
               </a>
             </Button>
             <Button
@@ -134,10 +198,13 @@ export default function Index() {
                 rel="noopener"
               >
                 <span
-                  className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                  className={cn(["size-1.5", "rounded-full", "bg-orange-400"])}
                   aria-hidden="true"
                 />
-                Skyhaibara
+                skyhaibara
+                <span className={cn(["text-sm", "text-muted-foreground"])}>
+                  Paper Work
+                </span>
               </a>
             </Button>
           </div>
@@ -153,7 +220,7 @@ export default function Index() {
               asChild
             >
               <a
-                href={"https://github.com/Reverier-Xu"}
+                href={"https://github.com/ret2shell"}
                 target={"_blank"}
                 rel="noopener"
               >
@@ -162,6 +229,24 @@ export default function Index() {
                   aria-hidden="true"
                 />
                 Reverier-Xu & Ret 2 Shell
+              </a>
+            </Button>
+            <Button
+              className={cn(["rounded-full"])}
+              variant={"tonal"}
+              size={"sm"}
+              asChild
+            >
+              <a
+                href={"https://github.com/GZCTF"}
+                target={"_blank"}
+                rel="noopener"
+              >
+                <span
+                  className={cn(["size-1.5", "rounded-full", "bg-pink-400"])}
+                  aria-hidden="true"
+                />
+                GZTime & GZCTF
               </a>
             </Button>
           </div>
