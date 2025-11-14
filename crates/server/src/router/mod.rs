@@ -46,6 +46,7 @@ pub async fn router() -> Router {
 
     let base = Router::new()
         .nest("/api", api::router().await)
+        .route("/healthz", axum::routing::any(|| async { "Ok" }))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(|request: &Request<Body>| {
