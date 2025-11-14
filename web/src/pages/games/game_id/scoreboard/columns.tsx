@@ -50,7 +50,7 @@ function useColumns() {
       {
         accessorKey: "team.slogan",
         id: "team.slogan",
-        header: t("team.slogan"),
+        header: t("team.slogan._"),
         cell: ({ row }) => <span>{row.original.team?.slogan}</span>,
       },
     ];

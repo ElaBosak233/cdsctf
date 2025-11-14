@@ -252,11 +252,11 @@ export function GameActionButton({ status }: GameActionProps) {
 
   const invalidMessage = useMemo(() => {
     if (selfTeam?.state === State.Banned) {
-      return t("team.states.banned");
+      return t("team.state.banned");
     } else if (selfTeam?.state === State.Preparing) {
-      return t("team.states.preparing");
+      return t("team.state.preparing");
     } else if (selfTeam?.state === State.Pending) {
-      return t("team.states.pending");
+      return t("team.state.pending");
     }
     return undefined;
   }, [selfTeam, t]);

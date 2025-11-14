@@ -16,6 +16,7 @@ import {
   UsersRoundIcon,
 } from "lucide-react";
 import React, { useContext, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getTeams } from "@/api/admin/games/game_id/teams";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -40,6 +41,8 @@ import { useColumns } from "./columns";
 import { ExpandedCard } from "./expanded-card";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const sharedStore = useSharedStore();
 
   const { game } = useContext(Context);
@@ -86,10 +89,10 @@ export default function Index() {
   });
 
   const stateOptions = [
-    { id: State.Banned.toString(), name: "禁赛中" },
-    { id: State.Preparing.toString(), name: "准备中" },
-    { id: State.Pending.toString(), name: "待审核" },
-    { id: State.Passed.toString(), name: "正常参赛" },
+    { id: State.Banned.toString(), name: t("team.state.banned") },
+    { id: State.Preparing.toString(), name: t("team.state.preparing") },
+    { id: State.Pending.toString(), name: t("team.state.pending") },
+    { id: State.Passed.toString(), name: t("team.state.passed") },
   ];
 
   useEffect(() => {
@@ -142,7 +145,7 @@ export default function Index() {
           ])}
         >
           <UsersRoundIcon />
-          团队
+          {t("team._")}
         </h1>
         <div
           className={cn([
@@ -170,7 +173,7 @@ export default function Index() {
               <TypeIcon />
             </FieldIcon>
             <TextField
-              placeholder={"团队名"}
+              placeholder={t("team.search.name")}
               value={
                 (table.getColumn("name")?.getFilterValue() as string) ?? ""
               }
@@ -189,7 +192,7 @@ export default function Index() {
                   value: "all",
                   content: (
                     <div className={cn(["flex", "gap-2", "items-center"])}>
-                      全部
+                      {t("common.all")}
                     </div>
                   ),
                 },
@@ -299,7 +302,7 @@ export default function Index() {
                       colSpan={columns.length}
                       className={cn(["h-24", "text-center"])}
                     >
-                      但是谁也没有来。
+                      {t("game.team.empty")}
                     </TableCell>
                   </TableRow>
                 )}

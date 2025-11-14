@@ -1,5 +1,6 @@
 {
   "_": "Team",
+
   "info": "Info",
   "members": "Members",
 
@@ -18,9 +19,12 @@
     }
   },
 
-  "name": "Team Name",
+  "name": "Name",
   "email": "Email",
-  "slogan": "Slogan",
+  "slogan": {
+    "_": "Slogan",
+    "empty": "This team is too lazy to leave anything here."
+  },
   "avatar": "Avatar",
   "rank": "Rank",
   "pts": "Score",
@@ -34,11 +38,22 @@
     }
   },
 
-  "states": {
+  "state": {
+    "_": "Current State",
     "banned": "Banned",
     "preparing": "Preparing",
     "pending": "Pending Approval",
     "passed": "Approved"
+  },
+
+  "has_write_up": {
+    "_": "Write-up",
+    "true": "Submitted",
+    "false": "Not Submitted"
+  },
+
+  "search": {
+    "name": "Team Name"
   },
 
   "actions": {

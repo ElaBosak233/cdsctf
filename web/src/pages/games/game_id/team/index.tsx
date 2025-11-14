@@ -267,7 +267,7 @@ export default function Index() {
               name={"slogan"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("team.slogan")}</FormLabel>
+                  <FormLabel>{t("team.slogan._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -275,7 +275,7 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         disabled={disabled}
-                        placeholder={t("team.slogan")}
+                        placeholder={t("team.slogan._")}
                         {...field}
                         value={field.value || ""}
                         onChange={field.onChange}

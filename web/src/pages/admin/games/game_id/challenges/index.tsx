@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { HashIcon, LibraryIcon, PlusCircleIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -31,10 +32,12 @@ import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
 import { Context } from "../context";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 import { CreateDialog } from "./create-dialog";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const sharedStore = useSharedStore();
 
   const { game } = useContext(Context);
@@ -56,6 +59,7 @@ export default function Index() {
   ]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
+  const columns = useColumns();
   const table = useReactTable<GameChallenge>({
     data: challenges,
     columns,
@@ -120,7 +124,7 @@ export default function Index() {
           ])}
         >
           <LibraryIcon />
-          题目
+          {t("challenge._")}
         </h1>
         <div
           className={cn([
@@ -156,7 +160,7 @@ export default function Index() {
                   value: "all",
                   content: (
                     <div className={cn(["flex", "gap-2", "items-center"])}>
-                      全部
+                      {t("common.all")}
                     </div>
                   ),
                 },
@@ -190,7 +194,7 @@ export default function Index() {
             variant={"solid"}
             onClick={() => setCreateDialogOpen(true)}
           >
-            添加题目
+            {t("common.actions.add")}
           </Button>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogContent>
@@ -259,7 +263,7 @@ export default function Index() {
                       colSpan={columns.length}
                       className={cn(["h-24", "text-center"])}
                     >
-                      哎呀，好像还没有题目呢。
+                      {t("game.challenge.empty")}
                     </TableCell>
                   </TableRow>
                 )}

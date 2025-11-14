@@ -2,6 +2,14 @@
   "_": "Game",
   "empty": "Oops, it seems that there are no games yet.",
 
+  "edit": {
+    "_": "Edit Game",
+    "info": "Info",
+    "challenge": "Challenges",
+    "team": "Teams",
+    "notice": "Notices"
+  },
+
   "title": "Title",
   "is_public": "Public",
   "sketch": "Sketch",
@@ -53,6 +61,27 @@
       "_": "Title",
       "message": "Please enter a title"
     },
+    "sketch": "Sketch",
+    "poster": "Poster",
+    "icon": "Icon",
+    "is_public": {
+      "_": "Is Public (without review)",
+      "true": "Yes",
+      "false": "No"
+    },
+    "is_need_write_up": {
+      "_": "Is Write-up Required",
+      "true": "Yes",
+      "false": "No"
+    },
+    "member_limit_min": {
+      "_": "Minimum Member Limit",
+      "message": "Please enter minimum member limit"
+    },
+    "member_limit_max": {
+      "_": "Maximum Member Limit",
+      "message": "Please enter maximum member limit"
+    },
     "started_at": {
       "_": "Started At",
       "message": "Please select start time"
@@ -64,7 +93,8 @@
     "ended_at": {
       "_": "Ended At",
       "message": "Please select end time"
-    }
+    },
+    "description": "Description"
   },
 
   "actions": {
@@ -77,6 +107,71 @@
       "_": "Delete Game",
       "message": "Are you sure you want to delete the game <muted>{{title}}</muted>?",
       "success": "Game {{title}} deleted successfully."
+    },
+    "update": {
+      "_": "Update Game",
+      "success": "Game {{title}} updated successfully."
+    }
+  },
+
+  "challenge": {
+    "empty": "Oops, it seems that there are no challenges in this game yet.",
+
+    "pts": "Current Points",
+    "title": "Title",
+    "category": "Category",
+    "is_enabled": {
+      "_": "Enabled",
+      "actions": {
+        "success": "Challenge {{title}} status updated successfully."
+      }
+    },
+
+    "form": {
+      "max_pts": {
+        "_": "Maximum Points",
+        "message": "Please enter the maximum points"
+      },
+      "min_pts": {
+        "_": "Minimum Points",
+        "message": "Please enter the minimum points"
+      },
+      "difficulty": {
+        "_": "Difficulty",
+        "message": "Please enter the difficulty"
+      },
+      "frozen_at": "Frozen At",
+      "bonus_ratio": "Bonus Ratio (%)"
+    },
+
+    "actions": {
+      "_": "Actions",
+      "add": {
+        "_": "Add Challenge",
+        "message": "Please search for the challenge using ID or the challenge title. The list will only display the first 10 results. Click on the title to add challenge.",
+        "success": "Challenge {{title}} added to this game successfully."
+      },
+      "edit": {
+        "_": "Edit Challenge",
+        "success": "Challenge {{title}} updated successfully."
+      },
+      "delete": {
+        "_": "Delete Challenge",
+        "message": "Are you sure you want to delete the challenge <muted>{{title}}</muted> from this game?",
+        "success": "Challenge {{title}} removed from this game successfully."
+      }
+    }
+  },
+
+  "team": {
+    "empty": "But nobody came.",
+
+    "actions": {
+      "_": "Actions",
+      "ban": "Ban",
+      "refuse": "Refuse",
+      "pass": "Pass",
+      "message": "Team {{name}} states updated successfully."
     }
   }
 }

@@ -29,16 +29,30 @@
 
   "name": "团队名",
   "email": "电子邮箱",
-  "slogan": "口号",
+  "slogan": {
+    "_": "口号",
+    "empty": "这个小队很懒，什么也没留下。"
+  },
   "avatar": "头像",
   "rank": "排名",
   "pts": "分数",
 
-  "states": {
+  "state": {
+    "_": "当前状态",
     "banned": "禁赛中",
     "preparing": "准备中",
     "pending": "审核中",
     "passed": "正常参赛"
+  },
+
+  "has_write_up": {
+    "_": "Write-up",
+    "true": "已提交",
+    "false": "未提交"
+  },
+
+  "search": {
+    "name": "团队名"
   },
 
   "actions": {
