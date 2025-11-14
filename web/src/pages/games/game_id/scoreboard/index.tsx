@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-table";
 import { ListOrderedIcon, MessageCircleDashedIcon } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getGameScoreboard } from "@/api/games/game_id";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -25,10 +26,12 @@ import type { ScoreRecord } from "@/models/game";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 import { ChampionChart } from "./champion-chart";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 import { TeamDetailsDialog } from "./team-details-dialog";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { currentGame } = useGameStore();
   const [size, setSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
@@ -49,6 +52,7 @@ export default function Index() {
     enabled: !!currentGame?.id,
   });
 
+  const columns = useColumns();
   const table = useReactTable<ScoreRecord>({
     data: scoreboardData?.scoreboard || [],
     columns,
@@ -62,7 +66,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`积分榜 - ${currentGame?.title}`}</title>
+      <title>{`${t("game.scoreboard._")} - ${currentGame?.title}`}</title>
       <div
         className={cn([
           "xl:mx-60",
@@ -166,7 +170,7 @@ export default function Index() {
             ])}
           >
             <MessageCircleDashedIcon className={cn(["size-12"])} />
-            <span>但是谁也没有来</span>
+            <span>{t("game.scoreboard.empty")}</span>
           </div>
         )}
       </div>

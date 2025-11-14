@@ -1,0 +1,38 @@
+{
+  "_": "比赛",
+  "empty": "好像还没有比赛哦。",
+  "title": "标题",
+
+  "scoreboard": {
+    "_": "积分榜",
+    "empty": "但是谁也没有来。"
+  },
+
+  "description": {
+    "_": "描述",
+    "empty": "这个组织者很懒，什么都没留下。"
+  },
+
+  "status": {
+    "upcoming": {
+      "_": "即将开始",
+      "remaining": "距开始 {{hours}} 时 {{minutes}} 分 {{seconds}} 秒"
+    },
+    "ongoing": {
+      "_": "进行中",
+      "remaining": "距冻结还有 {{hours}} 时 {{minutes}} 分 {{seconds}} 秒"
+    },
+    "frozen": {
+      "_": "冻结中",
+      "remaining": "距结束还有 {{hours}} 时 {{minutes}} 分 {{seconds}} 秒"
+    },
+    "ended": {
+      "_": "已结束",
+      "remaining": "比赛已结束"
+    }
+  },
+
+  "search": {
+    "title": "比赛标题"
+  }
+}

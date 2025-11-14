@@ -1,0 +1,38 @@
+{
+  "_": "Game",
+  "empty": "It seems that there are no games yet.",
+  "title": "Title",
+
+  "scoreboard": {
+    "_": "Scoreboard",
+    "empty": "But nobody came."
+  },
+
+  "description": {
+    "_": "Description",
+    "empty": "This organizer is very lazy and left nothing."
+  },
+
+  "status": {
+    "upcoming": {
+      "_": "Upcoming",
+      "remaining": "Be started at {{hours}}:{{minutes}}:{{seconds}}"
+    },
+    "ongoing": {
+      "_": "Ongoing",
+      "remaining": "Be frozen at {{hours}}:{{minutes}}:{{seconds}}"
+    },
+    "frozen": {
+      "_": "Frozen",
+      "remaining": "Be ended at {{hours}}:{{minutes}}:{{seconds}}"
+    },
+    "ended": {
+      "_": "Ended",
+      "remaining": "This game has ended"
+    }
+  },
+
+  "search": {
+    "title": "Game Title"
+  }
+}

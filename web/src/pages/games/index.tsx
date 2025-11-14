@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router";
 import { type GetGameRequest, getGames } from "@/api/games";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,8 @@ function useGameQuery(params: GetGameRequest, trigger: number = 0) {
 
 export default function Index() {
   const { config } = useConfigStore();
+  const { t } = useTranslation();
+
   const { setEntranceGame } = useOutletContext<{
     setEntranceGame: (game: GameMini) => void;
   }>();
@@ -60,9 +63,7 @@ export default function Index() {
 
   const [selectedGame, setSelectedGame] = useState<GameMini>();
 
-  const handleClick = (game: GameMini) => {
-    setEntranceGame(game);
-  };
+  const handleClick = (game: GameMini) => setEntranceGame(game);
 
   useEffect(() => {
     if (games) {
@@ -72,7 +73,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`比赛 - ${config?.meta?.title}`}</title>
+      <title>{`${t("game._")} - ${config?.meta?.title}`}</title>
       <div
         className={cn([
           "w-full",
@@ -105,7 +106,7 @@ export default function Index() {
               <SearchIcon />
             </FieldIcon>
             <TextField
-              placeholder={"比赛名"}
+              placeholder={t("game.search.title")}
               value={title || undefined}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -214,7 +215,7 @@ export default function Index() {
                 ])}
               >
                 <PackageOpenIcon />
-                好像还没有比赛哦。
+                {t("game.empty")}
               </div>
             )}
           </div>
@@ -230,7 +231,7 @@ export default function Index() {
               "rounded-xl",
               "overflow-hidden",
               "border",
-              "aspect-16/9",
+              "aspect-video",
               "w-full",
               "bg-card/50",
               "shadow-sm",
@@ -261,7 +262,7 @@ export default function Index() {
                 "bg-card/90",
                 "backdrop-blur-sm",
                 "min-h-24",
-                "w-128",
+                "w-lg",
                 "max-w-3/4",
                 "hover:bg-card/80",
                 "cursor-pointer",

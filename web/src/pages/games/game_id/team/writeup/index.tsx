@@ -1,5 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import { FilePenIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import {
@@ -15,6 +16,8 @@ import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const sharedStore = useSharedStore();
   const { currentGame, selfTeam } = useGameStore();
 
@@ -95,16 +98,18 @@ export default function Index() {
           ])}
         >
           <FilePenIcon />
-          Write-up
+          {t("team.write_up._")}
         </h1>
         <Separator />
 
         <Dropzone {...dropzone}>
           <DropZoneArea>
             <DropzoneTrigger className="h-fit flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm">
-              <p className="font-semibold">上传 Write-up</p>
+              <p className="font-semibold">
+                {t("team.write_up.actions.upload._")}
+              </p>
               <p className="text-sm text-muted-foreground">
-                请将 Write-up 导出为 PDF 格式后上传，文件大小不超过 50 MB。
+                {t("team.write_up.actions.upload.hint")}
               </p>
             </DropzoneTrigger>
           </DropZoneArea>

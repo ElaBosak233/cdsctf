@@ -1,0 +1,9 @@
+{
+  "_": "Submission",
+  "solved": "Solved",
+  "solves": "{{count}} Solves",
+
+  "actions": {
+    "submit": "Submit"
+  }
+}

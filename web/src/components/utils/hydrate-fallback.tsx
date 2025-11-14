@@ -18,7 +18,7 @@ function HydrateFallback() {
       ])}
     >
       <LoaderCircleIcon className={cn(["animate-spin", "size-10"])} />
-      <span>{t("loading")}</span>
+      <span>{t("common.loading")}</span>
     </div>
   );
 }

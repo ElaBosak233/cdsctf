@@ -35,7 +35,7 @@ export default function Layout() {
             "flex-col",
             "gap-5",
             "p-10",
-            "border-r-1",
+            "border-r",
             "lg:sticky",
             "top-16",
             "h-[calc(100vh-64px)]",

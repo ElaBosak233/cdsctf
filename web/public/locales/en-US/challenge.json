@@ -1,0 +1,48 @@
+{
+  "_": "Challenge",
+  "playground": "Playground",
+  "empty": "It seems that there are no challenges yet.",
+  "title": "Title",
+  "description": "Description",
+  "category": "Category",
+  "tags": "Tags",
+  "is_public": "Public",
+  "has_attachment": "Attachment",
+  "is_dynamic": {
+    "_": "Is Dynamic",
+    "true": "Dynamic",
+    "false": "Static"
+  },
+  "updated_at": "Updated At",
+  "created_at": "Created At",
+
+  "search": {
+    "title": "Challenge Title",
+    "tag": "Tag",
+    "is_public": {
+      "_": "Public",
+      "true": "Public",
+      "false": "Private"
+    }
+  },
+
+  "form": {
+    "title": {
+      "_": "Title"
+    },
+    "category": {
+      "_": "Category"
+    }
+  },
+
+  "actions": {
+    "_": "Actions",
+    "create": {
+      "_": "Create Challenge"
+    },
+    "delete": {
+      "_": "Delete Challenge",
+      "message": "Are you sure you want to delete the challenge <muted>{{title}}</muted>?"
+    }
+  }
+}

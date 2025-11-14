@@ -1,0 +1,48 @@
+{
+  "_": "题目",
+  "playground": "练习场",
+  "empty": "好像还没有题目哦。",
+  "title": "标题",
+  "description": "描述",
+  "category": "分类",
+  "tags": "标签",
+  "is_public": "公开性",
+  "has_attachment": "附件",
+  "is_dynamic": {
+    "_": "动态性",
+    "true": "动态",
+    "false": "静态"
+  },
+  "updated_at": "更新于",
+  "created_at": "创建于",
+
+  "search": {
+    "title": "题目标题",
+    "tag": "标签",
+    "is_public": {
+      "_": "公开性",
+      "true": "公开",
+      "false": "非公开"
+    }
+  },
+
+  "form": {
+    "title": {
+      "_": "标题"
+    },
+    "category": {
+      "_": "分类"
+    }
+  },
+
+  "actions": {
+    "_": "操作",
+    "create": {
+      "_": "创建题目"
+    },
+    "delete": {
+      "_": "删除题目",
+      "message": "你确定要删除题目 <muted>{{title}}</muted> 吗？"
+    }
+  }
+}

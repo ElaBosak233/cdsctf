@@ -7,7 +7,7 @@ import { cn } from "@/utils";
 
 export default function E404() {
   const { config } = useConfigStore();
-  const { t } = useTranslation("sigtrap");
+  const { t } = useTranslation();
 
   return (
     <>
@@ -31,10 +31,10 @@ export default function E404() {
         <div className={cn(["flex", "gap-2", "text-xl"])}>
           <span>404</span>
           <Separator orientation={"vertical"} />
-          <span>{t("404.title")}</span>
+          <span>{t("sigtrap.404.title")}</span>
         </div>
         <span className={cn(["text-secondary-foreground"])}>
-          {t("404.description")}
+          {t("sigtrap.404.description")}
         </span>
       </div>
     </>

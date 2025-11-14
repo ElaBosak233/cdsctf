@@ -94,7 +94,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
 
   return (
     <Card
-      className={cn(["w-128", "min-h-64", "p-5", "flex", "flex-col", "gap-5"])}
+      className={cn(["w-lg", "min-h-64", "p-5", "flex", "flex-col", "gap-5"])}
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <UserRoundPlusIcon className={cn(["size-4"])} />

@@ -8,6 +8,7 @@ import {
   UserRoundIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,8 @@ import { cn } from "@/utils";
 import { TeamGatheringDialog } from "./team-gathering-dialog";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { currentGame } = useGameStore();
   const { game_id } = useParams<{ game_id: string }>();
 
@@ -80,7 +83,7 @@ export default function Index() {
                 "rounded-xl",
                 "overflow-hidden",
                 "border",
-                "aspect-16/9",
+                "aspect-video",
                 "w-full",
                 "bg-card/50",
                 "shadow-sm",
@@ -156,26 +159,32 @@ export default function Index() {
                       0,
                       Math.floor((target.getTime() - now.getTime()) / 1000)
                     );
-                  const formatTime = (seconds: number) => {
-                    const h = Math.floor(seconds / 3600);
-                    const m = Math.floor((seconds % 3600) / 60);
-                    const s = seconds % 60;
-                    return `${h.toString().padStart(2, "0")} 时 ${m.toString().padStart(2, "0")} 分 ${s
-                      .toString()
-                      .padStart(2, "0")} 秒`;
-                  };
+
+                  const remain = diff(endTime);
+                  const h = Math.floor(remain / 3600);
+                  const m = Math.floor((remain % 3600) / 60);
+                  const s = remain % 60;
 
                   if (now < startTime) {
-                    const remain = diff(startTime);
-                    return `距开始还有 ${formatTime(remain)}`;
+                    return t("game.status.upcoming.remaining", {
+                      hours: h,
+                      minutes: m,
+                      seconds: s,
+                    });
                   } else if (now < freezeTime) {
-                    const remain = diff(freezeTime);
-                    return `距冻结还有 ${formatTime(remain)}`;
+                    return t("game.status.ongoing.remaining", {
+                      hours: h,
+                      minutes: m,
+                      seconds: s,
+                    });
                   } else if (now < endTime) {
-                    const remain = diff(endTime);
-                    return `距结束还有 ${formatTime(remain)}`;
+                    return t("game.status.frozen.remaining", {
+                      hours: h,
+                      minutes: m,
+                      seconds: s,
+                    });
                   } else {
-                    return "比赛已结束";
+                    return t("game.status.ended.remaining");
                   }
                 })()}
               </span>
@@ -217,7 +226,7 @@ export default function Index() {
                   ])}
                 >
                   <ThumbsDownIcon className={cn(["size-12"])} />
-                  这个主办方很懒，什么也没留下。
+                  {t("game.description.empty")}
                 </div>
               ))}
           </Typography>
@@ -232,6 +241,8 @@ interface GameActionProps {
 }
 
 export function GameActionButton({ status }: GameActionProps) {
+  const { t } = useTranslation();
+
   const { user } = useAuthStore();
   const { selfTeam } = useGameStore();
   const navigate = useNavigate();
@@ -241,14 +252,14 @@ export function GameActionButton({ status }: GameActionProps) {
 
   const invalidMessage = useMemo(() => {
     if (selfTeam?.state === State.Banned) {
-      return "禁赛中";
+      return t("team.states.banned");
     } else if (selfTeam?.state === State.Preparing) {
-      return "赛前准备中";
+      return t("team.states.preparing");
     } else if (selfTeam?.state === State.Pending) {
-      return "审核中";
+      return t("team.states.pending");
     }
     return undefined;
-  }, [selfTeam]);
+  }, [selfTeam, t]);
 
   /** --- 比赛已结束 --- */
   if (status === "ended") {
@@ -261,7 +272,7 @@ export function GameActionButton({ status }: GameActionProps) {
         icon={<CalendarCheckIcon />}
         disabled
       >
-        比赛已结束
+        {t("game.status.ended.remaining")}
       </Button>
     );
   }
@@ -277,7 +288,7 @@ export function GameActionButton({ status }: GameActionProps) {
         icon={<UserRoundIcon />}
         disabled
       >
-        登录以参加比赛
+        {t("team.actions.participate_after_login")}
       </Button>
     );
   }
@@ -294,7 +305,7 @@ export function GameActionButton({ status }: GameActionProps) {
           icon={<SwordsIcon />}
           onClick={() => setTeamGatheringDialogOpen(true)}
         >
-          集结你的队伍
+          {t("team.actions.gather._")}
         </Button>
 
         <Dialog
@@ -325,7 +336,7 @@ export function GameActionButton({ status }: GameActionProps) {
       disabled={!canParticipate}
       onClick={() => navigate(`/games/${game_id}/challenges`)}
     >
-      <span>作为 {selfTeam.name} 参赛</span>
+      <span>{t("team.actions.participate", { name: selfTeam.name })}</span>
       {invalidMessage && <span>（{invalidMessage}）</span>}
     </Button>
   );

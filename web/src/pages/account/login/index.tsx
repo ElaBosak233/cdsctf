@@ -44,10 +44,10 @@ export default function Index() {
                 ])}
               >
                 <LogInIcon />
-                {t("account:login._")}
+                {t("account.login._")}
               </div>
               <div className={cn(["text-sm", "text-secondary-foreground"])}>
-                {`${t("account:login.continue")} ${config?.meta?.title}`}
+                {`${t("account.login.continue")} ${config?.meta?.title}`}
               </div>
               <div className={cn(["pt-6"])}>
                 <LoginForm />
@@ -94,7 +94,7 @@ export default function Index() {
                 icon={<UserRoundPlusIcon />}
               >
                 <Link to={"/account/register"}>
-                  {t("account:register.not_yet")}
+                  {t("account.register.not_yet")}
                 </Link>
               </Button>
             )}

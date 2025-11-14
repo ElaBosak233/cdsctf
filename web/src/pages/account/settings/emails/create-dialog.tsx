@@ -45,7 +45,7 @@ function CreateDialog(props: CreateDialogProps) {
   }
 
   return (
-    <Card className={cn(["w-128", "p-5", "flex", "flex-col", "gap-5"])}>
+    <Card className={cn(["w-lg", "p-5", "flex", "flex-col", "gap-5"])}>
       <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
         <MailPlusIcon className={cn(["size-4"])} />
         添加邮箱

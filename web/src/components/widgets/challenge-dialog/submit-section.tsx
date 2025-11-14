@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import { FlagIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { createSubmission } from "@/api/submissions";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import { cn } from "@/utils";
 import { Context } from "./context";
 
 function SubmitSection() {
+  const { t } = useTranslation();
+
   const { challenge, team } = useContext(Context);
   const [placeholder, setPlaceholder] = useState<string>("flag");
   const { submissions, add } = useCheckerStore();
@@ -84,7 +87,7 @@ function SubmitSection() {
         loading={submissions.length > 0}
         disabled={!flag?.trim()}
       >
-        提交
+        {t("submission.actions.submit")}
       </Button>
     </div>
   );

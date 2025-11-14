@@ -4,6 +4,7 @@ import { HTTPError } from "ky";
 import { LibraryIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { getChallengeStatus } from "@/api/challenges";
@@ -22,6 +23,8 @@ import { NoticeCard } from "./notice-card";
 import { TeamCard } from "./team-card";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { currentGame, selfTeam: selfGameTeam } = useGameStore();
   const [category, setCategory] = useQueryState("category", {
     defaultValue: "all",
@@ -105,7 +108,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`题目 - ${currentGame?.title}`}</title>
+      <title>{`${t("challenge._")} - ${currentGame?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -250,26 +253,31 @@ export default function Index() {
                       0,
                       Math.floor((target.getTime() - now.getTime()) / 1000)
                     );
-                  const formatTime = (seconds: number) => {
-                    const h = Math.floor(seconds / 3600);
-                    const m = Math.floor((seconds % 3600) / 60);
-                    const s = seconds % 60;
-                    return `${h.toString().padStart(2, "0")} 时 ${m.toString().padStart(2, "0")} 分 ${s
-                      .toString()
-                      .padStart(2, "0")} 秒`;
-                  };
+                  const remain = diff(endTime);
+                  const h = Math.floor(remain / 3600);
+                  const m = Math.floor((remain % 3600) / 60);
+                  const s = remain % 60;
 
                   if (now < startTime) {
-                    const remain = diff(startTime);
-                    return `距开始还有 ${formatTime(remain)}`;
+                    return t("game.status.upcoming.remaining", {
+                      hours: h,
+                      minutes: m,
+                      seconds: s,
+                    });
                   } else if (now < freezeTime) {
-                    const remain = diff(freezeTime);
-                    return `距冻结还有 ${formatTime(remain)}`;
+                    return t("game.status.ongoing.remaining", {
+                      hours: h,
+                      minutes: m,
+                      seconds: s,
+                    });
                   } else if (now < endTime) {
-                    const remain = diff(endTime);
-                    return `距结束还有 ${formatTime(remain)}`;
+                    return t("game.status.frozen.remaining", {
+                      hours: h,
+                      minutes: m,
+                      seconds: s,
+                    });
                   } else {
-                    return "比赛已结束";
+                    return t("game.status.ended.remaining");
                   }
                 })()}
               </span>

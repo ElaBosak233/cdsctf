@@ -1,4 +1,5 @@
 import { ChartNoAxesCombined, FilePenIcon, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,8 @@ import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 
 function TeamCard() {
+  const { t } = useTranslation();
+
   const { currentGame, selfTeam } = useGameStore();
 
   return (
@@ -35,7 +38,7 @@ function TeamCard() {
           ])}
         >
           <Avatar
-            className={cn(["w-16", "h-16", "flex-shrink-0"])}
+            className={cn(["w-16", "h-16", "shrink-0"])}
             src={
               selfTeam?.has_avatar &&
               `/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar`
@@ -94,8 +97,8 @@ function TeamCard() {
               >
                 <Link to={`/games/${selfTeam?.game_id}/team/writeup`}>
                   {selfTeam?.has_write_up
-                    ? "你已提交 Write-up"
-                    : "你还未提交 Write-up"}
+                    ? t("team.write_up.actions.submit.done")
+                    : t("team.write_up.actions.submit._")}
                 </Link>
               </Button>
             </div>

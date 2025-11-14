@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { KeyIcon, RefreshCcwIcon, UsersRoundIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { createToken, getToken } from "@/api/games/game_id/teams/profile/token";
 import { Avatar } from "@/components/ui/avatar";
@@ -14,6 +15,7 @@ import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 
 export default function Index() {
+  const { t } = useTranslation();
   const { currentGame, selfTeam, members } = useGameStore();
   const { tick, bump } = useRefresh();
 
@@ -43,7 +45,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`团队成员 - ${currentGame?.title}`}</title>
+      <title>{`${t("team.members")} - ${currentGame?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -65,7 +67,7 @@ export default function Index() {
           ])}
         >
           <UsersRoundIcon />
-          团队成员
+          {t("team.members")}
         </h1>
         <Separator />
         {!disabled && (

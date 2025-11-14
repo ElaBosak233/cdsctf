@@ -31,18 +31,18 @@ export function useOptions() {
         return [
           {
             link: `/games/${currentGame?.id}`,
-            name: t("home"),
+            name: t("common.home"),
             icon: <HouseIcon />,
           },
           {
             link: `/games/${currentGame?.id}/team`,
-            name: "团队",
+            name: t("team._"),
             icon: <UsersRoundIcon />,
             disabled: !selfTeam?.id,
           },
           {
             link: `/games/${currentGame?.id}/challenges`,
-            name: "题目",
+            name: t("challenge._"),
             icon: <StarIcon />,
             disabled:
               selfTeam?.state !== State.Passed ||
@@ -51,12 +51,12 @@ export function useOptions() {
           },
           {
             link: `/games/${currentGame?.id}/scoreboard`,
-            name: "积分榜",
+            name: t("game.scoreboard._"),
             icon: <ChartNoAxesCombinedIcon />,
           },
           {
             link: `/games`,
-            name: "退出",
+            name: t("common.exit"),
             icon: <LogOutIcon />,
             warning: true,
           },
@@ -65,17 +65,17 @@ export function useOptions() {
         return [
           {
             link: "/",
-            name: t("home"),
+            name: t("common.home"),
             icon: <HouseIcon />,
           },
           {
             link: "/playground",
-            name: t("playground"),
+            name: t("challenge.playground"),
             icon: <LibraryIcon />,
           },
           {
             link: "/games",
-            name: t("game"),
+            name: t("game._"),
             icon: <FlagIcon />,
           },
         ];

@@ -75,7 +75,7 @@ function VerifyDialog(props: VerifyDialogProps) {
   }
 
   return (
-    <Card className={cn(["w-128", "p-5", "flex", "flex-col", "gap-5"])}>
+    <Card className={cn(["w-lg", "p-5", "flex", "flex-col", "gap-5"])}>
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <MailCheckIcon className={cn(["size-4"])} />
         验证邮箱 <span className={cn(["text-muted-foreground"])}>{email}</span>

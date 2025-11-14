@@ -1,18 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
 import {
-  CheckIcon,
   MailIcon,
   MessageCircleIcon,
+  SaveIcon,
   TrashIcon,
   TypeIcon,
   UploadCloudIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { updateTeam } from "@/api/games/game_id/teams/profile";
 import { deleteTeamAvatar } from "@/api/games/game_id/teams/profile/avatar";
 import { Avatar } from "@/components/ui/avatar";
@@ -36,6 +36,7 @@ import { uploadFile } from "@/utils/file";
 export default function Index() {
   const { currentGame, selfTeam } = useGameStore();
   const { setRefresh } = useSharedStore();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState<boolean>(false);
   const disabled = Date.now() / 1000 > Number(currentGame?.ended_at);
@@ -128,7 +129,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`团队 - ${currentGame?.title}`}</title>
+      <title>{`${t("team._")} - ${currentGame?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -152,7 +153,7 @@ export default function Index() {
                   name={"name"}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>团队名</FormLabel>
+                      <FormLabel>{t("team.name")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -160,7 +161,7 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             disabled={disabled}
-                            placeholder={"团队名"}
+                            placeholder={t("team.name")}
                             {...field}
                             value={field.value || ""}
                             onChange={field.onChange}
@@ -176,7 +177,7 @@ export default function Index() {
                   name={"email"}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>电子邮箱</FormLabel>
+                      <FormLabel>{t("team.email")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -184,7 +185,7 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             disabled={disabled}
-                            placeholder={"电子邮箱"}
+                            placeholder={t("team.email")}
                             {...field}
                             value={field.value || ""}
                             onChange={field.onChange}
@@ -205,7 +206,7 @@ export default function Index() {
                     "justify-between",
                   ])}
                 >
-                  <Label>头像</Label>
+                  <Label>{t("team.avatar")}</Label>
                 </div>
                 <Avatar
                   className={cn([
@@ -266,7 +267,7 @@ export default function Index() {
               name={"slogan"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>口号</FormLabel>
+                  <FormLabel>{t("team.slogan")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -274,7 +275,7 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         disabled={disabled}
-                        placeholder={"口号"}
+                        placeholder={t("team.slogan")}
                         {...field}
                         value={field.value || ""}
                         onChange={field.onChange}
@@ -289,13 +290,12 @@ export default function Index() {
             <Button
               size={"lg"}
               type={"submit"}
-              level={"info"}
               variant={"solid"}
-              icon={<CheckIcon />}
+              icon={<SaveIcon />}
               loading={loading}
               disabled={disabled}
             >
-              保存
+              {t("common.actions.save")}
             </Button>
           </form>
         </Form>

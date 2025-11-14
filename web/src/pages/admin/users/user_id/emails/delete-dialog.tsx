@@ -37,7 +37,7 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
   }
 
   return (
-    <Card className={cn(["w-128", "p-6", "flex", "flex-col", "gap-6"])}>
+    <Card className={cn(["w-lg", "p-6", "flex", "flex-col", "gap-6"])}>
       <div className={cn(["flex", "items-center", "gap-2", "text-sm"])}>
         <TrashIcon className={cn(["size-4", "text-error"])} />
         删除邮箱

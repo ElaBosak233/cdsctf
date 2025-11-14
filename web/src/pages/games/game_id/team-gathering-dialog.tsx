@@ -4,6 +4,7 @@ import { HTTPError } from "ky";
 import { KeyIcon, SwordsIcon, TypeIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import { teamRegister } from "@/api/games/game_id/teams";
@@ -32,13 +33,16 @@ interface TeamGatheringDialogProps {
 
 function TeamGatheringDialog(props: TeamGatheringDialogProps) {
   const { onClose } = props;
+
+  const { t } = useTranslation();
+
   const sharedStore = useSharedStore();
   const { currentGame } = useGameStore();
   const [_loading, setLoading] = useState<boolean>(false);
 
   const createFormSchema = z.object({
     name: z.string({
-      message: "请输入队名",
+      message: t("team.form.name.required"),
     }),
   });
 
@@ -69,10 +73,10 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
   const joinFormSchema = z.object({
     token: z
       .string({
-        message: "请输入邀请码",
+        message: t("team.form.invite_code.required"),
       })
       .regex(/^\d+:.*$/, {
-        message: "邀请码不合法",
+        message: t("team.form.invite_code.invalid"),
       }),
   });
 
@@ -117,11 +121,11 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
 
   return (
     <Card
-      className={cn(["p-5", "min-h-64", "w-128", "flex", "flex-col", "gap-5"])}
+      className={cn(["p-5", "min-h-64", "w-lg", "flex", "flex-col", "gap-5"])}
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <SwordsIcon className={cn(["size-4"])} />
-        创建团队
+        {t("team.actions.gather.create.title")}
       </h3>
       <Form {...createForm}>
         <form
@@ -134,7 +138,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             name={"name"}
             render={({ field }) => (
               <FormItem className={cn(["flex-1"])}>
-                <FormLabel>团队名</FormLabel>
+                <FormLabel>{t("team.form.name._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -152,14 +156,14 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             )}
           />
           <Button variant={"solid"} type={"submit"}>
-            创建
+            {t("team.actions.gather.create._")}
           </Button>
         </form>
       </Form>
       <Separator />
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <SwordsIcon className={cn(["size-4"])} />
-        加入团队
+        {t("team.actions.gather.join.title")}
       </h3>
       <Form {...joinForm}>
         <form
@@ -172,7 +176,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             name={"token"}
             render={({ field }) => (
               <FormItem className={cn(["flex-1"])}>
-                <FormLabel>邀请码</FormLabel>
+                <FormLabel>{t("team.form.invite_code._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -190,7 +194,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             )}
           />
           <Button variant={"solid"} type={"submit"}>
-            加入
+            {t("team.actions.gather.join._")}
           </Button>
         </form>
       </Form>
