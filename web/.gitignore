@@ -23,7 +23,4 @@ dist-ssr
 *.sln
 *.sw?
 
-yarn.lock
-pnpm-lock.yaml
-
 .env

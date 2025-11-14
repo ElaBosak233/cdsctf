@@ -1,4 +1,4 @@
-FROM rust:latest AS backend
+FROM rust:1.91 AS backend
 
 WORKDIR /app
 
@@ -15,16 +15,23 @@ RUN cargo fetch && \
 
 FROM node:25 AS frontend
 
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
 WORKDIR /app
+COPY ./web/package.json ./web/pnpm-lock.yaml ./
+
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
 COPY ./web .
 
-RUN npm install && \
-    npm run build && \
+RUN pnpm build && \
     mkdir -p /var/www/html && \
-    cp /app/dist/. /var/www/html -r
+    cp -r /app/dist/. /var/www/html
 
-FROM alpine:latest
+FROM alpine:3
 
 WORKDIR /app
 
@@ -32,5 +39,8 @@ COPY --from=backend /usr/local/bin/cds-server ./cds-server
 COPY --from=frontend /var/www/html ./dist
 
 EXPOSE 8888
+
+HEALTHCHECK --interval=5m --timeout=3s --start-period=10s --retries=1 \
+    CMD curl -fsSL http://127.0.0.1:8888/healthz || exit 1
 
 CMD ["./cds-server"]

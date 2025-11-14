@@ -8,8 +8,8 @@ edition = "2024"
 publish = false
 homepage = "https://cdsctf.e23.dev"
 repository = "https://github.com/elabosak233/cdsctf"
-rust-version = "1.90.0"
-version = "1.8.3"
+rust-version = "1.91.0"
+version = "1.8.4"
 
 [workspace.dependencies]
 # Local Libraries

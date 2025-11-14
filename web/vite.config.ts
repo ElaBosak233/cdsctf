@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "0.0.0.0",
       proxy: {
-        "/api": {
+        "^/(api(/.*)?|healthz)$": {
           target: env.VITE_DEV_API || "http://127.0.0.1:8888",
           changeOrigin: true,
           ws: true,
