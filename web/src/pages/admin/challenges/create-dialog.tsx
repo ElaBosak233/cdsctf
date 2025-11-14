@@ -38,10 +38,10 @@ function CreateDialog(props: CreateDialogProps) {
 
   const formSchema = z.object({
     title: z.string({
-      message: "请输入标题",
+      message: t("challenge.form.title.message"),
     }),
     category: z.number({
-      message: "请选择分类",
+      message: t("challenge.form.category.message"),
     }),
   });
 
@@ -63,7 +63,9 @@ function CreateDialog(props: CreateDialogProps) {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`题目 ${res?.data?.title} 创建成功`);
+          toast.success(
+            t("challenge.actions.create.success", { title: res.data?.title })
+          );
           onClose();
         }
       })

@@ -1,7 +1,19 @@
 {
   "_": "Game",
-  "empty": "It seems that there are no games yet.",
+  "empty": "Oops, it seems that there are no games yet.",
+
   "title": "Title",
+  "is_public": "Public",
+  "sketch": "Sketch",
+  "started_at": "Started At",
+  "ended_at": "Ended At",
+  "is_enabled": {
+    "actions": {
+      "true": "Make enabled",
+      "false": "Make disabled",
+      "success": "Game {{title}} status updated successfully."
+    }
+  },
 
   "scoreboard": {
     "_": "Scoreboard",
@@ -16,15 +28,15 @@
   "status": {
     "upcoming": {
       "_": "Upcoming",
-      "remaining": "Be started at {{hours}}:{{minutes}}:{{seconds}}"
+      "remaining": "Started at {{hours}}:{{minutes}}:{{seconds}}"
     },
     "ongoing": {
       "_": "Ongoing",
-      "remaining": "Be frozen at {{hours}}:{{minutes}}:{{seconds}}"
+      "remaining": "Frozen at {{hours}}:{{minutes}}:{{seconds}}"
     },
     "frozen": {
       "_": "Frozen",
-      "remaining": "Be ended at {{hours}}:{{minutes}}:{{seconds}}"
+      "remaining": "Ended at {{hours}}:{{minutes}}:{{seconds}}"
     },
     "ended": {
       "_": "Ended",
@@ -34,5 +46,37 @@
 
   "search": {
     "title": "Game Title"
+  },
+
+  "form": {
+    "title": {
+      "_": "Title",
+      "message": "Please enter a title"
+    },
+    "started_at": {
+      "_": "Started At",
+      "message": "Please select start time"
+    },
+    "frozen_at": {
+      "_": "Frozen At",
+      "message": "Please select freeze time"
+    },
+    "ended_at": {
+      "_": "Ended At",
+      "message": "Please select end time"
+    }
+  },
+
+  "actions": {
+    "_": "Actions",
+    "create": {
+      "_": "Create Game",
+      "success": "Game {{title}} created successfully."
+    },
+    "delete": {
+      "_": "Delete Game",
+      "message": "Are you sure you want to delete the game <muted>{{title}}</muted>?",
+      "success": "Game {{title}} deleted successfully."
+    }
   }
 }

@@ -25,6 +25,15 @@
   "rank": "Rank",
   "pts": "Score",
 
+  "invite_code": {
+    "_": "Invite Code",
+    "empty": "No invite code available",
+
+    "actions": {
+      "generate": "Generate New Invite Code"
+    }
+  },
+
   "states": {
     "banned": "Banned",
     "preparing": "Preparing",

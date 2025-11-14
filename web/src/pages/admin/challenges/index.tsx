@@ -370,7 +370,7 @@ export default function Index() {
                         colSpan={columns.length}
                         className={cn(["h-24", "text-center"])}
                       >
-                        哎呀，好像还没有题目呢。
+                        {t("challenge.empty")}
                       </TableCell>
                     </TableRow>
                   )}

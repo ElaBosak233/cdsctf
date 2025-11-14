@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import { updateChallenge } from "@/api/admin/challenges/challenge_id";
@@ -35,6 +36,8 @@ import { categories } from "@/utils/category";
 import { Context } from "./context";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { challenge } = useContext(Context);
   const sharedStore = useSharedStore();
 
@@ -42,14 +45,14 @@ export default function Index() {
 
   const formSchema = z.object({
     title: z.string({
-      message: "请输入标题",
+      message: t("challenge.form.title.message"),
     }),
     category: z.number({
-      message: "请选择分类",
+      message: t("challenge.form.category.message"),
     }),
     tags: z.array(z.string()).nullish(),
     description: z.string({
-      message: "请输入描述",
+      message: t("challenge.form.description.message"),
     }),
     has_attachment: z.boolean({}),
     is_dynamic: z.boolean({}),
@@ -96,7 +99,7 @@ export default function Index() {
             name={"title"}
             render={({ field }) => (
               <FormItem className={cn(["w-3/4"])}>
-                <FormLabel>标题</FormLabel>
+                <FormLabel>{t("challenge.form.title._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -104,7 +107,7 @@ export default function Index() {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"标题"}
+                      placeholder={"Try Hack Me!"}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -119,7 +122,7 @@ export default function Index() {
             name={"category"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/4"])}>
-                <FormLabel>分类</FormLabel>
+                <FormLabel>{t("challenge.form.category._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -159,7 +162,7 @@ export default function Index() {
           name={"tags"}
           render={({ field }) => (
             <FormItem className={cn(["w-full"])}>
-              <FormLabel>标签</FormLabel>
+              <FormLabel>{t("challenge.form.tags._")}</FormLabel>
               <FormControl>
                 <Field>
                   <FieldIcon>
@@ -181,7 +184,7 @@ export default function Index() {
             name={"has_attachment"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/2"])}>
-                <FormLabel>是否启用附件</FormLabel>
+                <FormLabel>{t("challenge.form.has_attachment._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -192,11 +195,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: "启用",
+                          content: t("challenge.form.has_attachment.true"),
                         },
                         {
                           value: String(false),
-                          content: "禁用",
+                          content: t("challenge.form.has_attachment.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -215,7 +218,7 @@ export default function Index() {
             name={"is_dynamic"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/2"])}>
-                <FormLabel>动态性</FormLabel>
+                <FormLabel>{t("challenge.form.is_dynamic._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -231,7 +234,7 @@ export default function Index() {
                               className={cn(["flex", "gap-2", "items-center"])}
                             >
                               <ShipWheelIcon />
-                              动态环境
+                              {t("challenge.form.is_dynamic.true")}
                             </div>
                           ),
                         },
@@ -242,7 +245,7 @@ export default function Index() {
                               className={cn(["flex", "gap-2", "items-center"])}
                             >
                               <BoxIcon />
-                              静态环境
+                              {t("challenge.form.is_dynamic.false")}
                             </div>
                           ),
                         },
@@ -264,10 +267,11 @@ export default function Index() {
           name={"description"}
           render={({ field }) => (
             <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-              <FormLabel>描述</FormLabel>
+              <FormLabel>{t("challenge.form.description._")}</FormLabel>
               <FormControl>
                 <Editor
                   {...field}
+                  placeholder={"Once upon a time..."}
                   lang={"markdown"}
                   className={cn(["h-full", "min-h-64"])}
                 />
@@ -284,7 +288,7 @@ export default function Index() {
           icon={<SaveIcon />}
           loading={loading}
         >
-          保存
+          {t("common.actions.save")}
         </Button>
       </form>
     </Form>

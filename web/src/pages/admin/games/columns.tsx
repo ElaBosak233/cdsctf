@@ -1,4 +1,4 @@
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
 import {
   ArrowDownIcon,
@@ -14,9 +14,9 @@ import {
   XIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
-
 import { deleteGame, updateGame } from "@/api/admin/games/game_id";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,267 +32,292 @@ import type { Game } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
-const columns: Array<ColumnDef<Game>> = [
-  {
-    accessorKey: "id",
-    id: "id",
-    header: "ID",
-    cell: function IdCell({ row }) {
-      const id = row.original.id;
-      const { isCopied, copyToClipboard } = useClipboard();
-      return (
-        <div className={cn(["flex", "items-center", "gap-2"])}>
-          <Badge className={cn(["font-mono"])}># {id}</Badge>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-                square
-                size={"sm"}
-                onClick={() => copyToClipboard(`${id}`)}
-              />
-            </TooltipTrigger>
-            <TooltipContent>复制到剪贴板</TooltipContent>
-          </Tooltip>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "title",
-    id: "title",
-    header: () => "标题",
-    cell: ({ row }) => (
-      <div
-        className={cn([
-          "w-64",
-          "overflow-hidden",
-          "text-ellipsis",
-          "whitespace-nowrap",
-        ])}
-      >
-        {row.original.title || "-"}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "is_public",
-    id: "is_public",
-    header: () => "公开赛",
-    cell: ({ row }) => {
-      const isPublic = row.original.is_public;
-
-      return (
-        <Badge
-          className={cn([
-            isPublic
-              ? ["bg-info", "text-info-foreground"]
-              : ["bg-success", "text-success-foreground"],
-          ])}
-        >
-          {isPublic ? <CheckIcon /> : <XIcon />}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "sketch",
-    header: () => "简述",
-    cell: ({ row }) => (
-      <div className={cn(["w-42", "text-wrap"])}>{row.original.sketch}</div>
-    ),
-  },
-  {
-    accessorKey: "started_at",
-    id: "started_at",
-    header: function StartedAtHeader({ column }) {
-      const sort = column.getIsSorted();
-
-      const icon = useMemo(() => {
-        switch (sort) {
-          case "asc":
-            return <ArrowUpIcon />;
-          case "desc":
-            return <ArrowDownIcon />;
-          default:
-            return <ArrowUpDownIcon />;
-        }
-      }, [sort]);
-
-      return (
-        <div className={cn(["flex", "gap-1", "items-center"])}>
-          开始于
+function IdCell({ row }: { row: Row<Game> }) {
+  const id = row.original.id;
+  const { isCopied, copyToClipboard } = useClipboard();
+  return (
+    <div className={cn(["flex", "items-center", "gap-2"])}>
+      <Badge className={cn(["font-mono"])}># {id}</Badge>
+      <Tooltip>
+        <TooltipTrigger asChild>
           <Button
-            icon={icon}
+            icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
             square
             size={"sm"}
-            onClick={() => column.toggleSorting()}
+            onClick={() => copyToClipboard(`${id}`)}
           />
-        </div>
-      );
-    },
-    cell: ({ row }) => (
-      <span className={cn(["text-sm", "text-secondary-foreground"])}>
-        {new Date(Number(row.original.started_at) * 1000).toLocaleString()}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "ended_at",
-    id: "ended_at",
-    header: function EndedAtHeader({ column }) {
-      const sort = column.getIsSorted();
+        </TooltipTrigger>
+        <TooltipContent>复制到剪贴板</TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
 
-      const icon = useMemo(() => {
-        switch (sort) {
-          case "asc":
-            return <ArrowUpIcon />;
-          case "desc":
-            return <ArrowDownIcon />;
-          default:
-            return <ArrowUpDownIcon />;
-        }
-      }, [sort]);
+function ActionsCell({ row }: { row: Row<Game> }) {
+  const { t } = useTranslation();
 
-      return (
-        <div className={cn(["flex", "gap-1", "items-center"])}>
-          结束于
-          <Button
-            icon={icon}
-            square
-            size={"sm"}
-            onClick={() => column.toggleSorting()}
-          />
-        </div>
-      );
-    },
-    cell: ({ row }) => (
-      <span className={cn(["text-sm", "text-secondary-foreground"])}>
-        {new Date(Number(row.original.ended_at) * 1000).toLocaleString()}
-      </span>
-    ),
-  },
-  {
-    id: "actions",
-    header: () => <div className={cn(["justify-self-center"])}>操作</div>,
-    cell: function ActionsCell({ row }) {
-      const id = row.original.id;
-      const title = row.original.title;
+  const id = row.original.id;
+  const title = row.original.title;
 
-      const sharedStore = useSharedStore();
+  const sharedStore = useSharedStore();
 
-      const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-      const isEnabled = row.original.is_enabled;
-      const [checked, setChecked] = useState(isEnabled);
+  const isEnabled = row.original.is_enabled;
+  const [checked, setChecked] = useState(isEnabled);
 
-      async function handlePublicnessChange() {
-        const newValue = !checked;
-        setChecked(newValue);
+  async function handlePublicnessChange() {
+    const newValue = !checked;
+    setChecked(newValue);
 
-        const res = await updateGame({
-          id,
-          is_enabled: newValue,
-        });
+    const res = await updateGame({
+      id,
+      is_enabled: newValue,
+    });
 
-        if (res.code === StatusCodes.OK) {
-          toast.success(
-            `更新比赛 ${title} 的可见性: ${newValue ? "可见" : "不可见"}`,
-            {
-              id: "enablement_change",
-            }
-          );
-          sharedStore?.setRefresh();
-        }
+    if (res.code === StatusCodes.OK) {
+      toast.success(t("game.is_enabled.actions.success", { title }), {
+        id: "enablement_change",
+      });
+      sharedStore?.setRefresh();
+    }
+  }
+
+  async function handleDelete() {
+    try {
+      const res = await deleteGame({
+        id,
+      });
+
+      if (res.code === StatusCodes.OK) {
+        toast.success(t("game.actions.delete.success", { title }));
+        setDeleteDialogOpen(false);
       }
+    } finally {
+      sharedStore?.setRefresh();
+    }
+  }
 
-      async function handleDelete() {
-        try {
-          const res = await deleteGame({
-            id,
-          });
+  return (
+    <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
+      <Button variant={"ghost"} size={"sm"} square icon={<EditIcon />} asChild>
+        <Link to={`/admin/games/${id}`} />
+      </Button>
 
-          if (res.code === StatusCodes.OK) {
-            toast.success(`比赛 ${title} 删除成功`);
-            setDeleteDialogOpen(false);
-          }
-        } finally {
-          sharedStore?.setRefresh();
-        }
-      }
-
-      return (
-        <div
-          className={cn(["flex", "items-center", "justify-center", "gap-2"])}
-        >
+      <Tooltip>
+        <TooltipTrigger asChild>
           <Button
+            level={checked ? "warning" : "success"}
             variant={"ghost"}
             size={"sm"}
             square
-            icon={<EditIcon />}
-            asChild
+            icon={checked ? <EyeClosedIcon /> : <EyeIcon />}
+            onClick={handlePublicnessChange}
+          />
+        </TooltipTrigger>
+        <TooltipContent>
+          {checked
+            ? t("game.is_enabled.actions.false")
+            : t("game.is_enabled.actions.true")}
+        </TooltipContent>
+      </Tooltip>
+
+      <Button
+        level={"error"}
+        variant={"ghost"}
+        size={"sm"}
+        square
+        icon={<TrashIcon />}
+        onClick={() => setDeleteDialogOpen(true)}
+      />
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <Card
+            className={cn([
+              "flex",
+              "flex-col",
+              "p-5",
+              "min-h-32",
+              "w-lg",
+              "gap-5",
+            ])}
           >
-            <Link to={`/admin/games/${id}`} />
-          </Button>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                level={checked ? "warning" : "success"}
-                variant={"ghost"}
-                size={"sm"}
-                square
-                icon={checked ? <EyeClosedIcon /> : <EyeIcon />}
-                onClick={handlePublicnessChange}
+            <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
+              <TrashIcon className={cn(["size-4", "text-error"])} />
+              {t("game.actions.delete._")}
+            </div>
+            <p className={cn(["text-sm"])}>
+              <Trans
+                i18nKey="game.actions.delete.message"
+                values={{ title }}
+                components={{
+                  muted: <span className={cn(["text-muted-foreground"])} />,
+                }}
               />
-            </TooltipTrigger>
-            <TooltipContent>{checked ? "隐藏" : "公开"}</TooltipContent>
-          </Tooltip>
-
-          <Button
-            level={"error"}
-            variant={"ghost"}
-            size={"sm"}
-            square
-            icon={<TrashIcon />}
-            onClick={() => setDeleteDialogOpen(true)}
-          />
-          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <DialogContent>
-              <Card
-                className={cn([
-                  "flex",
-                  "flex-col",
-                  "p-5",
-                  "min-h-32",
-                  "w-72",
-                  "gap-5",
-                ])}
+            </p>
+            <div className={cn(["flex", "justify-end"])}>
+              <Button
+                level={"error"}
+                variant={"solid"}
+                size={"sm"}
+                onClick={handleDelete}
               >
-                <div
-                  className={cn(["flex", "gap-2", "items-center", "text-sm"])}
-                >
-                  <TrashIcon className={cn(["size-4"])} />
-                  删除比赛
-                </div>
-                <p className={cn(["text-sm"])}>你确定要删除比赛 {title} 吗？</p>
-                <div className={cn(["flex", "justify-end"])}>
-                  <Button
-                    level={"error"}
-                    variant={"tonal"}
-                    size={"sm"}
-                    onClick={handleDelete}
-                  >
-                    确定
-                  </Button>
-                </div>
-              </Card>
-            </DialogContent>
-          </Dialog>
-        </div>
-      );
-    },
-  },
-];
+                {t("common.actions.confirm")}
+              </Button>
+            </div>
+          </Card>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
-export { columns };
+function StartedAtHeader({ column }: { column: Column<Game> }) {
+  const { t } = useTranslation();
+
+  const sort = column.getIsSorted();
+
+  const icon = useMemo(() => {
+    switch (sort) {
+      case "asc":
+        return <ArrowUpIcon />;
+      case "desc":
+        return <ArrowDownIcon />;
+      default:
+        return <ArrowUpDownIcon />;
+    }
+  }, [sort]);
+
+  return (
+    <div className={cn(["flex", "gap-1", "items-center"])}>
+      {t("game.started_at")}
+      <Button
+        icon={icon}
+        square
+        size={"sm"}
+        onClick={() => column.toggleSorting()}
+      />
+    </div>
+  );
+}
+
+function EndedAtHeader({ column }: { column: Column<Game> }) {
+  const { t } = useTranslation();
+
+  const sort = column.getIsSorted();
+
+  const icon = useMemo(() => {
+    switch (sort) {
+      case "asc":
+        return <ArrowUpIcon />;
+      case "desc":
+        return <ArrowDownIcon />;
+      default:
+        return <ArrowUpDownIcon />;
+    }
+  }, [sort]);
+
+  return (
+    <div className={cn(["flex", "gap-1", "items-center"])}>
+      {t("game.ended_at")}
+      <Button
+        icon={icon}
+        square
+        size={"sm"}
+        onClick={() => column.toggleSorting()}
+      />
+    </div>
+  );
+}
+
+function useColumns() {
+  const { t } = useTranslation();
+
+  const columns: Array<ColumnDef<Game>> = useMemo(() => {
+    return [
+      {
+        accessorKey: "id",
+        id: "id",
+        header: "ID",
+        cell: IdCell,
+      },
+      {
+        accessorKey: "title",
+        id: "title",
+        header: () => t("game.title"),
+        cell: ({ row }) => (
+          <div
+            className={cn([
+              "w-64",
+              "overflow-hidden",
+              "text-ellipsis",
+              "whitespace-nowrap",
+            ])}
+          >
+            {row.original.title || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "is_public",
+        id: "is_public",
+        header: () => t("game.is_public"),
+        cell: ({ row }) => {
+          const isPublic = row.original.is_public;
+
+          return (
+            <Badge
+              className={cn([
+                isPublic
+                  ? ["bg-info", "text-info-foreground"]
+                  : ["bg-success", "text-success-foreground"],
+              ])}
+            >
+              {isPublic ? <CheckIcon /> : <XIcon />}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "sketch",
+        header: () => t("game.sketch"),
+        cell: ({ row }) => (
+          <div className={cn(["w-42", "text-wrap"])}>{row.original.sketch}</div>
+        ),
+      },
+      {
+        accessorKey: "started_at",
+        id: "started_at",
+        header: StartedAtHeader,
+        cell: ({ row }) => (
+          <span className={cn(["text-sm", "text-secondary-foreground"])}>
+            {new Date(Number(row.original.started_at) * 1000).toLocaleString()}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "ended_at",
+        id: "ended_at",
+        header: EndedAtHeader,
+        cell: ({ row }) => (
+          <span className={cn(["text-sm", "text-secondary-foreground"])}>
+            {new Date(Number(row.original.ended_at) * 1000).toLocaleString()}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className={cn(["justify-self-center"])}>
+            {t("game.actions._")}
+          </div>
+        ),
+        cell: ActionsCell,
+      },
+    ];
+  }, [t]);
+
+  return columns;
+}
+
+export { useColumns };

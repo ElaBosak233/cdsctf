@@ -7,8 +7,8 @@ import {
 import { StatusCodes } from "http-status-codes";
 import { CloudUploadIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-
 import { getChallengeAttachments } from "@/api/admin/challenges/challenge_id/attachments";
 import {
   DropZoneArea,
@@ -30,9 +30,11 @@ import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { challenge } = useContext(Context);
   const sharedStore = useSharedStore();
 
@@ -99,6 +101,7 @@ export default function Index() {
     },
   });
 
+  const columns = useColumns();
   const table = useReactTable<Metadata>({
     data: metadata,
     columns,
@@ -115,9 +118,11 @@ export default function Index() {
         <DropZoneArea>
           <DropzoneTrigger className="h-fit flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm">
             <CloudUploadIcon className="size-16" />
-            <p className="font-semibold">上传附件</p>
+            <p className="font-semibold">
+              {t("challenge.attachment.upload._")}
+            </p>
             <p className="text-sm text-muted-foreground">
-              附件将直接由服务器托管，建议充分考虑存储空间、流量等因素。
+              {t("challenge.attachment.upload.hint")}
             </p>
           </DropzoneTrigger>
         </DropZoneArea>
@@ -181,7 +186,7 @@ export default function Index() {
                       colSpan={columns.length}
                       className={cn(["h-24", "text-center"])}
                     >
-                      哎呀，好像还没有附件呢。
+                      {t("challenge.attachment.empty")}
                     </TableCell>
                   </TableRow>
                 )}

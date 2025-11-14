@@ -1,7 +1,19 @@
 {
   "_": "比赛",
   "empty": "好像还没有比赛哦。",
+
   "title": "标题",
+  "is_public": "公开赛",
+  "sketch": "简述",
+  "started_at": "开始于",
+  "ended_at": "结束于",
+  "is_enabled": {
+    "actions": {
+      "true": "启用",
+      "false": "禁用",
+      "success": "比赛 {{title}} 状态更新成功。"
+    }
+  },
 
   "scoreboard": {
     "_": "积分榜",
@@ -34,5 +46,37 @@
 
   "search": {
     "title": "比赛标题"
+  },
+
+  "form": {
+    "title": {
+      "_": "标题",
+      "message": "请输入标题"
+    },
+    "started_at": {
+      "_": "开始时间",
+      "message": "请选择开始时间"
+    },
+    "frozen_at": {
+      "_": "冻结时间",
+      "message": "请选择冻结时间"
+    },
+    "ended_at": {
+      "_": "结束时间",
+      "message": "请选择结束时间"
+    }
+  },
+
+  "actions": {
+    "_": "操作",
+    "create": {
+      "_": "创建比赛",
+      "success": "比赛 {{title}} 创建成功。"
+    },
+    "delete": {
+      "_": "删除比赛",
+      "message": "你确定要删除比赛 <muted>{{title}}</muted> 吗？",
+      "success": "比赛 {{title}} 删除成功。"
+    }
   }
 }

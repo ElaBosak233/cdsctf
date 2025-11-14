@@ -18,6 +18,15 @@
     }
   },
 
+  "invite_code": {
+    "_": "邀请码",
+    "empty": "暂无邀请码",
+
+    "actions": {
+      "generate": "生成新邀请码"
+    }
+  },
+
   "name": "团队名",
   "email": "电子邮箱",
   "slogan": "口号",

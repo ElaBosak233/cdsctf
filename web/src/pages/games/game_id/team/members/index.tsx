@@ -79,9 +79,8 @@ export default function Index() {
               <TextField
                 readOnly
                 disabled={disabled}
-                value={
-                  token ? `${selfTeam?.id ?? ""}:${token || ""}` : "暂无邀请码"
-                }
+                value={token && `${selfTeam?.id ?? ""}:${token || ""}`}
+                placeholder={t("team.invite_code.empty")}
                 onChange={() => {}}
               />
             </Field>
@@ -92,7 +91,7 @@ export default function Index() {
               onClick={handleCreateToken}
               size={"lg"}
             >
-              生成新邀请码
+              {t("team.invite_code.actions.generate")}
             </Button>
           </div>
         )}

@@ -138,12 +138,9 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
     });
 
     if (res.code === StatusCodes.OK) {
-      toast.success(
-        `更新题目 ${title} 的公开性: ${newValue ? "公开" : "私有"}`,
-        {
-          id: "publicness_change",
-        }
-      );
+      toast.success(t("challenge.is_public.actions.success", { title }), {
+        id: "publicness_change",
+      });
       sharedStore?.setRefresh();
     }
   }
@@ -155,7 +152,7 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success(`题目 ${title} 删除成功`);
+        toast.success(t("challenge.actions.delete.success", { title }));
         setDeleteDialogOpen(false);
       }
     } finally {
@@ -180,7 +177,11 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
             onClick={handlePublicnessChange}
           />
         </TooltipTrigger>
-        <TooltipContent>{checked ? "隐藏" : "公开"}</TooltipContent>
+        <TooltipContent>
+          {checked
+            ? t("challenge.is_public.actions.false")
+            : t("challenge.is_public.actions.true")}
+        </TooltipContent>
       </Tooltip>
 
       <Button
@@ -204,7 +205,7 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
             ])}
           >
             <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
-              <TrashIcon className={cn(["size-4"])} />
+              <TrashIcon className={cn(["size-4", "text-error"])} />
               {t("challenge.actions.delete._")}
             </div>
             <p className={cn(["text-sm"])}>
@@ -219,7 +220,7 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
             <div className={cn(["flex", "justify-end"])}>
               <Button
                 level={"error"}
-                variant={"tonal"}
+                variant={"solid"}
                 size={"sm"}
                 onClick={handleDelete}
               >
@@ -262,22 +263,6 @@ function useColumns() {
         ),
       },
       {
-        accessorKey: "tags",
-        id: "tags",
-        header: t("challenge.tags"),
-        cell: ({ row }) => {
-          const tags = row.original.tags;
-
-          return (
-            <div className={cn(["flex", "flex-wrap", "gap-1", "w-36"])}>
-              {tags?.map((tag, index) => (
-                <Badge key={index}>{tag}</Badge>
-              ))}
-            </div>
-          );
-        },
-      },
-      {
         accessorKey: "category",
         header: t("challenge.category"),
         cell: ({ row }) => {
@@ -289,6 +274,22 @@ function useColumns() {
             <div className={cn(["flex", "gap-2", "items-center"])}>
               <Icon className={cn(["size-4"])} />
               {category.name?.toUpperCase()}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "tags",
+        id: "tags",
+        header: t("challenge.tags"),
+        cell: ({ row }) => {
+          const tags = row.original.tags;
+
+          return (
+            <div className={cn(["flex", "flex-wrap", "gap-1", "w-36"])}>
+              {tags?.map((tag, index) => (
+                <Badge key={index}>{tag}</Badge>
+              ))}
             </div>
           );
         },
