@@ -173,5 +173,37 @@
       "pass": "Pass",
       "message": "Team {{name}} states updated successfully."
     }
+  },
+
+  "notice": {
+    "_": "Notice",
+    "empty": "Oops, it seems that there are no notices yet.",
+    "title": "Title",
+    "content": "Content",
+    "created_at": "Created At",
+
+    "form": {
+      "title": {
+        "_": "Title",
+        "message": "Please enter a title"
+      },
+      "content": {
+        "_": "Content",
+        "message": "Please enter content"
+      }
+    },
+
+    "actions": {
+      "_": "Actions",
+      "create": {
+        "_": "Create Notice",
+        "success": "Notice {{title}} created successfully."
+      },
+      "delete": {
+        "_": "Delete Notice",
+        "message": "Are you sure you want to delete the notice <muted>{{title}}</muted>?",
+        "success": "Notice {{title}} deleted successfully."
+      }
+    }
   }
 }

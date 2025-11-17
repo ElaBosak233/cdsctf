@@ -7,10 +7,10 @@ import {
   UserRoundIcon,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { deleteUserProfile } from "@/api/users/profile";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -30,6 +30,8 @@ import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const configStore = useConfigStore();
   const authStore = useAuthStore();
   const navigate = useNavigate();
@@ -37,10 +39,10 @@ export default function Index() {
   const formSchema = z
     .object({
       username: z.string({
-        message: "请输入用户名",
+        message: t("user.delete_account.form.username.messages._"),
       }),
       password: z.string({
-        message: "请输入密码",
+        message: t("user.form.password.messages._"),
       }),
       captcha: z
         .object({
@@ -50,7 +52,7 @@ export default function Index() {
         .nullish(),
     })
     .refine((data) => data.username === authStore?.user?.username, {
-      message: "用户名不正确",
+      message: t("user.delete_account.form.username.messages.match"),
       path: ["username"],
     });
 
@@ -63,22 +65,20 @@ export default function Index() {
       ...values,
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success("注销成功");
+        toast.success(t("user.delete_account.actions.delete.success"));
         authStore?.clear();
         navigate("/");
       }
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error("注销失败", {
-          description: res.msg,
-        });
+        toast.error(res.msg);
       }
     });
   }
 
   return (
     <>
-      <title>{`移除存档 - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("user.delete_account._")} - ${configStore?.config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -137,7 +137,9 @@ export default function Index() {
                 name={"username"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>用户名</FormLabel>
+                    <FormLabel>
+                      {t("user.delete_account.form.username._")}
+                    </FormLabel>
                     <Field>
                       <FieldIcon>
                         <UserRoundIcon />
@@ -155,7 +157,9 @@ export default function Index() {
                 name={"password"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>密码</FormLabel>
+                    <FormLabel>
+                      {t("user.delete_account.form.password._")}
+                    </FormLabel>
                     <Field>
                       <FieldIcon>
                         <LockIcon />
@@ -172,7 +176,9 @@ export default function Index() {
                 name={"captcha"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>验证码</FormLabel>
+                    <FormLabel>
+                      {t("user.delete_account.form.captcha._")}
+                    </FormLabel>
                     <Captcha onChange={field.onChange} />
                   </FormItem>
                 )}
@@ -185,7 +191,7 @@ export default function Index() {
               icon={<CheckCheckIcon />}
               type={"submit"}
             >
-              确定
+              {t("common.actions.confirm")}
             </Button>
           </form>
         </Form>

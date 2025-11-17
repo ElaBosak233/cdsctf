@@ -2,9 +2,9 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { StatusCodes } from "http-status-codes";
 import { CheckIcon, MailIcon, MailPlusIcon, TrashIcon } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
-
 import { getEmails, updateEmail } from "@/api/admin/users/user_id/emails";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,8 @@ import { CreateEmailDialog } from "./create-dialog";
 import { DeleteEmailDialog } from "./delete-dialog";
 
 export default function Emails() {
+  const { t } = useTranslation();
+
   const { user_id } = useParams<{ user_id: string }>();
   const userId = Number(user_id);
   const sharedStore = useSharedStore();
@@ -67,7 +69,7 @@ export default function Emails() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`邮箱 ${email} 状态已更新`);
+          toast.success(t("user.emails.actions.update.success", { email }));
           handleRefresh();
         }
       })
@@ -96,10 +98,10 @@ export default function Emails() {
             ])}
           >
             <MailIcon />
-            邮箱管理
+            {t("user.emails._")}
           </h1>
           <p className={cn(["text-muted-foreground", "text-sm"])}>
-            添加、编辑该用户的绑定邮箱
+            {t("user.emails.brief")}
           </p>
         </div>
         <div className={cn(["flex", "items-center", "gap-2"])}>
@@ -109,7 +111,7 @@ export default function Emails() {
             icon={<MailPlusIcon />}
             onClick={() => setCreateDialogOpen(true)}
           >
-            添加邮箱
+            {t("common.actions.add")}
           </Button>
         </div>
       </div>
@@ -133,14 +135,14 @@ export default function Emails() {
                     {email.is_verified && (
                       <Badge className={cn(["bg-success/15", "text-success"])}>
                         <CheckIcon className={cn(["size-3.5"])} />
-                        已验证
+                        {t("user.emails.is_verified.true._")}
                       </Badge>
                     )}
                   </ItemTitle>
                   <ItemDescription>
                     {email.is_verified
-                      ? "该邮箱已通过验证"
-                      : "该邮箱尚未完成验证"}
+                      ? t("user.emails.is_verified.true.long")
+                      : t("user.emails.is_verified.false.long")}
                   </ItemDescription>
                 </ItemContent>
                 <ItemActions className={cn(["flex", "flex-wrap", "gap-3"])}>
@@ -153,7 +155,7 @@ export default function Emails() {
                       "text-muted-foreground",
                     ])}
                   >
-                    <span>已验证</span>
+                    <span>{t("user.emails.is_verified.true._")}</span>
                     <Switch
                       checked={email.is_verified}
                       onCheckedChange={(checked) =>
@@ -192,7 +194,7 @@ export default function Emails() {
           ])}
         >
           <MailIcon className={cn(["size-8"])} />
-          <div>该用户暂无绑定邮箱</div>
+          <div>{t("user.emails.empty")}</div>
         </div>
       )}
 

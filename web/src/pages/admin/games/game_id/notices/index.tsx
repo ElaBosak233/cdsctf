@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { MessageCircleIcon, PlusCircleIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getGameNotice } from "@/api/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -27,10 +28,12 @@ import type { GameNotice } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 import { CreateDialog } from "./create-dialog";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const sharedStore = useSharedStore();
 
   const { game } = useContext(Context);
@@ -48,6 +51,7 @@ export default function Index() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
+  const columns = useColumns();
   const table = useReactTable<GameNotice>({
     data: notices,
     columns,
@@ -108,7 +112,7 @@ export default function Index() {
           ])}
         >
           <MessageCircleIcon />
-          通知
+          {t("game.notice._")}
         </h1>
         <div
           className={cn([
@@ -124,7 +128,7 @@ export default function Index() {
             variant={"solid"}
             onClick={() => setCreateDialogOpen(true)}
           >
-            添加通知
+            {t("common.actions.add")}
           </Button>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogContent>
@@ -193,7 +197,7 @@ export default function Index() {
                       colSpan={columns.length}
                       className={cn(["h-24", "text-center"])}
                     >
-                      哎呀，好像还没有通知呢。
+                      {t("game.notice.empty")}
                     </TableCell>
                   </TableRow>
                 )}

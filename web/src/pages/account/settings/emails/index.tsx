@@ -5,6 +5,7 @@ import {
   TrashIcon,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getEmails } from "@/api/users/profile/emails";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -27,6 +28,8 @@ import { DeleteDialog } from "./delete-dialog";
 import { VerifyDialog } from "./verify-dialog";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const configStore = useConfigStore();
   const { tick, bump } = useRefresh();
 
@@ -50,7 +53,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`电子邮箱 - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("user.settings.email")} - ${configStore?.config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -69,7 +72,7 @@ export default function Index() {
             icon={<MailPlusIcon />}
             onClick={() => setCreateDialogOpen(true)}
           >
-            添加邮箱
+            {t("common.actions.add")}
           </Button>
         </div>
         <Separator />
@@ -82,11 +85,11 @@ export default function Index() {
                   <ItemDescription>
                     {email.is_verified ? (
                       <div className={cn(["flex", "gap-1", "items-center"])}>
-                        <span>已验证</span>
+                        <span>{t("user.emails.is_verified.true._")}</span>
                         <CheckIcon className={cn(["size-4", "text-success"])} />
                       </div>
                     ) : (
-                      "未验证"
+                      t("user.emails.is_verified.false._")
                     )}
                   </ItemDescription>
                 </ItemContent>

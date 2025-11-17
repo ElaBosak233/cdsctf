@@ -18,6 +18,7 @@ import {
   UserRoundXIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getUsers } from "@/api/admin/users";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -40,10 +41,12 @@ import { Group, type User } from "@/models/user";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 import { CreateUserDialog } from "./create-dialog";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const configStore = useConfigStore();
   const sharedStore = useSharedStore();
 
@@ -72,12 +75,25 @@ export default function Index() {
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
   const groupOptions = [
-    { id: "all", name: "全部", icon: UserRoundIcon },
-    { id: Group.Banned.toString(), name: "封禁", icon: UserRoundXIcon },
-    { id: Group.User.toString(), name: "用户", icon: UserRoundCheckIcon },
-    { id: Group.Admin.toString(), name: "管理员", icon: ShieldIcon },
+    { id: "all", name: t("common.all"), icon: UserRoundIcon },
+    {
+      id: Group.Banned.toString(),
+      name: t("user.group.banned"),
+      icon: UserRoundXIcon,
+    },
+    {
+      id: Group.User.toString(),
+      name: t("user.group.user"),
+      icon: UserRoundCheckIcon,
+    },
+    {
+      id: Group.Admin.toString(),
+      name: t("user.group.admin"),
+      icon: ShieldIcon,
+    },
   ];
 
+  const columns = useColumns();
   const table = useReactTable<User>({
     data: users,
     columns,
@@ -126,7 +142,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`用户 - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("user._")} - ${configStore?.config?.meta?.title}`}</title>
       <div
         className={cn([
           "container",
@@ -158,7 +174,7 @@ export default function Index() {
             ])}
           >
             <UserRoundIcon />
-            用户
+            {t("user._")}
           </h1>
           <div
             className={cn([
@@ -191,7 +207,7 @@ export default function Index() {
                 <TypeIcon />
               </FieldIcon>
               <TextField
-                placeholder={"用户名"}
+                placeholder={t("user.search.username")}
                 value={
                   (table.getColumn("username")?.getFilterValue() as string) ??
                   ""
@@ -231,7 +247,7 @@ export default function Index() {
               onClick={() => setCreateDialogOpen(true)}
               className={cn(["w-full", "lg:w-1/6"])}
             >
-              添加用户
+              {t("common.actions.add")}
             </Button>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogContent>
@@ -300,7 +316,7 @@ export default function Index() {
                         colSpan={columns.length}
                         className="h-24 text-center"
                       >
-                        但是谁也没有来。
+                        {t("user.empty")}
                       </TableCell>
                     </TableRow>
                   )}

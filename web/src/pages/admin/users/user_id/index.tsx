@@ -9,10 +9,10 @@ import {
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { updateUser } from "@/api/admin/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,8 @@ import { cn } from "@/utils";
 import { Context } from "./context";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { user } = useContext(Context);
   const { user_id } = useParams<{ user_id: string }>();
 
@@ -41,19 +43,35 @@ export default function Index() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const groupOptions = [
-    { id: Group.Guest.toString(), name: "访客", icon: UserRoundIcon },
-    { id: Group.Banned.toString(), name: "封禁", icon: UserRoundXIcon },
-    { id: Group.User.toString(), name: "用户", icon: UserRoundCheckIcon },
-    { id: Group.Admin.toString(), name: "管理员", icon: ShieldIcon },
+    {
+      id: Group.Guest.toString(),
+      name: t("user.group.guest"),
+      icon: UserRoundIcon,
+    },
+    {
+      id: Group.Banned.toString(),
+      name: t("user.group.banned"),
+      icon: UserRoundXIcon,
+    },
+    {
+      id: Group.User.toString(),
+      name: t("user.group.user"),
+      icon: UserRoundCheckIcon,
+    },
+    {
+      id: Group.Admin.toString(),
+      name: t("user.group.admin"),
+      icon: ShieldIcon,
+    },
   ];
 
   const formSchema = z.object({
     username: z.string({}),
     name: z.string({
-      message: "请输入昵称",
+      message: t("user.form.name.messages._"),
     }),
     group: z.number({
-      message: "请选择用户组",
+      message: t("user.form.group.message"),
     }),
     description: z.string().nullish(),
     is_verified: z.boolean(),
@@ -80,7 +98,9 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`用户 ${res?.data?.username} 更新成功`);
+          toast.success(
+            t("user.actions.update.success", { username: res.data?.username })
+          );
         }
       })
       .finally(() => {
@@ -112,7 +132,7 @@ export default function Index() {
               name={"username"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>用户名</FormLabel>
+                  <FormLabel>{t("user.form.username._")}</FormLabel>
                   <FormControl>
                     <Field disabled>
                       <FieldIcon>
@@ -120,7 +140,7 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder="请输入用户名"
+                        placeholder={"Username"}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
@@ -136,7 +156,7 @@ export default function Index() {
               name={"name"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>昵称</FormLabel>
+                  <FormLabel>{t("user.form.name._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -144,7 +164,7 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder="请输入昵称"
+                        placeholder={"Name"}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
@@ -160,7 +180,7 @@ export default function Index() {
               name={"group"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>用户组</FormLabel>
+                  <FormLabel>{t("user.form.group._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -197,7 +217,7 @@ export default function Index() {
             name={"description"}
             render={({ field }) => (
               <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-                <FormLabel>描述</FormLabel>
+                <FormLabel>{t("user.form.description._")}</FormLabel>
                 <FormControl>
                   <Editor
                     {...field}
@@ -221,7 +241,7 @@ export default function Index() {
             loading={loading}
             className={cn(["w-full"])}
           >
-            保存
+            {t("common.actions.save")}
           </Button>
         </form>
       </Form>

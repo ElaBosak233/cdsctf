@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { MessageCircleIcon, SaveIcon, TypeIcon } from "lucide-react";
 import { useContext } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import { createGameNotice } from "@/api/admin/games/game_id/notices";
@@ -29,16 +30,17 @@ interface CreateDialogProps {
 
 function CreateDialog(props: CreateDialogProps) {
   const { onClose } = props;
+  const { t } = useTranslation();
 
   const { game } = useContext(Context);
   const sharedStore = useSharedStore();
 
   const formSchema = z.object({
     title: z.string({
-      message: "请填写标题",
+      message: t("game.notice.form.title.message"),
     }),
     content: z.string({
-      message: "请填写内容",
+      message: t("game.notice.form.content.message"),
     }),
   });
 
@@ -52,7 +54,9 @@ function CreateDialog(props: CreateDialogProps) {
       ...values,
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success(`通知 ${res?.data?.title} 发布成功`);
+        toast.success(
+          t("game.notice.actions.create.success", { title: res?.data?.title })
+        );
         sharedStore?.setRefresh();
         onClose();
       }
@@ -65,7 +69,7 @@ function CreateDialog(props: CreateDialogProps) {
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <MessageCircleIcon className={cn(["size-4"])} />
-        添加通知
+        {t("game.notice.actions.create._")}
       </h3>
       <Form {...form}>
         <form
@@ -78,7 +82,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"title"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>标题</FormLabel>
+                <FormLabel>{t("game.notice.form.title._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -100,7 +104,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"content"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>内容</FormLabel>
+                <FormLabel>{t("game.notice.form.content._")}</FormLabel>
                 <FormControl>
                   <Editor
                     {...field}
@@ -113,7 +117,7 @@ function CreateDialog(props: CreateDialogProps) {
             )}
           />
           <Button icon={<SaveIcon />} variant={"solid"} type={"submit"}>
-            保存
+            {t("common.actions.save")}
           </Button>
         </form>
       </Form>

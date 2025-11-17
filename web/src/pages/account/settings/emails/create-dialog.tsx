@@ -73,7 +73,12 @@ function CreateDialog(props: CreateDialogProps) {
               </FormItem>
             )}
           />
-          <Button variant={"solid"} size={"sm"} type={"submit"}>
+          <Button
+            level={"success"}
+            variant={"solid"}
+            size={"sm"}
+            type={"submit"}
+          >
             确定
           </Button>
         </form>

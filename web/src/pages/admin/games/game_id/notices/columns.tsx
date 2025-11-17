@@ -1,156 +1,156 @@
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Row } from "@tanstack/react-table";
 import { StatusCodes } from "http-status-codes";
-import { ClipboardCheckIcon, ClipboardCopyIcon, TrashIcon } from "lucide-react";
-import { useState } from "react";
+import { TrashIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-
 import { deleteGameNotice } from "@/api/admin/games/game_id/notices";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { ContentDialog } from "@/components/widgets/content-dialog";
-import { useClipboard } from "@/hooks/use-clipboard";
 import type { GameNotice } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
-const columns: Array<ColumnDef<GameNotice>> = [
-  {
-    accessorKey: "id",
-    id: "id",
-    header: "ID",
-    cell: function IdCell({ row }) {
-      const id = row.original.id;
-      const { isCopied, copyToClipboard } = useClipboard();
-      return (
-        <div className={cn(["flex", "items-center", "gap-1"])}>
-          <Badge>{id}</Badge>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-                square
-                size={"sm"}
-                onClick={() => copyToClipboard(String(id))}
+function ActionsCell({ row }: { row: Row<GameNotice> }) {
+  const { t } = useTranslation();
+
+  const sharedStore = useSharedStore();
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+
+  function handleDelete() {
+    deleteGameNotice({
+      game_id: row.original.game_id,
+      id: row.original.id,
+    })
+      .then((res) => {
+        if (res.code === StatusCodes.OK) {
+          toast.success(
+            t("game.notice.actions.delete.success", {
+              title: row.original.title,
+            })
+          );
+          setDeleteDialogOpen(false);
+        }
+      })
+      .finally(() => {
+        sharedStore?.setRefresh();
+      });
+  }
+
+  return (
+    <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
+      <Button
+        level={"error"}
+        variant={"ghost"}
+        size={"sm"}
+        square
+        icon={<TrashIcon />}
+        onClick={() => setDeleteDialogOpen(true)}
+      />
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <Card
+            className={cn([
+              "flex",
+              "flex-col",
+              "p-5",
+              "min-h-32",
+              "w-lg",
+              "gap-5",
+            ])}
+          >
+            <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
+              <TrashIcon className={cn(["size-4", "text-error"])} />
+              {t("game.notice.actions.delete._")}
+            </div>
+            <p className={cn(["text-sm"])}>
+              <Trans
+                i18nKey="game.notice.actions.delete.message"
+                values={{ title: row.original.title }}
+                components={{
+                  muted: <span className={cn(["text-muted-foreground"])} />,
+                }}
               />
-            </TooltipTrigger>
-            <TooltipContent>复制到剪贴板</TooltipContent>
-          </Tooltip>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "title",
-    id: "title",
-    header: "标题",
-    cell: ({ row }) => row.original.title,
-  },
-  {
-    accessorKey: "content",
-    header: "详情",
-    cell: ({ row }) => {
-      const content = row.original.content;
-
-      if (!content) return "-";
-
-      return content.length > 10 ? (
-        <ContentDialog title="详细描述" content={content} />
-      ) : (
-        content
-      );
-    },
-  },
-  {
-    accessorKey: "created_at",
-    id: "created_at",
-    header: "发布时间",
-    cell: ({ row }) => {
-      return new Date(
-        row.getValue<number>("created_at") * 1000
-      ).toLocaleString();
-    },
-  },
-  {
-    id: "actions",
-    header: () => <div className={cn(["justify-self-center"])}>操作</div>,
-    cell: function ActionsCell({ row }) {
-      const sharedStore = useSharedStore();
-
-      const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-
-      function handleDelete() {
-        deleteGameNotice({
-          game_id: row.original.game_id,
-          id: row.original.id,
-        })
-          .then((res) => {
-            if (res.code === StatusCodes.OK) {
-              toast.success(`赛题 ${row.original.title} 删除成功`);
-              setDeleteDialogOpen(false);
-            }
-          })
-          .finally(() => {
-            sharedStore?.setRefresh();
-          });
-      }
-
-      return (
-        <div
-          className={cn(["flex", "items-center", "justify-center", "gap-2"])}
-        >
-          <Button
-            level={"error"}
-            variant={"ghost"}
-            size={"sm"}
-            square
-            icon={<TrashIcon />}
-            onClick={() => setDeleteDialogOpen(true)}
-          />
-          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <DialogContent>
-              <Card
-                className={cn([
-                  "flex",
-                  "flex-col",
-                  "p-5",
-                  "min-h-32",
-                  "w-72",
-                  "gap-5",
-                ])}
+            </p>
+            <div className={cn(["flex", "justify-end"])}>
+              <Button
+                level={"error"}
+                variant={"tonal"}
+                size={"sm"}
+                onClick={handleDelete}
               >
-                <div
-                  className={cn(["flex", "gap-2", "items-center", "text-sm"])}
-                >
-                  <TrashIcon className={cn(["size-4"])} />
-                  删除通知
-                </div>
-                <p className={cn(["text-sm"])}>
-                  你确定要删除通知 {row.original.title} 吗？
-                </p>
-                <div className={cn(["flex", "justify-end"])}>
-                  <Button
-                    level={"error"}
-                    variant={"tonal"}
-                    size={"sm"}
-                    onClick={handleDelete}
-                  >
-                    确定
-                  </Button>
-                </div>
-              </Card>
-            </DialogContent>
-          </Dialog>
-        </div>
-      );
-    },
-  },
-];
+                {t("common.actions.confirm")}
+              </Button>
+            </div>
+          </Card>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
-export { columns };
+function useColumns() {
+  const { t } = useTranslation();
+
+  const columns: Array<ColumnDef<GameNotice>> = useMemo(() => {
+    return [
+      {
+        accessorKey: "id",
+        id: "id",
+        header: "ID",
+        cell: function IdCell({ row }) {
+          const id = row.original.id;
+          return <Badge>{id}</Badge>;
+        },
+      },
+      {
+        accessorKey: "title",
+        id: "title",
+        header: t("game.notice.title"),
+        cell: ({ row }) => row.original.title,
+      },
+      {
+        accessorKey: "content",
+        header: t("game.notice.content"),
+        cell: ({ row }) => {
+          const content = row.original.content;
+
+          if (!content) return "-";
+
+          return content.length > 10 ? (
+            <ContentDialog title={t("game.notice.content")} content={content} />
+          ) : (
+            content
+          );
+        },
+      },
+      {
+        accessorKey: "created_at",
+        id: "created_at",
+        header: t("game.notice.created_at"),
+        cell: ({ row }) => {
+          return new Date(
+            row.getValue<number>("created_at") * 1000
+          ).toLocaleString();
+        },
+      },
+      {
+        id: "actions",
+        header: () => (
+          <div className={cn(["justify-self-center"])}>
+            {t("game.notice.actions._")}
+          </div>
+        ),
+        cell: ActionsCell,
+      },
+    ];
+  }, [t]);
+
+  return columns;
+}
+
+export { useColumns };

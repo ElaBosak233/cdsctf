@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { LockIcon, SaveIcon } from "lucide-react";
 import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import { updateUser } from "@/api/admin/users/user_id";
@@ -21,6 +22,8 @@ import { cn } from "@/utils";
 import { Context } from "../context";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { user } = useContext(Context);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -28,15 +31,15 @@ export default function Index() {
     .object({
       new_password: z
         .string({
-          message: "请输入新密码",
+          message: t("user.change_password.form.new_password.messages._"),
         })
-        .min(6, "密码最少需要 6 个字符"),
+        .min(6, t("user.change_password.form.new_password.messages.min")),
       confirm_password: z.string({
-        message: "请重新输入新密码",
+        message: t("user.change_password.form.confirm_password.messages._"),
       }),
     })
     .refine((data) => data.new_password === data.confirm_password, {
-      message: "新密码与确认密码不一致",
+      message: t("user.change_password.form.confirm_password.messages.match"),
       path: ["confirm_password"],
     });
 
@@ -58,14 +61,16 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`用户 ${user?.username} 密码更新成功`);
+          toast.success(
+            t("user.change_password.actions.update.success", {
+              username: user.username,
+            })
+          );
           form.reset();
         }
 
         if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.error("更新失败", {
-            description: res.msg,
-          });
+          toast.error(res.msg);
         }
       })
       .finally(() => {
@@ -86,7 +91,9 @@ export default function Index() {
             name={"new_password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>新密码</FormLabel>
+                <FormLabel>
+                  {t("user.change_password.form.new_password._")}
+                </FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -95,7 +102,7 @@ export default function Index() {
                     <TextField
                       {...field}
                       type={"password"}
-                      placeholder={"新密码"}
+                      placeholder={"New P4ssw0rd"}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -110,7 +117,9 @@ export default function Index() {
             name={"confirm_password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>确认密码</FormLabel>
+                <FormLabel>
+                  {t("user.change_password.form.confirm_password._")}
+                </FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -119,7 +128,7 @@ export default function Index() {
                     <TextField
                       {...field}
                       type={"password"}
-                      placeholder={"确认密码"}
+                      placeholder={"Confirm New P4ssw0rd"}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -139,7 +148,7 @@ export default function Index() {
             icon={<SaveIcon />}
             loading={loading}
           >
-            保存
+            {t("common.actions.save")}
           </Button>
         </form>
       </Form>
