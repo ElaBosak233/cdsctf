@@ -10,3 +10,10 @@ actions:
   confirm: Confirm
   delete: Delete
   edit: Edit
+  refresh: Refresh
+  clear_cache: Clear Cache
+errors:
+  default: Something went wrong
+  unexpected: Something went wrong
+captcha:
+  placeholder: Captcha

@@ -12,10 +12,34 @@ login:
     message:
       please_input_account: 请输入账号
       please_input_password: 请输入密码
+  warning:
+    already_logged_in: 你已经登录了
 register:
   _: 注册
   not_yet: 还没有账号？注册！
 forgot: 忘记密码
+forget:
+  subtitle: 下次不要再忘记了哦
+  form:
+    email:
+      _: 邮箱
+      message: 请输入邮箱
+    code:
+      _: 验证码
+      message: 请输入验证码
+      request: 请求
+    password:
+      _: 新密码
+      message: 请输入新密码
+    captcha:
+      _: 验证码
+    submit: 重置密码
+  toast:
+    success:
+      _: 密码重置成功
+      desc: 请登录
+    not_found: 邮箱不存在
+    code_sent: 验证码已发送，请查收
 logout: 退出登录
 setting: 账号设置
 captcha:

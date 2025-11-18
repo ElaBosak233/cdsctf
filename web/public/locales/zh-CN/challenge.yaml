@@ -18,6 +18,9 @@ is_dynamic:
   _: 动态性
   "true": 动态
   "false": 静态
+frozen:
+  already: 已冻结
+  countdown: "距冻结 {{hours}} 时 {{minutes}} 分 {{seconds}} 秒"
 is_public:
   _: 公开性
   actions:

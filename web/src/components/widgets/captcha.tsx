@@ -11,6 +11,7 @@ import {
   useImperativeHandle,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { generateCaptcha } from "@/api/configs/captcha";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
@@ -38,6 +39,7 @@ type CaptchaProps = {
 };
 
 export function Captcha(props: CaptchaProps) {
+  const { t } = useTranslation();
   const { onChange, ref } = props;
   const configStore = useConfigStore();
   const themeStore = useApperanceStore();
@@ -195,7 +197,7 @@ function ImageCaptcha(props: CaptchaProps) {
         <TextField
           value={result}
           onChange={(e) => setResult(e.target.value)}
-          placeholder={"验证码"}
+          placeholder={t("common.captcha.placeholder")}
         />
       </Field>
       <img

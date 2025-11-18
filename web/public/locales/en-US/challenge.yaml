@@ -18,6 +18,9 @@ is_dynamic:
   _: Is Dynamic
   "true": Dynamic
   "false": Static
+frozen:
+  already: Frozen
+  countdown: "Freezes in {{hours}}h {{minutes}}m {{seconds}}s"
 is_public:
   _: Public
   actions:

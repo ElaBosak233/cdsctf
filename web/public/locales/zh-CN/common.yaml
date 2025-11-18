@@ -10,3 +10,10 @@ actions:
   confirm: 确认
   delete: 删除
   edit: 编辑
+  refresh: 刷新
+  clear_cache: 清除缓存
+errors:
+  default: 发生了点错误
+  unexpected: 发生了点错误
+captcha:
+  placeholder: 验证码

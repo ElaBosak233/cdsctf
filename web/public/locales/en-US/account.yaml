@@ -12,10 +12,34 @@ login:
     message:
       please_input_account: Please input account
       please_input_password: Please input password
+  warning:
+    already_logged_in: You are already logged in
 register:
   _: Register
   not_yet: No account yet? Register!
 forgot: Forgot password
+forget:
+  subtitle: Please keep it safe next time
+  form:
+    email:
+      _: Email
+      message: Please enter your email
+    code:
+      _: Verification Code
+      message: Please enter the verification code
+      request: Request
+    password:
+      _: New Password
+      message: Please enter your new password
+    captcha:
+      _: Captcha
+    submit: Reset Password
+  toast:
+    success:
+      _: Password reset successfully
+      desc: Please login
+    not_found: Email not found
+    code_sent: Verification code sent
 logout: Logout
 setting: Account Settings
 captcha:

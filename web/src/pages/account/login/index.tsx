@@ -20,14 +20,14 @@ export default function Index() {
     if (!useAuthStore.getState().user) return;
 
     navigate("/");
-    toast.warning("你已经登录了", {
+    toast.warning(t("account.login.warning.already_logged_in"), {
       id: "login-already",
     });
   }, [navigate]);
 
   return (
     <>
-      <title>{`登录 - ${config?.meta?.title}`}</title>
+      <title>{`${t("account.login._")} - ${config?.meta?.title}`}</title>
       <div className={cn(["flex-1", "flex", "items-center", "justify-center"])}>
         <Card className={cn(["p-2", "w-[50rem]", "flex", "justify-between"])}>
           <div className={cn(["flex-1/2", "flex", "flex-col"])}>
