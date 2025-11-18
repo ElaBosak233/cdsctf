@@ -12,6 +12,8 @@ actions:
   edit: Edit
   refresh: Refresh
   clear_cache: Clear Cache
+tooltip:
+  copy: Copy to clipboard
 errors:
   default: Something went wrong
   unexpected: Something went wrong

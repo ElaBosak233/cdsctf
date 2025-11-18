@@ -92,7 +92,6 @@ export default function Index() {
                   <ListOrderedIcon />
                 </FieldIcon>
                 <Select
-                  placeholder={"每页显示"}
                   options={[
                     { value: "10" },
                     { value: "20" },

@@ -67,6 +67,7 @@ function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
 
 function ChallengeIdCell({ row }: { row: Row<GameChallenge> }) {
   const id = row.original.challenge_id!;
+  const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
   return (
     <div className={cn(["flex", "items-center", "gap-2"])}>
@@ -80,7 +81,7 @@ function ChallengeIdCell({ row }: { row: Row<GameChallenge> }) {
             onClick={() => copyToClipboard(String(id))}
           />
         </TooltipTrigger>
-        <TooltipContent>复制到剪贴板</TooltipContent>
+        <TooltipContent>{t("common.tooltip.copy")}</TooltipContent>
       </Tooltip>
     </div>
   );

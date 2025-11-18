@@ -37,6 +37,7 @@ import { cn } from "@/utils";
 
 function IdCell({ row }: { row: Row<User> }) {
   const id = row.original.id;
+  const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
 
   return (
@@ -51,7 +52,7 @@ function IdCell({ row }: { row: Row<User> }) {
             onClick={() => copyToClipboard(String(id))}
           />
         </TooltipTrigger>
-        <TooltipContent>复制到剪贴板</TooltipContent>
+        <TooltipContent>{t("common.tooltip.copy")}</TooltipContent>
       </Tooltip>
     </div>
   );

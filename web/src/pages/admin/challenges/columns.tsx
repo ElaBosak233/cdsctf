@@ -40,6 +40,7 @@ import { getCategory } from "@/utils/category";
 
 function IdCell({ row }: { row: Row<Challenge> }) {
   const id = row.original.id!;
+  const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
   return (
     <div className={cn(["flex", "items-center", "gap-2"])}>
@@ -53,7 +54,7 @@ function IdCell({ row }: { row: Row<Challenge> }) {
             onClick={() => copyToClipboard(String(id))}
           />
         </TooltipTrigger>
-        <TooltipContent>复制到剪贴板</TooltipContent>
+        <TooltipContent>{t("common.tooltip.copy")}</TooltipContent>
       </Tooltip>
     </div>
   );

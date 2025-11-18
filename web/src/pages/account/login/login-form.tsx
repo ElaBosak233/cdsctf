@@ -43,7 +43,7 @@ function LoginForm() {
 
   const formSchema = z.object({
     account: z.string({
-      message: t("account.login.form.message.please_input_username"),
+      message: t("account.login.form.message.please_input_account"),
     }),
     password: z.string({
       message: t("account.login.form.message.please_input_password"),
@@ -78,9 +78,9 @@ function LoginForm() {
         });
         navigate("/");
       } else {
-        toast.warning("你还未经过验证", {
+        toast.warning(t("account.login.warning.not_verified"), {
           id: "verify",
-          description: "请先验证你的邮箱",
+          description: t("account.login.warning.verify_email"),
         });
         navigate("/account/settings/emails");
       }
