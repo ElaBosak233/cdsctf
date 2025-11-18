@@ -65,7 +65,7 @@ function RegisterForm() {
           id: z.string(),
           content: z.string(),
         })
-        .nullish(),
+        .optional(),
     })
     .refine((data) => data.password === data.confirm_password, {
       message: t("account.register.form.confirm_password.mismatch"),
@@ -238,13 +238,10 @@ function RegisterForm() {
           {configStore?.config?.captcha?.provider !== "none" && (
             <FormField
               name={"captcha"}
-              render={() => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("account.register.form.captcha._")}</FormLabel>
-                  <Captcha
-                    ref={captchaRef}
-                    onChange={field.onChange}
-                  />
+                  <Captcha ref={captchaRef} onChange={field.onChange} />
                 </FormItem>
               )}
             />

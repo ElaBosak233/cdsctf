@@ -194,10 +194,7 @@ function ForgetForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("account.forget.form.captcha._")}</FormLabel>
-                  <Captcha
-                    ref={captchaRef}
-                    onChange={field.onChange}
-                  />
+                  <Captcha ref={captchaRef} onChange={field.onChange} />
                 </FormItem>
               )}
             />
