@@ -43,7 +43,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build all stages
-        if: steps.changes.outputs.ci == 'true'
+        if: steps.changes.outputs.ci == 'true' || (steps.changes.outputs.backend == 'true' && steps.changes.outputs.frontend == 'true')
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -52,7 +52,7 @@ jobs:
           push: false
 
       - name: Build backend stage
-        if: steps.changes.outputs.ci != 'true' && steps.changes.outputs.backend == 'true'
+        if: steps.changes.outputs.ci != 'true' && steps.changes.outputs.backend == 'true' && steps.changes.outputs.frontend != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -62,7 +62,7 @@ jobs:
           target: backend
 
       - name: Build frontend stage
-        if: steps.changes.outputs.ci != 'true' && steps.changes.outputs.frontend == 'true'
+        if: steps.changes.outputs.ci != 'true' && steps.changes.outputs.frontend == 'true' && steps.changes.outputs.backend != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
