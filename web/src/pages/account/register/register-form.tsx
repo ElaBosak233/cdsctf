@@ -9,8 +9,8 @@ import {
   UserRoundIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -221,7 +221,9 @@ function RegisterForm() {
                     <TextField
                       type={"password"}
                       {...field}
-                      placeholder={t("account.register.form.confirm_password._")}
+                      placeholder={t(
+                        "account.register.form.confirm_password._"
+                      )}
                     />
                   </Field>
                 </FormControl>

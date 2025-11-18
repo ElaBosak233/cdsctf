@@ -50,7 +50,7 @@ register:
     failure:
       _: Register failed
       conflict: Username or email already exists
-forgot: Forgot password
+forgot: Forgot Password
 forget:
   subtitle: Please keep it safe next time
   form:

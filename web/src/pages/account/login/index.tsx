@@ -23,13 +23,13 @@ export default function Index() {
     toast.warning(t("account.login.warning.already_logged_in"), {
       id: "login-already",
     });
-  }, [navigate]);
+  }, [navigate, t]);
 
   return (
     <>
       <title>{`${t("account.login._")} - ${config?.meta?.title}`}</title>
       <div className={cn(["flex-1", "flex", "items-center", "justify-center"])}>
-        <Card className={cn(["p-2", "w-[50rem]", "flex", "justify-between"])}>
+        <Card className={cn(["p-2", "w-200", "flex", "justify-between"])}>
           <div className={cn(["flex-1/2", "flex", "flex-col"])}>
             <div className={cn(["flex", "flex-col", "space-y-1.5", "p-6"])}>
               <div
@@ -76,7 +76,7 @@ export default function Index() {
                 decoding={"async"}
                 src={"/api/configs/logo"}
                 draggable={false}
-                className={cn(["drop-shadow-md", "aspect-square", "h-[8rem]"])}
+                className={cn(["drop-shadow-md", "aspect-square", "h-32"])}
               />
               <span className={cn(["mt-4", "text-2xl", "font-semibold"])}>
                 {config?.meta?.title}

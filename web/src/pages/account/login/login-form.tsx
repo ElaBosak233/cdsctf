@@ -32,10 +32,11 @@ import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
 
 function LoginForm() {
+  const { t } = useTranslation();
+
   const configStore = useConfigStore();
   const authStore = useAuthStore();
   const navigate = useNavigate();
-  const { t } = useTranslation();
 
   const captchaRef = useRef<CaptchaRef>(null);
 

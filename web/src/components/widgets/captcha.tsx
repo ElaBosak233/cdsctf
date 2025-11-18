@@ -39,7 +39,6 @@ type CaptchaProps = {
 };
 
 export function Captcha(props: CaptchaProps) {
-  const { t } = useTranslation();
   const { onChange, ref } = props;
   const configStore = useConfigStore();
   const themeStore = useApperanceStore();
@@ -159,6 +158,8 @@ function PowCaptcha(props: CaptchaProps) {
 
 function ImageCaptcha(props: CaptchaProps) {
   const { onChange } = props;
+  const { t } = useTranslation();
+
   const sharedStore = useSharedStore();
 
   const { refresh, setRefresh } = useContext(Context);
