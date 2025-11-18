@@ -26,19 +26,19 @@ export default function Index() {
                   "flex",
                   "gap-2",
                   "items-center",
-              ])}
-            >
-              <UserRoundPlusIcon />
-              {t("account.register._")}
-            </div>
-            <div className={cn(["text-sm", "text-secondary-foreground"])}>
-              {t("account.register.continue", {
-                title: configStore?.config?.meta?.title,
-              })}
-            </div>
-            <div className={cn(["pt-6"])}>
-              <RegisterForm />
-            </div>
+                ])}
+              >
+                <UserRoundPlusIcon />
+                {t("account.register._")}
+              </div>
+              <div className={cn(["text-sm", "text-secondary-foreground"])}>
+                {t("account.register.continue", {
+                  title: configStore?.config?.meta?.title,
+                })}
+              </div>
+              <div className={cn(["pt-6"])}>
+                <RegisterForm />
+              </div>
             </div>
           </div>
         </Card>

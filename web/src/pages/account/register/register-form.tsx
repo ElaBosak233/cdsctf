@@ -243,15 +243,15 @@ function RegisterForm() {
         </div>
         <Button
           variant={"solid"}
-        level={"info"}
-        type={"submit"}
-        size={"lg"}
-        className={cn(["w-full"])}
-        icon={<CheckIcon />}
-        loading={loading}
-      >
-        {t("account.register.submit")}
-      </Button>
+          level={"info"}
+          type={"submit"}
+          size={"lg"}
+          className={cn(["w-full"])}
+          icon={<CheckIcon />}
+          loading={loading}
+        >
+          {t("account.register.submit")}
+        </Button>
       </form>
     </Form>
   );
