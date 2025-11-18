@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { FlagIcon, LoaderCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { Image } from "@/components/ui/image";
 import type { GameMini } from "@/models/game";
@@ -13,6 +14,7 @@ interface EntranceProps {
 
 export default function Entrance({ game, onFinish }: EntranceProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   // 控制动画生命周期
@@ -141,7 +143,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
               className="absolute left-6 bottom-4 flex items-center text-secondary-foreground space-x-2"
             >
               <LoaderCircleIcon className="animate-spin w-4 h-4" />
-              <span>加载中...</span>
+              <span>{t("common.loading")}...</span>
             </motion.div>
           </motion.div>
         </motion.div>

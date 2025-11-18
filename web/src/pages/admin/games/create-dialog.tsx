@@ -3,9 +3,9 @@ import { StatusCodes } from "http-status-codes";
 import { CalendarIcon, CheckIcon, FlagIcon, TypeIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { createGame } from "@/api/admin/games";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,17 +29,19 @@ interface CreateDialogProps {
 
 function CreateDialog(props: CreateDialogProps) {
   const { onClose } = props;
+  const { t } = useTranslation();
+
   const sharedStore = useSharedStore();
   const [loading, setLoading] = useState<boolean>(false);
   const formSchema = z.object({
     title: z.string({
-      message: "请输入标题",
+      message: t("game.form.title.message"),
     }),
     started_at: z.date({
-      message: "请选择开始时间",
+      message: t("game.form.started_at.message"),
     }),
     ended_at: z.date({
-      message: "请选择结束时间",
+      message: t("game.form.ended_at.message"),
     }),
   });
 
@@ -60,7 +62,9 @@ function CreateDialog(props: CreateDialogProps) {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`比赛 ${res?.data?.title} 创建成功`);
+          toast.success(
+            t("game.actions.create.success", { title: res?.data?.title })
+          );
           onClose();
         }
       })
@@ -71,11 +75,11 @@ function CreateDialog(props: CreateDialogProps) {
   }
   return (
     <Card
-      className={cn(["w-128", "min-h-64", "p-5", "flex", "flex-col", "gap-5"])}
+      className={cn(["w-lg", "min-h-64", "p-5", "flex", "flex-col", "gap-5"])}
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <FlagIcon className={cn(["size-4"])} />
-        创建比赛
+        {t("game.actions.create._")}
       </h3>
       <Form {...form}>
         <form
@@ -88,7 +92,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"title"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>标题</FormLabel>
+                <FormLabel>{t("game.form.title._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -96,7 +100,7 @@ function CreateDialog(props: CreateDialogProps) {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"比赛名称"}
+                      placeholder={"My CTF Game"}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -111,7 +115,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"started_at"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>开始时间</FormLabel>
+                <FormLabel>{t("game.form.started_at._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -129,7 +133,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"ended_at"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>结束时间</FormLabel>
+                <FormLabel>{t("game.form.ended_at._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -149,7 +153,7 @@ function CreateDialog(props: CreateDialogProps) {
             level={"success"}
             loading={loading}
           >
-            确定
+            {t("common.actions.confirm")}
           </Button>
         </form>
       </Form>

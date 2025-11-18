@@ -1,0 +1,81 @@
+login:
+  _: 登录
+  please: 请登录
+  continue: 登录以继续浏览
+  success:
+    _: 登录成功
+    welcome: "欢迎回来，{{name}}"
+  error:
+    _: 登录失败
+    invalid: 无效的账号或密码
+  form:
+    message:
+      please_input_account: 请输入账号
+      please_input_password: 请输入密码
+  warning:
+    already_logged_in: 你已经登录了
+    not_verified: 你还未经过验证
+    verify_email: 请先验证你的邮箱
+register:
+  _: 注册
+  not_yet: 还没有账号？注册！
+  continue: 注册以继续浏览 {{title}}
+  submit: 注册
+  form:
+    username:
+      _: 用户名
+      message: 请输入用户名
+      start_lower: 用户名必须以小写字母开头
+      chars: 用户名只能包含小写字母和数字
+    name:
+      _: 昵称
+      message: 请输入昵称
+    email:
+      _: 邮箱
+      invalid: 邮箱不合法
+    password:
+      _: 密码
+      message: 请输入密码
+      min: 密码最少需要 6 个字符
+    confirm_password:
+      _: 确认密码
+      message: 请重新输入新密码
+      mismatch: 新密码与确认密码不一致
+    captcha:
+      _: 验证码
+  toast:
+    success:
+      _: 注册成功
+      desc: 注册成功，请登录
+    failure:
+      _: 注册失败
+      conflict: 用户名或邮箱重复
+forgot: 忘记密码
+forget:
+  subtitle: 下次不要再忘记了哦
+  form:
+    email:
+      _: 邮箱
+      message: 请输入邮箱
+    code:
+      _: 验证码
+      message: 请输入验证码
+      request: 请求
+    password:
+      _: 新密码
+      message: 请输入新密码
+    captcha:
+      _: 验证码
+    submit: 重置密码
+  toast:
+    success:
+      _: 密码重置成功
+      desc: 请登录
+    not_found: 邮箱不存在
+    code_sent: 验证码已发送，请查收
+logout: 退出登录
+setting: 账号设置
+captcha:
+  _: 人机验证
+  please_refresh: 请刷新验证码
+  expired: 验证码已过期

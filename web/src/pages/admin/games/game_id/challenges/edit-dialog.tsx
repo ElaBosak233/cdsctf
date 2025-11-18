@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useContext, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -49,6 +50,7 @@ interface EditDialogProps {
 
 function EditDialog(props: EditDialogProps) {
   const { onClose, gameChallenge } = props;
+  const { t } = useTranslation();
 
   const { game } = useContext(Context);
   const sharedStore = useSharedStore();
@@ -145,7 +147,7 @@ function EditDialog(props: EditDialogProps) {
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <LibraryIcon className={cn(["size-4"])} />
-        编辑赛题
+        {t("game.challenge.actions.edit._")}
       </h3>
       <ScrollArea className={cn(["max-h-144", "overflow-y-auto"])}>
         <Form {...form}>
@@ -160,14 +162,14 @@ function EditDialog(props: EditDialogProps) {
                 name={"max_pts"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>最大分值</FormLabel>
+                    <FormLabel>{t("game.challenge.form.max_pts._")}</FormLabel>
                     <FormControl>
                       <Field size={"sm"}>
                         <FieldIcon>
                           <HashIcon />
                         </FieldIcon>
                         <NumberField
-                          placeholder={"最大分值"}
+                          placeholder={"2000"}
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
                         />
@@ -182,14 +184,14 @@ function EditDialog(props: EditDialogProps) {
                 name={"min_pts"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>最小分值</FormLabel>
+                    <FormLabel>{t("game.challenge.form.min_pts._")}</FormLabel>
                     <FormControl>
                       <Field size={"sm"}>
                         <FieldIcon>
                           <HashIcon />
                         </FieldIcon>
                         <NumberField
-                          placeholder={"最小分值"}
+                          placeholder={"500"}
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
                         />
@@ -204,14 +206,16 @@ function EditDialog(props: EditDialogProps) {
                 name={"difficulty"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>难度系数</FormLabel>
+                    <FormLabel>
+                      {t("game.challenge.form.difficulty._")}
+                    </FormLabel>
                     <FormControl>
                       <Field size={"sm"}>
                         <FieldIcon>
                           <HashIcon />
                         </FieldIcon>
                         <NumberField
-                          placeholder={"难度系数"}
+                          placeholder={"5"}
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
                         />
@@ -227,7 +231,7 @@ function EditDialog(props: EditDialogProps) {
               name={"frozen_at"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>冻结时间</FormLabel>
+                  <FormLabel>{t("game.challenge.form.frozen_at")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -241,7 +245,7 @@ function EditDialog(props: EditDialogProps) {
               )}
             />
             <div className={cn(["flex", "flex-col", "gap-2"])}>
-              <Label>奖励分数（%）</Label>
+              <Label>{t("game.challenge.form.bonus_ratio")}</Label>
               <div className={cn(["grid", "grid-cols-3", "gap-3"])}>
                 {form.watch("bonus_ratios").map((_ratio, ratioIndex) => (
                   <FormField
@@ -290,7 +294,7 @@ function EditDialog(props: EditDialogProps) {
             </div>
             <ChartContainer
               config={{} satisfies ChartConfig}
-              className={cn(["h-[12.5rem]", "w-full"])}
+              className={cn(["h-50", "w-full"])}
             >
               <AreaChart
                 accessibilityLayer
@@ -322,7 +326,7 @@ function EditDialog(props: EditDialogProps) {
               </AreaChart>
             </ChartContainer>
             <Button type={"submit"} variant={"solid"} icon={<SaveIcon />}>
-              保存
+              {t("common.actions.save")}
             </Button>
           </form>
         </Form>

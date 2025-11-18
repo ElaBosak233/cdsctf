@@ -1,0 +1,5 @@
+_: 提交
+solved: 已解出
+solves: "{{count}} 次解出"
+actions:
+  submit: 提交

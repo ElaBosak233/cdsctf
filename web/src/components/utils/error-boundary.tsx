@@ -1,4 +1,5 @@
 import { DatabaseZapIcon, HeartCrackIcon, RefreshCcwIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useRouteError } from "react-router";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/utils";
@@ -6,6 +7,7 @@ import { Button } from "../ui/button";
 
 function ErrorBoundary() {
   const error = useRouteError();
+  const { t } = useTranslation();
   if (!(error instanceof Error)) return null;
 
   function handleReload() {
@@ -47,7 +49,7 @@ function ErrorBoundary() {
         ])}
       >
         <HeartCrackIcon className={cn(["size-10"])} />
-        <span>发生了点错误</span>
+        <span>{t("common.errors.unexpected")}</span>
         <ScrollArea
           className={cn(["h-96", "bg-card", "border", "rounded-lg", "p-5"])}
         >
@@ -60,7 +62,7 @@ function ErrorBoundary() {
             onClick={handleReload}
             size={"lg"}
           >
-            刷新
+            {t("common.actions.refresh")}
           </Button>
           <Button
             icon={<DatabaseZapIcon />}
@@ -68,7 +70,7 @@ function ErrorBoundary() {
             onClick={handleCacheClear}
             size={"lg"}
           >
-            清除缓存
+            {t("common.actions.clear_cache")}
           </Button>
         </div>
       </div>

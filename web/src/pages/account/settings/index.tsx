@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import { updateUserProfile } from "@/api/users/profile";
@@ -34,6 +35,8 @@ import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const authStore = useAuthStore();
   const sharedStore = useSharedStore();
   const configStore = useConfigStore();
@@ -45,7 +48,7 @@ export default function Index() {
   const formSchema = z.object({
     username: z.string().nullish(),
     name: z.string({
-      message: "请输入昵称",
+      message: t("user.form.name.messages._"),
     }),
     description: z.string().nullish(),
   });
@@ -151,7 +154,7 @@ export default function Index() {
                   name={"username"}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>用户名</FormLabel>
+                      <FormLabel>{t("user.form.username._")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -160,7 +163,7 @@ export default function Index() {
                           <TextField
                             {...field}
                             disabled
-                            placeholder={"用户名"}
+                            placeholder={"Username"}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -175,7 +178,7 @@ export default function Index() {
                   name={"name"}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>昵称</FormLabel>
+                      <FormLabel>{t("user.form.name._")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -183,7 +186,7 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             {...field}
-                            placeholder={"昵称"}
+                            placeholder={"Name"}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -203,7 +206,7 @@ export default function Index() {
                     "justify-between",
                   ])}
                 >
-                  <Label>头像</Label>
+                  <Label>{t("user.form.avatar")}</Label>
                 </div>
                 <Avatar
                   className={cn([
@@ -264,7 +267,7 @@ export default function Index() {
               name={"description"}
               render={({ field }) => (
                 <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-                  <FormLabel>简介</FormLabel>
+                  <FormLabel>{t("user.form.description._")}</FormLabel>
                   <FormControl>
                     <Editor
                       {...field}
@@ -286,7 +289,7 @@ export default function Index() {
               icon={<SaveIcon />}
               loading={loading}
             >
-              保存
+              {t("common.actions.save")}
             </Button>
           </form>
         </Form>

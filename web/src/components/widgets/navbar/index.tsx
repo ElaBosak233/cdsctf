@@ -35,7 +35,7 @@ function Navbar() {
           "bg-card/80",
           "backdrop-blur-xs",
           "select-none",
-          "border-b-[1px]",
+          "border-b",
           "flex",
           "items-center",
           "z-10",

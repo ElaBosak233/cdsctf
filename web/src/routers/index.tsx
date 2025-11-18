@@ -195,9 +195,9 @@ const router = createBrowserRouter([
             }),
           },
           {
-            path: "email",
+            path: "mailbox",
             lazy: async () => ({
-              Component: (await import("@/pages/admin/email")).default,
+              Component: (await import("@/pages/admin/mailbox")).default,
             }),
           },
           {

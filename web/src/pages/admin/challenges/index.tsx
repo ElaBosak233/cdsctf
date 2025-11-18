@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   type GetChallengesRequest,
   getChallenges,
@@ -44,7 +45,7 @@ import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 import { CreateDialog } from "./create-dialog";
 
 function useChallengeQuery(params: GetChallengesRequest) {
@@ -73,6 +74,8 @@ function useChallengeQuery(params: GetChallengesRequest) {
 }
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const configStore = useConfigStore();
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
@@ -127,6 +130,7 @@ export default function Index() {
     size,
   });
 
+  const columns = useColumns();
   const table = useReactTable<Challenge>({
     data: challengesData?.challenges || [],
     columns,
@@ -148,7 +152,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`题库 - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("challenge._")} - ${configStore?.config?.meta?.title}`}</title>
       <div
         className={cn([
           "container",
@@ -180,7 +184,7 @@ export default function Index() {
             ])}
           >
             <LibraryIcon />
-            题库
+            {t("challenge._")}
           </h1>
           <div
             className={cn([
@@ -211,7 +215,7 @@ export default function Index() {
                 <TypeIcon />
               </FieldIcon>
               <TextField
-                placeholder={"题目名"}
+                placeholder={t("challenge.title")}
                 value={table.getColumn("title")?.getFilterValue() as string}
                 onChange={(e) =>
                   table.getColumn("title")?.setFilterValue(e.target.value)
@@ -229,7 +233,7 @@ export default function Index() {
                     value: "all",
                     content: (
                       <div className={cn(["flex", "gap-2", "items-center"])}>
-                        全部
+                        {t("common.all")}
                       </div>
                     ),
                   },
@@ -265,15 +269,15 @@ export default function Index() {
                 options={[
                   {
                     value: "all",
-                    content: "全部",
+                    content: t("common.all"),
                   },
                   {
                     value: "true",
-                    content: "公开",
+                    content: t("challenge.search.is_public.true"),
                   },
                   {
                     value: "false",
-                    content: "非公开",
+                    content: t("challenge.search.is_public.false"),
                   },
                 ]}
                 onValueChange={(value) =>
@@ -297,7 +301,7 @@ export default function Index() {
               onClick={() => setCreateDialogOpen(true)}
               className={cn(["w-full", "lg:w-1/6"])}
             >
-              添加题目
+              {t("common.actions.add")}
             </Button>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogContent>
@@ -366,7 +370,7 @@ export default function Index() {
                         colSpan={columns.length}
                         className={cn(["h-24", "text-center"])}
                       >
-                        哎呀，好像还没有题目呢。
+                        {t("challenge.empty")}
                       </TableCell>
                     </TableRow>
                   )}
@@ -383,7 +387,6 @@ export default function Index() {
                 <ListOrderedIcon />
               </FieldIcon>
               <Select
-                placeholder={"每页显示"}
                 options={[
                   { value: "10" },
                   { value: "20" },

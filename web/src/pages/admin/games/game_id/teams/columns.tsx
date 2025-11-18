@@ -9,6 +9,7 @@ import {
   Undo2Icon,
 } from "lucide-react";
 import { useContext } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import { updateTeam } from "@/api/admin/games/game_id/teams/team_id";
@@ -26,6 +27,8 @@ import { cn } from "@/utils";
 import { Context } from "../context";
 
 function useColumns(): Array<ColumnDef<Team>> {
+  const { t } = useTranslation();
+
   const sharedStore = useSharedStore();
   const { game } = useContext(Context);
 
@@ -46,7 +49,7 @@ function useColumns(): Array<ColumnDef<Team>> {
     {
       accessorKey: "name",
       id: "name",
-      header: "团队名",
+      header: t("team.name"),
       cell: ({ row }) => {
         const name = row.original.name!;
         return (
@@ -66,19 +69,19 @@ function useColumns(): Array<ColumnDef<Team>> {
     {
       accessorKey: "rank",
       id: "rank",
-      header: "排名",
+      header: t("team.rank"),
       cell: ({ row }) => row.original.rank,
     },
     {
       accessorKey: "pts",
       id: "pts",
-      header: "得分",
+      header: t("team.pts"),
       cell: ({ row }) => row.original.pts,
     },
     {
       accessorKey: "state",
       id: "state",
-      header: "当前状态",
+      header: t("team.state._"),
       cell: ({ row }) => {
         const state = row.original.state;
 
@@ -86,25 +89,25 @@ function useColumns(): Array<ColumnDef<Team>> {
           case State.Banned:
             return (
               <Badge className={cn(["bg-error", "text-error-foreground"])}>
-                禁赛中
+                {t("team.state.banned")}
               </Badge>
             );
           case State.Preparing:
             return (
               <Badge className={cn(["bg-info", "text-info-foreground"])}>
-                准备中
+                {t("team.state.preparing")}
               </Badge>
             );
           case State.Pending:
             return (
               <Badge className={cn(["bg-warning", "text-warning-foreground"])}>
-                待审核
+                {t("team.state.pending")}
               </Badge>
             );
           case State.Passed:
             return (
               <Badge className={cn(["bg-success", "text-success-foreground"])}>
-                正常参赛
+                {t("team.state.passed")}
               </Badge>
             );
         }
@@ -122,13 +125,13 @@ function useColumns(): Array<ColumnDef<Team>> {
                 <div className={cn(["flex", "items-center", "gap-2"])}>
                   {has_write_up ? (
                     <Badge className={cn(["bg-info", "text-info-foreground"])}>
-                      已提交
+                      {t("team.has_write_up.true")}
                     </Badge>
                   ) : (
                     <Badge
                       className={cn(["bg-warning", "text-warning-foreground"])}
                     >
-                      未提交
+                      {t("team.has_write_up.false")}
                     </Badge>
                   )}
                   <Button
@@ -153,7 +156,11 @@ function useColumns(): Array<ColumnDef<Team>> {
       : []),
     {
       id: "actions",
-      header: () => <div className={cn(["justify-self-center"])}>操作</div>,
+      header: () => (
+        <div className={cn(["justify-self-center"])}>
+          {t("game.team.actions._")}
+        </div>
+      ),
       cell: function ActionsCell({ row }) {
         const id = row.original.id;
         const game_id = row.original.game_id;
@@ -167,7 +174,9 @@ function useColumns(): Array<ColumnDef<Team>> {
           })
             .then((res) => {
               if (res.code === StatusCodes.OK) {
-                toast.success(`团队 ${row.original.name} 状态更新成功`);
+                toast.success(
+                  t("game.team.actions.message", { name: row.original.name })
+                );
               }
             })
             .finally(() => {
@@ -191,7 +200,7 @@ function useColumns(): Array<ColumnDef<Team>> {
                   onClick={() => handleStateChange(State.Preparing)}
                 />
               </TooltipTrigger>
-              <TooltipContent>打回</TooltipContent>
+              <TooltipContent>{t("game.team.actions.refuse")}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -205,7 +214,7 @@ function useColumns(): Array<ColumnDef<Team>> {
                   onClick={() => handleStateChange(State.Banned)}
                 />
               </TooltipTrigger>
-              <TooltipContent>禁赛</TooltipContent>
+              <TooltipContent>{t("game.team.actions.ban")}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -219,7 +228,7 @@ function useColumns(): Array<ColumnDef<Team>> {
                   onClick={() => handleStateChange(State.Passed)}
                 />
               </TooltipTrigger>
-              <TooltipContent>通过审核</TooltipContent>
+              <TooltipContent>{t("game.team.actions.pass")}</TooltipContent>
             </Tooltip>
           </div>
         );

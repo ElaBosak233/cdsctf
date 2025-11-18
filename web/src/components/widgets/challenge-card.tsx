@@ -1,7 +1,7 @@
 import { Flag } from "lucide-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
-
 import type { ChallengeStatus } from "@/api/challenges";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -24,6 +24,9 @@ type ChallengeCardProps = React.ComponentProps<"div"> & {
 
 function ChallengeCard(props: ChallengeCardProps) {
   const { digest, status, debug = false, className, ...rest } = props;
+
+  const { t } = useTranslation();
+
   const location = useLocation();
   const pathname = location.pathname;
 
@@ -77,7 +80,7 @@ function ChallengeCard(props: ChallengeCardProps) {
             />
           </TooltipTrigger>
           <TooltipContent onClick={(e) => e.stopPropagation()} sideOffset={0}>
-            已解决
+            {t("submission.solved")}
           </TooltipContent>
         </Tooltip>
       )}
@@ -98,7 +101,9 @@ function ChallengeCard(props: ChallengeCardProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <span className={cn(["text-sm"])}>
-              {debug ? "N" : status?.solved_times || 0} 次解出
+              {t("submission.solves", {
+                count: debug ? NaN : status?.solved_times || 0,
+              })}
             </span>
           </TooltipTrigger>
           {!!status?.solved_times && (

@@ -1,0 +1,148 @@
+_: User
+empty: But nobody came.
+edit:
+  _: Edit User
+  info: Info
+  email: Emails
+  password: Change Password
+settings:
+  info: Info
+  email: Emails
+  password: Change Password
+  delete: Delete Account
+username: Username
+name: Name
+password: Password
+email: Email
+group:
+  _: Group
+  guest: Guest
+  banned: Banned
+  user: User
+  admin: Admin
+avatar: Avatar
+description: Description
+created_at: Registered At
+search:
+  username: Username
+  group: Group
+form:
+  username:
+    _: Username
+    messages:
+      _: Please enter a username
+      min: Username must be at least 3 characters
+  name:
+    _: Name
+    messages:
+      _: Please enter a name
+      min: Name must be at least 2 characters
+  email:
+    _: Email
+    message: Please enter a valid email address
+  password:
+    _: Password
+    messages:
+      _: Please enter a password
+      min: Password must be at least 6 characters
+  group:
+    _: Group
+    message: Please select a user group
+  description:
+    _: Description
+    message: Please enter a description
+  avatar: Avatar
+actions:
+  _: Actions
+  create:
+    _: Create User
+    success: "User {{username}} created successfully."
+    errors:
+      conflict: Username or email is already taken.
+  update:
+    _: Update User
+    success: "User {{username}} updated successfully."
+  delete:
+    _: Delete User
+    message: "Are you sure you want to delete the user <muted>{{username}}</muted>?"
+    success: "User {{username}} deleted successfully."
+emails:
+  _: Emails
+  brief: Add or edit this user's email addresses
+  empty: No emails have been added for this user yet.
+  is_verified:
+    "true":
+      _: Verified
+      long: This email address has been verified.
+    "false":
+      _: Unverified
+      long: This email address has not been verified.
+  form:
+    email:
+      _: Email
+      message: Please enter a valid email address
+    is_verified:
+      _: Mark as verified
+      message: Immediately mark the email as verified.
+  actions:
+    create:
+      _: Add Email
+      success: "Email {{email}} added successfully."
+    update:
+      _: Update Email Status
+      success: "Email {{email}} verification status updated successfully."
+    delete:
+      _: Delete Email
+      message: "Are you sure you want to delete the email <muted>{{email}}</muted>?"
+      message_brief: >-
+        After deletion this email will no longer be usable for login or mail
+        notifications.
+      success: "Email {{email}} deleted successfully."
+    verify:
+      _: Verify Email
+      disabled: >-
+        {{title}} has not enabled email service, you can directly confirm to
+        verify the email.
+      success: "Email {{email}} verified successfully."
+    send_verify:
+      _: Send Verification Email
+      success: "Verification email sent to {{email}}."
+change_password:
+  form:
+    old_password:
+      _: Old Password
+      message: Please enter the old password
+    new_password:
+      _: New Password
+      messages:
+        _: Please enter a new password
+        min: Password must be at least 6 characters
+    confirm_password:
+      _: Confirm New Password
+      messages:
+        _: Please confirm the new password
+        match: The two passwords do not match
+  actions:
+    update:
+      _: Change Password
+      success: "Password for user {{username}} updated successfully."
+    self_update:
+      _: Change Password
+      success: Your password has been updated successfully.
+delete_account:
+  _: Delete Account
+  form:
+    username:
+      _: Username
+      messages:
+        _: Please enter a username
+        match: Username does not match
+    password:
+      _: Password
+      message: Please enter a password
+    captcha:
+      _: Verification Code
+      message: Please enter the verification code
+  actions:
+    delete:
+      success: Account deleted successfully.

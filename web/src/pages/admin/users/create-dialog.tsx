@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { createUser } from "@/api/admin/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -38,18 +38,23 @@ interface CreateUserDialogProps {
 
 function CreateUserDialog(props: CreateUserDialogProps) {
   const { onClose } = props;
+  const { t } = useTranslation();
 
   const sharedStore = useSharedStore();
 
   const [loading, setLoading] = useState<boolean>(false);
 
   const formSchema = z.object({
-    username: z.string().min(3, { message: "用户名至少3个字符!" }),
-    name: z.string().min(2, { message: "昵称至少2个字符!" }),
-    email: z.string().email({ message: "请输入有效的邮箱地址!" }),
-    password: z.string().min(6, { message: "密码至少6个字符!" }),
+    username: z
+      .string()
+      .min(3, { message: t("user.form.username.messages.min") }),
+    name: z.string().min(2, { message: t("user.form.name.messages._") }),
+    email: z.email({ message: t("user.form.email.message") }),
+    password: z
+      .string()
+      .min(6, { message: t("user.form.password.messages.min") }),
     group: z.number({
-      message: "请选择用户组!",
+      message: t("user.form.group.message"),
     }),
   });
 
@@ -71,14 +76,14 @@ function CreateUserDialog(props: CreateUserDialogProps) {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`用户 ${values.username} 创建成功`);
+          toast.success(
+            t("user.actions.create.success", { username: values.username })
+          );
           onClose();
         }
 
         if (res.code === StatusCodes.CONFLICT) {
-          toast.error("发生错误", {
-            description: res.msg,
-          });
+          toast.error(t("user.actions.create.errors.conflict"));
         }
       })
       .finally(() => {
@@ -88,17 +93,17 @@ function CreateUserDialog(props: CreateUserDialogProps) {
   }
 
   const groupOptions = [
-    { id: Group.User, name: "用户", icon: UserRoundCheckIcon },
-    { id: Group.Admin, name: "管理员", icon: ShieldIcon },
+    { id: Group.User, name: t("user.group.user"), icon: UserRoundCheckIcon },
+    { id: Group.Admin, name: t("user.group.admin"), icon: ShieldIcon },
   ];
 
   return (
     <Card
-      className={cn(["w-128", "min-h-64", "p-5", "flex", "flex-col", "gap-5"])}
+      className={cn(["w-lg", "min-h-64", "p-5", "flex", "flex-col", "gap-5"])}
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <UserRoundPlusIcon className={cn(["size-4"])} />
-        创建用户
+        {t("user.actions.create._")}
       </h3>
       <Form {...form}>
         <form
@@ -111,7 +116,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             name={"username"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>用户名</FormLabel>
+                <FormLabel>{t("user.form.username._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -119,7 +124,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"请输入用户名"}
+                      placeholder={"Username"}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -135,7 +140,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             name={"name"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>昵称</FormLabel>
+                <FormLabel>{t("user.form.name._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -143,7 +148,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"请输入昵称"}
+                      placeholder={"Name"}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -159,7 +164,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             name={"email"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>邮箱</FormLabel>
+                <FormLabel>{t("user.form.email._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -168,7 +173,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                     <TextField
                       {...field}
                       type="email"
-                      placeholder={"请输入邮箱地址"}
+                      placeholder={"ctf@example.com"}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -184,7 +189,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>密码</FormLabel>
+                <FormLabel>{t("user.form.password._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -193,7 +198,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                     <TextField
                       {...field}
                       type="password"
-                      placeholder={"请输入密码"}
+                      placeholder={"P4ssw0rd!"}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -209,7 +214,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             name={"group"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>用户组</FormLabel>
+                <FormLabel>{t("user.form.group._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -249,7 +254,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             level={"success"}
             loading={loading}
           >
-            确定
+            {t("common.actions.confirm")}
           </Button>
         </form>
       </Form>

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import {
   type GetPlaygroundChallengesRequest,
@@ -71,6 +72,7 @@ function useChallengeStatusQuery(
 export default function Index() {
   const authStore = useAuthStore();
   const { config } = useConfigStore();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,7 +112,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`练习场 - ${config?.meta?.title}`}</title>
+      <title>{`${t("challenge.playground")} - ${config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex-1",
@@ -127,7 +129,7 @@ export default function Index() {
               <TypeIcon />
             </FieldIcon>
             <TextField
-              placeholder={"题目名"}
+              placeholder={t("challenge.search.title")}
               value={title || undefined}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -139,7 +141,7 @@ export default function Index() {
             variant={"solid"}
             onClick={() => setDoSearch((prev) => prev + 1)}
           >
-            搜索
+            {t("common.search")}
           </Button>
         </div>
         <div
@@ -170,7 +172,7 @@ export default function Index() {
                 <TagIcon />
               </FieldIcon>
               <TextField
-                placeholder={"标签"}
+                placeholder={t("challenge.search.tag")}
                 value={tag || undefined}
                 onChange={(e) => setTag(e.target.value)}
               />
@@ -185,7 +187,7 @@ export default function Index() {
                     value: "all",
                     content: (
                       <div className={cn(["flex", "gap-2", "items-center"])}>
-                        全部
+                        {t("common.all")}
                       </div>
                     ),
                   },
@@ -212,7 +214,6 @@ export default function Index() {
                 <ListOrderedIcon />
               </FieldIcon>
               <Select
-                placeholder={"每页显示"}
                 options={[
                   { value: "10" },
                   { value: "20" },
@@ -271,7 +272,7 @@ export default function Index() {
               ])}
             >
               <PackageOpenIcon className={cn(["size-8"])} />
-              好像还没有题目哦。
+              {t("challenge.empty")}
             </div>
           )}
         </div>

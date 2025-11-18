@@ -1,0 +1,86 @@
+_: Admin
+home:
+  _: Home
+  statistics:
+    users: Registered Users
+    games: Hosted Games
+    challenges: Collected Challenges
+    submissions: Processed Submissions
+platform:
+  _: Platform
+  logo: Logo
+  auth:
+    is_registration_enabled:
+      "true": "Yes"
+      "false": "No"
+  form:
+    meta:
+      _: Meta
+      title:
+        _: Title
+      keywords:
+        _: Keywords
+      description:
+        _: Description
+      footer:
+        _: Footer
+    auth:
+      _: Authentication
+      is_registration_enabled:
+        _: Enable Registration
+  actions:
+    update:
+      _: Update Platform Settings
+      success: Platform settings updated successfully.
+mailbox:
+  _: Mailbox
+  is_enabled:
+    _: Enable Mailbox
+    "true": "Yes"
+    "false": "No"
+  tls:
+    _: TLS
+    none: None
+    tls: TLS
+    starttls: StartTLS
+  form:
+    is_enabled:
+      _: Enable Mailbox
+    host:
+      _: SMTP Host
+    port:
+      _: Port
+    tls:
+      _: TLS
+    username:
+      _: Username
+    password:
+      _: Password
+    verification_email:
+      _: Verification Email Template
+    reset_password_email:
+      _: Reset Password Email Template
+  actions:
+    update:
+      _: Update Mailbox Settings
+      success: Mailbox settings updated successfully.
+captcha:
+  _: Captcha
+  provider:
+    _: Provider
+    none: None
+    pow: Proof of Work
+    image: Image
+    turnstile: Cloudflare Turnstile
+    hcaptcha: HCaptcha
+  form:
+    provider:
+      _: Provider
+      description: "If enabled, enable captcha in the necessary interface."
+    difficulty:
+      _: Difficulty
+      description: Suitable for image and PoW verification.
+  actions:
+    update:
+      _: Update Captcha Settings
+      success: Captcha settings updated successfully.

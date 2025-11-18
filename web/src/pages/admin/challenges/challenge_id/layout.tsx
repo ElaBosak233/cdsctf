@@ -9,6 +9,7 @@ import {
   ScrollTextIcon,
 } from "lucide-react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
 import { getChallenge } from "@/api/admin/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,8 @@ import { cn } from "@/utils";
 import { Context } from "./context";
 
 export default function Layout() {
+  const { t } = useTranslation();
+
   const location = useLocation();
   const pathname = location.pathname;
   const sharedStore = useSharedStore();
@@ -43,34 +46,34 @@ export default function Layout() {
     return [
       {
         link: `/admin/challenges/${challenge_id}`,
-        name: "基本信息",
+        name: t("challenge.edit.info"),
         icon: <InfoIcon />,
       },
       {
         link: `/admin/challenges/${challenge_id}/checker`,
-        name: "检查器",
+        name: t("challenge.edit.checker"),
         icon: <ScrollTextIcon />,
       },
       {
         link: `/admin/challenges/${challenge_id}/attachments`,
-        name: "附件",
+        name: t("challenge.edit.attachment"),
         icon: <FolderIcon />,
         disabled: !challenge?.has_attachment,
       },
       {
         link: `/admin/challenges/${challenge_id}/env`,
-        name: "动态环境",
+        name: t("challenge.edit.env"),
         icon: <ContainerIcon />,
         disabled: !challenge?.is_dynamic,
       },
       {
         link: `/admin/challenges/${challenge_id}/statistics`,
-        name: "统计数据",
+        name: t("challenge.edit.statistics"),
         icon: <ChartAreaIcon />,
         disabled: true,
       },
     ];
-  }, [challenge_id, challenge]);
+  }, [challenge_id, challenge, t]);
 
   return (
     <>
@@ -109,7 +112,7 @@ export default function Layout() {
               ])}
             >
               <LibraryIcon />
-              题目编辑
+              {t("challenge.edit._")}
             </div>
             <Card className={cn(["flex", "flex-col", "p-5", "gap-3"])}>
               {options?.map((option, index) => {
@@ -138,7 +141,7 @@ export default function Layout() {
               ])}
             >
               <PlayIcon />
-              题目预览
+              {t("challenge.preview")}
             </div>
 
             <Dialog>

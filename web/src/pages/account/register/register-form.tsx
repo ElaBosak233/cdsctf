@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -33,6 +34,7 @@ import { parseErrorResponse } from "@/utils/query";
 function RegisterForm() {
   const configStore = useConfigStore();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -40,25 +42,25 @@ function RegisterForm() {
     .object({
       username: z
         .string({
-          message: "请输入用户名",
+          message: t("account.register.form.username.message"),
         })
-        .regex(/^[a-z]/, "用户名必须以小写字母开头")
-        .regex(/^[a-z0-9]*$/, "用户名只能包含小写字母和数字"),
+        .regex(/^[a-z]/, t("account.register.form.username.start_lower"))
+        .regex(/^[a-z0-9]*$/, t("account.register.form.username.chars")),
       name: z.string({
-        message: "请输入昵称",
+        message: t("account.register.form.name.message"),
       }),
-      email: z.email("邮箱不合法"),
+      email: z.email(t("account.register.form.email.invalid")),
       password: z
         .string({
-          message: "请输入密码",
+          message: t("account.register.form.password.message"),
         })
-        .min(6, "密码最少需要 6 个字符"),
+        .min(6, t("account.register.form.password.min")),
       confirm_password: z.string({
-        message: "请重新输入新密码",
+        message: t("account.register.form.confirm_password.message"),
       }),
     })
     .refine((data) => data.password === data.confirm_password, {
-      message: "新密码与确认密码不一致",
+      message: t("account.register.form.confirm_password.mismatch"),
       path: ["confirm_password"],
     });
 
@@ -80,9 +82,9 @@ function RegisterForm() {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success("注册成功", {
+        toast.success(t("account.register.toast.success._"), {
           id: "register-success",
-          description: "注册成功，请登录",
+          description: t("account.register.toast.success.desc"),
         });
         navigate("/account/login");
       }
@@ -91,16 +93,16 @@ function RegisterForm() {
       const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.success("注册失败", {
+        toast.success(t("account.register.toast.failure._"), {
           id: "register-error",
           description: res.msg,
         });
       }
 
       if (res.code === StatusCodes.CONFLICT) {
-        toast.success("注册失败", {
+        toast.success(t("account.register.toast.failure._"), {
           id: "register-error",
-          description: "用户名或邮箱重复",
+          description: t("account.register.toast.failure.conflict"),
         });
       }
     } finally {
@@ -122,13 +124,16 @@ function RegisterForm() {
               name={"username"}
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
-                  <FormLabel>用户名</FormLabel>
+                  <FormLabel>{t("account.register.form.username._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
                         <UserRoundIcon />
                       </FieldIcon>
-                      <TextField {...field} />
+                      <TextField
+                        {...field}
+                        placeholder={t("account.register.form.username._")}
+                      />
                     </Field>
                   </FormControl>
                   <FormMessage />
@@ -140,13 +145,16 @@ function RegisterForm() {
               name={"name"}
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
-                  <FormLabel>昵称</FormLabel>
+                  <FormLabel>{t("account.register.form.name._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
                         <TypeIcon />
                       </FieldIcon>
-                      <TextField {...field} />
+                      <TextField
+                        {...field}
+                        placeholder={t("account.register.form.name._")}
+                      />
                     </Field>
                   </FormControl>
                   <FormMessage />
@@ -159,13 +167,16 @@ function RegisterForm() {
             name={"email"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>邮箱</FormLabel>
+                <FormLabel>{t("account.register.form.email._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
                       <MailIcon />
                     </FieldIcon>
-                    <TextField {...field} />
+                    <TextField
+                      {...field}
+                      placeholder={t("account.register.form.email._")}
+                    />
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -177,13 +188,17 @@ function RegisterForm() {
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>密码</FormLabel>
+                <FormLabel>{t("account.register.form.password._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
                       <LockIcon />
                     </FieldIcon>
-                    <TextField type={"password"} {...field} />
+                    <TextField
+                      type={"password"}
+                      {...field}
+                      placeholder={t("account.register.form.password._")}
+                    />
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -195,13 +210,21 @@ function RegisterForm() {
             name={"confirm_password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>确认密码</FormLabel>
+                <FormLabel>
+                  {t("account.register.form.confirm_password._")}
+                </FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
                       <LockIcon />
                     </FieldIcon>
-                    <TextField type={"password"} {...field} />
+                    <TextField
+                      type={"password"}
+                      {...field}
+                      placeholder={t(
+                        "account.register.form.confirm_password._"
+                      )}
+                    />
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -213,7 +236,7 @@ function RegisterForm() {
               name={"captcha"}
               render={() => (
                 <FormItem>
-                  <FormLabel>验证码</FormLabel>
+                  <FormLabel>{t("account.register.form.captcha._")}</FormLabel>
                   <Captcha onChange={setCaptcha} />
                 </FormItem>
               )}
@@ -229,7 +252,7 @@ function RegisterForm() {
           icon={<CheckIcon />}
           loading={loading}
         >
-          注册
+          {t("account.register.submit")}
         </Button>
       </form>
     </Form>

@@ -1,0 +1,21 @@
+home: 主页
+search: 搜索
+loading: 加载中
+all: 全部
+exit: 退出
+actions:
+  add: 添加
+  save: 保存
+  cancel: 取消
+  confirm: 确认
+  delete: 删除
+  edit: 编辑
+  refresh: 刷新
+  clear_cache: 清除缓存
+tooltip:
+  copy: 复制到剪贴板
+errors:
+  default: 发生了点错误
+  unexpected: 发生了点错误
+captcha:
+  placeholder: 验证码

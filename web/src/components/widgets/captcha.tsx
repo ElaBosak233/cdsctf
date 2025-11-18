@@ -11,6 +11,7 @@ import {
   useImperativeHandle,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import { generateCaptcha } from "@/api/configs/captcha";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
@@ -157,6 +158,8 @@ function PowCaptcha(props: CaptchaProps) {
 
 function ImageCaptcha(props: CaptchaProps) {
   const { onChange } = props;
+  const { t } = useTranslation();
+
   const sharedStore = useSharedStore();
 
   const { refresh, setRefresh } = useContext(Context);
@@ -195,7 +198,7 @@ function ImageCaptcha(props: CaptchaProps) {
         <TextField
           value={result}
           onChange={(e) => setResult(e.target.value)}
-          placeholder={"验证码"}
+          placeholder={t("common.captcha.placeholder")}
         />
       </Field>
       <img

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import { updateChallengeEnv } from "@/api/admin/challenges/challenge_id/env";
@@ -39,6 +40,8 @@ import { cn } from "@/utils";
 import { Context } from "../context";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { challenge } = useContext(Context);
   const sharedStore = useSharedStore();
 
@@ -46,32 +49,32 @@ export default function Index() {
 
   const formSchema = z.object({
     duration: z.number({
-      message: "请输入持续时长",
+      message: t("challenge.form.env.duration.message"),
     }),
     internet: z.boolean({
-      message: "请选择是否允许出网",
+      message: t("challenge.form.env.internet.message"),
     }),
     containers: z.array(
       z.object({
         image: z.string({
-          message: "请输入镜像名",
+          message: t("challenge.form.env.containers.image.message"),
         }),
         cpu_limit: z.number({
-          message: "请输入 CPU 限制参数",
+          message: t("challenge.form.env.containers.cpu_limit.message"),
         }),
         memory_limit: z.number({
-          message: "请输入内存限制参数",
+          message: t("challenge.form.env.containers.memory_limit.message"),
         }),
         image_pull_policy: z.string({
-          message: "请选择镜像拉取策略",
+          message: t("challenge.form.env.containers.image_pull_policy.message"),
         }),
         envs: z.array(
           z.object({
             key: z.string().min(1, {
-              message: "请输入键",
+              message: t("challenge.form.env.containers.envs.key.message"),
             }),
             value: z.string().min(1, {
-              message: "请输入值",
+              message: t("challenge.form.env.containers.envs.value.message"),
             }),
           })
         ),
@@ -79,7 +82,7 @@ export default function Index() {
           z.object({
             port: z
               .number({
-                message: "请输入端口号",
+                message: t("challenge.form.env.containers.ports.port.message"),
               })
               .min(0)
               .max(65535),
@@ -187,7 +190,7 @@ export default function Index() {
             name={"duration"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>持续时间（秒）</FormLabel>
+                <FormLabel>{t("challenge.form.env.duration._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -209,7 +212,7 @@ export default function Index() {
             name={"internet"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>是否允许出网</FormLabel>
+                <FormLabel>{t("challenge.form.env.internet._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -220,11 +223,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: "是",
+                          content: t("challenge.form.env.internet.true"),
                         },
                         {
                           value: String(false),
-                          content: "否",
+                          content: t("challenge.form.env.internet.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -256,7 +259,9 @@ export default function Index() {
               name={`containers.${containerIndex}.image`}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>镜像名</FormLabel>
+                  <FormLabel>
+                    {t("challenge.form.env.containers.image._")}
+                  </FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -280,7 +285,9 @@ export default function Index() {
                 name={`containers.${containerIndex}.cpu_limit`}
                 render={({ field }) => (
                   <FormItem className={cn(["w-1/3"])}>
-                    <FormLabel>CPU 限制</FormLabel>
+                    <FormLabel>
+                      {t("challenge.form.env.containers.cpu_limit._")}
+                    </FormLabel>
                     <FormControl>
                       <Field>
                         <FieldIcon>
@@ -301,7 +308,9 @@ export default function Index() {
                 name={`containers.${containerIndex}.memory_limit`}
                 render={({ field }) => (
                   <FormItem className={cn(["w-1/3"])}>
-                    <FormLabel>内存限制（MB）</FormLabel>
+                    <FormLabel>
+                      {t("challenge.form.env.containers.memory_limit._")}
+                    </FormLabel>
                     <FormControl>
                       <Field>
                         <FieldIcon>
@@ -322,7 +331,9 @@ export default function Index() {
                 name={`containers.${containerIndex}.image_pull_policy`}
                 render={({ field }) => (
                   <FormItem className={cn(["w-1/3"])}>
-                    <FormLabel>镜像拉取策略</FormLabel>
+                    <FormLabel>
+                      {t("challenge.form.env.containers.image_pull_policy._")}
+                    </FormLabel>
                     <FormControl>
                       <Field>
                         <FieldIcon>
@@ -331,12 +342,24 @@ export default function Index() {
                         <Select
                           {...field}
                           options={[
-                            { value: "Always", content: "总是拉取 (Always)" },
+                            {
+                              value: "Always",
+                              content: t(
+                                "challenge.form.env.containers.image_pull_policy.always"
+                              ),
+                            },
                             {
                               value: "IfNotPresent",
-                              content: "本地优先 (IfNotPresent)",
+                              content: t(
+                                "challenge.form.env.containers.image_pull_policy.if_not_present"
+                              ),
                             },
-                            { value: "Never", content: "从不拉取 (Never)" },
+                            {
+                              value: "Never",
+                              content: t(
+                                "challenge.form.env.containers.image_pull_policy.never"
+                              ),
+                            },
                           ]}
                           onValueChange={field.onChange}
                           value={field.value}
@@ -348,7 +371,7 @@ export default function Index() {
                 )}
               />
             </div>
-            <Label>暴露端口</Label>
+            <Label>{t("challenge.form.env.containers.ports._")}</Label>
             <div className={cn(["grid", "grid-cols-3", "gap-7"])}>
               {container.ports?.map((_port, portIndex) => (
                 <div
@@ -418,7 +441,7 @@ export default function Index() {
                 onClick={() => handleAddPort(containerIndex)}
               />
             </div>
-            <Label>环境变量</Label>
+            <Label>{t("challenge.form.env.containers.envs._")}</Label>
             <div className={cn(["grid", "grid-cols-2", "gap-7"])}>
               {container.envs?.map((_env, envIndex) => (
                 <div
@@ -437,7 +460,9 @@ export default function Index() {
                             </FieldIcon>
                             <TextField
                               {...field}
-                              placeholder={"键"}
+                              placeholder={t(
+                                "challenge.form.env.containers.envs.key._"
+                              )}
                               value={field.value || ""}
                               onChange={field.onChange}
                             />
@@ -459,7 +484,9 @@ export default function Index() {
                             </FieldIcon>
                             <TextField
                               {...field}
-                              placeholder={"值"}
+                              placeholder={t(
+                                "challenge.form.env.containers.envs.value._"
+                              )}
                               value={field.value || ""}
                               onChange={field.onChange}
                             />
@@ -495,7 +522,7 @@ export default function Index() {
               icon={<TrashIcon />}
               onClick={() => handleRemoveContainer(containerIndex)}
             >
-              删除容器
+              {t("challenge.form.env.containers.actions.delete")}
             </Button>
           </div>
         ))}
@@ -506,7 +533,7 @@ export default function Index() {
           icon={<PlusIcon />}
           onClick={handleAddContainer}
         >
-          添加容器
+          {t("challenge.form.env.containers.actions.add")}
         </Button>
         <div className={cn(["flex-1"])} />
         <Button
@@ -517,7 +544,7 @@ export default function Index() {
           icon={<SaveIcon />}
           loading={loading}
         >
-          保存
+          {t("common.actions.save")}
         </Button>
       </form>
     </Form>

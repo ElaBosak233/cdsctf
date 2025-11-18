@@ -1,28 +1,30 @@
 import { InfoIcon, LockIcon, MailsIcon, UserRoundXIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation } from "react-router";
-
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils";
 
 export default function Layout() {
+  const { t } = useTranslation();
+
   const location = useLocation();
   const pathname = location.pathname;
 
   const options = [
     {
       link: `/account/settings`,
-      name: "基本信息",
+      name: t("user.settings.info"),
       icon: <InfoIcon />,
     },
     {
       link: `/account/settings/emails`,
-      name: "电子邮箱",
+      name: t("user.settings.email"),
       icon: <MailsIcon />,
     },
     {
       link: `/account/settings/password`,
-      name: "修改密码",
+      name: t("user.settings.password"),
       icon: <LockIcon />,
     },
     // {
@@ -44,7 +46,7 @@ export default function Layout() {
           "flex-col",
           "gap-3",
           "p-5",
-          "border-r-1",
+          "border-r",
           "lg:sticky",
           "top-16",
           "h-[calc(100vh-64px)]",
@@ -72,7 +74,9 @@ export default function Layout() {
           variant={pathname === "/account/settings/delete" ? "tonal" : "ghost"}
           asChild
         >
-          <Link to={"/account/settings/delete"}>注销账号</Link>
+          <Link to={"/account/settings/delete"}>
+            {t("user.settings.delete")}
+          </Link>
         </Button>
       </div>
       <div className={cn(["flex-1", "flex", "flex-col"])}>

@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
 import { CheckIcon, MailCheckIcon, SendIcon } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { sendVerifyEmail, verifyEmail } from "@/api/users/profile/emails";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,8 @@ interface VerifyDialogProps {
 
 function VerifyDialog(props: VerifyDialogProps) {
   const { email, bump, onClose } = props;
+  const { t } = useTranslation();
+
   const authStore = useAuthStore();
   const configStore = useConfigStore();
 
@@ -32,16 +35,14 @@ function VerifyDialog(props: VerifyDialogProps) {
         email: email,
       });
       if (res.code === StatusCodes.OK) {
-        toast.success("验证码已发送，请查收");
+        toast.success(t("user.emails.actions.send_verify.success", { email }));
       }
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
       const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error("发生错误", {
-          description: res.msg,
-        });
+        toast.error(res.msg);
       }
     }
   }
@@ -54,7 +55,7 @@ function VerifyDialog(props: VerifyDialogProps) {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success("验证成功！");
+        toast.success(t("user.emails.actions.verify.success", { email }));
         authStore.setUser({
           ...authStore.user,
           is_verified: true,
@@ -67,24 +68,22 @@ function VerifyDialog(props: VerifyDialogProps) {
       const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error("发生错误", {
-          description: res.msg,
-        });
+        toast.error(res.msg);
       }
     }
   }
 
   return (
-    <Card className={cn(["w-128", "p-5", "flex", "flex-col", "gap-5"])}>
+    <Card className={cn(["w-lg", "p-5", "flex", "flex-col", "gap-5"])}>
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <MailCheckIcon className={cn(["size-4"])} />
-        验证邮箱 <span className={cn(["text-muted-foreground"])}>{email}</span>
+        {t("user.emails.actions.verify._")}
       </h3>
       {configStore?.config?.email?.is_enabled ? (
         <div className={cn(["flex", "gap-2", "items-center"])}>
           <Field size={"sm"} className={cn(["flex-1"])}>
             <TextField
-              placeholder={"验证码"}
+              placeholder={"I_d0nt_kn0w"}
               value={code}
               onChange={(e) => setCode(e.target.value)}
             />
@@ -94,22 +93,24 @@ function VerifyDialog(props: VerifyDialogProps) {
             icon={<SendIcon />}
             onClick={handleSendVerifyEmail}
           >
-            请求
+            {t("user.emails.actions.send_verify._")}
           </Button>
         </div>
       ) : (
         <div>
-          {configStore?.config?.meta?.title}{" "}
-          未启用邮件服务，直接确认即可验证邮箱。
+          {t("user.emails.actions.verify.disabled", {
+            title: configStore?.config?.meta?.title,
+          })}
         </div>
       )}
       <Button
         size={"sm"}
+        level={"success"}
         variant={"solid"}
         icon={<CheckIcon />}
         onClick={handleVerify}
       >
-        提交
+        {t("common.actions.confirm")}
       </Button>
     </Card>
   );

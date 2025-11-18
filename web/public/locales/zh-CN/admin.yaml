@@ -1,0 +1,86 @@
+_: 管理员
+home:
+  _: 主页
+  statistics:
+    users: 已注册用户
+    games: 已举办比赛
+    challenges: 已收集题目
+    submissions: 已处理提交
+platform:
+  _: 平台
+  logo: 标志
+  auth:
+    is_registration_enabled:
+      "true": 允许
+      "false": 不允许
+  form:
+    meta:
+      _: 元信息
+      title:
+        _: 标题
+      keywords:
+        _: 关键词
+      description:
+        _: 描述
+      footer:
+        _: 页脚
+    auth:
+      _: 认证
+      is_registration_enabled:
+        _: 是否允许新用户注册
+  actions:
+    update:
+      _: 更新平台设置
+      success: 平台设置更新成功。
+mailbox:
+  _: 邮箱
+  is_enabled:
+    _: 启用邮箱
+    "true": 是
+    "false": 否
+  tls:
+    _: TLS
+    none: 无
+    tls: TLS
+    starttls: StartTLS
+  form:
+    is_enabled:
+      _: 启用邮箱
+    host:
+      _: SMTP 主机
+    port:
+      _: 端口
+    tls:
+      _: TLS
+    username:
+      _: 用户名
+    password:
+      _: 密码
+    verification_email:
+      _: 验证邮件模板
+    reset_password_email:
+      _: 重置密码邮件模板
+  actions:
+    update:
+      _: 更新邮箱设置
+      success: 邮箱设置更新成功。
+captcha:
+  _: 人机验证
+  provider:
+    _: 提供者
+    none: 无
+    pow: 工作量证明
+    image: 图像验证
+    turnstile: Cloudflare Turnstile
+    hcaptcha: HCaptcha
+  form:
+    provider:
+      _: 提供者
+      description: 如果启用，则在必要的界面启用验证码。
+    difficulty:
+      _: 难度
+      description: 适用于图像和工作量证明验证。
+  actions:
+    update:
+      _: 更新人机验证设置
+      success: 人机验证设置更新成功。

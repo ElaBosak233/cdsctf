@@ -9,6 +9,7 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { createEnv as createDebugEnv } from "@/api/admin/envs";
 import { createEnv, getEnvs } from "@/api/envs";
@@ -72,6 +73,8 @@ function NatInfo({ env, nat }: { env: Env; nat: Nat }) {
 }
 
 function EnvSection() {
+  const { t } = useTranslation();
+
   const { challenge, team, debug } = useContext(Context);
   const authStore = useAuthStore();
 
@@ -238,7 +241,14 @@ function EnvSection() {
                 "select-none",
               ])}
             >
-              {`剩余时间 ${String(Math.floor(timeLeft / 3600)).padStart(2, "0")}:${String(Math.floor((timeLeft % 3600) / 60)).padStart(2, "0")}:${String(timeLeft % 60).padStart(2, "0")}`}
+              {t("env.remaining", {
+                hours: String(Math.floor(timeLeft / 3600)).padStart(2, "0"),
+                minutes: String(Math.floor((timeLeft % 3600) / 60)).padStart(
+                  2,
+                  "0"
+                ),
+                seconds: String(timeLeft % 60).padStart(2, "0"),
+              })}
             </span>
             <div className={cn(["flex", "gap-3"])}>
               <Button
@@ -249,7 +259,7 @@ function EnvSection() {
                 disabled={Number(env.renew) === 3}
                 className={cn(["items-center"])}
               >
-                续期
+                {t("env.actions.renew")}
               </Button>
               <Button
                 icon={<TrashIcon />}
@@ -258,7 +268,7 @@ function EnvSection() {
                 onClick={() => handlePodStop()}
                 loading={envStopLoading}
               >
-                停止
+                {t("env.actions.stop")}
               </Button>
             </div>
           </div>
@@ -274,8 +284,8 @@ function EnvSection() {
               "select-none",
             ])}
           >
-            <span>本题需要使用动态容器，</span>
-            <span>点击“启动”进行容器下发。</span>
+            <span>{t("env.hint1")}</span>
+            <span>{t("env.hint2")}</span>
           </div>
           <Button
             icon={<PlayIcon />}
@@ -284,7 +294,7 @@ function EnvSection() {
             onClick={handlePodCreate}
             loading={envCreateLoading}
           >
-            启动
+            {t("env.actions.start")}
           </Button>
         </>
       )}

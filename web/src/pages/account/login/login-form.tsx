@@ -32,10 +32,11 @@ import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
 
 function LoginForm() {
+  const { t } = useTranslation();
+
   const configStore = useConfigStore();
   const authStore = useAuthStore();
   const navigate = useNavigate();
-  const { t } = useTranslation();
 
   const captchaRef = useRef<CaptchaRef>(null);
 
@@ -43,10 +44,10 @@ function LoginForm() {
 
   const formSchema = z.object({
     account: z.string({
-      message: t("account:login.form.message.please_input_username"),
+      message: t("account.login.form.message.please_input_account"),
     }),
     password: z.string({
-      message: t("account:login.form.message.please_input_password"),
+      message: t("account.login.form.message.please_input_password"),
     }),
     captcha: z
       .object({
@@ -70,17 +71,17 @@ function LoginForm() {
       authStore.setUser(res.data);
 
       if (res.data?.is_verified) {
-        toast.success(t("account:login.success._"), {
+        toast.success(t("account.login.success._"), {
           id: "login",
-          description: t("account:login.success.welcome", {
+          description: t("account.login.success.welcome", {
             name: res.data?.name,
           }),
         });
         navigate("/");
       } else {
-        toast.warning("你还未经过验证", {
+        toast.warning(t("account.login.warning.not_verified"), {
           id: "verify",
-          description: "请先验证你的邮箱",
+          description: t("account.login.warning.verify_email"),
         });
         navigate("/account/settings/emails");
       }
@@ -89,16 +90,16 @@ function LoginForm() {
       const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error(t("account:login.error._"), {
+        toast.error(t("account.login.error._"), {
           id: "login",
-          description: t("account:login.error.invalid"),
+          description: t("account.login.error.invalid"),
         });
       }
 
       if (res.code === StatusCodes.GONE) {
-        toast.error(t("account:captcha.expired"), {
+        toast.error(t("account.captcha.expired"), {
           id: "login",
-          description: t("account:captcha.please_refresh"),
+          description: t("account.captcha.please_refresh"),
         });
       }
 
@@ -121,7 +122,7 @@ function LoginForm() {
             name={"account"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{`${t("user:username")} / ${t("user:email")}`}</FormLabel>
+                <FormLabel>{`${t("user.username")} / ${t("user.email")}`}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -145,7 +146,7 @@ function LoginForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className={cn(["flex", "items-end"])}>
-                  <span className={cn(["flex-1"])}>{t("user:password")}</span>
+                  <span className={cn(["flex-1"])}>{t("user.password")}</span>
                   {configStore?.config?.email?.is_enabled && (
                     <Link
                       to={"/account/forget"}
@@ -158,7 +159,7 @@ function LoginForm() {
                       ])}
                     >
                       <CircleHelpIcon className={cn(["size-4"])} />
-                      <span>{t("account:forgot")}</span>
+                      <span>{t("account.forgot")}</span>
                     </Link>
                   )}
                 </FormLabel>
@@ -185,7 +186,7 @@ function LoginForm() {
               name={"captcha"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("account:captcha._")}</FormLabel>
+                  <FormLabel>{t("account.captcha._")}</FormLabel>
                   <Captcha ref={captchaRef} onChange={field.onChange} />
                 </FormItem>
               )}
@@ -201,7 +202,7 @@ function LoginForm() {
           icon={<CheckIcon />}
           loading={loading}
         >
-          {t("account:login._")}
+          {t("account.login._")}
         </Button>
       </form>
     </Form>

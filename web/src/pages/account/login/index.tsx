@@ -20,16 +20,16 @@ export default function Index() {
     if (!useAuthStore.getState().user) return;
 
     navigate("/");
-    toast.warning("你已经登录了", {
+    toast.warning(t("account.login.warning.already_logged_in"), {
       id: "login-already",
     });
-  }, [navigate]);
+  }, [navigate, t]);
 
   return (
     <>
-      <title>{`登录 - ${config?.meta?.title}`}</title>
+      <title>{`${t("account.login._")} - ${config?.meta?.title}`}</title>
       <div className={cn(["flex-1", "flex", "items-center", "justify-center"])}>
-        <Card className={cn(["p-2", "w-[50rem]", "flex", "justify-between"])}>
+        <Card className={cn(["p-2", "w-200", "flex", "justify-between"])}>
           <div className={cn(["flex-1/2", "flex", "flex-col"])}>
             <div className={cn(["flex", "flex-col", "space-y-1.5", "p-6"])}>
               <div
@@ -44,10 +44,10 @@ export default function Index() {
                 ])}
               >
                 <LogInIcon />
-                {t("account:login._")}
+                {t("account.login._")}
               </div>
               <div className={cn(["text-sm", "text-secondary-foreground"])}>
-                {`${t("account:login.continue")} ${config?.meta?.title}`}
+                {`${t("account.login.continue")} ${config?.meta?.title}`}
               </div>
               <div className={cn(["pt-6"])}>
                 <LoginForm />
@@ -76,7 +76,7 @@ export default function Index() {
                 decoding={"async"}
                 src={"/api/configs/logo"}
                 draggable={false}
-                className={cn(["drop-shadow-md", "aspect-square", "h-[8rem]"])}
+                className={cn(["drop-shadow-md", "aspect-square", "h-32"])}
               />
               <span className={cn(["mt-4", "text-2xl", "font-semibold"])}>
                 {config?.meta?.title}
@@ -94,7 +94,7 @@ export default function Index() {
                 icon={<UserRoundPlusIcon />}
               >
                 <Link to={"/account/register"}>
-                  {t("account:register.not_yet")}
+                  {t("account.register.not_yet")}
                 </Link>
               </Button>
             )}

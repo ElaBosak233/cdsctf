@@ -1,5 +1,5 @@
 import { CodeXmlIcon, HandshakeIcon, HeartIcon, MoonIcon } from "lucide-react";
-
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useConfigStore } from "@/storages/config";
@@ -7,10 +7,11 @@ import { cn } from "@/utils";
 
 export default function Index() {
   const { config, version } = useConfigStore();
+  const { t } = useTranslation();
 
   return (
     <>
-      <title>{`关于 - ${config?.meta?.title}`}</title>
+      <title>{`${t("about.title")} - ${config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex-1",
@@ -60,7 +61,7 @@ export default function Index() {
           <Separator className={cn(["w-full"])} />
           <h3 className={cn(["flex", "gap-2", "items-center"])}>
             <MoonIcon className={cn(["size-5"])} />
-            Developer
+            {t("about.developer")}
           </h3>
           <div className={cn(["flex", "flex-wrap", "justify-center", "gap-3"])}>
             <Button
@@ -84,7 +85,7 @@ export default function Index() {
           </div>
           <h3 className={cn(["flex", "gap-2", "items-center"])}>
             <CodeXmlIcon className={cn(["size-5"])} />
-            Contributors
+            {t("about.contributors")}
           </h3>
           <div className={cn(["flex", "flex-wrap", "justify-center", "gap-3"])}>
             <Button
@@ -162,7 +163,7 @@ export default function Index() {
           </div>
           <h3 className={cn(["flex", "gap-2", "items-center"])}>
             <HandshakeIcon className={cn(["size-5"])} />
-            Extra Contributors
+            {t("about.extra_contributors")}
           </h3>
           <div className={cn(["flex", "flex-wrap", "justify-center", "gap-3"])}>
             <Button
@@ -210,7 +211,7 @@ export default function Index() {
           </div>
           <h3 className={cn(["flex", "gap-2", "items-center"])}>
             <HeartIcon className={cn(["size-5"])} />
-            Special Thanks
+            {t("about.special_thanks")}
           </h3>
           <div className={cn(["flex", "flex-wrap", "justify-center", "gap-3"])}>
             <Button

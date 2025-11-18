@@ -12,6 +12,7 @@ import {
   UsersRoundIcon,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { deleteTeam, setTeamReady } from "@/api/games/game_id/teams/profile";
@@ -27,6 +28,8 @@ import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
 
 export default function Layout() {
+  const { t } = useTranslation();
+
   const sharedStore = useSharedStore();
   const { currentGame, selfTeam, members } = useGameStore();
   const navigate = useNavigate();
@@ -41,17 +44,17 @@ export default function Layout() {
   const options = [
     {
       link: `/games/${currentGame?.id}/team`,
-      name: "基本信息",
+      name: t("team.info"),
       icon: <InfoIcon />,
     },
     {
       link: `/games/${currentGame?.id}/team/members`,
-      name: "团队成员",
+      name: t("team.members"),
       icon: <UsersRoundIcon />,
     },
     {
       link: `/games/${currentGame?.id}/team/writeup`,
-      name: "Write-up",
+      name: t("team.write_up._"),
       icon: <FilePenIcon />,
       disabled: !currentGame?.is_need_write_up || !isGameOngoing,
     },
@@ -150,7 +153,7 @@ export default function Layout() {
           "flex-col",
           "gap-3",
           "p-5",
-          "border-r-1",
+          "border-r",
           "lg:sticky",
           "top-16",
           "h-[calc(100vh-64px)]",
@@ -180,21 +183,21 @@ export default function Layout() {
             disabled={selfTeam?.state !== State.Preparing || disabled}
             onClick={() => setDisbandDialogOpen(true)}
           >
-            解散团队
+            {t("team.actions.disband._")}
           </Button>
           <Dialog onOpenChange={setDisbandDialogOpen} open={disbandDialogOpen}>
             <DialogContent>
               <Card
-                className={cn(["flex", "flex-col", "w-128", "p-5", "gap-5"])}
+                className={cn(["flex", "flex-col", "w-lg", "p-5", "gap-5"])}
               >
                 <h3
                   className={cn(["flex", "gap-3", "text-md", "items-center"])}
                 >
                   <UserRoundXIcon className={cn(["size-4"])} />
-                  解散团队
+                  {t("team.actions.disband._")}
                 </h3>
                 <p className={cn(["text-sm"])}>
-                  团队将被直接删除，所有成员都可创建或加入其他赛队。
+                  {t("team.actions.disband.message")}
                 </p>
                 <Button
                   icon={<CheckCheckIcon />}
@@ -202,7 +205,7 @@ export default function Layout() {
                   variant={"solid"}
                   onClick={handleDisband}
                 >
-                  确定
+                  {t("common.actions.confirm")}
                 </Button>
               </Card>
             </DialogContent>
@@ -219,21 +222,21 @@ export default function Layout() {
             }
             onClick={() => setLeaveDialogOpen(true)}
           >
-            离队
+            {t("team.actions.leave._")}
           </Button>
           <Dialog onOpenChange={setLeaveDialogOpen} open={leaveDialogOpen}>
             <DialogContent>
               <Card
-                className={cn(["flex", "flex-col", "w-128", "p-5", "gap-5"])}
+                className={cn(["flex", "flex-col", "w-lg", "p-5", "gap-5"])}
               >
                 <h3
                   className={cn(["flex", "gap-3", "text-md", "items-center"])}
                 >
                   <UserRoundMinusIcon className={cn(["size-4"])} />
-                  离开团队
+                  {t("team.actions.leave._")}
                 </h3>
                 <p className={cn(["text-sm"])}>
-                  你即将离开这个团队，届时你将可以创建或加入其他的团队。
+                  {t("team.actions.leave.message")}
                 </p>
                 <Button
                   icon={<CheckCheckIcon />}
@@ -241,7 +244,7 @@ export default function Layout() {
                   variant={"solid"}
                   onClick={handleLeave}
                 >
-                  确定
+                  {t("common.actions.confirm")}
                 </Button>
               </Card>
             </DialogContent>
@@ -258,22 +261,19 @@ export default function Layout() {
           disabled={selfTeam?.state !== State.Preparing || disabled}
           onClick={() => setConfirmDialogOpen(true)}
         >
-          {selfTeam?.state === State.Preparing ? "准备好了！" : "团队已锁定"}
+          {selfTeam?.state === State.Preparing
+            ? t("team.actions.ready._")
+            : t("team.actions.locked")}
         </Button>
         <Dialog onOpenChange={setConfirmDialogOpen} open={confirmDialogOpen}>
           <DialogContent>
-            <Card className={cn(["flex", "flex-col", "w-128", "p-5", "gap-5"])}>
+            <Card className={cn(["flex", "flex-col", "w-lg", "p-5", "gap-5"])}>
               <h3 className={cn(["flex", "gap-3", "text-md", "items-center"])}>
                 <TriangleAlertIcon className={cn(["size-4"])} />
-                最终提醒
+                {t("team.actions.ready.title")}
               </h3>
-              <p className={cn(["text-sm"])}>你真的确定你准备好了吗？</p>
               <p className={cn(["text-sm"])}>
-                你接下来的操作会将团队状态设置为待审核，届时将不能进行包括
-                <span className={cn(["font-semibold", "underline"])}>
-                  成员新增、成员退出、团队退赛
-                </span>
-                等任何影响团队状态的操作。
+                {t("team.actions.ready.message")}
               </p>
               <Button
                 icon={<CheckCheckIcon />}
@@ -281,7 +281,7 @@ export default function Layout() {
                 variant={"solid"}
                 onClick={handleSetReady}
               >
-                真的准备好了！
+                {t("team.actions.ready.of_course")}
               </Button>
             </Card>
           </DialogContent>

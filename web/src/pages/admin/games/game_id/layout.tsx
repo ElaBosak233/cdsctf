@@ -7,6 +7,7 @@ import {
   UsersRoundIcon,
 } from "lucide-react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
 import { getGames } from "@/api/admin/games";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import { cn } from "@/utils";
 import { Context } from "./context";
 
 export default function Layout() {
+  const { t } = useTranslation();
+
   const location = useLocation();
   const pathname = location.pathname;
   const sharedStore = useSharedStore();
@@ -38,26 +41,26 @@ export default function Layout() {
     return [
       {
         link: `/admin/games/${game_id}`,
-        name: "基本信息",
+        name: t("game.edit.info"),
         icon: <InfoIcon />,
       },
       {
         link: `/admin/games/${game_id}/challenges`,
-        name: "题目",
+        name: t("game.edit.challenge"),
         icon: <LibraryIcon />,
       },
       {
         link: `/admin/games/${game_id}/teams`,
-        name: "团队",
+        name: t("game.edit.team"),
         icon: <UsersRoundIcon />,
       },
       {
         link: `/admin/games/${game_id}/notices`,
-        name: "通知",
+        name: t("game.edit.notice"),
         icon: <MessageCircleIcon />,
       },
     ];
-  }, [game_id]);
+  }, [game_id, t]);
 
   return (
     <>
@@ -97,7 +100,7 @@ export default function Layout() {
               ])}
             >
               <FlagIcon />
-              比赛编辑
+              {t("game.edit._")}
             </div>
             <Card className={cn(["flex", "flex-col", "p-5", "gap-3"])}>
               {options?.map((option, index) => {

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { LoaderCircleIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { getTeamUser } from "@/api/admin/games/game_id/teams/team_id/users";
 import { Avatar } from "@/components/ui/avatar";
 import {
@@ -16,6 +17,7 @@ export interface ExpandedCardProps {
 
 function ExpandedCard(props: ExpandedCardProps) {
   const { team } = props;
+  const { t } = useTranslation();
 
   const { data: members, isLoading } = useQuery({
     queryKey: ["members", team.id, team.game_id],
@@ -30,7 +32,7 @@ function ExpandedCard(props: ExpandedCardProps) {
   return (
     <div className="p-4 border-t text-sm text-muted-foreground flex justify-between items-center">
       <p className={cn(["text-secondary-foreground"])}>
-        {team.slogan || "这个小队很懒，什么也没留下。"}
+        {team.slogan || t("team.slogan.empty")}
       </p>
       <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
         {members?.map((member) => (

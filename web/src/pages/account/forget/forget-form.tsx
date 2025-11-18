@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { CheckIcon, LockIcon, MailIcon, SendIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -28,20 +29,21 @@ function ForgetForm() {
   const configStore = useConfigStore();
   const authStore = useAuthStore();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState<boolean>(false);
 
   const formSchema = z.object({
     email: z
       .string({
-        message: "请输入邮箱",
+        message: t("account.forget.form.email.message"),
       })
       .email(),
     code: z.string({
-      message: "请输入验证码",
+      message: t("account.forget.form.code.message"),
     }),
     password: z.string({
-      message: "请输入新密码",
+      message: t("account.forget.form.password.message"),
     }),
     captcha: z
       .object({
@@ -63,14 +65,14 @@ function ForgetForm() {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           authStore.setUser(res.data);
-          toast.success("密码重置成功", {
-            description: "请登录",
+          toast.success(t("account.forget.toast.success._"), {
+            description: t("account.forget.toast.success.desc"),
           });
           navigate("/account/login");
         }
 
         if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.error("发生错误", {
+          toast.error(t("common.errors.default"), {
             description: res.msg,
           });
         }
@@ -85,17 +87,17 @@ function ForgetForm() {
       email: form.getValues().email,
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success("验证码已发送，请查收");
+        toast.success(t("account.forget.toast.code_sent"));
       }
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error("发生错误", {
+        toast.error(t("common.errors.default"), {
           description: res.msg,
         });
       }
 
       if (res.code === StatusCodes.NOT_FOUND) {
-        toast.error("邮箱不存在");
+        toast.error(t("account.forget.toast.not_found"));
       }
     });
   }
@@ -113,13 +115,16 @@ function ForgetForm() {
             name={"email"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>邮箱</FormLabel>
+                <FormLabel>{t("account.forget.form.email._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
                       <MailIcon />
                     </FieldIcon>
-                    <TextField placeholder={"Email"} {...field} />
+                    <TextField
+                      placeholder={t("account.forget.form.email._")}
+                      {...field}
+                    />
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -132,20 +137,23 @@ function ForgetForm() {
               name={"code"}
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
-                  <FormLabel>验证码</FormLabel>
+                  <FormLabel>{t("account.forget.form.code._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
                         <MailIcon />
                       </FieldIcon>
-                      <TextField placeholder={"Code"} {...field} />
+                      <TextField
+                        placeholder={t("account.forget.form.code._")}
+                        {...field}
+                      />
                       <FieldButton
                         icon={<SendIcon />}
                         onClick={handleSendForgetEmail}
                         className={cn(["aspect-auto"])}
                         disabled={!form.watch("email")?.trim()}
                       >
-                        请求
+                        {t("account.forget.form.code.request")}
                       </FieldButton>
                     </Field>
                   </FormControl>
@@ -159,14 +167,14 @@ function ForgetForm() {
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>新密码</FormLabel>
+                <FormLabel>{t("account.forget.form.password._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
                       <LockIcon />
                     </FieldIcon>
                     <TextField
-                      placeholder={"Password"}
+                      placeholder={t("account.forget.form.password._")}
                       type={"password"}
                       {...field}
                     />
@@ -181,7 +189,7 @@ function ForgetForm() {
               name={"captcha"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>验证码</FormLabel>
+                  <FormLabel>{t("account.forget.form.captcha._")}</FormLabel>
                   <Captcha onChange={field.onChange} />
                 </FormItem>
               )}
@@ -197,7 +205,7 @@ function ForgetForm() {
           icon={<CheckIcon />}
           loading={loading}
         >
-          重置密码
+          {t("account.forget.form.submit")}
         </Button>
       </form>
     </Form>

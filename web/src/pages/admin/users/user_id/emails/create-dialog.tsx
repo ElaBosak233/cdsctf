@@ -1,11 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
-import { MailIcon, MailPlusIcon, ShieldCheckIcon } from "lucide-react";
+import {
+  CheckIcon,
+  MailIcon,
+  MailPlusIcon,
+  ShieldCheckIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { addEmail } from "@/api/admin/users/user_id/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,16 +33,18 @@ interface CreateEmailDialogProps {
   onSuccess: () => void;
 }
 
-const formSchema = z.object({
-  email: z.email({
-    message: "请输入有效的邮箱地址",
-  }),
-  is_verified: z.boolean(),
-});
-
 export function CreateEmailDialog(props: CreateEmailDialogProps) {
   const { userId, onClose, onSuccess } = props;
+  const { t } = useTranslation();
+
   const [loading, setLoading] = useState(false);
+
+  const formSchema = z.object({
+    email: z.email({
+      message: t("user.emails.form.email.message"),
+    }),
+    is_verified: z.boolean(),
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,7 +63,9 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
     });
 
     if (res.code === StatusCodes.OK) {
-      toast.success(`邮箱 ${values.email} 添加成功`);
+      toast.success(
+        t("user.emails.actions.create.success", { email: values.email })
+      );
       onSuccess();
       onClose();
       form.reset({
@@ -69,10 +78,10 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
   }
 
   return (
-    <Card className={cn(["w-128", "p-6", "flex", "flex-col", "gap-6"])}>
+    <Card className={cn(["w-lg", "p-6", "flex", "flex-col", "gap-6"])}>
       <div className={cn(["flex", "items-center", "gap-2", "text-sm"])}>
         <MailPlusIcon className={cn(["size-4"])} />
-        添加邮箱
+        {t("user.emails.actions.create._")}
       </div>
       <Form {...form}>
         <form
@@ -85,7 +94,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
             name={"email"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>邮箱</FormLabel>
+                <FormLabel>{t("user.emails.form.email._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -122,10 +131,10 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
                 <div className={cn(["space-y-1"])}>
                   <FormLabel className={cn(["flex", "items-center", "gap-2"])}>
                     <ShieldCheckIcon className={cn(["size-4"])} />
-                    标记为已验证
+                    {t("user.emails.form.is_verified._")}
                   </FormLabel>
                   <p className={cn(["text-muted-foreground", "text-sm"])}>
-                    立即将邮箱标记为已验证状态。
+                    {t("user.emails.form.is_verified.message")}
                   </p>
                 </div>
                 <FormControl>
@@ -141,11 +150,12 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
           <Button
             type={"submit"}
             variant={"solid"}
+            icon={<CheckIcon />}
             size={"lg"}
             loading={loading}
-            level={"primary"}
+            level={"success"}
           >
-            确定
+            {t("common.actions.confirm")}
           </Button>
         </form>
       </Form>

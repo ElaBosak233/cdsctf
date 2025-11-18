@@ -1,0 +1,81 @@
+login:
+  _: Login
+  please: Please login
+  continue: Login to continue browsing
+  success:
+    _: Login successfully
+    welcome: "Welcome back, {{name}}"
+  error:
+    _: Login failed
+    invalid: Invalid account or password
+  form:
+    message:
+      please_input_account: Please input account
+      please_input_password: Please input password
+  warning:
+    already_logged_in: You are already logged in
+    not_verified: You are not verified yet
+    verify_email: Please verify your email first
+register:
+  _: Register
+  not_yet: No account yet? Register!
+  continue: Register to continue browsing {{title}}
+  submit: Register
+  form:
+    username:
+      _: Username
+      message: Please enter username
+      start_lower: Username must start with a lowercase letter
+      chars: Username can only contain lowercase letters and numbers
+    name:
+      _: Nickname
+      message: Please enter nickname
+    email:
+      _: Email
+      invalid: Invalid email
+    password:
+      _: Password
+      message: Please enter password
+      min: Password must be at least 6 characters
+    confirm_password:
+      _: Confirm Password
+      message: Please re-enter your password
+      mismatch: Passwords do not match
+    captcha:
+      _: Captcha
+  toast:
+    success:
+      _: Register successfully
+      desc: Register succeeded, please login
+    failure:
+      _: Register failed
+      conflict: Username or email already exists
+forgot: Forgot Password
+forget:
+  subtitle: Please keep it safe next time
+  form:
+    email:
+      _: Email
+      message: Please enter your email
+    code:
+      _: Verification Code
+      message: Please enter the verification code
+      request: Request
+    password:
+      _: New Password
+      message: Please enter your new password
+    captcha:
+      _: Captcha
+    submit: Reset Password
+  toast:
+    success:
+      _: Password reset successfully
+      desc: Please login
+    not_found: Email not found
+    code_sent: Verification code sent
+logout: Logout
+setting: Account Settings
+captcha:
+  _: Captcha
+  please_refresh: Please refresh your Captcha
+  expired: Captcha expired

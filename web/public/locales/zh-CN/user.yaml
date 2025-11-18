@@ -1,0 +1,144 @@
+_: 用户
+empty: 但是谁也没有来。
+edit:
+  _: 编辑用户
+  info: 基本信息
+  email: 邮箱管理
+  password: 修改密码
+settings:
+  info: 基本信息
+  email: 电子邮箱
+  password: 修改密码
+  delete: 注销账号
+username: 用户名
+name: 昵称
+password: 密码
+email: 邮箱
+group:
+  _: 用户组
+  guest: 访客
+  banned: 封禁
+  user: 用户
+  admin: 管理员
+avatar: 头像
+description: 个人简介
+created_at: 注册于
+search:
+  username: 用户名
+  group: 用户组
+form:
+  username:
+    _: 用户名
+    messages:
+      _: 请输入用户名
+      min: 用户名至少3个字符
+  name:
+    _: 昵称
+    messages:
+      _: 请输入昵称
+      min: 昵称至少2个字符
+  email:
+    _: 邮箱
+    message: 请输入有效的邮箱地址
+  password:
+    _: 密码
+    messages:
+      _: 请输入密码
+      min: 密码至少6个字符
+  group:
+    _: 用户组
+    message: 请选择用户组
+  description:
+    _: 描述
+    message: 请输入描述
+  avatar: 头像
+actions:
+  _: 操作
+  create:
+    _: 创建用户
+    success: "用户 {{username}} 创建成功。"
+    errors:
+      conflict: 用户名或邮箱已被占用。
+  update:
+    _: 更新用户
+    success: "用户 {{username}} 更新成功。"
+  delete:
+    _: 删除用户
+    message: "您确定要删除用户 <muted>{{username}}</muted> 吗？"
+    success: "用户 {{username}} 删除成功。"
+emails:
+  _: 邮箱
+  brief: 添加、编辑该用户的绑定邮箱
+  empty: 该用户尚未添加任何邮箱。
+  is_verified:
+    "true":
+      _: 已验证
+      long: 该邮箱已通过验证
+    "false":
+      _: 未验证
+      long: 该邮箱未通过验证
+  form:
+    email:
+      _: 邮箱
+      message: 请输入有效的邮箱地址
+    is_verified:
+      _: 标记为已验证
+      message: 立即将邮箱标记为已验证状态。
+  actions:
+    create:
+      _: 添加邮箱
+      success: "邮箱 {{email}} 添加成功。"
+    update:
+      _: 更新邮箱状态
+      success: "邮箱 {{email}} 验证状态更新成功。"
+    delete:
+      _: 删除邮箱
+      message: "您确定要删除该邮箱 <muted>{{email}}</muted> 吗？"
+      message_brief: 删除后该邮箱将无法用于登录或邮件通知。
+      success: "邮箱 {{email}} 删除成功。"
+    verify:
+      _: 验证邮箱
+      disabled: "{{title}} 未启用邮件服务，直接确认即可验证邮箱。"
+      success: "邮箱 {{email}} 验证成功。"
+    send_verify:
+      _: 发送验证邮件
+      success: "验证邮件已发送至邮箱 {{email}}。"
+change_password:
+  form:
+    old_password:
+      _: 原始密码
+      message: 请输入原始密码
+    new_password:
+      _: 新密码
+      messages:
+        _: 请输入新密码
+        min: 密码至少6个字符
+    confirm_password:
+      _: 确认新密码
+      messages:
+        _: 请再次输入新密码
+        match: 两次输入的密码不匹配
+  actions:
+    update:
+      _: 修改密码
+      success: "用户 {{username}} 的密码修改成功。"
+    self_update:
+      _: 修改密码
+      success: 个人密码更新成功。
+delete_account:
+  _: 移除存档
+  form:
+    username:
+      _: 用户名
+      messages:
+        _: 请输入用户名
+        match: 用户名不匹配
+    password:
+      _: 密码
+      message: 请输入密码
+    captcha:
+      _: 验证码
+      message: 请输入验证码
+  actions:
+    delete:
+      success: 注销成功

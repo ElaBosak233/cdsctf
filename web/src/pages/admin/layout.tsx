@@ -7,9 +7,9 @@ import {
   TypeIcon,
   UserRoundIcon,
 } from "lucide-react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
-
+import { useTranslation } from "react-i18next";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -21,6 +21,8 @@ import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 
 export default function Layout() {
+  const { t } = useTranslation();
+
   const location = useLocation();
   const pathname = location.pathname;
   const navigate = useNavigate();
@@ -44,37 +46,37 @@ export default function Layout() {
   const options = [
     {
       link: "/admin",
-      name: "主页",
+      name: t("admin.home._"),
       icon: <HousePlugIcon />,
     },
     {
       link: "/admin/platform",
-      name: "平台",
+      name: t("admin.platform._"),
       icon: <TypeIcon />,
     },
     {
       link: "/admin/challenges",
-      name: "题库",
+      name: t("challenge._"),
       icon: <LibraryIcon />,
     },
     {
       link: "/admin/games",
-      name: "比赛",
+      name: t("game._"),
       icon: <FlagIcon />,
     },
     {
       link: "/admin/users",
-      name: "用户",
+      name: t("user._"),
       icon: <UserRoundIcon />,
     },
     {
-      link: "/admin/email",
-      name: "邮箱",
+      link: "/admin/mailbox",
+      name: t("admin.mailbox._"),
       icon: <MailCheckIcon />,
     },
     {
       link: "/admin/captcha",
-      name: "人机验证",
+      name: t("admin.captcha._"),
       icon: <BotIcon />,
     },
   ];
@@ -88,7 +90,7 @@ export default function Layout() {
           "sticky",
           "top-16",
           "bg-card/30",
-          "border-r-1",
+          "border-r",
           "p-4",
           "flex",
           "flex-col",

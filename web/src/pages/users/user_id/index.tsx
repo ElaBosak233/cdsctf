@@ -1,5 +1,6 @@
 import { UserRoundPenIcon } from "lucide-react";
 import { useContext } from "react";
+import { useTranslation } from "react-i18next";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { MarkdownRender } from "@/components/ui/markdown-render";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +10,8 @@ import { cn } from "@/utils";
 import { Context } from "./context";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const configStore = useConfigStore();
   const { user } = useContext(Context);
 
@@ -19,7 +22,7 @@ export default function Index() {
         <div className={cn(["flex", "flex-col", "gap-3"])}>
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <UserRoundPenIcon />
-            <span>个人简介</span>
+            <span>{t("user.description")}</span>
           </div>
           <Separator />
         </div>

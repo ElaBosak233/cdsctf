@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import { updateGame } from "@/api/admin/games/game_id";
@@ -42,6 +43,8 @@ import { cn } from "@/utils";
 import { Context } from "./context";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { game } = useContext(Context);
   const sharedStore = useSharedStore();
 
@@ -56,38 +59,26 @@ export default function Index() {
 
   const formSchema = z.object({
     title: z.string({
-      message: "请输入标题",
+      message: t("game.form.title.message"),
     }),
-    sketch: z
-      .string({
-        message: "请选择简述",
-      })
-      .nullish(),
-    description: z
-      .string({
-        message: "请输入描述",
-      })
-      .nullish(),
-    is_public: z.boolean({
-      message: "请明确是否为公开赛",
-    }),
-    is_need_write_up: z.boolean({
-      message: "请明确是否需要 Write-up",
-    }),
+    sketch: z.string().nullable(),
+    description: z.string().nullable(),
+    is_public: z.boolean(),
+    is_need_write_up: z.boolean(),
     member_limit_min: z.number({
-      message: "请提供团队人数最小值",
+      message: t("game.form.member_limit_min.message"),
     }),
     member_limit_max: z.number({
-      message: "请提供团队人数最大值",
+      message: t("game.form.member_limit_max.message"),
     }),
     started_at: z.date({
-      message: "请提供开始时间",
+      message: t("game.form.started_at.message"),
     }),
     frozen_at: z.date({
-      message: "请提供冻结时间",
+      message: t("game.form.frozen_at.message"),
     }),
     ended_at: z.date({
-      message: "请提供结束时间",
+      message: t("game.form.ended_at.message"),
     }),
   });
 
@@ -126,7 +117,9 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`比赛 ${res?.data?.title} 更新成功`);
+          toast.success(
+            t("game.actions.update.success", { title: res?.data?.title })
+          );
         }
       })
       .finally(() => {
@@ -280,7 +273,7 @@ export default function Index() {
               name={"title"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>标题</FormLabel>
+                  <FormLabel>{t("game.form.title._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -288,7 +281,7 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder={"标题"}
+                        placeholder={"My CTF Game"}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
@@ -303,10 +296,11 @@ export default function Index() {
               name={"sketch"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>简述</FormLabel>
+                  <FormLabel>{t("game.form.sketch")}</FormLabel>
                   <FormControl>
                     <Editor
                       {...field}
+                      placeholder={"Once upon a time..."}
                       value={field.value || ""}
                       lang={"markdown"}
                       className={cn(["h-32"])}
@@ -327,9 +321,9 @@ export default function Index() {
                   "justify-between",
                 ])}
               >
-                <Label className="py-1.5">海报</Label>
+                <Label className="py-1.5">{t("game.form.poster")}</Label>
               </div>
-              <div className={cn(["h-36", "aspect-16/9"])}>
+              <div className={cn(["h-36", "aspect-video"])}>
                 <Avatar
                   className={cn([
                     "h-full",
@@ -390,7 +384,7 @@ export default function Index() {
                   "justify-between",
                 ])}
               >
-                <Label className="py-1.5">图标</Label>
+                <Label className="py-1.5">{t("game.form.icon")}</Label>
               </div>
               <div className={cn(["h-36", "aspect-square"])}>
                 <Avatar
@@ -453,7 +447,7 @@ export default function Index() {
             name={"is_public"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>是否为公开赛（免审核）</FormLabel>
+                <FormLabel>{t("game.form.is_public._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -464,11 +458,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: "是",
+                          content: t("game.form.is_public.true"),
                         },
                         {
                           value: String(false),
-                          content: "否",
+                          content: t("game.form.is_public.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -487,7 +481,7 @@ export default function Index() {
             name={"is_need_write_up"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>是否需要提交 Write-up</FormLabel>
+                <FormLabel>{t("game.form.is_need_write_up._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -498,11 +492,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: "是",
+                          content: t("game.form.is_need_write_up.true"),
                         },
                         {
                           value: String(false),
-                          content: "否",
+                          content: t("game.form.is_need_write_up.false"),
                         },
                       ]}
                       onValueChange={(value) =>
@@ -521,7 +515,7 @@ export default function Index() {
             name={"member_limit_min"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>团队所需最小人数</FormLabel>
+                <FormLabel>{t("game.form.member_limit_min._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -543,7 +537,7 @@ export default function Index() {
             name={"member_limit_max"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>团队所需最大人数</FormLabel>
+                <FormLabel>{t("game.form.member_limit_max._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -567,7 +561,7 @@ export default function Index() {
             name={"started_at"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>开始时间</FormLabel>
+                <FormLabel>{t("game.form.started_at._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -585,7 +579,7 @@ export default function Index() {
             name={"frozen_at"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>冻结时间</FormLabel>
+                <FormLabel>{t("game.form.frozen_at._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -603,7 +597,7 @@ export default function Index() {
             name={"ended_at"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>结束时间</FormLabel>
+                <FormLabel>{t("game.form.ended_at._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -622,10 +616,11 @@ export default function Index() {
           name={"description"}
           render={({ field }) => (
             <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-              <FormLabel>描述</FormLabel>
+              <FormLabel>{t("game.form.description")}</FormLabel>
               <FormControl>
                 <Editor
                   {...field}
+                  placeholder={"Once upon a time..."}
                   value={field.value || ""}
                   lang={"markdown"}
                   className={cn(["h-full", "min-h-128"])}
@@ -644,7 +639,7 @@ export default function Index() {
           icon={<SaveIcon />}
           loading={loading}
         >
-          保存
+          {t("common.actions.save")}
         </Button>
       </form>
     </Form>

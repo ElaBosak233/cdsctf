@@ -3,9 +3,9 @@ import { StatusCodes } from "http-status-codes";
 import { CheckIcon, LibraryIcon, TypeIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { createChallenge } from "@/api/admin/challenges";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -30,6 +30,7 @@ interface CreateDialogProps {
 
 function CreateDialog(props: CreateDialogProps) {
   const { onClose } = props;
+  const { t } = useTranslation();
 
   const sharedStore = useSharedStore();
 
@@ -37,10 +38,10 @@ function CreateDialog(props: CreateDialogProps) {
 
   const formSchema = z.object({
     title: z.string({
-      message: "请输入标题",
+      message: t("challenge.form.title.message"),
     }),
     category: z.number({
-      message: "请选择分类",
+      message: t("challenge.form.category.message"),
     }),
   });
 
@@ -62,7 +63,9 @@ function CreateDialog(props: CreateDialogProps) {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`题目 ${res?.data?.title} 创建成功`);
+          toast.success(
+            t("challenge.actions.create.success", { title: res.data?.title })
+          );
           onClose();
         }
       })
@@ -74,11 +77,11 @@ function CreateDialog(props: CreateDialogProps) {
 
   return (
     <Card
-      className={cn(["w-128", "min-h-64", "p-5", "flex", "flex-col", "gap-5"])}
+      className={cn(["w-lg", "min-h-64", "p-5", "flex", "flex-col", "gap-5"])}
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <LibraryIcon className={cn(["size-4"])} />
-        创建题目
+        {t("challenge.actions.create._")}
       </h3>
       <Form {...form}>
         <form
@@ -91,7 +94,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"title"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>标题</FormLabel>
+                <FormLabel>{t("challenge.form.title._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -114,7 +117,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"category"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>分类</FormLabel>
+                <FormLabel>{t("challenge.form.category._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -155,7 +158,7 @@ function CreateDialog(props: CreateDialogProps) {
             loading={loading}
             type={"submit"}
           >
-            确定
+            {t("common.actions.confirm")}
           </Button>
         </form>
       </Form>

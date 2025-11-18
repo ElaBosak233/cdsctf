@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { LayoutTemplateIcon, SaveIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -30,6 +31,8 @@ const checkerMap = {
 };
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { challenge } = useContext(Context);
   const sharedStore = useSharedStore();
   const [_loading, setLoading] = useState<boolean>(false);
@@ -97,19 +100,19 @@ export default function Index() {
               <LayoutTemplateIcon />
             </FieldIcon>
             <Select
-              placeholder={"使用预设模板"}
+              placeholder={t("challenge.checker.templates._")}
               options={[
                 {
                   value: "simple",
-                  content: "简易固定字符串评判",
+                  content: t("challenge.checker.templates.simple"),
                 },
                 {
                   value: "suid",
-                  content: "动态伪 UUID 评判",
+                  content: t("challenge.checker.templates.suid"),
                 },
                 {
                   value: "leet",
-                  content: "动态 LEET 字符串评判",
+                  content: t("challenge.checker.templates.leet"),
                 },
               ]}
               onValueChange={(value: "simple" | "suid" | "leet") => {
@@ -124,7 +127,7 @@ export default function Index() {
             size={"sm"}
             icon={<SaveIcon />}
           >
-            保存
+            {t("common.actions.save")}
           </Button>
         </div>
         <FormField

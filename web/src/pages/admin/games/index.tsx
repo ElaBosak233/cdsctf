@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { type GetGamesRequest, getGames } from "@/api/admin/games";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -39,7 +40,7 @@ import type { Game } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 import { CreateDialog } from "./create-dialog";
 
 function useGameQuery(params: GetGamesRequest) {
@@ -66,6 +67,7 @@ function useGameQuery(params: GetGamesRequest) {
 }
 
 export default function Index() {
+  const { t } = useTranslation();
   const configStore = useConfigStore();
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
@@ -94,6 +96,7 @@ export default function Index() {
     size,
   });
 
+  const columns = useColumns();
   const table = useReactTable<Game>({
     data: gamesData?.games || [],
     columns,
@@ -115,7 +118,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`比赛 - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("game._")} - ${configStore?.config?.meta?.title}`}</title>
       <div className={cn(["container", "mx-auto", "p-10"])}>
         <div
           className={cn([
@@ -138,7 +141,7 @@ export default function Index() {
             ])}
           >
             <FlagIcon />
-            比赛
+            {t("game._")}
           </h1>
           <div
             className={cn([
@@ -168,7 +171,7 @@ export default function Index() {
                 <TypeIcon />
               </FieldIcon>
               <TextField
-                placeholder={"比赛名"}
+                placeholder={t("game.title")}
                 value={table.getColumn("title")?.getFilterValue() as string}
                 onChange={(e) =>
                   table.getColumn("title")?.setFilterValue(e.target.value)
@@ -181,7 +184,7 @@ export default function Index() {
               onClick={() => setCreateDialogOpen(true)}
               className={cn(["w-full", "lg:w-1/6"])}
             >
-              添加比赛
+              {t("common.actions.add")}
             </Button>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogContent>
@@ -249,7 +252,7 @@ export default function Index() {
                         colSpan={columns.length}
                         className={cn(["h-24", "text-center"])}
                       >
-                        哎呀，好像还没有比赛呢。
+                        {t("game.empty")}
                       </TableCell>
                     </TableRow>
                   )}
@@ -275,7 +278,6 @@ export default function Index() {
                 <ListOrderedIcon />
               </FieldIcon>
               <Select
-                placeholder={"每页显示"}
                 options={[
                   { value: "10" },
                   { value: "20" },

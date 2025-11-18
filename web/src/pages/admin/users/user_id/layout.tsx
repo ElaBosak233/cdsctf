@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { LockIcon, MailIcon, UserRoundIcon } from "lucide-react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
 import { getUsers } from "@/api/admin/users";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ import { cn } from "@/utils";
 import { Context } from "./context";
 
 export default function Layout() {
+  const { t } = useTranslation();
+
   const location = useLocation();
   const pathname = location.pathname;
   const sharedStore = useSharedStore();
@@ -32,21 +35,21 @@ export default function Layout() {
     return [
       {
         link: `/admin/users/${user_id}`,
-        name: "基本信息",
+        name: t("user.edit.info"),
         icon: <UserRoundIcon />,
       },
       {
         link: `/admin/users/${user_id}/emails`,
-        name: "邮箱管理",
+        name: t("user.edit.email"),
         icon: <MailIcon />,
       },
       {
         link: `/admin/users/${user_id}/password`,
-        name: "修改密码",
+        name: t("user.edit.password"),
         icon: <LockIcon />,
       },
     ];
-  }, [user_id]);
+  }, [user_id, t]);
 
   return (
     <>
@@ -85,7 +88,7 @@ export default function Layout() {
               ])}
             >
               <UserRoundIcon />
-              用户编辑
+              {t("user.edit._")}
             </div>
             <Card className={cn(["flex", "flex-col", "p-5", "gap-3"])}>
               {options?.map((option, index) => (
