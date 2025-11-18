@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
 import { CheckIcon, LockIcon, MailIcon, SendIcon } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -20,7 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
-import { Captcha } from "@/components/widgets/captcha";
+import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
@@ -30,6 +30,8 @@ function ForgetForm() {
   const authStore = useAuthStore();
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const captchaRef = useRef<CaptchaRef>(null);
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -76,6 +78,8 @@ function ForgetForm() {
             description: res.msg,
           });
         }
+
+        captchaRef.current?.refresh();
       })
       .finally(() => {
         setLoading(false);
@@ -190,7 +194,7 @@ function ForgetForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("account.forget.form.captcha._")}</FormLabel>
-                  <Captcha onChange={field.onChange} />
+                  <Captcha ref={captchaRef} onChange={field.onChange} />
                 </FormItem>
               )}
             />
