@@ -1,0 +1,132 @@
+_: Challenge
+playground: Playground
+empty: "Oops, it seems that there are no challenges yet."
+edit:
+  _: Edit Challenge
+  info: Info
+  checker: Checker
+  attachment: Attachment
+  env: Dynamic Environment
+  statistics: Statistics
+preview: Preview Challenge
+title: Title
+description: Description
+category: Category
+tags: Tags
+has_attachment: Attachment
+is_dynamic:
+  _: Is Dynamic
+  "true": Dynamic
+  "false": Static
+is_public:
+  _: Public
+  actions:
+    "true": Make Public
+    "false": Make Private
+    success: "Challenge {{title}} publicness updated successfully."
+updated_at: Updated At
+created_at: Created At
+checker:
+  templates:
+    _: Select a preset template
+    simple: Simple fixed string judgment
+    leet: Dynamic LEET string judgment
+    suid: Dynamic pseudo-UUID string judgment
+attachment:
+  empty: "Oops, it seems there are no attachments yet."
+  upload:
+    _: Upload Attachment
+    hint: >-
+      The attachment will be directly hosted by the server. It is recommended to
+      fully consider factors such as storage space and traffic.
+  filename: Filename
+  size: Size
+  actions:
+    _: Actions
+    delete:
+      _: Delete Attachment
+      message: >-
+        Are you sure you want to delete the attachment
+        <muted>{{filename}}</muted>?
+      success: "Attachment {{filename}} deleted successfully."
+search:
+  title: Challenge Title
+  tag: Tag
+  is_public:
+    _: Public
+    "true": Public
+    "false": Private
+form:
+  title:
+    _: Title
+    message: Please enter a title
+  category:
+    _: Category
+    message: Please select a category
+  tags:
+    _: Tags
+  has_attachment:
+    _: Has Attachment
+    "true": "Yes"
+    "false": "No"
+  is_dynamic:
+    _: Is Dynamic
+    "true": Dynamic Environment
+    "false": Static Environment
+  description:
+    _: Description
+    message: Please enter description
+  env:
+    duration:
+      _: Duration (seconds)
+      message: Please enter duration in seconds
+    internet:
+      _: Allow Internet Access
+      message: Please select whether to allow internet access
+      "true": "Yes"
+      "false": "No"
+    containers:
+      _: Containers
+      image:
+        _: Image
+        message: Please enter container image
+      cpu_limit:
+        _: CPU Limit (cores)
+        message: Please enter CPU limit in cores
+      memory_limit:
+        _: Memory Limit (MB)
+        message: Please enter memory limit in MB
+      image_pull_policy:
+        _: Image Pull Policy
+        message: Please select image pull policy
+        always: Always
+        if_not_present: If Not Present
+        never: Never
+      ports:
+        _: Exposed Ports
+        port:
+          _: Port
+          message: Please enter port number
+        protocol:
+          _: Protocol
+          tcp: TCP
+          udp: UDP
+      envs:
+        _: Environment Variables
+        key:
+          _: Key
+          message: Please enter environment variable key
+        value:
+          _: Value
+          message: Please enter environment variable value
+      actions:
+        delete: Delete Container
+        add: Add Container
+actions:
+  _: Actions
+  create:
+    _: Create Challenge
+  delete:
+    _: Delete Challenge
+    message: "Are you sure you want to delete the challenge <muted>{{title}}</muted>?"
+    success: "Challenge {{title}} deleted successfully."

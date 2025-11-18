@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MailCheckIcon, SaveIcon, TypeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import { getConfigs, updateConfig } from "@/api/admin/configs";
@@ -27,6 +28,8 @@ import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { config: globalConfig } = useConfigStore();
   const [config, setConfig] = useState<Config>();
 
@@ -97,13 +100,13 @@ export default function Index() {
         });
       }
     } finally {
-      toast.success("邮箱配置更新成功");
+      toast.success(t("admin.mailbox.actions.update.success"));
     }
   }
 
   return (
     <>
-      <title>{`邮箱 - ${globalConfig?.meta?.title}`}</title>
+      <title>{`${t("admin.mailbox._")} - ${globalConfig?.meta?.title}`}</title>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -124,7 +127,7 @@ export default function Index() {
             className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
           >
             <MailCheckIcon />
-            邮箱
+            {t("admin.mailbox._")}
           </h2>
           <Separator />
 
@@ -133,7 +136,7 @@ export default function Index() {
             name={"is_enabled"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>是否启用</FormLabel>
+                <FormLabel>{t("admin.mailbox.form.is_enabled._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -143,11 +146,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: "启用",
+                          content: t("admin.mailbox.is_enabled.true"),
                         },
                         {
                           value: String(false),
-                          content: "禁用",
+                          content: t("admin.mailbox.is_enabled.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -170,7 +173,7 @@ export default function Index() {
                   name={"host"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>SMTP 地址</FormLabel>
+                      <FormLabel>{t("admin.mailbox.form.host._")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -178,7 +181,7 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             {...field}
-                            placeholder="请输入 SMTP 地址"
+                            placeholder="smtp.example.com"
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -194,14 +197,13 @@ export default function Index() {
                   name={"port"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>端口</FormLabel>
+                      <FormLabel>{t("admin.mailbox.form.port._")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
                             <TypeIcon />
                           </FieldIcon>
                           <NumberField
-                            placeholder="请输入端口"
                             value={field.value}
                             onValueChange={(value) => field.onChange(value)}
                           />
@@ -227,15 +229,15 @@ export default function Index() {
                             options={[
                               {
                                 value: "tls",
-                                content: "TLS",
+                                content: t("admin.mailbox.tls.tls"),
                               },
                               {
                                 value: "starttls",
-                                content: "StartTLS",
+                                content: t("admin.mailbox.tls.starttls"),
                               },
                               {
                                 value: "none",
-                                content: "禁用",
+                                content: t("admin.mailbox.tls.none"),
                               },
                             ]}
                             onValueChange={field.onChange}
@@ -254,7 +256,7 @@ export default function Index() {
                 name={"username"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>邮箱用户名</FormLabel>
+                    <FormLabel>{t("admin.mailbox.form.username._")}</FormLabel>
                     <FormControl>
                       <Field>
                         <FieldIcon>
@@ -262,7 +264,7 @@ export default function Index() {
                         </FieldIcon>
                         <TextField
                           {...field}
-                          placeholder="请输入邮箱用户名"
+                          placeholder={"Mailbox Username"}
                           value={field.value || ""}
                           onChange={field.onChange}
                         />
@@ -278,7 +280,7 @@ export default function Index() {
                 name={"password"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>邮箱密码/授权码</FormLabel>
+                    <FormLabel>{t("admin.mailbox.form.password._")}</FormLabel>
                     <FormControl>
                       <Field>
                         <FieldIcon>
@@ -286,7 +288,7 @@ export default function Index() {
                         </FieldIcon>
                         <TextField
                           {...field}
-                          placeholder="请输入邮箱密码"
+                          placeholder={"Mailbox P4ssw0rd"}
                           value={field.value || ""}
                           onChange={field.onChange}
                         />
@@ -304,7 +306,9 @@ export default function Index() {
                 name={"verify_body"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>账户验证邮件</FormLabel>
+                    <FormLabel>
+                      {t("admin.mailbox.form.verification_email._")}
+                    </FormLabel>
                     <FormControl>
                       <Field>
                         <Editor
@@ -329,7 +333,9 @@ export default function Index() {
                 name={"forget_body"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>忘记密码邮件</FormLabel>
+                    <FormLabel>
+                      {t("admin.mailbox.form.reset_password_email._")}
+                    </FormLabel>
                     <FormControl>
                       <Field>
                         <Editor
@@ -359,7 +365,7 @@ export default function Index() {
             icon={<SaveIcon />}
             className={cn(["mt-2"])}
           >
-            保存
+            {t("common.actions.save")}
           </Button>
         </form>
       </Form>

@@ -153,7 +153,7 @@ function ActionsCell({ row }: { row: Row<User> }) {
             <div className={cn(["flex", "justify-end"])}>
               <Button
                 level={"error"}
-                variant={"tonal"}
+                variant={"solid"}
                 size={"sm"}
                 onClick={handleDelete}
               >

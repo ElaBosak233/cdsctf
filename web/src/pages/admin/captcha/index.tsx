@@ -3,9 +3,9 @@ import { StatusCodes } from "http-status-codes";
 import { BotIcon, ClockIcon, LockIcon, SaveIcon, SendIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-
 import { getConfigs, updateConfig } from "@/api/admin/configs";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -28,6 +28,8 @@ import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
 export default function Index() {
+  const { t } = useTranslation();
+
   const { config: globalConfig } = useConfigStore();
   const [config, setConfig] = useState<Config>();
 
@@ -77,14 +79,14 @@ export default function Index() {
       captcha: { ...values },
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success("人机验证配置更新成功");
+        toast.success(t("admin.captcha.actions.update.success"));
       }
     });
   }
 
   return (
     <>
-      <title>{`人机验证 - ${globalConfig?.meta?.title}`}</title>
+      <title>{`${t("admin.captcha._")} - ${globalConfig?.meta?.title}`}</title>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -105,7 +107,7 @@ export default function Index() {
             className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
           >
             <BotIcon />
-            人机验证
+            {t("admin.captcha._")}
           </h2>
           <Separator />
           <div className={cn(["flex", "gap-3"])}>
@@ -114,9 +116,9 @@ export default function Index() {
               name={"provider"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>提供方</FormLabel>
+                  <FormLabel>{t("admin.captcha.form.provider._")}</FormLabel>
                   <FormDescription>
-                    若启用，则在必要的界面中启用人机验证。
+                    {t("admin.captcha.form.provider.description")}
                   </FormDescription>
                   <FormControl>
                     <Field>
@@ -128,23 +130,23 @@ export default function Index() {
                         options={[
                           {
                             value: "none",
-                            content: "不启用",
+                            content: t("admin.captcha.provider.none"),
                           },
                           {
                             value: "pow",
-                            content: "工作量验证",
+                            content: t("admin.captcha.provider.pow"),
                           },
                           {
                             value: "image",
-                            content: "图形验证",
+                            content: t("admin.captcha.provider.image"),
                           },
                           {
                             value: "turnstile",
-                            content: "Cloudflare Trunstile",
+                            content: t("admin.captcha.provider.turnstile"),
                           },
                           {
                             value: "hcaptcha",
-                            content: "HCaptcha",
+                            content: t("admin.captcha.provider.hcaptcha"),
                           },
                         ]}
                         onValueChange={(value) => field.onChange(value)}
@@ -162,9 +164,11 @@ export default function Index() {
                 name={"difficulty"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>难度</FormLabel>
+                    <FormLabel>
+                      {t("admin.captcha.form.difficulty._")}
+                    </FormLabel>
                     <FormDescription>
-                      适用于图形验证和工作量验证。
+                      {t("admin.captcha.form.difficulty.description")}
                     </FormDescription>
                     <FormControl>
                       <Field>
@@ -172,7 +176,6 @@ export default function Index() {
                           <ClockIcon />
                         </FieldIcon>
                         <NumberField
-                          placeholder="请输入难度"
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
                         />
@@ -199,7 +202,6 @@ export default function Index() {
                         </FieldIcon>
                         <TextField
                           {...field}
-                          placeholder="请输入 API URL"
                           value={field.value || ""}
                           onChange={field.onChange}
                         />
@@ -223,7 +225,6 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             {...field}
-                            placeholder="请输入 SITE_KEY"
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -246,7 +247,6 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             {...field}
-                            placeholder="请输入 SECRET_KEY"
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -275,7 +275,6 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             {...field}
-                            placeholder="请输入 API URL"
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -290,7 +289,7 @@ export default function Index() {
                   name={"hcaptcha.score"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>分数要求</FormLabel>
+                      <FormLabel>Score</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -299,7 +298,6 @@ export default function Index() {
                           <TextField
                             {...field}
                             type={"number"}
-                            placeholder="请输入分数要求"
                             value={field.value || ""}
                             onChange={(e) =>
                               field.onChange(e.target.valueAsNumber)
@@ -326,7 +324,6 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             {...field}
-                            placeholder="请输入 SITE_KEY"
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -349,7 +346,6 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             {...field}
-                            placeholder={"请输入 SECRET_KEY"}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -370,7 +366,7 @@ export default function Index() {
             icon={<SaveIcon />}
             className={cn(["mt-2"])}
           >
-            保存
+            {t("common.actions.save")}
           </Button>
         </form>
       </Form>

@@ -1,0 +1,12 @@
+home: Home
+search: Search
+loading: Loading
+all: All
+exit: Exit
+actions:
+  add: Add
+  save: Save
+  cancel: Cancel
+  confirm: Confirm
+  delete: Delete
+  edit: Edit

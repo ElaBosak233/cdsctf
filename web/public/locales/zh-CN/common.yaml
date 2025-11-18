@@ -1,0 +1,12 @@
+home: 主页
+search: 搜索
+loading: 加载中
+all: 全部
+exit: 退出
+actions:
+  add: 添加
+  save: 保存
+  cancel: 取消
+  confirm: 确认
+  delete: 删除
+  edit: 编辑

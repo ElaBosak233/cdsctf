@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Outlet, useParams } from "react-router";
 import { getUser } from "@/api/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
@@ -19,6 +20,8 @@ function useUserQuery(userId?: number) {
 }
 
 export default function Layout() {
+  const { t } = useTranslation();
+
   const { user_id } = useParams<{ user_id: string }>();
   const { data: user } = useUserQuery(Number(user_id));
 
@@ -82,7 +85,7 @@ export default function Layout() {
               "select-none",
             ])}
           >
-            {`注册于 ${new Date(Number(user?.created_at) * 1000).toLocaleDateString()}`}
+            {`${t("user.created_at")} ${new Date(Number(user?.created_at) * 1000).toLocaleDateString()}`}
           </span>
         </div>
         <div className={cn(["flex-1", "flex", "flex-col"])}>

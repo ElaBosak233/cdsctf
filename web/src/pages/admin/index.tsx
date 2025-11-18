@@ -6,6 +6,7 @@ import {
   SendIcon,
   UserRoundIcon,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { getStatistics } from "@/api/admin/configs";
 import { Card } from "@/components/ui/card";
 import { useConfigStore } from "@/storages/config";
@@ -52,13 +53,15 @@ function StatCard({ icon, label, value }: StatCardProps) {
 }
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
+
   const configStore = useConfigStore();
 
   const { data: statistics } = useStatisticsQuery();
 
   return (
     <>
-      <title>{`管理 - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("admin.home._")} - ${configStore?.config?.meta?.title}`}</title>
       <div className={cn(["p-10", "xl:mx-60", "lg:mx-30"])}>
         <h1
           className={cn([
@@ -71,7 +74,7 @@ export default function AdminDashboard() {
           ])}
         >
           <HousePlugIcon />
-          主页
+          {t("admin.home._")}
         </h1>
         <div
           className={cn([
@@ -84,22 +87,22 @@ export default function AdminDashboard() {
         >
           <StatCard
             icon={<UserRoundIcon className={cn(["size-5"])} />}
-            label="已注册用户"
+            label={t("admin.home.statistics.users")}
             value={statistics?.users}
           />
           <StatCard
             icon={<FlagIcon className={cn(["size-5"])} />}
-            label="已举办比赛"
+            label={t("admin.home.statistics.games")}
             value={statistics?.games}
           />
           <StatCard
             icon={<LibraryIcon className={cn(["size-5"])} />}
-            label="已收集题目"
+            label={t("admin.home.statistics.challenges")}
             value={statistics?.challenges?.total}
           />
           <StatCard
             icon={<SendIcon className={cn(["size-5"])} />}
-            label="已处理提交"
+            label={t("admin.home.statistics.submissions")}
             value={statistics?.submissions?.total}
           />
         </div>

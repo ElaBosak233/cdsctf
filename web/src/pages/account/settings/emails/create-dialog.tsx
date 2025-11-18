@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MailIcon, MailPlusIcon } from "lucide-react";
+import { CheckIcon, MailIcon, MailPlusIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import z from "zod";
 import { addEmail } from "@/api/users/profile/emails";
@@ -24,9 +25,10 @@ interface CreateDialogProps {
 
 function CreateDialog(props: CreateDialogProps) {
   const { onClose, bump } = props;
+  const { t } = useTranslation();
 
   const formSchema = z.object({
-    email: z.email("邮箱不合法"),
+    email: z.email(t("user.emails.form.email.message")),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -38,7 +40,9 @@ function CreateDialog(props: CreateDialogProps) {
     });
 
     if (res.code === 200) {
-      toast.success(`邮箱 ${values.email} 添加成功`);
+      toast.success(
+        t("user.emails.actions.create.success", { email: values.email })
+      );
       onClose();
       bump();
     }
@@ -48,7 +52,7 @@ function CreateDialog(props: CreateDialogProps) {
     <Card className={cn(["w-lg", "p-5", "flex", "flex-col", "gap-5"])}>
       <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
         <MailPlusIcon className={cn(["size-4"])} />
-        添加邮箱
+        {t("user.emails.actions.create._")}
       </div>
       <Form {...form}>
         <form
@@ -74,12 +78,13 @@ function CreateDialog(props: CreateDialogProps) {
             )}
           />
           <Button
+            icon={<CheckIcon />}
             level={"success"}
             variant={"solid"}
             size={"sm"}
             type={"submit"}
           >
-            确定
+            {t("common.actions.confirm")}
           </Button>
         </form>
       </Form>
