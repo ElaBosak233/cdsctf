@@ -8,7 +8,7 @@ import {
   TypeIcon,
   UserRoundIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -26,7 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
-import { Captcha } from "@/components/widgets/captcha";
+import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
@@ -35,6 +35,8 @@ function RegisterForm() {
   const configStore = useConfigStore();
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const captchaRef = useRef<CaptchaRef>(null);
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -58,16 +60,17 @@ function RegisterForm() {
       confirm_password: z.string({
         message: t("account.register.form.confirm_password.message"),
       }),
+      captcha: z
+        .object({
+          id: z.string(),
+          content: z.string(),
+        })
+        .nullish(),
     })
     .refine((data) => data.password === data.confirm_password, {
       message: t("account.register.form.confirm_password.mismatch"),
       path: ["confirm_password"],
     });
-
-  const [captcha, setCaptcha] = useState<{
-    id?: string;
-    content?: string;
-  }>();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -77,7 +80,6 @@ function RegisterForm() {
     setLoading(true);
     try {
       const res = await register({
-        captcha,
         ...values,
       });
 
@@ -105,6 +107,8 @@ function RegisterForm() {
           description: t("account.register.toast.failure.conflict"),
         });
       }
+
+      captchaRef.current?.refresh();
     } finally {
       setLoading(false);
     }
@@ -237,7 +241,10 @@ function RegisterForm() {
               render={() => (
                 <FormItem>
                   <FormLabel>{t("account.register.form.captcha._")}</FormLabel>
-                  <Captcha onChange={setCaptcha} />
+                  <Captcha
+                    ref={captchaRef}
+                    onChange={field.onChange}
+                  />
                 </FormItem>
               )}
             />
