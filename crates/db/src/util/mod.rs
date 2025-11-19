@@ -1,11 +1,10 @@
 use sea_orm::{
-    ColumnTrait, DbErr, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect,
-    RelationTrait,
+    ColumnTrait, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect, RelationTrait,
 };
 
-use crate::{entity::team::State, get_db};
+use crate::{entity::team::State, get_db, traits::DbError};
 
-pub async fn is_user_in_team(user_id: i64, team_id: i64) -> Result<bool, DbErr> {
+pub async fn is_user_in_team(user_id: i64, team_id: i64) -> Result<bool, DbError> {
     Ok(crate::entity::team_user::Entity::find()
         .filter(crate::entity::team_user::Column::UserId.eq(user_id))
         .filter(crate::entity::team_user::Column::TeamId.eq(team_id))
@@ -29,7 +28,7 @@ pub async fn is_user_in_game(
     user_id: i64,
     game_id: i64,
     state: Option<State>,
-) -> Result<bool, DbErr> {
+) -> Result<bool, DbError> {
     let mut sql = crate::entity::team::Entity::find()
         .join(
             JoinType::InnerJoin,
@@ -45,7 +44,7 @@ pub async fn is_user_in_game(
     Ok(sql.count(get_db()).await? > 0)
 }
 
-pub async fn can_user_access_challenge(user_id: i64, challenge_id: i64) -> Result<bool, DbErr> {
+pub async fn can_user_access_challenge(user_id: i64, challenge_id: i64) -> Result<bool, DbError> {
     let Some(challenge) = crate::entity::challenge::Entity::find_by_id(challenge_id)
         .one(get_db())
         .await?
@@ -87,7 +86,7 @@ pub async fn can_user_access_challenge(user_id: i64, challenge_id: i64) -> Resul
     Ok(false)
 }
 
-pub async fn is_challenge_in_game(challenge_id: i64, game_id: i64) -> Result<bool, DbErr> {
+pub async fn is_challenge_in_game(challenge_id: i64, game_id: i64) -> Result<bool, DbError> {
     Ok(crate::entity::game_challenge::Entity::find()
         .filter(crate::entity::game_challenge::Column::GameId.eq(game_id))
         .filter(crate::entity::game_challenge::Column::ChallengeId.eq(challenge_id))

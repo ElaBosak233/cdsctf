@@ -45,7 +45,6 @@ tower-sessions-redis-store = { workspace = true }
 mime = { workspace = true }
 validator = { workspace = true }
 nanoid = { workspace = true }
-uuid = { workspace = true }
 futures-util = { workspace = true }
 tower_governor = { workspace = true }
 scraper = { workspace = true }

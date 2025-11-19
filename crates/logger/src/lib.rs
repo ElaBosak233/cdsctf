@@ -6,12 +6,13 @@ use std::{
     thread::sleep,
 };
 
+use anyhow::anyhow;
 use once_cell::sync::OnceCell;
 use tracing::{error, info, warn};
 use tracing_appender::{non_blocking, non_blocking::WorkerGuard};
 use tracing_error::ErrorLayer;
 use tracing_opentelemetry::OpenTelemetryLayer;
-use tracing_subscriber::{EnvFilter, Registry, layer::SubscriberExt};
+use tracing_subscriber::{EnvFilter, Layer, Registry, layer::SubscriberExt};
 
 use crate::traits::LoggerError;
 
@@ -30,22 +31,17 @@ pub async fn init() -> Result<(), LoggerError> {
         .with_thread_ids(false)
         .with_thread_names(false);
 
-    let subscriber = Registry::default()
-        .with(ErrorLayer::default())
-        .with(filter)
-        .with(console_layer)
-        .with(
-            cds_env::get_config()
-                .observe
-                .is_enabled
-                .then_some(cds_observe::logger::get_tracing_layer()),
-        )
-        .with(
-            cds_env::get_config().observe.is_enabled.then_some(
-                cds_observe::tracer::get_provider()
-                    .map(|_p| OpenTelemetryLayer::new(cds_observe::tracer::get_tracer())),
-            ),
-        );
+    let mut layers = vec![];
+    layers.push(ErrorLayer::default().boxed());
+    layers.push(filter.boxed());
+    layers.push(console_layer.boxed());
+
+    if cds_env::get_config().observe.is_enabled {
+        layers.push(cds_observe::logger::get_tracing_layer()?.boxed());
+        layers.push(OpenTelemetryLayer::new(cds_observe::tracer::get_tracer()?).boxed());
+    }
+
+    let subscriber = Registry::default().with(layers);
 
     tracing::subscriber::set_global_default(subscriber)?;
 
@@ -86,7 +82,9 @@ pub async fn init() -> Result<(), LoggerError> {
 
     info!("Logger initialized successfully.");
 
-    CONSOLE_GUARD.set(console_guard).unwrap();
+    CONSOLE_GUARD
+        .set(console_guard)
+        .map_err(|_| anyhow!("Failed to set console guard into OnceCell."))?;
 
     Ok(())
 }

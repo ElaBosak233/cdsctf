@@ -1,15 +1,15 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, FromQueryResult, JoinType, Order,
-    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
+    ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, JoinType, Order, PaginatorTrait,
+    QueryFilter, QueryOrder, QuerySelect, RelationTrait,
 };
 use serde::{Deserialize, Serialize};
 
 pub use super::team_user::find_teams as find_by_user_id;
 pub use crate::entity::team::{ActiveModel, Model, State};
 pub(crate) use crate::entity::team::{Column, Entity};
-use crate::get_db;
+use crate::{get_db, traits::DbError};
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -65,7 +65,7 @@ pub async fn find<T>(
         size,
         sorts,
     }: FindTeamOptions,
-) -> Result<(Vec<T>, u64), DbErr>
+) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {
     let mut sql = Entity::find();
@@ -126,7 +126,7 @@ where
     Ok((teams, total))
 }
 
-pub async fn find_by_id<T>(team_id: i64, game_id: i64) -> Result<Option<T>, DbErr>
+pub async fn find_by_id<T>(team_id: i64, game_id: i64) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::find_by_id(team_id)
@@ -136,23 +136,27 @@ where
         .await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let team = model.insert(get_db()).await?;
 
-    Ok(find_by_id::<T>(team.id, team.game_id).await?.unwrap())
+    Ok(find_by_id::<T>(team.id, team.game_id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("team_{}", team.id)))?)
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let team = model.update(get_db()).await?;
 
-    Ok(find_by_id::<T>(team.id, team.game_id).await?.unwrap())
+    Ok(find_by_id::<T>(team.id, team.game_id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("team_{}", team.id)))?)
 }
 
-pub async fn delete(team_id: i64) -> Result<(), DbErr> {
+pub async fn delete(team_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(team_id).exec(get_db()).await?;
 
     Ok(())

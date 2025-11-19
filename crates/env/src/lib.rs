@@ -45,7 +45,9 @@ pub struct Constant {
 }
 
 pub fn get_config() -> &'static Constant {
-    CONSTANT.get().unwrap()
+    CONSTANT
+        .get()
+        .expect("No runtime config instance, forget to init?")
 }
 
 pub async fn init() -> Result<(), EnvError> {

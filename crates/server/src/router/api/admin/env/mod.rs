@@ -76,7 +76,7 @@ pub struct CreateEnvRequest {
 
 pub async fn create_env(
     Extension(ext): Extension<AuthPrincipal>,
-    Json(body): Json<crate::router::api::env::CreateEnvRequest>,
+    Json(body): Json<CreateEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

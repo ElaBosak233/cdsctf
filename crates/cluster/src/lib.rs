@@ -46,7 +46,10 @@ use crate::traits::{ClusterError, Nat};
 static K8S_CLIENT: OnceCell<K8sClient> = OnceCell::new();
 
 pub fn get_k8s_client() -> K8sClient {
-    K8S_CLIENT.get().unwrap().clone()
+    K8S_CLIENT
+        .get()
+        .expect("No k8s client instance, forget to init?")
+        .clone()
 }
 
 pub async fn init() -> Result<(), ClusterError> {
@@ -351,7 +354,10 @@ pub async fn create_challenge_env(
     let id = util::gen_safe_nanoid();
     let name = format!("cds-{}", id);
 
-    let env = challenge.clone().env.unwrap();
+    let env = challenge
+        .clone()
+        .env
+        .ok_or_else(|| ClusterError::MissingEnvConfiguration)?;
 
     let all_ports = env
         .containers
@@ -681,6 +687,7 @@ pub async fn exec(
 
     let mut attached = pod_api.exec(&name, vec![command], &attach_params).await?;
 
+    // SAFETY: `stdin` and `stdout` are guaranteed to be unwrapped.
     let stdin_writer = attached.stdin().unwrap();
     let stdout_reader = BufReader::new(attached.stdout().unwrap());
 

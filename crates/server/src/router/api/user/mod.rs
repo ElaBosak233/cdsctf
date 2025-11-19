@@ -2,10 +2,6 @@ mod forget;
 mod profile;
 mod user_id;
 
-use argon2::{
-    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
-    password_hash::{SaltString, rand_core::OsRng},
-};
 use axum::{Router, http::StatusCode, response::IntoResponse};
 use cds_db::{
     Email, User,
@@ -21,6 +17,7 @@ use validator::Validate;
 use crate::{
     extract::{Extension, Json},
     traits::{AuthPrincipal, WebError, WebResponse},
+    util,
 };
 
 pub fn router() -> Router {
@@ -62,13 +59,7 @@ pub async fn user_login(
 
     let hashed_password = user.hashed_password.clone();
 
-    if Argon2::default()
-        .verify_password(
-            body.password.as_bytes(),
-            &PasswordHash::new(&hashed_password).unwrap(),
-        )
-        .is_err()
-    {
+    if !util::crypto::verify_password(body.password, hashed_password) {
         return Err(WebError::BadRequest(json!("invalid")));
     }
 
@@ -124,10 +115,7 @@ pub async fn user_register(
         return Err(WebError::Conflict(json!("username_already_exists")));
     }
 
-    let hashed_password = Argon2::default()
-        .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
-        .unwrap()
-        .to_string();
+    let hashed_password = util::crypto::hash_password(body.password);
 
     let user = cds_db::user::create::<User>(cds_db::user::ActiveModel {
         username: Set(body.username),

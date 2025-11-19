@@ -3,7 +3,7 @@ mod env_id;
 use std::collections::BTreeMap;
 
 use axum::{Router, http::StatusCode};
-use cds_db::{TeamUser, team_user::FindTeamUserOptions, user::Group};
+use cds_db::{TeamUser, team_user::FindTeamUserOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 

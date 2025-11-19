@@ -10,6 +10,8 @@ pub enum LoggerError {
     AppenderError(#[from] tracing_appender::rolling::InitError),
     #[error("io error: {0}")]
     IOError(#[from] io::Error),
+    #[error("observe error")]
+    ObserveError(#[from] cds_observe::traits::ObserveError),
     #[error("other error: {0}")]
     OtherError(#[from] anyhow::Error),
 }

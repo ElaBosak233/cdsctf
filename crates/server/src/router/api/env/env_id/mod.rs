@@ -46,6 +46,7 @@ pub async fn renew_pod(
         return Err(WebError::Forbidden(json!("")));
     }
 
+    // SAFETY: the creation_timestamp could be safely unwrapped.
     let started_at = pod.metadata.creation_timestamp.unwrap().0.timestamp();
 
     let annotations = pod.metadata.annotations.unwrap_or_default();
@@ -55,13 +56,13 @@ pub async fn renew_pod(
         .map(|s| s.to_owned())
         .unwrap_or_default()
         .parse::<i64>()
-        .unwrap();
+        .unwrap_or(3);
     let duration = annotations
         .get("cds/duration")
         .map(|s| s.to_owned())
         .unwrap_or_default()
         .parse::<i64>()
-        .unwrap();
+        .unwrap_or_default();
 
     if renew == 3 {
         return Err(WebError::BadRequest(json!("no_more_renewal")));

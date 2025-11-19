@@ -1,18 +1,21 @@
-use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, NotSet, PaginatorTrait, Unchanged};
+use sea_orm::{ActiveModelTrait, EntityTrait, NotSet, PaginatorTrait, Unchanged};
 
 pub(crate) use crate::entity::config::Entity;
 pub use crate::entity::config::{ActiveModel, Model, auth, captcha, email, meta};
-use crate::get_db;
+use crate::{get_db, traits::DbError};
 
-pub async fn get() -> Result<Model, DbErr> {
-    Ok(Entity::find().one(get_db()).await?.unwrap())
+pub async fn get() -> Result<Model, DbError> {
+    Ok(Entity::find()
+        .one(get_db())
+        .await?
+        .ok_or_else(|| DbError::NotFound("config".to_string()))?)
 }
 
-pub async fn count() -> Result<u64, DbErr> {
+pub async fn count() -> Result<u64, DbError> {
     Ok(Entity::find().count(get_db()).await?)
 }
 
-pub async fn save(mut model: ActiveModel) -> Result<Model, DbErr> {
+pub async fn save(mut model: ActiveModel) -> Result<Model, DbError> {
     model.id = if count().await? == 0 {
         NotSet
     } else {

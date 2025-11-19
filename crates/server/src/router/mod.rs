@@ -1,7 +1,10 @@
 pub mod api;
 mod proxy;
 
-use std::{net::IpAddr, sync::Arc};
+use std::{
+    net::{IpAddr, Ipv4Addr},
+    sync::Arc,
+};
 
 use axum::{Router, body::Body, http::Request, middleware::from_fn, response::Response};
 use time::Duration;
@@ -17,6 +20,7 @@ use crate::{
 };
 
 pub async fn router() -> Router {
+    // SAFETY: Option<GovernorConfig<_>> could always be unwrapped.
     let governor_conf = Arc::new(
         GovernorConfigBuilder::default()
             .per_millisecond(cds_env::get_config().server.burst_restore_rate)
@@ -51,7 +55,7 @@ pub async fn router() -> Router {
             TraceLayer::new_for_http()
                 .make_span_with(|request: &Request<Body>| {
                     let ip = crate::util::network::get_client_ip(request)
-                        .unwrap_or(IpAddr::V4("0.0.0.0".parse().unwrap()));
+                        .unwrap_or(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)));
                     debug_span!("http",
                         from = %ip.to_string(),
                         method = %request.method(),

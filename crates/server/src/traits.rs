@@ -66,10 +66,16 @@ pub enum WebError {
     TooManyRequests(serde_json::Value),
     #[error("unprocessable entity: {0}")]
     UnprocessableEntity(serde_json::Value),
+
     #[error("tower sessions error: {0}")]
     TowerSessionsError(#[from] tower_sessions::session::Error),
+    #[error("http error: {0}")]
+    HttpError(#[from] axum::http::Error),
+    #[error("multipart error: {0}")]
+    MultipartError(#[from] axum::extract::multipart::MultipartError),
+
     #[error("db error: {0}")]
-    DBError(#[from] cds_db::sea_orm::DbErr),
+    DbError(#[from] cds_db::traits::DbError),
     #[error("cache error: {0}")]
     CacheError(#[from] cds_cache::traits::CacheError),
     #[error("env error: {0}")]
@@ -99,12 +105,21 @@ impl IntoResponse for WebError {
             Self::Conflict(msg) => (StatusCode::CONFLICT, msg.clone()),
             Self::TooManyRequests(msg) => (StatusCode::TOO_MANY_REQUESTS, msg.clone()),
             Self::UnprocessableEntity(msg) => (StatusCode::UNPROCESSABLE_ENTITY, msg.clone()),
+
             Self::TowerSessionsError(err) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),
             ),
-            Self::DBError(err) => match err {
-                cds_db::sea_orm::DbErr::RecordNotFound(msg) => {
+            Self::HttpError(err) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!(err.to_string()),
+            ),
+            Self::MultipartError(err) => {
+                (StatusCode::BAD_REQUEST, serde_json::json!(err.to_string()))
+            }
+
+            Self::DbError(err) => match err {
+                cds_db::traits::DbError::NotFound(msg) => {
                     (StatusCode::NOT_FOUND, serde_json::json!(msg.clone()))
                 }
                 _ => {

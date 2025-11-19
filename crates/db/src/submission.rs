@@ -1,14 +1,14 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, Order, PaginatorTrait, QueryFilter,
-    QueryOrder, QuerySelect,
+    ActiveModelTrait, ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect,
 };
 use serde::{Deserialize, Serialize};
 
 pub use crate::entity::submission::{ActiveModel, Status};
 pub(crate) use crate::entity::submission::{Column, Entity};
-use crate::{get_db, sea_orm, sea_orm::FromQueryResult};
+use crate::{get_db, sea_orm, sea_orm::FromQueryResult, traits::DbError};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
 pub struct Submission {
@@ -65,7 +65,7 @@ pub async fn find<T>(
         size,
         sorts,
     }: FindSubmissionsOptions,
-) -> Result<(Vec<T>, u64), DbErr>
+) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {
     let mut sql = Entity::base_find();
@@ -127,7 +127,7 @@ where
     Ok((submissions, total))
 }
 
-pub async fn find_by_id<T>(submission_id: i64) -> Result<Option<T>, DbErr>
+pub async fn find_by_id<T>(submission_id: i64) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::base_find()
@@ -137,7 +137,7 @@ where
         .await?)
 }
 
-pub async fn find_pending_by_id<T>(submission_id: i64) -> Result<Option<T>, DbErr>
+pub async fn find_pending_by_id<T>(submission_id: i64) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::base_find()
@@ -151,7 +151,7 @@ where
 pub async fn find_correct_by_team_ids_and_game_id<T>(
     team_ids: Vec<i64>,
     game_id: i64,
-) -> Result<Vec<T>, DbErr>
+) -> Result<Vec<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::base_find()
@@ -167,7 +167,7 @@ pub async fn find_correct_by_challenge_ids_and_optional_team_game<T>(
     challenge_ids: Vec<i64>,
     team_id: Option<i64>,
     game_id: Option<i64>,
-) -> Result<Vec<T>, DbErr>
+) -> Result<Vec<T>, DbError>
 where
     T: FromQueryResult, {
     let mut sql = Entity::base_find().filter(Column::ChallengeId.is_in(challenge_ids));
@@ -190,34 +190,38 @@ where
     Ok(submissions)
 }
 
-pub async fn count() -> Result<u64, DbErr> {
+pub async fn count() -> Result<u64, DbError> {
     Ok(Entity::base_find().count(get_db()).await?)
 }
 
-pub async fn count_correct() -> Result<u64, DbErr> {
+pub async fn count_correct() -> Result<u64, DbError> {
     Ok(Entity::base_find()
         .filter(Column::Status.eq(Status::Correct))
         .count(get_db())
         .await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let submission = model.insert(get_db()).await?;
 
-    Ok(find_by_id::<T>(submission.id).await?.unwrap())
+    Ok(find_by_id::<T>(submission.id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let submission = model.update(get_db()).await?;
 
-    Ok(find_by_id::<T>(submission.id).await?.unwrap())
+    Ok(find_by_id::<T>(submission.id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }
 
-pub async fn delete(submission_id: i64) -> Result<(), DbErr> {
+pub async fn delete(submission_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(submission_id).exec(get_db()).await?;
 
     Ok(())

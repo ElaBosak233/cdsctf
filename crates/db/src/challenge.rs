@@ -1,14 +1,14 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityName, EntityTrait, FromQueryResult, Iden as _,
-    Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, prelude::Expr,
+    ActiveModelTrait, ColumnTrait, EntityName, EntityTrait, FromQueryResult, Iden as _, Order,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, prelude::Expr,
 };
 use serde::{Deserialize, Serialize};
 
 pub use crate::entity::challenge::{ActiveModel, Container, Env, EnvVar, Model, Port};
 pub(crate) use crate::entity::challenge::{Column, Entity};
-use crate::get_db;
+use crate::{get_db, traits::DbError};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -72,7 +72,7 @@ pub async fn find<T>(
         size,
         sorts,
     }: FindChallengeOptions,
-) -> Result<(Vec<T>, u64), DbErr>
+) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {
     let mut sql = Entity::find();
@@ -138,7 +138,7 @@ where
     Ok((challenges, total))
 }
 
-pub async fn find_by_id<T>(challenge_id: i64) -> Result<Option<T>, DbErr>
+pub async fn find_by_id<T>(challenge_id: i64) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::find_by_id(challenge_id)
@@ -148,37 +148,44 @@ where
         .await?)
 }
 
-pub async fn count() -> Result<u64, DbErr> {
+pub async fn count() -> Result<u64, DbError> {
     Ok(Entity::find()
         .filter(Column::DeletedAt.is_null())
         .count(get_db())
         .await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let challenge = model.insert(get_db()).await?;
 
-    Ok(find_by_id::<T>(challenge.id).await?.unwrap())
+    Ok(find_by_id::<T>(challenge.id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("challenge_{}", challenge.id)))?)
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let challenge = model.update(get_db()).await?;
 
-    Ok(find_by_id::<T>(challenge.id).await?.unwrap())
+    Ok(find_by_id::<T>(challenge.id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("challenge_{}", challenge.id)))?)
 }
 
-pub async fn delete(challenge_id: i64) -> Result<(), DbErr> {
-    let challenge = find_by_id::<Model>(challenge_id).await?.unwrap();
+pub async fn delete(challenge_id: i64) -> Result<(), DbError> {
+    let challenge = find_by_id::<Model>(challenge_id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("challenge_{challenge_id}")))?;
 
-    let _ = update::<Model>(ActiveModel {
+    let _ = ActiveModel {
         id: Set(challenge.id),
         deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
         ..Default::default()
-    })
+    }
+    .update(get_db())
     .await?;
 
     Ok(())

@@ -19,6 +19,7 @@ opentelemetry-otlp = { workspace = true }
 opentelemetry_sdk = { workspace = true }
 opentelemetry-appender-tracing = { workspace = true }
 anyhow = { workspace = true }
+thiserror = { workspace = true }
 once_cell = { workspace = true }
 sysinfo = { workspace = true }
 tokio = { workspace = true }

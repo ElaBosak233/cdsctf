@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, FromQueryResult, Order, PaginatorTrait,
+    ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, Order, PaginatorTrait,
     QueryFilter, QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
@@ -10,6 +10,7 @@ pub use crate::entity::game::{ActiveModel, Model, Relation, Timeslot};
 use crate::{
     entity::game::{Column, Entity},
     get_db,
+    traits::DbError,
 };
 
 #[allow(dead_code)]
@@ -65,7 +66,7 @@ pub async fn find<T>(
         size,
         sorts,
     }: FindGameOptions,
-) -> Result<(Vec<T>, u64), DbErr>
+) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {
     let mut sql = Entity::find();
@@ -109,7 +110,7 @@ where
     Ok((games, total))
 }
 
-pub async fn find_by_id<T>(game_id: i64) -> Result<Option<T>, DbErr>
+pub async fn find_by_id<T>(game_id: i64) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::find_by_id(game_id)
@@ -118,27 +119,31 @@ where
         .await?)
 }
 
-pub async fn count() -> Result<u64, DbErr> {
+pub async fn count() -> Result<u64, DbError> {
     Ok(Entity::find().count(get_db()).await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let game = model.insert(get_db()).await?;
 
-    Ok(find_by_id::<T>(game.id).await?.unwrap())
+    Ok(find_by_id::<T>(game.id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("game_{}", game.id)))?)
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let game = model.update(get_db()).await?;
 
-    Ok(find_by_id::<T>(game.id).await?.unwrap())
+    Ok(find_by_id::<T>(game.id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("game_{}", game.id)))?)
 }
 
-pub async fn delete(game_id: i64) -> Result<(), DbErr> {
+pub async fn delete(game_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(game_id).exec(get_db()).await?;
 
     Ok(())

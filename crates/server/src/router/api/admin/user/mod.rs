@@ -1,9 +1,5 @@
 mod user_id;
 
-use argon2::{
-    Argon2, PasswordHasher,
-    password_hash::{SaltString, rand_core::OsRng},
-};
 use axum::{Router, http::StatusCode};
 use cds_db::{
     Email, User,
@@ -17,6 +13,7 @@ use validator::Validate;
 use crate::{
     extract::{Query, VJson},
     traits::{WebError, WebResponse},
+    util,
 };
 
 pub fn router() -> Router {
@@ -79,10 +76,7 @@ pub async fn create_user(
         return Err(WebError::Conflict(json!("username_already_exists")));
     }
 
-    let hashed_password = Argon2::default()
-        .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
-        .unwrap()
-        .to_string();
+    let hashed_password = util::crypto::hash_password(body.password);
 
     let user = cds_db::user::create::<User>(cds_db::user::ActiveModel {
         name: Set(body.name),

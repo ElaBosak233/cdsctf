@@ -1,25 +1,32 @@
-use anyhow::anyhow;
 use once_cell::sync::OnceCell;
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
 use opentelemetry_otlp::{LogExporter, WithExportConfig};
 use opentelemetry_sdk::logs::{SdkLogger, SdkLoggerProvider};
 
+use crate::traits::ObserveError;
+
 pub static PROVIDER: OnceCell<SdkLoggerProvider> = OnceCell::new();
 
-pub fn get_provider() -> Option<SdkLoggerProvider> {
-    PROVIDER.get().map(|p| p.to_owned())
+pub fn get_provider() -> Result<SdkLoggerProvider, ObserveError> {
+    Ok(PROVIDER
+        .get()
+        .map(|p| p.to_owned())
+        .ok_or_else(|| ObserveError::NoInstance)?)
 }
 
-pub fn get_tracing_layer() -> Option<OpenTelemetryTracingBridge<SdkLoggerProvider, SdkLogger>> {
-    get_provider().map(|p| OpenTelemetryTracingBridge::new(&p))
+pub fn get_tracing_layer()
+-> Result<OpenTelemetryTracingBridge<SdkLoggerProvider, SdkLogger>, ObserveError> {
+    let provider = get_provider()?;
+    let bridge = OpenTelemetryTracingBridge::new(&provider);
+
+    Ok(bridge)
 }
 
-pub fn init() -> Result<(), anyhow::Error> {
+pub fn init() -> Result<(), ObserveError> {
     let log_exporter = LogExporter::builder()
         .with_tonic()
         .with_export_config(crate::get_export_config())
-        .build()
-        .map_err(|_| anyhow!("Failed to initialize log."))?;
+        .build()?;
 
     let logger_provider = SdkLoggerProvider::builder()
         .with_batch_exporter(log_exporter)
@@ -31,20 +38,26 @@ pub fn init() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-pub async fn shutdown() -> Result<(), anyhow::Error> {
-    tokio::task::spawn_blocking(move || {
-        if let Err(e) = get_provider().unwrap().force_flush() {
-            println!("unable to fully flush logs: {:?}", e);
-        }
-    })
-    .await?;
+pub async fn shutdown() -> Result<(), ObserveError> {
+    {
+        let provider = get_provider()?;
+        tokio::task::spawn_blocking(move || {
+            if let Err(e) = provider.force_flush() {
+                println!("unable to fully flush logs: {:?}", e);
+            }
+        })
+        .await?;
+    }
 
-    tokio::task::spawn_blocking(move || {
-        if let Err(e) = get_provider().unwrap().shutdown() {
-            println!("unable to shutdown telemetry logger provider: {:?}", e);
-        }
-    })
-    .await?;
+    {
+        let provider = get_provider()?;
+        tokio::task::spawn_blocking(move || {
+            if let Err(e) = provider.shutdown() {
+                println!("unable to shutdown telemetry logger provider: {:?}", e);
+            }
+        })
+        .await?;
+    }
 
     Ok(())
 }

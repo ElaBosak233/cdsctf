@@ -34,9 +34,7 @@ pub(crate) async fn get_mailer() -> Result<AsyncSmtpTransport<Tokio1Executor>, E
             &cds_db::get_config().await.email.host,
         )?
         .tls(Tls::Wrapper(
-            TlsParameters::builder(cds_db::get_config().await.email.host.clone())
-                .build()
-                .unwrap(),
+            TlsParameters::builder(cds_db::get_config().await.email.host.clone()).build()?,
         ))),
         cds_db::config::email::Tls::None => {
             Ok(AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(
