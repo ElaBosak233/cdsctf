@@ -854,6 +854,7 @@ dependencies = [
  "opentelemetry-otlp",
  "opentelemetry_sdk",
  "sysinfo",
+ "thiserror 2.0.16",
  "tokio",
  "tracing",
 ]
@@ -911,7 +912,6 @@ dependencies = [
  "tower-sessions-redis-store",
  "tower_governor",
  "tracing",
- "uuid",
  "validator",
 ]
 

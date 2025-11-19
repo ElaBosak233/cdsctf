@@ -28,7 +28,7 @@ impl Display for EmailType {
 
 pub async fn get_email(email_type: EmailType) -> Result<String, MediaError> {
     let data = crate::get("configs/emails".to_owned(), format!("{email_type}.html")).await?;
-    Ok(String::from_utf8_lossy(&data).parse().unwrap())
+    Ok(String::from_utf8_lossy(&data).parse().unwrap_or_default())
 }
 
 pub async fn save_email(email_type: EmailType, content: String) -> Result<(), MediaError> {

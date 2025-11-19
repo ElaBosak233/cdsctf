@@ -39,7 +39,7 @@ async fn process_messages() -> Result<(), anyhow::Error> {
                 }
             };
         }
-        message.ack().await.map_err(|err| anyhow::anyhow!(err))?;
+        message.double_ack().await.ok();
     }
 
     Ok(())

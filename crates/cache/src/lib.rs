@@ -16,7 +16,10 @@ pub mod traits;
 static CLIENT: OnceCell<Client> = OnceCell::new();
 
 pub fn get_client() -> Client {
-    CLIENT.get().unwrap().clone()
+    CLIENT
+        .get()
+        .expect("No cache client instance, forget to init?")
+        .clone()
 }
 
 pub async fn init() -> Result<(), CacheError> {

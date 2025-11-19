@@ -28,7 +28,7 @@ pub async fn prepare_game_challenge(
 ) -> Result<GameChallenge, WebError> {
     let game_challenge = cds_db::game_challenge::find_by_id::<GameChallenge>(game_id, challenge_id)
         .await?
-        .unwrap();
+        .ok_or(WebError::NotFound(json!("game_challenge_not_found")))?;
 
     Ok(game_challenge)
 }

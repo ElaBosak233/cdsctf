@@ -156,7 +156,7 @@ async fn recover() -> Result<(), anyhow::Error> {
 
     for submission in unchecked_submissions {
         let id = submission.id;
-        cds_queue::publish("checker", id).await.unwrap();
+        cds_queue::publish("checker", id).await?;
     }
 
     Ok(())
@@ -172,7 +172,7 @@ async fn process_messages() -> Result<(), anyhow::Error> {
             error!("{:?}", err);
         }
 
-        message.ack().await.unwrap();
+        message.double_ack().await.ok();
     }
 
     Ok(())

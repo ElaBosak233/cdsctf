@@ -1,7 +1,4 @@
-use argon2::{
-    Argon2, PasswordHasher,
-    password_hash::{SaltString, rand_core::OsRng},
-};
+use argon2::PasswordHasher;
 use axum::Router;
 use cds_db::{Email, User};
 use cds_media::config::email::EmailType;
@@ -43,10 +40,7 @@ pub async fn user_forget(Json(body): Json<UserForgetRequest>) -> Result<WebRespo
         return Err(WebError::BadRequest(json!("email_code_incorrect")));
     }
 
-    let hashed_password = Argon2::default()
-        .hash_password(body.password.as_bytes(), &SaltString::generate(&mut OsRng))
-        .unwrap()
-        .to_string();
+    let hashed_password = util::crypto::hash_password(body.password);
 
     cds_db::user::update_password(user.id, hashed_password).await?;
 

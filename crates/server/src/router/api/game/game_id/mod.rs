@@ -123,6 +123,8 @@ pub async fn get_events(
 
     let sse_stream = stream.map(|event| {
         let Ok(evt) = event;
+
+        // SAFETY: Infallible.
         Ok::<SseEvent, Infallible>(SseEvent::default().json_data(evt).unwrap())
     });
 

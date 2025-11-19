@@ -17,6 +17,8 @@ pub enum ClusterError {
     NotFound(String),
     #[error("missing field: {0}")]
     MissingField(String),
+    #[error("missing env configuration")]
+    MissingEnvConfiguration,
     #[error(transparent)]
     OtherError(#[from] anyhow::Error),
     #[error("checker error: {0}")]

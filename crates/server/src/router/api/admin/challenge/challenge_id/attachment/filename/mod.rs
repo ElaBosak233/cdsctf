@@ -37,8 +37,7 @@ pub async fn get_attachment(
             header::CONTENT_DISPOSITION,
             format!("attachment; filename=\"{}\"", filename),
         )
-        .body(Body::from(buffer))
-        .unwrap())
+        .body(Body::from(buffer))?)
 }
 
 pub async fn delete_attachment(

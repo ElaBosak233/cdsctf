@@ -1,7 +1,7 @@
 use axum::{
     body::Body,
     extract::Request,
-    http::{HeaderMap, header::HOST},
+    http::{HeaderMap, HeaderValue, header::HOST},
     middleware::Next,
     response::Response,
 };
@@ -58,7 +58,11 @@ pub async fn real_host(mut req: Request<Body>, next: Next) -> Result<Response, W
             for (key, value) in headers.iter() {
                 new_headers.insert(key, value.clone());
             }
-            new_headers.insert(HOST, host_str.parse().unwrap());
+            new_headers.insert(
+                HOST,
+                HeaderValue::from_str(host_str)
+                    .map_err(|_| WebError::BadRequest(json!("host_extract_failed")))?,
+            );
             *req.headers_mut() = new_headers;
         }
     }

@@ -61,9 +61,11 @@ pub async fn init() -> Result<(), DbError> {
 }
 
 pub fn get_db() -> &'static DatabaseConnection {
-    DB.get().unwrap()
+    DB.get().expect("No db instance, forget to init?")
 }
 
 pub async fn get_config() -> config::Model {
-    config::get().await.unwrap()
+    config::get()
+        .await
+        .expect("No config in db, could there be a problem with the migration?")
 }

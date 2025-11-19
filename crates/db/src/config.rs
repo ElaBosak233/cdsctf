@@ -5,7 +5,10 @@ pub use crate::entity::config::{ActiveModel, Model, auth, captcha, email, meta};
 use crate::{get_db, traits::DbError};
 
 pub async fn get() -> Result<Model, DbError> {
-    Ok(Entity::find().one(get_db()).await?.unwrap())
+    Ok(Entity::find()
+        .one(get_db())
+        .await?
+        .ok_or_else(|| DbError::NotFound("config".to_string()))?)
 }
 
 pub async fn count() -> Result<u64, DbError> {

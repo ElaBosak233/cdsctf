@@ -41,7 +41,7 @@ where
 
     Ok(find_by_id::<T>(game_notice.id, game_notice.game_id)
         .await?
-        .unwrap())
+        .ok_or_else(|| DbError::NotFound(format!("game_notice_{}", game_notice.id)))?)
 }
 
 pub async fn delete(notice_id: i64, game_id: i64) -> Result<(), DbError> {

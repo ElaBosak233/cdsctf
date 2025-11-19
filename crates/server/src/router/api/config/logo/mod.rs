@@ -13,7 +13,7 @@ pub fn router() -> Router {
 
 pub async fn get_logo() -> Result<impl IntoResponse, WebError> {
     match cds_media::config::logo::get_logo().await {
-        Ok(buffer) => Ok(Response::builder().body(Body::from(buffer)).unwrap()),
+        Ok(buffer) => Ok(Response::builder().body(Body::from(buffer))?),
         _ => Ok(Redirect::to("/logo.svg").into_response()),
     }
 }

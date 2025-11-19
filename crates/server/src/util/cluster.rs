@@ -118,6 +118,7 @@ impl From<Pod> for Env {
                 }
             });
 
+        // SAFETY: the creation_timestamp could be safely unwrapped.
         let started_at = pod.metadata.creation_timestamp.unwrap().0.timestamp();
         let public_entry = Some(cds_env::get_config().cluster.public_entry.to_owned());
 

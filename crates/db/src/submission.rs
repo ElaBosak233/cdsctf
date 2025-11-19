@@ -206,7 +206,9 @@ where
     T: FromQueryResult, {
     let submission = model.insert(get_db()).await?;
 
-    Ok(find_by_id::<T>(submission.id).await?.unwrap())
+    Ok(find_by_id::<T>(submission.id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }
 
 pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
@@ -214,7 +216,9 @@ where
     T: FromQueryResult, {
     let submission = model.update(get_db()).await?;
 
-    Ok(find_by_id::<T>(submission.id).await?.unwrap())
+    Ok(find_by_id::<T>(submission.id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }
 
 pub async fn delete(submission_id: i64) -> Result<(), DbError> {

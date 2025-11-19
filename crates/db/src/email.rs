@@ -43,7 +43,9 @@ where
     T: FromQueryResult, {
     let email = model.insert(get_db()).await?;
 
-    Ok(find_by_email::<T>(email.email).await?.unwrap())
+    Ok(find_by_email::<T>(email.email.clone())
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("email_{}", email.email)))?)
 }
 
 pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
@@ -51,7 +53,9 @@ where
     T: FromQueryResult, {
     let email = model.update(get_db()).await?;
 
-    Ok(find_by_email::<T>(email.email).await?.unwrap())
+    Ok(find_by_email::<T>(email.email.clone())
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("email_{}", email.email)))?)
 }
 
 pub async fn delete(user_id: i64, email: String) -> Result<(), DbError> {

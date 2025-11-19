@@ -171,7 +171,7 @@ async fn process_messages() -> Result<(), anyhow::Error> {
             }
         }
 
-        message.ack().await.unwrap();
+        message.double_ack().await.ok();
     }
 
     Ok(())

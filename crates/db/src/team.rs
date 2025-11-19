@@ -141,7 +141,9 @@ where
     T: FromQueryResult, {
     let team = model.insert(get_db()).await?;
 
-    Ok(find_by_id::<T>(team.id, team.game_id).await?.unwrap())
+    Ok(find_by_id::<T>(team.id, team.game_id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("team_{}", team.id)))?)
 }
 
 pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
@@ -149,7 +151,9 @@ where
     T: FromQueryResult, {
     let team = model.update(get_db()).await?;
 
-    Ok(find_by_id::<T>(team.id, team.game_id).await?.unwrap())
+    Ok(find_by_id::<T>(team.id, team.game_id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("team_{}", team.id)))?)
 }
 
 pub async fn delete(team_id: i64) -> Result<(), DbError> {

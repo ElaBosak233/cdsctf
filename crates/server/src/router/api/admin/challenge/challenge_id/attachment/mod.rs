@@ -58,7 +58,7 @@ pub async fn save_challenge_attachment(
     let path = crate::util::media::build_challenge_attachment_path(challenge_id);
     let mut filename = String::new();
     let mut data = Vec::<u8>::new();
-    while let Some(field) = multipart.next_field().await.unwrap() {
+    while let Some(field) = multipart.next_field().await? {
         if let Some(name) = field.file_name() {
             filename = name.to_string();
             data = match field.bytes().await {

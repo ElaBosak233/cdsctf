@@ -10,7 +10,9 @@ use traits::QueueError;
 static CLIENT: OnceCell<async_nats::Client> = OnceCell::new();
 
 fn get_client() -> &'static async_nats::Client {
-    CLIENT.get().unwrap()
+    CLIENT
+        .get()
+        .expect("No queue client instance, forget to init?")
 }
 
 fn get_jetstream() -> async_nats::jetstream::Context {

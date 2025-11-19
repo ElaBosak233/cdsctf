@@ -1,8 +1,8 @@
 use std::{fmt::Debug, str::FromStr};
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, DbErr, EntityName, EntityTrait, FromQueryResult,
-    Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, Unchanged,
+    ActiveModelTrait, ColumnTrait, Condition, EntityName, EntityTrait, FromQueryResult, Order,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, Unchanged,
     prelude::Expr,
     sea_query::{Func, Query},
 };
@@ -218,7 +218,9 @@ where
     T: FromQueryResult, {
     let user = model.insert(get_db()).await?;
 
-    Ok(find_by_id::<T>(user.id).await?.unwrap())
+    Ok(find_by_id::<T>(user.id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("user_{}", user.id)))?)
 }
 
 pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
@@ -226,7 +228,9 @@ where
     T: FromQueryResult, {
     let user = model.update(get_db()).await?;
 
-    Ok(find_by_id::<T>(user.id).await?.unwrap())
+    Ok(find_by_id::<T>(user.id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("user_{}", user.id)))?)
 }
 
 pub async fn update_password(user_id: i64, hashed_password: String) -> Result<(), DbError> {

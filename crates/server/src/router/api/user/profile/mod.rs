@@ -1,10 +1,6 @@
 mod avatar;
 mod email;
 
-use argon2::{
-    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
-    password_hash::{SaltString, rand_core::OsRng},
-};
 use axum::{Router, http::StatusCode};
 use cds_db::{
     User,
@@ -20,6 +16,7 @@ use validator::Validate;
 use crate::{
     extract::{Extension, Json},
     traits::{AuthPrincipal, WebError, WebResponse},
+    util,
 };
 
 pub fn router() -> Router {
@@ -99,13 +96,7 @@ pub async fn delete_user_profile(
 
     let hashed_password = operator.hashed_password.clone();
 
-    if Argon2::default()
-        .verify_password(
-            body.password.as_bytes(),
-            &PasswordHash::new(&hashed_password).unwrap(),
-        )
-        .is_err()
-    {
+    if !util::crypto::verify_password(body.password, hashed_password) {
         return Err(WebError::BadRequest(json!("password_invalid")));
     }
 
@@ -131,23 +122,11 @@ pub async fn update_user_profile_password(
 
     let hashed_password = operator.hashed_password.clone();
 
-    if Argon2::default()
-        .verify_password(
-            body.old_password.as_bytes(),
-            &PasswordHash::new(&hashed_password).unwrap(),
-        )
-        .is_err()
-    {
+    if !util::crypto::verify_password(body.old_password, hashed_password) {
         return Err(WebError::BadRequest(json!("invalid")));
     }
 
-    let hashed_password = Argon2::default()
-        .hash_password(
-            body.new_password.as_bytes(),
-            &SaltString::generate(&mut OsRng),
-        )
-        .unwrap()
-        .to_string();
+    let hashed_password = util::crypto::hash_password(body.new_password);
 
     cds_db::user::update_password(operator.id, hashed_password).await?;
 

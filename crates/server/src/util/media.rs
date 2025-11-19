@@ -29,8 +29,7 @@ pub async fn get_write_up(game_id: i64, team_id: i64) -> Result<impl IntoRespons
                     &format!("inline; filename=\"{}\"", filename),
                 )
                 .header("Content-Type", HeaderValue::from_static("application/pdf"))
-                .body(Body::from(buffer))
-                .unwrap())
+                .body(Body::from(buffer))?)
         }
         None => Err(WebError::NotFound(json!(""))),
     }
@@ -40,7 +39,7 @@ pub async fn get_first_file(path: String) -> Result<impl IntoResponse, WebError>
     match cds_media::scan_dir(path.clone()).await?.first() {
         Some((filename, _size)) => {
             let buffer = cds_media::get(path, filename.to_string()).await?;
-            Ok(Response::builder().body(Body::from(buffer)).unwrap())
+            Ok(Response::builder().body(Body::from(buffer))?)
         }
         None => Err(WebError::NotFound(json!(""))),
     }
@@ -92,20 +91,33 @@ pub async fn handle_multipart(
     mut multipart: Multipart,
     mime_type: mime::Name<'_>,
 ) -> Result<Vec<u8>, WebError> {
-    while let Some(field) = multipart.next_field().await.unwrap() {
+    while let Some(field) = multipart.next_field().await? {
         if field.file_name().is_some() {
-            let content_type = field.content_type().unwrap().to_string();
-            let mime: Mime = content_type.parse().unwrap();
+            let content_type = match field.content_type() {
+                Some(ct) => ct.to_string(),
+                None => {
+                    return Err(WebError::BadRequest(json!("missing_content_type")));
+                }
+            };
+
+            let mime: Mime = match content_type.parse() {
+                Ok(m) => m,
+                Err(_) => {
+                    return Err(WebError::BadRequest(json!("invalid_mime_type")));
+                }
+            };
 
             if mime.type_() != mime_type && mime.subtype() != mime_type {
                 return Err(WebError::BadRequest(json!("forbidden_file_type")));
             }
+
             let data = match field.bytes().await {
                 Ok(bytes) => bytes.to_vec(),
                 Err(_err) => {
                     return Err(WebError::BadRequest(json!("size_too_large")));
                 }
             };
+
             return Ok(data);
         }
     }

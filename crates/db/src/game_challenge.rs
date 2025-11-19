@@ -99,7 +99,12 @@ where
     Ok(
         find_by_id::<T>(game_challenge.game_id, game_challenge.challenge_id)
             .await?
-            .unwrap(),
+            .ok_or_else(|| {
+                DbError::NotFound(format!(
+                    "game_challenge_{}_{}",
+                    game_challenge.game_id, game_challenge.challenge_id
+                ))
+            })?,
     )
 }
 
@@ -111,7 +116,12 @@ where
     Ok(
         find_by_id::<T>(game_challenge.game_id, game_challenge.challenge_id)
             .await?
-            .unwrap(),
+            .ok_or_else(|| {
+                DbError::NotFound(format!(
+                    "game_challenge_{}_{}",
+                    game_challenge.game_id, game_challenge.challenge_id
+                ))
+            })?,
     )
 }
 

@@ -79,7 +79,11 @@ pub async fn scan_dir(path: String) -> Result<Vec<(String, u64)>, MediaError> {
         let path = entry.path();
         let metadata = entry.metadata().await?;
         if metadata.is_file() {
-            let file_name = path.file_name().unwrap().to_string_lossy().into_owned();
+            let file_name = path
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .into_owned();
             let file_size = metadata.len();
             files.push((file_name, file_size));
         }

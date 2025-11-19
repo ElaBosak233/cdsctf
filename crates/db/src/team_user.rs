@@ -85,7 +85,12 @@ where
 
     Ok(find_by_id::<T>(team_user.team_id, team_user.user_id)
         .await?
-        .unwrap())
+        .ok_or_else(|| {
+            DbError::NotFound(format!(
+                "team_user_{}_{}",
+                team_user.team_id, team_user.user_id
+            ))
+        })?)
 }
 
 pub async fn delete(team_id: i64, user_id: i64) -> Result<(), DbError> {
