@@ -1,11 +1,11 @@
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, FromQueryResult, PaginatorTrait, QueryFilter,
+    ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, PaginatorTrait, QueryFilter,
 };
 use serde::{Deserialize, Serialize};
 
 pub(crate) use crate::entity::game_challenge::Entity;
 pub use crate::entity::game_challenge::{ActiveModel, Column, Model, Relation};
-use crate::get_db;
+use crate::{get_db, traits::DbError};
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -49,7 +49,7 @@ pub async fn find<T>(
         is_enabled,
         category,
     }: FindGameChallengeOptions,
-) -> Result<(Vec<T>, u64), DbErr>
+) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {
     // Using inner join to access fields in related tables.
@@ -76,7 +76,7 @@ where
     Ok((game_challenges, total))
 }
 
-pub async fn find_by_id<T>(game_id: i64, challenge_id: i64) -> Result<Option<T>, DbErr>
+pub async fn find_by_id<T>(game_id: i64, challenge_id: i64) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::base_find()
@@ -87,11 +87,11 @@ where
         .await?)
 }
 
-pub async fn count() -> Result<u64, DbErr> {
+pub async fn count() -> Result<u64, DbError> {
     Ok(Entity::find().count(get_db()).await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let game_challenge = model.insert(get_db()).await?;
@@ -103,7 +103,7 @@ where
     )
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let game_challenge = model.update(get_db()).await?;
@@ -115,7 +115,7 @@ where
     )
 }
 
-pub async fn delete(game_id: i64, challenge_id: i64) -> Result<(), DbErr> {
+pub async fn delete(game_id: i64, challenge_id: i64) -> Result<(), DbError> {
     Entity::delete_many()
         .filter(Column::GameId.eq(game_id))
         .filter(Column::ChallengeId.eq(challenge_id))

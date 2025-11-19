@@ -1,7 +1,7 @@
 mod migrations;
 
 use async_trait::async_trait;
-use cds_db::get_db;
+use cds_db::{DbError, get_db};
 use sea_orm_migration::prelude::*;
 use tracing::info;
 
@@ -25,7 +25,7 @@ impl MigratorTrait for Migrator {
     }
 }
 
-pub async fn run() -> Result<(), DbErr> {
+pub async fn run() -> Result<(), DbError> {
     if !Migrator::get_pending_migrations(get_db()).await?.is_empty() {
         info!("Migration activating");
         Migrator::up(get_db(), None).await?;

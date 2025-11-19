@@ -28,12 +28,12 @@ pub use submission::Submission;
 pub use team::Team;
 pub use team_user::TeamUser;
 use tracing::info;
-pub use traits::Error;
+pub use traits::DbError;
 pub use user::{User, UserMini};
 
 static DB: OnceCell<DatabaseConnection> = OnceCell::new();
 
-pub async fn init() -> Result<(), Error> {
+pub async fn init() -> Result<(), DbError> {
     let url = format!(
         "postgres://{}:{}@{}:{}/{}",
         cds_env::get_config().db.username,

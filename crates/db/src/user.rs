@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 pub use super::team_user::find_users as find_by_team_id;
 pub use crate::entity::user::{ActiveModel, Group, Model};
 pub(crate) use crate::entity::user::{Column, Entity};
-use crate::{Email, get_db};
+use crate::{Email, get_db, traits::DbError};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -57,7 +57,7 @@ pub async fn find<T>(
         size,
         sorts,
     }: FindUserOptions,
-) -> Result<(Vec<T>, u64), DbErr>
+) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {
     let mut sql = Entity::base_find();
@@ -107,7 +107,7 @@ where
     Ok((users, total))
 }
 
-pub async fn find_by_id<T>(user_id: i64) -> Result<Option<T>, DbErr>
+pub async fn find_by_id<T>(user_id: i64) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::base_find()
@@ -118,7 +118,7 @@ where
         .await?)
 }
 
-pub async fn find_by_account<T>(account: String) -> Result<Option<T>, DbErr>
+pub async fn find_by_account<T>(account: String) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult + Debug, {
     Ok(Entity::base_find()
@@ -161,7 +161,7 @@ where
         .await?)
 }
 
-pub async fn find_by_email<T>(email: String) -> Result<Option<T>, DbErr>
+pub async fn find_by_email<T>(email: String) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::base_find()
@@ -191,14 +191,14 @@ where
         .await?)
 }
 
-pub async fn count() -> Result<u64, DbErr> {
+pub async fn count() -> Result<u64, DbError> {
     Ok(Entity::find()
         .filter(Column::DeletedAt.is_null())
         .count(get_db())
         .await?)
 }
 
-pub async fn is_username_unique(user_id: i64, username: &str) -> Result<bool, DbErr> {
+pub async fn is_username_unique(user_id: i64, username: &str) -> Result<bool, DbError> {
     let user = Entity::base_find()
         .filter(Expr::expr(Func::lower(Expr::col(Column::Username))).eq(username.to_lowercase()))
         .one(get_db())
@@ -207,13 +207,13 @@ pub async fn is_username_unique(user_id: i64, username: &str) -> Result<bool, Db
     Ok(user.map(|u| u.id == user_id).unwrap_or(true))
 }
 
-pub async fn is_email_unique(email: &str) -> Result<bool, DbErr> {
+pub async fn is_email_unique(email: &str) -> Result<bool, DbError> {
     Ok(crate::email::find_by_email::<Email>(email.to_owned())
         .await?
         .is_none())
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let user = model.insert(get_db()).await?;
@@ -221,7 +221,7 @@ where
     Ok(find_by_id::<T>(user.id).await?.unwrap())
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let user = model.update(get_db()).await?;
@@ -229,7 +229,7 @@ where
     Ok(find_by_id::<T>(user.id).await?.unwrap())
 }
 
-pub async fn update_password(user_id: i64, hashed_password: String) -> Result<(), DbErr> {
+pub async fn update_password(user_id: i64, hashed_password: String) -> Result<(), DbError> {
     let _ = update::<Model>(ActiveModel {
         id: Unchanged(user_id),
         hashed_password: Set(hashed_password),
@@ -240,15 +240,18 @@ pub async fn update_password(user_id: i64, hashed_password: String) -> Result<()
     Ok(())
 }
 
-pub async fn delete(user_id: i64) -> Result<(), DbErr> {
-    let user = find_by_id::<Model>(user_id).await?.unwrap();
+pub async fn delete(user_id: i64) -> Result<(), DbError> {
+    let user = find_by_id::<Model>(user_id)
+        .await?
+        .ok_or_else(|| DbError::NotFound(format!("user_{user_id}")))?;
 
-    let _ = update::<Model>(ActiveModel {
+    let _ = ActiveModel {
         id: Unchanged(user.id),
-        username: Set(format!("[DELETED]_{}", user.username)),
+        username: Set(format!("[DELETED]_{}_{}", user.id, user.username)),
         deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
         ..Default::default()
-    })
+    }
+    .update(get_db())
     .await?;
 
     let _ = super::email::delete_by_user_id(user_id).await?;

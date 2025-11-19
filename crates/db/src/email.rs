@@ -1,11 +1,11 @@
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, FromQueryResult, PaginatorTrait, QueryFilter,
+    ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, PaginatorTrait, QueryFilter,
 };
 use serde::{Deserialize, Serialize};
 
 pub use crate::entity::email::{ActiveModel, Model};
 pub(crate) use crate::entity::email::{Column, Entity};
-use crate::get_db;
+use crate::{get_db, traits::DbError};
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -15,7 +15,7 @@ pub struct Email {
     pub user_id: i64,
 }
 
-pub async fn find_by_user_id<T>(user_id: i64) -> Result<Vec<T>, DbErr>
+pub async fn find_by_user_id<T>(user_id: i64) -> Result<Vec<T>, DbError>
 where
     T: FromQueryResult, {
     let emails = Entity::find()
@@ -27,7 +27,7 @@ where
     Ok(emails)
 }
 
-pub async fn find_by_email<T>(email: String) -> Result<Option<T>, DbErr>
+pub async fn find_by_email<T>(email: String) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     let email = Entity::find_by_id(email)
@@ -38,7 +38,7 @@ where
     Ok(email)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let email = model.insert(get_db()).await?;
@@ -46,7 +46,7 @@ where
     Ok(find_by_email::<T>(email.email).await?.unwrap())
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let email = model.update(get_db()).await?;
@@ -54,13 +54,13 @@ where
     Ok(find_by_email::<T>(email.email).await?.unwrap())
 }
 
-pub async fn delete(user_id: i64, email: String) -> Result<(), DbErr> {
+pub async fn delete(user_id: i64, email: String) -> Result<(), DbError> {
     let email = Entity::find()
-        .filter(Column::Email.eq(email))
+        .filter(Column::Email.eq(email.clone()))
         .filter(Column::UserId.eq(user_id))
         .one(get_db())
         .await?
-        .ok_or(DbErr::RecordNotFound("Email not found".to_string()))?;
+        .ok_or_else(|| DbError::NotFound(format!("email_{user_id}_{email}")))?;
 
     if Entity::find()
         .filter(Column::UserId.eq(email.user_id))
@@ -68,9 +68,7 @@ pub async fn delete(user_id: i64, email: String) -> Result<(), DbErr> {
         .await?
         <= 1
     {
-        return Err(DbErr::RecordNotFound(
-            "User has no other emails".to_string(),
-        ));
+        return Err(DbError::BadRequest("user_has_no_other_emails".to_string()));
     }
 
     let _ = Entity::delete_many()
@@ -81,7 +79,7 @@ pub async fn delete(user_id: i64, email: String) -> Result<(), DbErr> {
     Ok(())
 }
 
-pub async fn delete_by_user_id(user_id: i64) -> Result<(), DbErr> {
+pub async fn delete_by_user_id(user_id: i64) -> Result<(), DbError> {
     let _ = Entity::delete_many()
         .filter(Column::UserId.eq(user_id))
         .exec(get_db())

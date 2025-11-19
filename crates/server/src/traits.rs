@@ -69,7 +69,7 @@ pub enum WebError {
     #[error("tower sessions error: {0}")]
     TowerSessionsError(#[from] tower_sessions::session::Error),
     #[error("db error: {0}")]
-    DBError(#[from] cds_db::sea_orm::DbErr),
+    DbError(#[from] cds_db::traits::DbError),
     #[error("cache error: {0}")]
     CacheError(#[from] cds_cache::traits::CacheError),
     #[error("env error: {0}")]
@@ -103,8 +103,8 @@ impl IntoResponse for WebError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),
             ),
-            Self::DBError(err) => match err {
-                cds_db::sea_orm::DbErr::RecordNotFound(msg) => {
+            Self::DbError(err) => match err {
+                cds_db::traits::DbError::NotFound(msg) => {
                     (StatusCode::NOT_FOUND, serde_json::json!(msg.clone()))
                 }
                 _ => {

@@ -1,5 +1,5 @@
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, FromQueryResult, PaginatorTrait, QueryFilter,
+    ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, PaginatorTrait, QueryFilter,
 };
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +9,7 @@ use super::{
 };
 pub use crate::entity::team_user::ActiveModel;
 pub(crate) use crate::entity::team_user::{Column, Entity, Relation};
-use crate::get_db;
+use crate::{get_db, traits::DbError};
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -26,7 +26,7 @@ pub struct FindTeamUserOptions {
 
 pub async fn find<T>(
     FindTeamUserOptions { team_id, user_id }: FindTeamUserOptions,
-) -> Result<(Vec<T>, u64), DbErr>
+) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {
     let mut sql = Entity::find();
@@ -45,7 +45,7 @@ where
     Ok((team_users, total))
 }
 
-pub async fn find_by_id<T>(team_id: i64, user_id: i64) -> Result<Option<T>, DbErr>
+pub async fn find_by_id<T>(team_id: i64, user_id: i64) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::find()
@@ -56,7 +56,7 @@ where
         .await?)
 }
 
-pub async fn find_users<T>(team_id: i64) -> Result<Vec<T>, DbErr>
+pub async fn find_users<T>(team_id: i64) -> Result<Vec<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(UserEntity::find()
@@ -67,7 +67,7 @@ where
         .await?)
 }
 
-pub async fn find_teams<T>(user_id: i64) -> Result<Vec<T>, DbErr>
+pub async fn find_teams<T>(user_id: i64) -> Result<Vec<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(TeamEntity::find()
@@ -78,7 +78,7 @@ where
         .await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbErr>
+pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
     let team_user = model.insert(get_db()).await?;
@@ -88,7 +88,7 @@ where
         .unwrap())
 }
 
-pub async fn delete(team_id: i64, user_id: i64) -> Result<(), DbErr> {
+pub async fn delete(team_id: i64, user_id: i64) -> Result<(), DbError> {
     Entity::delete_many()
         .filter(Column::TeamId.eq(team_id))
         .filter(Column::UserId.eq(user_id))
@@ -98,7 +98,7 @@ pub async fn delete(team_id: i64, user_id: i64) -> Result<(), DbErr> {
     Ok(())
 }
 
-pub async fn delete_by_team_id(team_id: i64) -> Result<(), DbErr> {
+pub async fn delete_by_team_id(team_id: i64) -> Result<(), DbError> {
     Entity::delete_many()
         .filter(Column::TeamId.eq(team_id))
         .exec(get_db())
