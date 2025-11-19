@@ -245,7 +245,7 @@ pub async fn delete(user_id: i64) -> Result<(), DbErr> {
 
     let _ = update::<Model>(ActiveModel {
         id: Unchanged(user.id),
-        username: Set(format!("[DELETED]_{}", user.username)),
+        username: Set(format!("[DELETED]_{}_{}", user.id, user.username)),
         deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
         ..Default::default()
     })
