@@ -158,6 +158,9 @@ lettre = { version = "0.11", features = [
 ], default-features = false }
 dashmap = { version = "6.1" }
 
+# Allocator
+mimalloc = { version = "*", features = ["secure"] }
+
 [profile.release]
 opt-level = 3
 strip = true

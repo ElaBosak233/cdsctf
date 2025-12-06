@@ -3,8 +3,12 @@ use std::net::SocketAddr;
 use anyhow::anyhow;
 use axum::http::HeaderValue;
 use cds_server::{router::router, worker};
+use mimalloc::MiMalloc;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
