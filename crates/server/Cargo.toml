@@ -48,6 +48,7 @@ nanoid = { workspace = true }
 futures-util = { workspace = true }
 tower_governor = { workspace = true }
 scraper = { workspace = true }
+mimalloc = { workspace = true }
 
 [lib]
 path = "src/lib.rs"
