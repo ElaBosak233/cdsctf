@@ -77,6 +77,7 @@ pub async fn router() -> Router {
 
     let base = cds_env::get_config()
         .observe
+        .exporter
         .is_enabled
         .then(|| {
             base.clone()

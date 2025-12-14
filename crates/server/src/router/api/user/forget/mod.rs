@@ -1,4 +1,3 @@
-use argon2::PasswordHasher;
 use axum::Router;
 use cds_db::{Email, User};
 use cds_media::config::email::EmailType;

@@ -34,12 +34,12 @@ pub static TRACER: Lazy<BoxedTracer> = Lazy::new(|| {
 pub fn init() -> Result<(), ObserveError> {
     let span_exporter = SpanExporter::builder()
         .with_tonic()
-        .with_export_config(crate::get_export_config())
+        .with_export_config(super::get_export_config())
         .build()?;
 
     let tracer_provider = SdkTracerProvider::builder()
         .with_batch_exporter(span_exporter)
-        .with_resource(crate::RESOURCE.clone())
+        .with_resource(super::get_resource())
         .build();
 
     PROVIDER.set(tracer_provider).ok();

@@ -66,8 +66,6 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
             .replace("{{build_at}}", cds_env::get_build_time())
     );
 
-    cds_logger::init().await?;
-
     rustls::crypto::ring::default_provider()
         .install_default()
         .map_err(|_| anyhow!("Failed to install `ring` as default crypto provider."))?;
