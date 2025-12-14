@@ -25,7 +25,6 @@ cds-queue = { workspace = true }
 cds-cache = { workspace = true }
 cds-checker = { workspace = true }
 cds-observe = { workspace = true }
-cds-logger = { workspace = true }
 
 tracing = { workspace = true }
 tokio = { workspace = true }

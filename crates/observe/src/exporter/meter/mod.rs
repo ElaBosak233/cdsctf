@@ -31,7 +31,7 @@ pub fn init() -> Result<(), ObserveError> {
     let metric_exporter = MetricExporter::builder()
         .with_temporality(Temporality::Cumulative)
         .with_tonic()
-        .with_export_config(crate::get_export_config())
+        .with_export_config(super::get_export_config())
         .build()?;
 
     let meter_provider = SdkMeterProvider::builder()
@@ -40,7 +40,7 @@ pub fn init() -> Result<(), ObserveError> {
                 .with_interval(Duration::from_secs(3))
                 .build(),
         )
-        .with_resource(crate::RESOURCE.clone())
+        .with_resource(super::get_resource())
         .build();
 
     PROVIDER.set(meter_provider).ok();

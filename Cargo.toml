@@ -20,7 +20,6 @@ cds-checker = { path = "crates/checker" }
 cds-cluster = { path = "crates/cluster" }
 cds-env = { path = "crates/env" }
 cds-event = { path = "crates/event" }
-cds-logger = { path = "crates/logger" }
 cds-db = { path = "crates/db" }
 cds-email = { path = "crates/email" }
 cds-engine = { path = "crates/engine" }
@@ -62,7 +61,7 @@ argon2 = { version = "0.5" }
 aes = { version = "0.8" }
 
 # Data Handling
-uuid = { version = "1.18", features = ["v4", "fast-rng", "macro-diagnostics"] }
+uuid = { version = "1.19", features = ["v4", "fast-rng", "macro-diagnostics"] }
 nanoid = { version = "0.4" }
 regex = { version = "1.12" }
 time = { version = "0.3", features = ["serde", "macros", "local-offset"] }
@@ -144,7 +143,7 @@ reqwest = { version = "0.12", features = [
     "json",
     "rustls-tls",
 ], default-features = false }
-scraper = { version = "0.24" }
+scraper = { version = "0.25" }
 image = { version = "0.25.9" }
 webp = { version = "0.3.1", features = ["image"] }
 biosvg = { version = "0.1" }

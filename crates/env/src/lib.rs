@@ -1,7 +1,6 @@
 pub mod cache;
 pub mod cluster;
 pub mod db;
-pub mod logger;
 pub mod media;
 pub mod observe;
 pub mod queue;
@@ -40,7 +39,6 @@ pub struct Constant {
     pub cache: cache::Config,
     pub cluster: cluster::Config,
     pub media: media::Config,
-    pub logger: logger::Config,
     pub observe: observe::Config,
 }
 
