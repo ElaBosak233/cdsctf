@@ -83,6 +83,7 @@ export default function Index() {
           "flex-col",
           "flex-1",
           "p-10",
+          "min-h-0",
           "xl:mx-50",
           "lg:mx-30",
           "gap-5",
@@ -116,7 +117,7 @@ export default function Index() {
         </Dropzone>
 
         {selfTeam?.has_write_up && (
-          <Card className={cn(["p-5", "rounded-xl"])}>
+          <Card className="p-5 rounded-xl min-h-128 max-h-[calc(100vh-25rem)]">
             <PDFViewer
               url={`/api/games/${currentGame?.id}/teams/profile/writeup`}
             />

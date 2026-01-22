@@ -62,21 +62,31 @@ code[data-theme] span {
   overflow-x: auto;
 }
 
-.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   color: var(--tw-prose-code);
-  background-color: color-mix(in oklab, var(--color-foreground) 10%, transparent);
+  background-color: color-mix(
+    in oklab,
+    var(--color-foreground) 10%,
+    transparent
+  );
   font-weight: var(--font-weight-normal);
   font-size: 0.875em;
   border-radius: var(--radius-sm);
-  padding: .2em .4em;
+  padding: 0.2em 0.4em;
   white-space: break-spaces;
 }
 
-.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *))::before {
+.prose
+  :where(code):not(
+    :where([class~="not-prose"], [class~="not-prose"] *)
+  )::before {
   content: "";
 }
 
-.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *))::after {
+.prose
+  :where(code):not(
+    :where([class~="not-prose"], [class~="not-prose"] *)
+  )::after {
   content: "";
 }
 

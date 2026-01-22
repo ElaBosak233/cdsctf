@@ -1,14 +1,31 @@
-import { useState } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
+import { createPluginRegistration } from "@embedpdf/core";
+import { EmbedPDF } from "@embedpdf/core/react";
+import { usePdfiumEngine } from "@embedpdf/engines/react";
 import { cn } from "@/utils";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
 import { LoaderCircleIcon } from "lucide-react";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+import {
+  Viewport,
+  ViewportPluginPackage,
+} from "@embedpdf/plugin-viewport/react";
+import { Scroller, ScrollPluginPackage } from "@embedpdf/plugin-scroll/react";
+import {
+  DocumentContent,
+  DocumentManagerPlugin,
+  DocumentManagerPluginPackage,
+} from "@embedpdf/plugin-document-manager/react";
+import {
+  RenderLayer,
+  RenderPluginPackage,
+} from "@embedpdf/plugin-render/react";
+import { ScrollArea } from "./scroll-area";
+
+const plugins = [
+  createPluginRegistration(DocumentManagerPluginPackage),
+  createPluginRegistration(ViewportPluginPackage),
+  createPluginRegistration(ScrollPluginPackage),
+  createPluginRegistration(RenderPluginPackage),
+];
 
 export interface PDFViewerProps {
   url: string;
@@ -17,47 +34,64 @@ export interface PDFViewerProps {
 
 function PDFViewer(props: PDFViewerProps) {
   const { url, className } = props;
-  const [numPages, setNumPages] = useState<number>(0);
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }): void => {
-    setNumPages(numPages);
-  };
+  const { engine, isLoading } = usePdfiumEngine();
+  if (isLoading || !engine) {
+    return (
+      <div className={cn(["flex", "justify-center", "items-center", "gap-5"])}>
+        <LoaderCircleIcon className={cn(["animate-spin"])} />
+        <span>加载中...</span>
+      </div>
+    );
+  }
 
   return (
-    <Document
-      key={`${url}-${numPages}`}
-      file={url}
-      onLoadSuccess={onDocumentLoadSuccess}
-      onError={(err) => console.log(err)}
-      className={className}
-      loading={
-        <div
-          className={cn(["flex", "justify-center", "items-center", "gap-5"])}
-        >
-          <LoaderCircleIcon className={cn(["animate-spin"])} />
-          <span>加载中...</span>
-        </div>
-      }
+    <EmbedPDF
+      engine={engine}
+      plugins={plugins}
+      onInitialized={async (registry) => {
+        registry
+          ?.getPlugin<DocumentManagerPlugin>(DocumentManagerPlugin.id)
+          ?.provides()
+          ?.openDocumentUrl({ url })
+          .toPromise();
+      }}
     >
-      <div
-        className={cn(["flex", "flex-col", "gap-4", "w-full", "max-w-full"])}
-      >
-        {Array.from(new Array(numPages), (_, index) => (
-          <Page
-            key={`page-${index + 1}`}
-            pageNumber={index + 1}
-            renderAnnotationLayer={false}
-            renderTextLayer={false}
-            className={cn([
-              "w-full",
-              "[&>canvas]:w-full!",
-              "[&>canvas]:h-auto!",
-              "rounded-lg",
-              "overflow-hidden",
-            ])}
-          />
-        ))}
-      </div>
-    </Document>
+      {({ activeDocumentId }) =>
+        activeDocumentId && (
+          <DocumentContent documentId={activeDocumentId}>
+            {({ isLoaded }) =>
+              isLoaded && (
+                <div
+                  className={cn(
+                    "h-full w-full min-h-0 flex flex-col",
+                    className
+                  )}
+                >
+                  <ScrollArea className="flex-1 min-h-0">
+                    <Viewport
+                      documentId={activeDocumentId}
+                      className="w-full min-h-0"
+                    >
+                      <Scroller
+                        documentId={activeDocumentId}
+                        className="h-auto! w-auto!"
+                        renderPage={({ pageIndex }) => (
+                          <RenderLayer
+                            documentId={activeDocumentId}
+                            pageIndex={pageIndex}
+                            draggable={false}
+                          />
+                        )}
+                      />
+                    </Viewport>
+                  </ScrollArea>
+                </div>
+              )
+            }
+          </DocumentContent>
+        )
+      }
+    </EmbedPDF>
   );
 }
 
