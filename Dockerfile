@@ -2,7 +2,7 @@ FROM rust:1.92 AS backend
 
 WORKDIR /app
 
-RUN rustup target add x86_64-unknown-linux-musl
+RUN rustup target add x86_64-unknown-linux-musl --toolchain stable
 
 RUN apt update && \
     apt install -y musl-tools musl-dev clang pkg-config lld
@@ -10,7 +10,7 @@ RUN apt update && \
 COPY . .
 
 RUN cargo fetch && \
-    cargo build --release --bin cds-server --target x86_64-unknown-linux-musl && \
+    cargo build +stable --release --bin cds-server --target x86_64-unknown-linux-musl && \
     cp /app/target/x86_64-unknown-linux-musl/release/cds-server /usr/local/bin/cds-server
 
 FROM node:25 AS frontend
