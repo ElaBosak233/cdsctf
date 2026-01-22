@@ -1,27 +1,27 @@
 [package]
-name = "cds-checker"
+name     = "cds-checker"
 resolver = "3"
 
-authors = { workspace = true }
-edition  = { workspace = true }
-homepage = { workspace = true }
-publish = { workspace = true }
-repository = { workspace = true }
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = { workspace = true }
+repository   = { workspace = true }
 rust-version = { workspace = true }
-version = { workspace = true }
+version      = { workspace = true }
 
 [dependencies]
-cds-db = { workspace = true }
-cds-media = { workspace = true }
+cds-db     = { workspace = true }
 cds-engine = { workspace = true }
+cds-media  = { workspace = true }
 
-thiserror = { workspace = true }
-anyhow = { workspace = true }
+aes       = { workspace = true }
+anyhow    = { workspace = true }
+hex       = { workspace = true }
 once_cell = { workspace = true }
-uuid = { workspace = true }
-time = { workspace = true }
-ring = { workspace = true }
-regex = { workspace = true }
-hex = { workspace = true }
-aes = { workspace = true }
-tracing = { workspace = true }
+regex     = { workspace = true }
+ring      = { workspace = true }
+thiserror = { workspace = true }
+time      = { workspace = true }
+tracing   = { workspace = true }
+uuid      = { workspace = true }

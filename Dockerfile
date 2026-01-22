@@ -1,4 +1,4 @@
-FROM rust:1.91 AS backend
+FROM rust:1.92 AS backend
 
 WORKDIR /app
 

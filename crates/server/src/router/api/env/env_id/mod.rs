@@ -47,7 +47,7 @@ pub async fn renew_pod(
     }
 
     // SAFETY: the creation_timestamp could be safely unwrapped.
-    let started_at = pod.metadata.creation_timestamp.unwrap().0.timestamp();
+    let started_at = pod.metadata.creation_timestamp.unwrap().0.as_second();
 
     let annotations = pod.metadata.annotations.unwrap_or_default();
 

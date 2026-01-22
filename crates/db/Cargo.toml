@@ -1,29 +1,29 @@
 [package]
-name = "cds-db"
+name     = "cds-db"
 resolver = "3"
 
-authors = { workspace = true }
-edition  = { workspace = true }
-homepage = { workspace = true }
-publish = { workspace = true }
-repository = { workspace = true }
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = { workspace = true }
+repository   = { workspace = true }
 rust-version = { workspace = true }
-version = { workspace = true }
+version      = { workspace = true }
 
 [dependencies]
 cds-env = { workspace = true }
 
+anyhow      = { workspace = true }
 async-trait = { workspace = true }
-serde = { workspace = true }
-tracing = { workspace = true }
-sea-orm = { workspace = true }
-serde_repr = { workspace = true }
-once_cell = { workspace = true }
-time = { workspace = true }
-serde_json = { workspace = true }
-uuid = { workspace = true }
-anyhow = { workspace = true }
-thiserror = { workspace = true }
+once_cell   = { workspace = true }
+sea-orm     = { workspace = true }
+serde       = { workspace = true }
+serde_json  = { workspace = true }
+serde_repr  = { workspace = true }
+thiserror   = { workspace = true }
+time        = { workspace = true }
+tracing     = { workspace = true }
+uuid        = { workspace = true }
 
 [lib]
 path = "src/lib.rs"

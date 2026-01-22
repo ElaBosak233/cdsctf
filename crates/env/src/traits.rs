@@ -6,10 +6,8 @@ pub enum EnvError {
     NotFound,
     #[error("io error: {0}")]
     IOError(#[from] std::io::Error),
-    #[error("toml de error: {0}")]
-    TomlDeError(#[from] toml::de::Error),
-    #[error("toml ser error: {0}")]
-    TomlSerError(#[from] toml::ser::Error),
+    #[error("figment error: {0}")]
+    FigmentError(#[from] figment::Error),
     #[error("utf8 error: {0}")]
     Utf8Error(#[from] std::str::Utf8Error),
     #[error("other error: {0}")]

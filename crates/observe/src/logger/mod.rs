@@ -33,7 +33,7 @@ pub async fn init() -> Result<(), ObserveError> {
     layers.push(ErrorLayer::default().boxed());
     layers.push(console_layer.boxed());
 
-    if cds_env::get_config().observe.exporter.is_enabled {
+    if cds_env::get_config().observe.exporter.enabled {
         layers.push(crate::exporter::logger::get_tracing_layer()?.boxed());
         layers.push(OpenTelemetryLayer::new(crate::exporter::tracer::get_tracer()?).boxed());
     }

@@ -5,7 +5,7 @@ use opentelemetry::{
     InstrumentationScope, global, global::BoxedTracer,
     trace::TracerProvider as TracerProviderTraits,
 };
-use opentelemetry_otlp::{SpanExporter, WithExportConfig};
+use opentelemetry_otlp::{Compression, Protocol, SpanExporter, WithExportConfig, WithHttpConfig};
 use opentelemetry_sdk::trace::{SdkTracerProvider, Tracer};
 
 use crate::traits::ObserveError;
@@ -32,9 +32,33 @@ pub static TRACER: Lazy<BoxedTracer> = Lazy::new(|| {
 });
 
 pub fn init() -> Result<(), ObserveError> {
+    let trace_ep = cds_env::get_config()
+        .observe
+        .exporter
+        .trace_endpoint
+        .as_deref()
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+        .or_else(|| {
+            cds_env::get_config()
+                .observe
+                .exporter
+                .endpoint
+                .as_deref()
+                .filter(|s| !s.is_empty())
+                .map(|ep| format!("{ep}/v1/traces"))
+        });
+
+    let trace_ep = match trace_ep {
+        Some(v) => v,
+        None => return Ok(()),
+    };
+
     let span_exporter = SpanExporter::builder()
-        .with_tonic()
-        .with_export_config(super::get_export_config())
+        .with_http()
+        .with_endpoint(trace_ep)
+        .with_protocol(Protocol::HttpBinary)
+        .with_compression(Compression::Gzip)
         .build()?;
 
     let tracer_provider = SdkTracerProvider::builder()

@@ -1,24 +1,24 @@
 [package]
-name = "cds-email"
+name     = "cds-email"
 resolver = "3"
 
-authors = { workspace = true }
-edition  = { workspace = true }
-homepage = { workspace = true }
-publish = { workspace = true }
-repository = { workspace = true }
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = { workspace = true }
+repository   = { workspace = true }
 rust-version = { workspace = true }
-version = { workspace = true }
+version      = { workspace = true }
 
 [dependencies]
-cds-db = { workspace = true }
+cds-db    = { workspace = true }
 cds-queue = { workspace = true }
 
-lettre = { workspace = true }
-thiserror = { workspace = true }
-anyhow = { workspace = true }
-tracing = { workspace = true }
+anyhow       = { workspace = true }
 futures-util = { workspace = true }
-tokio = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
+lettre       = { workspace = true }
+serde        = { workspace = true }
+serde_json   = { workspace = true }
+thiserror    = { workspace = true }
+tokio        = { workspace = true }
+tracing      = { workspace = true }

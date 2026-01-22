@@ -1,6 +1,6 @@
 use once_cell::sync::OnceCell;
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
-use opentelemetry_otlp::{LogExporter, WithExportConfig};
+use opentelemetry_otlp::{Compression, LogExporter, Protocol, WithExportConfig, WithHttpConfig};
 use opentelemetry_sdk::logs::{SdkLogger, SdkLoggerProvider};
 
 use crate::traits::ObserveError;
@@ -23,9 +23,33 @@ pub fn get_tracing_layer()
 }
 
 pub fn init() -> Result<(), ObserveError> {
+    let log_ep = cds_env::get_config()
+        .observe
+        .exporter
+        .log_endpoint
+        .as_deref()
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+        .or_else(|| {
+            cds_env::get_config()
+                .observe
+                .exporter
+                .endpoint
+                .as_deref()
+                .filter(|s| !s.is_empty())
+                .map(|ep| format!("{ep}/v1/logs"))
+        });
+
+    let log_ep = match log_ep {
+        Some(v) => v,
+        None => return Ok(()),
+    };
+
     let log_exporter = LogExporter::builder()
-        .with_tonic()
-        .with_export_config(super::get_export_config())
+        .with_http()
+        .with_endpoint(log_ep.as_str())
+        .with_protocol(Protocol::HttpBinary)
+        .with_compression(Compression::Gzip)
         .build()?;
 
     let logger_provider = SdkLoggerProvider::builder()

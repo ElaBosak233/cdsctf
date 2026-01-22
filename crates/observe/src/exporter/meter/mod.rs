@@ -5,7 +5,7 @@ use std::{borrow::Cow, time::Duration};
 
 use once_cell::sync::{Lazy, OnceCell};
 use opentelemetry::{InstrumentationScope, global, metrics::Meter};
-use opentelemetry_otlp::{MetricExporter, WithExportConfig};
+use opentelemetry_otlp::{Compression, MetricExporter, Protocol, WithExportConfig, WithHttpConfig};
 use opentelemetry_sdk::metrics::{PeriodicReader, SdkMeterProvider, Temporality};
 
 use crate::traits::ObserveError;
@@ -28,10 +28,34 @@ pub static METER: Lazy<Meter> = Lazy::new(|| {
 });
 
 pub fn init() -> Result<(), ObserveError> {
+    let metric_ep = cds_env::get_config()
+        .observe
+        .exporter
+        .metric_endpoint
+        .as_deref()
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+        .or_else(|| {
+            cds_env::get_config()
+                .observe
+                .exporter
+                .endpoint
+                .as_deref()
+                .filter(|s| !s.is_empty())
+                .map(|ep| format!("{ep}/v1/metrics"))
+        });
+
+    let metric_ep = match metric_ep {
+        Some(v) => v,
+        None => return Ok(()),
+    };
+
     let metric_exporter = MetricExporter::builder()
         .with_temporality(Temporality::Cumulative)
-        .with_tonic()
-        .with_export_config(super::get_export_config())
+        .with_http()
+        .with_endpoint(metric_ep.as_str())
+        .with_protocol(Protocol::HttpBinary)
+        .with_compression(Compression::Gzip)
         .build()?;
 
     let meter_provider = SdkMeterProvider::builder()

@@ -1,53 +1,53 @@
 [package]
-name = "cds-server"
+name     = "cds-server"
 resolver = "3"
 
-authors = { workspace = true }
-edition = { workspace = true }
-homepage = { workspace = true }
-publish = { workspace = true }
-repository = { workspace = true }
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = { workspace = true }
+repository   = { workspace = true }
 rust-version = { workspace = true }
-version = { workspace = true }
+version      = { workspace = true }
 
 [dependencies]
-cds-assets = { workspace = true }
-cds-media = { workspace = true }
+cds-assets   = { workspace = true }
+cds-cache    = { workspace = true }
+cds-captcha  = { workspace = true }
+cds-checker  = { workspace = true }
+cds-cluster  = { workspace = true }
+cds-db       = { workspace = true }
+cds-email    = { workspace = true }
+cds-engine   = { workspace = true }
+cds-env      = { workspace = true }
+cds-event    = { workspace = true }
+cds-media    = { workspace = true }
 cds-migrator = { workspace = true }
-cds-env = { workspace = true }
-cds-event = { workspace = true }
-cds-db = { workspace = true }
-cds-captcha = { workspace = true }
-cds-email = { workspace = true }
-cds-engine = { workspace = true }
-cds-cluster = { workspace = true }
-cds-queue = { workspace = true }
-cds-cache = { workspace = true }
-cds-checker = { workspace = true }
-cds-observe = { workspace = true }
+cds-observe  = { workspace = true }
+cds-queue    = { workspace = true }
 
-tracing = { workspace = true }
-tokio = { workspace = true }
-rustls = { workspace = true }
-axum = { workspace = true }
-anyhow = { workspace = true }
-time = { workspace = true }
-argon2 = { workspace = true }
-thiserror = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-serde_with = { workspace = true }
-http-serde = { workspace = true }
-tower-http = { workspace = true }
-tower-sessions = { workspace = true }
+anyhow                     = { workspace = true }
+argon2                     = { workspace = true }
+axum                       = { workspace = true }
+futures-util               = { workspace = true }
+http-serde                 = { workspace = true }
+mimalloc                   = { workspace = true }
+mime                       = { workspace = true }
+nanoid                     = { workspace = true }
+rustls                     = { workspace = true }
+scraper                    = { workspace = true }
+serde                      = { workspace = true }
+serde_json                 = { workspace = true }
+serde_with                 = { workspace = true }
+thiserror                  = { workspace = true }
+time                       = { workspace = true }
+tokio                      = { workspace = true }
+tower-http                 = { workspace = true }
+tower-sessions             = { workspace = true }
 tower-sessions-redis-store = { workspace = true }
-mime = { workspace = true }
-validator = { workspace = true }
-nanoid = { workspace = true }
-futures-util = { workspace = true }
-tower_governor = { workspace = true }
-scraper = { workspace = true }
-mimalloc = { workspace = true }
+tower_governor             = { workspace = true }
+tracing                    = { workspace = true }
+validator                  = { workspace = true }
 
 [lib]
 path = "src/lib.rs"

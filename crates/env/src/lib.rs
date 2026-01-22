@@ -7,10 +7,11 @@ pub mod queue;
 pub mod server;
 pub mod traits;
 
-use std::path::Path;
-
 use anyhow::anyhow;
-use nanoid::nanoid;
+use figment::{
+    Figment,
+    providers::{Env, Format, Toml},
+};
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use shadow_rs::shadow;
@@ -48,23 +49,38 @@ pub fn get_config() -> &'static Constant {
         .expect("No runtime config instance, forget to init?")
 }
 
-pub async fn init() -> Result<(), EnvError> {
-    for raw_path in CONFIG_PREDEFINED_PATH.into_iter() {
-        let file_path = Path::new(raw_path).join(CONFIG_PREDEFINED_FILE_NAME);
-        match tokio::fs::read_to_string(file_path).await {
-            Ok(content) => {
-                let content = content.replace("%nanoid%", &nanoid!(24));
-                CONSTANT
-                    .set(toml::from_str(&content)?)
-                    .map_err(|_| anyhow!("Failed to set constant env into OnceCell."))?;
-
-                return Ok(());
-            }
-            _ => continue,
+fn expand_tilde(path: &str) -> std::path::PathBuf {
+    if let Some(stripped) = path.strip_prefix("~/") {
+        if let Some(home) = std::env::var_os("HOME") {
+            return std::path::PathBuf::from(home).join(stripped);
         }
     }
+    std::path::PathBuf::from(path)
+}
 
-    Err(EnvError::NotFound)
+fn find_first_config_file() -> Option<std::path::PathBuf> {
+    for dir in CONFIG_PREDEFINED_PATH {
+        let dir = expand_tilde(dir);
+        let candidate = dir.join(CONFIG_PREDEFINED_FILE_NAME);
+        if candidate.is_file() {
+            return Some(candidate);
+        }
+    }
+    None
+}
+
+pub async fn init() -> Result<(), EnvError> {
+    let mut figment = Figment::new();
+    if let Some(path) = find_first_config_file() {
+        figment = figment.merge(Toml::file(path));
+    }
+    figment = figment.merge(Env::prefixed("CDSCTF_").split("_"));
+    let config = figment.extract::<Constant>()?;
+    CONSTANT
+        .set(config)
+        .map_err(|_| anyhow!("Failed to set constant env into OnceCell."))?;
+
+    Ok(())
 }
 
 pub fn get_version() -> &'static str {

@@ -2,8 +2,6 @@
 //!
 //! # What is `suid`
 //! A fake uuid with steganography.
-//!
-//! Modified from https://github.com/ret2shell/ret2script.
 
 use aes::cipher::{BlockDecrypt, BlockEncrypt, KeyInit};
 use anyhow::anyhow;

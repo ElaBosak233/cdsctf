@@ -1,27 +1,27 @@
 [package]
-name = "cds-captcha"
+name     = "cds-captcha"
 resolver = "3"
 
-authors = { workspace = true }
-edition  = { workspace = true }
-homepage = { workspace = true }
-publish = { workspace = true }
-repository = { workspace = true }
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = { workspace = true }
+repository   = { workspace = true }
 rust-version = { workspace = true }
-version = { workspace = true }
+version      = { workspace = true }
 
 [dependencies]
 cds-cache = { workspace = true }
-cds-db = { workspace = true }
+cds-db    = { workspace = true }
 
-hex = { workspace = true }
-ring = { workspace = true }
-serde = { workspace = true }
+anyhow     = { workspace = true }
+biosvg     = { workspace = true }
+hex        = { workspace = true }
+nanoid     = { workspace = true }
+reqwest    = { workspace = true }
+ring       = { workspace = true }
+serde      = { workspace = true }
 serde_json = { workspace = true }
-thiserror = { workspace = true }
-anyhow = { workspace = true }
-nanoid = { workspace = true }
-reqwest = { workspace = true }
-tracing = { workspace = true }
-time = { workspace = true }
-biosvg = { workspace = true }
+thiserror  = { workspace = true }
+time       = { workspace = true }
+tracing    = { workspace = true }

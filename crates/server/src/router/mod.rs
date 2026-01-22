@@ -78,7 +78,7 @@ pub async fn router() -> Router {
     let base = cds_env::get_config()
         .observe
         .exporter
-        .is_enabled
+        .enabled
         .then(|| {
             base.clone()
                 .layer(from_fn(middleware::telemetry::track_metrics))

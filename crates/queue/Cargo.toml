@@ -1,22 +1,22 @@
 [package]
-name = "cds-queue"
+name     = "cds-queue"
 resolver = "3"
 
-authors = { workspace = true }
-edition  = { workspace = true }
-homepage = { workspace = true }
-publish = { workspace = true }
-repository = { workspace = true }
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = { workspace = true }
+repository   = { workspace = true }
 rust-version = { workspace = true }
-version = { workspace = true }
+version      = { workspace = true }
 
 [dependencies]
 cds-env = { workspace = true }
 
-tracing = { workspace = true }
-serde = { workspace = true }
-once_cell = { workspace = true }
+anyhow     = { workspace = true }
 async-nats = { workspace = true }
+once_cell  = { workspace = true }
+serde      = { workspace = true }
 serde_json = { workspace = true }
-thiserror = { workspace = true }
-anyhow = { workspace = true }
+thiserror  = { workspace = true }
+tracing    = { workspace = true }

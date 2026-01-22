@@ -1,25 +1,25 @@
 [package]
-name = "cds-media"
+name     = "cds-media"
 resolver = "3"
 
-authors = { workspace = true }
-edition  = { workspace = true }
-homepage = { workspace = true }
-publish = { workspace = true }
-repository = { workspace = true }
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = { workspace = true }
+repository   = { workspace = true }
 rust-version = { workspace = true }
-version = { workspace = true }
+version      = { workspace = true }
 
 [dependencies]
 cds-env = { workspace = true }
 
-ring = { workspace = true }
-tokio = { workspace = true }
-thiserror = { workspace = true }
-anyhow = { workspace = true }
-image = { workspace = true }
-webp = { workspace = true }
-hex = { workspace = true }
-uuid = { workspace = true }
+anyhow     = { workspace = true }
+hex        = { workspace = true }
+image      = { workspace = true }
+ring       = { workspace = true }
 rust-embed = { workspace = true }
-serde = { workspace = true }
+serde      = { workspace = true }
+thiserror  = { workspace = true }
+tokio      = { workspace = true }
+uuid       = { workspace = true }
+webp       = { workspace = true }
