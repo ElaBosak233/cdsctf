@@ -1,14 +1,19 @@
 use sea_orm::{
-    ColumnTrait, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect, RelationTrait,
+    ColumnTrait, ConnectionTrait, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect,
+    RelationTrait,
 };
 
-use crate::{entity::team::State, get_db, traits::DbError};
+use crate::{entity::team::State, traits::DbError};
 
-pub async fn is_user_in_team(user_id: i64, team_id: i64) -> Result<bool, DbError> {
+pub async fn is_user_in_team(
+    conn: &impl ConnectionTrait,
+    user_id: i64,
+    team_id: i64,
+) -> Result<bool, DbError> {
     Ok(crate::entity::team_user::Entity::find()
         .filter(crate::entity::team_user::Column::UserId.eq(user_id))
         .filter(crate::entity::team_user::Column::TeamId.eq(team_id))
-        .count(get_db())
+        .count(conn)
         .await?
         > 0)
 }
@@ -25,6 +30,7 @@ pub async fn is_user_in_team(user_id: i64, team_id: i64) -> Result<bool, DbError
 ///  WHERE u.id = ? AND t.game_id = ? AND t.is_allowed = true;
 /// ```
 pub async fn is_user_in_game(
+    conn: &impl ConnectionTrait,
     user_id: i64,
     game_id: i64,
     state: Option<State>,
@@ -41,12 +47,16 @@ pub async fn is_user_in_game(
         sql = sql.filter(crate::entity::team::Column::State.eq(state));
     }
 
-    Ok(sql.count(get_db()).await? > 0)
+    Ok(sql.count(conn).await? > 0)
 }
 
-pub async fn can_user_access_challenge(user_id: i64, challenge_id: i64) -> Result<bool, DbError> {
+pub async fn can_user_access_challenge(
+    conn: &impl ConnectionTrait,
+    user_id: i64,
+    challenge_id: i64,
+) -> Result<bool, DbError> {
     let Some(challenge) = crate::entity::challenge::Entity::find_by_id(challenge_id)
-        .one(get_db())
+        .one(conn)
         .await?
     else {
         return Ok(false);
@@ -76,7 +86,7 @@ pub async fn can_user_access_challenge(user_id: i64, challenge_id: i64) -> Resul
         .filter(crate::entity::team::Column::State.eq(State::Passed))
         .filter(crate::entity::game::Column::StartedAt.lte(now))
         .filter(crate::entity::game::Column::EndedAt.gte(now))
-        .count(get_db())
+        .count(conn)
         .await?
         > 0
     {
@@ -86,11 +96,15 @@ pub async fn can_user_access_challenge(user_id: i64, challenge_id: i64) -> Resul
     Ok(false)
 }
 
-pub async fn is_challenge_in_game(challenge_id: i64, game_id: i64) -> Result<bool, DbError> {
+pub async fn is_challenge_in_game(
+    conn: &impl ConnectionTrait,
+    challenge_id: i64,
+    game_id: i64,
+) -> Result<bool, DbError> {
     Ok(crate::entity::game_challenge::Entity::find()
         .filter(crate::entity::game_challenge::Column::GameId.eq(game_id))
         .filter(crate::entity::game_challenge::Column::ChallengeId.eq(challenge_id))
-        .count(get_db())
+        .count(conn)
         .await?
         > 0)
 }

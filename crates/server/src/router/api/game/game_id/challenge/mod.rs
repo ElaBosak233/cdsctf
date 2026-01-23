@@ -1,14 +1,18 @@
-use axum::Router;
-use cds_db::{GameChallengeMini, game_challenge::FindGameChallengeOptions, team::State};
+use std::sync::Arc;
+
+use axum::{Router, extract::State};
+use cds_db::{
+    DB, GameChallengeMini, game_challenge::FindGameChallengeOptions, team::State as TState,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Path, Query},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new().route("/", axum::routing::get(get_game_challenge))
 }
 
@@ -22,29 +26,35 @@ pub struct GetGameChallengeRequest {
 /// Get challenges by given params.
 /// - Operating time is between related game's `started_at` and `ended_at`.
 pub async fn get_game_challenge(
+    State(ref s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
 ) -> Result<WebResponse<Vec<GameChallengeMini>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let game = crate::util::loader::prepare_game(game_id).await?;
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     let now = time::OffsetDateTime::now_utc().unix_timestamp();
-    let in_game = cds_db::util::is_user_in_game(operator.id, game.id, Some(State::Passed)).await?;
+    let in_game =
+        cds_db::util::is_user_in_game(&s.db.conn, operator.id, game.id, Some(TState::Passed))
+            .await?;
 
     if !in_game || !(game.started_at..=game.ended_at).contains(&now) {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let (game_challenges, total) =
-        cds_db::game_challenge::find::<GameChallengeMini>(FindGameChallengeOptions {
+    let (game_challenges, total) = cds_db::game_challenge::find(
+        &s.db.conn,
+        FindGameChallengeOptions {
             game_id: Some(game.id),
             challenge_id: params.challenge_id,
             is_enabled: Some(true),
             category: params.category,
-        })
-        .await?;
+        },
+    )
+    .await?;
 
     Ok(WebResponse {
         data: Some(game_challenges),

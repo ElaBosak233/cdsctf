@@ -1,8 +1,9 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
 use axum::{
     Json,
     body::Body,
+    extract::FromRef,
     http::{Response, StatusCode},
     response::IntoResponse,
 };
@@ -10,6 +11,17 @@ use cds_db::User;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tracing::error;
+
+#[derive(Clone)]
+pub struct AppState {
+    pub env: cds_env::Env,
+    pub db: cds_db::DB,
+    pub cache: cds_cache::Cache,
+    pub checker: cds_checker::Checker,
+    pub captcha: cds_captcha::Captcha,
+    pub cluster: cds_cluster::Cluster,
+    pub media: cds_media::Media,
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct AuthPrincipal {

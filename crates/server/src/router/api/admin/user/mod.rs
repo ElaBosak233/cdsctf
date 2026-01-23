@@ -1,8 +1,10 @@
 mod user_id;
 
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
-    Email, User,
+    DB, Email, User,
     sea_orm::ActiveValue::Set,
     user::{FindUserOptions, Group},
 };
@@ -12,11 +14,11 @@ use validator::Validate;
 
 use crate::{
     extract::{Query, VJson},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
     util,
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_users))
         .route("/", axum::routing::post(create_user))
@@ -34,19 +36,24 @@ pub struct GetUsersRequest {
 }
 
 pub async fn get_users(
+    State(ref s): State<Arc<AppState>>,
+
     Query(params): Query<GetUsersRequest>,
 ) -> Result<WebResponse<Vec<User>>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let (users, total) = cds_db::user::find::<User>(FindUserOptions {
-        id: params.id,
-        name: params.name,
-        group: params.group,
-        sorts: params.sorts,
-        page: Some(page),
-        size: Some(size),
-    })
+    let (users, total) = cds_db::user::find(
+        &s.db.conn,
+        FindUserOptions {
+            id: params.id,
+            name: params.name,
+            group: params.group,
+            sorts: params.sorts,
+            page: Some(page),
+            size: Some(size),
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -69,29 +76,37 @@ pub struct CreateUserRequest {
 }
 
 pub async fn create_user(
+    State(ref s): State<Arc<AppState>>,
+
     VJson(mut body): VJson<CreateUserRequest>,
 ) -> Result<WebResponse<User>, WebError> {
     body.username = body.username.to_lowercase();
-    if !cds_db::user::is_username_unique(0, &body.username).await? {
+    if !cds_db::user::is_username_unique(&s.db.conn, 0, &body.username).await? {
         return Err(WebError::Conflict(json!("username_already_exists")));
     }
 
     let hashed_password = util::crypto::hash_password(body.password);
 
-    let user = cds_db::user::create::<User>(cds_db::user::ActiveModel {
-        name: Set(body.name),
-        username: Set(body.username),
-        hashed_password: Set(hashed_password),
-        group: Set(body.group),
-        ..Default::default()
-    })
+    let user = cds_db::user::create::<User>(
+        &s.db.conn,
+        cds_db::user::ActiveModel {
+            name: Set(body.name),
+            username: Set(body.username),
+            hashed_password: Set(hashed_password),
+            group: Set(body.group),
+            ..Default::default()
+        },
+    )
     .await?;
 
-    let _ = cds_db::email::create::<Email>(cds_db::email::ActiveModel {
-        user_id: Set(user.id),
-        email: Set(body.email),
-        is_verified: Set(true),
-    })
+    let _ = cds_db::email::create::<Email>(
+        &s.db.conn,
+        cds_db::email::ActiveModel {
+            user_id: Set(user.id),
+            email: Set(body.email),
+            is_verified: Set(true),
+        },
+    )
     .await?;
 
     Ok(WebResponse {

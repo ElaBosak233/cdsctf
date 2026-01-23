@@ -1,8 +1,10 @@
 mod game_id;
 
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
-    Game,
+    DB, Game,
     game::FindGameOptions,
     sea_orm::ActiveValue::{NotSet, Set},
 };
@@ -11,10 +13,10 @@ use validator::Validate;
 
 use crate::{
     extract::{Query, VJson},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_games))
         .route("/", axum::routing::post(create_game))
@@ -32,19 +34,24 @@ pub struct GetGameRequest {
 }
 
 pub async fn get_games(
+    State(s): State<Arc<AppState>>,
+
     Query(params): Query<GetGameRequest>,
 ) -> Result<WebResponse<Vec<Game>>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let (games, total) = cds_db::game::find::<Game>(FindGameOptions {
-        id: params.id,
-        title: params.title,
-        is_enabled: params.is_enabled,
-        page: Some(page),
-        size: Some(size),
-        sorts: params.sorts,
-    })
+    let (games, total) = cds_db::game::find(
+        &s.db.conn,
+        FindGameOptions {
+            id: params.id,
+            title: params.title,
+            is_enabled: params.is_enabled,
+            page: Some(page),
+            size: Some(size),
+            sorts: params.sorts,
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -71,26 +78,31 @@ pub struct CreateGameRequest {
 }
 
 pub async fn create_game(
+    State(s): State<Arc<AppState>>,
+
     VJson(body): VJson<CreateGameRequest>,
 ) -> Result<WebResponse<Game>, WebError> {
-    let game = cds_db::game::create(cds_db::game::ActiveModel {
-        title: Set(body.title),
-        sketch: Set(body.sketch),
-        description: Set(body.description),
+    let game = cds_db::game::create(
+        &s.db.conn,
+        cds_db::game::ActiveModel {
+            title: Set(body.title),
+            sketch: Set(body.sketch),
+            description: Set(body.description),
 
-        is_enabled: Set(body.is_enabled.unwrap_or(false)),
-        is_public: Set(body.is_public.unwrap_or(false)),
-        is_need_write_up: Set(body.is_need_write_up.unwrap_or(false)),
+            is_enabled: Set(body.is_enabled.unwrap_or(false)),
+            is_public: Set(body.is_public.unwrap_or(false)),
+            is_need_write_up: Set(body.is_need_write_up.unwrap_or(false)),
 
-        member_limit_min: body.member_limit_min.map_or(NotSet, Set),
-        member_limit_max: body.member_limit_max.map_or(NotSet, Set),
+            member_limit_min: body.member_limit_min.map_or(NotSet, Set),
+            member_limit_max: body.member_limit_max.map_or(NotSet, Set),
 
-        timeslots: Set(body.timeslots.unwrap_or(vec![])),
-        started_at: Set(body.started_at),
-        ended_at: Set(body.ended_at),
-        frozen_at: Set(body.ended_at),
-        ..Default::default()
-    })
+            timeslots: Set(body.timeslots.unwrap_or(vec![])),
+            started_at: Set(body.started_at),
+            ended_at: Set(body.ended_at),
+            frozen_at: Set(body.ended_at),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {

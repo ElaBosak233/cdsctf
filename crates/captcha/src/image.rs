@@ -1,9 +1,9 @@
-use crate::{Answer, Captcha, traits::CaptchaError};
+use crate::{Answer, Captcha, CaptchaChallenge, traits::CaptchaError};
 
-pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
+pub(crate) async fn generate(c: &Captcha) -> Result<CaptchaChallenge, CaptchaError> {
     let (answer, challenge) = biosvg::BiosvgBuilder::new()
         .length(4)
-        .difficulty(cds_db::get_config().await.captcha.difficulty as u16)
+        .difficulty(cds_db::get_config(&c.db.conn).await.captcha.difficulty as u16)
         .colors(vec![
             "#0078D6".to_string(),
             "#aa3333".to_string(),
@@ -16,27 +16,31 @@ pub(crate) async fn generate() -> Result<Captcha, CaptchaError> {
         .map_err(|_err| CaptchaError::BiosvgError)?;
     let id = nanoid::nanoid!();
 
-    let captcha = Captcha {
+    let captcha = CaptchaChallenge {
         id,
         challenge,
         criteria: Some(answer),
     };
 
-    cds_cache::set_ex(format!("captcha:image:{}", &captcha.id), &captcha, 5 * 60).await?;
+    c.cache
+        .set_ex(format!("captcha:image:{}", &captcha.id), &captcha, 5 * 60)
+        .await?;
 
     Ok(captcha)
 }
 
-pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
-    let captcha = cds_cache::get_del::<Captcha>(format!(
-        "captcha:image:{}",
-        answer
-            .id
-            .clone()
-            .ok_or(CaptchaError::MissingField("id".to_owned()))?
-    ))
-    .await?
-    .ok_or(CaptchaError::Gone)?;
+pub(crate) async fn check(c: &Captcha, answer: &Answer) -> Result<bool, CaptchaError> {
+    let captcha = c
+        .cache
+        .get_del::<CaptchaChallenge>(format!(
+            "captcha:image:{}",
+            answer
+                .id
+                .clone()
+                .ok_or(CaptchaError::MissingField("id".to_owned()))?
+        ))
+        .await?
+        .ok_or(CaptchaError::Gone)?;
 
     let criteria = captcha
         .criteria

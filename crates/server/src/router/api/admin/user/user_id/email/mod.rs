@@ -1,4 +1,6 @@
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
     Email,
     sea_orm::ActiveValue::{Set, Unchanged},
@@ -9,20 +11,24 @@ use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_email))
         .route("/", axum::routing::post(add_email))
-        .route("/{email}", axum::routing::put(update_email))
-        .route("/{email}", axum::routing::delete(delete_email))
+        .route("/{mailbox}", axum::routing::put(update_email))
+        .route("/{mailbox}", axum::routing::delete(delete_email))
 }
 
-pub async fn get_email(Path(user_id): Path<i64>) -> Result<WebResponse<Vec<Email>>, WebError> {
-    crate::util::loader::prepare_user(user_id).await?;
-    let emails = cds_db::email::find_by_user_id::<Email>(user_id).await?;
+pub async fn get_email(
+    State(ref s): State<Arc<AppState>>,
+
+    Path(user_id): Path<i64>,
+) -> Result<WebResponse<Vec<Email>>, WebError> {
+    crate::util::loader::prepare_user(&s.db.conn, user_id).await?;
+    let emails = cds_db::email::find_by_user_id(&s.db.conn, user_id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -39,27 +45,32 @@ pub struct AddEmailRequest {
 }
 
 pub async fn add_email(
+    State(ref s): State<Arc<AppState>>,
+
     Path(user_id): Path<i64>,
     VJson(body): VJson<AddEmailRequest>,
 ) -> Result<WebResponse<Email>, WebError> {
-    let user = crate::util::loader::prepare_user(user_id).await?;
+    let user = crate::util::loader::prepare_user(&s.db.conn, user_id).await?;
     let email = body.email.to_lowercase();
 
-    if cds_db::email::find_by_email::<Email>(email.to_owned())
+    if cds_db::email::find_by_email::<Email>(&s.db.conn, email.to_owned())
         .await?
         .is_some()
     {
         return Err(WebError::Conflict(json!("email_already_exists")));
     }
 
-    let config = cds_db::get_config().await;
+    let config = cds_db::get_config(&s.db.conn).await;
     let is_verified = body.is_verified.unwrap_or(!config.email.is_enabled);
 
-    let email = cds_db::email::create::<Email>(cds_db::email::ActiveModel {
-        user_id: Set(user.id),
-        email: Set(email),
-        is_verified: Set(is_verified),
-    })
+    let email = cds_db::email::create(
+        &s.db.conn,
+        cds_db::email::ActiveModel {
+            user_id: Set(user.id),
+            email: Set(email),
+            is_verified: Set(is_verified),
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -75,10 +86,12 @@ pub struct UpdateEmailRequest {
 }
 
 pub async fn update_email(
+    State(ref s): State<Arc<AppState>>,
+
     Path((user_id, email)): Path<(i64, String)>,
     VJson(body): VJson<UpdateEmailRequest>,
 ) -> Result<WebResponse<Email>, WebError> {
-    let email = cds_db::email::find_by_email::<Email>(email.to_lowercase())
+    let email = cds_db::email::find_by_email::<Email>(&s.db.conn, email.to_lowercase())
         .await?
         .ok_or(WebError::NotFound(json!("email_not_found")))?;
 
@@ -90,12 +103,15 @@ pub async fn update_email(
         .is_verified
         .ok_or(WebError::BadRequest(json!("missing_fields")))?;
 
-    let email = cds_db::email::update::<Email>(cds_db::email::ActiveModel {
-        email: Unchanged(email.email.to_owned()),
-        user_id: Unchanged(email.user_id),
-        is_verified: Set(is_verified),
-        ..Default::default()
-    })
+    let email = cds_db::email::update(
+        &s.db.conn,
+        cds_db::email::ActiveModel {
+            email: Unchanged(email.email.to_owned()),
+            user_id: Unchanged(email.user_id),
+            is_verified: Set(is_verified),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -106,10 +122,12 @@ pub async fn update_email(
 }
 
 pub async fn delete_email(
+    State(ref s): State<Arc<AppState>>,
+
     Path((user_id, email)): Path<(i64, String)>,
 ) -> Result<WebResponse<()>, WebError> {
-    crate::util::loader::prepare_user(user_id).await?;
-    cds_db::email::delete(user_id, email.to_lowercase()).await?;
+    crate::util::loader::prepare_user(&s.db.conn, user_id).await?;
+    cds_db::email::delete(&s.db.conn, user_id, email.to_lowercase()).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

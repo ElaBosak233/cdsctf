@@ -1,3 +1,4 @@
+use cds_env::Env;
 use opentelemetry_sdk::Resource;
 
 use crate::traits::ObserveError;
@@ -6,26 +7,26 @@ pub mod logger;
 pub mod meter;
 pub mod tracer;
 
-pub(crate) fn get_resource() -> Resource {
+pub(crate) fn get_resource(env: &Env) -> Resource {
     Resource::builder()
-        .with_service_name(cds_env::get_config().observe.service_name.clone())
+        .with_service_name(env.observe.service_name.clone())
         .build()
 }
 
-pub fn init() -> Result<(), ObserveError> {
-    if !cds_env::get_config().observe.exporter.enabled {
+pub fn init(env: &Env) -> Result<(), ObserveError> {
+    if !env.observe.exporter.enabled {
         return Ok(());
     }
 
-    logger::init()?;
-    meter::init()?;
-    tracer::init()?;
+    logger::init(env)?;
+    meter::init(env)?;
+    tracer::init(env)?;
 
     Ok(())
 }
 
-pub async fn shutdown() -> Result<(), ObserveError> {
-    if !cds_env::get_config().observe.exporter.enabled {
+pub async fn shutdown(env: &Env) -> Result<(), ObserveError> {
+    if !env.observe.exporter.enabled {
         return Ok(());
     }
 

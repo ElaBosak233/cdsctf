@@ -1,9 +1,11 @@
 use std::path::PathBuf;
 
+use cds_env::Env;
+
 use crate::traits::MediaError;
 
-pub async fn get_root_path(challenge_id: i64) -> Result<PathBuf, MediaError> {
-    let filepath = PathBuf::from(&cds_env::get_config().media.path)
+pub async fn get_root_path(env: &Env, challenge_id: i64) -> Result<PathBuf, MediaError> {
+    let filepath = PathBuf::from(&env.media.path)
         .join("challenges")
         .join(challenge_id.to_string());
 

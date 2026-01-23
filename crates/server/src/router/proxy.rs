@@ -1,13 +1,17 @@
+use std::sync::Arc;
+
 use axum::Router;
 use tower_http::services::ServeFile;
 
-pub fn router() -> Router {
+use crate::traits::AppState;
+
+pub fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
     Router::new().fallback_service(
-        tower_http::services::ServeDir::new(&cds_env::get_config().server.frontend)
+        tower_http::services::ServeDir::new(&state.env.server.frontend)
             .precompressed_gzip()
             .not_found_service(ServeFile::new(format!(
                 "{}/index.html",
-                cds_env::get_config().server.frontend
+                state.env.server.frontend
             ))),
     )
 }

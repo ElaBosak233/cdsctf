@@ -1,16 +1,18 @@
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
-    Submission,
+    DB, Submission,
     submission::{FindSubmissionsOptions, Status},
 };
 use serde::{Deserialize, Serialize};
 
 use crate::{
     extract::{Path, Query},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_submissions))
         .route("/{submission_id}", axum::routing::delete(delete_submission))
@@ -29,22 +31,27 @@ pub struct GetSubmissionsRequest {
 }
 
 pub async fn get_submissions(
+    State(s): State<Arc<AppState>>,
+
     Query(params): Query<GetSubmissionsRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).max(100);
 
-    let (submissions, total) = cds_db::submission::find::<Submission>(FindSubmissionsOptions {
-        id: params.id,
-        user_id: params.user_id,
-        team_id: Some(params.team_id),
-        game_id: Some(params.game_id),
-        challenge_id: params.challenge_id,
-        status: params.status,
-        page: Some(page),
-        size: Some(size),
-        ..Default::default()
-    })
+    let (submissions, total) = cds_db::submission::find(
+        &s.db.conn,
+        FindSubmissionsOptions {
+            id: params.id,
+            user_id: params.user_id,
+            team_id: Some(params.team_id),
+            game_id: Some(params.game_id),
+            challenge_id: params.challenge_id,
+            status: params.status,
+            page: Some(page),
+            size: Some(size),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -56,9 +63,11 @@ pub async fn get_submissions(
 }
 
 pub async fn delete_submission(
+    State(s): State<Arc<AppState>>,
+
     Path(submission_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
-    cds_db::submission::delete(submission_id).await?;
+    cds_db::submission::delete(&s.db.conn, submission_id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

@@ -1,20 +1,26 @@
 mod container;
 
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 
 use crate::{
     extract::Path,
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/stop", axum::routing::post(stop_pod))
         .nest("/containers", container::router())
 }
 
-pub async fn stop_pod(Path(pod_id): Path<String>) -> Result<WebResponse<()>, WebError> {
-    let pod = cds_cluster::get_pod(&pod_id).await?;
+pub async fn stop_pod(
+    State(s): State<Arc<AppState>>,
+
+    Path(pod_id): Path<String>,
+) -> Result<WebResponse<()>, WebError> {
+    let pod = s.cluster.get_pod(&pod_id).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
@@ -22,7 +28,7 @@ pub async fn stop_pod(Path(pod_id): Path<String>) -> Result<WebResponse<()>, Web
         .map(|s| s.to_string())
         .unwrap_or_default();
 
-    cds_cluster::delete_challenge_env(&id).await?;
+    s.cluster.delete_challenge_env(&id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

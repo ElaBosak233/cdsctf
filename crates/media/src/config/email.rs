@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use serde::{Deserialize, Serialize};
 
-use crate::traits::MediaError;
+use crate::{Media, traits::MediaError};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -26,16 +26,35 @@ impl Display for EmailType {
     }
 }
 
-pub async fn get_email(email_type: EmailType) -> Result<String, MediaError> {
-    let data = crate::get("configs/emails".to_owned(), format!("{email_type}.html")).await?;
-    Ok(String::from_utf8_lossy(&data).parse().unwrap_or_default())
+#[derive(Clone)]
+pub struct Email<'a> {
+    pub media: &'a Media,
 }
 
-pub async fn save_email(email_type: EmailType, content: String) -> Result<(), MediaError> {
-    crate::save(
-        "configs/emails".to_owned(),
-        format!("{email_type}.html"),
-        content.as_bytes().to_vec(),
-    )
-    .await
+impl<'a> Email<'a> {
+    pub(crate) fn new(media: &'a Media) -> Self {
+        Self { media }
+    }
+
+    pub async fn get_email(&self, email_type: EmailType) -> Result<String, MediaError> {
+        let data = self
+            .media
+            .get("configs/emails".to_owned(), format!("{email_type}.html"))
+            .await?;
+        Ok(String::from_utf8_lossy(&data).parse().unwrap_or_default())
+    }
+
+    pub async fn save_email(
+        &self,
+        email_type: EmailType,
+        content: String,
+    ) -> Result<(), MediaError> {
+        self.media
+            .save(
+                "configs/emails".to_owned(),
+                format!("{email_type}.html"),
+                content.as_bytes().to_vec(),
+            )
+            .await
+    }
 }

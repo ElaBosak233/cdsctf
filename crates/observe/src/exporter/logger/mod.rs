@@ -1,3 +1,4 @@
+use cds_env::Env;
 use once_cell::sync::OnceCell;
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
 use opentelemetry_otlp::{Compression, LogExporter, Protocol, WithExportConfig, WithHttpConfig};
@@ -22,8 +23,8 @@ pub fn get_tracing_layer()
     Ok(bridge)
 }
 
-pub fn init() -> Result<(), ObserveError> {
-    let log_ep = cds_env::get_config()
+pub fn init(env: &Env) -> Result<(), ObserveError> {
+    let log_ep = env
         .observe
         .exporter
         .log_endpoint
@@ -31,8 +32,7 @@ pub fn init() -> Result<(), ObserveError> {
         .filter(|s| !s.is_empty())
         .map(|s| s.to_string())
         .or_else(|| {
-            cds_env::get_config()
-                .observe
+            env.observe
                 .exporter
                 .endpoint
                 .as_deref()
@@ -54,7 +54,7 @@ pub fn init() -> Result<(), ObserveError> {
 
     let logger_provider = SdkLoggerProvider::builder()
         .with_batch_exporter(log_exporter)
-        .with_resource(super::get_resource())
+        .with_resource(super::get_resource(env))
         .build();
 
     PROVIDER.set(logger_provider).ok();

@@ -1,31 +1,35 @@
 mod attachment;
 
-use axum::{Router, http::StatusCode};
-use cds_db::Challenge;
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
+use cds_db::{Challenge, DB};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_challenge))
         .nest("/attachments", attachment::router())
 }
 
 pub async fn get_challenge(
+    State(ref s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
 ) -> Result<WebResponse<Challenge>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = crate::util::loader::prepare_challenge(challenge_id)
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
         .await?
         .desensitize();
 
-    if !cds_db::util::can_user_access_challenge(operator.id, challenge.id).await? {
+    if !cds_db::util::can_user_access_challenge(&s.db.conn, operator.id, challenge.id).await? {
         return Err(WebError::Forbidden(json!("")));
     }
 

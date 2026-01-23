@@ -22,7 +22,7 @@ impl MigrationTrait for Migration {
                     "id" BIGSERIAL PRIMARY KEY,
                     "meta" JSONB,
                     "auth" JSONB,
-                    "email" JSONB,
+                    "mailbox" JSONB,
                     "captcha" JSONB
                 );
             "#

@@ -2,6 +2,7 @@ pub mod traits;
 
 use anyhow::anyhow;
 pub use async_nats;
+use cds_env::Env;
 use once_cell::sync::OnceCell;
 use serde::Serialize;
 use tracing::info;
@@ -63,19 +64,12 @@ pub async fn subscribe(
     Ok(messages)
 }
 
-pub async fn init() -> Result<(), QueueError> {
+pub async fn init(env: &Env) -> Result<(), QueueError> {
     let client = async_nats::ConnectOptions::new()
-        .require_tls(cds_env::get_config().queue.tls)
-        .user_and_password(
-            cds_env::get_config().queue.username.clone(),
-            cds_env::get_config().queue.password.clone(),
-        )
-        .token(cds_env::get_config().queue.token.clone())
-        .connect(format!(
-            "{}:{}",
-            cds_env::get_config().queue.host,
-            cds_env::get_config().queue.port
-        ))
+        .require_tls(env.queue.tls)
+        .user_and_password(env.queue.username.clone(), env.queue.password.clone())
+        .token(env.queue.token.clone())
+        .connect(format!("{}:{}", env.queue.host, env.queue.port))
         .await?;
     CLIENT
         .set(client)

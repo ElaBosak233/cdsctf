@@ -1,9 +1,10 @@
 use cds_cluster::{k8s_openapi::api::core::v1::Pod, traits::Nat};
 use cds_db::challenge::Port;
+use cds_env::Env;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Env {
+pub struct DynamicEnvironment {
     pub id: String,
     pub user_id: i64,
     pub team_id: i64,
@@ -22,7 +23,14 @@ pub struct Env {
     pub started_at: i64,
 }
 
-impl From<Pod> for Env {
+impl DynamicEnvironment {
+    pub fn with_env(mut self, env: &Env) -> Self {
+        self.public_entry = Some(env.cluster.public_entry.clone());
+        self
+    }
+}
+
+impl From<Pod> for DynamicEnvironment {
     fn from(pod: Pod) -> Self {
         let labels = pod.metadata.labels.unwrap_or_default();
 
@@ -120,15 +128,13 @@ impl From<Pod> for Env {
 
         // SAFETY: the creation_timestamp could be safely unwrapped.
         let started_at = pod.metadata.creation_timestamp.unwrap().0.as_second();
-        let public_entry = Some(cds_env::get_config().cluster.public_entry.to_owned());
 
-        Env {
+        DynamicEnvironment {
             id,
             user_id,
             team_id,
             game_id,
             challenge_id,
-            public_entry,
             ports,
             nats,
             status,
@@ -136,6 +142,7 @@ impl From<Pod> for Env {
             renew,
             duration,
             started_at,
+            public_entry: None,
         }
     }
 }

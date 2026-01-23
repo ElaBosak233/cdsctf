@@ -1,11 +1,12 @@
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, PaginatorTrait, QueryFilter,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
+    QueryFilter,
 };
 use serde::{Deserialize, Serialize};
 
 pub(crate) use crate::entity::game_challenge::Entity;
 pub use crate::entity::game_challenge::{ActiveModel, Column, Model, Relation};
-use crate::{get_db, traits::DbError};
+use crate::traits::DbError;
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -43,6 +44,7 @@ pub struct FindGameChallengeOptions {
 }
 
 pub async fn find<T>(
+    conn: &impl ConnectionTrait,
     FindGameChallengeOptions {
         game_id,
         challenge_id,
@@ -69,35 +71,39 @@ where
         sql = sql.filter(super::challenge::Column::Category.eq(category));
     }
 
-    let total = sql.clone().count(get_db()).await?;
+    let total = sql.clone().count(conn).await?;
 
-    let game_challenges = sql.into_model::<T>().all(get_db()).await?;
+    let game_challenges = sql.into_model::<T>().all(conn).await?;
 
     Ok((game_challenges, total))
 }
 
-pub async fn find_by_id<T>(game_id: i64, challenge_id: i64) -> Result<Option<T>, DbError>
+pub async fn find_by_id<T>(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+    challenge_id: i64,
+) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::base_find()
         .filter(Column::GameId.eq(game_id))
         .filter(Column::ChallengeId.eq(challenge_id))
         .into_model::<T>()
-        .one(get_db())
+        .one(conn)
         .await?)
 }
 
-pub async fn count() -> Result<u64, DbError> {
-    Ok(Entity::find().count(get_db()).await?)
+pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
+    Ok(Entity::find().count(conn).await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
+pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
-    let game_challenge = model.insert(get_db()).await?;
+    let game_challenge = model.insert(conn).await?;
 
     Ok(
-        find_by_id::<T>(game_challenge.game_id, game_challenge.challenge_id)
+        find_by_id::<T>(conn, game_challenge.game_id, game_challenge.challenge_id)
             .await?
             .ok_or_else(|| {
                 DbError::NotFound(format!(
@@ -108,13 +114,13 @@ where
     )
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
+pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
-    let game_challenge = model.update(get_db()).await?;
+    let game_challenge = model.update(conn).await?;
 
     Ok(
-        find_by_id::<T>(game_challenge.game_id, game_challenge.challenge_id)
+        find_by_id::<T>(conn, game_challenge.game_id, game_challenge.challenge_id)
             .await?
             .ok_or_else(|| {
                 DbError::NotFound(format!(
@@ -125,11 +131,15 @@ where
     )
 }
 
-pub async fn delete(game_id: i64, challenge_id: i64) -> Result<(), DbError> {
+pub async fn delete(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+    challenge_id: i64,
+) -> Result<(), DbError> {
     Entity::delete_many()
         .filter(Column::GameId.eq(game_id))
         .filter(Column::ChallengeId.eq(challenge_id))
-        .exec(get_db())
+        .exec(conn)
         .await?;
 
     Ok(())

@@ -2,13 +2,13 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
-pub struct Captcha {
+pub struct CaptchaChallenge {
     pub id: String,
     pub challenge: String,
     pub criteria: Option<String>,
 }
 
-impl Captcha {
+impl CaptchaChallenge {
     pub fn desensitize(self) -> Self {
         Self {
             criteria: None,

@@ -1,8 +1,8 @@
-use std::net::SocketAddr;
+use std::{net::SocketAddr, ops::Deref, sync::Arc};
 
 use anyhow::anyhow;
-use axum::http::HeaderValue;
-use cds_server::{router::router, worker};
+use axum::{ServiceExt, http::HeaderValue};
+use cds_server::{router::router, traits::AppState, worker};
 use mimalloc::MiMalloc;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
@@ -12,49 +12,8 @@ static GLOBAL: MiMalloc = MiMalloc;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    bootstrap().await?;
-
-    let cors = CorsLayer::new()
-        .allow_methods(Any)
-        .allow_headers(Any)
-        .allow_origin(
-            cds_env::get_config()
-                .server
-                .cors_origins
-                .parse::<HeaderValue>()?,
-        );
-
-    let router = router().await.layer(cors);
-
-    worker::init().await?;
-
-    let addr = format!(
-        "{}:{}",
-        cds_env::get_config().server.host,
-        cds_env::get_config().server.port
-    );
-    let listener = tokio::net::TcpListener::bind(&addr).await?;
-
-    info!(
-        "CdsCTF service has been started at {}. Enjoy your hacking challenges!",
-        &addr
-    );
-
-    axum::serve(
-        listener,
-        router
-            .to_owned()
-            .into_make_service_with_connect_info::<SocketAddr>(),
-    )
-    .with_graceful_shutdown(shutdown())
-    .await?;
-
-    Ok(())
-}
-
-async fn bootstrap() -> Result<(), anyhow::Error> {
-    cds_env::init().await?;
-    cds_observe::init().await?;
+    let env = cds_env::init().await?;
+    cds_observe::init(&env).await?;
 
     let banner = cds_assets::get("banner.txt").unwrap_or_default();
 
@@ -70,21 +29,63 @@ async fn bootstrap() -> Result<(), anyhow::Error> {
         .install_default()
         .map_err(|_| anyhow!("Failed to install `ring` as default crypto provider."))?;
 
-    cds_media::init().await?;
-    cds_queue::init().await?;
-    cds_cache::init().await?;
-    cds_db::init().await?;
+    let media = cds_media::init(&env).await?;
+    cds_queue::init(&env).await?;
+    let cache = cds_cache::init(&env).await?;
+    let db = cds_db::init(&env).await?;
 
-    cds_migrator::run().await?;
-
-    cds_cluster::init().await?;
+    cds_migrator::run(&db).await?;
     cds_engine::init().await?;
-    cds_email::init().await?;
+    let checker = cds_checker::init(&media)?;
+
+    let cluster = cds_cluster::init(&env, &checker).await?;
+
+    cds_mailbox::init(&db).await?;
+    let captcha = cds_captcha::init(&db, &cache)?;
+
+    let cors = CorsLayer::new()
+        .allow_methods(Any)
+        .allow_headers(Any)
+        .allow_origin(env.server.cors_origins.parse::<HeaderValue>()?);
+
+    let state = Arc::from(AppState {
+        env: env.clone(),
+        db,
+        cache,
+        checker,
+        captcha,
+        cluster,
+        media,
+    });
+
+    worker::init(Arc::clone(&state)).await?;
+
+    let router = router(Arc::clone(&state))
+        .await
+        .layer(cors)
+        .with_state(Arc::clone(&state));
+
+    let addr = format!("{}:{}", env.server.host, env.server.port);
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
+
+    info!(
+        "CdsCTF service has been started at {}. Enjoy your hacking challenges!",
+        &addr
+    );
+
+    axum::serve(
+        listener,
+        router
+            .to_owned()
+            .into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown(Arc::clone(&state)))
+    .await?;
 
     Ok(())
 }
 
-async fn shutdown() {
+async fn shutdown(state: Arc<AppState>) {
     let ctrl_c = async {
         tokio::signal::ctrl_c()
             .await
@@ -115,7 +116,7 @@ async fn shutdown() {
         .await
         .expect("Failed to shutdown queue.");
 
-    cds_observe::shutdown()
+    cds_observe::shutdown(&state.env)
         .await
         .expect("Failed to shutdown observability.");
 

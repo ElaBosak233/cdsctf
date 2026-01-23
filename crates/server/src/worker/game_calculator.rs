@@ -4,10 +4,10 @@
 use std::{collections::HashMap, sync::Arc};
 
 use cds_db::{
-    Game, GameChallenge, Submission,
+    DB, Game, GameChallenge, Submission,
     game::FindGameOptions,
     game_challenge::FindGameChallengeOptions,
-    sea_orm::{Set, Unchanged},
+    sea_orm::{DatabaseConnection, Set, Unchanged},
     submission::{FindSubmissionsOptions, Status},
     team::{FindTeamOptions, State, Team},
 };
@@ -15,14 +15,19 @@ use futures_util::{StreamExt as _, future::join_all};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
-async fn calculate(game_id: i64) -> Result<(), anyhow::Error> {
+use crate::traits::AppState;
+
+async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
     let submissions = async || -> Result<Vec<Submission>, anyhow::Error> {
-        let (submissions, _) = cds_db::submission::find::<Submission>(FindSubmissionsOptions {
-            game_id: Some(Some(game_id)),
-            status: Some(Status::Correct),
-            sorts: Some("created_at".to_string()),
-            ..Default::default()
-        })
+        let (submissions, _) = cds_db::submission::find(
+            &db.conn,
+            FindSubmissionsOptions {
+                game_id: Some(Some(game_id)),
+                status: Some(Status::Correct),
+                sorts: Some("created_at".to_string()),
+                ..Default::default()
+            },
+        )
         .await?;
 
         Ok(submissions)
@@ -35,82 +40,90 @@ async fn calculate(game_id: i64) -> Result<(), anyhow::Error> {
 
     let sc = Arc::new(sc);
 
-    let (game_challenges, _) =
-        cds_db::game_challenge::find::<GameChallenge>(FindGameChallengeOptions {
+    let (game_challenges, _) = cds_db::game_challenge::find(
+        &db.conn,
+        FindGameChallengeOptions {
             game_id: Some(game_id),
             ..Default::default()
-        })
-        .await?;
+        },
+    )
+    .await?;
 
-    let futures = game_challenges.into_iter().map(|game_challenge| {
-        let sc = Arc::clone(&sc);
-        async move {
-            let challenge_submissions = sc
-                .get(&game_challenge.challenge_id)
-                .cloned()
-                .unwrap_or_default();
+    let futures = game_challenges
+        .into_iter()
+        .map(|game_challenge: GameChallenge| {
+            let sc = Arc::clone(&sc);
+            async move {
+                let challenge_submissions = sc
+                    .get(&game_challenge.challenge_id)
+                    .cloned()
+                    .unwrap_or_default();
 
-            let base_pts = crate::util::math::curve(
-                game_challenge.max_pts,
-                game_challenge.min_pts,
-                game_challenge.difficulty,
-                challenge_submissions.len() as i64,
-            );
+                let base_pts = crate::util::math::curve(
+                    game_challenge.max_pts,
+                    game_challenge.min_pts,
+                    game_challenge.difficulty,
+                    challenge_submissions.len() as i64,
+                );
 
-            let futures = challenge_submissions
-                .iter()
-                .enumerate()
-                .map(|(rank, submission)| {
-                    let bonus = game_challenge.bonus_ratios.get(rank).cloned().unwrap_or(0);
-                    let pts = base_pts * (100 + bonus) / 100;
+                let futures = challenge_submissions
+                    .iter()
+                    .enumerate()
+                    .map(|(rank, submission)| {
+                        let bonus = game_challenge.bonus_ratios.get(rank).cloned().unwrap_or(0);
+                        let pts = base_pts * (100 + bonus) / 100;
 
-                    async move {
-                        let model = cds_db::submission::ActiveModel {
-                            id: Unchanged(submission.id),
-                            pts: Set(pts),
-                            rank: Set(rank as i64 + 1),
-                            ..Default::default()
-                        };
-                        let _ = cds_db::submission::update::<Submission>(model)
-                            .await
-                            .map_err(|e| error!("{:?}", e));
-                    }
-                });
+                        async move {
+                            let model = cds_db::submission::ActiveModel {
+                                id: Unchanged(submission.id),
+                                pts: Set(pts),
+                                rank: Set(rank as i64 + 1),
+                                ..Default::default()
+                            };
+                            let _ = cds_db::submission::update::<Submission>(&db.conn, model)
+                                .await
+                                .map_err(|e| error!("{:?}", e));
+                        }
+                    });
 
-            join_all(futures).await;
+                join_all(futures).await;
 
-            let pts = base_pts
-                * (100
-                    + game_challenge
-                        .bonus_ratios
-                        .get(challenge_submissions.len())
-                        .unwrap_or(&0))
-                / 100;
+                let pts = base_pts
+                    * (100
+                        + game_challenge
+                            .bonus_ratios
+                            .get(challenge_submissions.len())
+                            .unwrap_or(&0))
+                    / 100;
 
-            if pts == game_challenge.pts {
-                return;
+                if pts == game_challenge.pts {
+                    return;
+                }
+
+                let _ = cds_db::game_challenge::update::<GameChallenge>(
+                    &db.conn,
+                    cds_db::game_challenge::ActiveModel {
+                        game_id: Unchanged(game_challenge.game_id),
+                        challenge_id: Unchanged(game_challenge.challenge_id),
+                        pts: Set(pts),
+                        ..Default::default()
+                    },
+                )
+                .await
+                .map_err(|e| error!("{:?}", e));
             }
-
-            let _ = cds_db::game_challenge::update::<GameChallenge>(
-                cds_db::game_challenge::ActiveModel {
-                    game_id: Unchanged(game_challenge.game_id),
-                    challenge_id: Unchanged(game_challenge.challenge_id),
-                    pts: Set(pts),
-                    ..Default::default()
-                },
-            )
-            .await
-            .map_err(|e| error!("{:?}", e));
-        }
-    });
+        });
 
     join_all(futures).await;
 
-    let (mut teams, _) = cds_db::team::find::<Team>(FindTeamOptions {
-        game_id: Some(game_id),
-        state: Some(State::Passed),
-        ..Default::default()
-    })
+    let (mut teams, _) = cds_db::team::find::<Team>(
+        &db.conn,
+        FindTeamOptions {
+            game_id: Some(game_id),
+            state: Some(State::Passed),
+            ..Default::default()
+        },
+    )
     .await?;
 
     let mut team_score_map: HashMap<i64, (i64, Option<i64>)> = HashMap::new();
@@ -140,7 +153,7 @@ async fn calculate(game_id: i64) -> Result<(), anyhow::Error> {
                 ..Default::default()
             };
 
-            let _ = cds_db::team::update::<Team>(team_model)
+            let _ = cds_db::team::update::<Team>(&db.conn, team_model)
                 .await
                 .map_err(|e| error!("{:?}", e));
         }
@@ -156,18 +169,19 @@ pub struct Payload {
     pub game_id: Option<i64>,
 }
 
-async fn process_messages() -> Result<(), anyhow::Error> {
+async fn process_messages(s: Arc<AppState>) -> Result<(), anyhow::Error> {
     let mut messages = cds_queue::subscribe("calculator", None).await?;
     while let Some(Ok(message)) = messages.next().await {
         let payload = String::from_utf8(message.payload.to_vec())?;
         let calculator_payload = serde_json::from_str::<Payload>(&payload)?;
 
         if let Some(game_id) = calculator_payload.game_id {
-            calculate(game_id).await?;
+            calculate(&s.db, game_id).await?;
         } else {
-            let (games, _) = cds_db::game::find::<Game>(FindGameOptions::default()).await?;
+            let (games, _) =
+                cds_db::game::find::<Game>(&s.db.conn, FindGameOptions::default()).await?;
             for game in games {
-                calculate(game.id).await?;
+                calculate(&s.db, game.id).await?;
             }
         }
 
@@ -177,9 +191,9 @@ async fn process_messages() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-pub async fn init() {
+pub async fn init(s: Arc<AppState>) {
     tokio::spawn(async move {
-        if let Err(err) = process_messages().await {
+        if let Err(err) = process_messages(s.clone()).await {
             error!("{:?}", err);
         }
     });

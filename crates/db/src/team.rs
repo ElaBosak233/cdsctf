@@ -1,15 +1,15 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, JoinType, Order, PaginatorTrait,
-    QueryFilter, QueryOrder, QuerySelect, RelationTrait,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, JoinType, Order,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
 };
 use serde::{Deserialize, Serialize};
 
 pub use super::team_user::find_teams as find_by_user_id;
 pub use crate::entity::team::{ActiveModel, Model, State};
 pub(crate) use crate::entity::team::{Column, Entity};
-use crate::{get_db, traits::DbError};
+use crate::traits::DbError;
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -54,6 +54,7 @@ pub struct FindTeamOptions {
 }
 
 pub async fn find<T>(
+    conn: &impl ConnectionTrait,
     FindTeamOptions {
         id,
         name,
@@ -99,7 +100,7 @@ where
             .filter(super::team_user::Column::UserId.eq(user_id))
     }
 
-    let total = sql.clone().count(get_db()).await?;
+    let total = sql.clone().count(conn).await?;
 
     if let Some(sorts) = sorts {
         let sorts = sorts.split(",").collect::<Vec<&str>>();
@@ -121,43 +122,47 @@ where
         sql = sql.offset(offset).limit(size);
     }
 
-    let teams = sql.into_model::<T>().all(get_db()).await?;
+    let teams = sql.into_model::<T>().all(conn).await?;
 
     Ok((teams, total))
 }
 
-pub async fn find_by_id<T>(team_id: i64, game_id: i64) -> Result<Option<T>, DbError>
+pub async fn find_by_id<T>(
+    conn: &impl ConnectionTrait,
+    team_id: i64,
+    game_id: i64,
+) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::find_by_id(team_id)
         .filter(Column::GameId.eq(game_id))
         .into_model::<T>()
-        .one(get_db())
+        .one(conn)
         .await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
+pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
-    let team = model.insert(get_db()).await?;
+    let team = model.insert(conn).await?;
 
-    Ok(find_by_id::<T>(team.id, team.game_id)
+    Ok(find_by_id::<T>(conn, team.id, team.game_id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("team_{}", team.id)))?)
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
+pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
-    let team = model.update(get_db()).await?;
+    let team = model.update(conn).await?;
 
-    Ok(find_by_id::<T>(team.id, team.game_id)
+    Ok(find_by_id::<T>(conn, team.id, team.game_id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("team_{}", team.id)))?)
 }
 
-pub async fn delete(team_id: i64) -> Result<(), DbError> {
-    Entity::delete_by_id(team_id).exec(get_db()).await?;
+pub async fn delete(conn: &impl ConnectionTrait, team_id: i64) -> Result<(), DbError> {
+    Entity::delete_by_id(team_id).exec(conn).await?;
 
     Ok(())
 }

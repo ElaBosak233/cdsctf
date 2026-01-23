@@ -1,12 +1,18 @@
-use axum::{Router, extract::WebSocketUpgrade, response::IntoResponse};
+use std::sync::Arc;
+
+use axum::{
+    Router,
+    extract::{State, WebSocketUpgrade},
+    response::IntoResponse,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     extract::{Path, Query},
-    traits::WebError,
+    traits::{AppState, WebError},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new().route("/shell", axum::routing::get(get_shell))
 }
 
@@ -16,11 +22,16 @@ pub struct GetShellRequest {
 }
 
 pub async fn get_shell(
+    State(s): State<Arc<AppState>>,
+
     Path((pod_id, container_id)): Path<(String, String)>,
     Query(params): Query<GetShellRequest>,
     ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
     Ok(ws.on_upgrade(move |socket| async move {
-        let _ = cds_cluster::exec(&pod_id, &container_id, params.command, socket).await;
+        let _ = s
+            .cluster
+            .exec(&pod_id, &container_id, params.command, socket)
+            .await;
     }))
 }

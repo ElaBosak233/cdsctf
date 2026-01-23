@@ -1,15 +1,17 @@
 mod challenge_id;
 
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{Challenge, challenge::FindChallengeOptions, sea_orm::ActiveValue::Set};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     extract::{Json, Query},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_challenges))
         .route("/", axum::routing::post(create_challenge))
@@ -30,22 +32,27 @@ pub struct GetChallengeRequest {
 }
 
 pub async fn get_challenges(
+    State(ref s): State<Arc<AppState>>,
+
     Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<Challenge>>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let (challenges, total) = cds_db::challenge::find::<Challenge>(FindChallengeOptions {
-        id: params.id,
-        title: params.title,
-        category: params.category,
-        tag: params.tag,
-        is_public: params.is_public,
-        is_dynamic: params.is_dynamic,
-        sorts: params.sorts,
-        page: Some(page),
-        size: Some(size),
-    })
+    let (challenges, total) = cds_db::challenge::find(
+        &s.db.conn,
+        FindChallengeOptions {
+            id: params.id,
+            title: params.title,
+            category: params.category,
+            tag: params.tag,
+            is_public: params.is_public,
+            is_dynamic: params.is_dynamic,
+            sorts: params.sorts,
+            page: Some(page),
+            size: Some(size),
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -71,20 +78,25 @@ pub struct CreateChallengeRequest {
 }
 
 pub async fn create_challenge(
+    State(ref s): State<Arc<AppState>>,
+
     Json(body): Json<CreateChallengeRequest>,
 ) -> Result<WebResponse<Challenge>, WebError> {
-    let challenge = cds_db::challenge::create::<Challenge>(cds_db::challenge::ActiveModel {
-        title: Set(body.title),
-        description: Set(body.description),
-        category: Set(body.category),
-        tags: Set(body.tags.unwrap_or(vec![])),
-        is_public: Set(body.is_public.unwrap_or(false)),
-        is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
-        has_attachment: Set(body.has_attachment.unwrap_or(false)),
-        env: Set(body.env),
-        checker: Set(body.checker),
-        ..Default::default()
-    })
+    let challenge = cds_db::challenge::create(
+        &s.db.conn,
+        cds_db::challenge::ActiveModel {
+            title: Set(body.title),
+            description: Set(body.description),
+            category: Set(body.category),
+            tags: Set(body.tags.unwrap_or(vec![])),
+            is_public: Set(body.is_public.unwrap_or(false)),
+            is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
+            has_attachment: Set(body.has_attachment.unwrap_or(false)),
+            env: Set(body.env),
+            checker: Set(body.checker),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {

@@ -789,22 +789,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cds-email"
-version = "1.8.5"
-dependencies = [
- "anyhow",
- "cds-db",
- "cds-queue",
- "futures-util",
- "lettre",
- "serde",
- "serde_json",
- "thiserror 2.0.16",
- "tokio",
- "tracing",
-]
-
-[[package]]
 name = "cds-engine"
 version = "1.8.5"
 dependencies = [
@@ -845,6 +829,23 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.16",
+ "tracing",
+]
+
+[[package]]
+name = "cds-mailbox"
+version = "1.8.5"
+dependencies = [
+ "anyhow",
+ "cds-db",
+ "cds-queue",
+ "futures-util",
+ "lettre",
+ "once_cell",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.16",
+ "tokio",
  "tracing",
 ]
 
@@ -924,10 +925,10 @@ dependencies = [
  "cds-checker",
  "cds-cluster",
  "cds-db",
- "cds-email",
  "cds-engine",
  "cds-env",
  "cds-event",
+ "cds-mailbox",
  "cds-media",
  "cds-migrator",
  "cds-observe",

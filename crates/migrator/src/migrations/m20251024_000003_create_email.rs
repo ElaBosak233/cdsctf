@@ -19,7 +19,7 @@ impl MigrationTrait for Migration {
             manager.get_database_backend(),
             r#"
                 CREATE TABLE IF NOT EXISTS "emails" (
-                    "email" VARCHAR UNIQUE NOT NULL PRIMARY KEY,
+                    "mailbox" VARCHAR UNIQUE NOT NULL PRIMARY KEY,
                     "user_id" BIGINT NOT NULL,
                     "is_verified" BOOLEAN NOT NULL DEFAULT FALSE,
 

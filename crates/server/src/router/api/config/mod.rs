@@ -1,12 +1,15 @@
 mod captcha;
 mod logo;
 
-use axum::Router;
+use std::sync::Arc;
+
+use axum::{Router, extract::State};
+use cds_db::DB;
 use serde::{Deserialize, Serialize};
 
-use crate::traits::{WebError, WebResponse};
+use crate::traits::{AppState, WebError, WebResponse};
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_config))
         .nest("/logo", logo::router())
@@ -14,9 +17,11 @@ pub fn router() -> Router {
         .route("/version", axum::routing::get(get_version))
 }
 
-pub async fn get_config() -> Result<WebResponse<cds_db::config::Model>, WebError> {
+pub async fn get_config(
+    State(ref s): State<Arc<AppState>>,
+) -> Result<WebResponse<cds_db::config::Model>, WebError> {
     Ok(WebResponse {
-        data: Some(cds_db::get_config().await.desensitize()),
+        data: Some(cds_db::get_config(&s.db.conn).await.desensitize()),
         ..Default::default()
     })
 }
