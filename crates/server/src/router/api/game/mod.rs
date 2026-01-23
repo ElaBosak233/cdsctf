@@ -3,7 +3,7 @@ mod game_id;
 use std::sync::Arc;
 
 use axum::{Router, extract::State, http::StatusCode};
-use cds_db::{DB, GameMini, game::FindGameOptions};
+use cds_db::{GameMini, game::FindGameOptions};
 use serde::{Deserialize, Serialize};
 
 use crate::{

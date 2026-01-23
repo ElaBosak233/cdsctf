@@ -33,14 +33,13 @@ use kube::{
     api::{Api, AttachParams, DeleteParams, ListParams, Patch, PatchParams, PostParams},
     config::{KubeConfigOptions, Kubeconfig},
 };
-use once_cell::sync::OnceCell;
 use serde_json::json;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use tokio_util::{
     codec::{BytesCodec, Framed, FramedRead},
     sync::CancellationToken,
 };
-use tracing::{error, info, warn};
+use tracing::{error, info};
 use uuid::Uuid;
 
 use crate::traits::{ClusterError, Nat};

@@ -3,7 +3,6 @@ mod filename;
 use std::sync::Arc;
 
 use axum::{Router, extract::State};
-use cds_db::DB;
 use serde_json::json;
 
 use crate::{

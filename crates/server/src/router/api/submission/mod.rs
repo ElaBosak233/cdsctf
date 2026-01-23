@@ -162,7 +162,7 @@ pub async fn create_submission(
     )
     .await?;
 
-    cds_queue::publish("checker", submission.id).await?;
+    s.queue.publish("checker", submission.id).await?;
 
     let submission = cds_db::submission::find_by_id(&s.db.conn, submission.id).await?;
 

@@ -188,18 +188,20 @@ pub async fn send_verify_email(
         .get_email(EmailType::Verify)
         .await?;
 
-    cds_queue::publish(
-        "mailbox",
-        cds_mailbox::Payload {
-            name: operator.name.to_owned(),
-            email: email.email.to_owned(),
-            subject: util::email::extract_title(&body).unwrap_or("Verify Your Email".to_owned()),
-            body: body
-                .replace("%CODE%", &code)
-                .replace("%USER%", &operator.name),
-        },
-    )
-    .await?;
+    s.queue
+        .publish(
+            "mailbox",
+            cds_mailbox::Payload {
+                name: operator.name.to_owned(),
+                email: email.email.to_owned(),
+                subject: util::email::extract_title(&body)
+                    .unwrap_or("Verify Your Email".to_owned()),
+                body: body
+                    .replace("%CODE%", &code)
+                    .replace("%USER%", &operator.name),
+            },
+        )
+        .await?;
 
     s.cache
         .set_ex(format!("mailbox:{}:buffer", email.email.to_owned()), 1, 60)

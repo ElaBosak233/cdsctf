@@ -95,13 +95,14 @@ pub async fn create_game_challenge(
     )
     .await?;
 
-    cds_queue::publish(
-        "calculator",
-        crate::worker::game_calculator::Payload {
-            game_id: Some(game.id),
-        },
-    )
-    .await?;
+    s.queue
+        .publish(
+            "calculator",
+            crate::worker::game_calculator::Payload {
+                game_id: Some(game.id),
+            },
+        )
+        .await?;
 
     Ok(WebResponse {
         data: Some(game_challenge),

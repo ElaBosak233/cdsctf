@@ -4,7 +4,6 @@ mod logo;
 use std::sync::Arc;
 
 use axum::{Router, extract::State};
-use cds_db::DB;
 use serde::{Deserialize, Serialize};
 
 use crate::traits::{AppState, WebError, WebResponse};

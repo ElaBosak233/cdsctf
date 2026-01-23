@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use axum::{Router, extract::State};
 use cds_db::{
-    ChallengeMini, DB, GameChallenge, Submission, challenge::FindChallengeOptions,
+    ChallengeMini, GameChallenge, Submission, challenge::FindChallengeOptions,
     game_challenge::FindGameChallengeOptions,
 };
 use serde::{Deserialize, Serialize};

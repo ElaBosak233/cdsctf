@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use axum::{Router, extract::State, response::IntoResponse};
-use cds_media::Media;
 
 use crate::{
     extract::Path,

@@ -25,7 +25,7 @@ use sea_orm::{ConnectOptions, ConnectionTrait, Database, DatabaseConnection};
 pub use submission::Submission;
 pub use team::Team;
 pub use team_user::TeamUser;
-use tracing::info;
+use tracing::{info, log};
 pub use traits::DbError;
 pub use user::{User, UserMini};
 
@@ -47,6 +47,7 @@ pub async fn init(env: &Env) -> Result<DB, DbError> {
         .idle_timeout(Duration::from_secs(8))
         .max_lifetime(Duration::from_secs(8))
         .sqlx_logging(true)
+        .sqlx_logging_level(log::LevelFilter::Debug)
         .set_schema_search_path("public");
 
     let db: DatabaseConnection = Database::connect(opt).await?;

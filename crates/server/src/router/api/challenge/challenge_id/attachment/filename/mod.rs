@@ -7,7 +7,6 @@ use axum::{
     http::{Response, header},
     response::IntoResponse,
 };
-use cds_db::DB;
 use serde_json::json;
 
 use crate::{

@@ -1,9 +1,8 @@
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 
 use axum::{
     Json,
     body::Body,
-    extract::FromRef,
     http::{Response, StatusCode},
     response::IntoResponse,
 };
@@ -15,12 +14,14 @@ use tracing::error;
 #[derive(Clone)]
 pub struct AppState {
     pub env: cds_env::Env,
+    pub event: cds_event::EventManager,
     pub db: cds_db::DB,
     pub cache: cds_cache::Cache,
     pub checker: cds_checker::Checker,
     pub captcha: cds_captcha::Captcha,
     pub cluster: cds_cluster::Cluster,
     pub media: cds_media::Media,
+    pub queue: cds_queue::Queue,
 }
 
 #[derive(Clone, Debug, Default)]

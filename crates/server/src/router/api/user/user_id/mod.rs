@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{Router, extract::State};
-use cds_db::{DB, User};
+use cds_db::User;
 
 use crate::{
     extract::{Extension, Path},

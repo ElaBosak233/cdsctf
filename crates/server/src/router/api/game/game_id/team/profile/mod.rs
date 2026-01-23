@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
-    DB, TeamUser,
+    TeamUser,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
         NotSet,

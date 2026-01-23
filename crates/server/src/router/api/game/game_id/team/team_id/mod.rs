@@ -3,8 +3,7 @@ mod avatar;
 use std::sync::Arc;
 
 use axum::{Router, extract::State, http::StatusCode};
-use cds_cache::Cache;
-use cds_db::{DB, TeamUser, UserMini, sea_orm::ActiveValue::Set, team::State as TState};
+use cds_db::{TeamUser, UserMini, sea_orm::ActiveValue::Set, team::State as TState};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 

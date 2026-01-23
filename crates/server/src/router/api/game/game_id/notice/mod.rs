@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use axum::{Router, extract::State, http::StatusCode};
-use cds_db::{DB, GameNotice};
-use serde::{Deserialize, Serialize};
+use cds_db::GameNotice;
 use serde_json::json;
 
 use crate::{
@@ -14,10 +13,10 @@ pub fn router() -> Router<Arc<AppState>> {
     Router::new().route("/", axum::routing::get(get_game_notice))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetGameNoticeRequest {
-    pub game_id: Option<i64>,
-}
+// #[derive(Clone, Debug, Serialize, Deserialize)]
+// pub struct GetGameNoticeRequest {
+//     pub game_id: Option<i64>,
+// }
 
 pub async fn get_game_notice(
     State(ref s): State<Arc<AppState>>,

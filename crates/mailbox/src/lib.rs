@@ -3,6 +3,7 @@ mod worker;
 
 use anyhow::anyhow;
 use cds_db::DB;
+use cds_queue::Queue;
 use lettre::{
     Address, AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
     message::{Mailbox as LMailbox, SinglePart, header::ContentType},
@@ -21,10 +22,14 @@ static MAILBOX: OnceCell<Mailbox> = OnceCell::new();
 #[derive(Debug, Clone)]
 pub struct Mailbox {
     db: DB,
+    queue: Queue,
 }
 
-pub async fn init(db: &DB) -> Result<(), MailboxError> {
-    let m = Mailbox { db: db.clone() };
+pub async fn init(db: &DB, queue: &Queue) -> Result<(), MailboxError> {
+    let m = Mailbox {
+        db: db.clone(),
+        queue: queue.clone(),
+    };
 
     worker::init(m.clone()).await;
     MAILBOX.set(m).expect("Mailbox already initialized");

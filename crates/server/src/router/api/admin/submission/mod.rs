@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
-    DB, Submission,
+    Submission,
     submission::{FindSubmissionsOptions, Status},
 };
 use serde::{Deserialize, Serialize};

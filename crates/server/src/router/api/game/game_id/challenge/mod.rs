@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
 use axum::{Router, extract::State};
-use cds_db::{
-    DB, GameChallengeMini, game_challenge::FindGameChallengeOptions, team::State as TState,
-};
+use cds_db::{GameChallengeMini, game_challenge::FindGameChallengeOptions, team::State as TState};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 

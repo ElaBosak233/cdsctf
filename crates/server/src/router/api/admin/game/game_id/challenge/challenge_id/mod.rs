@@ -70,24 +70,26 @@ pub async fn update_game_challenge(
         || game_challenge.min_pts != new_game_challenge.min_pts
         || game_challenge.bonus_ratios != new_game_challenge.bonus_ratios
     {
-        cds_queue::publish(
-            "calculator",
-            crate::worker::game_calculator::Payload {
-                game_id: Some(new_game_challenge.game_id),
-            },
-        )
-        .await?;
+        s.queue
+            .publish(
+                "calculator",
+                crate::worker::game_calculator::Payload {
+                    game_id: Some(new_game_challenge.game_id),
+                },
+            )
+            .await?;
     }
 
     if new_game_challenge.is_enabled != game_challenge.is_enabled {
-        cds_event::push(cds_event::types::Event::GameChallenge(GameChallengeEvent {
-            type_: if new_game_challenge.is_enabled {
-                GameChallengeEventType::Up
-            } else {
-                GameChallengeEventType::Down
-            },
-        }))
-        .await?;
+        s.event
+            .push(cds_event::types::Event::GameChallenge(GameChallengeEvent {
+                type_: if new_game_challenge.is_enabled {
+                    GameChallengeEventType::Up
+                } else {
+                    GameChallengeEventType::Down
+                },
+            }))
+            .await?;
     }
 
     Ok(WebResponse {

@@ -7,7 +7,7 @@ use cds_db::{
     DB, Game, GameChallenge, Submission,
     game::FindGameOptions,
     game_challenge::FindGameChallengeOptions,
-    sea_orm::{DatabaseConnection, Set, Unchanged},
+    sea_orm::{Set, Unchanged},
     submission::{FindSubmissionsOptions, Status},
     team::{FindTeamOptions, State, Team},
 };
@@ -170,7 +170,7 @@ pub struct Payload {
 }
 
 async fn process_messages(s: Arc<AppState>) -> Result<(), anyhow::Error> {
-    let mut messages = cds_queue::subscribe("calculator", None).await?;
+    let mut messages = s.queue.subscribe("calculator", None).await?;
     while let Some(Ok(message)) = messages.next().await {
         let payload = String::from_utf8(message.payload.to_vec())?;
         let calculator_payload = serde_json::from_str::<Payload>(&payload)?;

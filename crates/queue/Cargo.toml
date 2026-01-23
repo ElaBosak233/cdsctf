@@ -15,7 +15,6 @@ cds-env = { workspace = true }
 
 anyhow     = { workspace = true }
 async-nats = { workspace = true }
-once_cell  = { workspace = true }
 serde      = { workspace = true }
 serde_json = { workspace = true }
 thiserror  = { workspace = true }

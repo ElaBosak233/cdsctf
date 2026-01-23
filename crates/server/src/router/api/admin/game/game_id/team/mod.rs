@@ -4,7 +4,6 @@ use std::sync::Arc;
 
 use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
-    DB,
     sea_orm::ActiveValue::Set,
     team::{FindTeamOptions, State as TState, Team},
 };

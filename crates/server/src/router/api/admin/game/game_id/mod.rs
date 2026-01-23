@@ -125,13 +125,14 @@ pub async fn calculate_game(
 ) -> Result<WebResponse<()>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    cds_queue::publish(
-        "calculator",
-        crate::worker::game_calculator::Payload {
-            game_id: Some(game.id),
-        },
-    )
-    .await?;
+    s.queue
+        .publish(
+            "calculator",
+            crate::worker::game_calculator::Payload {
+                game_id: Some(game.id),
+            },
+        )
+        .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

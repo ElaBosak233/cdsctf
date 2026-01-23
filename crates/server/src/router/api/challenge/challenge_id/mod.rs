@@ -3,7 +3,7 @@ mod attachment;
 use std::sync::Arc;
 
 use axum::{Router, extract::State, http::StatusCode};
-use cds_db::{Challenge, DB};
+use cds_db::Challenge;
 use serde_json::json;
 
 use crate::{

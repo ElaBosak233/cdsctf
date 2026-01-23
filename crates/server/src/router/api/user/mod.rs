@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use axum::{Router, extract::State, http::StatusCode, response::IntoResponse};
 use cds_db::{
-    DB, Email, User,
+    Email, User,
     sea_orm::ActiveValue::Set,
     user::{FindUserOptions, Group},
 };

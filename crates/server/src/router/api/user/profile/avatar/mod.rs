@@ -5,10 +5,9 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::{
-    DB, User,
+    User,
     sea_orm::{Set, Unchanged},
 };
-use cds_media::Media;
 
 use crate::{
     extract::Extension,

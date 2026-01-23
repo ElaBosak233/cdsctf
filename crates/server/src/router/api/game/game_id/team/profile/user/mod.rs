@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{Router, extract::State, http::StatusCode};
-use cds_db::{DB, TeamUser, team::State as TState, team_user::FindTeamUserOptions};
+use cds_db::{TeamUser, team::State as TState, team_user::FindTeamUserOptions};
 use serde_json::json;
 
 use crate::{

@@ -4,10 +4,9 @@
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use cds_checker::Checker;
 use cds_db::{
-    DB, Submission, Team, User,
-    sea_orm::{ActiveValue::Unchanged, DatabaseConnection, IntoActiveModel, Set},
+    Submission, Team, User,
+    sea_orm::{ActiveValue::Unchanged, IntoActiveModel, Set},
     submission::{FindSubmissionsOptions, Status},
     team::{Model, State},
 };
@@ -133,13 +132,14 @@ async fn check(s: Arc<AppState>, id: i64) -> Result<(), anyhow::Error> {
     .await?;
 
     if submission.game_id.is_some() && status == Status::Correct {
-        cds_queue::publish(
-            "calculator",
-            game_calculator::Payload {
-                game_id: submission.game_id,
-            },
-        )
-        .await?;
+        s.queue
+            .publish(
+                "calculator",
+                game_calculator::Payload {
+                    game_id: submission.game_id,
+                },
+            )
+            .await?;
     }
 
     Ok(())
@@ -187,14 +187,14 @@ async fn recover(s: Arc<AppState>) -> Result<(), anyhow::Error> {
 
     for submission in unchecked_submissions {
         let id = submission.id;
-        cds_queue::publish("checker", id).await?;
+        s.queue.publish("checker", id).await?;
     }
 
     Ok(())
 }
 
 async fn process_messages(s: Arc<AppState>) -> Result<(), anyhow::Error> {
-    let mut messages = cds_queue::subscribe("checker", None).await?;
+    let mut messages = s.queue.subscribe("checker", None).await?;
     while let Some(Ok(message)) = messages.next().await {
         let payload = String::from_utf8(message.payload.to_vec())?;
         let id = payload.parse::<i64>()?;

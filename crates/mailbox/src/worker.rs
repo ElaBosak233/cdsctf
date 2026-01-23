@@ -14,7 +14,7 @@ pub struct Payload {
 }
 
 async fn process_messages(m: Mailbox) -> Result<(), anyhow::Error> {
-    let mut messages = cds_queue::subscribe("mailbox", None).await?;
+    let mut messages = m.queue.subscribe("mailbox", None).await?;
     while let Some(Ok(message)) = messages.next().await {
         if let Ok(payload) = serde_json::from_slice::<Payload>(&message.payload) {
             match m

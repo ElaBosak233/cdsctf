@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
-    DB, Game,
+    Game,
     game::FindGameOptions,
     sea_orm::ActiveValue::{NotSet, Set},
 };

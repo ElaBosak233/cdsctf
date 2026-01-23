@@ -122,14 +122,18 @@ pub struct GetEventsRequest {
 }
 
 pub async fn get_events(
+    State(s): State<Arc<AppState>>,
+
     Path(game_id): Path<i64>,
     Query(params): Query<GetEventsRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    let stream = cds_event::subscribe(SubscribeOptions {
-        game_id: Some(game_id),
-        token: Some(params.token),
-    })
-    .await?;
+    let stream = s
+        .event
+        .subscribe(SubscribeOptions {
+            game_id: Some(game_id),
+            token: Some(params.token),
+        })
+        .await?;
 
     let sse_stream = stream.map(|event| {
         let Ok(evt) = event;

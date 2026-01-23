@@ -68,13 +68,14 @@ pub async fn update_team(
     .await?;
 
     if team.state != new_team.state {
-        cds_queue::publish(
-            "calculator",
-            crate::worker::game_calculator::Payload {
-                game_id: Some(game_id),
-            },
-        )
-        .await?;
+        s.queue
+            .publish(
+                "calculator",
+                crate::worker::game_calculator::Payload {
+                    game_id: Some(game_id),
+                },
+            )
+            .await?;
     }
 
     Ok(WebResponse {
