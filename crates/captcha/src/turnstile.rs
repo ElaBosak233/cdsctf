@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use tracing::debug;
 
-use crate::traits::{Answer, CaptchaError};
+use crate::{
+    Captcha,
+    traits::{Answer, CaptchaError},
+};
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 struct TurnstileRequest {
@@ -26,13 +29,13 @@ struct TurnstileResponse {
     metadata: Option<HashMap<String, serde_json::Value>>,
 }
 
-pub(crate) async fn check(answer: &Answer) -> Result<bool, CaptchaError> {
+pub(crate) async fn check(c: &Captcha, answer: &Answer) -> Result<bool, CaptchaError> {
     let client = reqwest::Client::new();
-    let url = &cds_db::get_config().await.captcha.turnstile.url;
+    let url = &cds_db::get_config(&c.db.conn).await.captcha.turnstile.url;
     let response = client
         .post(url)
         .json(&TurnstileRequest {
-            secret: cds_db::get_config()
+            secret: cds_db::get_config(&c.db.conn)
                 .await
                 .captcha
                 .turnstile

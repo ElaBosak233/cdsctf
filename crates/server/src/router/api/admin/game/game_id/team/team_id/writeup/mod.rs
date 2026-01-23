@@ -1,13 +1,21 @@
-use axum::{Router, response::IntoResponse};
+use std::sync::Arc;
 
-use crate::{extract::Path, traits::WebError, util};
+use axum::{Router, extract::State, response::IntoResponse};
 
-pub fn router() -> Router {
+use crate::{
+    extract::Path,
+    traits::{AppState, WebError},
+    util,
+};
+
+pub fn router() -> Router<Arc<AppState>> {
     Router::new().route("/", axum::routing::get(get_team_write_up))
 }
 
 pub async fn get_team_write_up(
+    State(s): State<Arc<AppState>>,
+
     Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, WebError> {
-    util::media::get_write_up(game_id, team_id).await
+    util::media::get_write_up(s.media.clone(), game_id, team_id).await
 }

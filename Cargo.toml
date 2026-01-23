@@ -8,8 +8,8 @@ edition      = "2024"
 homepage     = "https://cdsctf.e23.dev"
 publish      = false
 repository   = "https://github.com/elabosak233/cdsctf"
-rust-version = "1.92.0"
-version      = "1.8.5"
+rust-version = "1.93.0"
+version      = "1.8.6"
 
 [workspace.dependencies]
 # Local Libraries
@@ -19,7 +19,7 @@ cds-captcha  = { path = "crates/captcha" }
 cds-checker  = { path = "crates/checker" }
 cds-cluster  = { path = "crates/cluster" }
 cds-db       = { path = "crates/db" }
-cds-email    = { path = "crates/email" }
+cds-mailbox    = { path = "crates/mailbox" }
 cds-engine   = { path = "crates/engine" }
 cds-env      = { path = "crates/env" }
 cds-event    = { path = "crates/event" }

@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum EmailError {
+pub enum MailboxError {
     #[error("lettre error: {0}")]
     LettreError(#[from] lettre::error::Error),
     #[error("address error: {0}")]

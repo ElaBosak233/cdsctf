@@ -5,9 +5,13 @@ mod game;
 mod submission;
 mod user;
 
+use std::sync::Arc;
+
 use axum::Router;
 
-pub fn router() -> Router {
+use crate::traits::AppState;
+
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .nest("/users", user::router())
         .nest("/challenges", challenge::router())

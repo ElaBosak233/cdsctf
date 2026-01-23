@@ -5,6 +5,7 @@ use std::{
 };
 
 use anyhow::anyhow;
+use cds_env::Env;
 use once_cell::sync::OnceCell;
 use tracing::{error, info, warn};
 use tracing_appender::{non_blocking, non_blocking::WorkerGuard};
@@ -18,7 +19,7 @@ use crate::traits::ObserveError;
 
 static CONSOLE_GUARD: OnceCell<WorkerGuard> = OnceCell::new();
 
-pub async fn init() -> Result<(), ObserveError> {
+pub async fn init(env: &Env) -> Result<(), ObserveError> {
     let (non_blocking_console, console_guard) = non_blocking(std::io::stdout());
 
     let console_layer = tracing_subscriber::fmt::Layer::new()
@@ -33,13 +34,13 @@ pub async fn init() -> Result<(), ObserveError> {
     layers.push(ErrorLayer::default().boxed());
     layers.push(console_layer.boxed());
 
-    if cds_env::get_config().observe.exporter.enabled {
+    if env.observe.exporter.enabled {
         layers.push(crate::exporter::logger::get_tracing_layer()?.boxed());
         layers.push(OpenTelemetryLayer::new(crate::exporter::tracer::get_tracer()?).boxed());
     }
 
     Registry::default()
-        .with(EnvFilter::new(&cds_env::get_config().observe.logger.level))
+        .with(EnvFilter::new(&env.observe.logger.level))
         .with(layers)
         .init();
 

@@ -1,19 +1,19 @@
 mod env_id;
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
-use axum::{Router, http::StatusCode};
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{TeamUser, team_user::FindTeamUserOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Query},
-    traits::{AuthPrincipal, WebError, WebResponse},
-    util::cluster::Env,
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    util::cluster::DynamicEnvironment,
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_env))
         .route("/", axum::routing::post(create_env))
@@ -30,9 +30,11 @@ pub struct GetEnvRequest {
 }
 
 pub async fn get_env(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetEnvRequest>,
-) -> Result<WebResponse<Vec<Env>>, WebError> {
+) -> Result<WebResponse<Vec<DynamicEnvironment>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let mut map: BTreeMap<String, String> = BTreeMap::new();
 
@@ -44,7 +46,8 @@ pub async fn get_env(
             map.insert("cds/user_id".to_owned(), format!("{}", user_id));
         }
         (_, Some(team_id), Some(game_id)) => {
-            let team = crate::util::loader::prepare_self_team(game_id, operator.id).await?;
+            let team =
+                crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
             if team.id != team_id {
                 return Err(WebError::Forbidden(json!("")));
             }
@@ -70,12 +73,12 @@ pub async fn get_env(
         .collect::<Vec<String>>()
         .join(",");
 
-    let pods = cds_cluster::get_pods_by_label(&labels).await?;
+    let pods = s.cluster.get_pods_by_label(&labels).await?;
 
     let envs = pods
         .into_iter()
-        .map(crate::util::cluster::Env::from)
-        .collect::<Vec<Env>>();
+        .map(|pod| DynamicEnvironment::from(pod).with_env(&s.env))
+        .collect::<Vec<DynamicEnvironment>>();
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -93,14 +96,16 @@ pub struct CreateEnvRequest {
 }
 
 pub async fn create_env(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<CreateEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = crate::util::loader::prepare_challenge(body.challenge_id).await?;
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
-    if !cds_db::util::can_user_access_challenge(operator.id, challenge.id).await? {
+    if !cds_db::util::can_user_access_challenge(&s.db.conn, operator.id, challenge.id).await? {
         return Err(WebError::NotFound(json!("challenge_not_found")));
     }
 
@@ -114,43 +119,51 @@ pub async fn create_env(
     }
 
     if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
-        let _ = crate::util::loader::prepare_team(game_id, team_id).await?;
-        let _ = crate::util::loader::prepare_game_challenge(game_id, challenge.id).await?;
+        let _ = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
+        let _ =
+            crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge.id).await?;
 
-        if !cds_db::util::is_user_in_team(operator.id, team_id).await? {
+        if !cds_db::util::is_user_in_team(&s.db.conn, operator.id, team_id).await? {
             return Err(WebError::Forbidden(json!("team_not_found")));
         }
 
-        let (_, member_count) = cds_db::team_user::find::<TeamUser>(FindTeamUserOptions {
-            team_id: Some(team_id),
-            ..Default::default()
-        })
-        .await?;
-
-        let existing_pods = cds_cluster::get_pods_by_label(
-            &BTreeMap::from([
-                ("cds/game_id", format!("{}", game_id)),
-                ("cds/team_id", format!("{}", team_id)),
-            ])
-            .iter()
-            .map(|(k, v)| format!("{}={}", k, v))
-            .collect::<Vec<String>>()
-            .join(","),
+        let (_, member_count) = cds_db::team_user::find::<TeamUser>(
+            &s.db.conn,
+            FindTeamUserOptions {
+                team_id: Some(team_id),
+                ..Default::default()
+            },
         )
         .await?;
+
+        let existing_pods = s
+            .cluster
+            .get_pods_by_label(
+                &BTreeMap::from([
+                    ("cds/game_id", format!("{}", game_id)),
+                    ("cds/team_id", format!("{}", team_id)),
+                ])
+                .iter()
+                .map(|(k, v)| format!("{}={}", k, v))
+                .collect::<Vec<String>>()
+                .join(","),
+            )
+            .await?;
 
         if member_count == existing_pods.len() as u64 {
             return Err(WebError::TooManyRequests(json!("too_many_team_pods")));
         }
     } else {
-        let existing_pods = cds_cluster::get_pods_by_label(
-            &BTreeMap::from([("cds/user_id", format!("{}", operator.id))])
-                .iter()
-                .map(|(k, v)| format!("{}={}", k, v))
-                .collect::<Vec<String>>()
-                .join(","),
-        )
-        .await?;
+        let existing_pods = s
+            .cluster
+            .get_pods_by_label(
+                &BTreeMap::from([("cds/user_id", format!("{}", operator.id))])
+                    .iter()
+                    .map(|(k, v)| format!("{}={}", k, v))
+                    .collect::<Vec<String>>()
+                    .join(","),
+            )
+            .await?;
 
         if existing_pods.len() == 1 {
             return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
@@ -159,13 +172,15 @@ pub async fn create_env(
 
     let (team, game) = match (body.team_id, body.game_id) {
         (Some(team_id), Some(game_id)) => (
-            cds_db::team::find_by_id(team_id, game_id).await?,
-            cds_db::game::find_by_id(game_id).await?,
+            cds_db::team::find_by_id(&s.db.conn, team_id, game_id).await?,
+            cds_db::game::find_by_id(&s.db.conn, game_id).await?,
         ),
         _ => (None, None),
     };
 
-    cds_cluster::create_challenge_env(operator, team, game, challenge).await?;
+    s.cluster
+        .create_challenge_env(operator, team, game, challenge)
+        .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

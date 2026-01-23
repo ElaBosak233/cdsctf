@@ -6,12 +6,14 @@ pub mod game;
 pub mod submission;
 pub mod user;
 
+use std::sync::Arc;
+
 use axum::{Router, response::IntoResponse};
 use serde_json::json;
 
-use crate::traits::WebResponse;
+use crate::traits::{AppState, WebResponse};
 
-pub async fn router() -> Router {
+pub async fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::any(index))
         .nest("/configs", config::router())

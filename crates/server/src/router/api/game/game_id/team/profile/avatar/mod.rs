@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use axum::{
     Router,
-    extract::{DefaultBodyLimit, Multipart},
+    extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::{
     Team,
@@ -10,11 +12,11 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Path},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
     util,
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route(
             "/",
@@ -29,20 +31,25 @@ pub fn router() -> Router {
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
 pub async fn save_team_avatar(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = util::loader::prepare_self_team(game_id, operator.id).await?;
+    let team = util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
     let path = format!("games/{}/teams/{}/avatar", game_id, team.id);
-    let _ = util::media::save_img(path, multipart).await?;
+    let _ = util::media::save_img(s.media.clone(), path, multipart).await?;
 
-    let _ = cds_db::team::update::<Team>(cds_db::team::ActiveModel {
-        id: Unchanged(team.id),
-        has_avatar: Set(true),
-        ..Default::default()
-    })
+    let _ = cds_db::team::update::<Team>(
+        &s.db.conn,
+        cds_db::team::ActiveModel {
+            id: Unchanged(team.id),
+            has_avatar: Set(true),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse::default())
@@ -50,19 +57,24 @@ pub async fn save_team_avatar(
 
 /// Delete avatar for the team.
 pub async fn delete_team_avatar(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let team = util::loader::prepare_self_team(game_id, operator.id).await?;
+    let team = util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
     let path = format!("games/{}/teams/{}/avatar", game_id, team.id);
-    let _ = util::media::delete_img(path).await;
+    let _ = util::media::delete_img(s.media.clone(), path).await;
 
-    let _ = cds_db::team::update::<Team>(cds_db::team::ActiveModel {
-        id: Unchanged(team.id),
-        has_avatar: Set(false),
-        ..Default::default()
-    })
+    let _ = cds_db::team::update::<Team>(
+        &s.db.conn,
+        cds_db::team::ActiveModel {
+            id: Unchanged(team.id),
+            has_avatar: Set(false),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse::default())

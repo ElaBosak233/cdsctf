@@ -3,6 +3,7 @@ pub mod web;
 
 use std::{borrow::Cow, time::Duration};
 
+use cds_env::Env;
 use once_cell::sync::{Lazy, OnceCell};
 use opentelemetry::{InstrumentationScope, global, metrics::Meter};
 use opentelemetry_otlp::{Compression, MetricExporter, Protocol, WithExportConfig, WithHttpConfig};
@@ -27,8 +28,8 @@ pub static METER: Lazy<Meter> = Lazy::new(|| {
     global::meter_with_scope(scope)
 });
 
-pub fn init() -> Result<(), ObserveError> {
-    let metric_ep = cds_env::get_config()
+pub fn init(env: &Env) -> Result<(), ObserveError> {
+    let metric_ep = env
         .observe
         .exporter
         .metric_endpoint
@@ -36,8 +37,7 @@ pub fn init() -> Result<(), ObserveError> {
         .filter(|s| !s.is_empty())
         .map(|s| s.to_string())
         .or_else(|| {
-            cds_env::get_config()
-                .observe
+            env.observe
                 .exporter
                 .endpoint
                 .as_deref()
@@ -64,7 +64,7 @@ pub fn init() -> Result<(), ObserveError> {
                 .with_interval(Duration::from_secs(3))
                 .build(),
         )
-        .with_resource(super::get_resource())
+        .with_resource(super::get_resource(env))
         .build();
 
     PROVIDER.set(meter_provider).ok();

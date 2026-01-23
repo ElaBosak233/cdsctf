@@ -1,12 +1,20 @@
+use std::path::PathBuf;
+
 use anyhow::anyhow;
 use cds_engine::{rune, rune::Module};
+use cds_media::Media;
 use ring::rand::{SecureRandom, SystemRandom};
 use tracing::debug;
 
 #[rune::module(::fs)]
-pub async fn module(_stdio: bool, challenge_id: i64) -> Result<Module, anyhow::Error> {
+pub async fn module(
+    _stdio: bool,
+    media: Media,
+    challenge_id: i64,
+) -> Result<Module, anyhow::Error> {
     let mut module = Module::from_meta(module_meta)?;
-    let root = cds_media::challenge::get_root_path(challenge_id).await?;
+    let root = PathBuf::from(&media.root).join(format!("challenges/{}", challenge_id));
+    std::fs::create_dir_all(&root)?;
 
     module
         .function("key", {

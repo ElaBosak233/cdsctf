@@ -1,7 +1,7 @@
 mod migrations;
 
 use async_trait::async_trait;
-use cds_db::{DbError, get_db};
+use cds_db::DbError;
 use sea_orm_migration::prelude::*;
 use tracing::info;
 
@@ -25,20 +25,23 @@ impl MigratorTrait for Migrator {
     }
 }
 
-pub async fn run() -> Result<(), DbError> {
-    if !Migrator::get_pending_migrations(get_db()).await?.is_empty() {
+pub async fn run(db: &cds_db::DB) -> Result<(), DbError> {
+    if !Migrator::get_pending_migrations(&db.conn).await?.is_empty() {
         info!("Migration activating");
-        Migrator::up(get_db(), None).await?;
+        Migrator::up(&db.conn, None).await?;
     }
 
-    if cds_db::config::count().await? < 1 {
-        cds_db::config::save(cds_db::config::ActiveModel {
-            id: sea_orm::ActiveValue::Set(1),
-            meta: sea_orm::ActiveValue::Set(cds_db::config::meta::Config::default()),
-            auth: sea_orm::ActiveValue::Set(cds_db::config::auth::Config::default()),
-            email: sea_orm::ActiveValue::Set(cds_db::config::email::Config::default()),
-            captcha: sea_orm::ActiveValue::Set(cds_db::config::captcha::Config::default()),
-        })
+    if cds_db::config::count(&db.conn).await? < 1 {
+        let _ = cds_db::config::save(
+            &db.conn,
+            cds_db::config::ActiveModel {
+                id: sea_orm::ActiveValue::Set(1),
+                meta: sea_orm::ActiveValue::Set(cds_db::config::meta::Config::default()),
+                auth: sea_orm::ActiveValue::Set(cds_db::config::auth::Config::default()),
+                email: sea_orm::ActiveValue::Set(cds_db::config::email::Config::default()),
+                captcha: sea_orm::ActiveValue::Set(cds_db::config::captcha::Config::default()),
+            },
+        )
         .await?;
     }
 

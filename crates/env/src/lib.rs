@@ -7,12 +7,10 @@ pub mod queue;
 pub mod server;
 pub mod traits;
 
-use anyhow::anyhow;
 use figment::{
     Figment,
-    providers::{Env, Format, Toml},
+    providers::{Env as FEnv, Format, Toml},
 };
-use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use shadow_rs::shadow;
 
@@ -29,11 +27,9 @@ const CONFIG_PREDEFINED_PATH: [&str; 4] = [
 
 const CONFIG_PREDEFINED_FILE_NAME: &str = "config.toml";
 
-static CONSTANT: OnceCell<Constant> = OnceCell::new();
-
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
-pub struct Constant {
+pub struct Env {
     pub server: server::Config,
     pub db: db::Config,
     pub queue: queue::Config,
@@ -41,12 +37,6 @@ pub struct Constant {
     pub cluster: cluster::Config,
     pub media: media::Config,
     pub observe: observe::Config,
-}
-
-pub fn get_config() -> &'static Constant {
-    CONSTANT
-        .get()
-        .expect("No runtime config instance, forget to init?")
 }
 
 fn expand_tilde(path: &str) -> std::path::PathBuf {
@@ -69,18 +59,15 @@ fn find_first_config_file() -> Option<std::path::PathBuf> {
     None
 }
 
-pub async fn init() -> Result<(), EnvError> {
+pub async fn init() -> Result<Env, EnvError> {
     let mut figment = Figment::new();
     if let Some(path) = find_first_config_file() {
         figment = figment.merge(Toml::file(path));
     }
-    figment = figment.merge(Env::prefixed("CDSCTF_").split("_"));
-    let config = figment.extract::<Constant>()?;
-    CONSTANT
-        .set(config)
-        .map_err(|_| anyhow!("Failed to set constant env into OnceCell."))?;
+    figment = figment.merge(FEnv::prefixed("CDSCTF_").split("_"));
+    let global_env = figment.extract::<Env>()?;
 
-    Ok(())
+    Ok(global_env)
 }
 
 pub fn get_version() -> &'static str {

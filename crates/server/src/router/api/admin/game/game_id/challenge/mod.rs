@@ -1,4 +1,6 @@
-use axum::Router;
+use std::sync::Arc;
+
+use axum::{Router, extract::State};
 use cds_db::{
     GameChallenge,
     game_challenge::FindGameChallengeOptions,
@@ -9,12 +11,12 @@ use serde_json::json;
 
 use crate::{
     extract::{Json, Path, Query},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
 mod challenge_id;
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_game_challenge))
         .route("/", axum::routing::post(create_game_challenge))
@@ -30,15 +32,20 @@ pub struct GetGameChallengeRequest {
 
 /// Get challenges by given params.
 pub async fn get_game_challenge(
+    State(s): State<Arc<AppState>>,
+
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
 ) -> Result<WebResponse<Vec<GameChallenge>>, WebError> {
-    let (game_challenges, _) = cds_db::game_challenge::find(FindGameChallengeOptions {
-        game_id: Some(game_id),
-        challenge_id: params.challenge_id,
-        category: params.category,
-        ..Default::default()
-    })
+    let (game_challenges, _) = cds_db::game_challenge::find(
+        &s.db.conn,
+        FindGameChallengeOptions {
+            game_id: Some(game_id),
+            challenge_id: params.challenge_id,
+            category: params.category,
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -59,19 +66,22 @@ pub struct CreateGameChallengeRequest {
 }
 
 pub async fn create_game_challenge(
+    State(s): State<Arc<AppState>>,
+
     Path(game_id): Path<i64>,
     Json(body): Json<CreateGameChallengeRequest>,
 ) -> Result<WebResponse<GameChallenge>, WebError> {
-    let game = crate::util::loader::prepare_game(game_id).await?;
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    let challenge = crate::util::loader::prepare_challenge(body.challenge_id).await?;
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
-    if cds_db::util::is_challenge_in_game(challenge.id, game.id).await? {
+    if cds_db::util::is_challenge_in_game(&s.db.conn, challenge.id, game.id).await? {
         return Err(WebError::Conflict(json!("challenge_already_in_game")));
     }
 
-    let game_challenge =
-        cds_db::game_challenge::create::<GameChallenge>(cds_db::game_challenge::ActiveModel {
+    let game_challenge = cds_db::game_challenge::create(
+        &s.db.conn,
+        cds_db::game_challenge::ActiveModel {
             game_id: Set(game.id),
             challenge_id: Set(challenge.id),
             difficulty: body.difficulty.map_or(NotSet, Set),
@@ -81,16 +91,18 @@ pub async fn create_game_challenge(
             bonus_ratios: body.bonus_ratios.map_or(Set(vec![]), Set),
             frozen_at: body.frozen_at.map_or(NotSet, Set),
             ..Default::default()
-        })
-        .await?;
-
-    cds_queue::publish(
-        "calculator",
-        crate::worker::game_calculator::Payload {
-            game_id: Some(game.id),
         },
     )
     .await?;
+
+    s.queue
+        .publish(
+            "calculator",
+            crate::worker::game_calculator::Payload {
+                game_id: Some(game.id),
+            },
+        )
+        .await?;
 
     Ok(WebResponse {
         data: Some(game_challenge),

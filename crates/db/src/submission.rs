@@ -1,14 +1,14 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder,
-    QuerySelect,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, Order, PaginatorTrait,
+    QueryFilter, QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
 
 pub use crate::entity::submission::{ActiveModel, Status};
 pub(crate) use crate::entity::submission::{Column, Entity};
-use crate::{get_db, sea_orm, sea_orm::FromQueryResult, traits::DbError};
+use crate::{sea_orm, sea_orm::FromQueryResult, traits::DbError};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
 pub struct Submission {
@@ -54,6 +54,7 @@ pub struct FindSubmissionsOptions {
 }
 
 pub async fn find<T>(
+    conn: &impl ConnectionTrait,
     FindSubmissionsOptions {
         id,
         user_id,
@@ -115,40 +116,47 @@ where
         }
     }
 
-    let total = sql.clone().count(get_db()).await?;
+    let total = sql.clone().count(conn).await?;
 
     if let (Some(page), Some(size)) = (page, size) {
         let offset = (page - 1) * size;
         sql = sql.offset(offset).limit(size);
     }
 
-    let submissions = sql.into_model::<T>().all(get_db()).await?;
+    let submissions = sql.into_model::<T>().all(conn).await?;
 
     Ok((submissions, total))
 }
 
-pub async fn find_by_id<T>(submission_id: i64) -> Result<Option<T>, DbError>
+pub async fn find_by_id<T>(
+    conn: &impl ConnectionTrait,
+    submission_id: i64,
+) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::base_find()
         .filter(Column::Id.eq(submission_id))
         .into_model::<T>()
-        .one(get_db())
+        .one(conn)
         .await?)
 }
 
-pub async fn find_pending_by_id<T>(submission_id: i64) -> Result<Option<T>, DbError>
+pub async fn find_pending_by_id<T>(
+    conn: &impl ConnectionTrait,
+    submission_id: i64,
+) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::base_find()
         .filter(Column::Id.eq(submission_id))
         .filter(Column::Status.eq(Status::Pending))
         .into_model::<T>()
-        .one(get_db())
+        .one(conn)
         .await?)
 }
 
 pub async fn find_correct_by_team_ids_and_game_id<T>(
+    conn: &impl ConnectionTrait,
     team_ids: Vec<i64>,
     game_id: i64,
 ) -> Result<Vec<T>, DbError>
@@ -159,11 +167,12 @@ where
         .filter(Column::GameId.eq(game_id))
         .filter(Column::Status.eq(Status::Correct))
         .into_model::<T>()
-        .all(get_db())
+        .all(conn)
         .await?)
 }
 
 pub async fn find_correct_by_challenge_ids_and_optional_team_game<T>(
+    conn: &impl ConnectionTrait,
     challenge_ids: Vec<i64>,
     team_id: Option<i64>,
     game_id: Option<i64>,
@@ -184,45 +193,45 @@ where
         .filter(Column::Status.eq(Status::Correct))
         .order_by_asc(Column::CreatedAt)
         .into_model::<T>()
-        .all(get_db())
+        .all(conn)
         .await?;
 
     Ok(submissions)
 }
 
-pub async fn count() -> Result<u64, DbError> {
-    Ok(Entity::base_find().count(get_db()).await?)
+pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
+    Ok(Entity::base_find().count(conn).await?)
 }
 
-pub async fn count_correct() -> Result<u64, DbError> {
+pub async fn count_correct(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::base_find()
         .filter(Column::Status.eq(Status::Correct))
-        .count(get_db())
+        .count(conn)
         .await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
+pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
-    let submission = model.insert(get_db()).await?;
+    let submission = model.insert(conn).await?;
 
-    Ok(find_by_id::<T>(submission.id)
+    Ok(find_by_id::<T>(conn, submission.id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
+pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
-    let submission = model.update(get_db()).await?;
+    let submission = model.update(conn).await?;
 
-    Ok(find_by_id::<T>(submission.id)
+    Ok(find_by_id::<T>(conn, submission.id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }
 
-pub async fn delete(submission_id: i64) -> Result<(), DbError> {
-    Entity::delete_by_id(submission_id).exec(get_db()).await?;
+pub async fn delete(conn: &impl ConnectionTrait, submission_id: i64) -> Result<(), DbError> {
+    Entity::delete_by_id(submission_id).exec(conn).await?;
 
     Ok(())
 }

@@ -1,7 +1,9 @@
 mod avatar;
 mod email;
 
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
     User,
     sea_orm::{
@@ -15,11 +17,11 @@ use validator::Validate;
 
 use crate::{
     extract::{Extension, Json},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
     util,
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_user_profile))
         .route("/", axum::routing::put(update_user_profile))
@@ -33,11 +35,13 @@ pub fn router() -> Router {
 }
 
 pub async fn get_user_profile(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let user = cds_db::user::find_by_id::<User>(operator.id).await?;
+    let user = cds_db::user::find_by_id(&s.db.conn, operator.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -53,17 +57,22 @@ pub struct UpdateUserProfileRequest {
 }
 
 pub async fn update_user_profile(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<UpdateUserProfileRequest>,
 ) -> Result<WebResponse<User>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let user = cds_db::user::update::<User>(cds_db::user::ActiveModel {
-        id: Unchanged(operator.id),
-        name: body.name.map_or(NotSet, Set),
-        description: body.description.map_or(NotSet, |v| Set(Some(v))),
-        ..Default::default()
-    })
+    let user = cds_db::user::update(
+        &s.db.conn,
+        cds_db::user::ActiveModel {
+            id: Unchanged(operator.id),
+            name: body.name.map_or(NotSet, Set),
+            description: body.description.map_or(NotSet, |v| Set(Some(v))),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -80,16 +89,20 @@ pub struct DeleteUserProfileRequest {
 }
 
 pub async fn delete_user_profile(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<DeleteUserProfileRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    if !cds_captcha::check(&cds_captcha::Answer {
-        client_ip: Some(ext.client_ip),
-        ..body.captcha.unwrap_or_default()
-    })
-    .await?
+    if !s
+        .captcha
+        .check(&cds_captcha::Answer {
+            client_ip: Some(ext.client_ip),
+            ..body.captcha.unwrap_or_default()
+        })
+        .await?
     {
         return Err(WebError::BadRequest(json!("captcha_invalid")));
     }
@@ -100,7 +113,7 @@ pub async fn delete_user_profile(
         return Err(WebError::BadRequest(json!("password_invalid")));
     }
 
-    cds_db::user::delete(operator.id).await?;
+    cds_db::user::delete(&s.db.conn, operator.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -115,6 +128,8 @@ pub struct UpdateUserProfilePasswordRequest {
 }
 
 pub async fn update_user_profile_password(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<UpdateUserProfilePasswordRequest>,
 ) -> Result<WebResponse<()>, WebError> {
@@ -128,7 +143,7 @@ pub async fn update_user_profile_password(
 
     let hashed_password = util::crypto::hash_password(body.new_password);
 
-    cds_db::user::update_password(operator.id, hashed_password).await?;
+    cds_db::user::update_password(&s.db.conn, operator.id, hashed_password).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

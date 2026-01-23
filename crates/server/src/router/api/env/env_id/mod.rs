@@ -1,15 +1,21 @@
-use axum::{Router, extract::WebSocketUpgrade, http::StatusCode, response::IntoResponse};
-use cds_db::user::Group;
+use std::sync::Arc;
+
+use axum::{
+    Router,
+    extract::{State, WebSocketUpgrade},
+    http::StatusCode,
+    response::IntoResponse,
+};
 use serde::Deserialize;
 use serde_json::json;
 use tracing::debug;
 
 use crate::{
     extract::{Extension, Path, Query},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/renew", axum::routing::post(renew_pod))
         .route("/stop", axum::routing::post(stop_pod))
@@ -17,12 +23,14 @@ pub fn router() -> Router {
 }
 
 pub async fn renew_pod(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Path(pod_id): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let pod = cds_cluster::get_pod(&pod_id).await?;
+    let pod = s.cluster.get_pod(&pod_id).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
@@ -42,7 +50,9 @@ pub async fn renew_pod(
         .parse::<i64>()
         .unwrap_or_default();
 
-    if !(operator.id == user_id || cds_db::util::is_user_in_team(operator.id, team_id).await?) {
+    if !(operator.id == user_id
+        || cds_db::util::is_user_in_team(&s.db.conn, operator.id, team_id).await?)
+    {
         return Err(WebError::Forbidden(json!("")));
     }
 
@@ -74,7 +84,7 @@ pub async fn renew_pod(
         return Err(WebError::BadRequest(json!("renewal_within_10_minutes")));
     }
 
-    cds_cluster::renew_challenge_env(&id).await?;
+    s.cluster.renew_challenge_env(&id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -83,12 +93,14 @@ pub async fn renew_pod(
 }
 
 pub async fn stop_pod(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Path(pod_id): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let pod = cds_cluster::get_pod(&pod_id).await?;
+    let pod = s.cluster.get_pod(&pod_id).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
@@ -108,11 +120,13 @@ pub async fn stop_pod(
         .parse::<i64>()
         .unwrap_or_default();
 
-    if !(operator.id == user_id || cds_db::util::is_user_in_team(operator.id, team_id).await?) {
+    if !(operator.id == user_id
+        || cds_db::util::is_user_in_team(&s.db.conn, operator.id, team_id).await?)
+    {
         return Err(WebError::Forbidden(json!("")));
     }
 
-    cds_cluster::delete_challenge_env(&id).await?;
+    s.cluster.delete_challenge_env(&id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -126,6 +140,8 @@ pub struct WsrxRequest {
 }
 
 pub async fn wsrx(
+    State(s): State<Arc<AppState>>,
+
     Path(env_id): Path<String>,
     Query(query): Query<WsrxRequest>,
     ws: WebSocketUpgrade,
@@ -133,7 +149,7 @@ pub async fn wsrx(
     let port = query.port;
 
     Ok(ws.on_upgrade(move |socket| async move {
-        let result = cds_cluster::wsrx(&env_id, port as u16, socket).await;
+        let result = s.cluster.wsrx(&env_id, port as u16, socket).await;
         if let Err(e) = result {
             debug!("Failed to link pods: {:?}", e);
         }

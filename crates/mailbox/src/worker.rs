@@ -1,9 +1,9 @@
 use futures_util::StreamExt as _;
-use lettre::{Address, message::Mailbox};
+use lettre::{Address, message::Mailbox as LMailbox};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
-use crate::util;
+use crate::Mailbox;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Payload {
@@ -13,19 +13,20 @@ pub struct Payload {
     pub body: String,
 }
 
-async fn process_messages() -> Result<(), anyhow::Error> {
-    let mut messages = cds_queue::subscribe("email", None).await?;
+async fn process_messages(m: Mailbox) -> Result<(), anyhow::Error> {
+    let mut messages = m.queue.subscribe("mailbox", None).await?;
     while let Some(Ok(message)) = messages.next().await {
         if let Ok(payload) = serde_json::from_slice::<Payload>(&message.payload) {
-            match util::send(
-                Mailbox::new(
-                    Some(payload.name.clone()),
-                    payload.email.parse::<Address>()?,
-                ),
-                &payload.subject,
-                &payload.body,
-            )
-            .await
+            match m
+                .send(
+                    LMailbox::new(
+                        Some(payload.name.clone()),
+                        payload.email.parse::<Address>()?,
+                    ),
+                    &payload.subject,
+                    &payload.body,
+                )
+                .await
             {
                 Ok(_) => {
                     info!(
@@ -45,9 +46,9 @@ async fn process_messages() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-pub(crate) async fn init() {
+pub(crate) async fn init(m: Mailbox) {
     tokio::spawn(async move {
-        if let Err(err) = process_messages().await {
+        if let Err(err) = process_messages(m.clone()).await {
             error!("{:?}", err);
         }
     });

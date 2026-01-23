@@ -1,4 +1,6 @@
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
     GameChallenge,
     sea_orm::{
@@ -12,10 +14,10 @@ use serde_with::serde_as;
 
 use crate::{
     extract::{Json, Path},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::put(update_game_challenge))
         .route("/", axum::routing::delete(delete_game_challenge))
@@ -39,13 +41,17 @@ pub struct UpdateGameChallengeRequest {
 }
 
 pub async fn update_game_challenge(
+    State(s): State<Arc<AppState>>,
+
     Path((game_id, challenge_id)): Path<(i64, i64)>,
     Json(body): Json<UpdateGameChallengeRequest>,
 ) -> Result<WebResponse<GameChallenge>, WebError> {
-    let game_challenge = crate::util::loader::prepare_game_challenge(game_id, challenge_id).await?;
+    let game_challenge =
+        crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 
-    let new_game_challenge =
-        cds_db::game_challenge::update::<GameChallenge>(cds_db::game_challenge::ActiveModel {
+    let new_game_challenge = cds_db::game_challenge::update::<GameChallenge>(
+        &s.db.conn,
+        cds_db::game_challenge::ActiveModel {
             game_id: Unchanged(game_challenge.game_id),
             challenge_id: Unchanged(game_challenge.challenge_id),
             is_enabled: body.is_enabled.map_or(NotSet, Set),
@@ -55,32 +61,35 @@ pub async fn update_game_challenge(
             bonus_ratios: body.bonus_ratios.map_or(NotSet, Set),
             frozen_at: body.frozen_at.map_or(NotSet, Set),
             ..Default::default()
-        })
-        .await?;
+        },
+    )
+    .await?;
 
     if game_challenge.difficulty != new_game_challenge.difficulty
         || game_challenge.max_pts != new_game_challenge.max_pts
         || game_challenge.min_pts != new_game_challenge.min_pts
         || game_challenge.bonus_ratios != new_game_challenge.bonus_ratios
     {
-        cds_queue::publish(
-            "calculator",
-            crate::worker::game_calculator::Payload {
-                game_id: Some(new_game_challenge.game_id),
-            },
-        )
-        .await?;
+        s.queue
+            .publish(
+                "calculator",
+                crate::worker::game_calculator::Payload {
+                    game_id: Some(new_game_challenge.game_id),
+                },
+            )
+            .await?;
     }
 
     if new_game_challenge.is_enabled != game_challenge.is_enabled {
-        cds_event::push(cds_event::types::Event::GameChallenge(GameChallengeEvent {
-            type_: if new_game_challenge.is_enabled {
-                GameChallengeEventType::Up
-            } else {
-                GameChallengeEventType::Down
-            },
-        }))
-        .await?;
+        s.event
+            .push(cds_event::types::Event::GameChallenge(GameChallengeEvent {
+                type_: if new_game_challenge.is_enabled {
+                    GameChallengeEventType::Up
+                } else {
+                    GameChallengeEventType::Down
+                },
+            }))
+            .await?;
     }
 
     Ok(WebResponse {
@@ -91,11 +100,19 @@ pub async fn update_game_challenge(
 }
 
 pub async fn delete_game_challenge(
+    State(s): State<Arc<AppState>>,
+
     Path((game_id, challenge_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
-    let game_challenge = crate::util::loader::prepare_game_challenge(game_id, challenge_id).await?;
+    let game_challenge =
+        crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 
-    cds_db::game_challenge::delete(game_challenge.game_id, game_challenge.challenge_id).await?;
+    cds_db::game_challenge::delete(
+        &s.db.conn,
+        game_challenge.game_id,
+        game_challenge.challenge_id,
+    )
+    .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

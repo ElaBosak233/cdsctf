@@ -689,14 +689,14 @@ dependencies = [
 
 [[package]]
 name = "cds-assets"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "rust-embed",
 ]
 
 [[package]]
 name = "cds-cache"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -710,7 +710,7 @@ dependencies = [
 
 [[package]]
 name = "cds-captcha"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "biosvg",
@@ -729,7 +729,7 @@ dependencies = [
 
 [[package]]
 name = "cds-checker"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "aes",
  "anyhow",
@@ -748,7 +748,7 @@ dependencies = [
 
 [[package]]
 name = "cds-cluster"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "axum",
@@ -759,7 +759,6 @@ dependencies = [
  "k8s-openapi",
  "kube",
  "nanoid",
- "once_cell",
  "serde",
  "serde_json",
  "thiserror 2.0.16",
@@ -772,7 +771,7 @@ dependencies = [
 
 [[package]]
 name = "cds-db"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -789,24 +788,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "cds-email"
-version = "1.8.5"
-dependencies = [
- "anyhow",
- "cds-db",
- "cds-queue",
- "futures-util",
- "lettre",
- "serde",
- "serde_json",
- "thiserror 2.0.16",
- "tokio",
- "tracing",
-]
-
-[[package]]
 name = "cds-engine"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "dashmap",
@@ -822,7 +805,7 @@ dependencies = [
 
 [[package]]
 name = "cds-env"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "figment",
@@ -836,7 +819,7 @@ dependencies = [
 
 [[package]]
 name = "cds-event"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -849,8 +832,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "cds-mailbox"
+version = "1.8.6"
+dependencies = [
+ "anyhow",
+ "cds-db",
+ "cds-queue",
+ "futures-util",
+ "lettre",
+ "once_cell",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.16",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "cds-media"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -867,7 +867,7 @@ dependencies = [
 
 [[package]]
 name = "cds-migrator"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "async-trait",
  "cds-db",
@@ -878,7 +878,7 @@ dependencies = [
 
 [[package]]
 name = "cds-observe"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "cds-env",
@@ -899,12 +899,11 @@ dependencies = [
 
 [[package]]
 name = "cds-queue"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "async-nats",
  "cds-env",
- "once_cell",
  "serde",
  "serde_json",
  "thiserror 2.0.16",
@@ -913,7 +912,7 @@ dependencies = [
 
 [[package]]
 name = "cds-server"
-version = "1.8.5"
+version = "1.8.6"
 dependencies = [
  "anyhow",
  "argon2",
@@ -924,10 +923,10 @@ dependencies = [
  "cds-checker",
  "cds-cluster",
  "cds-db",
- "cds-email",
  "cds-engine",
  "cds-env",
  "cds-event",
+ "cds-mailbox",
  "cds-media",
  "cds-migrator",
  "cds-observe",

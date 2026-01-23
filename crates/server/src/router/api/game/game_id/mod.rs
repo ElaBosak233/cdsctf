@@ -4,10 +4,11 @@ mod notice;
 mod poster;
 mod team;
 
-use std::convert::Infallible;
+use std::{convert::Infallible, sync::Arc};
 
 use axum::{
     Router,
+    extract::State,
     response::{
         IntoResponse, Sse,
         sse::{Event as SseEvent, KeepAlive},
@@ -15,7 +16,7 @@ use axum::{
 };
 use cds_db::{
     Game, Submission, Team,
-    team::{FindTeamOptions, State},
+    team::{FindTeamOptions, State as TState},
 };
 use cds_event::SubscribeOptions;
 use futures_util::StreamExt as _;
@@ -24,10 +25,10 @@ use serde_json::json;
 
 use crate::{
     extract::{Path, Query},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_game))
         .nest("/challenges", challenge::router())
@@ -39,8 +40,11 @@ pub fn router() -> Router {
         .route("/events", axum::routing::get(get_events))
 }
 
-pub async fn get_game(Path(game_id): Path<i64>) -> Result<WebResponse<Game>, WebError> {
-    let game = crate::util::loader::prepare_game(game_id).await?;
+pub async fn get_game(
+    State(s): State<Arc<AppState>>,
+    Path(game_id): Path<i64>,
+) -> Result<WebResponse<Game>, WebError> {
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     if !game.is_enabled {
         return Err(WebError::NotFound(json!("")));
@@ -65,26 +69,32 @@ pub struct ScoreRecord {
 }
 
 pub async fn get_game_scoreboard(
+    State(s): State<Arc<AppState>>,
+
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameScoreboardRequest>,
 ) -> Result<WebResponse<Vec<ScoreRecord>>, WebError> {
-    let game = crate::util::loader::prepare_game(game_id).await?;
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    let (teams, total) = cds_db::team::find(FindTeamOptions {
-        game_id: Some(game.id),
-        state: Some(State::Passed),
-        sorts: Some("rank,-pts".to_string()),
-        page: params.page,
-        size: params.size,
-        ..Default::default()
-    })
+    let (teams, total) = cds_db::team::find(
+        &s.db.conn,
+        FindTeamOptions {
+            game_id: Some(game.id),
+            state: Some(TState::Passed),
+            sorts: Some("rank,-pts".to_string()),
+            page: params.page,
+            size: params.size,
+            ..Default::default()
+        },
+    )
     .await?;
 
     let team_ids = teams.iter().map(|t: &Team| t.id).collect::<Vec<i64>>();
 
-    let submissions =
-        cds_db::submission::find_correct_by_team_ids_and_game_id::<Submission>(team_ids, game_id)
-            .await?;
+    let submissions = cds_db::submission::find_correct_by_team_ids_and_game_id::<Submission>(
+        &s.db.conn, team_ids, game_id,
+    )
+    .await?;
 
     let mut result: Vec<ScoreRecord> = Vec::new();
 
@@ -112,14 +122,18 @@ pub struct GetEventsRequest {
 }
 
 pub async fn get_events(
+    State(s): State<Arc<AppState>>,
+
     Path(game_id): Path<i64>,
     Query(params): Query<GetEventsRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    let stream = cds_event::subscribe(SubscribeOptions {
-        game_id: Some(game_id),
-        token: Some(params.token),
-    })
-    .await?;
+    let stream = s
+        .event
+        .subscribe(SubscribeOptions {
+            game_id: Some(game_id),
+            token: Some(params.token),
+        })
+        .await?;
 
     let sse_stream = stream.map(|event| {
         let Ok(evt) = event;

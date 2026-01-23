@@ -1,14 +1,14 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityName, EntityTrait, FromQueryResult, Iden as _, Order,
-    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, prelude::Expr,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityName, EntityTrait, FromQueryResult,
+    Iden as _, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, prelude::Expr,
 };
 use serde::{Deserialize, Serialize};
 
 pub use crate::entity::challenge::{ActiveModel, Container, Env, EnvVar, Model, Port};
 pub(crate) use crate::entity::challenge::{Column, Entity};
-use crate::{get_db, traits::DbError};
+use crate::traits::DbError;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -61,6 +61,7 @@ pub struct FindChallengeOptions {
 }
 
 pub async fn find<T>(
+    conn: &impl ConnectionTrait,
     FindChallengeOptions {
         id,
         title,
@@ -111,7 +112,7 @@ where
 
     sql = sql.filter(Column::DeletedAt.is_null());
 
-    let total = sql.clone().count(get_db()).await?;
+    let total = sql.clone().count(conn).await?;
 
     if let Some(sorts) = sorts {
         let sorts = sorts.split(",").collect::<Vec<&str>>();
@@ -133,50 +134,53 @@ where
         sql = sql.offset(offset).limit(size);
     }
 
-    let challenges = sql.into_model::<T>().all(get_db()).await?;
+    let challenges = sql.into_model::<T>().all(conn).await?;
 
     Ok((challenges, total))
 }
 
-pub async fn find_by_id<T>(challenge_id: i64) -> Result<Option<T>, DbError>
+pub async fn find_by_id<T>(
+    conn: &impl ConnectionTrait,
+    challenge_id: i64,
+) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::find_by_id(challenge_id)
         .filter(Column::DeletedAt.is_null())
         .into_model::<T>()
-        .one(get_db())
+        .one(conn)
         .await?)
 }
 
-pub async fn count() -> Result<u64, DbError> {
+pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::find()
         .filter(Column::DeletedAt.is_null())
-        .count(get_db())
+        .count(conn)
         .await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
+pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
-    let challenge = model.insert(get_db()).await?;
+    let challenge = model.insert(conn).await?;
 
-    Ok(find_by_id::<T>(challenge.id)
+    Ok(find_by_id::<T>(conn, challenge.id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("challenge_{}", challenge.id)))?)
 }
 
-pub async fn update<T>(model: ActiveModel) -> Result<T, DbError>
+pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
-    let challenge = model.update(get_db()).await?;
+    let challenge = model.update(conn).await?;
 
-    Ok(find_by_id::<T>(challenge.id)
+    Ok(find_by_id::<T>(conn, challenge.id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("challenge_{}", challenge.id)))?)
 }
 
-pub async fn delete(challenge_id: i64) -> Result<(), DbError> {
-    let challenge = find_by_id::<Model>(challenge_id)
+pub async fn delete(conn: &impl ConnectionTrait, challenge_id: i64) -> Result<(), DbError> {
+    let challenge = find_by_id::<Model>(conn, challenge_id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("challenge_{challenge_id}")))?;
 
@@ -185,7 +189,7 @@ pub async fn delete(challenge_id: i64) -> Result<(), DbError> {
         deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
         ..Default::default()
     }
-    .update(get_db())
+    .update(conn)
     .await?;
 
     Ok(())

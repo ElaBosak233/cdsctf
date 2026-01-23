@@ -1,18 +1,18 @@
 mod env_id;
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
-use axum::Router;
+use axum::{Router, extract::State};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Query},
-    traits::{AuthPrincipal, WebError, WebResponse},
-    util::cluster::Env,
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    util::cluster::DynamicEnvironment,
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_env))
         .route("/", axum::routing::post(create_env))
@@ -29,8 +29,10 @@ pub struct GetEnvRequest {
 }
 
 pub async fn get_env(
+    State(s): State<Arc<AppState>>,
+
     Query(params): Query<GetEnvRequest>,
-) -> Result<WebResponse<Vec<Env>>, WebError> {
+) -> Result<WebResponse<Vec<DynamicEnvironment>>, WebError> {
     let mut map: BTreeMap<String, String> = BTreeMap::new();
 
     if let Some(id) = params.id {
@@ -59,9 +61,12 @@ pub async fn get_env(
         .collect::<Vec<String>>()
         .join(",");
 
-    let pods = cds_cluster::get_pods_by_label(&labels).await?;
+    let pods = s.cluster.get_pods_by_label(&labels).await?;
 
-    let envs = pods.into_iter().map(Env::from).collect::<Vec<Env>>();
+    let envs = pods
+        .into_iter()
+        .map(|pod| DynamicEnvironment::from(pod).with_env(&s.env))
+        .collect::<Vec<DynamicEnvironment>>();
 
     Ok(WebResponse {
         data: Some(envs),
@@ -75,32 +80,38 @@ pub struct CreateEnvRequest {
 }
 
 pub async fn create_env(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<CreateEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = crate::util::loader::prepare_challenge(body.challenge_id).await?;
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
     let _ = challenge
         .clone()
         .env
         .ok_or(WebError::BadRequest(json!("challenge_env_invalid")))?;
 
-    let existing_pods = cds_cluster::get_pods_by_label(
-        &BTreeMap::from([("cds/user_id", format!("{}", operator.id))])
-            .iter()
-            .map(|(k, v)| format!("{}={}", k, v))
-            .collect::<Vec<String>>()
-            .join(","),
-    )
-    .await?;
+    let existing_pods = s
+        .cluster
+        .get_pods_by_label(
+            &BTreeMap::from([("cds/user_id", format!("{}", operator.id))])
+                .iter()
+                .map(|(k, v)| format!("{}={}", k, v))
+                .collect::<Vec<String>>()
+                .join(","),
+        )
+        .await?;
 
     if existing_pods.len() >= 1 {
         return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
     }
 
-    cds_cluster::create_challenge_env(operator, None, None, challenge).await?;
+    s.cluster
+        .create_challenge_env(operator, None, None, challenge)
+        .await?;
 
     Ok(WebResponse::default())
 }

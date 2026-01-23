@@ -4,7 +4,9 @@ mod notice;
 mod poster;
 mod team;
 
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
     Game,
     sea_orm::{
@@ -17,10 +19,10 @@ use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_game))
         .route("/", axum::routing::put(update_game))
@@ -33,8 +35,12 @@ pub fn router() -> Router {
         .route("/calculate", axum::routing::post(calculate_game))
 }
 
-pub async fn get_game(Path(game_id): Path<i64>) -> Result<WebResponse<Game>, WebError> {
-    let game = crate::util::loader::prepare_game(game_id).await?;
+pub async fn get_game(
+    State(s): State<Arc<AppState>>,
+
+    Path(game_id): Path<i64>,
+) -> Result<WebResponse<Game>, WebError> {
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     Ok(WebResponse {
         data: Some(game),
@@ -60,29 +66,34 @@ pub struct UpdateGameRequest {
 }
 
 pub async fn update_game(
+    State(s): State<Arc<AppState>>,
+
     Path(game_id): Path<i64>,
     VJson(body): VJson<UpdateGameRequest>,
 ) -> Result<WebResponse<Game>, WebError> {
-    let game = crate::util::loader::prepare_game(game_id).await?;
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    let game = cds_db::game::update(cds_db::game::ActiveModel {
-        id: Unchanged(game.id),
-        title: body.title.map_or(NotSet, Set),
-        sketch: body.sketch.map_or(NotSet, |v| Set(Some(v))),
-        description: body.description.map_or(NotSet, |v| Set(Some(v))),
-        is_enabled: body.is_enabled.map_or(NotSet, Set),
-        is_public: body.is_public.map_or(NotSet, Set),
-        is_need_write_up: body.is_need_write_up.map_or(NotSet, Set),
+    let game = cds_db::game::update(
+        &s.db.conn,
+        cds_db::game::ActiveModel {
+            id: Unchanged(game.id),
+            title: body.title.map_or(NotSet, Set),
+            sketch: body.sketch.map_or(NotSet, |v| Set(Some(v))),
+            description: body.description.map_or(NotSet, |v| Set(Some(v))),
+            is_enabled: body.is_enabled.map_or(NotSet, Set),
+            is_public: body.is_public.map_or(NotSet, Set),
+            is_need_write_up: body.is_need_write_up.map_or(NotSet, Set),
 
-        member_limit_min: body.member_limit_min.map_or(NotSet, Set),
-        member_limit_max: body.member_limit_max.map_or(NotSet, Set),
+            member_limit_min: body.member_limit_min.map_or(NotSet, Set),
+            member_limit_max: body.member_limit_max.map_or(NotSet, Set),
 
-        timeslots: body.timeslots.map_or(NotSet, Set),
-        started_at: body.started_at.map_or(NotSet, Set),
-        frozen_at: body.frozen_at.map_or(NotSet, Set),
-        ended_at: body.ended_at.map_or(NotSet, Set),
-        ..Default::default()
-    })
+            timeslots: body.timeslots.map_or(NotSet, Set),
+            started_at: body.started_at.map_or(NotSet, Set),
+            frozen_at: body.frozen_at.map_or(NotSet, Set),
+            ended_at: body.ended_at.map_or(NotSet, Set),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -92,10 +103,14 @@ pub async fn update_game(
     })
 }
 
-pub async fn delete_game(Path(game_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
-    let game = crate::util::loader::prepare_game(game_id).await?;
+pub async fn delete_game(
+    State(s): State<Arc<AppState>>,
 
-    let _ = cds_db::game::delete(game.id).await?;
+    Path(game_id): Path<i64>,
+) -> Result<WebResponse<()>, WebError> {
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+
+    let _ = cds_db::game::delete(&s.db.conn, game.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -103,16 +118,21 @@ pub async fn delete_game(Path(game_id): Path<i64>) -> Result<WebResponse<()>, We
     })
 }
 
-pub async fn calculate_game(Path(game_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
-    let game = crate::util::loader::prepare_game(game_id).await?;
+pub async fn calculate_game(
+    State(s): State<Arc<AppState>>,
 
-    cds_queue::publish(
-        "calculator",
-        crate::worker::game_calculator::Payload {
-            game_id: Some(game.id),
-        },
-    )
-    .await?;
+    Path(game_id): Path<i64>,
+) -> Result<WebResponse<()>, WebError> {
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+
+    s.queue
+        .publish(
+            "calculator",
+            crate::worker::game_calculator::Payload {
+                game_id: Some(game.id),
+            },
+        )
+        .await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

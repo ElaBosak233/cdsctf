@@ -1,11 +1,13 @@
 use cds_db::sea_orm::sqlx::types::time;
 use tracing::info;
 
-pub async fn cleaner() {
-    tokio::spawn(async {
+use crate::Cluster;
+
+pub async fn cleaner(cluster: Cluster) {
+    tokio::spawn(async move {
         let interval = std::time::Duration::from_secs(10);
         loop {
-            let pods = crate::get_pods_list().await.unwrap_or_default();
+            let pods = cluster.get_pods_list().await.unwrap_or_default();
             for pod in pods {
                 let id = pod
                     .metadata
@@ -36,8 +38,8 @@ pub async fn cleaner() {
                 let now = time::OffsetDateTime::now_utc().unix_timestamp();
 
                 if now > started_at + (renew + 1) * duration {
-                    crate::delete_pod(&id).await.unwrap();
-                    crate::delete_service(&id).await.unwrap();
+                    cluster.delete_pod(&id).await.unwrap();
+                    cluster.delete_service(&id).await.unwrap();
                     info!("Cleaned up invalid cluster {0}", id);
                 }
             }

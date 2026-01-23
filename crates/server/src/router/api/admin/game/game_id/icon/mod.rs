@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use axum::{
     Router,
-    extract::{DefaultBodyLimit, Multipart},
+    extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::{
     Game,
@@ -9,11 +11,11 @@ use cds_db::{
 
 use crate::{
     extract::Path,
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
     util,
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route(
             "/",
@@ -24,32 +26,44 @@ pub fn router() -> Router {
 }
 
 pub async fn save_game_icon(
+    State(s): State<Arc<AppState>>,
+
     Path(game_id): Path<i64>,
     multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
     let path = format!("games/{}/icon", game_id);
 
-    let _ = util::media::save_img(path, multipart).await;
-    let _ = cds_db::game::update::<Game>(cds_db::game::ActiveModel {
-        id: Unchanged(game_id),
-        has_icon: Set(true),
-        ..Default::default()
-    })
+    let _ = util::media::save_img(s.media.clone(), path, multipart).await;
+    let _ = cds_db::game::update::<Game>(
+        &s.db.conn,
+        cds_db::game::ActiveModel {
+            id: Unchanged(game_id),
+            has_icon: Set(true),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse::default())
 }
 
-pub async fn delete_game_icon(Path(game_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
+pub async fn delete_game_icon(
+    State(s): State<Arc<AppState>>,
+
+    Path(game_id): Path<i64>,
+) -> Result<WebResponse<()>, WebError> {
     let path = format!("games/{}/icon", game_id);
 
-    let _ = util::media::delete_img(path).await;
+    let _ = util::media::delete_img(s.media.clone(), path).await;
 
-    let _ = cds_db::game::update::<Game>(cds_db::game::ActiveModel {
-        id: Unchanged(game_id),
-        has_icon: Set(false),
-        ..Default::default()
-    })
+    let _ = cds_db::game::update::<Game>(
+        &s.db.conn,
+        cds_db::game::ActiveModel {
+            id: Unchanged(game_id),
+            has_icon: Set(false),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse::default())

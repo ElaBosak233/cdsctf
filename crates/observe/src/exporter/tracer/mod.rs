@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use cds_env::Env;
 use once_cell::sync::{Lazy, OnceCell};
 use opentelemetry::{
     InstrumentationScope, global, global::BoxedTracer,
@@ -31,8 +32,8 @@ pub static TRACER: Lazy<BoxedTracer> = Lazy::new(|| {
     global::tracer_with_scope(scope)
 });
 
-pub fn init() -> Result<(), ObserveError> {
-    let trace_ep = cds_env::get_config()
+pub fn init(env: &Env) -> Result<(), ObserveError> {
+    let trace_ep = env
         .observe
         .exporter
         .trace_endpoint
@@ -40,8 +41,7 @@ pub fn init() -> Result<(), ObserveError> {
         .filter(|s| !s.is_empty())
         .map(|s| s.to_string())
         .or_else(|| {
-            cds_env::get_config()
-                .observe
+            env.observe
                 .exporter
                 .endpoint
                 .as_deref()
@@ -63,7 +63,7 @@ pub fn init() -> Result<(), ObserveError> {
 
     let tracer_provider = SdkTracerProvider::builder()
         .with_batch_exporter(span_exporter)
-        .with_resource(super::get_resource())
+        .with_resource(super::get_resource(env))
         .build();
 
     PROVIDER.set(tracer_provider).ok();

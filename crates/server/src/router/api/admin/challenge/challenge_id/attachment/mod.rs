@@ -1,8 +1,10 @@
 mod filename;
 
+use std::sync::Arc;
+
 use axum::{
     Router,
-    extract::{DefaultBodyLimit, Multipart},
+    extract::{DefaultBodyLimit, Multipart, State},
     http::StatusCode,
 };
 use serde_json::json;
@@ -10,10 +12,10 @@ use serde_json::json;
 use crate::{
     extract::Path,
     model::Metadata,
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_challenge_attachment))
         .route(
@@ -25,16 +27,20 @@ pub fn router() -> Router {
 }
 
 pub async fn get_challenge_attachment(
+    State(s): State<Arc<AppState>>,
+
     Path(challenge_id): Path<i64>,
 ) -> Result<WebResponse<Vec<Metadata>>, WebError> {
-    let _ = crate::util::loader::prepare_challenge(challenge_id)
+    let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
         .await?
         .has_attachment
         .then_some(())
         .ok_or_else(|| WebError::NotFound(json!("challenge_has_not_attachment")))?;
 
     let path = crate::util::media::build_challenge_attachment_path(challenge_id);
-    let metadata = cds_media::scan_dir(path.clone())
+    let metadata = s
+        .media
+        .scan_dir(path.clone())
         .await?
         .into_iter()
         .map(|(filename, size)| Metadata {
@@ -50,10 +56,12 @@ pub async fn get_challenge_attachment(
 }
 
 pub async fn save_challenge_attachment(
+    State(s): State<Arc<AppState>>,
+
     Path(challenge_id): Path<i64>,
     mut multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
-    let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
+    let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
     let path = crate::util::media::build_challenge_attachment_path(challenge_id);
     let mut filename = String::new();
@@ -69,7 +77,8 @@ pub async fn save_challenge_attachment(
         }
     }
 
-    cds_media::save(path, filename, data)
+    s.media
+        .save(path, filename, data)
         .await
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 

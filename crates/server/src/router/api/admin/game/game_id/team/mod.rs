@@ -1,19 +1,21 @@
 mod team_id;
 
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
     sea_orm::ActiveValue::Set,
-    team::{FindTeamOptions, State, Team},
+    team::{FindTeamOptions, State as TState, Team},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Path, Query},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_team))
         .route("/", axum::routing::post(create_team))
@@ -24,7 +26,7 @@ pub fn router() -> Router {
 pub struct GetTeamRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
-    pub state: Option<State>,
+    pub state: Option<TState>,
     pub has_write_up: Option<bool>,
     pub user_id: Option<i64>,
     pub page: Option<u64>,
@@ -34,23 +36,28 @@ pub struct GetTeamRequest {
 
 /// Get game teams with given data.
 pub async fn get_team(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Query(params): Query<GetTeamRequest>,
 ) -> Result<WebResponse<Vec<Team>>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let (teams, total) = cds_db::team::find::<Team>(FindTeamOptions {
-        id: params.id,
-        name: params.name,
-        state: params.state,
-        has_write_up: params.has_write_up,
-        game_id: Some(game_id),
-        user_id: params.user_id,
-        page: params.page,
-        size: params.size,
-        sorts: params.sorts,
-    })
+    let (teams, total) = cds_db::team::find(
+        &s.db.conn,
+        FindTeamOptions {
+            id: params.id,
+            name: params.name,
+            state: params.state,
+            has_write_up: params.has_write_up,
+            game_id: Some(game_id),
+            user_id: params.user_id,
+            page: params.page,
+            size: params.size,
+            sorts: params.sorts,
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -73,19 +80,24 @@ pub struct CreateTeamRequest {
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn create_team(
+    State(s): State<Arc<AppState>>,
+
     Path(game_id): Path<i64>,
     Json(body): Json<CreateTeamRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
-    let game = crate::util::loader::prepare_game(game_id).await?;
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    let team = cds_db::team::create(cds_db::team::ActiveModel {
-        name: Set(body.name),
-        email: Set(body.email),
-        slogan: Set(body.slogan),
-        game_id: Set(game.id),
-        state: Set(State::Preparing),
-        ..Default::default()
-    })
+    let team = cds_db::team::create(
+        &s.db.conn,
+        cds_db::team::ActiveModel {
+            name: Set(body.name),
+            email: Set(body.email),
+            slogan: Set(body.slogan),
+            game_id: Set(game.id),
+            state: Set(TState::Preparing),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {

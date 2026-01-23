@@ -1,8 +1,8 @@
 mod challenge_id;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
-use axum::Router;
+use axum::{Router, extract::State};
 use cds_db::{
     ChallengeMini, GameChallenge, Submission, challenge::FindChallengeOptions,
     game_challenge::FindGameChallengeOptions,
@@ -12,10 +12,10 @@ use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Query},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/playground", axum::routing::get(get_challenge))
         .route("/status", axum::routing::post(get_challenge_status))
@@ -34,6 +34,8 @@ pub struct GetChallengeRequest {
 }
 
 pub async fn get_challenge(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<ChallengeMini>>, WebError> {
@@ -42,17 +44,20 @@ pub async fn get_challenge(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let (challenges, total) = cds_db::challenge::find::<ChallengeMini>(FindChallengeOptions {
-        id: params.id,
-        title: params.title,
-        category: params.category,
-        tag: params.tag,
-        is_public: Some(true),
-        sorts: params.sorts,
-        page: Some(page),
-        size: Some(size),
-        ..Default::default()
-    })
+    let (challenges, total) = cds_db::challenge::find::<ChallengeMini>(
+        &s.db.conn,
+        FindChallengeOptions {
+            id: params.id,
+            title: params.title,
+            category: params.category,
+            tag: params.tag,
+            is_public: Some(true),
+            sorts: params.sorts,
+            page: Some(page),
+            size: Some(size),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -79,6 +84,8 @@ pub struct ChallengeStatusResponse {
 }
 
 pub async fn get_challenge_status(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<GetChallengeStatusRequest>,
 ) -> Result<WebResponse<HashMap<i64, ChallengeStatusResponse>>, WebError> {
@@ -90,6 +97,7 @@ pub async fn get_challenge_status(
 
     let mut submissions =
         cds_db::submission::find_correct_by_challenge_ids_and_optional_team_game::<Submission>(
+            &s.db.conn,
             body.challenge_ids.clone(),
             body.team_id,
             body.game_id,
@@ -131,12 +139,14 @@ pub async fn get_challenge_status(
     }
 
     if let Some(game_id) = body.game_id {
-        let (game_challenges, _) =
-            cds_db::game_challenge::find::<GameChallenge>(FindGameChallengeOptions {
+        let (game_challenges, _) = cds_db::game_challenge::find::<GameChallenge>(
+            &s.db.conn,
+            FindGameChallengeOptions {
                 game_id: Some(game_id),
                 ..Default::default()
-            })
-            .await?;
+            },
+        )
+        .await?;
 
         for game_challenge in game_challenges {
             if let Some(status_response) = result.get_mut(&game_challenge.challenge_id) {

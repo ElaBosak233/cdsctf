@@ -1,6 +1,7 @@
+use std::sync::Arc;
+
 use axum::{
-    body::Body,
-    extract::{FromRequestParts, Request},
+    extract::{FromRequestParts, Request, State},
     middleware::Next,
     response::{IntoResponse, Response},
 };
@@ -10,10 +11,15 @@ use tower_sessions::Session;
 
 use crate::{
     extract::Extension,
-    traits::{AuthPrincipal, WebError},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
-pub async fn extract(req: Request<Body>, next: Next) -> Result<Response, WebError> {
+pub async fn extract(
+    State(s): State<Arc<AppState>>,
+
+    req: Request,
+    next: Next,
+) -> Result<Response, WebError> {
     let (mut parts, body) = req.into_parts();
 
     let session = Session::from_request_parts(&mut parts, &())
@@ -29,7 +35,7 @@ pub async fn extract(req: Request<Body>, next: Next) -> Result<Response, WebErro
         .to_owned();
 
     if let Ok(Some(user_id)) = session.get::<i64>("user_id").await {
-        if let Some(user) = cds_db::user::find_by_id::<User>(user_id).await? {
+        if let Some(user) = cds_db::user::find_by_id::<User>(&s.db.conn, user_id).await? {
             if user.group == Group::Banned {
                 return Err(WebError::Forbidden(json!("forbidden")));
             }

@@ -1,21 +1,23 @@
 mod profile;
 mod team_id;
 
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
     TeamUser,
     sea_orm::ActiveValue::Set,
-    team::{State, Team},
+    team::{State as TState, Team},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Path},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/register", axum::routing::post(team_register))
         .nest("/profile", profile::router())
@@ -35,35 +37,43 @@ pub struct TeamRegisterRequest {
 /// # Prerequisite
 /// - No user in the team is already in the game.
 pub async fn team_register(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Json(body): Json<TeamRegisterRequest>,
 ) -> Result<WebResponse<Team>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let game = crate::util::loader::prepare_game(game_id).await?;
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    if cds_db::util::is_user_in_game(operator.id, game.id, None).await? {
+    if cds_db::util::is_user_in_game(&s.db.conn, operator.id, game.id, None).await? {
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
-    let team = cds_db::team::create::<Team>(cds_db::team::ActiveModel {
-        name: Set(body.name),
-        email: Set(body.email),
-        slogan: Set(body.slogan),
-        game_id: Set(game.id),
-        state: Set(State::Preparing),
-        ..Default::default()
-    })
+    let team = cds_db::team::create::<Team>(
+        &s.db.conn,
+        cds_db::team::ActiveModel {
+            name: Set(body.name),
+            email: Set(body.email),
+            slogan: Set(body.slogan),
+            game_id: Set(game.id),
+            state: Set(TState::Preparing),
+            ..Default::default()
+        },
+    )
     .await?;
 
-    let _ = cds_db::team_user::create::<TeamUser>(cds_db::team_user::ActiveModel {
-        team_id: Set(team.id),
-        user_id: Set(operator.id),
-    })
+    let _ = cds_db::team_user::create::<TeamUser>(
+        &s.db.conn,
+        cds_db::team_user::ActiveModel {
+            team_id: Set(team.id),
+            user_id: Set(operator.id),
+        },
+    )
     .await?;
 
-    let team = cds_db::team::find_by_id(team.id, team.game_id).await?;
+    let team = cds_db::team::find_by_id(&s.db.conn, team.id, team.game_id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

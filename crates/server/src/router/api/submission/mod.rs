@@ -1,19 +1,21 @@
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
-    Submission,
+    Submission, Team,
     sea_orm::{ActiveValue::NotSet, Set},
     submission::{FindSubmissionsOptions, Status},
-    team::{FindTeamOptions, State, Team},
+    team::{FindTeamOptions, State as TState},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Extension, Json, Query},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_submission))
         .route("/", axum::routing::post(create_submission))
@@ -43,6 +45,8 @@ pub struct GetSubmissionRequest {
 }
 
 pub async fn get_submission(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetSubmissionRequest>,
 ) -> Result<WebResponse<Vec<Submission>>, WebError> {
@@ -51,22 +55,25 @@ pub async fn get_submission(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let (submissions, total) = cds_db::submission::find::<Submission>(FindSubmissionsOptions {
-        id: params.id,
-        user_id: params.user_id,
-        team_id: params.team_id,
-        game_id: params.game_id,
-        challenge_id: params.challenge_id,
-        status: params.status,
-        page: Some(page),
-        size: Some(size),
-        sorts: params.sorts,
-    })
+    let (submissions, total) = cds_db::submission::find(
+        &s.db.conn,
+        FindSubmissionsOptions {
+            id: params.id,
+            user_id: params.user_id,
+            team_id: params.team_id,
+            game_id: params.game_id,
+            challenge_id: params.challenge_id,
+            status: params.status,
+            page: Some(page),
+            size: Some(size),
+            sorts: params.sorts,
+        },
+    )
     .await?;
 
     let submissions = submissions
         .into_iter()
-        .map(|submission| submission.desensitize())
+        .map(|submission: Submission| submission.desensitize())
         .collect::<Vec<Submission>>();
 
     Ok(WebResponse {
@@ -87,6 +94,8 @@ pub struct CreateSubmissionRequest {
 }
 
 pub async fn create_submission(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Json(mut body): Json<CreateSubmissionRequest>,
 ) -> Result<WebResponse<Submission>, WebError> {
@@ -95,17 +104,17 @@ pub async fn create_submission(
     body.user_id = Some(operator.id);
 
     let token = format!("submission:user:{}", operator.id);
-    if let Some(limit) = cds_cache::get::<i32>(&token).await? {
+    if let Some(limit) = s.cache.get::<i32>(&token).await? {
         if limit > 10 {
             return Err(WebError::TooManyRequests(json!("submission")));
         } else {
-            cds_cache::set_ex(&token, limit + 1, 60).await?;
+            s.cache.set_ex(&token, limit + 1, 60).await?;
         }
     } else {
-        cds_cache::set_ex(&token, 1, 60).await?;
+        s.cache.set_ex(&token, 1, 60).await?;
     }
 
-    let challenge = crate::util::loader::prepare_challenge(body.challenge_id).await?;
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
     if body.game_id.is_some() != body.team_id.is_some() {
         return Err(WebError::BadRequest(json!("invalid")));
@@ -117,17 +126,21 @@ pub async fn create_submission(
     }
 
     if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
-        let game = crate::util::loader::prepare_game(game_id).await?;
+        let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-        let _ = crate::util::loader::prepare_game_challenge(game_id, challenge.id).await?;
+        let _ =
+            crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge.id).await?;
 
-        if cds_db::team::find::<Team>(FindTeamOptions {
-            id: Some(team_id),
-            game_id: Some(game.id),
-            state: Some(State::Passed),
-            user_id: Some(operator.id),
-            ..Default::default()
-        })
+        if cds_db::team::find::<Team>(
+            &s.db.conn,
+            FindTeamOptions {
+                id: Some(team_id),
+                game_id: Some(game.id),
+                state: Some(TState::Passed),
+                user_id: Some(operator.id),
+                ..Default::default()
+            },
+        )
         .await?
         .1 == 0
         {
@@ -135,20 +148,23 @@ pub async fn create_submission(
         };
     }
 
-    let submission = cds_db::submission::create::<Submission>(cds_db::submission::ActiveModel {
-        content: Set(body.content),
-        user_id: body.user_id.map_or(NotSet, Set),
-        team_id: body.team_id.map_or(NotSet, |v| Set(Some(v))),
-        game_id: body.game_id.map_or(NotSet, |v| Set(Some(v))),
-        challenge_id: Set(body.challenge_id),
-        status: Set(Status::Pending),
-        ..Default::default()
-    })
+    let submission = cds_db::submission::create::<Submission>(
+        &s.db.conn,
+        cds_db::submission::ActiveModel {
+            content: Set(body.content),
+            user_id: body.user_id.map_or(NotSet, Set),
+            team_id: body.team_id.map_or(NotSet, |v| Set(Some(v))),
+            game_id: body.game_id.map_or(NotSet, |v| Set(Some(v))),
+            challenge_id: Set(body.challenge_id),
+            status: Set(Status::Pending),
+            ..Default::default()
+        },
+    )
     .await?;
 
-    cds_queue::publish("checker", submission.id).await?;
+    s.queue.publish("checker", submission.id).await?;
 
-    let submission = cds_db::submission::find_by_id::<Submission>(submission.id).await?;
+    let submission = cds_db::submission::find_by_id(&s.db.conn, submission.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

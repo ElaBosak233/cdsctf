@@ -1,5 +1,6 @@
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, PaginatorTrait, QueryFilter,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
+    QueryFilter,
 };
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +10,7 @@ use super::{
 };
 pub use crate::entity::team_user::ActiveModel;
 pub(crate) use crate::entity::team_user::{Column, Entity, Relation};
-use crate::{get_db, traits::DbError};
+use crate::traits::DbError;
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
@@ -25,6 +26,7 @@ pub struct FindTeamUserOptions {
 }
 
 pub async fn find<T>(
+    conn: &impl ConnectionTrait,
     FindTeamUserOptions { team_id, user_id }: FindTeamUserOptions,
 ) -> Result<(Vec<T>, u64), DbError>
 where
@@ -39,51 +41,55 @@ where
         sql = sql.filter(Column::UserId.eq(user_id));
     }
 
-    let total = sql.clone().count(get_db()).await?;
-    let team_users = sql.into_model::<T>().all(get_db()).await?;
+    let total = sql.clone().count(conn).await?;
+    let team_users = sql.into_model::<T>().all(conn).await?;
 
     Ok((team_users, total))
 }
 
-pub async fn find_by_id<T>(team_id: i64, user_id: i64) -> Result<Option<T>, DbError>
+pub async fn find_by_id<T>(
+    conn: &impl ConnectionTrait,
+    team_id: i64,
+    user_id: i64,
+) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(Entity::find()
         .filter(Column::TeamId.eq(team_id))
         .filter(Column::UserId.eq(user_id))
         .into_model::<T>()
-        .one(get_db())
+        .one(conn)
         .await?)
 }
 
-pub async fn find_users<T>(team_id: i64) -> Result<Vec<T>, DbError>
+pub async fn find_users<T>(conn: &impl ConnectionTrait, team_id: i64) -> Result<Vec<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(UserEntity::find()
         .inner_join(TeamEntity)
         .filter(TeamColumn::Id.eq(team_id))
         .into_model::<T>()
-        .all(get_db())
+        .all(conn)
         .await?)
 }
 
-pub async fn find_teams<T>(user_id: i64) -> Result<Vec<T>, DbError>
+pub async fn find_teams<T>(conn: &impl ConnectionTrait, user_id: i64) -> Result<Vec<T>, DbError>
 where
     T: FromQueryResult, {
     Ok(TeamEntity::find()
         .inner_join(UserEntity)
         .filter(UserColumn::Id.eq(user_id))
         .into_model::<T>()
-        .all(get_db())
+        .all(conn)
         .await?)
 }
 
-pub async fn create<T>(model: ActiveModel) -> Result<T, DbError>
+pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
-    let team_user = model.insert(get_db()).await?;
+    let team_user = model.insert(conn).await?;
 
-    Ok(find_by_id::<T>(team_user.team_id, team_user.user_id)
+    Ok(find_by_id::<T>(conn, team_user.team_id, team_user.user_id)
         .await?
         .ok_or_else(|| {
             DbError::NotFound(format!(
@@ -93,20 +99,24 @@ where
         })?)
 }
 
-pub async fn delete(team_id: i64, user_id: i64) -> Result<(), DbError> {
+pub async fn delete(
+    conn: &impl ConnectionTrait,
+    team_id: i64,
+    user_id: i64,
+) -> Result<(), DbError> {
     Entity::delete_many()
         .filter(Column::TeamId.eq(team_id))
         .filter(Column::UserId.eq(user_id))
-        .exec(get_db())
+        .exec(conn)
         .await?;
 
     Ok(())
 }
 
-pub async fn delete_by_team_id(team_id: i64) -> Result<(), DbError> {
+pub async fn delete_by_team_id(conn: &impl ConnectionTrait, team_id: i64) -> Result<(), DbError> {
     Entity::delete_many()
         .filter(Column::TeamId.eq(team_id))
-        .exec(get_db())
+        .exec(conn)
         .await?;
 
     Ok(())

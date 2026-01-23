@@ -6,7 +6,13 @@ use std::{
     sync::Arc,
 };
 
-use axum::{Router, body::Body, http::Request, middleware::from_fn, response::Response};
+use axum::{
+    Router,
+    body::Body,
+    http::Request,
+    middleware::{from_fn, from_fn_with_state},
+    response::Response,
+};
 use time::Duration;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::trace::TraceLayer;
@@ -17,14 +23,15 @@ use tracing::{Span, debug, debug_span};
 use crate::{
     middleware,
     middleware::{error::governor_error, network::GovernorKeyExtractor},
+    traits::AppState,
 };
 
-pub async fn router() -> Router {
+pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
     // SAFETY: Option<GovernorConfig<_>> could always be unwrapped.
     let governor_conf = Arc::new(
         GovernorConfigBuilder::default()
-            .per_millisecond(cds_env::get_config().server.burst_restore_rate)
-            .burst_size(cds_env::get_config().server.burst_limit)
+            .per_millisecond(state.env.server.burst_restore_rate)
+            .burst_size(state.env.server.burst_limit)
             .key_extractor(GovernorKeyExtractor)
             .use_headers()
             .finish()
@@ -39,7 +46,7 @@ pub async fn router() -> Router {
         }
     });
 
-    let session_store = RedisStore::new(cds_cache::get_client());
+    let session_store = RedisStore::new(state.cache.client.clone());
     let session_layer = SessionManagerLayer::new(session_store)
         .with_name("cds.id")
         .with_secure(false)
@@ -70,12 +77,13 @@ pub async fn router() -> Router {
                 ),
         )
         .layer(GovernorLayer::new(governor_conf).error_handler(governor_error))
-        .layer(from_fn(middleware::auth::extract))
+        .route_layer(from_fn_with_state(state.clone(), middleware::auth::extract))
         .layer(session_layer)
         .layer(from_fn(middleware::network::real_host))
         .layer(from_fn(middleware::network::ip_record));
 
-    let base = cds_env::get_config()
+    let base = state
+        .env
         .observe
         .exporter
         .enabled
@@ -85,5 +93,5 @@ pub async fn router() -> Router {
         })
         .unwrap_or(base);
 
-    base.merge(proxy::router())
+    base.merge(proxy::router(state))
 }

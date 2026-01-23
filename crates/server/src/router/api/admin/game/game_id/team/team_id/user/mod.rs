@@ -1,14 +1,16 @@
-use axum::{Router, http::StatusCode};
-use cds_db::{TeamUser, UserMini, sea_orm::ActiveValue::Set, team::State};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
+use cds_db::{TeamUser, UserMini, sea_orm::ActiveValue::Set, team::State as TState};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
     extract::{Json, Path},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_team_user))
         .route("/", axum::routing::post(create_team_user))
@@ -16,11 +18,13 @@ pub fn router() -> Router {
 }
 
 pub async fn get_team_user(
+    State(s): State<Arc<AppState>>,
+
     Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<Vec<UserMini>>, WebError> {
-    let team = crate::util::loader::prepare_team(game_id, team_id).await?;
+    let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
-    let team_users = cds_db::user::find_by_team_id::<UserMini>(team.id).await?;
+    let team_users = cds_db::user::find_by_team_id(&s.db.conn, team.id).await?;
 
     Ok(WebResponse {
         data: Some(team_users),
@@ -40,25 +44,30 @@ pub struct CreateTeamUserRequest {
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn create_team_user(
+    State(s): State<Arc<AppState>>,
+
     Path((game_id, team_id)): Path<(i64, i64)>,
     Json(body): Json<CreateTeamUserRequest>,
 ) -> Result<WebResponse<()>, WebError> {
-    let user = crate::util::loader::prepare_user(body.user_id).await?;
-    let game = crate::util::loader::prepare_game(game_id).await?;
-    let team = crate::util::loader::prepare_team(game_id, team_id).await?;
+    let user = crate::util::loader::prepare_user(&s.db.conn, body.user_id).await?;
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+    let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
-    if team.state != State::Preparing {
+    if team.state != TState::Preparing {
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    if cds_db::util::is_user_in_game(user.id, game.id, None).await? {
+    if cds_db::util::is_user_in_game(&s.db.conn, user.id, game.id, None).await? {
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
-    let _ = cds_db::team_user::create::<TeamUser>(cds_db::team_user::ActiveModel {
-        user_id: Set(body.user_id),
-        team_id: Set(team.id),
-    })
+    let _ = cds_db::team_user::create::<TeamUser>(
+        &s.db.conn,
+        cds_db::team_user::ActiveModel {
+            user_id: Set(body.user_id),
+            team_id: Set(team.id),
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -72,15 +81,17 @@ pub async fn create_team_user(
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn delete_team_user(
+    State(s): State<Arc<AppState>>,
+
     Path((game_id, team_id, user_id)): Path<(i64, i64, i64)>,
 ) -> Result<WebResponse<()>, WebError> {
-    let team = crate::util::loader::prepare_team(game_id, team_id).await?;
+    let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
-    if team.state != State::Preparing {
+    if team.state != TState::Preparing {
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    cds_db::team_user::delete(team_id, user_id).await?;
+    cds_db::team_user::delete(&s.db.conn, team_id, user_id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,

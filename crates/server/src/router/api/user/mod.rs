@@ -2,7 +2,9 @@ mod forget;
 mod profile;
 mod user_id;
 
-use axum::{Router, http::StatusCode, response::IntoResponse};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode, response::IntoResponse};
 use cds_db::{
     Email, User,
     sea_orm::ActiveValue::Set,
@@ -16,11 +18,11 @@ use validator::Validate;
 
 use crate::{
     extract::{Extension, Json},
-    traits::{AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError, WebResponse},
     util,
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/login", axum::routing::post(user_login))
         .route("/register", axum::routing::post(user_register))
@@ -38,22 +40,26 @@ pub struct UserLoginRequest {
 }
 
 pub async fn user_login(
+    State(s): State<Arc<AppState>>,
+
     session: Session,
     Extension(ext): Extension<AuthPrincipal>,
     Json(mut body): Json<UserLoginRequest>,
 ) -> Result<impl IntoResponse, WebError> {
-    if !cds_captcha::check(&cds_captcha::Answer {
-        client_ip: Some(ext.client_ip),
-        ..body.captcha.unwrap_or_default()
-    })
-    .await?
+    if !s
+        .captcha
+        .check(&cds_captcha::Answer {
+            client_ip: Some(ext.client_ip),
+            ..body.captcha.unwrap_or_default()
+        })
+        .await?
     {
         return Err(WebError::BadRequest(json!("captcha_invalid")));
     }
 
     body.account = body.account.to_lowercase();
 
-    let user = cds_db::user::find_by_account::<User>(body.account)
+    let user: User = cds_db::user::find_by_account(&s.db.conn, body.account)
         .await?
         .ok_or(WebError::BadRequest(json!("invalid")))?;
 
@@ -89,58 +95,72 @@ pub struct UserRegisterRequest {
 }
 
 pub async fn user_register(
+    State(s): State<Arc<AppState>>,
+
     Extension(ext): Extension<AuthPrincipal>,
     Json(mut body): Json<UserRegisterRequest>,
 ) -> Result<WebResponse<User>, WebError> {
-    if !cds_db::get_config().await.auth.is_registration_enabled {
+    if !cds_db::get_config(&s.db.conn)
+        .await
+        .auth
+        .is_registration_enabled
+    {
         return Err(WebError::BadRequest(json!("registration_disabled")));
     }
 
-    if !cds_captcha::check(&cds_captcha::Answer {
-        client_ip: Some(ext.client_ip),
-        ..body.captcha.unwrap_or_default()
-    })
-    .await?
+    if !s
+        .captcha
+        .check(&cds_captcha::Answer {
+            client_ip: Some(ext.client_ip),
+            ..body.captcha.unwrap_or_default()
+        })
+        .await?
     {
         return Err(WebError::BadRequest(json!("captcha_invalid")));
     }
 
     body.email = body.email.to_lowercase();
-    if !cds_db::user::is_email_unique(&body.email).await? {
+    if !cds_db::user::is_email_unique(&s.db.conn, &body.email).await? {
         return Err(WebError::Conflict(json!("email_already_exists")));
     }
 
     body.username = body.username.to_lowercase();
-    if !cds_db::user::is_username_unique(0, &body.username).await? {
+    if !cds_db::user::is_username_unique(&s.db.conn, 0, &body.username).await? {
         return Err(WebError::Conflict(json!("username_already_exists")));
     }
 
     let hashed_password = util::crypto::hash_password(body.password);
 
-    let user = cds_db::user::create::<User>(cds_db::user::ActiveModel {
-        username: Set(body.username),
-        name: Set(body.name),
-        hashed_password: Set(hashed_password),
-        group: Set(
-            if cds_db::user::find::<User>(FindUserOptions::default())
-                .await?
-                .1
-                == 0
-            {
-                Group::Admin
-            } else {
-                Group::User
-            },
-        ),
-        ..Default::default()
-    })
+    let user = cds_db::user::create::<User>(
+        &s.db.conn,
+        cds_db::user::ActiveModel {
+            username: Set(body.username),
+            name: Set(body.name),
+            hashed_password: Set(hashed_password),
+            group: Set(
+                if cds_db::user::find::<User>(&s.db.conn, FindUserOptions::default())
+                    .await?
+                    .1
+                    == 0
+                {
+                    Group::Admin
+                } else {
+                    Group::User
+                },
+            ),
+            ..Default::default()
+        },
+    )
     .await?;
 
-    let _ = cds_db::email::create::<Email>(cds_db::email::ActiveModel {
-        user_id: Set(user.id),
-        email: Set(body.email),
-        is_verified: Set(!cds_db::get_config().await.email.is_enabled),
-    })
+    let _ = cds_db::email::create::<Email>(
+        &s.db.conn,
+        cds_db::email::ActiveModel {
+            user_id: Set(user.id),
+            email: Set(body.email),
+            is_verified: Set(!cds_db::get_config(&s.db.conn).await.email.is_enabled),
+        },
+    )
     .await?;
 
     debug!(

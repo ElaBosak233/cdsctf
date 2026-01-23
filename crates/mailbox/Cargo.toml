@@ -1,5 +1,5 @@
 [package]
-name     = "cds-email"
+name     = "cds-mailbox"
 resolver = "3"
 
 authors      = { workspace = true }
@@ -22,3 +22,4 @@ serde_json   = { workspace = true }
 thiserror    = { workspace = true }
 tokio        = { workspace = true }
 tracing      = { workspace = true }
+once_cell = { workspace = true }

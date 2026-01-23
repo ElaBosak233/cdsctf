@@ -1,7 +1,9 @@
 mod attachment;
 mod checker;
 
-use axum::{Router, http::StatusCode};
+use std::sync::Arc;
+
+use axum::{Router, extract::State, http::StatusCode};
 use cds_db::{
     Challenge,
     sea_orm::{
@@ -14,10 +16,10 @@ use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
-    traits::{WebError, WebResponse},
+    traits::{AppState, WebError, WebResponse},
 };
 
-pub fn router() -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::get(get_challenge))
         .route("/", axum::routing::put(update_challenge))
@@ -28,9 +30,11 @@ pub fn router() -> Router {
 }
 
 pub async fn get_challenge(
+    State(s): State<Arc<AppState>>,
+
     Path(challenge_id): Path<i64>,
 ) -> Result<WebResponse<Challenge>, WebError> {
-    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
     Ok(WebResponse {
         data: Some(challenge),
@@ -50,22 +54,27 @@ pub struct UpdateChallengeRequest {
 }
 
 pub async fn update_challenge(
+    State(s): State<Arc<AppState>>,
+
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeRequest>,
 ) -> Result<WebResponse<Challenge>, WebError> {
-    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
-    let challenge = cds_db::challenge::update(cds_db::challenge::ActiveModel {
-        id: Unchanged(challenge.id),
-        title: body.title.map_or(NotSet, Set),
-        description: body.description.map_or(NotSet, Set),
-        tags: body.tags.map_or(NotSet, Set),
-        category: body.category.map_or(NotSet, Set),
-        is_public: body.is_public.map_or(NotSet, Set),
-        is_dynamic: body.is_dynamic.map_or(NotSet, Set),
-        has_attachment: body.has_attachment.map_or(NotSet, Set),
-        ..Default::default()
-    })
+    let challenge = cds_db::challenge::update(
+        &s.db.conn,
+        cds_db::challenge::ActiveModel {
+            id: Unchanged(challenge.id),
+            title: body.title.map_or(NotSet, Set),
+            description: body.description.map_or(NotSet, Set),
+            tags: body.tags.map_or(NotSet, Set),
+            category: body.category.map_or(NotSet, Set),
+            is_public: body.is_public.map_or(NotSet, Set),
+            is_dynamic: body.is_dynamic.map_or(NotSet, Set),
+            has_attachment: body.has_attachment.map_or(NotSet, Set),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {
@@ -75,10 +84,14 @@ pub async fn update_challenge(
     })
 }
 
-pub async fn delete_challenge(Path(challenge_id): Path<i64>) -> Result<WebResponse<()>, WebError> {
-    let challenge = crate::util::loader::prepare_challenge(challenge_id).await?;
+pub async fn delete_challenge(
+    State(s): State<Arc<AppState>>,
 
-    cds_db::challenge::delete(challenge.id).await?;
+    Path(challenge_id): Path<i64>,
+) -> Result<WebResponse<()>, WebError> {
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
+
+    cds_db::challenge::delete(&s.db.conn, challenge.id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -92,16 +105,21 @@ pub struct UpdateChallengeEnvRequest {
 }
 
 pub async fn update_challenge_env(
+    State(s): State<Arc<AppState>>,
+
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeEnvRequest>,
 ) -> Result<WebResponse<()>, WebError> {
-    let _ = crate::util::loader::prepare_challenge(challenge_id).await?;
+    let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
-    let _ = cds_db::challenge::update::<Challenge>(cds_db::challenge::ActiveModel {
-        id: Unchanged(challenge_id),
-        env: body.env.map_or(NotSet, |v| Set(Some(v))),
-        ..Default::default()
-    })
+    let _ = cds_db::challenge::update::<Challenge>(
+        &s.db.conn,
+        cds_db::challenge::ActiveModel {
+            id: Unchanged(challenge_id),
+            env: body.env.map_or(NotSet, |v| Set(Some(v))),
+            ..Default::default()
+        },
+    )
     .await?;
 
     Ok(WebResponse {
