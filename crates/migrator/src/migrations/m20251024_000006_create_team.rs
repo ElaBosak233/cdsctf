@@ -22,7 +22,7 @@ impl MigrationTrait for Migration {
                     "id" BIGSERIAL PRIMARY KEY,
                     "game_id" BIGINT NOT NULL,
                     "name" VARCHAR NOT NULL,
-                    "mailbox" VARCHAR,
+                    "email" VARCHAR,
                     "slogan" VARCHAR,
                     "has_avatar" BOOLEAN NOT NULL DEFAULT FALSE,
                     "has_write_up" BOOLEAN NOT NULL DEFAULT FALSE,
