@@ -3732,6 +3732,7 @@ version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a2366db2dca4d2ad033cad11e6ee42844fd727007af5ad04a1730f4cb8163bf"
 dependencies = [
+ "flate2",
  "http",
  "opentelemetry",
  "opentelemetry-http",
@@ -4637,6 +4638,7 @@ dependencies = [
  "pin-project-lite",
  "quinn",
  "rustls",
+ "rustls-native-certs 0.8.1",
  "rustls-pki-types",
  "serde",
  "serde_json",

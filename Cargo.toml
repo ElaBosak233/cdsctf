@@ -80,7 +80,7 @@ thiserror = { version = "2.0" }
 # Observability & Monitoring
 opentelemetry = { version = "0.31", features = ["metrics"] }
 opentelemetry-appender-tracing = { version = "0.31" }
-opentelemetry-otlp = { version = "0.31", features = ["metrics"] }
+opentelemetry-otlp = { version = "0.31", features = ["gzip-http", "reqwest-rustls"] }
 opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
 sysinfo = { version = "0.37" }
 tracing = { version = "0.1" }
