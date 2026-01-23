@@ -35,7 +35,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_user_profile(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<WebResponse<User>, WebError> {
@@ -57,7 +57,7 @@ pub struct UpdateUserProfileRequest {
 }
 
 pub async fn update_user_profile(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<UpdateUserProfileRequest>,
@@ -89,7 +89,7 @@ pub struct DeleteUserProfileRequest {
 }
 
 pub async fn delete_user_profile(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<DeleteUserProfileRequest>,
@@ -128,7 +128,7 @@ pub struct UpdateUserProfilePasswordRequest {
 }
 
 pub async fn update_user_profile_password(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<UpdateUserProfilePasswordRequest>,

@@ -36,7 +36,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_team(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
@@ -60,7 +60,7 @@ pub struct UpdateTeamRequest {
 
 /// Update a team with given path and data.
 pub async fn update_team(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
@@ -91,7 +91,7 @@ pub async fn update_team(
 }
 
 pub async fn delete_team(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
@@ -118,7 +118,7 @@ pub async fn delete_team(
 /// # Prerequisite
 /// - Operator is admin or one of the members of current team.
 pub async fn set_team_ready(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,

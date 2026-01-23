@@ -36,7 +36,7 @@ pub struct GetUsersRequest {
 }
 
 pub async fn get_users(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Query(params): Query<GetUsersRequest>,
 ) -> Result<WebResponse<Vec<User>>, WebError> {
@@ -76,7 +76,7 @@ pub struct CreateUserRequest {
 }
 
 pub async fn create_user(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     VJson(mut body): VJson<CreateUserRequest>,
 ) -> Result<WebResponse<User>, WebError> {

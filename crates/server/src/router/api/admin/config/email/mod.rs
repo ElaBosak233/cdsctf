@@ -22,7 +22,7 @@ pub struct GetEmailRequest {
 }
 
 pub async fn get_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Query(params): Query<GetEmailRequest>,
 ) -> Result<WebResponse<String>, WebError> {
@@ -40,7 +40,7 @@ pub struct SaveEmailRequest {
 }
 
 pub async fn save_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Json(body): Json<SaveEmailRequest>,
 ) -> Result<WebResponse<()>, WebError> {

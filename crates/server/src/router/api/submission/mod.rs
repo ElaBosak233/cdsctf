@@ -45,7 +45,7 @@ pub struct GetSubmissionRequest {
 }
 
 pub async fn get_submission(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetSubmissionRequest>,
@@ -94,7 +94,7 @@ pub struct CreateSubmissionRequest {
 }
 
 pub async fn create_submission(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Json(mut body): Json<CreateSubmissionRequest>,

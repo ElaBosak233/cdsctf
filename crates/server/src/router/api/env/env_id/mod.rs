@@ -23,7 +23,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn renew_pod(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(pod_id): Path<String>,
@@ -93,7 +93,7 @@ pub async fn renew_pod(
 }
 
 pub async fn stop_pod(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(pod_id): Path<String>,

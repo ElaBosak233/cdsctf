@@ -37,7 +37,7 @@ pub struct TeamRegisterRequest {
 /// # Prerequisite
 /// - No user in the team is already in the game.
 pub async fn team_register(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,

@@ -34,7 +34,7 @@ pub struct GetChallengeRequest {
 }
 
 pub async fn get_challenge(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetChallengeRequest>,
@@ -84,7 +84,7 @@ pub struct ChallengeStatusResponse {
 }
 
 pub async fn get_challenge_status(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<GetChallengeStatusRequest>,

@@ -32,7 +32,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_user(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path(user_id): Path<i64>,
 ) -> Result<WebResponse<User>, WebError> {
@@ -57,7 +57,7 @@ pub struct UpdateUserRequest {
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn update_user(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path(user_id): Path<i64>,
     VJson(mut body): VJson<UpdateUserRequest>,
@@ -97,7 +97,7 @@ pub async fn update_user(
 /// # Prerequisite
 /// - Operator is admin.
 pub async fn delete_user(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
     cds_db::user::delete(&s.db.conn, user_id).await?;

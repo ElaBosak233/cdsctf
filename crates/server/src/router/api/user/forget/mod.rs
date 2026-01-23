@@ -29,7 +29,7 @@ pub struct UserForgetRequest {
 }
 
 pub async fn user_forget(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Json(body): Json<UserForgetRequest>,
 ) -> Result<WebResponse<()>, WebError> {
@@ -68,7 +68,7 @@ pub struct UserSendForgetEmailRequest {
 }
 
 pub async fn send_forget_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Json(body): Json<UserSendForgetEmailRequest>,
 ) -> Result<WebResponse<()>, WebError> {

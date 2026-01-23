@@ -17,7 +17,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_user(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(user_id): Path<i64>,

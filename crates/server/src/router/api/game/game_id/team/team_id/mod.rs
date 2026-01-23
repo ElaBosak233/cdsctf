@@ -20,7 +20,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_team_members(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path((_game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<WebResponse<Vec<UserMini>>, WebError> {
@@ -40,7 +40,7 @@ pub struct JoinTeamRequest {
 }
 
 pub async fn join_team(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, team_id)): Path<(i64, i64)>,

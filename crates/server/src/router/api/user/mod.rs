@@ -40,7 +40,7 @@ pub struct UserLoginRequest {
 }
 
 pub async fn user_login(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     session: Session,
     Extension(ext): Extension<AuthPrincipal>,
@@ -95,7 +95,7 @@ pub struct UserRegisterRequest {
 }
 
 pub async fn user_register(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Json(mut body): Json<UserRegisterRequest>,

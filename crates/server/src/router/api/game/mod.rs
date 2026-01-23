@@ -28,7 +28,7 @@ pub struct GetGameRequest {
 
 /// Get games with given params.
 pub async fn get_game(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Query(params): Query<GetGameRequest>,
 ) -> Result<WebResponse<Vec<GameMini>>, WebError> {

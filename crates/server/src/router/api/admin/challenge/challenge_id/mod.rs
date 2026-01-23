@@ -30,7 +30,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_challenge(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path(challenge_id): Path<i64>,
 ) -> Result<WebResponse<Challenge>, WebError> {
@@ -54,7 +54,7 @@ pub struct UpdateChallengeRequest {
 }
 
 pub async fn update_challenge(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeRequest>,
@@ -85,7 +85,7 @@ pub async fn update_challenge(
 }
 
 pub async fn delete_challenge(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path(challenge_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
@@ -105,7 +105,7 @@ pub struct UpdateChallengeEnvRequest {
 }
 
 pub async fn update_challenge_env(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeEnvRequest>,

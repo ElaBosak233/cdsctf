@@ -30,7 +30,7 @@ pub struct GetEnvRequest {
 }
 
 pub async fn get_env(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetEnvRequest>,
@@ -96,7 +96,7 @@ pub struct CreateEnvRequest {
 }
 
 pub async fn create_env(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<CreateEnvRequest>,

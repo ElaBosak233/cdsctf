@@ -23,7 +23,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path(user_id): Path<i64>,
 ) -> Result<WebResponse<Vec<Email>>, WebError> {
@@ -45,7 +45,7 @@ pub struct AddEmailRequest {
 }
 
 pub async fn add_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path(user_id): Path<i64>,
     VJson(body): VJson<AddEmailRequest>,
@@ -86,7 +86,7 @@ pub struct UpdateEmailRequest {
 }
 
 pub async fn update_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path((user_id, email)): Path<(i64, String)>,
     VJson(body): VJson<UpdateEmailRequest>,
@@ -122,7 +122,7 @@ pub async fn update_email(
 }
 
 pub async fn delete_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path((user_id, email)): Path<(i64, String)>,
 ) -> Result<WebResponse<()>, WebError> {

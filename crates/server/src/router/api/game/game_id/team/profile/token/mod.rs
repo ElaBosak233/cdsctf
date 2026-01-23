@@ -18,7 +18,7 @@ pub fn router() -> Router<Arc<AppState>> {
 
 /// Create an invitation token.
 pub async fn create_token(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
@@ -39,7 +39,7 @@ pub async fn create_token(
 
 /// Get invitation token.
 pub async fn get_token(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
@@ -59,7 +59,7 @@ pub async fn get_token(
 
 /// Delete invitation token.
 pub async fn delete_token(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,

@@ -18,7 +18,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_challenge(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,

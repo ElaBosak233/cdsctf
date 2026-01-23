@@ -30,7 +30,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<WebResponse<Vec<Email>>, WebError> {
@@ -50,7 +50,7 @@ pub struct UserAddEmailRequest {
 }
 
 pub async fn add_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Json(body): Json<UserAddEmailRequest>,
@@ -71,7 +71,7 @@ pub async fn add_email(
 }
 
 pub async fn delete_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(email): Path<String>,
@@ -90,7 +90,7 @@ pub struct EmailVerifyRequest {
 }
 
 pub async fn verify_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(email): Path<String>,
@@ -142,7 +142,7 @@ pub async fn verify_email(
 }
 
 pub async fn send_verify_email(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(email): Path<String>,

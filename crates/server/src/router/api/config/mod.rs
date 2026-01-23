@@ -17,7 +17,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_config(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 ) -> Result<WebResponse<cds_db::config::Model>, WebError> {
     Ok(WebResponse {
         data: Some(cds_db::get_config(&s.db.conn).await.desensitize()),

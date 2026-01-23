@@ -41,7 +41,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_game(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<Game>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
@@ -69,7 +69,7 @@ pub struct ScoreRecord {
 }
 
 pub async fn get_game_scoreboard(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameScoreboardRequest>,

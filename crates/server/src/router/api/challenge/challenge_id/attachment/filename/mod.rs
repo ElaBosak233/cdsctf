@@ -19,7 +19,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_attachment(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path((challenge_id, filename)): Path<(i64, String)>,

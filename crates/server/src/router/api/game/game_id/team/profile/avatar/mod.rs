@@ -31,7 +31,7 @@ pub fn router() -> Router<Arc<AppState>> {
 /// # Prerequisite
 /// - Operator is admin or the members of current team.
 pub async fn save_team_avatar(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
@@ -57,7 +57,7 @@ pub async fn save_team_avatar(
 
 /// Delete avatar for the team.
 pub async fn delete_team_avatar(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,

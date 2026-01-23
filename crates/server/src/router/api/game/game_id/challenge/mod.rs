@@ -24,7 +24,7 @@ pub struct GetGameChallengeRequest {
 /// Get challenges by given params.
 /// - Operating time is between related game's `started_at` and `ended_at`.
 pub async fn get_game_challenge(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,

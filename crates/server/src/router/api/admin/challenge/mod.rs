@@ -32,7 +32,7 @@ pub struct GetChallengeRequest {
 }
 
 pub async fn get_challenges(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Query(params): Query<GetChallengeRequest>,
 ) -> Result<WebResponse<Vec<Challenge>>, WebError> {
@@ -78,7 +78,7 @@ pub struct CreateChallengeRequest {
 }
 
 pub async fn create_challenge(
-    State(ref s): State<Arc<AppState>>,
+    State(s): State<Arc<AppState>>,
 
     Json(body): Json<CreateChallengeRequest>,
 ) -> Result<WebResponse<Challenge>, WebError> {
