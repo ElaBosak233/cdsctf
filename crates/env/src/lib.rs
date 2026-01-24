@@ -64,7 +64,7 @@ pub async fn init() -> Result<Env, EnvError> {
     if let Some(path) = find_first_config_file() {
         figment = figment.merge(Toml::file(path));
     }
-    figment = figment.merge(FEnv::prefixed("CDSCTF_"));
+    figment = figment.merge(FEnv::prefixed("CDSCTF_").split("__"));
     let global_env = figment.extract::<Env>()?;
 
     Ok(global_env)
