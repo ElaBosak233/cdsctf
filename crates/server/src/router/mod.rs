@@ -18,7 +18,7 @@ use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::trace::TraceLayer;
 use tower_sessions::{Expiry, SessionManagerLayer, cookie::SameSite};
 use tower_sessions_redis_store::RedisStore;
-use tracing::{Span, debug, debug_span};
+use tracing::{Span, debug, debug_span, info};
 
 use crate::{
     middleware,
@@ -27,25 +27,6 @@ use crate::{
 };
 
 pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
-    // SAFETY: Option<GovernorConfig<_>> could always be unwrapped.
-    let governor_conf = Arc::new(
-        GovernorConfigBuilder::default()
-            .per_millisecond(state.env.server.burst_restore_rate)
-            .burst_size(state.env.server.burst_limit)
-            .key_extractor(GovernorKeyExtractor)
-            .use_headers()
-            .finish()
-            .unwrap(),
-    );
-
-    let governor_limiter = governor_conf.limiter().clone();
-    tokio::spawn(async move {
-        loop {
-            tokio::time::sleep(std::time::Duration::from_secs(60)).await;
-            governor_limiter.retain_recent();
-        }
-    });
-
     let session_store = RedisStore::new(state.cache.client.clone());
     let session_layer = SessionManagerLayer::new(session_store)
         .with_name("cds.id")
@@ -55,7 +36,7 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
         .with_same_site(SameSite::Strict)
         .with_expiry(Expiry::OnInactivity(Duration::hours(2)));
 
-    let base = Router::new()
+    let mut base = Router::new()
         .nest("/api", api::router().await)
         .route("/healthz", axum::routing::any(|| async { "Ok" }))
         .layer(
@@ -75,23 +56,45 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
                         debug!("[{}] in {}ms", response.status(), latency.as_millis());
                     },
                 ),
-        )
-        .layer(GovernorLayer::new(governor_conf).error_handler(governor_error))
+        );
+
+    if state.env.server.rate_limit.enabled {
+        // SAFETY: Option<GovernorConfig<_>> could always be unwrapped.
+        let governor_conf = Arc::new(
+            GovernorConfigBuilder::default()
+                .per_millisecond(state.env.server.rate_limit.burst_restore_rate)
+                .burst_size(state.env.server.rate_limit.burst_size)
+                .key_extractor(GovernorKeyExtractor)
+                .use_headers()
+                .finish()
+                .unwrap(),
+        );
+
+        let governor_limiter = governor_conf.limiter().clone();
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_secs(60)).await;
+                governor_limiter.retain_recent();
+            }
+        });
+
+        info!(
+            "Rate limit enabled: Burst size = {}, Restore rate = {} requests/ms",
+            state.env.server.rate_limit.burst_size, state.env.server.rate_limit.burst_restore_rate
+        );
+
+        base = base.layer(GovernorLayer::new(governor_conf).error_handler(governor_error));
+    }
+
+    base = base
         .route_layer(from_fn_with_state(state.clone(), middleware::auth::extract))
         .layer(session_layer)
         .layer(from_fn(middleware::network::real_host))
         .layer(from_fn(middleware::network::ip_record));
 
-    let base = state
-        .env
-        .observe
-        .exporter
-        .enabled
-        .then(|| {
-            base.clone()
-                .layer(from_fn(middleware::telemetry::track_metrics))
-        })
-        .unwrap_or(base);
+    if state.env.observe.exporter.enabled {
+        base = base.layer(from_fn(middleware::telemetry::track_metrics));
+    }
 
     base.merge(proxy::router(state))
 }
