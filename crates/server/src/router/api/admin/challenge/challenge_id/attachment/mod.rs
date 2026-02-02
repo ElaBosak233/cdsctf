@@ -3,9 +3,9 @@ mod filename;
 use std::sync::Arc;
 
 use axum::{
-    Router,
     extract::{DefaultBodyLimit, Multipart, State},
     http::StatusCode,
+    Router,
 };
 use serde_json::json;
 
@@ -43,10 +43,7 @@ pub async fn get_challenge_attachment(
         .scan_dir(path.clone())
         .await?
         .into_iter()
-        .map(|(filename, size)| Metadata {
-            filename: filename.to_string(),
-            size,
-        })
+        .map(|(filename, size)| Metadata { filename, size })
         .collect::<Vec<Metadata>>();
 
     Ok(WebResponse {

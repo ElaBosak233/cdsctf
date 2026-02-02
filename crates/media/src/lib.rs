@@ -1,5 +1,6 @@
 pub mod challenge;
 pub mod config;
+pub mod presigner;
 pub mod traits;
 pub mod util;
 
@@ -19,7 +20,7 @@ use s3::{
     region::Region,
 };
 
-use crate::{config::Config, traits::MediaError};
+use crate::{config::Config, presigner::Presigner, traits::MediaError};
 
 #[derive(Embed)]
 #[folder = "./embed/"]
@@ -29,6 +30,7 @@ pub struct Embeds;
 pub struct Media {
     bucket: Arc<Bucket>,
     prefix: String,
+    presigner: Option<Presigner>,
 }
 
 pub async fn init(env: &Env) -> Result<Media, MediaError> {
@@ -87,9 +89,18 @@ pub async fn init(env: &Env) -> Result<Media, MediaError> {
     };
 
     let prefix = normalize_prefix(&env.media.prefix);
+    let bucket: Arc<Bucket> = Arc::from(bucket);
+
+    let presigner = if env.media.presigned {
+        Some(Presigner::new(bucket.clone()))
+    } else {
+        None
+    };
+
     let media = Media {
-        bucket: Arc::from(bucket),
+        bucket,
         prefix,
+        presigner,
     };
 
     media.ensure_embeds().await?;
@@ -205,6 +216,42 @@ impl Media {
 
     pub fn config(&self) -> Config<'_> {
         Config::new(&self)
+    }
+
+    /// 是否启用了 presigned URL（即 media.presigned 为 true）。
+    pub fn presigned_enabled(&self) -> bool {
+        self.presigner.is_some()
+    }
+
+    pub async fn presign_get(
+        &self,
+        path: &str,
+        filename: &str,
+        expiry_secs: u32,
+    ) -> Result<String, MediaError> {
+        let presigner = self
+            .presigner
+            .as_ref()
+            .ok_or_else(|| MediaError::InternalServerError("presigned url not configured".into()))?;
+        let key = self.build_key(path, filename, false)?;
+        let disposition = format!("attachment; filename=\"{}\"", filename.replace('"', "\\\""));
+        presigner
+            .presign_get(&key, expiry_secs, Some(&disposition))
+            .await
+    }
+
+    pub async fn presign_put(
+        &self,
+        path: &str,
+        filename: &str,
+        expiry_secs: u32,
+    ) -> Result<String, MediaError> {
+        let presigner = self
+            .presigner
+            .as_ref()
+            .ok_or_else(|| MediaError::InternalServerError("presigned url not configured".into()))?;
+        let key = self.build_key(path, filename, false)?;
+        presigner.presign_put(&key, expiry_secs).await
     }
 
     fn build_key(

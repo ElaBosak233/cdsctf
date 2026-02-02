@@ -10,18 +10,20 @@ pub struct Config {
     pub secret_key: String,
     pub prefix: String,
     pub path_style: bool,
+    pub presigned: bool,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
-            endpoint: "http://127.0.0.1:9000".to_string(),
+            endpoint: "s3://media:9000".to_string(),
             region: "us-east-1".to_string(),
-            bucket: "cdsctf-media".to_string(),
-            access_key: "minioadmin".to_string(),
-            secret_key: "minioadmin".to_string(),
+            bucket: "cdsctf".to_string(),
+            access_key: "rustfsadmin".to_string(),
+            secret_key: "rustfsadmin".to_string(),
             prefix: String::new(),
             path_style: true,
+            presigned: false,
         }
     }
 }
