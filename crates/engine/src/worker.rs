@@ -9,7 +9,7 @@ pub async fn cleaner() {
             let now = OffsetDateTime::now_utc();
             get_global_engine().retain(|_id, ctx| {
                 let duration = now - ctx.created_at;
-                duration.whole_hours() > 1
+                duration.whole_hours() < 1
             });
             tokio::time::sleep(interval).await;
         }
