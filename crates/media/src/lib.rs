@@ -3,13 +3,20 @@ pub mod config;
 pub mod traits;
 pub mod util;
 
-use std::path::{Component, Path, PathBuf};
+use std::{
+    collections::HashSet,
+    path::{Component, Path},
+    sync::Arc,
+};
 
 use cds_env::Env;
 use rust_embed::Embed;
-use tokio::{
-    fs::{File, create_dir_all, metadata, read_dir, remove_dir_all, remove_file, write},
-    io::{AsyncReadExt, AsyncWriteExt},
+use s3::{
+    bucket::Bucket,
+    bucket_ops::BucketConfiguration,
+    creds::Credentials,
+    error::S3Error,
+    region::Region,
 };
 
 use crate::{config::Config, traits::MediaError};
@@ -20,95 +27,123 @@ pub struct Embeds;
 
 #[derive(Clone)]
 pub struct Media {
-    pub root: PathBuf,
+    bucket: Arc<Bucket>,
+    prefix: String,
 }
 
 pub async fn init(env: &Env) -> Result<Media, MediaError> {
-    let path = PathBuf::from(&env.media.path);
-    if metadata(&path).await.is_err() {
-        create_dir_all(&path).await?;
+    let region = Region::Custom {
+        region: env.media.region.clone(),
+        endpoint: env.media.endpoint.clone(),
+    };
+    let credentials = Credentials::new(
+        Some(&env.media.access_key),
+        Some(&env.media.secret_key),
+        None,
+        None,
+        None,
+    )
+    .map_err(|err| MediaError::OtherError(err.into()))?;
 
-        for file in Embeds::iter() {
-            if let Some(content) = Embeds::get(&file) {
-                let file_path = path.join(&file.as_ref());
-                if let Some(parent) = file_path.parent() {
-                    create_dir_all(parent).await?;
-                }
-                write(&file_path, content.data.as_ref()).await?;
-            }
-        }
+    let mut bucket = Bucket::new(&env.media.bucket, region.clone(), credentials)
+        .map_err(|err| MediaError::OtherError(err.into()))?;
+    if env.media.path_style {
+        bucket = bucket.with_path_style();
     }
 
-    Ok(Media { root: path })
+    let bucket = match bucket.exists().await {
+        Ok(true) => bucket,
+        Ok(false) => {
+            let config = BucketConfiguration::private();
+            if env.media.path_style {
+                Bucket::create_with_path_style(
+                    &env.media.bucket,
+                    region.clone(),
+                    bucket
+                        .credentials()
+                        .await
+                        .map_err(|err| MediaError::InternalServerError(err.to_string()))?,
+                    config,
+                )
+                .await
+                .map_err(|err| MediaError::InternalServerError(err.to_string()))?
+                .bucket
+            } else {
+                Bucket::create(
+                    &env.media.bucket,
+                    region.clone(),
+                    bucket
+                        .credentials()
+                        .await
+                        .map_err(|err| MediaError::InternalServerError(err.to_string()))?,
+                    config,
+                )
+                .await
+                .map_err(|err| MediaError::InternalServerError(err.to_string()))?
+                .bucket
+            }
+        }
+        Err(err) => return Err(MediaError::InternalServerError(err.to_string())),
+    };
+
+    let prefix = normalize_prefix(&env.media.prefix);
+    let media = Media {
+        bucket: Arc::from(bucket),
+        prefix,
+    };
+
+    media.ensure_embeds().await?;
+
+    Ok(media)
 }
 
 impl Media {
     pub async fn get(&self, path: String, filename: String) -> Result<Vec<u8>, MediaError> {
-        let joined = Path::new(&path).join(&filename);
-        if joined.is_absolute()
-            || joined
-                .components()
-                .any(|c| !matches!(c, Component::Normal(_)))
-        {
-            return Err(MediaError::NotFound(String::new()));
-        }
-
-        let filepath = PathBuf::from(&self.root).join(joined);
-
-        match File::open(&filepath).await {
-            Ok(mut file) => {
-                let mut buffer = Vec::new();
-                if file.read_to_end(&mut buffer).await.is_err() {
-                    return Err(MediaError::InternalServerError(String::new()));
-                }
-                Ok(buffer)
-            }
-            Err(_) => Err(MediaError::NotFound(String::new())),
-        }
+        let key = self.build_key(&path, &filename, true)?;
+        let data = self
+            .bucket
+            .get_object(&key)
+            .await
+            .map_err(|err| map_s3_error(err, true))?;
+        Ok(data.to_vec())
     }
 
     pub async fn create_dir(&self, path: String) -> Result<(), MediaError> {
-        let rel = Path::new(&path);
-        if rel.is_absolute() || rel.components().any(|c| !matches!(c, Component::Normal(_))) {
+        if normalize_path(Path::new(&path)).is_none() {
             return Ok(());
         }
-
-        let filepath = PathBuf::from(&self.root).join(rel);
-        if metadata(&filepath).await.is_err() {
-            create_dir_all(&filepath).await?;
-        }
-
         Ok(())
     }
 
     pub async fn scan_dir(&self, path: String) -> Result<Vec<(String, u64)>, MediaError> {
-        let rel = Path::new(&path);
-        if rel.is_absolute() || rel.components().any(|c| !matches!(c, Component::Normal(_))) {
-            return Ok(Vec::new());
+        let rel = match normalize_path(Path::new(&path)) {
+            Some(rel) => rel,
+            None => return Ok(Vec::new()),
+        };
+        let mut prefix = self.with_prefix(&rel);
+        if !prefix.is_empty() {
+            prefix.push('/');
         }
 
-        let filepath = PathBuf::from(&self.root).join(rel);
+        let results = self
+            .bucket
+            .list(prefix.clone(), Some("/".to_string()))
+            .await
+            .map_err(|err| map_s3_error(err, false))?;
+
         let mut files = Vec::new();
-
-        if metadata(&filepath).await.is_err() {
-            return Ok(files);
-        }
-
-        let mut dir = read_dir(&filepath).await?;
-
-        while let Some(entry) = dir.next_entry().await? {
-            let path = entry.path();
-            let metadata = entry.metadata().await?;
-            if metadata.is_file() {
-                let file_name = path
-                    .file_name()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .into_owned();
-                let file_size = metadata.len();
-                files.push((file_name, file_size));
+        for result in results {
+            for object in result.contents {
+                let key = object.key;
+                let name = key.strip_prefix(&prefix).unwrap_or(&key);
+                if name.is_empty() || name.contains('/') {
+                    continue;
+                }
+                let size: u64 = object.size.try_into().unwrap_or_else(|_| 0);
+                files.push((name.to_string(), size));
             }
         }
+
         Ok(files)
     }
 
@@ -118,57 +153,153 @@ impl Media {
         filename: String,
         data: Vec<u8>,
     ) -> Result<(), MediaError> {
-        let joined = Path::new(&path).join(&filename);
-        if joined.is_absolute()
-            || joined
-                .components()
-                .any(|c| !matches!(c, Component::Normal(_)))
-        {
-            return Err(MediaError::InternalServerError(String::new()));
-        }
-
-        let filepath = PathBuf::from(&self.root).join(joined);
-        if let Some(parent) = filepath.parent() {
-            if metadata(parent).await.is_err() {
-                create_dir_all(parent).await?;
-            }
-        }
-        let mut file = File::create(&filepath).await?;
-        file.write_all(&data).await?;
+        let key = self.build_key(&path, &filename, false)?;
+        self.bucket
+            .put_object(&key, &data)
+            .await
+            .map_err(|err| map_s3_error(err, false))?;
         Ok(())
     }
 
     pub async fn delete(&self, path: String, filename: String) -> Result<(), MediaError> {
-        let joined = Path::new(&path).join(&filename);
-        if joined.is_absolute()
-            || joined
-                .components()
-                .any(|c| !matches!(c, Component::Normal(_)))
-        {
-            return Ok(());
-        }
-
-        let filepath = PathBuf::from(&self.root).join(joined);
-        if metadata(&filepath).await.is_ok() {
-            remove_file(&filepath).await?;
-        }
+        let key = match self.build_key(&path, &filename, true) {
+            Ok(key) => key,
+            Err(_) => return Ok(()),
+        };
+        let _ = self
+            .bucket
+            .delete_object(&key)
+            .await
+            .map_err(|err| map_s3_error(err, false))?;
         Ok(())
     }
 
     pub async fn delete_dir(&self, path: String) -> Result<(), MediaError> {
-        let rel = Path::new(&path);
-        if rel.is_absolute() || rel.components().any(|c| !matches!(c, Component::Normal(_))) {
-            return Ok(());
+        let rel = match normalize_path(Path::new(&path)) {
+            Some(rel) => rel,
+            None => return Ok(()),
+        };
+        let mut prefix = self.with_prefix(&rel);
+        if !prefix.is_empty() {
+            prefix.push('/');
         }
 
-        let filepath = PathBuf::from(&self.root).join(rel);
-        if metadata(&filepath).await.is_ok() {
-            remove_dir_all(&filepath).await?;
+        let results = self
+            .bucket
+            .list(prefix.clone(), None)
+            .await
+            .map_err(|err| map_s3_error(err, false))?;
+
+        for result in results {
+            for object in result.contents {
+                let _ = self
+                    .bucket
+                    .delete_object(&object.key)
+                    .await
+                    .map_err(|err| map_s3_error(err, false))?;
+            }
         }
+
         Ok(())
     }
 
     pub fn config(&self) -> Config<'_> {
         Config::new(&self)
+    }
+
+    fn build_key(
+        &self,
+        path: &str,
+        filename: &str,
+        not_found_on_error: bool,
+    ) -> Result<String, MediaError> {
+        let joined = Path::new(path).join(filename);
+        let rel = normalize_path(&joined).ok_or_else(|| {
+            if not_found_on_error {
+                MediaError::NotFound(String::new())
+            } else {
+                MediaError::InternalServerError(String::new())
+            }
+        })?;
+        Ok(self.with_prefix(&rel))
+    }
+
+    fn with_prefix(&self, key: &str) -> String {
+        if self.prefix.is_empty() {
+            key.to_string()
+        } else if key.is_empty() {
+            self.prefix.clone()
+        } else {
+            format!("{}/{}", self.prefix, key)
+        }
+    }
+
+    async fn ensure_embeds(&self) -> Result<(), MediaError> {
+        let existing = self.list_existing_embed_keys().await?;
+
+        for file in Embeds::iter() {
+            if let Some(content) = Embeds::get(&file) {
+                let key = self.with_prefix(file.as_ref());
+                if existing.contains(&key) {
+                    continue;
+                }
+                self.bucket
+                    .put_object(&key, content.data.as_ref())
+                    .await
+                    .map_err(|err| map_s3_error(err, false))?;
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn list_existing_embed_keys(&self) -> Result<HashSet<String>, MediaError> {
+        let mut existing = HashSet::new();
+        for file in Embeds::iter() {
+            let key = self.with_prefix(file.as_ref());
+            let results = self
+                .bucket
+                .list(key.clone(), Some("/".to_string()))
+                .await
+                .map_err(|err| map_s3_error(err, false))?;
+            if results
+                .iter()
+                .any(|result| result.contents.iter().any(|object| object.key == key))
+            {
+                existing.insert(key);
+            }
+        }
+        Ok(existing)
+    }
+}
+
+fn normalize_prefix(prefix: &str) -> String {
+    let mut prefix = prefix.trim().trim_matches('/').to_string();
+    if prefix == "." {
+        prefix.clear();
+    }
+    prefix
+}
+
+fn normalize_path(path: &Path) -> Option<String> {
+    if path.is_absolute() {
+        return None;
+    }
+    let mut parts = Vec::new();
+    for component in path.components() {
+        match component {
+            Component::Normal(part) => parts.push(part.to_string_lossy().into_owned()),
+            _ => return None,
+        }
+    }
+    Some(parts.join("/"))
+}
+
+fn map_s3_error(err: S3Error, treat_not_found_as_missing: bool) -> MediaError {
+    let message = err.to_string();
+    if treat_not_found_as_missing && (message.contains("NoSuchKey") || message.contains("404")) {
+        MediaError::NotFound(String::new())
+    } else {
+        MediaError::InternalServerError(message)
     }
 }

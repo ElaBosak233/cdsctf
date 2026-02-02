@@ -1,9 +1,8 @@
-use std::path::PathBuf;
-
 use anyhow::anyhow;
 use cds_engine::{rune, rune::Module};
-use cds_media::Media;
+use cds_media::{Media, traits::MediaError};
 use ring::rand::{SecureRandom, SystemRandom};
+use tokio::runtime::Handle;
 use tracing::debug;
 
 #[rune::module(::fs)]
@@ -13,64 +12,78 @@ pub async fn module(
     challenge_id: i64,
 ) -> Result<Module, anyhow::Error> {
     let mut module = Module::from_meta(module_meta)?;
-    let root = PathBuf::from(&media.root).join(format!("challenges/{}", challenge_id));
-    std::fs::create_dir_all(&root)?;
+    let base = format!("challenges/{}", challenge_id);
 
     module
         .function("key", {
-            let root = root.clone();
+            let base = base.clone();
+            let media = media.clone();
             move || -> Result<String, anyhow::Error> {
-                let full_path = root.join(".key");
+                let base = base.clone();
+                let media = media.clone();
 
-                let key = if full_path.exists() {
-                    std::fs::read_to_string(full_path)?
-                } else {
-                    debug!(challenge_id = challenge_id, "Generating new key");
+                tokio::task::block_in_place(|| {
+                    Handle::current().block_on(async move {
+                        match media.get(base.clone(), ".key".to_string()).await {
+                            Ok(data) => String::from_utf8(data)
+                                .map_err(|_| anyhow!("invalid_key_encoding")),
+                            Err(MediaError::NotFound(_)) => {
+                                debug!(challenge_id = challenge_id, "Generating new key");
 
-                    let rng = SystemRandom::new();
-                    let mut bytes = [0u8; 64];
-                    rng.fill(&mut bytes).unwrap();
-                    let key = hex::encode(bytes);
-                    std::fs::write(full_path, format!("{}", key))?;
+                                let rng = SystemRandom::new();
+                                let mut bytes = [0u8; 64];
+                                rng.fill(&mut bytes).unwrap();
+                                let key = hex::encode(bytes);
 
-                    key
-                };
+                                media
+                                    .save(base.clone(), ".key".to_string(), key.as_bytes().to_vec())
+                                    .await?;
 
-                Ok(key)
+                                Ok(key)
+                            }
+                            Err(err) => Err(anyhow!(err)),
+                        }
+                    })
+                })
             }
         })
         .build()?;
 
     module
         .function("read_to_string", {
-            let root = root.clone();
+            let base = base.clone();
+            let media = media.clone();
             move |path: String| -> Result<String, anyhow::Error> {
-                let full_path = root.join(&path).canonicalize()?;
+                let base = base.clone();
+                let media = media.clone();
 
-                if !full_path.starts_with(&root) {
-                    return Err(anyhow!("access_denied"));
-                }
-
-                let content = std::fs::read_to_string(&full_path)?;
-
-                Ok(content)
+                tokio::task::block_in_place(|| {
+                    Handle::current().block_on(async move {
+                        let data = media.get(base.clone(), path).await?;
+                        String::from_utf8(data).map_err(|_| anyhow!("invalid_utf8"))
+                    })
+                })
             }
         })
         .build()?;
 
     module
         .function("write", {
-            let root = root.clone();
+            let base = base.clone();
+            let media = media.clone();
             move |path: String, content: String| -> Result<(), anyhow::Error> {
-                let full_path = root.join(&path).canonicalize()?;
+                let base = base.clone();
+                let media = media.clone();
 
-                if !full_path.starts_with(&root) {
-                    return Err(anyhow!("access_denied"));
-                }
-
-                std::fs::write(&full_path, content)?;
-
-                Ok(())
+                tokio::task::block_in_place(|| {
+                    Handle::current().block_on(async move {
+                        media
+                            .save(base.clone(), path, content.into_bytes())
+                            .await
+                            .map_err(|err| anyhow!(err))?;
+                        Ok(())
+                    })
+                })
             }
         })
         .build()?;
