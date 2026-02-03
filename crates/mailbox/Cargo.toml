@@ -17,9 +17,9 @@ cds-queue = { workspace = true }
 anyhow       = { workspace = true }
 futures-util = { workspace = true }
 lettre       = { workspace = true }
+once_cell    = { workspace = true }
 serde        = { workspace = true }
 serde_json   = { workspace = true }
 thiserror    = { workspace = true }
 tokio        = { workspace = true }
 tracing      = { workspace = true }
-once_cell = { workspace = true }

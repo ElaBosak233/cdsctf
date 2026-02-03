@@ -41,10 +41,7 @@ pub async fn get_challenge_attachment(
         .scan_dir(path.clone())
         .await?
         .into_iter()
-        .map(|(filename, size)| Metadata {
-            filename: filename.to_string(),
-            size,
-        })
+        .map(|(filename, size)| Metadata { filename, size })
         .collect::<Vec<Metadata>>();
 
     Ok(WebResponse {

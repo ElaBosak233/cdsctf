@@ -18,6 +18,7 @@ hex        = { workspace = true }
 image      = { workspace = true }
 ring       = { workspace = true }
 rust-embed = { workspace = true }
+rust-s3    = { workspace = true }
 serde      = { workspace = true }
 thiserror  = { workspace = true }
 tokio      = { workspace = true }
