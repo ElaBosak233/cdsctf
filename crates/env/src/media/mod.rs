@@ -12,7 +12,8 @@ pub struct Config {
     pub prefix: String,
     pub path_style: bool,
     pub presigned: bool,
-    /// Endpoint used when generating presigned URLs. If set, signed URLs point here (typically a public URL for clients); otherwise same as `endpoint`.
+    /// Endpoint used when generating presigned URLs. If set, signed URLs point
+    /// here (typically a public URL for clients); otherwise same as `endpoint`.
     pub presigned_endpoint: Option<String>,
 }
 

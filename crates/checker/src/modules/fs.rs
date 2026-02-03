@@ -25,8 +25,9 @@ pub async fn module(
                 tokio::task::block_in_place(|| {
                     Handle::current().block_on(async move {
                         match media.get(base.clone(), ".key".to_string()).await {
-                            Ok(data) => String::from_utf8(data)
-                                .map_err(|_| anyhow!("invalid_key_encoding")),
+                            Ok(data) => {
+                                String::from_utf8(data).map_err(|_| anyhow!("invalid_key_encoding"))
+                            }
                             Err(MediaError::NotFound(_)) => {
                                 debug!(challenge_id = challenge_id, "Generating new key");
 

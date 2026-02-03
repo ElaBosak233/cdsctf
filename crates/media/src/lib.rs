@@ -13,10 +13,7 @@ use std::{
 use cds_env::Env;
 use rust_embed::Embed;
 use s3::{
-    bucket::Bucket,
-    bucket_ops::BucketConfiguration,
-    creds::Credentials,
-    error::S3Error,
+    bucket::Bucket, bucket_ops::BucketConfiguration, creds::Credentials, error::S3Error,
     region::Region,
 };
 
@@ -251,10 +248,9 @@ impl Media {
         filename: &str,
         expiry_secs: u32,
     ) -> Result<String, MediaError> {
-        let presigner = self
-            .presigner
-            .as_ref()
-            .ok_or_else(|| MediaError::InternalServerError("presigned url not configured".into()))?;
+        let presigner = self.presigner.as_ref().ok_or_else(|| {
+            MediaError::InternalServerError("presigned url not configured".into())
+        })?;
         let key = self.build_key(path, filename, false)?;
         let disposition = format!("attachment; filename=\"{}\"", filename.replace('"', "\\\""));
         presigner
@@ -268,10 +264,9 @@ impl Media {
         filename: &str,
         expiry_secs: u32,
     ) -> Result<String, MediaError> {
-        let presigner = self
-            .presigner
-            .as_ref()
-            .ok_or_else(|| MediaError::InternalServerError("presigned url not configured".into()))?;
+        let presigner = self.presigner.as_ref().ok_or_else(|| {
+            MediaError::InternalServerError("presigned url not configured".into())
+        })?;
         let key = self.build_key(path, filename, false)?;
         presigner.presign_put(&key, expiry_secs).await
     }

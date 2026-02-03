@@ -19,10 +19,10 @@ cds-captcha  = { path = "crates/captcha" }
 cds-checker  = { path = "crates/checker" }
 cds-cluster  = { path = "crates/cluster" }
 cds-db       = { path = "crates/db" }
-cds-mailbox    = { path = "crates/mailbox" }
 cds-engine   = { path = "crates/engine" }
 cds-env      = { path = "crates/env" }
 cds-event    = { path = "crates/event" }
+cds-mailbox  = { path = "crates/mailbox" }
 cds-media    = { path = "crates/media" }
 cds-migrator = { path = "crates/migrator" }
 cds-observe  = { path = "crates/observe" }
@@ -80,7 +80,10 @@ thiserror = { version = "2.0" }
 # Observability & Monitoring
 opentelemetry = { version = "0.31", features = ["metrics"] }
 opentelemetry-appender-tracing = { version = "0.31" }
-opentelemetry-otlp = { version = "0.31", features = ["gzip-http", "reqwest-rustls"] }
+opentelemetry-otlp = { version = "0.31", features = [
+  "gzip-http",
+  "reqwest-rustls",
+] }
 opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
 sysinfo = { version = "0.38" }
 tracing = { version = "0.1" }
@@ -147,8 +150,12 @@ lettre = { version = "0.11", features = [
 ], default-features = false }
 once_cell = { version = "1.21" }
 reqwest = { version = "0.13", features = ["json"] }
-rust-s3 = { version = "0.37" }
 rust-embed = { version = "8.11" }
+rust-s3 = { version = "0.37", default-features = false, features = [
+  "tokio-rustls-tls",
+  "fail-on-err",
+  "tags",
+] }
 scraper = { version = "0.25" }
 shadow-rs = { version = "1.7" }
 validator = { version = "0.20", features = ["derive"] }

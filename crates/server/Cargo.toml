@@ -17,10 +17,10 @@ cds-captcha  = { workspace = true }
 cds-checker  = { workspace = true }
 cds-cluster  = { workspace = true }
 cds-db       = { workspace = true }
-cds-mailbox    = { workspace = true }
 cds-engine   = { workspace = true }
 cds-env      = { workspace = true }
 cds-event    = { workspace = true }
+cds-mailbox  = { workspace = true }
 cds-media    = { workspace = true }
 cds-migrator = { workspace = true }
 cds-observe  = { workspace = true }
