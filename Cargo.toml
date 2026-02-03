@@ -71,7 +71,7 @@ serde_repr = { version = "0.1" }
 serde_with = { version = "3.16" }
 time       = { version = "0.3", features = ["serde", "macros", "local-offset"] }
 toml       = { version = "0.9" }
-uuid       = { version = "1.19", features = ["v4", "fast-rng", "macro-diagnostics"] }
+uuid       = { version = "1.20", features = ["v4", "fast-rng", "macro-diagnostics"] }
 
 # Error Handling
 anyhow    = { version = "1.0" }
@@ -82,7 +82,7 @@ opentelemetry = { version = "0.31", features = ["metrics"] }
 opentelemetry-appender-tracing = { version = "0.31" }
 opentelemetry-otlp = { version = "0.31", features = ["gzip-http", "reqwest-rustls"] }
 opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
-sysinfo = { version = "0.37" }
+sysinfo = { version = "0.38" }
 tracing = { version = "0.1" }
 tracing-appender = "0.2"
 tracing-error = { version = "0.2" }
@@ -147,10 +147,10 @@ lettre = { version = "0.11", features = [
 ], default-features = false }
 once_cell = { version = "1.21" }
 reqwest = { version = "0.13", features = ["json"] }
-rust-s3 = { version = "0.35" }
+rust-s3 = { version = "0.37" }
 rust-embed = { version = "8.11" }
 scraper = { version = "0.25" }
-shadow-rs = { version = "1.6" }
+shadow-rs = { version = "1.7" }
 validator = { version = "0.20", features = ["derive"] }
 webp = { version = "0.3.1", features = ["image"] }
 

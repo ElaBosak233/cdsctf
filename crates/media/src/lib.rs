@@ -218,7 +218,6 @@ impl Media {
         Config::new(&self)
     }
 
-    /// 是否启用了 presigned URL（即 media.presigned 为 true）。
     pub fn presigned_enabled(&self) -> bool {
         self.presigner.is_some()
     }

@@ -16,7 +16,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            endpoint: "s3://media:9000".to_string(),
+            endpoint: "http://media:9000".to_string(),
             region: "us-east-1".to_string(),
             bucket: "cdsctf".to_string(),
             access_key: "rustfsadmin".to_string(),
