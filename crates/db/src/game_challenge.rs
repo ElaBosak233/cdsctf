@@ -20,7 +20,7 @@ pub struct GameChallenge {
     pub max_pts: i64,
     pub min_pts: i64,
     pub pts: i64,
-    pub is_enabled: bool,
+    pub enabled: bool,
     pub frozen_at: Option<i64>,
 }
 

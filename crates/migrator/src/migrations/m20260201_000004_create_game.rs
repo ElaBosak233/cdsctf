@@ -6,7 +6,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20251024_000007_create_game_notice"
+        "m20260201_000004_create_game"
     }
 }
 
@@ -18,16 +18,23 @@ impl MigrationTrait for Migration {
         db.execute(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "game_notices" (
+                CREATE TABLE IF NOT EXISTS "games" (
                     "id" BIGSERIAL PRIMARY KEY,
-                    "game_id" BIGINT NOT NULL,
                     "title" VARCHAR NOT NULL,
-                    "content" TEXT NOT NULL,
-                    "created_at" BIGINT NOT NULL,
-                
-                    CONSTRAINT "fk_game_notices_game_id"
-                        FOREIGN KEY ("game_id") REFERENCES "games" ("id")
-                        ON DELETE CASCADE
+                    "sketch" TEXT,
+                    "description" TEXT,
+                    "enabled" BOOLEAN NOT NULL,
+                    "public" BOOLEAN NOT NULL,
+                    "member_limit_min" BIGINT NOT NULL DEFAULT 3,
+                    "member_limit_max" BIGINT NOT NULL DEFAULT 3,
+                    "writeup_required" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "timeslots" JSONB NOT NULL,
+                    "started_at" BIGINT NOT NULL,
+                    "frozen_at" BIGINT NOT NULL,
+                    "ended_at" BIGINT NOT NULL,
+                    "has_icon" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "has_poster" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "created_at" BIGINT NOT NULL
                 );
             "#
             .to_owned(),
@@ -43,7 +50,7 @@ impl MigrationTrait for Migration {
         db.execute(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "game_notices";
+                DROP TABLE IF EXISTS "games";
             "#
             .to_owned(),
         ))

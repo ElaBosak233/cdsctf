@@ -150,7 +150,7 @@ pub async fn set_team_ready(
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
             game_id: Unchanged(team.game_id),
-            state: Set(if game.is_public {
+            state: Set(if game.public {
                 TState::Passed
             } else {
                 TState::Pending

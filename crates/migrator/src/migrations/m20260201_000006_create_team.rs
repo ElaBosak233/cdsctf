@@ -6,7 +6,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20251024_000008_create_game_challenge"
+        "m20260201_000006_create_team"
     }
 }
 
@@ -18,23 +18,20 @@ impl MigrationTrait for Migration {
         db.execute(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "game_challenges" (
+                CREATE TABLE IF NOT EXISTS "teams" (
+                    "id" BIGSERIAL PRIMARY KEY,
                     "game_id" BIGINT NOT NULL,
-                    "challenge_id" BIGINT NOT NULL,
-                    "difficulty" BIGINT NOT NULL DEFAULT 5,
-                    "max_pts" BIGINT NOT NULL DEFAULT 2000,
-                    "min_pts" BIGINT NOT NULL DEFAULT 500,
-                    "bonus_ratios" BIGINT[] NOT NULL,
-                    "is_enabled" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "frozen_at" BIGINT,
+                    "name" VARCHAR NOT NULL,
+                    "email" VARCHAR,
+                    "slogan" VARCHAR,
+                    "has_avatar" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "has_writeup" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "state" INT NOT NULL,
                     "pts" BIGINT NOT NULL DEFAULT 0,
-
-                    PRIMARY KEY ("game_id", "challenge_id"),
-                    CONSTRAINT "fk_game_challenges_game_id"
+                    "rank" BIGINT NOT NULL DEFAULT 0,
+                    
+                    CONSTRAINT "fk_teams_game_id"
                         FOREIGN KEY ("game_id") REFERENCES "games" ("id")
-                        ON DELETE CASCADE,
-                    CONSTRAINT "fk_game_challenges_challenge_id"
-                        FOREIGN KEY ("challenge_id") REFERENCES "challenges" ("id")
                         ON DELETE CASCADE
                 );
             "#
@@ -51,7 +48,7 @@ impl MigrationTrait for Migration {
         db.execute(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "game_challenges";
+                DROP TABLE IF EXISTS "teams";
             "#
             .to_owned(),
         ))

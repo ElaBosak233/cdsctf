@@ -61,7 +61,7 @@ pub async fn add_email(
     }
 
     let config = cds_db::get_config(&s.db.conn).await;
-    let is_verified = body.is_verified.unwrap_or(!config.email.is_enabled);
+    let is_verified = body.is_verified.unwrap_or(!config.email.enabled);
 
     let email = cds_db::email::create(
         &s.db.conn,

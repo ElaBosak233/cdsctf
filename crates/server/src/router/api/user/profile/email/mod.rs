@@ -62,7 +62,7 @@ pub async fn add_email(
         cds_db::email::ActiveModel {
             user_id: Set(operator.id),
             email: Set(body.email.to_lowercase()),
-            is_verified: Set(!cds_db::get_config(&s.db.conn).await.email.is_enabled),
+            is_verified: Set(!cds_db::get_config(&s.db.conn).await.email.enabled),
         },
     )
     .await?;
@@ -106,11 +106,11 @@ pub async fn verify_email(
         return Err(WebError::Forbidden(json!("email_not_found")));
     }
 
-    if email.is_verified {
+    if email.verified {
         return Err(WebError::BadRequest(json!("email_already_verified")));
     }
 
-    if cds_db::get_config(&s.db.conn).await.email.is_enabled {
+    if cds_db::get_config(&s.db.conn).await.email.enabled {
         let code = s
             .cache
             .get::<String>(format!("mailbox:{}:code", email.email.to_owned()))
@@ -148,7 +148,7 @@ pub async fn send_verify_email(
     Path(email): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    if !cds_db::get_config(&s.db.conn).await.email.is_enabled {
+    if !cds_db::get_config(&s.db.conn).await.email.enabled {
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
@@ -160,7 +160,7 @@ pub async fn send_verify_email(
         return Err(WebError::Forbidden(json!("email_not_found")));
     }
 
-    if email.is_verified {
+    if email.verified {
         return Err(WebError::BadRequest(json!("email_already_verified")));
     }
 

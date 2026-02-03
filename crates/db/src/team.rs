@@ -20,7 +20,7 @@ pub struct Team {
     pub email: Option<String>,
     pub slogan: Option<String>,
     pub has_avatar: bool,
-    pub has_write_up: bool,
+    pub has_writeup: bool,
     pub state: State,
     pub pts: i64,
     pub rank: i64,

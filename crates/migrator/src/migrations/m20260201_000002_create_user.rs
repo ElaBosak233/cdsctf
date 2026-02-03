@@ -6,7 +6,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20251024_000004_create_game"
+        "m20260201_000002_create_user"
     }
 }
 
@@ -18,23 +18,17 @@ impl MigrationTrait for Migration {
         db.execute(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "games" (
+                CREATE TABLE IF NOT EXISTS "users" (
                     "id" BIGSERIAL PRIMARY KEY,
-                    "title" VARCHAR NOT NULL,
-                    "sketch" TEXT,
+                    "name" VARCHAR NOT NULL,
+                    "username" VARCHAR UNIQUE NOT NULL,
                     "description" TEXT,
-                    "is_enabled" BOOLEAN NOT NULL,
-                    "is_public" BOOLEAN NOT NULL,
-                    "member_limit_min" BIGINT NOT NULL DEFAULT 3,
-                    "member_limit_max" BIGINT NOT NULL DEFAULT 3,
-                    "is_need_write_up" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "timeslots" JSONB NOT NULL,
-                    "started_at" BIGINT NOT NULL,
-                    "frozen_at" BIGINT NOT NULL,
-                    "ended_at" BIGINT NOT NULL,
-                    "has_icon" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "has_poster" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "created_at" BIGINT NOT NULL
+                    "group" INTEGER NOT NULL,
+                    "hashed_password" VARCHAR NOT NULL,
+                    "has_avatar" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "deleted_at" BIGINT,
+                    "created_at" BIGINT NOT NULL,
+                    "updated_at" BIGINT NOT NULL
                 );
             "#
             .to_owned(),
@@ -50,7 +44,7 @@ impl MigrationTrait for Migration {
         db.execute(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "games";
+                DROP TABLE IF EXISTS "users";
             "#
             .to_owned(),
         ))

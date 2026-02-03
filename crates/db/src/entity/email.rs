@@ -9,7 +9,7 @@ use super::user;
 pub struct Model {
     #[sea_orm(primary_key, unique)]
     pub email: String,
-    pub is_verified: bool,
+    pub verified: bool,
     pub user_id: i64,
 }
 

@@ -6,7 +6,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20251024_000006_create_team"
+        "m20260201_000008_create_game_challenge"
     }
 }
 
@@ -18,20 +18,23 @@ impl MigrationTrait for Migration {
         db.execute(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "teams" (
-                    "id" BIGSERIAL PRIMARY KEY,
+                CREATE TABLE IF NOT EXISTS "game_challenges" (
                     "game_id" BIGINT NOT NULL,
-                    "name" VARCHAR NOT NULL,
-                    "email" VARCHAR,
-                    "slogan" VARCHAR,
-                    "has_avatar" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "has_write_up" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "state" INT NOT NULL,
+                    "challenge_id" BIGINT NOT NULL,
+                    "difficulty" BIGINT NOT NULL DEFAULT 5,
+                    "max_pts" BIGINT NOT NULL DEFAULT 2000,
+                    "min_pts" BIGINT NOT NULL DEFAULT 500,
+                    "bonus_ratios" BIGINT[] NOT NULL,
+                    "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "frozen_at" BIGINT,
                     "pts" BIGINT NOT NULL DEFAULT 0,
-                    "rank" BIGINT NOT NULL DEFAULT 0,
-                    
-                    CONSTRAINT "fk_teams_game_id"
+
+                    PRIMARY KEY ("game_id", "challenge_id"),
+                    CONSTRAINT "fk_game_challenges_game_id"
                         FOREIGN KEY ("game_id") REFERENCES "games" ("id")
+                        ON DELETE CASCADE,
+                    CONSTRAINT "fk_game_challenges_challenge_id"
+                        FOREIGN KEY ("challenge_id") REFERENCES "challenges" ("id")
                         ON DELETE CASCADE
                 );
             "#
@@ -48,7 +51,7 @@ impl MigrationTrait for Migration {
         db.execute(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "teams";
+                DROP TABLE IF EXISTS "game_challenges";
             "#
             .to_owned(),
         ))

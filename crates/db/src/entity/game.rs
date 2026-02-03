@@ -14,14 +14,14 @@ pub struct Model {
     pub sketch: Option<String>,
     #[sea_orm(column_type = "Text")]
     pub description: Option<String>,
-    pub is_enabled: bool,
-    pub is_public: bool,
+    pub enabled: bool,
+    pub public: bool,
     #[sea_orm(default_value = 3)]
     pub member_limit_min: i64,
     #[sea_orm(default_value = 3)]
     pub member_limit_max: i64,
     #[sea_orm(default_value = false)]
-    pub is_need_write_up: bool,
+    pub writeup_required: bool,
     #[sea_orm(column_type = "JsonBinary")]
     pub timeslots: Vec<Timeslot>,
     pub started_at: i64,

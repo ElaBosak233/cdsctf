@@ -103,7 +103,7 @@ pub async fn user_register(
     if !cds_db::get_config(&s.db.conn)
         .await
         .auth
-        .is_registration_enabled
+        .registration_enabled
     {
         return Err(WebError::BadRequest(json!("registration_disabled")));
     }
@@ -158,7 +158,7 @@ pub async fn user_register(
         cds_db::email::ActiveModel {
             user_id: Set(user.id),
             email: Set(body.email),
-            is_verified: Set(!cds_db::get_config(&s.db.conn).await.email.is_enabled),
+            is_verified: Set(!cds_db::get_config(&s.db.conn).await.email.enabled),
         },
     )
     .await?;

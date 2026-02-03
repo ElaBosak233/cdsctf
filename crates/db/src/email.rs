@@ -12,7 +12,7 @@ use crate::traits::DbError;
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
 pub struct Email {
     pub email: String,
-    pub is_verified: bool,
+    pub verified: bool,
     pub user_id: i64,
 }
 

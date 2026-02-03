@@ -17,13 +17,16 @@ pub struct Model {
     pub description: String,
     pub category: i32,
     pub tags: Vec<String>,
-    pub is_dynamic: bool,
+    pub dynamic: bool,
     pub has_attachment: bool,
-    pub is_public: bool,
+    pub has_writeup: bool,
+    pub public: bool,
     #[sea_orm(column_type = "JsonBinary")]
     pub env: Option<Env>,
     #[sea_orm(column_type = "Text")]
     pub checker: Option<String>,
+    #[sea_orm(column_type = "Text")]
+    pub writeup: Option<String>,
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,

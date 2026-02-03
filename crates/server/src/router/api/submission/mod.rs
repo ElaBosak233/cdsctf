@@ -121,7 +121,7 @@ pub async fn create_submission(
     }
 
     // If the submission is not in game mode, challenge must be public.
-    if !challenge.is_public && (body.game_id.is_none() || body.team_id.is_none()) {
+    if !challenge.public && (body.game_id.is_none() || body.team_id.is_none()) {
         return Err(WebError::BadRequest(json!("challenge_not_found")));
     }
 

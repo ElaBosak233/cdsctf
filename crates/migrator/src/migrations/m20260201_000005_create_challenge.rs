@@ -6,7 +6,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20251024_000005_create_challenge"
+        "m20260201_000005_create_challenge"
     }
 }
 
@@ -24,11 +24,13 @@ impl MigrationTrait for Migration {
                     "description" TEXT NOT NULL,
                     "category" INTEGER NOT NULL,
                     "tags" TEXT[] NOT NULL,
-                    "is_dynamic" BOOLEAN NOT NULL,
+                    "dynamic" BOOLEAN NOT NULL,
                     "has_attachment" BOOLEAN NOT NULL,
-                    "is_public" BOOLEAN NOT NULL,
+                    "public" BOOLEAN NOT NULL,
+                    "has_writeup" BOOLEAN NOT NULL,
                     "env" JSONB,
                     "checker" TEXT,
+                    "writeup" TEXT,
                     "deleted_at" BIGINT,
                     "created_at" BIGINT NOT NULL,
                     "updated_at" BIGINT NOT NULL

@@ -80,10 +80,10 @@ pub async fn update_game_challenge(
             .await?;
     }
 
-    if new_game_challenge.is_enabled != game_challenge.is_enabled {
+    if new_game_challenge.enabled != game_challenge.enabled {
         s.event
             .push(cds_event::types::Event::GameChallenge(GameChallengeEvent {
-                type_: if new_game_challenge.is_enabled {
+                type_: if new_game_challenge.enabled {
                     GameChallengeEventType::Up
                 } else {
                     GameChallengeEventType::Down

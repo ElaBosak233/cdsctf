@@ -18,11 +18,13 @@ pub struct Challenge {
     pub description: String,
     pub category: i32,
     pub tags: Vec<String>,
-    pub is_dynamic: bool,
+    pub dynamic: bool,
     pub has_attachment: bool,
-    pub is_public: bool,
+    pub public: bool,
+    pub has_writeup: bool,
     pub env: Option<Env>,
     pub checker: Option<String>,
+    pub writeup: Option<String>,
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
@@ -33,6 +35,11 @@ impl Challenge {
         Self {
             env: None,
             checker: None,
+            writeup: if self.has_writeup && self.public {
+                self.writeup
+            } else {
+                None
+            },
             ..self.to_owned()
         }
     }
