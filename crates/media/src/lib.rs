@@ -92,7 +92,30 @@ pub async fn init(env: &Env) -> Result<Media, MediaError> {
     let bucket: Arc<Bucket> = Arc::from(bucket);
 
     let presigner = if env.media.presigned {
-        Some(Presigner::new(bucket.clone()))
+        let presigner_bucket = match &env.media.presigned_endpoint {
+            Some(ep) => {
+                let region = Region::Custom {
+                    region: env.media.region.clone(),
+                    endpoint: ep.clone(),
+                };
+                let creds = Credentials::new(
+                    Some(&env.media.access_key),
+                    Some(&env.media.secret_key),
+                    None,
+                    None,
+                    None,
+                )
+                .map_err(|err| MediaError::OtherError(err.into()))?;
+                let mut b = Bucket::new(&env.media.bucket, region, creds)
+                    .map_err(|err| MediaError::OtherError(err.into()))?;
+                if env.media.path_style {
+                    b = b.with_path_style();
+                }
+                Arc::from(b)
+            }
+            None => bucket.clone(),
+        };
+        Some(Presigner::new(presigner_bucket))
     } else {
         None
     };

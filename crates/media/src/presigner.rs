@@ -1,6 +1,6 @@
-//! Presigned URL 生成器。
-//! 仅当 [media.presigned](cds_env::media::Config::presigned) 为 true 时存在，
-//! 复用主 bucket，使用相同 endpoint 签名（要求该 endpoint 对用户可访问）。
+//! Presigned URL generator.
+//! Only present when [media.presigned](cds_env::media::Config::presigned) is true.
+//! If [presigned_endpoint](cds_env::media::Config::presigned_endpoint) is set, URLs are signed with that endpoint (typically public); otherwise the main bucket endpoint is used.
 
 use std::{collections::HashMap, sync::Arc};
 
@@ -8,7 +8,7 @@ use s3::bucket::Bucket;
 
 use crate::traits::MediaError;
 
-/// 复用已有 bucket 的签名器，仅用于生成 presigned URL。
+/// Reuses a bucket instance for signing only; used solely to generate presigned URLs.
 #[derive(Clone)]
 pub struct Presigner(Arc<Bucket>);
 
@@ -17,7 +17,7 @@ impl Presigner {
         Self(bucket)
     }
 
-    /// 生成 GET 预签名 URL（用于下载）。
+    /// Generates a presigned GET URL (for downloads).
     pub async fn presign_get(
         &self,
         key: &str,
@@ -35,7 +35,7 @@ impl Presigner {
             .map_err(|e| MediaError::InternalServerError(e.to_string()))
     }
 
-    /// 生成 PUT 预签名 URL（用于上传）。
+    /// Generates a presigned PUT URL (for uploads).
     pub async fn presign_put(&self, key: &str, expiry_secs: u32) -> Result<String, MediaError> {
         self.0
             .presign_put(key, expiry_secs, None, None)
