@@ -10,7 +10,7 @@ platform:
   _: 平台
   logo: 标志
   auth:
-    is_registration_enabled:
+    registration_enabled:
       "true": 允许
       "false": 不允许
   form:
@@ -26,7 +26,7 @@ platform:
         _: 页脚
     auth:
       _: 认证
-      is_registration_enabled:
+      registration_enabled:
         _: 是否允许新用户注册
   actions:
     update:
@@ -34,7 +34,7 @@ platform:
       success: 平台设置更新成功。
 mailbox:
   _: 邮箱
-  is_enabled:
+  enabled:
     _: 启用邮箱
     "true": 是
     "false": 否
@@ -44,7 +44,7 @@ mailbox:
     tls: TLS
     starttls: StartTLS
   form:
-    is_enabled:
+    enabled:
       _: 启用邮箱
     host:
       _: SMTP 主机

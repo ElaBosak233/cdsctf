@@ -57,8 +57,8 @@ function CreateDialog(props: CreateDialogProps) {
     createChallenge({
       ...values,
       description: "",
-      is_dynamic: false,
-      is_public: false,
+      dynamic: false,
+      public: false,
       has_attachment: false,
     })
       .then((res) => {

@@ -57,7 +57,7 @@ pub async fn get_game_challenge(
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateGameChallengeRequest {
     pub challenge_id: i64,
-    pub is_enabled: Option<bool>,
+    pub enabled: Option<bool>,
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
@@ -85,7 +85,7 @@ pub async fn create_game_challenge(
             game_id: Set(game.id),
             challenge_id: Set(challenge.id),
             difficulty: body.difficulty.map_or(NotSet, Set),
-            is_enabled: body.is_enabled.map_or(Set(false), Set),
+            enabled: body.enabled.map_or(Set(false), Set),
             max_pts: body.max_pts.map_or(NotSet, Set),
             min_pts: body.min_pts.map_or(NotSet, Set),
             bonus_ratios: body.bonus_ratios.map_or(Set(vec![]), Set),

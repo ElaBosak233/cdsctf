@@ -5,10 +5,12 @@ export interface Challenge {
   description?: string;
   category?: number;
   has_attachment?: boolean;
-  is_public?: boolean;
-  is_dynamic?: boolean;
+  public?: boolean;
+  has_writeup?: boolean;
+  dynamic?: boolean;
   env?: Env;
   checker?: string;
+  writeup?: string;
   updated_at?: number;
   created_at?: number;
 }

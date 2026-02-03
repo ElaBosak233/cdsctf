@@ -4,7 +4,7 @@ export interface User {
   id?: number;
   name?: string;
   username?: string;
-  is_verified?: boolean;
+  verified?: boolean;
   group?: Group;
   description?: string;
   has_avatar?: boolean;

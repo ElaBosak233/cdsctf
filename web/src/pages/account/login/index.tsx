@@ -85,7 +85,7 @@ export default function Index() {
                 {config?.meta?.description}
               </span>
             </div>
-            {config?.auth?.is_registration_enabled && (
+            {config?.auth?.registration_enabled && (
               <Button
                 asChild
                 className={cn("w-full")}

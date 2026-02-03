@@ -69,7 +69,7 @@ function LoginForm() {
 
       authStore.setUser(res.data);
 
-      if (res.data?.is_verified) {
+      if (res.data?.verified) {
         toast.success(t("account.login.success._"), {
           id: "login",
           description: t("account.login.success.welcome", {
@@ -146,7 +146,7 @@ function LoginForm() {
               <FormItem>
                 <FormLabel className={cn(["flex", "items-end"])}>
                   <span className={cn(["flex-1"])}>{t("user.password")}</span>
-                  {configStore?.config?.email?.is_enabled && (
+                  {configStore?.config?.email?.enabled && (
                     <Link
                       to={"/account/forget"}
                       className={cn([

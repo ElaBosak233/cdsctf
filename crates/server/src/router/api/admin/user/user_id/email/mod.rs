@@ -41,7 +41,7 @@ pub async fn get_email(
 pub struct AddEmailRequest {
     #[validate(email)]
     pub email: String,
-    pub is_verified: Option<bool>,
+    pub verified: Option<bool>,
 }
 
 pub async fn add_email(
@@ -61,14 +61,14 @@ pub async fn add_email(
     }
 
     let config = cds_db::get_config(&s.db.conn).await;
-    let is_verified = body.is_verified.unwrap_or(!config.email.enabled);
+    let verified = body.verified.unwrap_or(!config.email.enabled);
 
     let email = cds_db::email::create(
         &s.db.conn,
         cds_db::email::ActiveModel {
             user_id: Set(user.id),
             email: Set(email),
-            is_verified: Set(is_verified),
+            verified: Set(verified),
         },
     )
     .await?;
@@ -82,7 +82,7 @@ pub async fn add_email(
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateEmailRequest {
-    pub is_verified: Option<bool>,
+    pub verified: Option<bool>,
 }
 
 pub async fn update_email(
@@ -99,8 +99,8 @@ pub async fn update_email(
         return Err(WebError::Forbidden(json!("email_not_found")));
     }
 
-    let is_verified = body
-        .is_verified
+    let verified = body
+        .verified
         .ok_or(WebError::BadRequest(json!("missing_fields")))?;
 
     let email = cds_db::email::update(
@@ -108,7 +108,7 @@ pub async fn update_email(
         cds_db::email::ActiveModel {
             email: Unchanged(email.email.to_owned()),
             user_id: Unchanged(email.user_id),
-            is_verified: Set(is_verified),
+            verified: Set(verified),
             ..Default::default()
         },
     )

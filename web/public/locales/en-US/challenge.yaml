@@ -14,14 +14,14 @@ description: Description
 category: Category
 tags: Tags
 has_attachment: Attachment
-is_dynamic:
+dynamic:
   _: Is Dynamic
   "true": Dynamic
   "false": Static
 frozen:
   already: Frozen
   countdown: "Freezes in {{hours}}h {{minutes}}m {{seconds}}s"
-is_public:
+public:
   _: Public
   actions:
     "true": Make Public
@@ -55,7 +55,7 @@ attachment:
 search:
   title: Challenge Title
   tag: Tag
-  is_public:
+  public:
     _: Public
     "true": Public
     "false": Private
@@ -72,7 +72,7 @@ form:
     _: Has Attachment
     "true": "Yes"
     "false": "No"
-  is_dynamic:
+  dynamic:
     _: Is Dynamic
     "true": Dynamic Environment
     "false": Static Environment

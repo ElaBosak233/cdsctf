@@ -51,7 +51,7 @@ pub async fn get_challenge(
             title: params.title,
             category: params.category,
             tag: params.tag,
-            is_public: Some(true),
+            public: Some(true),
             sorts: params.sorts,
             page: Some(page),
             size: Some(size),
@@ -77,7 +77,7 @@ pub struct GetChallengeStatusRequest {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ChallengeStatusResponse {
-    pub is_solved: bool,
+    pub solved: bool,
     pub solved_times: i64,
     pub pts: i64,
     pub bloods: Vec<Submission>,
@@ -110,7 +110,7 @@ pub async fn get_challenge_status(
         result.insert(
             *challenge_id,
             ChallengeStatusResponse {
-                is_solved: false,
+                solved: false,
                 solved_times: 0,
                 pts: 0,
                 bloods: Vec::new(),
@@ -127,7 +127,7 @@ pub async fn get_challenge_status(
                     .team_id
                     .is_some_and(|team_id| Some(team_id) == body.team_id)
             {
-                status_response.is_solved = true;
+                status_response.solved = true;
             }
 
             status_response.solved_times += 1;

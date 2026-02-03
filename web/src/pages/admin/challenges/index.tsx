@@ -59,7 +59,7 @@ function useChallengeQuery(params: GetChallengesRequest) {
       params.size,
       params.page,
       params.category,
-      params.is_public,
+      params.public,
       params.sorts,
       refresh,
     ],
@@ -97,7 +97,7 @@ export default function Index() {
       value: "all",
     },
     {
-      id: "is_public",
+      id: "public",
       value: "all",
     },
   ]);
@@ -111,9 +111,9 @@ export default function Index() {
       : undefined;
 
   const isPublic =
-    (debouncedColumnFilters.find((c) => c.id === "is_public")
-      ?.value as string) !== "all"
-      ? (debouncedColumnFilters.find((c) => c.id === "is_public")
+    (debouncedColumnFilters.find((c) => c.id === "public")?.value as string) !==
+    "all"
+      ? (debouncedColumnFilters.find((c) => c.id === "public")
           ?.value as string) === "true"
       : undefined;
 
@@ -122,7 +122,7 @@ export default function Index() {
     title: debouncedColumnFilters.find((c) => c.id === "title")
       ?.value as string,
     category: category,
-    is_public: isPublic,
+    public: isPublic,
     sorts: sorting
       .map((value) => (value.desc ? `-${value.id}` : `${value.id}`))
       .join(","),
@@ -273,23 +273,21 @@ export default function Index() {
                   },
                   {
                     value: "true",
-                    content: t("challenge.search.is_public.true"),
+                    content: t("challenge.search.public.true"),
                   },
                   {
                     value: "false",
-                    content: t("challenge.search.is_public.false"),
+                    content: t("challenge.search.public.false"),
                   },
                 ]}
                 onValueChange={(value) =>
                   setColumnFilters((prev) => {
-                    const otherFilters = prev.filter(
-                      (f) => f.id !== "is_public"
-                    );
-                    return [...otherFilters, { id: "is_public", value }];
+                    const otherFilters = prev.filter((f) => f.id !== "public");
+                    return [...otherFilters, { id: "public", value }];
                   })
                 }
                 value={
-                  (columnFilters.find((f) => f.id === "is_public")
+                  (columnFilters.find((f) => f.id === "public")
                     ?.value as string) ?? "all"
                 }
               />

@@ -83,13 +83,13 @@ export default function Index() {
                 <ItemContent className="gap-1">
                   <ItemTitle>{email.email}</ItemTitle>
                   <ItemDescription>
-                    {email.is_verified ? (
+                    {email.verified ? (
                       <div className={cn(["flex", "gap-1", "items-center"])}>
-                        <span>{t("user.emails.is_verified.true._")}</span>
+                        <span>{t("user.emails.verified.true._")}</span>
                         <CheckIcon className={cn(["size-4", "text-success"])} />
                       </div>
                     ) : (
-                      t("user.emails.is_verified.false._")
+                      t("user.emails.verified.false._")
                     )}
                   </ItemDescription>
                 </ItemContent>
@@ -98,7 +98,7 @@ export default function Index() {
                     variant="ghost"
                     size={"sm"}
                     square
-                    disabled={email.is_verified}
+                    disabled={email.verified}
                     onClick={() => {
                       setVerifyEmail(email.email);
                       setVerifyDialogOpen(true);

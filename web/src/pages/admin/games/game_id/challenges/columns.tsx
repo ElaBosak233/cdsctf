@@ -33,7 +33,7 @@ import { getCategory } from "@/utils/category";
 import { EditDialog } from "./edit-dialog";
 
 function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
-  const isEnabled = row.original.is_enabled;
+  const isEnabled = row.original.enabled;
   const title = row.original.challenge_title;
   const challenge_id = row.original.challenge_id;
   const game_id = row.original.game_id;
@@ -46,7 +46,7 @@ function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
     updateGameChallenge({
       game_id,
       challenge_id,
-      is_enabled: newValue,
+      enabled: newValue,
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
         toast.success(`${newValue ? "启用" : "禁用"} 赛题 ${title}`, {
@@ -199,8 +199,8 @@ function useColumns() {
         enableHiding: false,
       },
       {
-        accessorKey: "is_enabled",
-        header: t("game.challenge.is_enabled._"),
+        accessorKey: "enabled",
+        header: t("game.challenge.enabled._"),
         cell: IsEnabledCell,
       },
       {

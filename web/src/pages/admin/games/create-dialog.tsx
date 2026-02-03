@@ -55,8 +55,8 @@ function CreateDialog(props: CreateDialogProps) {
     createGame({
       ...values,
       description: "",
-      is_need_write_up: false,
-      is_public: false,
+      writeup_required: false,
+      public: false,
       started_at: Math.floor(values.started_at.getTime() / 1000),
       ended_at: Math.floor(values.ended_at.getTime() / 1000),
     })

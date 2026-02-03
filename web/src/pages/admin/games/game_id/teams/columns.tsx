@@ -113,33 +113,33 @@ function useColumns(): Array<ColumnDef<Team>> {
         }
       },
     },
-    ...(game?.is_need_write_up
+    ...(game?.writeup_required
       ? [
           {
-            id: "has_write_up",
+            id: "has_writeup",
             header: "Write-up",
             cell: function WriteUpCell({ row }) {
-              const has_write_up = row.original.has_write_up;
+              const has_writeup = row.original.has_writeup;
 
               return (
                 <div className={cn(["flex", "items-center", "gap-2"])}>
-                  {has_write_up ? (
+                  {has_writeup ? (
                     <Badge className={cn(["bg-info", "text-info-foreground"])}>
-                      {t("team.has_write_up.true")}
+                      {t("team.has_writeup.true")}
                     </Badge>
                   ) : (
                     <Badge
                       className={cn(["bg-warning", "text-warning-foreground"])}
                     >
-                      {t("team.has_write_up.false")}
+                      {t("team.has_writeup.false")}
                     </Badge>
                   )}
                   <Button
-                    asChild={has_write_up}
+                    asChild={has_writeup}
                     size={"sm"}
                     variant={"ghost"}
                     square
-                    disabled={!has_write_up}
+                    disabled={!has_writeup}
                   >
                     <Link
                       to={`/api/admin/games/${game.id}/teams/${row.original.id}/writeup`}

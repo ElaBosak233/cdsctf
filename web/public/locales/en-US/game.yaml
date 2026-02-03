@@ -7,11 +7,11 @@ edit:
   team: Teams
   notice: Notices
 title: Title
-is_public: Public
+public: Public
 sketch: Sketch
 started_at: Started At
 ended_at: Ended At
-is_enabled:
+enabled:
   actions:
     "true": Make enabled
     "false": Make disabled
@@ -44,11 +44,11 @@ form:
   sketch: Sketch
   poster: Poster
   icon: Icon
-  is_public:
+  public:
     _: Is Public (without review)
     "true": "Yes"
     "false": "No"
-  is_need_write_up:
+  writeup_required:
     _: Is Write-up Required
     "true": "Yes"
     "false": "No"
@@ -85,7 +85,7 @@ challenge:
   pts: Current Points
   title: Title
   category: Category
-  is_enabled:
+  enabled:
     _: Enabled
     actions:
       success: "Challenge {{title}} status updated successfully."

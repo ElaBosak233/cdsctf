@@ -5,6 +5,7 @@ import {
   ContainerIcon,
   FolderIcon,
   LibraryIcon,
+  PencilLineIcon,
   SaveIcon,
   ShipWheelIcon,
   TagIcon,
@@ -55,7 +56,8 @@ export default function Index() {
       message: t("challenge.form.description.message"),
     }),
     has_attachment: z.boolean({}),
-    is_dynamic: z.boolean({}),
+    has_writeup: z.boolean({}),
+    dynamic: z.boolean({}),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -215,10 +217,10 @@ export default function Index() {
           />
           <FormField
             control={form.control}
-            name={"is_dynamic"}
+            name={"dynamic"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/2"])}>
-                <FormLabel>{t("challenge.form.is_dynamic._")}</FormLabel>
+                <FormLabel>{t("challenge.form.dynamic._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -234,7 +236,7 @@ export default function Index() {
                               className={cn(["flex", "gap-2", "items-center"])}
                             >
                               <ShipWheelIcon />
-                              {t("challenge.form.is_dynamic.true")}
+                              {t("challenge.form.dynamic.true")}
                             </div>
                           ),
                         },
@@ -245,9 +247,43 @@ export default function Index() {
                               className={cn(["flex", "gap-2", "items-center"])}
                             >
                               <BoxIcon />
-                              {t("challenge.form.is_dynamic.false")}
+                              {t("challenge.form.dynamic.false")}
                             </div>
                           ),
+                        },
+                      ]}
+                      onValueChange={(value) => {
+                        field.onChange(value === "true");
+                      }}
+                      value={String(field.value)}
+                    />
+                  </Field>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name={"has_writeup"}
+            render={({ field }) => (
+              <FormItem className={cn(["w-1/2"])}>
+                <FormLabel>{t("challenge.form.has_writeup._")}</FormLabel>
+                <FormControl>
+                  <Field>
+                    <FieldIcon>
+                      <PencilLineIcon />
+                    </FieldIcon>
+                    <Select
+                      {...field}
+                      options={[
+                        {
+                          value: String(true),
+                          content: t("challenge.form.has_writeup.true"),
+                        },
+                        {
+                          value: String(false),
+                          content: t("challenge.form.has_writeup.false"),
                         },
                       ]}
                       onValueChange={(value) => {

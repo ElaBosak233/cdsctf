@@ -27,7 +27,7 @@ pub fn router() -> Router<Arc<AppState>> {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UpdateGameChallengeRequest {
     pub challenge_id: Option<i64>,
-    pub is_enabled: Option<bool>,
+    pub enabled: Option<bool>,
     pub difficulty: Option<i64>,
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
@@ -54,7 +54,7 @@ pub async fn update_game_challenge(
         cds_db::game_challenge::ActiveModel {
             game_id: Unchanged(game_challenge.game_id),
             challenge_id: Unchanged(game_challenge.challenge_id),
-            is_enabled: body.is_enabled.map_or(NotSet, Set),
+            enabled: body.enabled.map_or(NotSet, Set),
             difficulty: body.difficulty.map_or(NotSet, Set),
             max_pts: body.max_pts.map_or(NotSet, Set),
             min_pts: body.min_pts.map_or(NotSet, Set),

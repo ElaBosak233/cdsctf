@@ -59,13 +59,13 @@ export default function Emails() {
     sharedStore.setRefresh();
   }
 
-  function handleToggle(email: string, is_verified: boolean) {
+  function handleToggle(email: string, verified: boolean) {
     if (!user_id) return;
     setUpdatingEmail(email);
     updateEmail({
       user_id: userId,
       email,
-      is_verified,
+      verified,
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
@@ -132,17 +132,17 @@ export default function Emails() {
                 <ItemContent>
                   <ItemTitle className={cn(["text-base"])}>
                     {email.email}
-                    {email.is_verified && (
+                    {email.verified && (
                       <Badge className={cn(["bg-success/15", "text-success"])}>
                         <CheckIcon className={cn(["size-3.5"])} />
-                        {t("user.emails.is_verified.true._")}
+                        {t("user.emails.verified.true._")}
                       </Badge>
                     )}
                   </ItemTitle>
                   <ItemDescription>
-                    {email.is_verified
-                      ? t("user.emails.is_verified.true.long")
-                      : t("user.emails.is_verified.false.long")}
+                    {email.verified
+                      ? t("user.emails.verified.true.long")
+                      : t("user.emails.verified.false.long")}
                   </ItemDescription>
                 </ItemContent>
                 <ItemActions className={cn(["flex", "flex-wrap", "gap-3"])}>
@@ -155,9 +155,9 @@ export default function Emails() {
                       "text-muted-foreground",
                     ])}
                   >
-                    <span>{t("user.emails.is_verified.true._")}</span>
+                    <span>{t("user.emails.verified.true._")}</span>
                     <Switch
-                      checked={email.is_verified}
+                      checked={email.verified}
                       onCheckedChange={(checked) =>
                         handleToggle(email.email, checked === true)
                       }

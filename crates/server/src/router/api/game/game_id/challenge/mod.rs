@@ -48,7 +48,7 @@ pub async fn get_game_challenge(
         FindGameChallengeOptions {
             game_id: Some(game.id),
             challenge_id: params.challenge_id,
-            is_enabled: Some(true),
+            enabled: Some(true),
             category: params.category,
         },
     )

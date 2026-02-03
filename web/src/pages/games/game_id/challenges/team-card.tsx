@@ -72,7 +72,7 @@ function TeamCard() {
           </div>
         </div>
 
-        {currentGame?.is_need_write_up && (
+        {currentGame?.writeup_required && (
           <>
             <Separator className={"w-full"} />
             <div
@@ -96,7 +96,7 @@ function TeamCard() {
                 asChild
               >
                 <Link to={`/games/${selfTeam?.game_id}/team/writeup`}>
-                  {selfTeam?.has_write_up
+                  {selfTeam?.has_writeup
                     ? t("team.write_up.actions.submit.done")
                     : t("team.write_up.actions.submit._")}
                 </Link>

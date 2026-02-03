@@ -58,7 +58,7 @@ function VerifyDialog(props: VerifyDialogProps) {
         toast.success(t("user.emails.actions.verify.success", { email }));
         authStore.setUser({
           ...authStore.user,
-          is_verified: true,
+          verified: true,
         });
         onClose();
         bump();
@@ -79,7 +79,7 @@ function VerifyDialog(props: VerifyDialogProps) {
         <MailCheckIcon className={cn(["size-4"])} />
         {t("user.emails.actions.verify._")}
       </h3>
-      {configStore?.config?.email?.is_enabled ? (
+      {configStore?.config?.email?.enabled ? (
         <div className={cn(["flex", "gap-2", "items-center"])}>
           <Field size={"sm"} className={cn(["flex-1"])}>
             <TextField

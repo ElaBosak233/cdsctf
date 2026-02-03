@@ -129,7 +129,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
             ))}
           </div>
         )}
-        {challenge?.is_dynamic && <EnvSection />}
+        {challenge?.dynamic && <EnvSection />}
         {!debug && (
           <div className={cn("flex", "flex-col", "gap-3")}>
             <Separator />

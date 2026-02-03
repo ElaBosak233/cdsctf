@@ -56,7 +56,7 @@ export default function Layout() {
       link: `/games/${currentGame?.id}/team/writeup`,
       name: t("team.write_up._"),
       icon: <FilePenIcon />,
-      disabled: !currentGame?.is_need_write_up || !isGameOngoing,
+      disabled: !currentGame?.writeup_required || !isGameOngoing,
     },
   ];
 

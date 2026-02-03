@@ -121,7 +121,7 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
 
   const id = row.original.id;
   const title = row.original.title;
-  const isPublic = row.original.is_public;
+  const isPublic = row.original.public;
 
   const sharedStore = useSharedStore();
 
@@ -135,11 +135,11 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
 
     const res = await updateChallenge({
       id,
-      is_public: newValue,
+      public: newValue,
     });
 
     if (res.code === StatusCodes.OK) {
-      toast.success(t("challenge.is_public.actions.success", { title }), {
+      toast.success(t("challenge.public.actions.success", { title }), {
         id: "publicness_change",
       });
       sharedStore?.setRefresh();
@@ -180,8 +180,8 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
         </TooltipTrigger>
         <TooltipContent>
           {checked
-            ? t("challenge.is_public.actions.false")
-            : t("challenge.is_public.actions.true")}
+            ? t("challenge.public.actions.false")
+            : t("challenge.public.actions.true")}
         </TooltipContent>
       </Tooltip>
 
@@ -320,10 +320,10 @@ function useColumns() {
         },
       },
       {
-        accessorKey: "is_dynamic",
-        header: t("challenge.is_dynamic._"),
+        accessorKey: "dynamic",
+        header: t("challenge.dynamic._"),
         cell: ({ row }) => {
-          const isDynamic = row.original.is_dynamic;
+          const isDynamic = row.original.dynamic;
 
           return (
             <Badge
@@ -335,8 +335,8 @@ function useColumns() {
             >
               {isDynamic ? <ShipWheelIcon /> : <BoxIcon />}
               {isDynamic
-                ? t("challenge.is_dynamic.true")
-                : t("challenge.is_dynamic.false")}
+                ? t("challenge.dynamic.true")
+                : t("challenge.dynamic.false")}
             </Badge>
           );
         },

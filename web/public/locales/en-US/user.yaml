@@ -70,7 +70,7 @@ emails:
   _: Emails
   brief: Add or edit this user's email addresses
   empty: No emails have been added for this user yet.
-  is_verified:
+  verified:
     "true":
       _: Verified
       long: This email address has been verified.
@@ -81,7 +81,7 @@ emails:
     email:
       _: Email
       message: Please enter a valid email address
-    is_verified:
+    verified:
       _: Mark as verified
       message: Immediately mark the email as verified.
   actions:

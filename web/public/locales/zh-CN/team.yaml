@@ -29,7 +29,7 @@ state:
   preparing: 准备中
   pending: 审核中
   passed: 正常参赛
-has_write_up:
+has_writeup:
   _: Write-up
   "true": 已提交
   "false": 未提交

@@ -116,7 +116,7 @@ export default function Index() {
           </DropZoneArea>
         </Dropzone>
 
-        {selfTeam?.has_write_up && (
+        {selfTeam?.has_writeup && (
           <Card className="p-5 rounded-xl min-h-128 max-h-[calc(100vh-25rem)]">
             <PDFViewer
               url={`/api/games/${currentGame?.id}/teams/profile/writeup`}

@@ -38,7 +38,7 @@ function CreateDialog(props: CreateDialogProps) {
     getChallenges({
       id: debouncedId ? Number(debouncedId) : undefined,
       title: debounceTitle,
-      is_public: false,
+      public: false,
       size: 10,
       page: 1,
       sorts: "-created_at",
@@ -62,7 +62,7 @@ function CreateDialog(props: CreateDialogProps) {
     createGameChallenge({
       game_id: game.id!,
       challenge_id: challenge.id!,
-      is_enabled: false,
+      enabled: false,
       max_pts: 2000,
       min_pts: 500,
       difficulty: 5,

@@ -10,7 +10,7 @@ platform:
   _: Platform
   logo: Logo
   auth:
-    is_registration_enabled:
+    registration_enabled:
       "true": "Yes"
       "false": "No"
   form:
@@ -26,7 +26,7 @@ platform:
         _: Footer
     auth:
       _: Authentication
-      is_registration_enabled:
+      registration_enabled:
         _: Enable Registration
   actions:
     update:
@@ -34,7 +34,7 @@ platform:
       success: Platform settings updated successfully.
 mailbox:
   _: Mailbox
-  is_enabled:
+  enabled:
     _: Enable Mailbox
     "true": "Yes"
     "false": "No"
@@ -44,7 +44,7 @@ mailbox:
     tls: TLS
     starttls: StartTLS
   form:
-    is_enabled:
+    enabled:
       _: Enable Mailbox
     host:
       _: SMTP Host

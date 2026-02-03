@@ -43,14 +43,14 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
     email: z.email({
       message: t("user.emails.form.email.message"),
     }),
-    is_verified: z.boolean(),
+    verified: z.boolean(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
-      is_verified: false,
+      verified: false,
     },
   });
 
@@ -59,7 +59,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
     const res = await addEmail({
       user_id: userId,
       email: values.email,
-      is_verified: values.is_verified,
+      verified: values.verified,
     });
 
     if (res.code === StatusCodes.OK) {
@@ -70,7 +70,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
       onClose();
       form.reset({
         email: "",
-        is_verified: false,
+        verified: false,
       });
     }
 
@@ -115,7 +115,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
 
           <FormField
             control={form.control}
-            name={"is_verified"}
+            name={"verified"}
             render={({ field }) => (
               <FormItem
                 className={cn([
@@ -131,10 +131,10 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
                 <div className={cn(["space-y-1"])}>
                   <FormLabel className={cn(["flex", "items-center", "gap-2"])}>
                     <ShieldCheckIcon className={cn(["size-4"])} />
-                    {t("user.emails.form.is_verified._")}
+                    {t("user.emails.form.verified._")}
                   </FormLabel>
                   <p className={cn(["text-muted-foreground", "text-sm"])}>
-                    {t("user.emails.form.is_verified.message")}
+                    {t("user.emails.form.verified.message")}
                   </p>
                 </div>
                 <FormControl>

@@ -31,7 +31,7 @@ state:
   preparing: Preparing
   pending: Pending Approval
   passed: Approved
-has_write_up:
+has_writeup:
   _: Write-up
   "true": Submitted
   "false": Not Submitted

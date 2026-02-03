@@ -7,11 +7,11 @@ edit:
   team: 团队
   notice: 通知
 title: 标题
-is_public: 公开赛
+public: 公开赛
 sketch: 简述
 started_at: 开始于
 ended_at: 结束于
-is_enabled:
+enabled:
   actions:
     "true": 启用
     "false": 禁用
@@ -44,11 +44,11 @@ form:
   sketch: 简述
   poster: 海报
   icon: 图标
-  is_public:
+  public:
     _: 是否为公开赛（免审核）
     "true": 是
     "false": 否
-  is_need_write_up:
+  writeup_required:
     _: 是否需要提交 Write-up
     "true": 是
     "false": 否
@@ -85,7 +85,7 @@ challenge:
   pts: 当前分值
   title: 标题
   category: 分类
-  is_enabled:
+  enabled:
     _: 启用
     actions:
       success: "题目 {{title}} 状态更新成功。"

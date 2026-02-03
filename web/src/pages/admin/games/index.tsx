@@ -53,7 +53,7 @@ function useGameQuery(params: GetGamesRequest) {
       params.title,
       params.size,
       params.page,
-      params.is_enabled,
+      params.enabled,
       refresh,
     ],
     queryFn: () => getGames(params),

@@ -19,8 +19,8 @@ export interface UpdateChallengeRequest {
   description?: string | null;
   category?: number | null;
   has_attachment?: boolean | null;
-  is_public?: boolean | null;
-  is_dynamic?: boolean | null;
+  public?: boolean | null;
+  dynamic?: boolean | null;
 }
 
 export async function updateChallenge(request: UpdateChallengeRequest) {

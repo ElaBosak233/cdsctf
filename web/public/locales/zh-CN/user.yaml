@@ -70,7 +70,7 @@ emails:
   _: 邮箱
   brief: 添加、编辑该用户的绑定邮箱
   empty: 该用户尚未添加任何邮箱。
-  is_verified:
+  verified:
     "true":
       _: 已验证
       long: 该邮箱已通过验证
@@ -81,7 +81,7 @@ emails:
     email:
       _: 邮箱
       message: 请输入有效的邮箱地址
-    is_verified:
+    verified:
       _: 标记为已验证
       message: 立即将邮箱标记为已验证状态。
   actions:

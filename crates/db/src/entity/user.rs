@@ -100,11 +100,11 @@ impl Entity {
                             .eq(Expr::col((Entity.table_name(), Column::Id))),
                     )
                     .and_where(
-                        Expr::col((email::Entity.table_name(), email::Column::IsVerified)).eq(true),
+                        Expr::col((email::Entity.table_name(), email::Column::Verified)).eq(true),
                     )
                     .to_owned(),
             ),
-            "is_verified",
+            "verified",
         )
     }
 }

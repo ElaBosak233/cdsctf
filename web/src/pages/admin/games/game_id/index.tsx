@@ -63,8 +63,8 @@ export default function Index() {
     }),
     sketch: z.string().nullable(),
     description: z.string().nullable(),
-    is_public: z.boolean(),
-    is_need_write_up: z.boolean(),
+    public: z.boolean(),
+    writeup_required: z.boolean(),
     member_limit_min: z.number({
       message: t("game.form.member_limit_min.message"),
     }),
@@ -444,10 +444,10 @@ export default function Index() {
         <div className={cn(["grid", "grid-cols-4", "gap-5"])}>
           <FormField
             control={form.control}
-            name={"is_public"}
+            name={"public"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game.form.is_public._")}</FormLabel>
+                <FormLabel>{t("game.form.public._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -458,11 +458,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: t("game.form.is_public.true"),
+                          content: t("game.form.public.true"),
                         },
                         {
                           value: String(false),
-                          content: t("game.form.is_public.false"),
+                          content: t("game.form.public.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -478,10 +478,10 @@ export default function Index() {
           />
           <FormField
             control={form.control}
-            name={"is_need_write_up"}
+            name={"writeup_required"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game.form.is_need_write_up._")}</FormLabel>
+                <FormLabel>{t("game.form.writeup_required._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -492,11 +492,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: t("game.form.is_need_write_up.true"),
+                          content: t("game.form.writeup_required.true"),
                         },
                         {
                           value: String(false),
-                          content: t("game.form.is_need_write_up.false"),
+                          content: t("game.form.writeup_required.false"),
                         },
                       ]}
                       onValueChange={(value) =>

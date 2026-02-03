@@ -71,7 +71,7 @@ export default function Index() {
       .optional(),
     auth: z
       .object({
-        is_registration_enabled: z.boolean().optional(),
+        registration_enabled: z.boolean().optional(),
       })
       .optional(),
   });
@@ -324,11 +324,11 @@ export default function Index() {
           <Separator />
           <FormField
             control={form.control}
-            name={"auth.is_registration_enabled"}
+            name={"auth.registration_enabled"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>
-                  {t("admin.platform.form.auth.is_registration_enabled._")}
+                  {t("admin.platform.form.auth.registration_enabled._")}
                 </FormLabel>
                 <FormControl>
                   <Field>
@@ -341,13 +341,13 @@ export default function Index() {
                         {
                           value: String(true),
                           content: t(
-                            "admin.platform.auth.is_registration_enabled.true"
+                            "admin.platform.auth.registration_enabled.true"
                           ),
                         },
                         {
                           value: String(false),
                           content: t(
-                            "admin.platform.auth.is_registration_enabled.false"
+                            "admin.platform.auth.registration_enabled.false"
                           ),
                         },
                       ]}

@@ -158,7 +158,7 @@ pub async fn user_register(
         cds_db::email::ActiveModel {
             user_id: Set(user.id),
             email: Set(body.email),
-            is_verified: Set(!cds_db::get_config(&s.db.conn).await.email.enabled),
+            verified: Set(!cds_db::get_config(&s.db.conn).await.email.enabled),
         },
     )
     .await?;

@@ -72,7 +72,7 @@ pub async fn save_team_write_up(
         &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
-            has_write_up: Set(true),
+            has_writeup: Set(true),
             ..Default::default()
         },
     )

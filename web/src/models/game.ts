@@ -6,9 +6,9 @@ export interface Game {
   title?: string;
   sketch?: string;
   description?: string;
-  is_enabled?: boolean;
-  is_public?: boolean;
-  is_need_write_up?: boolean;
+  enabled?: boolean;
+  public?: boolean;
+  writeup_required?: boolean;
 
   member_limit_min?: number;
   member_limit_max?: number;

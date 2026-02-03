@@ -36,7 +36,7 @@ impl Challenge {
             env: None,
             checker: None,
             writeup: if self.has_writeup && self.public {
-                self.writeup
+                self.writeup.clone()
             } else {
                 None
             },
@@ -60,8 +60,8 @@ pub struct FindChallengeOptions {
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tag: Option<String>,
-    pub is_public: Option<bool>,
-    pub is_dynamic: Option<bool>,
+    pub public: Option<bool>,
+    pub dynamic: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -74,8 +74,8 @@ pub async fn find<T>(
         title,
         category,
         tag,
-        is_public,
-        is_dynamic,
+        public,
+        dynamic,
         page,
         size,
         sorts,
@@ -109,12 +109,12 @@ where
         ))
     }
 
-    if let Some(is_public) = is_public {
-        sql = sql.filter(Column::IsPublic.eq(is_public));
+    if let Some(public) = public {
+        sql = sql.filter(Column::Public.eq(public));
     }
 
-    if let Some(is_dynamic) = is_dynamic {
-        sql = sql.filter(Column::IsDynamic.eq(is_dynamic));
+    if let Some(dynamic) = dynamic {
+        sql = sql.filter(Column::Dynamic.eq(dynamic));
     }
 
     sql = sql.filter(Column::DeletedAt.is_null());

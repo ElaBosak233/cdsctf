@@ -193,7 +193,7 @@ function useColumns() {
               fallback={row.original.username?.charAt(0)}
             />
             {row.original.username}
-            {row.original.is_verified ? (
+            {row.original.verified ? (
               <CircleCheckIcon className={cn(["text-success", "size-3.5"])} />
             ) : (
               <AlertCircleIcon className={cn(["text-warning", "size-3.5"])} />

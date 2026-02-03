@@ -48,8 +48,8 @@ pub struct UpdateChallengeRequest {
     pub description: Option<String>,
     pub category: Option<i32>,
     pub tags: Option<Vec<String>>,
-    pub is_public: Option<bool>,
-    pub is_dynamic: Option<bool>,
+    pub public: Option<bool>,
+    pub dynamic: Option<bool>,
     pub has_attachment: Option<bool>,
 }
 
@@ -69,8 +69,8 @@ pub async fn update_challenge(
             description: body.description.map_or(NotSet, Set),
             tags: body.tags.map_or(NotSet, Set),
             category: body.category.map_or(NotSet, Set),
-            is_public: body.is_public.map_or(NotSet, Set),
-            is_dynamic: body.is_dynamic.map_or(NotSet, Set),
+            public: body.public.map_or(NotSet, Set),
+            dynamic: body.dynamic.map_or(NotSet, Set),
             has_attachment: body.has_attachment.map_or(NotSet, Set),
             ..Default::default()
         },

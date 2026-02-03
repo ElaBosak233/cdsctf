@@ -5,7 +5,7 @@ import { api, toSearchParams } from "@/utils/query";
 export interface GetGamesRequest {
   id?: number;
   title?: string;
-  is_enabled?: boolean;
+  enabled?: boolean;
   sorts?: string;
   page?: number;
   size?: number;
@@ -23,9 +23,9 @@ export interface CreateGameRequest {
   title?: string;
   sketch?: string;
   description?: string;
-  is_enabled?: boolean;
-  is_public?: boolean;
-  is_need_write_up?: boolean;
+  enabled?: boolean;
+  public?: boolean;
+  writeup_required?: boolean;
   member_limit_min?: number;
   member_limit_max?: number;
   started_at?: number;

@@ -74,7 +74,7 @@ export default function Index() {
       message: t("user.form.group.message"),
     }),
     description: z.string().nullish(),
-    is_verified: z.boolean(),
+    verified: z.boolean(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({

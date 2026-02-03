@@ -64,7 +64,7 @@ function ActionsCell({ row }: { row: Row<Game> }) {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  const isEnabled = row.original.is_enabled;
+  const isEnabled = row.original.enabled;
   const [checked, setChecked] = useState(isEnabled);
 
   async function handlePublicnessChange() {
@@ -73,11 +73,11 @@ function ActionsCell({ row }: { row: Row<Game> }) {
 
     const res = await updateGame({
       id,
-      is_enabled: newValue,
+      enabled: newValue,
     });
 
     if (res.code === StatusCodes.OK) {
-      toast.success(t("game.is_enabled.actions.success", { title }), {
+      toast.success(t("game.enabled.actions.success", { title }), {
         id: "enablement_change",
       });
       sharedStore?.setRefresh();
@@ -118,8 +118,8 @@ function ActionsCell({ row }: { row: Row<Game> }) {
         </TooltipTrigger>
         <TooltipContent>
           {checked
-            ? t("game.is_enabled.actions.false")
-            : t("game.is_enabled.actions.true")}
+            ? t("game.enabled.actions.false")
+            : t("game.enabled.actions.true")}
         </TooltipContent>
       </Tooltip>
 
@@ -260,11 +260,11 @@ function useColumns() {
         ),
       },
       {
-        accessorKey: "is_public",
-        id: "is_public",
-        header: () => t("game.is_public"),
+        accessorKey: "public",
+        id: "public",
+        header: () => t("game.public"),
         cell: ({ row }) => {
-          const isPublic = row.original.is_public;
+          const isPublic = row.original.public;
 
           return (
             <Badge

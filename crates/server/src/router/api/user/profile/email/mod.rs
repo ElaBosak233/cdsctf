@@ -62,7 +62,7 @@ pub async fn add_email(
         cds_db::email::ActiveModel {
             user_id: Set(operator.id),
             email: Set(body.email.to_lowercase()),
-            is_verified: Set(!cds_db::get_config(&s.db.conn).await.email.enabled),
+            verified: Set(!cds_db::get_config(&s.db.conn).await.email.enabled),
         },
     )
     .await?;
@@ -132,7 +132,7 @@ pub async fn verify_email(
         cds_db::email::ActiveModel {
             email: Unchanged(email.email.to_owned()),
             user_id: Unchanged(email.user_id),
-            is_verified: Set(true),
+            verified: Set(true),
             ..Default::default()
         },
     )

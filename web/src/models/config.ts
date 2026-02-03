@@ -6,7 +6,7 @@ export interface Config {
     footer?: string;
   };
   auth?: {
-    is_registration_enabled?: boolean;
+    registration_enabled?: boolean;
   };
   captcha?: {
     provider?: "none" | "pow" | "image" | "turnstile" | "hcaptcha";
@@ -24,7 +24,7 @@ export interface Config {
     };
   };
   email?: {
-    is_enabled?: boolean;
+    enabled?: boolean;
     host?: string;
     port?: number;
     tls?: "starttls" | "tls" | "none";

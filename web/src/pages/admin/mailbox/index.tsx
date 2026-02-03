@@ -51,7 +51,7 @@ export default function Index() {
   }, []);
 
   const formSchema = z.object({
-    is_enabled: z.boolean(),
+    enabled: z.boolean(),
     host: z.string().default("").optional(),
     port: z.number().min(0).max(65535),
     tls: z.enum(["starttls", "tls", "none"]).optional(),
@@ -88,7 +88,7 @@ export default function Index() {
         email: { ...values },
       });
 
-      if (values.is_enabled) {
+      if (values.enabled) {
         await saveEmail({
           type: "verify",
           data: values.verify_body!,
@@ -133,10 +133,10 @@ export default function Index() {
 
           <FormField
             control={form.control}
-            name={"is_enabled"}
+            name={"enabled"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("admin.mailbox.form.is_enabled._")}</FormLabel>
+                <FormLabel>{t("admin.mailbox.form.enabled._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -146,11 +146,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: t("admin.mailbox.is_enabled.true"),
+                          content: t("admin.mailbox.enabled.true"),
                         },
                         {
                           value: String(false),
-                          content: t("admin.mailbox.is_enabled.false"),
+                          content: t("admin.mailbox.enabled.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -165,7 +165,7 @@ export default function Index() {
             )}
           />
 
-          {form.watch("is_enabled") && (
+          {form.watch("enabled") && (
             <>
               <div className={cn(["flex", "gap-3"])}>
                 <FormField

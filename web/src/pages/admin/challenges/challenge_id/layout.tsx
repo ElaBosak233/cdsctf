@@ -5,6 +5,7 @@ import {
   FolderIcon,
   InfoIcon,
   LibraryIcon,
+  PencilLineIcon,
   PlayIcon,
   ScrollTextIcon,
 } from "lucide-react";
@@ -64,13 +65,13 @@ export default function Layout() {
         link: `/admin/challenges/${challenge_id}/env`,
         name: t("challenge.edit.env"),
         icon: <ContainerIcon />,
-        disabled: !challenge?.is_dynamic,
+        disabled: !challenge?.dynamic,
       },
       {
-        link: `/admin/challenges/${challenge_id}/statistics`,
-        name: t("challenge.edit.statistics"),
-        icon: <ChartAreaIcon />,
-        disabled: true,
+        link: `/admin/challenges/${challenge_id}/writeup`,
+        name: t("challenge.edit.writeup"),
+        icon: <PencilLineIcon />,
+        disabled: !challenge?.has_writeup,
       },
     ];
   }, [challenge_id, challenge, t]);
