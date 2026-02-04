@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { DownloadIcon } from "lucide-react";
+import { DownloadIcon, LightbulbIcon, LightbulbOffIcon } from "lucide-react";
 import type React from "react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { getChallenge as getChallengeDebug } from "@/api/admin/challenges/challenge_id";
 import { getChallengeAttachments as getChallengeAttachmentsDebug } from "@/api/admin/challenges/challenge_id/attachments";
 import { getChallenge } from "@/api/challenges/challenge_id";
@@ -73,6 +73,10 @@ function ChallengeDialog(props: ChallengeDialogProps) {
   );
   const CategoryIcon = category.icon!;
 
+  const [display, setDisplay] = useState<"description" | "writeup">(
+    "description"
+  );
+
   return (
     <Context.Provider value={{ challenge: digest, team: gameTeam, debug }}>
       <Card
@@ -102,8 +106,33 @@ function ChallengeDialog(props: ChallengeDialogProps) {
         </div>
         <ScrollArea className={cn(["flex-1", "max-h-144", "overflow-auto"])}>
           <LoadingOverlay loading={isLoading} />
+          {challenge?.public && challenge.has_writeup && (
+            <Button
+              size={"sm"}
+              square
+              className={cn(["absolute", "right-1", "bottom-1"])}
+              icon={
+                display === "description" ? (
+                  <LightbulbIcon />
+                ) : (
+                  <LightbulbOffIcon />
+                )
+              }
+              onClick={() =>
+                setDisplay((prev) =>
+                  prev === "description" ? "writeup" : "description"
+                )
+              }
+            />
+          )}
           <Typography>
-            <MarkdownRender src={challenge?.description} />
+            <MarkdownRender
+              src={
+                display === "description"
+                  ? challenge?.description
+                  : challenge?.writeup
+              }
+            />
           </Typography>
         </ScrollArea>
         {challenge?.has_attachment && (

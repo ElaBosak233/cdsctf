@@ -9,7 +9,6 @@ import { z } from "zod";
 import { createGameNotice } from "@/api/admin/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -19,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -106,9 +106,8 @@ function CreateDialog(props: CreateDialogProps) {
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>{t("game.notice.form.content._")}</FormLabel>
                 <FormControl>
-                  <Editor
+                  <MarkdownEditor
                     {...field}
-                    lang={"markdown"}
                     className={cn(["h-full", "min-h-64"])}
                   />
                 </FormControl>

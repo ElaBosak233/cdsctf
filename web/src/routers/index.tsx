@@ -262,11 +262,11 @@ const router = createBrowserRouter([
                     }),
                   },
                   {
-                    path: "statistics",
+                    path: "writeup",
                     lazy: async () => ({
                       Component: (
                         await import(
-                          "@/pages/admin/challenges/challenge_id/statistics"
+                          "@/pages/admin/challenges/challenge_id/writeup"
                         )
                       ).default,
                     }),

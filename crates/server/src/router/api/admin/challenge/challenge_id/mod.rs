@@ -1,5 +1,6 @@
 mod attachment;
 mod checker;
+mod writeup;
 
 use std::sync::Arc;
 
@@ -26,6 +27,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/", axum::routing::delete(delete_challenge))
         .route("/env", axum::routing::put(update_challenge_env))
         .nest("/checker", checker::router())
+        .nest("/writeup", writeup::router())
         .nest("/attachments", attachment::router())
 }
 
@@ -51,6 +53,7 @@ pub struct UpdateChallengeRequest {
     pub public: Option<bool>,
     pub dynamic: Option<bool>,
     pub has_attachment: Option<bool>,
+    pub has_writeup: Option<bool>,
 }
 
 pub async fn update_challenge(
@@ -72,6 +75,7 @@ pub async fn update_challenge(
             public: body.public.map_or(NotSet, Set),
             dynamic: body.dynamic.map_or(NotSet, Set),
             has_attachment: body.has_attachment.map_or(NotSet, Set),
+            has_writeup: body.has_writeup.map_or(NotSet, Set),
             ..Default::default()
         },
     )

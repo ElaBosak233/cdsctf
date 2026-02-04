@@ -16,7 +16,6 @@ import { z } from "zod";
 import { updateUser } from "@/api/admin/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -26,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
@@ -219,11 +219,10 @@ export default function Index() {
               <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
                 <FormLabel>{t("user.form.description._")}</FormLabel>
                 <FormControl>
-                  <Editor
+                  <MarkdownEditor
                     {...field}
                     value={field.value ?? ""}
                     className={cn(["h-full", "min-h-64"])}
-                    lang="markdown"
                     tabSize={2}
                   />
                 </FormControl>

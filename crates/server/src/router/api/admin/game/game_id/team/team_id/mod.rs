@@ -1,4 +1,3 @@
-mod avatar;
 mod token;
 mod user;
 mod writeup;
@@ -26,7 +25,6 @@ pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", axum::routing::put(update_team))
         .route("/", axum::routing::delete(delete_team))
-        .nest("/avatar", avatar::router())
         .nest("/users", user::router())
         .nest("/token", token::router())
         .nest("/writeup", writeup::router())

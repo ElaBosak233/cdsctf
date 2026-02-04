@@ -14,6 +14,7 @@ use crate::{
     extract::{Extension, Path},
     traits::{AppState, AuthPrincipal, WebError, WebResponse},
     util,
+    util::media::handle_multipart,
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -39,8 +40,13 @@ pub async fn save_team_avatar(
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
-    let path = format!("games/{}/teams/{}/avatar", game_id, team.id);
-    let _ = util::media::save_img(s.media.clone(), path, multipart).await?;
+
+    let data = handle_multipart(multipart, mime::IMAGE).await?;
+    let data = cds_media::util::img_convert_to_webp(data).await?;
+
+    let path = format!("games/{}/teams/{}", game_id, team.id);
+
+    s.media.save(path, "avatar".to_owned(), data).await?;
 
     let _ = cds_db::team::update::<Team>(
         &s.db.conn,
@@ -64,8 +70,10 @@ pub async fn delete_team_avatar(
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
-    let path = format!("games/{}/teams/{}/avatar", game_id, team.id);
-    let _ = util::media::delete_img(s.media.clone(), path).await;
+
+    let path = format!("games/{}/teams/{}", game_id, team.id);
+
+    s.media.delete(path, "avatar".to_owned()).await?;
 
     let _ = cds_db::team::update::<Team>(
         &s.db.conn,

@@ -7,7 +7,7 @@ edit:
   checker: Checker
   attachment: Attachment
   env: Dynamic Environment
-  statistics: Statistics
+  writeup: Write-up
 preview: Preview Challenge
 title: Title
 description: Description
@@ -79,6 +79,13 @@ form:
   description:
     _: Description
     message: Please enter description
+  has_writeup:
+    _: Has Write-up
+    "true": Yes
+    "false": No
+  writeup:
+    _: Write-up
+    message: Please enter write-up
   env:
     duration:
       _: Duration (seconds)

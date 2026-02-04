@@ -62,6 +62,8 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
+  --animate-ping: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 @layer base {
@@ -140,6 +142,14 @@
 
   * {
     @apply border-border outline-ring/50;
+
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      text-decoration-color 0.2s ease,
+      fill 0.2s ease,
+      stroke 0.2s ease;
   }
 
   body {

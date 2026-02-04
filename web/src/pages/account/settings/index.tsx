@@ -27,6 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { TextField } from "@/components/ui/text-field";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
@@ -269,10 +270,9 @@ export default function Index() {
                 <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
                   <FormLabel>{t("user.form.description._")}</FormLabel>
                   <FormControl>
-                    <Editor
+                    <MarkdownEditor
                       {...field}
-                      lang={"markdown"}
-                      tabSize={4}
+                      placeholder={"Once upon a time..."}
                       className={cn(["h-full", "min-h-64"])}
                       value={field.value || ""}
                     />

@@ -12,7 +12,7 @@ use cds_db::{
 use crate::{
     extract::Extension,
     traits::{AppState, AuthPrincipal, WebError, WebResponse},
-    util,
+    util::media::handle_multipart,
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -33,8 +33,11 @@ pub async fn save_user_avatar(
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let path = format!("users/{}/avatar", operator.id);
-    let _ = util::media::save_img(s.media.clone(), path, multipart).await?;
+    let data = handle_multipart(multipart, mime::IMAGE).await?;
+    let data = cds_media::util::img_convert_to_webp(data).await?;
+
+    let path = format!("users/{}", operator.id);
+    s.media.save(path, "avatar".to_owned(), data).await?;
 
     let _ = cds_db::user::update::<User>(
         &s.db.conn,
@@ -56,8 +59,8 @@ pub async fn delete_user_avatar(
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let path = format!("users/{}/avatar", operator.id);
-    let _ = util::media::delete_img(s.media.clone(), path).await?;
+    let path = format!("users/{}", operator.id);
+    s.media.delete(path, "avatar".to_owned()).await?;
 
     let _ = cds_db::user::update::<User>(
         &s.db.conn,

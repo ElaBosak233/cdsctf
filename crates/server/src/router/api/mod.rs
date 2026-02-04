@@ -3,6 +3,7 @@ pub mod challenge;
 pub mod config;
 pub mod env;
 pub mod game;
+mod media;
 pub mod submission;
 pub mod user;
 
@@ -22,6 +23,7 @@ pub async fn router() -> Router<Arc<AppState>> {
         .nest("/games", game::router())
         .nest("/envs", env::router())
         .nest("/submissions", submission::router())
+        .nest("/media", media::router())
         .nest(
             "/admin",
             admin::router().route_layer(axum::middleware::from_fn(

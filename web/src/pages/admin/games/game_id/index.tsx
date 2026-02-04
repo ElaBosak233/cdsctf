@@ -34,6 +34,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
@@ -302,7 +303,6 @@ export default function Index() {
                       {...field}
                       placeholder={"Once upon a time..."}
                       value={field.value || ""}
-                      lang={"markdown"}
                       className={cn(["h-32"])}
                     />
                   </FormControl>
@@ -618,11 +618,10 @@ export default function Index() {
             <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
               <FormLabel>{t("game.form.description")}</FormLabel>
               <FormControl>
-                <Editor
+                <MarkdownEditor
                   {...field}
                   placeholder={"Once upon a time..."}
                   value={field.value || ""}
-                  lang={"markdown"}
                   className={cn(["h-full", "min-h-128"])}
                 />
               </FormControl>

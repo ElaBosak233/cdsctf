@@ -18,7 +18,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { updateChallenge } from "@/api/admin/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
-import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -28,6 +27,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Select } from "@/components/ui/select";
 import { TagsField } from "@/components/ui/tags-field";
 import { TextField } from "@/components/ui/text-field";
@@ -305,10 +305,9 @@ export default function Index() {
             <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
               <FormLabel>{t("challenge.form.description._")}</FormLabel>
               <FormControl>
-                <Editor
+                <MarkdownEditor
                   {...field}
                   placeholder={"Once upon a time..."}
-                  lang={"markdown"}
                   className={cn(["h-full", "min-h-64"])}
                 />
               </FormControl>

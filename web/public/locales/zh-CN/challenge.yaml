@@ -7,7 +7,7 @@ edit:
   checker: 检查器
   attachment: 附件
   env: 动态环境
-  statistics: 统计数据
+  writeup: 题解
 preview: 预览题目
 title: 标题
 description: 描述
@@ -68,6 +68,13 @@ form:
     _: 是否有附件
     "true": 启用
     "false": 禁用
+  has_writeup:
+    _: 是否提供题解
+    "true": 是
+    "false": 否
+  writeup:
+    _: 题解
+    message: 请输入题解
   dynamic:
     _: 动态性
     "true": 动态环境

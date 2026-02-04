@@ -133,7 +133,7 @@ export default function Index() {
                 className={cn([
                   "justify-between",
                   "w-full",
-                  "rounded-[10px]",
+                  "rounded-lg",
                   "transition-all",
                   selectedGame?.id === game?.id && "h-16",
                   selectedGame?.id === game?.id && "px-5",
@@ -228,7 +228,7 @@ export default function Index() {
             }
             className={cn([
               "object-cover",
-              "rounded-xl",
+              "rounded-2xl",
               "overflow-hidden",
               "border",
               "aspect-video",
@@ -258,9 +258,10 @@ export default function Index() {
                 "2xl:left-auto",
                 "2xl:-right-20",
                 "2xl:-bottom-16",
-                "p-4",
+                "px-8",
+                "py-4",
                 "bg-card/90",
-                "backdrop-blur-sm",
+                "backdrop-blur-lg",
                 "min-h-24",
                 "w-lg",
                 "max-w-3/4",
@@ -270,6 +271,7 @@ export default function Index() {
                 "items-center",
                 "gap-3",
                 "transition-all",
+                "rounded-full",
               ])}
               onClick={() => handleClick(selectedGame)}
             >
