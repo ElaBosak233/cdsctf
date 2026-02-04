@@ -17,14 +17,12 @@ import {
   getPlaygroundChallenges,
 } from "@/api/challenges";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
-import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
 import type { ChallengeMini } from "@/models/challenge";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
@@ -240,17 +238,12 @@ export default function Index() {
             ])}
           >
             {challenges?.map((challenge) => (
-              <Dialog key={challenge?.id}>
-                <DialogTrigger>
-                  <ChallengeCard
-                    digest={challenge}
-                    status={challengeStatus?.[challenge.id!]}
-                  />
-                </DialogTrigger>
-                <DialogContent>
-                  <ChallengeDialog digest={challenge} />
-                </DialogContent>
-              </Dialog>
+              <ChallengeCard
+                key={challenge.id}
+                digest={challenge}
+                status={challengeStatus?.[challenge.id!]}
+                onClick={() => navigate(`/playground/${challenge.id}`)}
+              />
             ))}
           </div>
           {!challenges?.length && !loading && (

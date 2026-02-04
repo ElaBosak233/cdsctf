@@ -5,7 +5,7 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::{game, game_challenge, submission};
+use super::{game, game_challenge, submission, note};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "challenges")]
@@ -69,12 +69,14 @@ pub struct EnvVar {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Submission,
+    Note,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
             Self::Submission => Entity::has_many(submission::Entity).into(),
+            Self::Note => Entity::has_many(note::Entity).into(),
         }
     }
 }
@@ -82,6 +84,12 @@ impl RelationTrait for Relation {
 impl Related<submission::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Submission.def()
+    }
+}
+
+impl Related<note::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Note.def()
     }
 }
 

@@ -8,3 +8,4 @@ pub mod submission;
 pub mod team;
 pub mod team_user;
 pub mod user;
+pub mod note;

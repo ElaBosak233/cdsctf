@@ -39,9 +39,26 @@ const router = createBrowserRouter([
       },
       {
         path: "playground",
-        lazy: async () => ({
-          Component: (await import("@/pages/playground")).default,
-        }),
+        children: [
+          {
+            index: true,
+            lazy: async () => ({
+              Component: (await import("@/pages/playground")).default,
+            }),
+          },
+          {
+            path: ":challenge_id",
+            children: [
+              {
+                index: true,
+                lazy: async () => ({
+                  Component: (await import("@/pages/playground/challenge_id"))
+                    .default,
+                }),
+              },
+            ],
+          },
+        ],
       },
       {
         path: "games",

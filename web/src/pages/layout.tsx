@@ -72,7 +72,15 @@ export default function () {
   return (
     <>
       <Navbar />
-      <main className={cn(["flex", "flex-col", "min-h-[calc(100vh-64px)]"])}>
+      <main
+        className={cn([
+          "flex",
+          "flex-col",
+          "h-[calc(100vh-64px)]",
+          "min-h-0",
+          "overflow-hidden",
+        ])}
+      >
         <Outlet />
       </main>
     </>
