@@ -14,15 +14,15 @@ function useColumns() {
   const columns: Array<ColumnDef<ScoreRecord>> = useMemo(() => {
     return [
       {
-        accessorKey: "team.rank",
-        id: "team.rank",
-        header: t("team.rank"),
+        accessorKey: "team:rank",
+        id: "team:rank",
+        header: t("team:rank"),
         cell: ({ row }) => <Badge>{row.original.team?.rank}</Badge>,
       },
       {
-        accessorKey: "team.name",
-        id: "team.name",
-        header: t("team.name"),
+        accessorKey: "team:name",
+        id: "team:name",
+        header: t("team:name"),
         cell: function TeamNameCell({ row }) {
           const id = row.original?.team?.id;
           const name = row.original?.team?.name;
@@ -42,15 +42,15 @@ function useColumns() {
         },
       },
       {
-        accessorKey: "team.pts",
-        id: "team.pts",
-        header: t("team.pts"),
+        accessorKey: "team:pts",
+        id: "team:pts",
+        header: t("team:pts"),
         cell: ({ row }) => <span>{row.original.team?.pts}</span>,
       },
       {
-        accessorKey: "team.slogan",
-        id: "team.slogan",
-        header: t("team.slogan._"),
+        accessorKey: "team:slogan",
+        id: "team:slogan",
+        header: t("team:slogan._"),
         cell: ({ row }) => <span>{row.original.team?.slogan}</span>,
       },
     ];

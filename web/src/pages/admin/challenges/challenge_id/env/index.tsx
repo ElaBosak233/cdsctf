@@ -49,32 +49,32 @@ export default function Index() {
 
   const formSchema = z.object({
     duration: z.number({
-      message: t("challenge.form.env.duration.message"),
+      message: t("challenge:form.env.duration.message"),
     }),
     internet: z.boolean({
-      message: t("challenge.form.env.internet.message"),
+      message: t("challenge:form.env.internet.message"),
     }),
     containers: z.array(
       z.object({
         image: z.string({
-          message: t("challenge.form.env.containers.image.message"),
+          message: t("challenge:form.env.containers.image.message"),
         }),
         cpu_limit: z.number({
-          message: t("challenge.form.env.containers.cpu_limit.message"),
+          message: t("challenge:form.env.containers.cpu_limit.message"),
         }),
         memory_limit: z.number({
-          message: t("challenge.form.env.containers.memory_limit.message"),
+          message: t("challenge:form.env.containers.memory_limit.message"),
         }),
         image_pull_policy: z.string({
-          message: t("challenge.form.env.containers.image_pull_policy.message"),
+          message: t("challenge:form.env.containers.image_pull_policy.message"),
         }),
         envs: z.array(
           z.object({
             key: z.string().min(1, {
-              message: t("challenge.form.env.containers.envs.key.message"),
+              message: t("challenge:form.env.containers.envs.key.message"),
             }),
             value: z.string().min(1, {
-              message: t("challenge.form.env.containers.envs.value.message"),
+              message: t("challenge:form.env.containers.envs.value.message"),
             }),
           })
         ),
@@ -82,7 +82,7 @@ export default function Index() {
           z.object({
             port: z
               .number({
-                message: t("challenge.form.env.containers.ports.port.message"),
+                message: t("challenge:form.env.containers.ports.port.message"),
               })
               .min(0)
               .max(65535),
@@ -168,7 +168,11 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`题目 ${challenge?.title} 动态环境更新成功`);
+          toast.success(
+            t("challenge:env.actions.update_success", {
+              title: challenge?.title,
+            })
+          );
         }
       })
       .finally(() => {
@@ -190,7 +194,7 @@ export default function Index() {
             name={"duration"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("challenge.form.env.duration._")}</FormLabel>
+                <FormLabel>{t("challenge:form.env.duration._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -212,7 +216,7 @@ export default function Index() {
             name={"internet"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("challenge.form.env.internet._")}</FormLabel>
+                <FormLabel>{t("challenge:form.env.internet._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -223,11 +227,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: t("challenge.form.env.internet.true"),
+                          content: t("challenge:form.env.internet.true"),
                         },
                         {
                           value: String(false),
-                          content: t("challenge.form.env.internet.false"),
+                          content: t("challenge:form.env.internet.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -260,7 +264,7 @@ export default function Index() {
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
                   <FormLabel>
-                    {t("challenge.form.env.containers.image._")}
+                    {t("challenge:form.env.containers.image._")}
                   </FormLabel>
                   <FormControl>
                     <Field>
@@ -286,7 +290,7 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-1/3"])}>
                     <FormLabel>
-                      {t("challenge.form.env.containers.cpu_limit._")}
+                      {t("challenge:form.env.containers.cpu_limit._")}
                     </FormLabel>
                     <FormControl>
                       <Field>
@@ -309,7 +313,7 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-1/3"])}>
                     <FormLabel>
-                      {t("challenge.form.env.containers.memory_limit._")}
+                      {t("challenge:form.env.containers.memory_limit._")}
                     </FormLabel>
                     <FormControl>
                       <Field>
@@ -332,7 +336,7 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-1/3"])}>
                     <FormLabel>
-                      {t("challenge.form.env.containers.image_pull_policy._")}
+                      {t("challenge:form.env.containers.image_pull_policy._")}
                     </FormLabel>
                     <FormControl>
                       <Field>
@@ -345,19 +349,19 @@ export default function Index() {
                             {
                               value: "Always",
                               content: t(
-                                "challenge.form.env.containers.image_pull_policy.always"
+                                "challenge:form.env.containers.image_pull_policy.always"
                               ),
                             },
                             {
                               value: "IfNotPresent",
                               content: t(
-                                "challenge.form.env.containers.image_pull_policy.if_not_present"
+                                "challenge:form.env.containers.image_pull_policy.if_not_present"
                               ),
                             },
                             {
                               value: "Never",
                               content: t(
-                                "challenge.form.env.containers.image_pull_policy.never"
+                                "challenge:form.env.containers.image_pull_policy.never"
                               ),
                             },
                           ]}
@@ -371,7 +375,7 @@ export default function Index() {
                 )}
               />
             </div>
-            <Label>{t("challenge.form.env.containers.ports._")}</Label>
+            <Label>{t("challenge:form.env.containers.ports._")}</Label>
             <div className={cn(["grid", "grid-cols-3", "gap-7"])}>
               {container.ports?.map((_port, portIndex) => (
                 <div
@@ -441,7 +445,7 @@ export default function Index() {
                 onClick={() => handleAddPort(containerIndex)}
               />
             </div>
-            <Label>{t("challenge.form.env.containers.envs._")}</Label>
+            <Label>{t("challenge:form.env.containers.envs._")}</Label>
             <div className={cn(["grid", "grid-cols-2", "gap-7"])}>
               {container.envs?.map((_env, envIndex) => (
                 <div
@@ -461,7 +465,7 @@ export default function Index() {
                             <TextField
                               {...field}
                               placeholder={t(
-                                "challenge.form.env.containers.envs.key._"
+                                "challenge:form.env.containers.envs.key._"
                               )}
                               value={field.value || ""}
                               onChange={field.onChange}
@@ -485,7 +489,7 @@ export default function Index() {
                             <TextField
                               {...field}
                               placeholder={t(
-                                "challenge.form.env.containers.envs.value._"
+                                "challenge:form.env.containers.envs.value._"
                               )}
                               value={field.value || ""}
                               onChange={field.onChange}
@@ -522,7 +526,7 @@ export default function Index() {
               icon={<TrashIcon />}
               onClick={() => handleRemoveContainer(containerIndex)}
             >
-              {t("challenge.form.env.containers.actions.delete")}
+              {t("challenge:form.env.containers.actions.delete")}
             </Button>
           </div>
         ))}
@@ -533,7 +537,7 @@ export default function Index() {
           icon={<PlusIcon />}
           onClick={handleAddContainer}
         >
-          {t("challenge.form.env.containers.actions.add")}
+          {t("challenge:form.env.containers.actions.add")}
         </Button>
         <div className={cn(["flex-1"])} />
         <Button
@@ -544,7 +548,7 @@ export default function Index() {
           icon={<SaveIcon />}
           loading={loading}
         >
-          {t("common.actions.save")}
+          {t("common:actions.save")}
         </Button>
       </form>
     </Form>

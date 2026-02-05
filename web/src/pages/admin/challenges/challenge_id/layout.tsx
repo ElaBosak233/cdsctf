@@ -15,7 +15,6 @@ import { getChallenge } from "@/api/admin/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ChallengeCard } from "@/components/widgets/challenge-card";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
@@ -46,29 +45,29 @@ export default function Layout() {
     return [
       {
         link: `/admin/challenges/${challenge_id}`,
-        name: t("challenge.edit.info"),
+        name: t("challenge:edit.info"),
         icon: <InfoIcon />,
       },
       {
         link: `/admin/challenges/${challenge_id}/checker`,
-        name: t("challenge.edit.checker"),
+        name: t("challenge:edit.checker"),
         icon: <ScrollTextIcon />,
       },
       {
         link: `/admin/challenges/${challenge_id}/attachments`,
-        name: t("challenge.edit.attachment"),
+        name: t("challenge:edit.attachment"),
         icon: <FolderIcon />,
         disabled: !challenge?.has_attachment,
       },
       {
         link: `/admin/challenges/${challenge_id}/env`,
-        name: t("challenge.edit.env"),
+        name: t("challenge:edit.env"),
         icon: <ContainerIcon />,
         disabled: !challenge?.dynamic,
       },
       {
         link: `/admin/challenges/${challenge_id}/writeup`,
-        name: t("challenge.edit.writeup"),
+        name: t("challenge:edit.writeup"),
         icon: <PencilLineIcon />,
         disabled: !challenge?.has_writeup,
       },
@@ -84,38 +83,91 @@ export default function Layout() {
             "flex",
             "flex-col",
             "xl:flex-row",
-            "xl:min-h-[calc(100vh-64px)]",
+            "xl:min-h-(--app-content-height)",
             "flex-1",
-            "gap-10",
-            "xl:mx-30",
+            "min-h-0",
+            "xl:pl-64",
           ])}
         >
-          <div
+          <nav
             className={cn([
-              "space-y-6",
-              "h-fit",
-              "my-10",
-              "mx-10",
-              "xl:mx-0",
-              "xl:my-0",
+              "xl:hidden",
+              "flex",
+              "flex-row",
+              "flex-wrap",
+              "gap-2",
+              "p-3",
+              "border-b",
+              "bg-card/30",
+              "shrink-0",
+            ])}
+          >
+            {options?.map((option, index) => {
+              const Comp = option?.disabled ? Button : Link;
+              return (
+                <Button
+                  key={index}
+                  icon={option?.icon}
+                  variant={pathname === option?.link ? "tonal" : "ghost"}
+                  size="sm"
+                  className={cn(["shrink-0"])}
+                  asChild
+                  disabled={option?.disabled}
+                >
+                  <Comp to={option?.link}>{option?.name}</Comp>
+                </Button>
+              );
+            })}
+            <Dialog>
+              <DialogTrigger>
+                <Button variant="ghost" size="sm" className="shrink-0">
+                  <PlayIcon className="size-4" />
+                  {t("challenge:preview")}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <ChallengeDialog digest={challenge} debug />
+              </DialogContent>
+            </Dialog>
+          </nav>
+          <aside
+            className={cn([
+              "hidden",
+              "xl:flex",
+              "xl:fixed",
+              "xl:left-16",
+              "xl:top-16",
+              "xl:z-10",
+              "xl:h-(--app-content-height)",
               "xl:w-64",
-              "xl:sticky",
-              "xl:top-8",
+              "xl:flex-col",
+              "xl:border-r",
+              "xl:bg-card/30",
+              "xl:backdrop-blur-sm",
+              "py-6",
+              "px-4",
+              "gap-4",
+              "my-6",
+              "mx-4",
+              "xl:my-0",
+              "xl:mx-0",
             ])}
           >
             <div
               className={cn([
                 "flex",
-                "flex-wrap",
-                "justify-center",
-                "gap-3",
-                "select-none",
+                "items-center",
+                "gap-2",
+                "px-2",
+                "text-sm",
+                "font-medium",
+                "text-muted-foreground",
               ])}
             >
-              <LibraryIcon />
-              {t("challenge.edit._")}
+              <LibraryIcon className="size-4" />
+              {t("challenge:edit._")}
             </div>
-            <Card className={cn(["flex", "flex-col", "p-5", "gap-3"])}>
+            <nav className={cn(["flex", "flex-col", "gap-1"])}>
               {options?.map((option, index) => {
                 const Comp = option?.disabled ? Button : Link;
                 return (
@@ -131,37 +183,31 @@ export default function Layout() {
                   </Button>
                 );
               })}
-            </Card>
-            <div
-              className={cn([
-                "flex",
-                "flex-wrap",
-                "justify-center",
-                "gap-3",
-                "select-none",
-              ])}
-            >
-              <PlayIcon />
-              {t("challenge.preview")}
-            </div>
-
+            </nav>
+            <div className={cn(["flex-1"])} />
             <Dialog>
               <DialogTrigger>
-                <ChallengeCard digest={challenge} debug />
+                <Button variant="ghost" className="justify-start w-full">
+                  <PlayIcon className="size-4" />
+                  {t("challenge:preview")}
+                </Button>
               </DialogTrigger>
               <DialogContent>
                 <ChallengeDialog digest={challenge} debug />
               </DialogContent>
             </Dialog>
-          </div>
+          </aside>
           <Card
             className={cn([
               "flex-1",
+              "min-h-0",
+              "min-w-0",
               "p-10",
               "border-y-0",
               "rounded-none",
               "flex",
               "flex-col",
+              "xl:rounded-l-none",
             ])}
           >
             <Outlet />

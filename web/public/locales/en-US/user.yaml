@@ -10,6 +10,12 @@ settings:
   email: Emails
   password: Change Password
   delete: Delete Account
+  profile_update_success: Profile updated successfully.
+  avatar_upload:
+    progress: "Upload progress {{percent}}%"
+    success: Avatar uploaded successfully.
+    error: Avatar upload failed.
+  avatar_delete_success: Avatar deleted successfully.
 username: Username
 name: Name
 password: Password
@@ -131,6 +137,7 @@ change_password:
       success: Your password has been updated successfully.
 delete_account:
   _: Delete Account
+  final_warning: Final Warning
   form:
     username:
       _: Username

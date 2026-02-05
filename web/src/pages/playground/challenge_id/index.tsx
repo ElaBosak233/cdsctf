@@ -101,25 +101,18 @@ export default function Index() {
   );
 
   const problemBody = (
-    <div
-      className={cn([
-        "relative",
-        "flex",
-        "flex-col",
-        "flex-1",
-        "min-h-0",
-        "overflow-hidden",
-      ])}
-    >
+    <div className={cn(["relative", "flex", "flex-col", "flex-1", "min-h-0"])}>
       <LoadingOverlay loading={isLoading} />
       {display === "description" ? (
-        <ScrollArea className={cn(["flex-1", "min-h-0"])}>
-          <div className={cn(["space-y-4", "pr-3", "pb-6"])}>
-            <Typography>
-              <MarkdownRender src={content} />
-            </Typography>
-          </div>
-        </ScrollArea>
+        <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
+          <ScrollArea className={cn(["h-full", "min-h-0", "overflow-hidden"])}>
+            <div className={cn(["space-y-4", "pr-3", "pb-6"])}>
+              <Typography>
+                <MarkdownRender src={content} />
+              </Typography>
+            </div>
+          </ScrollArea>
+        </div>
       ) : (
         <WriteupSection />
       )}
@@ -130,106 +123,117 @@ export default function Index() {
     <>
       <title>{`${challenge?.title} - ${config?.meta?.title}`}</title>
       <Context.Provider value={{ challenge }}>
-        <motion.div
+        <div
           className={cn([
-            "flex-1",
             "flex",
             "flex-col",
-            "gap-4",
-            "p-4",
-            "md:p-6",
-            "max-h-full",
+            "min-h-0",
+            "overflow-hidden",
+            "h-(--app-content-height)",
           ])}
-          initial={
-            shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }
-          }
-          animate={isExiting ? { opacity: 0, y: 8 } : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
         >
-          <div className={cn(["md:hidden", "flex", "flex-1", "min-h-0"])}>
-            <div
-              className={cn([
-                "flex",
-                "flex-col",
-                "w-full",
-                "gap-4",
-                "flex-1",
-                "min-h-0",
-              ])}
-            >
-              {problemHeader}
-              <Separator />
-              {problemBody}
-            </div>
-          </div>
-
-          <ChallengeDialogContext.Provider
-            value={{ challenge, team: undefined, debug: false }}
+          <motion.div
+            className={cn([
+              "flex",
+              "flex-col",
+              "gap-4",
+              "p-4",
+              "md:p-6",
+              "min-h-0",
+              "flex-1",
+              "overflow-hidden",
+            ])}
+            initial={
+              shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }
+            }
+            animate={isExiting ? { opacity: 0, y: 8 } : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <div
-              className={cn([
-                "hidden",
-                "md:flex",
-                "flex-1",
-                "min-h-0",
-                "flex-col",
-              ])}
-            >
-              <ResizablePanelGroup
-                orientation="horizontal"
+            <div className={cn(["md:hidden", "flex", "flex-1", "min-h-0"])}>
+              <div
                 className={cn([
+                  "flex",
+                  "flex-col",
+                  "w-full",
+                  "gap-4",
                   "flex-1",
                   "min-h-0",
-                  "rounded-lg",
-                  "border",
-                  "bg-card",
                 ])}
               >
-                <ResizablePanel defaultSize={"30%"} minSize={"30%"}>
-                  <div
-                    className={cn(["flex", "flex-col", "h-full", "min-h-0"])}
-                  >
-                    <div className={cn(["p-4", "space-y-3"])}>
-                      {problemHeader}
-                      <Separator />
-                    </div>
-                    <div
-                      className={cn([
-                        "flex-1",
-                        "min-h-0",
-                        "px-4",
-                        "pb-4",
-                        "flex",
-                        "flex-col",
-                        "gap-4",
-                      ])}
-                    >
-                      {problemBody}
-                      {!!challenge && (
-                        <>
-                          {challenge?.has_attachment && <AttachmentSection />}
-                          {challenge?.dynamic && <EnvSection />}
-                          <div className={cn(["flex", "flex-col", "gap-3"])}>
-                            <Separator />
-                            <SubmitSection />
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={"45%"} minSize={"25%"}>
-                  <div
-                    className={cn(["flex", "flex-col", "h-full", "min-h-0"])}
-                  >
-                    <NoteSection />
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
+                {problemHeader}
+                <Separator />
+                {problemBody}
+              </div>
             </div>
-          </ChallengeDialogContext.Provider>
-        </motion.div>
+
+            <ChallengeDialogContext.Provider
+              value={{ challenge, team: undefined, debug: false }}
+            >
+              <div
+                className={cn([
+                  "hidden",
+                  "md:flex",
+                  "flex-1",
+                  "min-h-0",
+                  "flex-col",
+                ])}
+              >
+                <ResizablePanelGroup
+                  orientation="horizontal"
+                  className={cn([
+                    "flex-1",
+                    "min-h-0",
+                    "rounded-lg",
+                    "border",
+                    "bg-card",
+                  ])}
+                >
+                  <ResizablePanel defaultSize={"30%"} minSize={"30%"}>
+                    <div
+                      className={cn(["flex", "flex-col", "h-full", "min-h-0"])}
+                    >
+                      <div className={cn(["p-4", "space-y-3"])}>
+                        {problemHeader}
+                        <Separator />
+                      </div>
+                      <div
+                        className={cn([
+                          "flex-1",
+                          "min-h-0",
+                          "px-4",
+                          "pb-4",
+                          "flex",
+                          "flex-col",
+                          "gap-4",
+                        ])}
+                      >
+                        {problemBody}
+                        {!!challenge && (
+                          <>
+                            {challenge?.has_attachment && <AttachmentSection />}
+                            {challenge?.dynamic && <EnvSection />}
+                            <div className={cn(["flex", "flex-col", "gap-3"])}>
+                              <Separator />
+                              <SubmitSection />
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={"45%"} minSize={"25%"}>
+                    <div
+                      className={cn(["flex", "flex-col", "h-full", "min-h-0"])}
+                    >
+                      <NoteSection />
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </div>
+            </ChallengeDialogContext.Provider>
+          </motion.div>
+        </div>
       </Context.Provider>
     </>
   );

@@ -49,7 +49,7 @@ function useColumns(): Array<ColumnDef<Team>> {
     {
       accessorKey: "name",
       id: "name",
-      header: t("team.name"),
+      header: t("team:name"),
       cell: ({ row }) => {
         const name = row.original.name!;
         return (
@@ -69,19 +69,19 @@ function useColumns(): Array<ColumnDef<Team>> {
     {
       accessorKey: "rank",
       id: "rank",
-      header: t("team.rank"),
+      header: t("team:rank"),
       cell: ({ row }) => row.original.rank,
     },
     {
       accessorKey: "pts",
       id: "pts",
-      header: t("team.pts"),
+      header: t("team:pts"),
       cell: ({ row }) => row.original.pts,
     },
     {
       accessorKey: "state",
       id: "state",
-      header: t("team.state._"),
+      header: t("team:state._"),
       cell: ({ row }) => {
         const state = row.original.state;
 
@@ -89,25 +89,25 @@ function useColumns(): Array<ColumnDef<Team>> {
           case State.Banned:
             return (
               <Badge className={cn(["bg-error", "text-error-foreground"])}>
-                {t("team.state.banned")}
+                {t("team:state.banned")}
               </Badge>
             );
           case State.Preparing:
             return (
               <Badge className={cn(["bg-info", "text-info-foreground"])}>
-                {t("team.state.preparing")}
+                {t("team:state.preparing")}
               </Badge>
             );
           case State.Pending:
             return (
               <Badge className={cn(["bg-warning", "text-warning-foreground"])}>
-                {t("team.state.pending")}
+                {t("team:state.pending")}
               </Badge>
             );
           case State.Passed:
             return (
               <Badge className={cn(["bg-success", "text-success-foreground"])}>
-                {t("team.state.passed")}
+                {t("team:state.passed")}
               </Badge>
             );
         }
@@ -125,13 +125,13 @@ function useColumns(): Array<ColumnDef<Team>> {
                 <div className={cn(["flex", "items-center", "gap-2"])}>
                   {has_writeup ? (
                     <Badge className={cn(["bg-info", "text-info-foreground"])}>
-                      {t("team.has_writeup.true")}
+                      {t("team:has_writeup.true")}
                     </Badge>
                   ) : (
                     <Badge
                       className={cn(["bg-warning", "text-warning-foreground"])}
                     >
-                      {t("team.has_writeup.false")}
+                      {t("team:has_writeup.false")}
                     </Badge>
                   )}
                   <Button
@@ -158,7 +158,7 @@ function useColumns(): Array<ColumnDef<Team>> {
       id: "actions",
       header: () => (
         <div className={cn(["justify-self-center"])}>
-          {t("game.team.actions._")}
+          {t("game:team.actions._")}
         </div>
       ),
       cell: function ActionsCell({ row }) {
@@ -175,7 +175,7 @@ function useColumns(): Array<ColumnDef<Team>> {
             .then((res) => {
               if (res.code === StatusCodes.OK) {
                 toast.success(
-                  t("game.team.actions.message", { name: row.original.name })
+                  t("game:team.actions.message", { name: row.original.name })
                 );
               }
             })
@@ -200,7 +200,7 @@ function useColumns(): Array<ColumnDef<Team>> {
                   onClick={() => handleStateChange(State.Preparing)}
                 />
               </TooltipTrigger>
-              <TooltipContent>{t("game.team.actions.refuse")}</TooltipContent>
+              <TooltipContent>{t("game:team.actions.refuse")}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -214,7 +214,7 @@ function useColumns(): Array<ColumnDef<Team>> {
                   onClick={() => handleStateChange(State.Banned)}
                 />
               </TooltipTrigger>
-              <TooltipContent>{t("game.team.actions.ban")}</TooltipContent>
+              <TooltipContent>{t("game:team.actions.ban")}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -228,7 +228,7 @@ function useColumns(): Array<ColumnDef<Team>> {
                   onClick={() => handleStateChange(State.Passed)}
                 />
               </TooltipTrigger>
-              <TooltipContent>{t("game.team.actions.pass")}</TooltipContent>
+              <TooltipContent>{t("game:team.actions.pass")}</TooltipContent>
             </Tooltip>
           </div>
         );

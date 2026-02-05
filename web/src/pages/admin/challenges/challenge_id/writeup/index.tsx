@@ -58,7 +58,7 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`题目 ${res?.data?.title} 题解更新成功`);
+          toast.success(t("challenge:actions.writeup_update.success", { title: res?.data?.title }));
         }
       })
       .finally(() => {
@@ -98,7 +98,7 @@ export default function Index() {
           icon={<SaveIcon />}
           loading={loading}
         >
-          {t("common.actions.save")}
+          {t("common:actions.save")}
         </Button>
       </form>
     </Form>

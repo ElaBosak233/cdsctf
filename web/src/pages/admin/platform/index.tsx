@@ -93,7 +93,7 @@ export default function Index() {
       ...values,
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success(t("admin.platform.actions.update.success"));
+        toast.success(t("admin:platform.actions.update.success"));
       }
     });
   }
@@ -102,15 +102,20 @@ export default function Index() {
     onDropFile: async (file) => {
       try {
         await uploadFile("/api/admin/configs/logo", [file], ({ percent }) => {
-          toast.loading(`上传进度 ${percent.toFixed(0)}%`, {
-            id: "logo-upload",
-          });
+          toast.loading(
+            t("admin:platform.logo_upload.progress", {
+              percent: percent.toFixed(0),
+            }),
+            {
+              id: "logo-upload",
+            }
+          );
         });
-        toast.success("标志更新成功", {
+        toast.success(t("admin:platform.logo_upload.success"), {
           id: "logo-upload",
         });
       } catch {
-        toast.error("标志上传失败", {
+        toast.error(t("admin:platform.logo_upload.error"), {
           id: "logo-upload",
         });
       } finally {
@@ -134,14 +139,14 @@ export default function Index() {
   async function handleLogoDelete() {
     const res = await deleteLogo();
     if (res.code === StatusCodes.OK) {
-      toast.success("标志重置成功");
+      toast.success(t("admin:platform.logo_reset.success"));
     }
     bump();
   }
 
   return (
     <>
-      <title>{`${t("admin.platform._")} - ${configStore.config?.meta?.title}`}</title>
+      <title>{`${t("admin:platform._")} - ${configStore.config?.meta?.title}`}</title>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -153,7 +158,7 @@ export default function Index() {
             "p-10",
             "xl:mx-60",
             "lg:mx-30",
-            "min-h-[calc(100vh-64px)]",
+            "min-h-(--app-content-height)",
             "relative",
           ])}
         >
@@ -162,7 +167,7 @@ export default function Index() {
             className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
           >
             <InfoIcon />
-            {t("admin.platform.form.meta._")}
+            {t("admin:platform.form.meta._")}
           </h2>
           <Separator />
           <div className={cn(["flex", "gap-3"])}>
@@ -173,7 +178,7 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>
-                      {t("admin.platform.form.meta.title._")}
+                      {t("admin:platform.form.meta.title._")}
                     </FormLabel>
                     <FormControl>
                       <Field>
@@ -198,7 +203,7 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>
-                      {t("admin.platform.form.meta.keywords._")}
+                      {t("admin:platform.form.meta.keywords._")}
                     </FormLabel>
                     <FormControl>
                       <Field>
@@ -225,7 +230,7 @@ export default function Index() {
                   "justify-between",
                 ])}
               >
-                <Label>{t("admin.platform.logo")}</Label>
+                <Label>{t("admin:platform.logo")}</Label>
                 <Button
                   icon={<UndoIcon />}
                   size={"sm"}
@@ -274,7 +279,7 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>
-                  {t("admin.platform.form.meta.description._")}
+                  {t("admin:platform.form.meta.description._")}
                 </FormLabel>
                 <FormControl>
                   <Field>
@@ -298,7 +303,7 @@ export default function Index() {
             name={"meta.footer"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("admin.platform.form.meta.footer._")}</FormLabel>
+                <FormLabel>{t("admin:platform.form.meta.footer._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -319,7 +324,7 @@ export default function Index() {
             className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
           >
             <BadgeCheckIcon />
-            {t("admin.platform.form.auth._")}
+            {t("admin:platform.form.auth._")}
           </h2>
           <Separator />
           <FormField
@@ -328,7 +333,7 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>
-                  {t("admin.platform.form.auth.registration_enabled._")}
+                  {t("admin:platform.form.auth.registration_enabled._")}
                 </FormLabel>
                 <FormControl>
                   <Field>
@@ -341,13 +346,13 @@ export default function Index() {
                         {
                           value: String(true),
                           content: t(
-                            "admin.platform.auth.registration_enabled.true"
+                            "admin:platform.auth.registration_enabled.true"
                           ),
                         },
                         {
                           value: String(false),
                           content: t(
-                            "admin.platform.auth.registration_enabled.false"
+                            "admin:platform.auth.registration_enabled.false"
                           ),
                         },
                       ]}
@@ -370,7 +375,7 @@ export default function Index() {
             icon={<SaveIcon />}
             className={cn(["mt-2"])}
           >
-            {t("common.actions.save")}
+            {t("common:actions.save")}
           </Button>
         </form>
       </Form>

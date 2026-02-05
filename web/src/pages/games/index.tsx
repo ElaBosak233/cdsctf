@@ -73,7 +73,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("game._")} - ${config?.meta?.title}`}</title>
+      <title>{`${t("game:_")} - ${config?.meta?.title}`}</title>
       <div
         className={cn([
           "w-full",
@@ -84,7 +84,7 @@ export default function Index() {
           "xl:flex-row",
           "xl:gap-25",
           "gap-10",
-          "xl:h-[calc(100vh-64px)]",
+          "xl:h-(--app-content-height)",
           "items-center",
           "justify-center",
         ])}
@@ -106,7 +106,7 @@ export default function Index() {
               <SearchIcon />
             </FieldIcon>
             <TextField
-              placeholder={t("game.search.title")}
+              placeholder={t("game:search.title")}
               value={title || undefined}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -215,7 +215,7 @@ export default function Index() {
                 ])}
               >
                 <PackageOpenIcon />
-                {t("game.empty")}
+                {t("game:empty")}
               </div>
             )}
           </div>
@@ -238,11 +238,7 @@ export default function Index() {
             ])}
             fallback={
               <FlagIcon
-                className={cn([
-                  "size-25",
-                  "rotate-15",
-                  "text-secondary-foreground",
-                ])}
+                className={cn(["size-25", "text-secondary-foreground"])}
                 strokeWidth={1}
               />
             }
@@ -282,11 +278,7 @@ export default function Index() {
                 }
                 fallback={
                   <FlagIcon
-                    className={cn([
-                      "rotate-15",
-                      "text-secondary-foreground",
-                      "size-6",
-                    ])}
+                    className={cn(["text-secondary-foreground", "size-6"])}
                   />
                 }
                 className={cn(["h-16", "min-w-16"])}

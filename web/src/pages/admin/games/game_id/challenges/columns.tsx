@@ -33,6 +33,7 @@ import { getCategory } from "@/utils/category";
 import { EditDialog } from "./edit-dialog";
 
 function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
+  const { t } = useTranslation();
   const isEnabled = row.original.enabled;
   const title = row.original.challenge_title;
   const challenge_id = row.original.challenge_id;
@@ -49,9 +50,15 @@ function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
       enabled: newValue,
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success(`${newValue ? "启用" : "禁用"} 赛题 ${title}`, {
-          id: "publicness_change",
-        });
+        const enabledLabel = newValue
+          ? t("game:enabled.true")
+          : t("game:enabled.false");
+        toast.success(
+          t("game:challenge.enabled.toast", { enabled: enabledLabel, title }),
+          {
+            id: "publicness_change",
+          }
+        );
       }
     });
   }
@@ -60,7 +67,7 @@ function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
     <Switch
       checked={checked}
       onCheckedChange={handlePublicnessChange}
-      aria-label="公开性开关"
+      aria-label={t("game:challenge.enabled.aria_label")}
     />
   );
 }
@@ -81,7 +88,7 @@ function ChallengeIdCell({ row }: { row: Row<GameChallenge> }) {
             onClick={() => copyToClipboard(String(id))}
           />
         </TooltipTrigger>
-        <TooltipContent>{t("common.tooltip.copy")}</TooltipContent>
+        <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
       </Tooltip>
     </div>
   );
@@ -107,7 +114,7 @@ function ActionsCell({ row }: { row: Row<GameChallenge> }) {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           toast.success(
-            t("game.actions.delete.success", {
+            t("game:actions.delete.success", {
               title,
             })
           );
@@ -161,11 +168,11 @@ function ActionsCell({ row }: { row: Row<GameChallenge> }) {
           >
             <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
               <TrashIcon className={cn(["size-4", "text-error"])} />
-              {t("game.challenge.actions.delete._")}
+              {t("game:challenge.actions.delete._")}
             </div>
             <p className={cn(["text-sm"])}>
               <Trans
-                i18nKey="game.challenge.actions.delete.message"
+                i18nKey="game:challenge.actions.delete.message"
                 values={{ title }}
                 components={{
                   muted: <span className={cn(["text-muted-foreground"])} />,
@@ -179,7 +186,7 @@ function ActionsCell({ row }: { row: Row<GameChallenge> }) {
                 size={"sm"}
                 onClick={handleDelete}
               >
-                {t("common.actions.confirm")}
+                {t("common:actions.confirm")}
               </Button>
             </div>
           </Card>
@@ -200,7 +207,7 @@ function useColumns() {
       },
       {
         accessorKey: "enabled",
-        header: t("game.challenge.enabled._"),
+        header: t("game:challenge.enabled._"),
         cell: IsEnabledCell,
       },
       {
@@ -210,12 +217,12 @@ function useColumns() {
       },
       {
         id: "challenge_title",
-        header: t("challenge.title"),
+        header: t("challenge:title"),
         cell: ({ row }) => row.original.challenge_title || "-",
       },
       {
         id: "challenge_category",
-        header: t("challenge.category"),
+        header: t("challenge:category"),
         cell: ({ row }) => {
           const categoryId = row.original.challenge_category;
           const category = getCategory(categoryId!);
@@ -232,7 +239,7 @@ function useColumns() {
       {
         accessorKey: "pts",
         id: "pts",
-        header: t("game.challenge.pts"),
+        header: t("game:challenge.pts"),
         cell: ({ row }) => (
           <span>
             {row.original.pts}{" "}
@@ -244,7 +251,7 @@ function useColumns() {
         id: "actions",
         header: () => (
           <div className={cn(["justify-self-center"])}>
-            {t("game.challenge.actions._")}
+            {t("game:challenge.actions._")}
           </div>
         ),
         cell: ActionsCell,

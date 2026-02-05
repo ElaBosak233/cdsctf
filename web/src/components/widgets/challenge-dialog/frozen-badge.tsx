@@ -15,12 +15,12 @@ function FrozenBadge({ frozenAt }: { frozenAt: number }) {
   }, [frozenAt, now]);
 
   const formatRemaining = (ms: number) => {
-    if (ms <= 0) return t("challenge.frozen.already");
+    if (ms <= 0) return t("challenge:frozen.already");
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    return t("challenge.frozen.countdown", { hours, minutes, seconds });
+    return t("challenge:frozen.countdown", { hours, minutes, seconds });
   };
 
   return (

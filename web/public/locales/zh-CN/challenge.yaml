@@ -9,6 +9,10 @@ edit:
   env: 动态环境
   writeup: 题解
 preview: 预览题目
+note: 笔记
+note_placeholder: 在此记录你的思路与解法…
+note_save_success: 笔记保存成功。
+writeup_official: 官方题解
 title: 标题
 description: 描述
 category: 分类
@@ -30,6 +34,10 @@ public:
 updated_at: 更新于
 created_at: 创建于
 checker:
+  form:
+    script_required: 请为检查器编写脚本。
+  actions:
+    update_success: "题目 {{title}} 检查器更新成功。"
   templates:
     _: 使用预设模板
     simple: 简易固定字符串评判
@@ -39,6 +47,9 @@ attachment:
   empty: 哎呀，好像还没有附件呢。
   upload:
     _: 上传附件
+    progress: "上传进度 {{percent}}%"
+    success: 文件上传成功。
+    error: 文件上传失败。
     hint: 附件将由服务器直接托管，建议充分考虑存储空间和流量等因素。
   filename: 文件名
   size: 文件大小
@@ -83,6 +94,16 @@ form:
     _: 描述
     message: 请输入描述
   env:
+    actions:
+      update_success: "题目 {{title}} 动态环境更新成功。"
+    container_create_error: 容器创建时发生错误，即将触发销毁。
+    renew_success: 续期成功。
+    renew_error: 续期失败。
+    container_stop_sent: 已下发容器停止命令。
+    container_creating: 正在发送容器创建请求。
+    container_start_sent: 已下发容器启动命令。
+    container_start_description: 这可能需要一些时间。
+    error: 发生错误。
     duration:
       _: 持续时间（秒）
       message: 请输入持续时间（秒）
@@ -133,6 +154,10 @@ actions:
   create:
     _: 创建题目
     success: "题目 {{title}} 创建成功。"
+  update:
+    success: "题目 {{title}} 更新成功。"
+  writeup_update:
+    success: "题目 {{title}} 题解更新成功。"
   delete:
     _: 删除题目
     message: "你确定要删除题目 <muted>{{title}}</muted> 吗？"

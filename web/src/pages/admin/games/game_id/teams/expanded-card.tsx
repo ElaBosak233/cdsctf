@@ -32,7 +32,7 @@ function ExpandedCard(props: ExpandedCardProps) {
   return (
     <div className="p-4 border-t text-sm text-muted-foreground flex justify-between items-center">
       <p className={cn(["text-secondary-foreground"])}>
-        {team.slogan || t("team.slogan.empty")}
+        {team.slogan || t("team:slogan.empty")}
       </p>
       <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
         {members?.map((member) => (

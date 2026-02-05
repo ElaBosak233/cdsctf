@@ -12,6 +12,8 @@ sketch: 简述
 started_at: 开始于
 ended_at: 结束于
 enabled:
+  "true": 启用
+  "false": 禁用
   actions:
     "true": 启用
     "false": 禁用
@@ -19,6 +21,11 @@ enabled:
 scoreboard:
   _: 积分榜
   empty: 但是谁也没有来。
+  columns:
+    user: 用户
+    challenge: 题目
+    score: 分数
+    time: 时间
 description:
   _: 描述
   empty: 这个组织者很懒，什么都没留下。
@@ -43,7 +50,19 @@ form:
     message: 请输入标题
   sketch: 简述
   poster: 海报
+  poster_upload:
+    progress: "上传进度 {{percent}}%"
+    success: 海报上传成功。
+    error: 海报上传失败。
+  poster_delete:
+    success: 海报删除成功。
   icon: 图标
+  icon_upload:
+    progress: "上传进度 {{percent}}%"
+    success: 图标上传成功。
+    error: 图标上传失败。
+  icon_delete:
+    success: 图标删除成功。
   public:
     _: 是否为公开赛（免审核）
     "true": 是
@@ -80,6 +99,8 @@ actions:
   update:
     _: 更新比赛
     success: "比赛 {{title}} 更新成功。"
+challenges:
+  no_permission: 你没有权限查看本场比赛的题目。
 challenge:
   empty: 哎呀，这个比赛好像还没有题目呢。
   pts: 当前分值
@@ -87,6 +108,8 @@ challenge:
   category: 分类
   enabled:
     _: 启用
+    toast: "{{enabled}} 赛题 {{title}}"
+    aria_label: 公开性开关
     actions:
       success: "题目 {{title}} 状态更新成功。"
   form:
@@ -103,6 +126,8 @@ challenge:
     bonus_ratio: 奖励分数（%）
   actions:
     _: 操作
+    edit_config_success: "赛题 {{title}} 配置更新成功。"
+    add_exists: 题目在该比赛中已存在。
     add:
       _: 添加题目
       message: 请使用 ID 或者题目名检索题目，列表仅展示前 10 条结果。点击题目即可添加赛题。
@@ -124,6 +149,7 @@ team:
     message: "团队 {{name}} 状态更新成功。"
 notice:
   _: 通知
+  board: 公告栏
   empty: 哎呀，好像还没有通知呢。
   title: 标题
   content: 详情

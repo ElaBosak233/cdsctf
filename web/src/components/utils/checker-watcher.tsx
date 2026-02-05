@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { getSubmission } from "@/api/submissions";
@@ -6,6 +7,7 @@ import { Status } from "@/models/submission";
 import { useCheckerStore } from "@/storages/checker";
 
 function CheckerWatcher() {
+  const { t } = useTranslation();
   const { submissions, pop } = useCheckerStore();
 
   useEffect(() => {
@@ -22,33 +24,33 @@ function CheckerWatcher() {
 
         switch (s.status) {
           case Status.Correct:
-            toast.success(`#${s.id} 正确`, {
+            toast.success(`#${s.id} ${t("submission:solved")}`, {
               id: `submission-${s.id}`,
-              description: "恭喜你，提交成功！",
+              description: t("submission:result.correct"),
             });
             break;
           case Status.Incorrect:
-            toast.error(`#${s.id} 错误`, {
+            toast.error(`#${s.id}`, {
               id: `submission-${s.id}`,
-              description: "再检查一下？",
+              description: t("submission:result.incorrect"),
             });
             break;
           case Status.Cheat:
-            toast.error(`#${s.id} 作弊`, {
+            toast.error(`#${s.id}`, {
               id: `submission-${s.id}`,
-              description: "你存在作弊的可能，已记录。",
+              description: t("submission:result.cheat"),
             });
             break;
           case Status.Expired:
-            toast.info(`#${s.id} 超时`, {
+            toast.info(`#${s.id}`, {
               id: `submission-${s.id}`,
-              description: "提交超时。",
+              description: t("submission:result.timeout"),
             });
             break;
           case Status.Duplicate:
-            toast.success(`#${s.id} 正确，又一次`, {
+            toast.success(`#${s.id} ${t("submission:solved")}`, {
               id: `submission-${s.id}`,
-              description: "你已经做出过这道题了。",
+              description: t("submission:result.duplicate"),
             });
             break;
         }

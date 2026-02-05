@@ -110,7 +110,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("challenge.playground")} - ${config?.meta?.title}`}</title>
+      <title>{`${t("challenge:playground")} - ${config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex-1",
@@ -127,7 +127,7 @@ export default function Index() {
               <TypeIcon />
             </FieldIcon>
             <TextField
-              placeholder={t("challenge.search.title")}
+              placeholder={t("challenge:search.title")}
               value={title || undefined}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -139,7 +139,7 @@ export default function Index() {
             variant={"solid"}
             onClick={() => setDoSearch((prev) => prev + 1)}
           >
-            {t("common.search")}
+            {t("common:search")}
           </Button>
         </div>
         <div
@@ -170,7 +170,7 @@ export default function Index() {
                 <TagIcon />
               </FieldIcon>
               <TextField
-                placeholder={t("challenge.search.tag")}
+                placeholder={t("challenge:search.tag")}
                 value={tag || undefined}
                 onChange={(e) => setTag(e.target.value)}
               />
@@ -185,7 +185,7 @@ export default function Index() {
                     value: "all",
                     content: (
                       <div className={cn(["flex", "gap-2", "items-center"])}>
-                        {t("common.all")}
+                        {t("common:all")}
                       </div>
                     ),
                   },
@@ -265,7 +265,7 @@ export default function Index() {
               ])}
             >
               <PackageOpenIcon className={cn(["size-8"])} />
-              {t("challenge.empty")}
+              {t("challenge:empty")}
             </div>
           )}
         </div>

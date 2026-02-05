@@ -45,22 +45,22 @@ export default function Index() {
   const groupOptions = [
     {
       id: Group.Guest.toString(),
-      name: t("user.group.guest"),
+      name: t("user:group.guest"),
       icon: UserRoundIcon,
     },
     {
       id: Group.Banned.toString(),
-      name: t("user.group.banned"),
+      name: t("user:group.banned"),
       icon: UserRoundXIcon,
     },
     {
       id: Group.User.toString(),
-      name: t("user.group.user"),
+      name: t("user:group.user"),
       icon: UserRoundCheckIcon,
     },
     {
       id: Group.Admin.toString(),
-      name: t("user.group.admin"),
+      name: t("user:group.admin"),
       icon: ShieldIcon,
     },
   ];
@@ -68,10 +68,10 @@ export default function Index() {
   const formSchema = z.object({
     username: z.string({}),
     name: z.string({
-      message: t("user.form.name.messages._"),
+      message: t("user:form.name.messages._"),
     }),
     group: z.number({
-      message: t("user.form.group.message"),
+      message: t("user:form.group.message"),
     }),
     description: z.string().nullish(),
     verified: z.boolean(),
@@ -99,7 +99,7 @@ export default function Index() {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           toast.success(
-            t("user.actions.update.success", { username: res.data?.username })
+            t("user:actions.update.success", { username: res.data?.username })
           );
         }
       })
@@ -132,7 +132,7 @@ export default function Index() {
               name={"username"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>{t("user.form.username._")}</FormLabel>
+                  <FormLabel>{t("user:form.username._")}</FormLabel>
                   <FormControl>
                     <Field disabled>
                       <FieldIcon>
@@ -156,7 +156,7 @@ export default function Index() {
               name={"name"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>{t("user.form.name._")}</FormLabel>
+                  <FormLabel>{t("user:form.name._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -180,7 +180,7 @@ export default function Index() {
               name={"group"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>{t("user.form.group._")}</FormLabel>
+                  <FormLabel>{t("user:form.group._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -217,7 +217,7 @@ export default function Index() {
             name={"description"}
             render={({ field }) => (
               <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-                <FormLabel>{t("user.form.description._")}</FormLabel>
+                <FormLabel>{t("user:form.description._")}</FormLabel>
                 <FormControl>
                   <MarkdownEditor
                     {...field}
@@ -240,7 +240,7 @@ export default function Index() {
             loading={loading}
             className={cn(["w-full"])}
           >
-            {t("common.actions.save")}
+            {t("common:actions.save")}
           </Button>
         </form>
       </Form>

@@ -69,13 +69,15 @@ function CreateDialog(props: CreateDialogProps) {
       bonus_ratios: [],
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success(`成功添加赛题 ${challenge?.title}`);
+        toast.success(
+          t("game:challenge.actions.add.success", { title: challenge?.title })
+        );
         sharedStore?.setRefresh();
         onClose();
       }
 
       if (res.code === 409) {
-        toast.error(`题目在该比赛中已存在`);
+        toast.error(t("game:challenge.actions.add_exists"));
       }
     });
   }
@@ -86,10 +88,10 @@ function CreateDialog(props: CreateDialogProps) {
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <LibraryIcon className={cn(["size-4"])} />
-        {t("game.challenge.actions.add._")}
+        {t("game:challenge.actions.add._")}
       </h3>
       <span className={cn(["text-secondary-foreground", "text-sm"])}>
-        {t("game.challenge.actions.add.message")}
+        {t("game:challenge.actions.add.message")}
       </span>
       <div className={cn(["flex", "gap-3"])}>
         <Field size={"sm"} className={cn(["w-full"])}>
@@ -109,7 +111,7 @@ function CreateDialog(props: CreateDialogProps) {
           <TextField
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder={t("challenge.title")}
+            placeholder={t("challenge:title")}
           />
         </Field>
       </div>

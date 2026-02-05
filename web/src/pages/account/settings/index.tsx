@@ -48,7 +48,7 @@ export default function Index() {
   const formSchema = z.object({
     username: z.string().nullish(),
     name: z.string({
-      message: t("user.form.name.messages._"),
+      message: t("user:form.name.messages._"),
     }),
     description: z.string().nullish(),
   });
@@ -66,7 +66,7 @@ export default function Index() {
       });
       if (res.code === StatusCodes.OK) {
         authStore?.setUser(res.data);
-        toast.success("个人资料更新成功");
+        toast.success(t("user:settings.profile_update_success"));
       }
     } finally {
       setLoading(false);
@@ -85,18 +85,18 @@ export default function Index() {
         "/api/users/me/avatar",
         [file],
         ({ percent }) => {
-          toast.loading(`上传进度 ${percent.toFixed(0)}%`, {
+          toast.loading(t("user:settings.avatar_upload.progress", { percent: percent.toFixed(0) }), {
             id: "user-avatar-upload",
           });
         }
       );
       if (res.code === StatusCodes.OK) {
-        toast.success("头像上传成功", {
+        toast.success(t("user:settings.avatar_upload.success"), {
           id: "user-avatar-upload",
         });
       }
     } catch {
-      toast.error("头像上传失败");
+      toast.error(t("user:settings.avatar_upload.error"));
     }
 
     event.target.value = "";
@@ -107,14 +107,14 @@ export default function Index() {
 
     const res = await deleteUserAvatar();
     if (res.code === StatusCodes.OK) {
-      toast.success("头像删除成功");
+      toast.success(t("user:settings.avatar_delete_success"));
     }
     sharedStore.setRefresh();
   }
 
   return (
     <>
-      <title>{`基本信息 - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("user:settings.info")} - ${configStore?.config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -154,7 +154,7 @@ export default function Index() {
                   name={"username"}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("user.form.username._")}</FormLabel>
+                      <FormLabel>{t("user:form.username._")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -178,7 +178,7 @@ export default function Index() {
                   name={"name"}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("user.form.name._")}</FormLabel>
+                      <FormLabel>{t("user:form.name._")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -206,7 +206,7 @@ export default function Index() {
                     "justify-between",
                   ])}
                 >
-                  <Label>{t("user.form.avatar")}</Label>
+                  <Label>{t("user:form.avatar")}</Label>
                 </div>
                 <Avatar
                   className={cn([
@@ -267,7 +267,7 @@ export default function Index() {
               name={"description"}
               render={({ field }) => (
                 <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-                  <FormLabel>{t("user.form.description._")}</FormLabel>
+                  <FormLabel>{t("user:form.description._")}</FormLabel>
                   <FormControl>
                     <MarkdownEditor
                       {...field}
@@ -288,7 +288,7 @@ export default function Index() {
               icon={<SaveIcon />}
               loading={loading}
             >
-              {t("common.actions.save")}
+              {t("common:actions.save")}
             </Button>
           </form>
         </Form>

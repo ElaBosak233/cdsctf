@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useParams } from "react-router";
 import { getUser } from "@/api/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils";
 import { Context } from "./context";
@@ -28,11 +27,16 @@ export default function Layout() {
 
   return (
     <Context.Provider value={{ user }}>
-      <div className={cn(["flex", "h-full"])}>
+      <div className={cn(["flex", "flex-1", "min-h-0"])}>
         <div
           className={cn([
             "hidden",
+            "lg:sticky",
+            "lg:top-16",
+            "lg:h-(--app-content-height)",
             "lg:w-1/5",
+            "lg:shrink-0",
+            "lg:self-start",
             "bg-card/30",
             "backdrop-blur-sm",
             "lg:flex",
@@ -40,9 +44,6 @@ export default function Layout() {
             "gap-5",
             "p-10",
             "border-r",
-            "lg:sticky",
-            "lg:top-0",
-            "h-full",
           ])}
         >
           <div className={cn(["flex", "flex-row", "items-center", "gap-5"])}>
@@ -86,12 +87,12 @@ export default function Layout() {
               "select-none",
             ])}
           >
-            {`${t("user.created_at")} ${new Date(Number(user?.created_at) * 1000).toLocaleDateString()}`}
+            {`${t("user:created_at")} ${new Date(Number(user?.created_at) * 1000).toLocaleDateString()}`}
           </span>
         </div>
-        <ScrollArea className={cn(["flex-1", "min-h-0"])}>
+        <div className={cn(["flex-1", "min-w-0", "flex", "flex-col"])}>
           <Outlet />
-        </ScrollArea>
+        </div>
       </div>
     </Context.Provider>
   );

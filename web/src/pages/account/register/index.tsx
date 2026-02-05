@@ -12,7 +12,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("account.register._")} - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("account:register._")} - ${configStore?.config?.meta?.title}`}</title>
       <div className={cn(["flex-1", "flex", "items-center", "justify-center"])}>
         <Card className={cn(["p-2", "w-[50rem]", "flex", "justify-between"])}>
           <div className={cn(["flex-1/2", "flex", "flex-col"])}>
@@ -29,10 +29,10 @@ export default function Index() {
                 ])}
               >
                 <UserRoundPlusIcon />
-                {t("account.register._")}
+                {t("account:register._")}
               </div>
               <div className={cn(["text-sm", "text-secondary-foreground"])}>
-                {t("account.register.continue", {
+                {t("account:register.continue", {
                   title: configStore?.config?.meta?.title,
                 })}
               </div>

@@ -53,7 +53,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("user.settings.email")} - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("user:settings.email")} - ${configStore?.config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -72,7 +72,7 @@ export default function Index() {
             icon={<MailPlusIcon />}
             onClick={() => setCreateDialogOpen(true)}
           >
-            {t("common.actions.add")}
+            {t("common:actions.add")}
           </Button>
         </div>
         <Separator />
@@ -85,11 +85,11 @@ export default function Index() {
                   <ItemDescription>
                     {email.verified ? (
                       <div className={cn(["flex", "gap-1", "items-center"])}>
-                        <span>{t("user.emails.verified.true._")}</span>
+                        <span>{t("user:emails.verified.true._")}</span>
                         <CheckIcon className={cn(["size-4", "text-success"])} />
                       </div>
                     ) : (
-                      t("user.emails.verified.false._")
+                      t("user:emails.verified.false._")
                     )}
                   </ItemDescription>
                 </ItemContent>

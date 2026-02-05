@@ -27,7 +27,7 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           toast.success(
-            t("challenge.attachment.actions.delete.success", {
+            t("challenge:attachment.actions.delete.success", {
               filename: row.original.filename,
             })
           );
@@ -63,11 +63,11 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
           >
             <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
               <TrashIcon className={cn(["size-4"])} />
-              {t("challenge.attachment.actions.delete._")}
+              {t("challenge:attachment.actions.delete._")}
             </div>
             <p className={cn(["text-sm"])}>
               <Trans
-                i18nKey="challenge.attachment.actions.delete.message"
+                i18nKey="challenge:attachment.actions.delete.message"
                 values={{ filename: row.original.filename }}
                 components={{
                   muted: <span className={cn(["text-muted-foreground"])} />,
@@ -81,7 +81,7 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
                 size={"sm"}
                 onClick={handleDelete}
               >
-                {t("common.actions.confirm")}
+                {t("common:actions.confirm")}
               </Button>
             </div>
           </Card>
@@ -99,19 +99,19 @@ function useColumns() {
       {
         accessorKey: "filename",
         id: "filename",
-        header: () => t("challenge.attachment.filename"),
+        header: () => t("challenge:attachment.filename"),
         cell: ({ row }) => row.original.filename,
       },
       {
         accessorKey: "size",
-        header: () => t("challenge.attachment.size"),
+        header: () => t("challenge:attachment.size"),
         cell: ({ row }) => prettyBytes(row.original.size),
       },
       {
         id: "actions",
         header: () => (
           <div className={cn(["justify-self-center"])}>
-            {t("challenge.attachment.actions._")}
+            {t("challenge:attachment.actions._")}
           </div>
         ),
         cell: ActionsCell,

@@ -46,14 +46,14 @@ export default function Index() {
 
   const formSchema = z.object({
     title: z.string({
-      message: t("challenge.form.title.message"),
+      message: t("challenge:form.title.message"),
     }),
     category: z.number({
-      message: t("challenge.form.category.message"),
+      message: t("challenge:form.category.message"),
     }),
     tags: z.array(z.string()).nullish(),
     description: z.string({
-      message: t("challenge.form.description.message"),
+      message: t("challenge:form.description.message"),
     }),
     has_attachment: z.boolean({}),
     has_writeup: z.boolean({}),
@@ -79,7 +79,7 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`题目 ${res?.data?.title} 更新成功`);
+          toast.success(t("challenge:actions.update.success", { title: res?.data?.title }));
         }
       })
       .finally(() => {
@@ -101,7 +101,7 @@ export default function Index() {
             name={"title"}
             render={({ field }) => (
               <FormItem className={cn(["w-3/4"])}>
-                <FormLabel>{t("challenge.form.title._")}</FormLabel>
+                <FormLabel>{t("challenge:form.title._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -124,7 +124,7 @@ export default function Index() {
             name={"category"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/4"])}>
-                <FormLabel>{t("challenge.form.category._")}</FormLabel>
+                <FormLabel>{t("challenge:form.category._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -164,7 +164,7 @@ export default function Index() {
           name={"tags"}
           render={({ field }) => (
             <FormItem className={cn(["w-full"])}>
-              <FormLabel>{t("challenge.form.tags._")}</FormLabel>
+              <FormLabel>{t("challenge:form.tags._")}</FormLabel>
               <FormControl>
                 <Field>
                   <FieldIcon>
@@ -186,7 +186,7 @@ export default function Index() {
             name={"has_attachment"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/2"])}>
-                <FormLabel>{t("challenge.form.has_attachment._")}</FormLabel>
+                <FormLabel>{t("challenge:form.has_attachment._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -197,11 +197,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: t("challenge.form.has_attachment.true"),
+                          content: t("challenge:form.has_attachment.true"),
                         },
                         {
                           value: String(false),
-                          content: t("challenge.form.has_attachment.false"),
+                          content: t("challenge:form.has_attachment.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -220,7 +220,7 @@ export default function Index() {
             name={"dynamic"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/2"])}>
-                <FormLabel>{t("challenge.form.dynamic._")}</FormLabel>
+                <FormLabel>{t("challenge:form.dynamic._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -236,7 +236,7 @@ export default function Index() {
                               className={cn(["flex", "gap-2", "items-center"])}
                             >
                               <ShipWheelIcon />
-                              {t("challenge.form.dynamic.true")}
+                              {t("challenge:form.dynamic.true")}
                             </div>
                           ),
                         },
@@ -247,7 +247,7 @@ export default function Index() {
                               className={cn(["flex", "gap-2", "items-center"])}
                             >
                               <BoxIcon />
-                              {t("challenge.form.dynamic.false")}
+                              {t("challenge:form.dynamic.false")}
                             </div>
                           ),
                         },
@@ -268,7 +268,7 @@ export default function Index() {
             name={"has_writeup"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/2"])}>
-                <FormLabel>{t("challenge.form.has_writeup._")}</FormLabel>
+                <FormLabel>{t("challenge:form.has_writeup._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -279,11 +279,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: t("challenge.form.has_writeup.true"),
+                          content: t("challenge:form.has_writeup.true"),
                         },
                         {
                           value: String(false),
-                          content: t("challenge.form.has_writeup.false"),
+                          content: t("challenge:form.has_writeup.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -303,7 +303,7 @@ export default function Index() {
           name={"description"}
           render={({ field }) => (
             <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-              <FormLabel>{t("challenge.form.description._")}</FormLabel>
+              <FormLabel>{t("challenge:form.description._")}</FormLabel>
               <FormControl>
                 <MarkdownEditor
                   {...field}
@@ -323,7 +323,7 @@ export default function Index() {
           icon={<SaveIcon />}
           loading={loading}
         >
-          {t("common.actions.save")}
+          {t("common:actions.save")}
         </Button>
       </form>
     </Form>

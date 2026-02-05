@@ -54,7 +54,7 @@ function IdCell({ row }: { row: Row<Challenge> }) {
             onClick={() => copyToClipboard(String(id))}
           />
         </TooltipTrigger>
-        <TooltipContent>{t("common.tooltip.copy")}</TooltipContent>
+        <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
       </Tooltip>
     </div>
   );
@@ -77,7 +77,7 @@ function UpdatedAtHeader({ column }: { column: Column<Challenge> }) {
 
   return (
     <div className={cn(["flex", "gap-1", "items-center"])}>
-      {t("challenge.updated_at")}
+      {t("challenge:updated_at")}
       <Button
         icon={icon}
         square
@@ -105,7 +105,7 @@ function CreatedAtHeader({ column }: { column: Column<Challenge> }) {
 
   return (
     <div className={cn(["flex", "gap-1", "items-center"])}>
-      {t("challenge.created_at")}
+      {t("challenge:created_at")}
       <Button
         icon={icon}
         square
@@ -139,7 +139,7 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
     });
 
     if (res.code === StatusCodes.OK) {
-      toast.success(t("challenge.public.actions.success", { title }), {
+      toast.success(t("challenge:public.actions.success", { title }), {
         id: "publicness_change",
       });
       sharedStore?.setRefresh();
@@ -153,7 +153,7 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success(t("challenge.actions.delete.success", { title }));
+        toast.success(t("challenge:actions.delete.success", { title }));
         setDeleteDialogOpen(false);
       }
     } finally {
@@ -180,8 +180,8 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
         </TooltipTrigger>
         <TooltipContent>
           {checked
-            ? t("challenge.public.actions.false")
-            : t("challenge.public.actions.true")}
+            ? t("challenge:public.actions.false")
+            : t("challenge:public.actions.true")}
         </TooltipContent>
       </Tooltip>
 
@@ -207,11 +207,11 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
           >
             <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
               <TrashIcon className={cn(["size-4", "text-error"])} />
-              {t("challenge.actions.delete._")}
+              {t("challenge:actions.delete._")}
             </div>
             <p className={cn(["text-sm"])}>
               <Trans
-                i18nKey={"challenge.actions.delete.message"}
+                i18nKey={"challenge:actions.delete.message"}
                 values={{ title }}
                 components={{
                   muted: <span className={cn(["text-muted-foreground"])} />,
@@ -225,7 +225,7 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
                 size={"sm"}
                 onClick={handleDelete}
               >
-                {t("common.actions.confirm")}
+                {t("common:actions.confirm")}
               </Button>
             </div>
           </Card>
@@ -249,7 +249,7 @@ function useColumns() {
       {
         accessorKey: "title",
         id: "title",
-        header: t("challenge.title"),
+        header: t("challenge:title"),
         cell: ({ row }) => (
           <div
             className={cn([
@@ -265,7 +265,7 @@ function useColumns() {
       },
       {
         accessorKey: "category",
-        header: t("challenge.category"),
+        header: t("challenge:category"),
         cell: ({ row }) => {
           const categoryId = row.original.category!;
           const category = getCategory(categoryId);
@@ -282,7 +282,7 @@ function useColumns() {
       {
         accessorKey: "tags",
         id: "tags",
-        header: t("challenge.tags"),
+        header: t("challenge:tags"),
         cell: ({ row }) => {
           const tags = row.original.tags;
 
@@ -297,7 +297,7 @@ function useColumns() {
       },
       {
         accessorKey: "has_attachment",
-        header: t("challenge.has_attachment"),
+        header: t("challenge:has_attachment"),
         cell: ({ row }) => {
           const hasAttachment = row.original.has_attachment;
 
@@ -321,7 +321,7 @@ function useColumns() {
       },
       {
         accessorKey: "dynamic",
-        header: t("challenge.dynamic._"),
+        header: t("challenge:dynamic._"),
         cell: ({ row }) => {
           const isDynamic = row.original.dynamic;
 
@@ -335,8 +335,8 @@ function useColumns() {
             >
               {isDynamic ? <ShipWheelIcon /> : <BoxIcon />}
               {isDynamic
-                ? t("challenge.dynamic.true")
-                : t("challenge.dynamic.false")}
+                ? t("challenge:dynamic.true")
+                : t("challenge:dynamic.false")}
             </Badge>
           );
         },
@@ -369,7 +369,7 @@ function useColumns() {
         id: "actions",
         header: () => (
           <div className={cn(["justify-self-center"])}>
-            {t("challenge.actions._")}
+            {t("challenge:actions._")}
           </div>
         ),
         cell: ActionsCell,

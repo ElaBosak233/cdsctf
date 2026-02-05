@@ -80,7 +80,7 @@ function ChallengeCard(props: ChallengeCardProps) {
             />
           </TooltipTrigger>
           <TooltipContent onClick={(e) => e.stopPropagation()} sideOffset={0}>
-            {t("submission.solved")}
+            {t("submission:solved")}
           </TooltipContent>
         </Tooltip>
       )}
@@ -101,7 +101,7 @@ function ChallengeCard(props: ChallengeCardProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <span className={cn(["text-sm"])}>
-              {t("submission.solves", {
+              {t("submission:solves", {
                 count: debug ? NaN : status?.solved_times || 0,
               })}
             </span>

@@ -61,7 +61,7 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <title>{`${t("admin.home._")} - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("admin:home._")} - ${configStore?.config?.meta?.title}`}</title>
       <div className={cn(["p-10", "xl:mx-60", "lg:mx-30"])}>
         <h1
           className={cn([
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
           ])}
         >
           <HousePlugIcon />
-          {t("admin.home._")}
+          {t("admin:home._")}
         </h1>
         <div
           className={cn([
@@ -87,22 +87,22 @@ export default function AdminDashboard() {
         >
           <StatCard
             icon={<UserRoundIcon className={cn(["size-5"])} />}
-            label={t("admin.home.statistics.users")}
+            label={t("admin:home.statistics.users")}
             value={statistics?.users}
           />
           <StatCard
             icon={<FlagIcon className={cn(["size-5"])} />}
-            label={t("admin.home.statistics.games")}
+            label={t("admin:home.statistics.games")}
             value={statistics?.games}
           />
           <StatCard
             icon={<LibraryIcon className={cn(["size-5"])} />}
-            label={t("admin.home.statistics.challenges")}
+            label={t("admin:home.statistics.challenges")}
             value={statistics?.challenges?.total}
           />
           <StatCard
             icon={<SendIcon className={cn(["size-5"])} />}
-            label={t("admin.home.statistics.submissions")}
+            label={t("admin:home.statistics.submissions")}
             value={statistics?.submissions?.total}
           />
         </div>

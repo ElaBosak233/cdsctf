@@ -143,7 +143,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
               className="absolute left-6 bottom-4 flex items-center text-secondary-foreground space-x-2"
             >
               <LoaderCircleIcon className="animate-spin w-4 h-4" />
-              <span>{t("common.loading")}...</span>
+              <span>{t("common:loading")}...</span>
             </motion.div>
           </motion.div>
         </motion.div>

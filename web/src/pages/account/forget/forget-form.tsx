@@ -38,14 +38,14 @@ function ForgetForm() {
   const formSchema = z.object({
     email: z
       .string({
-        message: t("account.forget.form.email.message"),
+        message: t("account:forget.form.email.message"),
       })
       .email(),
     code: z.string({
-      message: t("account.forget.form.code.message"),
+      message: t("account:forget.form.code.message"),
     }),
     password: z.string({
-      message: t("account.forget.form.password.message"),
+      message: t("account:forget.form.password.message"),
     }),
     captcha: z
       .object({
@@ -67,14 +67,14 @@ function ForgetForm() {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           authStore.setUser(res.data);
-          toast.success(t("account.forget.toast.success._"), {
-            description: t("account.forget.toast.success.desc"),
+          toast.success(t("account:forget.toast.success._"), {
+            description: t("account:forget.toast.success.desc"),
           });
           navigate("/account/login");
         }
 
         if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.error(t("common.errors.default"), {
+          toast.error(t("common:errors.default"), {
             description: res.msg,
           });
         }
@@ -91,17 +91,17 @@ function ForgetForm() {
       email: form.getValues().email,
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success(t("account.forget.toast.code_sent"));
+        toast.success(t("account:forget.toast.code_sent"));
       }
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error(t("common.errors.default"), {
+        toast.error(t("common:errors.default"), {
           description: res.msg,
         });
       }
 
       if (res.code === StatusCodes.NOT_FOUND) {
-        toast.error(t("account.forget.toast.not_found"));
+        toast.error(t("account:forget.toast.not_found"));
       }
     });
   }
@@ -119,14 +119,14 @@ function ForgetForm() {
             name={"email"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("account.forget.form.email._")}</FormLabel>
+                <FormLabel>{t("account:forget.form.email._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
                       <MailIcon />
                     </FieldIcon>
                     <TextField
-                      placeholder={t("account.forget.form.email._")}
+                      placeholder={t("account:forget.form.email._")}
                       {...field}
                     />
                   </Field>
@@ -141,14 +141,14 @@ function ForgetForm() {
               name={"code"}
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
-                  <FormLabel>{t("account.forget.form.code._")}</FormLabel>
+                  <FormLabel>{t("account:forget.form.code._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
                         <MailIcon />
                       </FieldIcon>
                       <TextField
-                        placeholder={t("account.forget.form.code._")}
+                        placeholder={t("account:forget.form.code._")}
                         {...field}
                       />
                       <FieldButton
@@ -157,7 +157,7 @@ function ForgetForm() {
                         className={cn(["aspect-auto"])}
                         disabled={!form.watch("email")?.trim()}
                       >
-                        {t("account.forget.form.code.request")}
+                        {t("account:forget.form.code.request")}
                       </FieldButton>
                     </Field>
                   </FormControl>
@@ -171,14 +171,14 @@ function ForgetForm() {
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("account.forget.form.password._")}</FormLabel>
+                <FormLabel>{t("account:forget.form.password._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
                       <LockIcon />
                     </FieldIcon>
                     <TextField
-                      placeholder={t("account.forget.form.password._")}
+                      placeholder={t("account:forget.form.password._")}
                       type={"password"}
                       {...field}
                     />
@@ -193,7 +193,7 @@ function ForgetForm() {
               name={"captcha"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("account.forget.form.captcha._")}</FormLabel>
+                  <FormLabel>{t("account:forget.form.captcha._")}</FormLabel>
                   <Captcha ref={captchaRef} onChange={field.onChange} />
                 </FormItem>
               )}
@@ -209,7 +209,7 @@ function ForgetForm() {
           icon={<CheckIcon />}
           loading={loading}
         >
-          {t("account.forget.form.submit")}
+          {t("account:forget.form.submit")}
         </Button>
       </form>
     </Form>

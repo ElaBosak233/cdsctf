@@ -44,21 +44,21 @@ function RegisterForm() {
     .object({
       username: z
         .string({
-          message: t("account.register.form.username.message"),
+          message: t("account:register.form.username.message"),
         })
-        .regex(/^[a-z]/, t("account.register.form.username.start_lower"))
-        .regex(/^[a-z0-9]*$/, t("account.register.form.username.chars")),
+        .regex(/^[a-z]/, t("account:register.form.username.start_lower"))
+        .regex(/^[a-z0-9]*$/, t("account:register.form.username.chars")),
       name: z.string({
-        message: t("account.register.form.name.message"),
+        message: t("account:register.form.name.message"),
       }),
-      email: z.email(t("account.register.form.email.invalid")),
+      email: z.email(t("account:register.form.email.invalid")),
       password: z
         .string({
-          message: t("account.register.form.password.message"),
+          message: t("account:register.form.password.message"),
         })
-        .min(6, t("account.register.form.password.min")),
+        .min(6, t("account:register.form.password.min")),
       confirm_password: z.string({
-        message: t("account.register.form.confirm_password.message"),
+        message: t("account:register.form.confirm_password.message"),
       }),
       captcha: z
         .object({
@@ -68,7 +68,7 @@ function RegisterForm() {
         .optional(),
     })
     .refine((data) => data.password === data.confirm_password, {
-      message: t("account.register.form.confirm_password.mismatch"),
+      message: t("account:register.form.confirm_password.mismatch"),
       path: ["confirm_password"],
     });
 
@@ -84,9 +84,9 @@ function RegisterForm() {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success(t("account.register.toast.success._"), {
+        toast.success(t("account:register.toast.success._"), {
           id: "register-success",
-          description: t("account.register.toast.success.desc"),
+          description: t("account:register.toast.success.desc"),
         });
         navigate("/account/login");
       }
@@ -95,16 +95,16 @@ function RegisterForm() {
       const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.success(t("account.register.toast.failure._"), {
+        toast.success(t("account:register.toast.failure._"), {
           id: "register-error",
           description: res.msg,
         });
       }
 
       if (res.code === StatusCodes.CONFLICT) {
-        toast.success(t("account.register.toast.failure._"), {
+        toast.success(t("account:register.toast.failure._"), {
           id: "register-error",
-          description: t("account.register.toast.failure.conflict"),
+          description: t("account:register.toast.failure.conflict"),
         });
       }
 
@@ -128,7 +128,7 @@ function RegisterForm() {
               name={"username"}
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
-                  <FormLabel>{t("account.register.form.username._")}</FormLabel>
+                  <FormLabel>{t("account:register.form.username._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -136,7 +136,7 @@ function RegisterForm() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder={t("account.register.form.username._")}
+                        placeholder={t("account:register.form.username._")}
                       />
                     </Field>
                   </FormControl>
@@ -149,7 +149,7 @@ function RegisterForm() {
               name={"name"}
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
-                  <FormLabel>{t("account.register.form.name._")}</FormLabel>
+                  <FormLabel>{t("account:register.form.name._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -157,7 +157,7 @@ function RegisterForm() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder={t("account.register.form.name._")}
+                        placeholder={t("account:register.form.name._")}
                       />
                     </Field>
                   </FormControl>
@@ -171,7 +171,7 @@ function RegisterForm() {
             name={"email"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("account.register.form.email._")}</FormLabel>
+                <FormLabel>{t("account:register.form.email._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -179,7 +179,7 @@ function RegisterForm() {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={t("account.register.form.email._")}
+                      placeholder={t("account:register.form.email._")}
                     />
                   </Field>
                 </FormControl>
@@ -192,7 +192,7 @@ function RegisterForm() {
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("account.register.form.password._")}</FormLabel>
+                <FormLabel>{t("account:register.form.password._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -201,7 +201,7 @@ function RegisterForm() {
                     <TextField
                       type={"password"}
                       {...field}
-                      placeholder={t("account.register.form.password._")}
+                      placeholder={t("account:register.form.password._")}
                     />
                   </Field>
                 </FormControl>
@@ -215,7 +215,7 @@ function RegisterForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {t("account.register.form.confirm_password._")}
+                  {t("account:register.form.confirm_password._")}
                 </FormLabel>
                 <FormControl>
                   <Field>
@@ -226,7 +226,7 @@ function RegisterForm() {
                       type={"password"}
                       {...field}
                       placeholder={t(
-                        "account.register.form.confirm_password._"
+                        "account:register.form.confirm_password._"
                       )}
                     />
                   </Field>
@@ -240,7 +240,7 @@ function RegisterForm() {
               name={"captcha"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("account.register.form.captcha._")}</FormLabel>
+                  <FormLabel>{t("account:register.form.captcha._")}</FormLabel>
                   <Captcha ref={captchaRef} onChange={field.onChange} />
                 </FormItem>
               )}
@@ -256,7 +256,7 @@ function RegisterForm() {
           icon={<CheckIcon />}
           loading={loading}
         >
-          {t("account.register.submit")}
+          {t("account:register.submit")}
         </Button>
       </form>
     </Form>

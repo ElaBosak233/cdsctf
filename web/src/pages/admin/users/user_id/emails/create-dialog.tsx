@@ -41,7 +41,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
 
   const formSchema = z.object({
     email: z.email({
-      message: t("user.emails.form.email.message"),
+      message: t("user:emails.form.email.message"),
     }),
     verified: z.boolean(),
   });
@@ -64,7 +64,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
 
     if (res.code === StatusCodes.OK) {
       toast.success(
-        t("user.emails.actions.create.success", { email: values.email })
+        t("user:emails.actions.create.success", { email: values.email })
       );
       onSuccess();
       onClose();
@@ -81,7 +81,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
     <Card className={cn(["w-lg", "p-6", "flex", "flex-col", "gap-6"])}>
       <div className={cn(["flex", "items-center", "gap-2", "text-sm"])}>
         <MailPlusIcon className={cn(["size-4"])} />
-        {t("user.emails.actions.create._")}
+        {t("user:emails.actions.create._")}
       </div>
       <Form {...form}>
         <form
@@ -94,7 +94,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
             name={"email"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("user.emails.form.email._")}</FormLabel>
+                <FormLabel>{t("user:emails.form.email._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -131,10 +131,10 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
                 <div className={cn(["space-y-1"])}>
                   <FormLabel className={cn(["flex", "items-center", "gap-2"])}>
                     <ShieldCheckIcon className={cn(["size-4"])} />
-                    {t("user.emails.form.verified._")}
+                    {t("user:emails.form.verified._")}
                   </FormLabel>
                   <p className={cn(["text-muted-foreground", "text-sm"])}>
-                    {t("user.emails.form.verified.message")}
+                    {t("user:emails.form.verified.message")}
                   </p>
                 </div>
                 <FormControl>
@@ -155,7 +155,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
             loading={loading}
             level={"success"}
           >
-            {t("common.actions.confirm")}
+            {t("common:actions.confirm")}
           </Button>
         </form>
       </Form>

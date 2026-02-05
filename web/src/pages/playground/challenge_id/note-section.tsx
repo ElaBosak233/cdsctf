@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import z from "zod";
 import { getMyNotes, saveMyNote } from "@/api/users/me/notes";
@@ -32,6 +33,7 @@ function useNoteQuery(userId?: number, challengeId?: number) {
 }
 
 function NoteSection() {
+  const { t } = useTranslation();
   const authStore = useAuthStore();
   const { challenge } = useContext(Context);
 
@@ -68,7 +70,7 @@ function NoteSection() {
     });
 
     if (res.code === StatusCodes.OK) {
-      toast.success(`笔记保存成功`);
+      toast.success(t("challenge:note_save_success"));
     }
   }
 
@@ -77,13 +79,15 @@ function NoteSection() {
       {mode === "edit" && (
         <MarkdownEditor
           className={cn(["h-full"])}
-          placeholder={"Note your solution here..."}
+          placeholder={t("challenge:note_placeholder")}
           value={form.getValues("content")}
           onChange={(value) => form.setValue("content", value)}
         />
       )}
       {mode === "view" && (
-        <ScrollArea className={cn(["h-full", "overflow-auto"])}>
+        <ScrollArea
+          className={cn(["h-full", "min-h-0", "overflow-hidden"])}
+        >
           <Typography className={cn(["p-5"])}>
             <MarkdownRender src={form.getValues("content")} />
           </Typography>

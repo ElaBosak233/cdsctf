@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { StarIcon } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { getSubmission } from "@/api/submissions";
 import { Avatar } from "@/components/ui/avatar";
@@ -58,11 +59,12 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
     placeholderData: keepPreviousData,
   });
 
+  const { t } = useTranslation();
   const columns: Array<ColumnDef<Submission>> = [
     {
       accessorKey: "user_id",
       id: "user_id",
-      header: "用户",
+      header: t("game:scoreboard.columns.user"),
       cell: ({ row }) => (
         <div className={cn(["flex", "items-center", "gap-4"])}>
           <Avatar
@@ -85,7 +87,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
     {
       accessorKey: "challenge_id",
       id: "challenge_id",
-      header: "题目",
+      header: t("game:scoreboard.columns.challenge"),
       cell: ({ row }) => {
         return (
           <div className={cn(["flex", "items-center", "gap-3"])}>
@@ -97,7 +99,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
     {
       accessorKey: "pts",
       id: "pts",
-      header: "分数",
+      header: t("game:scoreboard.columns.score"),
       cell: ({ row }) => (
         <span className={cn(["font-mono"])}>{row.original.pts}</span>
       ),
@@ -105,7 +107,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
     {
       accessorKey: "created_at",
       id: "created_at",
-      header: "时间",
+      header: t("game:scoreboard.columns.time"),
       cell: ({ row }) => (
         <span className={cn(["font-mono", "text-secondary-foreground"])}>
           {new Date(Number(row.original.created_at) * 1000).toLocaleString()}
@@ -161,7 +163,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
               {team.name}
             </span>
             <span className={cn(["text-secondary-foreground", "text-sm"])}>
-              {team.slogan || "这个小队很懒，什么也没留下。"}
+              {team.slogan || t("team:slogan.empty")}
             </span>
           </div>
         </div>

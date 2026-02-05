@@ -35,13 +35,13 @@ function CreateDialog(props: CreateDialogProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const formSchema = z.object({
     title: z.string({
-      message: t("game.form.title.message"),
+      message: t("game:form.title.message"),
     }),
     started_at: z.date({
-      message: t("game.form.started_at.message"),
+      message: t("game:form.started_at.message"),
     }),
     ended_at: z.date({
-      message: t("game.form.ended_at.message"),
+      message: t("game:form.ended_at.message"),
     }),
   });
 
@@ -63,7 +63,7 @@ function CreateDialog(props: CreateDialogProps) {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           toast.success(
-            t("game.actions.create.success", { title: res?.data?.title })
+            t("game:actions.create.success", { title: res?.data?.title })
           );
           onClose();
         }
@@ -79,7 +79,7 @@ function CreateDialog(props: CreateDialogProps) {
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <FlagIcon className={cn(["size-4"])} />
-        {t("game.actions.create._")}
+        {t("game:actions.create._")}
       </h3>
       <Form {...form}>
         <form
@@ -92,7 +92,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"title"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("game.form.title._")}</FormLabel>
+                <FormLabel>{t("game:form.title._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -115,7 +115,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"started_at"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("game.form.started_at._")}</FormLabel>
+                <FormLabel>{t("game:form.started_at._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -133,7 +133,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"ended_at"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("game.form.ended_at._")}</FormLabel>
+                <FormLabel>{t("game:form.ended_at._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -153,7 +153,7 @@ function CreateDialog(props: CreateDialogProps) {
             level={"success"}
             loading={loading}
           >
-            {t("common.actions.confirm")}
+            {t("common:actions.confirm")}
           </Button>
         </form>
       </Form>

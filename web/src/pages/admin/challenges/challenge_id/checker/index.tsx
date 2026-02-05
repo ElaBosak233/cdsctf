@@ -40,7 +40,7 @@ export default function Index() {
 
   const formSchema = z.object({
     checker: z.string({
-      message: "请为检查器编写脚本",
+      message: t("challenge:checker.form.script_required"),
     }),
   });
 
@@ -65,7 +65,7 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`题目 ${challenge?.title} 检查器更新成功`);
+          toast.success(t("challenge:checker.actions.update_success", { title: challenge?.title }));
         }
       })
       .finally(() => {
@@ -100,19 +100,19 @@ export default function Index() {
               <LayoutTemplateIcon />
             </FieldIcon>
             <Select
-              placeholder={t("challenge.checker.templates._")}
+              placeholder={t("challenge:checker.templates._")}
               options={[
                 {
                   value: "simple",
-                  content: t("challenge.checker.templates.simple"),
+                  content: t("challenge:checker.templates.simple"),
                 },
                 {
                   value: "suid",
-                  content: t("challenge.checker.templates.suid"),
+                  content: t("challenge:checker.templates.suid"),
                 },
                 {
                   value: "leet",
-                  content: t("challenge.checker.templates.leet"),
+                  content: t("challenge:checker.templates.leet"),
                 },
               ]}
               onValueChange={(value: "simple" | "suid" | "leet") => {
@@ -127,7 +127,7 @@ export default function Index() {
             size={"sm"}
             icon={<SaveIcon />}
           >
-            {t("common.actions.save")}
+            {t("common:actions.save")}
           </Button>
         </div>
         <FormField

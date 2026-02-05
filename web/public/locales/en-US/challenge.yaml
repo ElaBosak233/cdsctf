@@ -9,6 +9,10 @@ edit:
   env: Dynamic Environment
   writeup: Write-up
 preview: Preview Challenge
+note: Note
+note_placeholder: Note your solution here...
+note_save_success: Note saved successfully.
+writeup_official: Official Write-up
 title: Title
 description: Description
 category: Category
@@ -30,6 +34,10 @@ public:
 updated_at: Updated At
 created_at: Created At
 checker:
+  form:
+    script_required: Please write a script for the checker.
+  actions:
+    update_success: "Checker for challenge {{title}} updated successfully."
   templates:
     _: Select a preset template
     simple: Simple fixed string judgment
@@ -39,6 +47,9 @@ attachment:
   empty: "Oops, it seems there are no attachments yet."
   upload:
     _: Upload Attachment
+    progress: "Upload progress {{percent}}%"
+    success: File uploaded successfully.
+    error: File upload failed.
     hint: >-
       The attachment will be directly hosted by the server. It is recommended to
       fully consider factors such as storage space and traffic.
@@ -87,6 +98,16 @@ form:
     _: Write-up
     message: Please enter write-up
   env:
+    actions:
+      update_success: "Dynamic environment for challenge {{title}} updated successfully."
+    container_create_error: Error occurred while creating container, destroy will be triggered.
+    renew_success: Renewed successfully.
+    renew_error: Renew failed.
+    container_stop_sent: Container stop command sent.
+    container_creating: Sending container create request.
+    container_start_sent: Container start command sent.
+    container_start_description: This may take a while.
+    error: An error occurred.
     duration:
       _: Duration (seconds)
       message: Please enter duration in seconds
@@ -136,6 +157,10 @@ actions:
   _: Actions
   create:
     _: Create Challenge
+  update:
+    success: "Challenge {{title}} updated successfully."
+  writeup_update:
+    success: "Write-up for challenge {{title}} updated successfully."
   delete:
     _: Delete Challenge
     message: "Are you sure you want to delete the challenge <muted>{{title}}</muted>?"

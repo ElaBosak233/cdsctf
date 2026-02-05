@@ -44,17 +44,17 @@ export default function Layout() {
   const options = [
     {
       link: `/games/${currentGame?.id}/team`,
-      name: t("team.info"),
+      name: t("team:info"),
       icon: <InfoIcon />,
     },
     {
       link: `/games/${currentGame?.id}/team/members`,
-      name: t("team.members"),
+      name: t("team:members"),
       icon: <UsersRoundIcon />,
     },
     {
       link: `/games/${currentGame?.id}/team/writeup`,
-      name: t("team.write_up._"),
+      name: t("team:write_up._"),
       icon: <FilePenIcon />,
       disabled: !currentGame?.writeup_required || !isGameOngoing,
     },
@@ -70,8 +70,10 @@ export default function Layout() {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success("准备成功", {
-          description: `${selfTeam?.name} 即将登场！`,
+        toast.success(t("team:actions.ready.success"), {
+          description: t("team:actions.ready.description", {
+            name: selfTeam?.name,
+          }),
         });
         setConfirmDialogOpen(false);
       }
@@ -80,7 +82,7 @@ export default function Layout() {
       const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error("发生了错误", {
+        toast.error(t("common:errors.default"), {
           description: res.msg,
         });
       }
@@ -99,8 +101,10 @@ export default function Layout() {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success("解散成功", {
-          description: `已解散团队 ${selfTeam?.name}`,
+        toast.success(t("team:actions.disband.success"), {
+          description: t("team:actions.disband.description", {
+            name: selfTeam?.name,
+          }),
         });
         setDisbandDialogOpen(false);
         navigate(`/games/${currentGame?.id}`);
@@ -121,8 +125,10 @@ export default function Layout() {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success("离队成功", {
-          description: `已离开团队 ${selfTeam?.name}`,
+        toast.success(t("team:actions.leave.success"), {
+          description: t("team:actions.leave.description", {
+            name: selfTeam?.name,
+          }),
         });
         setDisbandDialogOpen(false);
         navigate(`/games/${currentGame?.id}`);
@@ -132,7 +138,7 @@ export default function Layout() {
       const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error("离队失败", {
+        toast.error(t("team:actions.leave.error"), {
           description: res.msg,
         });
       }
@@ -156,7 +162,6 @@ export default function Layout() {
           "border-r",
           "lg:sticky",
           "top-16",
-          "h-full",
         ])}
       >
         {options?.map((option, index) => (
@@ -183,7 +188,7 @@ export default function Layout() {
             disabled={selfTeam?.state !== State.Preparing || disabled}
             onClick={() => setDisbandDialogOpen(true)}
           >
-            {t("team.actions.disband._")}
+            {t("team:actions.disband._")}
           </Button>
           <Dialog onOpenChange={setDisbandDialogOpen} open={disbandDialogOpen}>
             <DialogContent>
@@ -194,10 +199,10 @@ export default function Layout() {
                   className={cn(["flex", "gap-3", "text-md", "items-center"])}
                 >
                   <UserRoundXIcon className={cn(["size-4"])} />
-                  {t("team.actions.disband._")}
+                  {t("team:actions.disband._")}
                 </h3>
                 <p className={cn(["text-sm"])}>
-                  {t("team.actions.disband.message")}
+                  {t("team:actions.disband.message")}
                 </p>
                 <Button
                   icon={<CheckCheckIcon />}
@@ -205,7 +210,7 @@ export default function Layout() {
                   variant={"solid"}
                   onClick={handleDisband}
                 >
-                  {t("common.actions.confirm")}
+                  {t("common:actions.confirm")}
                 </Button>
               </Card>
             </DialogContent>
@@ -222,7 +227,7 @@ export default function Layout() {
             }
             onClick={() => setLeaveDialogOpen(true)}
           >
-            {t("team.actions.leave._")}
+            {t("team:actions.leave._")}
           </Button>
           <Dialog onOpenChange={setLeaveDialogOpen} open={leaveDialogOpen}>
             <DialogContent>
@@ -233,10 +238,10 @@ export default function Layout() {
                   className={cn(["flex", "gap-3", "text-md", "items-center"])}
                 >
                   <UserRoundMinusIcon className={cn(["size-4"])} />
-                  {t("team.actions.leave._")}
+                  {t("team:actions.leave._")}
                 </h3>
                 <p className={cn(["text-sm"])}>
-                  {t("team.actions.leave.message")}
+                  {t("team:actions.leave.message")}
                 </p>
                 <Button
                   icon={<CheckCheckIcon />}
@@ -244,7 +249,7 @@ export default function Layout() {
                   variant={"solid"}
                   onClick={handleLeave}
                 >
-                  {t("common.actions.confirm")}
+                  {t("common:actions.confirm")}
                 </Button>
               </Card>
             </DialogContent>
@@ -262,18 +267,18 @@ export default function Layout() {
           onClick={() => setConfirmDialogOpen(true)}
         >
           {selfTeam?.state === State.Preparing
-            ? t("team.actions.ready._")
-            : t("team.actions.locked")}
+            ? t("team:actions.ready._")
+            : t("team:actions.locked")}
         </Button>
         <Dialog onOpenChange={setConfirmDialogOpen} open={confirmDialogOpen}>
           <DialogContent>
             <Card className={cn(["flex", "flex-col", "w-lg", "p-5", "gap-5"])}>
               <h3 className={cn(["flex", "gap-3", "text-md", "items-center"])}>
                 <TriangleAlertIcon className={cn(["size-4"])} />
-                {t("team.actions.ready.title")}
+                {t("team:actions.ready.title")}
               </h3>
               <p className={cn(["text-sm"])}>
-                {t("team.actions.ready.message")}
+                {t("team:actions.ready.message")}
               </p>
               <Button
                 icon={<CheckCheckIcon />}
@@ -281,7 +286,7 @@ export default function Layout() {
                 variant={"solid"}
                 onClick={handleSetReady}
               >
-                {t("team.actions.ready.of_course")}
+                {t("team:actions.ready.of_course")}
               </Button>
             </Card>
           </DialogContent>

@@ -32,10 +32,10 @@ export default function Index() {
           ])}
         >
           <MailIcon />
-          {t("account.forgot")}
+          {t("account:forgot")}
         </div>
         <div className={cn(["text-sm", "text-secondary-foreground"])}>
-          {t("account.forget.subtitle")}
+          {t("account:forget.subtitle")}
         </div>
         <div className={cn(["pt-6"])}>
           <ForgetForm />

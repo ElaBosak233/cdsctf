@@ -225,6 +225,10 @@ const router = createBrowserRouter([
           },
           {
             path: "challenges",
+            lazy: async () => ({
+              Component: (await import("@/pages/admin/challenges/layout"))
+                .default,
+            }),
             children: [
               {
                 index: true,
@@ -305,6 +309,9 @@ const router = createBrowserRouter([
           },
           {
             path: "games",
+            lazy: async () => ({
+              Component: (await import("@/pages/admin/games/layout")).default,
+            }),
             children: [
               {
                 index: true,
@@ -357,6 +364,9 @@ const router = createBrowserRouter([
           },
           {
             path: "users",
+            lazy: async () => ({
+              Component: (await import("@/pages/admin/users/layout")).default,
+            }),
             children: [
               {
                 index: true,

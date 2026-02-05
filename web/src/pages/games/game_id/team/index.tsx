@@ -46,7 +46,7 @@ export default function Index() {
 
   const formSchema = z.object({
     name: z.string({
-      message: "请输入队名",
+      message: t("team:form.name.required"),
     }),
     email: z.string().nullish(),
     description: z.string().nullish(),
@@ -74,7 +74,9 @@ export default function Index() {
         ...values,
       });
       if (res.code === StatusCodes.OK) {
-        toast.success(`团队 ${res?.data?.name} 更新成功`);
+        toast.success(
+          t("team:actions.update.success", { name: res?.data?.name })
+        );
       }
     } finally {
       setRefresh();
@@ -94,19 +96,22 @@ export default function Index() {
         `/api/games/${currentGame?.id}/teams/us/avatar`,
         [file],
         ({ percent }) => {
-          toast.loading(`上传进度 ${percent.toFixed(0)}%`, {
-            id: "team-avatar-upload",
-          });
+          toast.loading(
+            t("team:avatar.upload.progress", { percent: percent.toFixed(0) }),
+            {
+              id: "team-avatar-upload",
+            }
+          );
         }
       );
       if (res.code === StatusCodes.OK) {
-        toast.success("头像上传成功", {
+        toast.success(t("team:avatar.upload.success"), {
           id: "team-avatar-upload",
         });
         setRefresh();
       }
     } catch {
-      toast.error("头像上传失败");
+      toast.error(t("team:avatar.upload.error"));
     }
 
     event.target.value = "";
@@ -120,7 +125,9 @@ export default function Index() {
         team_id: selfTeam.id!,
       });
       if (res.code === StatusCodes.OK) {
-        toast.success(`团队 ${selfTeam?.name} 头像删除成功`);
+        toast.success(
+          t("team:avatar.team_delete_success", { name: selfTeam?.name })
+        );
       }
     } finally {
       setRefresh();
@@ -129,7 +136,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("team._")} - ${currentGame?.title}`}</title>
+      <title>{`${t("team:_")} - ${currentGame?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -153,7 +160,7 @@ export default function Index() {
                   name={"name"}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("team.name")}</FormLabel>
+                      <FormLabel>{t("team:name")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -161,7 +168,7 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             disabled={disabled}
-                            placeholder={t("team.name")}
+                            placeholder={t("team:name")}
                             {...field}
                             value={field.value || ""}
                             onChange={field.onChange}
@@ -177,7 +184,7 @@ export default function Index() {
                   name={"email"}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("team.email")}</FormLabel>
+                      <FormLabel>{t("team:email")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -185,7 +192,7 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             disabled={disabled}
-                            placeholder={t("team.email")}
+                            placeholder={t("team:email")}
                             {...field}
                             value={field.value || ""}
                             onChange={field.onChange}
@@ -206,7 +213,7 @@ export default function Index() {
                     "justify-between",
                   ])}
                 >
-                  <Label>{t("team.avatar")}</Label>
+                  <Label>{t("team:avatar._")}</Label>
                 </div>
                 <Avatar
                   className={cn([
@@ -267,7 +274,7 @@ export default function Index() {
               name={"slogan"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("team.slogan._")}</FormLabel>
+                  <FormLabel>{t("team:slogan._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -275,7 +282,7 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         disabled={disabled}
-                        placeholder={t("team.slogan._")}
+                        placeholder={t("team:slogan._")}
                         {...field}
                         value={field.value || ""}
                         onChange={field.onChange}
@@ -295,7 +302,7 @@ export default function Index() {
               loading={loading}
               disabled={disabled}
             >
-              {t("common.actions.save")}
+              {t("common:actions.save")}
             </Button>
           </form>
         </Form>

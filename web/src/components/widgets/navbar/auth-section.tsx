@@ -74,7 +74,7 @@ function AuthSection() {
           <DropdownMenuItem asChild>
             <Link to={"/account/settings"}>
               <SettingsIcon />
-              {t("account.setting")}
+              {t("account:setting")}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -82,7 +82,7 @@ function AuthSection() {
             onClick={handleLogout}
           >
             <LogOutIcon />
-            {t("account.logout")}
+            {t("account:logout")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -91,7 +91,7 @@ function AuthSection() {
 
   return (
     <Button asChild icon={<UserRoundIcon />}>
-      <Link to={"/account/login"}>{t("account.login._")}</Link>
+      <Link to={"/account/login"}>{t("account:login._")}</Link>
     </Button>
   );
 }

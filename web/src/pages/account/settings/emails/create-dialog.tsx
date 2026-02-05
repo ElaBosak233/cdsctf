@@ -28,7 +28,7 @@ function CreateDialog(props: CreateDialogProps) {
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    email: z.email(t("user.emails.form.email.message")),
+    email: z.email(t("user:emails.form.email.message")),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -41,7 +41,7 @@ function CreateDialog(props: CreateDialogProps) {
 
     if (res.code === 200) {
       toast.success(
-        t("user.emails.actions.create.success", { email: values.email })
+        t("user:emails.actions.create.success", { email: values.email })
       );
       onClose();
       bump();
@@ -52,7 +52,7 @@ function CreateDialog(props: CreateDialogProps) {
     <Card className={cn(["w-lg", "p-5", "flex", "flex-col", "gap-5"])}>
       <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
         <MailPlusIcon className={cn(["size-4"])} />
-        {t("user.emails.actions.create._")}
+        {t("user:emails.actions.create._")}
       </div>
       <Form {...form}>
         <form
@@ -84,7 +84,7 @@ function CreateDialog(props: CreateDialogProps) {
             size={"sm"}
             type={"submit"}
           >
-            {t("common.actions.confirm")}
+            {t("common:actions.confirm")}
           </Button>
         </form>
       </Form>

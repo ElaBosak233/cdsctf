@@ -39,10 +39,10 @@ export default function Index() {
   const formSchema = z
     .object({
       username: z.string({
-        message: t("user.delete_account.form.username.messages._"),
+        message: t("user:delete_account.form.username.messages._"),
       }),
       password: z.string({
-        message: t("user.form.password.messages._"),
+        message: t("user:form.password.messages._"),
       }),
       captcha: z
         .object({
@@ -52,7 +52,7 @@ export default function Index() {
         .nullish(),
     })
     .refine((data) => data.username === authStore?.user?.username, {
-      message: t("user.delete_account.form.username.messages.match"),
+      message: t("user:delete_account.form.username.messages.match"),
       path: ["username"],
     });
 
@@ -65,7 +65,7 @@ export default function Index() {
       ...values,
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success(t("user.delete_account.actions.delete.success"));
+        toast.success(t("user:delete_account.actions.delete.success"));
         authStore?.clear();
         navigate("/");
       }
@@ -78,7 +78,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("user.delete_account._")} - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("user:delete_account._")} - ${configStore?.config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -101,7 +101,7 @@ export default function Index() {
             ])}
           >
             <TriangleAlertIcon className={cn(["size-12"])} />
-            <span className={cn(["text-xl", "font-semibold"])}>最后警告</span>
+            <span className={cn(["text-xl", "font-semibold"])}>{t("user:delete_account.final_warning")}</span>
           </div>
           <Separator />
           <p className={cn(["font-bold"])}>
@@ -138,7 +138,7 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>
-                      {t("user.delete_account.form.username._")}
+                      {t("user:delete_account.form.username._")}
                     </FormLabel>
                     <Field>
                       <FieldIcon>
@@ -158,7 +158,7 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>
-                      {t("user.delete_account.form.password._")}
+                      {t("user:delete_account.form.password._")}
                     </FormLabel>
                     <Field>
                       <FieldIcon>
@@ -177,7 +177,7 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>
-                      {t("user.delete_account.form.captcha._")}
+                      {t("user:delete_account.form.captcha._")}
                     </FormLabel>
                     <Captcha onChange={field.onChange} />
                   </FormItem>
@@ -191,7 +191,7 @@ export default function Index() {
               icon={<CheckCheckIcon />}
               type={"submit"}
             >
-              {t("common.actions.confirm")}
+              {t("common:actions.confirm")}
             </Button>
           </form>
         </Form>

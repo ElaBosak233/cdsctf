@@ -97,8 +97,8 @@ function TeamCard() {
               >
                 <Link to={`/games/${selfTeam?.game_id}/team/writeup`}>
                   {selfTeam?.has_writeup
-                    ? t("team.write_up.actions.submit.done")
-                    : t("team.write_up.actions.submit._")}
+                    ? t("team:write_up.actions.submit.done")
+                    : t("team:write_up.actions.submit._")}
                 </Link>
               </Button>
             </div>

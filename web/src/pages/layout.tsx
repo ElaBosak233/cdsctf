@@ -72,7 +72,9 @@ export default function () {
   return (
     <div className={cn(["flex", "flex-col", "min-h-screen"])}>
       <Navbar />
-      <Outlet />
+      <div className={cn(["min-h-(--app-content-height)", "flex", "flex-col"])}>
+        <Outlet />
+      </div>
     </div>
   );
 }

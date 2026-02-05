@@ -29,7 +29,7 @@ function ActionsCell({ row }: { row: Row<GameNotice> }) {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           toast.success(
-            t("game.notice.actions.delete.success", {
+            t("game:notice.actions.delete.success", {
               title: row.original.title,
             })
           );
@@ -65,11 +65,11 @@ function ActionsCell({ row }: { row: Row<GameNotice> }) {
           >
             <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
               <TrashIcon className={cn(["size-4", "text-error"])} />
-              {t("game.notice.actions.delete._")}
+              {t("game:notice.actions.delete._")}
             </div>
             <p className={cn(["text-sm"])}>
               <Trans
-                i18nKey="game.notice.actions.delete.message"
+                i18nKey="game:notice.actions.delete.message"
                 values={{ title: row.original.title }}
                 components={{
                   muted: <span className={cn(["text-muted-foreground"])} />,
@@ -83,7 +83,7 @@ function ActionsCell({ row }: { row: Row<GameNotice> }) {
                 size={"sm"}
                 onClick={handleDelete}
               >
-                {t("common.actions.confirm")}
+                {t("common:actions.confirm")}
               </Button>
             </div>
           </Card>
@@ -110,19 +110,19 @@ function useColumns() {
       {
         accessorKey: "title",
         id: "title",
-        header: t("game.notice.title"),
+        header: t("game:notice.title"),
         cell: ({ row }) => row.original.title,
       },
       {
         accessorKey: "content",
-        header: t("game.notice.content"),
+        header: t("game:notice.content"),
         cell: ({ row }) => {
           const content = row.original.content;
 
           if (!content) return "-";
 
           return content.length > 10 ? (
-            <ContentDialog title={t("game.notice.content")} content={content} />
+            <ContentDialog title={t("game:notice.content")} content={content} />
           ) : (
             content
           );
@@ -131,7 +131,7 @@ function useColumns() {
       {
         accessorKey: "created_at",
         id: "created_at",
-        header: t("game.notice.created_at"),
+        header: t("game:notice.created_at"),
         cell: ({ row }) => {
           return new Date(
             row.getValue<number>("created_at") * 1000
@@ -142,7 +142,7 @@ function useColumns() {
         id: "actions",
         header: () => (
           <div className={cn(["justify-self-center"])}>
-            {t("game.notice.actions._")}
+            {t("game:notice.actions._")}
           </div>
         ),
         cell: ActionsCell,

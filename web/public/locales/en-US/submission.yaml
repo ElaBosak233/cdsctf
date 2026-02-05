@@ -1,5 +1,12 @@
 _: Submission
 solved: Solved
 solves: "{{count}} Solves"
+pending_review: Please wait for review, it will not take long.
 actions:
   submit: Submit
+result:
+  correct: Congratulations, submission accepted!
+  incorrect: Have another look?
+  cheat: Possible cheating detected, recorded.
+  timeout: Submission timed out.
+  duplicate: You have already solved this challenge.

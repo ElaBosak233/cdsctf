@@ -31,18 +31,18 @@ export function useOptions() {
         return [
           {
             link: `/games/${currentGame?.id}`,
-            name: t("common.home"),
+            name: t("common:home"),
             icon: <HouseIcon />,
           },
           {
             link: `/games/${currentGame?.id}/team`,
-            name: t("team._"),
+            name: t("team:_"),
             icon: <UsersRoundIcon />,
             disabled: !selfTeam?.id,
           },
           {
             link: `/games/${currentGame?.id}/challenges`,
-            name: t("challenge._"),
+            name: t("challenge:_"),
             icon: <StarIcon />,
             disabled:
               selfTeam?.state !== State.Passed ||
@@ -51,12 +51,12 @@ export function useOptions() {
           },
           {
             link: `/games/${currentGame?.id}/scoreboard`,
-            name: t("game.scoreboard._"),
+            name: t("game:scoreboard._"),
             icon: <ChartNoAxesCombinedIcon />,
           },
           {
             link: `/games`,
-            name: t("common.exit"),
+            name: t("common:exit"),
             icon: <LogOutIcon />,
             warning: true,
           },
@@ -65,17 +65,17 @@ export function useOptions() {
         return [
           {
             link: "/",
-            name: t("common.home"),
+            name: t("common:home"),
             icon: <HouseIcon />,
           },
           {
             link: "/playground",
-            name: t("challenge.playground"),
+            name: t("challenge:playground"),
             icon: <LibraryIcon />,
           },
           {
             link: "/games",
-            name: t("game._"),
+            name: t("game:_"),
             icon: <FlagIcon />,
           },
         ];

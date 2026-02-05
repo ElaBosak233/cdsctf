@@ -9,6 +9,12 @@ home:
 platform:
   _: 平台
   logo: 标志
+  logo_upload:
+    progress: "上传进度 {{percent}}%"
+    success: 标志更新成功。
+    error: 标志上传失败。
+  logo_reset:
+    success: 标志重置成功。
   auth:
     registration_enabled:
       "true": 允许

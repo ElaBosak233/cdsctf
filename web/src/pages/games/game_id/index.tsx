@@ -17,7 +17,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Image } from "@/components/ui/image";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { MarkdownRender } from "@/components/ui/markdown-render";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Typography } from "@/components/ui/typography";
 import { useTickerTime } from "@/hooks/use-ticker-time";
 import { State } from "@/models/team";
@@ -48,195 +47,191 @@ export default function Index() {
   return (
     <>
       <title>{`${currentGame?.title}`}</title>
-      <ScrollArea className={cn(["flex-1", "min-h-0"])}>
+      <div
+        className={cn([
+          "w-full",
+          "flex",
+          "flex-col",
+          "lg:px-10",
+          "xl:px-30",
+          "lg:flex-row",
+          "justify-center",
+          "gap-12",
+        ])}
+      >
         <div
           className={cn([
             "w-full",
+            "lg:sticky",
+            "lg:top-16",
+            "lg:w-2/5",
+            "lg:h-(--app-content-height)",
             "flex",
             "flex-col",
-            "lg:px-10",
-            "xl:px-30",
-            "lg:flex-row",
-            "justify-center",
-            "gap-12",
+            "lg:justify-between",
+            "py-10",
+            "px-20",
+            "lg:px-0",
+            "gap-10",
           ])}
         >
-          <div
-            className={cn([
-              "w-full",
-              "lg:sticky",
-              "lg:top-0",
-              "lg:w-2/5",
-              "lg:h-[calc(100vh-64px)]",
-              "flex",
-              "flex-col",
-              "lg:justify-between",
-              "py-10",
-              "px-20",
-              "lg:px-0",
-              "gap-10",
-            ])}
-          >
-            <div className={cn(["flex", "flex-col", "gap-5", "items-center"])}>
-              <Image
-                src={currentGame?.has_poster && `/api/games/${game_id}/poster`}
-                className={cn([
-                  "object-cover",
-                  "rounded-xl",
-                  "overflow-hidden",
-                  "border",
-                  "aspect-video",
-                  "w-full",
-                  "bg-card/50",
-                  "shadow-sm",
-                  "select-none",
-                ])}
-                fallback={
-                  <FlagIcon
-                    className={cn([
-                      "size-20",
-                      "rotate-15",
-                      "text-secondary-foreground",
-                    ])}
-                    strokeWidth={1}
-                  />
-                }
-              />
-              <h2 className={cn(["text-2xl"])}>{currentGame?.title}</h2>
-              {currentGame?.sketch && (
-                <p
+          <div className={cn(["flex", "flex-col", "gap-5", "items-center"])}>
+            <Image
+              src={currentGame?.has_poster && `/api/games/${game_id}/poster`}
+              className={cn([
+                "object-cover",
+                "rounded-xl",
+                "overflow-hidden",
+                "border",
+                "aspect-video",
+                "w-full",
+                "bg-card/50",
+                "shadow-sm",
+                "select-none",
+              ])}
+              fallback={
+                <FlagIcon
                   className={cn([
-                    "max-w-3/4",
-                    "text-sm",
+                    "size-20",
+                    "rotate-15",
                     "text-secondary-foreground",
-                    "text-ellipsis",
-                    "text-center",
-                    "overflow-hidden",
                   ])}
-                >
-                  {currentGame?.sketch}
-                </p>
-              )}
-              <Badge
-                className={cn(
-                  ["bg-info", "text-info-foreground", "select-none"],
-                  status === "ongoing" && [
-                    "bg-success",
-                    "text-success-foreground",
-                  ],
-                  status === "ended" && ["bg-error", "text-error-foreground"],
-                  status === "upcoming" && ["bg-info", "text-info-foreground"]
-                )}
-                size={"sm"}
-              >
-                {new Date(
-                  Number(currentGame?.started_at) * 1000
-                ).toLocaleString()}
-                <ArrowRightIcon />
-                {new Date(
-                  Number(currentGame?.ended_at) * 1000
-                ).toLocaleString()}
-              </Badge>
-              <div
+                  strokeWidth={1}
+                />
+              }
+            />
+            <h2 className={cn(["text-2xl"])}>{currentGame?.title}</h2>
+            {currentGame?.sketch && (
+              <p
                 className={cn([
-                  "w-full",
-                  "flex",
-                  "flex-col",
-                  "items-center",
-                  "select-none",
+                  "max-w-3/4",
+                  "text-sm",
+                  "text-secondary-foreground",
+                  "text-ellipsis",
+                  "text-center",
+                  "overflow-hidden",
                 ])}
               >
-                <span className={cn(["text-sm", "text-secondary-foreground"])}>
-                  {(() => {
-                    const startTime = new Date(
-                      Number(currentGame?.started_at) * 1000
-                    );
-                    const freezeTime = new Date(
-                      Number(currentGame?.frozen_at) * 1000
-                    );
-                    const endTime = new Date(
-                      Number(currentGame?.ended_at) * 1000
+                {currentGame?.sketch}
+              </p>
+            )}
+            <Badge
+              className={cn(
+                ["bg-info", "text-info-foreground", "select-none"],
+                status === "ongoing" && [
+                  "bg-success",
+                  "text-success-foreground",
+                ],
+                status === "ended" && ["bg-error", "text-error-foreground"],
+                status === "upcoming" && ["bg-info", "text-info-foreground"]
+              )}
+              size={"sm"}
+            >
+              {new Date(
+                Number(currentGame?.started_at) * 1000
+              ).toLocaleString()}
+              <ArrowRightIcon />
+              {new Date(Number(currentGame?.ended_at) * 1000).toLocaleString()}
+            </Badge>
+            <div
+              className={cn([
+                "w-full",
+                "flex",
+                "flex-col",
+                "items-center",
+                "select-none",
+              ])}
+            >
+              <span className={cn(["text-sm", "text-secondary-foreground"])}>
+                {(() => {
+                  const startTime = new Date(
+                    Number(currentGame?.started_at) * 1000
+                  );
+                  const freezeTime = new Date(
+                    Number(currentGame?.frozen_at) * 1000
+                  );
+                  const endTime = new Date(
+                    Number(currentGame?.ended_at) * 1000
+                  );
+
+                  const diff = (target: Date) =>
+                    Math.max(
+                      0,
+                      Math.floor((target.getTime() - now.getTime()) / 1000)
                     );
 
-                    const diff = (target: Date) =>
-                      Math.max(
-                        0,
-                        Math.floor((target.getTime() - now.getTime()) / 1000)
-                      );
+                  const remain = diff(endTime);
+                  const h = Math.floor(remain / 3600);
+                  const m = Math.floor((remain % 3600) / 60);
+                  const s = remain % 60;
 
-                    const remain = diff(endTime);
-                    const h = Math.floor(remain / 3600);
-                    const m = Math.floor((remain % 3600) / 60);
-                    const s = remain % 60;
-
-                    if (now < startTime) {
-                      return t("game.status.upcoming.remaining", {
-                        hours: h,
-                        minutes: m,
-                        seconds: s,
-                      });
-                    } else if (now < freezeTime) {
-                      return t("game.status.ongoing.remaining", {
-                        hours: h,
-                        minutes: m,
-                        seconds: s,
-                      });
-                    } else if (now < endTime) {
-                      return t("game.status.frozen.remaining", {
-                        hours: h,
-                        minutes: m,
-                        seconds: s,
-                      });
-                    } else {
-                      return t("game.status.ended.remaining");
-                    }
-                  })()}
-                </span>
-              </div>
-            </div>
-            <div>
-              <GameActionButton
-                status={status as "ongoing" | "ended" | "upcoming"}
-              />
+                  if (now < startTime) {
+                    return t("game:status.upcoming.remaining", {
+                      hours: h,
+                      minutes: m,
+                      seconds: s,
+                    });
+                  } else if (now < freezeTime) {
+                    return t("game:status.ongoing.remaining", {
+                      hours: h,
+                      minutes: m,
+                      seconds: s,
+                    });
+                  } else if (now < endTime) {
+                    return t("game:status.frozen.remaining", {
+                      hours: h,
+                      minutes: m,
+                      seconds: s,
+                    });
+                  } else {
+                    return t("game:status.ended.remaining");
+                  }
+                })()}
+              </span>
             </div>
           </div>
-          <Card
-            className={cn([
-              "lg:w-3/5",
-              "min-h-full",
-              "p-15",
-              "rounded-none",
-              "border-y-0",
-              "shadow-md",
-              "relative",
-            ])}
-          >
-            <Typography>
-              <LoadingOverlay loading={!currentGame} />
-              {currentGame &&
-                (currentGame?.description ? (
-                  <MarkdownRender src={currentGame?.description} />
-                ) : (
-                  <div
-                    className={cn([
-                      "absolute",
-                      "inset-0",
-                      "flex",
-                      "flex-col",
-                      "justify-center",
-                      "items-center",
-                      "gap-5",
-                      "select-none",
-                    ])}
-                  >
-                    <ThumbsDownIcon className={cn(["size-12"])} />
-                    {t("game.description.empty")}
-                  </div>
-                ))}
-            </Typography>
-          </Card>
+          <div>
+            <GameActionButton
+              status={status as "ongoing" | "ended" | "upcoming"}
+            />
+          </div>
         </div>
-      </ScrollArea>
+        <Card
+          className={cn([
+            "lg:w-3/5",
+            "min-h-full",
+            "p-15",
+            "rounded-none",
+            "border-y-0",
+            "shadow-md",
+            "relative",
+          ])}
+        >
+          <Typography>
+            <LoadingOverlay loading={!currentGame} />
+            {currentGame &&
+              (currentGame?.description ? (
+                <MarkdownRender src={currentGame?.description} />
+              ) : (
+                <div
+                  className={cn([
+                    "absolute",
+                    "inset-0",
+                    "flex",
+                    "flex-col",
+                    "justify-center",
+                    "items-center",
+                    "gap-5",
+                    "select-none",
+                  ])}
+                >
+                  <ThumbsDownIcon className={cn(["size-12"])} />
+                  {t("game:description.empty")}
+                </div>
+              ))}
+          </Typography>
+        </Card>
+      </div>
     </>
   );
 }
@@ -257,11 +252,11 @@ export function GameActionButton({ status }: GameActionProps) {
 
   const invalidMessage = useMemo(() => {
     if (selfTeam?.state === State.Banned) {
-      return t("team.state.banned");
+      return t("team:state.banned");
     } else if (selfTeam?.state === State.Preparing) {
-      return t("team.state.preparing");
+      return t("team:state.preparing");
     } else if (selfTeam?.state === State.Pending) {
-      return t("team.state.pending");
+      return t("team:state.pending");
     }
     return undefined;
   }, [selfTeam, t]);
@@ -277,7 +272,7 @@ export function GameActionButton({ status }: GameActionProps) {
         icon={<CalendarCheckIcon />}
         disabled
       >
-        {t("game.status.ended.remaining")}
+        {t("game:status.ended.remaining")}
       </Button>
     );
   }
@@ -293,7 +288,7 @@ export function GameActionButton({ status }: GameActionProps) {
         icon={<UserRoundIcon />}
         disabled
       >
-        {t("team.actions.participate_after_login")}
+        {t("team:actions.participate_after_login")}
       </Button>
     );
   }
@@ -310,7 +305,7 @@ export function GameActionButton({ status }: GameActionProps) {
           icon={<SwordsIcon />}
           onClick={() => setTeamGatheringDialogOpen(true)}
         >
-          {t("team.actions.gather._")}
+          {t("team:actions.gather._")}
         </Button>
 
         <Dialog
@@ -341,7 +336,7 @@ export function GameActionButton({ status }: GameActionProps) {
       disabled={!canParticipate}
       onClick={() => navigate(`/games/${game_id}/challenges`)}
     >
-      <span>{t("team.actions.participate", { name: selfTeam.name })}</span>
+      <span>{t("team:actions.participate", { name: selfTeam.name })}</span>
       {invalidMessage && <span>（{invalidMessage}）</span>}
     </Button>
   );

@@ -47,14 +47,14 @@ function CreateUserDialog(props: CreateUserDialogProps) {
   const formSchema = z.object({
     username: z
       .string()
-      .min(3, { message: t("user.form.username.messages.min") }),
-    name: z.string().min(2, { message: t("user.form.name.messages._") }),
-    email: z.email({ message: t("user.form.email.message") }),
+      .min(3, { message: t("user:form.username.messages.min") }),
+    name: z.string().min(2, { message: t("user:form.name.messages._") }),
+    email: z.email({ message: t("user:form.email.message") }),
     password: z
       .string()
-      .min(6, { message: t("user.form.password.messages.min") }),
+      .min(6, { message: t("user:form.password.messages.min") }),
     group: z.number({
-      message: t("user.form.group.message"),
+      message: t("user:form.group.message"),
     }),
   });
 
@@ -77,13 +77,13 @@ function CreateUserDialog(props: CreateUserDialogProps) {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           toast.success(
-            t("user.actions.create.success", { username: values.username })
+            t("user:actions.create.success", { username: values.username })
           );
           onClose();
         }
 
         if (res.code === StatusCodes.CONFLICT) {
-          toast.error(t("user.actions.create.errors.conflict"));
+          toast.error(t("user:actions.create.errors.conflict"));
         }
       })
       .finally(() => {
@@ -93,8 +93,8 @@ function CreateUserDialog(props: CreateUserDialogProps) {
   }
 
   const groupOptions = [
-    { id: Group.User, name: t("user.group.user"), icon: UserRoundCheckIcon },
-    { id: Group.Admin, name: t("user.group.admin"), icon: ShieldIcon },
+    { id: Group.User, name: t("user:group.user"), icon: UserRoundCheckIcon },
+    { id: Group.Admin, name: t("user:group.admin"), icon: ShieldIcon },
   ];
 
   return (
@@ -103,7 +103,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <UserRoundPlusIcon className={cn(["size-4"])} />
-        {t("user.actions.create._")}
+        {t("user:actions.create._")}
       </h3>
       <Form {...form}>
         <form
@@ -116,7 +116,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             name={"username"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("user.form.username._")}</FormLabel>
+                <FormLabel>{t("user:form.username._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -140,7 +140,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             name={"name"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("user.form.name._")}</FormLabel>
+                <FormLabel>{t("user:form.name._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -164,7 +164,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             name={"email"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("user.form.email._")}</FormLabel>
+                <FormLabel>{t("user:form.email._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -189,7 +189,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("user.form.password._")}</FormLabel>
+                <FormLabel>{t("user:form.password._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -214,7 +214,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             name={"group"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("user.form.group._")}</FormLabel>
+                <FormLabel>{t("user:form.group._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -254,7 +254,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
             level={"success"}
             loading={loading}
           >
-            {t("common.actions.confirm")}
+            {t("common:actions.confirm")}
           </Button>
         </form>
       </Form>

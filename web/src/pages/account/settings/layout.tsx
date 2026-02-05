@@ -2,7 +2,6 @@ import { InfoIcon, LockIcon, MailsIcon, UserRoundXIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils";
 
@@ -15,17 +14,17 @@ export default function Layout() {
   const options = [
     {
       link: `/account/settings`,
-      name: t("user.settings.info"),
+      name: t("user:settings.info"),
       icon: <InfoIcon />,
     },
     {
       link: `/account/settings/emails`,
-      name: t("user.settings.email"),
+      name: t("user:settings.email"),
       icon: <MailsIcon />,
     },
     {
       link: `/account/settings/password`,
-      name: t("user.settings.password"),
+      name: t("user:settings.password"),
       icon: <LockIcon />,
     },
     // {
@@ -36,57 +35,53 @@ export default function Layout() {
   ];
 
   return (
-    <ScrollArea className={cn(["flex-1", "min-h-0"])}>
-      <div className={cn(["flex", "flex-1"])}>
-        <div
-          className={cn([
-            "hidden",
-            "lg:w-1/5",
-            "bg-card/30",
-            "backdrop-blur-sm",
-            "lg:flex",
-            "flex-col",
-            "gap-3",
-            "p-5",
-            "border-r",
-            "lg:sticky",
-            "lg:top-0",
-            "h-[calc(100vh-64px)]",
-          ])}
-        >
-          {options?.map((option, index) => (
-            <Button
-              key={index}
-              size={"lg"}
-              className={cn(["justify-start"])}
-              icon={option.icon}
-              variant={pathname === option.link ? "tonal" : "ghost"}
-              asChild
-            >
-              <Link to={option.link}>{option.name}</Link>
-            </Button>
-          ))}
-          <Separator />
-          <div className={cn(["flex-1"])} />
+    <div className={cn(["flex", "min-h-0", "flex-1"])}>
+      <div
+        className={cn([
+          "hidden",
+          "lg:w-1/5",
+          "bg-card/30",
+          "backdrop-blur-sm",
+          "lg:flex",
+          "flex-col",
+          "gap-3",
+          "p-5",
+          "border-r",
+          "lg:sticky",
+          "lg:top-16",
+          "h-(--app-content-height)",
+        ])}
+      >
+        {options?.map((option, index) => (
           <Button
+            key={index}
             size={"lg"}
             className={cn(["justify-start"])}
-            icon={<UserRoundXIcon />}
-            level={"error"}
-            variant={
-              pathname === "/account/settings/delete" ? "tonal" : "ghost"
-            }
+            icon={option.icon}
+            variant={pathname === option.link ? "tonal" : "ghost"}
             asChild
           >
-            <Link to={"/account/settings/delete"}>
-              {t("user.settings.delete")}
-            </Link>
+            <Link to={option.link}>{option.name}</Link>
           </Button>
-        </div>
-        <div className={cn(["flex-1", "flex", "flex-col"])}>
-          <Outlet />
-        </div>
+        ))}
+        <Separator />
+        <div className={cn(["flex-1"])} />
+        <Button
+          size={"lg"}
+          className={cn(["justify-start"])}
+          icon={<UserRoundXIcon />}
+          level={"error"}
+          variant={pathname === "/account/settings/delete" ? "tonal" : "ghost"}
+          asChild
+        >
+          <Link to={"/account/settings/delete"}>
+            {t("user:settings.delete")}
+          </Link>
+        </Button>
       </div>
-    </ScrollArea>
+      <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
+        <Outlet />
+      </div>
+    </div>
   );
 }

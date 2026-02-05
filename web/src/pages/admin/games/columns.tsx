@@ -48,7 +48,7 @@ function IdCell({ row }: { row: Row<Game> }) {
             onClick={() => copyToClipboard(`${id}`)}
           />
         </TooltipTrigger>
-        <TooltipContent>{t("common.tooltip.copy")}</TooltipContent>
+        <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
       </Tooltip>
     </div>
   );
@@ -77,7 +77,7 @@ function ActionsCell({ row }: { row: Row<Game> }) {
     });
 
     if (res.code === StatusCodes.OK) {
-      toast.success(t("game.enabled.actions.success", { title }), {
+      toast.success(t("game:enabled.actions.success", { title }), {
         id: "enablement_change",
       });
       sharedStore?.setRefresh();
@@ -91,7 +91,7 @@ function ActionsCell({ row }: { row: Row<Game> }) {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success(t("game.actions.delete.success", { title }));
+        toast.success(t("game:actions.delete.success", { title }));
         setDeleteDialogOpen(false);
       }
     } finally {
@@ -118,8 +118,8 @@ function ActionsCell({ row }: { row: Row<Game> }) {
         </TooltipTrigger>
         <TooltipContent>
           {checked
-            ? t("game.enabled.actions.false")
-            : t("game.enabled.actions.true")}
+            ? t("game:enabled.actions.false")
+            : t("game:enabled.actions.true")}
         </TooltipContent>
       </Tooltip>
 
@@ -145,11 +145,11 @@ function ActionsCell({ row }: { row: Row<Game> }) {
           >
             <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
               <TrashIcon className={cn(["size-4", "text-error"])} />
-              {t("game.actions.delete._")}
+              {t("game:actions.delete._")}
             </div>
             <p className={cn(["text-sm"])}>
               <Trans
-                i18nKey="game.actions.delete.message"
+                i18nKey="game:actions.delete.message"
                 values={{ title }}
                 components={{
                   muted: <span className={cn(["text-muted-foreground"])} />,
@@ -163,7 +163,7 @@ function ActionsCell({ row }: { row: Row<Game> }) {
                 size={"sm"}
                 onClick={handleDelete}
               >
-                {t("common.actions.confirm")}
+                {t("common:actions.confirm")}
               </Button>
             </div>
           </Card>
@@ -191,7 +191,7 @@ function StartedAtHeader({ column }: { column: Column<Game> }) {
 
   return (
     <div className={cn(["flex", "gap-1", "items-center"])}>
-      {t("game.started_at")}
+      {t("game:started_at")}
       <Button
         icon={icon}
         square
@@ -220,7 +220,7 @@ function EndedAtHeader({ column }: { column: Column<Game> }) {
 
   return (
     <div className={cn(["flex", "gap-1", "items-center"])}>
-      {t("game.ended_at")}
+      {t("game:ended_at")}
       <Button
         icon={icon}
         square
@@ -245,7 +245,7 @@ function useColumns() {
       {
         accessorKey: "title",
         id: "title",
-        header: () => t("game.title"),
+        header: () => t("game:title"),
         cell: ({ row }) => (
           <div
             className={cn([
@@ -262,7 +262,7 @@ function useColumns() {
       {
         accessorKey: "public",
         id: "public",
-        header: () => t("game.public"),
+        header: () => t("game:public"),
         cell: ({ row }) => {
           const isPublic = row.original.public;
 
@@ -281,7 +281,7 @@ function useColumns() {
       },
       {
         accessorKey: "sketch",
-        header: () => t("game.sketch"),
+        header: () => t("game:sketch"),
         cell: ({ row }) => (
           <div className={cn(["w-42", "text-wrap"])}>{row.original.sketch}</div>
         ),
@@ -310,7 +310,7 @@ function useColumns() {
         id: "actions",
         header: () => (
           <div className={cn(["justify-self-center"])}>
-            {t("game.actions._")}
+            {t("game:actions._")}
           </div>
         ),
         cell: ActionsCell,

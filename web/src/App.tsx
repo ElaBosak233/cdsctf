@@ -22,7 +22,7 @@ function App() {
           "w-screen",
           "h-screen",
           "m-0",
-          "overflow-auto",
+          "overflow-hidden",
         ])}
         horizontal={false}
       >

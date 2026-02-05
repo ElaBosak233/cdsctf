@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronLeftIcon, LightbulbIcon, PencilLineIcon } from "lucide-react";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { useContext, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { getNotes } from "@/api/notes";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ function useNotesQuery(
 }
 
 function WriteupSection() {
+  const { t } = useTranslation();
   const { challenge } = useContext(Context);
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -59,7 +61,9 @@ function WriteupSection() {
     view === "writeup" ? challenge?.writeup : selectedNote?.content;
 
   return (
-    <div className={cn(["h-full", "flex", "flex-col", "gap-2", "min-h-0"])}>
+    <div
+      className={cn(["flex", "flex-1", "min-h-0", "flex-col", "gap-2"])}
+    >
       {isReading ? (
         <>
           <div className={cn(["flex", "items-center", "gap-2"])}>
@@ -71,10 +75,10 @@ function WriteupSection() {
             />
             <span className={cn(["text-sm", "text-muted-foreground"])}>
               {view === "writeup" ? (
-                "官方题解"
+                t("challenge:writeup_official")
               ) : (
                 <span className={cn(["flex", "items-center", "gap-1"])}>
-                  笔记
+                  {t("challenge:note")}
                   <Separator
                     orientation="vertical"
                     className={cn(["mx-1", "h-4"])}
@@ -85,13 +89,21 @@ function WriteupSection() {
             </span>
           </div>
           {content ? (
-            <ScrollArea className={cn(["flex-1", "min-h-0"])}>
-              <div className={cn(["space-y-4", "pr-3", "pb-6"])}>
-                <Typography>
-                  <MarkdownRender src={content} />
-                </Typography>
-              </div>
-            </ScrollArea>
+            <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
+              <ScrollArea
+                className={cn([
+                  "h-full",
+                  "min-h-0",
+                  "overflow-hidden",
+                ])}
+              >
+                <div className={cn(["space-y-4", "pr-3", "pb-6"])}>
+                  <Typography>
+                    <MarkdownRender src={content} />
+                  </Typography>
+                </div>
+              </ScrollArea>
+            </div>
           ) : (
             <span className={cn(["text-muted", "text-center", "select-none"])}>
               暂无内容

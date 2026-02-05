@@ -35,7 +35,7 @@ function VerifyDialog(props: VerifyDialogProps) {
         email: email,
       });
       if (res.code === StatusCodes.OK) {
-        toast.success(t("user.emails.actions.send_verify.success", { email }));
+        toast.success(t("user:emails.actions.send_verify.success", { email }));
       }
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
@@ -55,7 +55,7 @@ function VerifyDialog(props: VerifyDialogProps) {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success(t("user.emails.actions.verify.success", { email }));
+        toast.success(t("user:emails.actions.verify.success", { email }));
         authStore.setUser({
           ...authStore.user,
           verified: true,
@@ -77,7 +77,7 @@ function VerifyDialog(props: VerifyDialogProps) {
     <Card className={cn(["w-lg", "p-5", "flex", "flex-col", "gap-5"])}>
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <MailCheckIcon className={cn(["size-4"])} />
-        {t("user.emails.actions.verify._")}
+        {t("user:emails.actions.verify._")}
       </h3>
       {configStore?.config?.email?.enabled ? (
         <div className={cn(["flex", "gap-2", "items-center"])}>
@@ -93,12 +93,12 @@ function VerifyDialog(props: VerifyDialogProps) {
             icon={<SendIcon />}
             onClick={handleSendVerifyEmail}
           >
-            {t("user.emails.actions.send_verify._")}
+            {t("user:emails.actions.send_verify._")}
           </Button>
         </div>
       ) : (
         <div>
-          {t("user.emails.actions.verify.disabled", {
+          {t("user:emails.actions.verify.disabled", {
             title: configStore?.config?.meta?.title,
           })}
         </div>
@@ -110,7 +110,7 @@ function VerifyDialog(props: VerifyDialogProps) {
         icon={<CheckIcon />}
         onClick={handleVerify}
       >
-        {t("common.actions.confirm")}
+        {t("common:actions.confirm")}
       </Button>
     </Card>
   );

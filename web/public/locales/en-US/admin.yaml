@@ -9,6 +9,12 @@ home:
 platform:
   _: Platform
   logo: Logo
+  logo_upload:
+    progress: "Upload progress {{percent}}%"
+    success: Logo updated successfully.
+    error: Logo upload failed.
+  logo_reset:
+    success: Logo reset successfully.
   auth:
     registration_enabled:
       "true": "Yes"

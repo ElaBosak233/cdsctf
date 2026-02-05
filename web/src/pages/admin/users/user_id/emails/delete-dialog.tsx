@@ -30,7 +30,7 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
     });
 
     if (res.code === StatusCodes.OK) {
-      toast.success(t("user.emails.actions.delete.success", { email }));
+      toast.success(t("user:emails.actions.delete.success", { email }));
       onSuccess();
       onClose();
     }
@@ -42,12 +42,12 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
     <Card className={cn(["w-lg", "p-6", "flex", "flex-col", "gap-6"])}>
       <div className={cn(["flex", "items-center", "gap-2", "text-sm"])}>
         <TrashIcon className={cn(["size-4", "text-error"])} />
-        {t("user.emails.actions.delete._")}
+        {t("user:emails.actions.delete._")}
       </div>
       <div className={cn(["space-y-1"])}>
         <p className={cn(["text-base", "font-medium"])}>
           <Trans
-            i18nKey={"user.emails.actions.delete.message"}
+            i18nKey={"user:emails.actions.delete.message"}
             values={{ email }}
             components={{
               muted: <span className={cn(["text-muted-foreground"])} />,
@@ -55,7 +55,7 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
           />
         </p>
         <p className={cn(["text-muted-foreground", "text-sm"])}>
-          {t("user.emails.actions.delete.message_brief")}
+          {t("user:emails.actions.delete.message_brief")}
         </p>
       </div>
       <div className={cn(["flex", "justify-end", "gap-2"])}>
@@ -66,7 +66,7 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
           onClick={handleDelete}
           disabled={!email}
         >
-          {t("common.actions.confirm")}
+          {t("common:actions.confirm")}
         </Button>
       </div>
     </Card>

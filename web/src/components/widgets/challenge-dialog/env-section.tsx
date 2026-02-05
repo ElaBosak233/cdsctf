@@ -128,7 +128,7 @@ function EnvSection() {
         }
 
         if (p?.status === "waiting" && p?.reason !== "ContainerCreating") {
-          toast.warning("容器创建时发生错误，即将触发销毁", {
+          toast.warning(t("challenge:env.container_create_error"), {
             id: "pod",
             description: p?.reason,
           });
@@ -147,7 +147,7 @@ function EnvSection() {
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success("续期成功", {
+        toast.success(t("challenge:env.renew_success"), {
           id: "renew",
           description: null,
         });
@@ -157,7 +157,7 @@ function EnvSection() {
       const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error("续期失败", {
+        toast.error(t("challenge:env.renew_error"), {
           id: "renew",
           description: res.msg,
         });
@@ -172,7 +172,7 @@ function EnvSection() {
       id: env.id!,
     });
 
-    toast.info("已下发容器停止命令", {
+    toast.info(t("challenge:env.container_stop_sent"), {
       id: "pod-stop",
     });
     setEnv(undefined);
@@ -187,7 +187,7 @@ function EnvSection() {
 
   async function handlePodCreate() {
     envPodCreateLoading(true);
-    toast.loading("正在发送容器创建请求", {
+    toast.loading(t("challenge:env.container_creating"), {
       id: "pod",
     });
     try {
@@ -202,16 +202,16 @@ function EnvSection() {
           });
 
       setEnv(res.data);
-      toast.loading("已下发容器启动命令", {
+      toast.loading(t("challenge:env.container_start_sent"), {
         id: "pod",
-        description: "这可能需要一些时间",
+        description: t("challenge:env.container_start_description"),
       });
       fetchPods();
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
       const res = await parseErrorResponse(error);
 
-      toast.error("发生错误", {
+      toast.error(t("challenge:env.error"), {
         id: "pod",
         description: res.msg,
       });
@@ -241,7 +241,7 @@ function EnvSection() {
                 "select-none",
               ])}
             >
-              {t("env.remaining", {
+              {t("env:remaining", {
                 hours: String(Math.floor(timeLeft / 3600)).padStart(2, "0"),
                 minutes: String(Math.floor((timeLeft % 3600) / 60)).padStart(
                   2,
@@ -259,7 +259,7 @@ function EnvSection() {
                 disabled={Number(env.renew) === 3}
                 className={cn(["items-center"])}
               >
-                {t("env.actions.renew")}
+                {t("env:actions.renew")}
               </Button>
               <Button
                 icon={<TrashIcon />}
@@ -268,7 +268,7 @@ function EnvSection() {
                 onClick={() => handlePodStop()}
                 loading={envStopLoading}
               >
-                {t("env.actions.stop")}
+                {t("env:actions.stop")}
               </Button>
             </div>
           </div>
@@ -284,8 +284,8 @@ function EnvSection() {
               "select-none",
             ])}
           >
-            <span>{t("env.hint1")}</span>
-            <span>{t("env.hint2")}</span>
+            <span>{t("env:hint1")}</span>
+            <span>{t("env:hint2")}</span>
           </div>
           <Button
             icon={<PlayIcon />}
@@ -294,7 +294,7 @@ function EnvSection() {
             onClick={handlePodCreate}
             loading={envCreateLoading}
           >
-            {t("env.actions.start")}
+            {t("env:actions.start")}
           </Button>
         </>
       )}

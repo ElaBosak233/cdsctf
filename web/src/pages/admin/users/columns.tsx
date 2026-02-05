@@ -52,7 +52,7 @@ function IdCell({ row }: { row: Row<User> }) {
             onClick={() => copyToClipboard(String(id))}
           />
         </TooltipTrigger>
-        <TooltipContent>{t("common.tooltip.copy")}</TooltipContent>
+        <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
       </Tooltip>
     </div>
   );
@@ -76,7 +76,7 @@ function CreatedAtHeader({ column }: { column: Column<User> }) {
 
   return (
     <div className={cn(["flex", "gap-1", "items-center"])}>
-      {t("user.created_at")}
+      {t("user:created_at")}
       <Button
         icon={icon}
         square
@@ -103,7 +103,7 @@ function ActionsCell({ row }: { row: Row<User> }) {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(t("user.actions.delete.success", { username }));
+          toast.success(t("user:actions.delete.success", { username }));
           setDeleteDialogOpen(false);
         }
       })
@@ -140,11 +140,11 @@ function ActionsCell({ row }: { row: Row<User> }) {
           >
             <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
               <TrashIcon className={cn(["size-4", "text-error"])} />
-              {t("user.actions.delete._")}
+              {t("user:actions.delete._")}
             </div>
             <p className={cn(["text-sm"])}>
               <Trans
-                i18nKey={"user.actions.delete.message"}
+                i18nKey={"user:actions.delete.message"}
                 values={{ username: row.original.username }}
                 components={{
                   muted: <span className={cn(["text-muted-foreground"])} />,
@@ -158,7 +158,7 @@ function ActionsCell({ row }: { row: Row<User> }) {
                 size={"sm"}
                 onClick={handleDelete}
               >
-                {t("common.actions.confirm")}
+                {t("common:actions.confirm")}
               </Button>
             </div>
           </Card>
@@ -182,7 +182,7 @@ function useColumns() {
       {
         accessorKey: "username",
         id: "username",
-        header: t("user.username"),
+        header: t("user:username"),
         cell: ({ row }) => (
           <div className={cn(["flex", "items-center", "gap-3"])}>
             <Avatar
@@ -204,33 +204,33 @@ function useColumns() {
       {
         accessorKey: "name",
         id: "name",
-        header: t("user.name"),
+        header: t("user:name"),
         cell: ({ row }) => row.original.name || "-",
       },
       {
         accessorKey: "group",
-        header: t("user.group._"),
+        header: t("user:group._"),
         cell: ({ row }) => {
           const groupId = row.original.group;
 
           const groupConfig = {
             [Group.Guest]: {
-              name: t("user.group.guest"),
+              name: t("user:group.guest"),
               icon: UserRoundIcon,
               className: "bg-secondary text-secondary-foreground",
             },
             [Group.Banned]: {
-              name: t("user.group.banned"),
+              name: t("user:group.banned"),
               icon: UserRoundXIcon,
               className: "bg-destructive text-destructive-foreground",
             },
             [Group.User]: {
-              name: t("user.group.user"),
+              name: t("user:group.user"),
               icon: UserRoundCheckIcon,
               className: "bg-primary text-primary-foreground",
             },
             [Group.Admin]: {
-              name: t("user.group.admin"),
+              name: t("user:group.admin"),
               icon: ShieldIcon,
               className: "bg-info text-info-foreground",
             },
@@ -266,7 +266,7 @@ function useColumns() {
         id: "actions",
         header: () => (
           <div className={cn(["justify-self-center"])}>
-            {t("user.actions._")}
+            {t("user:actions._")}
           </div>
         ),
         cell: ActionsCell,

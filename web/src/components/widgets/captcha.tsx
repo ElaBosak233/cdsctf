@@ -198,7 +198,7 @@ function ImageCaptcha(props: CaptchaProps) {
         <TextField
           value={result}
           onChange={(e) => setResult(e.target.value)}
-          placeholder={t("common.captcha.placeholder")}
+          placeholder={t("common:captcha.placeholder")}
         />
       </Field>
       <img

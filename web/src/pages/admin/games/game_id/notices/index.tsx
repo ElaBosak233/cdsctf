@@ -92,7 +92,16 @@ export default function Index() {
   }, [sorting, debouncedColumnFilters, sharedStore.refresh, game]);
 
   return (
-    <div className={cn(["container", "mx-auto", "h-full", "flex", "flex-col"])}>
+    <div
+      className={cn([
+        "container",
+        "mx-auto",
+        "h-full",
+        "min-h-0",
+        "flex",
+        "flex-col",
+      ])}
+    >
       <div
         className={cn([
           "flex",
@@ -112,7 +121,7 @@ export default function Index() {
           ])}
         >
           <MessageCircleIcon />
-          {t("game.notice._")}
+          {t("game:notice._")}
         </h1>
         <div
           className={cn([
@@ -128,7 +137,7 @@ export default function Index() {
             variant={"solid"}
             onClick={() => setCreateDialogOpen(true)}
           >
-            {t("common.actions.add")}
+            {t("common:actions.add")}
           </Button>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogContent>
@@ -138,72 +147,75 @@ export default function Index() {
         </div>
       </div>
 
-      <ScrollArea
-        className={cn([
-          "rounded-md",
-          "border",
-          "bg-card",
-          "min-h-100",
-          "flex-1",
-        ])}
-      >
-        <LoadingOverlay loading={loading} />
-        <Table className={cn(["text-foreground"])}>
-          <TableHeader
-            className={cn([
-              "sticky",
-              "top-0",
-              "z-2",
-              "bg-muted/70",
-              "backdrop-blur-md",
-            ])}
-          >
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {!header.isPlaceholder &&
-                        flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length
-              ? table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.getValue("id")}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : !loading && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className={cn(["h-24", "text-center"])}
+      <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
+        <ScrollArea
+          className={cn([
+            "rounded-md",
+            "border",
+            "bg-card",
+            "h-full",
+            "min-h-0",
+            "overflow-hidden",
+          ])}
+        >
+          <LoadingOverlay loading={loading} />
+          <Table className={cn(["text-foreground"])}>
+            <TableHeader
+              className={cn([
+                "sticky",
+                "top-0",
+                "z-2",
+                "bg-muted/70",
+                "backdrop-blur-md",
+              ])}
+            >
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {!header.isPlaceholder &&
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length
+                ? table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.getValue("id")}
+                      data-state={row.getIsSelected() && "selected"}
                     >
-                      {t("game.notice.empty")}
-                    </TableCell>
-                  </TableRow>
-                )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : !loading && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className={cn(["h-24", "text-center"])}
+                      >
+                        {t("game:notice.empty")}
+                      </TableCell>
+                    </TableRow>
+                  )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </div>
     </div>
   );
 }

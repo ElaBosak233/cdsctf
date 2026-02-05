@@ -38,10 +38,10 @@ function CreateDialog(props: CreateDialogProps) {
 
   const formSchema = z.object({
     title: z.string({
-      message: t("challenge.form.title.message"),
+      message: t("challenge:form.title.message"),
     }),
     category: z.number({
-      message: t("challenge.form.category.message"),
+      message: t("challenge:form.category.message"),
     }),
   });
 
@@ -64,7 +64,7 @@ function CreateDialog(props: CreateDialogProps) {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           toast.success(
-            t("challenge.actions.create.success", { title: res.data?.title })
+            t("challenge:actions.create.success", { title: res.data?.title })
           );
           onClose();
         }
@@ -81,7 +81,7 @@ function CreateDialog(props: CreateDialogProps) {
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <LibraryIcon className={cn(["size-4"])} />
-        {t("challenge.actions.create._")}
+        {t("challenge:actions.create._")}
       </h3>
       <Form {...form}>
         <form
@@ -94,7 +94,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"title"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("challenge.form.title._")}</FormLabel>
+                <FormLabel>{t("challenge:form.title._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -117,7 +117,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"category"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("challenge.form.category._")}</FormLabel>
+                <FormLabel>{t("challenge:form.category._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -158,7 +158,7 @@ function CreateDialog(props: CreateDialogProps) {
             loading={loading}
             type={"submit"}
           >
-            {t("common.actions.confirm")}
+            {t("common:actions.confirm")}
           </Button>
         </form>
       </Form>

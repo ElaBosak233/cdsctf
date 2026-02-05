@@ -1,6 +1,7 @@
 import { createPluginRegistration } from "@embedpdf/core";
 import { EmbedPDF } from "@embedpdf/core/react";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/utils";
 import { LoaderCircleIcon } from "lucide-react";
 
@@ -34,12 +35,13 @@ export interface PDFViewerProps {
 
 function PDFViewer(props: PDFViewerProps) {
   const { url, className } = props;
+  const { t } = useTranslation();
   const { engine, isLoading } = usePdfiumEngine();
   if (isLoading || !engine) {
     return (
       <div className={cn(["flex", "justify-center", "items-center", "gap-5"])}>
         <LoaderCircleIcon className={cn(["animate-spin"])} />
-        <span>加载中...</span>
+        <span>{t("common:loading")}</span>
       </div>
     );
   }
@@ -67,7 +69,7 @@ function PDFViewer(props: PDFViewerProps) {
                     className
                   )}
                 >
-                  <ScrollArea className="flex-1 min-h-0">
+                  <ScrollArea className="h-full min-h-0 overflow-hidden">
                     <Viewport
                       documentId={activeDocumentId}
                       className="w-full min-h-0"

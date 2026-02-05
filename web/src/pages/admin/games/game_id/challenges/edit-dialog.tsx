@@ -57,13 +57,13 @@ function EditDialog(props: EditDialogProps) {
 
   const formSchema = z.object({
     difficulty: z.number({
-      message: "请填写难度系数",
+      message: t("game:challenge.form.difficulty.message"),
     }),
     max_pts: z.number({
-      message: "请填写最大分数",
+      message: t("game:challenge.form.max_pts.message"),
     }),
     min_pts: z.number({
-      message: "请填写最小分数",
+      message: t("game:challenge.form.min_pts.message"),
     }),
     bonus_ratios: z.array(z.number()),
     frozen_at: z.date().optional(),
@@ -134,7 +134,11 @@ function EditDialog(props: EditDialogProps) {
         : null,
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success(`赛题 ${gameChallenge?.challenge_title} 配置更新成功`);
+        toast.success(
+          t("game:challenge.actions.edit_config_success", {
+            title: gameChallenge?.challenge_title,
+          })
+        );
         sharedStore?.setRefresh();
         onClose();
       }
@@ -147,7 +151,7 @@ function EditDialog(props: EditDialogProps) {
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <LibraryIcon className={cn(["size-4"])} />
-        {t("game.challenge.actions.edit._")}
+        {t("game:challenge.actions.edit._")}
       </h3>
       <ScrollArea className={cn(["max-h-144", "overflow-y-auto"])}>
         <Form {...form}>
@@ -162,7 +166,7 @@ function EditDialog(props: EditDialogProps) {
                 name={"max_pts"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>{t("game.challenge.form.max_pts._")}</FormLabel>
+                    <FormLabel>{t("game:challenge.form.max_pts._")}</FormLabel>
                     <FormControl>
                       <Field size={"sm"}>
                         <FieldIcon>
@@ -184,7 +188,7 @@ function EditDialog(props: EditDialogProps) {
                 name={"min_pts"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>{t("game.challenge.form.min_pts._")}</FormLabel>
+                    <FormLabel>{t("game:challenge.form.min_pts._")}</FormLabel>
                     <FormControl>
                       <Field size={"sm"}>
                         <FieldIcon>
@@ -207,7 +211,7 @@ function EditDialog(props: EditDialogProps) {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>
-                      {t("game.challenge.form.difficulty._")}
+                      {t("game:challenge.form.difficulty._")}
                     </FormLabel>
                     <FormControl>
                       <Field size={"sm"}>
@@ -231,7 +235,7 @@ function EditDialog(props: EditDialogProps) {
               name={"frozen_at"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("game.challenge.form.frozen_at")}</FormLabel>
+                  <FormLabel>{t("game:challenge.form.frozen_at")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -245,7 +249,7 @@ function EditDialog(props: EditDialogProps) {
               )}
             />
             <div className={cn(["flex", "flex-col", "gap-2"])}>
-              <Label>{t("game.challenge.form.bonus_ratio")}</Label>
+              <Label>{t("game:challenge.form.bonus_ratio")}</Label>
               <div className={cn(["grid", "grid-cols-3", "gap-3"])}>
                 {form.watch("bonus_ratios").map((_ratio, ratioIndex) => (
                   <FormField
@@ -326,7 +330,7 @@ function EditDialog(props: EditDialogProps) {
               </AreaChart>
             </ChartContainer>
             <Button type={"submit"} variant={"solid"} icon={<SaveIcon />}>
-              {t("common.actions.save")}
+              {t("common:actions.save")}
             </Button>
           </form>
         </Form>

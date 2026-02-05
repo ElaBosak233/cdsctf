@@ -68,6 +68,9 @@
 
 @layer base {
   :root {
+    --app-navbar-height: 64px;
+    --app-content-height: calc(100vh - var(--app-navbar-height));
+
     --background: oklch(0.97 0.004 80);
     --foreground: oklch(0.2 0.02 270);
     --card: oklch(0.98 0.003 80);
@@ -150,6 +153,11 @@
       text-decoration-color 0.2s ease,
       fill 0.2s ease,
       stroke 0.2s ease;
+  }
+
+  html,
+  body {
+    @apply h-full overflow-hidden;
   }
 
   body {

@@ -11,7 +11,6 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -47,37 +46,37 @@ export default function Layout() {
   const options = [
     {
       link: "/admin",
-      name: t("admin.home._"),
+      name: t("admin:home._"),
       icon: <HousePlugIcon />,
     },
     {
       link: "/admin/platform",
-      name: t("admin.platform._"),
+      name: t("admin:platform._"),
       icon: <TypeIcon />,
     },
     {
       link: "/admin/challenges",
-      name: t("challenge._"),
+      name: t("challenge:_"),
       icon: <LibraryIcon />,
     },
     {
       link: "/admin/games",
-      name: t("game._"),
+      name: t("game:_"),
       icon: <FlagIcon />,
     },
     {
       link: "/admin/users",
-      name: t("user._"),
+      name: t("user:_"),
       icon: <UserRoundIcon />,
     },
     {
       link: "/admin/mailbox",
-      name: t("admin.mailbox._"),
+      name: t("admin:mailbox._"),
       icon: <MailCheckIcon />,
     },
     {
       link: "/admin/captcha",
-      name: t("admin.captcha._"),
+      name: t("admin:captcha._"),
       icon: <BotIcon />,
     },
   ];
@@ -87,7 +86,7 @@ export default function Layout() {
       <div
         className={cn([
           "w-16",
-          "h-full",
+          "h-(--app-content-height)",
           "sticky",
           "top-16",
           "bg-card/30",
@@ -116,9 +115,17 @@ export default function Layout() {
           </Tooltip>
         ))}
       </div>
-      <ScrollArea className={cn(["flex-1", "min-h-0"])}>
+      <div
+        className={cn([
+          "flex-1",
+          "min-h-0",
+          "flex",
+          "flex-col",
+          "min-h-(--app-content-height)",
+        ])}
+      >
         <Outlet />
-      </ScrollArea>
+      </div>
     </div>
   );
 }

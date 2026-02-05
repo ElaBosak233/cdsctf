@@ -29,7 +29,7 @@ i18n
     ],
     defaultNS: false,
     load: "currentOnly",
-    nsSeparator: ".",
+    nsSeparator: ":",
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.yaml",
       parse: (data: string) => yaml.load(data),

@@ -69,7 +69,7 @@ export default function Emails() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(t("user.emails.actions.update.success", { email }));
+          toast.success(t("user:emails.actions.update.success", { email }));
           handleRefresh();
         }
       })
@@ -98,10 +98,10 @@ export default function Emails() {
             ])}
           >
             <MailIcon />
-            {t("user.emails._")}
+            {t("user:emails._")}
           </h1>
           <p className={cn(["text-muted-foreground", "text-sm"])}>
-            {t("user.emails.brief")}
+            {t("user:emails.brief")}
           </p>
         </div>
         <div className={cn(["flex", "items-center", "gap-2"])}>
@@ -111,7 +111,7 @@ export default function Emails() {
             icon={<MailPlusIcon />}
             onClick={() => setCreateDialogOpen(true)}
           >
-            {t("common.actions.add")}
+            {t("common:actions.add")}
           </Button>
         </div>
       </div>
@@ -135,14 +135,14 @@ export default function Emails() {
                     {email.verified && (
                       <Badge className={cn(["bg-success/15", "text-success"])}>
                         <CheckIcon className={cn(["size-3.5"])} />
-                        {t("user.emails.verified.true._")}
+                        {t("user:emails.verified.true._")}
                       </Badge>
                     )}
                   </ItemTitle>
                   <ItemDescription>
                     {email.verified
-                      ? t("user.emails.verified.true.long")
-                      : t("user.emails.verified.false.long")}
+                      ? t("user:emails.verified.true.long")
+                      : t("user:emails.verified.false.long")}
                   </ItemDescription>
                 </ItemContent>
                 <ItemActions className={cn(["flex", "flex-wrap", "gap-3"])}>
@@ -155,7 +155,7 @@ export default function Emails() {
                       "text-muted-foreground",
                     ])}
                   >
-                    <span>{t("user.emails.verified.true._")}</span>
+                    <span>{t("user:emails.verified.true._")}</span>
                     <Switch
                       checked={email.verified}
                       onCheckedChange={(checked) =>
@@ -194,7 +194,7 @@ export default function Emails() {
           ])}
         >
           <MailIcon className={cn(["size-8"])} />
-          <div>{t("user.emails.empty")}</div>
+          <div>{t("user:emails.empty")}</div>
         </div>
       )}
 

@@ -1,8 +1,12 @@
 home: Home
 search: Search
 loading: Loading
+filter: Filter
 all: All
 exit: Exit
+pagination:
+  _: Pagination
+  items: items
 actions:
   add: Add
   save: Save
@@ -17,5 +21,6 @@ tooltip:
 errors:
   default: Something went wrong
   unexpected: Something went wrong
+  network: Network error
 captcha:
   placeholder: Captcha

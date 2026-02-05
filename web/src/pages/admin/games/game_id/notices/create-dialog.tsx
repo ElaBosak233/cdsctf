@@ -37,10 +37,10 @@ function CreateDialog(props: CreateDialogProps) {
 
   const formSchema = z.object({
     title: z.string({
-      message: t("game.notice.form.title.message"),
+      message: t("game:notice.form.title.message"),
     }),
     content: z.string({
-      message: t("game.notice.form.content.message"),
+      message: t("game:notice.form.content.message"),
     }),
   });
 
@@ -55,7 +55,7 @@ function CreateDialog(props: CreateDialogProps) {
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
         toast.success(
-          t("game.notice.actions.create.success", { title: res?.data?.title })
+          t("game:notice.actions.create.success", { title: res?.data?.title })
         );
         sharedStore?.setRefresh();
         onClose();
@@ -69,7 +69,7 @@ function CreateDialog(props: CreateDialogProps) {
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <MessageCircleIcon className={cn(["size-4"])} />
-        {t("game.notice.actions.create._")}
+        {t("game:notice.actions.create._")}
       </h3>
       <Form {...form}>
         <form
@@ -82,7 +82,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"title"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game.notice.form.title._")}</FormLabel>
+                <FormLabel>{t("game:notice.form.title._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -104,7 +104,7 @@ function CreateDialog(props: CreateDialogProps) {
             name={"content"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game.notice.form.content._")}</FormLabel>
+                <FormLabel>{t("game:notice.form.content._")}</FormLabel>
                 <FormControl>
                   <MarkdownEditor
                     {...field}
@@ -116,7 +116,7 @@ function CreateDialog(props: CreateDialogProps) {
             )}
           />
           <Button icon={<SaveIcon />} variant={"solid"} type={"submit"}>
-            {t("common.actions.save")}
+            {t("common:actions.save")}
           </Button>
         </form>
       </Form>

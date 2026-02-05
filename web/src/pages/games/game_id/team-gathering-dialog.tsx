@@ -42,7 +42,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
 
   const createFormSchema = z.object({
     name: z.string({
-      message: t("team.form.name.required"),
+      message: t("team:form.name.required"),
     }),
   });
 
@@ -60,7 +60,9 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`团队 ${res?.data?.name} 创建成功`);
+          toast.success(
+            t("team:actions.create.success", { name: res?.data?.name })
+          );
           onClose();
         }
       })
@@ -73,10 +75,10 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
   const joinFormSchema = z.object({
     token: z
       .string({
-        message: t("team.form.invite_code.required"),
+        message: t("team:form.invite_code.required"),
       })
       .regex(/^\d+:.*$/, {
-        message: t("team.form.invite_code.invalid"),
+        message: t("team:form.invite_code.invalid"),
       }),
   });
 
@@ -99,7 +101,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`成功加入团队`);
+          toast.success(t("team:actions.join.success"));
           onClose();
         }
       })
@@ -108,7 +110,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
         const res = await parseErrorResponse(error);
 
         if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.error("加入失败", {
+          toast.error(t("team:actions.join.error"), {
             description: res.msg,
           });
         }
@@ -125,7 +127,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     >
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <SwordsIcon className={cn(["size-4"])} />
-        {t("team.actions.gather.create.title")}
+        {t("team:actions.gather.create.title")}
       </h3>
       <Form {...createForm}>
         <form
@@ -138,7 +140,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             name={"name"}
             render={({ field }) => (
               <FormItem className={cn(["flex-1"])}>
-                <FormLabel>{t("team.form.name._")}</FormLabel>
+                <FormLabel>{t("team:form.name._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -156,14 +158,14 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             )}
           />
           <Button variant={"solid"} type={"submit"}>
-            {t("team.actions.gather.create._")}
+            {t("team:actions.gather.create._")}
           </Button>
         </form>
       </Form>
       <Separator />
       <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
         <SwordsIcon className={cn(["size-4"])} />
-        {t("team.actions.gather.join.title")}
+        {t("team:actions.gather.join.title")}
       </h3>
       <Form {...joinForm}>
         <form
@@ -176,7 +178,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             name={"token"}
             render={({ field }) => (
               <FormItem className={cn(["flex-1"])}>
-                <FormLabel>{t("team.form.invite_code._")}</FormLabel>
+                <FormLabel>{t("team:form.invite_code._")}</FormLabel>
                 <FormControl>
                   <Field size={"sm"}>
                     <FieldIcon>
@@ -194,7 +196,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             )}
           />
           <Button variant={"solid"} type={"submit"}>
-            {t("team.actions.gather.join._")}
+            {t("team:actions.gather.join._")}
           </Button>
         </form>
       </Form>
