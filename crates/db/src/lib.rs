@@ -5,6 +5,7 @@ pub(crate) mod entity;
 pub mod game;
 pub mod game_challenge;
 pub mod game_notice;
+pub mod note;
 pub mod submission;
 pub mod team;
 pub mod team_user;

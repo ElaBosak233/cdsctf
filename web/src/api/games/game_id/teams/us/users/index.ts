@@ -8,7 +8,7 @@ export interface LeaveTeamRequest {
 
 export async function leaveTeam(request: LeaveTeamRequest) {
   return api
-    .delete(`games/${request?.game_id}/teams/profile/users/leave`, {
+    .delete(`games/${request?.game_id}/teams/us/users/leave`, {
       json: request,
     })
     .json<WebResponse<never>>();

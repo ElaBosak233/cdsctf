@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import z from "zod";
-import { addEmail } from "@/api/users/profile/emails";
+import { addEmail } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";

@@ -12,11 +12,10 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateUserProfile } from "@/api/users/profile";
-import { deleteUserAvatar } from "@/api/users/profile/avatar";
+import { updateUserProfile } from "@/api/users/me";
+import { deleteUserAvatar } from "@/api/users/me/avatar";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -83,7 +82,7 @@ export default function Index() {
 
     try {
       const res = await uploadFile(
-        "/api/users/profile/avatar",
+        "/api/users/me/avatar",
         [file],
         ({ percent }) => {
           toast.loading(`上传进度 ${percent.toFixed(0)}%`, {

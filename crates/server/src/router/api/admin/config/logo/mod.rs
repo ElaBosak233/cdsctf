@@ -1,13 +1,12 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Multipart, State},
     Router,
+    extract::{Multipart, State},
 };
 
 use crate::{
-    traits::{AppState, WebError, WebResponse}
-    ,
+    traits::{AppState, WebError, WebResponse},
     util::media::handle_multipart,
 };
 

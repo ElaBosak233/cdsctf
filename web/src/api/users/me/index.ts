@@ -4,7 +4,7 @@ import { api } from "@/utils/query";
 
 export async function getUserProfile() {
   return api
-    .get("users/profile", {
+    .get("users/me", {
       headers: {
         "ignore-unauthorized": "OK",
       },
@@ -19,7 +19,7 @@ export interface UpdateUserProfileRequest {
 }
 
 export async function updateUserProfile(request: UpdateUserProfileRequest) {
-  return api.put("users/profile", { json: request }).json<WebResponse<User>>();
+  return api.put("users/me", { json: request }).json<WebResponse<User>>();
 }
 
 export interface UpdateUserProfilePasswordRequest {
@@ -31,7 +31,7 @@ export async function updateUserProfilePassword(
   request: UpdateUserProfilePasswordRequest
 ) {
   return api
-    .put("users/profile/password", { json: request })
+    .put("users/me/password", { json: request })
     .json<WebResponse<never>>();
 }
 
@@ -44,7 +44,5 @@ export interface DeleteUserProfileRequest {
 }
 
 export async function deleteUserProfile(request: DeleteUserProfileRequest) {
-  return api
-    .delete("users/profile", { json: request })
-    .json<WebResponse<never>>();
+  return api.delete("users/me", { json: request }).json<WebResponse<never>>();
 }

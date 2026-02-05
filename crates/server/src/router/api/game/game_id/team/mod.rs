@@ -1,5 +1,5 @@
-mod profile;
 mod team_id;
+mod us;
 
 use std::sync::Arc;
 
@@ -20,7 +20,7 @@ use crate::{
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/register", axum::routing::post(team_register))
-        .nest("/profile", profile::router())
+        .nest("/us", us::router())
         .nest("/{team_id}", team_id::router())
 }
 

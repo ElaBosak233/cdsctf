@@ -26,11 +26,7 @@ export default function Index() {
       const formData = new FormData();
       formData.append("file", file);
       const xhr = new XMLHttpRequest();
-      xhr.open(
-        "POST",
-        `/api/games/${currentGame?.id}/teams/profile/writeup`,
-        true
-      );
+      xhr.open("POST", `/api/games/${currentGame?.id}/teams/us/writeup`, true);
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           const percentComplete = (event.loaded / event.total) * 100;
@@ -118,9 +114,7 @@ export default function Index() {
 
         {selfTeam?.has_writeup && (
           <Card className="p-5 rounded-xl min-h-128 max-h-[calc(100vh-25rem)]">
-            <PDFViewer
-              url={`/api/games/${currentGame?.id}/teams/profile/writeup`}
-            />
+            <PDFViewer url={`/api/games/${currentGame?.id}/teams/us/writeup`} />
           </Card>
         )}
       </div>

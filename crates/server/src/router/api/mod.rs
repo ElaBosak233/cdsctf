@@ -4,6 +4,7 @@ pub mod config;
 pub mod env;
 pub mod game;
 mod media;
+mod note;
 pub mod submission;
 pub mod user;
 
@@ -23,6 +24,7 @@ pub async fn router() -> Router<Arc<AppState>> {
         .nest("/games", game::router())
         .nest("/envs", env::router())
         .nest("/submissions", submission::router())
+        .nest("/notes", note::router())
         .nest("/media", media::router())
         .nest(
             "/admin",

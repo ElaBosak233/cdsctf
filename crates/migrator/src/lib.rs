@@ -21,6 +21,7 @@ impl MigratorTrait for Migrator {
             Box::new(migrations::m20260201_000008_create_game_challenge::Migration),
             Box::new(migrations::m20260201_000009_create_team_user::Migration),
             Box::new(migrations::m20260201_000010_create_submission::Migration),
+            Box::new(migrations::m20260201_000011_create_note::Migration),
         ]
     }
 }

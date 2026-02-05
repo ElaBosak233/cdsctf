@@ -210,7 +210,7 @@ export default function Index() {
           "border",
           "bg-card",
           "min-h-100",
-          "h-[calc(100vh-13rem)]",
+          "flex-1",
         ])}
       >
         <LoadingOverlay loading={loading} />

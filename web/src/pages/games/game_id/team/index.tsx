@@ -13,8 +13,8 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateTeam } from "@/api/games/game_id/teams/profile";
-import { deleteTeamAvatar } from "@/api/games/game_id/teams/profile/avatar";
+import { updateTeam } from "@/api/games/game_id/teams/us";
+import { deleteTeamAvatar } from "@/api/games/game_id/teams/us/avatar";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -91,7 +91,7 @@ export default function Index() {
 
     try {
       const res = await uploadFile(
-        `/api/games/${currentGame?.id}/teams/profile/avatar`,
+        `/api/games/${currentGame?.id}/teams/us/avatar`,
         [file],
         ({ percent }) => {
           toast.loading(`上传进度 ${percent.toFixed(0)}%`, {

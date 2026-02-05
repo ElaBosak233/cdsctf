@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Outlet } from "react-router";
 import { getConfigs, getVersion } from "@/api/configs";
-import { getUserProfile } from "@/api/users/profile";
+import { getUserProfile } from "@/api/users/me";
 import { Navbar } from "@/components/widgets/navbar";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
@@ -70,19 +70,9 @@ export default function () {
   }, [versionData]);
 
   return (
-    <>
+    <div className={cn(["flex", "flex-col", "min-h-screen"])}>
       <Navbar />
-      <main
-        className={cn([
-          "flex",
-          "flex-col",
-          "h-[calc(100vh-64px)]",
-          "min-h-0",
-          "overflow-hidden",
-        ])}
-      >
-        <Outlet />
-      </main>
-    </>
+      <Outlet />
+    </div>
   );
 }

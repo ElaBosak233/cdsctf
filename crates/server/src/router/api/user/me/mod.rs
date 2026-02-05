@@ -1,5 +1,6 @@
 mod avatar;
 mod email;
+mod note;
 
 use std::sync::Arc;
 
@@ -32,6 +33,7 @@ pub fn router() -> Router<Arc<AppState>> {
         )
         .nest("/emails", email::router())
         .nest("/avatar", avatar::router())
+        .nest("/notes", note::router())
 }
 
 pub async fn get_user_profile(

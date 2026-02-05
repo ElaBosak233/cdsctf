@@ -323,7 +323,7 @@ function MarkdownEditor(props: MarkdownEditorProps) {
         onCreateEditor={(view) => {
           viewRef.current = view;
         }}
-        className={cn(["h-full", "rounded-b-md", "rounded-t-none"])}
+        className={cn(["h-full", "rounded-b-md", "rounded-t-none", "flex-1"])}
         {...rest}
       />
     </div>

@@ -60,6 +60,7 @@ export default function Layout() {
             "flex",
             "flex-col",
             "xl:flex-row",
+            "xl:min-h-[calc(100vh-64px)]",
             "flex-1",
             "gap-10",
             "xl:mx-30",
@@ -75,7 +76,7 @@ export default function Layout() {
               "xl:my-0",
               "xl:w-64",
               "xl:sticky",
-              "xl:top-25",
+              "xl:top-8",
             ])}
           >
             <div

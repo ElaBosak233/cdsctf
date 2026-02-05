@@ -8,6 +8,6 @@ export interface DeleteTeamAvatarRequest {
 
 export function deleteTeamAvatar(request: DeleteTeamAvatarRequest) {
   return api
-    .delete(`games/${request.game_id}/teams/profile/avatar`)
+    .delete(`games/${request.game_id}/teams/us/avatar`)
     .json<WebResponse<never>>();
 }

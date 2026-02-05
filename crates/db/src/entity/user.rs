@@ -3,7 +3,7 @@ use sea_orm::{QuerySelect, Set, entity::prelude::*, sea_query::Query};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::{email, submission, team, team_user, note};
+use super::{email, note, submission, team, team_user};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "users")]
@@ -58,7 +58,7 @@ impl RelationTrait for Relation {
         match self {
             Self::Email => Entity::has_one(email::Entity).into(),
             Self::Submission => Entity::has_many(submission::Entity).into(),
-            Self::Note => Entity::has_many(note::Entity).into()
+            Self::Note => Entity::has_many(note::Entity).into(),
         }
     }
 }

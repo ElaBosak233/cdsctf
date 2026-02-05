@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getEmails } from "@/api/users/profile/emails";
+import { getEmails } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {

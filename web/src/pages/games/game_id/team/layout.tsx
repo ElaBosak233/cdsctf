@@ -15,8 +15,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
-import { deleteTeam, setTeamReady } from "@/api/games/game_id/teams/profile";
-import { leaveTeam } from "@/api/games/game_id/teams/profile/users";
+import { deleteTeam, setTeamReady } from "@/api/games/game_id/teams/us";
+import { leaveTeam } from "@/api/games/game_id/teams/us/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -156,7 +156,7 @@ export default function Layout() {
           "border-r",
           "lg:sticky",
           "top-16",
-          "h-[calc(100vh-64px)]",
+          "h-full",
         ])}
       >
         {options?.map((option, index) => (

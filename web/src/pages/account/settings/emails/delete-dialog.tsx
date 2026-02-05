@@ -1,7 +1,7 @@
 import { TrashIcon } from "lucide-react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { deleteEmail } from "@/api/users/profile/emails";
+import { deleteEmail } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/utils";

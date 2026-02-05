@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -86,7 +87,7 @@ export default function Layout() {
       <div
         className={cn([
           "w-16",
-          "h-[calc(100vh-64px)]",
+          "h-full",
           "sticky",
           "top-16",
           "bg-card/30",
@@ -115,9 +116,9 @@ export default function Layout() {
           </Tooltip>
         ))}
       </div>
-      <div className={cn(["flex-1", "flex", "flex-col", "min-h-0"])}>
+      <ScrollArea className={cn(["flex-1", "min-h-0"])}>
         <Outlet />
-      </div>
+      </ScrollArea>
     </div>
   );
 }

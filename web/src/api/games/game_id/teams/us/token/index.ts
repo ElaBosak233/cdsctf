@@ -8,7 +8,7 @@ export interface CreateTokenRequest {
 
 export async function createToken(request: CreateTokenRequest) {
   return api
-    .post(`games/${request.game_id}/teams/profile/token`, {
+    .post(`games/${request.game_id}/teams/us/token`, {
       json: request,
     })
     .json<WebResponse<string>>();
@@ -21,7 +21,7 @@ export interface GetTokenRequest {
 
 export async function getToken(request: GetTokenRequest) {
   return api
-    .get(`games/${request.game_id}/teams/profile/token`, {
+    .get(`games/${request.game_id}/teams/us/token`, {
       searchParams: toSearchParams(request),
     })
     .json<WebResponse<string>>();
@@ -34,6 +34,6 @@ export interface DeleteTokenRequest {
 
 export async function deleteToken(request: DeleteTokenRequest) {
   return api
-    .post(`games/${request.game_id}/teams/profile/token`, { json: request })
+    .post(`games/${request.game_id}/teams/us/token`, { json: request })
     .json<WebResponse<string>>();
 }

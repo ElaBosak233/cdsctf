@@ -1,5 +1,5 @@
 mod forget;
-mod profile;
+mod me;
 mod user_id;
 
 use std::sync::Arc;
@@ -29,7 +29,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/logout", axum::routing::post(user_logout))
         .nest("/forget", forget::router())
         .nest("/{user_id}", user_id::router())
-        .nest("/profile", profile::router())
+        .nest("/me", me::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

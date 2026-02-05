@@ -92,7 +92,7 @@ export default function Index() {
   }, [sorting, debouncedColumnFilters, sharedStore.refresh, game]);
 
   return (
-    <div className={cn(["container", "mx-auto"])}>
+    <div className={cn(["container", "mx-auto", "h-full", "flex", "flex-col"])}>
       <div
         className={cn([
           "flex",
@@ -144,7 +144,7 @@ export default function Index() {
           "border",
           "bg-card",
           "min-h-100",
-          "h-[calc(100vh-15rem)]",
+          "flex-1",
         ])}
       >
         <LoadingOverlay loading={loading} />

@@ -4,7 +4,7 @@ import { CheckIcon, MailCheckIcon, SendIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { sendVerifyEmail, verifyEmail } from "@/api/users/profile/emails";
+import { sendVerifyEmail, verifyEmail } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";

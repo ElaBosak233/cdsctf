@@ -7,9 +7,7 @@ export interface GetTeamProfile {
 }
 
 export async function getTeamProfile(request: GetTeamProfile) {
-  return api
-    .get(`games/${request.game_id}/teams/profile`)
-    .json<WebResponse<Team>>();
+  return api.get(`games/${request.game_id}/teams/us`).json<WebResponse<Team>>();
 }
 
 export interface UpdateTeamRequest {
@@ -23,7 +21,7 @@ export interface UpdateTeamRequest {
 
 export async function updateTeam(request: UpdateTeamRequest) {
   return api
-    .put(`games/${request.game_id}/teams/profile`, { json: request })
+    .put(`games/${request.game_id}/teams/us`, { json: request })
     .json<WebResponse<Team>>();
 }
 
@@ -34,7 +32,7 @@ export interface DeleteTeamRequest {
 
 export async function deleteTeam(request: DeleteTeamRequest) {
   return api
-    .delete(`games/${request.game_id}/teams/profile`, {
+    .delete(`games/${request.game_id}/teams/us`, {
       json: request,
     })
     .json<WebResponse<never>>();
@@ -47,6 +45,6 @@ export interface SetTeamReadyRequest {
 
 export async function setTeamReady(request: SetTeamReadyRequest) {
   return api
-    .post(`games/${request.game_id}/teams/profile/ready`, { json: request })
+    .post(`games/${request.game_id}/teams/us/ready`, { json: request })
     .json<WebResponse<never>>();
 }

@@ -8,3 +8,4 @@ pub mod m20260201_000007_create_game_notice;
 pub mod m20260201_000008_create_game_challenge;
 pub mod m20260201_000009_create_team_user;
 pub mod m20260201_000010_create_submission;
+pub mod m20260201_000011_create_note;

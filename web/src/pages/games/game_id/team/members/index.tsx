@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { KeyIcon, RefreshCcwIcon, UsersRoundIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { createToken, getToken } from "@/api/games/game_id/teams/profile/token";
+import { createToken, getToken } from "@/api/games/game_id/teams/us/token";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

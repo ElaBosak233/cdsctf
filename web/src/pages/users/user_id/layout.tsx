@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useParams } from "react-router";
 import { getUser } from "@/api/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils";
 import { Context } from "./context";
@@ -27,7 +28,7 @@ export default function Layout() {
 
   return (
     <Context.Provider value={{ user }}>
-      <div className={cn(["flex", "flex-1"])}>
+      <div className={cn(["flex", "h-full"])}>
         <div
           className={cn([
             "hidden",
@@ -40,8 +41,8 @@ export default function Layout() {
             "p-10",
             "border-r",
             "lg:sticky",
-            "top-16",
-            "h-[calc(100vh-64px)]",
+            "lg:top-0",
+            "h-full",
           ])}
         >
           <div className={cn(["flex", "flex-row", "items-center", "gap-5"])}>
@@ -88,9 +89,9 @@ export default function Layout() {
             {`${t("user.created_at")} ${new Date(Number(user?.created_at) * 1000).toLocaleDateString()}`}
           </span>
         </div>
-        <div className={cn(["flex-1", "flex", "flex-col"])}>
+        <ScrollArea className={cn(["flex-1", "min-h-0"])}>
           <Outlet />
-        </div>
+        </ScrollArea>
       </div>
     </Context.Provider>
   );
