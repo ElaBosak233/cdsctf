@@ -1,4 +1,4 @@
-import { BrushIcon, EclipseIcon, MoonIcon, SunIcon } from "lucide-react";
+import { BrushIcon , SunMoon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
+import { ThemeSwitch } from "../theme-switch";
 
 function Appearance() {
-  const { setTheme } = useApperanceStore();
+  const { theme, setTheme } = useApperanceStore();
   const { i18n } = useTranslation();
 
   return (
@@ -21,29 +22,6 @@ function Appearance() {
         <Button variant={"ghost"} square size={"sm"} icon={<BrushIcon />} />
       </DropdownMenuTrigger>
       <DropdownMenuContent className={cn(["space-y-1"])}>
-        <div className={cn(["flex", "h-9", "justify-evenly"])}>
-          <Button
-            size={"sm"}
-            square
-            icon={<SunIcon />}
-            onClick={() => setTheme("light")}
-          />
-          <Separator orientation="vertical" />
-          <Button
-            size={"sm"}
-            icon={<MoonIcon />}
-            square
-            onClick={() => setTheme("dark")}
-          />
-          <Separator orientation="vertical" />
-          <Button
-            size={"sm"}
-            square
-            icon={<EclipseIcon />}
-            onClick={() => setTheme("system")}
-          />
-        </div>
-        <Separator />
         <div className={cn(["flex", "h-9", "justify-evenly", "gap-1"])}>
           <Button
             size={"sm"}
@@ -76,6 +54,20 @@ function Appearance() {
           >
             な
           </Button>
+        </div>
+        <Separator />
+        <div className={cn(["flex", "justify-center"])}>
+          <Button
+            size={"sm"}
+            square
+            disabled
+          >
+            <SunMoon />
+          </Button>
+          <ThemeSwitch
+            isDark={theme === "dark"}
+            onToggle={() => setTheme(theme === "dark" ? "light" : "dark")}
+          />
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
