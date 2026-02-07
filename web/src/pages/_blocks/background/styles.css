@@ -1,0 +1,17 @@
+.bg-twinkle-1 {
+  animation: bg-twinkle 5s ease infinite;
+}
+
+.bg-twinkle-2 {
+  animation: bg-twinkle 6s ease infinite;
+}
+
+@keyframes bg-twinkle {
+  0%,
+  100% {
+    opacity: 0.05;
+  }
+  50% {
+    opacity: 0.12;
+  }
+}

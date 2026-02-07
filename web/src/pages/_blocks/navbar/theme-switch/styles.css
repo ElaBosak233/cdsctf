@@ -135,7 +135,9 @@
   inset: -2%;
   border-radius: 50%;
   background: var(--moon);
-  transition: translate var(--speed) ease-in-out, box-shadow var(--speed) ease-in-out;
+  transition:
+    translate var(--speed) ease-in-out,
+    box-shadow var(--speed) ease-in-out;
   translate: calc((100 - (var(--dark, 0) * 100)) * 1%) 0%;
 }
 
@@ -181,7 +183,9 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transition: translate var(--speed) var(--easing), opacity var(--speed) var(--easing);
+  transition:
+    translate var(--speed) var(--easing),
+    opacity var(--speed) var(--easing);
   translate: calc((50 - (var(--dark, 0) * 4)) * -1%) -50%;
 }
 

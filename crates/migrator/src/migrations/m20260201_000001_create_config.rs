@@ -19,11 +19,8 @@ impl MigrationTrait for Migration {
             manager.get_database_backend(),
             r#"
                 CREATE TABLE IF NOT EXISTS "configs" (
-                    "id" BIGSERIAL PRIMARY KEY,
-                    "meta" JSONB,
-                    "auth" JSONB,
-                    "email" JSONB,
-                    "captcha" JSONB
+                    "id" BOOLEAN PRIMARY KEY DEFAULT TRUE,
+                    "data" JSONB NOT NULL
                 );
             "#
             .to_owned(),

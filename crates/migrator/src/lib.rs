@@ -33,17 +33,7 @@ pub async fn run(db: &cds_db::DB) -> Result<(), DbError> {
     }
 
     if cds_db::config::count(&db.conn).await? < 1 {
-        let _ = cds_db::config::save(
-            &db.conn,
-            cds_db::config::ActiveModel {
-                id: sea_orm::ActiveValue::Set(1),
-                meta: sea_orm::ActiveValue::Set(cds_db::config::meta::Config::default()),
-                auth: sea_orm::ActiveValue::Set(cds_db::config::auth::Config::default()),
-                email: sea_orm::ActiveValue::Set(cds_db::config::email::Config::default()),
-                captcha: sea_orm::ActiveValue::Set(cds_db::config::captcha::Config::default()),
-            },
-        )
-        .await?;
+        let _ = cds_db::config::save(&db.conn, cds_db::config::Config::default()).await?;
     }
 
     Ok(())

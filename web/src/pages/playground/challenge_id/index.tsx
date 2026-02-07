@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronLeftIcon, LightbulbIcon, LightbulbOffIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useMemo, useState } from "react";
@@ -39,7 +39,6 @@ function useChallengeQuery(challengeId?: number) {
 export default function Index() {
   const { config } = useConfigStore();
   const { challenge_id } = useParams<{ challenge_id: string }>();
-  const shouldReduceMotion = useReducedMotion();
   const navigate = useNavigate();
   const [isExiting, setIsExiting] = useState(false);
 
@@ -67,10 +66,6 @@ export default function Index() {
           size={"sm"}
           square
           onClick={() => {
-            if (shouldReduceMotion) {
-              navigate("/playground", { replace: true });
-              return;
-            }
             setIsExiting(true);
             setTimeout(() => {
               navigate("/playground", { replace: true });
@@ -143,11 +138,9 @@ export default function Index() {
               "flex-1",
               "overflow-hidden",
             ])}
-            initial={
-              shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }
-            }
+            initial={{ opacity: 0, y: 8 }}
             animate={isExiting ? { opacity: 0, y: 8 } : { opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
           >
             <div className={cn(["md:hidden", "flex", "flex-1", "min-h-0"])}>
               <div

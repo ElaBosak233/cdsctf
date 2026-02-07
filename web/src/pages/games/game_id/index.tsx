@@ -91,11 +91,7 @@ export default function Index() {
               ])}
               fallback={
                 <FlagIcon
-                  className={cn([
-                    "size-20",
-                    "rotate-15",
-                    "text-secondary-foreground",
-                  ])}
+                  className={cn(["size-20", "text-secondary-foreground"])}
                   strokeWidth={1}
                 />
               }

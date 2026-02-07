@@ -4,6 +4,7 @@ mod logo;
 use std::sync::Arc;
 
 use axum::{Router, extract::State};
+use cds_db::Config;
 use serde::{Deserialize, Serialize};
 
 use crate::traits::{AppState, WebError, WebResponse};
@@ -16,9 +17,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/version", axum::routing::get(get_version))
 }
 
-pub async fn get_config(
-    State(s): State<Arc<AppState>>,
-) -> Result<WebResponse<cds_db::config::Model>, WebError> {
+pub async fn get_config(State(s): State<Arc<AppState>>) -> Result<WebResponse<Config>, WebError> {
     Ok(WebResponse {
         data: Some(cds_db::get_config(&s.db.conn).await.desensitize()),
         ..Default::default()
