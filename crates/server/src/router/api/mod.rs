@@ -1,8 +1,8 @@
 pub mod admin;
 pub mod challenge;
 pub mod config;
-pub mod instance;
 pub mod game;
+pub mod instance;
 mod media;
 mod note;
 pub mod submission;

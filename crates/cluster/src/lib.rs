@@ -493,7 +493,10 @@ impl Cluster {
         let service = Service {
             metadata: metadata.clone(),
             spec: Some(ServiceSpec {
-                selector: Some(BTreeMap::from([("cds/instance_id".to_owned(), id.to_string())])),
+                selector: Some(BTreeMap::from([(
+                    "cds/instance_id".to_owned(),
+                    id.to_string(),
+                )])),
                 ports: Some(
                     all_ports
                         .into_iter()

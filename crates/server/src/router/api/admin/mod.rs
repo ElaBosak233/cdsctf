@@ -1,7 +1,7 @@
 mod challenge;
 mod config;
-mod instance;
 mod game;
+mod instance;
 mod submission;
 mod user;
 

@@ -6,9 +6,8 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 
-pub use crate::entity::challenge::{ActiveModel, Container, EnvVar, Model, Port};
+pub use crate::entity::challenge::{ActiveModel, Container, EnvVar, Instance, Model, Port};
 pub(crate) use crate::entity::challenge::{Column, Entity};
-pub use crate::entity::challenge::Instance;
 use crate::traits::DbError;
 
 #[allow(dead_code)]

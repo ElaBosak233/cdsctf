@@ -4,13 +4,13 @@ mod writeup;
 
 use std::sync::Arc;
 
-use axum::{extract::State, Router};
+use axum::{Router, extract::State};
 use cds_db::{
+    Challenge,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
         NotSet,
     },
-    Challenge,
 };
 use serde::{Deserialize, Serialize};
 use validator::Validate;

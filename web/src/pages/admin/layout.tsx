@@ -19,6 +19,7 @@ import {
 import { Group } from "@/models/user";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
+import { isSubRoute } from "@/utils/route";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -98,22 +99,28 @@ export default function Layout() {
           "gap-4",
         ])}
       >
-        {options?.map((option) => (
-          <Tooltip key={option.link}>
-            <TooltipTrigger>
-              <Button
-                icon={option.icon}
-                square
-                size={"sm"}
-                variant={pathname === option?.link ? "tonal" : "ghost"}
-                asChild
-              >
-                <Link to={option.link} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side={"right"}>{option.name}</TooltipContent>
-          </Tooltip>
-        ))}
+        {options?.map((option) => {
+          return (
+            <Tooltip key={option.link}>
+              <TooltipTrigger>
+                <Button
+                  icon={option.icon}
+                  square
+                  size={"sm"}
+                  variant={
+                    isSubRoute(option.link, pathname, "/admin")
+                      ? "tonal"
+                      : "ghost"
+                  }
+                  asChild
+                >
+                  <Link to={option.link} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side={"right"}>{option.name}</TooltipContent>
+            </Tooltip>
+          );
+        })}
       </div>
       <div
         className={cn([

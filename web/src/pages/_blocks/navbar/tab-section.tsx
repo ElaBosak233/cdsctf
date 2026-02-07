@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
+import { isSubRoute } from "@/utils/route";
 import { useOptions } from "./context";
 
 function TabSection() {
@@ -16,7 +17,7 @@ function TabSection() {
           <Button
             key={index}
             asChild
-            variant={pathname === option?.link ? "tonal" : "ghost"}
+            variant={isSubRoute(option.link, pathname) ? "tonal" : "ghost"}
             size={"sm"}
             className={"font-semibold"}
             disabled={option?.disabled}

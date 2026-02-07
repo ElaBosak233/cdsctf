@@ -2,7 +2,7 @@ mod container;
 
 use std::sync::Arc;
 
-use axum::{extract::State, Router};
+use axum::{Router, extract::State};
 
 use crate::{
     extract::Path,
