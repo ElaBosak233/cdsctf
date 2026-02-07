@@ -4,13 +4,13 @@ mod writeup;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{extract::State, Router};
 use cds_db::{
-    Challenge,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
         NotSet,
     },
+    Challenge,
 };
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -25,7 +25,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/", axum::routing::get(get_challenge))
         .route("/", axum::routing::put(update_challenge))
         .route("/", axum::routing::delete(delete_challenge))
-        .route("/env", axum::routing::put(update_challenge_env))
+        .route("/instance", axum::routing::put(update_challenge_instance))
         .nest("/checker", checker::router())
         .nest("/writeup", writeup::router())
         .nest("/attachments", attachment::router())
@@ -51,7 +51,7 @@ pub struct UpdateChallengeRequest {
     pub category: Option<i32>,
     pub tags: Option<Vec<String>>,
     pub public: Option<bool>,
-    pub dynamic: Option<bool>,
+    pub has_instance: Option<bool>,
     pub has_attachment: Option<bool>,
     pub has_writeup: Option<bool>,
 }
@@ -73,7 +73,7 @@ pub async fn update_challenge(
             tags: body.tags.map_or(NotSet, Set),
             category: body.category.map_or(NotSet, Set),
             public: body.public.map_or(NotSet, Set),
-            dynamic: body.dynamic.map_or(NotSet, Set),
+            has_instance: body.has_instance.map_or(NotSet, Set),
             has_attachment: body.has_attachment.map_or(NotSet, Set),
             has_writeup: body.has_writeup.map_or(NotSet, Set),
             ..Default::default()
@@ -82,7 +82,6 @@ pub async fn update_challenge(
     .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK,
         data: challenge,
         ..Default::default()
     })
@@ -97,22 +96,19 @@ pub async fn delete_challenge(
 
     cds_db::challenge::delete(&s.db.conn, challenge.id).await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(WebResponse::default())
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
-pub struct UpdateChallengeEnvRequest {
-    pub env: Option<cds_db::challenge::Env>,
+pub struct UpdateChallengeInstanceRequest {
+    pub instance: Option<cds_db::challenge::Instance>,
 }
 
-pub async fn update_challenge_env(
+pub async fn update_challenge_instance(
     State(s): State<Arc<AppState>>,
 
     Path(challenge_id): Path<i64>,
-    VJson(body): VJson<UpdateChallengeEnvRequest>,
+    VJson(body): VJson<UpdateChallengeInstanceRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
@@ -120,14 +116,11 @@ pub async fn update_challenge_env(
         &s.db.conn,
         cds_db::challenge::ActiveModel {
             id: Unchanged(challenge_id),
-            env: body.env.map_or(NotSet, |v| Set(Some(v))),
+            instance: body.instance.map_or(NotSet, |v| Set(Some(v))),
             ..Default::default()
         },
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(WebResponse::default())
 }

@@ -24,7 +24,7 @@ i18n
       "game",
       "team",
       "submission",
-      "env",
+      "instance",
       "admin",
     ],
     defaultNS: false,

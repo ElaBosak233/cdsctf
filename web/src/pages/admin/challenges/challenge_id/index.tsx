@@ -57,7 +57,7 @@ export default function Index() {
     }),
     has_attachment: z.boolean({}),
     has_writeup: z.boolean({}),
-    dynamic: z.boolean({}),
+    has_instance: z.boolean({}),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -219,10 +219,10 @@ export default function Index() {
           />
           <FormField
             control={form.control}
-            name={"dynamic"}
+            name={"has_instance"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/2"])}>
-                <FormLabel>{t("challenge:form.dynamic._")}</FormLabel>
+                <FormLabel>{t("challenge:form.has_instance._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -238,7 +238,7 @@ export default function Index() {
                               className={cn(["flex", "gap-2", "items-center"])}
                             >
                               <ShipWheelIcon />
-                              {t("challenge:form.dynamic.true")}
+                              {t("challenge:form.has_instance.true")}
                             </div>
                           ),
                         },
@@ -249,7 +249,7 @@ export default function Index() {
                               className={cn(["flex", "gap-2", "items-center"])}
                             >
                               <BoxIcon />
-                              {t("challenge:form.dynamic.false")}
+                              {t("challenge:form.has_instance.false")}
                             </div>
                           ),
                         },

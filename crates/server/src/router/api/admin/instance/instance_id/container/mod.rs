@@ -2,7 +2,7 @@ mod container_id;
 
 use std::sync::Arc;
 
-use axum::{Router, http::StatusCode};
+use axum::Router;
 
 use crate::traits::{AppState, WebError, WebResponse};
 
@@ -13,8 +13,5 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub async fn get_container() -> Result<WebResponse<()>, WebError> {
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(WebResponse::ok())
 }

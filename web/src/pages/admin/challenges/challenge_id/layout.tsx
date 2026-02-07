@@ -60,10 +60,10 @@ export default function Layout() {
         disabled: !challenge?.has_attachment,
       },
       {
-        link: `/admin/challenges/${challenge_id}/env`,
-        name: t("challenge:edit.env"),
+        link: `/admin/challenges/${challenge_id}/instance`,
+        name: t("challenge:edit.instance"),
         icon: <ContainerIcon />,
-        disabled: !challenge?.dynamic,
+        disabled: !challenge?.has_instance,
       },
       {
         link: `/admin/challenges/${challenge_id}/writeup`,

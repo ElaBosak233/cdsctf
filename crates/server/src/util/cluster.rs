@@ -4,7 +4,7 @@ use cds_env::Env;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct DynamicEnvironment {
+pub struct Instance {
     pub id: String,
     pub user_id: i64,
     pub team_id: i64,
@@ -23,19 +23,19 @@ pub struct DynamicEnvironment {
     pub started_at: i64,
 }
 
-impl DynamicEnvironment {
+impl Instance {
     pub fn with_env(mut self, env: &Env) -> Self {
         self.public_entry = Some(env.cluster.public_entry.clone());
         self
     }
 }
 
-impl From<Pod> for DynamicEnvironment {
+impl From<Pod> for Instance {
     fn from(pod: Pod) -> Self {
         let labels = pod.metadata.labels.unwrap_or_default();
 
         let id = labels
-            .get("cds/env_id")
+            .get("cds/instance_id")
             .map(|s| s.to_owned())
             .unwrap_or_default()
             .to_owned();
@@ -129,7 +129,7 @@ impl From<Pod> for DynamicEnvironment {
         // SAFETY: the creation_timestamp could be safely unwrapped.
         let started_at = pod.metadata.creation_timestamp.unwrap().0.as_second();
 
-        DynamicEnvironment {
+        Instance {
             id,
             user_id,
             team_id,

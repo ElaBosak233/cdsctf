@@ -6,7 +6,7 @@ edit:
   info: Info
   checker: Checker
   attachment: Attachment
-  env: Dynamic Environment
+  instance: Instance
   writeup: Write-up
 preview: Preview Challenge
 note: Note
@@ -18,10 +18,10 @@ description: Description
 category: Category
 tags: Tags
 has_attachment: Attachment
-dynamic:
-  _: Is Dynamic
-  "true": Dynamic
-  "false": Static
+has_instance:
+  _: Has Instance
+  "true": Dynamic Environment
+  "false": Static Environment
 frozen:
   already: Frozen
   countdown: "Freezes in {{hours}}h {{minutes}}m {{seconds}}s"
@@ -83,8 +83,8 @@ form:
     _: Has Attachment
     "true": "Yes"
     "false": "No"
-  dynamic:
-    _: Is Dynamic
+  has_instance:
+    _: Has Instance
     "true": Dynamic Environment
     "false": Static Environment
   description:
@@ -97,17 +97,7 @@ form:
   writeup:
     _: Write-up
     message: Please enter write-up
-  env:
-    actions:
-      update_success: "Dynamic environment for challenge {{title}} updated successfully."
-    container_create_error: Error occurred while creating container, destroy will be triggered.
-    renew_success: Renewed successfully.
-    renew_error: Renew failed.
-    container_stop_sent: Container stop command sent.
-    container_creating: Sending container create request.
-    container_start_sent: Container start command sent.
-    container_start_description: This may take a while.
-    error: An error occurred.
+  instance:
     duration:
       _: Duration (seconds)
       message: Please enter duration in seconds
@@ -161,6 +151,8 @@ actions:
     success: "Challenge {{title}} updated successfully."
   writeup_update:
     success: "Write-up for challenge {{title}} updated successfully."
+  instance_update:
+    success: "Dynamic environment for challenge {{title}} updated successfully."
   delete:
     _: Delete Challenge
     message: "Are you sure you want to delete the challenge <muted>{{title}}</muted>?"

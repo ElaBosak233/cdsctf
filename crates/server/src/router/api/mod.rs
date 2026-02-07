@@ -1,7 +1,7 @@
 pub mod admin;
 pub mod challenge;
 pub mod config;
-pub mod env;
+pub mod instance;
 pub mod game;
 mod media;
 mod note;
@@ -22,7 +22,7 @@ pub async fn router() -> Router<Arc<AppState>> {
         .nest("/users", user::router())
         .nest("/challenges", challenge::router())
         .nest("/games", game::router())
-        .nest("/envs", env::router())
+        .nest("/instances", instance::router())
         .nest("/submissions", submission::router())
         .nest("/notes", note::router())
         .nest("/media", media::router())

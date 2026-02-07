@@ -6,8 +6,9 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 
-pub use crate::entity::challenge::{ActiveModel, Container, Env, EnvVar, Model, Port};
+pub use crate::entity::challenge::{ActiveModel, Container, EnvVar, Model, Port};
 pub(crate) use crate::entity::challenge::{Column, Entity};
+pub use crate::entity::challenge::Instance;
 use crate::traits::DbError;
 
 #[allow(dead_code)]
@@ -18,11 +19,11 @@ pub struct Challenge {
     pub description: String,
     pub category: i32,
     pub tags: Vec<String>,
-    pub dynamic: bool,
+    pub has_instance: bool,
     pub has_attachment: bool,
     pub public: bool,
     pub has_writeup: bool,
-    pub env: Option<Env>,
+    pub instance: Option<Instance>,
     pub checker: Option<String>,
     pub writeup: Option<String>,
     pub deleted_at: Option<i64>,
@@ -33,7 +34,7 @@ pub struct Challenge {
 impl Challenge {
     pub fn desensitize(&self) -> Self {
         Self {
-            env: None,
+            instance: None,
             checker: None,
             writeup: if self.has_writeup && self.public {
                 self.writeup.clone()
@@ -61,7 +62,7 @@ pub struct FindChallengeOptions {
     pub category: Option<i32>,
     pub tag: Option<String>,
     pub public: Option<bool>,
-    pub dynamic: Option<bool>,
+    pub has_instance: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -75,7 +76,7 @@ pub async fn find<T>(
         category,
         tag,
         public,
-        dynamic,
+        has_instance,
         page,
         size,
         sorts,
@@ -113,8 +114,8 @@ where
         sql = sql.filter(Column::Public.eq(public));
     }
 
-    if let Some(dynamic) = dynamic {
-        sql = sql.filter(Column::Dynamic.eq(dynamic));
+    if let Some(has_instance) = has_instance {
+        sql = sql.filter(Column::HasInstance.eq(has_instance));
     }
 
     sql = sql.filter(Column::DeletedAt.is_null());

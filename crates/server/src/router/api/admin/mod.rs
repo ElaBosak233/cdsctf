@@ -1,6 +1,6 @@
 mod challenge;
 mod config;
-mod env;
+mod instance;
 mod game;
 mod submission;
 mod user;
@@ -16,7 +16,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/users", user::router())
         .nest("/challenges", challenge::router())
         .nest("/games", game::router())
-        .nest("/envs", env::router())
+        .nest("/instances", instance::router())
         .nest("/submissions", submission::router())
         .nest("/configs", config::router())
 }

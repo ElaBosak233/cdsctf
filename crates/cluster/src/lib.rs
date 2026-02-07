@@ -232,7 +232,7 @@ pub async fn init(env: &Env, checker: &Checker) -> Result<Cluster, ClusterError>
 impl Cluster {
     pub async fn get_service(&self, id: Uuid) -> Result<Service, ClusterError> {
         let service = self
-            .get_services_by_label(&format!("cds/env_id={}", id))
+            .get_services_by_label(&format!("cds/instance_id={}", id))
             .await?
             .first()
             .ok_or(ClusterError::NotFound("service_not_found".to_owned()))?
@@ -271,7 +271,7 @@ impl Cluster {
         let _ = service_api
             .delete_collection(
                 &DeleteParams::default(),
-                &ListParams::default().labels(&format!("cds/env_id={id}")),
+                &ListParams::default().labels(&format!("cds/instance_id={id}")),
             )
             .await?;
 
@@ -280,7 +280,7 @@ impl Cluster {
 
     pub async fn get_pod(&self, id: &str) -> Result<Pod, ClusterError> {
         let pod = self
-            .get_pods_by_label(&format!("cds/env_id={}", id))
+            .get_pods_by_label(&format!("cds/instance_id={}", id))
             .await?
             .first()
             .ok_or(ClusterError::NotFound("pod_not_found".to_owned()))?
@@ -330,14 +330,14 @@ impl Cluster {
                     grace_period_seconds: Some(0),
                     ..Default::default()
                 },
-                &ListParams::default().labels(&format!("cds/env_id={id}")),
+                &ListParams::default().labels(&format!("cds/instance_id={id}")),
             )
             .await?;
 
         Ok(())
     }
 
-    pub async fn create_challenge_env(
+    pub async fn create_challenge_instance(
         &self,
         user: cds_db::User,
         team: Option<cds_db::Team>,
@@ -347,12 +347,12 @@ impl Cluster {
         let id = util::gen_safe_nanoid();
         let name = format!("cds-{}", id);
 
-        let env = challenge
+        let instance = challenge
             .clone()
-            .env
+            .instance
             .ok_or_else(|| ClusterError::MissingEnvConfiguration)?;
 
-        let all_ports = env
+        let all_ports = instance
             .containers
             .iter()
             .flat_map(|container| container.ports.clone())
@@ -362,8 +362,8 @@ impl Cluster {
             name: Some(name.clone()),
             labels: Some(BTreeMap::from([
                 ("cds/app".to_owned(), "challenges".to_owned()),
-                ("cds/env_id".to_owned(), id.to_string()),
-                ("cds/internet".to_owned(), format!("{}", env.internet)),
+                ("cds/instance_id".to_owned(), id.to_string()),
+                ("cds/internet".to_owned(), format!("{}", instance.internet)),
                 ("cds/user_id".to_owned(), format!("{}", user.id)),
                 (
                     "cds/team_id".to_owned(),
@@ -393,7 +393,7 @@ impl Cluster {
                 ("cds/team".to_owned(), json!(team).to_string()),
                 ("cds/game".to_owned(), json!(game).to_string()),
                 ("cds/renew".to_owned(), format!("{}", 0)),
-                ("cds/duration".to_owned(), format!("{}", env.duration)),
+                ("cds/duration".to_owned(), format!("{}", instance.duration)),
                 ("cds/ports".to_owned(), json!(all_ports).to_string()),
             ])),
             ..Default::default()
@@ -419,7 +419,7 @@ impl Cluster {
         let pod = Pod {
             metadata: metadata.clone(),
             spec: Some(PodSpec {
-                containers: env
+                containers: instance
                     .containers
                     .into_iter()
                     .map(|container| {
@@ -493,7 +493,7 @@ impl Cluster {
         let service = Service {
             metadata: metadata.clone(),
             spec: Some(ServiceSpec {
-                selector: Some(BTreeMap::from([("cds/env_id".to_owned(), id.to_string())])),
+                selector: Some(BTreeMap::from([("cds/instance_id".to_owned(), id.to_string())])),
                 ports: Some(
                     all_ports
                         .into_iter()
@@ -515,7 +515,7 @@ impl Cluster {
         let service = match self.create_service(service).await {
             Ok(service) => service,
             Err(err) => {
-                self.delete_challenge_env(&id.to_string()).await?;
+                self.delete_challenge_instance(&id.to_string()).await?;
                 return Err(err);
             }
         };
@@ -556,7 +556,7 @@ impl Cluster {
         Ok(())
     }
 
-    pub async fn renew_challenge_env(&self, id: &str) -> Result<(), ClusterError> {
+    pub async fn renew_challenge_instance(&self, id: &str) -> Result<(), ClusterError> {
         let name = format!("cds-{}", id);
         let pod_api: Api<Pod> = Api::namespaced(self.client.clone(), self.namespace.as_str());
 
@@ -583,7 +583,7 @@ impl Cluster {
         Ok(())
     }
 
-    pub async fn delete_challenge_env(&self, id: &str) -> Result<(), ClusterError> {
+    pub async fn delete_challenge_instance(&self, id: &str) -> Result<(), ClusterError> {
         self.delete_pod(id).await?;
         self.delete_service(id).await?;
 

@@ -320,23 +320,23 @@ function useColumns() {
         },
       },
       {
-        accessorKey: "dynamic",
-        header: t("challenge:dynamic._"),
+        accessorKey: "has_instance",
+        header: t("challenge:has_instance._"),
         cell: ({ row }) => {
-          const isDynamic = row.original.dynamic;
+          const hasInstance = row.original.has_instance;
 
           return (
             <Badge
               className={cn([
-                isDynamic
+                hasInstance
                   ? ["bg-info", "text-info-foreground"]
                   : ["bg-success", "text-success-foreground"],
               ])}
             >
-              {isDynamic ? <ShipWheelIcon /> : <BoxIcon />}
-              {isDynamic
-                ? t("challenge:dynamic.true")
-                : t("challenge:dynamic.false")}
+              {hasInstance ? <ShipWheelIcon /> : <BoxIcon />}
+              {hasInstance
+                ? t("challenge:has_instance.true")
+                : t("challenge:has_instance.false")}
             </Badge>
           );
         },

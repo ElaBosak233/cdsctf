@@ -16,9 +16,9 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { Pagination } from "@/components/ui/pagination";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
-import { cn } from "@/utils";
 import { Group } from "@/models/user";
-import { AdminListLayout, type AdminListContextValue } from "../_list";
+import { cn } from "@/utils";
+import { type AdminListContextValue, AdminListLayout } from "../_list";
 
 function setFilter(
   prev: ColumnFiltersState,

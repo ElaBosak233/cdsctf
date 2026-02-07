@@ -17,24 +17,24 @@ use crate::{
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/renew", axum::routing::post(renew_pod))
-        .route("/stop", axum::routing::post(stop_pod))
+        .route("/renew", axum::routing::post(renew_instance))
+        .route("/stop", axum::routing::post(stop_instance))
         .route("/wsrx", axum::routing::get(wsrx))
 }
 
-pub async fn renew_pod(
+pub async fn renew_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
-    Path(pod_id): Path<String>,
+    Path(instance_id): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let pod = s.cluster.get_pod(&pod_id).await?;
+    let pod = s.cluster.get_pod(&instance_id).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
-        .get("cds/env_id")
+        .get("cds/instance_id")
         .map(|s| s.to_string())
         .unwrap_or_default();
     let team_id = labels
@@ -84,7 +84,7 @@ pub async fn renew_pod(
         return Err(WebError::BadRequest(json!("renewal_within_10_minutes")));
     }
 
-    s.cluster.renew_challenge_env(&id).await?;
+    s.cluster.renew_challenge_instance(&id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -92,19 +92,19 @@ pub async fn renew_pod(
     })
 }
 
-pub async fn stop_pod(
+pub async fn stop_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
-    Path(pod_id): Path<String>,
+    Path(instance_id): Path<String>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let pod = s.cluster.get_pod(&pod_id).await?;
+    let pod = s.cluster.get_pod(&instance_id).await?;
 
     let labels = pod.metadata.labels.unwrap_or_default();
     let id = labels
-        .get("cds/env_id")
+        .get("cds/instance_id")
         .map(|s| s.to_string())
         .unwrap_or_default();
     let team_id = labels
@@ -126,7 +126,7 @@ pub async fn stop_pod(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    s.cluster.delete_challenge_env(&id).await?;
+    s.cluster.delete_challenge_instance(&id).await?;
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -142,14 +142,14 @@ pub struct WsrxRequest {
 pub async fn wsrx(
     State(s): State<Arc<AppState>>,
 
-    Path(env_id): Path<String>,
+    Path(instance_id): Path<String>,
     Query(query): Query<WsrxRequest>,
     ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
     let port = query.port;
 
     Ok(ws.on_upgrade(move |socket| async move {
-        let result = s.cluster.wsrx(&env_id, port as u16, socket).await;
+        let result = s.cluster.wsrx(&instance_id, port as u16, socket).await;
         if let Err(e) = result {
             debug!("Failed to link pods: {:?}", e);
         }

@@ -1,15 +1,6 @@
 import { createPluginRegistration } from "@embedpdf/core";
 import { EmbedPDF } from "@embedpdf/core/react";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
-import { useTranslation } from "react-i18next";
-import { cn } from "@/utils";
-import { LoaderCircleIcon } from "lucide-react";
-
-import {
-  Viewport,
-  ViewportPluginPackage,
-} from "@embedpdf/plugin-viewport/react";
-import { Scroller, ScrollPluginPackage } from "@embedpdf/plugin-scroll/react";
 import {
   DocumentContent,
   DocumentManagerPlugin,
@@ -19,6 +10,15 @@ import {
   RenderLayer,
   RenderPluginPackage,
 } from "@embedpdf/plugin-render/react";
+import { Scroller, ScrollPluginPackage } from "@embedpdf/plugin-scroll/react";
+
+import {
+  Viewport,
+  ViewportPluginPackage,
+} from "@embedpdf/plugin-viewport/react";
+import { LoaderCircleIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { cn } from "@/utils";
 import { ScrollArea } from "./scroll-area";
 
 const plugins = [

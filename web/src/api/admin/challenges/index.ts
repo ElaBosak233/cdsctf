@@ -8,7 +8,7 @@ export interface GetChallengesRequest {
   description?: string;
   category?: number;
   public?: boolean;
-  dynamic?: boolean;
+  has_instance?: boolean;
   page?: number;
   size?: number;
   sorts?: string;
@@ -27,7 +27,7 @@ export interface CreateChallengeRequest {
   description?: string;
   category?: number;
   public?: boolean;
-  dynamic?: boolean;
+  has_instance?: boolean;
   has_attachment?: boolean;
 }
 

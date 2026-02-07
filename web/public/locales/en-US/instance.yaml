@@ -1,0 +1,18 @@
+hint1: "This challenge requires a dynamic environment,"
+hint2: click 'Start' to provision the environment.
+remaining: "Remaining {{hours}}:{{minutes}}:{{seconds}}"
+error: An error occurred.
+actions:
+  start:
+    _: Start
+    creating: Sending container create request.
+    sent: Container start command sent.
+    description: This may take a while.
+    error: Error occurred while creating container, destroy will be triggered.
+  stop:
+    _: Stop
+    sent: Container stop command sent.
+  renew:
+    _: Renew
+    success: Renewed successfully.
+    error: Renew failed.

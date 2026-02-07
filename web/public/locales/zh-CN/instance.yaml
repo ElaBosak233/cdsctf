@@ -1,0 +1,18 @@
+hint1: 本题需要使用动态容器，
+hint2: 点击“启动”进行容器下发。
+remaining: "剩余时间 {{hours}}:{{minutes}}:{{seconds}}"
+error: 发生错误。
+actions:
+  start:
+    _: 启动
+    creating: 正在发送容器创建请求。
+    sent: 已下发启动命令。
+    description: 这可能需要一些时间。
+    error: 容器创建时发生错误，即将触发销毁。
+  stop:
+    _: 停止
+    sent: 已下发停止命令。
+  renew:
+    _: 续期
+    success: 续期成功。
+    error: 续期失败。

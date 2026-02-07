@@ -20,7 +20,7 @@ export interface UpdateChallengeRequest {
   category?: number | null;
   has_attachment?: boolean | null;
   public?: boolean | null;
-  dynamic?: boolean | null;
+  has_instance?: boolean | null;
 }
 
 export async function updateChallenge(request: UpdateChallengeRequest) {

@@ -273,11 +273,11 @@ const router = createBrowserRouter([
                     }),
                   },
                   {
-                    path: "env",
+                    path: "instance",
                     lazy: async () => ({
                       Component: (
                         await import(
-                          "@/pages/admin/challenges/challenge_id/env"
+                          "@/pages/admin/challenges/challenge_id/instance"
                         )
                       ).default,
                     }),
@@ -297,12 +297,12 @@ const router = createBrowserRouter([
             ],
           },
           {
-            path: "envs",
+            path: "instances",
             children: [
               {
                 index: true,
                 lazy: async () => ({
-                  Component: (await import("@/pages/admin/envs")).default,
+                  Component: (await import("@/pages/admin/instances")).default,
                 }),
               },
             ],

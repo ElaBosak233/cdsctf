@@ -24,14 +24,14 @@ pub struct GetShellRequest {
 pub async fn get_shell(
     State(s): State<Arc<AppState>>,
 
-    Path((pod_id, container_id)): Path<(String, String)>,
+    Path((instance_id, container_id)): Path<(String, String)>,
     Query(params): Query<GetShellRequest>,
     ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
     Ok(ws.on_upgrade(move |socket| async move {
         let _ = s
             .cluster
-            .exec(&pod_id, &container_id, params.command, socket)
+            .exec(&instance_id, &container_id, params.command, socket)
             .await;
     }))
 }

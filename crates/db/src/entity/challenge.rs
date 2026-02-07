@@ -17,12 +17,12 @@ pub struct Model {
     pub description: String,
     pub category: i32,
     pub tags: Vec<String>,
-    pub dynamic: bool,
+    pub has_instance: bool,
     pub has_attachment: bool,
     pub has_writeup: bool,
     pub public: bool,
     #[sea_orm(column_type = "JsonBinary")]
-    pub env: Option<Env>,
+    pub instance: Option<Instance>,
     #[sea_orm(column_type = "Text")]
     pub checker: Option<String>,
     #[sea_orm(column_type = "Text")]
@@ -33,7 +33,7 @@ pub struct Model {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-pub struct Env {
+pub struct Instance {
     pub duration: i64,
     pub internet: bool,
     pub containers: Vec<Container>,

@@ -6,7 +6,7 @@ edit:
   info: 基本信息
   checker: 检查器
   attachment: 附件
-  env: 动态环境
+  instance: 动态环境
   writeup: 题解
 preview: 预览题目
 note: 笔记
@@ -18,7 +18,7 @@ description: 描述
 category: 分类
 tags: 标签
 has_attachment: 附件
-dynamic:
+has_instance:
   _: 动态性
   "true": 动态
   "false": 静态
@@ -86,24 +86,14 @@ form:
   writeup:
     _: 题解
     message: 请输入题解
-  dynamic:
+  has_instance:
     _: 动态性
     "true": 动态环境
     "false": 静态环境
   description:
     _: 描述
     message: 请输入描述
-  env:
-    actions:
-      update_success: "题目 {{title}} 动态环境更新成功。"
-    container_create_error: 容器创建时发生错误，即将触发销毁。
-    renew_success: 续期成功。
-    renew_error: 续期失败。
-    container_stop_sent: 已下发容器停止命令。
-    container_creating: 正在发送容器创建请求。
-    container_start_sent: 已下发容器启动命令。
-    container_start_description: 这可能需要一些时间。
-    error: 发生错误。
+  instance:
     duration:
       _: 持续时间（秒）
       message: 请输入持续时间（秒）
@@ -158,6 +148,8 @@ actions:
     success: "题目 {{title}} 更新成功。"
   writeup_update:
     success: "题目 {{title}} 题解更新成功。"
+  instance_update:
+    success: "题目 {{title}} 动态环境更新成功。"
   delete:
     _: 删除题目
     message: "你确定要删除题目 <muted>{{title}}</muted> 吗？"

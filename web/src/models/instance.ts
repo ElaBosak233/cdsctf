@@ -1,6 +1,6 @@
 import type { Port } from "./challenge";
 
-export interface Env {
+export interface Instance {
   id: string;
   game_id: number;
   user_id: number;

@@ -11,24 +11,24 @@ import {
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { createEnv as createDebugEnv } from "@/api/admin/envs";
-import { createEnv, getEnvs } from "@/api/envs";
-import { renewEnv, stopEnv } from "@/api/envs/env_id";
+import { createDebugInstance } from "@/api/admin/instances";
+import { createInstance, getInstances } from "@/api/instances";
+import { renewInstance, stopInstance } from "@/api/instances/instance_id";
 import { Button } from "@/components/ui/button";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useInterval } from "@/hooks/use-interval";
 import type { Port } from "@/models/challenge";
-import type { Env, Nat } from "@/models/env";
+import type { Instance, Nat } from "@/models/instance";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { parseErrorResponse } from "@/utils/query";
 import { Context } from "./context";
 
-function PortInfo({ env, port }: { env: Env; port: Port }) {
+function PortInfo({ instance, port }: { instance: Instance; port: Port }) {
   const { isCopied, copyToClipboard } = useClipboard();
-  const url = `${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/envs/${env?.id}/wsrx?port=${port.port}`;
+  const url = `${window.location.protocol.replace("http", "ws")}//${window.location.host}/api/instances/${instance?.id}/wsrx?port=${port.port}`;
 
   return (
     <div className={cn(["flex"])}>
@@ -49,9 +49,9 @@ function PortInfo({ env, port }: { env: Env; port: Port }) {
   );
 }
 
-function NatInfo({ env, nat }: { env: Env; nat: Nat }) {
+function NatInfo({ instance, nat }: { instance: Instance; nat: Nat }) {
   const { isCopied, copyToClipboard } = useClipboard();
-  const address = `${env.public_entry}:${nat.node_port}`;
+  const address = `${instance.public_entry}:${nat.node_port}`;
 
   return (
     <div className={cn(["flex"])}>
@@ -72,7 +72,7 @@ function NatInfo({ env, nat }: { env: Env; nat: Nat }) {
   );
 }
 
-function EnvSection() {
+function InstanceSection() {
   const { t } = useTranslation();
 
   const { challenge, team, debug } = useContext(Context);
@@ -86,9 +86,11 @@ function EnvSection() {
     return "default";
   }, [team]);
 
-  const [env, setEnv] = useState<Env>();
-  const [envStopLoading, envPodStopLoading] = useState<boolean>(false);
-  const [envCreateLoading, envPodCreateLoading] = useState<boolean>(false);
+  const [instance, setInstance] = useState<Instance>();
+  const [instanceStopLoading, setInstanceStopLoading] =
+    useState<boolean>(false);
+  const [instanceCreateLoading, setInstanceCreateLoading] =
+    useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState(0);
 
   useEffect(() => {
@@ -101,8 +103,8 @@ function EnvSection() {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  function fetchPods() {
-    getEnvs({
+  function fetchInstances() {
+    getInstances({
       challenge_id: challenge?.id,
       user_id: mode !== "game" ? authStore?.user?.id : undefined,
       game_id: mode === "game" ? Number(team?.game_id) : undefined,
@@ -110,7 +112,7 @@ function EnvSection() {
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
         const p = res.data?.[0];
-        setEnv(p);
+        setInstance(p);
         setTimeLeft(
           Math.ceil(
             Number(p?.started_at) +
@@ -120,7 +122,7 @@ function EnvSection() {
         );
 
         if (p?.status !== "waiting") {
-          envPodCreateLoading(false);
+          setInstanceCreateLoading(false);
         }
 
         if (p?.status === "running") {
@@ -128,26 +130,26 @@ function EnvSection() {
         }
 
         if (p?.status === "waiting" && p?.reason !== "ContainerCreating") {
-          toast.warning(t("challenge:env.container_create_error"), {
+          toast.warning(t("instance:actions.start.error"), {
             id: "pod",
             description: p?.reason,
           });
-          envPodStopLoading(true);
+          setInstanceStopLoading(true);
         }
       }
     });
   }
 
-  async function handlePodRenew() {
-    if (!env) return;
+  async function handleInstanceRenew() {
+    if (!instance) return;
 
     try {
-      const res = await renewEnv({
-        id: env.id!,
+      const res = await renewInstance({
+        id: instance.id!,
       });
 
       if (res.code === StatusCodes.OK) {
-        toast.success(t("challenge:env.renew_success"), {
+        toast.success(t("challenge:instance.renew_success"), {
           id: "renew",
           description: null,
         });
@@ -157,7 +159,7 @@ function EnvSection() {
       const res = await parseErrorResponse(error);
 
       if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error(t("challenge:env.renew_error"), {
+        toast.error(t("challenge:instance.renew_error"), {
           id: "renew",
           description: res.msg,
         });
@@ -165,72 +167,72 @@ function EnvSection() {
     }
   }
 
-  const handlePodStop = useCallback(async () => {
-    if (!env) return;
+  const handleInstanceStop = useCallback(async () => {
+    if (!instance) return;
 
-    await stopEnv({
-      id: env.id!,
+    await stopInstance({
+      id: instance.id!,
     });
 
-    toast.info(t("challenge:env.container_stop_sent"), {
+    toast.info(t("instance:actions.stop.sent"), {
       id: "pod-stop",
     });
-    setEnv(undefined);
-    envPodStopLoading(false);
-  }, [env]);
+    setInstance(undefined);
+    setInstanceStopLoading(false);
+  }, [instance, t]);
 
   useEffect(() => {
-    if (envStopLoading) {
-      handlePodStop();
+    if (instanceStopLoading) {
+      handleInstanceStop();
     }
-  }, [handlePodStop, envStopLoading]);
+  }, [handleInstanceStop, instanceStopLoading]);
 
-  async function handlePodCreate() {
-    envPodCreateLoading(true);
-    toast.loading(t("challenge:env.container_creating"), {
+  async function handleInstanceCreate() {
+    setInstanceCreateLoading(true);
+    toast.loading(t("instance:actions.start.creating"), {
       id: "pod",
     });
     try {
       const res = debug
-        ? await createDebugEnv({
+        ? await createDebugInstance({
             challenge_id: challenge?.id,
           })
-        : await createEnv({
+        : await createInstance({
             challenge_id: challenge?.id,
             game_id: mode === "game" ? Number(team?.game_id) : undefined,
             team_id: mode === "game" ? Number(team?.id) : undefined,
           });
 
-      setEnv(res.data);
-      toast.loading(t("challenge:env.container_start_sent"), {
+      setInstance(res.data);
+      toast.loading(t("instance:actions.start.sent"), {
         id: "pod",
-        description: t("challenge:env.container_start_description"),
+        description: t("instance:actions.start.description"),
       });
-      fetchPods();
+      fetchInstances();
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
       const res = await parseErrorResponse(error);
 
-      toast.error(t("challenge:env.error"), {
+      toast.error(t("instance:error"), {
         id: "pod",
         description: res.msg,
       });
     }
   }
 
-  useInterval(fetchPods, 2000, [], { immediate: true });
+  useInterval(fetchInstances, 2000, [], { immediate: true });
 
   return (
     <div className={cn(["flex", "gap-5", "justify-between", "items-end"])}>
-      {env?.id ? (
+      {instance?.id ? (
         <>
           <div className={cn(["flex-1", "flex", "flex-col", "gap-3"])}>
-            {env?.nats?.length
-              ? env?.nats.map((nat) => (
-                  <NatInfo nat={nat} env={env} key={nat.node_port} />
+            {instance?.nats?.length
+              ? instance?.nats.map((nat) => (
+                  <NatInfo nat={nat} instance={instance} key={nat.node_port} />
                 ))
-              : env?.ports?.map((port) => (
-                  <PortInfo env={env} port={port} key={port.port} />
+              : instance?.ports?.map((port) => (
+                  <PortInfo instance={instance} port={port} key={port.port} />
                 ))}
           </div>
           <div className={cn(["flex", "flex-col", "gap-2", "items-center"])}>
@@ -241,7 +243,7 @@ function EnvSection() {
                 "select-none",
               ])}
             >
-              {t("env:remaining", {
+              {t("instance:remaining", {
                 hours: String(Math.floor(timeLeft / 3600)).padStart(2, "0"),
                 minutes: String(Math.floor((timeLeft % 3600) / 60)).padStart(
                   2,
@@ -255,20 +257,20 @@ function EnvSection() {
                 icon={<ClockIcon />}
                 level={"info"}
                 variant={"solid"}
-                onClick={() => handlePodRenew()}
-                disabled={Number(env.renew) === 3}
+                onClick={() => handleInstanceRenew()}
+                disabled={Number(instance.renew) === 3}
                 className={cn(["items-center"])}
               >
-                {t("env:actions.renew")}
+                {t("instance:actions.renew._")}
               </Button>
               <Button
                 icon={<TrashIcon />}
                 variant={"solid"}
                 level={"error"}
-                onClick={() => handlePodStop()}
-                loading={envStopLoading}
+                onClick={() => handleInstanceStop()}
+                loading={instanceStopLoading}
               >
-                {t("env:actions.stop")}
+                {t("instance:actions.stop._")}
               </Button>
             </div>
           </div>
@@ -284,17 +286,17 @@ function EnvSection() {
               "select-none",
             ])}
           >
-            <span>{t("env:hint1")}</span>
-            <span>{t("env:hint2")}</span>
+            <span>{t("instance:hint1")}</span>
+            <span>{t("instance:hint2")}</span>
           </div>
           <Button
             icon={<PlayIcon />}
             variant={"solid"}
             level={"success"}
-            onClick={handlePodCreate}
-            loading={envCreateLoading}
+            onClick={handleInstanceCreate}
+            loading={instanceCreateLoading}
           >
-            {t("env:actions.start")}
+            {t("instance:actions.start._")}
           </Button>
         </>
       )}
@@ -302,4 +304,4 @@ function EnvSection() {
   );
 }
 
-export { EnvSection };
+export { InstanceSection };

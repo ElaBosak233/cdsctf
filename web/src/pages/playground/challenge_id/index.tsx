@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import { AttachmentSection } from "@/components/widgets/challenge-dialog/attachment-section";
 import { Context as ChallengeDialogContext } from "@/components/widgets/challenge-dialog/context";
-import { EnvSection } from "@/components/widgets/challenge-dialog/env-section";
+import { InstanceSection } from "@/components/widgets/challenge-dialog/instance-section";
 import { SubmitSection } from "@/components/widgets/challenge-dialog/submit-section";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
@@ -204,7 +204,7 @@ export default function Index() {
                         {!!challenge && (
                           <>
                             {challenge?.has_attachment && <AttachmentSection />}
-                            {challenge?.dynamic && <EnvSection />}
+                            {challenge?.has_instance && <InstanceSection />}
                             <div className={cn(["flex", "flex-col", "gap-3"])}>
                               <Separator />
                               <SubmitSection />

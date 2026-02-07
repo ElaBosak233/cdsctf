@@ -54,6 +54,29 @@ impl<T> Default for WebResponse<T> {
     }
 }
 
+impl<T> WebResponse<T> {
+    pub fn ok() -> Self {
+        Self {
+            code: StatusCode::OK,
+            ..Default::default()
+        }
+    }
+
+    pub fn data(self, data: T) -> Self {
+        Self {
+            data: Some(data),
+            ..self
+        }
+    }
+
+    pub fn total(self, total: u64) -> Self {
+        Self {
+            total: Some(total),
+            ..self
+        }
+    }
+}
+
 impl<T: Serialize + Debug> IntoResponse for WebResponse<T> {
     fn into_response(mut self) -> Response<Body> {
         self.ts = time::OffsetDateTime::now_utc().unix_timestamp();

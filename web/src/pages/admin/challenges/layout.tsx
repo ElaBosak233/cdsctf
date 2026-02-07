@@ -19,7 +19,7 @@ import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
-import { AdminListLayout, type AdminListContextValue } from "../_list";
+import { type AdminListContextValue, AdminListLayout } from "../_list";
 
 function setFilter(
   prev: ColumnFiltersState,

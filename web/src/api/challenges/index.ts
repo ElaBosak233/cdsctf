@@ -8,7 +8,7 @@ export interface GetPlaygroundChallengesRequest {
   title?: string;
   tag?: string;
   category?: number;
-  dynamic?: boolean;
+  has_instance?: boolean;
   page?: number;
   size?: number;
   sorts?: string;

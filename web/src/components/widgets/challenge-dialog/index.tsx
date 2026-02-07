@@ -15,8 +15,8 @@ import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { AttachmentSection } from "./attachment-section";
 import { Context } from "./context";
-import { EnvSection } from "./env-section";
 import { FrozenBadge } from "./frozen-badge";
+import { InstanceSection } from "./instance-section";
 import { SubmitSection } from "./submit-section";
 
 type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
@@ -83,7 +83,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
           </Typography>
         </ScrollArea>
         {challenge?.has_attachment && <AttachmentSection />}
-        {challenge?.dynamic && <EnvSection />}
+        {challenge?.has_instance && <InstanceSection />}
         {!debug && (
           <div className={cn("flex", "flex-col", "gap-3")}>
             <Separator />

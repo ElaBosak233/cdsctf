@@ -1,4 +1,4 @@
-mod env_id;
+mod instance_id;
 
 use std::{collections::BTreeMap, sync::Arc};
 
@@ -10,18 +10,18 @@ use serde_json::json;
 use crate::{
     extract::{Extension, Json, Query},
     traits::{AppState, AuthPrincipal, WebError, WebResponse},
-    util::cluster::DynamicEnvironment,
+    util::cluster::Instance,
 };
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/", axum::routing::get(get_env))
-        .route("/", axum::routing::post(create_env))
-        .nest("/{env_id}", env_id::router())
+        .route("/", axum::routing::get(get_instance))
+        .route("/", axum::routing::post(create_instance))
+        .nest("/{instance_id}", instance_id::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetEnvRequest {
+pub struct GetInstanceRequest {
     pub id: Option<String>,
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
@@ -29,12 +29,12 @@ pub struct GetEnvRequest {
     pub challenge_id: Option<i64>,
 }
 
-pub async fn get_env(
+pub async fn get_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
-    Query(params): Query<GetEnvRequest>,
-) -> Result<WebResponse<Vec<DynamicEnvironment>>, WebError> {
+    Query(params): Query<GetInstanceRequest>,
+) -> Result<WebResponse<Vec<Instance>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let mut map: BTreeMap<String, String> = BTreeMap::new();
 
@@ -60,7 +60,7 @@ pub async fn get_env(
     }
 
     if let Some(id) = params.id {
-        map.insert("cds/env_id".to_owned(), id);
+        map.insert("cds/instance_id".to_owned(), id);
     }
 
     if let Some(challenge_id) = params.challenge_id {
@@ -77,8 +77,8 @@ pub async fn get_env(
 
     let envs = pods
         .into_iter()
-        .map(|pod| DynamicEnvironment::from(pod).with_env(&s.env))
-        .collect::<Vec<DynamicEnvironment>>();
+        .map(|pod| Instance::from(pod).with_env(&s.env))
+        .collect::<Vec<Instance>>();
 
     Ok(WebResponse {
         code: StatusCode::OK,
@@ -88,18 +88,18 @@ pub async fn get_env(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CreateEnvRequest {
+pub struct CreateInstanceRequest {
     pub challenge_id: i64,
     pub team_id: Option<i64>,
     pub user_id: Option<i64>,
     pub game_id: Option<i64>,
 }
 
-pub async fn create_env(
+pub async fn create_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
-    Json(body): Json<CreateEnvRequest>,
+    Json(body): Json<CreateInstanceRequest>,
 ) -> Result<WebResponse<()>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -111,8 +111,8 @@ pub async fn create_env(
 
     let _ = challenge
         .clone()
-        .env
-        .ok_or(WebError::BadRequest(json!("challenge_env_invalid")))?;
+        .instance
+        .ok_or(WebError::BadRequest(json!("challenge_instance_invalid")))?;
 
     if body.game_id.is_some() != body.team_id.is_some() {
         return Err(WebError::BadRequest(json!("invalid")));
@@ -179,11 +179,8 @@ pub async fn create_env(
     };
 
     s.cluster
-        .create_challenge_env(operator, team, game, challenge)
+        .create_challenge_instance(operator, team, game, challenge)
         .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(WebResponse::ok())
 }
