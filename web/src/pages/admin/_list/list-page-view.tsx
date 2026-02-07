@@ -81,12 +81,7 @@ export function AdminListPageView({
         </header>
 
         {/* 无侧栏时的筛选区：显隐与折叠由 Tailwind + cn 控制 */}
-        <div
-          className={cn(
-            "mb-4 sm:mb-5",
-            hasSidebar && "hidden"
-          )}
-        >
+        <div className={cn("mb-4 sm:mb-5", hasSidebar && "hidden")}>
           {collapsibleFilterOnMobile ? (
             <>
               <div className={cn("sm:hidden")}>

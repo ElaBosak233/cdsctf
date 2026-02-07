@@ -24,7 +24,7 @@ import {
 import { State, type Team } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { Context } from "../context";
+import { Context } from "../../context";
 
 function useColumns(): Array<ColumnDef<Team>> {
   const { t } = useTranslation();

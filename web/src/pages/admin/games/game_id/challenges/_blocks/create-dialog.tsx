@@ -15,7 +15,7 @@ import type { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import { Context } from "../context";
+import { Context } from "../../context";
 
 interface CreateDialogProps {
   onClose: () => void;

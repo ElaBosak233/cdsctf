@@ -19,8 +19,8 @@ import { useTickerTime } from "@/hooks/use-ticker-time";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import { NoticeCard } from "./notice-card";
-import { TeamCard } from "./team-card";
+import { NoticeCard } from "./_blocks/notice-card";
+import { TeamCard } from "./_blocks/team-card";
 
 export default function Index() {
   const { t } = useTranslation();

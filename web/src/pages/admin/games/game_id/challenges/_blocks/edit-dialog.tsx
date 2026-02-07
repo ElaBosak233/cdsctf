@@ -41,7 +41,7 @@ import type { GameChallenge } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { curve } from "@/utils/math";
-import { Context } from "../context";
+import { Context } from "../../context";
 
 interface EditDialogProps {
   onClose: () => void;

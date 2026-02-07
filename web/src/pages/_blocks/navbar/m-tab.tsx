@@ -18,7 +18,7 @@ function MobileTab() {
       <DropdownMenuTrigger asChild className={cn(["lg:hidden", "mr-3"])}>
         <Button square size={"sm"} icon={<ListIcon />} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className={cn(["space-y-1"])}>
+      <DropdownMenuContent sideOffset={20} className={cn(["space-y-1"])}>
         {options?.map((option, index) => {
           const Comp = option?.disabled ? DropdownMenuItem : Link;
 

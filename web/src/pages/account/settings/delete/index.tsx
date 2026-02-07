@@ -101,7 +101,9 @@ export default function Index() {
             ])}
           >
             <TriangleAlertIcon className={cn(["size-12"])} />
-            <span className={cn(["text-xl", "font-semibold"])}>{t("user:delete_account.final_warning")}</span>
+            <span className={cn(["text-xl", "font-semibold"])}>
+              {t("user:delete_account.final_warning")}
+            </span>
           </div>
           <Separator />
           <p className={cn(["font-bold"])}>

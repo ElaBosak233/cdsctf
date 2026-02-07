@@ -5,7 +5,11 @@ export type AdminListContextValue = {
   createDialogOpen: boolean;
   setCreateDialogOpen: (open: boolean) => void;
   columnFilters: ColumnFiltersState;
-  setColumnFilters: (updater: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)) => void;
+  setColumnFilters: (
+    updater:
+      | ColumnFiltersState
+      | ((prev: ColumnFiltersState) => ColumnFiltersState)
+  ) => void;
   page: number;
   setPage: (page: number) => void;
   size: number;
@@ -14,7 +18,9 @@ export type AdminListContextValue = {
   setTotal: (total: number) => void;
 };
 
-export const AdminListContext = createContext<AdminListContextValue | null>(null);
+export const AdminListContext = createContext<AdminListContextValue | null>(
+  null
+);
 
 /** @deprecated 使用 AdminListContext 替代 */
 export const CreateDialogContext = AdminListContext;

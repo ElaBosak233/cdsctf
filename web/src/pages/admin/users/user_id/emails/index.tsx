@@ -23,8 +23,8 @@ import { Switch } from "@/components/ui/switch";
 import type { Email } from "@/models/email";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { CreateEmailDialog } from "./create-dialog";
-import { DeleteEmailDialog } from "./delete-dialog";
+import { CreateEmailDialog } from "./_blocks/create-dialog";
+import { DeleteEmailDialog } from "./_blocks/delete-dialog";
 
 export default function Emails() {
   const { t } = useTranslation();

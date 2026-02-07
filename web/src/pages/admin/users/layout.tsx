@@ -26,9 +26,7 @@ function setFilter(
   value: unknown
 ): ColumnFiltersState {
   const rest = prev.filter((f) => f.id !== id);
-  return value === undefined || value === ""
-    ? rest
-    : [...rest, { id, value }];
+  return value === undefined || value === "" ? rest : [...rest, { id, value }];
 }
 
 export default function Layout() {
@@ -46,8 +44,14 @@ export default function Layout() {
     { id: "group", value: "all" },
   ]);
 
-  const setColumnFilters = (updater: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)) => {
-    setColumnFiltersState(typeof updater === "function" ? updater(columnFilters) : updater);
+  const setColumnFilters = (
+    updater:
+      | ColumnFiltersState
+      | ((prev: ColumnFiltersState) => ColumnFiltersState)
+  ) => {
+    setColumnFiltersState(
+      typeof updater === "function" ? updater(columnFilters) : updater
+    );
   };
 
   const listContextValue: AdminListContextValue = {
@@ -63,9 +67,12 @@ export default function Layout() {
     setTotal,
   };
 
-  const idValue = (columnFilters.find((c) => c.id === "id")?.value as string) ?? "";
-  const usernameValue = (columnFilters.find((c) => c.id === "username")?.value as string) ?? "";
-  const groupValue = (columnFilters.find((c) => c.id === "group")?.value as string) ?? "all";
+  const idValue =
+    (columnFilters.find((c) => c.id === "id")?.value as string) ?? "";
+  const usernameValue =
+    (columnFilters.find((c) => c.id === "username")?.value as string) ?? "";
+  const groupValue =
+    (columnFilters.find((c) => c.id === "group")?.value as string) ?? "all";
 
   const groupSelectOptions = [
     { value: "all", content: t("common:all") },
@@ -76,7 +83,11 @@ export default function Layout() {
 
   const sidebar = (
     <>
-      <div className={cn("flex items-center gap-2 px-2 text-sm font-medium text-muted-foreground shrink-0")}>
+      <div
+        className={cn(
+          "flex items-center gap-2 px-2 text-sm font-medium text-muted-foreground shrink-0"
+        )}
+      >
         <UserRoundIcon className="size-4" />
         {t("user:_")}
       </div>
@@ -89,50 +100,83 @@ export default function Layout() {
         {t("common:actions.add")}
       </Button>
       <div className={cn("flex flex-col gap-3 shrink-0")}>
-        <div className={cn("flex items-center gap-2 text-muted-foreground text-xs font-medium")}>
+        <div
+          className={cn(
+            "flex items-center gap-2 text-muted-foreground text-xs font-medium"
+          )}
+        >
           <FilterIcon className="size-3.5" />
           {t("common:filter")}
         </div>
         <Field size="sm">
-          <FieldIcon><HashIcon className="size-4" /></FieldIcon>
+          <FieldIcon>
+            <HashIcon className="size-4" />
+          </FieldIcon>
           <TextField
             placeholder="ID"
             value={idValue}
-            onChange={(e) => setColumnFilters((prev) => setFilter(prev, "id", e.target.value || undefined))}
+            onChange={(e) =>
+              setColumnFilters((prev) =>
+                setFilter(prev, "id", e.target.value || undefined)
+              )
+            }
           />
         </Field>
         <Field size="sm">
-          <FieldIcon><TypeIcon className="size-4" /></FieldIcon>
+          <FieldIcon>
+            <TypeIcon className="size-4" />
+          </FieldIcon>
           <TextField
             placeholder={t("user:search.username")}
             value={usernameValue}
-            onChange={(e) => setColumnFilters((prev) => setFilter(prev, "username", e.target.value || undefined))}
+            onChange={(e) =>
+              setColumnFilters((prev) =>
+                setFilter(prev, "username", e.target.value || undefined)
+              )
+            }
           />
         </Field>
         <Field size="sm">
-          <FieldIcon><UserRoundIcon className="size-4" /></FieldIcon>
+          <FieldIcon>
+            <UserRoundIcon className="size-4" />
+          </FieldIcon>
           <Select
             options={groupSelectOptions}
-            onValueChange={(value) => setColumnFilters((prev) => setFilter(prev, "group", value))}
+            onValueChange={(value) =>
+              setColumnFilters((prev) => setFilter(prev, "group", value))
+            }
             value={groupValue}
           />
         </Field>
       </div>
       <div className={cn("flex-1 min-h-4")} />
       <div className={cn("flex flex-col gap-2 shrink-0 border-t pt-4")}>
-        <div className={cn("flex items-center gap-2 text-muted-foreground text-xs font-medium")}>
+        <div
+          className={cn(
+            "flex items-center gap-2 text-muted-foreground text-xs font-medium"
+          )}
+        >
           <ListOrderedIcon className="size-3.5" />
           {t("common:pagination._")}
         </div>
         <Field size="sm">
-          <FieldIcon><ListOrderedIcon className="size-4" /></FieldIcon>
+          <FieldIcon>
+            <ListOrderedIcon className="size-4" />
+          </FieldIcon>
           <Select
-            options={[{ value: "10" }, { value: "20" }, { value: "40" }, { value: "60" }]}
+            options={[
+              { value: "10" },
+              { value: "20" },
+              { value: "40" },
+              { value: "60" },
+            ]}
             value={String(size)}
             onValueChange={(v) => setSize(Number(v))}
           />
         </Field>
-        <p className={cn("text-xs text-muted-foreground")}>{total} {t("common:pagination.items")}</p>
+        <p className={cn("text-xs text-muted-foreground")}>
+          {total} {t("common:pagination.items")}
+        </p>
         <Pagination
           size="sm"
           value={page}

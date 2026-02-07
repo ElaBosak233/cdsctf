@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { LoginForm } from "./login-form";
+import { LoginForm } from "./_blocks/login-form";
 
 export default function Index() {
   const { config } = useConfigStore();

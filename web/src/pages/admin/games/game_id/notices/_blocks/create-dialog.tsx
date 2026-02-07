@@ -22,7 +22,7 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { Context } from "../context";
+import { Context } from "../../context";
 
 interface CreateDialogProps {
   onClose: () => void;

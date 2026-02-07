@@ -40,8 +40,8 @@ import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { AdminListContext, AdminListPageView } from "../_list";
-import { useColumns } from "./columns";
-import { CreateDialog } from "./create-dialog";
+import { useColumns } from "./_blocks/columns";
+import { CreateDialog } from "./_blocks/create-dialog";
 
 function useGameQuery(params: GetGamesRequest) {
   const { refresh } = useSharedStore();
@@ -202,10 +202,10 @@ export default function Index() {
   const tableContent = (
     <ScrollArea className={cn("h-full w-full")}>
       <LoadingOverlay loading={loading} />
-      <Table className={cn("text-foreground w-full min-w-[640px]")}>
+      <Table className={cn("text-foreground w-full min-w-160")}>
         <TableHeader
           className={cn(
-            "sticky top-0 z-[2] bg-muted/80 backdrop-blur-sm border-b"
+            "sticky top-0 z-2 bg-muted/80 backdrop-blur-sm border-b"
           )}
         >
           {table.getHeaderGroups().map((headerGroup) => (

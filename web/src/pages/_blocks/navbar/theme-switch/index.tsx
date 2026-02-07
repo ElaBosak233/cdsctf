@@ -1,30 +1,33 @@
-import "@/styles/overwrites/theme-switch.css";
+import type { ButtonHTMLAttributes } from "react";
+import "./styles.css";
+import { useApperanceStore } from "@/storages/appearance";
+import { cn } from "@/utils";
 
-interface ThemeSwitchProps {
-  isDark: boolean;
-  onToggle: () => void;
-}
+type ThemeSwitchProps = ButtonHTMLAttributes<HTMLButtonElement>;
 
-function ThemeSwitch({ isDark, onToggle }: ThemeSwitchProps) {
-  const pressed = isDark;
+function ThemeSwitch({ className, ...rest }: ThemeSwitchProps) {
+  const { theme, computedTheme, setTheme } = useApperanceStore();
+
+  const pressed = computedTheme === "dark";
 
   return (
     <button
-      className="toggle"
+      className={cn(["theme-switch", "border", "border-border"], className)}
       aria-pressed={pressed}
-      title="Toggle Dark Mode"
       type="button"
-      onClick={onToggle}
+      onClick={() => setTheme(pressed ? "light" : "dark")}
+      disabled={theme === "system"}
+      {...rest}
     >
-      <span className="toggle__content">
+      <span className="theme-switch-content">
         <svg
           aria-hidden={true}
-          className="toggle__backdrop"
+          className="theme-switch-backdrop theme-switch-clouds-bg"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 290 228"
         >
-          <g className="clouds">
+          <g className="theme-switch-clouds">
             <path
               fill="#D9D9D9"
               d="M335 147.5c0 27.89-22.61 50.5-50.5 50.5a50.78 50.78 0 0 1-9.29-.853c-2.478 12.606-10.595 23.188-21.615 29.011C245.699 243.749 228.03 256 207.5 256a50.433 50.433 0 0 1-16.034-2.599A41.811 41.811 0 0 1 166 262a41.798 41.798 0 0 1-22.893-6.782A42.21 42.21 0 0 1 135 256a41.82 41.82 0 0 1-19.115-4.592A41.84 41.84 0 0 1 88 262c-1.827 0-3.626-.117-5.391-.343C74.911 270.448 63.604 276 51 276c-23.196 0-42-18.804-42-42s18.804-42 42-42c1.827 0 3.626.117 5.391.343C64.089 183.552 75.396 178 88 178a41.819 41.819 0 0 1 19.115 4.592C114.532 176.002 124.298 172 135 172a41.798 41.798 0 0 1 22.893 6.782 42.066 42.066 0 0 1 7.239-.773C174.137 164.159 189.749 155 207.5 155c.601 0 1.199.01 1.794.031A41.813 41.813 0 0 1 234 147h.002c.269-27.66 22.774-50 50.498-50 27.89 0 50.5 22.61 50.5 50.5Z"
@@ -33,7 +36,7 @@ function ThemeSwitch({ isDark, onToggle }: ThemeSwitchProps) {
         </svg>
         <svg
           aria-hidden={true}
-          className="toggle__backdrop"
+          className="theme-switch-backdrop theme-switch-clouds-bg"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 290 228"
@@ -45,14 +48,14 @@ function ThemeSwitch({ isDark, onToggle }: ThemeSwitchProps) {
             />
           </g>
         </svg>
-        <span className="toggle__indicator-wrapper">
-          <span className="toggle__indicator">
-            <span className="toggle__star">
-              <span className="sun">
-                <span className="moon">
-                  <span className="moon__crater" />
-                  <span className="moon__crater" />
-                  <span className="moon__crater" />
+        <span className="theme-switch-indicator-wrapper">
+          <span className="theme-switch-indicator">
+            <span className="theme-switch-star">
+              <span className="theme-switch-sun">
+                <span className="theme-switch-moon">
+                  <span className="theme-switch-moon-crater" />
+                  <span className="theme-switch-moon-crater" />
+                  <span className="theme-switch-moon-crater" />
                 </span>
               </span>
             </span>
@@ -60,13 +63,13 @@ function ThemeSwitch({ isDark, onToggle }: ThemeSwitchProps) {
         </span>
         <svg
           aria-hidden={true}
-          className="toggle__backdrop"
+          className="theme-switch-backdrop theme-switch-stars-bg"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 290 228"
         >
           <g>
-            <g className="stars">
+            <g className="theme-switch-stars">
               <g>
                 <path
                   fill="#fff"
@@ -164,4 +167,3 @@ function ThemeSwitch({ isDark, onToggle }: ThemeSwitchProps) {
 }
 
 export { ThemeSwitch };
-

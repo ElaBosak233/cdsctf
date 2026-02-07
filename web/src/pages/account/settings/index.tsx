@@ -85,9 +85,14 @@ export default function Index() {
         "/api/users/me/avatar",
         [file],
         ({ percent }) => {
-          toast.loading(t("user:settings.avatar_upload.progress", { percent: percent.toFixed(0) }), {
-            id: "user-avatar-upload",
-          });
+          toast.loading(
+            t("user:settings.avatar_upload.progress", {
+              percent: percent.toFixed(0),
+            }),
+            {
+              id: "user-avatar-upload",
+            }
+          );
         }
       );
       if (res.code === StatusCodes.OK) {

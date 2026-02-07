@@ -1,4 +1,4 @@
-import { BrushIcon , SunMoon } from "lucide-react";
+import { BrushIcon, MonitorDotIcon, SunMoonIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { ThemeSwitch } from "@/pages/_blocks/navbar/theme-switch";
 import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
-import { ThemeSwitch } from "../theme-switch";
 
 function Appearance() {
-  const { theme, setTheme } = useApperanceStore();
+  const { theme, computedTheme, setTheme } = useApperanceStore();
   const { i18n } = useTranslation();
 
   return (
@@ -21,8 +21,30 @@ function Appearance() {
       <DropdownMenuTrigger asChild>
         <Button variant={"ghost"} square size={"sm"} icon={<BrushIcon />} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className={cn(["space-y-1"])}>
-        <div className={cn(["flex", "h-9", "justify-evenly", "gap-1"])}>
+      <DropdownMenuContent
+        sideOffset={20}
+        className={cn([
+          "space-y-1",
+          "bg-transparent",
+          "border-none",
+          "shadow-none",
+          "rounded-none",
+          "overflow-visible",
+          "p-0",
+        ])}
+      >
+        <div
+          className={cn([
+            "flex",
+            "justify-evenly",
+            "gap-1",
+            "bg-popover",
+            "p-1",
+            "border",
+            "rounded-md",
+            "shadow-md",
+          ])}
+        >
           <Button
             size={"sm"}
             square
@@ -55,19 +77,27 @@ function Appearance() {
             な
           </Button>
         </div>
-        <Separator />
-        <div className={cn(["flex", "justify-center"])}>
+        <div
+          className={cn([
+            "flex",
+            "justify-evenly",
+            "gap-1",
+            "bg-popover",
+            "p-1",
+            "border",
+            "rounded-md",
+            "shadow-md",
+          ])}
+        >
           <Button
             size={"sm"}
+            icon={theme === "system" ? <SunMoonIcon /> : <MonitorDotIcon />}
             square
-            disabled
-          >
-            <SunMoon />
-          </Button>
-          <ThemeSwitch
-            isDark={theme === "dark"}
-            onToggle={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() =>
+              setTheme(theme === "system" ? computedTheme : "system")
+            }
           />
+          <ThemeSwitch />
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

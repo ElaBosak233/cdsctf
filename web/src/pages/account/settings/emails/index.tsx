@@ -23,9 +23,10 @@ import { useRefresh } from "@/hooks/use-refresh";
 import type { Email } from "@/models/email";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { CreateDialog } from "./create-dialog";
-import { DeleteDialog } from "./delete-dialog";
-import { VerifyDialog } from "./verify-dialog";
+
+import { CreateDialog } from "./_blocks/create-dialog";
+import { DeleteDialog } from "./_blocks/delete-dialog";
+import { VerifyDialog } from "./_blocks/verify-dialog";
 
 export default function Index() {
   const { t } = useTranslation();

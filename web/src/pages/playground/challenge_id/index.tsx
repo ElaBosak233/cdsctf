@@ -23,9 +23,9 @@ import { SubmitSection } from "@/components/widgets/challenge-dialog/submit-sect
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { NoteSection } from "./_blocks/note-section";
+import { WriteupSection } from "./_blocks/writeup-section";
 import { Context } from "./context";
-import { NoteSection } from "./note-section";
-import { WriteupSection } from "./writeup-section";
 
 function useChallengeQuery(challengeId?: number) {
   return useQuery({

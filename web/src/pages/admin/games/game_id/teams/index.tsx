@@ -37,8 +37,8 @@ import { State, type Team } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";
-import { useColumns } from "./columns";
-import { ExpandedCard } from "./expanded-card";
+import { useColumns } from "./_blocks/columns";
+import { ExpandedCard } from "./_blocks/expanded-card";
 
 export default function Index() {
   const { t } = useTranslation();

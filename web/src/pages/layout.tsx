@@ -3,10 +3,11 @@ import { useEffect } from "react";
 import { Outlet } from "react-router";
 import { getConfigs, getVersion } from "@/api/configs";
 import { getUserProfile } from "@/api/users/me";
-import { Navbar } from "@/components/widgets/navbar";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn, stripIndent } from "@/utils";
+import { Background } from "./_blocks/background";
+import { Navbar } from "./_blocks/navbar";
 
 export default function () {
   const { setUser } = useAuthStore();
@@ -71,6 +72,7 @@ export default function () {
 
   return (
     <div className={cn(["flex", "flex-col", "min-h-screen"])}>
+      <Background />
       <Navbar />
       <div className={cn(["min-h-(--app-content-height)", "flex", "flex-col"])}>
         <Outlet />

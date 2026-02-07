@@ -20,9 +20,10 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";
-import leetChecker from "./examples/leet.cdsx?raw";
-import simpleChecker from "./examples/simple.cdsx?raw";
-import suidChecker from "./examples/suid.cdsx?raw";
+
+import leetChecker from "./_blocks/examples/leet.cdsx?raw";
+import simpleChecker from "./_blocks/examples/simple.cdsx?raw";
+import suidChecker from "./_blocks/examples/suid.cdsx?raw";
 
 const checkerMap = {
   simple: simpleChecker,
@@ -65,7 +66,11 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(t("challenge:checker.actions.update_success", { title: challenge?.title }));
+          toast.success(
+            t("challenge:checker.actions.update_success", {
+              title: challenge?.title,
+            })
+          );
         }
       })
       .finally(() => {

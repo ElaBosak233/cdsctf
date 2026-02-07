@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { Card } from "@/components/ui/card";
 import { cn } from "@/utils";
-import { ForgetForm } from "./forget-form";
+import { ForgetForm } from "./_blocks/forget-form";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -13,7 +13,7 @@ export default function Index() {
       <Card
         className={cn([
           "p-2",
-          "w-[36rem]",
+          "w-xl",
           "flex",
           "flex-col",
           "space-y-1.5",

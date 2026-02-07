@@ -79,7 +79,9 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(t("challenge:actions.update.success", { title: res?.data?.title }));
+          toast.success(
+            t("challenge:actions.update.success", { title: res?.data?.title })
+          );
         }
       })
       .finally(() => {

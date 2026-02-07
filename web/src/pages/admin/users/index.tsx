@@ -42,8 +42,8 @@ import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { AdminListContext, AdminListPageView } from "../_list";
-import { useColumns } from "./columns";
-import { CreateUserDialog } from "./create-dialog";
+import { useColumns } from "./_blocks/columns";
+import { CreateUserDialog } from "./_blocks/create-dialog";
 
 function useUserQuery(params: GetUsersRequest) {
   const { refresh } = useSharedStore();
@@ -76,22 +76,30 @@ export default function Index() {
   const listContext = useContext(AdminListContext);
   const hasSidebar = listContext != null;
 
-  const [localPage, setLocalPage] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [localSize, setLocalSize] = useQueryState("size", parseAsInteger.withDefault(10));
+  const [localPage, setLocalPage] = useQueryState(
+    "page",
+    parseAsInteger.withDefault(1)
+  );
+  const [localSize, setLocalSize] = useQueryState(
+    "size",
+    parseAsInteger.withDefault(10)
+  );
   const page = listContext?.page ?? localPage;
   const setPage = listContext?.setPage ?? setLocalPage;
   const size = listContext?.size ?? localSize;
   const setSize = listContext?.setSize ?? setLocalSize;
 
-  const [localColumnFilters, setLocalColumnFilters] = useState<ColumnFiltersState>([
-    { id: "group", value: "all" },
-  ]);
+  const [localColumnFilters, setLocalColumnFilters] =
+    useState<ColumnFiltersState>([{ id: "group", value: "all" }]);
   const columnFilters = listContext?.columnFilters ?? localColumnFilters;
-  const setColumnFilters = listContext?.setColumnFilters ?? setLocalColumnFilters;
+  const setColumnFilters =
+    listContext?.setColumnFilters ?? setLocalColumnFilters;
 
   const [localCreateDialogOpen, setLocalCreateDialogOpen] = useState(false);
-  const createDialogOpen = listContext?.createDialogOpen ?? localCreateDialogOpen;
-  const setCreateDialogOpen = listContext?.setCreateDialogOpen ?? setLocalCreateDialogOpen;
+  const createDialogOpen =
+    listContext?.createDialogOpen ?? localCreateDialogOpen;
+  const setCreateDialogOpen =
+    listContext?.setCreateDialogOpen ?? setLocalCreateDialogOpen;
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: "created_at", desc: false },
@@ -100,15 +108,21 @@ export default function Index() {
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
   const groupFilter =
-    (debouncedColumnFilters.find((c) => c.id === "group")?.value as string) !== "all"
-      ? (Number(debouncedColumnFilters.find((c) => c.id === "group")?.value) as Group)
+    (debouncedColumnFilters.find((c) => c.id === "group")?.value as string) !==
+    "all"
+      ? (Number(
+          debouncedColumnFilters.find((c) => c.id === "group")?.value
+        ) as Group)
       : undefined;
 
   const { data: usersData, isLoading: loading } = useUserQuery({
     id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
-    name: debouncedColumnFilters.find((c) => c.id === "username")?.value as string,
+    name: debouncedColumnFilters.find((c) => c.id === "username")
+      ?.value as string,
     group: groupFilter,
-    sorts: sorting.map((value) => (value.desc ? `-${value.id}` : `${value.id}`)).join(","),
+    sorts: sorting
+      .map((value) => (value.desc ? `-${value.id}` : `${value.id}`))
+      .join(","),
     page,
     size,
   });
@@ -119,9 +133,21 @@ export default function Index() {
 
   const groupOptions = [
     { id: "all", name: t("common:all"), icon: UserRoundIcon },
-    { id: Group.Banned.toString(), name: t("user:group.banned"), icon: UserRoundXIcon },
-    { id: Group.User.toString(), name: t("user:group.user"), icon: UserRoundCheckIcon },
-    { id: Group.Admin.toString(), name: t("user:group.admin"), icon: ShieldIcon },
+    {
+      id: Group.Banned.toString(),
+      name: t("user:group.banned"),
+      icon: UserRoundXIcon,
+    },
+    {
+      id: Group.User.toString(),
+      name: t("user:group.user"),
+      icon: UserRoundCheckIcon,
+    },
+    {
+      id: Group.Admin.toString(),
+      name: t("user:group.admin"),
+      icon: ShieldIcon,
+    },
   ];
 
   const columns = useColumns();
@@ -141,25 +167,41 @@ export default function Index() {
   });
 
   const filterContent = (
-    <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end")}>
+    <div
+      className={cn(
+        "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end"
+      )}
+    >
       <Field size="sm" className={cn("lg:col-span-2")}>
-        <FieldIcon><HashIcon className="size-4" /></FieldIcon>
+        <FieldIcon>
+          <HashIcon className="size-4" />
+        </FieldIcon>
         <TextField
           placeholder="ID"
           value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
-          onChange={(e) => table.getColumn("id")?.setFilterValue(e.target.value)}
+          onChange={(e) =>
+            table.getColumn("id")?.setFilterValue(e.target.value)
+          }
         />
       </Field>
       <Field size="sm" className={cn("lg:col-span-4")}>
-        <FieldIcon><TypeIcon className="size-4" /></FieldIcon>
+        <FieldIcon>
+          <TypeIcon className="size-4" />
+        </FieldIcon>
         <TextField
           placeholder={t("user:search.username")}
-          value={(table.getColumn("username")?.getFilterValue() as string) ?? ""}
-          onChange={(e) => table.getColumn("username")?.setFilterValue(e.target.value)}
+          value={
+            (table.getColumn("username")?.getFilterValue() as string) ?? ""
+          }
+          onChange={(e) =>
+            table.getColumn("username")?.setFilterValue(e.target.value)
+          }
         />
       </Field>
       <Field size="sm" className={cn("lg:col-span-2")}>
-        <FieldIcon><UserRoundIcon className="size-4" /></FieldIcon>
+        <FieldIcon>
+          <UserRoundIcon className="size-4" />
+        </FieldIcon>
         <Select
           options={groupOptions.map((opt) => ({
             value: opt.id,
@@ -170,8 +212,12 @@ export default function Index() {
               </div>
             ),
           }))}
-          onValueChange={(value) => table.getColumn("group")?.setFilterValue(value)}
-          value={(table.getColumn("group")?.getFilterValue() as string) ?? "all"}
+          onValueChange={(value) =>
+            table.getColumn("group")?.setFilterValue(value)
+          }
+          value={
+            (table.getColumn("group")?.getFilterValue() as string) ?? "all"
+          }
         />
       </Field>
     </div>
@@ -180,14 +226,21 @@ export default function Index() {
   const tableContent = (
     <ScrollArea className={cn("h-full w-full")}>
       <LoadingOverlay loading={loading} />
-      <Table className={cn("text-foreground w-full min-w-[640px]")}>
-        <TableHeader className={cn("sticky top-0 z-[2] bg-muted/80 backdrop-blur-sm border-b")}>
+      <Table className={cn("text-foreground w-full min-w-160")}>
+        <TableHeader
+          className={cn(
+            "sticky top-0 z-2 bg-muted/80 backdrop-blur-sm border-b"
+          )}
+        >
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <TableHead key={header.id}>
                   {!header.isPlaceholder &&
-                    flexRender(header.column.columnDef.header, header.getContext())}
+                    flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                 </TableHead>
               ))}
             </TableRow>
@@ -214,8 +267,15 @@ export default function Index() {
                 colSpan={columns.length}
                 className={cn("h-40 text-center text-muted-foreground")}
               >
-                <div className={cn("flex flex-col items-center justify-center gap-2")}>
-                  <UserRoundIcon className={cn("size-10 opacity-30")} aria-hidden />
+                <div
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-2"
+                  )}
+                >
+                  <UserRoundIcon
+                    className={cn("size-10 opacity-30")}
+                    aria-hidden
+                  />
                   <span>{t("user:empty")}</span>
                 </div>
               </TableCell>
@@ -231,11 +291,22 @@ export default function Index() {
       <p className={cn("text-sm text-muted-foreground order-2 sm:order-1")}>
         {table.getFilteredRowModel().rows.length} / {usersData?.total ?? 0}
       </p>
-      <div className={cn("flex flex-wrap items-center gap-3 order-1 sm:order-2 min-h-10")}>
+      <div
+        className={cn(
+          "flex flex-wrap items-center gap-3 order-1 sm:order-2 min-h-10"
+        )}
+      >
         <Field size="sm" className={cn("w-32 sm:w-36")}>
-          <FieldIcon><ListOrderedIcon className="size-4" /></FieldIcon>
+          <FieldIcon>
+            <ListOrderedIcon className="size-4" />
+          </FieldIcon>
           <Select
-            options={[{ value: "10" }, { value: "20" }, { value: "40" }, { value: "60" }]}
+            options={[
+              { value: "10" },
+              { value: "20" },
+              { value: "40" },
+              { value: "60" },
+            ]}
             value={String(size)}
             onValueChange={(value) => setSize(Number(value))}
           />

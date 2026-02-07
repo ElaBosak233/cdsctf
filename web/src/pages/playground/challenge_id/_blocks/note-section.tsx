@@ -21,7 +21,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Typography } from "@/components/ui/typography";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import { Context } from "./context";
+import { Context } from "../context";
 
 function useNoteQuery(userId?: number, challengeId?: number) {
   return useQuery({
@@ -85,9 +85,7 @@ function NoteSection() {
         />
       )}
       {mode === "view" && (
-        <ScrollArea
-          className={cn(["h-full", "min-h-0", "overflow-hidden"])}
-        >
+        <ScrollArea className={cn(["h-full", "min-h-0", "overflow-hidden"])}>
           <Typography className={cn(["p-5"])}>
             <MarkdownRender src={form.getValues("content")} />
           </Typography>

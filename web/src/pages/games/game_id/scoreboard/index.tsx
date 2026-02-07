@@ -25,9 +25,10 @@ import {
 import type { ScoreRecord } from "@/models/game";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { ChampionChart } from "./champion-chart";
-import { useColumns } from "./columns";
-import { TeamDetailsDialog } from "./team-details-dialog";
+
+import { ChampionChart } from "./_blocks/champion-chart";
+import { useColumns } from "./_blocks/columns";
+import { TeamDetailsDialog } from "./_blocks/team-details-dialog";
 
 export default function Index() {
   const { t } = useTranslation();

@@ -68,9 +68,14 @@ export default function Index() {
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           const percentComplete = (event.loaded / event.total) * 100;
-          toast.loading(t("challenge:attachment.upload.progress", { percent: Math.round(percentComplete) }), {
-            id: "attachment-upload",
-          });
+          toast.loading(
+            t("challenge:attachment.upload.progress", {
+              percent: Math.round(percentComplete),
+            }),
+            {
+              id: "attachment-upload",
+            }
+          );
         }
       };
       xhr.onload = () => {
@@ -113,9 +118,7 @@ export default function Index() {
   });
 
   return (
-    <div
-      className={cn(["flex", "flex-1", "min-h-0", "flex-col", "gap-5"])}
-    >
+    <div className={cn(["flex", "flex-1", "min-h-0", "flex-col", "gap-5"])}>
       <Dropzone {...dropzone}>
         <DropZoneArea>
           <DropzoneTrigger className="h-fit flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm">
@@ -142,60 +145,60 @@ export default function Index() {
         >
           <LoadingOverlay loading={loading} />
           <Table className={cn(["text-foreground"])}>
-          <TableHeader
-            className={cn([
-              "sticky",
-              "top-0",
-              "z-2",
-              "bg-muted/70",
-              "backdrop-blur-md",
-            ])}
-          >
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {!header.isPlaceholder &&
-                        flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length
-              ? table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.original.filename}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : !loading && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className={cn(["h-24", "text-center"])}
+            <TableHeader
+              className={cn([
+                "sticky",
+                "top-0",
+                "z-2",
+                "bg-muted/70",
+                "backdrop-blur-md",
+              ])}
+            >
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {!header.isPlaceholder &&
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length
+                ? table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.original.filename}
+                      data-state={row.getIsSelected() && "selected"}
                     >
-                      {t("challenge:attachment.empty")}
-                    </TableCell>
-                  </TableRow>
-                )}
-          </TableBody>
-        </Table>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : !loading && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className={cn(["h-24", "text-center"])}
+                      >
+                        {t("challenge:attachment.empty")}
+                      </TableCell>
+                    </TableRow>
+                  )}
+            </TableBody>
+          </Table>
         </ScrollArea>
       </div>
     </div>

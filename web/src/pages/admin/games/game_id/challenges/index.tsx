@@ -32,8 +32,8 @@ import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
 import { Context } from "../context";
-import { useColumns } from "./columns";
-import { CreateDialog } from "./create-dialog";
+import { useColumns } from "./_blocks/columns";
+import { CreateDialog } from "./_blocks/create-dialog";
 
 export default function Index() {
   const { t } = useTranslation();

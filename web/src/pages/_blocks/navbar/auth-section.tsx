@@ -48,7 +48,7 @@ function AuthSection() {
             />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-42">
+        <DropdownMenuContent sideOffset={20} className="w-42">
           <DropdownMenuItem
             className={cn(["flex", "items-center", "gap-2"])}
             asChild

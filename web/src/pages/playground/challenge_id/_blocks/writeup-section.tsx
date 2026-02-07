@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/utils";
-import { Context } from "./context";
+import { Context } from "../context";
 
 function useNotesQuery(
   challengeId?: number,
@@ -61,9 +61,7 @@ function WriteupSection() {
     view === "writeup" ? challenge?.writeup : selectedNote?.content;
 
   return (
-    <div
-      className={cn(["flex", "flex-1", "min-h-0", "flex-col", "gap-2"])}
-    >
+    <div className={cn(["flex", "flex-1", "min-h-0", "flex-col", "gap-2"])}>
       {isReading ? (
         <>
           <div className={cn(["flex", "items-center", "gap-2"])}>
@@ -91,11 +89,7 @@ function WriteupSection() {
           {content ? (
             <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
               <ScrollArea
-                className={cn([
-                  "h-full",
-                  "min-h-0",
-                  "overflow-hidden",
-                ])}
+                className={cn(["h-full", "min-h-0", "overflow-hidden"])}
               >
                 <div className={cn(["space-y-4", "pr-3", "pb-6"])}>
                   <Typography>
