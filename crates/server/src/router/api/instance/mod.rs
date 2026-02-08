@@ -2,7 +2,7 @@ mod instance_id;
 
 use std::{collections::BTreeMap, sync::Arc};
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Router, extract::State};
 use cds_db::{TeamUser, team_user::FindTeamUserOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;

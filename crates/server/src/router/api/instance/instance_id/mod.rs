@@ -3,7 +3,6 @@ use std::sync::Arc;
 use axum::{
     Router,
     extract::{State, WebSocketUpgrade},
-    http::StatusCode,
     response::IntoResponse,
 };
 use serde::Deserialize;

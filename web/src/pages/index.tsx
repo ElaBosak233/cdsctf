@@ -1,5 +1,5 @@
 import { easeInOut, motion, useReducedMotion } from "framer-motion";
-import { FlagIcon, InfoIcon } from "lucide-react";
+import { InfoIcon } from "lucide-react";
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Image } from "@/components/ui/image";
 import { MarkdownRender } from "@/components/ui/markdown-render";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
+import { DefaultLogo } from "@/components/widgets/default-logo";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -72,7 +73,7 @@ export default function Index() {
             <motion.div variants={itemVariants}>
               <Image
                 src={"/api/configs/logo"}
-                fallback={<FlagIcon className={cn("size-16", "rotate-15")} />}
+                fallback={<DefaultLogo />}
                 className={cn(["aspect-square", "h-32"])}
                 alt={"logo"}
                 delay={0}

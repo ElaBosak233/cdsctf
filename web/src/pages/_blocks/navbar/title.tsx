@@ -1,7 +1,7 @@
-import { FlagIcon } from "lucide-react";
 import { useContext } from "react";
 import { Link } from "react-router";
 import { Image } from "@/components/ui/image";
+import { DefaultLogo } from "@/components/widgets/default-logo";
 import { useConfigStore } from "@/storages/config";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
@@ -51,7 +51,7 @@ function Title(props: TitleProps) {
     >
       <Image
         src={src}
-        fallback={<FlagIcon className={cn("size-6", "rotate-15")} />}
+        fallback={<DefaultLogo />}
         delay={0}
         className={cn(["h-8", "min-w-8"])}
       />

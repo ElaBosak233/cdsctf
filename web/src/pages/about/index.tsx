@@ -2,6 +2,7 @@ import { CodeXmlIcon, HandshakeIcon, HeartIcon, MoonIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { DefaultLogo } from "@/components/widgets/default-logo";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -36,13 +37,7 @@ export default function Index() {
           ])}
         >
           <div className={cn(["flex", "gap-3", "items-center"])}>
-            <img
-              alt="logo"
-              decoding={"async"}
-              src={"/logo.svg"}
-              draggable={false}
-              className={cn(["aspect-square", "h-17.5"])}
-            />
+            <DefaultLogo className={cn(["aspect-square", "h-17.5"])} />
             <div className={cn(["flex", "flex-col", "gap-1"])}>
               <h1 className={cn(["text-2xl", "lg:text-3xl", "font-extrabold"])}>
                 CdsCTF

@@ -5,6 +5,7 @@ import { getStatistics } from "@/api/admin/configs";
 import { Card } from "@/components/ui/card";
 import { Image } from "@/components/ui/image";
 import { Separator } from "@/components/ui/separator";
+import { DefaultLogo } from "@/components/widgets/default-logo";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -71,7 +72,7 @@ export default function AdminDashboard() {
           <div className={cn(["flex", "items-center", "gap-4"])}>
             <Image
               src={"/api/configs/logo"}
-              fallback={"/logo.svg"}
+              fallback={<DefaultLogo />}
               className={cn(["aspect-square", "h-24"])}
               alt={"logo"}
               delay={0}

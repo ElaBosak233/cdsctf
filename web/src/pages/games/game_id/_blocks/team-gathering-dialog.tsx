@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
-import { KeyIcon, SwordsIcon, TypeIcon } from "lucide-react";
+import { KeyIcon, TypeIcon, UserRoundPlusIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -20,7 +20,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
@@ -38,7 +37,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
 
   const sharedStore = useSharedStore();
   const { currentGame } = useGameStore();
-  const [_loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const createFormSchema = z.object({
     name: z.string({
@@ -123,83 +122,114 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
 
   return (
     <Card
-      className={cn(["p-5", "min-h-64", "w-lg", "flex", "flex-col", "gap-5"])}
+      className={cn(
+        "w-lg rounded-xl border-0 shadow-lg overflow-hidden",
+        "min-h-0"
+      )}
     >
-      <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
-        <SwordsIcon className={cn(["size-4"])} />
-        {t("team:actions.gather.create.title")}
-      </h3>
-      <Form {...createForm}>
-        <form
-          onSubmit={createForm.handleSubmit(onCreateFormSubmit)}
-          autoComplete={"off"}
-          className={cn(["flex", "gap-5", "items-end"])}
+      <div className="flex flex-col gap-0 p-0">
+        <section
+          className={cn(
+            "flex flex-col gap-4 p-5",
+            "border-b border-border/60",
+            "bg-muted/20"
+          )}
         >
-          <FormField
-            control={createForm.control}
-            name={"name"}
-            render={({ field }) => (
-              <FormItem className={cn(["flex-1"])}>
-                <FormLabel>{t("team:form.name._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <TypeIcon />
-                    </FieldIcon>
-                    <TextField
-                      {...field}
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button variant={"solid"} type={"submit"}>
-            {t("team:actions.gather.create._")}
-          </Button>
-        </form>
-      </Form>
-      <Separator />
-      <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
-        <SwordsIcon className={cn(["size-4"])} />
-        {t("team:actions.gather.join.title")}
-      </h3>
-      <Form {...joinForm}>
-        <form
-          onSubmit={joinForm.handleSubmit(onJoinFormSubmit)}
-          autoComplete={"off"}
-          className={cn(["flex", "gap-5", "items-end"])}
-        >
-          <FormField
-            control={joinForm.control}
-            name={"token"}
-            render={({ field }) => (
-              <FormItem className={cn(["flex-1"])}>
-                <FormLabel>{t("team:form.invite_code._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <KeyIcon />
-                    </FieldIcon>
-                    <TextField
-                      {...field}
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button variant={"solid"} type={"submit"}>
-            {t("team:actions.gather.join._")}
-          </Button>
-        </form>
-      </Form>
+          <h3 className="flex items-center gap-3">
+            <UserRoundPlusIcon className="size-4" />
+            {t("team:actions.gather.create.title")}
+          </h3>
+          <Form {...createForm}>
+            <form
+              onSubmit={createForm.handleSubmit(onCreateFormSubmit)}
+              autoComplete="off"
+              className="flex flex-wrap items-end gap-3 sm:flex-nowrap"
+            >
+              <FormField
+                control={createForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="min-w-0 flex-1">
+                    <FormLabel className="sr-only">
+                      {t("team:form.name._")}
+                    </FormLabel>
+                    <FormControl>
+                      <Field size="sm">
+                        <FieldIcon>
+                          <TypeIcon />
+                        </FieldIcon>
+                        <TextField
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                          placeholder={t("team:form.name._")}
+                        />
+                      </Field>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                variant="solid"
+                type="submit"
+                loading={loading}
+                className="shrink-0"
+              >
+                {t("team:actions.gather.create._")}
+              </Button>
+            </form>
+          </Form>
+        </section>
+
+        <section className="flex flex-col gap-4 p-5">
+          <h3 className="flex items-center gap-3">
+            <KeyIcon className="size-4" />
+            {t("team:actions.gather.join.title")}
+          </h3>
+          <Form {...joinForm}>
+            <form
+              onSubmit={joinForm.handleSubmit(onJoinFormSubmit)}
+              autoComplete="off"
+              className="flex flex-wrap items-end gap-3 sm:flex-nowrap"
+            >
+              <FormField
+                control={joinForm.control}
+                name="token"
+                render={({ field }) => (
+                  <FormItem className="min-w-0 flex-1">
+                    <FormLabel className="sr-only">
+                      {t("team:form.invite_code._")}
+                    </FormLabel>
+                    <FormControl>
+                      <Field size="sm">
+                        <FieldIcon>
+                          <KeyIcon />
+                        </FieldIcon>
+                        <TextField
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                          placeholder={t("team:form.invite_code._")}
+                        />
+                      </Field>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                variant="solid"
+                type="submit"
+                loading={loading}
+                className="shrink-0"
+              >
+                {t("team:actions.gather.join._")}
+              </Button>
+            </form>
+          </Form>
+        </section>
+      </div>
     </Card>
   );
 }

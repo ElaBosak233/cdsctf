@@ -41,6 +41,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useRefresh } from "@/hooks/use-refresh";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { uploadFile } from "@/utils/file";
 import { Context } from "./context";
 
 export default function Index() {
@@ -50,13 +51,14 @@ export default function Index() {
   const sharedStore = useSharedStore();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const { tick, bump } = useRefresh();
 
   const iconInput = useRef<HTMLInputElement>(null);
   const [hasIcon, setHasIcon] = useState<boolean>(false);
+  const { tick: iconTick, bump: iconBump } = useRefresh();
 
   const posterInput = useRef<HTMLInputElement>(null);
   const [hasPoster, setHasPoster] = useState<boolean>(false);
+  const { tick: posterTick, bump: posterBump } = useRefresh();
 
   const formSchema = z.object({
     title: z.string({
@@ -107,6 +109,13 @@ export default function Index() {
     );
   }, [game, form]);
 
+  useEffect(() => {
+    if (!game) return;
+
+    setHasIcon(game.has_icon!);
+    setHasPoster(game.has_poster!);
+  }, [game]);
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     updateGame({
@@ -129,143 +138,77 @@ export default function Index() {
       });
   }
 
-  function handlePosterUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePosterUpload(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `/api/admin/games/${game?.id}/poster`, true);
-
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percentComplete = (event.loaded / event.total) * 100;
-        toast.loading(
-          t("game:form.poster_upload.progress", {
-            percent: percentComplete.toFixed(0),
-          }),
-          {
-            id: "poster-upload",
-          }
-        );
+    try {
+      const res = await uploadFile(`/api/admin/games/${game?.id}/poster`, [
+        file,
+      ]);
+      if (res.code === StatusCodes.OK) {
+        toast.success(t("game:form.poster_upload.success"));
       }
-    };
-
-    xhr.onload = () => {
-      if (xhr.status === StatusCodes.OK) {
-        toast.success(t("game:form.poster_upload.success"), {
-          id: "poster-upload",
-        });
-        bump();
-      } else {
-        toast.error(t("game:form.poster_upload.error"), {
-          id: "poster-upload",
-          description: xhr.responseText,
-        });
-      }
-    };
-
-    xhr.onerror = () => {
+    } catch (_) {
       toast.error(t("game:form.poster_upload.error"), {
-        id: "poster-upload",
         description: t("common:errors.network"),
       });
-      return {
-        status: "error",
-      };
-    };
+      return;
+    }
 
-    xhr.send(formData);
     event.target.value = "";
-    bump();
+    posterBump();
   }
 
-  function handlePosterDelete() {
+  async function handlePosterDelete() {
     if (!game) return;
 
-    deleteGamePoster({
-      game_id: game.id!,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(t("game:form.poster_delete.success"));
-        }
-      })
-      .finally(() => {
-        bump();
+    try {
+      const res = await deleteGamePoster({
+        game_id: game.id!,
       });
+
+      if (res.code === StatusCodes.OK) {
+        toast.success(t("game:form.poster_delete.success"));
+      }
+    } finally {
+      posterBump();
+    }
   }
 
-  function handleIconUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleIconUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `/api/admin/games/${game?.id}/icon`, true);
-
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percentComplete = (event.loaded / event.total) * 100;
-        toast.loading(
-          t("game:form.icon_upload.progress", {
-            percent: percentComplete.toFixed(0),
-          }),
-          {
-            id: "icon-upload",
-          }
-        );
-      }
-    };
-
-    xhr.onload = () => {
-      if (xhr.status === StatusCodes.OK) {
-        toast.success(t("game:form.icon_upload.success"), {
-          id: "icon-upload",
-        });
-        bump();
-      } else {
-        toast.error(t("game:form.icon_upload.error"), {
-          id: "icon-upload",
-          description: xhr.responseText,
-        });
-      }
-    };
-
-    xhr.onerror = () => {
+    try {
+      await uploadFile(`/api/admin/games/${game?.id}/icon`, [file]);
+      toast.success(t("game:form.icon_upload.success"));
+    } catch (_) {
       toast.error(t("game:form.icon_upload.error"), {
-        id: "icon-upload",
         description: t("common:errors.network"),
       });
-      return {
-        status: "error",
-      };
-    };
+      return;
+    }
 
-    xhr.send(formData);
     event.target.value = "";
-    bump();
+    iconBump();
   }
 
-  function handleIconDelete() {
+  async function handleIconDelete() {
     if (!game) return;
 
-    deleteGameIcon({
-      game_id: game.id!,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(t("game:form.icon_delete.success"));
-        }
-      })
-      .finally(() => {
-        bump();
+    try {
+      const res = await deleteGameIcon({
+        game_id: game.id!,
       });
+      if (res.code === StatusCodes.OK) {
+        toast.success(t("game:form.icon_delete.success"));
+      }
+    } finally {
+      iconBump();
+    }
   }
 
   return (
@@ -339,11 +282,10 @@ export default function Index() {
                     "h-full",
                     "w-full",
                     "rounded-lg",
-                    "transition-all",
-                    "duration-300",
                     "border",
+                    "select-none",
                   ])}
-                  src={`/api/games/${game?.id}/poster?r=${tick}`}
+                  src={`/api/games/${game?.id}/poster?r=${posterTick}`}
                   onLoadingStatusChange={(status) =>
                     setHasPoster(status === "loaded")
                   }
@@ -403,11 +345,11 @@ export default function Index() {
                     "h-full",
                     "w-full",
                     "rounded-lg",
-                    "transition-all",
-                    "duration-300",
                     "border",
+                    "p-5",
+                    "select-none",
                   ])}
-                  src={`/api/games/${game?.id}/icon?r=${tick}`}
+                  src={`/api/games/${game?.id}/icon?r=${iconTick}`}
                   onLoadingStatusChange={(status) =>
                     setHasIcon(status === "loaded")
                   }

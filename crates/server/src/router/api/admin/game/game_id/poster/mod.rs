@@ -58,7 +58,7 @@ pub async fn delete_game_poster(
 ) -> Result<WebResponse<()>, WebError> {
     let path = format!("games/{}", game_id);
 
-    s.media.delete(path, "icon".to_owned()).await?;
+    s.media.delete(path, "poster".to_owned()).await?;
 
     let _ = cds_db::game::update::<Game>(
         &s.db.conn,

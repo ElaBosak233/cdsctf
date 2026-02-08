@@ -1,3 +1,8 @@
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
 # Logs
 logs
 *.log
@@ -12,9 +17,6 @@ dist
 dist-ssr
 *.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo

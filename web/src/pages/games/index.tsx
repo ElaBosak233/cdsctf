@@ -16,6 +16,7 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { Image } from "@/components/ui/image";
 import { Pagination } from "@/components/ui/pagination";
 import { TextField } from "@/components/ui/text-field";
+import { DefaultLogo } from "@/components/widgets/default-logo";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { GameMini } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
@@ -273,14 +274,11 @@ export default function Index() {
             >
               <Image
                 src={
-                  selectedGame?.has_icon &&
-                  `/api/games/${selectedGame?.id}/icon`
+                  selectedGame?.has_icon
+                    ? `/api/games/${selectedGame?.id}/icon`
+                    : `/api/configs/logo`
                 }
-                fallback={
-                  <FlagIcon
-                    className={cn(["text-secondary-foreground", "size-6"])}
-                  />
-                }
+                fallback={<DefaultLogo />}
                 className={cn(["h-16", "min-w-16"])}
               />
               <div className={cn(["space-y-1", "flex-1", "max-w-100"])}>

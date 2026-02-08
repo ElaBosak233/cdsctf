@@ -14,11 +14,7 @@
       "installDockerBuildx": true,
       "moby": true
     },
-    "ghcr.io/microsoft/k3s-on-host": {
-      "k3sVersion": "latest",
-      "criDockerd": "true",
-      "cluster_enabled": "true"
-    },
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
     "ghcr.io/devcontainers-contrib/features/fish-apt-get:1": {
       "installFisher": true
     },
@@ -27,7 +23,7 @@
       "nodeGypDependencies": true,
       "installYarnUsingApt": false
     },
-    "ghcr.io/devcontainers/features/pnpm:2": {}
+    "ghcr.io/devcontainers-extra/features/pnpm:2": {}
   },
 
   "onCreateCommand": "fish ${containerWorkspaceFolder}/.devcontainer/scripts/on-create.fish",
