@@ -126,12 +126,12 @@ function InstanceSection() {
         }
 
         if (p?.status === "running") {
-          toast.dismiss("pod");
+          toast.dismiss("instance");
         }
 
         if (p?.status === "waiting" && p?.reason !== "ContainerCreating") {
           toast.warning(t("instance:actions.start.error"), {
-            id: "pod",
+            id: "instance",
             description: p?.reason,
           });
           setInstanceStopLoading(true);
@@ -175,7 +175,7 @@ function InstanceSection() {
     });
 
     toast.info(t("instance:actions.stop.sent"), {
-      id: "pod-stop",
+      id: "instance-stop",
     });
     setInstance(undefined);
     setInstanceStopLoading(false);
@@ -190,7 +190,7 @@ function InstanceSection() {
   async function handleInstanceCreate() {
     setInstanceCreateLoading(true);
     toast.loading(t("instance:actions.start.creating"), {
-      id: "pod",
+      id: "instance",
     });
     try {
       const res = debug
@@ -205,7 +205,7 @@ function InstanceSection() {
 
       setInstance(res.data);
       toast.loading(t("instance:actions.start.sent"), {
-        id: "pod",
+        id: "instance",
         description: t("instance:actions.start.description"),
       });
       fetchInstances();
@@ -214,7 +214,7 @@ function InstanceSection() {
       const res = await parseErrorResponse(error);
 
       toast.error(t("instance:error"), {
-        id: "pod",
+        id: "instance",
         description: res.msg,
       });
     }

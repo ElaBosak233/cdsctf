@@ -86,10 +86,7 @@ pub async fn renew_instance(
 
     s.cluster.renew_challenge_instance(&id).await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(WebResponse::ok())
 }
 
 pub async fn stop_instance(
@@ -128,10 +125,7 @@ pub async fn stop_instance(
 
     s.cluster.delete_challenge_instance(&id).await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(WebResponse::ok())
 }
 
 #[derive(Deserialize)]

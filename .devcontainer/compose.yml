@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cdsctf
+      POSTGRES_PASSWORD: cdsctf
+      POSTGRES_DB: cdsctf
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/18/docker
+
+  cache:
+    image: valkey/valkey:9-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - cache:/data
+
+  queue:
+    image: nats:2-alpine
+    restart: unless-stopped
+    ports:
+      - "4222:4222"   # client
+      - "8222:8222"   # HTTP monitoring
+    volumes:
+      - queue:/data
+    command: ["--jetstream", "-sd", "/data"]
+
+  media:
+    image: rustfs/rustfs:latest
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - media:/data
+
+volumes:
+  db:
+  cache:
+  queue:
+  media:

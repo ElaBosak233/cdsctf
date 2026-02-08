@@ -75,16 +75,12 @@ pub async fn get_instance(
 
     let pods = s.cluster.get_pods_by_label(&labels).await?;
 
-    let envs = pods
+    let instances = pods
         .into_iter()
         .map(|pod| Instance::from(pod).with_env(&s.env))
         .collect::<Vec<Instance>>();
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(envs),
-        ..Default::default()
-    })
+    Ok(WebResponse::ok().data(instances))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
