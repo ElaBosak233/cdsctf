@@ -9,7 +9,7 @@ homepage     = "https://cdsctf.e23.dev"
 publish      = false
 repository   = "https://github.com/elabosak233/cdsctf"
 rust-version = "1.94.0"
-version      = "1.9.0"
+version      = "1.9.1"
 
 [workspace.dependencies]
 # Local Libraries
