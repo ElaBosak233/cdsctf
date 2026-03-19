@@ -9,6 +9,9 @@ write_up:
       done: You have submitted the Write-up
     upload:
       _: Upload Write-up
+      progress: "Upload progress {{percent}}%"
+      success: Write-up uploaded successfully.
+      error: Write-up upload failed.
       hint: >-
         Please export the Write-up as a PDF file and upload it. The file size
         should not exceed 50 MB.
@@ -17,7 +20,6 @@ email: Email
 slogan:
   _: Slogan
   empty: This team is too lazy to leave anything here.
-avatar: Avatar
 rank: Rank
 pts: Score
 invite_code:
@@ -31,7 +33,7 @@ state:
   preparing: Preparing
   pending: Pending Approval
   passed: Approved
-has_write_up:
+has_writeup:
   _: Write-up
   "true": Submitted
   "false": Not Submitted
@@ -53,13 +55,20 @@ actions:
     message: >-
       The team will be disbanded immediately, and all members can create or join
       other teams.
+    success: Team disbanded successfully.
+    description: "Disbanded team {{name}}."
   leave:
     _: Leave Team
     message: >-
       You are about to leave this team, after which you will be able to create
       or join other teams.
+    success: Left team successfully.
+    description: "Left team {{name}}."
+    error: Failed to leave team.
   ready:
     _: We are ready!
+    success: Ready successfully.
+    description: "{{name}} is about to take the stage!"
     title: Final Confirmation
     message: >-
       Your next operation will set the team status to pending review. At that
@@ -67,7 +76,23 @@ actions:
       status, such as adding new members, leaving members, or withdrawing from
       the competition.
     of_course: We are really ready!
+  create:
+    success: "Team {{name}} created successfully."
+  join:
+    success: Joined team successfully.
+    error: Failed to join team.
+  update:
+    success: "Team {{name}} updated successfully."
   locked: Team is locked
+avatar:
+  _: Avatar
+  upload:
+    progress: "Upload progress {{percent}}%"
+    success: Avatar uploaded successfully.
+    error: Avatar upload failed.
+  delete:
+    success: Avatar deleted successfully.
+  team_delete_success: "Team {{name}} avatar deleted successfully."
 form:
   name:
     _: Team Name

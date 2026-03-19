@@ -104,7 +104,7 @@ pub async fn create_user(
         cds_db::email::ActiveModel {
             user_id: Set(user.id),
             email: Set(body.email),
-            is_verified: Set(true),
+            verified: Set(true),
         },
     )
     .await?;

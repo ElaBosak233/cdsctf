@@ -6,22 +6,26 @@ edit:
   info: 基本信息
   checker: 检查器
   attachment: 附件
-  env: 动态环境
-  statistics: 统计数据
+  instance: 动态环境
+  writeup: 题解
 preview: 预览题目
+note: 笔记
+note_placeholder: 在此记录你的思路与解法…
+note_save_success: 笔记保存成功。
+writeup_official: 官方题解
 title: 标题
 description: 描述
 category: 分类
 tags: 标签
 has_attachment: 附件
-is_dynamic:
+has_instance:
   _: 动态性
   "true": 动态
   "false": 静态
 frozen:
   already: 已冻结
   countdown: "距冻结 {{hours}} 时 {{minutes}} 分 {{seconds}} 秒"
-is_public:
+public:
   _: 公开性
   actions:
     "true": 公开
@@ -30,6 +34,10 @@ is_public:
 updated_at: 更新于
 created_at: 创建于
 checker:
+  form:
+    script_required: 请为检查器编写脚本。
+  actions:
+    update_success: "题目 {{title}} 检查器更新成功。"
   templates:
     _: 使用预设模板
     simple: 简易固定字符串评判
@@ -39,6 +47,9 @@ attachment:
   empty: 哎呀，好像还没有附件呢。
   upload:
     _: 上传附件
+    progress: "上传进度 {{percent}}%"
+    success: 文件上传成功。
+    error: 文件上传失败。
     hint: 附件将由服务器直接托管，建议充分考虑存储空间和流量等因素。
   filename: 文件名
   size: 文件大小
@@ -51,7 +62,7 @@ attachment:
 search:
   title: 题目标题
   tag: 标签
-  is_public:
+  public:
     _: 公开性
     "true": 公开
     "false": 非公开
@@ -68,14 +79,21 @@ form:
     _: 是否有附件
     "true": 启用
     "false": 禁用
-  is_dynamic:
+  has_writeup:
+    _: 是否提供题解
+    "true": 是
+    "false": 否
+  writeup:
+    _: 题解
+    message: 请输入题解
+  has_instance:
     _: 动态性
     "true": 动态环境
     "false": 静态环境
   description:
     _: 描述
     message: 请输入描述
-  env:
+  instance:
     duration:
       _: 持续时间（秒）
       message: 请输入持续时间（秒）
@@ -126,6 +144,12 @@ actions:
   create:
     _: 创建题目
     success: "题目 {{title}} 创建成功。"
+  update:
+    success: "题目 {{title}} 更新成功。"
+  writeup_update:
+    success: "题目 {{title}} 题解更新成功。"
+  instance_update:
+    success: "题目 {{title}} 动态环境更新成功。"
   delete:
     _: 删除题目
     message: "你确定要删除题目 <muted>{{title}}</muted> 吗？"

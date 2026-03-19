@@ -1,0 +1,36 @@
+{
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "*.cdsx": "rust"
+  },
+
+  "biome.enabled": true,
+
+  "i18n-ally.localesPaths": ["public/locales"],
+  "i18n-ally.keystyle": "nested",
+  "i18n-ally.namespace": true,
+  "i18n-ally.pathMatcher": "{locale}/{namespace}.{ext}",
+  "i18n-ally.enabledFrameworks": ["i18next", "react-i18next"],
+
+  "[json]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[jsonc]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[tailwindcss]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
+}

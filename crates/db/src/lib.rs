@@ -5,6 +5,7 @@ pub(crate) mod entity;
 pub mod game;
 pub mod game_challenge;
 pub mod game_notice;
+pub mod note;
 pub mod submission;
 pub mod team;
 pub mod team_user;
@@ -16,6 +17,7 @@ use std::time::Duration;
 
 use cds_env::Env;
 pub use challenge::{Challenge, ChallengeMini};
+pub use config::Config;
 pub use email::Email;
 pub use game::{Game, GameMini};
 pub use game_challenge::{GameChallenge, GameChallengeMini};
@@ -56,7 +58,7 @@ pub async fn init(env: &Env) -> Result<DB, DbError> {
     Ok(DB { conn: db })
 }
 
-pub async fn get_config(conn: &impl ConnectionTrait) -> config::Model {
+pub async fn get_config(conn: &impl ConnectionTrait) -> Config {
     config::get(conn)
         .await
         .expect("No config in db, could there be a problem with the migration?")

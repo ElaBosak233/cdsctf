@@ -34,12 +34,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { useRefresh } from "@/hooks/use-refresh";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { uploadFile } from "@/utils/file";
 import { Context } from "./context";
 
 export default function Index() {
@@ -49,36 +51,37 @@ export default function Index() {
   const sharedStore = useSharedStore();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const { tick, bump } = useRefresh();
 
   const iconInput = useRef<HTMLInputElement>(null);
   const [hasIcon, setHasIcon] = useState<boolean>(false);
+  const { tick: iconTick, bump: iconBump } = useRefresh();
 
   const posterInput = useRef<HTMLInputElement>(null);
   const [hasPoster, setHasPoster] = useState<boolean>(false);
+  const { tick: posterTick, bump: posterBump } = useRefresh();
 
   const formSchema = z.object({
     title: z.string({
-      message: t("game.form.title.message"),
+      message: t("game:form.title.message"),
     }),
     sketch: z.string().nullable(),
     description: z.string().nullable(),
-    is_public: z.boolean(),
-    is_need_write_up: z.boolean(),
+    public: z.boolean(),
+    writeup_required: z.boolean(),
     member_limit_min: z.number({
-      message: t("game.form.member_limit_min.message"),
+      message: t("game:form.member_limit_min.message"),
     }),
     member_limit_max: z.number({
-      message: t("game.form.member_limit_max.message"),
+      message: t("game:form.member_limit_max.message"),
     }),
     started_at: z.date({
-      message: t("game.form.started_at.message"),
+      message: t("game:form.started_at.message"),
     }),
     frozen_at: z.date({
-      message: t("game.form.frozen_at.message"),
+      message: t("game:form.frozen_at.message"),
     }),
     ended_at: z.date({
-      message: t("game.form.ended_at.message"),
+      message: t("game:form.ended_at.message"),
     }),
   });
 
@@ -106,6 +109,13 @@ export default function Index() {
     );
   }, [game, form]);
 
+  useEffect(() => {
+    if (!game) return;
+
+    setHasIcon(game.has_icon!);
+    setHasPoster(game.has_poster!);
+  }, [game]);
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     updateGame({
@@ -118,7 +128,7 @@ export default function Index() {
       .then((res) => {
         if (res.code === StatusCodes.OK) {
           toast.success(
-            t("game.actions.update.success", { title: res?.data?.title })
+            t("game:actions.update.success", { title: res?.data?.title })
           );
         }
       })
@@ -128,133 +138,77 @@ export default function Index() {
       });
   }
 
-  function handlePosterUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePosterUpload(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `/api/admin/games/${game?.id}/poster`, true);
-
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percentComplete = (event.loaded / event.total) * 100;
-        toast.loading(`上传进度 ${percentComplete.toFixed(0)}%`, {
-          id: "poster-upload",
-        });
+    try {
+      const res = await uploadFile(`/api/admin/games/${game?.id}/poster`, [
+        file,
+      ]);
+      if (res.code === StatusCodes.OK) {
+        toast.success(t("game:form.poster_upload.success"));
       }
-    };
-
-    xhr.onload = () => {
-      if (xhr.status === StatusCodes.OK) {
-        toast.success("海报上传成功", {
-          id: "poster-upload",
-        });
-        bump();
-      } else {
-        toast.error("海报上传失败", {
-          id: "poster-upload",
-          description: xhr.responseText,
-        });
-      }
-    };
-
-    xhr.onerror = () => {
-      toast.error("海报上传失败", {
-        id: "poster-upload",
-        description: "网络错误",
+    } catch (_) {
+      toast.error(t("game:form.poster_upload.error"), {
+        description: t("common:errors.network"),
       });
-      return {
-        status: "error",
-      };
-    };
+      return;
+    }
 
-    xhr.send(formData);
     event.target.value = "";
-    bump();
+    posterBump();
   }
 
-  function handlePosterDelete() {
+  async function handlePosterDelete() {
     if (!game) return;
 
-    deleteGamePoster({
-      game_id: game.id!,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(`海报删除成功`);
-        }
-      })
-      .finally(() => {
-        bump();
+    try {
+      const res = await deleteGamePoster({
+        game_id: game.id!,
       });
+
+      if (res.code === StatusCodes.OK) {
+        toast.success(t("game:form.poster_delete.success"));
+      }
+    } finally {
+      posterBump();
+    }
   }
 
-  function handleIconUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleIconUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `/api/admin/games/${game?.id}/icon`, true);
-
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percentComplete = (event.loaded / event.total) * 100;
-        toast.loading(`上传进度 ${percentComplete.toFixed(0)}%`, {
-          id: "icon-upload",
-        });
-      }
-    };
-
-    xhr.onload = () => {
-      if (xhr.status === StatusCodes.OK) {
-        toast.success("图标上传成功", {
-          id: "icon-upload",
-        });
-        bump();
-      } else {
-        toast.error("图标上传失败", {
-          id: "icon-upload",
-          description: xhr.responseText,
-        });
-      }
-    };
-
-    xhr.onerror = () => {
-      toast.error("图标上传失败", {
-        id: "icon-upload",
-        description: "网络错误",
+    try {
+      await uploadFile(`/api/admin/games/${game?.id}/icon`, [file]);
+      toast.success(t("game:form.icon_upload.success"));
+    } catch (_) {
+      toast.error(t("game:form.icon_upload.error"), {
+        description: t("common:errors.network"),
       });
-      return {
-        status: "error",
-      };
-    };
+      return;
+    }
 
-    xhr.send(formData);
     event.target.value = "";
-    bump();
+    iconBump();
   }
 
-  function handleIconDelete() {
+  async function handleIconDelete() {
     if (!game) return;
 
-    deleteGameIcon({
-      game_id: game.id!,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(`图标删除成功`);
-        }
-      })
-      .finally(() => {
-        bump();
+    try {
+      const res = await deleteGameIcon({
+        game_id: game.id!,
       });
+      if (res.code === StatusCodes.OK) {
+        toast.success(t("game:form.icon_delete.success"));
+      }
+    } finally {
+      iconBump();
+    }
   }
 
   return (
@@ -273,7 +227,7 @@ export default function Index() {
               name={"title"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>{t("game.form.title._")}</FormLabel>
+                  <FormLabel>{t("game:form.title._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -296,13 +250,12 @@ export default function Index() {
               name={"sketch"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>{t("game.form.sketch")}</FormLabel>
+                  <FormLabel>{t("game:form.sketch")}</FormLabel>
                   <FormControl>
                     <Editor
                       {...field}
                       placeholder={"Once upon a time..."}
                       value={field.value || ""}
-                      lang={"markdown"}
                       className={cn(["h-32"])}
                     />
                   </FormControl>
@@ -321,7 +274,7 @@ export default function Index() {
                   "justify-between",
                 ])}
               >
-                <Label className="py-1.5">{t("game.form.poster")}</Label>
+                <Label className="py-1.5">{t("game:form.poster")}</Label>
               </div>
               <div className={cn(["h-36", "aspect-video"])}>
                 <Avatar
@@ -329,11 +282,10 @@ export default function Index() {
                     "h-full",
                     "w-full",
                     "rounded-lg",
-                    "transition-all",
-                    "duration-300",
                     "border",
+                    "select-none",
                   ])}
-                  src={`/api/games/${game?.id}/poster?r=${tick}`}
+                  src={`/api/games/${game?.id}/poster?r=${posterTick}`}
                   onLoadingStatusChange={(status) =>
                     setHasPoster(status === "loaded")
                   }
@@ -384,7 +336,7 @@ export default function Index() {
                   "justify-between",
                 ])}
               >
-                <Label className="py-1.5">{t("game.form.icon")}</Label>
+                <Label className="py-1.5">{t("game:form.icon")}</Label>
               </div>
               <div className={cn(["h-36", "aspect-square"])}>
                 <Avatar
@@ -393,11 +345,11 @@ export default function Index() {
                     "h-full",
                     "w-full",
                     "rounded-lg",
-                    "transition-all",
-                    "duration-300",
                     "border",
+                    "p-5",
+                    "select-none",
                   ])}
-                  src={`/api/games/${game?.id}/icon?r=${tick}`}
+                  src={`/api/games/${game?.id}/icon?r=${iconTick}`}
                   onLoadingStatusChange={(status) =>
                     setHasIcon(status === "loaded")
                   }
@@ -444,10 +396,10 @@ export default function Index() {
         <div className={cn(["grid", "grid-cols-4", "gap-5"])}>
           <FormField
             control={form.control}
-            name={"is_public"}
+            name={"public"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game.form.is_public._")}</FormLabel>
+                <FormLabel>{t("game:form.public._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -458,11 +410,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: t("game.form.is_public.true"),
+                          content: t("game:form.public.true"),
                         },
                         {
                           value: String(false),
-                          content: t("game.form.is_public.false"),
+                          content: t("game:form.public.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -478,10 +430,10 @@ export default function Index() {
           />
           <FormField
             control={form.control}
-            name={"is_need_write_up"}
+            name={"writeup_required"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game.form.is_need_write_up._")}</FormLabel>
+                <FormLabel>{t("game:form.writeup_required._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -492,11 +444,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: t("game.form.is_need_write_up.true"),
+                          content: t("game:form.writeup_required.true"),
                         },
                         {
                           value: String(false),
-                          content: t("game.form.is_need_write_up.false"),
+                          content: t("game:form.writeup_required.false"),
                         },
                       ]}
                       onValueChange={(value) =>
@@ -515,7 +467,7 @@ export default function Index() {
             name={"member_limit_min"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game.form.member_limit_min._")}</FormLabel>
+                <FormLabel>{t("game:form.member_limit_min._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -537,7 +489,7 @@ export default function Index() {
             name={"member_limit_max"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game.form.member_limit_max._")}</FormLabel>
+                <FormLabel>{t("game:form.member_limit_max._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -561,7 +513,7 @@ export default function Index() {
             name={"started_at"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("game.form.started_at._")}</FormLabel>
+                <FormLabel>{t("game:form.started_at._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -579,7 +531,7 @@ export default function Index() {
             name={"frozen_at"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("game.form.frozen_at._")}</FormLabel>
+                <FormLabel>{t("game:form.frozen_at._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -597,7 +549,7 @@ export default function Index() {
             name={"ended_at"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("game.form.ended_at._")}</FormLabel>
+                <FormLabel>{t("game:form.ended_at._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -616,13 +568,12 @@ export default function Index() {
           name={"description"}
           render={({ field }) => (
             <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-              <FormLabel>{t("game.form.description")}</FormLabel>
+              <FormLabel>{t("game:form.description")}</FormLabel>
               <FormControl>
-                <Editor
+                <MarkdownEditor
                   {...field}
                   placeholder={"Once upon a time..."}
                   value={field.value || ""}
-                  lang={"markdown"}
                   className={cn(["h-full", "min-h-128"])}
                 />
               </FormControl>
@@ -639,7 +590,7 @@ export default function Index() {
           icon={<SaveIcon />}
           loading={loading}
         >
-          {t("common.actions.save")}
+          {t("common:actions.save")}
         </Button>
       </form>
     </Form>

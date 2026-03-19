@@ -5,15 +5,17 @@ export interface Challenge {
   description?: string;
   category?: number;
   has_attachment?: boolean;
-  is_public?: boolean;
-  is_dynamic?: boolean;
-  env?: Env;
+  public?: boolean;
+  has_writeup?: boolean;
+  has_instance?: boolean;
+  instance?: Instance;
   checker?: string;
+  writeup?: string;
   updated_at?: number;
   created_at?: number;
 }
 
-export interface Env {
+export interface Instance {
   duration?: number;
   internet?: boolean;
   containers?: Array<Container>;

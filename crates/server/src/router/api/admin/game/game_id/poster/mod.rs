@@ -12,7 +12,7 @@ use cds_db::{
 use crate::{
     extract::Path,
     traits::{AppState, WebError, WebResponse},
-    util,
+    util::media::handle_multipart,
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -31,9 +31,13 @@ pub async fn save_game_poster(
     Path(game_id): Path<i64>,
     multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
-    let path = format!("games/{}/poster", game_id);
+    let data = handle_multipart(multipart, mime::IMAGE).await?;
+    let data = cds_media::util::img_convert_to_webp(data).await?;
 
-    let _ = util::media::save_img(s.media.clone(), path, multipart).await;
+    let path = format!("games/{}", game_id);
+
+    s.media.save(path, "poster".to_owned(), data).await?;
+
     let _ = cds_db::game::update::<Game>(
         &s.db.conn,
         cds_db::game::ActiveModel {
@@ -52,9 +56,10 @@ pub async fn delete_game_poster(
 
     Path(game_id): Path<i64>,
 ) -> Result<WebResponse<()>, WebError> {
-    let path = format!("games/{}/poster", game_id);
+    let path = format!("games/{}", game_id);
 
-    let _ = util::media::delete_img(s.media.clone(), path).await;
+    s.media.delete(path, "poster".to_owned()).await?;
+
     let _ = cds_db::game::update::<Game>(
         &s.db.conn,
         cds_db::game::ActiveModel {

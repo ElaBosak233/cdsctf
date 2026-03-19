@@ -62,7 +62,7 @@ pub async fn can_user_access_challenge(
         return Ok(false);
     };
 
-    if challenge.is_public {
+    if challenge.public {
         return Ok(true);
     }
 

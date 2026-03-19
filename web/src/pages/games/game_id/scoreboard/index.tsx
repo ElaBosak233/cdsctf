@@ -25,9 +25,10 @@ import {
 import type { ScoreRecord } from "@/models/game";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { ChampionChart } from "./champion-chart";
-import { useColumns } from "./columns";
-import { TeamDetailsDialog } from "./team-details-dialog";
+
+import { ChampionChart } from "./_blocks/champion-chart";
+import { useColumns } from "./_blocks/columns";
+import { TeamDetailsDialog } from "./_blocks/team-details-dialog";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -66,7 +67,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("game.scoreboard._")} - ${currentGame?.title}`}</title>
+      <title>{`${t("game:scoreboard._")} - ${currentGame?.title}`}</title>
       <div
         className={cn([
           "xl:mx-60",
@@ -77,6 +78,7 @@ export default function Index() {
           "gap-10",
           "items-center",
           "flex-1",
+          "min-h-0",
         ])}
       >
         {scoreboardData?.total ? (
@@ -108,53 +110,63 @@ export default function Index() {
                 total={Math.ceil((scoreboardData?.total || 0) / size)}
               />
             </div>
-            <ScrollArea className={cn(["rounded-md", "w-full"])}>
-              <Table className={cn(["text-foreground"])}>
-                <TableHeader
-                  className={cn(["bg-muted/70", "backdrop-blur-md"])}
-                >
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead key={header.id}>
-                            {!header.isPlaceholder &&
-                              flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                          </TableHead>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.map((row) => (
-                    <Dialog key={row.original.team?.id}>
-                      <DialogTrigger>
-                        <TableRow
-                          data-state={row.getIsSelected() && "selected"}
-                          className={cn(["cursor-pointer"])}
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <TeamDetailsDialog team={row.original.team!} />
-                      </DialogContent>
-                    </Dialog>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
+            <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
+              <ScrollArea
+                className={cn([
+                  "rounded-md",
+                  "w-full",
+                  "h-full",
+                  "min-h-0",
+                  "overflow-hidden",
+                ])}
+              >
+                <Table className={cn(["text-foreground"])}>
+                  <TableHeader
+                    className={cn(["bg-muted/70", "backdrop-blur-md"])}
+                  >
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
+                          return (
+                            <TableHead key={header.id}>
+                              {!header.isPlaceholder &&
+                                flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                            </TableHead>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows.map((row) => (
+                      <Dialog key={row.original.team?.id}>
+                        <DialogTrigger>
+                          <TableRow
+                            data-state={row.getIsSelected() && "selected"}
+                            className={cn(["cursor-pointer"])}
+                          >
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell key={cell.id}>
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <TeamDetailsDialog team={row.original.team!} />
+                        </DialogContent>
+                      </Dialog>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </div>
           </>
         ) : (
           <div
@@ -169,7 +181,7 @@ export default function Index() {
             ])}
           >
             <MessageCircleDashedIcon className={cn(["size-12"])} />
-            <span>{t("game.scoreboard.empty")}</span>
+            <span>{t("game:scoreboard.empty")}</span>
           </div>
         )}
       </div>

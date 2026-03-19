@@ -1,5 +1,5 @@
 mod forget;
-mod profile;
+mod me;
 mod user_id;
 
 use std::sync::Arc;
@@ -29,7 +29,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/logout", axum::routing::post(user_logout))
         .nest("/forget", forget::router())
         .nest("/{user_id}", user_id::router())
-        .nest("/profile", profile::router())
+        .nest("/me", me::router())
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -103,7 +103,7 @@ pub async fn user_register(
     if !cds_db::get_config(&s.db.conn)
         .await
         .auth
-        .is_registration_enabled
+        .registration_enabled
     {
         return Err(WebError::BadRequest(json!("registration_disabled")));
     }
@@ -158,7 +158,7 @@ pub async fn user_register(
         cds_db::email::ActiveModel {
             user_id: Set(user.id),
             email: Set(body.email),
-            is_verified: Set(!cds_db::get_config(&s.db.conn).await.email.is_enabled),
+            verified: Set(!cds_db::get_config(&s.db.conn).await.email.enabled),
         },
     )
     .await?;

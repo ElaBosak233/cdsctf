@@ -1,14 +1,11 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  FlagIcon,
-  HousePlugIcon,
-  LibraryIcon,
-  SendIcon,
-  UserRoundIcon,
-} from "lucide-react";
+import { FlagIcon, LibraryIcon, SendIcon, UserRoundIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getStatistics } from "@/api/admin/configs";
 import { Card } from "@/components/ui/card";
+import { Image } from "@/components/ui/image";
+import { Separator } from "@/components/ui/separator";
+import { DefaultLogo } from "@/components/widgets/default-logo";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -55,27 +52,45 @@ function StatCard({ icon, label, value }: StatCardProps) {
 export default function AdminDashboard() {
   const { t } = useTranslation();
 
-  const configStore = useConfigStore();
+  const { config } = useConfigStore();
 
   const { data: statistics } = useStatisticsQuery();
 
   return (
     <>
-      <title>{`${t("admin.home._")} - ${configStore?.config?.meta?.title}`}</title>
-      <div className={cn(["p-10", "xl:mx-60", "lg:mx-30"])}>
-        <h1
+      <title>{`${t("admin:home._")} - ${config?.meta?.title}`}</title>
+      <div className={cn(["p-10", "xl:mx-60", "lg:mx-30", "space-y-6"])}>
+        <div
           className={cn([
-            "text-2xl",
-            "font-bold",
             "flex",
-            "gap-2",
+            "justify-between",
             "items-center",
-            "mb-6",
+            "select-none",
+            "mx-5",
           ])}
         >
-          <HousePlugIcon />
-          {t("admin.home._")}
-        </h1>
+          <div className={cn(["flex", "items-center", "gap-4"])}>
+            <Image
+              src={"/api/configs/logo"}
+              fallback={<DefaultLogo />}
+              className={cn(["aspect-square", "h-24"])}
+              alt={"logo"}
+              delay={0}
+            />
+            <div>
+              <h2 className={cn(["text-3xl", "font-semibold"])}>
+                {config?.meta?.title}
+              </h2>
+              <span className={cn(["text-secondary-foreground"])}>
+                {config?.meta?.description}
+                <span className={cn(["animate-ping"])}>_</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
         <div
           className={cn([
             "grid",
@@ -87,22 +102,22 @@ export default function AdminDashboard() {
         >
           <StatCard
             icon={<UserRoundIcon className={cn(["size-5"])} />}
-            label={t("admin.home.statistics.users")}
+            label={t("admin:home.statistics.users")}
             value={statistics?.users}
           />
           <StatCard
             icon={<FlagIcon className={cn(["size-5"])} />}
-            label={t("admin.home.statistics.games")}
+            label={t("admin:home.statistics.games")}
             value={statistics?.games}
           />
           <StatCard
             icon={<LibraryIcon className={cn(["size-5"])} />}
-            label={t("admin.home.statistics.challenges")}
+            label={t("admin:home.statistics.challenges")}
             value={statistics?.challenges?.total}
           />
           <StatCard
             icon={<SendIcon className={cn(["size-5"])} />}
-            label={t("admin.home.statistics.submissions")}
+            label={t("admin:home.statistics.submissions")}
             value={statistics?.submissions?.total}
           />
         </div>

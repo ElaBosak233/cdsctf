@@ -26,27 +26,28 @@ export default function Index() {
       const formData = new FormData();
       formData.append("file", file);
       const xhr = new XMLHttpRequest();
-      xhr.open(
-        "POST",
-        `/api/games/${currentGame?.id}/teams/profile/writeup`,
-        true
-      );
+      xhr.open("POST", `/api/games/${currentGame?.id}/teams/us/writeup`, true);
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           const percentComplete = (event.loaded / event.total) * 100;
-          toast.loading(`上传进度 ${percentComplete}%`, {
-            id: "writeup-upload",
-          });
+          toast.loading(
+            t("team:write_up.actions.upload.progress", {
+              percent: Math.round(percentComplete),
+            }),
+            {
+              id: "writeup-upload",
+            }
+          );
         }
       };
       xhr.onload = () => {
         if (xhr.status === StatusCodes.OK) {
-          toast.success("题解上传成功", {
+          toast.success(t("team:write_up.actions.upload.success"), {
             id: "writeup-upload",
           });
           sharedStore.setRefresh();
         } else {
-          toast.error("题解上传失败", {
+          toast.error(t("team:write_up.actions.upload.error"), {
             id: "writeup-upload",
             description: xhr.responseText,
           });
@@ -99,7 +100,7 @@ export default function Index() {
           ])}
         >
           <FilePenIcon />
-          {t("team.write_up._")}
+          {t("team:write_up._")}
         </h1>
         <Separator />
 
@@ -107,20 +108,18 @@ export default function Index() {
           <DropZoneArea>
             <DropzoneTrigger className="h-fit flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm">
               <p className="font-semibold">
-                {t("team.write_up.actions.upload._")}
+                {t("team:write_up.actions.upload._")}
               </p>
               <p className="text-sm text-muted-foreground">
-                {t("team.write_up.actions.upload.hint")}
+                {t("team:write_up.actions.upload.hint")}
               </p>
             </DropzoneTrigger>
           </DropZoneArea>
         </Dropzone>
 
-        {selfTeam?.has_write_up && (
+        {selfTeam?.has_writeup && (
           <Card className="p-5 rounded-xl min-h-128 max-h-[calc(100vh-25rem)]">
-            <PDFViewer
-              url={`/api/games/${currentGame?.id}/teams/profile/writeup`}
-            />
+            <PDFViewer url={`/api/games/${currentGame?.id}/teams/us/writeup`} />
           </Card>
         )}
       </div>

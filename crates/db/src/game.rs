@@ -19,9 +19,9 @@ pub struct Game {
     pub title: String,
     pub sketch: Option<String>,
     pub description: Option<String>,
-    pub is_enabled: bool,
-    pub is_public: bool,
-    pub is_need_write_up: bool,
+    pub enabled: bool,
+    pub public: bool,
+    pub writeup_required: bool,
     pub member_limit_min: i64,
     pub member_limit_max: i64,
     pub timeslots: Vec<Timeslot>,
@@ -50,7 +50,7 @@ pub struct GameMini {
 pub struct FindGameOptions {
     pub id: Option<i64>,
     pub title: Option<String>,
-    pub is_enabled: Option<bool>,
+    pub enabled: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -61,7 +61,7 @@ pub async fn find<T>(
     FindGameOptions {
         id,
         title,
-        is_enabled,
+        enabled,
         page,
         size,
         sorts,
@@ -79,8 +79,8 @@ where
         sql = sql.filter(Column::Title.contains(title));
     }
 
-    if let Some(is_enabled) = is_enabled {
-        sql = sql.filter(Column::IsEnabled.eq(is_enabled));
+    if let Some(enabled) = enabled {
+        sql = sql.filter(Column::Enabled.eq(enabled));
     }
 
     if let Some(sorts) = sorts {

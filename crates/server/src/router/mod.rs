@@ -17,7 +17,6 @@ use time::Duration;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::trace::TraceLayer;
 use tower_sessions::{Expiry, SessionManagerLayer, cookie::SameSite};
-use tower_sessions_redis_store::RedisStore;
 use tracing::{Span, debug, debug_span, info};
 
 use crate::{
@@ -27,7 +26,7 @@ use crate::{
 };
 
 pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
-    let session_store = RedisStore::new(state.cache.client.clone());
+    let session_store = cds_cache::session::RedisStore::new(state.cache.clone());
     let session_layer = SessionManagerLayer::new(session_store)
         .with_name("cds.id")
         .with_secure(false)

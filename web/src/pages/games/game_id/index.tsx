@@ -23,7 +23,7 @@ import { State } from "@/models/team";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { TeamGatheringDialog } from "./team-gathering-dialog";
+import { TeamGatheringDialog } from "./_blocks/team-gathering-dialog";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -65,7 +65,7 @@ export default function Index() {
             "lg:sticky",
             "lg:top-16",
             "lg:w-2/5",
-            "lg:h-[calc(100vh-64px)]",
+            "lg:h-(--app-content-height)",
             "flex",
             "flex-col",
             "lg:justify-between",
@@ -91,11 +91,7 @@ export default function Index() {
               ])}
               fallback={
                 <FlagIcon
-                  className={cn([
-                    "size-20",
-                    "rotate-15",
-                    "text-secondary-foreground",
-                  ])}
+                  className={cn(["size-20", "text-secondary-foreground"])}
                   strokeWidth={1}
                 />
               }
@@ -166,25 +162,25 @@ export default function Index() {
                   const s = remain % 60;
 
                   if (now < startTime) {
-                    return t("game.status.upcoming.remaining", {
+                    return t("game:status.upcoming.remaining", {
                       hours: h,
                       minutes: m,
                       seconds: s,
                     });
                   } else if (now < freezeTime) {
-                    return t("game.status.ongoing.remaining", {
+                    return t("game:status.ongoing.remaining", {
                       hours: h,
                       minutes: m,
                       seconds: s,
                     });
                   } else if (now < endTime) {
-                    return t("game.status.frozen.remaining", {
+                    return t("game:status.frozen.remaining", {
                       hours: h,
                       minutes: m,
                       seconds: s,
                     });
                   } else {
-                    return t("game.status.ended.remaining");
+                    return t("game:status.ended.remaining");
                   }
                 })()}
               </span>
@@ -199,7 +195,7 @@ export default function Index() {
         <Card
           className={cn([
             "lg:w-3/5",
-            "min-h-[calc(100vh-64px)]",
+            "min-h-full",
             "p-15",
             "rounded-none",
             "border-y-0",
@@ -226,7 +222,7 @@ export default function Index() {
                   ])}
                 >
                   <ThumbsDownIcon className={cn(["size-12"])} />
-                  {t("game.description.empty")}
+                  {t("game:description.empty")}
                 </div>
               ))}
           </Typography>
@@ -252,11 +248,11 @@ export function GameActionButton({ status }: GameActionProps) {
 
   const invalidMessage = useMemo(() => {
     if (selfTeam?.state === State.Banned) {
-      return t("team.state.banned");
+      return t("team:state.banned");
     } else if (selfTeam?.state === State.Preparing) {
-      return t("team.state.preparing");
+      return t("team:state.preparing");
     } else if (selfTeam?.state === State.Pending) {
-      return t("team.state.pending");
+      return t("team:state.pending");
     }
     return undefined;
   }, [selfTeam, t]);
@@ -272,7 +268,7 @@ export function GameActionButton({ status }: GameActionProps) {
         icon={<CalendarCheckIcon />}
         disabled
       >
-        {t("game.status.ended.remaining")}
+        {t("game:status.ended.remaining")}
       </Button>
     );
   }
@@ -288,7 +284,7 @@ export function GameActionButton({ status }: GameActionProps) {
         icon={<UserRoundIcon />}
         disabled
       >
-        {t("team.actions.participate_after_login")}
+        {t("team:actions.participate_after_login")}
       </Button>
     );
   }
@@ -305,7 +301,7 @@ export function GameActionButton({ status }: GameActionProps) {
           icon={<SwordsIcon />}
           onClick={() => setTeamGatheringDialogOpen(true)}
         >
-          {t("team.actions.gather._")}
+          {t("team:actions.gather._")}
         </Button>
 
         <Dialog
@@ -336,7 +332,7 @@ export function GameActionButton({ status }: GameActionProps) {
       disabled={!canParticipate}
       onClick={() => navigate(`/games/${game_id}/challenges`)}
     >
-      <span>{t("team.actions.participate", { name: selfTeam.name })}</span>
+      <span>{t("team:actions.participate", { name: selfTeam.name })}</span>
       {invalidMessage && <span>（{invalidMessage}）</span>}
     </Button>
   );

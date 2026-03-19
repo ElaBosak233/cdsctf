@@ -32,8 +32,8 @@ import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
 import { Context } from "../context";
-import { useColumns } from "./columns";
-import { CreateDialog } from "./create-dialog";
+import { useColumns } from "./_blocks/columns";
+import { CreateDialog } from "./_blocks/create-dialog";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -104,7 +104,16 @@ export default function Index() {
   }, [debouncedColumnFilters, sharedStore.refresh, game]);
 
   return (
-    <div className={cn(["container", "mx-auto", "flex-1", "flex", "flex-col"])}>
+    <div
+      className={cn([
+        "container",
+        "mx-auto",
+        "flex-1",
+        "min-h-0",
+        "flex",
+        "flex-col",
+      ])}
+    >
       <div
         className={cn([
           "flex",
@@ -124,7 +133,7 @@ export default function Index() {
           ])}
         >
           <LibraryIcon />
-          {t("challenge._")}
+          {t("challenge:_")}
         </h1>
         <div
           className={cn([
@@ -160,7 +169,7 @@ export default function Index() {
                   value: "all",
                   content: (
                     <div className={cn(["flex", "gap-2", "items-center"])}>
-                      {t("common.all")}
+                      {t("common:all")}
                     </div>
                   ),
                 },
@@ -194,7 +203,7 @@ export default function Index() {
             variant={"solid"}
             onClick={() => setCreateDialogOpen(true)}
           >
-            {t("common.actions.add")}
+            {t("common:actions.add")}
           </Button>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogContent>
@@ -204,72 +213,75 @@ export default function Index() {
         </div>
       </div>
 
-      <ScrollArea
-        className={cn([
-          "rounded-md",
-          "border",
-          "bg-card",
-          "min-h-100",
-          "h-[calc(100vh-13rem)]",
-        ])}
-      >
-        <LoadingOverlay loading={loading} />
-        <Table className={cn(["text-foreground"])}>
-          <TableHeader
-            className={cn([
-              "sticky",
-              "top-0",
-              "z-2",
-              "bg-muted/70",
-              "backdrop-blur-md",
-            ])}
-          >
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {!header.isPlaceholder &&
-                        flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length
-              ? table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.original.challenge_id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : !loading && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className={cn(["h-24", "text-center"])}
+      <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
+        <ScrollArea
+          className={cn([
+            "rounded-md",
+            "border",
+            "bg-card",
+            "h-full",
+            "min-h-0",
+            "overflow-hidden",
+          ])}
+        >
+          <LoadingOverlay loading={loading} />
+          <Table className={cn(["text-foreground"])}>
+            <TableHeader
+              className={cn([
+                "sticky",
+                "top-0",
+                "z-2",
+                "bg-muted/70",
+                "backdrop-blur-md",
+              ])}
+            >
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {!header.isPlaceholder &&
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length
+                ? table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.original.challenge_id}
+                      data-state={row.getIsSelected() && "selected"}
                     >
-                      {t("game.challenge.empty")}
-                    </TableCell>
-                  </TableRow>
-                )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : !loading && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className={cn(["h-24", "text-center"])}
+                      >
+                        {t("game:challenge.empty")}
+                      </TableCell>
+                    </TableRow>
+                  )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </div>
     </div>
   );
 }

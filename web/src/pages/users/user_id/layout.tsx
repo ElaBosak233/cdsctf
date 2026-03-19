@@ -27,11 +27,16 @@ export default function Layout() {
 
   return (
     <Context.Provider value={{ user }}>
-      <div className={cn(["flex", "flex-1"])}>
+      <div className={cn(["flex", "flex-1", "min-h-0"])}>
         <div
           className={cn([
             "hidden",
+            "lg:sticky",
+            "lg:top-16",
+            "lg:h-(--app-content-height)",
             "lg:w-1/5",
+            "lg:shrink-0",
+            "lg:self-start",
             "bg-card/30",
             "backdrop-blur-sm",
             "lg:flex",
@@ -39,9 +44,6 @@ export default function Layout() {
             "gap-5",
             "p-10",
             "border-r",
-            "lg:sticky",
-            "top-16",
-            "h-[calc(100vh-64px)]",
           ])}
         >
           <div className={cn(["flex", "flex-row", "items-center", "gap-5"])}>
@@ -85,10 +87,10 @@ export default function Layout() {
               "select-none",
             ])}
           >
-            {`${t("user.created_at")} ${new Date(Number(user?.created_at) * 1000).toLocaleDateString()}`}
+            {`${t("user:created_at")} ${new Date(Number(user?.created_at) * 1000).toLocaleDateString()}`}
           </span>
         </div>
-        <div className={cn(["flex-1", "flex", "flex-col"])}>
+        <div className={cn(["flex-1", "min-w-0", "flex", "flex-col"])}>
           <Outlet />
         </div>
       </div>

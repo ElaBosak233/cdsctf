@@ -1,17 +1,28 @@
-FROM rust:1.93 AS backend
+FROM rust:1.94 AS backend
+
+ARG TARGETARCH
 
 WORKDIR /app
 
-RUN rustup target add x86_64-unknown-linux-musl
-
 RUN apt update && \
-    apt install -y musl-tools musl-dev clang pkg-config lld
+    apt install -y musl-tools musl-dev clang pkg-config lld && \
+    case "$TARGETARCH" in \
+        arm64) MUSL_TARGET=aarch64-unknown-linux-musl ;; \
+        *) MUSL_TARGET=x86_64-unknown-linux-musl ;; \
+    esac && \
+    rustup target add $MUSL_TARGET && \
+    echo $MUSL_TARGET > /musl_target
+
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+
+RUN cargo fetch
 
 COPY . .
 
-RUN cargo fetch && \
-    cargo build --release --bin cds-server --target x86_64-unknown-linux-musl && \
-    cp /app/target/x86_64-unknown-linux-musl/release/cds-server /usr/local/bin/cds-server
+RUN MUSL_TARGET=$(cat /musl_target) && \
+    cargo build --release --bin cds-server --target $MUSL_TARGET && \
+    cp /app/target/$MUSL_TARGET/release/cds-server /usr/local/bin/cds-server
 
 FROM node:25 AS frontend
 
@@ -33,6 +44,8 @@ RUN pnpm build && \
     cp -r /app/dist/. /var/www/html
 
 FROM alpine:3
+
+RUN apk add --no-cache curl
 
 WORKDIR /app
 

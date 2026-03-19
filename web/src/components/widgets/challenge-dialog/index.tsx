@@ -1,12 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { DownloadIcon } from "lucide-react";
 import type React from "react";
 import { useMemo } from "react";
 import { getChallenge as getChallengeDebug } from "@/api/admin/challenges/challenge_id";
-import { getChallengeAttachments as getChallengeAttachmentsDebug } from "@/api/admin/challenges/challenge_id/attachments";
 import { getChallenge } from "@/api/challenges/challenge_id";
-import { getChallengeAttachments } from "@/api/challenges/challenge_id/attachments";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { MarkdownRender } from "@/components/ui/markdown-render";
@@ -17,9 +13,10 @@ import type { ChallengeMini } from "@/models/challenge";
 import type { Team } from "@/models/team";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { AttachmentSection } from "./attachment-section";
 import { Context } from "./context";
-import { EnvSection } from "./env-section";
 import { FrozenBadge } from "./frozen-badge";
+import { InstanceSection } from "./instance-section";
 import { SubmitSection } from "./submit-section";
 
 type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
@@ -41,31 +38,10 @@ function useChallengeQuery(challengeId?: number, debug: boolean = false) {
   });
 }
 
-function useChallengeAttachmentsQuery(
-  challengeId?: number,
-  hasAttachment?: boolean,
-  debug: boolean = false
-) {
-  return useQuery({
-    queryKey: ["challenge_attachments", challengeId],
-    queryFn: () =>
-      debug
-        ? getChallengeAttachmentsDebug(challengeId!)
-        : getChallengeAttachments(challengeId!),
-    select: (response) => response.data,
-    enabled: !!challengeId && hasAttachment,
-  });
-}
-
 function ChallengeDialog(props: ChallengeDialogProps) {
   const { digest, gameTeam, frozenAt, debug = false, ...rest } = props;
 
   const { data: challenge, isLoading } = useChallengeQuery(digest?.id, debug);
-  const { data: metadata } = useChallengeAttachmentsQuery(
-    digest?.id,
-    challenge?.has_attachment,
-    debug
-  );
 
   const category = useMemo(
     () => getCategory(digest?.category || 1),
@@ -106,30 +82,8 @@ function ChallengeDialog(props: ChallengeDialogProps) {
             <MarkdownRender src={challenge?.description} />
           </Typography>
         </ScrollArea>
-        {challenge?.has_attachment && (
-          <div className={cn(["flex", "gap-3", "flex-wrap"])}>
-            {metadata?.map((m) => (
-              <Button
-                asChild
-                icon={<DownloadIcon />}
-                size={"sm"}
-                key={m.filename}
-              >
-                <a
-                  target={"_blank"}
-                  href={
-                    debug
-                      ? `/api/admin/challenges/${digest?.id}/attachments/${m.filename}`
-                      : `/api/challenges/${digest?.id}/attachments/${m.filename}`
-                  }
-                >
-                  {m.filename}
-                </a>
-              </Button>
-            ))}
-          </div>
-        )}
-        {challenge?.is_dynamic && <EnvSection />}
+        {challenge?.has_attachment && <AttachmentSection />}
+        {challenge?.has_instance && <InstanceSection />}
         {!debug && (
           <div className={cn("flex", "flex-col", "gap-3")}>
             <Separator />

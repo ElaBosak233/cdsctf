@@ -5,7 +5,7 @@ import { api } from "@/utils/query";
 export interface UpdateGameChallengeRequest {
   game_id?: number;
   challenge_id?: number;
-  is_enabled?: boolean;
+  enabled?: boolean;
   max_pts?: number;
   min_pts?: number;
   difficulty?: number;

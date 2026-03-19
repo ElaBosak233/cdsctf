@@ -1,18 +1,14 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State, response::IntoResponse};
+use axum::{Router, body::Body, extract::State, http::Response, response::IntoResponse};
 
 use crate::{
     extract::Path,
-    model::Metadata,
-    traits::{AppState, WebError, WebResponse},
-    util,
+    traits::{AppState, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_team_avatar))
-        .route("/metadata", axum::routing::get(get_team_avatar_metadata))
+    Router::new().route("/", axum::routing::get(get_team_avatar))
 }
 
 pub async fn get_team_avatar(
@@ -20,17 +16,9 @@ pub async fn get_team_avatar(
 
     Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, WebError> {
-    let path = format!("games/{game_id}/teams/{team_id}/avatar");
+    let path = format!("games/{game_id}/teams/{team_id}");
 
-    util::media::get_first_file(s.media.clone(), path).await
-}
+    let buffer = s.media.get(path, "avatar".to_owned()).await?;
 
-pub async fn get_team_avatar_metadata(
-    State(s): State<Arc<AppState>>,
-
-    Path((game_id, team_id)): Path<(i64, i64)>,
-) -> Result<WebResponse<Metadata>, WebError> {
-    let path = format!("games/{game_id}/teams/{team_id}/avatar");
-
-    util::media::get_first_file_metadata(s.media.clone(), path).await
+    Ok(Response::builder().body(Body::from(buffer))?)
 }

@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getEmails } from "@/api/users/profile/emails";
+import { getEmails } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
@@ -23,9 +23,10 @@ import { useRefresh } from "@/hooks/use-refresh";
 import type { Email } from "@/models/email";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { CreateDialog } from "./create-dialog";
-import { DeleteDialog } from "./delete-dialog";
-import { VerifyDialog } from "./verify-dialog";
+
+import { CreateDialog } from "./_blocks/create-dialog";
+import { DeleteDialog } from "./_blocks/delete-dialog";
+import { VerifyDialog } from "./_blocks/verify-dialog";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -53,7 +54,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("user.settings.email")} - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("user:settings.email")} - ${configStore?.config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -72,7 +73,7 @@ export default function Index() {
             icon={<MailPlusIcon />}
             onClick={() => setCreateDialogOpen(true)}
           >
-            {t("common.actions.add")}
+            {t("common:actions.add")}
           </Button>
         </div>
         <Separator />
@@ -83,13 +84,13 @@ export default function Index() {
                 <ItemContent className="gap-1">
                   <ItemTitle>{email.email}</ItemTitle>
                   <ItemDescription>
-                    {email.is_verified ? (
+                    {email.verified ? (
                       <div className={cn(["flex", "gap-1", "items-center"])}>
-                        <span>{t("user.emails.is_verified.true._")}</span>
+                        <span>{t("user:emails.verified.true._")}</span>
                         <CheckIcon className={cn(["size-4", "text-success"])} />
                       </div>
                     ) : (
-                      t("user.emails.is_verified.false._")
+                      t("user:emails.verified.false._")
                     )}
                   </ItemDescription>
                 </ItemContent>
@@ -98,7 +99,7 @@ export default function Index() {
                     variant="ghost"
                     size={"sm"}
                     square
-                    disabled={email.is_verified}
+                    disabled={email.verified}
                     onClick={() => {
                       setVerifyEmail(email.email);
                       setVerifyDialogOpen(true);

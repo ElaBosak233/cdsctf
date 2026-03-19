@@ -19,7 +19,7 @@ pub struct User {
     pub id: i64,
     pub name: String,
     pub username: String,
-    pub is_verified: Option<bool>,
+    pub verified: Option<bool>,
     pub group: Group,
     pub description: Option<String>,
     #[serde(skip_serializing)]
@@ -155,7 +155,7 @@ where
                         .and_where(
                             Expr::col((
                                 crate::entity::email::Entity.table_name(),
-                                crate::entity::email::Column::IsVerified,
+                                crate::entity::email::Column::Verified,
                             ))
                             .eq(true),
                         )

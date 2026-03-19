@@ -79,14 +79,14 @@ export default function Index() {
       captcha: { ...values },
     }).then((res) => {
       if (res.code === StatusCodes.OK) {
-        toast.success(t("admin.captcha.actions.update.success"));
+        toast.success(t("admin:captcha.actions.update.success"));
       }
     });
   }
 
   return (
     <>
-      <title>{`${t("admin.captcha._")} - ${globalConfig?.meta?.title}`}</title>
+      <title>{`${t("admin:captcha._")} - ${globalConfig?.meta?.title}`}</title>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -98,7 +98,7 @@ export default function Index() {
             "p-10",
             "xl:mx-60",
             "lg:mx-30",
-            "min-h-[calc(100vh-64px)]",
+            "min-h-(--app-content-height)",
             "relative",
           ])}
         >
@@ -107,7 +107,7 @@ export default function Index() {
             className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
           >
             <BotIcon />
-            {t("admin.captcha._")}
+            {t("admin:captcha._")}
           </h2>
           <Separator />
           <div className={cn(["flex", "gap-3"])}>
@@ -116,9 +116,9 @@ export default function Index() {
               name={"provider"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>{t("admin.captcha.form.provider._")}</FormLabel>
+                  <FormLabel>{t("admin:captcha.form.provider._")}</FormLabel>
                   <FormDescription>
-                    {t("admin.captcha.form.provider.description")}
+                    {t("admin:captcha.form.provider.description")}
                   </FormDescription>
                   <FormControl>
                     <Field>
@@ -130,23 +130,23 @@ export default function Index() {
                         options={[
                           {
                             value: "none",
-                            content: t("admin.captcha.provider.none"),
+                            content: t("admin:captcha.provider.none"),
                           },
                           {
                             value: "pow",
-                            content: t("admin.captcha.provider.pow"),
+                            content: t("admin:captcha.provider.pow"),
                           },
                           {
                             value: "image",
-                            content: t("admin.captcha.provider.image"),
+                            content: t("admin:captcha.provider.image"),
                           },
                           {
                             value: "turnstile",
-                            content: t("admin.captcha.provider.turnstile"),
+                            content: t("admin:captcha.provider.turnstile"),
                           },
                           {
                             value: "hcaptcha",
-                            content: t("admin.captcha.provider.hcaptcha"),
+                            content: t("admin:captcha.provider.hcaptcha"),
                           },
                         ]}
                         onValueChange={(value) => field.onChange(value)}
@@ -165,10 +165,10 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>
-                      {t("admin.captcha.form.difficulty._")}
+                      {t("admin:captcha.form.difficulty._")}
                     </FormLabel>
                     <FormDescription>
-                      {t("admin.captcha.form.difficulty.description")}
+                      {t("admin:captcha.form.difficulty.description")}
                     </FormDescription>
                     <FormControl>
                       <Field>
@@ -366,7 +366,7 @@ export default function Index() {
             icon={<SaveIcon />}
             className={cn(["mt-2"])}
           >
-            {t("common.actions.save")}
+            {t("common:actions.save")}
           </Button>
         </form>
       </Form>

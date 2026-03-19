@@ -72,7 +72,7 @@ pub async fn send_forget_email(
 
     Json(body): Json<UserSendForgetEmailRequest>,
 ) -> Result<WebResponse<()>, WebError> {
-    if !cds_db::get_config(&s.db.conn).await.email.is_enabled {
+    if !cds_db::get_config(&s.db.conn).await.email.enabled {
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 

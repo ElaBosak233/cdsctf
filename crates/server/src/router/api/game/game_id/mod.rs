@@ -46,7 +46,7 @@ pub async fn get_game(
 ) -> Result<WebResponse<Game>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    if !game.is_enabled {
+    if !game.enabled {
         return Err(WebError::NotFound(json!("")));
     }
 

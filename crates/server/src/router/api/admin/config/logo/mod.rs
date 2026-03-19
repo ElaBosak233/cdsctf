@@ -7,7 +7,7 @@ use axum::{
 
 use crate::{
     traits::{AppState, WebError, WebResponse},
-    util,
+    util::media::handle_multipart,
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -21,9 +21,19 @@ pub async fn save_logo(
 
     multipart: Multipart,
 ) -> Result<WebResponse<()>, WebError> {
-    util::media::save_img(s.media.clone(), "configs/logo".to_owned(), multipart).await
+    let data = handle_multipart(multipart, mime::IMAGE).await?;
+
+    s.media
+        .save("configs".to_owned(), "logo".to_owned(), data)
+        .await?;
+
+    Ok(WebResponse::default())
 }
 
 pub async fn delete_logo(State(s): State<Arc<AppState>>) -> Result<WebResponse<()>, WebError> {
-    util::media::delete_img(s.media.clone(), "configs/logo".to_owned()).await
+    s.media
+        .delete("configs".to_owned(), "logo".to_owned())
+        .await?;
+
+    Ok(WebResponse::default())
 }

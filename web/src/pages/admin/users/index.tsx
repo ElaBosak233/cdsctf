@@ -1,3 +1,4 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   type ColumnFiltersState,
   flexRender,
@@ -10,17 +11,16 @@ import {
 import {
   HashIcon,
   ListOrderedIcon,
-  PlusCircle,
   ShieldIcon,
   TypeIcon,
   UserRoundCheckIcon,
   UserRoundIcon,
   UserRoundXIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { parseAsInteger, useQueryState } from "nuqs";
+import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getUsers } from "@/api/admin/users";
-import { Button } from "@/components/ui/button";
+import { type GetUsersRequest, getUsers } from "@/api/admin/users";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -41,327 +41,304 @@ import { Group, type User } from "@/models/user";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { useColumns } from "./columns";
-import { CreateUserDialog } from "./create-dialog";
+import { AdminListContext, AdminListPageView } from "../_list";
+import { useColumns } from "./_blocks/columns";
+import { CreateUserDialog } from "./_blocks/create-dialog";
+
+function useUserQuery(params: GetUsersRequest) {
+  const { refresh } = useSharedStore();
+
+  return useQuery({
+    queryKey: [
+      "users",
+      params.id,
+      params.name,
+      params.size,
+      params.page,
+      params.group,
+      params.sorts,
+      refresh,
+    ],
+    queryFn: () => getUsers(params),
+    select: (response) => ({
+      users: response.data || [],
+      total: response.total || 0,
+    }),
+    enabled: !!params,
+    placeholderData: keepPreviousData,
+  });
+}
 
 export default function Index() {
   const { t } = useTranslation();
 
   const configStore = useConfigStore();
-  const sharedStore = useSharedStore();
+  const listContext = useContext(AdminListContext);
+  const hasSidebar = listContext != null;
 
-  const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
+  const [localPage, setLocalPage] = useQueryState(
+    "page",
+    parseAsInteger.withDefault(1)
+  );
+  const [localSize, setLocalSize] = useQueryState(
+    "size",
+    parseAsInteger.withDefault(10)
+  );
+  const page = listContext?.page ?? localPage;
+  const setPage = listContext?.setPage ?? setLocalPage;
+  const size = listContext?.size ?? localSize;
+  const setSize = listContext?.setSize ?? setLocalSize;
 
-  const [total, setTotal] = useState<number>(0);
-  const [users, setUsers] = useState<Array<User>>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [localColumnFilters, setLocalColumnFilters] =
+    useState<ColumnFiltersState>([{ id: "group", value: "all" }]);
+  const columnFilters = listContext?.columnFilters ?? localColumnFilters;
+  const setColumnFilters =
+    listContext?.setColumnFilters ?? setLocalColumnFilters;
 
-  const [page, setPage] = useState<number>(1);
-  const [size, setSize] = useState<number>(10);
+  const [localCreateDialogOpen, setLocalCreateDialogOpen] = useState(false);
+  const createDialogOpen =
+    listContext?.createDialogOpen ?? localCreateDialogOpen;
+  const setCreateDialogOpen =
+    listContext?.setCreateDialogOpen ?? setLocalCreateDialogOpen;
 
   const [sorting, setSorting] = useState<SortingState>([
-    {
-      id: "created_at",
-      desc: false,
-    },
+    { id: "created_at", desc: false },
   ]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
-    {
-      id: "group",
-      value: "all",
-    },
-  ]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
+  const groupFilter =
+    (debouncedColumnFilters.find((c) => c.id === "group")?.value as string) !==
+    "all"
+      ? (Number(
+          debouncedColumnFilters.find((c) => c.id === "group")?.value
+        ) as Group)
+      : undefined;
+
+  const { data: usersData, isLoading: loading } = useUserQuery({
+    id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
+    name: debouncedColumnFilters.find((c) => c.id === "username")
+      ?.value as string,
+    group: groupFilter,
+    sorts: sorting
+      .map((value) => (value.desc ? `-${value.id}` : `${value.id}`))
+      .join(","),
+    page,
+    size,
+  });
+
+  useEffect(() => {
+    if (listContext) listContext.setTotal(usersData?.total ?? 0);
+  }, [listContext, usersData?.total]);
+
   const groupOptions = [
-    { id: "all", name: t("common.all"), icon: UserRoundIcon },
+    { id: "all", name: t("common:all"), icon: UserRoundIcon },
     {
       id: Group.Banned.toString(),
-      name: t("user.group.banned"),
+      name: t("user:group.banned"),
       icon: UserRoundXIcon,
     },
     {
       id: Group.User.toString(),
-      name: t("user.group.user"),
+      name: t("user:group.user"),
       icon: UserRoundCheckIcon,
     },
     {
       id: Group.Admin.toString(),
-      name: t("user.group.admin"),
+      name: t("user:group.admin"),
       icon: ShieldIcon,
     },
   ];
 
   const columns = useColumns();
   const table = useReactTable<User>({
-    data: users,
+    data: usersData?.users || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    rowCount: total,
+    rowCount: usersData?.total,
     manualFiltering: true,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,
     onSortingChange: setSorting,
-    state: {
-      sorting,
-      columnVisibility,
-      columnFilters,
-    },
+    state: { sorting, columnVisibility, columnFilters },
   });
 
-  useEffect(() => {
-    void sharedStore.refresh;
+  const filterContent = (
+    <div
+      className={cn(
+        "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end"
+      )}
+    >
+      <Field size="sm" className={cn("lg:col-span-2")}>
+        <FieldIcon>
+          <HashIcon className="size-4" />
+        </FieldIcon>
+        <TextField
+          placeholder="ID"
+          value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
+          onChange={(e) =>
+            table.getColumn("id")?.setFilterValue(e.target.value)
+          }
+        />
+      </Field>
+      <Field size="sm" className={cn("lg:col-span-4")}>
+        <FieldIcon>
+          <TypeIcon className="size-4" />
+        </FieldIcon>
+        <TextField
+          placeholder={t("user:search.username")}
+          value={
+            (table.getColumn("username")?.getFilterValue() as string) ?? ""
+          }
+          onChange={(e) =>
+            table.getColumn("username")?.setFilterValue(e.target.value)
+          }
+        />
+      </Field>
+      <Field size="sm" className={cn("lg:col-span-2")}>
+        <FieldIcon>
+          <UserRoundIcon className="size-4" />
+        </FieldIcon>
+        <Select
+          options={groupOptions.map((opt) => ({
+            value: opt.id,
+            content: (
+              <div className={cn("flex gap-2 items-center")}>
+                <opt.icon className="size-4" />
+                {opt.name}
+              </div>
+            ),
+          }))}
+          onValueChange={(value) =>
+            table.getColumn("group")?.setFilterValue(value)
+          }
+          value={
+            (table.getColumn("group")?.getFilterValue() as string) ?? "all"
+          }
+        />
+      </Field>
+    </div>
+  );
 
-    setLoading(true);
-    getUsers({
-      id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
-      name: debouncedColumnFilters.find((c) => c.id === "username")
-        ?.value as string,
-      group:
-        debouncedColumnFilters.find((c) => c.id === "group")?.value !== "all"
-          ? Number(debouncedColumnFilters.find((c) => c.id === "group")?.value)
-          : undefined,
-      sorts: sorting
-        .map((value) => (value.desc ? `-${value.id}` : `${value.id}`))
-        .join(","),
-      page,
-      size,
-    })
-      .then((res) => {
-        setTotal(res?.total || 0);
-        setUsers(res?.data || []);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh]);
+  const tableContent = (
+    <ScrollArea className={cn("h-full w-full")}>
+      <LoadingOverlay loading={loading} />
+      <Table className={cn("text-foreground w-full min-w-160")}>
+        <TableHeader
+          className={cn(
+            "sticky top-0 z-2 bg-muted/80 backdrop-blur-sm border-b"
+          )}
+        >
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {!header.isPlaceholder &&
+                    flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.getValue("id")}
+                data-state={row.getIsSelected() ? "selected" : undefined}
+                className={cn("transition-colors")}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : !loading ? (
+            <TableRow>
+              <TableCell
+                colSpan={columns.length}
+                className={cn("h-40 text-center text-muted-foreground")}
+              >
+                <div
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-2"
+                  )}
+                >
+                  <UserRoundIcon
+                    className={cn("size-10 opacity-30")}
+                    aria-hidden
+                  />
+                  <span>{t("user:empty")}</span>
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : null}
+        </TableBody>
+      </Table>
+    </ScrollArea>
+  );
+
+  const footerContent = !hasSidebar ? (
+    <>
+      <p className={cn("text-sm text-muted-foreground order-2 sm:order-1")}>
+        {table.getFilteredRowModel().rows.length} / {usersData?.total ?? 0}
+      </p>
+      <div
+        className={cn(
+          "flex flex-wrap items-center gap-3 order-1 sm:order-2 min-h-10"
+        )}
+      >
+        <Field size="sm" className={cn("w-32 sm:w-36")}>
+          <FieldIcon>
+            <ListOrderedIcon className="size-4" />
+          </FieldIcon>
+          <Select
+            options={[
+              { value: "10" },
+              { value: "20" },
+              { value: "40" },
+              { value: "60" },
+            ]}
+            value={String(size)}
+            onValueChange={(value) => setSize(Number(value))}
+          />
+        </Field>
+        <Pagination
+          size="sm"
+          value={page}
+          total={Math.ceil((usersData?.total || 0) / size)}
+          onChange={setPage}
+        />
+      </div>
+    </>
+  ) : null;
 
   return (
     <>
-      <title>{`${t("user._")} - ${configStore?.config?.meta?.title}`}</title>
-      <div
-        className={cn([
-          "container",
-          "mx-auto",
-          "p-10",
-          "flex",
-          "flex-col",
-          "flex-1",
-        ])}
-      >
-        <div
-          className={cn([
-            "flex",
-            "flex-col",
-            "lg:flex-row",
-            "justify-between",
-            "items-center",
-            "mb-6",
-            "gap-10",
-          ])}
-        >
-          <h1
-            className={cn([
-              "text-2xl",
-              "font-bold",
-              "flex",
-              "gap-2",
-              "items-center",
-            ])}
-          >
-            <UserRoundIcon />
-            {t("user._")}
-          </h1>
-          <div
-            className={cn([
-              "flex",
-              "flex-1",
-              "flex-col",
-              "lg:flex-row",
-              "justify-center",
-              "items-center",
-              "gap-3",
-              "w-full",
-            ])}
-          >
-            <Field size={"sm"} className={cn(["w-full", "lg:w-1/6"])}>
-              <FieldIcon>
-                <HashIcon />
-              </FieldIcon>
-              <TextField
-                placeholder="ID"
-                value={
-                  (table.getColumn("id")?.getFilterValue() as string) ?? ""
-                }
-                onChange={(e) =>
-                  table.getColumn("id")?.setFilterValue(e.target.value)
-                }
-              />
-            </Field>
-            <Field size={"sm"} className={cn(["w-full", "lg:w-3/6"])}>
-              <FieldIcon>
-                <TypeIcon />
-              </FieldIcon>
-              <TextField
-                placeholder={t("user.search.username")}
-                value={
-                  (table.getColumn("username")?.getFilterValue() as string) ??
-                  ""
-                }
-                onChange={(e) =>
-                  table.getColumn("username")?.setFilterValue(e.target.value)
-                }
-              />
-            </Field>
-            <Field size={"sm"} className={cn(["w-full", "lg:w-1/6"])}>
-              <FieldIcon>
-                <UserRoundIcon />
-              </FieldIcon>
-              <Select
-                options={groupOptions.map((group) => ({
-                  value: group.id,
-                  content: (
-                    <div className={cn(["flex", "gap-2", "items-center"])}>
-                      <group.icon className="size-4" />
-                      {group.name}
-                    </div>
-                  ),
-                }))}
-                onValueChange={(value) =>
-                  table.getColumn("group")?.setFilterValue(value)
-                }
-                value={
-                  (table.getColumn("group")?.getFilterValue() as string) ??
-                  "all"
-                }
-              />
-            </Field>
-
-            <Button
-              icon={<PlusCircle />}
-              variant={"solid"}
-              onClick={() => setCreateDialogOpen(true)}
-              className={cn(["w-full", "lg:w-1/6"])}
-            >
-              {t("common.actions.add")}
-            </Button>
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogContent>
-                <CreateUserDialog onClose={() => setCreateDialogOpen(false)} />
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        <ScrollArea
-          className={cn([
-            "rounded-md",
-            "border",
-            "bg-card",
-            "min-h-100",
-            "h-[calc(100vh-18rem)]",
-          ])}
-        >
-          <LoadingOverlay loading={loading} />
-          <Table className={cn(["text-foreground"])}>
-            <TableHeader
-              className={cn([
-                "sticky",
-                "top-0",
-                "z-2",
-                "bg-muted/70",
-                "backdrop-blur-md",
-              ])}
-            >
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {!header.isPlaceholder &&
-                          flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length
-                ? table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.original.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                : !loading && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        {t("user.empty")}
-                      </TableCell>
-                    </TableRow>
-                  )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-        <div
-          className={cn([
-            "flex",
-            "items-center",
-            "justify-between",
-            "space-x-2",
-            "py-4",
-            "px-4",
-          ])}
-        >
-          <div className={cn(["flex-1", "text-sm", "text-muted-foreground"])}>
-            {table.getFilteredRowModel().rows.length} / {total}
-          </div>
-          <div className={cn(["flex", "items-center", "gap-5"])}>
-            <Field size={"sm"} className={cn(["w-48"])}>
-              <FieldIcon>
-                <ListOrderedIcon />
-              </FieldIcon>
-              <Select
-                options={[
-                  { value: "10" },
-                  { value: "20" },
-                  { value: "40" },
-                  { value: "60" },
-                ]}
-                value={String(size)}
-                onValueChange={(value) => setSize(Number(value))}
-              />
-            </Field>
-
-            <Pagination
-              size={"sm"}
-              value={page}
-              total={Math.ceil(total / size)}
-              onChange={setPage}
-            />
-          </div>
-        </div>
-      </div>
+      <title>{`${t("user:_")} - ${configStore?.config?.meta?.title}`}</title>
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent>
+          <CreateUserDialog onClose={() => setCreateDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
+      <AdminListPageView
+        hasSidebar={hasSidebar}
+        title={t("user:_")}
+        icon={<UserRoundIcon className="size-5" />}
+        addButtonLabel={t("common:actions.add")}
+        onAddClick={() => setCreateDialogOpen(true)}
+        filterContent={filterContent}
+        tableContent={tableContent}
+        footerContent={footerContent}
+      />
     </>
   );
 }

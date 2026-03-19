@@ -6,7 +6,7 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 
-pub use crate::entity::challenge::{ActiveModel, Container, Env, EnvVar, Model, Port};
+pub use crate::entity::challenge::{ActiveModel, Container, EnvVar, Instance, Model, Port};
 pub(crate) use crate::entity::challenge::{Column, Entity};
 use crate::traits::DbError;
 
@@ -18,11 +18,13 @@ pub struct Challenge {
     pub description: String,
     pub category: i32,
     pub tags: Vec<String>,
-    pub is_dynamic: bool,
+    pub has_instance: bool,
     pub has_attachment: bool,
-    pub is_public: bool,
-    pub env: Option<Env>,
+    pub public: bool,
+    pub has_writeup: bool,
+    pub instance: Option<Instance>,
     pub checker: Option<String>,
+    pub writeup: Option<String>,
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
@@ -31,8 +33,13 @@ pub struct Challenge {
 impl Challenge {
     pub fn desensitize(&self) -> Self {
         Self {
-            env: None,
+            instance: None,
             checker: None,
+            writeup: if self.has_writeup && self.public {
+                self.writeup.clone()
+            } else {
+                None
+            },
             ..self.to_owned()
         }
     }
@@ -53,8 +60,8 @@ pub struct FindChallengeOptions {
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tag: Option<String>,
-    pub is_public: Option<bool>,
-    pub is_dynamic: Option<bool>,
+    pub public: Option<bool>,
+    pub has_instance: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -67,8 +74,8 @@ pub async fn find<T>(
         title,
         category,
         tag,
-        is_public,
-        is_dynamic,
+        public,
+        has_instance,
         page,
         size,
         sorts,
@@ -102,12 +109,12 @@ where
         ))
     }
 
-    if let Some(is_public) = is_public {
-        sql = sql.filter(Column::IsPublic.eq(is_public));
+    if let Some(public) = public {
+        sql = sql.filter(Column::Public.eq(public));
     }
 
-    if let Some(is_dynamic) = is_dynamic {
-        sql = sql.filter(Column::IsDynamic.eq(is_dynamic));
+    if let Some(has_instance) = has_instance {
+        sql = sql.filter(Column::HasInstance.eq(has_instance));
     }
 
     sql = sql.filter(Column::DeletedAt.is_null());

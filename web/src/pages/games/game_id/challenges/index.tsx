@@ -19,8 +19,8 @@ import { useTickerTime } from "@/hooks/use-ticker-time";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import { NoticeCard } from "./notice-card";
-import { TeamCard } from "./team-card";
+import { NoticeCard } from "./_blocks/notice-card";
+import { TeamCard } from "./_blocks/team-card";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -78,9 +78,9 @@ export default function Index() {
 
     if (error.response.status === StatusCodes.FORBIDDEN) {
       navigate(`/games/${currentGame?.id}`);
-      toast.error("你没有权限查看本场比赛的题目");
+      toast.error(t("game:challenges.no_permission"));
     }
-  }, [error, navigate, currentGame?.id]);
+  }, [error, navigate, currentGame?.id, t]);
 
   const { data: challengeStatus, isLoading: statusLoading } = useQuery({
     queryKey: [
@@ -108,7 +108,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("challenge._")} - ${currentGame?.title}`}</title>
+      <title>{`${t("challenge:_")} - ${currentGame?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -259,25 +259,25 @@ export default function Index() {
                   const s = remain % 60;
 
                   if (now < startTime) {
-                    return t("game.status.upcoming.remaining", {
+                    return t("game:status.upcoming.remaining", {
                       hours: h,
                       minutes: m,
                       seconds: s,
                     });
                   } else if (now < freezeTime) {
-                    return t("game.status.ongoing.remaining", {
+                    return t("game:status.ongoing.remaining", {
                       hours: h,
                       minutes: m,
                       seconds: s,
                     });
                   } else if (now < endTime) {
-                    return t("game.status.frozen.remaining", {
+                    return t("game:status.frozen.remaining", {
                       hours: h,
                       minutes: m,
                       seconds: s,
                     });
                   } else {
-                    return t("game.status.ended.remaining");
+                    return t("game:status.ended.remaining");
                   }
                 })()}
               </span>

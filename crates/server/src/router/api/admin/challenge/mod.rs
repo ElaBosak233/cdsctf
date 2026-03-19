@@ -24,8 +24,8 @@ pub struct GetChallengeRequest {
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tag: Option<String>,
-    pub is_public: Option<bool>,
-    pub is_dynamic: Option<bool>,
+    pub public: Option<bool>,
+    pub has_instance: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -46,8 +46,8 @@ pub async fn get_challenges(
             title: params.title,
             category: params.category,
             tag: params.tag,
-            is_public: params.is_public,
-            is_dynamic: params.is_dynamic,
+            public: params.public,
+            has_instance: params.has_instance,
             sorts: params.sorts,
             page: Some(page),
             size: Some(size),
@@ -69,11 +69,10 @@ pub struct CreateChallengeRequest {
     pub description: String,
     pub category: i32,
     pub tags: Option<Vec<String>>,
-    pub is_public: Option<bool>,
-    pub is_dynamic: Option<bool>,
+    pub public: Option<bool>,
+    pub has_instance: Option<bool>,
     pub has_attachment: Option<bool>,
-    pub image_name: Option<String>,
-    pub env: Option<cds_db::challenge::Env>,
+    pub instance: Option<cds_db::challenge::Instance>,
     pub checker: Option<String>,
 }
 
@@ -89,10 +88,11 @@ pub async fn create_challenge(
             description: Set(body.description),
             category: Set(body.category),
             tags: Set(body.tags.unwrap_or(vec![])),
-            is_public: Set(body.is_public.unwrap_or(false)),
-            is_dynamic: Set(body.is_dynamic.unwrap_or(false)),
+            public: Set(body.public.unwrap_or(false)),
+            has_instance: Set(body.has_instance.unwrap_or(false)),
             has_attachment: Set(body.has_attachment.unwrap_or(false)),
-            env: Set(body.env),
+            has_writeup: Set(false),
+            instance: Set(body.instance),
             checker: Set(body.checker),
             ..Default::default()
         },
@@ -100,7 +100,6 @@ pub async fn create_challenge(
     .await?;
 
     Ok(WebResponse {
-        code: StatusCode::OK,
         data: Some(challenge),
         ..Default::default()
     })

@@ -1,4 +1,5 @@
-import { FlagIcon, InfoIcon } from "lucide-react";
+import { easeInOut, motion, useReducedMotion } from "framer-motion";
+import { InfoIcon } from "lucide-react";
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -6,20 +7,30 @@ import { Image } from "@/components/ui/image";
 import { MarkdownRender } from "@/components/ui/markdown-render";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
-import { useDecryptedText } from "@/hooks/use-decrypted-text";
+import { DefaultLogo } from "@/components/widgets/default-logo";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
 export default function Index() {
   const { config } = useConfigStore();
-  const title = useDecryptedText({
-    text: config?.meta?.title || "",
-    speed: 100,
-  });
-  const description = useDecryptedText({
-    text: config?.meta?.description || "",
-    speed: 25,
-  });
+
+  const shouldReduceMotion = useReducedMotion();
+  const floatAnimate = shouldReduceMotion ? { y: 0 } : { y: [0, -8, 0] };
+  const floatTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : { duration: 6, repeat: Infinity, ease: easeInOut };
+  const containerVariants = {
+    hidden: { opacity: 0, y: 18 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { staggerChildren: 0.08 },
+    },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 18 },
+    show: { opacity: 1, y: 0 },
+  };
 
   return (
     <>
@@ -36,7 +47,7 @@ export default function Index() {
         ])}
       >
         <div />
-        <div
+        <motion.div
           className={cn([
             "flex",
             "flex-col",
@@ -44,27 +55,52 @@ export default function Index() {
             "flex-1",
             "justify-center",
           ])}
+          animate={floatAnimate}
+          transition={floatTransition}
         >
-          <Image
-            src={"/api/configs/logo"}
-            fallback={<FlagIcon className={cn("size-16", "rotate-15")} />}
-            className={cn(["aspect-square", "h-32"])}
-            alt={"logo"}
-          />
-          <h1
+          <motion.div
             className={cn([
-              "text-3xl",
-              "lg:text-4xl",
-              "font-extrabold",
-              "mt-5",
+              "flex",
+              "flex-col",
+              "items-center",
+              "flex-1",
+              "justify-center",
             ])}
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
           >
-            {title}
-          </h1>
-          <span className={cn(["text-secondary-foreground", "mt-2"])}>
-            {description}
-          </span>
-        </div>
+            <motion.div variants={itemVariants}>
+              <Image
+                src={"/api/configs/logo"}
+                fallback={<DefaultLogo />}
+                className={cn(["aspect-square", "h-32"])}
+                alt={"logo"}
+                delay={0}
+              />
+            </motion.div>
+
+            <motion.h1
+              className={cn([
+                "text-3xl",
+                "lg:text-4xl",
+                "font-extrabold",
+                "mt-5",
+              ])}
+              variants={itemVariants}
+            >
+              {config?.meta?.title}
+            </motion.h1>
+
+            <motion.span
+              variants={itemVariants}
+              className={cn(["text-secondary-foreground", "mt-2"])}
+            >
+              {config?.meta?.description}
+              <span className={cn(["animate-ping"])}>_</span>
+            </motion.span>
+          </motion.div>
+        </motion.div>
         <div className={cn(["hidden", "sm:flex", "items-center", "gap-3"])}>
           <Button>
             <Typography className={cn(["text-secondary-foreground"])}>

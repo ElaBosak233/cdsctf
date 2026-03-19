@@ -5,6 +5,7 @@ import {
   ContainerIcon,
   FolderIcon,
   LibraryIcon,
+  PencilLineIcon,
   SaveIcon,
   ShipWheelIcon,
   TagIcon,
@@ -17,7 +18,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { updateChallenge } from "@/api/admin/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
-import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -27,6 +27,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Select } from "@/components/ui/select";
 import { TagsField } from "@/components/ui/tags-field";
 import { TextField } from "@/components/ui/text-field";
@@ -45,17 +46,18 @@ export default function Index() {
 
   const formSchema = z.object({
     title: z.string({
-      message: t("challenge.form.title.message"),
+      message: t("challenge:form.title.message"),
     }),
     category: z.number({
-      message: t("challenge.form.category.message"),
+      message: t("challenge:form.category.message"),
     }),
     tags: z.array(z.string()).nullish(),
     description: z.string({
-      message: t("challenge.form.description.message"),
+      message: t("challenge:form.description.message"),
     }),
     has_attachment: z.boolean({}),
-    is_dynamic: z.boolean({}),
+    has_writeup: z.boolean({}),
+    has_instance: z.boolean({}),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -77,7 +79,9 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`题目 ${res?.data?.title} 更新成功`);
+          toast.success(
+            t("challenge:actions.update.success", { title: res?.data?.title })
+          );
         }
       })
       .finally(() => {
@@ -99,7 +103,7 @@ export default function Index() {
             name={"title"}
             render={({ field }) => (
               <FormItem className={cn(["w-3/4"])}>
-                <FormLabel>{t("challenge.form.title._")}</FormLabel>
+                <FormLabel>{t("challenge:form.title._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -122,7 +126,7 @@ export default function Index() {
             name={"category"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/4"])}>
-                <FormLabel>{t("challenge.form.category._")}</FormLabel>
+                <FormLabel>{t("challenge:form.category._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -162,7 +166,7 @@ export default function Index() {
           name={"tags"}
           render={({ field }) => (
             <FormItem className={cn(["w-full"])}>
-              <FormLabel>{t("challenge.form.tags._")}</FormLabel>
+              <FormLabel>{t("challenge:form.tags._")}</FormLabel>
               <FormControl>
                 <Field>
                   <FieldIcon>
@@ -184,7 +188,7 @@ export default function Index() {
             name={"has_attachment"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/2"])}>
-                <FormLabel>{t("challenge.form.has_attachment._")}</FormLabel>
+                <FormLabel>{t("challenge:form.has_attachment._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -195,11 +199,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: t("challenge.form.has_attachment.true"),
+                          content: t("challenge:form.has_attachment.true"),
                         },
                         {
                           value: String(false),
-                          content: t("challenge.form.has_attachment.false"),
+                          content: t("challenge:form.has_attachment.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -215,10 +219,10 @@ export default function Index() {
           />
           <FormField
             control={form.control}
-            name={"is_dynamic"}
+            name={"has_instance"}
             render={({ field }) => (
               <FormItem className={cn(["w-1/2"])}>
-                <FormLabel>{t("challenge.form.is_dynamic._")}</FormLabel>
+                <FormLabel>{t("challenge:form.has_instance._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -234,7 +238,7 @@ export default function Index() {
                               className={cn(["flex", "gap-2", "items-center"])}
                             >
                               <ShipWheelIcon />
-                              {t("challenge.form.is_dynamic.true")}
+                              {t("challenge:form.has_instance.true")}
                             </div>
                           ),
                         },
@@ -245,9 +249,43 @@ export default function Index() {
                               className={cn(["flex", "gap-2", "items-center"])}
                             >
                               <BoxIcon />
-                              {t("challenge.form.is_dynamic.false")}
+                              {t("challenge:form.has_instance.false")}
                             </div>
                           ),
+                        },
+                      ]}
+                      onValueChange={(value) => {
+                        field.onChange(value === "true");
+                      }}
+                      value={String(field.value)}
+                    />
+                  </Field>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name={"has_writeup"}
+            render={({ field }) => (
+              <FormItem className={cn(["w-1/2"])}>
+                <FormLabel>{t("challenge:form.has_writeup._")}</FormLabel>
+                <FormControl>
+                  <Field>
+                    <FieldIcon>
+                      <PencilLineIcon />
+                    </FieldIcon>
+                    <Select
+                      {...field}
+                      options={[
+                        {
+                          value: String(true),
+                          content: t("challenge:form.has_writeup.true"),
+                        },
+                        {
+                          value: String(false),
+                          content: t("challenge:form.has_writeup.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -267,12 +305,11 @@ export default function Index() {
           name={"description"}
           render={({ field }) => (
             <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-              <FormLabel>{t("challenge.form.description._")}</FormLabel>
+              <FormLabel>{t("challenge:form.description._")}</FormLabel>
               <FormControl>
-                <Editor
+                <MarkdownEditor
                   {...field}
                   placeholder={"Once upon a time..."}
-                  lang={"markdown"}
                   className={cn(["h-full", "min-h-64"])}
                 />
               </FormControl>
@@ -288,7 +325,7 @@ export default function Index() {
           icon={<SaveIcon />}
           loading={loading}
         >
-          {t("common.actions.save")}
+          {t("common:actions.save")}
         </Button>
       </form>
     </Form>

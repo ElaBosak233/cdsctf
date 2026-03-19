@@ -1,0 +1,82 @@
+{
+  "name": "CdsCTF",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "1.93",
+      "profile": "default",
+      "components": "rust-analyzer,rust-src,rustfmt,clippy"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "dockerDashComposeVersion": "v2",
+      "installDockerBuildx": true,
+      "moby": true
+    },
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
+    "ghcr.io/devcontainers-contrib/features/fish-apt-get:1": {
+      "installFisher": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts",
+      "nodeGypDependencies": true,
+      "installYarnUsingApt": false
+    },
+    "ghcr.io/devcontainers-extra/features/pnpm:2": {}
+  },
+
+  "onCreateCommand": "fish ${containerWorkspaceFolder}/.devcontainer/scripts/on-create.fish",
+  "postCreateCommand": "fish ${containerWorkspaceFolder}/.devcontainer/scripts/post-create.fish",
+  "postStartCommand": "fish ${containerWorkspaceFolder}/.devcontainer/scripts/post-start.fish",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "serayuzgur.crates",
+        "biomejs.biome",
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "Fish",
+        "terminal.integrated.profiles.linux": {
+          "Fish": {
+            "path": "fish",
+            "args": ["-l"]
+          }
+        },
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": null,
+        "[rust]": {
+          "editor.defaultFormatter": "rust-lang.rust-analyzer",
+          "editor.formatOnSave": true
+        },
+        "[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+        "[jsonc]": { "editor.defaultFormatter": "biomejs.biome" }
+      }
+    }
+  },
+
+  "remoteUser": "vscode",
+  "forwardPorts": [8888, 5173, 5432, 6379, 4222, 9000, 9001],
+  "portsAttributes": {
+    "8888": { "label": "Backend", "onAutoForward": "notify" },
+    "5173": { "label": "Vite", "onAutoForward": "silent" },
+    "5432": { "label": "Postgres", "onAutoForward": "silent" },
+    "6379": { "label": "Valkey", "onAutoForward": "silent" },
+    "4222": { "label": "NATS", "onAutoForward": "silent" },
+    "9000": { "label": "RustFS API", "onAutoForward": "silent" },
+    "9001": { "label": "RustFS Console", "onAutoForward": "silent" }
+  },
+
+  "mounts": [
+    "source=cdsctf-cargo-registry,target=/usr/local/cargo/registry,type=volume",
+    "source=cdsctf-cargo-git,target=/usr/local/cargo/git,type=volume"
+  ]
+}

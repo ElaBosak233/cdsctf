@@ -40,7 +40,7 @@ pub async fn get_game(
         FindGameOptions {
             id: params.id,
             title: params.title,
-            is_enabled: Some(true),
+            enabled: Some(true),
             page: Some(page),
             size: Some(size),
             sorts: params.sorts,

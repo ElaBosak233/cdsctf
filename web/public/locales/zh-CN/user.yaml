@@ -10,6 +10,12 @@ settings:
   email: 电子邮箱
   password: 修改密码
   delete: 注销账号
+  profile_update_success: 个人资料更新成功。
+  avatar_upload:
+    progress: "上传进度 {{percent}}%"
+    success: 头像上传成功。
+    error: 头像上传失败。
+  avatar_delete_success: 头像删除成功。
 username: 用户名
 name: 昵称
 password: 密码
@@ -70,7 +76,7 @@ emails:
   _: 邮箱
   brief: 添加、编辑该用户的绑定邮箱
   empty: 该用户尚未添加任何邮箱。
-  is_verified:
+  verified:
     "true":
       _: 已验证
       long: 该邮箱已通过验证
@@ -81,7 +87,7 @@ emails:
     email:
       _: 邮箱
       message: 请输入有效的邮箱地址
-    is_verified:
+    verified:
       _: 标记为已验证
       message: 立即将邮箱标记为已验证状态。
   actions:
@@ -127,6 +133,7 @@ change_password:
       success: 个人密码更新成功。
 delete_account:
   _: 移除存档
+  final_warning: 最后警告
   form:
     username:
       _: 用户名

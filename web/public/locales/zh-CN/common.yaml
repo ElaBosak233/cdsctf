@@ -1,8 +1,12 @@
 home: 主页
 search: 搜索
 loading: 加载中
+filter: 筛选
 all: 全部
 exit: 退出
+pagination:
+  _: 分页
+  items: 条
 actions:
   add: 添加
   save: 保存
@@ -17,5 +21,6 @@ tooltip:
 errors:
   default: 发生了点错误
   unexpected: 发生了点错误
+  network: 网络错误
 captcha:
   placeholder: 验证码

@@ -4,22 +4,35 @@ pub mod email;
 pub mod meta;
 
 use async_trait::async_trait;
-use sea_orm::entity::prelude::*;
+use sea_orm::{FromJsonQueryResult, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "configs")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: i64,
+    pub id: bool,
     #[sea_orm(column_type = "JsonBinary")]
+    pub data: Config,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, Default)]
+pub struct Config {
     pub meta: meta::Config,
-    #[sea_orm(column_type = "JsonBinary")]
     pub auth: auth::Config,
-    #[sea_orm(column_type = "JsonBinary")]
     pub email: email::Config,
-    #[sea_orm(column_type = "JsonBinary")]
     pub captcha: captcha::Config,
+}
+
+impl Config {
+    pub fn desensitize(&self) -> Self {
+        Self {
+            meta: self.meta.clone(),
+            auth: self.auth.clone(),
+            email: self.email.desensitize(),
+            captcha: self.captcha.desensitize(),
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -38,10 +51,7 @@ impl Model {
     pub fn desensitize(&self) -> Self {
         Self {
             id: self.id,
-            meta: self.meta.clone(),
-            auth: self.auth.clone(),
-            email: self.email.desensitize(),
-            captcha: self.captcha.desensitize(),
+            data: self.data.clone(),
         }
     }
 }

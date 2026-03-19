@@ -11,13 +11,8 @@ impl<'a> Logo<'a> {
     }
 
     pub async fn get_logo(&self) -> Result<Vec<u8>, MediaError> {
-        let path = "configs/logo".to_owned();
-        match self.media.scan_dir(path.clone()).await?.first() {
-            Some((filename, _size)) => {
-                let buffer = self.media.get(path, filename.to_string()).await?;
-                Ok(buffer)
-            }
-            None => Err(MediaError::NotFound(path)),
-        }
+        self.media
+            .get("configs".to_owned(), "logo".to_owned())
+            .await
     }
 }

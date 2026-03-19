@@ -68,19 +68,24 @@ export default function Index() {
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           const percentComplete = (event.loaded / event.total) * 100;
-          toast.loading(`上传进度 ${percentComplete}%`, {
-            id: "attachment-upload",
-          });
+          toast.loading(
+            t("challenge:attachment.upload.progress", {
+              percent: Math.round(percentComplete),
+            }),
+            {
+              id: "attachment-upload",
+            }
+          );
         }
       };
       xhr.onload = () => {
         if (xhr.status === StatusCodes.OK) {
-          toast.success("文件上传成功", {
+          toast.success(t("challenge:attachment.upload.success"), {
             id: "attachment-upload",
           });
           sharedStore.setRefresh();
         } else {
-          toast.error("文件上传失败", {
+          toast.error(t("challenge:attachment.upload.error"), {
             id: "attachment-upload",
             description: xhr.responseText,
           });
@@ -113,86 +118,89 @@ export default function Index() {
   });
 
   return (
-    <div className={cn(["flex", "flex-col", "gap-5"])}>
+    <div className={cn(["flex", "flex-1", "min-h-0", "flex-col", "gap-5"])}>
       <Dropzone {...dropzone}>
         <DropZoneArea>
           <DropzoneTrigger className="h-fit flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm">
             <CloudUploadIcon className="size-16" />
             <p className="font-semibold">
-              {t("challenge.attachment.upload._")}
+              {t("challenge:attachment.upload._")}
             </p>
             <p className="text-sm text-muted-foreground">
-              {t("challenge.attachment.upload.hint")}
+              {t("challenge:attachment.upload.hint")}
             </p>
           </DropzoneTrigger>
         </DropZoneArea>
       </Dropzone>
-      <ScrollArea
-        className={cn([
-          "rounded-md",
-          "border",
-          "bg-card",
-          "min-h-100",
-          "h-[calc(100vh-22rem)]",
-        ])}
-      >
-        <LoadingOverlay loading={loading} />
-        <Table className={cn(["text-foreground"])}>
-          <TableHeader
-            className={cn([
-              "sticky",
-              "top-0",
-              "z-2",
-              "bg-muted/70",
-              "backdrop-blur-md",
-            ])}
-          >
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {!header.isPlaceholder &&
-                        flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length
-              ? table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.original.filename}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : !loading && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className={cn(["h-24", "text-center"])}
+      <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
+        <ScrollArea
+          className={cn([
+            "rounded-md",
+            "border",
+            "bg-card",
+            "h-full",
+            "min-h-0",
+            "overflow-hidden",
+          ])}
+        >
+          <LoadingOverlay loading={loading} />
+          <Table className={cn(["text-foreground"])}>
+            <TableHeader
+              className={cn([
+                "sticky",
+                "top-0",
+                "z-2",
+                "bg-muted/70",
+                "backdrop-blur-md",
+              ])}
+            >
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {!header.isPlaceholder &&
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length
+                ? table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.original.filename}
+                      data-state={row.getIsSelected() && "selected"}
                     >
-                      {t("challenge.attachment.empty")}
-                    </TableCell>
-                  </TableRow>
-                )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : !loading && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className={cn(["h-24", "text-center"])}
+                      >
+                        {t("challenge:attachment.empty")}
+                      </TableCell>
+                    </TableRow>
+                  )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </div>
     </div>
   );
 }

@@ -20,9 +20,10 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";
-import leetChecker from "./examples/leet.cdsx?raw";
-import simpleChecker from "./examples/simple.cdsx?raw";
-import suidChecker from "./examples/suid.cdsx?raw";
+
+import leetChecker from "./_blocks/examples/leet.cdsx?raw";
+import simpleChecker from "./_blocks/examples/simple.cdsx?raw";
+import suidChecker from "./_blocks/examples/suid.cdsx?raw";
 
 const checkerMap = {
   simple: simpleChecker,
@@ -40,7 +41,7 @@ export default function Index() {
 
   const formSchema = z.object({
     checker: z.string({
-      message: "请为检查器编写脚本",
+      message: t("challenge:checker.form.script_required"),
     }),
   });
 
@@ -65,7 +66,11 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(`题目 ${challenge?.title} 检查器更新成功`);
+          toast.success(
+            t("challenge:checker.actions.update_success", {
+              title: challenge?.title,
+            })
+          );
         }
       })
       .finally(() => {
@@ -100,19 +105,19 @@ export default function Index() {
               <LayoutTemplateIcon />
             </FieldIcon>
             <Select
-              placeholder={t("challenge.checker.templates._")}
+              placeholder={t("challenge:checker.templates._")}
               options={[
                 {
                   value: "simple",
-                  content: t("challenge.checker.templates.simple"),
+                  content: t("challenge:checker.templates.simple"),
                 },
                 {
                   value: "suid",
-                  content: t("challenge.checker.templates.suid"),
+                  content: t("challenge:checker.templates.suid"),
                 },
                 {
                   value: "leet",
-                  content: t("challenge.checker.templates.leet"),
+                  content: t("challenge:checker.templates.leet"),
                 },
               ]}
               onValueChange={(value: "simple" | "suid" | "leet") => {
@@ -127,7 +132,7 @@ export default function Index() {
             size={"sm"}
             icon={<SaveIcon />}
           >
-            {t("common.actions.save")}
+            {t("common:actions.save")}
           </Button>
         </div>
         <FormField

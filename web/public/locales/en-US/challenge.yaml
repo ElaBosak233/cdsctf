@@ -6,22 +6,26 @@ edit:
   info: Info
   checker: Checker
   attachment: Attachment
-  env: Dynamic Environment
-  statistics: Statistics
+  instance: Instance
+  writeup: Write-up
 preview: Preview Challenge
+note: Note
+note_placeholder: Note your solution here...
+note_save_success: Note saved successfully.
+writeup_official: Official Write-up
 title: Title
 description: Description
 category: Category
 tags: Tags
 has_attachment: Attachment
-is_dynamic:
-  _: Is Dynamic
-  "true": Dynamic
-  "false": Static
+has_instance:
+  _: Has Instance
+  "true": Dynamic Environment
+  "false": Static Environment
 frozen:
   already: Frozen
   countdown: "Freezes in {{hours}}h {{minutes}}m {{seconds}}s"
-is_public:
+public:
   _: Public
   actions:
     "true": Make Public
@@ -30,6 +34,10 @@ is_public:
 updated_at: Updated At
 created_at: Created At
 checker:
+  form:
+    script_required: Please write a script for the checker.
+  actions:
+    update_success: "Checker for challenge {{title}} updated successfully."
   templates:
     _: Select a preset template
     simple: Simple fixed string judgment
@@ -39,6 +47,9 @@ attachment:
   empty: "Oops, it seems there are no attachments yet."
   upload:
     _: Upload Attachment
+    progress: "Upload progress {{percent}}%"
+    success: File uploaded successfully.
+    error: File upload failed.
     hint: >-
       The attachment will be directly hosted by the server. It is recommended to
       fully consider factors such as storage space and traffic.
@@ -55,7 +66,7 @@ attachment:
 search:
   title: Challenge Title
   tag: Tag
-  is_public:
+  public:
     _: Public
     "true": Public
     "false": Private
@@ -72,14 +83,21 @@ form:
     _: Has Attachment
     "true": "Yes"
     "false": "No"
-  is_dynamic:
-    _: Is Dynamic
+  has_instance:
+    _: Has Instance
     "true": Dynamic Environment
     "false": Static Environment
   description:
     _: Description
     message: Please enter description
-  env:
+  has_writeup:
+    _: Has Write-up
+    "true": Yes
+    "false": No
+  writeup:
+    _: Write-up
+    message: Please enter write-up
+  instance:
     duration:
       _: Duration (seconds)
       message: Please enter duration in seconds
@@ -129,6 +147,12 @@ actions:
   _: Actions
   create:
     _: Create Challenge
+  update:
+    success: "Challenge {{title}} updated successfully."
+  writeup_update:
+    success: "Write-up for challenge {{title}} updated successfully."
+  instance_update:
+    success: "Dynamic environment for challenge {{title}} updated successfully."
   delete:
     _: Delete Challenge
     message: "Are you sure you want to delete the challenge <muted>{{title}}</muted>?"

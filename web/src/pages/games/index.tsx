@@ -16,6 +16,7 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { Image } from "@/components/ui/image";
 import { Pagination } from "@/components/ui/pagination";
 import { TextField } from "@/components/ui/text-field";
+import { DefaultLogo } from "@/components/widgets/default-logo";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { GameMini } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
@@ -73,7 +74,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("game._")} - ${config?.meta?.title}`}</title>
+      <title>{`${t("game:_")} - ${config?.meta?.title}`}</title>
       <div
         className={cn([
           "w-full",
@@ -84,7 +85,7 @@ export default function Index() {
           "xl:flex-row",
           "xl:gap-25",
           "gap-10",
-          "xl:h-[calc(100vh-64px)]",
+          "xl:h-(--app-content-height)",
           "items-center",
           "justify-center",
         ])}
@@ -106,7 +107,7 @@ export default function Index() {
               <SearchIcon />
             </FieldIcon>
             <TextField
-              placeholder={t("game.search.title")}
+              placeholder={t("game:search.title")}
               value={title || undefined}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -133,7 +134,7 @@ export default function Index() {
                 className={cn([
                   "justify-between",
                   "w-full",
-                  "rounded-[10px]",
+                  "rounded-lg",
                   "transition-all",
                   selectedGame?.id === game?.id && "h-16",
                   selectedGame?.id === game?.id && "px-5",
@@ -215,7 +216,7 @@ export default function Index() {
                 ])}
               >
                 <PackageOpenIcon />
-                {t("game.empty")}
+                {t("game:empty")}
               </div>
             )}
           </div>
@@ -228,7 +229,7 @@ export default function Index() {
             }
             className={cn([
               "object-cover",
-              "rounded-xl",
+              "rounded-2xl",
               "overflow-hidden",
               "border",
               "aspect-video",
@@ -238,11 +239,7 @@ export default function Index() {
             ])}
             fallback={
               <FlagIcon
-                className={cn([
-                  "size-25",
-                  "rotate-15",
-                  "text-secondary-foreground",
-                ])}
+                className={cn(["size-25", "text-secondary-foreground"])}
                 strokeWidth={1}
               />
             }
@@ -258,9 +255,10 @@ export default function Index() {
                 "2xl:left-auto",
                 "2xl:-right-20",
                 "2xl:-bottom-16",
-                "p-4",
+                "px-8",
+                "py-4",
                 "bg-card/90",
-                "backdrop-blur-sm",
+                "backdrop-blur-lg",
                 "min-h-24",
                 "w-lg",
                 "max-w-3/4",
@@ -270,23 +268,17 @@ export default function Index() {
                 "items-center",
                 "gap-3",
                 "transition-all",
+                "rounded-full",
               ])}
               onClick={() => handleClick(selectedGame)}
             >
               <Image
                 src={
-                  selectedGame?.has_icon &&
-                  `/api/games/${selectedGame?.id}/icon`
+                  selectedGame?.has_icon
+                    ? `/api/games/${selectedGame?.id}/icon`
+                    : `/api/configs/logo`
                 }
-                fallback={
-                  <FlagIcon
-                    className={cn([
-                      "rotate-15",
-                      "text-secondary-foreground",
-                      "size-6",
-                    ])}
-                  />
-                }
+                fallback={<DefaultLogo />}
                 className={cn(["h-16", "min-w-16"])}
               />
               <div className={cn(["space-y-1", "flex-1", "max-w-100"])}>

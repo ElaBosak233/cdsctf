@@ -5,12 +5,13 @@ import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
 
-loadLanguage("rust");
+loadLanguage("rs");
 loadLanguage("markdown");
 
 type EditorProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   value?: string;
   onChange?: (value: string) => void;
+  onCreateEditor?: (view: EditorView) => void;
   placeholder?: string;
   lang?: string;
   tabSize?: number;
@@ -30,6 +31,7 @@ function Editor(props: EditorProps) {
   const {
     value = "",
     onChange,
+    onCreateEditor,
     placeholder,
     lang = "markdown",
     tabSize = 2,
@@ -45,6 +47,7 @@ function Editor(props: EditorProps) {
 
   function getLanguage() {
     switch (lang) {
+      case "rs":
       case "rust":
       case "rune":
         return langs.rs();
@@ -126,6 +129,7 @@ function Editor(props: EditorProps) {
         }}
         value={value}
         onChange={(value) => onChange?.(value)}
+        onCreateEditor={onCreateEditor}
         theme={[themeOverwrite, theme]}
         placeholder={placeholder}
         extensions={[getLanguage(), getDiagnosticsExtension()]}

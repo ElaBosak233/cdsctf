@@ -14,17 +14,17 @@ export default function Layout() {
   const options = [
     {
       link: `/account/settings`,
-      name: t("user.settings.info"),
+      name: t("user:settings.info"),
       icon: <InfoIcon />,
     },
     {
       link: `/account/settings/emails`,
-      name: t("user.settings.email"),
+      name: t("user:settings.email"),
       icon: <MailsIcon />,
     },
     {
       link: `/account/settings/password`,
-      name: t("user.settings.password"),
+      name: t("user:settings.password"),
       icon: <LockIcon />,
     },
     // {
@@ -35,7 +35,7 @@ export default function Layout() {
   ];
 
   return (
-    <div className={cn(["flex", "flex-1"])}>
+    <div className={cn(["flex", "min-h-0", "flex-1"])}>
       <div
         className={cn([
           "hidden",
@@ -48,8 +48,8 @@ export default function Layout() {
           "p-5",
           "border-r",
           "lg:sticky",
-          "top-16",
-          "h-[calc(100vh-64px)]",
+          "lg:top-16",
+          "h-(--app-content-height)",
         ])}
       >
         {options?.map((option, index) => (
@@ -75,11 +75,11 @@ export default function Layout() {
           asChild
         >
           <Link to={"/account/settings/delete"}>
-            {t("user.settings.delete")}
+            {t("user:settings.delete")}
           </Link>
         </Button>
       </div>
-      <div className={cn(["flex-1", "flex", "flex-col"])}>
+      <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
         <Outlet />
       </div>
     </div>

@@ -37,8 +37,8 @@ import { State, type Team } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";
-import { useColumns } from "./columns";
-import { ExpandedCard } from "./expanded-card";
+import { useColumns } from "./_blocks/columns";
+import { ExpandedCard } from "./_blocks/expanded-card";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -89,10 +89,10 @@ export default function Index() {
   });
 
   const stateOptions = [
-    { id: State.Banned.toString(), name: t("team.state.banned") },
-    { id: State.Preparing.toString(), name: t("team.state.preparing") },
-    { id: State.Pending.toString(), name: t("team.state.pending") },
-    { id: State.Passed.toString(), name: t("team.state.passed") },
+    { id: State.Banned.toString(), name: t("team:state.banned") },
+    { id: State.Preparing.toString(), name: t("team:state.preparing") },
+    { id: State.Pending.toString(), name: t("team:state.pending") },
+    { id: State.Passed.toString(), name: t("team:state.passed") },
   ];
 
   useEffect(() => {
@@ -125,7 +125,16 @@ export default function Index() {
   }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh, game]);
 
   return (
-    <div className={cn(["container", "mx-auto"])}>
+    <div
+      className={cn([
+        "container",
+        "mx-auto",
+        "h-full",
+        "min-h-0",
+        "flex",
+        "flex-col",
+      ])}
+    >
       <div
         className={cn([
           "flex",
@@ -145,7 +154,7 @@ export default function Index() {
           ])}
         >
           <UsersRoundIcon />
-          {t("team._")}
+          {t("team:_")}
         </h1>
         <div
           className={cn([
@@ -173,7 +182,7 @@ export default function Index() {
               <TypeIcon />
             </FieldIcon>
             <TextField
-              placeholder={t("team.search.name")}
+              placeholder={t("team:search.name")}
               value={
                 (table.getColumn("name")?.getFilterValue() as string) ?? ""
               }
@@ -192,7 +201,7 @@ export default function Index() {
                   value: "all",
                   content: (
                     <div className={cn(["flex", "gap-2", "items-center"])}>
-                      {t("common.all")}
+                      {t("common:all")}
                     </div>
                   ),
                 },
@@ -218,97 +227,100 @@ export default function Index() {
         </div>
       </div>
 
-      <ScrollArea
-        className={cn([
-          "rounded-md",
-          "border",
-          "bg-card",
-          "min-h-100",
-          "h-[calc(100vh-18rem)]",
-        ])}
-      >
-        <LoadingOverlay loading={loading} />
-        <Table className={cn(["text-foreground"])}>
-          <TableHeader
-            className={cn([
-              "sticky",
-              "top-0",
-              "z-2",
-              "bg-muted/70",
-              "backdrop-blur-md",
-            ])}
-          >
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {!header.isPlaceholder &&
-                        flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody className={cn(["flex-1"])}>
-            {table.getRowModel().rows?.length
-              ? table.getRowModel().rows.map((row) => (
-                  <React.Fragment key={row.id}>
-                    <TableRow
-                      key={row.getValue("id")}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
+      <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
+        <ScrollArea
+          className={cn([
+            "rounded-md",
+            "border",
+            "bg-card",
+            "h-full",
+            "min-h-0",
+            "overflow-hidden",
+          ])}
+        >
+          <LoadingOverlay loading={loading} />
+          <Table className={cn(["text-foreground"])}>
+            <TableHeader
+              className={cn([
+                "sticky",
+                "top-0",
+                "z-2",
+                "bg-muted/70",
+                "backdrop-blur-md",
+              ])}
+            >
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {!header.isPlaceholder &&
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
                           )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody className={cn(["flex-1"])}>
+              {table.getRowModel().rows?.length
+                ? table.getRowModel().rows.map((row) => (
+                    <React.Fragment key={row.id}>
+                      <TableRow
+                        key={row.getValue("id")}
+                        data-state={row.getIsSelected() && "selected"}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
 
-                    <TableRow
-                      data-state={row.getIsExpanded() ? "open" : "closed"}
-                      className={cn([
-                        "overflow-hidden",
-                        "bg-muted/30",
-                        "transition-all",
-                        "data-[state=open]:animate-accordion-down",
-                        "data-[state=closed]:animate-accordion-up",
-                      ])}
-                      style={{
-                        display: row.getIsExpanded() ? "table-row" : "none",
-                      }}
-                    >
-                      {row.getIsExpanded() && (
-                        <TableCell
-                          colSpan={row.getVisibleCells().length}
-                          className="p-0"
-                        >
-                          <ExpandedCard team={row.original} />
-                        </TableCell>
-                      )}
+                      <TableRow
+                        data-state={row.getIsExpanded() ? "open" : "closed"}
+                        className={cn([
+                          "overflow-hidden",
+                          "bg-muted/30",
+                          "transition-all",
+                          "data-[state=open]:animate-accordion-down",
+                          "data-[state=closed]:animate-accordion-up",
+                        ])}
+                        style={{
+                          display: row.getIsExpanded() ? "table-row" : "none",
+                        }}
+                      >
+                        {row.getIsExpanded() && (
+                          <TableCell
+                            colSpan={row.getVisibleCells().length}
+                            className="p-0"
+                          >
+                            <ExpandedCard team={row.original} />
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    </React.Fragment>
+                  ))
+                : !loading && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className={cn(["h-24", "text-center"])}
+                      >
+                        {t("game:team.empty")}
+                      </TableCell>
                     </TableRow>
-                  </React.Fragment>
-                ))
-              : !loading && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className={cn(["h-24", "text-center"])}
-                    >
-                      {t("game.team.empty")}
-                    </TableCell>
-                  </TableRow>
-                )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
+                  )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </div>
       <div className="flex items-center justify-between space-x-2 py-4 px-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredRowModel().rows.length} / {total}

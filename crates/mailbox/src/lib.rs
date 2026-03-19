@@ -48,7 +48,7 @@ impl Mailbox {
     pub(crate) async fn get_mailer(
         &self,
     ) -> Result<AsyncSmtpTransport<Tokio1Executor>, MailboxError> {
-        if !cds_db::get_config(&self.db.conn).await.email.is_enabled {
+        if !cds_db::get_config(&self.db.conn).await.email.enabled {
             return Err(MailboxError::OtherError(anyhow!("disabled")));
         }
 

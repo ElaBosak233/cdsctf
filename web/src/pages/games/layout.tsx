@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet } from "react-router";
 import type { GameMini } from "@/models/game";
-import Entrance from "./entrance";
+import Entrance from "./_blocks/entrance";
 
 export default function () {
   const [entranceGame, setEntranceGame] = useState<GameMini | undefined>(

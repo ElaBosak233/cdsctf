@@ -39,9 +39,26 @@ const router = createBrowserRouter([
       },
       {
         path: "playground",
-        lazy: async () => ({
-          Component: (await import("@/pages/playground")).default,
-        }),
+        children: [
+          {
+            index: true,
+            lazy: async () => ({
+              Component: (await import("@/pages/playground")).default,
+            }),
+          },
+          {
+            path: ":challenge_id",
+            children: [
+              {
+                index: true,
+                lazy: async () => ({
+                  Component: (await import("@/pages/playground/challenge_id"))
+                    .default,
+                }),
+              },
+            ],
+          },
+        ],
       },
       {
         path: "games",
@@ -208,6 +225,10 @@ const router = createBrowserRouter([
           },
           {
             path: "challenges",
+            lazy: async () => ({
+              Component: (await import("@/pages/admin/challenges/layout"))
+                .default,
+            }),
             children: [
               {
                 index: true,
@@ -252,21 +273,21 @@ const router = createBrowserRouter([
                     }),
                   },
                   {
-                    path: "env",
+                    path: "instance",
                     lazy: async () => ({
                       Component: (
                         await import(
-                          "@/pages/admin/challenges/challenge_id/env"
+                          "@/pages/admin/challenges/challenge_id/instance"
                         )
                       ).default,
                     }),
                   },
                   {
-                    path: "statistics",
+                    path: "writeup",
                     lazy: async () => ({
                       Component: (
                         await import(
-                          "@/pages/admin/challenges/challenge_id/statistics"
+                          "@/pages/admin/challenges/challenge_id/writeup"
                         )
                       ).default,
                     }),
@@ -276,18 +297,21 @@ const router = createBrowserRouter([
             ],
           },
           {
-            path: "envs",
+            path: "instances",
             children: [
               {
                 index: true,
                 lazy: async () => ({
-                  Component: (await import("@/pages/admin/envs")).default,
+                  Component: (await import("@/pages/admin/instances")).default,
                 }),
               },
             ],
           },
           {
             path: "games",
+            lazy: async () => ({
+              Component: (await import("@/pages/admin/games/layout")).default,
+            }),
             children: [
               {
                 index: true,
@@ -340,6 +364,9 @@ const router = createBrowserRouter([
           },
           {
             path: "users",
+            lazy: async () => ({
+              Component: (await import("@/pages/admin/users/layout")).default,
+            }),
             children: [
               {
                 index: true,

@@ -15,7 +15,7 @@ export async function getEmails(request: GetEmailsRequest) {
 export interface AddEmailRequest {
   user_id: number;
   email: string;
-  is_verified?: boolean;
+  verified?: boolean;
 }
 
 export async function addEmail(request: AddEmailRequest) {
@@ -29,7 +29,7 @@ export async function addEmail(request: AddEmailRequest) {
 export interface UpdateEmailRequest {
   user_id: number;
   email: string;
-  is_verified: boolean;
+  verified: boolean;
 }
 
 export async function updateEmail(request: UpdateEmailRequest) {

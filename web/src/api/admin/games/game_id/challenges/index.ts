@@ -6,7 +6,7 @@ export interface GetGameChallengeRequest {
   game_id?: number;
   challenge_id?: number;
   category?: number;
-  is_enabled?: boolean;
+  enabled?: boolean;
 }
 
 export async function getGameChallenges(request: GetGameChallengeRequest) {
@@ -20,7 +20,7 @@ export async function getGameChallenges(request: GetGameChallengeRequest) {
 export interface CreateGameChallengeRequest {
   game_id?: number;
   challenge_id?: number;
-  is_enabled?: boolean;
+  enabled?: boolean;
   max_pts?: number;
   min_pts?: number;
   difficulty?: number;

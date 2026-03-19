@@ -1,17 +1,14 @@
 use axum::{
     body::Body,
     extract::Multipart,
-    http::{HeaderValue, Response, StatusCode},
+    http::{HeaderValue, Response},
     response::IntoResponse,
 };
-use cds_media::{Media, util::hash};
+use cds_media::Media;
 use mime::Mime;
 use serde_json::json;
 
-use crate::{
-    model::Metadata,
-    traits::{WebError, WebResponse},
-};
+use crate::traits::WebError;
 
 pub fn build_challenge_attachment_path(challenge_id: i64) -> String {
     format!("challenges/{}/attachments", challenge_id)
@@ -38,68 +35,6 @@ pub async fn get_write_up(
         }
         None => Err(WebError::NotFound(json!(""))),
     }
-}
-
-pub async fn get_first_file(media: Media, path: String) -> Result<impl IntoResponse, WebError> {
-    match media.scan_dir(path.clone()).await?.first() {
-        Some((filename, _size)) => {
-            let buffer = media.get(path, filename.to_string()).await?;
-            Ok(Response::builder().body(Body::from(buffer))?)
-        }
-        None => Err(WebError::NotFound(json!(""))),
-    }
-}
-
-pub async fn get_first_file_metadata(
-    media: Media,
-    path: String,
-) -> Result<WebResponse<Metadata>, WebError> {
-    match media.scan_dir(path.clone()).await?.first() {
-        Some((filename, size)) => Ok(WebResponse {
-            data: Some(Metadata {
-                filename: filename.to_string(),
-                size: *size,
-            }),
-            ..Default::default()
-        }),
-        None => Err(WebError::NotFound(json!(""))),
-    }
-}
-
-pub async fn save_img(
-    media: Media,
-
-    path: String,
-    multipart: Multipart,
-) -> Result<WebResponse<()>, WebError> {
-    let data = handle_multipart(multipart, mime::IMAGE).await?;
-
-    media.delete_dir(path.clone()).await?;
-
-    let data = cds_media::util::img_convert_to_webp(data).await?;
-    let filename = format!("{}.webp", hash(data.clone()));
-
-    media
-        .save(path, filename, data)
-        .await
-        .map_err(|_| WebError::InternalServerError(json!("")))?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
-}
-
-pub async fn delete_img(media: Media, path: String) -> Result<WebResponse<()>, WebError> {
-    media
-        .delete_dir(path)
-        .await
-        .map_err(|_| WebError::InternalServerError(json!("")))?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
 }
 
 pub async fn handle_multipart(

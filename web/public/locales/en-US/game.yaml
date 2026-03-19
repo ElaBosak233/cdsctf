@@ -7,11 +7,13 @@ edit:
   team: Teams
   notice: Notices
 title: Title
-is_public: Public
+public: Public
 sketch: Sketch
 started_at: Started At
 ended_at: Ended At
-is_enabled:
+enabled:
+  "true": Enabled
+  "false": Disabled
   actions:
     "true": Make enabled
     "false": Make disabled
@@ -19,6 +21,11 @@ is_enabled:
 scoreboard:
   _: Scoreboard
   empty: But nobody came.
+  columns:
+    user: User
+    challenge: Challenge
+    score: Score
+    time: Time
 description:
   _: Description
   empty: This organizer is very lazy and left nothing.
@@ -43,12 +50,24 @@ form:
     message: Please enter a title
   sketch: Sketch
   poster: Poster
+  poster_upload:
+    progress: "Upload progress {{percent}}%"
+    success: Poster uploaded successfully.
+    error: Poster upload failed.
+  poster_delete:
+    success: Poster deleted successfully.
   icon: Icon
-  is_public:
+  icon_upload:
+    progress: "Upload progress {{percent}}%"
+    success: Icon uploaded successfully.
+    error: Icon upload failed.
+  icon_delete:
+    success: Icon deleted successfully.
+  public:
     _: Is Public (without review)
     "true": "Yes"
     "false": "No"
-  is_need_write_up:
+  writeup_required:
     _: Is Write-up Required
     "true": "Yes"
     "false": "No"
@@ -80,13 +99,17 @@ actions:
   update:
     _: Update Game
     success: "Game {{title}} updated successfully."
+challenges:
+  no_permission: You do not have permission to view challenges in this game.
 challenge:
   empty: "Oops, it seems that there are no challenges in this game yet."
   pts: Current Points
   title: Title
   category: Category
-  is_enabled:
+  enabled:
     _: Enabled
+    toast: "{{enabled}} challenge {{title}}"
+    aria_label: Public toggle
     actions:
       success: "Challenge {{title}} status updated successfully."
   form:
@@ -103,6 +126,8 @@ challenge:
     bonus_ratio: Bonus Ratio (%)
   actions:
     _: Actions
+    edit_config_success: "Challenge {{title}} configuration updated successfully."
+    add_exists: This challenge already exists in this game.
     add:
       _: Add Challenge
       message: >-
@@ -129,6 +154,7 @@ team:
     message: "Team {{name}} states updated successfully."
 notice:
   _: Notice
+  board: Notice Board
   empty: "Oops, it seems that there are no notices yet."
   title: Title
   content: Content

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { KeyIcon, RefreshCcwIcon, UsersRoundIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { createToken, getToken } from "@/api/games/game_id/teams/profile/token";
+import { createToken, getToken } from "@/api/games/game_id/teams/us/token";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -45,7 +45,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("team.members")} - ${currentGame?.title}`}</title>
+      <title>{`${t("team:members")} - ${currentGame?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -67,7 +67,7 @@ export default function Index() {
           ])}
         >
           <UsersRoundIcon />
-          {t("team.members")}
+          {t("team:members")}
         </h1>
         <Separator />
         {!disabled && (
@@ -80,7 +80,7 @@ export default function Index() {
                 readOnly
                 disabled={disabled}
                 value={token && `${selfTeam?.id ?? ""}:${token || ""}`}
-                placeholder={t("team.invite_code.empty")}
+                placeholder={t("team:invite_code.empty")}
                 onChange={() => {}}
               />
             </Field>
@@ -91,7 +91,7 @@ export default function Index() {
               onClick={handleCreateToken}
               size={"lg"}
             >
-              {t("team.invite_code.actions.generate")}
+              {t("team:invite_code.actions.generate")}
             </Button>
           </div>
         )}

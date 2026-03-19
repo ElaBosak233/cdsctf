@@ -51,7 +51,7 @@ export default function Index() {
   }, []);
 
   const formSchema = z.object({
-    is_enabled: z.boolean(),
+    enabled: z.boolean(),
     host: z.string().default("").optional(),
     port: z.number().min(0).max(65535),
     tls: z.enum(["starttls", "tls", "none"]).optional(),
@@ -88,7 +88,7 @@ export default function Index() {
         email: { ...values },
       });
 
-      if (values.is_enabled) {
+      if (values.enabled) {
         await saveEmail({
           type: "verify",
           data: values.verify_body!,
@@ -100,13 +100,13 @@ export default function Index() {
         });
       }
     } finally {
-      toast.success(t("admin.mailbox.actions.update.success"));
+      toast.success(t("admin:mailbox.actions.update.success"));
     }
   }
 
   return (
     <>
-      <title>{`${t("admin.mailbox._")} - ${globalConfig?.meta?.title}`}</title>
+      <title>{`${t("admin:mailbox._")} - ${globalConfig?.meta?.title}`}</title>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -118,7 +118,7 @@ export default function Index() {
             "p-10",
             "xl:mx-60",
             "lg:mx-30",
-            "min-h-[calc(100vh-64px)]",
+            "min-h-(--app-content-height)",
             "relative",
           ])}
         >
@@ -127,16 +127,16 @@ export default function Index() {
             className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
           >
             <MailCheckIcon />
-            {t("admin.mailbox._")}
+            {t("admin:mailbox._")}
           </h2>
           <Separator />
 
           <FormField
             control={form.control}
-            name={"is_enabled"}
+            name={"enabled"}
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("admin.mailbox.form.is_enabled._")}</FormLabel>
+                <FormLabel>{t("admin:mailbox.form.enabled._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -146,11 +146,11 @@ export default function Index() {
                       options={[
                         {
                           value: String(true),
-                          content: t("admin.mailbox.is_enabled.true"),
+                          content: t("admin:mailbox.enabled.true"),
                         },
                         {
                           value: String(false),
-                          content: t("admin.mailbox.is_enabled.false"),
+                          content: t("admin:mailbox.enabled.false"),
                         },
                       ]}
                       onValueChange={(value) => {
@@ -165,7 +165,7 @@ export default function Index() {
             )}
           />
 
-          {form.watch("is_enabled") && (
+          {form.watch("enabled") && (
             <>
               <div className={cn(["flex", "gap-3"])}>
                 <FormField
@@ -173,7 +173,7 @@ export default function Index() {
                   name={"host"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>{t("admin.mailbox.form.host._")}</FormLabel>
+                      <FormLabel>{t("admin:mailbox.form.host._")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -197,7 +197,7 @@ export default function Index() {
                   name={"port"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>{t("admin.mailbox.form.port._")}</FormLabel>
+                      <FormLabel>{t("admin:mailbox.form.port._")}</FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -229,15 +229,15 @@ export default function Index() {
                             options={[
                               {
                                 value: "tls",
-                                content: t("admin.mailbox.tls.tls"),
+                                content: t("admin:mailbox.tls.tls"),
                               },
                               {
                                 value: "starttls",
-                                content: t("admin.mailbox.tls.starttls"),
+                                content: t("admin:mailbox.tls.starttls"),
                               },
                               {
                                 value: "none",
-                                content: t("admin.mailbox.tls.none"),
+                                content: t("admin:mailbox.tls.none"),
                               },
                             ]}
                             onValueChange={field.onChange}
@@ -256,7 +256,7 @@ export default function Index() {
                 name={"username"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>{t("admin.mailbox.form.username._")}</FormLabel>
+                    <FormLabel>{t("admin:mailbox.form.username._")}</FormLabel>
                     <FormControl>
                       <Field>
                         <FieldIcon>
@@ -280,7 +280,7 @@ export default function Index() {
                 name={"password"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>{t("admin.mailbox.form.password._")}</FormLabel>
+                    <FormLabel>{t("admin:mailbox.form.password._")}</FormLabel>
                     <FormControl>
                       <Field>
                         <FieldIcon>
@@ -307,7 +307,7 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>
-                      {t("admin.mailbox.form.verification_email._")}
+                      {t("admin:mailbox.form.verification_email._")}
                     </FormLabel>
                     <FormControl>
                       <Field>
@@ -334,7 +334,7 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>
-                      {t("admin.mailbox.form.reset_password_email._")}
+                      {t("admin:mailbox.form.reset_password_email._")}
                     </FormLabel>
                     <FormControl>
                       <Field>
@@ -365,7 +365,7 @@ export default function Index() {
             icon={<SaveIcon />}
             className={cn(["mt-2"])}
           >
-            {t("common.actions.save")}
+            {t("common:actions.save")}
           </Button>
         </form>
       </Form>

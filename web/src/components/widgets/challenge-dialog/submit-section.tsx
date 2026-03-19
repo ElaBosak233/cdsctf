@@ -54,14 +54,14 @@ function SubmitSection() {
           `#${res?.data?.id} 已提交题目 ${res?.data?.challenge_title} 的解答`,
           {
             id: `submission-${res?.data?.id}`,
-            description: "请等待审核，这不会太久...",
+            description: t("submission:pending_review"),
           }
         );
         add(res.data!);
       }
 
       if (res.code === 500) {
-        toast.error("发生了错误", {
+        toast.error(t("common:errors.default"), {
           description: res.msg,
         });
       }
@@ -87,7 +87,7 @@ function SubmitSection() {
         loading={submissions.length > 0}
         disabled={!flag?.trim()}
       >
-        {t("submission.actions.submit")}
+        {t("submission:actions.submit")}
       </Button>
     </div>
   );

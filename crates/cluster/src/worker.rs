@@ -13,7 +13,7 @@ pub async fn cleaner(cluster: Cluster) {
                     .metadata
                     .labels
                     .unwrap_or_default()
-                    .get("cds/env_id")
+                    .get("cds/instance_id")
                     .map(|s| s.to_owned())
                     .unwrap_or_default();
 

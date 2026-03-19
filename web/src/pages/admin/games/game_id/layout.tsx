@@ -41,22 +41,22 @@ export default function Layout() {
     return [
       {
         link: `/admin/games/${game_id}`,
-        name: t("game.edit.info"),
+        name: t("game:edit.info"),
         icon: <InfoIcon />,
       },
       {
         link: `/admin/games/${game_id}/challenges`,
-        name: t("game.edit.challenge"),
+        name: t("game:edit.challenge"),
         icon: <LibraryIcon />,
       },
       {
         link: `/admin/games/${game_id}/teams`,
-        name: t("game.edit.team"),
+        name: t("game:edit.team"),
         icon: <UsersRoundIcon />,
       },
       {
         link: `/admin/games/${game_id}/notices`,
-        name: t("game.edit.notice"),
+        name: t("game:edit.notice"),
         icon: <MessageCircleIcon />,
       },
     ];
@@ -68,64 +68,103 @@ export default function Layout() {
       <Context.Provider value={{ game }}>
         <div
           className={cn([
-            "relative",
             "flex",
             "flex-col",
             "xl:flex-row",
+            "xl:min-h-(--app-content-height)",
             "flex-1",
-            "gap-10",
-            "xl:mx-30",
+            "min-h-0",
+            "xl:pl-64",
           ])}
         >
-          <div
+          <nav
             className={cn([
-              "space-y-6",
-              "h-fit",
-              "my-10",
-              "mx-10",
-              "xl:mx-0",
-              "xl:my-0",
+              "xl:hidden",
+              "flex",
+              "flex-row",
+              "flex-wrap",
+              "gap-2",
+              "p-3",
+              "border-b",
+              "bg-card/30",
+              "shrink-0",
+            ])}
+          >
+            {options?.map((option, index) => (
+              <Button
+                key={index}
+                icon={option?.icon}
+                variant={pathname === option?.link ? "tonal" : "ghost"}
+                size="sm"
+                className={cn(["shrink-0"])}
+                asChild
+              >
+                <Link to={option?.link}>{option?.name}</Link>
+              </Button>
+            ))}
+          </nav>
+          <aside
+            className={cn([
+              "hidden",
+              "xl:flex",
+              "xl:fixed",
+              "xl:left-16",
+              "xl:top-16",
+              "xl:z-10",
+              "xl:h-(--app-content-height)",
               "xl:w-64",
-              "xl:sticky",
-              "xl:top-24",
+              "xl:flex-col",
+              "xl:border-r",
+              "xl:bg-card/30",
+              "xl:backdrop-blur-sm",
+              "py-6",
+              "px-4",
+              "gap-4",
+              "my-6",
+              "mx-4",
+              "xl:my-0",
+              "xl:mx-0",
             ])}
           >
             <div
               className={cn([
                 "flex",
-                "flex-wrap",
-                "justify-center",
-                "gap-3",
-                "select-none",
+                "items-center",
+                "gap-2",
+                "px-2",
+                "text-sm",
+                "font-medium",
+                "text-muted-foreground",
               ])}
             >
-              <FlagIcon />
-              {t("game.edit._")}
+              <FlagIcon className="size-4" />
+              {t("game:edit._")}
             </div>
-            <Card className={cn(["flex", "flex-col", "p-5", "gap-3"])}>
-              {options?.map((option, index) => {
-                return (
-                  <Button
-                    key={index}
-                    icon={option?.icon}
-                    variant={pathname === option?.link ? "tonal" : "ghost"}
-                    className={cn(["justify-start"])}
-                    asChild
-                  >
-                    <Link to={option?.link}>{option?.name}</Link>
-                  </Button>
-                );
-              })}
-            </Card>
-          </div>
+            <nav className={cn(["flex", "flex-col", "gap-1"])}>
+              {options?.map((option, index) => (
+                <Button
+                  key={index}
+                  icon={option?.icon}
+                  variant={pathname === option?.link ? "tonal" : "ghost"}
+                  className={cn(["justify-start"])}
+                  asChild
+                >
+                  <Link to={option?.link}>{option?.name}</Link>
+                </Button>
+              ))}
+            </nav>
+          </aside>
           <Card
             className={cn([
               "flex-1",
+              "min-w-0",
+              "min-h-0",
               "p-10",
               "border-y-0",
               "rounded-none",
               "flex",
               "flex-col",
+              "xl:rounded-l-none",
             ])}
           >
             <Outlet />

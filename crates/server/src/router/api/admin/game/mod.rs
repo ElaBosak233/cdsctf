@@ -27,7 +27,7 @@ pub fn router() -> Router<Arc<AppState>> {
 pub struct GetGameRequest {
     pub id: Option<i64>,
     pub title: Option<String>,
-    pub is_enabled: Option<bool>,
+    pub enabled: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -46,7 +46,7 @@ pub async fn get_games(
         FindGameOptions {
             id: params.id,
             title: params.title,
-            is_enabled: params.is_enabled,
+            enabled: params.enabled,
             page: Some(page),
             size: Some(size),
             sorts: params.sorts,
@@ -67,9 +67,9 @@ pub struct CreateGameRequest {
     pub title: String,
     pub sketch: Option<String>,
     pub description: Option<String>,
-    pub is_enabled: Option<bool>,
-    pub is_public: Option<bool>,
-    pub is_need_write_up: Option<bool>,
+    pub enabled: Option<bool>,
+    pub public: Option<bool>,
+    pub writeup_required: Option<bool>,
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
     pub timeslots: Option<Vec<cds_db::game::Timeslot>>,
@@ -89,9 +89,9 @@ pub async fn create_game(
             sketch: Set(body.sketch),
             description: Set(body.description),
 
-            is_enabled: Set(body.is_enabled.unwrap_or(false)),
-            is_public: Set(body.is_public.unwrap_or(false)),
-            is_need_write_up: Set(body.is_need_write_up.unwrap_or(false)),
+            enabled: Set(body.enabled.unwrap_or(false)),
+            public: Set(body.public.unwrap_or(false)),
+            writeup_required: Set(body.writeup_required.unwrap_or(false)),
 
             member_limit_min: body.member_limit_min.map_or(NotSet, Set),
             member_limit_max: body.member_limit_max.map_or(NotSet, Set),

@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateUserProfilePassword } from "@/api/users/profile";
+import { updateUserProfilePassword } from "@/api/users/me";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
@@ -31,19 +31,19 @@ export default function Index() {
   const formSchema = z
     .object({
       old_password: z.string({
-        message: t("user.change_password.form.old_password.message"),
+        message: t("user:change_password.form.old_password.message"),
       }),
       new_password: z
         .string({
-          message: t("user.change_password.form.new_password.messages._"),
+          message: t("user:change_password.form.new_password.messages._"),
         })
-        .min(6, t("user.change_password.form.new_password.messages.min")),
+        .min(6, t("user:change_password.form.new_password.messages.min")),
       confirm_password: z.string({
-        message: t("user.change_password.form.confirm_password.messages._"),
+        message: t("user:change_password.form.confirm_password.messages._"),
       }),
     })
     .refine((data) => data.new_password === data.confirm_password, {
-      message: t("user.change_password.form.confirm_password.messages.match"),
+      message: t("user:change_password.form.confirm_password.messages.match"),
       path: ["confirm_password"],
     });
 
@@ -63,7 +63,7 @@ export default function Index() {
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(t("user.change_password.actions.self_update.success"));
+          toast.success(t("user:change_password.actions.self_update.success"));
           form.reset();
         }
 
@@ -78,7 +78,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`${t("user.settings.password")} - ${configStore?.config?.meta?.title}`}</title>
+      <title>{`${t("user:settings.password")} - ${configStore?.config?.meta?.title}`}</title>
       <div
         className={cn([
           "flex",
@@ -101,7 +101,7 @@ export default function Index() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t("user.change_password.form.old_password._")}
+                    {t("user:change_password.form.old_password._")}
                   </FormLabel>
                   <FormControl>
                     <Field>
@@ -127,7 +127,7 @@ export default function Index() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t("user.change_password.form.new_password._")}
+                    {t("user:change_password.form.new_password._")}
                   </FormLabel>
                   <FormControl>
                     <Field>
@@ -153,7 +153,7 @@ export default function Index() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t("user.change_password.form.confirm_password._")}
+                    {t("user:change_password.form.confirm_password._")}
                   </FormLabel>
                   <FormControl>
                     <Field>
@@ -184,7 +184,7 @@ export default function Index() {
               icon={<SaveIcon />}
               loading={loading}
             >
-              {t("common.actions.save")}
+              {t("common:actions.save")}
             </Button>
           </form>
         </Form>

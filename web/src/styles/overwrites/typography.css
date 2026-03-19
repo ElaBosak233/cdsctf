@@ -1,11 +1,11 @@
 code[data-theme],
 code[data-theme] span {
-  @apply text-[color:var(--shiki-light)] bg-[color:var(--shiki-light-bg)];
+  @apply text-(--shiki-light) bg-(--shiki-light-bg);
 }
 
 .dark code[data-theme],
 .dark code[data-theme] span {
-  @apply text-[color:var(--shiki-dark)] bg-[color:var(--shiki-dark-bg)];
+  @apply text-(--shiki-dark) bg-(--shiki-dark-bg);
 }
 
 .prose pre {

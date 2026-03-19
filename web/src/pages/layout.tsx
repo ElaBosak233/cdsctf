@@ -2,11 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Outlet } from "react-router";
 import { getConfigs, getVersion } from "@/api/configs";
-import { getUserProfile } from "@/api/users/profile";
-import { Navbar } from "@/components/widgets/navbar";
+import { getUserProfile } from "@/api/users/me";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn, stripIndent } from "@/utils";
+import { Background } from "./_blocks/background";
+import { Navbar } from "./_blocks/navbar";
 
 export default function () {
   const { setUser } = useAuthStore();
@@ -70,11 +71,12 @@ export default function () {
   }, [versionData]);
 
   return (
-    <>
+    <div className={cn(["flex", "flex-col", "min-h-screen"])}>
+      <Background />
       <Navbar />
-      <main className={cn(["flex", "flex-col", "min-h-[calc(100vh-64px)]"])}>
+      <div className={cn(["min-h-(--app-content-height)", "flex", "flex-col"])}>
         <Outlet />
-      </main>
-    </>
+      </div>
+    </div>
   );
 }

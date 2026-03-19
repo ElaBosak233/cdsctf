@@ -23,8 +23,8 @@ import { Switch } from "@/components/ui/switch";
 import type { Email } from "@/models/email";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { CreateEmailDialog } from "./create-dialog";
-import { DeleteEmailDialog } from "./delete-dialog";
+import { CreateEmailDialog } from "./_blocks/create-dialog";
+import { DeleteEmailDialog } from "./_blocks/delete-dialog";
 
 export default function Emails() {
   const { t } = useTranslation();
@@ -59,17 +59,17 @@ export default function Emails() {
     sharedStore.setRefresh();
   }
 
-  function handleToggle(email: string, is_verified: boolean) {
+  function handleToggle(email: string, verified: boolean) {
     if (!user_id) return;
     setUpdatingEmail(email);
     updateEmail({
       user_id: userId,
       email,
-      is_verified,
+      verified,
     })
       .then((res) => {
         if (res.code === StatusCodes.OK) {
-          toast.success(t("user.emails.actions.update.success", { email }));
+          toast.success(t("user:emails.actions.update.success", { email }));
           handleRefresh();
         }
       })
@@ -98,10 +98,10 @@ export default function Emails() {
             ])}
           >
             <MailIcon />
-            {t("user.emails._")}
+            {t("user:emails._")}
           </h1>
           <p className={cn(["text-muted-foreground", "text-sm"])}>
-            {t("user.emails.brief")}
+            {t("user:emails.brief")}
           </p>
         </div>
         <div className={cn(["flex", "items-center", "gap-2"])}>
@@ -111,7 +111,7 @@ export default function Emails() {
             icon={<MailPlusIcon />}
             onClick={() => setCreateDialogOpen(true)}
           >
-            {t("common.actions.add")}
+            {t("common:actions.add")}
           </Button>
         </div>
       </div>
@@ -132,17 +132,17 @@ export default function Emails() {
                 <ItemContent>
                   <ItemTitle className={cn(["text-base"])}>
                     {email.email}
-                    {email.is_verified && (
+                    {email.verified && (
                       <Badge className={cn(["bg-success/15", "text-success"])}>
                         <CheckIcon className={cn(["size-3.5"])} />
-                        {t("user.emails.is_verified.true._")}
+                        {t("user:emails.verified.true._")}
                       </Badge>
                     )}
                   </ItemTitle>
                   <ItemDescription>
-                    {email.is_verified
-                      ? t("user.emails.is_verified.true.long")
-                      : t("user.emails.is_verified.false.long")}
+                    {email.verified
+                      ? t("user:emails.verified.true.long")
+                      : t("user:emails.verified.false.long")}
                   </ItemDescription>
                 </ItemContent>
                 <ItemActions className={cn(["flex", "flex-wrap", "gap-3"])}>
@@ -155,9 +155,9 @@ export default function Emails() {
                       "text-muted-foreground",
                     ])}
                   >
-                    <span>{t("user.emails.is_verified.true._")}</span>
+                    <span>{t("user:emails.verified.true._")}</span>
                     <Switch
-                      checked={email.is_verified}
+                      checked={email.verified}
                       onCheckedChange={(checked) =>
                         handleToggle(email.email, checked === true)
                       }
@@ -194,7 +194,7 @@ export default function Emails() {
           ])}
         >
           <MailIcon className={cn(["size-8"])} />
-          <div>{t("user.emails.empty")}</div>
+          <div>{t("user:emails.empty")}</div>
         </div>
       )}
 

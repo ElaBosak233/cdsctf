@@ -20,7 +20,7 @@ pub struct GameChallenge {
     pub max_pts: i64,
     pub min_pts: i64,
     pub pts: i64,
-    pub is_enabled: bool,
+    pub enabled: bool,
     pub frozen_at: Option<i64>,
 }
 
@@ -39,7 +39,7 @@ pub struct GameChallengeMini {
 pub struct FindGameChallengeOptions {
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
-    pub is_enabled: Option<bool>,
+    pub enabled: Option<bool>,
     pub category: Option<i32>,
 }
 
@@ -48,7 +48,7 @@ pub async fn find<T>(
     FindGameChallengeOptions {
         game_id,
         challenge_id,
-        is_enabled,
+        enabled,
         category,
     }: FindGameChallengeOptions,
 ) -> Result<(Vec<T>, u64), DbError>
@@ -63,8 +63,8 @@ where
         sql = sql.filter(Column::ChallengeId.eq(challenge_id));
     }
 
-    if let Some(is_enabled) = is_enabled {
-        sql = sql.filter(Column::IsEnabled.eq(is_enabled));
+    if let Some(enabled) = enabled {
+        sql = sql.filter(Column::Enabled.eq(enabled));
     }
 
     if let Some(category) = category {

@@ -4,7 +4,7 @@ mod logo;
 use std::sync::Arc;
 
 use axum::{Router, extract::State};
-use cds_db::sea_orm::Set;
+use cds_db::Config;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -21,9 +21,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/statistics", axum::routing::get(get_statistics))
 }
 
-pub async fn get_config(
-    State(s): State<Arc<AppState>>,
-) -> Result<WebResponse<cds_db::config::Model>, WebError> {
+pub async fn get_config(State(s): State<Arc<AppState>>) -> Result<WebResponse<Config>, WebError> {
     Ok(WebResponse {
         data: Some(cds_db::get_config(&s.db.conn).await),
         ..Default::default()
@@ -33,19 +31,9 @@ pub async fn get_config(
 pub async fn update_config(
     State(s): State<Arc<AppState>>,
 
-    Json(body): Json<cds_db::config::Model>,
-) -> Result<WebResponse<cds_db::config::Model>, WebError> {
-    let config = cds_db::config::save(
-        &s.db.conn,
-        cds_db::config::ActiveModel {
-            meta: Set(body.meta),
-            auth: Set(body.auth),
-            email: Set(body.email),
-            captcha: Set(body.captcha),
-            ..Default::default()
-        },
-    )
-    .await?;
+    Json(body): Json<Config>,
+) -> Result<WebResponse<Config>, WebError> {
+    let config = cds_db::config::save(&s.db.conn, body).await?;
 
     Ok(WebResponse {
         data: Some(config),

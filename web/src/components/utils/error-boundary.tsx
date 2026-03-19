@@ -49,7 +49,7 @@ function ErrorBoundary() {
         ])}
       >
         <HeartCrackIcon className={cn(["size-10"])} />
-        <span>{t("common.errors.unexpected")}</span>
+        <span>{t("common:errors.unexpected")}</span>
         <ScrollArea
           className={cn(["h-96", "bg-card", "border", "rounded-lg", "p-5"])}
         >
@@ -62,7 +62,7 @@ function ErrorBoundary() {
             onClick={handleReload}
             size={"lg"}
           >
-            {t("common.actions.refresh")}
+            {t("common:actions.refresh")}
           </Button>
           <Button
             icon={<DatabaseZapIcon />}
@@ -70,7 +70,7 @@ function ErrorBoundary() {
             onClick={handleCacheClear}
             size={"lg"}
           >
-            {t("common.actions.clear_cache")}
+            {t("common:actions.clear_cache")}
           </Button>
         </div>
       </div>

@@ -5,7 +5,7 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::{game, game_challenge, submission};
+use super::{game, game_challenge, note, submission};
 
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "challenges")]
@@ -17,20 +17,23 @@ pub struct Model {
     pub description: String,
     pub category: i32,
     pub tags: Vec<String>,
-    pub is_dynamic: bool,
+    pub has_instance: bool,
     pub has_attachment: bool,
-    pub is_public: bool,
+    pub has_writeup: bool,
+    pub public: bool,
     #[sea_orm(column_type = "JsonBinary")]
-    pub env: Option<Env>,
+    pub instance: Option<Instance>,
     #[sea_orm(column_type = "Text")]
     pub checker: Option<String>,
+    #[sea_orm(column_type = "Text")]
+    pub writeup: Option<String>,
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-pub struct Env {
+pub struct Instance {
     pub duration: i64,
     pub internet: bool,
     pub containers: Vec<Container>,
@@ -66,12 +69,14 @@ pub struct EnvVar {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Submission,
+    Note,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
             Self::Submission => Entity::has_many(submission::Entity).into(),
+            Self::Note => Entity::has_many(note::Entity).into(),
         }
     }
 }
@@ -79,6 +84,12 @@ impl RelationTrait for Relation {
 impl Related<submission::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Submission.def()
+    }
+}
+
+impl Related<note::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Note.def()
     }
 }
 

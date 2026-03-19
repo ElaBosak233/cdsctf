@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq)]
 pub struct Config {
-    pub is_enabled: bool,
+    pub enabled: bool,
     pub host: String,
     pub port: u16,
     pub tls: Tls,
@@ -44,7 +44,7 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            is_enabled: false,
+            enabled: false,
             host: "".to_owned(),
             port: 0,
             tls: Tls::None,
