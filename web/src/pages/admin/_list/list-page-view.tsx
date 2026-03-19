@@ -42,7 +42,7 @@ export function AdminListPageView({
     <div className={cn("overflow-hidden flex flex-col min-h-0 h-full")}>
       <div
         className={cn(
-          "container mx-auto flex flex-col flex-1 min-h-0 overflow-hidden",
+          "flex flex-col flex-1 min-h-0 overflow-hidden",
           "px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8"
         )}
       >

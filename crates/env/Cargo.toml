@@ -13,12 +13,9 @@ version      = { workspace = true }
 [dependencies]
 anyhow    = { workspace = true }
 figment   = { workspace = true }
-nanoid    = { workspace = true }
-once_cell = { workspace = true }
 serde     = { workspace = true }
 shadow-rs = { workspace = true }
 thiserror = { workspace = true }
-tokio     = { workspace = true }
 
 [build-dependencies]
 shadow-rs = { workspace = true }

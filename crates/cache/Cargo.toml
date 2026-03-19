@@ -13,10 +13,13 @@ version      = { workspace = true }
 [dependencies]
 cds-env = { workspace = true }
 
-anyhow     = { workspace = true }
-fred       = { workspace = true }
-once_cell  = { workspace = true }
-serde      = { workspace = true }
-serde_json = { workspace = true }
-thiserror  = { workspace = true }
-tracing    = { workspace = true }
+anyhow              = { workspace = true }
+async-trait         = { workspace = true }
+fred                = { workspace = true }
+rmp-serde           = { workspace = true }
+serde               = { workspace = true }
+serde_json          = { workspace = true }
+thiserror           = { workspace = true }
+time                = { workspace = true }
+tower-sessions-core = { workspace = true }
+tracing             = { workspace = true }

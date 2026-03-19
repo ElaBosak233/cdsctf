@@ -26,28 +26,27 @@ cds-migrator = { workspace = true }
 cds-observe  = { workspace = true }
 cds-queue    = { workspace = true }
 
-anyhow                     = { workspace = true }
-argon2                     = { workspace = true }
-axum                       = { workspace = true }
-futures-util               = { workspace = true }
-http-serde                 = { workspace = true }
-mimalloc                   = { workspace = true }
-mime                       = { workspace = true }
-nanoid                     = { workspace = true }
-rustls                     = { workspace = true }
-scraper                    = { workspace = true }
-serde                      = { workspace = true }
-serde_json                 = { workspace = true }
-serde_with                 = { workspace = true }
-thiserror                  = { workspace = true }
-time                       = { workspace = true }
-tokio                      = { workspace = true }
-tower-http                 = { workspace = true }
-tower-sessions             = { workspace = true }
-tower-sessions-redis-store = { workspace = true }
-tower_governor             = { workspace = true }
-tracing                    = { workspace = true }
-validator                  = { workspace = true }
+anyhow         = { workspace = true }
+argon2         = { workspace = true }
+axum           = { workspace = true }
+futures-util   = { workspace = true }
+http-serde     = { workspace = true }
+mimalloc       = { workspace = true }
+mime           = { workspace = true }
+nanoid         = { workspace = true }
+rustls         = { workspace = true }
+scraper        = { workspace = true }
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+serde_with     = { workspace = true }
+thiserror      = { workspace = true }
+time           = { workspace = true }
+tokio          = { workspace = true }
+tower-http     = { workspace = true }
+tower-sessions = { workspace = true }
+tower_governor = { workspace = true }
+tracing        = { workspace = true }
+validator      = { workspace = true }
 
 [lib]
 path = "src/lib.rs"

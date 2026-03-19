@@ -9,6 +9,7 @@ use serde_json::Value;
 use tracing::info;
 use traits::CacheError;
 
+pub mod session;
 pub mod traits;
 
 #[derive(Debug, Clone)]

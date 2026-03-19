@@ -15,7 +15,6 @@ cds-env = { workspace = true }
 
 anyhow      = { workspace = true }
 async-trait = { workspace = true }
-once_cell   = { workspace = true }
 sea-orm     = { workspace = true }
 serde       = { workspace = true }
 serde_json  = { workspace = true }
@@ -23,7 +22,9 @@ serde_repr  = { workspace = true }
 thiserror   = { workspace = true }
 time        = { workspace = true }
 tracing     = { workspace = true }
-uuid        = { workspace = true }
 
 [lib]
 path = "src/lib.rs"
+
+[package.metadata.cargo-machete]
+ignored = ["serde_json"]

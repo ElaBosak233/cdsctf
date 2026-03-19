@@ -2,6 +2,7 @@ use std::convert::Infallible;
 
 use cds_queue::Queue;
 use futures_util::{Stream, StreamExt as _};
+use tracing::info;
 
 use crate::{traits::EventError, types::Event};
 
@@ -20,6 +21,8 @@ pub struct SubscribeOptions {
 }
 
 pub fn init(queue: &Queue) -> Result<EventManager, EventError> {
+    info!("Event Manager was initialized successfully.");
+
     Ok(EventManager {
         queue: queue.clone(),
     })
