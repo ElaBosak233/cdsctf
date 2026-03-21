@@ -8,7 +8,7 @@ export interface GetEmailsRequest {
 export async function getEmails(request: GetEmailsRequest) {
   return api
     .get(`admin/users/${request.user_id}/emails`)
-    .json<{ items: Email[]; total: number }>();
+    .json<{ emails: Email[]; total: number }>();
 }
 
 export interface AddEmailRequest {

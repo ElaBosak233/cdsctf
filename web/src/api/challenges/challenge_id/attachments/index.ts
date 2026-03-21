@@ -4,5 +4,5 @@ import { api } from "@/utils/query";
 export async function getChallengeAttachments(id: number) {
   return api
     .get(`challenges/${id}/attachments`)
-    .json<{ items: Metadata[]; total: number }>();
+    .json<{ attachments: Metadata[]; total: number }>();
 }

@@ -12,5 +12,5 @@ export async function getGameChallenges(request: GetGameChallengeRequest) {
     .get(`games/${request.game_id}/challenges`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: GameChallenge[]; total: number }>();
+    .json<{ challenges: GameChallenge[]; total: number }>();
 }

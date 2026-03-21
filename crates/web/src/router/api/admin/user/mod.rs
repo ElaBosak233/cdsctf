@@ -47,7 +47,7 @@ pub struct GetUsersRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminUsersListResponse {
-    pub items: Vec<User>,
+    pub users: Vec<User>,
     pub total: u64,
 }
 
@@ -84,7 +84,7 @@ pub async fn get_users(
     .await?;
 
     Ok(Json(AdminUsersListResponse {
-        items: users,
+        users,
         total,
     }))
 }

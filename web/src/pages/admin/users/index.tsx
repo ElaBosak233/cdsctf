@@ -61,7 +61,7 @@ function useUserQuery(params: GetUsersRequest) {
     ],
     queryFn: () => getUsers(params),
     select: (response) => ({
-      users: response.items || [],
+      users: response.users || [],
       total: response.total || 0,
     }),
     enabled: !!params,

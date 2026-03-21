@@ -117,7 +117,7 @@ export default function Index() {
     })
       .then((res) => {
         setTotal(res?.total || 0);
-        setTeams(res?.items || []);
+        setTeams(res?.teams || []);
       })
       .finally(() => {
         setLoading(false);

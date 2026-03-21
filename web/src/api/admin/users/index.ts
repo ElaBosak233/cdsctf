@@ -17,7 +17,7 @@ export async function getUsers(request: GetUsersRequest) {
     .get("admin/users", {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: User[]; total: number }>();
+    .json<{ users: User[]; total: number }>();
 }
 
 export interface CreateUserRequest {

@@ -111,7 +111,7 @@ function InstanceSection() {
       team_id: mode === "game" ? Number(team?.id) : undefined,
     }).then((res) => {
       {
-        const p = res.items?.[0];
+        const p = res.instances?.[0];
         setInstance(p);
         setTimeLeft(
           Math.ceil(

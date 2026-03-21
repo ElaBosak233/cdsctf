@@ -45,7 +45,7 @@ export default function Emails() {
         user_id: userId,
       });
 
-      return res.items ?? [];
+      return res.emails ?? [];
     },
     enabled: !!user_id,
     placeholderData: keepPreviousData,

@@ -20,7 +20,7 @@ export async function getPlaygroundChallenges(
     .get("challenges/playground", {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: ChallengeMini[]; total: number }>();
+    .json<{ challenges: ChallengeMini[]; total: number }>();
 }
 
 export interface GetChallengeStatusRequest {

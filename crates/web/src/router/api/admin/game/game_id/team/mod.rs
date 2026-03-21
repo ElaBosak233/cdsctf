@@ -47,7 +47,7 @@ pub struct GetTeamRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminTeamsListResponse {
-    pub items: Vec<Team>,
+    pub teams: Vec<Team>,
     pub total: u64,
 }
 
@@ -92,7 +92,7 @@ pub async fn get_team(
     .await?;
 
     Ok(Json(AdminTeamsListResponse {
-        items: teams,
+        teams,
         total,
     }))
 }

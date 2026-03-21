@@ -23,5 +23,5 @@ export interface GetTeamMemberRequest {
 export async function getTeamMembers(request: GetTeamMemberRequest) {
   return api
     .get(`games/${request.game_id}/teams/${request.team_id}/members`)
-    .json<{ items: UserMini[]; total: number }>();
+    .json<{ users: UserMini[]; total: number }>();
 }

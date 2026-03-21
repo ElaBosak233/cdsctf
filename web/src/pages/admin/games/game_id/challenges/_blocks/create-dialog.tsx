@@ -42,7 +42,7 @@ function CreateDialog(props: CreateDialogProps) {
       page: 1,
       sorts: "-created_at",
     }).then((res) => {
-      setChallenges(res.items);
+      setChallenges(res.challenges);
     });
   }, [debouncedId, debounceTitle]);
 

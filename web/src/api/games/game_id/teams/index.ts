@@ -13,7 +13,7 @@ import { api } from "@/utils/query";
 // }
 
 // export async function getTeams(request: GetTeamRequest) {
-//     return alova.Get<{ items: Team[]; total: number }>(
+//     return alova.Get<{ teams: Team[]; total: number }>(
 //         `/games/${request.game_id}/teams`,
 //         {
 //             params: request,

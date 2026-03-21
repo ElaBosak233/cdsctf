@@ -14,7 +14,7 @@ export async function getInstances(request: GetInstanceRequest) {
     .get("instances", {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: Instance[] }>();
+    .json<{ instances: Instance[] }>();
 }
 
 export interface CreateInstanceRequest {

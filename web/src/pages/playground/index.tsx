@@ -43,7 +43,7 @@ function usePlaygroundChallengeQuery(
     ],
     queryFn: () => getPlaygroundChallenges(params),
     select: (response) => ({
-      challenges: response.items || [],
+      challenges: response.challenges || [],
       total: response.total || 0,
     }),
     enabled: !!params,

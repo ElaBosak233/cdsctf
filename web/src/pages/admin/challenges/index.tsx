@@ -64,7 +64,7 @@ function useChallengeQuery(params: GetChallengesRequest) {
     ],
     queryFn: () => getChallenges(params),
     select: (response) => ({
-      challenges: response.items || [],
+      challenges: response.challenges || [],
       total: response.total || 0,
     }),
     enabled: !!params,

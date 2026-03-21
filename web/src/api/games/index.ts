@@ -14,5 +14,5 @@ export async function getGames(request: GetGameRequest) {
     .get("games", {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: GameMini[]; total: number }>();
+    .json<{ games: GameMini[]; total: number }>();
 }

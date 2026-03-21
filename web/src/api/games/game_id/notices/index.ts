@@ -10,5 +10,5 @@ export async function getGameNotice(request: GetGameNoticeRequest) {
     .get(`games/${request.game_id}/notices`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: GameNotice[]; total: number }>();
+    .json<{ notices: GameNotice[]; total: number }>();
 }

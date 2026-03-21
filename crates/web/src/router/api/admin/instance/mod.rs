@@ -40,7 +40,7 @@ pub struct GetInstanceRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct ListInstancesResponse {
-    pub items: Vec<Instance>,
+    pub instances: Vec<Instance>,
 }
 
 #[utoipa::path(
@@ -96,7 +96,7 @@ pub async fn get_instance(
         .map(|pod| Instance::from(pod).with_env(&s.env))
         .collect::<Vec<Instance>>();
 
-    Ok(Json(ListInstancesResponse { items: envs }))
+    Ok(Json(ListInstancesResponse { instances: envs }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]

@@ -46,7 +46,7 @@ export default function Index() {
         page,
       }),
     select: (response) => ({
-      scoreboard: response.items || [],
+      scoreboard: response.records || [],
       total: response.total || 0,
     }),
     placeholderData: keepPreviousData,

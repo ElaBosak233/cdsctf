@@ -20,7 +20,7 @@ function NoticeCard() {
       getGameNotice({
         game_id: currentGame?.id,
       }),
-    select: (response) => response.items,
+    select: (response) => response.notices,
     refetchInterval: 15000,
   });
 

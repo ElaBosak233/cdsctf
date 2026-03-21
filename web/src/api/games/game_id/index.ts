@@ -20,5 +20,5 @@ export async function getGameScoreboard(request: GetGameScoreboardRequest) {
     .get(`games/${request.id}/scoreboard`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: ScoreRecord[]; total: number }>();
+    .json<{ records: ScoreRecord[]; total: number }>();
 }

@@ -106,7 +106,7 @@ pub struct ScoreRecord {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GameScoreboardResponse {
-    pub items: Vec<ScoreRecord>,
+    pub records: Vec<ScoreRecord>,
     pub total: u64,
 }
 
@@ -167,7 +167,7 @@ pub async fn get_game_scoreboard(
     }
 
     Ok(Json(GameScoreboardResponse {
-        items: result,
+        records: result,
         total,
     }))
 }

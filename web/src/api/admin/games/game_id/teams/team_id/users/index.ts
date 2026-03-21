@@ -9,7 +9,7 @@ export interface GetTeamUserRequest {
 export async function getTeamUser(request: GetTeamUserRequest) {
   return api
     .get(`admin/games/${request.game_id}/teams/${request.team_id}/users`)
-    .json<{ items: UserMini[]; total: number }>();
+    .json<{ users: UserMini[]; total: number }>();
 }
 
 export interface CreateTeamUserRequest {

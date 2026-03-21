@@ -42,7 +42,7 @@ pub struct GetSubmissionsRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct ListSubmissionsResponse {
-    pub items: Vec<Submission>,
+    pub submissions: Vec<Submission>,
     pub total: u64,
 }
 
@@ -84,7 +84,7 @@ pub async fn get_submissions(
     .await?;
 
     Ok(Json(ListSubmissionsResponse {
-        items: submissions,
+        submissions,
         total,
     }))
 }

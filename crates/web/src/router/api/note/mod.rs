@@ -36,7 +36,7 @@ pub struct GetNoteRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct ListNotesResponse {
-    pub items: Vec<Note>,
+    pub notes: Vec<Note>,
     pub total: u64,
 }
 
@@ -77,7 +77,7 @@ pub async fn get_note(
     .await?;
 
     Ok(Json(ListNotesResponse {
-        items: notes,
+        notes,
         total,
     }))
 }

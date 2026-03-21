@@ -43,7 +43,7 @@ export default function Index() {
         game_id: currentGame?.id,
       }),
     select: (response) => {
-      const challenges = response.items;
+      const challenges = response.challenges;
       return challenges?.sort((a, b) => {
         if (a.challenge_category === b.challenge_category) {
           return (a.pts ?? 0) - (b.pts ?? 0);

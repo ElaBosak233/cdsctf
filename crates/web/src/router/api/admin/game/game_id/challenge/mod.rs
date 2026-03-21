@@ -44,7 +44,7 @@ pub struct GetGameChallengeRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminGameChallengesListResponse {
-    pub items: Vec<GameChallenge>,
+    pub challenges: Vec<GameChallenge>,
     pub total: u64,
 }
 
@@ -80,7 +80,7 @@ pub async fn get_game_challenge(
     .await?;
 
     Ok(Json(AdminGameChallengesListResponse {
-        items: game_challenges,
+        challenges: game_challenges,
         total,
     }))
 }

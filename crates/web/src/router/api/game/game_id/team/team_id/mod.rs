@@ -35,7 +35,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct TeamMembersListResponse {
-    pub items: Vec<UserMini>,
+    pub users: Vec<UserMini>,
     pub total: u64,
 }
 
@@ -62,7 +62,7 @@ pub async fn get_team_members(
     let total = users.len() as u64;
 
     Ok(Json(TeamMembersListResponse {
-        items: users,
+        users,
         total,
     }))
 }

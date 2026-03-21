@@ -37,5 +37,5 @@ export async function getSubmission(request: GetSubmissionRequest) {
     .get("submissions", {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: Submission[]; total: number }>();
+    .json<{ submissions: Submission[]; total: number }>();
 }

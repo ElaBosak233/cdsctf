@@ -29,7 +29,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
 pub struct ChallengeAttachmentsListResponse {
-    pub items: Vec<Metadata>,
+    pub attachments: Vec<Metadata>,
     pub total: u64,
 }
 
@@ -77,7 +77,7 @@ pub async fn get_challenge_attachment(
     let total = metadata.len() as u64;
 
     Ok(Json(ChallengeAttachmentsListResponse {
-        items: metadata,
+        attachments: metadata,
         total,
     }))
 }

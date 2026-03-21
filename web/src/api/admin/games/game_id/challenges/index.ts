@@ -13,7 +13,7 @@ export async function getGameChallenges(request: GetGameChallengeRequest) {
     .get(`admin/games/${request.game_id}/challenges`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: GameChallenge[]; total: number }>();
+    .json<{ challenges: GameChallenge[]; total: number }>();
 }
 
 export interface CreateGameChallengeRequest {

@@ -71,7 +71,7 @@ export default function GameLayout() {
       game_id: Number(game_id),
       team_id: selfTeam?.id,
     }).then((res) => {
-      setMembers(res.items);
+      setMembers(res.users);
     });
   }, [sharedStore?.refresh, selfTeam, game_id, setMembers]);
 

@@ -25,7 +25,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
 pub struct GameNoticesListResponse {
-    pub items: Vec<GameNotice>,
+    pub notices: Vec<GameNotice>,
     pub total: u64,
 }
 
@@ -55,7 +55,7 @@ pub async fn get_game_notice(
     let total = game_notices.len() as u64;
 
     Ok(Json(GameNoticesListResponse {
-        items: game_notices,
+        notices: game_notices,
         total,
     }))
 }

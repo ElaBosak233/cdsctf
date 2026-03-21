@@ -25,7 +25,7 @@ export default function Layout() {
       const res = await getUsers({
         id: Number(user_id),
       });
-      return res.items[0];
+      return res.users[0];
     },
     enabled: !!user_id,
     placeholderData: keepPreviousData,

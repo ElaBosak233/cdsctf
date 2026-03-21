@@ -18,7 +18,7 @@ export async function getChallenges(request: GetChallengesRequest) {
     .get("admin/challenges", {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: Challenge[]; total: number }>();
+    .json<{ challenges: Challenge[]; total: number }>();
 }
 
 export interface CreateChallengeRequest {

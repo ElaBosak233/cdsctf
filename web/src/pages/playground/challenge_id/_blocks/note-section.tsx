@@ -26,7 +26,7 @@ function useNoteQuery(userId?: number, challengeId?: number) {
   return useQuery({
     queryKey: ["note", `user_id=${userId}`, `challenge_id=${challengeId}`],
     queryFn: () => getMyNotes({ challenge_id: challengeId }),
-    select: (response) => response.items,
+    select: (response) => response.notes,
     enabled: !!challengeId && !!userId,
   });
 }

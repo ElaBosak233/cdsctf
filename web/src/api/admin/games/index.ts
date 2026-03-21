@@ -15,7 +15,7 @@ export async function getGames(request: GetGamesRequest) {
     .get("admin/games", {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: Game[]; total: number }>();
+    .json<{ games: Game[]; total: number }>();
 }
 
 export interface CreateGameRequest {

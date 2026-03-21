@@ -46,7 +46,7 @@ pub struct GetChallengeRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct ChallengesListResponse {
-    pub items: Vec<ChallengeMini>,
+    pub challenges: Vec<ChallengeMini>,
     pub total: u64,
 }
 
@@ -90,7 +90,7 @@ pub async fn get_challenge(
     .await?;
 
     Ok(Json(ChallengesListResponse {
-        items: challenges,
+        challenges,
         total,
     }))
 }

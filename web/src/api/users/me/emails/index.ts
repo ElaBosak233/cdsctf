@@ -2,7 +2,7 @@ import type { Email } from "@/models/email";
 import { api } from "@/utils/query";
 
 export async function getEmails() {
-  return api.get(`users/me/emails`).json<{ items: Email[]; total: number }>();
+  return api.get(`users/me/emails`).json<{ emails: Email[]; total: number }>();
 }
 
 export interface AddEmailRequest {

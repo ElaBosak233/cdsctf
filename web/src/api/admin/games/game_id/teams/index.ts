@@ -17,7 +17,7 @@ export async function getTeams(request: GetTeamRequest) {
     .get(`admin/games/${request.game_id}/teams`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: Team[]; total: number }>();
+    .json<{ teams: Team[]; total: number }>();
 }
 
 export interface CreateTeamRequest {

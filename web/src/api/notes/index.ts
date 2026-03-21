@@ -14,5 +14,5 @@ export async function getNotes(request: GetNotesRequest) {
     .get(`notes`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: Note[]; total: number }>();
+    .json<{ notes: Note[]; total: number }>();
 }

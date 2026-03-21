@@ -13,7 +13,7 @@ export async function getMyNotes(request: GetNotesRequest) {
     .get(`users/me/notes`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ items: Note[]; total: number }>();
+    .json<{ notes: Note[]; total: number }>();
 }
 
 export interface SaveNoteRequest {
