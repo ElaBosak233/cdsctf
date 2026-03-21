@@ -1,3 +1,6 @@
+//! HTTP routing for `avatar` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{
@@ -21,6 +24,8 @@ use crate::{
     util::media::handle_multipart,
 };
 
+/// Builds the Axum router fragment for this module.
+
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(save_team_avatar).with_state(state.clone()))
@@ -40,6 +45,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Stores a team's avatar for the current game context.
 pub async fn save_team_avatar(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -82,6 +89,8 @@ pub async fn save_team_avatar(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes team avatar.
 pub async fn delete_team_avatar(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

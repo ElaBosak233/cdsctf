@@ -1,3 +1,9 @@
+//! Session-based authentication helpers and an admin-only gate.
+//!
+//! [`extract`] hydrates [`crate::traits::AuthPrincipal`] from `tower-sessions`
+//! (`user_id` key). [`admin_only`] rejects callers whose
+//! [`cds_db::user::Group`] is below Admin.
+
 use std::sync::Arc;
 
 use axum::{
@@ -14,6 +20,8 @@ use crate::{
     traits::{AppState, AuthPrincipal, WebError},
 };
 
+/// Loads the signed-in user (if any), enforces banned accounts, bumps a session
+/// counter, then continues the chain.
 pub async fn extract(
     State(s): State<Arc<AppState>>,
 
@@ -52,6 +60,8 @@ pub async fn extract(
     Ok(next.run(req).await)
 }
 
+/// Requires an authenticated operator with [`Group::Admin`] or higher
+/// privileges.
 pub async fn admin_only(
     Extension(ap): Extension<AuthPrincipal>,
     req: Request,

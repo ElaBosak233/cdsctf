@@ -1,3 +1,6 @@
+//! HTTP routing for `challenge` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -13,6 +16,8 @@ use crate::{
     extract::{Extension, Path, Query},
     traits::{AppState, AuthPrincipal, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -48,6 +53,8 @@ pub struct GameChallengesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns game challenge.
 pub async fn get_game_challenge(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

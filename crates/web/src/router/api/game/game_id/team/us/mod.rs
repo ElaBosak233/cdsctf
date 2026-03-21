@@ -1,6 +1,15 @@
+//! HTTP routing for `us` — Axum router wiring and OpenAPI route registration.
+
+/// Defines the `avatar` submodule (see sibling `*.rs` files).
 mod avatar;
+
+/// Defines the `token` submodule (see sibling `*.rs` files).
 pub mod token;
+
+/// Defines the `user` submodule (see sibling `*.rs` files).
 mod user;
+
+/// Defines the `writeup` submodule (see sibling `*.rs` files).
 mod writeup;
 
 use std::sync::Arc;
@@ -28,6 +37,8 @@ use crate::{
     traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
+/// Builds the Axum router fragment for this module.
+
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_team).with_state(state.clone()))
@@ -53,6 +64,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns team.
 pub async fn get_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -86,6 +99,8 @@ pub struct UpdateTeamRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates team.
 pub async fn update_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -126,6 +141,8 @@ pub async fn update_team(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes team.
 pub async fn delete_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -159,6 +176,8 @@ pub async fn delete_team(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates team ready.
 pub async fn set_team_ready(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

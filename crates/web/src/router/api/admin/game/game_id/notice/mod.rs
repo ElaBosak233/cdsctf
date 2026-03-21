@@ -1,3 +1,6 @@
+//! HTTP routing for `notice` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -12,6 +15,8 @@ use crate::{
     extract::{Json as ReqJson, Path},
     traits::{AppState, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -44,6 +49,8 @@ pub struct GameNoticeResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Creates game notice.
 pub async fn create_game_notice(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -78,6 +85,8 @@ pub async fn create_game_notice(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes game notice.
 pub async fn delete_game_notice(
     State(s): State<Arc<AppState>>,
     Path((game_id, notice_id)): Path<(i64, i64)>,

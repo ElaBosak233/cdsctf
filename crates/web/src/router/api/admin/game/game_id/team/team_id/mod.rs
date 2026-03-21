@@ -1,5 +1,13 @@
+//! HTTP routing for `team_id` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `token` submodule (see sibling `*.rs` files).
 mod token;
+
+/// Defines the `user` submodule (see sibling `*.rs` files).
 mod user;
+
+/// Defines the `writeup` submodule (see sibling `*.rs` files).
 mod writeup;
 
 use std::sync::Arc;
@@ -26,6 +34,8 @@ use crate::{
     router::api::game::game_id::team::TeamResponse,
     traits::{AppState, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -59,6 +69,8 @@ pub struct UpdateTeamRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates team.
 pub async fn update_team(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
@@ -108,6 +120,8 @@ pub async fn update_team(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes team.
 pub async fn delete_team(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,

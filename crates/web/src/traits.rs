@@ -1,5 +1,6 @@
-//! Shared HTTP-layer types: application state, authenticated caller, API JSON
-//! shapes, and [`WebError`].
+//! Shared HTTP-layer types: application state [`AppState`], authenticated
+//! caller [`AuthPrincipal`], common JSON envelopes, and [`WebError`] for
+//! consistent API failures.
 
 use axum::{
     Json,
@@ -15,15 +16,25 @@ use tracing::error;
 /// Process-wide state passed into Axum handlers (`State<Arc<AppState>>`).
 #[derive(Clone)]
 pub struct AppState {
+    /// Merged TOML + environment configuration.
     pub env: cds_env::Env,
+    /// NATS-backed pub/sub for live scoreboards and notifications.
     pub event: cds_event::EventManager,
+    /// Primary PostgreSQL access.
     pub db: cds_db::DB,
+    /// Redis JSON cache and session backing store.
     pub cache: cds_cache::Cache,
+    /// Rune-based dynamic challenge checking.
     pub checker: cds_checker::Checker,
+    /// Captcha provider facade.
     pub captcha: cds_captcha::Captcha,
+    /// Kubernetes challenge runtime.
     pub cluster: cds_cluster::Cluster,
+    /// S3-compatible object storage.
     pub media: cds_media::Media,
+    /// SMTP outbound mail (also consumed from the `mailbox` queue).
     pub mailbox: cds_mailbox::Mailbox,
+    /// NATS client for publishing background jobs.
     pub queue: cds_queue::Queue,
 }
 
@@ -98,6 +109,7 @@ pub enum WebError {
 }
 
 impl IntoResponse for WebError {
+    /// Converts into response.
     fn into_response(self) -> Response<Body> {
         let (status, message) = match self {
             Self::NotFound(msg) => (StatusCode::NOT_FOUND, msg.clone()),

@@ -1,3 +1,5 @@
+//! Database access for `traits` — SeaORM queries, updates, and DTOs.
+
 use thiserror::Error;
 
 #[derive(Debug, Error)]

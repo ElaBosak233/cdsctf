@@ -1,3 +1,5 @@
+//! Captcha backend — `turnstile` (verification / challenge generation).
+
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
@@ -29,6 +31,7 @@ struct TurnstileResponse {
     metadata: Option<HashMap<String, serde_json::Value>>,
 }
 
+/// Verifies a submitted flag against the checker script.
 pub(crate) async fn check(c: &Captcha, answer: &Answer) -> Result<bool, CaptchaError> {
     let client = reqwest::Client::new();
     let url = &cds_db::get_config(&c.db.conn).await.captcha.turnstile.url;

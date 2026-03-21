@@ -1,3 +1,5 @@
+//! SeaORM `user` entity — maps the `user` table and its relations.
+
 use async_trait::async_trait;
 use sea_orm::{QuerySelect, Set, entity::prelude::*, sea_query::Query};
 use serde::{Deserialize, Serialize};
@@ -55,6 +57,7 @@ pub enum Relation {
 }
 
 impl RelationTrait for Relation {
+    /// Returns the [`RelationDef`] for this relation variant.
     fn def(&self) -> RelationDef {
         match self {
             Self::Email => Entity::has_one(email::Entity).into(),
@@ -65,10 +68,12 @@ impl RelationTrait for Relation {
 }
 
 impl Related<team::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         team_user::Relation::Team.def()
     }
 
+    /// Declares a `via` join path for related entities.
     fn via() -> Option<RelationDef> {
         Some(team_user::Relation::User.def().rev())
     }
@@ -76,6 +81,7 @@ impl Related<team::Entity> for Entity {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
+    /// SeaORM lifecycle hook executed before insert/update.
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
@@ -92,6 +98,7 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 impl Entity {
+    /// Begins the canonical query with standard joins and projections.
     pub fn base_find() -> Select<Entity> {
         Self::find().column_as(
             Expr::exists(

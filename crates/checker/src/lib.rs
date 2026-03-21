@@ -1,5 +1,16 @@
+//! Challenge checker powered by the Rune scripting engine.
+//!
+//! Scripts must expose `check` and `generate` entrypoints. `check` validates a
+//! submitted flag; `generate` returns dynamic key/value environment variables
+//! injected into challenge pods.
+
+/// Defines the `modules` submodule (see sibling `*.rs` files).
 pub mod modules;
+
+/// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
+
+/// Defines the `util` submodule (see sibling `*.rs` files).
 pub mod util;
 
 use std::collections::HashMap;
@@ -16,11 +27,14 @@ use tracing::debug;
 pub use crate::modules::audit::Status;
 use crate::traits::CheckerError;
 
+/// Checker state: needs [`Media`] so Rune `fs` module can read challenge-local
+/// files from object storage.
 #[derive(Clone)]
 pub struct Checker {
     media: Media,
 }
 
+/// Builds a checker that shares the global [`Media`] handle.
 pub fn init(media: &Media) -> Result<Checker, CheckerError> {
     Ok(Checker {
         media: media.clone(),
@@ -28,6 +42,7 @@ pub fn init(media: &Media) -> Result<Checker, CheckerError> {
 }
 
 impl Checker {
+    /// Builds a Rune [`Context`] with checker builtins installed.
     async fn gen_rune_context(&self, challenge_id: i64) -> Result<Context, CheckerError> {
         Ok(cds_engine::gen_rune_context(vec![
             rune_modules::http::module(true).map_err(EngineError::from)?,
@@ -46,6 +61,7 @@ impl Checker {
         .await?)
     }
 
+    /// Validates checker source and required entrypoints.
     pub async fn lint(&self, challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
         cds_engine::lint(
             self.gen_rune_context(challenge.id).await?,
@@ -60,6 +76,7 @@ impl Checker {
         Ok(())
     }
 
+    /// Compiles and caches checker bytecode for a challenge.
     async fn preload(&self, challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
         cds_engine::preload(
             self.gen_rune_context(challenge.id).await?,
@@ -79,6 +96,7 @@ impl Checker {
         Ok(())
     }
 
+    /// Verifies a submitted flag against the checker script.
     pub async fn check(
         &self,
         challenge: &cds_db::Challenge,
@@ -106,6 +124,7 @@ impl Checker {
         Ok(is_correct)
     }
 
+    /// Produces captcha challenges or dynamic checker environment data.
     pub async fn generate(
         &self,
         challenge: &cds_db::Challenge,

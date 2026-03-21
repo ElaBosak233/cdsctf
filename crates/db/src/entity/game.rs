@@ -1,3 +1,5 @@
+//! SeaORM `game` entity — maps the `game` table and its relations.
+
 use async_trait::async_trait;
 use sea_orm::{FromJsonQueryResult, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
@@ -56,6 +58,7 @@ pub enum Relation {
 }
 
 impl RelationTrait for Relation {
+    /// Returns the [`RelationDef`] for this relation variant.
     fn def(&self) -> RelationDef {
         match self {
             Self::Submission => Entity::has_many(submission::Entity).into(),
@@ -65,10 +68,12 @@ impl RelationTrait for Relation {
 }
 
 impl Related<challenge::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         game_challenge::Relation::Challenge.def()
     }
 
+    /// Declares a `via` join path for related entities.
     fn via() -> Option<RelationDef> {
         Some(game_challenge::Relation::Game.def().rev())
     }
@@ -76,6 +81,7 @@ impl Related<challenge::Entity> for Entity {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
+    /// SeaORM lifecycle hook executed before insert/update.
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {

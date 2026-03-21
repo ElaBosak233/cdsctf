@@ -1,3 +1,5 @@
+//! HTTP routing for `user` — Axum router wiring and OpenAPI route registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -12,6 +14,8 @@ use crate::{
     extract::{Extension, Path},
     traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -32,6 +36,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Removes the caller from their current team.
 pub async fn leave_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

@@ -1,7 +1,19 @@
+//! HTTP routing for `game_id` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `challenge` submodule (see sibling `*.rs` files).
 pub mod challenge;
+
+/// Defines the `icon` submodule (see sibling `*.rs` files).
 mod icon;
+
+/// Defines the `notice` submodule (see sibling `*.rs` files).
 mod notice;
+
+/// Defines the `poster` submodule (see sibling `*.rs` files).
 mod poster;
+
+/// Defines the `team` submodule (see sibling `*.rs` files).
 pub mod team;
 
 use std::{convert::Infallible, sync::Arc};
@@ -31,6 +43,8 @@ use crate::{
     extract::{Path, Query},
     traits::{AppState, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -62,6 +76,8 @@ pub struct GameDetailResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns game.
 pub async fn get_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -108,6 +124,8 @@ pub struct GameScoreboardResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns game scoreboard.
 pub async fn get_game_scoreboard(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -173,6 +191,8 @@ pub struct GetEventsRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns events.
 pub async fn get_events(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,

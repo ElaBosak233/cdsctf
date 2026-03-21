@@ -1,3 +1,5 @@
+//! Database access for `submission` — SeaORM queries, updates, and DTOs.
+
 use std::str::FromStr;
 
 use sea_orm::{
@@ -34,6 +36,7 @@ pub struct Submission {
 }
 
 impl Submission {
+    /// Strips secrets so configuration can be returned to clients.
     pub fn desensitize(&self) -> Self {
         Self {
             content: "".to_owned(),
@@ -55,6 +58,7 @@ pub struct FindSubmissionsOptions {
     pub sorts: Option<String>,
 }
 
+/// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
     FindSubmissionsOptions {
@@ -130,6 +134,8 @@ where
     Ok((submissions, total))
 }
 
+/// Looks up by id.
+
 pub async fn find_by_id<T>(
     conn: &impl ConnectionTrait,
     submission_id: i64,
@@ -142,6 +148,8 @@ where
         .one(conn)
         .await?)
 }
+
+/// Looks up pending by id.
 
 pub async fn find_pending_by_id<T>(
     conn: &impl ConnectionTrait,
@@ -156,6 +164,8 @@ where
         .one(conn)
         .await?)
 }
+
+/// Looks up correct by team ids and game id.
 
 pub async fn find_correct_by_team_ids_and_game_id<T>(
     conn: &impl ConnectionTrait,
@@ -172,6 +182,8 @@ where
         .all(conn)
         .await?)
 }
+
+/// Looks up correct by challenge ids and optional team game.
 
 pub async fn find_correct_by_challenge_ids_and_optional_team_game<T>(
     conn: &impl ConnectionTrait,
@@ -201,10 +213,12 @@ where
     Ok(submissions)
 }
 
+/// Counts rows that match optional filters.
 pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::base_find().count(conn).await?)
 }
 
+/// Counts submissions in `Correct` status for the given scope.
 pub async fn count_correct(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::base_find()
         .filter(Column::Status.eq(Status::Correct))
@@ -212,6 +226,7 @@ pub async fn count_correct(conn: &impl ConnectionTrait) -> Result<u64, DbError> 
         .await?)
 }
 
+/// Inserts a new row and returns the persisted model.
 pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -222,6 +237,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }
 
+/// Applies an active model update to the database.
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -232,6 +248,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }
 
+/// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, submission_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(submission_id).exec(conn).await?;
 

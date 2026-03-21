@@ -1,3 +1,5 @@
+//! Observability — `mod` (metrics, tracing, or logging glue).
+
 use cds_env::Env;
 use once_cell::sync::OnceCell;
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
@@ -8,12 +10,16 @@ use crate::traits::ObserveError;
 
 pub static PROVIDER: OnceCell<SdkLoggerProvider> = OnceCell::new();
 
+/// Returns provider.
+
 pub fn get_provider() -> Result<SdkLoggerProvider, ObserveError> {
     Ok(PROVIDER
         .get()
         .map(|p| p.to_owned())
         .ok_or_else(|| ObserveError::NoInstance)?)
 }
+
+/// Returns tracing layer.
 
 pub fn get_tracing_layer()
 -> Result<OpenTelemetryTracingBridge<SdkLoggerProvider, SdkLogger>, ObserveError> {
@@ -22,6 +28,8 @@ pub fn get_tracing_layer()
 
     Ok(bridge)
 }
+
+/// Initializes this subsystem or resource.
 
 pub fn init(env: &Env) -> Result<(), ObserveError> {
     let log_ep = env
@@ -62,6 +70,7 @@ pub fn init(env: &Env) -> Result<(), ObserveError> {
     Ok(())
 }
 
+/// Flushes exporters and tears down observability integrations.
 pub async fn shutdown() -> Result<(), ObserveError> {
     {
         let provider = get_provider()?;

@@ -1,5 +1,12 @@
+//! HTTP routing for `me` — Axum router wiring and OpenAPI route registration.
+
+/// Defines the `avatar` submodule (see sibling `*.rs` files).
 mod avatar;
+
+/// Defines the `email` submodule (see sibling `*.rs` files).
 mod email;
+
+/// Defines the `note` submodule (see sibling `*.rs` files).
 mod note;
 
 use std::sync::Arc;
@@ -24,6 +31,8 @@ use crate::{
     util,
 };
 
+/// Builds the Axum router fragment for this module.
+
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_user_profile).with_state(state.clone()))
@@ -45,6 +54,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns user profile.
 pub async fn get_user_profile(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -73,6 +84,8 @@ pub struct UpdateUserProfileRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates user profile.
 pub async fn update_user_profile(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -112,6 +125,8 @@ pub struct DeleteUserProfileRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes user profile.
 pub async fn delete_user_profile(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -159,6 +174,8 @@ pub struct UpdateUserProfilePasswordRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates user profile password.
 pub async fn update_user_profile_password(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

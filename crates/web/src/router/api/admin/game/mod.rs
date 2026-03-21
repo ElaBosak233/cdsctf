@@ -1,3 +1,6 @@
+//! HTTP routing for `game` — Axum router wiring and OpenAPI route registration.
+
+/// Defines the `game_id` submodule (see sibling `*.rs` files).
 mod game_id;
 
 use std::sync::Arc;
@@ -20,6 +23,8 @@ use crate::{
     router::api::game::game_id::GameDetailResponse,
     traits::{AppState, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -55,6 +60,8 @@ pub struct AdminGamesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns games.
 pub async fn get_games(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetGameRequest>,
@@ -106,6 +113,8 @@ pub struct CreateGameRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Creates game.
 pub async fn create_game(
     State(s): State<Arc<AppState>>,
     VJson(body): VJson<CreateGameRequest>,

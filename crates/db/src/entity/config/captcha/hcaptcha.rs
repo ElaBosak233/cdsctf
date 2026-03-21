@@ -1,3 +1,5 @@
+//! SeaORM `hcaptcha` entity — maps the `hcaptcha` table and its relations.
+
 use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Serialize};
 
@@ -11,6 +13,7 @@ pub struct Config {
 }
 
 impl Config {
+    /// Strips secrets so configuration can be returned to clients.
     pub fn desensitize(&self) -> Self {
         Self {
             secret_key: "".to_owned(),
@@ -20,6 +23,7 @@ impl Config {
 }
 
 impl Default for Config {
+    /// Returns the default value for this type.
     fn default() -> Self {
         Self {
             url: "https://hcaptcha.com/siteverify".to_owned(),

@@ -1,4 +1,16 @@
-//! Consumer for JetStream subject **`checker`** (verify pending submissions).
+//! JetStream consumer for subject **`checker`**: resolves **pending** flag
+//! submissions with the Rune [`cds_checker::Checker`], applies game rules
+//! (duplicate, freeze, cheat), and may enqueue [`crate::calculator`] work when
+//! a submission becomes correct.
+//!
+//! # Message format
+//!
+//! Each job is a plain string decimal: the submission **database id** (`i64`).
+//!
+//! # Startup
+//!
+//! [`spawn`] re-publishes every still-`Pending` submission so no job is lost
+//! after a restart.
 
 use std::sync::Arc;
 
@@ -16,9 +28,10 @@ use tracing::{error, info};
 
 use crate::calculator::{self, Payload};
 
-/// JetStream subject for submission check jobs.
+/// JetStream subject for asynchronous submission verification.
 pub const SUBJECT: &str = "checker";
 
+/// Shared handles for one consumer instance (cloned into async jobs).
 #[derive(Clone)]
 struct Context {
     db: DB,
@@ -27,6 +40,7 @@ struct Context {
 }
 
 impl Context {
+    /// Clones all dependencies into an owned [`Context`].
     fn new(db: &DB, queue: &Queue, checker: &Checker) -> Self {
         Self {
             db: db.clone(),
@@ -36,12 +50,15 @@ impl Context {
     }
 }
 
+/// Loads a [`Game`] row or fails with `game_not_found`.
 async fn prepare_game(db: &cds_db::DB, game_id: i64) -> Result<Game, anyhow::Error> {
     cds_db::game::find_by_id(&db.conn, game_id)
         .await?
         .ok_or_else(|| anyhow!("game_not_found"))
 }
 
+/// Loads the join row between a game and a challenge
+/// (`game_challenge_not_found` on miss).
 async fn prepare_game_challenge(
     db: &cds_db::DB,
     game_id: i64,
@@ -52,6 +69,8 @@ async fn prepare_game_challenge(
         .ok_or_else(|| anyhow!("game_challenge_not_found"))
 }
 
+/// End-to-end pipeline for one pending submission: load graph, run script,
+/// post-process status, notify calculator.
 async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
     let submission = cds_db::submission::find_pending_by_id::<Submission>(&ctx.db.conn, id)
         .await?
@@ -75,6 +94,8 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
         return Err(anyhow!("challenge_not_found"));
     };
 
+    // Checker scripts key dynamic data off team id when present, otherwise the
+    // submitting user.
     let operator_id = match submission.team_id {
         Some(team_id) => team_id,
         _ => submission.user_id,
@@ -98,6 +119,8 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
     };
 
     if status == Status::Correct {
+        // Second (or later) correct flag for the same challenge scope becomes
+        // Duplicate.
         let is_already_correct =
             if let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) {
                 cds_db::submission::find::<Submission>(
@@ -136,6 +159,8 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
             let game = prepare_game(&ctx.db, game_id).await?;
             let game_challenge = prepare_game_challenge(&ctx.db, game_id, challenge.id).await?;
 
+            // Late solves after global or per-challenge freeze windows downgrade to
+            // Expired.
             let now = time::OffsetDateTime::now_utc().unix_timestamp();
             if now > game.frozen_at || now > game.ended_at {
                 status = Status::Expired;
@@ -164,6 +189,7 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
     .await?;
 
     if submission.game_id.is_some() && status == Status::Correct {
+        // Fan-out score recompute for the affected competition only.
         ctx.queue
             .publish(
                 calculator::SUBJECT,
@@ -177,6 +203,8 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+/// Marks both the submitting team and the `peer_team_id` as **Banned** when
+/// cheat is detected.
 async fn handle_cheat(
     ctx: Arc<Context>,
     submission: &Submission,
@@ -206,6 +234,8 @@ async fn handle_cheat(
     Ok(Status::Cheat)
 }
 
+/// Re-queues historical `Pending` rows so they are checked after deploys /
+/// crashes.
 async fn recover_pending(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
     let (unchecked_submissions, _) = cds_db::submission::find::<Submission>(
         &ctx.db.conn,
@@ -225,6 +255,8 @@ async fn recover_pending(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+/// Infinite pull loop: parse submission id, invoke [`check`], acknowledge the
+/// JetStream message.
 async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
     let mut messages = ctx.queue.subscribe(SUBJECT, None).await?;
     while let Some(Ok(message)) = messages.next().await {
@@ -241,8 +273,7 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-/// Subscribes to [`SUBJECT`], re-queues pending submissions, then runs in a
-/// background task.
+/// Starts the consumer task and immediately calls [`recover_pending`].
 pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker) {
     let ctx = Arc::new(Context::new(db, queue, checker));
     let run_ctx = Arc::clone(&ctx);

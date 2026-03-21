@@ -1,3 +1,6 @@
+//! HTTP routing for `poster` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Router, body::Body, extract::State, http::Response, response::IntoResponse};
@@ -10,6 +13,8 @@ use crate::{
     extract::Path,
     traits::{AppState, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -28,6 +33,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns game poster.
 pub async fn get_game_poster(
     State(s): State<Arc<AppState>>,
 

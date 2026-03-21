@@ -1,3 +1,5 @@
+//! Shared traits and error types for the `event` crate.
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]

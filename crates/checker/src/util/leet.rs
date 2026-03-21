@@ -150,10 +150,12 @@ pub fn decode(template: &str, payload: &str, key: &str) -> Result<i64, io::Error
 }
 
 #[cfg(test)]
+/// Unit tests for the Leet encoder/decoder helpers.
 mod tests {
     const TEMPLATE: &str = "MyLittlePony";
     const KEY: &str = "Fr1endShip1sM4g1c";
 
+    /// Exercises `encode`/`decode` across several years (smoke test).
     #[test]
     pub fn test() {
         let mut payloads: Vec<String> = Vec::new();

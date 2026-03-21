@@ -1,7 +1,23 @@
+//! S3-compatible object storage: buckets, keys with optional global prefix,
+//! presigned URLs.
+//!
+//! Initialization creates the bucket when it does not exist, then uploads
+//! embedded default objects (see [`Media::ensure_embeds`]) so the platform
+//! always has baseline media files.
+
+/// Defines the `challenge` submodule (see sibling `*.rs` files).
 pub mod challenge;
+
+/// Defines the `config` submodule (see sibling `*.rs` files).
 pub mod config;
+
+/// Defines the `presigner` submodule (see sibling `*.rs` files).
 pub mod presigner;
+
+/// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
+
+/// Defines the `util` submodule (see sibling `*.rs` files).
 pub mod util;
 
 use std::{
@@ -19,10 +35,14 @@ use s3::{
 
 use crate::{config::Config, presigner::Presigner, traits::MediaError};
 
+/// Files shipped inside this crate and optionally synced to the remote bucket
+/// on startup.
 #[derive(Embed)]
 #[folder = "./embed/"]
 pub struct Embeds;
 
+/// Active bucket handle, normalized key prefix, and optional presigning client
+/// (may use a different endpoint).
 #[derive(Clone)]
 pub struct Media {
     bucket: Arc<Bucket>,
@@ -30,6 +50,8 @@ pub struct Media {
     presigner: Option<Presigner>,
 }
 
+/// Connects to S3/MinIO from `env.media`, ensures the bucket exists, and
+/// uploads missing embeds.
 pub async fn init(env: &Env) -> Result<Media, MediaError> {
     let region = Region::Custom {
         region: env.media.region.clone(),
@@ -129,6 +151,8 @@ pub async fn init(env: &Env) -> Result<Media, MediaError> {
 }
 
 impl Media {
+    /// Downloads object bytes from the bucket using the normalized
+    /// `{path}/{filename}` key.
     pub async fn get(&self, path: String, filename: String) -> Result<Vec<u8>, MediaError> {
         let key = self.build_key(&path, &filename, true)?;
         let data = self
@@ -139,6 +163,8 @@ impl Media {
         Ok(data.to_vec())
     }
 
+    /// Validates `path` shape; object storage has no real directories, so this
+    /// is a no-op success.
     pub async fn create_dir(&self, path: String) -> Result<(), MediaError> {
         if normalize_path(Path::new(&path)).is_none() {
             return Ok(());
@@ -146,6 +172,7 @@ impl Media {
         Ok(())
     }
 
+    /// Lists object keys under a logical directory prefix.
     pub async fn scan_dir(&self, path: String) -> Result<Vec<(String, u64)>, MediaError> {
         let rel = match normalize_path(Path::new(&path)) {
             Some(rel) => rel,
@@ -178,6 +205,7 @@ impl Media {
         Ok(files)
     }
 
+    /// Persists the current value to the backing store.
     pub async fn save(
         &self,
         path: String,
@@ -192,6 +220,7 @@ impl Media {
         Ok(())
     }
 
+    /// Deletes rows matching the provided identifier or filter.
     pub async fn delete(&self, path: String, filename: String) -> Result<(), MediaError> {
         let key = match self.build_key(&path, &filename, true) {
             Ok(key) => key,
@@ -204,6 +233,8 @@ impl Media {
             .map_err(|err| map_s3_error(err, false))?;
         Ok(())
     }
+
+    /// Deletes dir.
 
     pub async fn delete_dir(&self, path: String) -> Result<(), MediaError> {
         let rel = match normalize_path(Path::new(&path)) {
@@ -234,14 +265,17 @@ impl Media {
         Ok(())
     }
 
+    /// Exposes read-only media configuration derived from the live bucket.
     pub fn config(&self) -> Config<'_> {
         Config::new(&self)
     }
 
+    /// Returns whether time-limited URLs are configured.
     pub fn presigned_enabled(&self) -> bool {
         self.presigner.is_some()
     }
 
+    /// Issues a temporary GET URL for a stored object.
     pub async fn presign_get(
         &self,
         path: &str,
@@ -258,6 +292,7 @@ impl Media {
             .await
     }
 
+    /// Issues a temporary PUT URL for client-side uploads.
     pub async fn presign_put(
         &self,
         path: &str,
@@ -270,6 +305,8 @@ impl Media {
         let key = self.build_key(path, filename, false)?;
         presigner.presign_put(&key, expiry_secs).await
     }
+
+    /// Builds key.
 
     fn build_key(
         &self,
@@ -288,6 +325,7 @@ impl Media {
         Ok(self.with_prefix(&rel))
     }
 
+    /// Prefixes a logical key with the configured bucket prefix.
     fn with_prefix(&self, key: &str) -> String {
         if self.prefix.is_empty() {
             key.to_string()
@@ -298,6 +336,7 @@ impl Media {
         }
     }
 
+    /// Uploads embedded default assets if they are missing remotely.
     async fn ensure_embeds(&self) -> Result<(), MediaError> {
         let existing = self.list_existing_embed_keys().await?;
 
@@ -317,6 +356,8 @@ impl Media {
         Ok(())
     }
 
+    /// Lists which compile-time embed keys already exist remotely (avoids
+    /// redundant uploads).
     async fn list_existing_embed_keys(&self) -> Result<HashSet<String>, MediaError> {
         let mut existing = HashSet::new();
         for file in Embeds::iter() {
@@ -337,6 +378,7 @@ impl Media {
     }
 }
 
+/// Trims slashes and drops a useless `.` prefix for bucket key roots.
 fn normalize_prefix(prefix: &str) -> String {
     let mut prefix = prefix.trim().trim_matches('/').to_string();
     if prefix == "." {
@@ -345,6 +387,8 @@ fn normalize_prefix(prefix: &str) -> String {
     prefix
 }
 
+/// Ensures `path` is relative and contains only normal components (no `..`
+/// traversal).
 fn normalize_path(path: &Path) -> Option<String> {
     if path.is_absolute() {
         return None;
@@ -359,6 +403,8 @@ fn normalize_path(path: &Path) -> Option<String> {
     Some(parts.join("/"))
 }
 
+/// Maps S3 errors to [`MediaError`], optionally treating missing keys as
+/// [`MediaError::NotFound`].
 fn map_s3_error(err: S3Error, treat_not_found_as_missing: bool) -> MediaError {
     let message = err.to_string();
     if treat_not_found_as_missing && (message.contains("NoSuchKey") || message.contains("404")) {

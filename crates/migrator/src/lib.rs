@@ -1,3 +1,10 @@
+//! Database schema migrations (SeaORM) plus a safety net for empty
+//! configuration.
+//!
+//! [`run`] applies pending migrations when needed, then inserts default config
+//! if the table is empty.
+
+/// Defines the `migrations` submodule (see sibling `*.rs` files).
 mod migrations;
 
 use async_trait::async_trait;
@@ -5,10 +12,12 @@ use cds_db::DbError;
 use sea_orm_migration::prelude::*;
 use tracing::info;
 
+/// SeaORM migrator listing all versioned migration modules in order.
 pub struct Migrator;
 
 #[async_trait]
 impl MigratorTrait for Migrator {
+    /// Returns every boxed migration in chronological order.
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
         vec![
             Box::new(migrations::m20260201_000001_create_config::Migration),
@@ -26,6 +35,8 @@ impl MigratorTrait for Migrator {
     }
 }
 
+/// Applies migrations and ensures a default [`cds_db::config::Config`] row
+/// exists.
 pub async fn run(db: &cds_db::DB) -> Result<(), DbError> {
     if !Migrator::get_pending_migrations(&db.conn).await?.is_empty() {
         info!("Migration activating");

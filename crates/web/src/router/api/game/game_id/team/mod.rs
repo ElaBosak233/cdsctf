@@ -1,4 +1,9 @@
+//! HTTP routing for `team` — Axum router wiring and OpenAPI route registration.
+
+/// Defines the `team_id` submodule (see sibling `*.rs` files).
 mod team_id;
+
+/// Defines the `us` submodule (see sibling `*.rs` files).
 pub mod us;
 
 use std::sync::Arc;
@@ -20,6 +25,8 @@ use crate::{
     extract::{Extension, Json as ReqJson, Path},
     traits::{AppState, AuthPrincipal, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -56,6 +63,8 @@ pub struct TeamRegisterRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Registers a new team for a competition.
 pub async fn team_register(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

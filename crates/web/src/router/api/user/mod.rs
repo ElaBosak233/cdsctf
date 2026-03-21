@@ -1,5 +1,12 @@
+//! HTTP routing for `user` — Axum router wiring and OpenAPI route registration.
+
+/// Defines the `forget` submodule (see sibling `*.rs` files).
 mod forget;
+
+/// Defines the `me` submodule (see sibling `*.rs` files).
 mod me;
+
+/// Defines the `user_id` submodule (see sibling `*.rs` files).
 mod user_id;
 
 use std::sync::Arc;
@@ -25,6 +32,8 @@ use crate::{
     traits::{AppState, AuthPrincipal, EmptyJson, WebError},
     util,
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -59,6 +68,8 @@ pub struct UserLoginRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Authenticates a user and establishes a session.
 pub async fn user_login(
     State(s): State<Arc<AppState>>,
     session: Session,
@@ -122,6 +133,8 @@ pub struct UserRegisterRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Creates a new account after validation and captcha.
 pub async fn user_register(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -209,6 +222,8 @@ pub async fn user_register(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Destroys the active session cookie.
 pub async fn user_logout(
     session: Session,
     Extension(ext): Extension<AuthPrincipal>,

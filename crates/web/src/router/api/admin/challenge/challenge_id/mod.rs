@@ -1,5 +1,13 @@
+//! HTTP routing for `challenge_id` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `attachment` submodule (see sibling `*.rs` files).
 mod attachment;
+
+/// Defines the `checker` submodule (see sibling `*.rs` files).
 mod checker;
+
+/// Defines the `writeup` submodule (see sibling `*.rs` files).
 mod writeup;
 
 use std::sync::Arc;
@@ -25,6 +33,8 @@ use crate::{
     traits::{AppState, EmptyJson, WebError},
 };
 
+/// Builds the Axum router fragment for this module.
+
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_challenge).with_state(state.clone()))
@@ -48,6 +58,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns challenge.
 pub async fn get_challenge(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,
@@ -81,6 +93,8 @@ pub struct UpdateChallengeRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates challenge.
 pub async fn update_challenge(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,
@@ -120,6 +134,8 @@ pub async fn update_challenge(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes challenge.
 pub async fn delete_challenge(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,
@@ -147,6 +163,8 @@ pub struct UpdateChallengeInstanceRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates challenge instance.
 pub async fn update_challenge_instance(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,

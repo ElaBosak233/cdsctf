@@ -1,8 +1,13 @@
 //! Top-level Axum router: health check, `/api` (documented + protected),
 //! reverse proxy, and docs.
 
+/// Defines the `api` submodule (see sibling `*.rs` files).
 pub mod api;
+
+/// Defines the `healthz` submodule (see sibling `*.rs` files).
 mod healthz;
+
+/// Defines the `proxy` submodule (see sibling `*.rs` files).
 mod proxy;
 
 use std::{

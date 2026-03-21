@@ -1,3 +1,7 @@
+//! HTTP routing for `challenge` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `challenge_id` submodule (see sibling `*.rs` files).
 mod challenge_id;
 
 use std::{collections::HashMap, sync::Arc};
@@ -18,6 +22,8 @@ use crate::{
     extract::{Extension, Json as ReqJson, Query},
     traits::{AppState, AuthPrincipal, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -55,6 +61,8 @@ pub struct ChallengesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns challenge.
 pub async fn get_challenge(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -120,6 +128,8 @@ pub struct ChallengeStatusesResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns challenge status.
 pub async fn get_challenge_status(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

@@ -1,3 +1,5 @@
+//! HTTP routing for `note` — Axum router wiring and OpenAPI route registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -16,6 +18,8 @@ use crate::{
     extract::{Extension, Json as ReqJson, Query},
     traits::{AppState, AuthPrincipal, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -49,6 +53,8 @@ pub struct MyNotesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns my note.
 pub async fn get_my_note(
     State(s): State<Arc<AppState>>,
     Extension(ap): Extension<AuthPrincipal>,
@@ -99,6 +105,8 @@ pub struct NoteResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Persists the authenticated user's personal note blob.
 pub async fn save_my_note(
     State(s): State<Arc<AppState>>,
     Extension(ap): Extension<AuthPrincipal>,

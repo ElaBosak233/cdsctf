@@ -1,3 +1,6 @@
+//! HTTP routing for `instance_id` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{
@@ -42,6 +45,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Extends or refreshes a player instance from the API.
 pub async fn renew_instance(
     State(s): State<Arc<AppState>>,
 
@@ -124,6 +129,8 @@ pub async fn renew_instance(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Tears down Kubernetes resources for an instance.
 pub async fn stop_instance(
     State(s): State<Arc<AppState>>,
 
@@ -184,6 +191,8 @@ pub struct WsrxRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Proxies WebSocket traffic into a pod port via `wsrx`.
 pub async fn wsrx(
     State(s): State<Arc<AppState>>,
 

@@ -1,3 +1,5 @@
+//! Shared traits and error types for the `cluster` crate.
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 

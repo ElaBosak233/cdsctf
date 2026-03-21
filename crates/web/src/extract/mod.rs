@@ -1,3 +1,9 @@
+//! Thin wrappers around Axum extractors that map failures to
+//! [`crate::traits::WebError`].
+//!
+//! Prefer these types in handlers for consistent JSON error bodies instead of
+//! Axum’s default rejections.
+
 use axum::{
     extract::{
         FromRequest, FromRequestParts, Request,
@@ -12,6 +18,8 @@ use validator::Validate;
 
 use crate::traits::WebError;
 
+/// Path parameters deserialized from the URL (400 on bad syntax, 500 on
+/// framework gaps).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Path<T>(pub T);
 
@@ -21,6 +29,8 @@ where
     S: Send + Sync,
 {
     type Rejection = WebError;
+
+    /// Builds `Self` from request parts.
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         match axum::extract::Path::<T>::from_request_parts(parts, state).await {
@@ -44,6 +54,7 @@ where
     }
 }
 
+/// JSON body without extra validation (400 on deserialize failure).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Json<T>(pub T);
 
@@ -54,6 +65,8 @@ where
 {
     type Rejection = WebError;
 
+    /// Builds `Self` from request.
+
     async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
         match axum::extract::Json::<T>::from_request(req, state).await {
             Ok(value) => Ok(Self(value.0)),
@@ -62,6 +75,7 @@ where
     }
 }
 
+/// JSON body plus `validator::Validate` (422 on validation errors).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct VJson<T>(pub T);
 
@@ -71,6 +85,8 @@ where
     S: Send + Sync,
 {
     type Rejection = WebError;
+
+    /// Builds `Self` from request.
 
     async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
         match axum::extract::Json::<T>::from_request(req, state).await {
@@ -85,6 +101,8 @@ where
     }
 }
 
+/// Re-export pattern for Axum [`axum::extract::Extension`] with unified
+/// [`WebError`] mapping.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Extension<T>(pub T);
 
@@ -94,6 +112,8 @@ where
     S: Send + Sync,
 {
     type Rejection = WebError;
+
+    /// Builds `Self` from request parts.
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         match axum::extract::Extension::<T>::from_request_parts(parts, state).await {
@@ -108,6 +128,8 @@ where
     }
 }
 
+/// Query string deserialized into `T` (500 on malformed query for parity with
+/// legacy behavior).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Query<T>(pub T);
 
@@ -117,6 +139,8 @@ where
     S: Send + Sync,
 {
     type Rejection = WebError;
+
+    /// Builds `Self` from request parts.
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         match axum::extract::Query::<T>::from_request_parts(parts, state).await {

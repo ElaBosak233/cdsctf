@@ -1,3 +1,5 @@
+//! Observability — `mod` (metrics, tracing, or logging glue).
+
 use std::borrow::Cow;
 
 use cds_env::Env;
@@ -13,12 +15,16 @@ use crate::traits::ObserveError;
 
 static PROVIDER: OnceCell<SdkTracerProvider> = OnceCell::new();
 
+/// Returns provider.
+
 pub fn get_provider() -> Result<SdkTracerProvider, ObserveError> {
     PROVIDER
         .get()
         .map(|p| p.to_owned())
         .ok_or_else(|| ObserveError::NoInstance)
 }
+
+/// Returns tracer.
 
 pub fn get_tracer() -> Result<Tracer, ObserveError> {
     Ok(get_provider()?.tracer("cdsctf"))
@@ -31,6 +37,8 @@ pub static TRACER: Lazy<BoxedTracer> = Lazy::new(|| {
 
     global::tracer_with_scope(scope)
 });
+
+/// Initializes this subsystem or resource.
 
 pub fn init(env: &Env) -> Result<(), ObserveError> {
     let trace_ep = env
@@ -72,6 +80,7 @@ pub fn init(env: &Env) -> Result<(), ObserveError> {
     Ok(())
 }
 
+/// Flushes exporters and tears down observability integrations.
 pub async fn shutdown() -> Result<(), ObserveError> {
     {
         let provider = get_provider()?;

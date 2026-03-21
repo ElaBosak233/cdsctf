@@ -1,3 +1,5 @@
+//! Web utility — `cluster` (shared HTTP helpers).
+
 use cds_cluster::{k8s_openapi::api::core::v1::Pod, traits::Nat};
 use cds_db::challenge::Port;
 use cds_env::Env;
@@ -24,6 +26,7 @@ pub struct Instance {
 }
 
 impl Instance {
+    /// Applies checker-generated environment variables to a pod spec.
     pub fn with_env(mut self, env: &Env) -> Self {
         self.public_entry = Some(env.cluster.public_entry.clone());
         self
@@ -31,6 +34,7 @@ impl Instance {
 }
 
 impl From<Pod> for Instance {
+    /// Converts from the input into `Self`.
     fn from(pod: Pod) -> Self {
         let labels = pod.metadata.labels.unwrap_or_default();
 

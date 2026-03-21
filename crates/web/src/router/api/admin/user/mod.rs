@@ -1,3 +1,6 @@
+//! HTTP routing for `user` — Axum router wiring and OpenAPI route registration.
+
+/// Defines the `user_id` submodule (see sibling `*.rs` files).
 mod user_id;
 
 use std::sync::Arc;
@@ -21,6 +24,8 @@ use crate::{
     router::api::user::UserResponse,
     traits::{AppState, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -56,6 +61,8 @@ pub struct AdminUsersListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns users.
 pub async fn get_users(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetUsersRequest>,
@@ -104,6 +111,8 @@ pub struct CreateUserRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Creates user.
 pub async fn create_user(
     State(s): State<Arc<AppState>>,
     VJson(mut body): VJson<CreateUserRequest>,

@@ -1,3 +1,6 @@
+//! HTTP routing for `email` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -12,6 +15,8 @@ use crate::{
     extract::{Json as ReqJson, Query},
     traits::{AppState, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -42,6 +47,8 @@ pub struct EmailTemplateResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns email.
 pub async fn get_email(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetEmailRequest>,
@@ -69,6 +76,8 @@ pub struct SaveEmailRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates email-related media configuration.
 pub async fn save_email(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<SaveEmailRequest>,

@@ -1,6 +1,23 @@
-//! Consumer for JetStream subject **`calculator`** (recompute scores / ranks).
+//! JetStream consumer for subject **`calculator`**: recomputes **per-submission
+//! points**, **challenge leaderboard snapshots**, and **team totals / ranks**
+//! after new correct solves.
+//!
+//! # Flow
+//!
+//! 1. A message arrives as JSON [`Payload`] (optional `game_id`).
+//! 2. [`calculate`] loads all **correct** submissions for the game, groups them
+//!    by challenge, and applies [`math::curve`] so base points decay as more
+//!    teams solve (difficulty parameter `d`).
+//! 3. Each submission row gets updated `pts` + `rank` within its challenge;
+//!    `game_challenge.pts` stores the **current base** for that challenge on
+//!    the scoreboard.
+//! 4. Teams in `Passed` state are sorted by total points (tie-break: earlier
+//!    last solve time) and receive updated `pts` + `rank`.
 
+/// Defines the `math` submodule (see sibling `*.rs` files).
 mod math;
+
+/// Defines the `payload` submodule (see sibling `*.rs` files).
 pub mod payload;
 
 use std::{collections::HashMap, sync::Arc};
@@ -18,10 +35,13 @@ use futures_util::{StreamExt as _, future::join_all};
 pub use payload::Payload;
 use tracing::{error, info};
 
-/// JetStream subject for score / rank recomputation jobs.
+/// JetStream subject name for score / rank recomputation jobs.
 pub const SUBJECT: &str = "calculator";
 
+/// Rebuilds scoring state for one competition (`game_id`) from the database.
 async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
+    // Closure avoids duplicating the "load correct submissions" query in multiple
+    // phases.
     let submissions = async || -> Result<Vec<Submission>, anyhow::Error> {
         let (submissions, _) = cds_db::submission::find(
             &db.conn,
@@ -37,6 +57,8 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
         Ok(submissions)
     };
 
+    // challenge_id -> ordered list of correct submissions (sorted by `created_at`
+    // from the query).
     let mut sc: HashMap<i64, Vec<Submission>> = HashMap::new();
     for s in submissions().await? {
         sc.entry(s.challenge_id).or_default().push(s);
@@ -63,6 +85,8 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
                     .cloned()
                     .unwrap_or_default();
 
+                // `curve` lowers the base from `max_pts` toward `min_pts` as solve count `x`
+                // grows.
                 let base_pts = math::curve(
                     game_challenge.max_pts,
                     game_challenge.min_pts,
@@ -92,6 +116,8 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
 
                 join_all(futures).await;
 
+                // `bonus_ratios` may define an extra percentage when solve count hits index
+                // `len` (e.g. bonus after everyone has solved).
                 let pts = base_pts
                     * (100
                         + game_challenge
@@ -120,6 +146,7 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
 
     join_all(futures).await;
 
+    // --- Team leaderboard: sum submission points per team, then rank teams ---
     let (mut teams, _) = cds_db::team::find::<Team>(
         &db.conn,
         FindTeamOptions {
@@ -143,6 +170,7 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
         let (a_pts, a_time) = team_score_map.get(&a.id).unwrap_or(&(0, None));
         let (b_pts, b_time) = team_score_map.get(&b.id).unwrap_or(&(0, None));
 
+        // Higher points first; on a tie, earlier `created_at` (smaller timestamp) wins.
         b_pts.cmp(a_pts).then_with(|| a_time.cmp(b_time))
     });
 
@@ -168,6 +196,8 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+/// Pull loop: parse [`Payload`], then either recompute one game or **all**
+/// games.
 async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
     let mut messages = queue.subscribe(SUBJECT, None).await?;
     while let Some(Ok(message)) = messages.next().await {
@@ -190,7 +220,7 @@ async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-/// Subscribes to [`SUBJECT`] and recomputes scores in a background task.
+/// Spawns a Tokio task that subscribes to [`SUBJECT`] and runs [`run`].
 pub async fn spawn(db: &DB, queue: &Queue) {
     let db = db.clone();
     let queue = queue.clone();

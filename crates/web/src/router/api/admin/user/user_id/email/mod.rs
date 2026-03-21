@@ -1,3 +1,6 @@
+//! HTTP routing for `email` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -17,6 +20,8 @@ use crate::{
     extract::{Json as ReqJson, Path},
     traits::{AppState, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -44,6 +49,8 @@ pub struct AdminEmailsListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns email.
 pub async fn get_email(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
@@ -80,6 +87,8 @@ pub struct AdminEmailResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Associates a new email address with a user.
 pub async fn add_email(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
@@ -111,6 +120,8 @@ pub async fn add_email(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes email.
 pub async fn delete_email(
     State(s): State<Arc<AppState>>,
     Path((user_id, email)): Path<(i64, String)>,
@@ -134,6 +145,8 @@ pub async fn delete_email(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Confirms ownership of a pending email address.
 pub async fn verify_email(
     State(s): State<Arc<AppState>>,
     Path((user_id, email)): Path<(i64, String)>,

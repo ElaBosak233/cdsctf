@@ -1,3 +1,5 @@
+//! HTTP routing for `user` — Axum router wiring and OpenAPI route registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -13,6 +15,8 @@ use crate::{
     extract::{Json as ReqJson, Path},
     traits::{AppState, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -40,6 +44,8 @@ pub struct AdminTeamUsersListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns team user.
 pub async fn get_team_user(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
@@ -75,6 +81,8 @@ pub struct CreateTeamUserRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Creates team user.
 pub async fn create_team_user(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
@@ -119,6 +127,8 @@ pub async fn create_team_user(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes team user.
 pub async fn delete_team_user(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id, user_id)): Path<(i64, i64, i64)>,

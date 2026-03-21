@@ -1,6 +1,15 @@
+//! SeaORM `mod` entity — maps the `mod` table and its relations.
+
+/// Defines the `auth` submodule (see sibling `*.rs` files).
 pub mod auth;
+
+/// Defines the `captcha` submodule (see sibling `*.rs` files).
 pub mod captcha;
+
+/// Defines the `email` submodule (see sibling `*.rs` files).
 pub mod email;
+
+/// Defines the `meta` submodule (see sibling `*.rs` files).
 pub mod meta;
 
 use async_trait::async_trait;
@@ -35,6 +44,7 @@ pub struct Config {
 }
 
 impl Config {
+    /// Strips secrets so configuration can be returned to clients.
     pub fn desensitize(&self) -> Self {
         Self {
             meta: self.meta.clone(),
@@ -50,6 +60,7 @@ pub enum Relation {}
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
+    /// SeaORM lifecycle hook executed before insert/update.
     async fn before_save<C>(mut self, _db: &C, _insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
@@ -58,6 +69,7 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 impl Model {
+    /// Strips secrets so configuration can be returned to clients.
     pub fn desensitize(&self) -> Self {
         Self {
             id: self.id,

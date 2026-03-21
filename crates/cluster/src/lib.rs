@@ -1,5 +1,19 @@
+//! Kubernetes driver for dynamic challenge instances: Pods, Services,
+//! NetworkPolicies, attach/exec.
+//!
+//! On [`init`], the client connects (in-cluster or kubeconfig), ensures the
+//! target namespace exists, and reconciles egress policies so pods labeled
+//! `cds/internet=false` cannot reach the public internet except through
+//! controlled rules, while `cds/internet=true` pods receive DNS + user-defined
+//! exceptions.
+
+/// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
+
+/// Defines the `util` submodule (see sibling `*.rs` files).
 mod util;
+
+/// Defines the `worker` submodule (see sibling `*.rs` files).
 pub mod worker;
 
 use std::{collections::BTreeMap, path::Path, process};
@@ -44,6 +58,8 @@ use uuid::Uuid;
 
 use crate::traits::{ClusterError, Nat};
 
+/// Connected API client, target namespace, ingress mode (`Expose` vs `Proxy`),
+/// and checker for env generation.
 #[derive(Clone)]
 pub struct Cluster {
     client: K8sClient,
@@ -53,6 +69,8 @@ pub struct Cluster {
     checker: Checker,
 }
 
+/// Builds the Kubernetes client, ensures namespace + baseline NetworkPolicies,
+/// and spawns garbage-collection worker.
 pub async fn init(env: &Env, checker: &Checker) -> Result<Cluster, ClusterError> {
     let client = if env.cluster.auto_infer {
         K8sClient::try_from(K8sConfig::infer().await?)?
@@ -230,6 +248,7 @@ pub async fn init(env: &Env, checker: &Checker) -> Result<Cluster, ClusterError>
 }
 
 impl Cluster {
+    /// Returns service.
     pub async fn get_service(&self, id: Uuid) -> Result<Service, ClusterError> {
         let service = self
             .get_services_by_label(&format!("cds/instance_id={}", id))
@@ -240,6 +259,8 @@ impl Cluster {
 
         Ok(service)
     }
+
+    /// Returns services by label.
 
     pub async fn get_services_by_label(&self, label: &str) -> Result<Vec<Service>, ClusterError> {
         let service_api: Api<Service> =
@@ -255,6 +276,8 @@ impl Cluster {
         Ok(services.items)
     }
 
+    /// Creates service.
+
     pub async fn create_service(&self, service: Service) -> Result<Service, ClusterError> {
         let service_api: Api<Service> =
             Api::namespaced(self.client.clone(), self.namespace.as_str());
@@ -263,6 +286,8 @@ impl Cluster {
 
         Ok(service)
     }
+
+    /// Deletes service.
 
     pub async fn delete_service(&self, id: &str) -> Result<(), ClusterError> {
         let service_api: Api<Service> =
@@ -278,6 +303,8 @@ impl Cluster {
         Ok(())
     }
 
+    /// Returns pod.
+
     pub async fn get_pod(&self, id: &str) -> Result<Pod, ClusterError> {
         let pod = self
             .get_pods_by_label(&format!("cds/instance_id={}", id))
@@ -289,6 +316,8 @@ impl Cluster {
         Ok(pod)
     }
 
+    /// Returns pods list.
+
     pub async fn get_pods_list(&self) -> Result<Vec<Pod>, ClusterError> {
         let pod_api: Api<Pod> = Api::namespaced(self.client.clone(), self.namespace.as_str());
 
@@ -296,6 +325,8 @@ impl Cluster {
 
         Ok(pods.items)
     }
+
+    /// Returns pods by label.
 
     pub async fn get_pods_by_label(&self, label: &str) -> Result<Vec<Pod>, ClusterError> {
         let pod_api: Api<Pod> = Api::namespaced(self.client.clone(), self.namespace.as_str());
@@ -313,6 +344,8 @@ impl Cluster {
         Ok(pods.items)
     }
 
+    /// Creates pod.
+
     pub async fn create_pod(&self, pod: Pod) -> Result<Pod, ClusterError> {
         let pod_api: Api<Pod> = Api::namespaced(self.client.clone(), self.namespace.as_str());
 
@@ -320,6 +353,8 @@ impl Cluster {
 
         Ok(pod)
     }
+
+    /// Deletes pod.
 
     pub async fn delete_pod(&self, id: &str) -> Result<(), ClusterError> {
         let pod_api: Api<Pod> = Api::namespaced(self.client.clone(), self.namespace.as_str());
@@ -336,6 +371,8 @@ impl Cluster {
 
         Ok(())
     }
+
+    /// Creates challenge instance.
 
     pub async fn create_challenge_instance(
         &self,
@@ -559,6 +596,7 @@ impl Cluster {
         Ok(())
     }
 
+    /// Extends lifetime metadata on a running challenge pod.
     pub async fn renew_challenge_instance(&self, id: &str) -> Result<(), ClusterError> {
         let name = format!("cds-{}", id);
         let pod_api: Api<Pod> = Api::namespaced(self.client.clone(), self.namespace.as_str());
@@ -586,6 +624,8 @@ impl Cluster {
         Ok(())
     }
 
+    /// Deletes challenge instance.
+
     pub async fn delete_challenge_instance(&self, id: &str) -> Result<(), ClusterError> {
         self.delete_pod(id).await?;
         self.delete_service(id).await?;
@@ -593,6 +633,7 @@ impl Cluster {
         Ok(())
     }
 
+    /// Proxies WebSocket traffic into a pod port via `wsrx`.
     pub async fn wsrx(&self, id: &str, port: u16, ws: WebSocket) -> Result<(), ClusterError> {
         let name = format!("cds-{}", id);
 
@@ -608,6 +649,7 @@ impl Cluster {
         Ok(())
     }
 
+    /// Attaches to a container and streams a shell session over WebSocket.
     pub async fn exec(
         &self,
         id: &str,
@@ -615,6 +657,7 @@ impl Cluster {
         command: String,
         ws: WebSocket,
     ) -> Result<(), ClusterError> {
+        /// Copies WebSocket text frames into the pod stdin stream.
         async fn process_client_to_pod<W>(
             mut receiver: SplitStream<WebSocket>,
             mut stdin_writer: W,
@@ -634,6 +677,7 @@ impl Cluster {
             let _ = stdin_writer.shutdown().await;
         }
 
+        /// Streams pod stdout back to the WebSocket client.
         async fn process_pod_to_client<R, S>(stdout_reader: R, mut sender: S)
         where
             R: AsyncRead + Unpin,

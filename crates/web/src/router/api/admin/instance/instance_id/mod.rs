@@ -1,3 +1,7 @@
+//! HTTP routing for `instance_id` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `container` submodule (see sibling `*.rs` files).
 mod container;
 
 use std::sync::Arc;
@@ -12,6 +16,8 @@ use crate::{
     extract::Path,
     traits::{AppState, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -32,6 +38,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Tears down Kubernetes resources for an instance.
 pub async fn stop_instance(
     State(s): State<Arc<AppState>>,
 

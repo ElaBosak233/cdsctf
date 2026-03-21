@@ -1,3 +1,6 @@
+//! HTTP routing for `avatar` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{body::Body, extract::State, http::Response, response::IntoResponse};
@@ -20,6 +23,8 @@ use crate::{
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns team avatar.
 pub async fn get_team_avatar(
     State(s): State<Arc<AppState>>,
 

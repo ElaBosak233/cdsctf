@@ -1,3 +1,5 @@
+//! SeaORM `email` entity — maps the `email` table and its relations.
+
 use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -19,6 +21,7 @@ pub enum Relation {
 }
 
 impl RelationTrait for Relation {
+    /// Returns the [`RelationDef`] for this relation variant.
     fn def(&self) -> RelationDef {
         match self {
             Self::User => Entity::belongs_to(user::Entity)
@@ -31,6 +34,7 @@ impl RelationTrait for Relation {
 }
 
 impl Related<user::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         Relation::User.def()
     }

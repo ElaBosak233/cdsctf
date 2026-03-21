@@ -1,4 +1,10 @@
+//! HTTP routing for `config` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `captcha` submodule (see sibling `*.rs` files).
 mod captcha;
+
+/// Defines the `logo` submodule (see sibling `*.rs` files).
 mod logo;
 
 use std::sync::Arc;
@@ -46,6 +52,8 @@ pub struct ConfigResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns config.
 pub async fn get_config(State(s): State<Arc<AppState>>) -> Result<Json<ConfigResponse>, WebError> {
     Ok(Json(ConfigResponse {
         config: cds_db::get_config(&s.db.conn).await.desensitize(),
@@ -67,6 +75,8 @@ pub struct Version {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns version.
 pub async fn get_version() -> Result<Json<Version>, WebError> {
     Ok(Json(Version {
         tag: cds_env::get_version().to_owned(),

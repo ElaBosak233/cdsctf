@@ -1,4 +1,9 @@
+//! Observability — `mod` (metrics, tracing, or logging glue).
+
+/// Defines the `system` submodule (see sibling `*.rs` files).
 mod system;
+
+/// Defines the `web` submodule (see sibling `*.rs` files).
 pub mod web;
 
 use std::{borrow::Cow, time::Duration};
@@ -12,6 +17,8 @@ use opentelemetry_sdk::metrics::{PeriodicReader, SdkMeterProvider, Temporality};
 use crate::traits::ObserveError;
 
 pub static PROVIDER: OnceCell<SdkMeterProvider> = OnceCell::new();
+
+/// Returns provider.
 
 fn get_provider() -> SdkMeterProvider {
     PROVIDER
@@ -27,6 +34,8 @@ pub static METER: Lazy<Meter> = Lazy::new(|| {
 
     global::meter_with_scope(scope)
 });
+
+/// Initializes this subsystem or resource.
 
 pub fn init(env: &Env) -> Result<(), ObserveError> {
     let metric_ep = env

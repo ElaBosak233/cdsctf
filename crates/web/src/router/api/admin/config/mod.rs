@@ -1,4 +1,10 @@
+//! HTTP routing for `config` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `email` submodule (see sibling `*.rs` files).
 mod email;
+
+/// Defines the `logo` submodule (see sibling `*.rs` files).
 mod logo;
 
 use std::sync::Arc;
@@ -15,6 +21,8 @@ use crate::{
     extract::Json as ReqJson,
     traits::{AppState, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -39,6 +47,8 @@ pub struct AdminConfigResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns config.
 pub async fn get_config(
     State(s): State<Arc<AppState>>,
 ) -> Result<Json<AdminConfigResponse>, WebError> {
@@ -57,6 +67,8 @@ pub async fn get_config(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates config.
 pub async fn update_config(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<Config>,
@@ -99,6 +111,8 @@ pub struct StatisticsResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns statistics.
 pub async fn get_statistics(
     State(s): State<Arc<AppState>>,
 ) -> Result<Json<StatisticsResponse>, WebError> {

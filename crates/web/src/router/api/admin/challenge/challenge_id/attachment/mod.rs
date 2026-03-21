@@ -1,3 +1,7 @@
+//! HTTP routing for `attachment` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `filename` submodule (see sibling `*.rs` files).
 mod filename;
 
 use std::sync::Arc;
@@ -17,6 +21,8 @@ use crate::{
     model::Metadata,
     traits::{AppState, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -44,6 +50,8 @@ pub struct AdminChallengeAttachmentsListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns challenge attachment.
 pub async fn get_challenge_attachment(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,
@@ -83,6 +91,8 @@ pub async fn get_challenge_attachment(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Uploads an administrator attachment for a challenge.
 pub async fn save_challenge_attachment(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,

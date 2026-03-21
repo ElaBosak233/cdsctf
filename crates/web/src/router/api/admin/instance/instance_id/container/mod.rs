@@ -1,3 +1,7 @@
+//! HTTP routing for `container` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `container_id` submodule (see sibling `*.rs` files).
 mod container_id;
 
 use std::sync::Arc;
@@ -9,6 +13,8 @@ use utoipa_axum::{
 };
 
 use crate::traits::{AppState, EmptyJson, WebError};
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -28,6 +34,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns container.
 pub async fn get_container() -> Result<Json<EmptyJson>, WebError> {
     Ok(Json(EmptyJson::default()))
 }

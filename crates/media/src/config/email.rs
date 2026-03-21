@@ -1,3 +1,5 @@
+//! Object storage / media — `email` (S3 and related helpers).
+
 use std::fmt::{Display, Formatter};
 
 use serde::{Deserialize, Serialize};
@@ -12,6 +14,7 @@ pub enum EmailType {
 }
 
 impl EmailType {
+    /// Views this value as str.
     pub fn as_str(&self) -> &'static str {
         match self {
             EmailType::Verify => "verify",
@@ -21,6 +24,7 @@ impl EmailType {
 }
 
 impl Display for EmailType {
+    /// Formats this value for display or debugging.
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }
@@ -32,9 +36,12 @@ pub struct Email<'a> {
 }
 
 impl<'a> Email<'a> {
+    /// Constructs a new value.
     pub(crate) fn new(media: &'a Media) -> Self {
         Self { media }
     }
+
+    /// Returns email.
 
     pub async fn get_email(&self, email_type: EmailType) -> Result<String, MediaError> {
         let data = self
@@ -44,6 +51,7 @@ impl<'a> Email<'a> {
         Ok(String::from_utf8_lossy(&data).parse().unwrap_or_default())
     }
 
+    /// Updates email-related media configuration.
     pub async fn save_email(
         &self,
         email_type: EmailType,

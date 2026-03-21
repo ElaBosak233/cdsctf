@@ -1,3 +1,5 @@
+//! Shared traits and error types for the `engine` crate.
+
 use serde::Serialize;
 use thiserror::Error;
 

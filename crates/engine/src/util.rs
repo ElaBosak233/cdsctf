@@ -1,3 +1,5 @@
+//! Rune engine support — `util` (compile/run helpers).
+
 use rune::{
     Sources,
     ast::Spanned,
@@ -6,6 +8,7 @@ use rune::{
 
 use crate::traits::{DiagnosticKind, DiagnosticMarker};
 
+/// Converts a Rune diagnostic into an API-friendly marker struct.
 pub(crate) fn diagnostic_to_marker(
     diagnostic: &Diagnostic,
     sources: &Sources,

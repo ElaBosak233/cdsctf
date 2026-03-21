@@ -1,3 +1,6 @@
+//! HTTP routing for `container_id` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{
@@ -17,6 +20,8 @@ use crate::{
 pub struct GetShellRequest {
     pub command: String,
 }
+
+/// Returns shell.
 
 #[allow(dead_code)]
 pub async fn get_shell(

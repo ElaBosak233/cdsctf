@@ -1,11 +1,34 @@
+//! Public HTTP API under `/api`: nests feature routers and attaches admin auth
+//! middleware.
+//!
+//! [`openapi_documented_under_api`] is the **single** OpenAPI-aware tree merged
+//! into the top-level [`crate::docs::ApiDoc`] in [`crate::router::router`].
+
+/// Defines the `admin` submodule (see sibling `*.rs` files).
 pub mod admin;
+
+/// Defines the `challenge` submodule (see sibling `*.rs` files).
 pub mod challenge;
+
+/// Defines the `config` submodule (see sibling `*.rs` files).
 pub mod config;
+
+/// Defines the `game` submodule (see sibling `*.rs` files).
 pub mod game;
+
+/// Defines the `instance` submodule (see sibling `*.rs` files).
 pub mod instance;
+
+/// Defines the `media` submodule (see sibling `*.rs` files).
 mod media;
+
+/// Defines the `note` submodule (see sibling `*.rs` files).
 mod note;
+
+/// Defines the `submission` submodule (see sibling `*.rs` files).
 pub mod submission;
+
+/// Defines the `user` submodule (see sibling `*.rs` files).
 pub mod user;
 
 use std::sync::Arc;
@@ -40,8 +63,10 @@ pub fn openapi_documented_under_api(state: Arc<AppState>) -> OpenApiRouter<Arc<A
         )
 }
 
+/// Welcome payload for `GET /api/`.
 #[derive(serde::Serialize, utoipa::ToSchema)]
 pub struct IndexResponse {
+    /// Arbitrary JSON message (marketing / version hints).
     pub message: serde_json::Value,
 }
 
@@ -51,6 +76,8 @@ pub struct IndexResponse {
     tag = "system",
     responses((status = 200, description = "Welcome payload", body = IndexResponse))
 )]
+
+/// HTTP handler for the API index route.
 pub async fn index() -> Json<IndexResponse> {
     Json(IndexResponse {
         message: json!("This is the heart of CdsCTF!"),

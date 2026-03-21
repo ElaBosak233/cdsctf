@@ -1,3 +1,6 @@
+//! HTTP routing for `writeup` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Router, extract::State, response::IntoResponse};
@@ -11,6 +14,8 @@ use crate::{
     traits::{AppState, WebError},
     util,
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -30,6 +35,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns team write up.
 pub async fn get_team_write_up(
     State(s): State<Arc<AppState>>,
 

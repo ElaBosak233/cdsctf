@@ -1,9 +1,13 @@
+//! Database access for `mod` — SeaORM queries, updates, and DTOs.
+
 use sea_orm::{
     ColumnTrait, ConnectionTrait, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect,
     RelationTrait,
 };
 
 use crate::{entity::team::State, traits::DbError};
+
+/// Returns whether is user in team.
 
 pub async fn is_user_in_team(
     conn: &impl ConnectionTrait,
@@ -50,6 +54,7 @@ pub async fn is_user_in_game(
     Ok(sql.count(conn).await? > 0)
 }
 
+/// Checks visibility rules between a user and a challenge.
 pub async fn can_user_access_challenge(
     conn: &impl ConnectionTrait,
     user_id: i64,
@@ -95,6 +100,8 @@ pub async fn can_user_access_challenge(
 
     Ok(false)
 }
+
+/// Returns whether is challenge in game.
 
 pub async fn is_challenge_in_game(
     conn: &impl ConnectionTrait,

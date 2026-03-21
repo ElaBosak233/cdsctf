@@ -1,3 +1,6 @@
+//! HTTP routing for `captcha` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Json, extract::State};
@@ -15,6 +18,8 @@ use crate::traits::{AppState, WebError};
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Issues a captcha challenge for unauthenticated flows.
 pub async fn generate_captcha(
     State(s): State<Arc<AppState>>,
 ) -> Result<Json<cds_captcha::CaptchaChallenge>, WebError> {

@@ -1,3 +1,5 @@
+//! HTTP routing for `icon` — Axum router wiring and OpenAPI route registration.
+
 use std::sync::Arc;
 
 use axum::{
@@ -19,6 +21,8 @@ use crate::{
     util::media::handle_multipart,
 };
 
+/// Builds the Axum router fragment for this module.
+
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(save_game_icon).with_state(state.clone()))
@@ -37,6 +41,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Stores a competition icon image.
 pub async fn save_game_icon(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -73,6 +79,8 @@ pub async fn save_game_icon(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes game icon.
 pub async fn delete_game_icon(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,

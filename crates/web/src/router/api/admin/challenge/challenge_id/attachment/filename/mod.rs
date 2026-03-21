@@ -1,3 +1,6 @@
+//! HTTP routing for `filename` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{
@@ -17,6 +20,8 @@ use crate::{
     extract::Path,
     traits::{AppState, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -38,6 +43,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns attachment.
 pub async fn get_attachment(
     State(s): State<Arc<AppState>>,
     Path((challenge_id, filename)): Path<(i64, String)>,
@@ -89,6 +96,8 @@ pub async fn get_attachment(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes attachment.
 pub async fn delete_attachment(
     State(s): State<Arc<AppState>>,
     Path((challenge_id, filename)): Path<(i64, String)>,

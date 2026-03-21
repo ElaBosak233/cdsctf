@@ -1,3 +1,6 @@
+//! SeaORM migration `m20260201_000008_create_game_challenge` — applies
+//! forward/backward schema changes.
+
 use async_trait::async_trait;
 use sea_orm::Statement;
 use sea_orm_migration::prelude::*;
@@ -5,6 +8,7 @@ use sea_orm_migration::prelude::*;
 pub struct Migration;
 
 impl MigrationName for Migration {
+    /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
         "m20260201_000008_create_game_challenge"
     }
@@ -12,6 +16,7 @@ impl MigrationName for Migration {
 
 #[async_trait]
 impl MigrationTrait for Migration {
+    /// Applies forward DDL/DML for this migration.
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
 
@@ -45,6 +50,7 @@ impl MigrationTrait for Migration {
         Ok(())
     }
 
+    /// Rolls back this migration (reverse DDL/DML).
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
 

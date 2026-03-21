@@ -1,3 +1,5 @@
+//! Web utility — `media` (shared HTTP helpers).
+
 use axum::{
     body::Body,
     extract::Multipart,
@@ -10,9 +12,13 @@ use serde_json::json;
 
 use crate::traits::WebError;
 
+/// Builds challenge attachment path.
+
 pub fn build_challenge_attachment_path(challenge_id: i64) -> String {
     format!("challenges/{}/attachments", challenge_id)
 }
+
+/// Returns write up.
 
 pub async fn get_write_up(
     media: Media,
@@ -36,6 +42,8 @@ pub async fn get_write_up(
         None => Err(WebError::NotFound(json!(""))),
     }
 }
+
+/// Handles multipart.
 
 pub async fn handle_multipart(
     mut multipart: Multipart,

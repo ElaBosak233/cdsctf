@@ -1,3 +1,7 @@
+//! HTTP routing for `user_id` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `email` submodule (see sibling `*.rs` files).
 mod email;
 
 use std::sync::Arc;
@@ -27,6 +31,8 @@ use crate::{
     traits::{AppState, EmptyJson, WebError},
 };
 
+/// Builds the Axum router fragment for this module.
+
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_user).with_state(state.clone()))
@@ -48,6 +54,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns user.
 pub async fn get_user(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
@@ -77,6 +85,8 @@ pub struct UpdateUserRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates user.
 pub async fn update_user(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
@@ -120,6 +130,8 @@ pub async fn update_user(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes user.
 pub async fn delete_user(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,

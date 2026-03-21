@@ -1,3 +1,5 @@
+//! SeaORM `submission` entity — maps the `submission` table and its relations.
+
 use async_trait::async_trait;
 use sea_orm::{DeriveActiveEnum, EnumIter, QuerySelect, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
@@ -57,6 +59,7 @@ pub enum Relation {
 }
 
 impl RelationTrait for Relation {
+    /// Returns the [`RelationDef`] for this relation variant.
     fn def(&self) -> RelationDef {
         match self {
             Self::Challenge => Entity::belongs_to(challenge::Entity)
@@ -84,24 +87,28 @@ impl RelationTrait for Relation {
 }
 
 impl Related<challenge::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         Relation::Challenge.def()
     }
 }
 
 impl Related<user::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         Relation::User.def()
     }
 }
 
 impl Related<team::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         Relation::Team.def()
     }
 }
 
 impl Related<game::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         Relation::Game.def()
     }
@@ -109,6 +116,7 @@ impl Related<game::Entity> for Entity {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
+    /// SeaORM lifecycle hook executed before insert/update.
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
@@ -123,6 +131,7 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 impl Entity {
+    /// Begins the canonical query with standard joins and projections.
     pub fn base_find() -> Select<Self> {
         Self::find()
             .inner_join(user::Entity)

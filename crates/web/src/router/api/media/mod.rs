@@ -1,3 +1,6 @@
+//! HTTP routing for `media` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{
@@ -19,6 +22,8 @@ use crate::{
     traits::{AppState, AuthPrincipal, WebError},
     util::media::handle_multipart,
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -43,6 +48,8 @@ pub struct GetMediaRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns media.
 pub async fn get_media(
     State(s): State<Arc<AppState>>,
 
@@ -73,6 +80,8 @@ pub struct UploadMediaResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Accepts a multipart upload and stores it in configured media backend.
 pub async fn upload_media(
     State(s): State<Arc<AppState>>,
 

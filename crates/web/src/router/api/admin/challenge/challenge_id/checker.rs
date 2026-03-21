@@ -1,3 +1,5 @@
+//! HTTP handlers for `checker` within the `challenge_id` API segment.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -19,6 +21,8 @@ use crate::{
     extract::{Path, VJson},
     traits::{AppState, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -44,6 +48,8 @@ pub struct UpdateCheckerRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates checker.
 pub async fn update_checker(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,
@@ -87,6 +93,8 @@ pub struct CheckerLintResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Runs static analysis on a challenge checker script via API.
 pub async fn lint_checker(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,

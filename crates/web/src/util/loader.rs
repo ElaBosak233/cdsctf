@@ -1,3 +1,5 @@
+//! Web utility — `loader` (shared HTTP helpers).
+
 use cds_db::{
     Challenge, Game, GameChallenge, User,
     sea_orm::DatabaseConnection,
@@ -7,6 +9,7 @@ use serde_json::json;
 
 use crate::traits::WebError;
 
+/// Loads a challenge model for downstream handlers.
 pub async fn prepare_challenge(
     db: &DatabaseConnection,
     challenge_id: i64,
@@ -18,6 +21,7 @@ pub async fn prepare_challenge(
     Ok(challenge)
 }
 
+/// Loads a game model for downstream handlers.
 pub async fn prepare_game(db: &DatabaseConnection, game_id: i64) -> Result<Game, WebError> {
     let game = cds_db::game::find_by_id(db, game_id)
         .await?
@@ -26,6 +30,7 @@ pub async fn prepare_game(db: &DatabaseConnection, game_id: i64) -> Result<Game,
     Ok(game)
 }
 
+/// Loads the game/challenge binding row.
 pub async fn prepare_game_challenge(
     db: &DatabaseConnection,
     game_id: i64,
@@ -38,6 +43,7 @@ pub async fn prepare_game_challenge(
     Ok(game_challenge)
 }
 
+/// Loads the caller's team within a game.
 pub async fn prepare_self_team(
     db: &DatabaseConnection,
     game_id: i64,
@@ -59,6 +65,7 @@ pub async fn prepare_self_team(
         .ok_or(WebError::NotFound(json!("team_not_found")))
 }
 
+/// Loads an arbitrary team by id within a game.
 pub async fn prepare_team(
     db: &DatabaseConnection,
     game_id: i64,
@@ -69,6 +76,7 @@ pub async fn prepare_team(
         .ok_or(WebError::NotFound(json!("team_not_found")))
 }
 
+/// Loads a user model for permission checks.
 pub async fn prepare_user(db: &DatabaseConnection, user_id: i64) -> Result<User, WebError> {
     let user = cds_db::user::find_by_id(db, user_id)
         .await?

@@ -1,3 +1,7 @@
+//! HTTP routing for `instance` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `instance_id` submodule (see sibling `*.rs` files).
 mod instance_id;
 
 use std::{collections::BTreeMap, sync::Arc};
@@ -50,6 +54,8 @@ pub struct ListInstancesResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns instance.
 pub async fn get_instance(
     State(s): State<Arc<AppState>>,
 
@@ -111,6 +117,8 @@ pub struct CreateDebugInstanceRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Creates debug instance.
 pub async fn create_debug_instance(
     State(s): State<Arc<AppState>>,
 

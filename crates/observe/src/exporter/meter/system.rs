@@ -1,8 +1,12 @@
+//! Observability — `system` (metrics, tracing, or logging glue).
+
 use once_cell::sync::OnceCell;
 use opentelemetry::metrics::ObservableGauge;
 use sysinfo::{ProcessesToUpdate, System};
 
 static CPU_USAGE_OBSERVABLE_GAUGE: OnceCell<ObservableGauge<f64>> = OnceCell::new();
+
+/// Initializes this subsystem or resource.
 
 pub fn init_cpu_usage_observable_gauge() {
     CPU_USAGE_OBSERVABLE_GAUGE
@@ -28,6 +32,8 @@ pub fn init_cpu_usage_observable_gauge() {
 }
 
 static RAM_USAGE_OBSERVABLE_GAUGE: OnceCell<ObservableGauge<u64>> = OnceCell::new();
+
+/// Initializes this subsystem or resource.
 
 pub fn init_ram_usage_observable_gauge() {
     RAM_USAGE_OBSERVABLE_GAUGE

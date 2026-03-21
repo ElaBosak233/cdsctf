@@ -1,3 +1,5 @@
+//! Shared traits and error types for the `captcha` crate.
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -9,6 +11,7 @@ pub struct CaptchaChallenge {
 }
 
 impl CaptchaChallenge {
+    /// Strips secrets so configuration can be returned to clients.
     pub fn desensitize(self) -> Self {
         Self {
             criteria: None,

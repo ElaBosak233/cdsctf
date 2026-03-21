@@ -4,6 +4,7 @@
 
 const DELTA: u32 = 0x9E3779B9;
 
+/// Converts a `u32` array chunk into little-endian bytes.
 fn to_bytes(v: &[u32], include_length: bool) -> Vec<u8> {
     let length: u32 = v.len() as u32;
     let mut n: u32 = length << 2;
@@ -20,6 +21,7 @@ fn to_bytes(v: &[u32], include_length: bool) -> Vec<u8> {
     bytes
 }
 
+/// Packs a byte slice into `u32` limbs for the cipher core.
 fn to_u32(bytes: &[u8], include_length: bool) -> Vec<u32> {
     let length: u32 = bytes.len() as u32;
     let mut n: u32 = length >> 2;
@@ -39,11 +41,13 @@ fn to_u32(bytes: &[u8], include_length: bool) -> Vec<u32> {
     v
 }
 
+/// XXTEA mix helper (`MX` function).
 fn mx(sum: u32, y: u32, z: u32, p: u32, e: u32, k: &[u32]) -> u32 {
     ((z >> 5 ^ y << 2).wrapping_add(y >> 3 ^ z << 4))
         ^ ((sum ^ y).wrapping_add(k[(p & 3 ^ e) as usize] ^ z))
 }
 
+/// Normalizes key scheduling indices for XXTEA.
 fn fix_k(k: &[u32]) -> Vec<u32> {
     let mut key = k.to_owned();
     if key.len() < 4 {
@@ -55,6 +59,7 @@ fn fix_k(k: &[u32]) -> Vec<u32> {
     key
 }
 
+/// XXTEA encryption core over `u32` blocks.
 fn encrypt_(v: &mut [u32], k: &[u32]) -> Vec<u32> {
     let length: u32 = v.len() as u32;
     let n: u32 = length - 1;
@@ -80,6 +85,7 @@ fn encrypt_(v: &mut [u32], k: &[u32]) -> Vec<u32> {
     v.to_owned()
 }
 
+/// XXTEA decryption core over `u32` blocks.
 fn decrypt_(v: &mut [u32], k: &[u32]) -> Vec<u32> {
     let length: u32 = v.len() as u32;
     let n: u32 = length - 1;
@@ -106,6 +112,7 @@ fn decrypt_(v: &mut [u32], k: &[u32]) -> Vec<u32> {
     v.to_owned()
 }
 
+/// Encrypts an 8-byte payload with XXTEA.
 pub fn encrypt_raw(data: &[u8], key: &str) -> Vec<u8> {
     let key = key.as_bytes();
     to_bytes(
@@ -114,6 +121,7 @@ pub fn encrypt_raw(data: &[u8], key: &str) -> Vec<u8> {
     )
 }
 
+/// Decrypts an 8-byte XXTEA payload.
 pub fn decrypt_raw(data: &[u8], key: &str) -> Vec<u8> {
     let key = key.as_bytes();
     to_bytes(

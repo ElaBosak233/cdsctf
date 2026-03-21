@@ -1,4 +1,8 @@
+//! Object storage / media — `util` (S3 and related helpers).
+
 use ring::digest::{Context, SHA256};
+
+/// Feeds this value into the given hasher.
 
 pub fn hash(data: Vec<u8>) -> String {
     let mut context = Context::new(&SHA256);
@@ -7,6 +11,7 @@ pub fn hash(data: Vec<u8>) -> String {
     hex::encode(digest.as_ref())
 }
 
+/// Transcodes an image buffer to WebP bytes.
 pub async fn img_convert_to_webp(img: Vec<u8>) -> Result<Vec<u8>, anyhow::Error> {
     let origin_image = image::load_from_memory(&img)?.to_rgba8();
     let webp_encoder =

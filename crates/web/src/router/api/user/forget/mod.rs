@@ -1,3 +1,6 @@
+//! HTTP routing for `forget` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -17,6 +20,8 @@ use crate::{
     traits::{AppState, EmptyJson, WebError},
     util,
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -43,6 +48,8 @@ pub struct UserForgetRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Starts the password-reset flow.
 pub async fn user_forget(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<UserForgetRequest>,
@@ -90,6 +97,8 @@ pub struct UserSendForgetEmailRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Enqueues email with a password-reset token.
 pub async fn send_forget_email(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<UserSendForgetEmailRequest>,

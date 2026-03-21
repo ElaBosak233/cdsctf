@@ -1,3 +1,5 @@
+//! HTTP handlers for `writeup` within the `challenge_id` API segment.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -14,6 +16,8 @@ use crate::{
     extract::{Path, VJson},
     traits::{AppState, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -38,6 +42,8 @@ pub struct UpdateWriteupRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Updates writeup.
 pub async fn update_writeup(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,

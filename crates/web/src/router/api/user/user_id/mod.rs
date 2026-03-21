@@ -1,3 +1,6 @@
+//! HTTP routing for `user_id` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -13,7 +16,10 @@ use crate::{
     traits::{AppState, AuthPrincipal, WebError},
 };
 
+/// Defines the `avatar` submodule (see sibling `*.rs` files).
 mod avatar;
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -39,6 +45,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns user.
 pub async fn get_user(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

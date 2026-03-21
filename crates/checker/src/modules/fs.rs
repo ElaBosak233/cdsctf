@@ -1,3 +1,5 @@
+//! Rune built-in module `fs` for challenge checker scripts.
+
 use anyhow::anyhow;
 use cds_engine::{rune, rune::Module};
 use cds_media::{Media, traits::MediaError};
@@ -5,6 +7,7 @@ use ring::rand::{SecureRandom, SystemRandom};
 use tokio::runtime::Handle;
 use tracing::debug;
 
+/// Constructs the Rune native module exposed to checker scripts.
 #[rune::module(::fs)]
 pub async fn module(
     _stdio: bool,

@@ -1,3 +1,6 @@
+//! HTTP routing for `submission` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -15,6 +18,8 @@ use crate::{
     extract::{Path, Query},
     traits::{AppState, EmptyJson, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -52,6 +57,8 @@ pub struct ListSubmissionsResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns submissions.
 pub async fn get_submissions(
     State(s): State<Arc<AppState>>,
 
@@ -95,6 +102,8 @@ pub async fn get_submissions(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes submission.
 pub async fn delete_submission(
     State(s): State<Arc<AppState>>,
 

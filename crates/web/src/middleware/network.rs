@@ -1,3 +1,9 @@
+//! Network-oriented middleware: client IP extraction for rate limiting and
+//! reverse-proxy host rewriting.
+//!
+//! [`GovernorKeyExtractor`] feeds `tower-governor` using the same IP logic as
+//! [`crate::util::network`].
+
 use axum::{
     body::Body,
     extract::Request,
@@ -14,18 +20,22 @@ use crate::{
     util::network::get_client_ip,
 };
 
+/// Rate-limit key = client IP string (fails closed if IP cannot be determined).
 #[derive(Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 pub struct GovernorKeyExtractor;
 
 impl KeyExtractor for GovernorKeyExtractor {
     type Key = String;
 
+    /// Derives the rate-limiting key (client IP) from the HTTP request.
     fn extract<T>(&self, req: &Request<T>) -> Result<Self::Key, GovernorError> {
         let ip = get_client_ip(req).ok_or(GovernorError::UnableToExtractKey)?;
         Ok(ip.to_string())
     }
 }
 
+/// Writes the derived client IP into [`AuthPrincipal::client_ip`] for
+/// downstream handlers.
 pub async fn ip_record(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
     let mut ext = req
         .extensions()
@@ -49,6 +59,8 @@ pub async fn ip_record(mut req: Request<Body>, next: Next) -> Result<Response, W
     Ok(next.run(req).await)
 }
 
+/// When `X-Forwarded-Host` is present, replaces the `Host` header so Axum sees
+/// the public hostname.
 pub async fn real_host(mut req: Request<Body>, next: Next) -> Result<Response, WebError> {
     let headers = req.headers().clone();
 

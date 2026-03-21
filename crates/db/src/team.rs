@@ -1,3 +1,5 @@
+//! Database access for `team` — SeaORM queries, updates, and DTOs.
+
 use std::str::FromStr;
 
 use sea_orm::{
@@ -55,6 +57,7 @@ pub struct FindTeamOptions {
     pub sorts: Option<String>,
 }
 
+/// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
     FindTeamOptions {
@@ -129,6 +132,8 @@ where
     Ok((teams, total))
 }
 
+/// Looks up by id.
+
 pub async fn find_by_id<T>(
     conn: &impl ConnectionTrait,
     team_id: i64,
@@ -143,6 +148,7 @@ where
         .await?)
 }
 
+/// Inserts a new row and returns the persisted model.
 pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -153,6 +159,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("team_{}", team.id)))?)
 }
 
+/// Applies an active model update to the database.
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -163,6 +170,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("team_{}", team.id)))?)
 }
 
+/// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, team_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(team_id).exec(conn).await?;
 

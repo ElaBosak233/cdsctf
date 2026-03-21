@@ -1,3 +1,6 @@
+//! HTTP routing for `token` — Axum router wiring and OpenAPI route
+//! registration.
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -12,6 +15,8 @@ use crate::{
     extract::{Extension, Path},
     traits::{AppState, AuthPrincipal, WebError},
 };
+
+/// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -38,6 +43,8 @@ pub struct InviteTokenResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Creates token.
 pub async fn create_token(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -67,6 +74,8 @@ pub async fn create_token(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Returns token.
 pub async fn get_token(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -95,6 +104,8 @@ pub async fn get_token(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
+
+/// Deletes token.
 pub async fn delete_token(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

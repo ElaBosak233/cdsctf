@@ -1,3 +1,5 @@
+//! Captcha backend — `hcaptcha` (verification / challenge generation).
+
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use tracing::debug;
@@ -30,6 +32,7 @@ struct HCaptchaResponse {
     score_reason: Vec<String>,
 }
 
+/// Verifies a submitted flag against the checker script.
 pub(crate) async fn check(c: &Captcha, answer: &Answer) -> Result<bool, CaptchaError> {
     let client = reqwest::Client::new();
     let url = &cds_db::get_config(&c.db.conn).await.captcha.turnstile.url;
