@@ -1,5 +1,4 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
 import {
   BanIcon,
   CheckCheckIcon,
@@ -172,11 +171,10 @@ function useColumns(): Array<ColumnDef<Team>> {
             game_id: game_id!,
             state,
           })
-            .then((res) => {{
-                toast.success(
-                  t("game:team.actions.message", { name: row.original.name })
-                );
-              }
+            .then(() => {
+              toast.success(
+                t("game:team.actions.message", { name: row.original.name })
+              );
             })
             .finally(() => {
               sharedStore?.setRefresh();

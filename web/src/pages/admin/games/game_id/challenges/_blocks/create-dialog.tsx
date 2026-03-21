@@ -1,4 +1,3 @@
-import { StatusCodes } from "http-status-codes";
 import { HashIcon, LibraryIcon, TypeIcon } from "lucide-react";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -42,9 +41,8 @@ function CreateDialog(props: CreateDialogProps) {
       size: 10,
       page: 1,
       sorts: "-created_at",
-    }).then((res) => {{
-        setChallenges(res.items);
-      }
+    }).then((res) => {
+      setChallenges(res.items);
     });
   }, [debouncedId, debounceTitle]);
 
@@ -66,17 +64,12 @@ function CreateDialog(props: CreateDialogProps) {
       min_pts: 500,
       difficulty: 5,
       bonus_ratios: [],
-    }).then((res) => {{
-        toast.success(
-          t("game:challenge.actions.add.success", { title: challenge?.title })
-        );
-        sharedStore?.setRefresh();
-        onClose();
-      }
-
-      if (res.code === 409) {
-        toast.error(t("game:challenge.actions.add_exists"));
-      }
+    }).then(() => {
+      toast.success(
+        t("game:challenge.actions.add.success", { title: challenge?.title })
+      );
+      sharedStore?.setRefresh();
+      onClose();
     });
   }
 

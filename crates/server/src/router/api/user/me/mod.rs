@@ -25,19 +25,6 @@ use crate::{
 
 use super::UserResponse;
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_user_profile))
-        .route("/", axum::routing::put(update_user_profile))
-        .route("/", axum::routing::delete(delete_user_profile))
-        .route(
-            "/password",
-            axum::routing::put(update_user_profile_password),
-        )
-        .nest("/emails", email::router())
-        .nest("/avatar", avatar::router())
-        .nest("/notes", note::router())
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

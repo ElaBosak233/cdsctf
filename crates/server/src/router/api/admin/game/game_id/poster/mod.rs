@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{DefaultBodyLimit, Multipart, State},
+    extract::{Multipart, State},
 };
 use cds_db::{
     Game,
@@ -19,15 +19,6 @@ use crate::{
     util::media::handle_multipart,
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route(
-            "/",
-            axum::routing::post(save_game_poster)
-                .layer(DefaultBodyLimit::max(3 * 1024 * 1024 /* MB */)),
-        )
-        .route("/", axum::routing::delete(delete_game_poster))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

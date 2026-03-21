@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{DefaultBodyLimit, Multipart, State},
+    extract::{Multipart, State},
     response::IntoResponse,
 };
 use cds_db::{
@@ -23,15 +23,6 @@ use crate::{
     util::media::handle_multipart,
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_team_write_up))
-        .route(
-            "/",
-            axum::routing::post(save_team_write_up)
-                .layer(DefaultBodyLimit::max(50 * 1024 * 1024 /* MB */)),
-        )
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

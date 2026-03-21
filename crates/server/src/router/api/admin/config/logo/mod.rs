@@ -14,11 +14,6 @@ use crate::{
     util::media::handle_multipart,
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::post(save_logo))
-        .route("/", axum::routing::delete(delete_logo))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

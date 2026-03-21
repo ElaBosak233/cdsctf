@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import { CalendarIcon, CheckIcon, FlagIcon, TypeIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -60,12 +59,11 @@ function CreateDialog(props: CreateDialogProps) {
       started_at: Math.floor(values.started_at.getTime() / 1000),
       ended_at: Math.floor(values.ended_at.getTime() / 1000),
     })
-      .then((res) => {{
-          toast.success(
-            t("game:actions.create.success", { title: res?.game?.title })
-          );
-          onClose();
-        }
+      .then((res) => {
+        toast.success(
+          t("game:actions.create.success", { title: res?.game?.title })
+        );
+        onClose();
       })
       .finally(() => {
         sharedStore.setRefresh();
@@ -159,4 +157,5 @@ function CreateDialog(props: CreateDialogProps) {
     </Card>
   );
 }
+
 export { CreateDialog };

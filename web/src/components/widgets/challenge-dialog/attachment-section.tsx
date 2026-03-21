@@ -43,6 +43,7 @@ export function AttachmentSection() {
                 ? `/api/admin/challenges/${challenge?.id}/attachments/${m.filename}`
                 : `/api/challenges/${challenge?.id}/attachments/${m.filename}`
             }
+            rel="noopener"
           >
             {m.filename}
           </a>

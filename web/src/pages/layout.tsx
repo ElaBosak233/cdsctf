@@ -9,7 +9,7 @@ import { cn, stripIndent } from "@/utils";
 import { Background } from "./_blocks/background";
 import { Navbar } from "./_blocks/navbar";
 
-export default function () {
+export default function RootLayout() {
   const { setUser } = useAuthStore();
   const { setConfig, setVersion } = useConfigStore();
 

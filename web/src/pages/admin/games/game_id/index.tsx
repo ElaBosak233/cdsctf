@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   ClockAlertIcon,
   ClockFadingIcon,
@@ -125,11 +124,10 @@ export default function Index() {
       frozen_at: Math.floor(values.frozen_at?.getTime() / 1000),
       ended_at: Math.floor(values.ended_at?.getTime() / 1000),
     })
-      .then((res) => {{
-          toast.success(
-            t("game:actions.update.success", { title: res?.game?.title })
-          );
-        }
+      .then((res) => {
+        toast.success(
+          t("game:actions.update.success", { title: res?.game?.title })
+        );
       })
       .finally(() => {
         sharedStore.setRefresh();
@@ -144,11 +142,8 @@ export default function Index() {
     if (!file) return;
 
     try {
-      const res = await uploadFile(`/api/admin/games/${game?.id}/poster`, [
-        file,
-      ]);{
-        toast.success(t("game:form.poster_upload.success"));
-      }
+      await uploadFile(`/api/admin/games/${game?.id}/poster`, [file]);
+      toast.success(t("game:form.poster_upload.success"));
     } catch (_) {
       toast.error(t("game:form.poster_upload.error"), {
         description: t("common:errors.network"),
@@ -164,12 +159,11 @@ export default function Index() {
     if (!game) return;
 
     try {
-      const res = await deleteGamePoster({
+      await deleteGamePoster({
         game_id: game.id!,
       });
 
-        toast.success(t("game:form.poster_delete.success"));
-      
+      toast.success(t("game:form.poster_delete.success"));
     } finally {
       posterBump();
     }
@@ -197,12 +191,11 @@ export default function Index() {
     if (!game) return;
 
     try {
-      const res = await deleteGameIcon({
+      await deleteGameIcon({
         game_id: game.id!,
       });
 
-        toast.success(t("game:form.icon_delete.success"));
-      
+      toast.success(t("game:form.icon_delete.success"));
     } finally {
       iconBump();
     }

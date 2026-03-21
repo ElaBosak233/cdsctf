@@ -94,15 +94,15 @@
   transition-timing-function: cubic-bezier(0.2, -0.6, 0.7, 1.6);
 }
 
-[aria-pressed="false"] .theme-switch-stars path {
-  transition-delay: 0s;
-}
-
 .theme-switch-stars path {
   transform-box: fill-box;
   transform-origin: 25% 50%;
   scale: calc(0.25 + (var(--dark, 0) * 0.75));
   transition: scale var(--speed) calc(var(--speed) * 0.5) var(--easing);
+}
+
+[aria-pressed="false"] .theme-switch-stars path {
+  transition-delay: 0s;
 }
 
 .theme-switch-indicator {

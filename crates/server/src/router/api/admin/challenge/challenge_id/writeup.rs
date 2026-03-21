@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State, routing::put};
+use axum::{Json, Router, extract::State};
 use cds_db::sea_orm::{Set, Unchanged};
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
@@ -16,9 +16,6 @@ use crate::{
 
 use super::AdminChallengeResponse;
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/", put(update_writeup))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

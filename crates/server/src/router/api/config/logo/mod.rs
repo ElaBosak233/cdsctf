@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use axum::{
-    Router,
     body::Body,
     extract::State,
     http::Response,
@@ -10,9 +9,6 @@ use axum::{
 
 use crate::traits::{AppState, WebError};
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/", axum::routing::get(get_logo))
-}
 
 #[utoipa::path(
     get,

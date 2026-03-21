@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import { MessageCircleIcon, SaveIcon, TypeIcon } from "lucide-react";
 import { useContext } from "react";
 import { useForm } from "react-hook-form";
@@ -52,13 +51,12 @@ function CreateDialog(props: CreateDialogProps) {
     createGameNotice({
       game_id: game?.id,
       ...values,
-    }).then((res) => {{
-        toast.success(
-          t("game:notice.actions.create.success", { title: res?.notice?.title })
-        );
-        sharedStore?.setRefresh();
-        onClose();
-      }
+    }).then((res) => {
+      toast.success(
+        t("game:notice.actions.create.success", { title: res?.notice?.title })
+      );
+      sharedStore?.setRefresh();
+      onClose();
     });
   }
 

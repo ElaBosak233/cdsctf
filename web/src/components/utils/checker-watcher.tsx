@@ -60,7 +60,7 @@ function CheckerWatcher() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [submissions, pop]);
+  }, [submissions, pop, t]);
 
   return null;
 }

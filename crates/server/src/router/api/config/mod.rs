@@ -13,20 +13,6 @@ use utoipa_axum::{
 
 use crate::traits::{AppState, WebError};
 
-/// Logo、captcha 等子路由，挂在 `/configs` 下与 OpenAPI 子树合并。
-pub fn router_logo_and_captcha() -> Router<Arc<AppState>> {
-    Router::new()
-        .nest("/logo", logo::router())
-        .nest("/captcha", captcha::router())
-}
-
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_config))
-        .merge(router_logo_and_captcha())
-        .route("/version", axum::routing::get(get_version))
-}
-
 /// 汇总到上层 [`OpenApiRouter::nest("/configs", ...)`]；路径相对于 `/configs`。
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

@@ -26,16 +26,6 @@ use crate::{
 
 use super::AdminChallengeResponse;
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_challenge))
-        .route("/", axum::routing::put(update_challenge))
-        .route("/", axum::routing::delete(delete_challenge))
-        .route("/instance", axum::routing::put(update_challenge_instance))
-        .nest("/checker", checker::router())
-        .nest("/writeup", writeup::router())
-        .nest("/attachments", attachment::router())
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

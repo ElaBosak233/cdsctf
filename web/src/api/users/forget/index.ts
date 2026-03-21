@@ -7,7 +7,9 @@ export interface UserForgetRequest {
 }
 
 export async function forget(request: UserForgetRequest) {
-  return api.post(`users/forget`, { json: request }).json<Record<string, never>>();
+  return api
+    .post(`users/forget`, { json: request })
+    .json<Record<string, never>>();
 }
 
 export interface UserSendForgetEmailRequest {

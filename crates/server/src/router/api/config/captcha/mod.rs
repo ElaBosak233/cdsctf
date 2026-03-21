@@ -1,12 +1,9 @@
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, extract::State};
 use serde_json::json;
 use crate::traits::{AppState, WebError};
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/generate", axum::routing::get(generate_captcha))
-}
 
 #[utoipa::path(
     get,

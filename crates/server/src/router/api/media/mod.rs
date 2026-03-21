@@ -6,7 +6,6 @@ use axum::{
     extract::{Multipart, State},
     http::{Response, header::CACHE_CONTROL},
     response::IntoResponse,
-    routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -21,11 +20,6 @@ use crate::{
     util::media::handle_multipart,
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", get(get_media))
-        .route("/", post(upload_media))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

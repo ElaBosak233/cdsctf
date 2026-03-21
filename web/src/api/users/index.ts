@@ -30,7 +30,5 @@ export interface UserRegisterRequest {
 }
 
 export async function register(request: UserRegisterRequest) {
-  return api
-    .post("users/register", { json: request })
-    .json<{ user: User }>();
+  return api.post("users/register", { json: request }).json<{ user: User }>();
 }

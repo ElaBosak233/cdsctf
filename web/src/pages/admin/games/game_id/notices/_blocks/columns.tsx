@@ -1,5 +1,4 @@
 import type { ColumnDef, Row } from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
 import { TrashIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -26,14 +25,13 @@ function ActionsCell({ row }: { row: Row<GameNotice> }) {
       game_id: row.original.game_id,
       id: row.original.id,
     })
-      .then((res) => {{
-          toast.success(
-            t("game:notice.actions.delete.success", {
-              title: row.original.title,
-            })
-          );
-          setDeleteDialogOpen(false);
-        }
+      .then(() => {
+        toast.success(
+          t("game:notice.actions.delete.success", {
+            title: row.original.title,
+          })
+        );
+        setDeleteDialogOpen(false);
       })
       .finally(() => {
         sharedStore?.setRefresh();

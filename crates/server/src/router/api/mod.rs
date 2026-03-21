@@ -39,26 +39,6 @@ pub fn openapi_documented_under_api(state: Arc<AppState>) -> OpenApiRouter<Arc<A
         )
 }
 
-/// 备用路由组装（测试或工具）；生产环境以 [`openapi_documented_under_api`] 为准。
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::any(index))
-        .nest("/configs", config::router())
-        .nest("/users", user::router())
-        .nest("/challenges", challenge::router())
-        .nest("/games", game::router())
-        .nest("/instances", instance::router())
-        .nest("/notes", note::router())
-        .nest("/media", media::router())
-        .nest("/submissions", submission::router())
-        .nest(
-            "/admin",
-            admin::router().route_layer(axum::middleware::from_fn(
-                crate::middleware::auth::admin_only,
-            )),
-        )
-}
-
 #[derive(serde::Serialize, utoipa::ToSchema)]
 pub struct ApiIndexResponse {
     pub message: serde_json::Value,

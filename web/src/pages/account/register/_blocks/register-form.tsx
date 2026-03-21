@@ -79,16 +79,15 @@ function RegisterForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
-      const res = await register({
+      await register({
         ...values,
       });
 
-        toast.success(t("account:register.toast.success._"), {
-          id: "register-success",
-          description: t("account:register.toast.success.desc"),
-        });
-        navigate("/account/login");
-      
+      toast.success(t("account:register.toast.success._"), {
+        id: "register-success",
+        description: t("account:register.toast.success.desc"),
+      });
+      navigate("/account/login");
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
       const res = await parseErrorResponse(error);

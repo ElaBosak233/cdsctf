@@ -13,9 +13,6 @@ use crate::{
     traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/leave", axum::routing::delete(leave_team))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

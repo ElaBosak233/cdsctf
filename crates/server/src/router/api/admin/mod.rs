@@ -22,12 +22,3 @@ pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/configs", config::openapi_router(state.clone()))
 }
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .nest("/users", user::router())
-        .nest("/challenges", challenge::router())
-        .nest("/games", game::router())
-        .nest("/configs", config::router())
-        .nest("/instances", instance::router())
-        .nest("/submissions", submission::router())
-}

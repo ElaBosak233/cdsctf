@@ -1,8 +1,8 @@
+import { HTTPError } from "ky";
 import { FlagIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { HTTPError } from "ky";
 import { createSubmission } from "@/api/submissions";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -17,7 +17,7 @@ function SubmitSection() {
 
   const { challenge, team } = useContext(Context);
   const [placeholder, setPlaceholder] = useState<string>("flag");
-  const { submissions, add } = useCheckerStore();
+  const { add } = useCheckerStore();
 
   const mode = useMemo(() => {
     if (team) {

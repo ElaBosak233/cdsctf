@@ -43,5 +43,7 @@ export interface DeleteUserProfileRequest {
 }
 
 export async function deleteUserProfile(request: DeleteUserProfileRequest) {
-  return api.delete("users/me", { json: request }).json<Record<string, never>>();
+  return api
+    .delete("users/me", { json: request })
+    .json<Record<string, never>>();
 }

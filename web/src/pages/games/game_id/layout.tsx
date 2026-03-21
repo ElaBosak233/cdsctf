@@ -22,7 +22,7 @@ function useGameQuery(params: GetGameRequest, trigger: number = 0) {
   });
 }
 
-export default function () {
+export default function GameLayout() {
   const { game_id } = useParams<{ game_id: string }>();
   const { setCurrentGame, selfTeam, setSelfTeam, setMembers } = useGameStore();
   const sharedStore = useSharedStore();

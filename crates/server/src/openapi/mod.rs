@@ -1,6 +1,7 @@
 //! OpenAPI 元数据与 Scalar API Reference。
 //!
-//! 路径由各层 [`utoipa_axum::router::OpenApiRouter`] 汇总后，与 [`ApiDoc`] 的 `info` / `components` 做 [`OpenApi::merge`]。
+//! 仅 `/api` 子树（[`crate::router::api::openapi_documented_under_api`]）由各层
+//! [`utoipa_axum::router::OpenApiRouter`] 汇总，与 [`ApiDoc`] 的 `info` / `components` 做 [`OpenApi::merge`]。
 
 use std::sync::Arc;
 

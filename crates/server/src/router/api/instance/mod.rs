@@ -17,12 +17,6 @@ use crate::{
     util::cluster::Instance,
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_instance))
-        .route("/", axum::routing::post(create_instance))
-        .nest("/{instance_id}", instance_id::router())
-}
 
 /// 汇总到上层 [`OpenApiRouter::nest("/instances", ...)`]；路径相对于 `/instances`。
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {

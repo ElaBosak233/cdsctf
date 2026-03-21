@@ -1,15 +1,12 @@
 use std::sync::Arc;
 
-use axum::{Router, body::Body, extract::State, http::Response, response::IntoResponse};
+use axum::{body::Body, extract::State, http::Response, response::IntoResponse};
 
 use crate::{
     extract::Path,
     traits::{AppState, WebError},
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/", axum::routing::get(get_team_avatar))
-}
 
 #[utoipa::path(
     get,

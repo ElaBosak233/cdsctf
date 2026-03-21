@@ -1,6 +1,5 @@
 import type { Progress } from "ky";
 
-
 export async function uploadFile(
   url: string,
   file: File[],

@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   SaveIcon,
   TrashIcon,
@@ -65,9 +64,8 @@ export default function Index() {
         ...values,
       });
 
-        authStore?.setUser(res.user);
-        toast.success(t("user:settings.profile_update_success"));
-      
+      authStore?.setUser(res.user);
+      toast.success(t("user:settings.profile_update_success"));
     } finally {
       setLoading(false);
     }
@@ -81,24 +79,19 @@ export default function Index() {
     if (!file) return;
 
     try {
-      const res = await uploadFile(
-        "/api/users/me/avatar",
-        [file],
-        ({ percent }) => {
-          toast.loading(
-            t("user:settings.avatar_upload.progress", {
-              percent: percent.toFixed(0),
-            }),
-            {
-              id: "user-avatar-upload",
-            }
-          );
-        }
-      );{
-        toast.success(t("user:settings.avatar_upload.success"), {
-          id: "user-avatar-upload",
-        });
-      }
+      await uploadFile("/api/users/me/avatar", [file], ({ percent }) => {
+        toast.loading(
+          t("user:settings.avatar_upload.progress", {
+            percent: percent.toFixed(0),
+          }),
+          {
+            id: "user-avatar-upload",
+          }
+        );
+      });
+      toast.success(t("user:settings.avatar_upload.success"), {
+        id: "user-avatar-upload",
+      });
     } catch {
       toast.error(t("user:settings.avatar_upload.error"));
     }
@@ -109,9 +102,8 @@ export default function Index() {
   async function handleAvatarDelete() {
     if (!authStore?.user) return;
 
-    const res = await deleteUserAvatar();{
-      toast.success(t("user:settings.avatar_delete_success"));
-    }
+    await deleteUserAvatar();
+    toast.success(t("user:settings.avatar_delete_success"));
     sharedStore.setRefresh();
   }
 

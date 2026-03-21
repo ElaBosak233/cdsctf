@@ -13,6 +13,7 @@ use axum::{
     http::Request,
     middleware::{from_fn, from_fn_with_state},
     response::Response,
+    routing::get,
 };
 use time::Duration;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
@@ -21,10 +22,7 @@ use tower_sessions::{Expiry, SessionManagerLayer, cookie::SameSite};
 use tracing::{Span, debug, debug_span, info};
 
 use utoipa::OpenApi;
-use utoipa_axum::{
-    router::{OpenApiRouter, UtoipaMethodRouterExt},
-    routes,
-};
+use utoipa_axum::router::OpenApiRouter;
 
 use crate::{
     middleware,
@@ -45,7 +43,6 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
 
     let (documented_axum, paths_openapi) = OpenApiRouter::from(Router::new().with_state(state.clone()))
         .nest("/api", api::openapi_documented_under_api(state.clone()))
-        .routes(routes!(healthz::healthz).with_state(state.clone()))
         .split_for_parts();
 
     let mut openapi = ApiDoc::openapi();
@@ -91,6 +88,7 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
     ));
 
     let mut base = Router::new()
+        .route("/healthz", get(healthz::healthz))
         .merge(docs)
         .merge(protected)
         .layer(

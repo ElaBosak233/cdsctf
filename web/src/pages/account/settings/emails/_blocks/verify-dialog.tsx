@@ -31,12 +31,11 @@ function VerifyDialog(props: VerifyDialogProps) {
 
   async function handleSendVerifyEmail() {
     try {
-      const res = await sendVerifyEmail({
+      await sendVerifyEmail({
         email: email,
       });
 
-        toast.success(t("user:emails.actions.send_verify.success", { email }));
-      
+      toast.success(t("user:emails.actions.send_verify.success", { email }));
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
       const res = await parseErrorResponse(error);
@@ -49,19 +48,18 @@ function VerifyDialog(props: VerifyDialogProps) {
 
   async function handleVerify() {
     try {
-      const res = await verifyEmail({
+      await verifyEmail({
         code: code,
         email: email,
       });
 
-        toast.success(t("user:emails.actions.verify.success", { email }));
-        authStore.setUser({
-          ...authStore.user,
-          verified: true,
-        });
-        onClose();
-        bump();
-      
+      toast.success(t("user:emails.actions.verify.success", { email }));
+      authStore.setUser({
+        ...authStore.user,
+        verified: true,
+      });
+      onClose();
+      bump();
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
       const res = await parseErrorResponse(error);

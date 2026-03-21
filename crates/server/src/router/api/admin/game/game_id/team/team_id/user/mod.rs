@@ -14,12 +14,6 @@ use crate::{
     traits::{AppState, EmptySuccess, WebError},
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_team_user))
-        .route("/", axum::routing::post(create_team_user))
-        .route("/{user_id}", axum::routing::delete(delete_team_user))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

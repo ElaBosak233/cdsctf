@@ -26,15 +26,6 @@ use crate::{
     util,
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/login", axum::routing::post(user_login))
-        .route("/register", axum::routing::post(user_register))
-        .route("/logout", axum::routing::post(user_logout))
-        .nest("/forget", forget::router())
-        .nest("/{user_id}", user_id::router())
-        .nest("/me", me::router())
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

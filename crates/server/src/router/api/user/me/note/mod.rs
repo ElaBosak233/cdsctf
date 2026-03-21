@@ -17,11 +17,6 @@ use crate::{
     traits::{AppState, AuthPrincipal, WebError},
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_my_note))
-        .route("/", axum::routing::post(save_my_note))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

@@ -12,9 +12,6 @@ use crate::{
     util,
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/", axum::routing::get(get_team_write_up))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

@@ -109,7 +109,8 @@ function InstanceSection() {
       user_id: mode !== "game" ? authStore?.user?.id : undefined,
       game_id: mode === "game" ? Number(team?.game_id) : undefined,
       team_id: mode === "game" ? Number(team?.id) : undefined,
-    }).then((res) => {{
+    }).then((res) => {
+      {
         const p = res.items?.[0];
         setInstance(p);
         setTimeLeft(
@@ -143,15 +144,13 @@ function InstanceSection() {
     if (!instance) return;
 
     try {
-      const res = await renewInstance({
+      await renewInstance({
         id: instance.id!,
       });
 
-        toast.success(t("challenge:instance.renew_success"), {
-          id: "renew",
-          description: null,
-        });
-      
+      toast.success(t("challenge:instance.renew_success"), {
+        id: "renew",
+      });
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
       const res = await parseErrorResponse(error);
@@ -191,17 +190,18 @@ function InstanceSection() {
       id: "instance",
     });
     try {
-      const res = debug
-        ? await createDebugInstance({
-            challenge_id: challenge?.id,
-          })
-        : await createInstance({
-            challenge_id: challenge?.id,
-            game_id: mode === "game" ? Number(team?.game_id) : undefined,
-            team_id: mode === "game" ? Number(team?.id) : undefined,
-          });
+      if (debug) {
+        await createDebugInstance({
+          challenge_id: challenge?.id,
+        });
+      } else {
+        await createInstance({
+          challenge_id: challenge?.id,
+          game_id: mode === "game" ? Number(team?.game_id) : undefined,
+          team_id: mode === "game" ? Number(team?.id) : undefined,
+        });
+      }
 
-      setInstance(res.items);
       toast.loading(t("instance:actions.start.sent"), {
         id: "instance",
         description: t("instance:actions.start.description"),

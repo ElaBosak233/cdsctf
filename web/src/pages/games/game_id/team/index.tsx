@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   MailIcon,
   MessageCircleIcon,
@@ -74,10 +73,9 @@ export default function Index() {
         ...values,
       });
 
-        toast.success(
-          t("team:actions.update.success", { name: res?.team?.name })
-        );
-      
+      toast.success(
+        t("team:actions.update.success", { name: res?.team?.name })
+      );
     } finally {
       setRefresh();
       setLoading(false);
@@ -92,7 +90,7 @@ export default function Index() {
     if (!file) return;
 
     try {
-      const res = await uploadFile(
+      await uploadFile(
         `/api/games/${currentGame?.id}/teams/us/avatar`,
         [file],
         ({ percent }) => {
@@ -103,12 +101,11 @@ export default function Index() {
             }
           );
         }
-      );{
-        toast.success(t("team:avatar.upload.success"), {
-          id: "team-avatar-upload",
-        });
-        setRefresh();
-      }
+      );
+      toast.success(t("team:avatar.upload.success"), {
+        id: "team-avatar-upload",
+      });
+      setRefresh();
     } catch {
       toast.error(t("team:avatar.upload.error"));
     }
@@ -119,15 +116,14 @@ export default function Index() {
   async function handleAvatarDelete() {
     if (!selfTeam || !currentGame) return;
     try {
-      const res = await deleteTeamAvatar({
+      await deleteTeamAvatar({
         game_id: currentGame.id!,
         team_id: selfTeam.id!,
       });
 
-        toast.success(
-          t("team:avatar.team_delete_success", { name: selfTeam?.name })
-        );
-      
+      toast.success(
+        t("team:avatar.team_delete_success", { name: selfTeam?.name })
+      );
     } finally {
       setRefresh();
     }

@@ -6,9 +6,7 @@ export async function getConfigs() {
 }
 
 export async function updateConfig(request: Config) {
-  return api
-    .put("admin/configs", { json: request })
-    .json<{ config: Config }>();
+  return api.put("admin/configs", { json: request }).json<{ config: Config }>();
 }
 
 export async function getStatistics() {

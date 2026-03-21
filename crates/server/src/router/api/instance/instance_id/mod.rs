@@ -18,12 +18,6 @@ use crate::{
     traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/renew", axum::routing::post(renew_instance))
-        .route("/stop", axum::routing::post(stop_instance))
-        .route("/wsrx", axum::routing::get(wsrx))
-}
 
 /// 路径相对于 `/instances/{instance_id}`。
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {

@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{DefaultBodyLimit, Multipart, State},
+    extract::{Multipart, State},
 };
 use serde_json::json;
 use utoipa_axum::{
@@ -18,16 +18,6 @@ use crate::{
     traits::{AppState, EmptySuccess, WebError},
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_challenge_attachment))
-        .route(
-            "/",
-            axum::routing::post(save_challenge_attachment)
-                .layer(DefaultBodyLimit::max(512 * 1024 * 1024 /* MB */)),
-        )
-        .nest("/{filename}", filename::router())
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

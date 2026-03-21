@@ -11,9 +11,6 @@ use crate::{
     traits::{AppState, WebError},
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/", axum::routing::get(get_game_poster))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

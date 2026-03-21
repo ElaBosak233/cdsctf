@@ -1,5 +1,4 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { StatusCodes } from "http-status-codes";
 import { CheckIcon, MailIcon, MailPlusIcon, TrashIcon } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -67,10 +66,9 @@ export default function Emails() {
       email,
       verified,
     })
-      .then((res) => {{
-          toast.success(t("user:emails.actions.update.success", { email }));
-          handleRefresh();
-        }
+      .then(() => {
+        toast.success(t("user:emails.actions.update.success", { email }));
+        handleRefresh();
       })
       .finally(() => setUpdatingEmail(undefined));
   }

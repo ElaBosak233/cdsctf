@@ -1,5 +1,4 @@
 import type { ColumnDef, Row } from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
 import { TrashIcon } from "lucide-react";
 import prettyBytes from "pretty-bytes";
 import { useContext, useMemo, useState } from "react";
@@ -24,14 +23,13 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
 
   function handleDelete() {
     deleteChallengeAttachment(challenge?.id, row.original.filename)
-      .then((res) => {{
-          toast.success(
-            t("challenge:attachment.actions.delete.success", {
-              filename: row.original.filename,
-            })
-          );
-          setDeleteDialogOpen(false);
-        }
+      .then(() => {
+        toast.success(
+          t("challenge:attachment.actions.delete.success", {
+            filename: row.original.filename,
+          })
+        );
+        setDeleteDialogOpen(false);
       })
       .finally(() => {
         sharedStore?.setRefresh();

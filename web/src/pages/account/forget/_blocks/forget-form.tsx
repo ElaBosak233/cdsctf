@@ -64,13 +64,12 @@ function ForgetForm() {
     forget({
       ...values,
     })
-      .then((res) => {{
-          authStore.setUser(res.user);
-          toast.success(t("account:forget.toast.success._"), {
-            description: t("account:forget.toast.success.desc"),
-          });
-          navigate("/account/login");
-        }
+      .then((res) => {
+        authStore.setUser(res.user);
+        toast.success(t("account:forget.toast.success._"), {
+          description: t("account:forget.toast.success.desc"),
+        });
+        navigate("/account/login");
 
         if (res.code === StatusCodes.BAD_REQUEST) {
           toast.error(t("common:errors.default"), {
@@ -88,9 +87,8 @@ function ForgetForm() {
   function handleSendForgetEmail() {
     sendForgetEmail({
       email: form.getValues().email,
-    }).then((res) => {{
-        toast.success(t("account:forget.toast.code_sent"));
-      }
+    }).then((res) => {
+      toast.success(t("account:forget.toast.code_sent"));
 
       if (res.code === StatusCodes.BAD_REQUEST) {
         toast.error(t("common:errors.default"), {

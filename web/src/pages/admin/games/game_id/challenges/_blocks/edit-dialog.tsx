@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   ClockFadingIcon,
   HashIcon,
@@ -132,15 +131,14 @@ function EditDialog(props: EditDialogProps) {
       frozen_at: values.frozen_at
         ? Math.floor(values.frozen_at.getTime() / 1000)
         : null,
-    }).then((res) => {{
-        toast.success(
-          t("game:challenge.actions.edit_config_success", {
-            title: gameChallenge?.challenge_title,
-          })
-        );
-        sharedStore?.setRefresh();
-        onClose();
-      }
+    }).then(() => {
+      toast.success(
+        t("game:challenge.actions.edit_config_success", {
+          title: gameChallenge?.challenge_title,
+        })
+      );
+      sharedStore?.setRefresh();
+      onClose();
     });
   }
 

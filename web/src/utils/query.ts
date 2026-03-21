@@ -53,9 +53,7 @@ function toSearchParams<T extends object>(obj: T): URLSearchParams {
   return sp;
 }
 
-async function parseErrorResponse(
-  error: HTTPError
-): Promise<ApiJsonError> {
+async function parseErrorResponse(error: HTTPError): Promise<ApiJsonError> {
   return await error.response.clone().json();
 }
 

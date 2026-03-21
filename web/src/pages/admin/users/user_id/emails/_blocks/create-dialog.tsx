@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   CheckIcon,
   MailIcon,
@@ -56,22 +55,21 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    const res = await addEmail({
+    await addEmail({
       user_id: userId,
       email: values.email,
       verified: values.verified,
     });
 
-      toast.success(
-        t("user:emails.actions.create.success", { email: values.email })
-      );
-      onSuccess();
-      onClose();
-      form.reset({
-        email: "",
-        verified: false,
-      });
-    
+    toast.success(
+      t("user:emails.actions.create.success", { email: values.email })
+    );
+    onSuccess();
+    onClose();
+    form.reset({
+      email: "",
+      verified: false,
+    });
 
     setLoading(false);
   }

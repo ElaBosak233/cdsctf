@@ -143,4 +143,4 @@ const extraBtnSection = cva(
   }
 );
 
-export { FieldRoot as Field, FieldButton, FieldContext, FieldIcon };
+export { FieldButton, FieldContext, FieldIcon, FieldRoot as Field };

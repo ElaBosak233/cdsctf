@@ -24,18 +24,6 @@ use crate::{
     traits::{AppState, EmptySuccess, WebError},
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_game))
-        .route("/", axum::routing::put(update_game))
-        .route("/", axum::routing::delete(delete_game))
-        .nest("/challenges", challenge::router())
-        .nest("/teams", team::router())
-        .nest("/notices", notice::router())
-        .nest("/icon", icon::router())
-        .nest("/poster", poster::router())
-        .route("/calculate", axum::routing::post(calculate_game))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

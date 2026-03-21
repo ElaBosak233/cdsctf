@@ -16,12 +16,6 @@ use crate::{
     util::cluster::Instance,
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_instance))
-        .route("/", axum::routing::post(create_debug_instance))
-        .nest("/{instance_id}", instance_id::router())
-}
 
 /// 路径相对于 `/admin/instances`。
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {

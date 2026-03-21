@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   SaveIcon,
   ShieldIcon,
@@ -96,11 +95,10 @@ export default function Index() {
       id: user.id!,
       ...values,
     })
-      .then((res) => {{
-          toast.success(
-            t("user:actions.update.success", { username: res.user?.username })
-          );
-        }
+      .then((res) => {
+        toast.success(
+          t("user:actions.update.success", { username: res.user?.username })
+        );
       })
       .finally(() => {
         sharedStore.setRefresh();

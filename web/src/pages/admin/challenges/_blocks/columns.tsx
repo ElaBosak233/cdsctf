@@ -1,5 +1,4 @@
 import type { Column, ColumnDef, Row } from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -133,27 +132,25 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
     const newValue = !checked;
     setChecked(newValue);
 
-    const res = await updateChallenge({
+    await updateChallenge({
       id,
       public: newValue,
     });
 
-      toast.success(t("challenge:public.actions.success", { title }), {
-        id: "publicness_change",
-      });
-      sharedStore?.setRefresh();
-    
+    toast.success(t("challenge:public.actions.success", { title }), {
+      id: "publicness_change",
+    });
+    sharedStore?.setRefresh();
   }
 
   async function handleDelete() {
     try {
-      const res = await deleteChallenge({
+      await deleteChallenge({
         id,
       });
 
-        toast.success(t("challenge:actions.delete.success", { title }));
-        setDeleteDialogOpen(false);
-      
+      toast.success(t("challenge:actions.delete.success", { title }));
+      setDeleteDialogOpen(false);
     } finally {
       sharedStore?.setRefresh();
     }

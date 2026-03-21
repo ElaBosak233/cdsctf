@@ -32,7 +32,7 @@ export default function Layout() {
       const res = await getGames({
         id: Number(game_id),
       });
-      return res?.game;
+      return res.items[0];
     },
     placeholderData: keepPreviousData,
   });

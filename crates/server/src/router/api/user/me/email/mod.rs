@@ -21,17 +21,6 @@ use crate::{
     util,
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::get(get_email))
-        .route("/", axum::routing::post(add_email))
-        .route("/{mailbox}", axum::routing::delete(delete_email))
-        .route("/{mailbox}/verify", axum::routing::post(verify_email))
-        .route(
-            "/{mailbox}/verify/send",
-            axum::routing::post(send_verify_email),
-        )
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

@@ -1,5 +1,4 @@
 import type { ColumnDef, Row } from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
 import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
@@ -48,7 +47,8 @@ function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
       game_id,
       challenge_id,
       enabled: newValue,
-    }).then((res) => {{
+    }).then(() => {
+      {
         const enabledLabel = newValue
           ? t("game:enabled.true")
           : t("game:enabled.false");
@@ -110,14 +110,13 @@ function ActionsCell({ row }: { row: Row<GameChallenge> }) {
       game_id,
       challenge_id,
     })
-      .then((res) => {{
-          toast.success(
-            t("game:actions.delete.success", {
-              title,
-            })
-          );
-          setDeleteDialogOpen(false);
-        }
+      .then(() => {
+        toast.success(
+          t("game:actions.delete.success", {
+            title,
+          })
+        );
+        setDeleteDialogOpen(false);
       })
       .finally(() => {
         sharedStore?.setRefresh();

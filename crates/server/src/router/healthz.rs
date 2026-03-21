@@ -1,11 +1,5 @@
-//! `/healthz`：OpenAPI 仅描述 GET；若需与其它 method 对齐，可再挂 `route`。
+//! `/healthz`：纯 Axum 路由，不参与 OpenAPI 汇总。
 
-#[utoipa::path(
-    get,
-    path = "/healthz",
-    tag = "system",
-    responses((status = 200, description = "Plain-text liveness response"))
-)]
 pub async fn healthz() -> &'static str {
     "Ok"
 }

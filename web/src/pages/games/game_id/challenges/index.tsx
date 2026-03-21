@@ -98,7 +98,7 @@ export default function Index() {
         team_id: selfGameTeam?.id,
         game_id: currentGame?.id,
       }),
-    select: (response) => response.items,
+    select: (response) => response.statuses,
     refetchInterval: 15000,
   });
 

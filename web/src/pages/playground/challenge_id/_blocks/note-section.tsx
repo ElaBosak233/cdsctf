@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { StatusCodes } from "http-status-codes";
 import {
   EyeIcon,
   MegaphoneIcon,
@@ -63,14 +62,13 @@ function NoteSection() {
   const [mode, setMode] = useState<"view" | "edit">("edit");
 
   async function handleSaveMyNote() {
-    const res = await saveMyNote({
+    await saveMyNote({
       content: form.getValues("content"),
       challenge_id: Number(challenge?.id),
       public: form.getValues("public"),
     });
 
-      toast.success(t("challenge:note_save_success"));
-    
+    toast.success(t("challenge:note_save_success"));
   }
 
   return (

@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   BoxIcon,
   ContainerIcon,
@@ -77,11 +76,12 @@ export default function Index() {
       id: challenge?.id,
       ...values,
     })
-      .then((res) => {{
-          toast.success(
-            t("challenge:actions.update.success", { title: res?.challenge?.title })
-          );
-        }
+      .then((res) => {
+        toast.success(
+          t("challenge:actions.update.success", {
+            title: res?.challenge?.title,
+          })
+        );
       })
       .finally(() => {
         sharedStore.setRefresh();

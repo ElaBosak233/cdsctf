@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   BadgeCheckIcon,
   InfoIcon,
@@ -91,9 +90,8 @@ export default function Index() {
     updateConfig({
       ...config,
       ...values,
-    }).then((res) => {{
-        toast.success(t("admin:platform.actions.update.success"));
-      }
+    }).then(() => {
+      toast.success(t("admin:platform.actions.update.success"));
     });
   }
 
@@ -136,9 +134,8 @@ export default function Index() {
   });
 
   async function handleLogoDelete() {
-    const res = await deleteLogo();{
-      toast.success(t("admin:platform.logo_reset.success"));
-    }
+    await deleteLogo();
+    toast.success(t("admin:platform.logo_reset.success"));
     bump();
   }
 

@@ -63,11 +63,10 @@ export default function Index() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     deleteUserProfile({
       ...values,
-    }).then((res) => {{
-        toast.success(t("user:delete_account.actions.delete.success"));
-        authStore?.clear();
-        navigate("/");
-      }
+    }).then((res) => {
+      toast.success(t("user:delete_account.actions.delete.success"));
+      authStore?.clear();
+      navigate("/");
 
       if (res.code === StatusCodes.BAD_REQUEST) {
         toast.error(res.msg);

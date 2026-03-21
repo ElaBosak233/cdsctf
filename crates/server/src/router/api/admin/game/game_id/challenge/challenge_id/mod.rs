@@ -23,11 +23,6 @@ use crate::{
 
 use super::GameChallengeResponse;
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::put(update_game_challenge))
-        .route("/", axum::routing::delete(delete_game_challenge))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))

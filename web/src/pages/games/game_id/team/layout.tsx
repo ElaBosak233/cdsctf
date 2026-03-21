@@ -64,18 +64,17 @@ export default function Layout() {
 
   async function handleSetReady() {
     try {
-      const res = await setTeamReady({
+      await setTeamReady({
         game_id: currentGame?.id,
         id: selfTeam?.id,
       });
 
-        toast.success(t("team:actions.ready.success"), {
-          description: t("team:actions.ready.description", {
-            name: selfTeam?.name,
-          }),
-        });
-        setConfirmDialogOpen(false);
-      
+      toast.success(t("team:actions.ready.success"), {
+        description: t("team:actions.ready.description", {
+          name: selfTeam?.name,
+        }),
+      });
+      setConfirmDialogOpen(false);
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
       const res = await parseErrorResponse(error);
@@ -94,19 +93,18 @@ export default function Layout() {
   async function handleDisband() {
     if (!selfTeam?.id || !currentGame?.id) return;
     try {
-      const res = await deleteTeam({
+      await deleteTeam({
         team_id: selfTeam.id!,
         game_id: currentGame.id!,
       });
 
-        toast.success(t("team:actions.disband.success"), {
-          description: t("team:actions.disband.description", {
-            name: selfTeam?.name,
-          }),
-        });
-        setDisbandDialogOpen(false);
-        navigate(`/games/${currentGame?.id}`);
-      
+      toast.success(t("team:actions.disband.success"), {
+        description: t("team:actions.disband.description", {
+          name: selfTeam?.name,
+        }),
+      });
+      setDisbandDialogOpen(false);
+      navigate(`/games/${currentGame?.id}`);
     } finally {
       sharedStore.setRefresh();
     }
@@ -117,19 +115,18 @@ export default function Layout() {
   async function handleLeave() {
     if (!selfTeam?.id || !currentGame?.id) return;
     try {
-      const res = await leaveTeam({
+      await leaveTeam({
         team_id: selfTeam.id!,
         game_id: currentGame.id!,
       });
 
-        toast.success(t("team:actions.leave.success"), {
-          description: t("team:actions.leave.description", {
-            name: selfTeam?.name,
-          }),
-        });
-        setDisbandDialogOpen(false);
-        navigate(`/games/${currentGame?.id}`);
-      
+      toast.success(t("team:actions.leave.success"), {
+        description: t("team:actions.leave.description", {
+          name: selfTeam?.name,
+        }),
+      });
+      setDisbandDialogOpen(false);
+      navigate(`/games/${currentGame?.id}`);
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
       const res = await parseErrorResponse(error);

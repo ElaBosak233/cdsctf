@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use axum::{
-    Router,
     extract::{State, WebSocketUpgrade},
     response::IntoResponse,
 };
@@ -13,9 +12,6 @@ use crate::{
 };
 
 #[allow(dead_code)]
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/shell", axum::routing::get(get_shell))
-}
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]

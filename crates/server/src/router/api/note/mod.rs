@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State, routing::get};
+use axum::{Json, Router, extract::State};
 use cds_db::note::{FindNotesOptions, Note};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -14,9 +14,6 @@ use crate::{
     traits::{AppState, AuthPrincipal, WebError},
 };
 
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new().route("/", get(get_note))
-}
 
 pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
