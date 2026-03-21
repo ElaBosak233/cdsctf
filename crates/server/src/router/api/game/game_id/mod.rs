@@ -1,13 +1,13 @@
-mod challenge;
+pub mod challenge;
 mod icon;
 mod notice;
 mod poster;
-mod team;
+pub mod team;
 
 use std::{convert::Infallible, sync::Arc};
 
 use axum::{
-    Router,
+    Json, Router,
     extract::State,
     response::{
         IntoResponse, Sse,
@@ -22,10 +22,14 @@ use cds_event::SubscribeOptions;
 use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Path, Query},
-    traits::{AppState, WebError, WebResponse},
+    traits::{AppState, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -40,40 +44,87 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/events", axum::routing::get(get_events))
 }
 
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_game).with_state(state.clone()))
+        .routes(routes!(get_game_scoreboard).with_state(state.clone()))
+        .routes(routes!(get_events).with_state(state.clone()))
+        .nest("/challenges", challenge::openapi_router(state.clone()))
+        .nest("/teams", team::openapi_router(state.clone()))
+        .nest("/notices", notice::openapi_router(state.clone()))
+        .nest("/icon", icon::openapi_router(state.clone()))
+        .nest("/poster", poster::openapi_router(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct GameDetailResponse {
+    pub game: Game,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Game", body = GameDetailResponse),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
-) -> Result<WebResponse<Game>, WebError> {
+) -> Result<Json<GameDetailResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     if !game.enabled {
         return Err(WebError::NotFound(json!("")));
     }
 
-    Ok(WebResponse {
-        data: Some(game),
-        ..Default::default()
-    })
+    Ok(Json(GameDetailResponse { game }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetGameScoreboardRequest {
     pub size: Option<u64>,
     pub page: Option<u64>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ScoreRecord {
     pub team: Team,
     pub submissions: Vec<Submission>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct GameScoreboardResponse {
+    pub items: Vec<ScoreRecord>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/scoreboard",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        GetGameScoreboardRequest,
+    ),
+    responses(
+        (status = 200, description = "Scoreboard", body = GameScoreboardResponse),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_game_scoreboard(
     State(s): State<Arc<AppState>>,
-
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameScoreboardRequest>,
-) -> Result<WebResponse<Vec<ScoreRecord>>, WebError> {
+) -> Result<Json<GameScoreboardResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     let (teams, total) = cds_db::team::find(
@@ -109,21 +160,30 @@ pub async fn get_game_scoreboard(
         result.push(ScoreRecord { team, submissions });
     }
 
-    Ok(WebResponse {
-        data: Some(result),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(GameScoreboardResponse { items: result, total }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetEventsRequest {
     pub token: String,
 }
 
+#[utoipa::path(
+    get,
+    path = "/events",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        GetEventsRequest,
+    ),
+    responses(
+        (status = 200, description = "SSE stream", content_type = "text/event-stream"),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_events(
     State(s): State<Arc<AppState>>,
-
     Path(game_id): Path<i64>,
     Query(params): Query<GetEventsRequest>,
 ) -> Result<impl IntoResponse, WebError> {

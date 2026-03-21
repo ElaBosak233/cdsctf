@@ -1,4 +1,3 @@
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface LeaveTeamRequest {
@@ -11,5 +10,5 @@ export async function leaveTeam(request: LeaveTeamRequest) {
     .delete(`games/${request?.game_id}/teams/us/users/leave`, {
       json: request,
     })
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

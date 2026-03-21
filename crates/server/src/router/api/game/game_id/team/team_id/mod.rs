@@ -2,14 +2,18 @@ mod avatar;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{TeamUser, UserMini, sea_orm::ActiveValue::Set, team::State as TState};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Extension, Json, Path},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -19,33 +23,75 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/join", axum::routing::post(join_team))
 }
 
-pub async fn get_team_members(
-    State(s): State<Arc<AppState>>,
-
-    Path((_game_id, team_id)): Path<(i64, i64)>,
-) -> Result<WebResponse<Vec<UserMini>>, WebError> {
-    let users = cds_db::user::find_by_team_id(&s.db.conn, team_id).await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(users),
-        ..Default::default()
-    })
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .nest(
+            "/avatar",
+            OpenApiRouter::from(Router::new().with_state(state.clone())).routes(
+                routes!(avatar::get_team_avatar).with_state(state.clone()),
+            ),
+        )
+        .routes(routes!(get_team_members).with_state(state.clone()))
+        .routes(routes!(join_team).with_state(state.clone()))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct TeamMembersListResponse {
+    pub items: Vec<UserMini>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/members",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        ("team_id" = i64, Path, description = "Team id"),
+    ),
+    responses(
+        (status = 200, description = "Members", body = TeamMembersListResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
+pub async fn get_team_members(
+    State(s): State<Arc<AppState>>,
+    Path((_game_id, team_id)): Path<(i64, i64)>,
+) -> Result<Json<TeamMembersListResponse>, WebError> {
+    let users = cds_db::user::find_by_team_id(&s.db.conn, team_id).await?;
+    let total = users.len() as u64;
+
+    Ok(Json(TeamMembersListResponse { items: users, total }))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct JoinTeamRequest {
     pub team_id: i64,
     pub token: String,
 }
 
+#[utoipa::path(
+    post,
+    path = "/join",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        ("team_id" = i64, Path, description = "Team id"),
+    ),
+    request_body = JoinTeamRequest,
+    responses(
+        (status = 200, description = "Joined", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn join_team(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path((game_id, team_id)): Path<(i64, i64)>,
-    Json(body): Json<JoinTeamRequest>,
-) -> Result<WebResponse<()>, WebError> {
+    ReqJson(body): ReqJson<JoinTeamRequest>,
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
@@ -81,8 +127,5 @@ pub async fn join_team(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }

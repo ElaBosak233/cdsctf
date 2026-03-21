@@ -10,7 +10,7 @@ pub use crate::entity::note::ActiveModel;
 pub(crate) use crate::entity::note::{Column, Entity};
 use crate::{sea_orm, sea_orm::FromQueryResult, traits::DbError};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema)]
 pub struct Note {
     pub id: i64,
     pub content: String,

@@ -4,7 +4,7 @@ mod writeup;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     Team,
     sea_orm::{
@@ -15,10 +15,15 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Json, Path},
-    traits::{AppState, WebError, WebResponse},
+    extract::{Json as ReqJson, Path},
+    router::api::game::game_id::team::TeamResponse,
+    traits::{AppState, EmptySuccess, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -30,7 +35,16 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/writeup", writeup::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(update_team).with_state(state.clone()))
+        .routes(routes!(delete_team).with_state(state.clone()))
+        .nest("/users", user::openapi_router(state.clone()))
+        .nest("/token", token::openapi_router(state.clone()))
+        .nest("/writeup", writeup::openapi_router(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct UpdateTeamRequest {
     pub name: Option<String>,
     pub email: Option<String>,
@@ -39,16 +53,25 @@ pub struct UpdateTeamRequest {
     pub description: Option<String>,
 }
 
-/// Update a team with given path and data.
-///
-/// # Prerequisite
-/// - Operator is admin or one of current team.
+#[utoipa::path(
+    put,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        ("team_id" = i64, Path, description = "Team id"),
+    ),
+    request_body = UpdateTeamRequest,
+    responses(
+        (status = 200, description = "Updated team", body = TeamResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn update_team(
     State(s): State<Arc<AppState>>,
-
     Path((game_id, team_id)): Path<(i64, i64)>,
-    Json(body): Json<UpdateTeamRequest>,
-) -> Result<WebResponse<Team>, WebError> {
+    ReqJson(body): ReqJson<UpdateTeamRequest>,
+) -> Result<Json<TeamResponse>, WebError> {
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
     let new_team = cds_db::team::update::<Team>(
@@ -76,18 +99,27 @@ pub async fn update_team(
             .await?;
     }
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(new_team),
-        ..Default::default()
-    })
+    Ok(Json(TeamResponse { team: new_team }))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        ("team_id" = i64, Path, description = "Team id"),
+    ),
+    responses(
+        (status = 200, description = "Deleted", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_team(
     State(s): State<Arc<AppState>>,
-
     Path((game_id, team_id)): Path<(i64, i64)>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
     if team.state != TState::Preparing {
@@ -98,8 +130,5 @@ pub async fn delete_team(
 
     cds_db::team::delete(&s.db.conn, team.id).await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }

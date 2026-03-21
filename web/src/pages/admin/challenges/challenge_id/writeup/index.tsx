@@ -56,11 +56,10 @@ export default function Index() {
       id: challenge?.id,
       writeup: values.writeup,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
             t("challenge:actions.writeup_update.success", {
-              title: res?.data?.title,
+              title: res?.challenge?.title,
             })
           );
         }

@@ -26,7 +26,7 @@ function ExpandedCard(props: ExpandedCardProps) {
         team_id: team.id,
         game_id: team.game_id,
       }),
-    select: (response) => response.data,
+    select: (response) => response.items,
   });
 
   return (

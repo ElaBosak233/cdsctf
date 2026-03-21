@@ -33,7 +33,7 @@ function useChallengeQuery(challengeId?: number, debug: boolean = false) {
       debug
         ? getChallengeDebug({ id: challengeId! })
         : getChallenge({ id: challengeId! }),
-    select: (response) => response.data,
+    select: (response) => response.items,
     enabled: !!challengeId,
   });
 }

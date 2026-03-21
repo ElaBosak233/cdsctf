@@ -2,13 +2,17 @@ mod filename;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Extension, Path},
     model::Metadata,
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -17,12 +21,40 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{filename}", filename::router())
 }
 
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_challenge_attachment).with_state(state.clone()))
+        .nest(
+            "/{filename}",
+            filename::openapi_router(state.clone()),
+        )
+}
+
+#[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct ChallengeAttachmentsListResponse {
+    pub items: Vec<Metadata>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "challenge",
+    params(
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+    ),
+    responses(
+        (status = 200, description = "Attachment metadata", body = ChallengeAttachmentsListResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_challenge_attachment(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
-) -> Result<WebResponse<Vec<Metadata>>, WebError> {
+) -> Result<Json<ChallengeAttachmentsListResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
@@ -43,9 +75,7 @@ pub async fn get_challenge_attachment(
         .into_iter()
         .map(|(filename, size)| Metadata { filename, size })
         .collect::<Vec<Metadata>>();
+    let total = metadata.len() as u64;
 
-    Ok(WebResponse {
-        data: Some(metadata),
-        ..Default::default()
-    })
+    Ok(Json(ChallengeAttachmentsListResponse { items: metadata, total }))
 }

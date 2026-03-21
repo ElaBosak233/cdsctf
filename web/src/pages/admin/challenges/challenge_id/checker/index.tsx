@@ -64,8 +64,7 @@ export default function Index() {
       id: challenge?.id,
       ...values,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
             t("challenge:checker.actions.update_success", {
               title: challenge?.title,
@@ -87,7 +86,7 @@ export default function Index() {
         id: challenge?.id,
         checker: debouncedChecker,
       }).then((res) => {
-        setLint(res.data);
+        setLint(res.markers);
       });
     }
   }, [challenge?.id, debouncedChecker]);

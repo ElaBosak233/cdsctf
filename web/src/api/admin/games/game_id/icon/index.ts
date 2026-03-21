@@ -1,4 +1,3 @@
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 interface DeleteGameIconRequest {
@@ -8,5 +7,5 @@ interface DeleteGameIconRequest {
 export async function deleteGameIcon(request: DeleteGameIconRequest) {
   return api
     .delete(`admin/games/${request.game_id}/icon`)
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

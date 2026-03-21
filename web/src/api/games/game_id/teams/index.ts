@@ -1,5 +1,4 @@
 import type { Team } from "@/models/team";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 // export interface GetTeamRequest {
@@ -14,7 +13,7 @@ import { api } from "@/utils/query";
 // }
 
 // export async function getTeams(request: GetTeamRequest) {
-//     return alova.Get<WebResponse<Array<Team>>>(
+//     return alova.Get<{ items: Team[]; total: number }>(
 //         `/games/${request.game_id}/teams`,
 //         {
 //             params: request,
@@ -35,5 +34,5 @@ export async function teamRegister(request: TeamRegisterRequest) {
     .post(`games/${request.game_id}/teams/register`, {
       json: request,
     })
-    .json<WebResponse<Team>>();
+    .json<{ team: Team }>();
 }

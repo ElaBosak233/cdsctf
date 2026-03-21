@@ -2,13 +2,17 @@ mod instance_id;
 
 use std::{collections::BTreeMap, sync::Arc};
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Extension, Json, Query},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson, Query},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
     util::cluster::Instance,
 };
 
@@ -19,7 +23,16 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{instance_id}", instance_id::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// 路径相对于 `/admin/instances`。
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_instance).with_state(state.clone()))
+        .routes(routes!(create_debug_instance).with_state(state.clone()))
+        .nest("/{instance_id}", instance_id::openapi_router(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetInstanceRequest {
     pub id: Option<String>,
     pub user_id: Option<i64>,
@@ -28,11 +41,27 @@ pub struct GetInstanceRequest {
     pub challenge_id: Option<i64>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct ListInstancesResponse {
+    pub items: Vec<Instance>,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "admin-instance",
+    params(GetInstanceRequest),
+    responses(
+        (status = 200, description = "Matching instances", body = ListInstancesResponse),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_instance(
     State(s): State<Arc<AppState>>,
 
     Query(params): Query<GetInstanceRequest>,
-) -> Result<WebResponse<Vec<Instance>>, WebError> {
+) -> Result<Json<ListInstancesResponse>, WebError> {
     let mut map: BTreeMap<String, String> = BTreeMap::new();
 
     if let Some(id) = params.id {
@@ -68,23 +97,33 @@ pub async fn get_instance(
         .map(|pod| Instance::from(pod).with_env(&s.env))
         .collect::<Vec<Instance>>();
 
-    Ok(WebResponse {
-        data: Some(envs),
-        ..Default::default()
-    })
+    Ok(Json(ListInstancesResponse { items: envs }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct CreateDebugInstanceRequest {
     pub challenge_id: i64,
 }
 
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "admin-instance",
+    request_body = CreateDebugInstanceRequest,
+    responses(
+        (status = 200, description = "Debug instance created", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 429, description = "Too many instances", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn create_debug_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
-    Json(body): Json<CreateDebugInstanceRequest>,
-) -> Result<WebResponse<()>, WebError> {
+    ReqJson(body): ReqJson<CreateDebugInstanceRequest>,
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
@@ -113,5 +152,5 @@ pub async fn create_debug_instance(
         .create_challenge_instance(operator, None, None, challenge)
         .await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }

@@ -1,6 +1,5 @@
 import type { ChallengeMini } from "@/models/challenge";
 import type { Submission } from "@/models/submission";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetPlaygroundChallengesRequest {
@@ -21,7 +20,7 @@ export async function getPlaygroundChallenges(
     .get("challenges/playground", {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<ChallengeMini>>>();
+    .json<{ items: ChallengeMini[]; total: number }>();
 }
 
 export interface GetChallengeStatusRequest {
@@ -43,5 +42,5 @@ export async function getChallengeStatus(request: GetChallengeStatusRequest) {
     .post("challenges/status", {
       json: request,
     })
-    .json<WebResponse<Record<string, ChallengeStatus>>>();
+    .json<{ statuses: Record<string, ChallengeStatus> }>();
 }

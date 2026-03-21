@@ -16,20 +16,20 @@ export default function () {
   const { data: configData } = useQuery({
     queryKey: ["configs"],
     queryFn: getConfigs,
-    select: (response) => response.data,
+    select: (response) => response.config,
   });
 
   const { data: versionData } = useQuery({
     queryKey: ["version"],
     queryFn: getVersion,
-    select: (response) => response.data,
+    select: (response) => response,
   });
 
   const { data: profileData } = useQuery({
     queryKey: ["profile"],
     queryFn: getUserProfile,
     retry: false,
-    select: (response) => response.data,
+    select: (response) => response.user,
   });
 
   useEffect(() => {

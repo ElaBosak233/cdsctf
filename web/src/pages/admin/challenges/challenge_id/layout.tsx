@@ -36,7 +36,7 @@ export default function Layout() {
       const res = await getChallenge({
         id: Number(challenge_id),
       });
-      return res.data;
+      return res.challenge;
     },
     placeholderData: keepPreviousData,
   });

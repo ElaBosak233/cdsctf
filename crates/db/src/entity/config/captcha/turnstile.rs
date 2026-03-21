@@ -1,7 +1,16 @@
 use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq)]
+#[derive(
+    Clone,
+    Debug,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    Eq,
+    PartialEq,
+    utoipa::ToSchema,
+)]
 pub struct Config {
     pub url: String,
     pub secret_key: String,

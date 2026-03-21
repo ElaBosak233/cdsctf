@@ -1,8 +1,8 @@
-import { StatusCodes } from "http-status-codes";
 import { FlagIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { HTTPError } from "ky";
 import { createSubmission } from "@/api/submissions";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -47,25 +47,33 @@ function SubmitSection() {
       content: flag?.trim(),
       game_id: mode === "game" ? Number(team?.game_id) : undefined,
       team_id: mode === "game" ? Number(team?.id) : undefined,
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
+    })
+      .then((submission) => {
+        if (!submission) return;
         setFlag("");
         toast.loading(
-          `#${res?.data?.id} 已提交题目 ${res?.data?.challenge_title} 的解答`,
+          `#${submission.id} 已提交题目 ${submission.challenge_title} 的解答`,
           {
-            id: `submission-${res?.data?.id}`,
+            id: `submission-${submission.id}`,
             description: t("submission:pending_review"),
           }
         );
-        add(res.data!);
-      }
-
-      if (res.code === 500) {
-        toast.error(t("common:errors.default"), {
-          description: res.msg,
-        });
-      }
-    });
+        add(submission);
+      })
+      .catch(async (err) => {
+        if (err instanceof HTTPError) {
+          try {
+            const body = (await err.response.json()) as { msg?: unknown };
+            toast.error(t("common:errors.default"), {
+              description: String(body.msg ?? err.message),
+            });
+          } catch {
+            toast.error(t("common:errors.default"));
+          }
+        } else {
+          toast.error(t("common:errors.default"));
+        }
+      });
   }
 
   return (
@@ -78,16 +86,16 @@ function SubmitSection() {
           placeholder={placeholder}
           value={flag}
           onChange={(e) => setFlag(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleFlagSubmit();
+            }
+          }}
         />
       </Field>
-      <Button
-        variant={"solid"}
-        icon={<SendIcon />}
-        onClick={handleFlagSubmit}
-        loading={submissions.length > 0}
-        disabled={!flag?.trim()}
-      >
-        {t("submission:actions.submit")}
+      <Button size={"sm"} onClick={handleFlagSubmit}>
+        <SendIcon />
       </Button>
     </div>
   );

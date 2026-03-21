@@ -1,5 +1,4 @@
 import type { User } from "@/models/user";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export async function getUserProfile() {
@@ -9,7 +8,7 @@ export async function getUserProfile() {
         "ignore-unauthorized": "OK",
       },
     })
-    .json<WebResponse<User>>();
+    .json<{ user: User }>();
 }
 
 export interface UpdateUserProfileRequest {
@@ -19,7 +18,7 @@ export interface UpdateUserProfileRequest {
 }
 
 export async function updateUserProfile(request: UpdateUserProfileRequest) {
-  return api.put("users/me", { json: request }).json<WebResponse<User>>();
+  return api.put("users/me", { json: request }).json<{ user: User }>();
 }
 
 export interface UpdateUserProfilePasswordRequest {
@@ -32,7 +31,7 @@ export async function updateUserProfilePassword(
 ) {
   return api
     .put("users/me/password", { json: request })
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }
 
 export interface DeleteUserProfileRequest {
@@ -44,5 +43,5 @@ export interface DeleteUserProfileRequest {
 }
 
 export async function deleteUserProfile(request: DeleteUserProfileRequest) {
-  return api.delete("users/me", { json: request }).json<WebResponse<never>>();
+  return api.delete("users/me", { json: request }).json<Record<string, never>>();
 }

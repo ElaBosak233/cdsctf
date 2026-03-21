@@ -1,5 +1,4 @@
 import type { Instance } from "@/models/instance";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface CreateDebugInstanceRequest {
@@ -9,5 +8,5 @@ export interface CreateDebugInstanceRequest {
 export async function createDebugInstance(request: CreateDebugInstanceRequest) {
   return api
     .post("admin/instances", { json: request })
-    .json<WebResponse<Instance>>();
+    .json<Instance>();
 }

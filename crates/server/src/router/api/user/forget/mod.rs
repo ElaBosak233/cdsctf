@@ -1,16 +1,20 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use cds_db::{Email, User};
 use cds_media::config::email::EmailType;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 use validator::Validate;
 
 use crate::{
-    extract::Json,
-    traits::{AppState, WebError, WebResponse},
+    extract::Json as ReqJson,
+    traits::{AppState, EmptySuccess, WebError},
     util,
 };
 
@@ -20,7 +24,13 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/send", axum::routing::post(send_forget_email))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(user_forget).with_state(state.clone()))
+        .routes(routes!(send_forget_email).with_state(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 pub struct UserForgetRequest {
     #[validate(email)]
     pub email: String,
@@ -28,11 +38,21 @@ pub struct UserForgetRequest {
     pub password: String,
 }
 
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "user",
+    request_body = UserForgetRequest,
+    responses(
+        (status = 200, description = "Password reset", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn user_forget(
     State(s): State<Arc<AppState>>,
-
-    Json(body): Json<UserForgetRequest>,
-) -> Result<WebResponse<()>, WebError> {
+    ReqJson(body): ReqJson<UserForgetRequest>,
+) -> Result<Json<EmptySuccess>, WebError> {
     let user: User = cds_db::user::find_by_email(&s.db.conn, body.email.to_lowercase())
         .await?
         .ok_or(WebError::BadRequest("user_not_found".into()))?;
@@ -56,22 +76,30 @@ pub async fn user_forget(
         .get_del::<String>(format!("mailbox:{}:code", body.email.to_lowercase()))
         .await?;
 
-    Ok(WebResponse {
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+#[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 pub struct UserSendForgetEmailRequest {
     #[validate(email)]
     pub email: String,
 }
 
+#[utoipa::path(
+    post,
+    path = "/send",
+    tag = "user",
+    request_body = UserSendForgetEmailRequest,
+    responses(
+        (status = 200, description = "Email queued", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn send_forget_email(
     State(s): State<Arc<AppState>>,
-
-    Json(body): Json<UserSendForgetEmailRequest>,
-) -> Result<WebResponse<()>, WebError> {
+    ReqJson(body): ReqJson<UserSendForgetEmailRequest>,
+) -> Result<Json<EmptySuccess>, WebError> {
     if !cds_db::get_config(&s.db.conn).await.email.enabled {
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
@@ -125,7 +153,5 @@ pub async fn send_forget_email(
         .set_ex(format!("mailbox:{}:buffer", email.email.to_owned()), 1, 60)
         .await?;
 
-    Ok(WebResponse {
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }

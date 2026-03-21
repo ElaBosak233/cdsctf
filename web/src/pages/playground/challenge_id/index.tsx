@@ -31,7 +31,7 @@ function useChallengeQuery(challengeId?: number) {
   return useQuery({
     queryKey: ["challenge", challengeId],
     queryFn: () => getChallenge({ id: challengeId! }),
-    select: (response) => response.data,
+    select: (response) => response.challenge,
     enabled: !!challengeId,
   });
 }

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     Email,
     sea_orm::{Set, Unchanged},
@@ -9,11 +9,15 @@ use cds_media::config::email::EmailType;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Json, Path},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
     util,
 };
 
@@ -29,32 +33,63 @@ pub fn router() -> Router<Arc<AppState>> {
         )
 }
 
-pub async fn get_email(
-    State(s): State<Arc<AppState>>,
-
-    Extension(ext): Extension<AuthPrincipal>,
-) -> Result<WebResponse<Vec<Email>>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    let emails = cds_db::email::find_by_user_id(&s.db.conn, operator.id).await?;
-
-    Ok(WebResponse {
-        data: Some(emails),
-        ..Default::default()
-    })
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_email).with_state(state.clone()))
+        .routes(routes!(add_email).with_state(state.clone()))
+        .routes(routes!(delete_email).with_state(state.clone()))
+        .routes(routes!(verify_email).with_state(state.clone()))
+        .routes(routes!(send_verify_email).with_state(state.clone()))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct EmailsListResponse {
+    pub items: Vec<Email>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "user",
+    responses(
+        (status = 200, description = "Linked emails", body = EmailsListResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
+pub async fn get_email(
+    State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
+) -> Result<Json<EmailsListResponse>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
+    let emails = cds_db::email::find_by_user_id(&s.db.conn, operator.id).await?;
+    let total = emails.len() as u64;
+    Ok(Json(EmailsListResponse { items: emails, total }))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 pub struct UserAddEmailRequest {
     #[validate(email)]
     pub email: String,
 }
 
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "user",
+    request_body = UserAddEmailRequest,
+    responses(
+        (status = 200, description = "Email added", body = EmptySuccess),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn add_email(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
-    Json(body): Json<UserAddEmailRequest>,
-) -> Result<WebResponse<()>, WebError> {
+    ReqJson(body): ReqJson<UserAddEmailRequest>,
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     let _ = cds_db::email::create::<Email>(
@@ -67,35 +102,61 @@ pub async fn add_email(
     )
     .await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/{mailbox}",
+    tag = "user",
+    params(
+        ("mailbox" = String, Path, description = "Email address"),
+    ),
+    responses(
+        (status = 200, description = "Removed", body = EmptySuccess),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_email(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(email): Path<String>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     let email = email.to_lowercase();
 
     let _ = cds_db::email::delete(&s.db.conn, operator.id, email).await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct EmailVerifyRequest {
     pub code: String,
 }
 
+#[utoipa::path(
+    post,
+    path = "/{mailbox}/verify",
+    tag = "user",
+    params(
+        ("mailbox" = String, Path, description = "Email address"),
+    ),
+    request_body = EmailVerifyRequest,
+    responses(
+        (status = 200, description = "Verified", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn verify_email(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(email): Path<String>,
-    Json(body): Json<EmailVerifyRequest>,
-) -> Result<WebResponse<()>, WebError> {
+    ReqJson(body): ReqJson<EmailVerifyRequest>,
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     let email = cds_db::email::find_by_email::<Email>(&s.db.conn, email.to_lowercase())
@@ -138,15 +199,28 @@ pub async fn verify_email(
     )
     .await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }
 
+#[utoipa::path(
+    post,
+    path = "/{mailbox}/verify/send",
+    tag = "user",
+    params(
+        ("mailbox" = String, Path, description = "Email address"),
+    ),
+    responses(
+        (status = 200, description = "Verification mail queued", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn send_verify_email(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(email): Path<String>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     if !cds_db::get_config(&s.db.conn).await.email.enabled {
         return Err(WebError::BadRequest(json!("email_disabled")));
@@ -207,7 +281,5 @@ pub async fn send_verify_email(
         .set_ex(format!("mailbox:{}:buffer", email.email.to_owned()), 1, 60)
         .await?;
 
-    Ok(WebResponse {
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }

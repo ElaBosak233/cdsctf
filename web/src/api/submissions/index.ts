@@ -1,5 +1,4 @@
 import type { Submission } from "@/models/submission";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface CreateSubmissionRequest {
@@ -14,7 +13,7 @@ export async function createSubmission(request: CreateSubmissionRequest) {
     .post("submissions", {
       json: request,
     })
-    .json<WebResponse<Submission>>();
+    .json<Submission | null>();
 }
 
 export interface GetSubmissionRequest {
@@ -38,5 +37,5 @@ export async function getSubmission(request: GetSubmissionRequest) {
     .get("submissions", {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<Submission>>>();
+    .json<{ items: Submission[]; total: number }>();
 }

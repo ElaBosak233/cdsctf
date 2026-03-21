@@ -32,7 +32,17 @@ pub struct Model {
     pub created_at: i64,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct Timeslot {
     pub label: String,
     pub started_at: i64,

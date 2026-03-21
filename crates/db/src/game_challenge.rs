@@ -9,7 +9,16 @@ pub use crate::entity::game_challenge::{ActiveModel, Column, Model, Relation};
 use crate::traits::DbError;
 
 #[allow(dead_code)]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct GameChallenge {
     pub game_id: i64,
     pub challenge_id: i64,
@@ -25,7 +34,16 @@ pub struct GameChallenge {
 }
 
 #[allow(dead_code)]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct GameChallengeMini {
     pub game_id: i64,
     pub challenge_id: i64,

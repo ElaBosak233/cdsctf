@@ -1,7 +1,8 @@
-export interface WebResponse<T, S = string> {
+/** Error JSON body from the API (HTTP status is separate from ky). */
+export interface ApiJsonError {
   code: number;
-  data?: T;
-  msg?: S;
-  ts: number;
+  msg?: unknown;
+  data?: unknown;
   total?: number;
+  ts: number;
 }

@@ -32,14 +32,34 @@ pub struct Model {
     pub updated_at: i64,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct Instance {
     pub duration: i64,
     pub internet: bool,
     pub containers: Vec<Container>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct Container {
     pub image: String,
     pub cpu_limit: i64,
@@ -54,13 +74,33 @@ fn default_image_pull_policy() -> String {
     "Always".to_string()
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct Port {
     pub port: i32,
     pub protocol: String,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct EnvVar {
     pub key: String,
     pub value: String,

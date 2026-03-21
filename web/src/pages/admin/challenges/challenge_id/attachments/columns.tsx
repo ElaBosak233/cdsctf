@@ -24,8 +24,7 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
 
   function handleDelete() {
     deleteChallengeAttachment(challenge?.id, row.original.filename)
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
             t("challenge:attachment.actions.delete.success", {
               filename: row.original.filename,

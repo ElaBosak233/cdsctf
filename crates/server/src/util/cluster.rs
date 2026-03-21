@@ -3,7 +3,7 @@ use cds_db::challenge::Port;
 use cds_env::Env;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Instance {
     pub id: String,
     pub user_id: i64,

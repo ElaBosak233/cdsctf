@@ -43,7 +43,7 @@ export default function Index() {
         game_id: currentGame?.id,
       }),
     select: (response) => {
-      const challenges = response.data;
+      const challenges = response.items;
       return challenges?.sort((a, b) => {
         if (a.challenge_category === b.challenge_category) {
           return (a.pts ?? 0) - (b.pts ?? 0);
@@ -98,7 +98,7 @@ export default function Index() {
         team_id: selfGameTeam?.id,
         game_id: currentGame?.id,
       }),
-    select: (response) => response.data,
+    select: (response) => response.items,
     refetchInterval: 15000,
   });
 

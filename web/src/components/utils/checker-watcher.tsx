@@ -19,7 +19,7 @@ function CheckerWatcher() {
           is_desensitized: true,
         });
 
-        const s = res.data?.[0];
+        const s = res.items?.[0];
         if (!s || s.status === 0) return;
 
         switch (s.status) {

@@ -83,13 +83,12 @@ function RegisterForm() {
         ...values,
       });
 
-      if (res.code === StatusCodes.OK) {
         toast.success(t("account:register.toast.success._"), {
           id: "register-success",
           description: t("account:register.toast.success.desc"),
         });
         navigate("/account/login");
-      }
+      
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
       const res = await parseErrorResponse(error);

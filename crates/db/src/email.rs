@@ -9,7 +9,16 @@ pub(crate) use crate::entity::email::{Column, Entity};
 use crate::traits::DbError;
 
 #[allow(dead_code)]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct Email {
     pub email: String,
     pub verified: bool,

@@ -30,23 +30,26 @@ pub struct AuthPrincipal {
     pub client_ip: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct WebResponse<T> {
+/// JSON error envelope (HTTP status + body).
+#[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct ApiJsonError {
+    #[schema(value_type = u16, example = 400)]
     #[serde(with = "http_serde::status_code")]
     pub code: StatusCode,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub msg: Option<serde_json::Value>,
-    pub data: Option<T>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub total: Option<u64>,
     pub ts: i64,
 }
 
-impl<T> Default for WebResponse<T> {
-    fn default() -> Self {
+impl ApiJsonError {
+    pub fn new(code: StatusCode, msg: serde_json::Value) -> Self {
         Self {
-            code: StatusCode::OK,
-            msg: None,
+            code,
+            msg: Some(msg),
             data: None,
             total: None,
             ts: 0,
@@ -54,35 +57,16 @@ impl<T> Default for WebResponse<T> {
     }
 }
 
-impl<T> WebResponse<T> {
-    pub fn ok() -> Self {
-        Self {
-            code: StatusCode::OK,
-            ..Default::default()
-        }
-    }
-
-    pub fn data(self, data: T) -> Self {
-        Self {
-            data: Some(data),
-            ..self
-        }
-    }
-
-    pub fn total(self, total: u64) -> Self {
-        Self {
-            total: Some(total),
-            ..self
-        }
-    }
-}
-
-impl<T: Serialize + Debug> IntoResponse for WebResponse<T> {
+impl IntoResponse for ApiJsonError {
     fn into_response(mut self) -> Response<Body> {
         self.ts = time::OffsetDateTime::now_utc().unix_timestamp();
         (self.code, Json(self)).into_response()
     }
 }
+
+/// Empty JSON object for success responses with no payload.
+#[derive(Debug, Default, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct EmptySuccess {}
 
 #[derive(Debug, Error)]
 pub enum WebError {
@@ -209,10 +193,12 @@ impl IntoResponse for WebError {
             ),
         };
 
-        WebResponse::<()> {
+        ApiJsonError {
             code: status,
             msg: Option::from(message),
-            ..Default::default()
+            data: None,
+            total: None,
+            ts: 0,
         }
         .into_response()
     }

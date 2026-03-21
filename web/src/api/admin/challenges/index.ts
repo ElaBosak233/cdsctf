@@ -1,5 +1,4 @@
 import type { Challenge } from "@/models/challenge";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetChallengesRequest {
@@ -19,7 +18,7 @@ export async function getChallenges(request: GetChallengesRequest) {
     .get("admin/challenges", {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<Challenge>>>();
+    .json<{ items: Challenge[]; total: number }>();
 }
 
 export interface CreateChallengeRequest {
@@ -34,5 +33,5 @@ export interface CreateChallengeRequest {
 export async function createChallenge(request: CreateChallengeRequest) {
   return api
     .post("admin/challenges", { json: request })
-    .json<WebResponse<Challenge>>();
+    .json<{ challenge: Challenge }>();
 }

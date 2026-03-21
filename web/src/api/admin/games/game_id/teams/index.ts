@@ -1,5 +1,4 @@
 import type { State, Team } from "@/models/team";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetTeamRequest {
@@ -18,7 +17,7 @@ export async function getTeams(request: GetTeamRequest) {
     .get(`admin/games/${request.game_id}/teams`, {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<Team>>>();
+    .json<{ items: Team[]; total: number }>();
 }
 
 export interface CreateTeamRequest {
@@ -32,5 +31,5 @@ export interface CreateTeamRequest {
 export async function createTeam(request: CreateTeamRequest) {
   return api
     .post(`admin/games/${request.game_id}/teams`, { json: request })
-    .json<WebResponse<Team>>();
+    .json<{ team: Team }>();
 }

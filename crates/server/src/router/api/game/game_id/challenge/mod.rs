@@ -1,35 +1,63 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use cds_db::{GameChallengeMini, game_challenge::FindGameChallengeOptions, team::State as TState};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Extension, Path, Query},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new().route("/", axum::routing::get(get_game_challenge))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_game_challenge).with_state(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetGameChallengeRequest {
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
     pub category: Option<i32>,
 }
 
-/// Get challenges by given params.
-/// - Operating time is between related game's `started_at` and `ended_at`.
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct GameChallengesListResponse {
+    pub items: Vec<GameChallengeMini>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        GetGameChallengeRequest,
+    ),
+    responses(
+        (status = 200, description = "Game challenges", body = GameChallengesListResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 403, description = "Forbidden", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_game_challenge(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
-) -> Result<WebResponse<Vec<GameChallengeMini>>, WebError> {
+) -> Result<Json<GameChallengesListResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
@@ -54,9 +82,8 @@ pub async fn get_game_challenge(
     )
     .await?;
 
-    Ok(WebResponse {
-        data: Some(game_challenges),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(GameChallengesListResponse {
+        items: game_challenges,
+        total,
+    }))
 }

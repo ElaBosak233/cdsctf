@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     Submission, Team,
     sea_orm::{ActiveValue::NotSet, Set},
@@ -9,10 +9,14 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Extension, Json, Query},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -21,7 +25,14 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/", axum::routing::post(create_submission))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_submission).with_state(state.clone()))
+        .routes(routes!(create_submission).with_state(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetSubmissionRequest {
     pub id: Option<i64>,
     pub user_id: Option<i64>,
@@ -44,12 +55,29 @@ pub struct GetSubmissionRequest {
     pub sorts: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct ListSubmissionsResponse {
+    pub items: Vec<Submission>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "submission",
+    params(GetSubmissionRequest),
+    responses(
+        (status = 200, description = "Submissions (content redacted)", body = ListSubmissionsResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_submission(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetSubmissionRequest>,
-) -> Result<WebResponse<Vec<Submission>>, WebError> {
+) -> Result<Json<ListSubmissionsResponse>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let page = params.page.unwrap_or(1);
@@ -76,15 +104,13 @@ pub async fn get_submission(
         .map(|submission: Submission| submission.desensitize())
         .collect::<Vec<Submission>>();
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(submissions),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(ListSubmissionsResponse {
+        items: submissions,
+        total,
+    }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct CreateSubmissionRequest {
     pub content: String,
     pub user_id: Option<i64>,
@@ -93,12 +119,26 @@ pub struct CreateSubmissionRequest {
     pub challenge_id: i64,
 }
 
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "submission",
+    request_body = CreateSubmissionRequest,
+    responses(
+        (status = 200, description = "Created submission", body = Option<Submission>),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 429, description = "Rate limited", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn create_submission(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
-    Json(mut body): Json<CreateSubmissionRequest>,
-) -> Result<WebResponse<Submission>, WebError> {
+    ReqJson(mut body): ReqJson<CreateSubmissionRequest>,
+) -> Result<Json<Option<Submission>>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     body.user_id = Some(operator.id);
@@ -166,9 +206,5 @@ pub async fn create_submission(
 
     let submission = cds_db::submission::find_by_id(&s.db.conn, submission.id).await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: submission,
-        ..Default::default()
-    })
+    Ok(Json(submission))
 }

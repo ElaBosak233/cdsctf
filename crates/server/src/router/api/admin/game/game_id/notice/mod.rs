@@ -1,12 +1,16 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{GameNotice, sea_orm::ActiveValue::Set};
 use serde::{Deserialize, Serialize};
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Json, Path},
-    traits::{AppState, WebError, WebResponse},
+    extract::{Json as ReqJson, Path},
+    traits::{AppState, EmptySuccess, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -15,19 +19,42 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/{notice_id}", axum::routing::delete(delete_game_notice))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(create_game_notice).with_state(state.clone()))
+        .routes(routes!(delete_game_notice).with_state(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct CreateGameNoticeRequest {
     pub game_id: Option<i64>,
     pub title: String,
     pub content: String,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct GameNoticeResponse {
+    pub notice: GameNotice,
+}
+
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    request_body = CreateGameNoticeRequest,
+    responses(
+        (status = 200, description = "Notice created", body = GameNoticeResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn create_game_notice(
     State(s): State<Arc<AppState>>,
-
     Path(game_id): Path<i64>,
-    Json(body): Json<CreateGameNoticeRequest>,
-) -> Result<WebResponse<GameNotice>, WebError> {
+    ReqJson(body): ReqJson<CreateGameNoticeRequest>,
+) -> Result<Json<GameNoticeResponse>, WebError> {
     let game_notice = cds_db::game_notice::create(
         &s.db.conn,
         cds_db::game_notice::ActiveModel {
@@ -39,22 +66,26 @@ pub async fn create_game_notice(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(game_notice),
-        ..Default::default()
-    })
+    Ok(Json(GameNoticeResponse { notice: game_notice }))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/{notice_id}",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        ("notice_id" = i64, Path, description = "Notice id"),
+    ),
+    responses(
+        (status = 200, description = "Deleted", body = EmptySuccess),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_game_notice(
     State(s): State<Arc<AppState>>,
-
     Path((game_id, notice_id)): Path<(i64, i64)>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     cds_db::game_notice::delete(&s.db.conn, notice_id, game_id).await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }

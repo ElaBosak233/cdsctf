@@ -1,14 +1,18 @@
-mod game_id;
+pub mod game_id;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{GameMini, game::FindGameOptions};
 use serde::{Deserialize, Serialize};
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::Query,
-    traits::{AppState, WebError, WebResponse},
+    traits::{AppState, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -17,7 +21,14 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{game_id}", game_id::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_game).with_state(state.clone()))
+        .nest("/{game_id}", game_id::openapi_router(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetGameRequest {
     pub id: Option<i64>,
     pub title: Option<String>,
@@ -26,12 +37,26 @@ pub struct GetGameRequest {
     pub sorts: Option<String>,
 }
 
-/// Get games with given params.
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct GamesListResponse {
+    pub items: Vec<GameMini>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "game",
+    params(GetGameRequest),
+    responses(
+        (status = 200, description = "Games", body = GamesListResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_game(
     State(s): State<Arc<AppState>>,
-
     Query(params): Query<GetGameRequest>,
-) -> Result<WebResponse<Vec<GameMini>>, WebError> {
+) -> Result<Json<GamesListResponse>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(20);
 
@@ -49,10 +74,5 @@ pub async fn get_game(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(games),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(GamesListResponse { items: games, total }))
 }

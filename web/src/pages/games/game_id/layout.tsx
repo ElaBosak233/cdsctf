@@ -16,7 +16,7 @@ function useGameQuery(params: GetGameRequest, trigger: number = 0) {
   return useQuery({
     queryKey: ["game", trigger, params.id],
     queryFn: () => getGame(params),
-    select: (response) => response.data,
+    select: (response) => response.game,
     enabled: !!params,
     placeholderData: keepPreviousData,
   });
@@ -50,7 +50,7 @@ export default function () {
         const res = await getTeamProfile({
           game_id: Number(game_id),
         });
-        setSelfTeam(res.data);
+        setSelfTeam(res.team);
       } catch (error) {
         if (!(error instanceof HTTPError)) return;
         const res = await parseErrorResponse(error);
@@ -73,7 +73,7 @@ export default function () {
       game_id: Number(game_id),
       team_id: selfTeam?.id,
     }).then((res) => {
-      setMembers(res.data);
+      setMembers(res.items);
     });
   }, [sharedStore?.refresh, selfTeam, game_id, setMembers]);
 

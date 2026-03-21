@@ -1,20 +1,30 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State, routing::get};
+use axum::{Json, Router, extract::State, routing::get};
 use cds_db::note::{FindNotesOptions, Note};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Extension, Query},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new().route("/", get(get_note))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_note).with_state(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetNoteRequest {
     pub id: Option<i64>,
     pub user_id: Option<i64>,
@@ -24,12 +34,29 @@ pub struct GetNoteRequest {
     pub sorts: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct ListNotesResponse {
+    pub items: Vec<Note>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "note",
+    params(GetNoteRequest),
+    responses(
+        (status = 200, description = "Public notes", body = ListNotesResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_note(
     State(s): State<Arc<AppState>>,
 
     Extension(ap): Extension<AuthPrincipal>,
     Query(params): Query<GetNoteRequest>,
-) -> Result<WebResponse<Vec<Note>>, WebError> {
+) -> Result<Json<ListNotesResponse>, WebError> {
     let _ = ap.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let (notes, total) = cds_db::note::find(
@@ -47,9 +74,5 @@ pub async fn get_note(
     )
     .await?;
 
-    Ok(WebResponse {
-        data: Some(notes),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(ListNotesResponse { items: notes, total }))
 }

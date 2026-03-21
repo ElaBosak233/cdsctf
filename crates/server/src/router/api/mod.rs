@@ -10,25 +10,47 @@ pub mod user;
 
 use std::sync::Arc;
 
-use axum::{Router, response::IntoResponse};
+use axum::{Json, Router};
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
 
-use crate::traits::{AppState, WebResponse};
+use crate::traits::AppState;
 
-/// 不含 `/api/` 根与 `/api/configs` 子树（由 [`openapi_documented_under_api`] 提供），用于与文档化路由合并。
-pub fn router_undocumented() -> Router<Arc<AppState>> {
+/// 在 [`OpenApiRouter::nest("/api", ...)`] 内使用：完整 `/api` 子树（含 OpenAPI 元数据）。
+pub fn openapi_documented_under_api(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(index).with_state(state.clone()))
+        .nest("/configs", config::openapi_router(state.clone()))
+        .nest("/users", user::openapi_router(state.clone()))
+        .nest("/challenges", challenge::openapi_router(state.clone()))
+        .nest("/games", game::openapi_router(state.clone()))
+        .nest("/instances", instance::openapi_router(state.clone()))
+        .nest("/notes", note::openapi_router(state.clone()))
+        .nest("/media", media::openapi_router(state.clone()))
+        .nest("/submissions", submission::openapi_router(state.clone()))
+        .nest(
+            "/admin",
+            admin::openapi_router(state.clone()).route_layer(axum::middleware::from_fn(
+                crate::middleware::auth::admin_only,
+            )),
+        )
+}
+
+/// 备用路由组装（测试或工具）；生产环境以 [`openapi_documented_under_api`] 为准。
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
+        .route("/", axum::routing::any(index))
+        .nest("/configs", config::router())
         .nest("/users", user::router())
         .nest("/challenges", challenge::router())
         .nest("/games", game::router())
         .nest("/instances", instance::router())
-        .nest("/submissions", submission::router())
         .nest("/notes", note::router())
         .nest("/media", media::router())
+        .nest("/submissions", submission::router())
         .nest(
             "/admin",
             admin::router().route_layer(axum::middleware::from_fn(
@@ -37,29 +59,19 @@ pub fn router_undocumented() -> Router<Arc<AppState>> {
         )
 }
 
-/// 在 [`OpenApiRouter::nest("/api", ...)`] 内使用：带 OpenAPI 的 `/` 与 `/configs/*`。
-pub fn openapi_documented_under_api(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
-    OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(index).with_state(state.clone()))
-        .nest("/configs", config::openapi_router(state.clone()))
-}
-
-pub fn router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", axum::routing::any(index))
-        .nest("/configs", config::router())
-        .merge(router_undocumented())
+#[derive(serde::Serialize, utoipa::ToSchema)]
+pub struct ApiIndexResponse {
+    pub message: serde_json::Value,
 }
 
 #[utoipa::path(
     get,
     path = "/",
     tag = "system",
-    responses((status = 200, description = "JSON envelope with welcome message", body = serde_json::Value))
+    responses((status = 200, description = "Welcome payload", body = ApiIndexResponse))
 )]
-pub async fn index() -> impl IntoResponse {
-    WebResponse::<()> {
-        msg: Some(json!("This is the heart of CdsCTF!")),
-        ..Default::default()
-    }
+pub async fn index() -> Json<ApiIndexResponse> {
+    Json(ApiIndexResponse {
+        message: json!("This is the heart of CdsCTF!"),
+    })
 }

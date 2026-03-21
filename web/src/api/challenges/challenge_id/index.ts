@@ -1,5 +1,4 @@
 import type { Challenge } from "@/models/challenge";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface GetChallengeRequest {
@@ -7,5 +6,5 @@ export interface GetChallengeRequest {
 }
 
 export async function getChallenge(request: GetChallengeRequest) {
-  return api.get(`challenges/${request.id}`).json<WebResponse<Challenge>>();
+  return api.get(`challenges/${request.id}`).json<{ challenge: Challenge }>();
 }

@@ -33,7 +33,7 @@ pub enum EngineError {
     OtherError(#[from] anyhow::Error),
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct DiagnosticMarker {
     pub kind: DiagnosticKind,
@@ -44,7 +44,7 @@ pub struct DiagnosticMarker {
     pub end_column: usize,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum DiagnosticKind {
     Error,

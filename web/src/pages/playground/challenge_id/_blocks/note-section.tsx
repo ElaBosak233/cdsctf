@@ -27,7 +27,7 @@ function useNoteQuery(userId?: number, challengeId?: number) {
   return useQuery({
     queryKey: ["note", `user_id=${userId}`, `challenge_id=${challengeId}`],
     queryFn: () => getMyNotes({ challenge_id: challengeId }),
-    select: (response) => response.data,
+    select: (response) => response.items,
     enabled: !!challengeId && !!userId,
   });
 }
@@ -69,9 +69,8 @@ function NoteSection() {
       public: form.getValues("public"),
     });
 
-    if (res.code === StatusCodes.OK) {
       toast.success(t("challenge:note_save_success"));
-    }
+    
   }
 
   return (

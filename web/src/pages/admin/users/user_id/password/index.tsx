@@ -59,8 +59,7 @@ export default function Index() {
       id: user.id!,
       password: values.new_password,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
             t("user:change_password.actions.update.success", {
               username: user.username,

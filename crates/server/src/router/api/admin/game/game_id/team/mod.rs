@@ -2,17 +2,22 @@ mod team_id;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     sea_orm::ActiveValue::Set,
     team::{FindTeamOptions, State as TState, Team},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Extension, Json, Path, Query},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson, Path, Query},
+    router::api::game::game_id::team::TeamResponse,
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -22,7 +27,15 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{team_id}", team_id::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_team).with_state(state.clone()))
+        .routes(routes!(create_team).with_state(state.clone()))
+        .nest("/{team_id}", team_id::openapi_router(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetTeamRequest {
     pub id: Option<i64>,
     pub name: Option<String>,
@@ -34,14 +47,32 @@ pub struct GetTeamRequest {
     pub sorts: Option<String>,
 }
 
-/// Get game teams with given data.
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct AdminTeamsListResponse {
+    pub items: Vec<Team>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        GetTeamRequest,
+    ),
+    responses(
+        (status = 200, description = "Teams", body = AdminTeamsListResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_team(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Query(params): Query<GetTeamRequest>,
-) -> Result<WebResponse<Vec<Team>>, WebError> {
+) -> Result<Json<AdminTeamsListResponse>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let (teams, total) = cds_db::team::find(
@@ -60,31 +91,34 @@ pub async fn get_team(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(teams),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(AdminTeamsListResponse { items: teams, total }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct CreateTeamRequest {
     pub name: String,
     pub email: Option<String>,
     pub slogan: Option<String>,
 }
 
-/// Add a team to a game with given path and data.
-///
-/// # Prerequisite
-/// - Operator is admin.
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    request_body = CreateTeamRequest,
+    responses(
+        (status = 200, description = "Team created", body = TeamResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn create_team(
     State(s): State<Arc<AppState>>,
-
     Path(game_id): Path<i64>,
-    Json(body): Json<CreateTeamRequest>,
-) -> Result<WebResponse<Team>, WebError> {
+    ReqJson(body): ReqJson<CreateTeamRequest>,
+) -> Result<Json<TeamResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     let team = cds_db::team::create(
@@ -100,9 +134,5 @@ pub async fn create_team(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(team),
-        ..Default::default()
-    })
+    Ok(Json(TeamResponse { team }))
 }

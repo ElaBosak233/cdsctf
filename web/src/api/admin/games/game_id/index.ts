@@ -1,5 +1,4 @@
 import type { Game } from "@/models/game";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface UpdateGameRequest {
@@ -20,7 +19,7 @@ export interface UpdateGameRequest {
 export async function updateGame(request: UpdateGameRequest) {
   return api
     .put(`admin/games/${request.id}`, { json: request })
-    .json<WebResponse<Game>>();
+    .json<{ game: Game }>();
 }
 
 export interface DeleteGameRequest {
@@ -28,5 +27,5 @@ export interface DeleteGameRequest {
 }
 
 export async function deleteGame(request: DeleteGameRequest) {
-  return api.delete(`admin/games/${request.id}`).json<WebResponse<never>>();
+  return api.delete(`admin/games/${request.id}`).json<Record<string, never>>();
 }

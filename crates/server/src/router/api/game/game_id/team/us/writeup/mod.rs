@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{
-    Router,
+    Json, Router,
     extract::{DefaultBodyLimit, Multipart, State},
     response::IntoResponse,
 };
@@ -11,10 +11,14 @@ use cds_db::{
 };
 use cds_media::util::hash;
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Extension, Path},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
     util,
     util::media::handle_multipart,
 };
@@ -29,9 +33,27 @@ pub fn router() -> Router<Arc<AppState>> {
         )
 }
 
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_team_write_up).with_state(state.clone()))
+        .routes(routes!(save_team_write_up).with_state(state.clone()))
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Write-up file"),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_team_write_up(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
@@ -41,17 +63,26 @@ pub async fn get_team_write_up(
     util::media::get_write_up(s.media.clone(), game_id, team.id).await
 }
 
-/// Save a write-up for the team.
-///
-/// # Prerequisite
-/// - Operator is admin or the members of current team.
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Write-up saved", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn save_team_write_up(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     multipart: Multipart,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let game = util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = util::loader::prepare_self_team(&s.db.conn, game.id, operator.id).await?;
@@ -83,5 +114,5 @@ pub async fn save_team_write_up(
         .await
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }

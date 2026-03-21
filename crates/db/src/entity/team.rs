@@ -36,6 +36,7 @@ pub struct Model {
     Deserialize_repr,
     EnumIter,
     DeriveActiveEnum,
+    utoipa::ToSchema,
 )]
 #[sea_orm(rs_type = "i32", db_type = "Integer")]
 #[repr(i32)]

@@ -35,7 +35,7 @@ export default function Index() {
 
   useEffect(() => {
     getConfigs().then((res) => {
-      setConfig(res.data);
+      setConfig(res.config);
     });
   }, []);
 
@@ -77,8 +77,7 @@ export default function Index() {
     updateConfig({
       ...config,
       captcha: { ...values },
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
+    }).then((res) => {{
         toast.success(t("admin:captcha.actions.update.success"));
       }
     });

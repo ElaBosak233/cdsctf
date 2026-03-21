@@ -1,17 +1,21 @@
 use std::sync::Arc;
 
 use axum::{
-    Router,
+    Json, Router,
     extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::{
     User,
     sea_orm::{Set, Unchanged},
 };
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::Extension,
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
     util::media::handle_multipart,
 };
 
@@ -25,12 +29,27 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/", axum::routing::delete(delete_user_avatar))
 }
 
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(save_user_avatar).with_state(state.clone()))
+        .routes(routes!(delete_user_avatar).with_state(state.clone()))
+}
+
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "user",
+    responses(
+        (status = 200, description = "Avatar saved", body = EmptySuccess),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn save_user_avatar(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     multipart: Multipart,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     let data = handle_multipart(multipart, mime::IMAGE).await?;
@@ -49,14 +68,23 @@ pub async fn save_user_avatar(
     )
     .await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "user",
+    responses(
+        (status = 200, description = "Avatar removed", body = EmptySuccess),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_user_avatar(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     let path = format!("users/{}", operator.id);
@@ -72,5 +100,5 @@ pub async fn delete_user_avatar(
     )
     .await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }

@@ -172,8 +172,7 @@ export default function Index() {
       id: challenge?.id,
       instance: values,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
             t("challenge:actions.instance_update.success", {
               title: challenge?.title,

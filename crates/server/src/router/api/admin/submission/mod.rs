@@ -1,15 +1,19 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     Submission,
     submission::{FindSubmissionsOptions, Status},
 };
 use serde::{Deserialize, Serialize};
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Path, Query},
-    traits::{AppState, WebError, WebResponse},
+    traits::{AppState, EmptySuccess, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -18,7 +22,14 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/{submission_id}", axum::routing::delete(delete_submission))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_submissions).with_state(state.clone()))
+        .routes(routes!(delete_submission).with_state(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetSubmissionsRequest {
     pub id: Option<i64>,
     pub user_id: Option<i64>,
@@ -30,11 +41,28 @@ pub struct GetSubmissionsRequest {
     pub size: Option<u64>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct ListSubmissionsResponse {
+    pub items: Vec<Submission>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "admin-submission",
+    params(GetSubmissionsRequest),
+    responses(
+        (status = 200, description = "Submissions", body = ListSubmissionsResponse),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_submissions(
     State(s): State<Arc<AppState>>,
 
     Query(params): Query<GetSubmissionsRequest>,
-) -> Result<WebResponse<Vec<Submission>>, WebError> {
+) -> Result<Json<ListSubmissionsResponse>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).max(100);
 
@@ -54,23 +82,31 @@ pub async fn get_submissions(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(submissions),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(ListSubmissionsResponse {
+        items: submissions,
+        total,
+    }))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/{submission_id}",
+    tag = "admin-submission",
+    params(
+        ("submission_id" = i64, Path, description = "Submission id"),
+    ),
+    responses(
+        (status = 200, description = "Deleted", body = EmptySuccess),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_submission(
     State(s): State<Arc<AppState>>,
 
     Path(submission_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     cds_db::submission::delete(&s.db.conn, submission_id).await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }

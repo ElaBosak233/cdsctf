@@ -767,6 +767,7 @@ dependencies = [
  "thiserror 2.0.18",
  "time",
  "tracing",
+ "utoipa",
 ]
 
 [[package]]
@@ -808,6 +809,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+ "utoipa",
  "uuid",
  "wsrx",
 ]
@@ -826,6 +828,7 @@ dependencies = [
  "thiserror 2.0.18",
  "time",
  "tracing",
+ "utoipa",
 ]
 
 [[package]]
@@ -842,6 +845,7 @@ dependencies = [
  "time",
  "tokio",
  "tracing",
+ "utoipa",
 ]
 
 [[package]]
@@ -899,6 +903,7 @@ dependencies = [
  "rust-s3",
  "serde",
  "thiserror 2.0.18",
+ "utoipa",
  "webp",
 ]
 

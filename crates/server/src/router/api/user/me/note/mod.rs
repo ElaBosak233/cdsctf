@@ -1,16 +1,20 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     note::{ActiveModel, FindNotesOptions, Note},
     sea_orm::{Set, Unchanged},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Extension, Json, Query},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -19,7 +23,14 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/", axum::routing::post(save_my_note))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_my_note).with_state(state.clone()))
+        .routes(routes!(save_my_note).with_state(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetMyNoteRequest {
     pub challenge_id: Option<i64>,
     pub size: Option<u64>,
@@ -27,12 +38,28 @@ pub struct GetMyNoteRequest {
     pub sorts: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct MyNotesListResponse {
+    pub items: Vec<Note>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "user",
+    params(GetMyNoteRequest),
+    responses(
+        (status = 200, description = "My notes", body = MyNotesListResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_my_note(
     State(s): State<Arc<AppState>>,
-
     Extension(ap): Extension<AuthPrincipal>,
     Query(params): Query<GetMyNoteRequest>,
-) -> Result<WebResponse<Vec<Note>>, WebError> {
+) -> Result<Json<MyNotesListResponse>, WebError> {
     let operator = ap.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let (notes, total) = cds_db::note::find(
@@ -48,26 +75,38 @@ pub async fn get_my_note(
     )
     .await?;
 
-    Ok(WebResponse {
-        data: Some(notes),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(MyNotesListResponse { items: notes, total }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct SaveMyNoteRequest {
     pub content: String,
     pub public: bool,
     pub challenge_id: i64,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct NoteResponse {
+    pub note: Note,
+}
+
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "user",
+    request_body = SaveMyNoteRequest,
+    responses(
+        (status = 200, description = "Note saved", body = NoteResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 403, description = "Forbidden", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn save_my_note(
     State(s): State<Arc<AppState>>,
-
     Extension(ap): Extension<AuthPrincipal>,
-    Json(body): Json<SaveMyNoteRequest>,
-) -> Result<WebResponse<Note>, WebError> {
+    ReqJson(body): ReqJson<SaveMyNoteRequest>,
+) -> Result<Json<NoteResponse>, WebError> {
     let operator = ap.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
@@ -112,8 +151,5 @@ pub async fn save_my_note(
         }
     };
 
-    Ok(WebResponse {
-        data: Some(note),
-        ..Default::default()
-    })
+    Ok(Json(NoteResponse { note }))
 }

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{
-    Router,
+    Json, Router,
     extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::{
@@ -9,10 +9,14 @@ use cds_db::{
     sea_orm::{Set, Unchanged},
 };
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Extension, Path},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
     util,
     util::media::handle_multipart,
 };
@@ -27,17 +31,31 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/", axum::routing::delete(delete_team_avatar))
 }
 
-/// Save an avatar for the team.
-///
-/// # Prerequisite
-/// - Operator is admin or the members of current team.
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(save_team_avatar).with_state(state.clone()))
+        .routes(routes!(delete_team_avatar).with_state(state.clone()))
+}
+
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Avatar saved", body = EmptySuccess),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn save_team_avatar(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     multipart: Multipart,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
@@ -58,16 +76,27 @@ pub async fn save_team_avatar(
     )
     .await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }
 
-/// Delete avatar for the team.
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Avatar removed", body = EmptySuccess),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_team_avatar(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
@@ -85,5 +114,5 @@ pub async fn delete_team_avatar(
     )
     .await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }

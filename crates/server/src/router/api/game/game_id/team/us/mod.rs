@@ -1,27 +1,33 @@
 mod avatar;
-mod token;
+pub mod token;
 mod user;
 mod writeup;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     TeamUser,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
         NotSet,
     },
-    team::{State as TState, Team},
+    team::State as TState,
     team_user::FindTeamUserOptions,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Extension, Json, Path},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
 };
+
+use super::TeamResponse;
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
@@ -35,22 +41,43 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/writeup", writeup::router())
 }
 
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_team).with_state(state.clone()))
+        .routes(routes!(update_team).with_state(state.clone()))
+        .routes(routes!(delete_team).with_state(state.clone()))
+        .routes(routes!(set_team_ready).with_state(state.clone()))
+        .nest("/avatar", avatar::openapi_router(state.clone()))
+        .nest("/users", user::openapi_router(state.clone()))
+        .nest("/token", token::openapi_router(state.clone()))
+        .nest("/writeup", writeup::openapi_router(state.clone()))
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Current team", body = TeamResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_team(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-) -> Result<WebResponse<Team>, WebError> {
+) -> Result<Json<TeamResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
-    Ok(WebResponse {
-        data: Some(team),
-        ..Default::default()
-    })
+    Ok(Json(TeamResponse { team }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct UpdateTeamRequest {
     pub name: Option<String>,
     pub email: Option<String>,
@@ -58,14 +85,26 @@ pub struct UpdateTeamRequest {
     pub description: Option<String>,
 }
 
-/// Update a team with given path and data.
+#[utoipa::path(
+    put,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    request_body = UpdateTeamRequest,
+    responses(
+        (status = 200, description = "Updated team", body = TeamResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn update_team(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-    Json(body): Json<UpdateTeamRequest>,
-) -> Result<WebResponse<Team>, WebError> {
+    ReqJson(body): ReqJson<UpdateTeamRequest>,
+) -> Result<Json<TeamResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
@@ -83,19 +122,28 @@ pub async fn update_team(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(team),
-        ..Default::default()
-    })
+    Ok(Json(TeamResponse { team }))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Team deleted", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_team(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
@@ -107,22 +155,28 @@ pub async fn delete_team(
 
     cds_db::team::delete(&s.db.conn, team.id).await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }
 
-/// Set a team's state to Pending.
-///
-/// # Prerequisite
-/// - Operator is admin or one of the members of current team.
+#[utoipa::path(
+    post,
+    path = "/ready",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Team ready", body = TeamResponse),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn set_team_ready(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-) -> Result<WebResponse<Team>, WebError> {
+) -> Result<Json<TeamResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
@@ -131,7 +185,6 @@ pub async fn set_team_ready(
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    // Review the number of members
     let (_, team_users) = cds_db::team_user::find::<TeamUser>(
         &s.db.conn,
         FindTeamUserOptions {
@@ -160,9 +213,5 @@ pub async fn set_team_ready(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(team),
-        ..Default::default()
-    })
+    Ok(Json(TeamResponse { team }))
 }

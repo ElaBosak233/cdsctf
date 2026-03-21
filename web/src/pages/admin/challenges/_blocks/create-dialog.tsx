@@ -61,10 +61,9 @@ function CreateDialog(props: CreateDialogProps) {
       public: false,
       has_attachment: false,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
-            t("challenge:actions.create.success", { title: res.data?.title })
+            t("challenge:actions.create.success", { title: res.challenge?.title })
           );
           onClose();
         }

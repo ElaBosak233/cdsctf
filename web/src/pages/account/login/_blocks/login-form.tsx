@@ -67,13 +67,13 @@ function LoginForm() {
         ...values,
       });
 
-      authStore.setUser(res.data);
+      authStore.setUser(res.user);
 
-      if (res.data?.verified) {
+      if (res.user?.verified) {
         toast.success(t("account:login.success._"), {
           id: "login",
           description: t("account:login.success.welcome", {
-            name: res.data?.name,
+            name: res.user?.name,
           }),
         });
         navigate("/");

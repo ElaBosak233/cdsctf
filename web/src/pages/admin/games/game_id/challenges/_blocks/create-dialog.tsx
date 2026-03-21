@@ -42,9 +42,8 @@ function CreateDialog(props: CreateDialogProps) {
       size: 10,
       page: 1,
       sorts: "-created_at",
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
-        setChallenges(res.data);
+    }).then((res) => {{
+        setChallenges(res.items);
       }
     });
   }, [debouncedId, debounceTitle]);
@@ -67,8 +66,7 @@ function CreateDialog(props: CreateDialogProps) {
       min_pts: 500,
       difficulty: 5,
       bonus_ratios: [],
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
+    }).then((res) => {{
         toast.success(
           t("game:challenge.actions.add.success", { title: challenge?.title })
         );

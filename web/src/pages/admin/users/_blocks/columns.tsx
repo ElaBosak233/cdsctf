@@ -101,8 +101,7 @@ function ActionsCell({ row }: { row: Row<User> }) {
     deleteUser({
       id: id!,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(t("user:actions.delete.success", { username }));
           setDeleteDialogOpen(false);
         }

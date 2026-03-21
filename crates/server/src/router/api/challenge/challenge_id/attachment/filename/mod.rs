@@ -8,6 +8,10 @@ use axum::{
     response::{IntoResponse, Redirect},
 };
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Extension, Path},
@@ -18,6 +22,26 @@ pub fn router() -> Router<Arc<AppState>> {
     Router::new().route("/", axum::routing::get(get_attachment))
 }
 
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_attachment).with_state(state.clone()))
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "challenge",
+    params(
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+        ("filename" = String, Path, description = "File name"),
+    ),
+    responses(
+        (status = 200, description = "File bytes or redirect"),
+        (status = 302, description = "Presigned redirect"),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_attachment(
     State(s): State<Arc<AppState>>,
 

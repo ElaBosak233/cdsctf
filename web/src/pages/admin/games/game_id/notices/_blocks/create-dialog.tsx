@@ -52,10 +52,9 @@ function CreateDialog(props: CreateDialogProps) {
     createGameNotice({
       game_id: game?.id,
       ...values,
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
+    }).then((res) => {{
         toast.success(
-          t("game:notice.actions.create.success", { title: res?.data?.title })
+          t("game:notice.actions.create.success", { title: res?.notice?.title })
         );
         sharedStore?.setRefresh();
         onClose();

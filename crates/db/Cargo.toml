@@ -22,6 +22,7 @@ serde_repr  = { workspace = true }
 thiserror   = { workspace = true }
 time        = { workspace = true }
 tracing     = { workspace = true }
+utoipa      = { workspace = true }
 
 [lib]
 path = "src/lib.rs"

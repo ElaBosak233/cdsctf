@@ -1,12 +1,16 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use nanoid::nanoid;
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Extension, Path},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -16,13 +20,36 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/", axum::routing::delete(delete_token))
 }
 
-/// Create an invitation token.
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(create_token).with_state(state.clone()))
+        .routes(routes!(get_token).with_state(state.clone()))
+        .routes(routes!(delete_token).with_state(state.clone()))
+}
+
+#[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct InviteTokenResponse {
+    pub token: Option<String>,
+}
+
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "New invite token", body = InviteTokenResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn create_token(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-) -> Result<WebResponse<String>, WebError> {
+) -> Result<Json<InviteTokenResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
@@ -31,19 +58,29 @@ pub async fn create_token(
         .set_ex(format!("team:{}:invite", team.id), token.clone(), 60 * 60)
         .await?;
 
-    Ok(WebResponse {
-        data: Some(token),
-        ..Default::default()
-    })
+    Ok(Json(InviteTokenResponse {
+        token: Some(token),
+    }))
 }
 
-/// Get invitation token.
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Current invite token if any", body = InviteTokenResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_token(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-) -> Result<WebResponse<String>, WebError> {
+) -> Result<Json<InviteTokenResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
     let token = s
@@ -51,19 +88,27 @@ pub async fn get_token(
         .get::<String>(format!("team:{}:invite", team.id))
         .await?;
 
-    Ok(WebResponse {
-        data: token,
-        ..Default::default()
-    })
+    Ok(Json(InviteTokenResponse { token }))
 }
 
-/// Delete invitation token.
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Removed token (value if existed)", body = InviteTokenResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_token(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-) -> Result<WebResponse<String>, WebError> {
+) -> Result<Json<InviteTokenResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
     let token = s
@@ -71,8 +116,5 @@ pub async fn delete_token(
         .get_del::<String>(format!("team:{}:invite", team.id))
         .await?;
 
-    Ok(WebResponse {
-        data: token,
-        ..Default::default()
-    })
+    Ok(Json(InviteTokenResponse { token }))
 }

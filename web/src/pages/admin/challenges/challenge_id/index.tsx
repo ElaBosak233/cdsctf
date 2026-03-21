@@ -77,10 +77,9 @@ export default function Index() {
       id: challenge?.id,
       ...values,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
-            t("challenge:actions.update.success", { title: res?.data?.title })
+            t("challenge:actions.update.success", { title: res?.challenge?.title })
           );
         }
       })

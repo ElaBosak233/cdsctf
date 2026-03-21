@@ -7,7 +7,16 @@ pub use crate::entity::game_notice::{ActiveModel, Model};
 pub(crate) use crate::entity::game_notice::{Column, Entity};
 use crate::traits::DbError;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct GameNotice {
     pub id: i64,
     pub game_id: i64,

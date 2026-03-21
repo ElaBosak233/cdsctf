@@ -23,8 +23,7 @@ function AuthSection() {
 
   function handleLogout() {
     logout()
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           navigate("/account/login");
         }
       })

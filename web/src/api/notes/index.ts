@@ -1,5 +1,4 @@
 import type { Note } from "@/models/note";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetNotesRequest {
@@ -15,5 +14,5 @@ export async function getNotes(request: GetNotesRequest) {
     .get(`notes`, {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<Note>>>();
+    .json<{ items: Note[]; total: number }>();
 }

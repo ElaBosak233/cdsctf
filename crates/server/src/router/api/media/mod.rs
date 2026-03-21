@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{
-    Router,
+    Json, Router,
     body::Body,
     extract::{Multipart, State},
     http::{Response, header::CACHE_CONTROL},
@@ -10,10 +10,14 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Extension, Query},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, WebError},
     util::media::handle_multipart,
 };
 
@@ -23,11 +27,29 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/", post(upload_media))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_media).with_state(state.clone()))
+        .routes(routes!(upload_media).with_state(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetMediaRequest {
     pub hash: String,
 }
 
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "media",
+    params(GetMediaRequest),
+    responses(
+        (status = 200, description = "Cached media bytes", body = Vec<u8>),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_media(
     State(s): State<Arc<AppState>>,
 
@@ -40,12 +62,30 @@ pub async fn get_media(
         .body(Body::from(buffer))?)
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct UploadMediaResponse {
+    pub hash: String,
+}
+
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "media",
+    request_body(content_type = "multipart/form-data"),
+    responses(
+        (status = 200, description = "Stored object hash", body = UploadMediaResponse),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 429, description = "Rate limited", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn upload_media(
     State(s): State<Arc<AppState>>,
 
     Extension(ap): Extension<AuthPrincipal>,
     multipart: Multipart,
-) -> Result<WebResponse<String>, WebError> {
+) -> Result<Json<UploadMediaResponse>, WebError> {
     let operator = ap.operator.ok_or(WebError::Unauthorized("".into()))?;
     let token_10m = format!("media:upload:10m:{}", operator.id);
     let token_24h = format!("media:upload:24h:{}", operator.id);
@@ -77,8 +117,5 @@ pub async fn upload_media(
 
     s.media.save("media".to_owned(), hash.clone(), data).await?;
 
-    Ok(WebResponse {
-        data: Some(hash),
-        ..Default::default()
-    })
+    Ok(Json(UploadMediaResponse { hash }))
 }

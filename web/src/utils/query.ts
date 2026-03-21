@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import ky, { HTTPError, TimeoutError } from "ky";
 import { toast } from "sonner";
 import { useAuthStore } from "@/storages/auth";
-import type { WebResponse } from "@/types";
+import type { ApiJsonError } from "@/types";
 
 const api = ky.extend({
   prefixUrl: "/api",
@@ -55,7 +55,7 @@ function toSearchParams<T extends object>(obj: T): URLSearchParams {
 
 async function parseErrorResponse(
   error: HTTPError
-): Promise<WebResponse<unknown>> {
+): Promise<ApiJsonError> {
   return await error.response.clone().json();
 }
 

@@ -96,7 +96,7 @@ export default function Index() {
           : undefined,
     })
       .then((res) => {
-        setChallenges(res?.data || []);
+        setChallenges(res?.items || []);
       })
       .finally(() => {
         setLoading(false);

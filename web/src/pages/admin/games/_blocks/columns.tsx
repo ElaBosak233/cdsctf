@@ -76,12 +76,11 @@ function ActionsCell({ row }: { row: Row<Game> }) {
       enabled: newValue,
     });
 
-    if (res.code === StatusCodes.OK) {
       toast.success(t("game:enabled.actions.success", { title }), {
         id: "enablement_change",
       });
       sharedStore?.setRefresh();
-    }
+    
   }
 
   async function handleDelete() {
@@ -90,10 +89,9 @@ function ActionsCell({ row }: { row: Row<Game> }) {
         id,
       });
 
-      if (res.code === StatusCodes.OK) {
         toast.success(t("game:actions.delete.success", { title }));
         setDeleteDialogOpen(false);
-      }
+      
     } finally {
       sharedStore?.setRefresh();
     }

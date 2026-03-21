@@ -2,17 +2,21 @@ mod challenge_id;
 
 use std::{collections::HashMap, sync::Arc};
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     ChallengeMini, GameChallenge, Submission, challenge::FindChallengeOptions,
     game_challenge::FindGameChallengeOptions,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Extension, Json, Query},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -22,7 +26,18 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{challenge_id}", challenge_id::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_challenge).with_state(state.clone()))
+        .routes(routes!(get_challenge_status).with_state(state.clone()))
+        .nest(
+            "/{challenge_id}",
+            challenge_id::openapi_router(state.clone()),
+        )
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetChallengeRequest {
     pub id: Option<i64>,
     pub title: Option<String>,
@@ -33,12 +48,28 @@ pub struct GetChallengeRequest {
     pub sorts: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct ChallengesListResponse {
+    pub items: Vec<ChallengeMini>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/playground",
+    tag = "challenge",
+    params(GetChallengeRequest),
+    responses(
+        (status = 200, description = "Challenges", body = ChallengesListResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_challenge(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetChallengeRequest>,
-) -> Result<WebResponse<Vec<ChallengeMini>>, WebError> {
+) -> Result<Json<ChallengesListResponse>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let page = params.page.unwrap_or(1);
@@ -60,14 +91,10 @@ pub async fn get_challenge(
     )
     .await?;
 
-    Ok(WebResponse {
-        data: Some(challenges),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(ChallengesListResponse { items: challenges, total }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct GetChallengeStatusRequest {
     pub challenge_ids: Vec<i64>,
     pub user_id: Option<i64>,
@@ -75,7 +102,7 @@ pub struct GetChallengeStatusRequest {
     pub game_id: Option<i64>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ChallengeStatusResponse {
     pub solved: bool,
     pub solved_times: i64,
@@ -83,12 +110,28 @@ pub struct ChallengeStatusResponse {
     pub bloods: Vec<Submission>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct ChallengeStatusesResponse {
+    pub statuses: HashMap<i64, ChallengeStatusResponse>,
+}
+
+#[utoipa::path(
+    post,
+    path = "/status",
+    tag = "challenge",
+    request_body = GetChallengeStatusRequest,
+    responses(
+        (status = 200, description = "Per-challenge status", body = ChallengeStatusesResponse),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_challenge_status(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
-    Json(body): Json<GetChallengeStatusRequest>,
-) -> Result<WebResponse<HashMap<i64, ChallengeStatusResponse>>, WebError> {
+    ReqJson(body): ReqJson<GetChallengeStatusRequest>,
+) -> Result<Json<ChallengeStatusesResponse>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     if body.user_id.is_some() && (body.team_id.is_some() || body.game_id.is_some()) {
@@ -155,8 +198,5 @@ pub async fn get_challenge_status(
         }
     }
 
-    Ok(WebResponse {
-        data: Some(result),
-        ..Default::default()
-    })
+    Ok(Json(ChallengeStatusesResponse { statuses: result }))
 }

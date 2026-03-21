@@ -132,8 +132,7 @@ function EditDialog(props: EditDialogProps) {
       frozen_at: values.frozen_at
         ? Math.floor(values.frozen_at.getTime() / 1000)
         : null,
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
+    }).then((res) => {{
         toast.success(
           t("game:challenge.actions.edit_config_success", {
             title: gameChallenge?.challenge_title,

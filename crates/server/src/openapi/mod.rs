@@ -22,7 +22,11 @@ use crate::traits::AppState;
         (name = "system", description = "Service metadata and probes"),
         (name = "config", description = "Public configuration"),
     ),
-    components(schemas(crate::router::api::config::Version))
+    components(schemas(
+        crate::router::api::ApiIndexResponse,
+        crate::router::api::config::Version,
+        crate::router::api::config::ConfigResponse,
+    ))
 )]
 pub struct ApiDoc;
 

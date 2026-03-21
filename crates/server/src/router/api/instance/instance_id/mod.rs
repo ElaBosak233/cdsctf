@@ -1,17 +1,21 @@
 use std::sync::Arc;
 
 use axum::{
-    Router,
+    Json, Router,
     extract::{State, WebSocketUpgrade},
     response::IntoResponse,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::debug;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::{Extension, Path, Query},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -21,12 +25,36 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/wsrx", axum::routing::get(wsrx))
 }
 
+/// 路径相对于 `/instances/{instance_id}`。
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(renew_instance).with_state(state.clone()))
+        .routes(routes!(stop_instance).with_state(state.clone()))
+        .routes(routes!(wsrx).with_state(state.clone()))
+}
+
+#[utoipa::path(
+    post,
+    path = "/renew",
+    tag = "instance",
+    params(
+        ("instance_id" = String, Path, description = "Instance / pod identifier"),
+    ),
+    responses(
+        (status = 200, description = "Renewed", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 403, description = "Forbidden", body = crate::traits::ApiJsonError),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn renew_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let pod = s.cluster.get_pod(&instance_id).await?;
@@ -85,15 +113,30 @@ pub async fn renew_instance(
 
     s.cluster.renew_challenge_instance(&id).await?;
 
-    Ok(WebResponse::ok())
+    Ok(Json(EmptySuccess::default()))
 }
 
+#[utoipa::path(
+    post,
+    path = "/stop",
+    tag = "instance",
+    params(
+        ("instance_id" = String, Path, description = "Instance / pod identifier"),
+    ),
+    responses(
+        (status = 200, description = "Stopped", body = EmptySuccess),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 403, description = "Forbidden", body = crate::traits::ApiJsonError),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn stop_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let pod = s.cluster.get_pod(&instance_id).await?;
@@ -124,14 +167,30 @@ pub async fn stop_instance(
 
     s.cluster.delete_challenge_instance(&id).await?;
 
-    Ok(WebResponse::ok())
+    Ok(Json(EmptySuccess::default()))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct WsrxRequest {
     pub port: u32,
 }
 
+#[utoipa::path(
+    get,
+    path = "/wsrx",
+    tag = "instance",
+    params(
+        ("instance_id" = String, Path, description = "Instance / pod identifier"),
+        WsrxRequest,
+    ),
+    responses(
+        (status = 101, description = "WebSocket upgrade"),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn wsrx(
     State(s): State<Arc<AppState>>,
 

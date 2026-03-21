@@ -29,11 +29,10 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
       email,
     });
 
-    if (res.code === StatusCodes.OK) {
       toast.success(t("user:emails.actions.delete.success", { email }));
       onSuccess();
       onClose();
-    }
+    
 
     setLoading(false);
   }

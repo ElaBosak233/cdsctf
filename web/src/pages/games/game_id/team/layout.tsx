@@ -69,14 +69,13 @@ export default function Layout() {
         id: selfTeam?.id,
       });
 
-      if (res.code === StatusCodes.OK) {
         toast.success(t("team:actions.ready.success"), {
           description: t("team:actions.ready.description", {
             name: selfTeam?.name,
           }),
         });
         setConfirmDialogOpen(false);
-      }
+      
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
       const res = await parseErrorResponse(error);
@@ -100,7 +99,6 @@ export default function Layout() {
         game_id: currentGame.id!,
       });
 
-      if (res.code === StatusCodes.OK) {
         toast.success(t("team:actions.disband.success"), {
           description: t("team:actions.disband.description", {
             name: selfTeam?.name,
@@ -108,7 +106,7 @@ export default function Layout() {
         });
         setDisbandDialogOpen(false);
         navigate(`/games/${currentGame?.id}`);
-      }
+      
     } finally {
       sharedStore.setRefresh();
     }
@@ -124,7 +122,6 @@ export default function Layout() {
         game_id: currentGame.id!,
       });
 
-      if (res.code === StatusCodes.OK) {
         toast.success(t("team:actions.leave.success"), {
           description: t("team:actions.leave.description", {
             name: selfTeam?.name,
@@ -132,7 +129,7 @@ export default function Layout() {
         });
         setDisbandDialogOpen(false);
         navigate(`/games/${currentGame?.id}`);
-      }
+      
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
       const res = await parseErrorResponse(error);

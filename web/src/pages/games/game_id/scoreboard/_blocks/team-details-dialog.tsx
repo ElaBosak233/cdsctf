@@ -53,7 +53,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         sorts: "-created_at",
       }),
     select: (response) => ({
-      submissions: response.data || [],
+      submissions: response.items || [],
       total: response.total || 0,
     }),
     placeholderData: keepPreviousData,

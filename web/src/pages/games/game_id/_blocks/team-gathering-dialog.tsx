@@ -57,10 +57,9 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
       game_id: currentGame.id!,
       ...values,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
-            t("team:actions.create.success", { name: res?.data?.name })
+            t("team:actions.create.success", { name: res?.team?.name })
           );
           onClose();
         }
@@ -98,8 +97,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
       team_id: team_id,
       token: token,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(t("team:actions.join.success"));
           onClose();
         }

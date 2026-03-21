@@ -4,7 +4,7 @@ mod writeup;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     Challenge,
     sea_orm::{
@@ -13,12 +13,18 @@ use cds_db::{
     },
 };
 use serde::{Deserialize, Serialize};
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
-    traits::{AppState, WebError, WebResponse},
+    traits::{AppState, EmptySuccess, WebError},
 };
+
+use super::AdminChallengeResponse;
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
@@ -31,20 +37,41 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/attachments", attachment::router())
 }
 
-pub async fn get_challenge(
-    State(s): State<Arc<AppState>>,
-
-    Path(challenge_id): Path<i64>,
-) -> Result<WebResponse<Challenge>, WebError> {
-    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
-
-    Ok(WebResponse {
-        data: Some(challenge),
-        ..Default::default()
-    })
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_challenge).with_state(state.clone()))
+        .routes(routes!(update_challenge).with_state(state.clone()))
+        .routes(routes!(delete_challenge).with_state(state.clone()))
+        .routes(routes!(update_challenge_instance).with_state(state.clone()))
+        .nest("/checker", checker::openapi_router(state.clone()))
+        .nest("/writeup", writeup::openapi_router(state.clone()))
+        .nest(
+            "/attachments",
+            attachment::openapi_router(state.clone()),
+        )
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "admin-challenge",
+    params(
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+    ),
+    responses(
+        (status = 200, description = "Challenge", body = AdminChallengeResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
+pub async fn get_challenge(
+    State(s): State<Arc<AppState>>,
+    Path(challenge_id): Path<i64>,
+) -> Result<Json<AdminChallengeResponse>, WebError> {
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
+    Ok(Json(AdminChallengeResponse { challenge }))
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 pub struct UpdateChallengeRequest {
     pub title: Option<String>,
     pub description: Option<String>,
@@ -56,12 +83,24 @@ pub struct UpdateChallengeRequest {
     pub has_writeup: Option<bool>,
 }
 
+#[utoipa::path(
+    put,
+    path = "/",
+    tag = "admin-challenge",
+    params(
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+    ),
+    request_body = UpdateChallengeRequest,
+    responses(
+        (status = 200, description = "Updated", body = AdminChallengeResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn update_challenge(
     State(s): State<Arc<AppState>>,
-
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeRequest>,
-) -> Result<WebResponse<Challenge>, WebError> {
+) -> Result<Json<AdminChallengeResponse>, WebError> {
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
     let challenge = cds_db::challenge::update(
@@ -81,35 +120,53 @@ pub async fn update_challenge(
     )
     .await?;
 
-    Ok(WebResponse {
-        data: challenge,
-        ..Default::default()
-    })
+    Ok(Json(AdminChallengeResponse { challenge }))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "admin-challenge",
+    params(
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+    ),
+    responses(
+        (status = 200, description = "Deleted", body = EmptySuccess),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_challenge(
     State(s): State<Arc<AppState>>,
-
     Path(challenge_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
-
     cds_db::challenge::delete(&s.db.conn, challenge.id).await?;
-
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 pub struct UpdateChallengeInstanceRequest {
     pub instance: Option<cds_db::challenge::Instance>,
 }
 
+#[utoipa::path(
+    put,
+    path = "/instance",
+    tag = "admin-challenge",
+    params(
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+    ),
+    request_body = UpdateChallengeInstanceRequest,
+    responses(
+        (status = 200, description = "Updated", body = EmptySuccess),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn update_challenge_instance(
     State(s): State<Arc<AppState>>,
-
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeInstanceRequest>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
     let _ = cds_db::challenge::update::<Challenge>(
@@ -122,5 +179,5 @@ pub async fn update_challenge_instance(
     )
     .await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }

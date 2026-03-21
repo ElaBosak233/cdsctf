@@ -34,9 +34,9 @@ function VerifyDialog(props: VerifyDialogProps) {
       const res = await sendVerifyEmail({
         email: email,
       });
-      if (res.code === StatusCodes.OK) {
+
         toast.success(t("user:emails.actions.send_verify.success", { email }));
-      }
+      
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
       const res = await parseErrorResponse(error);
@@ -54,7 +54,6 @@ function VerifyDialog(props: VerifyDialogProps) {
         email: email,
       });
 
-      if (res.code === StatusCodes.OK) {
         toast.success(t("user:emails.actions.verify.success", { email }));
         authStore.setUser({
           ...authStore.user,
@@ -62,7 +61,7 @@ function VerifyDialog(props: VerifyDialogProps) {
         });
         onClose();
         bump();
-      }
+      
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
       const res = await parseErrorResponse(error);

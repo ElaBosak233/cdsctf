@@ -48,7 +48,7 @@ export default function Index() {
     setLoading(true);
     getChallengeAttachments(challenge.id!)
       .then((res) => {
-        setMetadata(res.data || []);
+        setMetadata(res.items || []);
       })
       .finally(() => {
         setLoading(false);

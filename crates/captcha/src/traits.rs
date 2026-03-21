@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, utoipa::ToSchema)]
 pub struct CaptchaChallenge {
     pub id: String,
     pub challenge: String,
@@ -17,7 +17,7 @@ impl CaptchaChallenge {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, utoipa::ToSchema)]
 pub struct Answer {
     pub id: Option<String>,
     pub content: String,

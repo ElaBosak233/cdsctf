@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Media, traits::MediaError};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, utoipa::ToSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum EmailType {
     Verify,

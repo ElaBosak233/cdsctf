@@ -1,5 +1,4 @@
 import type { Challenge } from "@/models/challenge";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface UpdateWriteupRequest {
@@ -10,5 +9,5 @@ export interface UpdateWriteupRequest {
 export async function updateWriteup(request: UpdateWriteupRequest) {
   return api
     .put(`admin/challenges/${request?.id}/writeup`, { json: request })
-    .json<WebResponse<Challenge>>();
+    .json<{ challenge: Challenge }>();
 }

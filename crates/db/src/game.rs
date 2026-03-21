@@ -13,7 +13,7 @@ use crate::{
 };
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema)]
 pub struct Game {
     pub id: i64,
     pub title: String,
@@ -34,7 +34,7 @@ pub struct Game {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema)]
 pub struct GameMini {
     pub id: i64,
     pub title: String,

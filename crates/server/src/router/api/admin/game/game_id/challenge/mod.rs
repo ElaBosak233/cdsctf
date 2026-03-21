@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     GameChallenge,
     game_challenge::FindGameChallengeOptions,
@@ -8,10 +8,14 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Json, Path, Query},
-    traits::{AppState, WebError, WebResponse},
+    extract::{Json as ReqJson, Path, Query},
+    traits::{AppState, WebError},
 };
 
 mod challenge_id;
@@ -23,21 +27,49 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{challenge_id}", challenge_id::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_game_challenge).with_state(state.clone()))
+        .routes(routes!(create_game_challenge).with_state(state.clone()))
+        .nest(
+            "/{challenge_id}",
+            challenge_id::openapi_router(state.clone()),
+        )
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetGameChallengeRequest {
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
     pub category: Option<i32>,
 }
 
-/// Get challenges by given params.
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct AdminGameChallengesListResponse {
+    pub items: Vec<GameChallenge>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        GetGameChallengeRequest,
+    ),
+    responses(
+        (status = 200, description = "Game challenges", body = AdminGameChallengesListResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_game_challenge(
     State(s): State<Arc<AppState>>,
-
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
-) -> Result<WebResponse<Vec<GameChallenge>>, WebError> {
-    let (game_challenges, _) = cds_db::game_challenge::find(
+) -> Result<Json<AdminGameChallengesListResponse>, WebError> {
+    let (game_challenges, total) = cds_db::game_challenge::find(
         &s.db.conn,
         FindGameChallengeOptions {
             game_id: Some(game_id),
@@ -48,13 +80,13 @@ pub async fn get_game_challenge(
     )
     .await?;
 
-    Ok(WebResponse {
-        data: Some(game_challenges),
-        ..Default::default()
-    })
+    Ok(Json(AdminGameChallengesListResponse {
+        items: game_challenges,
+        total,
+    }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct CreateGameChallengeRequest {
     pub challenge_id: i64,
     pub enabled: Option<bool>,
@@ -65,12 +97,30 @@ pub struct CreateGameChallengeRequest {
     pub frozen_at: Option<Option<i64>>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct GameChallengeResponse {
+    pub game_challenge: GameChallenge,
+}
+
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    request_body = CreateGameChallengeRequest,
+    responses(
+        (status = 200, description = "Linked challenge", body = GameChallengeResponse),
+        (status = 409, description = "Conflict", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn create_game_challenge(
     State(s): State<Arc<AppState>>,
-
     Path(game_id): Path<i64>,
-    Json(body): Json<CreateGameChallengeRequest>,
-) -> Result<WebResponse<GameChallenge>, WebError> {
+    ReqJson(body): ReqJson<CreateGameChallengeRequest>,
+) -> Result<Json<GameChallengeResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
@@ -104,8 +154,5 @@ pub async fn create_game_challenge(
         )
         .await?;
 
-    Ok(WebResponse {
-        data: Some(game_challenge),
-        ..Default::default()
-    })
+    Ok(Json(GameChallengeResponse { game_challenge }))
 }

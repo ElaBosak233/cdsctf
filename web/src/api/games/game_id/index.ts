@@ -1,5 +1,4 @@
 import type { Game, ScoreRecord } from "@/models/game";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetGameRequest {
@@ -7,7 +6,7 @@ export interface GetGameRequest {
 }
 
 export async function getGame(request: GetGameRequest) {
-  return api.get(`games/${request.id}`).json<WebResponse<Game>>();
+  return api.get(`games/${request.id}`).json<{ game: Game }>();
 }
 
 export interface GetGameScoreboardRequest {
@@ -21,5 +20,5 @@ export async function getGameScoreboard(request: GetGameScoreboardRequest) {
     .get(`games/${request.id}/scoreboard`, {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<ScoreRecord>>>();
+    .json<{ items: ScoreRecord[]; total: number }>();
 }

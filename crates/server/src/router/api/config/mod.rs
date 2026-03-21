@@ -3,7 +3,7 @@ mod logo;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use cds_db::Config;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
@@ -11,9 +11,9 @@ use utoipa_axum::{
     routes,
 };
 
-use crate::traits::{AppState, WebError, WebResponse};
+use crate::traits::{AppState, WebError};
 
-/// Logo、captcha 等未单独写 `#[utoipa::path]` 的子路由，挂在 `/configs` 下与 OpenAPI 子树合并。
+/// Logo、captcha 等子路由，挂在 `/configs` 下与 OpenAPI 子树合并。
 pub fn router_logo_and_captcha() -> Router<Arc<AppState>> {
     Router::new()
         .nest("/logo", logo::router())
@@ -32,6 +32,23 @@ pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_config).with_state(state.clone()))
         .routes(routes!(get_version).with_state(state.clone()))
+        .nest(
+            "/logo",
+            OpenApiRouter::from(Router::new().with_state(state.clone())).routes(
+                routes!(logo::get_logo).with_state(state.clone()),
+            ),
+        )
+        .nest(
+            "/captcha",
+            OpenApiRouter::from(Router::new().with_state(state.clone())).routes(
+                routes!(captcha::generate_captcha).with_state(state.clone()),
+            ),
+        )
+}
+
+#[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct ConfigResponse {
+    pub config: Config,
 }
 
 #[utoipa::path(
@@ -39,16 +56,15 @@ pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     path = "/",
     tag = "config",
     responses(
-        (status = 200, description = "Desensitized site configuration (`WebResponse` JSON)", body = serde_json::Value),
-        (status = 401, description = "Session error"),
-        (status = 500, description = "Server error"),
+        (status = 200, description = "Desensitized site configuration", body = ConfigResponse),
+        (status = 401, description = "Session error", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
     )
 )]
-pub async fn get_config(State(s): State<Arc<AppState>>) -> Result<WebResponse<Config>, WebError> {
-    Ok(WebResponse {
-        data: Some(cds_db::get_config(&s.db.conn).await.desensitize()),
-        ..Default::default()
-    })
+pub async fn get_config(State(s): State<Arc<AppState>>) -> Result<Json<ConfigResponse>, WebError> {
+    Ok(Json(ConfigResponse {
+        config: cds_db::get_config(&s.db.conn).await.desensitize(),
+    }))
 }
 
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -62,16 +78,13 @@ pub struct Version {
     path = "/version",
     tag = "config",
     responses(
-        (status = 200, description = "Build tag and git commit (`WebResponse` JSON)", body = serde_json::Value),
-        (status = 500, description = "Server error"),
+        (status = 200, description = "Build tag and git commit", body = Version),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
     )
 )]
-pub async fn get_version() -> Result<WebResponse<Version>, WebError> {
-    Ok(WebResponse {
-        data: Some(Version {
-            tag: cds_env::get_version().to_owned(),
-            commit: cds_env::get_commit_hash().to_owned(),
-        }),
-        ..Default::default()
-    })
+pub async fn get_version() -> Result<Json<Version>, WebError> {
+    Ok(Json(Version {
+        tag: cds_env::get_version().to_owned(),
+        commit: cds_env::get_commit_hash().to_owned(),
+    }))
 }

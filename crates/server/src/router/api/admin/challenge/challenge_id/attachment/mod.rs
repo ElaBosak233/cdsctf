@@ -3,16 +3,19 @@ mod filename;
 use std::sync::Arc;
 
 use axum::{
-    Router,
+    Json, Router,
     extract::{DefaultBodyLimit, Multipart, State},
-    http::StatusCode,
 };
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::Path,
     model::Metadata,
-    traits::{AppState, WebError, WebResponse},
+    traits::{AppState, EmptySuccess, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -26,11 +29,39 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{filename}", filename::router())
 }
 
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_challenge_attachment).with_state(state.clone()))
+        .routes(routes!(save_challenge_attachment).with_state(state.clone()))
+        .nest(
+            "/{filename}",
+            filename::openapi_router(state.clone()),
+        )
+}
+
+#[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct AdminChallengeAttachmentsListResponse {
+    pub items: Vec<Metadata>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "admin-challenge",
+    params(
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+    ),
+    responses(
+        (status = 200, description = "Attachments", body = AdminChallengeAttachmentsListResponse),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_challenge_attachment(
     State(s): State<Arc<AppState>>,
-
     Path(challenge_id): Path<i64>,
-) -> Result<WebResponse<Vec<Metadata>>, WebError> {
+) -> Result<Json<AdminChallengeAttachmentsListResponse>, WebError> {
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
         .await?
         .has_attachment
@@ -45,19 +76,29 @@ pub async fn get_challenge_attachment(
         .into_iter()
         .map(|(filename, size)| Metadata { filename, size })
         .collect::<Vec<Metadata>>();
+    let total = metadata.len() as u64;
 
-    Ok(WebResponse {
-        data: Some(metadata),
-        ..Default::default()
-    })
+    Ok(Json(AdminChallengeAttachmentsListResponse { items: metadata, total }))
 }
 
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "admin-challenge",
+    params(
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+    ),
+    responses(
+        (status = 200, description = "Uploaded", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn save_challenge_attachment(
     State(s): State<Arc<AppState>>,
-
     Path(challenge_id): Path<i64>,
     mut multipart: Multipart,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
     let path = crate::util::media::build_challenge_attachment_path(challenge_id);
@@ -79,8 +120,5 @@ pub async fn save_challenge_attachment(
         .await
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }

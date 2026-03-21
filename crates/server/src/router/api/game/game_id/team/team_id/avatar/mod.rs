@@ -11,6 +11,19 @@ pub fn router() -> Router<Arc<AppState>> {
     Router::new().route("/", axum::routing::get(get_team_avatar))
 }
 
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        ("team_id" = i64, Path, description = "Team id"),
+    ),
+    responses(
+        (status = 200, description = "Avatar bytes"),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_team_avatar(
     State(s): State<Arc<AppState>>,
 

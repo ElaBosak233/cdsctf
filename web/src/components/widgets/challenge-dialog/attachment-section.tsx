@@ -18,7 +18,7 @@ function useChallengeAttachmentsQuery(
       debug
         ? getChallengeAttachmentsDebug(challengeId!)
         : getChallengeAttachments(challengeId!),
-    select: (response) => response.data,
+    select: (response) => response.items,
     enabled: !!challengeId && hasAttachment,
   });
 }

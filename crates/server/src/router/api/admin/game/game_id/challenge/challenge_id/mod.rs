@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     GameChallenge,
     sea_orm::{
@@ -11,11 +11,17 @@ use cds_db::{
 use cds_event::types::game_challenge::{GameChallengeEvent, GameChallengeEventType};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Json, Path},
-    traits::{AppState, WebError, WebResponse},
+    extract::{Json as ReqJson, Path},
+    traits::{AppState, EmptySuccess, WebError},
 };
+
+use super::GameChallengeResponse;
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
@@ -23,8 +29,14 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/", axum::routing::delete(delete_game_challenge))
 }
 
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(update_game_challenge).with_state(state.clone()))
+        .routes(routes!(delete_game_challenge).with_state(state.clone()))
+}
+
 #[serde_as]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct UpdateGameChallengeRequest {
     pub challenge_id: Option<i64>,
     pub enabled: Option<bool>,
@@ -40,12 +52,25 @@ pub struct UpdateGameChallengeRequest {
     pub frozen_at: Option<Option<i64>>,
 }
 
+#[utoipa::path(
+    put,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+    ),
+    request_body = UpdateGameChallengeRequest,
+    responses(
+        (status = 200, description = "Updated link", body = GameChallengeResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn update_game_challenge(
     State(s): State<Arc<AppState>>,
-
     Path((game_id, challenge_id)): Path<(i64, i64)>,
-    Json(body): Json<UpdateGameChallengeRequest>,
-) -> Result<WebResponse<GameChallenge>, WebError> {
+    ReqJson(body): ReqJson<UpdateGameChallengeRequest>,
+) -> Result<Json<GameChallengeResponse>, WebError> {
     let game_challenge =
         crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 
@@ -92,18 +117,28 @@ pub async fn update_game_challenge(
             .await?;
     }
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(new_game_challenge),
-        ..Default::default()
-    })
+    Ok(Json(GameChallengeResponse {
+        game_challenge: new_game_challenge,
+    }))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+    ),
+    responses(
+        (status = 200, description = "Removed link", body = EmptySuccess),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_game_challenge(
     State(s): State<Arc<AppState>>,
-
     Path((game_id, challenge_id)): Path<(i64, i64)>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let game_challenge =
         crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 
@@ -114,8 +149,5 @@ pub async fn delete_game_challenge(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }

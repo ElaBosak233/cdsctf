@@ -12,15 +12,18 @@ use crate::{
     traits::{AppState, WebError},
 };
 
+#[allow(dead_code)]
 pub fn router() -> Router<Arc<AppState>> {
     Router::new().route("/shell", axum::routing::get(get_shell))
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetShellRequest {
     pub command: String,
 }
 
+#[allow(dead_code)]
 pub async fn get_shell(
     State(s): State<Arc<AppState>>,
 

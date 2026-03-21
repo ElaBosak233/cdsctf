@@ -1,10 +1,9 @@
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export function getEmail(type: "verify" | "forget") {
   return api
     .get("admin/configs/email", { searchParams: toSearchParams({ type }) })
-    .json<WebResponse<string>>();
+    .json<{ content: string }>();
 }
 
 export interface SaveEmailRequest {
@@ -15,5 +14,5 @@ export interface SaveEmailRequest {
 export function saveEmail(request: SaveEmailRequest) {
   return api
     .post("admin/configs/email", { json: request })
-    .json<WebResponse<unknown>>();
+    .json<Record<string, never>>();
 }

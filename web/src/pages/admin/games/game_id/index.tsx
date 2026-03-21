@@ -125,10 +125,9 @@ export default function Index() {
       frozen_at: Math.floor(values.frozen_at?.getTime() / 1000),
       ended_at: Math.floor(values.ended_at?.getTime() / 1000),
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
-            t("game:actions.update.success", { title: res?.data?.title })
+            t("game:actions.update.success", { title: res?.game?.title })
           );
         }
       })
@@ -147,8 +146,7 @@ export default function Index() {
     try {
       const res = await uploadFile(`/api/admin/games/${game?.id}/poster`, [
         file,
-      ]);
-      if (res.code === StatusCodes.OK) {
+      ]);{
         toast.success(t("game:form.poster_upload.success"));
       }
     } catch (_) {
@@ -170,9 +168,8 @@ export default function Index() {
         game_id: game.id!,
       });
 
-      if (res.code === StatusCodes.OK) {
         toast.success(t("game:form.poster_delete.success"));
-      }
+      
     } finally {
       posterBump();
     }
@@ -203,9 +200,9 @@ export default function Index() {
       const res = await deleteGameIcon({
         game_id: game.id!,
       });
-      if (res.code === StatusCodes.OK) {
+
         toast.success(t("game:form.icon_delete.success"));
-      }
+      
     } finally {
       iconBump();
     }

@@ -138,12 +138,11 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
       public: newValue,
     });
 
-    if (res.code === StatusCodes.OK) {
       toast.success(t("challenge:public.actions.success", { title }), {
         id: "publicness_change",
       });
       sharedStore?.setRefresh();
-    }
+    
   }
 
   async function handleDelete() {
@@ -152,10 +151,9 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
         id,
       });
 
-      if (res.code === StatusCodes.OK) {
         toast.success(t("challenge:actions.delete.success", { title }));
         setDeleteDialogOpen(false);
-      }
+      
     } finally {
       sharedStore?.setRefresh();
     }

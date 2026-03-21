@@ -1,5 +1,4 @@
 import type { Challenge } from "@/models/challenge";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface GetChallengeRequest {
@@ -9,7 +8,7 @@ export interface GetChallengeRequest {
 export async function getChallenge(request: GetChallengeRequest) {
   return api
     .get(`admin/challenges/${request.id}`)
-    .json<WebResponse<Challenge>>();
+    .json<{ challenge: Challenge }>();
 }
 
 export interface UpdateChallengeRequest {
@@ -26,7 +25,7 @@ export interface UpdateChallengeRequest {
 export async function updateChallenge(request: UpdateChallengeRequest) {
   return api
     .put(`admin/challenges/${request?.id}`, { json: request })
-    .json<WebResponse<Challenge>>();
+    .json<{ challenge: Challenge }>();
 }
 
 export interface DeleteChallengeRequest {
@@ -36,5 +35,5 @@ export interface DeleteChallengeRequest {
 export async function deleteChallenge(request: DeleteChallengeRequest) {
   return api
     .delete(`admin/challenges/${request.id}`)
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

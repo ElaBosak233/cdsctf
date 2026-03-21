@@ -25,7 +25,7 @@ pub enum ClusterError {
     CheckerError(#[from] cds_checker::traits::CheckerError),
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Nat {
     pub port: i32,
     pub node_port: i32,

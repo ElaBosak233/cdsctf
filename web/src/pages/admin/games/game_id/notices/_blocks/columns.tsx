@@ -26,8 +26,7 @@ function ActionsCell({ row }: { row: Row<GameNotice> }) {
       game_id: row.original.game_id,
       id: row.original.id,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
             t("game:notice.actions.delete.success", {
               title: row.original.title,

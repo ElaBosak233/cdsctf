@@ -16,7 +16,17 @@ pub struct Model {
     pub data: Config,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, Default)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    Default,
+    utoipa::ToSchema,
+)]
 pub struct Config {
     pub meta: meta::Config,
     pub auth: auth::Config,

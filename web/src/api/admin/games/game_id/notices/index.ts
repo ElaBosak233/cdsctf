@@ -1,5 +1,4 @@
 import type { GameNotice } from "@/models/game_notice";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface CreateGameNoticeRequest {
@@ -11,7 +10,7 @@ export interface CreateGameNoticeRequest {
 export async function createGameNotice(request: CreateGameNoticeRequest) {
   return api
     .post(`admin/games/${request.game_id}/notices`, { json: request })
-    .json<WebResponse<GameNotice>>();
+    .json<{ notice: GameNotice }>();
 }
 
 export interface DeleteGameNoticeRequest {
@@ -24,5 +23,5 @@ export async function deleteGameNotice(request: DeleteGameNoticeRequest) {
     .delete(`admin/games/${request.game_id}/notices/${request.id}`, {
       json: request,
     })
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

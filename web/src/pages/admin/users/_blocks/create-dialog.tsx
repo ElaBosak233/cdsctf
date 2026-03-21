@@ -74,8 +74,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
     createUser({
       ...values,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
             t("user:actions.create.success", { username: values.username })
           );

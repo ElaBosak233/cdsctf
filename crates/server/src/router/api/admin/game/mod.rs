@@ -2,18 +2,23 @@ mod game_id;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     Game,
     game::FindGameOptions,
     sea_orm::ActiveValue::{NotSet, Set},
 };
 use serde::{Deserialize, Serialize};
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 use validator::Validate;
 
 use crate::{
     extract::{Query, VJson},
-    traits::{AppState, WebError, WebResponse},
+    router::api::game::game_id::GameDetailResponse,
+    traits::{AppState, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -23,7 +28,15 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{game_id}", game_id::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_games).with_state(state.clone()))
+        .routes(routes!(create_game).with_state(state.clone()))
+        .nest("/{game_id}", game_id::openapi_router(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetGameRequest {
     pub id: Option<i64>,
     pub title: Option<String>,
@@ -33,11 +46,26 @@ pub struct GetGameRequest {
     pub sorts: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct AdminGamesListResponse {
+    pub items: Vec<Game>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "admin-game",
+    params(GetGameRequest),
+    responses(
+        (status = 200, description = "Games", body = AdminGamesListResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_games(
     State(s): State<Arc<AppState>>,
-
     Query(params): Query<GetGameRequest>,
-) -> Result<WebResponse<Vec<Game>>, WebError> {
+) -> Result<Json<AdminGamesListResponse>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
@@ -54,15 +82,10 @@ pub async fn get_games(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(games),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(AdminGamesListResponse { items: games, total }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+#[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 pub struct CreateGameRequest {
     pub title: String,
     pub sketch: Option<String>,
@@ -77,11 +100,20 @@ pub struct CreateGameRequest {
     pub ended_at: i64,
 }
 
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "admin-game",
+    request_body = CreateGameRequest,
+    responses(
+        (status = 200, description = "Created game", body = GameDetailResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn create_game(
     State(s): State<Arc<AppState>>,
-
     VJson(body): VJson<CreateGameRequest>,
-) -> Result<WebResponse<Game>, WebError> {
+) -> Result<Json<GameDetailResponse>, WebError> {
     let game = cds_db::game::create(
         &s.db.conn,
         cds_db::game::ActiveModel {
@@ -105,9 +137,5 @@ pub async fn create_game(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(game),
-        ..Default::default()
-    })
+    Ok(Json(GameDetailResponse { game }))
 }

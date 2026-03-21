@@ -48,8 +48,7 @@ function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
       game_id,
       challenge_id,
       enabled: newValue,
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
+    }).then((res) => {{
         const enabledLabel = newValue
           ? t("game:enabled.true")
           : t("game:enabled.false");
@@ -111,8 +110,7 @@ function ActionsCell({ row }: { row: Row<GameChallenge> }) {
       game_id,
       challenge_id,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
             t("game:actions.delete.success", {
               title,

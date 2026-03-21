@@ -60,10 +60,9 @@ function CreateDialog(props: CreateDialogProps) {
       started_at: Math.floor(values.started_at.getTime() / 1000),
       ended_at: Math.floor(values.ended_at.getTime() / 1000),
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
-            t("game:actions.create.success", { title: res?.data?.title })
+            t("game:actions.create.success", { title: res?.game?.title })
           );
           onClose();
         }

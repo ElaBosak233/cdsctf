@@ -4,7 +4,7 @@ mod user_id;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     Email, User,
     sea_orm::ActiveValue::Set,
@@ -14,11 +14,15 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_sessions::Session;
 use tracing::debug;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Json},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
     util,
 };
 
@@ -32,20 +36,45 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/me", me::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(user_login).with_state(state.clone()))
+        .routes(routes!(user_register).with_state(state.clone()))
+        .routes(routes!(user_logout).with_state(state.clone()))
+        .nest("/forget", forget::openapi_router(state.clone()))
+        .nest("/{user_id}", user_id::openapi_router(state.clone()))
+        .nest("/me", me::openapi_router(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct UserResponse {
+    pub user: User,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct UserLoginRequest {
     pub account: String,
     pub password: String,
     pub captcha: Option<cds_captcha::Answer>,
 }
 
+#[utoipa::path(
+    post,
+    path = "/login",
+    tag = "user",
+    request_body = UserLoginRequest,
+    responses(
+        (status = 200, description = "Logged in", body = UserResponse),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn user_login(
     State(s): State<Arc<AppState>>,
-
     session: Session,
     Extension(ext): Extension<AuthPrincipal>,
-    Json(mut body): Json<UserLoginRequest>,
-) -> Result<impl IntoResponse, WebError> {
+    ReqJson(mut body): ReqJson<UserLoginRequest>,
+) -> Result<Json<UserResponse>, WebError> {
     if !s
         .captcha
         .check(&cds_captcha::Answer {
@@ -77,13 +106,10 @@ pub async fn user_login(
         "User logged in"
     );
 
-    Ok(WebResponse {
-        data: Some(user),
-        ..Default::default()
-    })
+    Ok(Json(UserResponse { user }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+#[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 pub struct UserRegisterRequest {
     pub name: String,
     #[validate(length(min = 3, max = 20))]
@@ -94,12 +120,23 @@ pub struct UserRegisterRequest {
     pub captcha: Option<cds_captcha::Answer>,
 }
 
+#[utoipa::path(
+    post,
+    path = "/register",
+    tag = "user",
+    request_body = UserRegisterRequest,
+    responses(
+        (status = 200, description = "Registered", body = UserResponse),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 409, description = "Conflict", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn user_register(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
-    Json(mut body): Json<UserRegisterRequest>,
-) -> Result<WebResponse<User>, WebError> {
+    ReqJson(mut body): ReqJson<UserRegisterRequest>,
+) -> Result<Json<UserResponse>, WebError> {
     if !cds_db::get_config(&s.db.conn)
         .await
         .auth
@@ -169,22 +206,24 @@ pub async fn user_register(
         "New user registered"
     );
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(user),
-        ..Default::default()
-    })
+    Ok(Json(UserResponse { user }))
 }
 
+#[utoipa::path(
+    post,
+    path = "/logout",
+    tag = "user",
+    responses(
+        (status = 200, description = "Logged out", body = EmptySuccess),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn user_logout(
     session: Session,
     Extension(ext): Extension<AuthPrincipal>,
-) -> Result<impl IntoResponse, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-
     let _ = session.remove::<Option<i64>>("user_id").await?;
-
-    Ok(WebResponse::<()> {
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }

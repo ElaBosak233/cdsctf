@@ -172,8 +172,7 @@ function useColumns(): Array<ColumnDef<Team>> {
             game_id: game_id!,
             state,
           })
-            .then((res) => {
-              if (res.code === StatusCodes.OK) {
+            .then((res) => {{
                 toast.success(
                   t("game:team.actions.message", { name: row.original.name })
                 );

@@ -43,7 +43,7 @@ function usePlaygroundChallengeQuery(
     ],
     queryFn: () => getPlaygroundChallenges(params),
     select: (response) => ({
-      challenges: response.data || [],
+      challenges: response.items || [],
       total: response.total || 0,
     }),
     enabled: !!params,
@@ -62,7 +62,7 @@ function useChallengeStatusQuery(
         challenge_ids: challenges?.map((challenge) => challenge.id!) || [],
         user_id: userId,
       }),
-    select: (response) => response.data || {},
+    select: (response) => response.statuses || {},
     enabled: !!challenges?.length && !!userId,
   });
 }

@@ -64,10 +64,10 @@ export default function Index() {
       const res = await updateUserProfile({
         ...values,
       });
-      if (res.code === StatusCodes.OK) {
-        authStore?.setUser(res.data);
+
+        authStore?.setUser(res.user);
         toast.success(t("user:settings.profile_update_success"));
-      }
+      
     } finally {
       setLoading(false);
     }
@@ -94,8 +94,7 @@ export default function Index() {
             }
           );
         }
-      );
-      if (res.code === StatusCodes.OK) {
+      );{
         toast.success(t("user:settings.avatar_upload.success"), {
           id: "user-avatar-upload",
         });
@@ -110,8 +109,7 @@ export default function Index() {
   async function handleAvatarDelete() {
     if (!authStore?.user) return;
 
-    const res = await deleteUserAvatar();
-    if (res.code === StatusCodes.OK) {
+    const res = await deleteUserAvatar();{
       toast.success(t("user:settings.avatar_delete_success"));
     }
     sharedStore.setRefresh();

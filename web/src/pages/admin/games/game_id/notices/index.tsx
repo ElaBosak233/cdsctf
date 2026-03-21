@@ -84,7 +84,7 @@ export default function Index() {
     })
       .then((res) => {
         setTotal(res?.total || 0);
-        setNotices(res?.data || []);
+        setNotices(res?.items || []);
       })
       .finally(() => {
         setLoading(false);

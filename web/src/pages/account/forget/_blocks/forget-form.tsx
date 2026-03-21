@@ -64,9 +64,8 @@ function ForgetForm() {
     forget({
       ...values,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          authStore.setUser(res.data);
+      .then((res) => {{
+          authStore.setUser(res.user);
           toast.success(t("account:forget.toast.success._"), {
             description: t("account:forget.toast.success.desc"),
           });
@@ -89,8 +88,7 @@ function ForgetForm() {
   function handleSendForgetEmail() {
     sendForgetEmail({
       email: form.getValues().email,
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
+    }).then((res) => {{
         toast.success(t("account:forget.toast.code_sent"));
       }
 

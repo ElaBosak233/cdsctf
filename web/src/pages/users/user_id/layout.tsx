@@ -14,7 +14,7 @@ function useUserQuery(userId?: number) {
       getUser({
         id: userId!,
       }),
-    select: (response) => response.data,
+    select: (response) => response.user,
     enabled: !!userId,
   });
 }

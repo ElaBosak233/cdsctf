@@ -24,7 +24,7 @@ function useNotesQuery(
     queryFn: () =>
       getNotes({ challenge_id: challengeId, page, size, sorts: "-updated_at" }),
     select: (response) => ({
-      notes: response.data || [],
+      notes: response.items || [],
       total: response.total || 0,
     }),
     enabled: !!challengeId,

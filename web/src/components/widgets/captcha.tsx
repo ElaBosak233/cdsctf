@@ -119,9 +119,9 @@ function PowCaptcha(props: CaptchaProps) {
     async function fetchCaptchaData() {
       setLoading(true);
       const res = await generateCaptcha();
-      const d = Number(res.data?.challenge?.split("#")[0]);
-      const c = res.data?.challenge?.split("#")[1];
-      setId(res.data?.id);
+      const d = Number(res.challenge?.split("#")[0]);
+      const c = res.challenge?.split("#")[1];
+      setId(res.id);
 
       calculateWorker.postMessage({ c, d });
     }
@@ -172,8 +172,8 @@ function ImageCaptcha(props: CaptchaProps) {
   const fetchCaptchaData = useCallback(async () => {
     setLoading(true);
     const res = await generateCaptcha();
-    setId(res.data?.id);
-    setChallenge(res.data?.challenge);
+    setId(res.id);
+    setChallenge(res.challenge);
   }, []);
 
   useEffect(() => {

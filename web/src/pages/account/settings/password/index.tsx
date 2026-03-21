@@ -61,8 +61,7 @@ export default function Index() {
     updateUserProfilePassword({
       ...values,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(t("user:change_password.actions.self_update.success"));
           form.reset();
         }

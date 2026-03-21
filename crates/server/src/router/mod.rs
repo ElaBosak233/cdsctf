@@ -53,15 +53,9 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
 
     let docs = crate::openapi::scalar_router(openapi);
 
-    let rest_under_api = Router::new()
-        .nest("/configs", api::config::router_logo_and_captcha())
-        .merge(api::router_undocumented());
-
-    let mut protected = documented_axum.merge(
-        Router::new()
-            .with_state(state.clone())
-            .nest("/api", rest_under_api),
-    );
+    // All `/api/*` routes (including `/configs`, `/admin`, etc.) come from
+    // `openapi_documented_under_api` — do not merge a second copy.
+    let mut protected = documented_axum;
 
     if state.env.server.rate_limit.enabled {
         // SAFETY: Option<GovernorConfig<_>> could always be unwrapped.

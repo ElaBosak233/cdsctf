@@ -4,23 +4,26 @@ mod note;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
-use cds_db::{
-    User,
-    sea_orm::{
-        ActiveValue::{Set, Unchanged},
-        NotSet,
-    },
+use axum::{Json, Router, extract::State};
+use cds_db::sea_orm::{
+    ActiveValue::{Set, Unchanged},
+    NotSet,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 use validator::Validate;
 
 use crate::{
-    extract::{Extension, Json},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
     util,
 };
+
+use super::UserResponse;
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
@@ -36,37 +39,63 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/notes", note::router())
 }
 
-pub async fn get_user_profile(
-    State(s): State<Arc<AppState>>,
-
-    Extension(ext): Extension<AuthPrincipal>,
-) -> Result<WebResponse<User>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-
-    let user = cds_db::user::find_by_id(&s.db.conn, operator.id).await?;
-
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: user,
-        ..Default::default()
-    })
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_user_profile).with_state(state.clone()))
+        .routes(routes!(update_user_profile).with_state(state.clone()))
+        .routes(routes!(delete_user_profile).with_state(state.clone()))
+        .routes(routes!(update_user_profile_password).with_state(state.clone()))
+        .nest("/emails", email::openapi_router(state.clone()))
+        .nest("/avatar", avatar::openapi_router(state.clone()))
+        .nest("/notes", note::openapi_router(state.clone()))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "user",
+    responses(
+        (status = 200, description = "Current user", body = UserResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
+pub async fn get_user_profile(
+    State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
+) -> Result<Json<UserResponse>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
+    let user = cds_db::user::find_by_id::<cds_db::User>(&s.db.conn, operator.id)
+        .await?
+        .ok_or(WebError::NotFound(json!("")))?;
+    Ok(Json(UserResponse { user }))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 pub struct UpdateUserProfileRequest {
     pub name: Option<String>,
     pub description: Option<String>,
 }
 
+#[utoipa::path(
+    put,
+    path = "/",
+    tag = "user",
+    request_body = UpdateUserProfileRequest,
+    responses(
+        (status = 200, description = "Updated user", body = UserResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn update_user_profile(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
-    Json(body): Json<UpdateUserProfileRequest>,
-) -> Result<WebResponse<User>, WebError> {
+    ReqJson(body): ReqJson<UpdateUserProfileRequest>,
+) -> Result<Json<UserResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let user = cds_db::user::update(
+    let user = cds_db::user::update::<cds_db::User>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             id: Unchanged(operator.id),
@@ -77,25 +106,32 @@ pub async fn update_user_profile(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(user),
-        ..Default::default()
-    })
+    Ok(Json(UserResponse { user }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct DeleteUserProfileRequest {
     pub password: String,
     pub captcha: Option<cds_captcha::Answer>,
 }
 
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "user",
+    request_body = DeleteUserProfileRequest,
+    responses(
+        (status = 200, description = "Deleted", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_user_profile(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
-    Json(body): Json<DeleteUserProfileRequest>,
-) -> Result<WebResponse<()>, WebError> {
+    ReqJson(body): ReqJson<DeleteUserProfileRequest>,
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     if !s
@@ -117,24 +153,32 @@ pub async fn delete_user_profile(
 
     cds_db::user::delete(&s.db.conn, operator.id).await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Validate)]
+#[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 pub struct UpdateUserProfilePasswordRequest {
     pub old_password: String,
     pub new_password: String,
 }
 
+#[utoipa::path(
+    put,
+    path = "/password",
+    tag = "user",
+    request_body = UpdateUserProfilePasswordRequest,
+    responses(
+        (status = 200, description = "Password updated", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn update_user_profile_password(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
-    Json(body): Json<UpdateUserProfilePasswordRequest>,
-) -> Result<WebResponse<()>, WebError> {
+    ReqJson(body): ReqJson<UpdateUserProfilePasswordRequest>,
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     let hashed_password = operator.hashed_password.clone();
@@ -147,8 +191,5 @@ pub async fn update_user_profile_password(
 
     cds_db::user::update_password(&s.db.conn, operator.id, hashed_password).await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        ..Default::default()
-    })
+    Ok(Json(EmptySuccess::default()))
 }

@@ -2,14 +2,18 @@ mod instance_id;
 
 use std::{collections::BTreeMap, sync::Arc};
 
-use axum::{Router, extract::State};
+use axum::{Json, Router, extract::State};
 use cds_db::{TeamUser, team_user::FindTeamUserOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Extension, Json, Query},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson, Query},
+    traits::{AppState, AuthPrincipal, EmptySuccess, WebError},
     util::cluster::Instance,
 };
 
@@ -20,7 +24,16 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{instance_id}", instance_id::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// 汇总到上层 [`OpenApiRouter::nest("/instances", ...)`]；路径相对于 `/instances`。
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_instance).with_state(state.clone()))
+        .routes(routes!(create_instance).with_state(state.clone()))
+        .nest("/{instance_id}", instance_id::openapi_router(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetInstanceRequest {
     pub id: Option<String>,
     pub user_id: Option<i64>,
@@ -29,12 +42,32 @@ pub struct GetInstanceRequest {
     pub challenge_id: Option<i64>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct ListInstancesResponse {
+    pub items: Vec<Instance>,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "instance",
+    params(GetInstanceRequest),
+    responses(
+        (status = 200, description = "Matching challenge instances", body = ListInstancesResponse),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 403, description = "Forbidden", body = crate::traits::ApiJsonError),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 429, description = "Too many instances", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetInstanceRequest>,
-) -> Result<WebResponse<Vec<Instance>>, WebError> {
+) -> Result<Json<ListInstancesResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let mut map: BTreeMap<String, String> = BTreeMap::new();
 
@@ -80,10 +113,10 @@ pub async fn get_instance(
         .map(|pod| Instance::from(pod).with_env(&s.env))
         .collect::<Vec<Instance>>();
 
-    Ok(WebResponse::ok().data(instances))
+    Ok(Json(ListInstancesResponse { items: instances }))
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct CreateInstanceRequest {
     pub challenge_id: i64,
     pub team_id: Option<i64>,
@@ -91,12 +124,27 @@ pub struct CreateInstanceRequest {
     pub game_id: Option<i64>,
 }
 
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "instance",
+    request_body = CreateInstanceRequest,
+    responses(
+        (status = 200, description = "Instance created", body = EmptySuccess),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 403, description = "Forbidden", body = crate::traits::ApiJsonError),
+        (status = 404, description = "Not found", body = crate::traits::ApiJsonError),
+        (status = 429, description = "Too many instances", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn create_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
-    Json(body): Json<CreateInstanceRequest>,
-) -> Result<WebResponse<()>, WebError> {
+    ReqJson(body): ReqJson<CreateInstanceRequest>,
+) -> Result<Json<EmptySuccess>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
@@ -178,5 +226,5 @@ pub async fn create_instance(
         .create_challenge_instance(operator, team, game, challenge)
         .await?;
 
-    Ok(WebResponse::ok())
+    Ok(Json(EmptySuccess::default()))
 }

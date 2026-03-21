@@ -1,17 +1,21 @@
 use std::sync::Arc;
 
 use axum::{
-    Router,
+    Json, Router,
     extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::{
     Game,
     sea_orm::{Set, Unchanged},
 };
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::Path,
-    traits::{AppState, WebError, WebResponse},
+    traits::{AppState, EmptySuccess, WebError},
     util::media::handle_multipart,
 };
 
@@ -25,12 +29,29 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/", axum::routing::delete(delete_game_icon))
 }
 
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(save_game_icon).with_state(state.clone()))
+        .routes(routes!(delete_game_icon).with_state(state.clone()))
+}
+
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Icon saved", body = EmptySuccess),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn save_game_icon(
     State(s): State<Arc<AppState>>,
-
     Path(game_id): Path<i64>,
     multipart: Multipart,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let data = handle_multipart(multipart, mime::IMAGE).await?;
 
     let path = format!("games/{}", game_id);
@@ -47,14 +68,25 @@ pub async fn save_game_icon(
     )
     .await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "admin-game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    responses(
+        (status = 200, description = "Icon removed", body = EmptySuccess),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn delete_game_icon(
     State(s): State<Arc<AppState>>,
-
     Path(game_id): Path<i64>,
-) -> Result<WebResponse<()>, WebError> {
+) -> Result<Json<EmptySuccess>, WebError> {
     let path = format!("games/{}", game_id);
 
     s.media.delete(path, "icon".to_owned()).await?;
@@ -69,5 +101,5 @@ pub async fn delete_game_icon(
     )
     .await?;
 
-    Ok(WebResponse::default())
+    Ok(Json(EmptySuccess::default()))
 }

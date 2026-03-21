@@ -31,7 +31,7 @@ export default function Index() {
         team_id: selfTeam?.id,
       }),
     enabled: !!currentGame?.id && !!selfTeam?.id,
-    select: (res) => res.data,
+    select: (res) => res.items,
   });
 
   async function handleCreateToken() {

@@ -1,5 +1,4 @@
 import type { Instance } from "@/models/challenge";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface UpdateChallengeInstanceRequest {
@@ -12,5 +11,5 @@ export async function updateChallengeInstance(
 ) {
   return api
     .put(`admin/challenges/${request?.id}/instance`, { json: request })
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

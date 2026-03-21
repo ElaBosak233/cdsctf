@@ -96,10 +96,9 @@ export default function Index() {
       id: user.id!,
       ...values,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(
-            t("user:actions.update.success", { username: res.data?.username })
+            t("user:actions.update.success", { username: res.user?.username })
           );
         }
       })

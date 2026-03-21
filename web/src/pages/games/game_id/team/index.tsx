@@ -73,11 +73,11 @@ export default function Index() {
         game_id: currentGame.id!,
         ...values,
       });
-      if (res.code === StatusCodes.OK) {
+
         toast.success(
-          t("team:actions.update.success", { name: res?.data?.name })
+          t("team:actions.update.success", { name: res?.team?.name })
         );
-      }
+      
     } finally {
       setRefresh();
       setLoading(false);
@@ -103,8 +103,7 @@ export default function Index() {
             }
           );
         }
-      );
-      if (res.code === StatusCodes.OK) {
+      );{
         toast.success(t("team:avatar.upload.success"), {
           id: "team-avatar-upload",
         });
@@ -124,11 +123,11 @@ export default function Index() {
         game_id: currentGame.id!,
         team_id: selfTeam.id!,
       });
-      if (res.code === StatusCodes.OK) {
+
         toast.success(
           t("team:avatar.team_delete_success", { name: selfTeam?.name })
         );
-      }
+      
     } finally {
       setRefresh();
     }

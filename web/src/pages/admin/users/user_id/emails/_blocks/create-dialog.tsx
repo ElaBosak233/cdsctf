@@ -62,7 +62,6 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
       verified: values.verified,
     });
 
-    if (res.code === StatusCodes.OK) {
       toast.success(
         t("user:emails.actions.create.success", { email: values.email })
       );
@@ -72,7 +71,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
         email: "",
         verified: false,
       });
-    }
+    
 
     setLoading(false);
   }

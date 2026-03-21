@@ -1,9 +1,9 @@
 mod team_id;
-mod us;
+pub mod us;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{
     TeamUser,
     sea_orm::ActiveValue::Set,
@@ -11,10 +11,14 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Extension, Json, Path},
-    traits::{AppState, AuthPrincipal, WebError, WebResponse},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -24,7 +28,19 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{team_id}", team_id::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(team_register).with_state(state.clone()))
+        .nest("/us", us::openapi_router(state.clone()))
+        .nest("/{team_id}", team_id::openapi_router(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct TeamResponse {
+    pub team: Team,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct TeamRegisterRequest {
     pub name: String,
     pub email: Option<String>,
@@ -32,17 +48,27 @@ pub struct TeamRegisterRequest {
     pub description: Option<String>,
 }
 
-/// Add a team to a game with given path and data.
-///
-/// # Prerequisite
-/// - No user in the team is already in the game.
+#[utoipa::path(
+    post,
+    path = "/register",
+    tag = "game",
+    params(
+        ("game_id" = i64, Path, description = "Game id"),
+    ),
+    request_body = TeamRegisterRequest,
+    responses(
+        (status = 200, description = "Team created", body = TeamResponse),
+        (status = 400, description = "Bad request", body = crate::traits::ApiJsonError),
+        (status = 401, description = "Unauthorized", body = crate::traits::ApiJsonError),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn team_register(
     State(s): State<Arc<AppState>>,
-
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-    Json(body): Json<TeamRegisterRequest>,
-) -> Result<WebResponse<Team>, WebError> {
+    ReqJson(body): ReqJson<TeamRegisterRequest>,
+) -> Result<Json<TeamResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
@@ -73,11 +99,9 @@ pub async fn team_register(
     )
     .await?;
 
-    let team = cds_db::team::find_by_id(&s.db.conn, team.id, team.game_id).await?;
+    let team = cds_db::team::find_by_id(&s.db.conn, team.id, team.game_id)
+        .await?
+        .ok_or(WebError::NotFound(json!("")))?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: team,
-        ..Default::default()
-    })
+    Ok(Json(TeamResponse { team }))
 }

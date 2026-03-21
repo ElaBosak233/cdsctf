@@ -1,4 +1,3 @@
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface DeleteTeamAvatarRequest {
@@ -9,5 +8,5 @@ export interface DeleteTeamAvatarRequest {
 export function deleteTeamAvatar(request: DeleteTeamAvatarRequest) {
   return api
     .delete(`games/${request.game_id}/teams/us/avatar`)
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

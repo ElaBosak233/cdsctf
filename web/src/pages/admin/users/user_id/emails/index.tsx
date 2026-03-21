@@ -46,7 +46,7 @@ export default function Emails() {
         user_id: userId,
       });
 
-      return res.data ?? [];
+      return res.items ?? [];
     },
     enabled: !!user_id,
     placeholderData: keepPreviousData,
@@ -67,8 +67,7 @@ export default function Emails() {
       email,
       verified,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
+      .then((res) => {{
           toast.success(t("user:emails.actions.update.success", { email }));
           handleRefresh();
         }

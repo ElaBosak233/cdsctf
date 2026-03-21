@@ -1,5 +1,4 @@
 import type { GameNotice } from "@/models/game_notice";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetGameNoticeRequest {
@@ -11,5 +10,5 @@ export async function getGameNotice(request: GetGameNoticeRequest) {
     .get(`games/${request.game_id}/notices`, {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<GameNotice>>>();
+    .json<{ items: GameNotice[]; total: number }>();
 }

@@ -12,7 +12,16 @@ pub(crate) use crate::entity::team::{Column, Entity};
 use crate::traits::DbError;
 
 #[allow(dead_code)]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct Team {
     pub id: i64,
     pub game_id: i64,

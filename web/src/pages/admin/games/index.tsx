@@ -59,7 +59,7 @@ function useGameQuery(params: GetGamesRequest) {
     ],
     queryFn: () => getGames(params),
     select: (response) => ({
-      games: response.data || [],
+      games: response.items || [],
       total: response.total || 0,
     }),
     enabled: !!params,

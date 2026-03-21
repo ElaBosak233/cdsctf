@@ -2,13 +2,17 @@ mod challenge_id;
 
 use std::sync::Arc;
 
-use axum::{Router, extract::State, http::StatusCode};
+use axum::{Json, Router, extract::State};
 use cds_db::{Challenge, challenge::FindChallengeOptions, sea_orm::ActiveValue::Set};
 use serde::{Deserialize, Serialize};
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
-    extract::{Json, Query},
-    traits::{AppState, WebError, WebResponse},
+    extract::{Json as ReqJson, Query},
+    traits::{AppState, WebError},
 };
 
 pub fn router() -> Router<Arc<AppState>> {
@@ -18,7 +22,18 @@ pub fn router() -> Router<Arc<AppState>> {
         .nest("/{challenge_id}", challenge_id::router())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+pub fn openapi_router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_challenges).with_state(state.clone()))
+        .routes(routes!(create_challenge).with_state(state.clone()))
+        .nest(
+            "/{challenge_id}",
+            challenge_id::openapi_router(state.clone()),
+        )
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct GetChallengeRequest {
     pub id: Option<i64>,
     pub title: Option<String>,
@@ -31,11 +46,26 @@ pub struct GetChallengeRequest {
     pub sorts: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct AdminChallengesListResponse {
+    pub items: Vec<Challenge>,
+    pub total: u64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "admin-challenge",
+    params(GetChallengeRequest),
+    responses(
+        (status = 200, description = "Challenges", body = AdminChallengesListResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn get_challenges(
     State(s): State<Arc<AppState>>,
-
     Query(params): Query<GetChallengeRequest>,
-) -> Result<WebResponse<Vec<Challenge>>, WebError> {
+) -> Result<Json<AdminChallengesListResponse>, WebError> {
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
@@ -55,15 +85,13 @@ pub async fn get_challenges(
     )
     .await?;
 
-    Ok(WebResponse {
-        code: StatusCode::OK,
-        data: Some(challenges),
-        total: Some(total),
-        ..Default::default()
-    })
+    Ok(Json(AdminChallengesListResponse {
+        items: challenges,
+        total,
+    }))
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct CreateChallengeRequest {
     pub title: String,
     pub description: String,
@@ -76,11 +104,25 @@ pub struct CreateChallengeRequest {
     pub checker: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct AdminChallengeResponse {
+    pub challenge: Challenge,
+}
+
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "admin-challenge",
+    request_body = CreateChallengeRequest,
+    responses(
+        (status = 200, description = "Created", body = AdminChallengeResponse),
+        (status = 500, description = "Server error", body = crate::traits::ApiJsonError),
+    )
+)]
 pub async fn create_challenge(
     State(s): State<Arc<AppState>>,
-
-    Json(body): Json<CreateChallengeRequest>,
-) -> Result<WebResponse<Challenge>, WebError> {
+    ReqJson(body): ReqJson<CreateChallengeRequest>,
+) -> Result<Json<AdminChallengeResponse>, WebError> {
     let challenge = cds_db::challenge::create(
         &s.db.conn,
         cds_db::challenge::ActiveModel {
@@ -99,8 +141,5 @@ pub async fn create_challenge(
     )
     .await?;
 
-    Ok(WebResponse {
-        data: Some(challenge),
-        ..Default::default()
-    })
+    Ok(Json(AdminChallengeResponse { challenge }))
 }

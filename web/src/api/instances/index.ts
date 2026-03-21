@@ -1,5 +1,4 @@
 import type { Instance } from "@/models/instance";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetInstanceRequest {
@@ -15,7 +14,7 @@ export async function getInstances(request: GetInstanceRequest) {
     .get("instances", {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<Instance>>>();
+    .json<{ items: Instance[] }>();
 }
 
 export interface CreateInstanceRequest {
@@ -25,5 +24,5 @@ export interface CreateInstanceRequest {
 }
 
 export async function createInstance(request: CreateInstanceRequest) {
-  return api.post("instances", { json: request }).json<WebResponse<Instance>>();
+  return api.post("instances", { json: request }).json<Record<string, never>>();
 }
