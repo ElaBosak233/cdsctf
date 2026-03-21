@@ -6,7 +6,7 @@ mod challenge_id;
 
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{Challenge, challenge::FindChallengeOptions, sea_orm::ActiveValue::Set};
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
@@ -113,7 +113,7 @@ pub struct AdminChallengeResponse {
     tag = "admin-challenge",
     request_body = CreateChallengeRequest,
     responses(
-        (status = 200, description = "Created", body = AdminChallengeResponse),
+        (status = 201, description = "Created", body = AdminChallengeResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -122,7 +122,7 @@ pub struct AdminChallengeResponse {
 pub async fn create_challenge(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<CreateChallengeRequest>,
-) -> Result<Json<AdminChallengeResponse>, WebError> {
+) -> Result<(StatusCode, Json<AdminChallengeResponse>), WebError> {
     let challenge = cds_db::challenge::create(
         &s.db.conn,
         cds_db::challenge::ActiveModel {
@@ -141,5 +141,8 @@ pub async fn create_challenge(
     )
     .await?;
 
-    Ok(Json(AdminChallengeResponse { challenge }))
+    Ok((
+        StatusCode::CREATED,
+        Json(AdminChallengeResponse { challenge }),
+    ))
 }

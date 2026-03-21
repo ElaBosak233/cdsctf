@@ -1,5 +1,4 @@
-//! HTTP routing for `media` — Axum router wiring and OpenAPI route
-//! registration.
+//! HTTP routing for `media` — Axum router wiring and OpenAPI route registration.
 
 use std::sync::Arc;
 
@@ -7,7 +6,7 @@ use axum::{
     Json, Router,
     body::Body,
     extract::{Multipart, State},
-    http::{Response, header::CACHE_CONTROL},
+    http::{Response, StatusCode, header::CACHE_CONTROL},
     response::IntoResponse,
 };
 use serde::{Deserialize, Serialize};
@@ -49,10 +48,9 @@ pub struct GetMediaRequest {
     )
 )]
 
-/// Returns media.
+/// Returns stored media bytes by `?hash=` (kept for backward compatibility with stored URLs).
 pub async fn get_media(
     State(s): State<Arc<AppState>>,
-
     Query(params): Query<GetMediaRequest>,
 ) -> Result<impl IntoResponse, WebError> {
     let buffer = s.media.get("media".to_owned(), params.hash).await?;
@@ -73,7 +71,7 @@ pub struct UploadMediaResponse {
     tag = "media",
     request_body(content_type = "multipart/form-data"),
     responses(
-        (status = 200, description = "Stored object hash", body = UploadMediaResponse),
+        (status = 201, description = "Stored object hash", body = UploadMediaResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 429, description = "Rate limited", body = crate::traits::ErrorResponse),
@@ -87,7 +85,7 @@ pub async fn upload_media(
 
     Extension(ap): Extension<AuthPrincipal>,
     multipart: Multipart,
-) -> Result<Json<UploadMediaResponse>, WebError> {
+) -> Result<(StatusCode, Json<UploadMediaResponse>), WebError> {
     let operator = ap.operator.ok_or(WebError::Unauthorized("".into()))?;
     let token_10m = format!("media:upload:10m:{}", operator.id);
     let token_24h = format!("media:upload:24h:{}", operator.id);
@@ -119,5 +117,8 @@ pub async fn upload_media(
 
     s.media.save("media".to_owned(), hash.clone(), data).await?;
 
-    Ok(Json(UploadMediaResponse { hash }))
+    Ok((
+        StatusCode::CREATED,
+        Json(UploadMediaResponse { hash }),
+    ))
 }

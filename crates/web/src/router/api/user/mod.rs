@@ -11,7 +11,7 @@ mod user_id;
 
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
     Email, User,
     sea_orm::ActiveValue::Set,
@@ -41,8 +41,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(user_register).with_state(state.clone()))
         .routes(routes!(user_logout).with_state(state.clone()))
         .nest("/forget", forget::router(state.clone()))
-        .nest("/{user_id}", user_id::router(state.clone()))
         .nest("/me", me::router(state.clone()))
+        .nest("/{user_id}", user_id::router(state.clone()))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -127,7 +127,7 @@ pub struct UserRegisterRequest {
     tag = "user",
     request_body = UserRegisterRequest,
     responses(
-        (status = 200, description = "Registered", body = UserResponse),
+        (status = 201, description = "Registered", body = UserResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 409, description = "Conflict", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
@@ -139,7 +139,7 @@ pub async fn user_register(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(mut body): ReqJson<UserRegisterRequest>,
-) -> Result<Json<UserResponse>, WebError> {
+) -> Result<(StatusCode, Json<UserResponse>), WebError> {
     if !cds_db::get_config(&s.db.conn)
         .await
         .auth
@@ -209,7 +209,7 @@ pub async fn user_register(
         "New user registered"
     );
 
-    Ok(Json(UserResponse { user }))
+    Ok((StatusCode::CREATED, Json(UserResponse { user })))
 }
 
 #[utoipa::path(

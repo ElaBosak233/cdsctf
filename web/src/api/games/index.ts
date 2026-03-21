@@ -2,7 +2,6 @@ import type { GameMini } from "@/models/game";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetGameRequest {
-  id?: number;
   title?: string;
   sorts?: string;
   page?: number;

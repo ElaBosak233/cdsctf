@@ -6,7 +6,7 @@ mod instance_id;
 
 use std::{collections::BTreeMap, sync::Arc};
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, Router, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -16,14 +16,14 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Json as ReqJson, Query},
-    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
+    traits::{AppState, AuthPrincipal, WebError},
     util::cluster::Instance,
 };
 
 /// Paths are relative to `/admin/instances`.
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(get_instance).with_state(state.clone()))
+        .routes(routes!(list_instances).with_state(state.clone()))
         .routes(routes!(create_debug_instance).with_state(state.clone()))
         .nest("/{instance_id}", instance_id::router(state.clone()))
 }
@@ -55,8 +55,8 @@ pub struct ListInstancesResponse {
     )
 )]
 
-/// Returns instance.
-pub async fn get_instance(
+/// Lists instances matching label filters (admin).
+pub async fn list_instances(
     State(s): State<Arc<AppState>>,
 
     Query(params): Query<GetInstanceRequest>,
@@ -104,13 +104,18 @@ pub struct CreateDebugInstanceRequest {
     pub challenge_id: i64,
 }
 
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct CreateDebugInstanceResponse {
+    pub instance_id: String,
+}
+
 #[utoipa::path(
     post,
     path = "/",
     tag = "admin-instance",
     request_body = CreateDebugInstanceRequest,
     responses(
-        (status = 200, description = "Debug instance created", body = EmptyJson),
+        (status = 201, description = "Debug instance created", body = CreateDebugInstanceResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 429, description = "Too many instances", body = crate::traits::ErrorResponse),
@@ -118,13 +123,13 @@ pub struct CreateDebugInstanceRequest {
     )
 )]
 
-/// Creates debug instance.
+/// Creates a debug challenge instance for the current admin user.
 pub async fn create_debug_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateDebugInstanceRequest>,
-) -> Result<Json<EmptyJson>, WebError> {
+) -> Result<(StatusCode, Json<CreateDebugInstanceResponse>), WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
@@ -149,9 +154,13 @@ pub async fn create_debug_instance(
         return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
     }
 
-    s.cluster
+    let instance_id = s
+        .cluster
         .create_challenge_instance(operator, None, None, challenge)
         .await?;
 
-    Ok(Json(EmptyJson::default()))
+    Ok((
+        StatusCode::CREATED,
+        Json(CreateDebugInstanceResponse { instance_id }),
+    ))
 }

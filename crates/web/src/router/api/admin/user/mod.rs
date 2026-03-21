@@ -5,7 +5,7 @@ mod user_id;
 
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
     Email, User,
     sea_orm::ActiveValue::Set,
@@ -106,7 +106,7 @@ pub struct CreateUserRequest {
     tag = "admin-user",
     request_body = CreateUserRequest,
     responses(
-        (status = 200, description = "Created user", body = UserResponse),
+        (status = 201, description = "Created user", body = UserResponse),
         (status = 409, description = "Conflict", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -116,7 +116,7 @@ pub struct CreateUserRequest {
 pub async fn create_user(
     State(s): State<Arc<AppState>>,
     VJson(mut body): VJson<CreateUserRequest>,
-) -> Result<Json<UserResponse>, WebError> {
+) -> Result<(StatusCode, Json<UserResponse>), WebError> {
     body.username = body.username.to_lowercase();
     if !cds_db::user::is_username_unique(&s.db.conn, 0, &body.username).await? {
         return Err(WebError::Conflict(json!("username_already_exists")));
@@ -146,5 +146,5 @@ pub async fn create_user(
     )
     .await?;
 
-    Ok(Json(UserResponse { user }))
+    Ok((StatusCode::CREATED, Json(UserResponse { user })))
 }

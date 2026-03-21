@@ -24,5 +24,7 @@ export interface CreateInstanceRequest {
 }
 
 export async function createInstance(request: CreateInstanceRequest) {
-  return api.post("instances", { json: request }).json<Record<string, never>>();
+  return api
+    .post("instances", { json: request })
+    .json<{ instance_id: string }>();
 }

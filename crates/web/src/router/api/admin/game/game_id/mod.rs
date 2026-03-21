@@ -76,7 +76,6 @@ pub async fn get_game(
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 pub struct UpdateGameRequest {
-    pub id: Option<i64>,
     pub title: Option<String>,
     pub sketch: Option<String>,
     pub description: Option<String>,

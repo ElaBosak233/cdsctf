@@ -1,9 +1,8 @@
-//! HTTP routing for `submission` — Axum router wiring and OpenAPI route
-//! registration.
+//! HTTP routing for `submission` — Axum router wiring and OpenAPI route registration.
 
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
     Submission, Team,
     sea_orm::{ActiveValue::NotSet, Set},
@@ -26,13 +25,13 @@ use crate::{
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(get_submission).with_state(state.clone()))
+        .routes(routes!(list_submissions).with_state(state.clone()))
         .routes(routes!(create_submission).with_state(state.clone()))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
-pub struct GetSubmissionRequest {
+pub struct ListSubmissionsRequest {
     pub id: Option<i64>,
     pub user_id: Option<i64>,
     #[serde(
@@ -64,7 +63,7 @@ pub struct ListSubmissionsResponse {
     get,
     path = "/",
     tag = "submission",
-    params(GetSubmissionRequest),
+    params(ListSubmissionsRequest),
     responses(
         (status = 200, description = "Submissions (content redacted)", body = ListSubmissionsResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
@@ -72,12 +71,12 @@ pub struct ListSubmissionsResponse {
     )
 )]
 
-/// Returns submission.
-pub async fn get_submission(
+/// Lists submissions for the current user (collection).
+pub async fn list_submissions(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
-    Query(params): Query<GetSubmissionRequest>,
+    Query(params): Query<ListSubmissionsRequest>,
 ) -> Result<Json<ListSubmissionsResponse>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -114,7 +113,6 @@ pub async fn get_submission(
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct CreateSubmissionRequest {
     pub content: String,
-    pub user_id: Option<i64>,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: i64,
@@ -126,7 +124,7 @@ pub struct CreateSubmissionRequest {
     tag = "submission",
     request_body = CreateSubmissionRequest,
     responses(
-        (status = 200, description = "Created submission", body = Option<Submission>),
+        (status = 201, description = "Created submission", body = Submission),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
@@ -135,16 +133,14 @@ pub struct CreateSubmissionRequest {
     )
 )]
 
-/// Creates submission.
+/// Creates a submission; author is always the authenticated user.
 pub async fn create_submission(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
-    ReqJson(mut body): ReqJson<CreateSubmissionRequest>,
-) -> Result<Json<Option<Submission>>, WebError> {
+    ReqJson(body): ReqJson<CreateSubmissionRequest>,
+) -> Result<(StatusCode, Json<Submission>), WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
-    body.user_id = Some(operator.id);
 
     let token = format!("submission:user:{}", operator.id);
     if let Some(limit) = s.cache.get::<i32>(&token).await? {
@@ -195,7 +191,7 @@ pub async fn create_submission(
         &s.db.conn,
         cds_db::submission::ActiveModel {
             content: Set(body.content),
-            user_id: body.user_id.map_or(NotSet, Set),
+            user_id: Set(operator.id),
             team_id: body.team_id.map_or(NotSet, |v| Set(Some(v))),
             game_id: body.game_id.map_or(NotSet, |v| Set(Some(v))),
             challenge_id: Set(body.challenge_id),
@@ -207,7 +203,9 @@ pub async fn create_submission(
 
     s.queue.publish("checker", submission.id).await?;
 
-    let submission = cds_db::submission::find_by_id(&s.db.conn, submission.id).await?;
+    let submission = cds_db::submission::find_by_id(&s.db.conn, submission.id)
+        .await?
+        .ok_or_else(|| WebError::NotFound(json!("")))?;
 
-    Ok(Json(submission))
+    Ok((StatusCode::CREATED, Json(submission)))
 }

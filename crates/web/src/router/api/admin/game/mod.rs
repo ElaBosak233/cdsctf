@@ -5,7 +5,7 @@ mod game_id;
 
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
     Game,
     game::FindGameOptions,
@@ -109,7 +109,7 @@ pub struct CreateGameRequest {
     tag = "admin-game",
     request_body = CreateGameRequest,
     responses(
-        (status = 200, description = "Created game", body = GameDetailResponse),
+        (status = 201, description = "Created game", body = GameDetailResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -118,7 +118,7 @@ pub struct CreateGameRequest {
 pub async fn create_game(
     State(s): State<Arc<AppState>>,
     VJson(body): VJson<CreateGameRequest>,
-) -> Result<Json<GameDetailResponse>, WebError> {
+) -> Result<(StatusCode, Json<GameDetailResponse>), WebError> {
     let game = cds_db::game::create(
         &s.db.conn,
         cds_db::game::ActiveModel {
@@ -142,5 +142,5 @@ pub async fn create_game(
     )
     .await?;
 
-    Ok(Json(GameDetailResponse { game }))
+    Ok((StatusCode::CREATED, Json(GameDetailResponse { game })))
 }

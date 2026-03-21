@@ -70,6 +70,8 @@ function ActionsCell({ row }: { row: Row<Game> }) {
     const newValue = !checked;
     setChecked(newValue);
 
+    if (id == null) return;
+
     await updateGame({
       id,
       enabled: newValue,

@@ -8,7 +8,7 @@ pub mod us;
 
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
     TeamUser,
     sea_orm::ActiveValue::Set,
@@ -30,7 +30,7 @@ use crate::{
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(team_register).with_state(state.clone()))
+        .routes(routes!(create_team).with_state(state.clone()))
         .nest("/us", us::router(state.clone()))
         .nest("/{team_id}", team_id::router(state.clone()))
 }
@@ -41,7 +41,7 @@ pub struct TeamResponse {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
-pub struct TeamRegisterRequest {
+pub struct CreateTeamRequest {
     pub name: String,
     pub email: Option<String>,
     pub slogan: Option<String>,
@@ -50,27 +50,27 @@ pub struct TeamRegisterRequest {
 
 #[utoipa::path(
     post,
-    path = "/register",
+    path = "/",
     tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
     ),
-    request_body = TeamRegisterRequest,
+    request_body = CreateTeamRequest,
     responses(
-        (status = 200, description = "Team created", body = TeamResponse),
+        (status = 201, description = "Team created", body = TeamResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
 
-/// Registers a new team for a competition.
-pub async fn team_register(
+/// Creates a team in the given game (collection `POST`).
+pub async fn create_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-    ReqJson(body): ReqJson<TeamRegisterRequest>,
-) -> Result<Json<TeamResponse>, WebError> {
+    ReqJson(body): ReqJson<CreateTeamRequest>,
+) -> Result<(StatusCode, Json<TeamResponse>), WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
@@ -105,5 +105,5 @@ pub async fn team_register(
         .await?
         .ok_or(WebError::NotFound(json!("")))?;
 
-    Ok(Json(TeamResponse { team }))
+    Ok((StatusCode::CREATED, Json(TeamResponse { team })))
 }

@@ -380,7 +380,7 @@ impl Cluster {
         team: Option<cds_db::Team>,
         game: Option<cds_db::Game>,
         challenge: cds_db::Challenge,
-    ) -> Result<(), ClusterError> {
+    ) -> Result<String, ClusterError> {
         let id = util::gen_safe_nanoid();
         let name = format!("cds-{}", id);
 
@@ -593,7 +593,7 @@ impl Cluster {
             )
             .await?;
 
-        Ok(())
+        Ok(id)
     }
 
     /// Extends lifetime metadata on a running challenge pod.

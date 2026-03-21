@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { teamRegister } from "@/api/games/game_id/teams";
+import { createTeam } from "@/api/games/game_id/teams";
 import { joinTeam } from "@/api/games/game_id/teams/team_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -53,7 +53,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     if (!currentGame) return;
 
     setLoading(true);
-    teamRegister({
+    createTeam({
       game_id: currentGame.id!,
       ...values,
     })

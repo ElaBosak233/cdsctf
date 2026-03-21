@@ -20,7 +20,7 @@ use crate::{
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(get_game_notice).with_state(state.clone()))
+        .routes(routes!(list_game_notices).with_state(state.clone()))
 }
 
 #[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
@@ -43,8 +43,8 @@ pub struct GameNoticesListResponse {
     )
 )]
 
-/// Returns game notice.
-pub async fn get_game_notice(
+/// Lists notices for a game (collection).
+pub async fn list_game_notices(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,

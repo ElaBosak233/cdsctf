@@ -6,7 +6,7 @@ mod instance_id;
 
 use std::{collections::BTreeMap, sync::Arc};
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{TeamUser, team_user::FindTeamUserOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -17,7 +17,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Json as ReqJson, Query},
-    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
+    traits::{AppState, AuthPrincipal, WebError},
     util::cluster::Instance,
 };
 
@@ -25,7 +25,7 @@ use crate::{
 /// to `/instances`.
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(get_instance).with_state(state.clone()))
+        .routes(routes!(list_instances).with_state(state.clone()))
         .routes(routes!(create_instance).with_state(state.clone()))
         .nest("/{instance_id}", instance_id::router(state.clone()))
 }
@@ -61,8 +61,8 @@ pub struct ListInstancesResponse {
     )
 )]
 
-/// Returns instance.
-pub async fn get_instance(
+/// Lists instances matching label filters (collection query).
+pub async fn list_instances(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
@@ -120,8 +120,12 @@ pub async fn get_instance(
 pub struct CreateInstanceRequest {
     pub challenge_id: i64,
     pub team_id: Option<i64>,
-    pub user_id: Option<i64>,
     pub game_id: Option<i64>,
+}
+
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct CreateInstanceResponse {
+    pub instance_id: String,
 }
 
 #[utoipa::path(
@@ -130,7 +134,7 @@ pub struct CreateInstanceRequest {
     tag = "instance",
     request_body = CreateInstanceRequest,
     responses(
-        (status = 200, description = "Instance created", body = EmptyJson),
+        (status = 201, description = "Instance created", body = CreateInstanceResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
@@ -140,13 +144,13 @@ pub struct CreateInstanceRequest {
     )
 )]
 
-/// Creates instance.
+/// Creates a challenge instance (async pod); returns the new instance id.
 pub async fn create_instance(
     State(s): State<Arc<AppState>>,
 
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateInstanceRequest>,
-) -> Result<Json<EmptyJson>, WebError> {
+) -> Result<(StatusCode, Json<CreateInstanceResponse>), WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
@@ -224,9 +228,13 @@ pub async fn create_instance(
         _ => (None, None),
     };
 
-    s.cluster
+    let instance_id = s
+        .cluster
         .create_challenge_instance(operator, team, game, challenge)
         .await?;
 
-    Ok(Json(EmptyJson::default()))
+    Ok((
+        StatusCode::CREATED,
+        Json(CreateInstanceResponse { instance_id }),
+    ))
 }

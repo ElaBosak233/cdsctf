@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { getSubmission } from "@/api/submissions";
+import { listSubmissions } from "@/api/submissions";
 import { Status } from "@/models/submission";
 import { useCheckerStore } from "@/storages/checker";
 
@@ -14,7 +14,7 @@ function CheckerWatcher() {
     if (submissions.length === 0) return;
     const interval = setInterval(() => {
       submissions.forEach(async (submission) => {
-        const res = await getSubmission({
+        const res = await listSubmissions({
           id: submission.id,
           is_desensitized: true,
         });

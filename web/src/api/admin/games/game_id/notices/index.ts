@@ -8,8 +8,11 @@ export interface CreateGameNoticeRequest {
 }
 
 export async function createGameNotice(request: CreateGameNoticeRequest) {
+  const { game_id, title, content } = request;
   return api
-    .post(`admin/games/${request.game_id}/notices`, { json: request })
+    .post(`admin/games/${game_id}/notices`, {
+      json: { title, content },
+    })
     .json<{ notice: GameNotice }>();
 }
 

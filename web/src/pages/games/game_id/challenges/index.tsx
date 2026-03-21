@@ -7,7 +7,7 @@ import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { getChallengeStatus } from "@/api/challenges";
+import { queryChallengeStatus } from "@/api/challenges";
 import { getGameChallenges } from "@/api/games/game_id/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -91,7 +91,7 @@ export default function Index() {
       currentGame?.id,
     ],
     queryFn: () =>
-      getChallengeStatus({
+      queryChallengeStatus({
         challenge_ids:
           gameChallenges?.map((gameChallenge) => gameChallenge.challenge_id!) ||
           [],

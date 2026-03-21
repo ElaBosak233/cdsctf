@@ -116,10 +116,12 @@ export default function Index() {
   }, [game]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (game?.id == null) return;
+
     setLoading(true);
     updateGame({
       ...values,
-      id: game?.id,
+      id: game.id,
       started_at: Math.floor(values.started_at?.getTime() / 1000),
       frozen_at: Math.floor(values.frozen_at?.getTime() / 1000),
       ended_at: Math.floor(values.ended_at?.getTime() / 1000),

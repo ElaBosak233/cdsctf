@@ -10,7 +10,7 @@ import { StarIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { getSubmission } from "@/api/submissions";
+import { listSubmissions } from "@/api/submissions";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -44,7 +44,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
   const { data: submissionData, isFetching: loading } = useQuery({
     queryKey: ["submissions", currentGame?.id, team.id, page],
     queryFn: () =>
-      getSubmission({
+      listSubmissions({
         game_id: currentGame?.id,
         team_id: team.id,
         status: Status.Correct,

@@ -20,12 +20,12 @@ use crate::{
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(get_note).with_state(state.clone()))
+        .routes(routes!(list_notes).with_state(state.clone()))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
-pub struct GetNoteRequest {
+pub struct ListNotesRequest {
     pub id: Option<i64>,
     pub user_id: Option<i64>,
     pub challenge_id: Option<i64>,
@@ -44,7 +44,7 @@ pub struct ListNotesResponse {
     get,
     path = "/",
     tag = "note",
-    params(GetNoteRequest),
+    params(ListNotesRequest),
     responses(
         (status = 200, description = "Public notes", body = ListNotesResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
@@ -52,12 +52,12 @@ pub struct ListNotesResponse {
     )
 )]
 
-/// Returns note.
-pub async fn get_note(
+/// Lists public notes (collection).
+pub async fn list_notes(
     State(s): State<Arc<AppState>>,
 
     Extension(ap): Extension<AuthPrincipal>,
-    Query(params): Query<GetNoteRequest>,
+    Query(params): Query<ListNotesRequest>,
 ) -> Result<Json<ListNotesResponse>, WebError> {
     let _ = ap.operator.ok_or(WebError::Unauthorized(json!("")))?;
 

@@ -13,7 +13,7 @@ export async function createSubmission(request: CreateSubmissionRequest) {
     .post("submissions", {
       json: request,
     })
-    .json<Submission | null>();
+    .json<Submission>();
 }
 
 export interface GetSubmissionRequest {
@@ -32,7 +32,7 @@ export interface GetSubmissionRequest {
   is_desensitized?: boolean;
 }
 
-export async function getSubmission(request: GetSubmissionRequest) {
+export async function listSubmissions(request: GetSubmissionRequest) {
   return api
     .get("submissions", {
       searchParams: toSearchParams(request),

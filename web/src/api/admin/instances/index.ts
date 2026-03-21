@@ -7,5 +7,5 @@ export interface CreateDebugInstanceRequest {
 export async function createDebugInstance(request: CreateDebugInstanceRequest) {
   return api
     .post("admin/instances", { json: request })
-    .json<Record<string, never>>();
+    .json<{ instance_id: string }>();
 }

@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{GameNotice, sea_orm::ActiveValue::Set};
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
@@ -26,7 +26,6 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct CreateGameNoticeRequest {
-    pub game_id: Option<i64>,
     pub title: String,
     pub content: String,
 }
@@ -45,7 +44,7 @@ pub struct GameNoticeResponse {
     ),
     request_body = CreateGameNoticeRequest,
     responses(
-        (status = 200, description = "Notice created", body = GameNoticeResponse),
+        (status = 201, description = "Notice created", body = GameNoticeResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -55,7 +54,7 @@ pub async fn create_game_notice(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<CreateGameNoticeRequest>,
-) -> Result<Json<GameNoticeResponse>, WebError> {
+) -> Result<(StatusCode, Json<GameNoticeResponse>), WebError> {
     let game_notice = cds_db::game_notice::create(
         &s.db.conn,
         cds_db::game_notice::ActiveModel {
@@ -67,9 +66,12 @@ pub async fn create_game_notice(
     )
     .await?;
 
-    Ok(Json(GameNoticeResponse {
-        notice: game_notice,
-    }))
+    Ok((
+        StatusCode::CREATED,
+        Json(GameNoticeResponse {
+            notice: game_notice,
+        }),
+    ))
 }
 
 #[utoipa::path(

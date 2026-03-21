@@ -9,7 +9,7 @@ export interface GetNotesRequest {
   sorts?: string;
 }
 
-export async function getNotes(request: GetNotesRequest) {
+export async function listNotes(request: GetNotesRequest) {
   return api
     .get(`notes`, {
       searchParams: toSearchParams(request),

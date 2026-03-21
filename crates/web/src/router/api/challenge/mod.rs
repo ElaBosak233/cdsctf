@@ -27,14 +27,14 @@ use crate::{
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(get_challenge).with_state(state.clone()))
-        .routes(routes!(get_challenge_status).with_state(state.clone()))
+        .routes(routes!(query_challenge_status).with_state(state.clone()))
+        .routes(routes!(list_challenges).with_state(state.clone()))
         .nest("/{challenge_id}", challenge_id::router(state.clone()))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
-pub struct GetChallengeRequest {
+pub struct ListChallengesRequest {
     pub id: Option<i64>,
     pub title: Option<String>,
     pub category: Option<i32>,
@@ -52,9 +52,9 @@ pub struct ChallengesListResponse {
 
 #[utoipa::path(
     get,
-    path = "/playground",
+    path = "/",
     tag = "challenge",
-    params(GetChallengeRequest),
+    params(ListChallengesRequest),
     responses(
         (status = 200, description = "Challenges", body = ChallengesListResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
@@ -62,11 +62,11 @@ pub struct ChallengesListResponse {
     )
 )]
 
-/// Returns challenge.
-pub async fn get_challenge(
+/// Lists public challenges (collection).
+pub async fn list_challenges(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
-    Query(params): Query<GetChallengeRequest>,
+    Query(params): Query<ListChallengesRequest>,
 ) -> Result<Json<ChallengesListResponse>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
@@ -96,7 +96,7 @@ pub async fn get_challenge(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
-pub struct GetChallengeStatusRequest {
+pub struct QueryChallengeStatusRequest {
     pub challenge_ids: Vec<i64>,
     pub user_id: Option<i64>,
     pub team_id: Option<i64>,
@@ -120,7 +120,7 @@ pub struct ChallengeStatusesResponse {
     post,
     path = "/status",
     tag = "challenge",
-    request_body = GetChallengeStatusRequest,
+    request_body = QueryChallengeStatusRequest,
     responses(
         (status = 200, description = "Per-challenge status", body = ChallengeStatusesResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
@@ -129,11 +129,11 @@ pub struct ChallengeStatusesResponse {
     )
 )]
 
-/// Returns challenge status.
-pub async fn get_challenge_status(
+/// Batch query for solve status and score hints. Uses POST so `challenge_ids` can be a JSON array.
+pub async fn query_challenge_status(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
-    ReqJson(body): ReqJson<GetChallengeStatusRequest>,
+    ReqJson(body): ReqJson<QueryChallengeStatusRequest>,
 ) -> Result<Json<ChallengeStatusesResponse>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
