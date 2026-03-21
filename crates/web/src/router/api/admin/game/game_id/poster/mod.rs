@@ -43,7 +43,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     )
 )]
 
-/// Stores a competition poster image.
+/// Stores a game poster image.
 pub async fn save_game_poster(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
