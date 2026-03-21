@@ -3,7 +3,7 @@ import { LockIcon, MailIcon, UserRoundIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
-import { getUsers } from "@/api/admin/users";
+import { getUser } from "@/api/admin/users/user_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useConfigStore } from "@/storages/config";
@@ -22,10 +22,8 @@ export default function Layout() {
   const { data: user } = useQuery({
     queryKey: ["admin", "user", user_id, sharedStore.refresh],
     queryFn: async () => {
-      const res = await getUsers({
-        id: Number(user_id),
-      });
-      return res.users[0];
+      const res = await getUser({ id: Number(user_id) });
+      return res.user;
     },
     enabled: !!user_id,
     placeholderData: keepPreviousData,

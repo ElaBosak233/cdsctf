@@ -65,7 +65,7 @@ pub async fn get_submissions(
     Query(params): Query<GetSubmissionsRequest>,
 ) -> Result<Json<ListSubmissionsResponse>, WebError> {
     let page = params.page.unwrap_or(1);
-    let size = params.size.unwrap_or(10).max(100);
+    let size = params.size.unwrap_or(10).min(100);
 
     let (submissions, total) = cds_db::submission::find(
         &s.db.conn,

@@ -9,7 +9,7 @@ import {
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
-import { getGames } from "@/api/admin/games";
+import { getGame } from "@/api/admin/games/game_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useConfigStore } from "@/storages/config";
@@ -29,10 +29,8 @@ export default function Layout() {
   const { data: game } = useQuery({
     queryKey: ["admin", "game", game_id, sharedStore.refresh],
     queryFn: async () => {
-      const res = await getGames({
-        id: Number(game_id),
-      });
-      return res.games[0];
+      const res = await getGame({ id: Number(game_id) });
+      return res.game;
     },
     placeholderData: keepPreviousData,
   });

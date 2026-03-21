@@ -1,6 +1,16 @@
 import type { Game } from "@/models/game";
 import { api } from "@/utils/query";
 
+export interface GetGameRequest {
+  id: number;
+}
+
+export async function getGame(request: GetGameRequest) {
+  return api
+    .get(`admin/games/${request.id}`)
+    .json<{ game: Game }>();
+}
+
 export interface UpdateGameRequest {
   id?: number;
   title?: string;

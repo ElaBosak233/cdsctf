@@ -1,6 +1,14 @@
 import type { Group, User } from "@/models/user";
 import { api } from "@/utils/query";
 
+export interface GetUserRequest {
+  id: number;
+}
+
+export async function getUser(request: GetUserRequest) {
+  return api.get(`admin/users/${request.id}`).json<{ user: User }>();
+}
+
 export interface DeleteUserRequest {
   id: number;
 }
