@@ -83,10 +83,7 @@ pub async fn get_users(
     )
     .await?;
 
-    Ok(Json(AdminUsersListResponse {
-        users,
-        total,
-    }))
+    Ok(Json(AdminUsersListResponse { users, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]

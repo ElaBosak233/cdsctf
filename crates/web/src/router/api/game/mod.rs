@@ -52,7 +52,8 @@ pub struct GamesListResponse {
     )
 )]
 
-/// Lists enabled public games (collection). Use `GET /games/{game_id}` for one game.
+/// Lists enabled public games (collection). Use `GET /games/{game_id}` for one
+/// game.
 pub async fn list_games(
     State(s): State<Arc<AppState>>,
     Query(params): Query<ListGamesRequest>,
@@ -74,8 +75,5 @@ pub async fn list_games(
     )
     .await?;
 
-    Ok(Json(GamesListResponse {
-        games,
-        total,
-    }))
+    Ok(Json(GamesListResponse { games, total }))
 }

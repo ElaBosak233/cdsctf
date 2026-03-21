@@ -8,18 +8,21 @@ import { cn } from "@/utils";
 import { Context } from "./context";
 
 function useChallengeAttachmentsQuery(
-  challengeId?: number,
+  challengeId: number | undefined,
   hasAttachment?: boolean,
   debug: boolean = false
 ) {
   return useQuery({
-    queryKey: ["challenge_attachments", challengeId],
+    queryKey: ["challenge_attachments", challengeId, debug],
     queryFn: () =>
       debug
         ? getChallengeAttachmentsDebug(challengeId!)
         : getChallengeAttachments(challengeId!),
     select: (response) => response.attachments,
-    enabled: !!challengeId && hasAttachment,
+    enabled:
+      challengeId != null &&
+      Number.isFinite(challengeId) &&
+      Boolean(hasAttachment),
   });
 }
 

@@ -41,11 +41,13 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
   const [size, _setSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
 
+  const gameId = currentGame?.id;
+
   const { data: submissionData, isFetching: loading } = useQuery({
-    queryKey: ["submissions", currentGame?.id, team.id, page],
+    queryKey: ["submissions", gameId, team.id, page],
     queryFn: () =>
       listSubmissions({
-        game_id: currentGame?.id,
+        game_id: gameId!,
         team_id: team.id,
         status: Status.Correct,
         page: page,
@@ -57,6 +59,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
       total: response.total || 0,
     }),
     placeholderData: keepPreviousData,
+    enabled: gameId != null && team.id != null,
   });
 
   const { t } = useTranslation();

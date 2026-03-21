@@ -60,10 +60,7 @@ pub async fn get_email(
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     let emails = cds_db::email::find_by_user_id(&s.db.conn, operator.id).await?;
     let total = emails.len() as u64;
-    Ok(Json(EmailsListResponse {
-        emails,
-        total,
-    }))
+    Ok(Json(EmailsListResponse { emails, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]

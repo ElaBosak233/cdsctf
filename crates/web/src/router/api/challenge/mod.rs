@@ -89,10 +89,7 @@ pub async fn list_challenges(
     )
     .await?;
 
-    Ok(Json(ChallengesListResponse {
-        challenges,
-        total,
-    }))
+    Ok(Json(ChallengesListResponse { challenges, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -129,7 +126,8 @@ pub struct ChallengeStatusesResponse {
     )
 )]
 
-/// Batch query for solve status and score hints. Uses POST so `challenge_ids` can be a JSON array.
+/// Batch query for solve status and score hints. Uses POST so `challenge_ids`
+/// can be a JSON array.
 pub async fn query_challenge_status(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

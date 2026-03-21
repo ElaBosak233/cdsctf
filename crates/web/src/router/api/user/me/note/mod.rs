@@ -75,10 +75,7 @@ pub async fn get_my_note(
     )
     .await?;
 
-    Ok(Json(MyNotesListResponse {
-        notes,
-        total,
-    }))
+    Ok(Json(MyNotesListResponse { notes, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]

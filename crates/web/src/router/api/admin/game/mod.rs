@@ -82,10 +82,7 @@ pub async fn get_games(
     )
     .await?;
 
-    Ok(Json(AdminGamesListResponse {
-        games,
-        total,
-    }))
+    Ok(Json(AdminGamesListResponse { games, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]

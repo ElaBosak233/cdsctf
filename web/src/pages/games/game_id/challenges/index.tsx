@@ -32,15 +32,17 @@ export default function Index() {
   const navigate = useNavigate();
   const now = useTickerTime();
 
+  const gameId = currentGame?.id;
+
   const {
     data: gameChallengesData,
     error,
     isLoading: challengeLoading,
   } = useQuery({
-    queryKey: ["game_challenges", currentGame?.id],
+    queryKey: ["game_challenges", gameId],
     queryFn: () =>
       getGameChallenges({
-        game_id: currentGame?.id,
+        game_id: gameId!,
       }),
     select: (response) => {
       const challenges = response.challenges;
@@ -51,6 +53,7 @@ export default function Index() {
         return (a.challenge_category ?? 0) - (b.challenge_category ?? 0);
       });
     },
+    enabled: gameId != null,
   });
 
   const categories = useMemo(() => {
@@ -82,24 +85,23 @@ export default function Index() {
     }
   }, [error, navigate, currentGame?.id, t]);
 
+  const teamId = selfGameTeam?.id;
+  const challengeIds =
+    gameChallenges
+      ?.map((gc) => gc.challenge_id)
+      .filter((id): id is number => id != null) ?? [];
+
   const { data: challengeStatus, isLoading: statusLoading } = useQuery({
-    queryKey: [
-      "game_challenge_status",
-      gameChallenges?.map((gameChallenge) => gameChallenge.challenge_id!),
-      currentGame?.id,
-      selfGameTeam?.id,
-      currentGame?.id,
-    ],
+    queryKey: ["game_challenge_status", challengeIds, gameId, teamId],
     queryFn: () =>
       queryChallengeStatus({
-        challenge_ids:
-          gameChallenges?.map((gameChallenge) => gameChallenge.challenge_id!) ||
-          [],
-        team_id: selfGameTeam?.id,
-        game_id: currentGame?.id,
+        challenge_ids: challengeIds,
+        team_id: teamId!,
+        game_id: gameId!,
       }),
     select: (response) => response.statuses,
     refetchInterval: 15000,
+    enabled: gameId != null && teamId != null && challengeIds.length > 0,
   });
 
   const loading = useMemo(() => {

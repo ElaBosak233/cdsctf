@@ -6,9 +6,7 @@ export interface GetGameRequest {
 }
 
 export async function getGame(request: GetGameRequest) {
-  return api
-    .get(`admin/games/${request.id}`)
-    .json<{ game: Game }>();
+  return api.get(`admin/games/${request.id}`).json<{ game: Game }>();
 }
 
 export interface UpdateGameBody {
@@ -31,9 +29,7 @@ export interface UpdateGameRequest extends UpdateGameBody {
 
 export async function updateGame(request: UpdateGameRequest) {
   const { id, ...body } = request;
-  return api
-    .put(`admin/games/${id}`, { json: body })
-    .json<{ game: Game }>();
+  return api.put(`admin/games/${id}`, { json: body }).json<{ game: Game }>();
 }
 
 export interface DeleteGameRequest {

@@ -43,11 +43,24 @@ function SubmitSection() {
   const [flag, setFlag] = useState<string>();
 
   function handleFlagSubmit() {
+    const challengeId = challenge?.id;
+    const trimmed = flag?.trim();
+    if (challengeId == null || !Number.isFinite(challengeId) || !trimmed) {
+      return;
+    }
+    let gameIdParam: number | undefined;
+    let teamIdParam: number | undefined;
+    if (mode === "game") {
+      if (team?.id == null || team.game_id == null) return;
+      gameIdParam = Number(team.game_id);
+      teamIdParam = Number(team.id);
+    }
+
     createSubmission({
-      challenge_id: challenge?.id,
-      content: flag?.trim(),
-      game_id: mode === "game" ? Number(team?.game_id) : undefined,
-      team_id: mode === "game" ? Number(team?.id) : undefined,
+      challenge_id: challengeId,
+      content: trimmed,
+      game_id: gameIdParam,
+      team_id: teamIdParam,
     })
       .then((submission) => {
         if (!submission) return;

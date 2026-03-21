@@ -22,12 +22,13 @@ import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { Context } from "../context";
 
-function useNoteQuery(userId?: number, challengeId?: number) {
+function useNoteQuery(userId: number | undefined, challengeId?: number) {
   return useQuery({
-    queryKey: ["note", `user_id=${userId}`, `challenge_id=${challengeId}`],
-    queryFn: () => getMyNotes({ challenge_id: challengeId }),
+    queryKey: ["my_note", userId, challengeId],
+    queryFn: () => getMyNotes({ challenge_id: challengeId! }),
     select: (response) => response.notes,
-    enabled: !!challengeId && !!userId,
+    enabled:
+      userId != null && challengeId != null && Number.isFinite(challengeId),
   });
 }
 
@@ -36,7 +37,7 @@ function NoteSection() {
   const authStore = useAuthStore();
   const { challenge } = useContext(Context);
 
-  const { data: notes } = useNoteQuery(authStore?.user?.id || 0, challenge?.id);
+  const { data: notes } = useNoteQuery(authStore?.user?.id, challenge?.id);
 
   const note = notes && notes.length > 0 ? notes[0] : null;
 
@@ -62,9 +63,12 @@ function NoteSection() {
   const [mode, setMode] = useState<"view" | "edit">("edit");
 
   async function handleSaveMyNote() {
+    const cid = challenge?.id;
+    if (cid == null || !Number.isFinite(cid)) return;
+
     await saveMyNote({
       content: form.getValues("content"),
-      challenge_id: Number(challenge?.id),
+      challenge_id: cid,
       public: form.getValues("public"),
     });
 

@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import type { Email } from "@/models/email";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseRouteNumericId } from "@/utils/query";
 import { CreateEmailDialog } from "./_blocks/create-dialog";
 import { DeleteEmailDialog } from "./_blocks/delete-dialog";
 
@@ -29,7 +30,7 @@ export default function Emails() {
   const { t } = useTranslation();
 
   const { user_id } = useParams<{ user_id: string }>();
-  const userId = Number(user_id);
+  const userId = parseRouteNumericId(user_id);
   const sharedStore = useSharedStore();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -38,16 +39,15 @@ export default function Emails() {
   const [updatingEmail, setUpdatingEmail] = useState<string>();
 
   const { data: emails = [], refetch } = useQuery<Array<Email>>({
-    queryKey: ["admin", "users", user_id, "emails", sharedStore.refresh],
+    queryKey: ["admin", "users", userId, "emails", sharedStore.refresh],
     queryFn: async () => {
-      if (!user_id) return [];
       const res = await getEmails({
-        user_id: userId,
+        user_id: userId!,
       });
 
       return res.emails ?? [];
     },
-    enabled: !!user_id,
+    enabled: userId != null,
     placeholderData: keepPreviousData,
   });
 
@@ -59,7 +59,7 @@ export default function Emails() {
   }
 
   function handleToggle(email: string, verified: boolean) {
-    if (!user_id) return;
+    if (userId == null) return;
     setUpdatingEmail(email);
     updateEmail({
       user_id: userId,
@@ -106,6 +106,7 @@ export default function Emails() {
             size={"sm"}
             variant={"solid"}
             icon={<MailPlusIcon />}
+            disabled={userId == null}
             onClick={() => setCreateDialogOpen(true)}
           >
             {t("common:actions.add")}
@@ -195,30 +196,34 @@ export default function Emails() {
         </div>
       )}
 
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent
-          className={cn(["border-none", "bg-transparent", "shadow-none"])}
-        >
-          <CreateEmailDialog
-            userId={userId}
-            onClose={() => setCreateDialogOpen(false)}
-            onSuccess={handleRefresh}
-          />
-        </DialogContent>
-      </Dialog>
+      {userId != null && (
+        <>
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogContent
+              className={cn(["border-none", "bg-transparent", "shadow-none"])}
+            >
+              <CreateEmailDialog
+                userId={userId}
+                onClose={() => setCreateDialogOpen(false)}
+                onSuccess={handleRefresh}
+              />
+            </DialogContent>
+          </Dialog>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent
-          className={cn(["border-none", "bg-transparent", "shadow-none"])}
-        >
-          <DeleteEmailDialog
-            userId={userId}
-            email={deleteTarget}
-            onClose={() => setDeleteDialogOpen(false)}
-            onSuccess={handleRefresh}
-          />
-        </DialogContent>
-      </Dialog>
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogContent
+              className={cn(["border-none", "bg-transparent", "shadow-none"])}
+            >
+              <DeleteEmailDialog
+                userId={userId}
+                email={deleteTarget}
+                onClose={() => setDeleteDialogOpen(false)}
+                onSuccess={handleRefresh}
+              />
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 }

@@ -83,10 +83,7 @@ pub async fn get_challenges(
     )
     .await?;
 
-    Ok(Json(AdminChallengesListResponse {
-        challenges,
-        total,
-    }))
+    Ok(Json(AdminChallengesListResponse { challenges, total }))
 }
 
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]

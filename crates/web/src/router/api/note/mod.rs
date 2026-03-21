@@ -76,8 +76,5 @@ pub async fn list_notes(
     )
     .await?;
 
-    Ok(Json(ListNotesResponse {
-        notes,
-        total,
-    }))
+    Ok(Json(ListNotesResponse { notes, total }))
 }

@@ -3,6 +3,7 @@ import { MessageCircleIcon, SaveIcon, TypeIcon } from "lucide-react";
 import { useContext } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import { createGameNotice } from "@/api/admin/games/game_id/notices";
@@ -21,6 +22,7 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
 interface CreateDialogProps {
@@ -31,6 +33,8 @@ function CreateDialog(props: CreateDialogProps) {
   const { onClose } = props;
   const { t } = useTranslation();
 
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
   const sharedStore = useSharedStore();
 
@@ -48,8 +52,11 @@ function CreateDialog(props: CreateDialogProps) {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    const gid = routeGameId ?? game?.id;
+    if (gid == null) return;
+
     createGameNotice({
-      game_id: game?.id,
+      game_id: gid,
       ...values,
     }).then((res) => {
       toast.success(

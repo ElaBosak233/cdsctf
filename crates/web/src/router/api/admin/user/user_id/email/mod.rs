@@ -57,10 +57,7 @@ pub async fn get_email(
 ) -> Result<Json<AdminEmailsListResponse>, WebError> {
     let emails = cds_db::email::find_by_user_id(&s.db.conn, user_id).await?;
     let total = emails.len() as u64;
-    Ok(Json(AdminEmailsListResponse {
-        emails,
-        total,
-    }))
+    Ok(Json(AdminEmailsListResponse { emails, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]

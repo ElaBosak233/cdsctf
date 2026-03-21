@@ -19,6 +19,7 @@ import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "./context";
 
 export default function Layout() {
@@ -29,16 +30,18 @@ export default function Layout() {
   const sharedStore = useSharedStore();
   const configStore = useConfigStore();
   const { challenge_id } = useParams<{ challenge_id: string }>();
+  const challengeId = parseRouteNumericId(challenge_id);
 
   const { data: challenge } = useQuery({
-    queryKey: ["admin", "challenge", challenge_id, sharedStore.refresh],
+    queryKey: ["admin", "challenge", challengeId, sharedStore.refresh],
     queryFn: async () => {
       const res = await getChallenge({
-        id: Number(challenge_id),
+        id: challengeId!,
       });
       return res.challenge;
     },
     placeholderData: keepPreviousData,
+    enabled: challengeId != null,
   });
 
   const options = useMemo(() => {

@@ -61,10 +61,7 @@ pub async fn get_team_members(
     let users = cds_db::user::find_by_team_id(&s.db.conn, team_id).await?;
     let total = users.len() as u64;
 
-    Ok(Json(TeamMembersListResponse {
-        users,
-        total,
-    }))
+    Ok(Json(TeamMembersListResponse { users, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]

@@ -23,16 +23,17 @@ import { SubmitSection } from "@/components/widgets/challenge-dialog/submit-sect
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { parseRouteNumericId } from "@/utils/query";
 import { NoteSection } from "./_blocks/note-section";
 import { WriteupSection } from "./_blocks/writeup-section";
 import { Context } from "./context";
 
-function useChallengeQuery(challengeId?: number) {
+function useChallengeQuery(challengeId: number | undefined) {
   return useQuery({
     queryKey: ["challenge", challengeId],
     queryFn: () => getChallenge({ id: challengeId! }),
     select: (response) => response.challenge,
-    enabled: !!challengeId,
+    enabled: challengeId != null,
   });
 }
 
@@ -43,7 +44,7 @@ export default function Index() {
   const [isExiting, setIsExiting] = useState(false);
 
   const { data: challenge, isLoading } = useChallengeQuery(
-    Number(challenge_id)
+    parseRouteNumericId(challenge_id)
   );
 
   const category = useMemo(

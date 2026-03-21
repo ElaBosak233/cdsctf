@@ -83,10 +83,7 @@ pub async fn get_submissions(
     )
     .await?;
 
-    Ok(Json(ListSubmissionsResponse {
-        submissions,
-        total,
-    }))
+    Ok(Json(ListSubmissionsResponse { submissions, total }))
 }
 
 #[utoipa::path(

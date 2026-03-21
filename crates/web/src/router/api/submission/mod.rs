@@ -1,4 +1,5 @@
-//! HTTP routing for `submission` — Axum router wiring and OpenAPI route registration.
+//! HTTP routing for `submission` — Axum router wiring and OpenAPI route
+//! registration.
 
 use std::sync::Arc;
 
@@ -104,10 +105,7 @@ pub async fn list_submissions(
         .map(|submission: Submission| submission.desensitize())
         .collect::<Vec<Submission>>();
 
-    Ok(Json(ListSubmissionsResponse {
-        submissions,
-        total,
-    }))
+    Ok(Json(ListSubmissionsResponse { submissions, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]

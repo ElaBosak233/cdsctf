@@ -10,6 +10,7 @@ import {
 import { HashIcon, LibraryIcon, PlusCircleIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router";
 import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -31,6 +32,7 @@ import type { GameChallenge } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
@@ -40,6 +42,8 @@ export default function Index() {
 
   const sharedStore = useSharedStore();
 
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
@@ -81,11 +85,12 @@ export default function Index() {
   useEffect(() => {
     void sharedStore.refresh;
 
-    if (!game) return;
+    const gid = routeGameId ?? game?.id;
+    if (gid == null) return;
 
     setLoading(true);
     getGameChallenges({
-      game_id: game.id!,
+      game_id: gid,
       challenge_id: debouncedColumnFilters.find((c) => c.id === "challenge_id")
         ?.value as number,
       category:
@@ -101,7 +106,7 @@ export default function Index() {
       .finally(() => {
         setLoading(false);
       });
-  }, [debouncedColumnFilters, sharedStore.refresh, game]);
+  }, [debouncedColumnFilters, sharedStore.refresh, game, routeGameId]);
 
   return (
     <div

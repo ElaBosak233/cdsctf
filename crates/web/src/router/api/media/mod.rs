@@ -1,4 +1,5 @@
-//! HTTP routing for `media` — Axum router wiring and OpenAPI route registration.
+//! HTTP routing for `media` — Axum router wiring and OpenAPI route
+//! registration.
 
 use std::sync::Arc;
 
@@ -48,7 +49,8 @@ pub struct GetMediaRequest {
     )
 )]
 
-/// Returns stored media bytes by `?hash=` (kept for backward compatibility with stored URLs).
+/// Returns stored media bytes by `?hash=` (kept for backward compatibility with
+/// stored URLs).
 pub async fn get_media(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetMediaRequest>,
@@ -117,8 +119,5 @@ pub async fn upload_media(
 
     s.media.save("media".to_owned(), hash.clone(), data).await?;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(UploadMediaResponse { hash }),
-    ))
+    Ok((StatusCode::CREATED, Json(UploadMediaResponse { hash })))
 }

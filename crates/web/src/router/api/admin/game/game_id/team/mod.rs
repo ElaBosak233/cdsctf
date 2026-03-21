@@ -91,10 +91,7 @@ pub async fn get_team(
     )
     .await?;
 
-    Ok(Json(AdminTeamsListResponse {
-        teams,
-        total,
-    }))
+    Ok(Json(AdminTeamsListResponse { teams, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]

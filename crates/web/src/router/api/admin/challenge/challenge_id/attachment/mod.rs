@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{Multipart, State},
+    extract::{DefaultBodyLimit, Multipart, State},
 };
 use serde_json::json;
 use utoipa_axum::{
@@ -27,7 +27,11 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_challenge_attachment).with_state(state.clone()))
-        .routes(routes!(save_challenge_attachment).with_state(state.clone()))
+        .routes(
+            routes!(save_challenge_attachment)
+                .with_state(state.clone())
+                .layer(DefaultBodyLimit::max(512 * 1024 * 1024 /* MB */)),
+        )
         .nest("/{filename}", filename::router(state.clone()))
 }
 

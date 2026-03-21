@@ -5,9 +5,10 @@ import { getUser } from "@/api/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "./context";
 
-function useUserQuery(userId?: number) {
+function useUserQuery(userId: number | undefined) {
   return useQuery({
     queryKey: ["user", userId],
     queryFn: () =>
@@ -15,7 +16,7 @@ function useUserQuery(userId?: number) {
         id: userId!,
       }),
     select: (response) => response.user,
-    enabled: !!userId,
+    enabled: userId != null,
   });
 }
 
@@ -23,7 +24,7 @@ export default function Layout() {
   const { t } = useTranslation();
 
   const { user_id } = useParams<{ user_id: string }>();
-  const { data: user } = useUserQuery(Number(user_id));
+  const { data: user } = useUserQuery(parseRouteNumericId(user_id));
 
   return (
     <Context.Provider value={{ user }}>

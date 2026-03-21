@@ -6,9 +6,9 @@ import {
   SettingsIcon,
   TrashIcon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import {
   deleteGameChallenge,
@@ -29,22 +29,29 @@ import type { GameChallenge } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { parseRouteNumericId } from "@/utils/query";
+import { Context } from "../../context";
 import { EditDialog } from "./edit-dialog";
 
 function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
   const { t } = useTranslation();
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
+  const { game } = useContext(Context);
   const isEnabled = row.original.enabled;
   const title = row.original.challenge_title;
   const challenge_id = row.original.challenge_id;
-  const game_id = row.original.game_id;
   const [checked, setChecked] = useState(isEnabled);
 
   function handlePublicnessChange() {
+    const gid = routeGameId ?? game?.id ?? row.original.game_id;
+    if (gid == null || challenge_id == null) return;
+
     const newValue = !checked;
     setChecked(newValue);
 
     updateGameChallenge({
-      game_id,
+      game_id: gid,
       challenge_id,
       enabled: newValue,
     }).then(() => {
@@ -96,8 +103,10 @@ function ChallengeIdCell({ row }: { row: Row<GameChallenge> }) {
 function ActionsCell({ row }: { row: Row<GameChallenge> }) {
   const { t } = useTranslation();
 
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
+  const { game } = useContext(Context);
   const challenge_id = row.original.challenge_id;
-  const game_id = row.original.game_id;
   const title = row.original.challenge_title;
 
   const sharedStore = useSharedStore();
@@ -106,8 +115,11 @@ function ActionsCell({ row }: { row: Row<GameChallenge> }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
   function handleDelete() {
+    const gid = routeGameId ?? game?.id ?? row.original.game_id;
+    if (gid == null || challenge_id == null) return;
+
     deleteGameChallenge({
-      game_id,
+      game_id: gid,
       challenge_id,
     })
       .then(() => {

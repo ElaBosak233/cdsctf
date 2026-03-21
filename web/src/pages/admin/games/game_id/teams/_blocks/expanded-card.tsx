@@ -23,10 +23,11 @@ function ExpandedCard(props: ExpandedCardProps) {
     queryKey: ["members", team.id, team.game_id],
     queryFn: () =>
       getTeamUser({
-        team_id: team.id,
-        game_id: team.game_id,
+        team_id: team.id!,
+        game_id: team.game_id!,
       }),
     select: (response) => response.users,
+    enabled: team.id != null && team.game_id != null,
   });
 
   return (

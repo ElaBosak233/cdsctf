@@ -69,4 +69,13 @@ export function formatApiMsg(msg: unknown): string {
   }
 }
 
+/** Finite numeric id from a route param (`useParams`). Empty or non-numeric → `undefined`. */
+export function parseRouteNumericId(
+  raw: string | undefined
+): number | undefined {
+  if (raw == null || raw === "") return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 export { api, parseErrorResponse, toSearchParams };
