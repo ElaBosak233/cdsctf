@@ -1,4 +1,5 @@
 pub mod api;
+mod healthz;
 mod proxy;
 
 use std::{
@@ -19,9 +20,16 @@ use tower_http::trace::TraceLayer;
 use tower_sessions::{Expiry, SessionManagerLayer, cookie::SameSite};
 use tracing::{Span, debug, debug_span, info};
 
+use utoipa::OpenApi;
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
+
 use crate::{
     middleware,
     middleware::{error::governor_error, network::GovernorKeyExtractor},
+    openapi::ApiDoc,
     traits::AppState,
 };
 
@@ -35,27 +43,25 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
         .with_same_site(SameSite::Strict)
         .with_expiry(Expiry::OnInactivity(Duration::hours(2)));
 
-    let mut base = Router::new()
-        .nest("/api", api::router().await)
-        .route("/healthz", axum::routing::any(|| async { "Ok" }))
-        .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(|request: &Request<Body>| {
-                    let ip = crate::util::network::get_client_ip(request)
-                        .unwrap_or(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)));
-                    debug_span!("http",
-                        from = %ip.to_string(),
-                        method = %request.method(),
-                        uri = %request.uri().path(),
-                    )
-                })
-                .on_request(())
-                .on_response(
-                    |response: &Response, latency: std::time::Duration, _span: &Span| {
-                        debug!("[{}] in {}ms", response.status(), latency.as_millis());
-                    },
-                ),
-        );
+    let (documented_axum, paths_openapi) = OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .nest("/api", api::openapi_documented_under_api(state.clone()))
+        .routes(routes!(healthz::healthz).with_state(state.clone()))
+        .split_for_parts();
+
+    let mut openapi = ApiDoc::openapi();
+    openapi.merge(paths_openapi);
+
+    let docs = crate::openapi::scalar_router(openapi);
+
+    let rest_under_api = Router::new()
+        .nest("/configs", api::config::router_logo_and_captcha())
+        .merge(api::router_undocumented());
+
+    let mut protected = documented_axum.merge(
+        Router::new()
+            .with_state(state.clone())
+            .nest("/api", rest_under_api),
+    );
 
     if state.env.server.rate_limit.enabled {
         // SAFETY: Option<GovernorConfig<_>> could always be unwrapped.
@@ -82,11 +88,35 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
             state.env.server.rate_limit.burst_size, state.env.server.rate_limit.burst_restore_rate
         );
 
-        base = base.layer(GovernorLayer::new(governor_conf).error_handler(governor_error));
+        protected = protected.layer(GovernorLayer::new(governor_conf).error_handler(governor_error));
     }
 
-    base = base
-        .route_layer(from_fn_with_state(state.clone(), middleware::auth::extract))
+    protected = protected.route_layer(from_fn_with_state(
+        state.clone(),
+        middleware::auth::extract,
+    ));
+
+    let mut base = Router::new()
+        .merge(docs)
+        .merge(protected)
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(|request: &Request<Body>| {
+                    let ip = crate::util::network::get_client_ip(request)
+                        .unwrap_or(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)));
+                    debug_span!("http",
+                        from = %ip.to_string(),
+                        method = %request.method(),
+                        uri = %request.uri().path(),
+                    )
+                })
+                .on_request(())
+                .on_response(
+                    |response: &Response, latency: std::time::Duration, _span: &Span| {
+                        debug!("[{}] in {}ms", response.status(), latency.as_millis());
+                    },
+                ),
+        )
         .layer(session_layer)
         .layer(from_fn(middleware::network::real_host))
         .layer(from_fn(middleware::network::ip_record));
