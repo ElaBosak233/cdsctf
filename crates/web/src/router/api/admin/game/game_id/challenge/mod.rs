@@ -6,6 +6,7 @@ use cds_db::{
     game_challenge::FindGameChallengeOptions,
     sea_orm::{ActiveValue::Set, NotSet},
 };
+use cds_worker::calculator::Payload;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -16,7 +17,6 @@ use utoipa_axum::{
 use crate::{
     extract::{Json as ReqJson, Path, Query},
     traits::{AppState, WebError},
-    worker::calculator::Payload,
 };
 
 mod challenge_id;

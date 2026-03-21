@@ -1,5 +1,4 @@
-//! JetStream payload for the `calculator` subject (game score / rank
-//! recomputation).
+//! Message body for the `calculator` subject (game score / rank recomputation).
 
 use serde::{Deserialize, Serialize};
 

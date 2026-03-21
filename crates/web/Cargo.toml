@@ -23,6 +23,7 @@ cds-mailbox  = { workspace = true }
 cds-media    = { workspace = true }
 cds-observe  = { workspace = true }
 cds-queue    = { workspace = true }
+cds-worker   = { workspace = true }
 
 anyhow         = { workspace = true }
 argon2         = { workspace = true }

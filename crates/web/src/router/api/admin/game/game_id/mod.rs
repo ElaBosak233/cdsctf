@@ -11,6 +11,7 @@ use cds_db::sea_orm::{
     ActiveValue::{Set, Unchanged},
     NotSet,
 };
+use cds_worker::calculator::Payload;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -22,7 +23,6 @@ use crate::{
     extract::{Path, VJson},
     router::api::game::game_id::GameDetailResponse,
     traits::{AppState, EmptyJson, WebError},
-    worker::calculator::Payload,
 };
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {

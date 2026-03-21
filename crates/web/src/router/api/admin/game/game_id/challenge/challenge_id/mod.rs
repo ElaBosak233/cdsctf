@@ -9,6 +9,7 @@ use cds_db::{
     },
 };
 use cds_event::types::game_challenge::{GameChallengeEvent, GameChallengeEventType};
+use cds_worker::calculator::Payload;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use utoipa_axum::{
@@ -20,7 +21,6 @@ use super::GameChallengeResponse;
 use crate::{
     extract::{Json as ReqJson, Path},
     traits::{AppState, EmptyJson, WebError},
-    worker::calculator::Payload,
 };
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {

@@ -26,6 +26,7 @@ cds-migrator = { workspace = true }
 cds-observe  = { workspace = true }
 cds-queue    = { workspace = true }
 cds-web      = { workspace = true }
+cds-worker   = { workspace = true }
 
 anyhow       = { workspace = true }
 axum         = { workspace = true }

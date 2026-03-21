@@ -23,6 +23,7 @@ pub struct AppState {
     pub captcha: cds_captcha::Captcha,
     pub cluster: cds_cluster::Cluster,
     pub media: cds_media::Media,
+    pub mailbox: cds_mailbox::Mailbox,
     pub queue: cds_queue::Queue,
 }
 

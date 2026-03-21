@@ -13,6 +13,7 @@ use cds_db::{
     },
     team::State as TState,
 };
+use cds_worker::calculator::Payload;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -24,7 +25,6 @@ use crate::{
     extract::{Json as ReqJson, Path},
     router::api::game::game_id::team::TeamResponse,
     traits::{AppState, EmptyJson, WebError},
-    worker::calculator::Payload,
 };
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {

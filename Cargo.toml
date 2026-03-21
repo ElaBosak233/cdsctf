@@ -28,6 +28,7 @@ cds-migrator = { path = "crates/migrator" }
 cds-observe  = { path = "crates/observe" }
 cds-queue    = { path = "crates/queue" }
 cds-web      = { path = "crates/web" }
+cds-worker   = { path = "crates/worker" }
 
 # Async
 async-stream = { version = "0.3" }

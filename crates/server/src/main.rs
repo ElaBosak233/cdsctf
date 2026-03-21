@@ -2,7 +2,7 @@ use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::anyhow;
 use axum::http::HeaderValue;
-use cds_web::{router::router, traits::AppState, worker};
+use cds_web::{router::router, traits::AppState};
 use mimalloc::MiMalloc;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
@@ -19,7 +19,7 @@ async fn main() -> Result<(), anyhow::Error> {
         .allow_headers(Any)
         .allow_origin(state.env.server.cors_origins.parse::<HeaderValue>()?);
 
-    worker::init(Arc::clone(&state)).await?;
+    cds_worker::init(&state.db, &state.queue, &state.checker, &state.mailbox).await?;
 
     let router = router(Arc::clone(&state))
         .await
@@ -77,7 +77,7 @@ async fn bootstrap() -> Result<Arc<AppState>, anyhow::Error> {
 
     let cluster = cds_cluster::init(&env, &checker).await?;
 
-    cds_mailbox::init(&db, &queue).await?;
+    let mailbox = cds_mailbox::Mailbox::new(db.clone());
     let captcha = cds_captcha::init(&db, &cache)?;
 
     let state = Arc::from(AppState {
@@ -89,6 +89,7 @@ async fn bootstrap() -> Result<Arc<AppState>, anyhow::Error> {
         captcha,
         cluster,
         media,
+        mailbox,
         queue,
     });
 

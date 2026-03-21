@@ -879,15 +879,10 @@ version = "1.9.1"
 dependencies = [
  "anyhow",
  "cds-db",
- "cds-queue",
- "futures-util",
  "lettre",
- "once_cell",
  "serde",
- "serde_json",
  "thiserror 2.0.18",
  "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -973,6 +968,7 @@ dependencies = [
  "cds-observe",
  "cds-queue",
  "cds-web",
+ "cds-worker",
  "mimalloc",
  "rustls",
  "tokio",
@@ -999,6 +995,7 @@ dependencies = [
  "cds-media",
  "cds-observe",
  "cds-queue",
+ "cds-worker",
  "futures-util",
  "mime",
  "nanoid",
@@ -1017,6 +1014,23 @@ dependencies = [
  "utoipa-axum",
  "utoipa-scalar",
  "validator",
+]
+
+[[package]]
+name = "cds-worker"
+version = "1.9.1"
+dependencies = [
+ "anyhow",
+ "cds-checker",
+ "cds-db",
+ "cds-mailbox",
+ "cds-queue",
+ "futures-util",
+ "serde",
+ "serde_json",
+ "time",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

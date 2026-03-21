@@ -1,9 +1,7 @@
 mod traits;
-mod worker;
 
 use anyhow::anyhow;
 use cds_db::DB;
-use cds_queue::Queue;
 use lettre::{
     Address, AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
     message::{Mailbox as LMailbox, SinglePart, header::ContentType},
@@ -12,32 +10,41 @@ use lettre::{
         client::{Tls, TlsParameters},
     },
 };
-use once_cell::sync::OnceCell;
-pub use worker::Payload;
+use serde::{Deserialize, Serialize};
 
 use crate::traits::MailboxError;
 
-static MAILBOX: OnceCell<Mailbox> = OnceCell::new();
+/// JSON body published to the `mailbox` queue subject (see `cds-worker`
+/// consumer).
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Payload {
+    pub name: String,
+    pub email: String,
+    pub subject: String,
+    pub body: String,
+}
 
+/// SMTP-backed mail API (configuration from DB). Queue subscription lives in
+/// `cds-worker`.
 #[derive(Debug, Clone)]
 pub struct Mailbox {
     db: DB,
-    queue: Queue,
-}
-
-pub async fn init(db: &DB, queue: &Queue) -> Result<(), MailboxError> {
-    let m = Mailbox {
-        db: db.clone(),
-        queue: queue.clone(),
-    };
-
-    worker::init(m.clone()).await;
-    MAILBOX.set(m).expect("Mailbox already initialized");
-
-    Ok(())
 }
 
 impl Mailbox {
+    pub fn new(db: DB) -> Self {
+        Self { db }
+    }
+
+    /// Send one message described by a queue [`Payload`].
+    pub async fn send_payload(&self, payload: &Payload) -> Result<(), MailboxError> {
+        let to = LMailbox::new(
+            Some(payload.name.clone()),
+            payload.email.parse::<Address>()?,
+        );
+        self.send(to, &payload.subject, &payload.body).await
+    }
+
     pub(crate) async fn inject(&self, body: &str) -> String {
         body.replace(
             "%TITLE%",

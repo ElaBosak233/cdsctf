@@ -1,5 +1,7 @@
-//! calculator module is used to calculate the pts and rank of submissions,
-//! teams and game_challenges
+//! Consumer for JetStream subject **`calculator`** (recompute scores / ranks).
+
+mod math;
+pub mod payload;
 
 use std::{collections::HashMap, sync::Arc};
 
@@ -11,10 +13,13 @@ use cds_db::{
     submission::{FindSubmissionsOptions, Status},
     team::{FindTeamOptions, State, Team},
 };
+use cds_queue::Queue;
 use futures_util::{StreamExt as _, future::join_all};
+pub use payload::Payload;
 use tracing::{error, info};
 
-use crate::{traits::AppState, util::math, worker::calculator::Payload};
+/// JetStream subject for score / rank recomputation jobs.
+pub const SUBJECT: &str = "calculator";
 
 async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
     let submissions = async || -> Result<Vec<Submission>, anyhow::Error> {
@@ -32,7 +37,7 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
         Ok(submissions)
     };
 
-    let mut sc: HashMap<i64, Vec<Submission>> = HashMap::new(); // submissions by challenge
+    let mut sc: HashMap<i64, Vec<Submission>> = HashMap::new();
     for s in submissions().await? {
         sc.entry(s.challenge_id).or_default().push(s);
     }
@@ -163,19 +168,19 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-async fn process_messages(s: Arc<AppState>) -> Result<(), anyhow::Error> {
-    let mut messages = s.queue.subscribe("calculator", None).await?;
+async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
+    let mut messages = queue.subscribe(SUBJECT, None).await?;
     while let Some(Ok(message)) = messages.next().await {
         let payload = String::from_utf8(message.payload.to_vec())?;
         let calculator_payload = serde_json::from_str::<Payload>(&payload)?;
 
         if let Some(game_id) = calculator_payload.game_id {
-            calculate(&s.db, game_id).await?;
+            calculate(&db, game_id).await?;
         } else {
             let (games, _) =
-                cds_db::game::find::<Game>(&s.db.conn, FindGameOptions::default()).await?;
+                cds_db::game::find::<Game>(&db.conn, FindGameOptions::default()).await?;
             for game in games {
-                calculate(&s.db, game.id).await?;
+                calculate(&db, game.id).await?;
             }
         }
 
@@ -185,12 +190,15 @@ async fn process_messages(s: Arc<AppState>) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-pub async fn init(s: Arc<AppState>) {
+/// Subscribes to [`SUBJECT`] and recomputes scores in a background task.
+pub async fn spawn(db: &DB, queue: &Queue) {
+    let db = db.clone();
+    let queue = queue.clone();
     tokio::spawn(async move {
-        if let Err(err) = process_messages(s.clone()).await {
+        if let Err(err) = run(db, queue).await {
             error!("{:?}", err);
         }
     });
 
-    info!("Game calculator initialized successfully.");
+    info!(subject = SUBJECT, "queue consumer spawned");
 }
