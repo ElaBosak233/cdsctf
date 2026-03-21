@@ -248,7 +248,6 @@ export default function Index() {
                     "flex flex-col items-center justify-center gap-2"
                   )}
                 >
-                  <FlagIcon className={cn("size-10 opacity-30")} aria-hidden />
                   <span>{t("game:empty")}</span>
                 </div>
               </TableCell>

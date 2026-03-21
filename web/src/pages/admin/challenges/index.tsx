@@ -299,10 +299,6 @@ export default function Index() {
                     "flex flex-col items-center justify-center gap-2"
                   )}
                 >
-                  <LibraryIcon
-                    className={cn("size-10 opacity-30")}
-                    aria-hidden
-                  />
                   <span>{t("challenge:empty")}</span>
                 </div>
               </TableCell>
