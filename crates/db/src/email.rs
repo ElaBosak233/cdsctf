@@ -10,14 +10,7 @@ use crate::traits::DbError;
 
 #[allow(dead_code)]
 #[derive(
-    Clone,
-    Debug,
-    PartialEq,
-    Eq,
-    Serialize,
-    Deserialize,
-    FromQueryResult,
-    utoipa::ToSchema,
+    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
 )]
 pub struct Email {
     pub email: String,

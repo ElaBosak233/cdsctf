@@ -11,7 +11,9 @@ pub(crate) use crate::entity::challenge::{Column, Entity};
 use crate::traits::DbError;
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct Challenge {
     pub id: i64,
     pub title: String,
@@ -46,7 +48,9 @@ impl Challenge {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct ChallengeMini {
     pub id: i64,
     pub title: String,

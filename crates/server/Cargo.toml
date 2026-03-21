@@ -25,34 +25,15 @@ cds-media    = { workspace = true }
 cds-migrator = { workspace = true }
 cds-observe  = { workspace = true }
 cds-queue    = { workspace = true }
+cds-web      = { workspace = true }
 
-anyhow         = { workspace = true }
-argon2         = { workspace = true }
-axum           = { workspace = true }
-futures-util   = { workspace = true }
-http-serde     = { workspace = true }
-mimalloc       = { workspace = true }
-mime           = { workspace = true }
-nanoid         = { workspace = true }
-rustls         = { workspace = true }
-scraper        = { workspace = true }
-serde          = { workspace = true }
-serde_json     = { workspace = true }
-serde_with     = { workspace = true }
-thiserror      = { workspace = true }
-time           = { workspace = true }
-tokio          = { workspace = true }
-tower-http     = { workspace = true }
-utoipa         = { workspace = true }
-utoipa-axum    = { workspace = true }
-utoipa-scalar  = { workspace = true }
-tower-sessions = { workspace = true }
-tower_governor = { workspace = true }
-tracing        = { workspace = true }
-validator      = { workspace = true }
-
-[lib]
-path = "src/lib.rs"
+anyhow       = { workspace = true }
+axum         = { workspace = true }
+mimalloc     = { workspace = true }
+rustls       = { workspace = true }
+tokio        = { workspace = true }
+tower-http   = { workspace = true }
+tracing      = { workspace = true }
 
 [[bin]]
 name = "cds-server"

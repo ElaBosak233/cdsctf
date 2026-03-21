@@ -10,7 +10,9 @@ pub use crate::entity::submission::{ActiveModel, Status};
 pub(crate) use crate::entity::submission::{Column, Entity};
 use crate::{sea_orm, sea_orm::FromQueryResult, traits::DbError};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct Submission {
     pub id: i64,
     pub content: String,

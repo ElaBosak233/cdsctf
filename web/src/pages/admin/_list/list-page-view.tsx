@@ -46,7 +46,7 @@ export function AdminListPageView({
           "px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8"
         )}
       >
-        {/* 无侧栏时：标题 + 添加按钮，由 Tailwind 控制显隐 */}
+        {/* Narrow view: title + add button; visibility via Tailwind */}
         <header
           className={cn(
             "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6",
@@ -80,7 +80,7 @@ export function AdminListPageView({
           </Button>
         </header>
 
-        {/* 无侧栏时的筛选区：显隐与折叠由 Tailwind + cn 控制 */}
+        {/* Narrow view filters: visibility/collapse via Tailwind + cn */}
         <div className={cn("mb-4 sm:mb-5", hasSidebar && "hidden")}>
           {collapsibleFilterOnMobile ? (
             <>

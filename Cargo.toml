@@ -27,6 +27,7 @@ cds-media    = { path = "crates/media" }
 cds-migrator = { path = "crates/migrator" }
 cds-observe  = { path = "crates/observe" }
 cds-queue    = { path = "crates/queue" }
+cds-web      = { path = "crates/web" }
 
 # Async
 async-stream = { version = "0.3" }

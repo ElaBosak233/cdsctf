@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import { CheckIcon, LockIcon, MailIcon, SendIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -21,13 +22,12 @@ import {
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
 import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
-import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 
 function ForgetForm() {
   const configStore = useConfigStore();
-  const authStore = useAuthStore();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -59,47 +59,50 @@ function ForgetForm() {
     resolver: zodResolver(formSchema),
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    forget({
-      ...values,
-    })
-      .then((res) => {
-        authStore.setUser(res.user);
-        toast.success(t("account:forget.toast.success._"), {
-          description: t("account:forget.toast.success.desc"),
-        });
-        navigate("/account/login");
-
-        if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.error(t("common:errors.default"), {
-            description: res.msg,
-          });
-        }
-
-        captchaRef.current?.refresh();
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      await forget({
+        ...values,
       });
+      toast.success(t("account:forget.toast.success._"), {
+        description: t("account:forget.toast.success.desc"),
+      });
+      navigate("/account/login");
+      captchaRef.current?.refresh();
+    } catch (error) {
+      if (!(error instanceof HTTPError)) throw error;
+      const body = await parseErrorResponse(error);
+      if (error.response.status === StatusCodes.BAD_REQUEST) {
+        toast.error(t("common:errors.default"), {
+          description: formatApiMsg(body.msg),
+        });
+      }
+      captchaRef.current?.refresh();
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleSendForgetEmail() {
-    sendForgetEmail({
-      email: form.getValues().email,
-    }).then((res) => {
+  async function handleSendForgetEmail() {
+    try {
+      await sendForgetEmail({
+        email: form.getValues().email,
+      });
       toast.success(t("account:forget.toast.code_sent"));
-
-      if (res.code === StatusCodes.BAD_REQUEST) {
+    } catch (error) {
+      if (!(error instanceof HTTPError)) return;
+      const body = await parseErrorResponse(error);
+      const status = error.response.status;
+      if (status === StatusCodes.BAD_REQUEST) {
         toast.error(t("common:errors.default"), {
-          description: res.msg,
+          description: formatApiMsg(body.msg),
         });
       }
-
-      if (res.code === StatusCodes.NOT_FOUND) {
+      if (status === StatusCodes.NOT_FOUND) {
         toast.error(t("account:forget.toast.not_found"));
       }
-    });
+    }
   }
 
   return (

@@ -25,7 +25,7 @@ import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { parseErrorResponse } from "@/utils/query";
+import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -77,11 +77,11 @@ export default function Layout() {
       setConfirmDialogOpen(false);
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
-      const res = await parseErrorResponse(error);
+      const body = await parseErrorResponse(error);
 
-      if (res.code === StatusCodes.BAD_REQUEST) {
+      if (error.response.status === StatusCodes.BAD_REQUEST) {
         toast.error(t("common:errors.default"), {
-          description: res.msg,
+          description: formatApiMsg(body.msg),
         });
       }
     }
@@ -129,11 +129,11 @@ export default function Layout() {
       navigate(`/games/${currentGame?.id}`);
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
-      const res = await parseErrorResponse(error);
+      const body = await parseErrorResponse(error);
 
-      if (res.code === StatusCodes.BAD_REQUEST) {
+      if (error.response.status === StatusCodes.BAD_REQUEST) {
         toast.error(t("team:actions.leave.error"), {
-          description: res.msg,
+          description: formatApiMsg(body.msg),
         });
       }
     } finally {

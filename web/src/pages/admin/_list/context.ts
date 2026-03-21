@@ -22,5 +22,5 @@ export const AdminListContext = createContext<AdminListContextValue | null>(
   null
 );
 
-/** @deprecated 使用 AdminListContext 替代 */
+/** @deprecated Prefer `AdminListContext`. */
 export const CreateDialogContext = AdminListContext;

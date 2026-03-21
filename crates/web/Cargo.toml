@@ -1,0 +1,50 @@
+[package]
+name     = "cds-web"
+resolver = "3"
+
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = { workspace = true }
+repository   = { workspace = true }
+rust-version = { workspace = true }
+version      = { workspace = true }
+
+[dependencies]
+cds-cache    = { workspace = true }
+cds-captcha  = { workspace = true }
+cds-checker  = { workspace = true }
+cds-cluster  = { workspace = true }
+cds-db       = { workspace = true }
+cds-engine   = { workspace = true }
+cds-env      = { workspace = true }
+cds-event    = { workspace = true }
+cds-mailbox  = { workspace = true }
+cds-media    = { workspace = true }
+cds-observe  = { workspace = true }
+cds-queue    = { workspace = true }
+
+anyhow         = { workspace = true }
+argon2         = { workspace = true }
+axum           = { workspace = true }
+futures-util   = { workspace = true }
+mime           = { workspace = true }
+nanoid         = { workspace = true }
+scraper        = { workspace = true }
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+serde_with     = { workspace = true }
+thiserror      = { workspace = true }
+time           = { workspace = true }
+tokio          = { workspace = true }
+tower-http     = { workspace = true }
+utoipa         = { workspace = true }
+utoipa-axum    = { workspace = true }
+utoipa-scalar  = { workspace = true }
+tower-sessions = { workspace = true }
+tower_governor = { workspace = true }
+tracing        = { workspace = true }
+validator      = { workspace = true }
+
+[lib]
+path = "src/lib.rs"

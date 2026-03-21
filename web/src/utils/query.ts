@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import ky, { HTTPError, TimeoutError } from "ky";
 import { toast } from "sonner";
 import { useAuthStore } from "@/storages/auth";
-import type { ApiJsonError } from "@/types";
+import type { ErrorResponse } from "@/types";
 
 const api = ky.extend({
   prefixUrl: "/api",
@@ -11,22 +11,21 @@ const api = ky.extend({
     beforeError: [
       async (error) => {
         if (!(error instanceof HTTPError)) return error;
-        const res = await parseErrorResponse(error);
 
-        if (res.code === StatusCodes.UNAUTHORIZED) {
+        if (error.response.status === StatusCodes.UNAUTHORIZED) {
           useAuthStore?.getState()?.clear();
 
           if (!error.request.headers.get("Ignore-Unauthorized")) {
-            toast.error("请先登录", {
+            toast.error("Please sign in to continue", {
               id: "please-login-first",
             });
           }
         }
 
-        if (res.code === StatusCodes.BAD_GATEWAY) {
-          toast.error("服务器离线", {
+        if (error.response.status === StatusCodes.BAD_GATEWAY) {
+          toast.error("Service unavailable", {
             id: "502-backend-offline",
-            description: "服务器暂时无法处理请求",
+            description: "The server could not complete the request.",
           });
         }
 
@@ -35,7 +34,7 @@ const api = ky.extend({
       async (error) => {
         if (!(error instanceof TimeoutError)) return error;
 
-        toast.error("请求超时", {
+        toast.error("Request timed out", {
           id: "timeout",
         });
 
@@ -53,8 +52,21 @@ function toSearchParams<T extends object>(obj: T): URLSearchParams {
   return sp;
 }
 
-async function parseErrorResponse(error: HTTPError): Promise<ApiJsonError> {
+/** Parses the JSON error payload from a failed ky request (`ErrorResponse`). */
+async function parseErrorResponse(error: HTTPError): Promise<ErrorResponse> {
   return await error.response.clone().json();
+}
+
+/** Turns `msg` from [`ErrorResponse`] into a short string for toasts and form errors. */
+export function formatApiMsg(msg: unknown): string {
+  if (msg === undefined || msg === null) return "";
+  if (typeof msg === "string") return msg;
+  if (typeof msg === "number" || typeof msg === "boolean") return String(msg);
+  try {
+    return JSON.stringify(msg);
+  } catch {
+    return String(msg);
+  }
 }
 
 export { api, parseErrorResponse, toSearchParams };

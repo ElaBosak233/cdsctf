@@ -79,9 +79,7 @@ export default function Index() {
               <TextField
                 readOnly
                 disabled={disabled}
-                value={
-                  token ? `${selfTeam?.id ?? ""}:${token}` : ""
-                }
+                value={token ? `${selfTeam?.id ?? ""}:${token}` : ""}
                 placeholder={t("team:invite_code.empty")}
                 onChange={() => {}}
               />

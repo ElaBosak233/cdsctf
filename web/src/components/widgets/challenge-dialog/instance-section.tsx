@@ -23,7 +23,7 @@ import type { Port } from "@/models/challenge";
 import type { Instance, Nat } from "@/models/instance";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import { parseErrorResponse } from "@/utils/query";
+import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 import { Context } from "./context";
 
 function PortInfo({ instance, port }: { instance: Instance; port: Port }) {
@@ -153,12 +153,12 @@ function InstanceSection() {
       });
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
-      const res = await parseErrorResponse(error);
+      const body = await parseErrorResponse(error);
 
-      if (res.code === StatusCodes.BAD_REQUEST) {
+      if (error.response.status === StatusCodes.BAD_REQUEST) {
         toast.error(t("challenge:instance.renew_error"), {
           id: "renew",
-          description: res.msg,
+          description: formatApiMsg(body.msg),
         });
       }
     }
@@ -209,11 +209,11 @@ function InstanceSection() {
       fetchInstances();
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
-      const res = await parseErrorResponse(error);
+      const body = await parseErrorResponse(error);
 
       toast.error(t("instance:error"), {
         id: "instance",
-        description: res.msg,
+        description: formatApiMsg(body.msg),
       });
     }
   }

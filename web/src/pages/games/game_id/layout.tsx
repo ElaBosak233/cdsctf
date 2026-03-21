@@ -9,7 +9,6 @@ import { getTeamProfile } from "@/api/games/game_id/teams/us";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
-import { parseErrorResponse } from "@/utils/query";
 import { Context } from "./context";
 
 function useGameQuery(params: GetGameRequest, trigger: number = 0) {
@@ -53,9 +52,8 @@ export default function GameLayout() {
         setSelfTeam(res.team);
       } catch (error) {
         if (!(error instanceof HTTPError)) return;
-        const res = await parseErrorResponse(error);
 
-        if (res.code === StatusCodes.NOT_FOUND) {
+        if (error.response.status === StatusCodes.NOT_FOUND) {
           setSelfTeam(undefined);
         }
       } finally {

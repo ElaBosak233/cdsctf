@@ -29,7 +29,7 @@ export default function Layout() {
     },
     // {
     //   link: `/account/settings/oauth`,
-    //   name: "第三方认证服务",
+    //   name: "Third-party identity provider",
     //   icon: <HandshakeIcon />,
     // },
   ];

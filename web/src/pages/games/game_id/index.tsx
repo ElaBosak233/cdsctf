@@ -257,7 +257,7 @@ export function GameActionButton({ status }: GameActionProps) {
     return undefined;
   }, [selfTeam, t]);
 
-  /** --- 比赛已结束 --- */
+  /** Game has ended. */
   if (status === "ended") {
     return (
       <Button
@@ -273,7 +273,7 @@ export function GameActionButton({ status }: GameActionProps) {
     );
   }
 
-  /** --- 未登录用户 --- */
+  /** Visitor is not signed in. */
   if (!user?.id) {
     return (
       <Button
@@ -289,7 +289,7 @@ export function GameActionButton({ status }: GameActionProps) {
     );
   }
 
-  /** --- 已登录但无队伍 --- */
+  /** Signed in but not in a team yet. */
   if (!selfTeam) {
     return (
       <>
@@ -318,7 +318,7 @@ export function GameActionButton({ status }: GameActionProps) {
     );
   }
 
-  /** --- 已登录且有队伍 --- */
+  /** Signed in with a team: show participate when allowed. */
   const isOngoing = status === "ongoing";
   const canParticipate = isOngoing && selfTeam.state === State.Passed;
 

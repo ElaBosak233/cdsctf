@@ -24,7 +24,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { parseErrorResponse } from "@/utils/query";
+import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 
 interface TeamGatheringDialogProps {
   onClose: () => void;
@@ -102,11 +102,11 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
       })
       .catch(async (error) => {
         if (!(error instanceof HTTPError)) return;
-        const res = await parseErrorResponse(error);
+        const body = await parseErrorResponse(error);
 
-        if (res.code === StatusCodes.BAD_REQUEST) {
+        if (error.response.status === StatusCodes.BAD_REQUEST) {
           toast.error(t("team:actions.join.error"), {
-            description: res.msg,
+            description: formatApiMsg(body.msg),
           });
         }
       })

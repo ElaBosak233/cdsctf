@@ -5,14 +5,7 @@ use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Serialize};
 
 #[derive(
-    Clone,
-    Debug,
-    Serialize,
-    Deserialize,
-    FromJsonQueryResult,
-    Eq,
-    PartialEq,
-    utoipa::ToSchema,
+    Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq, utoipa::ToSchema,
 )]
 pub struct Config {
     pub provider: Provider,
@@ -21,16 +14,7 @@ pub struct Config {
     pub hcaptcha: hcaptcha::Config,
 }
 
-#[derive(
-    Clone,
-    Debug,
-    Serialize,
-    Deserialize,
-    Default,
-    Eq,
-    PartialEq,
-    utoipa::ToSchema,
-)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default, Eq, PartialEq, utoipa::ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum Provider {
     Pow,

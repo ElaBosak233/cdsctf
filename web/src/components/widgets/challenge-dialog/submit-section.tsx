@@ -10,6 +10,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useInterval } from "@/hooks/use-interval";
 import { useCheckerStore } from "@/storages/checker";
 import { cn } from "@/utils";
+import { formatApiMsg } from "@/utils/query";
 import { Context } from "./context";
 
 function SubmitSection() {
@@ -65,7 +66,7 @@ function SubmitSection() {
           try {
             const body = (await err.response.json()) as { msg?: unknown };
             toast.error(t("common:errors.default"), {
-              description: String(body.msg ?? err.message),
+              description: formatApiMsg(body.msg) || err.message,
             });
           } catch {
             toast.error(t("common:errors.default"));

@@ -2,7 +2,7 @@ use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::anyhow;
 use axum::http::HeaderValue;
-use cds_server::{router::router, traits::AppState, worker};
+use cds_web::{router::router, traits::AppState, worker};
 use mimalloc::MiMalloc;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;

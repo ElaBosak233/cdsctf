@@ -14,7 +14,9 @@ pub(crate) use crate::entity::user::{Column, Entity};
 use crate::{Email, traits::DbError};
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct User {
     pub id: i64,
     pub name: String,
@@ -31,7 +33,9 @@ pub struct User {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct UserMini {
     pub id: i64,
     pub name: String,

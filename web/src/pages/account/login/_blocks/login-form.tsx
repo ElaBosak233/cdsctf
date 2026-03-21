@@ -29,7 +29,6 @@ import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { parseErrorResponse } from "@/utils/query";
 
 function LoginForm() {
   const configStore = useConfigStore();
@@ -86,16 +85,16 @@ function LoginForm() {
       }
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
-      const res = await parseErrorResponse(error);
+      const status = error.response.status;
 
-      if (res.code === StatusCodes.BAD_REQUEST) {
+      if (status === StatusCodes.BAD_REQUEST) {
         toast.error(t("account:login.error._"), {
           id: "login",
           description: t("account:login.error.invalid"),
         });
       }
 
-      if (res.code === StatusCodes.GONE) {
+      if (status === StatusCodes.GONE) {
         toast.error(t("account:captcha.expired"), {
           id: "login",
           description: t("account:captcha.please_refresh"),
