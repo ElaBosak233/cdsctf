@@ -10,7 +10,7 @@ import { StarIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { getSubmission } from "@/api/submissions";
+import { listSubmissions } from "@/api/submissions";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -41,11 +41,13 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
   const [size, _setSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
 
+  const gameId = currentGame?.id;
+
   const { data: submissionData, isFetching: loading } = useQuery({
-    queryKey: ["submissions", currentGame?.id, team.id, page],
+    queryKey: ["submissions", gameId, team.id, page],
     queryFn: () =>
-      getSubmission({
-        game_id: currentGame?.id,
+      listSubmissions({
+        game_id: gameId!,
         team_id: team.id,
         status: Status.Correct,
         page: page,
@@ -53,10 +55,11 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         sorts: "-created_at",
       }),
     select: (response) => ({
-      submissions: response.data || [],
+      submissions: response.submissions || [],
       total: response.total || 0,
     }),
     placeholderData: keepPreviousData,
+    enabled: gameId != null && team.id != null,
   });
 
   const { t } = useTranslation();

@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import { SaveIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -57,13 +56,11 @@ export default function Index() {
       writeup: values.writeup,
     })
       .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(
-            t("challenge:actions.writeup_update.success", {
-              title: res?.data?.title,
-            })
-          );
-        }
+        toast.success(
+          t("challenge:actions.writeup_update.success", {
+            title: res?.challenge?.title,
+          })
+        );
       })
       .finally(() => {
         sharedStore.setRefresh();

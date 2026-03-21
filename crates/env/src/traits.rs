@@ -1,3 +1,5 @@
+//! Shared traits and error types for the `env` crate.
+
 use thiserror::Error;
 
 #[derive(Debug, Error)]

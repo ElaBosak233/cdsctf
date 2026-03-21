@@ -1,4 +1,3 @@
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface UpdateCheckerRequest {
@@ -9,7 +8,7 @@ export interface UpdateCheckerRequest {
 export async function updateChallengeChecker(request: UpdateCheckerRequest) {
   return api
     .put(`admin/challenges/${request?.id}/checker`, { json: request })
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }
 
 export interface LintCheckerRequest {
@@ -29,5 +28,5 @@ export interface DiagnosticMarker {
 export async function lintChallengeChecker(request: LintCheckerRequest) {
   return api
     .post(`admin/challenges/${request?.id}/checker/lint`, { json: request })
-    .json<WebResponse<Array<DiagnosticMarker>>>();
+    .json<{ markers: DiagnosticMarker[] }>();
 }

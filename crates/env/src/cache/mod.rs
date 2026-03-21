@@ -1,3 +1,5 @@
+//! Configuration section — `mod` (loaded via Figment / `CDSCTF_*`).
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -7,6 +9,7 @@ pub struct Config {
 }
 
 impl Default for Config {
+    /// Returns the default value for this type.
     fn default() -> Self {
         Self {
             url: "redis://cache:6379".to_string(),

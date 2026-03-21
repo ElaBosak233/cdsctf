@@ -1,5 +1,4 @@
 import type { Team } from "@/models/team";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface GetTeamProfile {
@@ -7,7 +6,7 @@ export interface GetTeamProfile {
 }
 
 export async function getTeamProfile(request: GetTeamProfile) {
-  return api.get(`games/${request.game_id}/teams/us`).json<WebResponse<Team>>();
+  return api.get(`games/${request.game_id}/teams/us`).json<{ team: Team }>();
 }
 
 export interface UpdateTeamRequest {
@@ -22,7 +21,7 @@ export interface UpdateTeamRequest {
 export async function updateTeam(request: UpdateTeamRequest) {
   return api
     .put(`games/${request.game_id}/teams/us`, { json: request })
-    .json<WebResponse<Team>>();
+    .json<{ team: Team }>();
 }
 
 export interface DeleteTeamRequest {
@@ -35,7 +34,7 @@ export async function deleteTeam(request: DeleteTeamRequest) {
     .delete(`games/${request.game_id}/teams/us`, {
       json: request,
     })
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }
 
 export interface SetTeamReadyRequest {
@@ -46,5 +45,5 @@ export interface SetTeamReadyRequest {
 export async function setTeamReady(request: SetTeamReadyRequest) {
   return api
     .post(`games/${request.game_id}/teams/us/ready`, { json: request })
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

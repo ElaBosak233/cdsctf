@@ -8,18 +8,21 @@ import { cn } from "@/utils";
 import { Context } from "./context";
 
 function useChallengeAttachmentsQuery(
-  challengeId?: number,
+  challengeId: number | undefined,
   hasAttachment?: boolean,
   debug: boolean = false
 ) {
   return useQuery({
-    queryKey: ["challenge_attachments", challengeId],
+    queryKey: ["challenge_attachments", challengeId, debug],
     queryFn: () =>
       debug
         ? getChallengeAttachmentsDebug(challengeId!)
         : getChallengeAttachments(challengeId!),
-    select: (response) => response.data,
-    enabled: !!challengeId && hasAttachment,
+    select: (response) => response.attachments,
+    enabled:
+      challengeId != null &&
+      Number.isFinite(challengeId) &&
+      Boolean(hasAttachment),
   });
 }
 
@@ -43,6 +46,7 @@ export function AttachmentSection() {
                 ? `/api/admin/challenges/${challenge?.id}/attachments/${m.filename}`
                 : `/api/challenges/${challenge?.id}/attachments/${m.filename}`
             }
+            rel="noopener"
           >
             {m.filename}
           </a>

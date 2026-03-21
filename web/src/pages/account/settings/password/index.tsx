@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import { LockIcon, LockOpenIcon, SaveIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -20,6 +21,7 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -56,24 +58,23 @@ export default function Index() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    updateUserProfilePassword({
-      ...values,
-    })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(t("user:change_password.actions.self_update.success"));
-          form.reset();
-        }
-
-        if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.error(res.msg);
-        }
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      await updateUserProfilePassword({
+        ...values,
       });
+      toast.success(t("user:change_password.actions.self_update.success"));
+      form.reset();
+    } catch (error) {
+      if (!(error instanceof HTTPError)) throw error;
+      const body = await parseErrorResponse(error);
+      if (error.response.status === StatusCodes.BAD_REQUEST) {
+        toast.error(formatApiMsg(body.msg));
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

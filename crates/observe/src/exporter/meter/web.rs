@@ -1,7 +1,11 @@
+//! Observability — `web` (metrics, tracing, or logging glue).
+
 use once_cell::sync::OnceCell;
 use opentelemetry::metrics::{Counter, UpDownCounter};
 
 pub static ACTIVE_REQUESTS: OnceCell<UpDownCounter<i64>> = OnceCell::new();
+
+/// Returns active requests.
 
 pub fn get_active_requests() -> &'static UpDownCounter<i64> {
     ACTIVE_REQUESTS.get_or_init(|| {
@@ -14,6 +18,8 @@ pub fn get_active_requests() -> &'static UpDownCounter<i64> {
 
 pub static REQUEST_BYTES: OnceCell<Counter<u64>> = OnceCell::new();
 
+/// Returns request bytes.
+
 pub fn get_request_bytes() -> &'static Counter<u64> {
     REQUEST_BYTES.get_or_init(|| {
         super::METER
@@ -24,6 +30,8 @@ pub fn get_request_bytes() -> &'static Counter<u64> {
 }
 
 pub static RESPONSE_BYTES: OnceCell<Counter<u64>> = OnceCell::new();
+
+/// Returns response bytes.
 
 pub fn get_response_bytes() -> &'static Counter<u64> {
     RESPONSE_BYTES.get_or_init(|| {

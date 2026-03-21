@@ -129,4 +129,4 @@ function Button(props: ButtonProps) {
   );
 }
 
-export { Button, buttonVariants, type ButtonProps };
+export { Button, type ButtonProps, buttonVariants };

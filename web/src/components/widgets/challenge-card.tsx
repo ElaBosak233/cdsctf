@@ -70,7 +70,7 @@ function ChallengeCard(props: ChallengeCardProps) {
       >
         <CategoryIcon className={cn(["size-36"])} />
       </span>
-      {!debug && status?.is_solved && (
+      {!debug && status?.solved && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Flag

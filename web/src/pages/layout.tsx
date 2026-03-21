@@ -9,27 +9,27 @@ import { cn, stripIndent } from "@/utils";
 import { Background } from "./_blocks/background";
 import { Navbar } from "./_blocks/navbar";
 
-export default function () {
+export default function RootLayout() {
   const { setUser } = useAuthStore();
   const { setConfig, setVersion } = useConfigStore();
 
   const { data: configData } = useQuery({
     queryKey: ["configs"],
     queryFn: getConfigs,
-    select: (response) => response.data,
+    select: (response) => response.config,
   });
 
   const { data: versionData } = useQuery({
     queryKey: ["version"],
     queryFn: getVersion,
-    select: (response) => response.data,
+    select: (response) => response,
   });
 
   const { data: profileData } = useQuery({
     queryKey: ["profile"],
     queryFn: getUserProfile,
     retry: false,
-    select: (response) => response.data,
+    select: (response) => response.user,
   });
 
   useEffect(() => {

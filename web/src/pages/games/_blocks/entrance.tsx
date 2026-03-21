@@ -18,7 +18,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
-  // 控制动画生命周期
+  // Drives entrance animation timing and navigation.
   useEffect(() => {
     if (game?.id) {
       setExpanded(true);
@@ -52,7 +52,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
             "fixed top-0 left-0 w-full h-full z-50 overflow-hidden pointer-events-none"
           )}
         >
-          {/* 背景层 */}
+          {/* Background layer */}
           <motion.div
             className="absolute inset-0"
             initial={{ opacity: 0, scale: 1 }}
@@ -63,7 +63,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
             <div className="absolute inset-0 bg-background" />
           </motion.div>
 
-          {/* 内容层 */}
+          {/* Foreground content */}
           <motion.div
             className="absolute inset-0 flex flex-col items-center justify-center text-center text-foreground space-y-6"
             initial="hidden"
@@ -74,7 +74,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
               visible: {
                 opacity: 1,
                 transition: {
-                  staggerChildren: 0.15, // 快速顺序动画
+                  staggerChildren: 0.15, // quick staggered children
                   delayChildren: 0.2,
                 },
               },
@@ -104,7 +104,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
               />
             </motion.div>
 
-            {/* 标题 */}
+            {/* Title */}
             <motion.h1
               variants={{
                 hidden: { opacity: 0, y: 20 },
@@ -119,7 +119,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
               {game.title}
             </motion.h1>
 
-            {/* 简介 */}
+            {/* Sketch / summary */}
             {game.sketch && (
               <motion.p
                 variants={{
@@ -136,7 +136,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
               </motion.p>
             )}
 
-            {/* 加载提示 */}
+            {/* Loading hint */}
             <motion.div
               variants={{
                 hidden: { opacity: 0 },

@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { teamRegister } from "@/api/games/game_id/teams";
+import { createTeam } from "@/api/games/game_id/teams";
 import { joinTeam } from "@/api/games/game_id/teams/team_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,7 +24,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { parseErrorResponse } from "@/utils/query";
+import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 
 interface TeamGatheringDialogProps {
   onClose: () => void;
@@ -53,17 +53,15 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     if (!currentGame) return;
 
     setLoading(true);
-    teamRegister({
+    createTeam({
       game_id: currentGame.id!,
       ...values,
     })
       .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(
-            t("team:actions.create.success", { name: res?.data?.name })
-          );
-          onClose();
-        }
+        toast.success(
+          t("team:actions.create.success", { name: res?.team?.name })
+        );
+        onClose();
       })
       .finally(() => {
         sharedStore.setRefresh();
@@ -98,19 +96,17 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
       team_id: team_id,
       token: token,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(t("team:actions.join.success"));
-          onClose();
-        }
+      .then(() => {
+        toast.success(t("team:actions.join.success"));
+        onClose();
       })
       .catch(async (error) => {
         if (!(error instanceof HTTPError)) return;
-        const res = await parseErrorResponse(error);
+        const body = await parseErrorResponse(error);
 
-        if (res.code === StatusCodes.BAD_REQUEST) {
+        if (error.response.status === StatusCodes.BAD_REQUEST) {
           toast.error(t("team:actions.join.error"), {
-            description: res.msg,
+            description: formatApiMsg(body.msg),
           });
         }
       })

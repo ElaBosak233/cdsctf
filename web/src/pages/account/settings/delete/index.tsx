@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import {
   CheckCheckIcon,
   LockIcon,
@@ -28,6 +29,7 @@ import { Captcha } from "@/components/widgets/captcha";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -60,20 +62,21 @@ export default function Index() {
     resolver: zodResolver(formSchema),
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    deleteUserProfile({
-      ...values,
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("user:delete_account.actions.delete.success"));
-        authStore?.clear();
-        navigate("/");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await deleteUserProfile({
+        ...values,
+      });
+      toast.success(t("user:delete_account.actions.delete.success"));
+      authStore?.clear();
+      navigate("/");
+    } catch (error) {
+      if (!(error instanceof HTTPError)) throw error;
+      const body = await parseErrorResponse(error);
+      if (error.response.status === StatusCodes.BAD_REQUEST) {
+        toast.error(formatApiMsg(body.msg));
       }
-
-      if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.error(res.msg);
-      }
-    });
+    }
   }
 
   return (

@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   CheckIcon,
   KeyIcon,
@@ -74,17 +73,11 @@ function CreateUserDialog(props: CreateUserDialogProps) {
     createUser({
       ...values,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(
-            t("user:actions.create.success", { username: values.username })
-          );
-          onClose();
-        }
-
-        if (res.code === StatusCodes.CONFLICT) {
-          toast.error(t("user:actions.create.errors.conflict"));
-        }
+      .then(() => {
+        toast.success(
+          t("user:actions.create.success", { username: values.username })
+        );
+        onClose();
       })
       .finally(() => {
         sharedStore.setRefresh();

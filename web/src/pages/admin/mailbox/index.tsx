@@ -38,15 +38,15 @@ export default function Index() {
 
   useEffect(() => {
     getConfigs().then((res) => {
-      setConfig(res.data);
+      setConfig(res.config);
     });
 
     getEmail("verify").then((res) => {
-      setVerifyBody(res.data);
+      setVerifyBody(res.content);
     });
 
     getEmail("forget").then((res) => {
-      setForgetBody(res.data);
+      setForgetBody(res.content);
     });
   }, []);
 

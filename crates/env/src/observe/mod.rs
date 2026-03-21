@@ -1,4 +1,9 @@
+//! Configuration section — `mod` (loaded via Figment / `CDSCTF_*`).
+
+/// Defines the `exporter` submodule (see sibling `*.rs` files).
 pub mod exporter;
+
+/// Defines the `logger` submodule (see sibling `*.rs` files).
 pub mod logger;
 
 use serde::{Deserialize, Serialize};
@@ -12,6 +17,7 @@ pub struct Config {
 }
 
 impl Default for Config {
+    /// Returns the default value for this type.
     fn default() -> Self {
         Self {
             service_name: "cdsctf".to_string(),

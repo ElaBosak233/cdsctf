@@ -1,7 +1,11 @@
+//! SeaORM `mod` entity — maps the `mod` table and its relations.
+
 use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq)]
+#[derive(
+    Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq, utoipa::ToSchema,
+)]
 pub struct Config {
     #[serde(default)]
     pub title: String,
@@ -14,6 +18,7 @@ pub struct Config {
 }
 
 impl Default for Config {
+    /// Returns the default value for this type.
     fn default() -> Self {
         Self {
             title: "CdsCTF".to_string(),

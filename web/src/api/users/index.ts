@@ -1,5 +1,4 @@
 import type { User } from "@/models/user";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface UserLoginRequest {
@@ -12,11 +11,11 @@ export interface UserLoginRequest {
 }
 
 export async function login(request: UserLoginRequest) {
-  return api.post("users/login", { json: request }).json<WebResponse<User>>();
+  return api.post("users/login", { json: request }).json<{ user: User }>();
 }
 
 export async function logout() {
-  return api.post("users/logout").json<WebResponse<never>>();
+  return api.post("users/logout").json<Record<string, never>>();
 }
 
 export interface UserRegisterRequest {
@@ -31,7 +30,5 @@ export interface UserRegisterRequest {
 }
 
 export async function register(request: UserRegisterRequest) {
-  return api
-    .post("users/register", { json: request })
-    .json<WebResponse<User>>();
+  return api.post("users/register", { json: request }).json<{ user: User }>();
 }

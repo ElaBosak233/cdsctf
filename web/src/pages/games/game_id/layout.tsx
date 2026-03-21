@@ -3,34 +3,35 @@ import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
 import { useEffect, useState } from "react";
 import { Outlet, useParams } from "react-router";
-import { type GetGameRequest, getGame } from "@/api/games/game_id";
+import { getGame } from "@/api/games/game_id";
 import { getTeamMembers } from "@/api/games/game_id/teams/team_id";
 import { getTeamProfile } from "@/api/games/game_id/teams/us";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
-import { parseErrorResponse } from "@/utils/query";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "./context";
 
-function useGameQuery(params: GetGameRequest, trigger: number = 0) {
+function useGameQuery(gameId: number | undefined, trigger: number = 0) {
   return useQuery({
-    queryKey: ["game", trigger, params.id],
-    queryFn: () => getGame(params),
-    select: (response) => response.data,
-    enabled: !!params,
+    queryKey: ["game", trigger, gameId],
+    queryFn: () => getGame({ id: gameId! }),
+    select: (response) => response.game,
+    enabled: gameId != null,
     placeholderData: keepPreviousData,
   });
 }
 
-export default function () {
+export default function GameLayout() {
   const { game_id } = useParams<{ game_id: string }>();
+  const gameId = parseRouteNumericId(game_id);
   const { setCurrentGame, selfTeam, setSelfTeam, setMembers } = useGameStore();
   const sharedStore = useSharedStore();
   const authStore = useAuthStore();
 
   const [gtLoaded, setGtLoaded] = useState<boolean>(false);
 
-  const { data: game } = useGameQuery({ id: Number(game_id) });
+  const { data: game } = useGameQuery(gameId);
 
   useEffect(() => {
     if (game_id !== useGameStore.getState().currentGame?.id) {
@@ -43,39 +44,43 @@ export default function () {
   useEffect(() => {
     void sharedStore?.refresh;
 
+    if (gameId == null) {
+      setGtLoaded(true);
+      return;
+    }
+
     if (!authStore?.user) return;
 
     (async () => {
       try {
         const res = await getTeamProfile({
-          game_id: Number(game_id),
+          game_id: gameId,
         });
-        setSelfTeam(res.data);
+        setSelfTeam(res.team);
       } catch (error) {
         if (!(error instanceof HTTPError)) return;
-        const res = await parseErrorResponse(error);
 
-        if (res.code === StatusCodes.NOT_FOUND) {
+        if (error.response.status === StatusCodes.NOT_FOUND) {
           setSelfTeam(undefined);
         }
       } finally {
         setGtLoaded(true);
       }
     })();
-  }, [sharedStore?.refresh, game_id, setSelfTeam, authStore?.user]);
+  }, [sharedStore?.refresh, gameId, setSelfTeam, authStore?.user]);
 
   useEffect(() => {
     void sharedStore?.refresh;
 
-    if (!selfTeam?.id) return;
+    if (!selfTeam?.id || gameId == null) return;
 
     getTeamMembers({
-      game_id: Number(game_id),
-      team_id: selfTeam?.id,
+      game_id: gameId,
+      team_id: selfTeam.id,
     }).then((res) => {
-      setMembers(res.data);
+      setMembers(res.users);
     });
-  }, [sharedStore?.refresh, selfTeam, game_id, setMembers]);
+  }, [sharedStore?.refresh, selfTeam, gameId, setMembers]);
 
   return (
     <Context.Provider value={{ gtLoaded }}>

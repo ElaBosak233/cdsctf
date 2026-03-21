@@ -12,8 +12,8 @@ export type AdminListLayoutProps = {
 };
 
 /**
- * 管理后台列表页通用布局：侧边栏显隐与主区留白由 Tailwind 类控制
- *（hidden xl:flex、xl:pl-64、xl:rounded-l-none）。非列表页直接渲染 Outlet。
+ * Shared admin list layout: sidebar visibility and main-area padding are driven by Tailwind
+ * (`hidden xl:flex`, `xl:pl-64`, `xl:rounded-l-none`). Non-list routes render `<Outlet />` only.
  */
 export function AdminListLayout({
   isListPage,

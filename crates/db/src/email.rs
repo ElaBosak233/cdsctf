@@ -1,3 +1,5 @@
+//! Database access for `email` — SeaORM queries, updates, and DTOs.
+
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
     QueryFilter,
@@ -9,12 +11,16 @@ pub(crate) use crate::entity::email::{Column, Entity};
 use crate::traits::DbError;
 
 #[allow(dead_code)]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct Email {
     pub email: String,
     pub verified: bool,
     pub user_id: i64,
 }
+
+/// Looks up by user id.
 
 pub async fn find_by_user_id<T>(
     conn: &impl ConnectionTrait,
@@ -31,6 +37,8 @@ where
     Ok(emails)
 }
 
+/// Looks up by email.
+
 pub async fn find_by_email<T>(
     conn: &impl ConnectionTrait,
     email: String,
@@ -45,6 +53,7 @@ where
     Ok(email)
 }
 
+/// Inserts a new row and returns the persisted model.
 pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -55,6 +64,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("email_{}", email.email)))?)
 }
 
+/// Applies an active model update to the database.
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -65,6 +75,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("email_{}", email.email)))?)
 }
 
+/// Deletes rows matching the provided identifier or filter.
 pub async fn delete(
     conn: &impl ConnectionTrait,
     user_id: i64,
@@ -93,6 +104,8 @@ pub async fn delete(
 
     Ok(())
 }
+
+/// Deletes by user id.
 
 pub async fn delete_by_user_id(conn: &impl ConnectionTrait, user_id: i64) -> Result<(), DbError> {
     let _ = Entity::delete_many()

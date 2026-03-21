@@ -1,3 +1,5 @@
+//! SeaORM `team` entity — maps the `team` table and its relations.
+
 use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -36,6 +38,7 @@ pub struct Model {
     Deserialize_repr,
     EnumIter,
     DeriveActiveEnum,
+    utoipa::ToSchema,
 )]
 #[sea_orm(rs_type = "i32", db_type = "Integer")]
 #[repr(i32)]
@@ -54,6 +57,7 @@ pub enum Relation {
 }
 
 impl RelationTrait for Relation {
+    /// Returns the [`RelationDef`] for this relation variant.
     fn def(&self) -> RelationDef {
         match self {
             Self::Game => Entity::belongs_to(game::Entity)
@@ -70,16 +74,19 @@ impl RelationTrait for Relation {
 }
 
 impl Related<game::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         Relation::Game.def()
     }
 }
 
 impl Related<user::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         team_user::Relation::User.def()
     }
 
+    /// Declares a `via` join path for related entities.
     fn via() -> Option<RelationDef> {
         Some(team_user::Relation::Team.def().rev())
     }

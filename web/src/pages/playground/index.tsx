@@ -12,9 +12,9 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import {
-  type GetPlaygroundChallengesRequest,
-  getChallengeStatus,
-  getPlaygroundChallenges,
+  type ListChallengesRequest,
+  listChallenges,
+  queryChallengeStatus,
 } from "@/api/challenges";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -30,7 +30,7 @@ import { cn } from "@/utils";
 import { categories } from "@/utils/category";
 
 function usePlaygroundChallengeQuery(
-  params: GetPlaygroundChallengesRequest,
+  params: ListChallengesRequest,
   trigger: number = 0
 ) {
   return useQuery({
@@ -41,9 +41,9 @@ function usePlaygroundChallengeQuery(
       params.page,
       params.category,
     ],
-    queryFn: () => getPlaygroundChallenges(params),
+    queryFn: () => listChallenges(params),
     select: (response) => ({
-      challenges: response.data || [],
+      challenges: response.challenges || [],
       total: response.total || 0,
     }),
     enabled: !!params,
@@ -58,11 +58,11 @@ function useChallengeStatusQuery(
   return useQuery({
     queryKey: ["challenge_status", challenges?.map((c) => c.id), userId],
     queryFn: () =>
-      getChallengeStatus({
+      queryChallengeStatus({
         challenge_ids: challenges?.map((challenge) => challenge.id!) || [],
         user_id: userId,
       }),
-    select: (response) => response.data || {},
+    select: (response) => response.statuses || {},
     enabled: !!challenges?.length && !!userId,
   });
 }

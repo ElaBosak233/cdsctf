@@ -35,17 +35,15 @@ function CreateDialog(props: CreateDialogProps) {
     resolver: zodResolver(formSchema),
   });
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const res = await addEmail({
+    await addEmail({
       email: values.email,
     });
 
-    if (res.code === 200) {
-      toast.success(
-        t("user:emails.actions.create.success", { email: values.email })
-      );
-      onClose();
-      bump();
-    }
+    toast.success(
+      t("user:emails.actions.create.success", { email: values.email })
+    );
+    onClose();
+    bump();
   }
 
   return (

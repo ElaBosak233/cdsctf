@@ -814,8 +814,8 @@ function InfiniteProgress(props: InfiniteProgressProps) {
 }
 
 export {
-  Dropzone,
   DropZoneArea,
+  Dropzone,
   DropzoneDescription,
   DropzoneFileList,
   DropzoneFileListItem,

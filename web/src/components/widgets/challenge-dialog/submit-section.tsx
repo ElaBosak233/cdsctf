@@ -1,4 +1,4 @@
-import { StatusCodes } from "http-status-codes";
+import { HTTPError } from "ky";
 import { FlagIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useInterval } from "@/hooks/use-interval";
 import { useCheckerStore } from "@/storages/checker";
 import { cn } from "@/utils";
+import { formatApiMsg } from "@/utils/query";
 import { Context } from "./context";
 
 function SubmitSection() {
@@ -17,7 +18,7 @@ function SubmitSection() {
 
   const { challenge, team } = useContext(Context);
   const [placeholder, setPlaceholder] = useState<string>("flag");
-  const { submissions, add } = useCheckerStore();
+  const { add } = useCheckerStore();
 
   const mode = useMemo(() => {
     if (team) {
@@ -42,30 +43,51 @@ function SubmitSection() {
   const [flag, setFlag] = useState<string>();
 
   function handleFlagSubmit() {
+    const challengeId = challenge?.id;
+    const trimmed = flag?.trim();
+    if (challengeId == null || !Number.isFinite(challengeId) || !trimmed) {
+      return;
+    }
+    let gameIdParam: number | undefined;
+    let teamIdParam: number | undefined;
+    if (mode === "game") {
+      if (team?.id == null || team.game_id == null) return;
+      gameIdParam = Number(team.game_id);
+      teamIdParam = Number(team.id);
+    }
+
     createSubmission({
-      challenge_id: challenge?.id,
-      content: flag?.trim(),
-      game_id: mode === "game" ? Number(team?.game_id) : undefined,
-      team_id: mode === "game" ? Number(team?.id) : undefined,
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
+      challenge_id: challengeId,
+      content: trimmed,
+      game_id: gameIdParam,
+      team_id: teamIdParam,
+    })
+      .then((submission) => {
+        if (!submission) return;
         setFlag("");
         toast.loading(
-          `#${res?.data?.id} 已提交题目 ${res?.data?.challenge_title} 的解答`,
+          `#${submission.id} 已提交题目 ${submission.challenge_title} 的解答`,
           {
-            id: `submission-${res?.data?.id}`,
+            id: `submission-${submission.id}`,
             description: t("submission:pending_review"),
           }
         );
-        add(res.data!);
-      }
-
-      if (res.code === 500) {
-        toast.error(t("common:errors.default"), {
-          description: res.msg,
-        });
-      }
-    });
+        add(submission);
+      })
+      .catch(async (err) => {
+        if (err instanceof HTTPError) {
+          try {
+            const body = (await err.response.json()) as { msg?: unknown };
+            toast.error(t("common:errors.default"), {
+              description: formatApiMsg(body.msg) || err.message,
+            });
+          } catch {
+            toast.error(t("common:errors.default"));
+          }
+        } else {
+          toast.error(t("common:errors.default"));
+        }
+      });
   }
 
   return (
@@ -78,16 +100,16 @@ function SubmitSection() {
           placeholder={placeholder}
           value={flag}
           onChange={(e) => setFlag(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleFlagSubmit();
+            }
+          }}
         />
       </Field>
-      <Button
-        variant={"solid"}
-        icon={<SendIcon />}
-        onClick={handleFlagSubmit}
-        loading={submissions.length > 0}
-        disabled={!flag?.trim()}
-      >
-        {t("submission:actions.submit")}
+      <Button size={"sm"} onClick={handleFlagSubmit}>
+        <SendIcon />
       </Button>
     </div>
   );

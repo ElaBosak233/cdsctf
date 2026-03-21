@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import { CheckIcon, LibraryIcon, TypeIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -62,12 +61,10 @@ function CreateDialog(props: CreateDialogProps) {
       has_attachment: false,
     })
       .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(
-            t("challenge:actions.create.success", { title: res.data?.title })
-          );
-          onClose();
-        }
+        toast.success(
+          t("challenge:actions.create.success", { title: res.challenge?.title })
+        );
+        onClose();
       })
       .finally(() => {
         sharedStore.setRefresh();

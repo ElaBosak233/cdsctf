@@ -1,4 +1,3 @@
-import { StatusCodes } from "http-status-codes";
 import { TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -24,16 +23,14 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
   async function handleDelete() {
     if (!email) return;
     setLoading(true);
-    const res = await deleteEmail({
+    await deleteEmail({
       user_id: userId,
       email,
     });
 
-    if (res.code === StatusCodes.OK) {
-      toast.success(t("user:emails.actions.delete.success", { email }));
-      onSuccess();
-      onClose();
-    }
+    toast.success(t("user:emails.actions.delete.success", { email }));
+    onSuccess();
+    onClose();
 
     setLoading(false);
   }

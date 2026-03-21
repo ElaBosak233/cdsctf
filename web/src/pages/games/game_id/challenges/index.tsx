@@ -7,7 +7,7 @@ import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { getChallengeStatus } from "@/api/challenges";
+import { queryChallengeStatus } from "@/api/challenges";
 import { getGameChallenges } from "@/api/games/game_id/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -32,18 +32,20 @@ export default function Index() {
   const navigate = useNavigate();
   const now = useTickerTime();
 
+  const gameId = currentGame?.id;
+
   const {
     data: gameChallengesData,
     error,
     isLoading: challengeLoading,
   } = useQuery({
-    queryKey: ["game_challenges", currentGame?.id],
+    queryKey: ["game_challenges", gameId],
     queryFn: () =>
       getGameChallenges({
-        game_id: currentGame?.id,
+        game_id: gameId!,
       }),
     select: (response) => {
-      const challenges = response.data;
+      const challenges = response.challenges;
       return challenges?.sort((a, b) => {
         if (a.challenge_category === b.challenge_category) {
           return (a.pts ?? 0) - (b.pts ?? 0);
@@ -51,6 +53,7 @@ export default function Index() {
         return (a.challenge_category ?? 0) - (b.challenge_category ?? 0);
       });
     },
+    enabled: gameId != null,
   });
 
   const categories = useMemo(() => {
@@ -82,24 +85,23 @@ export default function Index() {
     }
   }, [error, navigate, currentGame?.id, t]);
 
+  const teamId = selfGameTeam?.id;
+  const challengeIds =
+    gameChallenges
+      ?.map((gc) => gc.challenge_id)
+      .filter((id): id is number => id != null) ?? [];
+
   const { data: challengeStatus, isLoading: statusLoading } = useQuery({
-    queryKey: [
-      "game_challenge_status",
-      gameChallenges?.map((gameChallenge) => gameChallenge.challenge_id!),
-      currentGame?.id,
-      selfGameTeam?.id,
-      currentGame?.id,
-    ],
+    queryKey: ["game_challenge_status", challengeIds, gameId, teamId],
     queryFn: () =>
-      getChallengeStatus({
-        challenge_ids:
-          gameChallenges?.map((gameChallenge) => gameChallenge.challenge_id!) ||
-          [],
-        team_id: selfGameTeam?.id,
-        game_id: currentGame?.id,
+      queryChallengeStatus({
+        challenge_ids: challengeIds,
+        team_id: teamId!,
+        game_id: gameId!,
       }),
-    select: (response) => response.data,
+    select: (response) => response.statuses,
     refetchInterval: 15000,
+    enabled: gameId != null && teamId != null && challengeIds.length > 0,
   });
 
   const loading = useMemo(() => {

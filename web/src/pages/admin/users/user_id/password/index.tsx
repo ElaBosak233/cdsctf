@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import { LockIcon, SaveIcon } from "lucide-react";
 import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -59,19 +58,13 @@ export default function Index() {
       id: user.id!,
       password: values.new_password,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(
-            t("user:change_password.actions.update.success", {
-              username: user.username,
-            })
-          );
-          form.reset();
-        }
-
-        if (res.code === StatusCodes.BAD_REQUEST) {
-          toast.error(res.msg);
-        }
+      .then(() => {
+        toast.success(
+          t("user:change_password.actions.update.success", {
+            username: user.username,
+          })
+        );
+        form.reset();
       })
       .finally(() => {
         setLoading(false);

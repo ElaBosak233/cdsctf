@@ -1,5 +1,4 @@
 import type { GameChallenge } from "@/models/game_challenge";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetGameChallengeRequest {
@@ -13,5 +12,5 @@ export async function getGameChallenges(request: GetGameChallengeRequest) {
     .get(`games/${request.game_id}/challenges`, {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<GameChallenge>>>();
+    .json<{ challenges: GameChallenge[]; total: number }>();
 }

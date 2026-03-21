@@ -1,9 +1,7 @@
 import type { GameMini } from "@/models/game";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetGameRequest {
-  id?: number;
   title?: string;
   sorts?: string;
   page?: number;
@@ -15,5 +13,5 @@ export async function getGames(request: GetGameRequest) {
     .get("games", {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<GameMini>>>();
+    .json<{ games: GameMini[]; total: number }>();
 }

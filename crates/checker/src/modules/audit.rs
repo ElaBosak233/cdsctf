@@ -1,3 +1,5 @@
+//! Rune built-in module `audit` for challenge checker scripts.
+
 use std::{io, str::FromStr};
 
 use cds_engine::{
@@ -5,6 +7,7 @@ use cds_engine::{
     rune::{Any, ContextError, Module},
 };
 
+/// Constructs the Rune native module exposed to checker scripts.
 #[rune::module(::audit)]
 pub fn module(_stdio: bool) -> Result<Module, ContextError> {
     let mut module = Module::from_meta(module_meta)?;
@@ -41,6 +44,7 @@ pub struct Flag {
 }
 
 impl Flag {
+    /// Constructs a new value.
     #[rune::function(path = Self::new)]
     pub fn new() -> Self {
         Self {
@@ -49,6 +53,7 @@ impl Flag {
         }
     }
 
+    /// Parses audit log prefixes from checker scripts.
     #[rune::function(path = Self::parse)]
     pub fn parse(f: &str) -> Result<Self, io::Error> {
         let f = f.trim();
@@ -65,16 +70,19 @@ impl Flag {
         Ok(Self { prefix, content })
     }
 
+    /// Returns the configured audit prefix token.
     #[rune::function]
     pub fn prefix(&self) -> String {
         self.prefix.clone()
     }
 
+    /// Returns the captured audit content token.
     #[rune::function]
     pub fn content(&self) -> String {
         self.content.clone()
     }
 
+    /// Prefixes a logical key with the configured bucket prefix.
     #[rune::function]
     pub fn with_prefix(self, p: &str) -> Self {
         Self {
@@ -83,6 +91,7 @@ impl Flag {
         }
     }
 
+    /// Attaches structured audit content to the status object.
     #[rune::function]
     pub fn with_content(self, c: &str) -> Self {
         Self {
@@ -91,6 +100,7 @@ impl Flag {
         }
     }
 
+    /// Renders the final audit string for checker output.
     #[rune::function]
     pub fn format(self) -> String {
         format!("{}{{{}}}", self.prefix, self.content)

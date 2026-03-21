@@ -1,5 +1,16 @@
+//! Embedded [Rune](https://rune-rs.github.io/) script engine used for challenge checkers and tooling.
+//!
+//! Compiled scripts are cached in a process-wide [`DashMap`] under string keys.
+//! [`preload`] skips work when the cached unit is newer than the script’s
+//! `updated_at` timestamp from the database.
+
+/// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
+
+/// Defines the `util` submodule (see sibling `*.rs` files).
 mod util;
+
+/// Defines the `worker` submodule (see sibling `*.rs` files).
 mod worker;
 
 use std::{collections::HashSet, sync::Arc};
@@ -17,25 +28,34 @@ use tracing::debug;
 
 use crate::traits::{DiagnosticKind, DiagnosticMarker, EngineError};
 
+/// One compiled script: immutable [`Unit`], shared runtime, and cache insertion
+/// time for staleness checks.
 struct EngineContext {
     pub unit: Arc<Unit>,
     pub runtime_context: Arc<RuntimeContext>,
     pub created_at: OffsetDateTime,
 }
 
+/// Global script cache keyed by logical names such as `challenge/{id}`.
 static GLOBAL_ENGINE: Lazy<Arc<DashMap<String, EngineContext>>> =
     Lazy::new(|| Arc::new(DashMap::new()));
+
+/// Returns global engine.
 
 fn get_global_engine() -> Arc<DashMap<String, EngineContext>> {
     Arc::clone(&GLOBAL_ENGINE)
 }
 
+/// Starts maintenance tasks (e.g. evicting stale engine entries) — currently
+/// delegates to `worker::cleaner`.
 pub async fn init() -> Result<(), EngineError> {
     worker::cleaner().await;
 
     Ok(())
 }
 
+/// Builds a fresh Rune [`Context`] with default modules plus caller-supplied
+/// native modules.
 pub async fn gen_rune_context<M>(modules: Vec<M>) -> Result<Context, EngineError>
 where
     M: AsRef<Module>, {
@@ -46,6 +66,8 @@ where
     Ok(context)
 }
 
+/// Compiles `script` for diagnostics, collects structured markers, and verifies
+/// `required_functions` exist on the VM.
 pub async fn lint(
     context: Context,
     script: impl AsRef<str>,
@@ -118,6 +140,8 @@ pub async fn lint(
     Ok(())
 }
 
+/// Stores a compiled `script` under `key`, replacing it only if missing or
+/// older than `last_changed_at`.
 pub async fn preload(
     context: Context,
     key: impl AsRef<str>,
@@ -156,6 +180,8 @@ pub async fn preload(
     Ok(())
 }
 
+/// Runs `function` on the cached script for `key` with the given Rune
+/// arguments.
 pub async fn execute(
     key: impl AsRef<str>,
     function: &'static str,

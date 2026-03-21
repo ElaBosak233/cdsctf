@@ -26,15 +26,18 @@ type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   debug?: boolean;
 };
 
-function useChallengeQuery(challengeId?: number, debug: boolean = false) {
+function useChallengeQuery(
+  challengeId: number | undefined,
+  debug: boolean = false
+) {
   return useQuery({
     queryKey: ["challenge", challengeId, debug],
     queryFn: () =>
       debug
         ? getChallengeDebug({ id: challengeId! })
         : getChallenge({ id: challengeId! }),
-    select: (response) => response.data,
-    enabled: !!challengeId,
+    select: (response) => response.challenge,
+    enabled: challengeId != null && Number.isFinite(challengeId),
   });
 }
 

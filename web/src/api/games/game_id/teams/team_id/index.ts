@@ -1,5 +1,4 @@
 import type { UserMini } from "@/models/user";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface JoinTeamRequest {
@@ -13,7 +12,7 @@ export async function joinTeam(request: JoinTeamRequest) {
     .post(`games/${request?.game_id}/teams/${request?.team_id}/join`, {
       json: request,
     })
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }
 
 export interface GetTeamMemberRequest {
@@ -24,5 +23,5 @@ export interface GetTeamMemberRequest {
 export async function getTeamMembers(request: GetTeamMemberRequest) {
   return api
     .get(`games/${request.game_id}/teams/${request.team_id}/members`)
-    .json<WebResponse<Array<UserMini>>>();
+    .json<{ users: UserMini[]; total: number }>();
 }

@@ -1,3 +1,5 @@
+//! Observability — `mod` (metrics, tracing, or logging glue).
+
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
     panic,
@@ -18,6 +20,8 @@ use tracing_subscriber::{
 use crate::traits::ObserveError;
 
 static CONSOLE_GUARD: OnceCell<WorkerGuard> = OnceCell::new();
+
+/// Initializes this subsystem or resource.
 
 pub async fn init(env: &Env) -> Result<(), ObserveError> {
     let (non_blocking_console, console_guard) = non_blocking(std::io::stdout());

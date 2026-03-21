@@ -1,8 +1,11 @@
+//! Rune built-in module `regex` for challenge checker scripts.
+
 use cds_engine::{
     rune,
     rune::{ContextError, Module},
 };
 
+/// Constructs the Rune native module exposed to checker scripts.
 #[rune::module(::regex)]
 pub fn module(_stdio: bool) -> Result<Module, ContextError> {
     let mut module = Module::from_meta(module_meta)?;
@@ -10,6 +13,8 @@ pub fn module(_stdio: bool) -> Result<Module, ContextError> {
 
     Ok(module)
 }
+
+/// Returns whether is match.
 
 #[rune::function]
 pub fn is_match(pattern: &str, payload: &str) -> bool {

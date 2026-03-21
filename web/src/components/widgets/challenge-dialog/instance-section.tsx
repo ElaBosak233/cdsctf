@@ -23,7 +23,7 @@ import type { Port } from "@/models/challenge";
 import type { Instance, Nat } from "@/models/instance";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import { parseErrorResponse } from "@/utils/query";
+import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 import { Context } from "./context";
 
 function PortInfo({ instance, port }: { instance: Instance; port: Port }) {
@@ -103,15 +103,55 @@ function InstanceSection() {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  function fetchInstances() {
+  const canPollInstances = useMemo(() => {
+    const cid = challenge?.id;
+    if (cid == null || !Number.isFinite(cid)) return false;
+    if (debug) return true;
+    if (mode === "game") {
+      return team?.id != null && team.game_id != null;
+    }
+    return authStore?.user?.id != null;
+  }, [
+    authStore?.user?.id,
+    challenge?.id,
+    debug,
+    mode,
+    team?.game_id,
+    team?.id,
+  ]);
+
+  const fetchInstances = useCallback(() => {
+    const cid = challenge?.id;
+    if (cid == null || !Number.isFinite(cid)) return;
+
+    let pollUserId: number | undefined;
+    let pollGameId: number | undefined;
+    let pollTeamId: number | undefined;
+
+    if (debug) {
+      pollUserId = mode !== "game" ? authStore?.user?.id : undefined;
+      if (mode === "game" && team?.id != null && team.game_id != null) {
+        pollGameId = Number(team.game_id);
+        pollTeamId = Number(team.id);
+      }
+    } else if (mode === "game") {
+      if (team?.id == null || team.game_id == null) return;
+      pollGameId = Number(team.game_id);
+      pollTeamId = Number(team.id);
+    } else if (authStore?.user?.id == null) {
+      return;
+    } else {
+      pollUserId = authStore.user.id;
+    }
+
     getInstances({
-      challenge_id: challenge?.id,
-      user_id: mode !== "game" ? authStore?.user?.id : undefined,
-      game_id: mode === "game" ? Number(team?.game_id) : undefined,
-      team_id: mode === "game" ? Number(team?.id) : undefined,
+      challenge_id: cid,
+      user_id: pollUserId,
+      game_id: pollGameId,
+      team_id: pollTeamId,
     }).then((res) => {
-      if (res.code === StatusCodes.OK) {
-        const p = res.data?.[0];
+      {
+        const p = res.instances?.[0];
         setInstance(p);
         setTimeLeft(
           Math.ceil(
@@ -138,30 +178,35 @@ function InstanceSection() {
         }
       }
     });
-  }
+  }, [
+    authStore?.user?.id,
+    challenge?.id,
+    debug,
+    mode,
+    team?.game_id,
+    team?.id,
+    t,
+  ]);
 
   async function handleInstanceRenew() {
     if (!instance) return;
 
     try {
-      const res = await renewInstance({
+      await renewInstance({
         id: instance.id!,
       });
 
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("challenge:instance.renew_success"), {
-          id: "renew",
-          description: null,
-        });
-      }
+      toast.success(t("challenge:instance.renew_success"), {
+        id: "renew",
+      });
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
-      const res = await parseErrorResponse(error);
+      const body = await parseErrorResponse(error);
 
-      if (res.code === StatusCodes.BAD_REQUEST) {
+      if (error.response.status === StatusCodes.BAD_REQUEST) {
         toast.error(t("challenge:instance.renew_error"), {
           id: "renew",
-          description: res.msg,
+          description: formatApiMsg(body.msg),
         });
       }
     }
@@ -188,22 +233,41 @@ function InstanceSection() {
   }, [handleInstanceStop, instanceStopLoading]);
 
   async function handleInstanceCreate() {
+    const cid = challenge?.id;
+    if (cid == null || !Number.isFinite(cid)) return;
+
+    let createGameId: number | undefined;
+    let createTeamId: number | undefined;
+    if (debug) {
+      if (mode === "game" && team?.id != null && team.game_id != null) {
+        createGameId = Number(team.game_id);
+        createTeamId = Number(team.id);
+      }
+    } else if (mode === "game") {
+      if (team?.id == null || team.game_id == null) return;
+      createGameId = Number(team.game_id);
+      createTeamId = Number(team.id);
+    } else if (authStore?.user?.id == null) {
+      return;
+    }
+
     setInstanceCreateLoading(true);
     toast.loading(t("instance:actions.start.creating"), {
       id: "instance",
     });
     try {
-      const res = debug
-        ? await createDebugInstance({
-            challenge_id: challenge?.id,
-          })
-        : await createInstance({
-            challenge_id: challenge?.id,
-            game_id: mode === "game" ? Number(team?.game_id) : undefined,
-            team_id: mode === "game" ? Number(team?.id) : undefined,
-          });
+      if (debug) {
+        await createDebugInstance({
+          challenge_id: cid,
+        });
+      } else {
+        await createInstance({
+          challenge_id: cid,
+          game_id: createGameId,
+          team_id: createTeamId,
+        });
+      }
 
-      setInstance(res.data);
       toast.loading(t("instance:actions.start.sent"), {
         id: "instance",
         description: t("instance:actions.start.description"),
@@ -211,16 +275,19 @@ function InstanceSection() {
       fetchInstances();
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
-      const res = await parseErrorResponse(error);
+      const body = await parseErrorResponse(error);
 
       toast.error(t("instance:error"), {
         id: "instance",
-        description: res.msg,
+        description: formatApiMsg(body.msg),
       });
     }
   }
 
-  useInterval(fetchInstances, 2000, [], { immediate: true });
+  useInterval(fetchInstances, 2000, [fetchInstances], {
+    immediate: true,
+    enabled: canPollInstances,
+  });
 
   return (
     <div className={cn(["flex", "gap-5", "justify-between", "items-end"])}>

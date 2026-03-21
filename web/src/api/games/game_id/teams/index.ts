@@ -1,28 +1,7 @@
 import type { Team } from "@/models/team";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
-// export interface GetTeamRequest {
-//     id?: number;
-//     game_id?: number;
-//     user_id?: number;
-//     name?: string;
-//     state?: State;
-//     page?: number;
-//     size?: number;
-//     sorts?: string;
-// }
-
-// export async function getTeams(request: GetTeamRequest) {
-//     return alova.Get<WebResponse<Array<Team>>>(
-//         `/games/${request.game_id}/teams`,
-//         {
-//             params: request,
-//         }
-//     );
-// }
-
-export interface TeamRegisterRequest {
+export interface CreateTeamRequest {
   game_id?: number;
   name?: string;
   email?: string;
@@ -30,10 +9,15 @@ export interface TeamRegisterRequest {
   description?: string;
 }
 
-export async function teamRegister(request: TeamRegisterRequest) {
+export async function createTeam(request: CreateTeamRequest) {
   return api
-    .post(`games/${request.game_id}/teams/register`, {
-      json: request,
+    .post(`games/${request.game_id}/teams`, {
+      json: {
+        name: request.name,
+        email: request.email,
+        slogan: request.slogan,
+        description: request.description,
+      },
     })
-    .json<WebResponse<Team>>();
+    .json<{ team: Team }>();
 }

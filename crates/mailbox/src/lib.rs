@@ -1,9 +1,21 @@
+//! Outbound email over SMTP using settings stored in the database.
+//!
+//! # Architecture
+//!
+//! - The HTTP layer (or other code) **publishes** a JSON [`Payload`] to the
+//!   NATS JetStream subject `mailbox` (consumed by the `cds-worker` crate’s
+//!   `mailbox` module).
+//! - This crate’s [`Mailbox`] type reads SMTP options from [`cds_db`] config
+//!   and sends mail with [`lettre`].
+//!
+//! Template placeholders `%TITLE%` in subject/body are replaced with the
+//! platform title from config (see [`Mailbox::inject`]).
+
+/// Defines the `traits` submodule (see sibling `*.rs` files).
 mod traits;
-mod worker;
 
 use anyhow::anyhow;
 use cds_db::DB;
-use cds_queue::Queue;
 use lettre::{
     Address, AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
     message::{Mailbox as LMailbox, SinglePart, header::ContentType},
@@ -12,32 +24,53 @@ use lettre::{
         client::{Tls, TlsParameters},
     },
 };
-use once_cell::sync::OnceCell;
-pub use worker::Payload;
+use serde::{Deserialize, Serialize};
 
 use crate::traits::MailboxError;
 
-static MAILBOX: OnceCell<Mailbox> = OnceCell::new();
+/// JSON envelope for one outbound message, serialized on the `mailbox` queue
+/// subject.
+///
+/// The worker deserializes this struct and calls [`Mailbox::send_payload`].
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Payload {
+    /// Display name shown to the recipient (e.g. user’s nickname).
+    pub name: String,
+    /// RFC 5322 email address of the recipient.
+    pub email: String,
+    /// Email subject line; may contain `%TITLE%` for substitution.
+    pub subject: String,
+    /// HTML body; may contain `%TITLE%` for substitution.
+    pub body: String,
+}
 
+/// SMTP mailer bound to a [`DB`] handle (reads live config per send).
+///
+/// Clone is cheap: this is a thin handle around [`DB`].
 #[derive(Debug, Clone)]
 pub struct Mailbox {
     db: DB,
-    queue: Queue,
-}
-
-pub async fn init(db: &DB, queue: &Queue) -> Result<(), MailboxError> {
-    let m = Mailbox {
-        db: db.clone(),
-        queue: queue.clone(),
-    };
-
-    worker::init(m.clone()).await;
-    MAILBOX.set(m).expect("Mailbox already initialized");
-
-    Ok(())
 }
 
 impl Mailbox {
+    /// Creates a mailbox that will read SMTP and meta settings through `db`.
+    pub fn new(db: DB) -> Self {
+        Self { db }
+    }
+
+    /// Sends one message described by a queue [`Payload`] (recipient +
+    /// content).
+    pub async fn send_payload(&self, payload: &Payload) -> Result<(), MailboxError> {
+        // lettre’s Mailbox is the logical (name, address) pair for To/From headers.
+        let to = LMailbox::new(
+            Some(payload.name.clone()),
+            payload.email.parse::<Address>()?,
+        );
+        self.send(to, &payload.subject, &payload.body).await
+    }
+
+    /// Replaces the `%TITLE%` placeholder with the configured site title from
+    /// the database.
     pub(crate) async fn inject(&self, body: &str) -> String {
         body.replace(
             "%TITLE%",
@@ -45,6 +78,9 @@ impl Mailbox {
         )
     }
 
+    /// Builds an async SMTP transport from DB `email` config.
+    ///
+    /// Returns an error if email is disabled in config or TLS/build steps fail.
     pub(crate) async fn get_mailer(
         &self,
     ) -> Result<AsyncSmtpTransport<Tokio1Executor>, MailboxError> {
@@ -65,6 +101,8 @@ impl Mailbox {
                 .clone(),
         );
 
+        // Three TLS modes: upgrade (STARTTLS), implicit TLS wrapper, or plaintext
+        // (dangerous).
         let builder = match cds_db::get_config(&self.db.conn).await.email.tls {
             cds_db::config::email::Tls::Starttls => {
                 AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(
@@ -94,6 +132,8 @@ impl Mailbox {
         Ok(mailer)
     }
 
+    /// Low-level send: builds a single-part HTML message and delivers it
+    /// through [`get_mailer`].
     pub(crate) async fn send(
         &self,
         to: LMailbox,

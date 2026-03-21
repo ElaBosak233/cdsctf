@@ -1,7 +1,10 @@
+//! Rune engine support — `worker` (compile/run helpers).
+
 use time::OffsetDateTime;
 
 use crate::get_global_engine;
 
+/// Background task that reaps stale resources.
 pub async fn cleaner() {
     tokio::spawn(async move {
         let interval = std::time::Duration::from_mins(15); // 15 minutes

@@ -21,6 +21,7 @@ rust-embed = { workspace = true }
 rust-s3    = { workspace = true }
 serde      = { workspace = true }
 thiserror  = { workspace = true }
+utoipa     = { workspace = true }
 webp       = { workspace = true }
 
 [package.metadata.cargo-machete]

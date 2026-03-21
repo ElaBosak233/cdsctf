@@ -1,3 +1,5 @@
+//! Database access for `game` — SeaORM queries, updates, and DTOs.
+
 use std::str::FromStr;
 
 use sea_orm::{
@@ -13,7 +15,9 @@ use crate::{
 };
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct Game {
     pub id: i64,
     pub title: String,
@@ -34,7 +38,9 @@ pub struct Game {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct GameMini {
     pub id: i64,
     pub title: String,
@@ -56,6 +62,7 @@ pub struct FindGameOptions {
     pub sorts: Option<String>,
 }
 
+/// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
     FindGameOptions {
@@ -110,6 +117,8 @@ where
     Ok((games, total))
 }
 
+/// Looks up by id.
+
 pub async fn find_by_id<T>(
     conn: &impl ConnectionTrait,
     game_id: i64,
@@ -122,10 +131,12 @@ where
         .await?)
 }
 
+/// Counts rows that match optional filters.
 pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::find().count(conn).await?)
 }
 
+/// Inserts a new row and returns the persisted model.
 pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -136,6 +147,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("game_{}", game.id)))?)
 }
 
+/// Applies an active model update to the database.
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -146,6 +158,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("game_{}", game.id)))?)
 }
 
+/// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, game_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(game_id).exec(conn).await?;
 

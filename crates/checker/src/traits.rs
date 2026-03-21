@@ -1,3 +1,5 @@
+//! Shared traits and error types for the `checker` crate.
+
 use thiserror::Error;
 
 #[derive(Debug, Error)]

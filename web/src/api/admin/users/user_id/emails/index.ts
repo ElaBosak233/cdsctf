@@ -1,5 +1,4 @@
 import type { Email } from "@/models/email";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface GetEmailsRequest {
@@ -9,7 +8,7 @@ export interface GetEmailsRequest {
 export async function getEmails(request: GetEmailsRequest) {
   return api
     .get(`admin/users/${request.user_id}/emails`)
-    .json<WebResponse<Array<Email>>>();
+    .json<{ emails: Email[]; total: number }>();
 }
 
 export interface AddEmailRequest {
@@ -23,7 +22,7 @@ export async function addEmail(request: AddEmailRequest) {
     .post(`admin/users/${request.user_id}/emails`, {
       json: request,
     })
-    .json<WebResponse<Email>>();
+    .json<{ email: Email }>();
 }
 
 export interface UpdateEmailRequest {
@@ -40,7 +39,7 @@ export async function updateEmail(request: UpdateEmailRequest) {
         json: request,
       }
     )
-    .json<WebResponse<Email>>();
+    .json<{ email: Email }>();
 }
 
 export interface DeleteEmailRequest {
@@ -53,5 +52,5 @@ export async function deleteEmail(request: DeleteEmailRequest) {
     .delete(
       `admin/users/${request.user_id}/emails/${encodeURIComponent(request.email)}`
     )
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

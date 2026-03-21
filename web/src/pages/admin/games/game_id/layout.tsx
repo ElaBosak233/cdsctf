@@ -9,12 +9,13 @@ import {
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
-import { getGames } from "@/api/admin/games";
+import { getGame } from "@/api/admin/games/game_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "./context";
 
 export default function Layout() {
@@ -25,16 +26,16 @@ export default function Layout() {
   const sharedStore = useSharedStore();
   const configStore = useConfigStore();
   const { game_id } = useParams<{ game_id: string }>();
+  const gameId = parseRouteNumericId(game_id);
 
   const { data: game } = useQuery({
-    queryKey: ["admin", "game", game_id, sharedStore.refresh],
+    queryKey: ["admin", "game", gameId, sharedStore.refresh],
     queryFn: async () => {
-      const res = await getGames({
-        id: Number(game_id),
-      });
-      return res?.data?.[0];
+      const res = await getGame({ id: gameId! });
+      return res.game;
     },
     placeholderData: keepPreviousData,
+    enabled: gameId != null,
   });
 
   const options = useMemo(() => {

@@ -1,5 +1,4 @@
 import type { Group, User } from "@/models/user";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetUsersRequest {
@@ -18,7 +17,7 @@ export async function getUsers(request: GetUsersRequest) {
     .get("admin/users", {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<User>>>();
+    .json<{ users: User[]; total: number }>();
 }
 
 export interface CreateUserRequest {
@@ -34,5 +33,5 @@ export async function createUser(request: CreateUserRequest) {
     .post("admin/users", {
       json: request,
     })
-    .json<WebResponse<User>>();
+    .json<{ user: User }>();
 }

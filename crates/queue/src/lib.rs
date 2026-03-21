@@ -1,3 +1,11 @@
+//! NATS / JetStream integration: publish messages and subscribe as pull
+//! consumers.
+//!
+//! Workers call [`Queue::subscribe`] to process subjects such as `calculator`,
+//! `mailbox`, or `events`. Each subject maps to a JetStream stream (created if
+//! absent) with a durable consumer name.
+
+/// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
 
 pub use async_nats;
@@ -6,12 +14,14 @@ use serde::Serialize;
 use tracing::info;
 use traits::QueueError;
 
+/// Holds the core NATS client and a JetStream context for streaming APIs.
 #[derive(Clone, Debug)]
 pub struct Queue {
     client: async_nats::Client,
     jet_stream: async_nats::jetstream::Context,
 }
 
+/// Connects with credentials from [`cds_env::Env::queue`] and wraps JetStream.
 pub async fn init(env: &Env) -> Result<Queue, QueueError> {
     let client = async_nats::ConnectOptions::new()
         .require_tls(env.queue.tls)
@@ -28,6 +38,8 @@ pub async fn init(env: &Env) -> Result<Queue, QueueError> {
 }
 
 impl Queue {
+    /// Serializes `payload` as JSON and publishes it on the JetStream
+    /// `subject`.
     pub async fn publish(&self, subject: &str, payload: impl Serialize) -> Result<(), QueueError> {
         self.jet_stream
             .publish(subject.to_owned(), serde_json::to_string(&payload)?.into())
@@ -36,6 +48,11 @@ impl Queue {
         Ok(())
     }
 
+    /// Creates (if needed) a stream named `subject`, ensures a durable
+    /// consumer, and returns a pull stream.
+    ///
+    /// `durable_name` identifies the consumer for replay; defaults to
+    /// `"worker"` when `None`.
     pub async fn subscribe(
         &self,
         subject: &str,
@@ -50,6 +67,8 @@ impl Queue {
             })
             .await?;
 
+        // Consumer name doubles as the durable name so restarts resume unacknowledged
+        // messages.
         let subscriber = stream
             .get_or_create_consumer(
                 subject,
@@ -69,6 +88,8 @@ impl Queue {
         Ok(messages)
     }
 
+    /// Stops accepting new operations and waits for in-flight work to finish
+    /// (`drain`).
     pub async fn shutdown(&self) -> Result<(), QueueError> {
         info!("Shutting down message queue...");
 

@@ -1,5 +1,4 @@
 import type { State, Team } from "@/models/team";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface UpdateTeamRequest {
@@ -17,7 +16,7 @@ export async function updateTeam(request: UpdateTeamRequest) {
     .put(`admin/games/${request.game_id}/teams/${request.team_id}`, {
       json: request,
     })
-    .json<WebResponse<Team>>();
+    .json<{ team: Team }>();
 }
 
 export interface DeleteTeamRequest {
@@ -30,5 +29,5 @@ export async function deleteTeam(request: DeleteTeamRequest) {
     .delete(`admin/games/${request.game_id}/teams/${request.team_id}`, {
       json: request,
     })
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

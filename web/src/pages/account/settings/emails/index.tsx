@@ -48,7 +48,7 @@ export default function Index() {
     void tick;
 
     getEmails().then((res) => {
-      setEmails(res.data);
+      setEmails(res.emails);
     });
   }, [tick]);
 

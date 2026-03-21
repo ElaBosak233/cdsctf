@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   ClockAlertIcon,
   ClockFadingIcon,
@@ -15,6 +14,7 @@ import {
 import { useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import { updateGame } from "@/api/admin/games/game_id";
@@ -42,13 +42,18 @@ import { useRefresh } from "@/hooks/use-refresh";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "./context";
 
 export default function Index() {
   const { t } = useTranslation();
 
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
   const sharedStore = useSharedStore();
+
+  const resolvedGameId = routeGameId ?? game?.id;
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -117,20 +122,20 @@ export default function Index() {
   }, [game]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (resolvedGameId == null) return;
+
     setLoading(true);
     updateGame({
       ...values,
-      id: game?.id,
+      id: resolvedGameId,
       started_at: Math.floor(values.started_at?.getTime() / 1000),
       frozen_at: Math.floor(values.frozen_at?.getTime() / 1000),
       ended_at: Math.floor(values.ended_at?.getTime() / 1000),
     })
       .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(
-            t("game:actions.update.success", { title: res?.data?.title })
-          );
-        }
+        toast.success(
+          t("game:actions.update.success", { title: res?.game?.title })
+        );
       })
       .finally(() => {
         sharedStore.setRefresh();
@@ -142,15 +147,11 @@ export default function Index() {
     event: React.ChangeEvent<HTMLInputElement>
   ) {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || resolvedGameId == null) return;
 
     try {
-      const res = await uploadFile(`/api/admin/games/${game?.id}/poster`, [
-        file,
-      ]);
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("game:form.poster_upload.success"));
-      }
+      await uploadFile(`/api/admin/games/${resolvedGameId}/poster`, [file]);
+      toast.success(t("game:form.poster_upload.success"));
     } catch (_) {
       toast.error(t("game:form.poster_upload.error"), {
         description: t("common:errors.network"),
@@ -163,16 +164,14 @@ export default function Index() {
   }
 
   async function handlePosterDelete() {
-    if (!game) return;
+    if (resolvedGameId == null) return;
 
     try {
-      const res = await deleteGamePoster({
-        game_id: game.id!,
+      await deleteGamePoster({
+        game_id: resolvedGameId,
       });
 
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("game:form.poster_delete.success"));
-      }
+      toast.success(t("game:form.poster_delete.success"));
     } finally {
       posterBump();
     }
@@ -180,10 +179,10 @@ export default function Index() {
 
   async function handleIconUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || resolvedGameId == null) return;
 
     try {
-      await uploadFile(`/api/admin/games/${game?.id}/icon`, [file]);
+      await uploadFile(`/api/admin/games/${resolvedGameId}/icon`, [file]);
       toast.success(t("game:form.icon_upload.success"));
     } catch (_) {
       toast.error(t("game:form.icon_upload.error"), {
@@ -197,15 +196,14 @@ export default function Index() {
   }
 
   async function handleIconDelete() {
-    if (!game) return;
+    if (resolvedGameId == null) return;
 
     try {
-      const res = await deleteGameIcon({
-        game_id: game.id!,
+      await deleteGameIcon({
+        game_id: resolvedGameId,
       });
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("game:form.icon_delete.success"));
-      }
+
+      toast.success(t("game:form.icon_delete.success"));
     } finally {
       iconBump();
     }
@@ -285,7 +283,11 @@ export default function Index() {
                     "border",
                     "select-none",
                   ])}
-                  src={`/api/games/${game?.id}/poster?r=${posterTick}`}
+                  src={
+                    resolvedGameId != null
+                      ? `/api/games/${resolvedGameId}/poster?r=${posterTick}`
+                      : undefined
+                  }
                   onLoadingStatusChange={(status) =>
                     setHasPoster(status === "loaded")
                   }
@@ -349,7 +351,11 @@ export default function Index() {
                     "p-5",
                     "select-none",
                   ])}
-                  src={`/api/games/${game?.id}/icon?r=${iconTick}`}
+                  src={
+                    resolvedGameId != null
+                      ? `/api/games/${resolvedGameId}/icon?r=${iconTick}`
+                      : undefined
+                  }
                   onLoadingStatusChange={(status) =>
                     setHasIcon(status === "loaded")
                   }

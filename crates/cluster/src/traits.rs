@@ -1,3 +1,5 @@
+//! Shared traits and error types for the `cluster` crate.
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -25,7 +27,7 @@ pub enum ClusterError {
     CheckerError(#[from] cds_checker::traits::CheckerError),
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Nat {
     pub port: i32,
     pub node_port: i32,

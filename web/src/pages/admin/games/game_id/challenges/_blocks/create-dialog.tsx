@@ -1,7 +1,7 @@
-import { StatusCodes } from "http-status-codes";
 import { HashIcon, LibraryIcon, TypeIcon } from "lucide-react";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 import { getChallenges } from "@/api/admin/challenges";
 import { createGameChallenge } from "@/api/admin/games/game_id/challenges";
@@ -15,6 +15,7 @@ import type { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
 interface CreateDialogProps {
@@ -25,6 +26,8 @@ function CreateDialog(props: CreateDialogProps) {
   const { onClose } = props;
   const { t } = useTranslation();
 
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
   const sharedStore = useSharedStore();
 
@@ -43,9 +46,7 @@ function CreateDialog(props: CreateDialogProps) {
       page: 1,
       sorts: "-created_at",
     }).then((res) => {
-      if (res.code === StatusCodes.OK) {
-        setChallenges(res.data);
-      }
+      setChallenges(res.challenges);
     });
   }, [debouncedId, debounceTitle]);
 
@@ -57,28 +58,23 @@ function CreateDialog(props: CreateDialogProps) {
   }, [fetchChallenges, debounceTitle, debouncedId]);
 
   function handleCreateGameChallenge(challenge: Challenge) {
-    if (!game) return;
+    const gid = routeGameId ?? game?.id;
+    if (gid == null || challenge.id == null) return;
 
     createGameChallenge({
-      game_id: game.id!,
-      challenge_id: challenge.id!,
+      game_id: gid,
+      challenge_id: challenge.id,
       enabled: false,
       max_pts: 2000,
       min_pts: 500,
       difficulty: 5,
       bonus_ratios: [],
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
-        toast.success(
-          t("game:challenge.actions.add.success", { title: challenge?.title })
-        );
-        sharedStore?.setRefresh();
-        onClose();
-      }
-
-      if (res.code === 409) {
-        toast.error(t("game:challenge.actions.add_exists"));
-      }
+    }).then(() => {
+      toast.success(
+        t("game:challenge.actions.add.success", { title: challenge?.title })
+      );
+      sharedStore?.setRefresh();
+      onClose();
     });
   }
 

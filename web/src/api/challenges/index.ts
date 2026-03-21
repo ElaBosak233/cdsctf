@@ -1,10 +1,9 @@
 import type { ChallengeMini } from "@/models/challenge";
 import type { Submission } from "@/models/submission";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetPlaygroundChallengesRequest {
-  id?: string;
+export interface ListChallengesRequest {
+  id?: number;
   title?: string;
   tag?: string;
   category?: number;
@@ -14,17 +13,15 @@ export interface GetPlaygroundChallengesRequest {
   sorts?: string;
 }
 
-export async function getPlaygroundChallenges(
-  request: GetPlaygroundChallengesRequest
-) {
+export async function listChallenges(request: ListChallengesRequest) {
   return api
-    .get("challenges/playground", {
+    .get("challenges", {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<ChallengeMini>>>();
+    .json<{ challenges: ChallengeMini[]; total: number }>();
 }
 
-export interface GetChallengeStatusRequest {
+export interface QueryChallengeStatusRequest {
   challenge_ids: Array<number>;
   user_id?: number;
   team_id?: number;
@@ -32,16 +29,18 @@ export interface GetChallengeStatusRequest {
 }
 
 export interface ChallengeStatus {
-  is_solved?: boolean;
+  solved?: boolean;
   solved_times?: number;
   pts?: number;
   bloods?: Array<Submission>;
 }
 
-export async function getChallengeStatus(request: GetChallengeStatusRequest) {
+export async function queryChallengeStatus(
+  request: QueryChallengeStatusRequest
+) {
   return api
     .post("challenges/status", {
       json: request,
     })
-    .json<WebResponse<Record<string, ChallengeStatus>>>();
+    .json<{ statuses: Record<string, ChallengeStatus> }>();
 }

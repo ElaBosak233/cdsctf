@@ -16,6 +16,7 @@ use crate::traits::MediaError;
 pub struct Presigner(Arc<Bucket>);
 
 impl Presigner {
+    /// Constructs a new value.
     pub(crate) fn new(bucket: Arc<Bucket>) -> Self {
         Self(bucket)
     }

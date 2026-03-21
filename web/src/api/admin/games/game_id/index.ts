@@ -1,9 +1,15 @@
 import type { Game } from "@/models/game";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
-export interface UpdateGameRequest {
-  id?: number;
+export interface GetGameRequest {
+  id: number;
+}
+
+export async function getGame(request: GetGameRequest) {
+  return api.get(`admin/games/${request.id}`).json<{ game: Game }>();
+}
+
+export interface UpdateGameBody {
   title?: string;
   sketch?: string | null;
   description?: string | null;
@@ -17,10 +23,13 @@ export interface UpdateGameRequest {
   ended_at?: number;
 }
 
+export interface UpdateGameRequest extends UpdateGameBody {
+  id: number;
+}
+
 export async function updateGame(request: UpdateGameRequest) {
-  return api
-    .put(`admin/games/${request.id}`, { json: request })
-    .json<WebResponse<Game>>();
+  const { id, ...body } = request;
+  return api.put(`admin/games/${id}`, { json: body }).json<{ game: Game }>();
 }
 
 export interface DeleteGameRequest {
@@ -28,5 +37,5 @@ export interface DeleteGameRequest {
 }
 
 export async function deleteGame(request: DeleteGameRequest) {
-  return api.delete(`admin/games/${request.id}`).json<WebResponse<never>>();
+  return api.delete(`admin/games/${request.id}`).json<Record<string, never>>();
 }

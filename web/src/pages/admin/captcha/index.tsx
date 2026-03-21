@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import { BotIcon, ClockIcon, LockIcon, SaveIcon, SendIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -35,7 +34,7 @@ export default function Index() {
 
   useEffect(() => {
     getConfigs().then((res) => {
-      setConfig(res.data);
+      setConfig(res.config);
     });
   }, []);
 
@@ -77,10 +76,8 @@ export default function Index() {
     updateConfig({
       ...config,
       captcha: { ...values },
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("admin:captcha.actions.update.success"));
-      }
+    }).then(() => {
+      toast.success(t("admin:captcha.actions.update.success"));
     });
   }
 

@@ -1,3 +1,5 @@
+//! SeaORM `challenge` entity — maps the `challenge` table and its relations.
+
 use async_trait::async_trait;
 use sea_orm::{
     ActiveModelBehavior, ConnectionTrait, DbErr, DeriveEntityModel, DerivePrimaryKey, EntityTrait,
@@ -32,14 +34,34 @@ pub struct Model {
     pub updated_at: i64,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct Instance {
     pub duration: i64,
     pub internet: bool,
     pub containers: Vec<Container>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct Container {
     pub image: String,
     pub cpu_limit: i64,
@@ -50,17 +72,38 @@ pub struct Container {
     pub image_pull_policy: String,
 }
 
+/// Default Kubernetes `imagePullPolicy` when unspecified.
 fn default_image_pull_policy() -> String {
     "Always".to_string()
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct Port {
     pub port: i32,
     pub protocol: String,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    FromJsonQueryResult,
+    utoipa::ToSchema,
+)]
 pub struct EnvVar {
     pub key: String,
     pub value: String,
@@ -73,6 +116,7 @@ pub enum Relation {
 }
 
 impl RelationTrait for Relation {
+    /// Returns the [`RelationDef`] for this relation variant.
     fn def(&self) -> RelationDef {
         match self {
             Self::Submission => Entity::has_many(submission::Entity).into(),
@@ -82,22 +126,26 @@ impl RelationTrait for Relation {
 }
 
 impl Related<submission::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         Relation::Submission.def()
     }
 }
 
 impl Related<note::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         Relation::Note.def()
     }
 }
 
 impl Related<game::Entity> for Entity {
+    /// Returns the [`RelationDef`] linking to the related [`Entity`].
     fn to() -> RelationDef {
         game_challenge::Relation::Game.def()
     }
 
+    /// Declares a `via` join path for related entities.
     fn via() -> Option<RelationDef> {
         Some(game_challenge::Relation::Challenge.def().rev())
     }
@@ -105,6 +153,7 @@ impl Related<game::Entity> for Entity {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
+    /// SeaORM lifecycle hook executed before insert/update.
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {

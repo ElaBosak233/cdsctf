@@ -3,12 +3,13 @@ import { LockIcon, MailIcon, UserRoundIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
-import { getUsers } from "@/api/admin/users";
+import { getUser } from "@/api/admin/users/user_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "./context";
 
 export default function Layout() {
@@ -19,15 +20,14 @@ export default function Layout() {
   const sharedStore = useSharedStore();
   const configStore = useConfigStore();
   const { user_id } = useParams<{ user_id: string }>();
+  const userId = parseRouteNumericId(user_id);
   const { data: user } = useQuery({
-    queryKey: ["admin", "user", user_id, sharedStore.refresh],
+    queryKey: ["admin", "user", userId, sharedStore.refresh],
     queryFn: async () => {
-      const res = await getUsers({
-        id: Number(user_id),
-      });
-      return res?.data?.[0];
+      const res = await getUser({ id: userId! });
+      return res.user;
     },
-    enabled: !!user_id,
+    enabled: userId != null,
     placeholderData: keepPreviousData,
   });
 

@@ -1,3 +1,5 @@
+//! Shared traits and error types for the `media` crate.
+
 use std::io;
 
 use thiserror::Error;

@@ -1,7 +1,9 @@
+//! Shared traits and error types for the `captcha` crate.
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, utoipa::ToSchema)]
 pub struct CaptchaChallenge {
     pub id: String,
     pub challenge: String,
@@ -9,6 +11,7 @@ pub struct CaptchaChallenge {
 }
 
 impl CaptchaChallenge {
+    /// Strips secrets so configuration can be returned to clients.
     pub fn desensitize(self) -> Self {
         Self {
             criteria: None,
@@ -17,7 +20,7 @@ impl CaptchaChallenge {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, utoipa::ToSchema)]
 pub struct Answer {
     pub id: Option<String>,
     pub content: String,

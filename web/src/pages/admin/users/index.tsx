@@ -61,7 +61,7 @@ function useUserQuery(params: GetUsersRequest) {
     ],
     queryFn: () => getUsers(params),
     select: (response) => ({
-      users: response.data || [],
+      users: response.users || [],
       total: response.total || 0,
     }),
     enabled: !!params,
@@ -272,10 +272,6 @@ export default function Index() {
                     "flex flex-col items-center justify-center gap-2"
                   )}
                 >
-                  <UserRoundIcon
-                    className={cn("size-10 opacity-30")}
-                    aria-hidden
-                  />
                   <span>{t("user:empty")}</span>
                 </div>
               </TableCell>

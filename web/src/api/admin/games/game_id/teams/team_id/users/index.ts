@@ -1,5 +1,4 @@
 import type { UserMini } from "@/models/user";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface GetTeamUserRequest {
@@ -10,7 +9,7 @@ export interface GetTeamUserRequest {
 export async function getTeamUser(request: GetTeamUserRequest) {
   return api
     .get(`admin/games/${request.game_id}/teams/${request.team_id}/users`)
-    .json<WebResponse<UserMini[]>>();
+    .json<{ users: UserMini[]; total: number }>();
 }
 
 export interface CreateTeamUserRequest {
@@ -24,7 +23,7 @@ export async function createTeamUser(request: CreateTeamUserRequest) {
     .post(`admin/games/${request.game_id}/teams/${request.team_id}/users`, {
       json: request,
     })
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }
 
 export interface DeleteTeamUserRequest {
@@ -39,5 +38,5 @@ export async function deleteTeamUser(request: DeleteTeamUserRequest) {
       `admin/games/${request.game_id}/teams/${request.team_id}/users/${request.user_id}`,
       { json: request }
     )
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

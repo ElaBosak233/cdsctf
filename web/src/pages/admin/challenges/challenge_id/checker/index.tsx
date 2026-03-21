@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import { LayoutTemplateIcon, SaveIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -64,14 +63,12 @@ export default function Index() {
       id: challenge?.id,
       ...values,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(
-            t("challenge:checker.actions.update_success", {
-              title: challenge?.title,
-            })
-          );
-        }
+      .then(() => {
+        toast.success(
+          t("challenge:checker.actions.update_success", {
+            title: challenge?.title,
+          })
+        );
       })
       .finally(() => {
         sharedStore.setRefresh();
@@ -87,7 +84,7 @@ export default function Index() {
         id: challenge?.id,
         checker: debouncedChecker,
       }).then((res) => {
-        setLint(res.data);
+        setLint(res.markers);
       });
     }
   }, [challenge?.id, debouncedChecker]);

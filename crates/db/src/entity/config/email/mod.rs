@@ -1,7 +1,11 @@
+//! SeaORM `mod` entity — maps the `mod` table and its relations.
+
 use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq)]
+#[derive(
+    Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq, utoipa::ToSchema,
+)]
 pub struct Config {
     pub enabled: bool,
     pub host: String,
@@ -12,13 +16,13 @@ pub struct Config {
     pub whitelist: Vec<String>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default, Eq, PartialEq, utoipa::ToSchema)]
 pub struct Mail {
     pub subject: String,
     pub body: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default, Eq, PartialEq, utoipa::ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum Tls {
     Starttls,
@@ -29,6 +33,7 @@ pub enum Tls {
 }
 
 impl Config {
+    /// Strips secrets so configuration can be returned to clients.
     pub fn desensitize(&self) -> Self {
         Self {
             username: "".to_owned(),
@@ -42,6 +47,7 @@ impl Config {
 }
 
 impl Default for Config {
+    /// Returns the default value for this type.
     fn default() -> Self {
         Self {
             enabled: false,

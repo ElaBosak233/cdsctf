@@ -1,5 +1,4 @@
 import type { Column, ColumnDef, Row } from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
 import {
   AlertCircleIcon,
   ArrowDownIcon,
@@ -101,11 +100,9 @@ function ActionsCell({ row }: { row: Row<User> }) {
     deleteUser({
       id: id!,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(t("user:actions.delete.success", { username }));
-          setDeleteDialogOpen(false);
-        }
+      .then(() => {
+        toast.success(t("user:actions.delete.success", { username }));
+        setDeleteDialogOpen(false);
       })
       .finally(() => {
         sharedStore?.setRefresh();

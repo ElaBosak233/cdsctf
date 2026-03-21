@@ -1,3 +1,6 @@
+//! SeaORM `game_notice` entity — maps the `game_notice` table and its
+//! relations.
+
 use async_trait::async_trait;
 use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
@@ -22,6 +25,7 @@ pub enum Relation {
 }
 
 impl RelationTrait for Relation {
+    /// Returns the [`RelationDef`] for this relation variant.
     fn def(&self) -> RelationDef {
         match self {
             Self::Game => Entity::belongs_to(game::Entity)
@@ -35,6 +39,7 @@ impl RelationTrait for Relation {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
+    /// SeaORM lifecycle hook executed before insert/update.
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {

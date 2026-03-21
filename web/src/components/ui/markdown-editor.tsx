@@ -198,7 +198,7 @@ function MarkdownEditor(props: MarkdownEditorProps) {
 
       try {
         const res = await uploadFile("/api/media", [file]);
-        const hash = res?.data as string | undefined;
+        const hash = (res as { hash?: string } | undefined)?.hash;
         if (!hash) return;
 
         const view = viewRef.current;

@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   ClockFadingIcon,
   HashIcon,
@@ -12,6 +11,7 @@ import {
 import { useContext, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -41,6 +41,7 @@ import type { GameChallenge } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { curve } from "@/utils/math";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
 interface EditDialogProps {
@@ -52,6 +53,8 @@ function EditDialog(props: EditDialogProps) {
   const { onClose, gameChallenge } = props;
   const { t } = useTranslation();
 
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
   const sharedStore = useSharedStore();
 
@@ -125,23 +128,25 @@ function EditDialog(props: EditDialogProps) {
   }
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    const gid = routeGameId ?? game?.id ?? gameChallenge.game_id;
+    const cid = gameChallenge.challenge_id;
+    if (gid == null || cid == null) return;
+
     updateGameChallenge({
-      game_id: game?.id,
-      challenge_id: gameChallenge?.challenge_id,
+      game_id: gid,
+      challenge_id: cid,
       ...values,
       frozen_at: values.frozen_at
         ? Math.floor(values.frozen_at.getTime() / 1000)
         : null,
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
-        toast.success(
-          t("game:challenge.actions.edit_config_success", {
-            title: gameChallenge?.challenge_title,
-          })
-        );
-        sharedStore?.setRefresh();
-        onClose();
-      }
+    }).then(() => {
+      toast.success(
+        t("game:challenge.actions.edit_config_success", {
+          title: gameChallenge?.challenge_title,
+        })
+      );
+      sharedStore?.setRefresh();
+      onClose();
     });
   }
 

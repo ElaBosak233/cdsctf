@@ -1,3 +1,5 @@
+//! Database access for `game_challenge` — SeaORM queries, updates, and DTOs.
+
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
     QueryFilter,
@@ -9,7 +11,9 @@ pub use crate::entity::game_challenge::{ActiveModel, Column, Model, Relation};
 use crate::traits::DbError;
 
 #[allow(dead_code)]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct GameChallenge {
     pub game_id: i64,
     pub challenge_id: i64,
@@ -25,7 +29,9 @@ pub struct GameChallenge {
 }
 
 #[allow(dead_code)]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct GameChallengeMini {
     pub game_id: i64,
     pub challenge_id: i64,
@@ -43,6 +49,7 @@ pub struct FindGameChallengeOptions {
     pub category: Option<i32>,
 }
 
+/// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
     FindGameChallengeOptions {
@@ -78,6 +85,8 @@ where
     Ok((game_challenges, total))
 }
 
+/// Looks up by id.
+
 pub async fn find_by_id<T>(
     conn: &impl ConnectionTrait,
     game_id: i64,
@@ -93,10 +102,12 @@ where
         .await?)
 }
 
+/// Counts rows that match optional filters.
 pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::find().count(conn).await?)
 }
 
+/// Inserts a new row and returns the persisted model.
 pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -114,6 +125,7 @@ where
     )
 }
 
+/// Applies an active model update to the database.
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -131,6 +143,7 @@ where
     )
 }
 
+/// Deletes rows matching the provided identifier or filter.
 pub async fn delete(
     conn: &impl ConnectionTrait,
     game_id: i64,

@@ -1,0 +1,28 @@
+[package]
+name     = "cds-worker"
+resolver = "3"
+
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = { workspace = true }
+repository   = { workspace = true }
+rust-version = { workspace = true }
+version      = { workspace = true }
+
+[dependencies]
+cds-checker = { workspace = true }
+cds-db      = { workspace = true }
+cds-mailbox = { workspace = true }
+cds-queue   = { workspace = true }
+
+anyhow       = { workspace = true }
+futures-util = { workspace = true }
+serde        = { workspace = true }
+serde_json   = { workspace = true }
+time         = { workspace = true }
+tokio        = { workspace = true }
+tracing      = { workspace = true }
+
+[lib]
+path = "src/lib.rs"

@@ -1,8 +1,11 @@
+//! Kubernetes integration — `worker` (cluster operations and helpers).
+
 use cds_db::sea_orm::sqlx::types::time;
 use tracing::info;
 
 use crate::Cluster;
 
+/// Background task that reaps stale resources.
 pub async fn cleaner(cluster: Cluster) {
     tokio::spawn(async move {
         let interval = std::time::Duration::from_secs(10);

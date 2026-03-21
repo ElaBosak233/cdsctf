@@ -1,7 +1,10 @@
+//! Captcha backend — `pow` (verification / challenge generation).
+
 use nanoid::nanoid;
 
 use crate::{Answer, Captcha, CaptchaChallenge, traits::CaptchaError};
 
+/// Produces captcha challenges or dynamic checker environment data.
 pub(crate) async fn generate(c: &Captcha) -> Result<CaptchaChallenge, CaptchaError> {
     let challenge = nanoid!(16);
 
@@ -23,6 +26,7 @@ pub(crate) async fn generate(c: &Captcha) -> Result<CaptchaChallenge, CaptchaErr
     Ok(captcha)
 }
 
+/// Verifies a submitted flag against the checker script.
 pub(crate) async fn check(c: &Captcha, answer: &Answer) -> Result<bool, CaptchaError> {
     let captcha = c
         .cache

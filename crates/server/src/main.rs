@@ -1,25 +1,44 @@
+//! CdsCTF **binary entrypoint**: wires configuration, infrastructure clients,
+//! HTTP router, and workers.
+//!
+//! # Lifecycle
+//!
+//! 1. [`bootstrap`] constructs shared [`AppState`] (database, queue, captcha,
+//!    cluster, …).
+//! 2. [`cds_worker::init`] starts NATS JetStream consumer tasks.
+//! 3. Axum serves HTTP with CORS from config until a shutdown signal arrives.
+//! 4. [`shutdown`] drains the message queue and observability exporters before
+//!    exit.
+
 use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::anyhow;
 use axum::http::HeaderValue;
-use cds_server::{router::router, traits::AppState, worker};
+use cds_web::{router::router, traits::AppState};
 use mimalloc::MiMalloc;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
 
+/// Global allocator: `mimalloc` is chosen for predictable performance under
+/// concurrent load.
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
+/// Tokio entrypoint: builds [`AppState`], starts workers, binds Axum, and
+/// awaits graceful shutdown.
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
+    // Build shared state once; every request handler receives `Arc<AppState>`.
     let state = bootstrap().await?;
 
+    // Reflect allowed browser origins from config into a Tower CORS layer.
     let cors = CorsLayer::new()
         .allow_methods(Any)
         .allow_headers(Any)
         .allow_origin(state.env.server.cors_origins.parse::<HeaderValue>()?);
 
-    worker::init(Arc::clone(&state)).await?;
+    // Long-running background jobs (scores, mail, async checks).
+    cds_worker::init(&state.db, &state.queue, &state.checker, &state.mailbox).await?;
 
     let router = router(Arc::clone(&state))
         .await
@@ -34,6 +53,8 @@ async fn main() -> Result<(), anyhow::Error> {
         &addr
     );
 
+    // `connect_info` enables handlers that need the client socket address (e.g.
+    // auditing).
     axum::serve(
         listener,
         router
@@ -46,6 +67,8 @@ async fn main() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+/// Loads environment, opens external services, runs migrations, and returns
+/// fully populated [`AppState`].
 async fn bootstrap() -> Result<Arc<AppState>, anyhow::Error> {
     let env = cds_env::init().await?;
     cds_observe::init(&env).await?;
@@ -60,6 +83,8 @@ async fn bootstrap() -> Result<Arc<AppState>, anyhow::Error> {
             .replace("{{build_at}}", cds_env::get_build_time())
     );
 
+    // `rustls` needs an explicit default crypto provider when multiple backends are
+    // linked.
     rustls::crypto::ring::default_provider()
         .install_default()
         .map_err(|_| anyhow!("Failed to install `ring` as default crypto provider."))?;
@@ -77,7 +102,7 @@ async fn bootstrap() -> Result<Arc<AppState>, anyhow::Error> {
 
     let cluster = cds_cluster::init(&env, &checker).await?;
 
-    cds_mailbox::init(&db, &queue).await?;
+    let mailbox = cds_mailbox::Mailbox::new(db.clone());
     let captcha = cds_captcha::init(&db, &cache)?;
 
     let state = Arc::from(AppState {
@@ -89,12 +114,15 @@ async fn bootstrap() -> Result<Arc<AppState>, anyhow::Error> {
         captcha,
         cluster,
         media,
+        mailbox,
         queue,
     });
 
     Ok(state)
 }
 
+/// Waits for **Ctrl+C** (all platforms) or **SIGTERM** (Unix), then tears down
+/// background resources.
 async fn shutdown(state: Arc<AppState>) {
     let ctrl_c = async {
         tokio::signal::ctrl_c()

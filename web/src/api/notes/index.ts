@@ -1,5 +1,4 @@
 import type { Note } from "@/models/note";
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface GetNotesRequest {
@@ -10,10 +9,10 @@ export interface GetNotesRequest {
   sorts?: string;
 }
 
-export async function getNotes(request: GetNotesRequest) {
+export async function listNotes(request: GetNotesRequest) {
   return api
     .get(`notes`, {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<Array<Note>>>();
+    .json<{ notes: Note[]; total: number }>();
 }

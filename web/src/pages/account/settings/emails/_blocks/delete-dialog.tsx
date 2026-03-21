@@ -17,15 +17,13 @@ function DeleteDialog(props: DeleteDialogProps) {
   const { t } = useTranslation();
 
   async function handleDelete() {
-    const res = await deleteEmail({
+    await deleteEmail({
       email: email,
     });
 
-    if (res.code === 200) {
-      toast.success(t("user:emails.actions.delete.success", { email }));
-      onClose();
-      bump();
-    }
+    toast.success(t("user:emails.actions.delete.success", { email }));
+    onClose();
+    bump();
   }
 
   return (

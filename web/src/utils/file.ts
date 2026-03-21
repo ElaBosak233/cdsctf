@@ -1,16 +1,15 @@
 import type { Progress } from "ky";
-import type { WebResponse } from "@/types";
 
 export async function uploadFile(
   url: string,
   file: File[],
   onUploadProgress?: (progress: Progress) => void
-): Promise<WebResponse<unknown>> {
+): Promise<unknown> {
   const formData = new FormData();
   for (const f of file) {
     formData.append(f.name, f);
   }
-  return new Promise<WebResponse<unknown>>((resolve, reject) => {
+  return new Promise<unknown>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {

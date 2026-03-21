@@ -10,6 +10,7 @@ import {
 import { MessageCircleIcon, PlusCircleIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router";
 import { getGameNotice } from "@/api/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -27,6 +28,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import type { GameNotice } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
@@ -36,6 +38,8 @@ export default function Index() {
 
   const sharedStore = useSharedStore();
 
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
@@ -76,20 +80,21 @@ export default function Index() {
     void sorting;
     void sharedStore.refresh;
 
-    if (!game) return;
+    const gid = routeGameId ?? game?.id;
+    if (gid == null) return;
 
     setLoading(true);
     getGameNotice({
-      game_id: game.id!,
+      game_id: gid,
     })
       .then((res) => {
         setTotal(res?.total || 0);
-        setNotices(res?.data || []);
+        setNotices(res?.notices || []);
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [sorting, debouncedColumnFilters, sharedStore.refresh, game]);
+  }, [sorting, debouncedColumnFilters, sharedStore.refresh, game, routeGameId]);
 
   return (
     <div

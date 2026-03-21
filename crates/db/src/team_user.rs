@@ -1,3 +1,5 @@
+//! Database access for `team_user` — SeaORM queries, updates, and DTOs.
+
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
     QueryFilter,
@@ -13,7 +15,9 @@ pub(crate) use crate::entity::team_user::{Column, Entity, Relation};
 use crate::traits::DbError;
 
 #[allow(dead_code)]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct TeamUser {
     pub team_id: i64,
     pub user_id: i64,
@@ -25,6 +29,7 @@ pub struct FindTeamUserOptions {
     pub user_id: Option<i64>,
 }
 
+/// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
     FindTeamUserOptions { team_id, user_id }: FindTeamUserOptions,
@@ -47,6 +52,8 @@ where
     Ok((team_users, total))
 }
 
+/// Looks up by id.
+
 pub async fn find_by_id<T>(
     conn: &impl ConnectionTrait,
     team_id: i64,
@@ -62,6 +69,8 @@ where
         .await?)
 }
 
+/// Looks up users.
+
 pub async fn find_users<T>(conn: &impl ConnectionTrait, team_id: i64) -> Result<Vec<T>, DbError>
 where
     T: FromQueryResult, {
@@ -72,6 +81,8 @@ where
         .all(conn)
         .await?)
 }
+
+/// Looks up teams.
 
 pub async fn find_teams<T>(conn: &impl ConnectionTrait, user_id: i64) -> Result<Vec<T>, DbError>
 where
@@ -84,6 +95,7 @@ where
         .await?)
 }
 
+/// Inserts a new row and returns the persisted model.
 pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -99,6 +111,7 @@ where
         })?)
 }
 
+/// Deletes rows matching the provided identifier or filter.
 pub async fn delete(
     conn: &impl ConnectionTrait,
     team_id: i64,
@@ -112,6 +125,8 @@ pub async fn delete(
 
     Ok(())
 }
+
+/// Deletes by team id.
 
 pub async fn delete_by_team_id(conn: &impl ConnectionTrait, team_id: i64) -> Result<(), DbError> {
     Entity::delete_many()

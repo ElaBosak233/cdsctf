@@ -25,7 +25,7 @@ import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { parseErrorResponse } from "@/utils/query";
+import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -64,26 +64,24 @@ export default function Layout() {
 
   async function handleSetReady() {
     try {
-      const res = await setTeamReady({
+      await setTeamReady({
         game_id: currentGame?.id,
         id: selfTeam?.id,
       });
 
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("team:actions.ready.success"), {
-          description: t("team:actions.ready.description", {
-            name: selfTeam?.name,
-          }),
-        });
-        setConfirmDialogOpen(false);
-      }
+      toast.success(t("team:actions.ready.success"), {
+        description: t("team:actions.ready.description", {
+          name: selfTeam?.name,
+        }),
+      });
+      setConfirmDialogOpen(false);
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
-      const res = await parseErrorResponse(error);
+      const body = await parseErrorResponse(error);
 
-      if (res.code === StatusCodes.BAD_REQUEST) {
+      if (error.response.status === StatusCodes.BAD_REQUEST) {
         toast.error(t("common:errors.default"), {
-          description: res.msg,
+          description: formatApiMsg(body.msg),
         });
       }
     }
@@ -95,20 +93,18 @@ export default function Layout() {
   async function handleDisband() {
     if (!selfTeam?.id || !currentGame?.id) return;
     try {
-      const res = await deleteTeam({
+      await deleteTeam({
         team_id: selfTeam.id!,
         game_id: currentGame.id!,
       });
 
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("team:actions.disband.success"), {
-          description: t("team:actions.disband.description", {
-            name: selfTeam?.name,
-          }),
-        });
-        setDisbandDialogOpen(false);
-        navigate(`/games/${currentGame?.id}`);
-      }
+      toast.success(t("team:actions.disband.success"), {
+        description: t("team:actions.disband.description", {
+          name: selfTeam?.name,
+        }),
+      });
+      setDisbandDialogOpen(false);
+      navigate(`/games/${currentGame?.id}`);
     } finally {
       sharedStore.setRefresh();
     }
@@ -119,27 +115,25 @@ export default function Layout() {
   async function handleLeave() {
     if (!selfTeam?.id || !currentGame?.id) return;
     try {
-      const res = await leaveTeam({
+      await leaveTeam({
         team_id: selfTeam.id!,
         game_id: currentGame.id!,
       });
 
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("team:actions.leave.success"), {
-          description: t("team:actions.leave.description", {
-            name: selfTeam?.name,
-          }),
-        });
-        setDisbandDialogOpen(false);
-        navigate(`/games/${currentGame?.id}`);
-      }
+      toast.success(t("team:actions.leave.success"), {
+        description: t("team:actions.leave.description", {
+          name: selfTeam?.name,
+        }),
+      });
+      setDisbandDialogOpen(false);
+      navigate(`/games/${currentGame?.id}`);
     } catch (error) {
       if (!(error instanceof HTTPError)) return;
-      const res = await parseErrorResponse(error);
+      const body = await parseErrorResponse(error);
 
-      if (res.code === StatusCodes.BAD_REQUEST) {
+      if (error.response.status === StatusCodes.BAD_REQUEST) {
         toast.error(t("team:actions.leave.error"), {
-          description: res.msg,
+          description: formatApiMsg(body.msg),
         });
       }
     } finally {

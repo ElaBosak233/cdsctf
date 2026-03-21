@@ -1,3 +1,6 @@
+//! Configuration section — `mod` (loaded via Figment / `CDSCTF_*`).
+
+/// Defines the `rate_limit` submodule (see sibling `*.rs` files).
 mod rate_limit;
 
 use serde::{Deserialize, Serialize};
@@ -13,6 +16,7 @@ pub struct Config {
 }
 
 impl Default for Config {
+    /// Returns the default value for this type.
     fn default() -> Self {
         Config {
             host: "0.0.0.0".to_owned(),

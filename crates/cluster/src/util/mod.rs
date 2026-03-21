@@ -1,3 +1,6 @@
+//! Utility module group for `cluster`.
+
+/// Generates a filesystem- and DNS-safe nanoid string.
 pub fn gen_safe_nanoid() -> String {
     const ALPHABET: [char; 36] = [
         'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',

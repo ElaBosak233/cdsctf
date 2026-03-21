@@ -31,7 +31,7 @@ export default function Index() {
         team_id: selfTeam?.id,
       }),
     enabled: !!currentGame?.id && !!selfTeam?.id,
-    select: (res) => res.data,
+    select: (res) => res.token,
   });
 
   async function handleCreateToken() {
@@ -79,7 +79,7 @@ export default function Index() {
               <TextField
                 readOnly
                 disabled={disabled}
-                value={token && `${selfTeam?.id ?? ""}:${token || ""}`}
+                value={token ? `${selfTeam?.id ?? ""}:${token}` : ""}
                 placeholder={t("team:invite_code.empty")}
                 onChange={() => {}}
               />

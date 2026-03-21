@@ -1,5 +1,4 @@
 import type { GameChallenge } from "@/models/game_challenge";
-import type { WebResponse } from "@/types";
 import { api } from "@/utils/query";
 
 export interface UpdateGameChallengeRequest {
@@ -18,7 +17,7 @@ export async function updateGameChallenge(request: UpdateGameChallengeRequest) {
     .put(`admin/games/${request.game_id}/challenges/${request.challenge_id}`, {
       json: request,
     })
-    .json<WebResponse<GameChallenge>>();
+    .json<{ game_challenge: GameChallenge }>();
 }
 
 export interface DeleteGameChallengeRequest {
@@ -32,5 +31,5 @@ export async function deleteGameChallenge(request: DeleteGameChallengeRequest) {
       `admin/games/${request.game_id}/challenges/${request.challenge_id}`,
       { json: request }
     )
-    .json<WebResponse<never>>();
+    .json<Record<string, never>>();
 }

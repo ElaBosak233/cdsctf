@@ -3,7 +3,7 @@ import { ChevronLeftIcon, LightbulbIcon, PencilLineIcon } from "lucide-react";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { getNotes } from "@/api/notes";
+import { listNotes } from "@/api/notes";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MarkdownRender } from "@/components/ui/markdown-render";
@@ -15,19 +15,24 @@ import { cn } from "@/utils";
 import { Context } from "../context";
 
 function useNotesQuery(
-  challengeId?: number,
+  challengeId: number | undefined,
   page: number = 1,
   size: number = 10
 ) {
   return useQuery({
-    queryKey: ["note", `challenge_id=${challengeId}`],
+    queryKey: ["public_notes", challengeId, page, size],
     queryFn: () =>
-      getNotes({ challenge_id: challengeId, page, size, sorts: "-updated_at" }),
+      listNotes({
+        challenge_id: challengeId!,
+        page,
+        size,
+        sorts: "-updated_at",
+      }),
     select: (response) => ({
-      notes: response.data || [],
+      notes: response.notes || [],
       total: response.total || 0,
     }),
-    enabled: !!challengeId,
+    enabled: challengeId != null && Number.isFinite(challengeId),
   });
 }
 

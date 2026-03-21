@@ -29,7 +29,7 @@ import { TextField } from "@/components/ui/text-field";
 import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { parseErrorResponse } from "@/utils/query";
+import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 
 function RegisterForm() {
   const configStore = useConfigStore();
@@ -79,30 +79,29 @@ function RegisterForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
-      const res = await register({
+      await register({
         ...values,
       });
 
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("account:register.toast.success._"), {
-          id: "register-success",
-          description: t("account:register.toast.success.desc"),
-        });
-        navigate("/account/login");
-      }
+      toast.success(t("account:register.toast.success._"), {
+        id: "register-success",
+        description: t("account:register.toast.success.desc"),
+      });
+      navigate("/account/login");
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
-      const res = await parseErrorResponse(error);
+      const status = error.response.status;
+      const body = await parseErrorResponse(error);
 
-      if (res.code === StatusCodes.BAD_REQUEST) {
-        toast.success(t("account:register.toast.failure._"), {
+      if (status === StatusCodes.BAD_REQUEST) {
+        toast.error(t("account:register.toast.failure._"), {
           id: "register-error",
-          description: res.msg,
+          description: formatApiMsg(body.msg),
         });
       }
 
-      if (res.code === StatusCodes.CONFLICT) {
-        toast.success(t("account:register.toast.failure._"), {
+      if (status === StatusCodes.CONFLICT) {
+        toast.error(t("account:register.toast.failure._"), {
           id: "register-error",
           description: t("account:register.toast.failure.conflict"),
         });

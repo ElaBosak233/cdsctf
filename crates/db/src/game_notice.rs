@@ -1,3 +1,5 @@
+//! Database access for `game_notice` — SeaORM queries, updates, and DTOs.
+
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, QueryFilter,
 };
@@ -7,7 +9,9 @@ pub use crate::entity::game_notice::{ActiveModel, Model};
 pub(crate) use crate::entity::game_notice::{Column, Entity};
 use crate::traits::DbError;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct GameNotice {
     pub id: i64,
     pub game_id: i64,
@@ -15,6 +19,8 @@ pub struct GameNotice {
     pub content: String,
     pub created_at: i64,
 }
+
+/// Looks up by id.
 
 pub async fn find_by_id<T>(
     conn: &impl ConnectionTrait,
@@ -30,6 +36,8 @@ where
         .await?)
 }
 
+/// Looks up by game id.
+
 pub async fn find_by_game_id<T>(
     conn: &impl ConnectionTrait,
     game_id: i64,
@@ -43,6 +51,7 @@ where
         .await?)
 }
 
+/// Inserts a new row and returns the persisted model.
 pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -53,6 +62,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("game_notice_{}", game_notice.id)))?)
 }
 
+/// Deletes rows matching the provided identifier or filter.
 pub async fn delete(
     conn: &impl ConnectionTrait,
     notice_id: i64,

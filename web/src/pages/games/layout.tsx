@@ -3,7 +3,7 @@ import { Outlet } from "react-router";
 import type { GameMini } from "@/models/game";
 import Entrance from "./_blocks/entrance";
 
-export default function () {
+export default function GamesLayout() {
   const [entranceGame, setEntranceGame] = useState<GameMini | undefined>(
     undefined
   );

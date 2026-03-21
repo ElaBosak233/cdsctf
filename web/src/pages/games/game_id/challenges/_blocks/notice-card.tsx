@@ -14,14 +14,16 @@ import { cn } from "@/utils";
 function NoticeCard() {
   const { t } = useTranslation();
   const { currentGame } = useGameStore();
+  const gameId = currentGame?.id;
   const { data: gameNotices } = useQuery({
-    queryKey: ["game_notices", currentGame?.id],
+    queryKey: ["game_notices", gameId],
     queryFn: () =>
       getGameNotice({
-        game_id: currentGame?.id,
+        game_id: gameId!,
       }),
-    select: (response) => response.data,
+    select: (response) => response.notices,
     refetchInterval: 15000,
+    enabled: gameId != null,
   });
 
   return (

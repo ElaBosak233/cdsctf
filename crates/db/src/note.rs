@@ -1,3 +1,5 @@
+//! Database access for `note` — SeaORM queries, updates, and DTOs.
+
 use std::str::FromStr;
 
 use sea_orm::{
@@ -10,7 +12,9 @@ pub use crate::entity::note::ActiveModel;
 pub(crate) use crate::entity::note::{Column, Entity};
 use crate::{sea_orm, sea_orm::FromQueryResult, traits::DbError};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct Note {
     pub id: i64,
     pub content: String,
@@ -36,6 +40,7 @@ pub struct FindNotesOptions {
     pub sorts: Option<String>,
 }
 
+/// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
     FindNotesOptions {
@@ -95,6 +100,8 @@ where
     Ok((notes, total))
 }
 
+/// Looks up by id.
+
 pub async fn find_by_id<T>(
     conn: &impl ConnectionTrait,
     note_id: i64,
@@ -107,6 +114,8 @@ where
         .one(conn)
         .await?)
 }
+
+/// Looks up by user id and challenge id.
 
 pub async fn find_by_user_id_and_challenge_id<T>(
     conn: &impl ConnectionTrait,
@@ -123,6 +132,7 @@ where
         .await?)
 }
 
+/// Inserts a new row and returns the persisted model.
 pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -133,6 +143,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("note_{}", note.id)))?)
 }
 
+/// Applies an active model update to the database.
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -143,6 +154,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("note_{}", note.id)))?)
 }
 
+/// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, note_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(note_id).exec(conn).await?;
 

@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import {
   BadgeCheckIcon,
   InfoIcon,
@@ -56,7 +55,7 @@ export default function Index() {
 
   useEffect(() => {
     getConfigs().then((res) => {
-      setConfig(res.data);
+      setConfig(res.config);
     });
   }, []);
 
@@ -91,10 +90,8 @@ export default function Index() {
     updateConfig({
       ...config,
       ...values,
-    }).then((res) => {
-      if (res.code === StatusCodes.OK) {
-        toast.success(t("admin:platform.actions.update.success"));
-      }
+    }).then(() => {
+      toast.success(t("admin:platform.actions.update.success"));
     });
   }
 
@@ -137,10 +134,8 @@ export default function Index() {
   });
 
   async function handleLogoDelete() {
-    const res = await deleteLogo();
-    if (res.code === StatusCodes.OK) {
-      toast.success(t("admin:platform.logo_reset.success"));
-    }
+    await deleteLogo();
+    toast.success(t("admin:platform.logo_reset.success"));
     bump();
   }
 

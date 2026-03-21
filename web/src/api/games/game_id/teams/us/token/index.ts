@@ -1,4 +1,3 @@
-import type { WebResponse } from "@/types";
 import { api, toSearchParams } from "@/utils/query";
 
 export interface CreateTokenRequest {
@@ -11,7 +10,7 @@ export async function createToken(request: CreateTokenRequest) {
     .post(`games/${request.game_id}/teams/us/token`, {
       json: request,
     })
-    .json<WebResponse<string>>();
+    .json<{ token: string | null }>();
 }
 
 export interface GetTokenRequest {
@@ -24,7 +23,7 @@ export async function getToken(request: GetTokenRequest) {
     .get(`games/${request.game_id}/teams/us/token`, {
       searchParams: toSearchParams(request),
     })
-    .json<WebResponse<string>>();
+    .json<{ token: string | null }>();
 }
 
 export interface DeleteTokenRequest {
@@ -35,5 +34,5 @@ export interface DeleteTokenRequest {
 export async function deleteToken(request: DeleteTokenRequest) {
   return api
     .post(`games/${request.game_id}/teams/us/token`, { json: request })
-    .json<WebResponse<string>>();
+    .json<{ token: string | null }>();
 }

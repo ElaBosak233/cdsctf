@@ -12,6 +12,7 @@ use ring::{
 };
 use uuid::Uuid;
 
+/// Derives symmetric keys from a passphrase string.
 fn derive_keys_from_string(key: &str) -> ([u8; 16], [u8; 32]) {
     let salt = Salt::new(HKDF_SHA256, b"uuid");
     let prk = salt.extract(key.as_bytes());
@@ -138,9 +139,11 @@ pub fn decode(payload: &str, key: &str) -> Result<i64, anyhow::Error> {
 }
 
 #[cfg(test)]
+/// Unit tests for the SUID encoder/decoder helpers.
 mod tests {
     const KEY: &str = "Fr1endShip1sM4g1c";
 
+    /// Exercises `encode`/`decode` across several years (smoke test).
     #[test]
     pub fn test() {
         let mut payloads: Vec<String> = Vec::new();

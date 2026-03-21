@@ -1,7 +1,11 @@
+//! SeaORM `turnstile` entity — maps the `turnstile` table and its relations.
+
 use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq)]
+#[derive(
+    Clone, Debug, Serialize, Deserialize, FromJsonQueryResult, Eq, PartialEq, utoipa::ToSchema,
+)]
 pub struct Config {
     pub url: String,
     pub secret_key: String,
@@ -9,6 +13,7 @@ pub struct Config {
 }
 
 impl Config {
+    /// Strips secrets so configuration can be returned to clients.
     pub fn desensitize(&self) -> Self {
         Self {
             secret_key: "".to_owned(),
@@ -18,6 +23,7 @@ impl Config {
 }
 
 impl Default for Config {
+    /// Returns the default value for this type.
     fn default() -> Self {
         Self {
             url: "https://challenges.cloudflare.com/turnstile/v0/siteverify".to_owned(),

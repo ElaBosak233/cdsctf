@@ -1,8 +1,8 @@
 import type { ColumnDef, Row } from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
 import { TrashIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 import { deleteGameNotice } from "@/api/admin/games/game_id/notices";
 import { Badge } from "@/components/ui/badge";
@@ -13,28 +13,34 @@ import { ContentDialog } from "@/components/widgets/content-dialog";
 import type { GameNotice } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseRouteNumericId } from "@/utils/query";
+import { Context } from "../../context";
 
 function ActionsCell({ row }: { row: Row<GameNotice> }) {
   const { t } = useTranslation();
 
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
+  const { game } = useContext(Context);
   const sharedStore = useSharedStore();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
   function handleDelete() {
+    const gid = routeGameId ?? game?.id ?? row.original.game_id;
+    if (gid == null || row.original.id == null) return;
+
     deleteGameNotice({
-      game_id: row.original.game_id,
+      game_id: gid,
       id: row.original.id,
     })
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          toast.success(
-            t("game:notice.actions.delete.success", {
-              title: row.original.title,
-            })
-          );
-          setDeleteDialogOpen(false);
-        }
+      .then(() => {
+        toast.success(
+          t("game:notice.actions.delete.success", {
+            title: row.original.title,
+          })
+        );
+        setDeleteDialogOpen(false);
       })
       .finally(() => {
         sharedStore?.setRefresh();

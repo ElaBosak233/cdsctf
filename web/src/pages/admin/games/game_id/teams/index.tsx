@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import React, { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router";
 import { getTeams } from "@/api/admin/games/game_id/teams";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -36,6 +37,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { State, type Team } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
 import { ExpandedCard } from "./_blocks/expanded-card";
@@ -45,6 +47,8 @@ export default function Index() {
 
   const sharedStore = useSharedStore();
 
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
 
   const [total, setTotal] = useState<number>(0);
@@ -99,11 +103,12 @@ export default function Index() {
     void sorting;
     void sharedStore.refresh;
 
-    if (!game) return;
+    const gid = routeGameId ?? game?.id;
+    if (gid == null) return;
 
     setLoading(true);
     getTeams({
-      game_id: game.id!,
+      game_id: gid,
       id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
       name: debouncedColumnFilters.find((c) => c.id === "name")
         ?.value as string,
@@ -117,12 +122,20 @@ export default function Index() {
     })
       .then((res) => {
         setTotal(res?.total || 0);
-        setTeams(res?.data || []);
+        setTeams(res?.teams || []);
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [page, size, sorting, debouncedColumnFilters, sharedStore.refresh, game]);
+  }, [
+    page,
+    size,
+    sorting,
+    debouncedColumnFilters,
+    sharedStore.refresh,
+    game,
+    routeGameId,
+  ]);
 
   return (
     <div

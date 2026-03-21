@@ -1,16 +1,52 @@
+//! Database access with SeaORM: PostgreSQL connection, entities, and query
+//! helpers.
+//!
+//! [`DB`] is the shared handle passed through the HTTP server’s application
+//! state. [`init`] configures pool size and timeouts from the application
+//! environment. [`get_config`] returns the cached singleton row of platform
+//! settings (title, email, captcha, …).
+
+/// Defines the `challenge` submodule (see sibling `*.rs` files).
 pub mod challenge;
+
+/// Defines the `config` submodule (see sibling `*.rs` files).
 pub mod config;
+
+/// Defines the `email` submodule (see sibling `*.rs` files).
 pub mod email;
+
+/// SeaORM entity models (internal to `cds-db`, re-exported selectively via `pub
+/// use`).
 pub(crate) mod entity;
+
+/// Defines the `game` submodule (see sibling `*.rs` files).
 pub mod game;
+
+/// Defines the `game_challenge` submodule (see sibling `*.rs` files).
 pub mod game_challenge;
+
+/// Defines the `game_notice` submodule (see sibling `*.rs` files).
 pub mod game_notice;
+
+/// Defines the `note` submodule (see sibling `*.rs` files).
 pub mod note;
+
+/// Defines the `submission` submodule (see sibling `*.rs` files).
 pub mod submission;
+
+/// Defines the `team` submodule (see sibling `*.rs` files).
 pub mod team;
+
+/// Defines the `team_user` submodule (see sibling `*.rs` files).
 pub mod team_user;
+
+/// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
+
+/// Defines the `user` submodule (see sibling `*.rs` files).
 pub mod user;
+
+/// Defines the `util` submodule (see sibling `*.rs` files).
 pub mod util;
 
 use std::time::Duration;
@@ -31,11 +67,15 @@ use tracing::{info, log};
 pub use traits::DbError;
 pub use user::{User, UserMini};
 
+/// Shared database connection (actually a connection pool managed by SeaORM /
+/// SQLx).
 #[derive(Clone, Debug)]
 pub struct DB {
     pub conn: DatabaseConnection,
 }
 
+/// Opens PostgreSQL using credentials in `env.db` and applies conservative pool
+/// limits.
 pub async fn init(env: &Env) -> Result<DB, DbError> {
     let url = format!(
         "postgres://{}:{}@{}:{}/{}",
@@ -58,6 +98,8 @@ pub async fn init(env: &Env) -> Result<DB, DbError> {
     Ok(DB { conn: db })
 }
 
+/// Loads the platform configuration row; panics if missing (migrations should
+/// always seed one).
 pub async fn get_config(conn: &impl ConnectionTrait) -> Config {
     config::get(conn)
         .await

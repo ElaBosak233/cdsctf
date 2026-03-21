@@ -19,12 +19,12 @@ import type { ScoreRecord } from "@/models/game";
 import { cn } from "@/utils";
 
 const COLORS = [
-  "#ff4d4f", // 红
-  "#1890ff", // 蓝
-  "#52c41a", // 绿
-  "#faad14", // 金黄
-  "#722ed1", // 紫
-  "#13c2c2", // 青
+  "#ff4d4f", // red
+  "#1890ff", // blue
+  "#52c41a", // green
+  "#faad14", // gold
+  "#722ed1", // purple
+  "#13c2c2", // cyan
 ];
 
 interface ChampionChartProps {
@@ -43,7 +43,7 @@ function ChampionChart(props: ChampionChartProps) {
       pts: number;
     }> = [];
 
-    // 收集所有 submission
+    // Flatten all submissions from the scoreboard payload.
     scoreboard.forEach((record) => {
       const team = record?.team;
       const submissions = record?.submissions;
@@ -58,7 +58,7 @@ function ChampionChart(props: ChampionChartProps) {
       });
     });
 
-    // 时间排序
+    // Sort by event time for a proper timeline.
     allSubmissions.sort((a, b) => a.ts - b.ts);
 
     const cumulativeScores: Record<number, number> = {};
@@ -69,7 +69,7 @@ function ChampionChart(props: ChampionChartProps) {
 
       result.push({
         ts,
-        [teamId]: cumulativeScores[teamId], // 只更新当前队伍的累计值
+        [teamId]: cumulativeScores[teamId], // cumulative score for this team at this timestamp
       });
     });
 

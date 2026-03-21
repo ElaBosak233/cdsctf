@@ -1,3 +1,5 @@
+//! Database access for `user` — SeaORM queries, updates, and DTOs.
+
 use std::{fmt::Debug, str::FromStr};
 
 use sea_orm::{
@@ -14,7 +16,9 @@ pub(crate) use crate::entity::user::{Column, Entity};
 use crate::{Email, traits::DbError};
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct User {
     pub id: i64,
     pub name: String,
@@ -23,6 +27,7 @@ pub struct User {
     pub group: Group,
     pub description: Option<String>,
     #[serde(skip_serializing)]
+    #[schema(ignore)]
     pub hashed_password: String,
     pub has_avatar: bool,
     pub created_at: i64,
@@ -30,7 +35,9 @@ pub struct User {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
 pub struct UserMini {
     pub id: i64,
     pub name: String,
@@ -48,6 +55,7 @@ pub struct FindUserOptions {
     pub sorts: Option<String>,
 }
 
+/// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
     FindUserOptions {
@@ -108,6 +116,8 @@ where
     Ok((users, total))
 }
 
+/// Looks up by id.
+
 pub async fn find_by_id<T>(
     conn: &impl ConnectionTrait,
     user_id: i64,
@@ -121,6 +131,8 @@ where
         .one(conn)
         .await?)
 }
+
+/// Looks up by account.
 
 pub async fn find_by_account<T>(
     conn: &impl ConnectionTrait,
@@ -168,6 +180,8 @@ where
         .await?)
 }
 
+/// Looks up by email.
+
 pub async fn find_by_email<T>(
     conn: &impl ConnectionTrait,
     email: String,
@@ -201,12 +215,15 @@ where
         .await?)
 }
 
+/// Counts rows that match optional filters.
 pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::find()
         .filter(Column::DeletedAt.is_null())
         .count(conn)
         .await?)
 }
+
+/// Returns whether is username unique.
 
 pub async fn is_username_unique(
     conn: &impl ConnectionTrait,
@@ -221,12 +238,15 @@ pub async fn is_username_unique(
     Ok(user.map(|u| u.id == user_id).unwrap_or(true))
 }
 
+/// Returns whether is email unique.
+
 pub async fn is_email_unique(conn: &impl ConnectionTrait, email: &str) -> Result<bool, DbError> {
     Ok(crate::email::find_by_email::<Email>(conn, email.to_owned())
         .await?
         .is_none())
 }
 
+/// Inserts a new row and returns the persisted model.
 pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -237,6 +257,7 @@ where
         .ok_or_else(|| DbError::NotFound(format!("user_{}", user.id)))?)
 }
 
+/// Applies an active model update to the database.
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
@@ -246,6 +267,8 @@ where
         .await?
         .ok_or_else(|| DbError::NotFound(format!("user_{}", user.id)))?)
 }
+
+/// Updates password.
 
 pub async fn update_password(
     conn: &impl ConnectionTrait,
@@ -265,6 +288,7 @@ pub async fn update_password(
     Ok(())
 }
 
+/// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, user_id: i64) -> Result<(), DbError> {
     let user = find_by_id::<Model>(conn, user_id)
         .await?

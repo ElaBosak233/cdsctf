@@ -1,5 +1,4 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
 import {
   BanIcon,
   CheckCheckIcon,
@@ -10,7 +9,7 @@ import {
 } from "lucide-react";
 import { useContext } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import { updateTeam } from "@/api/admin/games/game_id/teams/team_id";
 import { Avatar } from "@/components/ui/avatar";
@@ -24,13 +23,17 @@ import {
 import { State, type Team } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
 function useColumns(): Array<ColumnDef<Team>> {
   const { t } = useTranslation();
 
   const sharedStore = useSharedStore();
+  const { game_id } = useParams<{ game_id: string }>();
+  const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
+  const resolvedGameId = routeGameId ?? game?.id;
 
   return [
     {
@@ -52,12 +55,16 @@ function useColumns(): Array<ColumnDef<Team>> {
       header: t("team:name"),
       cell: ({ row }) => {
         const name = row.original.name!;
+        const gid = row.original.game_id ?? resolvedGameId;
+        const tid = row.original.id;
         return (
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <Avatar
               src={
                 row.original.has_avatar &&
-                `/api/games/${row.original.game_id}/teams/${row.original?.id}/avatar`
+                gid != null &&
+                tid != null &&
+                `/api/games/${gid}/teams/${tid}/avatar`
               }
               fallback={name.charAt(0)}
             />
@@ -139,10 +146,14 @@ function useColumns(): Array<ColumnDef<Team>> {
                     size={"sm"}
                     variant={"ghost"}
                     square
-                    disabled={!has_writeup}
+                    disabled={!has_writeup || resolvedGameId == null}
                   >
                     <Link
-                      to={`/api/admin/games/${game.id}/teams/${row.original.id}/writeup`}
+                      to={
+                        resolvedGameId != null
+                          ? `/api/admin/games/${resolvedGameId}/teams/${row.original.id}/writeup`
+                          : "#"
+                      }
                       target={"_blank"}
                     >
                       <FileCheck2Icon />
@@ -167,17 +178,18 @@ function useColumns(): Array<ColumnDef<Team>> {
         const state = row.original.state;
 
         function handleStateChange(state: State) {
+          const gid = game_id ?? resolvedGameId;
+          if (gid == null || id == null) return;
+
           updateTeam({
-            team_id: id!,
-            game_id: game_id!,
+            team_id: id,
+            game_id: gid,
             state,
           })
-            .then((res) => {
-              if (res.code === StatusCodes.OK) {
-                toast.success(
-                  t("game:team.actions.message", { name: row.original.name })
-                );
-              }
+            .then(() => {
+              toast.success(
+                t("game:team.actions.message", { name: row.original.name })
+              );
             })
             .finally(() => {
               sharedStore?.setRefresh();

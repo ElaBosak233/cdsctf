@@ -1,3 +1,5 @@
+//! Redis cache helpers — `session`.
+
 use std::fmt::Debug;
 
 use async_trait::async_trait;
@@ -28,6 +30,7 @@ pub enum RedisStoreError {
 }
 
 impl From<RedisStoreError> for session_store::Error {
+    /// Converts from the input into `Self`.
     fn from(err: RedisStoreError) -> Self {
         match err {
             RedisStoreError::Redis(inner) => session_store::Error::Backend(inner.to_string()),
@@ -44,6 +47,7 @@ pub struct RedisStore {
 }
 
 impl RedisStore {
+    /// Constructs a new value.
     pub fn new(cache: Cache) -> Self {
         Self {
             client: cache.client.clone(),
@@ -51,12 +55,15 @@ impl RedisStore {
         }
     }
 
+    /// Prefixes a logical key with the configured bucket prefix.
     pub fn with_prefix(cache: Cache, prefix: String) -> Self {
         Self {
             client: cache.client.clone(),
             prefix: Some(prefix),
         }
     }
+
+    /// Returns key.
 
     fn get_key(&self, id: &Id) -> String {
         if let Some(prefix) = &self.prefix {
@@ -66,6 +73,7 @@ impl RedisStore {
         }
     }
 
+    /// Persists a session record with Redis `SET` options.
     async fn save_with_options(
         &self,
         record: &Record,
@@ -93,6 +101,7 @@ impl RedisStore {
 
 #[async_trait]
 impl SessionStore for RedisStore {
+    /// Inserts a new row and returns the persisted model.
     async fn create(&self, record: &mut Record) -> session_store::Result<()> {
         loop {
             if !self.save_with_options(record, Some(SetOptions::NX)).await? {
@@ -104,11 +113,13 @@ impl SessionStore for RedisStore {
         Ok(())
     }
 
+    /// Persists the current value to the backing store.
     async fn save(&self, record: &Record) -> session_store::Result<()> {
         self.save_with_options(record, Some(SetOptions::XX)).await?;
         Ok(())
     }
 
+    /// Loads a value from the backing store.
     async fn load(&self, session_id: &Id) -> session_store::Result<Option<Record>> {
         let data = self
             .client
@@ -125,6 +136,7 @@ impl SessionStore for RedisStore {
         }
     }
 
+    /// Deletes rows matching the provided identifier or filter.
     async fn delete(&self, session_id: &Id) -> session_store::Result<()> {
         let _: () = self
             .client

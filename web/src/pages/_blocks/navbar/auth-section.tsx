@@ -1,4 +1,3 @@
-import { StatusCodes } from "http-status-codes";
 import { LogOutIcon, SettingsIcon, UserRoundIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
@@ -23,10 +22,8 @@ function AuthSection() {
 
   function handleLogout() {
     logout()
-      .then((res) => {
-        if (res.code === StatusCodes.OK) {
-          navigate("/account/login");
-        }
+      .then(() => {
+        navigate("/account/login");
       })
       .finally(() => {
         authStore.setUser(undefined);

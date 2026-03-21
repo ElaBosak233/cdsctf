@@ -18,6 +18,7 @@ rune         = { workspace = true }
 rune-modules = { workspace = true }
 serde        = { workspace = true }
 thiserror    = { workspace = true }
+utoipa       = { workspace = true }
 time         = { workspace = true }
 tokio        = { workspace = true }
 tracing      = { workspace = true }

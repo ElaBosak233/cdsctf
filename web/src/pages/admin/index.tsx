@@ -13,7 +13,7 @@ function useStatisticsQuery() {
   return useQuery({
     queryKey: ["statistics"],
     queryFn: () => getStatistics(),
-    select: (response) => response.data,
+    select: (response) => response.statistics,
     placeholderData: keepPreviousData,
   });
 }
