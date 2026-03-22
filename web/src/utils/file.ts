@@ -1,5 +1,16 @@
 import type { Progress } from "ky";
 
+function parseXHRResponse(xhr: XMLHttpRequest): unknown {
+  const text = xhr.responseText;
+  if (!text) return undefined;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
 export async function uploadFile(
   url: string,
   file: File[],
@@ -21,10 +32,11 @@ export async function uploadFile(
       }
     };
     xhr.onloadend = () => {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        resolve(JSON.parse(xhr.responseText));
+      const payload = parseXHRResponse(xhr);
+      if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300) {
+        resolve(payload);
       } else {
-        reject(JSON.parse(xhr.responseText));
+        reject(payload);
       }
     };
     xhr.open("POST", url, true);

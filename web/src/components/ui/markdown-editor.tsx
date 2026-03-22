@@ -19,6 +19,43 @@ type MarkdownEditorProps = Omit<EditorProps, "lang"> & {
   toolbarClassName?: string;
 };
 
+function resolveMediaMarkdown(response: unknown): string | null {
+  if (!response || typeof response !== "object") return null;
+
+  const candidate = response as {
+    hash?: string;
+    url?: string;
+    media?: { hash?: string; url?: string };
+    data?: {
+      hash?: string;
+      url?: string;
+      media?: { hash?: string; url?: string };
+    };
+  };
+
+  const hash =
+    candidate.hash ??
+    candidate.media?.hash ??
+    candidate.data?.hash ??
+    candidate.data?.media?.hash;
+
+  if (typeof hash === "string" && hash.length > 0) {
+    return `![${hash}](/api/media?hash=${hash})`;
+  }
+
+  const url =
+    candidate.url ??
+    candidate.media?.url ??
+    candidate.data?.url ??
+    candidate.data?.media?.url;
+
+  if (typeof url === "string" && url.length > 0) {
+    return `![image](${url})`;
+  }
+
+  return null;
+}
+
 const toolbarItems = [
   {
     key: "heading",
@@ -198,11 +235,10 @@ function MarkdownEditor(props: MarkdownEditorProps) {
 
       try {
         const res = await uploadFile("/api/media", [file]);
-        const hash = (res as { hash?: string } | undefined)?.hash;
-        if (!hash) return;
+        const replacement = resolveMediaMarkdown(res);
+        if (!replacement) return;
 
         const view = viewRef.current;
-        const replacement = `![${hash}](/api/media?hash=${hash})`;
         if (view) {
           const safeFrom = Math.min(from, view.state.doc.length);
           const safeTo = Math.min(to, view.state.doc.length);
