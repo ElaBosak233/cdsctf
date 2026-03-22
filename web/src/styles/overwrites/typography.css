@@ -62,7 +62,10 @@ code[data-theme] span {
   overflow-x: auto;
 }
 
-.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+.prose
+  :where(code):not(:where(pre code, pre code *)):not(
+    :where([class~="not-prose"], [class~="not-prose"] *)
+  ) {
   color: var(--tw-prose-code);
   background-color: color-mix(
     in oklab,
@@ -77,14 +80,14 @@ code[data-theme] span {
 }
 
 .prose
-  :where(code):not(
+  :where(code):not(:where(pre code, pre code *)):not(
     :where([class~="not-prose"], [class~="not-prose"] *)
   )::before {
   content: "";
 }
 
 .prose
-  :where(code):not(
+  :where(code):not(:where(pre code, pre code *)):not(
     :where([class~="not-prose"], [class~="not-prose"] *)
   )::after {
   content: "";
