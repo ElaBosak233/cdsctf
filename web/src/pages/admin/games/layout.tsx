@@ -4,17 +4,13 @@ import {
   FilterIcon,
   FlagIcon,
   HashIcon,
-  ListOrderedIcon,
   PlusCircleIcon,
   TypeIcon,
 } from "lucide-react";
-import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
-import { Pagination } from "@/components/ui/pagination";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
@@ -31,15 +27,8 @@ function setFilter(
 
 export default function Layout() {
   const { t } = useTranslation();
-  const location = useLocation();
-  const pathname = location.pathname;
-  const isListPage =
-    pathname === "/admin/games" || pathname === "/admin/games/";
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
-  const [total, setTotal] = useState(0);
   const [columnFilters, setColumnFiltersState] = useState<ColumnFiltersState>([
     { id: "enabled", value: "all" },
   ]);
@@ -59,12 +48,6 @@ export default function Layout() {
     setCreateDialogOpen,
     columnFilters,
     setColumnFilters,
-    page,
-    setPage,
-    size,
-    setSize,
-    total,
-    setTotal,
   };
 
   const idValue =
@@ -146,49 +129,8 @@ export default function Layout() {
           />
         </Field>
       </div>
-      <div className={cn("flex-1 min-h-4")} />
-      <div className={cn("flex flex-col gap-2 shrink-0 border-t pt-4")}>
-        <div
-          className={cn(
-            "flex items-center gap-2 text-muted-foreground text-xs font-medium"
-          )}
-        >
-          <ListOrderedIcon className="size-3.5" />
-          {t("common:pagination._")}
-        </div>
-        <Field size="sm">
-          <FieldIcon>
-            <ListOrderedIcon className="size-4" />
-          </FieldIcon>
-          <Select
-            options={[
-              { value: "10" },
-              { value: "20" },
-              { value: "40" },
-              { value: "60" },
-            ]}
-            value={String(size)}
-            onValueChange={(v) => setSize(Number(v))}
-          />
-        </Field>
-        <p className={cn("text-xs text-muted-foreground")}>
-          {total} {t("common:pagination.items")}
-        </p>
-        <Pagination
-          size="sm"
-          value={page}
-          total={Math.ceil(total / size) || 1}
-          onChange={setPage}
-        />
-      </div>
     </>
   );
 
-  return (
-    <AdminListLayout
-      isListPage={isListPage}
-      value={isListPage ? listContextValue : null}
-      sidebar={sidebar}
-    />
-  );
+  return <AdminListLayout value={listContextValue} sidebar={sidebar} />;
 }

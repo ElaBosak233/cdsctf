@@ -6,7 +6,13 @@ import {
   SettingsIcon,
   TrashIcon,
 } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
+import {
+  useContext,
+  useMemo,
+  useOptimistic,
+  useState,
+  useTransition,
+} from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
@@ -38,41 +44,40 @@ function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
   const { game_id } = useParams<{ game_id: string }>();
   const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
-  const isEnabled = row.original.enabled;
   const title = row.original.challenge_title;
   const challenge_id = row.original.challenge_id;
-  const [checked, setChecked] = useState(isEnabled);
+  const [isPending, startTransition] = useTransition();
+  const [isEnabled, setIsEnabled] = useState(row.original.enabled);
+  const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(isEnabled);
 
   function handlePublicnessChange() {
     const gid = routeGameId ?? game?.id ?? row.original.game_id;
     if (gid == null || challenge_id == null) return;
 
-    const newValue = !checked;
-    setChecked(newValue);
-
-    updateGameChallenge({
-      game_id: gid,
-      challenge_id,
-      enabled: newValue,
-    }).then(() => {
-      {
-        const enabledLabel = newValue
-          ? t("game:enabled.true")
-          : t("game:enabled.false");
-        toast.success(
-          t("game:challenge.enabled.toast", { enabled: enabledLabel, title }),
-          {
-            id: "publicness_change",
-          }
-        );
-      }
+    const newValue = !optimisticEnabled;
+    startTransition(async () => {
+      setOptimisticEnabled(newValue);
+      await updateGameChallenge({
+        game_id: gid,
+        challenge_id,
+        enabled: newValue,
+      });
+      setIsEnabled(newValue);
+      const enabledLabel = newValue
+        ? t("game:enabled.true")
+        : t("game:enabled.false");
+      toast.success(
+        t("game:challenge.enabled.toast", { enabled: enabledLabel, title }),
+        { id: "publicness_change" }
+      );
     });
   }
 
   return (
     <Switch
-      checked={checked}
+      checked={optimisticEnabled}
       onCheckedChange={handlePublicnessChange}
+      disabled={isPending}
       aria-label={t("game:challenge.enabled.aria_label")}
     />
   );

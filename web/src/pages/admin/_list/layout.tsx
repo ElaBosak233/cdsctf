@@ -5,26 +5,16 @@ import { cn } from "@/utils";
 import { AdminListContext, type AdminListContextValue } from "./context";
 
 export type AdminListLayoutProps = {
-  isListPage: boolean;
-  value: AdminListContextValue | null;
+  value: AdminListContextValue;
   sidebar: ReactNode;
   children?: ReactNode;
 };
 
-/**
- * Shared admin list layout: sidebar visibility and main-area padding are driven by Tailwind
- * (`hidden xl:flex`, `xl:pl-64`, `xl:rounded-l-none`). Non-list routes render `<Outlet />` only.
- */
 export function AdminListLayout({
-  isListPage,
   value,
   sidebar,
   children,
 }: AdminListLayoutProps) {
-  if (!isListPage || value == null) {
-    return <Outlet />;
-  }
-
   return (
     <AdminListContext.Provider value={value}>
       <div

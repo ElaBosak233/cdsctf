@@ -4,13 +4,39 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/storages/auth";
 import type { ErrorResponse } from "@/types";
 
+const pendingRequests = new Map<string, AbortController>();
+
 const api = ky.extend({
-  prefixUrl: "/api",
+  prefix: "/api",
   timeout: 5000,
   hooks: {
+    beforeRequest: [
+      ({ request }) => {
+        // only deduplicate non-mutating requests
+        if (!["GET", "HEAD"].includes(request.method)) return;
+        const key = `${request.method}:${request.url}`;
+        const existing = pendingRequests.get(key);
+        if (existing) {
+          existing.abort();
+        }
+        const controller = new AbortController();
+        pendingRequests.set(key, controller);
+        return new Request(request, { signal: controller.signal });
+      },
+    ],
+    afterResponse: [
+      ({ request }) => {
+        if (!["GET", "HEAD"].includes(request.method)) return;
+        pendingRequests.delete(`${request.method}:${request.url}`);
+      },
+    ],
     beforeError: [
       async (error) => {
-        if (!(error instanceof HTTPError)) return error;
+        const { request } = error;
+        if (["GET", "HEAD"].includes(request.method)) {
+          pendingRequests.delete(`${request.method}:${request.url}`);
+        }
+        if (!(error instanceof HTTPError)) return error as unknown as Error;
 
         if (error.response.status === StatusCodes.UNAUTHORIZED) {
           useAuthStore?.getState()?.clear();
@@ -29,16 +55,16 @@ const api = ky.extend({
           });
         }
 
-        return error;
+        return error as unknown as Error;
       },
       async (error) => {
-        if (!(error instanceof TimeoutError)) return error;
+        if (!(error instanceof TimeoutError)) return error as unknown as Error;
 
         toast.error("Request timed out", {
           id: "timeout",
         });
 
-        return error;
+        return error as unknown as Error;
       },
     ],
   },

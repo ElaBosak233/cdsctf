@@ -14,7 +14,7 @@ import {
   TrashIcon,
   XIcon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -120,27 +120,28 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
 
   const id = row.original.id;
   const title = row.original.title;
-  const isPublic = row.original.public;
 
   const sharedStore = useSharedStore();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  const [checked, setChecked] = useState(isPublic);
+  const [isPublic, setIsPublic] = useState(row.original.public);
+  const [_, startTransition] = useTransition();
+  const [optimisticPublic, setOptimisticPublic] = useOptimistic(isPublic);
 
   async function handlePublicnessChange() {
-    const newValue = !checked;
-    setChecked(newValue);
-
-    await updateChallenge({
-      id,
-      public: newValue,
+    const newValue = !optimisticPublic;
+    setOptimisticPublic(newValue);
+    startTransition(async () => {
+      await updateChallenge({
+        id,
+        public: newValue,
+      });
+      setIsPublic(newValue);
+      toast.success(t("challenge:public.actions.success", { title }), {
+        id: "publicness_change",
+      });
     });
-
-    toast.success(t("challenge:public.actions.success", { title }), {
-      id: "publicness_change",
-    });
-    sharedStore?.setRefresh();
   }
 
   async function handleDelete() {
@@ -165,16 +166,16 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            level={checked ? "warning" : "success"}
+            level={optimisticPublic ? "warning" : "success"}
             variant={"ghost"}
             size={"sm"}
             square
-            icon={checked ? <EyeClosedIcon /> : <EyeIcon />}
+            icon={optimisticPublic ? <EyeClosedIcon /> : <EyeIcon />}
             onClick={handlePublicnessChange}
           />
         </TooltipTrigger>
         <TooltipContent>
-          {checked
+          {optimisticPublic
             ? t("challenge:public.actions.false")
             : t("challenge:public.actions.true")}
         </TooltipContent>

@@ -12,7 +12,7 @@ import {
   TrashIcon,
   XIcon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -63,24 +63,21 @@ function ActionsCell({ row }: { row: Row<Game> }) {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  const isEnabled = row.original.enabled;
-  const [checked, setChecked] = useState(isEnabled);
+  const [isEnabled, setIsEnabled] = useState(row.original.enabled);
+  const [isPending, startTransition] = useTransition();
+  const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(isEnabled);
 
   async function handlePublicnessChange() {
-    const newValue = !checked;
-    setChecked(newValue);
-
     if (id == null) return;
-
-    await updateGame({
-      id,
-      enabled: newValue,
+    const newValue = !optimisticEnabled;
+    setOptimisticEnabled(newValue);
+    startTransition(async () => {
+      await updateGame({ id, enabled: newValue });
+      setIsEnabled(newValue);
+      toast.success(t("game:enabled.actions.success", { title }), {
+        id: "enablement_change",
+      });
     });
-
-    toast.success(t("game:enabled.actions.success", { title }), {
-      id: "enablement_change",
-    });
-    sharedStore?.setRefresh();
   }
 
   async function handleDelete() {
@@ -105,16 +102,17 @@ function ActionsCell({ row }: { row: Row<Game> }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            level={checked ? "warning" : "success"}
+            level={optimisticEnabled ? "warning" : "success"}
             variant={"ghost"}
             size={"sm"}
             square
-            icon={checked ? <EyeClosedIcon /> : <EyeIcon />}
+            icon={optimisticEnabled ? <EyeClosedIcon /> : <EyeIcon />}
             onClick={handlePublicnessChange}
+            disabled={isPending}
           />
         </TooltipTrigger>
         <TooltipContent>
-          {checked
+          {optimisticEnabled
             ? t("game:enabled.actions.false")
             : t("game:enabled.actions.true")}
         </TooltipContent>

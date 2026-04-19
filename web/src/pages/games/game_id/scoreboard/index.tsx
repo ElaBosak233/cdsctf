@@ -110,7 +110,15 @@ export default function Index() {
                 total={Math.ceil((scoreboardData?.total || 0) / size)}
               />
             </div>
-            <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
+            <div
+              className={cn([
+                "flex-1",
+                "min-h-0",
+                "flex",
+                "flex-col",
+                "w-full",
+              ])}
+            >
               <ScrollArea
                 className={cn([
                   "rounded-md",
