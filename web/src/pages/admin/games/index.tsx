@@ -7,7 +7,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { FlagIcon, ListOrderedIcon } from "lucide-react";
+import { ListOrderedIcon } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,9 +31,9 @@ import type { Game } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { AdminListContext, AdminListPageView } from "../_list";
 import { useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
+import { GameListContext } from "./context";
 
 function useGameQuery(params: GetGamesRequest) {
   const { refresh } = useSharedStore();
@@ -61,18 +61,12 @@ function useGameQuery(params: GetGamesRequest) {
 
 export default function Index() {
   const { t } = useTranslation();
-
   const configStore = useConfigStore();
-  const listContext = useContext(AdminListContext);
-
-  const columnFilters = listContext?.columnFilters ?? [];
-  const setColumnFilters = listContext?.setColumnFilters ?? (() => {});
-  const createDialogOpen = listContext?.createDialogOpen ?? false;
-  const setCreateDialogOpen = listContext?.setCreateDialogOpen ?? (() => {});
+  const { createDialogOpen, setCreateDialogOpen, columnFilters, setColumnFilters } =
+    useContext(GameListContext)!;
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
-
   const [sorting, setSorting] = useState<SortingState>([
     { id: "started_at", desc: true },
   ]);
@@ -92,7 +86,7 @@ export default function Index() {
       ?.value as string,
     enabled,
     sorts: sorting
-      .map((value) => (value.desc ? `-${value.id}` : `${value.id}`))
+      .map((s) => (s.desc ? `-${s.id}` : s.id))
       .join(","),
     page,
     size,
@@ -114,101 +108,6 @@ export default function Index() {
     state: { sorting, columnVisibility, columnFilters },
   });
 
-  const tableContent = (
-    <ScrollArea className={cn("h-full w-full")}>
-      <LoadingOverlay loading={loading} />
-      <Table className={cn("text-foreground w-full min-w-160")}>
-        <TableHeader
-          className={cn(
-            "sticky top-0 z-2 bg-muted/80 backdrop-blur-sm border-b"
-          )}
-        >
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {!header.isPlaceholder &&
-                    flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.getValue("id")}
-                data-state={row.getIsSelected() ? "selected" : undefined}
-                className={cn("transition-colors")}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : !loading ? (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className={cn("h-40 text-center text-muted-foreground")}
-              >
-                <div
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-2"
-                  )}
-                >
-                  <span>{t("game:empty")}</span>
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : null}
-        </TableBody>
-      </Table>
-    </ScrollArea>
-  );
-
-  const footerContent = (
-    <>
-      <p className={cn("text-sm text-muted-foreground order-2 sm:order-1")}>
-        {table.getFilteredRowModel().rows.length} / {gamesData?.total ?? 0}
-      </p>
-      <div
-        className={cn(
-          "flex flex-wrap items-center gap-3 order-1 sm:order-2 min-h-10"
-        )}
-      >
-        <Pagination
-          size="sm"
-          value={page}
-          total={Math.ceil((gamesData?.total || 0) / size)}
-          onChange={setPage}
-        />
-        <Field size="sm" className={cn("w-32 sm:w-36")}>
-          <FieldIcon>
-            <ListOrderedIcon className="size-4" />
-          </FieldIcon>
-          <Select
-            options={[
-              { value: "10" },
-              { value: "20" },
-              { value: "40" },
-              { value: "60" },
-            ]}
-            value={String(size)}
-            className={cn(["bg-secondary/50"])}
-            onValueChange={(value) => setSize(Number(value))}
-          />
-        </Field>
-      </div>
-    </>
-  );
-
   return (
     <>
       <title>{`${t("game:_")} - ${configStore?.config?.meta?.title}`}</title>
@@ -217,15 +116,141 @@ export default function Index() {
           <CreateDialog onClose={() => setCreateDialogOpen(false)} />
         </DialogContent>
       </Dialog>
-      <AdminListPageView
-        title={t("game:_")}
-        icon={<FlagIcon className="size-5" />}
-        addButtonLabel={t("common:actions.add")}
-        onAddClick={() => setCreateDialogOpen(true)}
-        filterContent={null}
-        tableContent={tableContent}
-        footerContent={footerContent}
-      />
+      <div
+        className={cn([
+          "overflow-hidden",
+          "flex",
+          "flex-col",
+          "min-h-0",
+          "h-full",
+          "px-4",
+          "py-4",
+          "sm:px-6",
+          "sm:py-6",
+          "lg:px-8",
+          "lg:py-8",
+          "gap-4",
+        ])}
+      >
+        <ScrollArea
+          className={cn([
+            "flex-1",
+            "min-h-0",
+            "rounded-xl",
+            "border",
+            "ring-1",
+            "ring-border/50",
+            "shadow-sm",
+          ])}
+        >
+          <LoadingOverlay loading={loading} />
+          <Table className={cn(["text-foreground", "w-full", "min-w-160"])}>
+            <TableHeader
+              className={cn([
+                "sticky",
+                "top-0",
+                "z-2",
+                "bg-muted/80",
+                "backdrop-blur-sm",
+                "border-b",
+              ])}
+            >
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {!header.isPlaceholder &&
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.getValue("id")}
+                    data-state={row.getIsSelected() ? "selected" : undefined}
+                    className={cn(["transition-colors"])}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : !loading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className={cn([
+                      "h-40",
+                      "text-center",
+                      "text-muted-foreground",
+                    ])}
+                  >
+                    {t("game:empty")}
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+        <footer
+          className={cn([
+            "flex",
+            "flex-col",
+            "gap-3",
+            "sm:flex-row",
+            "sm:items-center",
+            "sm:justify-between",
+            "shrink-0",
+          ])}
+        >
+          <p className={cn(["text-sm", "text-muted-foreground"])}>
+            {table.getFilteredRowModel().rows.length} / {gamesData?.total ?? 0}
+          </p>
+          <div
+            className={cn([
+              "flex",
+              "flex-wrap",
+              "items-center",
+              "gap-3",
+              "min-h-10",
+            ])}
+          >
+            <Pagination
+              size="sm"
+              value={page}
+              total={Math.ceil((gamesData?.total || 0) / size)}
+              onChange={setPage}
+            />
+            <Field size="sm" className={cn(["w-32", "sm:w-36"])}>
+              <FieldIcon>
+                <ListOrderedIcon className="size-4" />
+              </FieldIcon>
+              <Select
+                options={[
+                  { value: "10" },
+                  { value: "20" },
+                  { value: "40" },
+                  { value: "60" },
+                ]}
+                value={String(size)}
+                onValueChange={(value) => setSize(Number(value))}
+              />
+            </Field>
+          </div>
+        </footer>
+      </div>
     </>
   );
 }
