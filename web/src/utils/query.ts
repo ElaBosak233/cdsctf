@@ -31,12 +31,11 @@ const api = ky.extend({
       },
     ],
     beforeError: [
-      async (error) => {
-        const { request } = error;
+      async ({ request, error }) => {
         if (["GET", "HEAD"].includes(request.method)) {
           pendingRequests.delete(`${request.method}:${request.url}`);
         }
-        if (!(error instanceof HTTPError)) return error as unknown as Error;
+        if (!(error instanceof HTTPError)) return error;
 
         if (error.response.status === StatusCodes.UNAUTHORIZED) {
           useAuthStore?.getState()?.clear();
@@ -55,16 +54,16 @@ const api = ky.extend({
           });
         }
 
-        return error as unknown as Error;
+        return error;
       },
-      async (error) => {
+      async ({ error }) => {
         if (!(error instanceof TimeoutError)) return error as unknown as Error;
 
         toast.error("Request timed out", {
           id: "timeout",
         });
 
-        return error as unknown as Error;
+        return error;
       },
     ],
   },
