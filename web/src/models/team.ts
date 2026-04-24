@@ -6,6 +6,8 @@ export interface Team {
   slogan?: string;
   has_avatar?: boolean;
   has_writeup?: boolean;
+  writeup_submitted_at?: number;
+  writeup_updated_at?: number;
 
   state?: State;
 

@@ -3,6 +3,9 @@ info: Info
 members: Members
 write_up:
   _: Write-up
+  submission:
+    submitted_at: Submitted at
+    submitted_at_empty: No submission time available
   actions:
     submit:
       _: Please submit Write-up
@@ -15,6 +18,8 @@ write_up:
       hint: >-
         Please export the Write-up as a PDF file and upload it. The file size
         should not exceed 50 MB.
+    download:
+      _: Download Write-up
 name: Name
 email: Email
 slogan:

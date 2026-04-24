@@ -1,7 +1,13 @@
 import { StatusCodes } from "http-status-codes";
-import { FilePenIcon } from "lucide-react";
+import {
+  CheckCircleIcon,
+  ClockIcon,
+  DownloadIcon,
+  FilePenIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   DropZoneArea,
@@ -9,7 +15,6 @@ import {
   DropzoneTrigger,
   useDropzone,
 } from "@/components/ui/dropzone";
-import { PDFViewer } from "@/components/ui/pdf-viewer";
 import { Separator } from "@/components/ui/separator";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
@@ -19,7 +24,9 @@ export default function Index() {
   const { t } = useTranslation();
 
   const sharedStore = useSharedStore();
-  const { currentGame, selfTeam } = useGameStore();
+  const { currentGame, selfTeam, setSelfTeam } = useGameStore();
+  const hasWriteup = selfTeam?.has_writeup === true;
+  const writeupUrl = `/api/games/${currentGame?.id}/teams/us/writeup`;
 
   const dropzone = useDropzone({
     onDropFile: async (file) => {
@@ -42,6 +49,16 @@ export default function Index() {
       };
       xhr.onload = () => {
         if (xhr.status === StatusCodes.OK) {
+          try {
+            const body = JSON.parse(xhr.responseText || "{}") as {
+              team?: typeof selfTeam;
+            };
+            if (body.team) {
+              setSelfTeam(body.team);
+            }
+          } catch {
+            sharedStore.setRefresh();
+          }
           toast.success(t("team:write_up.actions.upload.success"), {
             id: "writeup-upload",
           });
@@ -54,6 +71,9 @@ export default function Index() {
         }
       };
       xhr.onerror = () => {
+        toast.error(t("team:write_up.actions.upload.error"), {
+          id: "writeup-upload",
+        });
         return {
           status: "error",
         };
@@ -117,11 +137,43 @@ export default function Index() {
           </DropZoneArea>
         </Dropzone>
 
-        {selfTeam?.has_writeup && (
-          <Card className="p-5 rounded-xl min-h-128 max-h-[calc(100vh-25rem)]">
-            <PDFViewer url={`/api/games/${currentGame?.id}/teams/us/writeup`} />
-          </Card>
-        )}
+        <Card
+          className={cn([
+            "p-5",
+            "rounded-xl",
+            "flex",
+            "flex-col",
+            "gap-4",
+            "sm:flex-row",
+            "sm:items-center",
+            "sm:justify-between",
+          ])}
+        >
+          <div className={cn(["flex", "items-center", "gap-3", "min-w-0"])}>
+            {hasWriteup ? (
+              <CheckCircleIcon className={cn(["size-4", "text-success"])} />
+            ) : (
+              <ClockIcon className={cn(["size-4", "text-muted-foreground"])} />
+            )}
+            <div className={cn(["min-w-0"])}>
+              <p className={cn(["font-medium"])}>
+                {hasWriteup
+                  ? t("team:write_up.actions.submit.done")
+                  : t("team:write_up.actions.submit._")}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant={"tonal"}
+            icon={<DownloadIcon />}
+            disabled={!hasWriteup}
+            asChild={hasWriteup}
+          >
+            <a href={writeupUrl} download>
+              {t("team:write_up.actions.download._")}
+            </a>
+          </Button>
+        </Card>
       </div>
     </>
   );

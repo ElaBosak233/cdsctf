@@ -19,9 +19,10 @@ use utoipa_axum::{
     routes,
 };
 
+use super::super::TeamResponse;
 use crate::{
     extract::{Extension, Path},
-    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
+    traits::{AppState, AuthPrincipal, WebError},
     util,
     util::media::handle_multipart,
 };
@@ -68,7 +69,7 @@ pub async fn get_team_write_up(
         ("game_id" = i64, Path, description = "Game id"),
     ),
     responses(
-        (status = 200, description = "Write-up saved", body = EmptyJson),
+        (status = 200, description = "Write-up saved", body = TeamResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
@@ -81,7 +82,7 @@ pub async fn save_team_write_up(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     multipart: Multipart,
-) -> Result<Json<EmptyJson>, WebError> {
+) -> Result<Json<TeamResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let game = util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = util::loader::prepare_self_team(&s.db.conn, game.id, operator.id).await?;
@@ -98,7 +99,12 @@ pub async fn save_team_write_up(
 
     let filename = format!("{}.pdf", hash(data.clone()));
 
-    let _ = cds_db::team::update::<Team>(
+    s.media
+        .save(path, filename, data)
+        .await
+        .map_err(|_| WebError::InternalServerError(json!("")))?;
+
+    let team = cds_db::team::update::<Team>(
         &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
@@ -108,10 +114,5 @@ pub async fn save_team_write_up(
     )
     .await?;
 
-    s.media
-        .save(path, filename, data)
-        .await
-        .map_err(|_| WebError::InternalServerError(json!("")))?;
-
-    Ok(Json(EmptyJson::default()))
+    Ok(Json(TeamResponse { team }))
 }

@@ -3,6 +3,9 @@ info: 基本信息
 members: 团队成员
 write_up:
   _: Write-up
+  submission:
+    submitted_at: 提交时间
+    submitted_at_empty: 暂无提交时间
   actions:
     submit:
       _: 请提交 Write-up
@@ -13,6 +16,8 @@ write_up:
       success: 题解上传成功。
       error: 题解上传失败。
       hint: 请将 Write-up 导出为 PDF 格式后上传，文件大小不超过 50 MB。
+    download:
+      _: 下载 Write-up
 invite_code:
   _: 邀请码
   empty: 暂无邀请码
