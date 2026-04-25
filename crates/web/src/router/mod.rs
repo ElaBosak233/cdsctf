@@ -104,15 +104,20 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
                     let ip = crate::util::network::get_client_ip(request)
                         .unwrap_or(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)));
                     debug_span!("http",
-                        from = %ip.to_string(),
+                        client_ip = %ip,
                         method = %request.method(),
-                        uri = %request.uri().path(),
+                        path = %request.uri().path(),
+                        username = tracing::field::Empty,
                     )
                 })
                 .on_request(())
                 .on_response(
                     |response: &Response, latency: std::time::Duration, _span: &Span| {
-                        debug!("[{}] in {}ms", response.status(), latency.as_millis());
+                        debug!(
+                            status = response.status().as_u16(),
+                            latency_ms = latency.as_millis(),
+                            "request completed"
+                        );
                     },
                 ),
         )

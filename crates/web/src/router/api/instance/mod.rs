@@ -45,6 +45,7 @@ pub struct ListInstancesResponse {
     pub instances: Vec<Instance>,
 }
 
+/// Lists instances matching label filters (collection query).
 #[utoipa::path(
     get,
     path = "/",
@@ -60,8 +61,7 @@ pub struct ListInstancesResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Lists instances matching label filters (collection query).
+#[tracing::instrument(skip_all, fields(handler = "list_instances"))]
 pub async fn list_instances(
     State(s): State<Arc<AppState>>,
 
@@ -128,6 +128,7 @@ pub struct CreateInstanceResponse {
     pub instance_id: String,
 }
 
+/// Creates a challenge instance (async pod); returns the new instance id.
 #[utoipa::path(
     post,
     path = "/",
@@ -143,8 +144,7 @@ pub struct CreateInstanceResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates a challenge instance (async pod); returns the new instance id.
+#[tracing::instrument(skip_all, fields(handler = "create_instance"))]
 pub async fn create_instance(
     State(s): State<Arc<AppState>>,
 

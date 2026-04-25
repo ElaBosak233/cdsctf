@@ -39,6 +39,7 @@ pub struct TeamMembersListResponse {
     pub total: u64,
 }
 
+/// Returns team members.
 #[utoipa::path(
     get,
     path = "/members",
@@ -52,8 +53,7 @@ pub struct TeamMembersListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns team members.
+#[tracing::instrument(skip_all, fields(handler = "get_team_members"))]
 pub async fn get_team_members(
     State(s): State<Arc<AppState>>,
     Path((_game_id, team_id)): Path<(i64, i64)>,
@@ -70,6 +70,7 @@ pub struct JoinTeamRequest {
     pub token: String,
 }
 
+/// Adds the caller to a team within a game.
 #[utoipa::path(
     post,
     path = "/join",
@@ -86,8 +87,7 @@ pub struct JoinTeamRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Adds the caller to a team within a game.
+#[tracing::instrument(skip_all, fields(handler = "join_team"))]
 pub async fn join_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

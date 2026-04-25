@@ -33,6 +33,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(delete_game_icon).with_state(state.clone()))
 }
 
+/// Stores a competition icon image.
 #[utoipa::path(
     post,
     path = "/",
@@ -45,8 +46,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Stores a competition icon image.
+#[tracing::instrument(skip_all, fields(handler = "save_game_icon"))]
 pub async fn save_game_icon(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -71,6 +71,7 @@ pub async fn save_game_icon(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Deletes game icon.
 #[utoipa::path(
     delete,
     path = "/",
@@ -83,8 +84,7 @@ pub async fn save_game_icon(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes game icon.
+#[tracing::instrument(skip_all, fields(handler = "delete_game_icon"))]
 pub async fn delete_game_icon(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,

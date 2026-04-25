@@ -51,6 +51,7 @@ pub struct UpdateGameChallengeRequest {
     pub frozen_at: Option<Option<i64>>,
 }
 
+/// Updates game challenge.
 #[utoipa::path(
     put,
     path = "/",
@@ -65,8 +66,7 @@ pub struct UpdateGameChallengeRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates game challenge.
+#[tracing::instrument(skip_all, fields(handler = "update_game_challenge"))]
 pub async fn update_game_challenge(
     State(s): State<Arc<AppState>>,
     Path((game_id, challenge_id)): Path<(i64, i64)>,
@@ -123,6 +123,7 @@ pub async fn update_game_challenge(
     }))
 }
 
+/// Deletes game challenge.
 #[utoipa::path(
     delete,
     path = "/",
@@ -136,8 +137,7 @@ pub async fn update_game_challenge(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes game challenge.
+#[tracing::instrument(skip_all, fields(handler = "delete_game_challenge"))]
 pub async fn delete_game_challenge(
     State(s): State<Arc<AppState>>,
     Path((game_id, challenge_id)): Path<(i64, i64)>,

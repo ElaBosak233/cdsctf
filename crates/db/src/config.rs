@@ -1,6 +1,7 @@
 //! Database access for `config` — SeaORM queries, updates, and DTOs.
 
 use sea_orm::{ConnectionTrait, EntityTrait, PaginatorTrait, Set, sea_query::OnConflict};
+use tracing::info;
 
 pub use crate::entity::config::{ActiveModel, Config, Model, auth, captcha, email, meta};
 pub(crate) use crate::entity::config::{Column, Entity};
@@ -37,6 +38,7 @@ pub async fn save(conn: &impl ConnectionTrait, config: Config) -> Result<Config,
         )
         .exec(conn)
         .await?;
+    info!("config saved");
 
     Ok(get(conn).await?)
 }

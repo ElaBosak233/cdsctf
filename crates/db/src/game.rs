@@ -7,6 +7,7 @@ use sea_orm::{
     PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 pub use crate::entity::game::{ActiveModel, Model, Relation, Timeslot};
 use crate::{
@@ -141,6 +142,15 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let game = model.insert(conn).await?;
+    info!(
+        game_id = game.id,
+        title = %game.title,
+        enabled = game.enabled,
+        public = game.public,
+        started_at = game.started_at,
+        ended_at = game.ended_at,
+        "game created"
+    );
 
     Ok(find_by_id::<T>(conn, game.id)
         .await?
@@ -152,6 +162,15 @@ pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let game = model.update(conn).await?;
+    info!(
+        game_id = game.id,
+        title = %game.title,
+        enabled = game.enabled,
+        public = game.public,
+        started_at = game.started_at,
+        ended_at = game.ended_at,
+        "game updated"
+    );
 
     Ok(find_by_id::<T>(conn, game.id)
         .await?
@@ -161,6 +180,7 @@ where
 /// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, game_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(game_id).exec(conn).await?;
+    info!(game_id, "game deleted");
 
     Ok(())
 }

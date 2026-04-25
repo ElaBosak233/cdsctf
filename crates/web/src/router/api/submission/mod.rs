@@ -12,6 +12,7 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tracing::{debug, info, warn};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -60,6 +61,7 @@ pub struct ListSubmissionsResponse {
     pub total: u64,
 }
 
+/// Lists submissions for the current user (collection).
 #[utoipa::path(
     get,
     path = "/",
@@ -71,8 +73,7 @@ pub struct ListSubmissionsResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Lists submissions for the current user (collection).
+#[tracing::instrument(skip_all, fields(handler = "list_submissions"))]
 pub async fn list_submissions(
     State(s): State<Arc<AppState>>,
 
@@ -104,6 +105,13 @@ pub async fn list_submissions(
         .into_iter()
         .map(|submission: Submission| submission.desensitize())
         .collect::<Vec<Submission>>();
+    debug!(
+        page,
+        size,
+        returned = submissions.len(),
+        total,
+        "submissions listed"
+    );
 
     Ok(Json(ListSubmissionsResponse { submissions, total }))
 }
@@ -116,6 +124,7 @@ pub struct CreateSubmissionRequest {
     pub challenge_id: i64,
 }
 
+/// Creates a submission; author is always the authenticated user.
 #[utoipa::path(
     post,
     path = "/",
@@ -130,8 +139,7 @@ pub struct CreateSubmissionRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates a submission; author is always the authenticated user.
+#[tracing::instrument(skip_all, fields(handler = "create_submission"))]
 pub async fn create_submission(
     State(s): State<Arc<AppState>>,
 
@@ -143,6 +151,10 @@ pub async fn create_submission(
     let token = format!("submission:user:{}", operator.id);
     if let Some(limit) = s.cache.get::<i32>(&token).await? {
         if limit > 10 {
+            warn!(
+                user_id = operator.id,
+                limit, "submission rate limit exceeded"
+            );
             return Err(WebError::TooManyRequests(json!("submission")));
         } else {
             s.cache.set_ex(&token, limit + 1, 60).await?;
@@ -200,6 +212,15 @@ pub async fn create_submission(
     .await?;
 
     s.queue.publish("checker", submission.id).await?;
+    info!(
+        submission_id = submission.id,
+        user_id = operator.id,
+        team_id = body.team_id,
+        game_id = body.game_id,
+        challenge_id = body.challenge_id,
+        subject = "checker",
+        "submission created and queued"
+    );
 
     let submission = cds_db::submission::find_by_id(&s.db.conn, submission.id)
         .await?

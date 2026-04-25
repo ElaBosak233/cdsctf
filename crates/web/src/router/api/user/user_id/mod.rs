@@ -31,6 +31,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         )
 }
 
+/// Returns user.
 #[utoipa::path(
     get,
     path = "/",
@@ -45,8 +46,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns user.
+#[tracing::instrument(skip_all, fields(handler = "get_user"))]
 pub async fn get_user(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

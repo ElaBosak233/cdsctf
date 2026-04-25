@@ -40,6 +40,7 @@ pub struct ListNotesResponse {
     pub total: u64,
 }
 
+/// Lists public notes (collection).
 #[utoipa::path(
     get,
     path = "/",
@@ -51,8 +52,7 @@ pub struct ListNotesResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Lists public notes (collection).
+#[tracing::instrument(skip_all, fields(handler = "list_notes"))]
 pub async fn list_notes(
     State(s): State<Arc<AppState>>,
 

@@ -46,6 +46,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/attachments", attachment::router(state.clone()))
 }
 
+/// Returns challenge.
 #[utoipa::path(
     get,
     path = "/",
@@ -58,8 +59,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns challenge.
+#[tracing::instrument(skip_all, fields(handler = "get_challenge"))]
 pub async fn get_challenge(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,
@@ -80,6 +80,7 @@ pub struct UpdateChallengeRequest {
     pub has_writeup: Option<bool>,
 }
 
+/// Updates challenge.
 #[utoipa::path(
     put,
     path = "/",
@@ -93,8 +94,7 @@ pub struct UpdateChallengeRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates challenge.
+#[tracing::instrument(skip_all, fields(handler = "update_challenge"))]
 pub async fn update_challenge(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,
@@ -122,6 +122,7 @@ pub async fn update_challenge(
     Ok(Json(AdminChallengeResponse { challenge }))
 }
 
+/// Deletes challenge.
 #[utoipa::path(
     delete,
     path = "/",
@@ -134,8 +135,7 @@ pub async fn update_challenge(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes challenge.
+#[tracing::instrument(skip_all, fields(handler = "delete_challenge"))]
 pub async fn delete_challenge(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,
@@ -150,6 +150,7 @@ pub struct UpdateChallengeInstanceRequest {
     pub instance: Option<cds_db::challenge::Instance>,
 }
 
+/// Updates challenge instance.
 #[utoipa::path(
     put,
     path = "/instance",
@@ -163,8 +164,7 @@ pub struct UpdateChallengeInstanceRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates challenge instance.
+#[tracing::instrument(skip_all, fields(handler = "update_challenge_instance"))]
 pub async fn update_challenge_instance(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,

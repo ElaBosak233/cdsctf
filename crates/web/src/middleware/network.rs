@@ -14,6 +14,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_governor::{GovernorError, key_extractor::KeyExtractor};
+use tracing::{debug, warn};
 
 use crate::{
     traits::{AuthPrincipal, WebError},
@@ -48,8 +49,10 @@ pub async fn ip_record(mut req: Request<Body>, next: Next) -> Result<Response, W
     match client_ip {
         Some(client_ip) => {
             ext.client_ip = client_ip.to_string();
+            debug!(client_ip = %client_ip, "client ip recorded");
         }
         _ => {
+            warn!("failed to extract client ip");
             return Err(WebError::BadRequest(json!("ip_extract_failed")));
         }
     }
@@ -66,6 +69,7 @@ pub async fn real_host(mut req: Request<Body>, next: Next) -> Result<Response, W
 
     if let Some(x_forwarded_host) = headers.get("x-forwarded-host") {
         if let Ok(host_str) = x_forwarded_host.to_str() {
+            debug!(host = %host_str, "rewriting host from x-forwarded-host");
             let mut new_headers = HeaderMap::new();
             for (key, value) in headers.iter() {
                 new_headers.insert(key, value.clone());

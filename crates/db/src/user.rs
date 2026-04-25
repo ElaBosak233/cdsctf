@@ -9,6 +9,7 @@ use sea_orm::{
     sea_query::{Func, Query},
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 pub use super::team_user::find_users as find_by_team_id;
 pub use crate::entity::user::{ActiveModel, Group, Model};
@@ -251,6 +252,12 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let user = model.insert(conn).await?;
+    info!(
+        user_id = user.id,
+        username = %user.username,
+        group = ?user.group,
+        "user created"
+    );
 
     Ok(find_by_id::<T>(conn, user.id)
         .await?
@@ -262,6 +269,12 @@ pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let user = model.update(conn).await?;
+    info!(
+        user_id = user.id,
+        username = %user.username,
+        group = ?user.group,
+        "user updated"
+    );
 
     Ok(find_by_id::<T>(conn, user.id)
         .await?
@@ -284,6 +297,7 @@ pub async fn update_password(
         },
     )
     .await?;
+    info!(user_id, "user password updated");
 
     Ok(())
 }
@@ -304,6 +318,11 @@ pub async fn delete(conn: &impl ConnectionTrait, user_id: i64) -> Result<(), DbE
     .await?;
 
     let _ = super::email::delete_by_user_id(conn, user_id).await?;
+    info!(
+        user_id,
+        username = %user.username,
+        "user deleted"
+    );
 
     Ok(())
 }

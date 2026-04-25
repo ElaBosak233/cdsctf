@@ -43,6 +43,7 @@ pub struct ListInstancesResponse {
     pub instances: Vec<Instance>,
 }
 
+/// Lists instances matching label filters (admin).
 #[utoipa::path(
     get,
     path = "/",
@@ -54,8 +55,7 @@ pub struct ListInstancesResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Lists instances matching label filters (admin).
+#[tracing::instrument(skip_all, fields(handler = "list_instances"))]
 pub async fn list_instances(
     State(s): State<Arc<AppState>>,
 
@@ -109,6 +109,7 @@ pub struct CreateDebugInstanceResponse {
     pub instance_id: String,
 }
 
+/// Creates a debug challenge instance for the current admin user.
 #[utoipa::path(
     post,
     path = "/",
@@ -122,8 +123,7 @@ pub struct CreateDebugInstanceResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates a debug challenge instance for the current admin user.
+#[tracing::instrument(skip_all, fields(handler = "create_debug_instance"))]
 pub async fn create_debug_instance(
     State(s): State<Arc<AppState>>,
 

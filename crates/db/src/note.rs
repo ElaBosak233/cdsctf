@@ -7,6 +7,7 @@ use sea_orm::{
     QueryFilter, QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 pub use crate::entity::note::ActiveModel;
 pub(crate) use crate::entity::note::{Column, Entity};
@@ -137,6 +138,13 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let note = model.insert(conn).await?;
+    info!(
+        note_id = note.id,
+        user_id = note.user_id,
+        challenge_id = note.challenge_id,
+        public = note.public,
+        "note created"
+    );
 
     Ok(find_by_id::<T>(conn, note.id)
         .await?
@@ -148,6 +156,13 @@ pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let note = model.update(conn).await?;
+    info!(
+        note_id = note.id,
+        user_id = note.user_id,
+        challenge_id = note.challenge_id,
+        public = note.public,
+        "note updated"
+    );
 
     Ok(find_by_id::<T>(conn, note.id)
         .await?
@@ -157,6 +172,7 @@ where
 /// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, note_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(note_id).exec(conn).await?;
+    info!(note_id, "note deleted");
 
     Ok(())
 }

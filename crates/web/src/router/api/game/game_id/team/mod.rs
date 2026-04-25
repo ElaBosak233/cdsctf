@@ -48,6 +48,7 @@ pub struct CreateTeamRequest {
     pub description: Option<String>,
 }
 
+/// Creates a team in the given game (collection `POST`).
 #[utoipa::path(
     post,
     path = "/",
@@ -63,8 +64,7 @@ pub struct CreateTeamRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates a team in the given game (collection `POST`).
+#[tracing::instrument(skip_all, fields(handler = "create_team"))]
 pub async fn create_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

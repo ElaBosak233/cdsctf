@@ -22,6 +22,7 @@ pub mod checker;
 pub mod mailbox;
 
 /// Start every queue consumer (calculator, checker, mailbox).
+#[tracing::instrument(skip_all, fields(handler = "init"))]
 pub async fn init(
     db: &DB,
     queue: &Queue,

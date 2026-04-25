@@ -29,6 +29,7 @@ pub struct UpdateWriteupRequest {
     pub writeup: String,
 }
 
+/// Updates writeup.
 #[utoipa::path(
     put,
     path = "/",
@@ -42,8 +43,7 @@ pub struct UpdateWriteupRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates writeup.
+#[tracing::instrument(skip_all, fields(handler = "update_writeup"))]
 pub async fn update_writeup(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,

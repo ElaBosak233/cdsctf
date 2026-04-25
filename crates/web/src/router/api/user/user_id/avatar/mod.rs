@@ -10,6 +10,7 @@ use crate::{
     traits::{AppState, WebError},
 };
 
+/// Returns user avatar.
 #[utoipa::path(
     get,
     path = "/",
@@ -23,8 +24,7 @@ use crate::{
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns user avatar.
+#[tracing::instrument(skip_all, fields(handler = "get_user_avatar"))]
 pub async fn get_user_avatar(
     State(s): State<Arc<AppState>>,
 

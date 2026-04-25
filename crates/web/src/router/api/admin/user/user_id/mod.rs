@@ -41,6 +41,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/emails", email::router(state.clone()))
 }
 
+/// Returns user.
 #[utoipa::path(
     get,
     path = "/",
@@ -54,8 +55,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns user.
+#[tracing::instrument(skip_all, fields(handler = "get_user"))]
 pub async fn get_user(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
@@ -72,6 +72,7 @@ pub struct UpdateUserRequest {
     pub description: Option<String>,
 }
 
+/// Updates user.
 #[utoipa::path(
     put,
     path = "/",
@@ -85,8 +86,7 @@ pub struct UpdateUserRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates user.
+#[tracing::instrument(skip_all, fields(handler = "update_user"))]
 pub async fn update_user(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
@@ -118,6 +118,7 @@ pub async fn update_user(
     Ok(Json(UserResponse { user }))
 }
 
+/// Deletes user.
 #[utoipa::path(
     delete,
     path = "/",
@@ -130,8 +131,7 @@ pub async fn update_user(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes user.
+#[tracing::instrument(skip_all, fields(handler = "delete_user"))]
 pub async fn delete_user(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,

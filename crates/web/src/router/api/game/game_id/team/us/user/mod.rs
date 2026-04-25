@@ -22,6 +22,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(leave_team).with_state(state.clone()))
 }
 
+/// Removes the caller from their current team.
 #[utoipa::path(
     delete,
     path = "/leave",
@@ -36,8 +37,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Removes the caller from their current team.
+#[tracing::instrument(skip_all, fields(handler = "leave_team"))]
 pub async fn leave_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

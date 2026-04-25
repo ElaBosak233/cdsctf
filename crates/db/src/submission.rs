@@ -7,6 +7,7 @@ use sea_orm::{
     QueryFilter, QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 pub use crate::entity::submission::{ActiveModel, Status};
 pub(crate) use crate::entity::submission::{Column, Entity};
@@ -231,6 +232,15 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let submission = model.insert(conn).await?;
+    info!(
+        submission_id = submission.id,
+        user_id = submission.user_id,
+        team_id = submission.team_id,
+        game_id = submission.game_id,
+        challenge_id = submission.challenge_id,
+        status = ?submission.status,
+        "submission created"
+    );
 
     Ok(find_by_id::<T>(conn, submission.id)
         .await?
@@ -242,6 +252,17 @@ pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let submission = model.update(conn).await?;
+    info!(
+        submission_id = submission.id,
+        user_id = submission.user_id,
+        team_id = submission.team_id,
+        game_id = submission.game_id,
+        challenge_id = submission.challenge_id,
+        status = ?submission.status,
+        pts = submission.pts,
+        rank = submission.rank,
+        "submission updated"
+    );
 
     Ok(find_by_id::<T>(conn, submission.id)
         .await?
@@ -251,6 +272,7 @@ where
 /// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, submission_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(submission_id).exec(conn).await?;
+    info!(submission_id, "submission deleted");
 
     Ok(())
 }

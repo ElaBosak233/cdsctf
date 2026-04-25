@@ -8,16 +8,18 @@
 use cds_mailbox::{Mailbox, Payload};
 use cds_queue::Queue;
 use futures_util::StreamExt as _;
-use tracing::{error, info};
+use tracing::{debug, error, info, warn};
 
 /// Stream / subject name for asynchronous outbound email.
 pub const SUBJECT: &str = "mailbox";
 
 /// Blocking pull loop until the subscription ends or the process shuts down.
+#[tracing::instrument(skip_all, fields(subject = SUBJECT))]
 async fn run(queue: Queue, mailbox: Mailbox) -> Result<(), anyhow::Error> {
     let mut messages = queue.subscribe(SUBJECT, None).await?;
     while let Some(Ok(message)) = messages.next().await {
         if let Ok(payload) = serde_json::from_slice::<Payload>(&message.payload) {
+            debug!(name = %payload.name, email = %payload.email, "mailbox message received");
             match mailbox.send_payload(&payload).await {
                 Ok(()) => {
                     info!(
@@ -30,6 +32,8 @@ async fn run(queue: Queue, mailbox: Mailbox) -> Result<(), anyhow::Error> {
                     error!("Email send failed: {}", err);
                 }
             };
+        } else {
+            warn!("invalid mailbox payload skipped");
         }
         // `double_ack` matches JetStream semantics used elsewhere in workers
         // (redelivery safety).
@@ -40,6 +44,7 @@ async fn run(queue: Queue, mailbox: Mailbox) -> Result<(), anyhow::Error> {
 }
 
 /// Spawns [`run`] on the Tokio runtime.
+#[tracing::instrument(skip_all, fields(handler = "spawn"))]
 pub async fn spawn(queue: &Queue, mailbox: &Mailbox) {
     let queue = queue.clone();
     let mailbox = mailbox.clone();

@@ -7,6 +7,7 @@ use sea_orm::{
     PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 pub use super::team_user::find_teams as find_by_user_id;
 pub use crate::entity::team::{ActiveModel, Model, State};
@@ -153,6 +154,13 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let team = model.insert(conn).await?;
+    info!(
+        team_id = team.id,
+        game_id = team.game_id,
+        name = %team.name,
+        state = ?team.state,
+        "team created"
+    );
 
     Ok(find_by_id::<T>(conn, team.id, team.game_id)
         .await?
@@ -164,6 +172,15 @@ pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let team = model.update(conn).await?;
+    info!(
+        team_id = team.id,
+        game_id = team.game_id,
+        name = %team.name,
+        state = ?team.state,
+        pts = team.pts,
+        rank = team.rank,
+        "team updated"
+    );
 
     Ok(find_by_id::<T>(conn, team.id, team.game_id)
         .await?
@@ -173,6 +190,7 @@ where
 /// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, team_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(team_id).exec(conn).await?;
+    info!(team_id, "team deleted");
 
     Ok(())
 }

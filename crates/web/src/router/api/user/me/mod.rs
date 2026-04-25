@@ -44,6 +44,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/notes", note::router(state.clone()))
 }
 
+/// Returns user profile.
 #[utoipa::path(
     get,
     path = "/",
@@ -54,8 +55,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns user profile.
+#[tracing::instrument(skip_all, fields(handler = "get_user_profile"))]
 pub async fn get_user_profile(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -73,6 +73,7 @@ pub struct UpdateUserProfileRequest {
     pub description: Option<String>,
 }
 
+/// Updates user profile.
 #[utoipa::path(
     put,
     path = "/",
@@ -84,8 +85,7 @@ pub struct UpdateUserProfileRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates user profile.
+#[tracing::instrument(skip_all, fields(handler = "update_user_profile"))]
 pub async fn update_user_profile(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -113,6 +113,7 @@ pub struct DeleteUserProfileRequest {
     pub captcha: Option<cds_captcha::Answer>,
 }
 
+/// Deletes user profile.
 #[utoipa::path(
     delete,
     path = "/",
@@ -125,8 +126,7 @@ pub struct DeleteUserProfileRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes user profile.
+#[tracing::instrument(skip_all, fields(handler = "delete_user_profile"))]
 pub async fn delete_user_profile(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -162,6 +162,7 @@ pub struct UpdateUserProfilePasswordRequest {
     pub new_password: String,
 }
 
+/// Updates user profile password.
 #[utoipa::path(
     put,
     path = "/password",
@@ -174,8 +175,7 @@ pub struct UpdateUserProfilePasswordRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates user profile password.
+#[tracing::instrument(skip_all, fields(handler = "update_user_profile_password"))]
 pub async fn update_user_profile_password(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

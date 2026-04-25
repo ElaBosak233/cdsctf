@@ -25,6 +25,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/containers", container::router(state.clone()))
 }
 
+/// Tears down Kubernetes resources for an instance.
 #[utoipa::path(
     post,
     path = "/stop",
@@ -38,8 +39,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Tears down Kubernetes resources for an instance.
+#[tracing::instrument(skip_all, fields(handler = "stop_instance"))]
 pub async fn stop_instance(
     State(s): State<Arc<AppState>>,
 

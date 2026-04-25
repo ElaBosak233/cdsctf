@@ -5,6 +5,7 @@ use sea_orm::{
     QueryFilter,
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 pub use crate::entity::email::{ActiveModel, Model};
 pub(crate) use crate::entity::email::{Column, Entity};
@@ -58,6 +59,12 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let email = model.insert(conn).await?;
+    info!(
+        user_id = email.user_id,
+        email = %email.email,
+        verified = email.verified,
+        "email created"
+    );
 
     Ok(find_by_email::<T>(conn, email.email.clone())
         .await?
@@ -69,6 +76,12 @@ pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let email = model.update(conn).await?;
+    info!(
+        user_id = email.user_id,
+        email = %email.email,
+        verified = email.verified,
+        "email updated"
+    );
 
     Ok(find_by_email::<T>(conn, email.email.clone())
         .await?
@@ -98,9 +111,14 @@ pub async fn delete(
     }
 
     let _ = Entity::delete_many()
-        .filter(Column::Email.eq(email.email))
+        .filter(Column::Email.eq(email.email.clone()))
         .exec(conn)
         .await?;
+    info!(
+        user_id,
+        email = %email.email,
+        "email deleted"
+    );
 
     Ok(())
 }
@@ -112,6 +130,7 @@ pub async fn delete_by_user_id(conn: &impl ConnectionTrait, user_id: i64) -> Res
         .filter(Column::UserId.eq(user_id))
         .exec(conn)
         .await?;
+    info!(user_id, "user emails deleted");
 
     Ok(())
 }

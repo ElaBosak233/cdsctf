@@ -11,7 +11,7 @@ use axum::{
 use cds_db::User;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tracing::error;
+use tracing::{error, warn};
 
 /// Process-wide state passed into Axum handlers (`State<Arc<AppState>>`).
 #[derive(Clone)]
@@ -111,6 +111,29 @@ pub enum WebError {
 impl IntoResponse for WebError {
     /// Converts into response.
     fn into_response(self) -> Response<Body> {
+        let error_kind = match &self {
+            Self::NotFound(_) => "not_found",
+            Self::InternalServerError(_) => "internal_server_error",
+            Self::BadRequest(_) => "bad_request",
+            Self::Unauthorized(_) => "unauthorized",
+            Self::Forbidden(_) => "forbidden",
+            Self::Conflict(_) => "conflict",
+            Self::TooManyRequests(_) => "too_many_requests",
+            Self::UnprocessableEntity(_) => "unprocessable_entity",
+            Self::TowerSessionsError(_) => "tower_sessions",
+            Self::HttpError(_) => "http",
+            Self::MultipartError(_) => "multipart",
+            Self::DbError(_) => "db",
+            Self::CacheError(_) => "cache",
+            Self::EnvError(_) => "env",
+            Self::EventError(_) => "event",
+            Self::CaptchaError(_) => "captcha",
+            Self::MediaError(_) => "media",
+            Self::QueueError(_) => "queue",
+            Self::ClusterError(_) => "cluster",
+            Self::OtherError(_) => "other",
+        };
+
         let (status, message) = match self {
             Self::NotFound(msg) => (StatusCode::NOT_FOUND, msg.clone()),
             Self::InternalServerError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg.clone()),
@@ -187,6 +210,22 @@ impl IntoResponse for WebError {
                 serde_json::json!(err.to_string()),
             ),
         };
+
+        if status.is_server_error() {
+            error!(
+                error.kind = error_kind,
+                status = status.as_u16(),
+                error.message = %message,
+                "request failed"
+            );
+        } else {
+            warn!(
+                error.kind = error_kind,
+                status = status.as_u16(),
+                error.message = %message,
+                "request rejected"
+            );
+        }
 
         let body = ErrorResponse { msg: Some(message) };
         (status, Json(body)).into_response()

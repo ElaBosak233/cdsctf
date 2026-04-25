@@ -30,6 +30,7 @@ pub struct InviteTokenResponse {
     pub token: Option<String>,
 }
 
+/// Creates token.
 #[utoipa::path(
     post,
     path = "/",
@@ -43,8 +44,7 @@ pub struct InviteTokenResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates token.
+#[tracing::instrument(skip_all, fields(handler = "create_token"))]
 pub async fn create_token(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -61,6 +61,7 @@ pub async fn create_token(
     Ok(Json(InviteTokenResponse { token: Some(token) }))
 }
 
+/// Returns token.
 #[utoipa::path(
     get,
     path = "/",
@@ -74,8 +75,7 @@ pub async fn create_token(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns token.
+#[tracing::instrument(skip_all, fields(handler = "get_token"))]
 pub async fn get_token(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -91,6 +91,7 @@ pub async fn get_token(
     Ok(Json(InviteTokenResponse { token }))
 }
 
+/// Deletes token.
 #[utoipa::path(
     delete,
     path = "/",
@@ -104,8 +105,7 @@ pub async fn get_token(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes token.
+#[tracing::instrument(skip_all, fields(handler = "delete_token"))]
 pub async fn delete_token(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

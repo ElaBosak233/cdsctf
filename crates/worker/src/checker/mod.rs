@@ -24,7 +24,7 @@ use cds_db::{
 };
 use cds_queue::Queue;
 use futures_util::StreamExt as _;
-use tracing::{error, info};
+use tracing::{debug, error, info, warn};
 
 use crate::calculator::{self, Payload};
 
@@ -51,6 +51,7 @@ impl Context {
 }
 
 /// Loads a [`Game`] row or fails with `game_not_found`.
+#[tracing::instrument(skip_all, fields(game_id = game_id))]
 async fn prepare_game(db: &cds_db::DB, game_id: i64) -> Result<Game, anyhow::Error> {
     cds_db::game::find_by_id(&db.conn, game_id)
         .await?
@@ -59,6 +60,7 @@ async fn prepare_game(db: &cds_db::DB, game_id: i64) -> Result<Game, anyhow::Err
 
 /// Loads the join row between a game and a challenge
 /// (`game_challenge_not_found` on miss).
+#[tracing::instrument(skip_all, fields(game_id = game_id, challenge_id = challenge_id))]
 async fn prepare_game_challenge(
     db: &cds_db::DB,
     game_id: i64,
@@ -71,10 +73,19 @@ async fn prepare_game_challenge(
 
 /// End-to-end pipeline for one pending submission: load graph, run script,
 /// post-process status, notify calculator.
+#[tracing::instrument(skip_all, fields(submission_id = id))]
 async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
     let submission = cds_db::submission::find_pending_by_id::<Submission>(&ctx.db.conn, id)
         .await?
         .ok_or(anyhow!("submission_not_found"))?;
+    debug!(
+        submission_id = submission.id,
+        user_id = submission.user_id,
+        team_id = submission.team_id,
+        game_id = submission.game_id,
+        challenge_id = submission.challenge_id,
+        "pending submission loaded"
+    );
 
     let user = if let Some(user) =
         cds_db::user::find_by_id::<User>(&ctx.db.conn, submission.user_id).await?
@@ -115,7 +126,15 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
                     .unwrap_or_else(|_| Status::Incorrect)
             }
         },
-        Err(_) => Status::Incorrect,
+        Err(err) => {
+            warn!(
+                submission_id = submission.id,
+                challenge_id = challenge.id,
+                error = ?err,
+                "checker script failed"
+            );
+            Status::Incorrect
+        }
     };
 
     if status == Status::Correct {
@@ -174,8 +193,14 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
     }
 
     info!(
-        "Submission #{}, status: {:?}, user: {}",
-        submission.id, status, user.username
+        submission_id = submission.id,
+        status = ?status,
+        user_id = user.id,
+        username = %user.username,
+        challenge_id = challenge.id,
+        game_id = submission.game_id,
+        team_id = submission.team_id,
+        "submission checked"
     );
 
     let submission = cds_db::submission::update::<Submission>(
@@ -198,6 +223,12 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
                 },
             )
             .await?;
+        debug!(
+            submission_id = submission.id,
+            game_id = submission.game_id,
+            subject = calculator::SUBJECT,
+            "score recalculation queued"
+        );
     }
 
     Ok(())
@@ -205,6 +236,12 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
 
 /// Marks both the submitting team and the `peer_team_id` as **Banned** when
 /// cheat is detected.
+#[tracing::instrument(skip_all, fields(
+    submission_id = submission.id,
+    game_id = submission.game_id,
+    team_id = submission.team_id,
+    peer_team_id = peer_team_id
+))]
 async fn handle_cheat(
     ctx: Arc<Context>,
     submission: &Submission,
@@ -219,6 +256,10 @@ async fn handle_cheat(
         cds_db::team::find_by_id::<Model>(&ctx.db.conn, peer_team_id, game_id).await?,
     ) {
         for t in &[team, peer_team] {
+            warn!(
+                team_id = t.id,
+                game_id, peer_team_id, "team banned by cheat detection"
+            );
             let _ = cds_db::team::update::<Team>(
                 &ctx.db.conn,
                 cds_db::team::ActiveModel {
@@ -236,6 +277,7 @@ async fn handle_cheat(
 
 /// Re-queues historical `Pending` rows so they are checked after deploys /
 /// crashes.
+#[tracing::instrument(skip_all)]
 async fn recover_pending(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
     let (unchecked_submissions, _) = cds_db::submission::find::<Submission>(
         &ctx.db.conn,
@@ -247,21 +289,30 @@ async fn recover_pending(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
     )
     .await?;
 
+    let recovered = unchecked_submissions.len();
     for submission in unchecked_submissions {
         let id = submission.id;
         ctx.queue.publish(SUBJECT, id).await?;
     }
+
+    info!(
+        count = recovered,
+        subject = SUBJECT,
+        "pending submissions recovered"
+    );
 
     Ok(())
 }
 
 /// Infinite pull loop: parse submission id, invoke [`check`], acknowledge the
 /// JetStream message.
+#[tracing::instrument(skip_all, fields(subject = SUBJECT))]
 async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
     let mut messages = ctx.queue.subscribe(SUBJECT, None).await?;
     while let Some(Ok(message)) = messages.next().await {
         let payload = String::from_utf8(message.payload.to_vec())?;
         let id = payload.parse::<i64>()?;
+        debug!(submission_id = id, "checker message received");
 
         if let Err(err) = check(Arc::clone(&ctx), id).await {
             error!("{:?}", err);
@@ -274,6 +325,7 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
 }
 
 /// Starts the consumer task and immediately calls [`recover_pending`].
+#[tracing::instrument(skip_all, fields(handler = "spawn"))]
 pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker) {
     let ctx = Arc::new(Context::new(db, queue, checker));
     let run_ctx = Arc::clone(&ctx);

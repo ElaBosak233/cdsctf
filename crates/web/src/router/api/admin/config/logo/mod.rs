@@ -24,6 +24,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(delete_logo).with_state(state.clone()))
 }
 
+/// Stores the public site logo in object storage.
 #[utoipa::path(
     post,
     path = "/",
@@ -33,8 +34,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Stores the public site logo in object storage.
+#[tracing::instrument(skip_all, fields(handler = "save_logo"))]
 pub async fn save_logo(
     State(s): State<Arc<AppState>>,
     multipart: Multipart,
@@ -48,6 +48,7 @@ pub async fn save_logo(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Deletes logo.
 #[utoipa::path(
     delete,
     path = "/",
@@ -57,8 +58,7 @@ pub async fn save_logo(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes logo.
+#[tracing::instrument(skip_all, fields(handler = "delete_logo"))]
 pub async fn delete_logo(State(s): State<Arc<AppState>>) -> Result<Json<EmptyJson>, WebError> {
     s.media
         .delete("configs".to_owned(), "logo".to_owned())

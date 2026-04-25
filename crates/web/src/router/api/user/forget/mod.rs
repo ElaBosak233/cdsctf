@@ -37,6 +37,7 @@ pub struct UserForgetRequest {
     pub password: String,
 }
 
+/// Starts the password-reset flow.
 #[utoipa::path(
     post,
     path = "/",
@@ -48,8 +49,7 @@ pub struct UserForgetRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Starts the password-reset flow.
+#[tracing::instrument(skip_all, fields(handler = "user_forget"))]
 pub async fn user_forget(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<UserForgetRequest>,
@@ -86,6 +86,7 @@ pub struct UserSendForgetEmailRequest {
     pub email: String,
 }
 
+/// Enqueues email with a password-reset token.
 #[utoipa::path(
     post,
     path = "/send",
@@ -97,8 +98,7 @@ pub struct UserSendForgetEmailRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Enqueues email with a password-reset token.
+#[tracing::instrument(skip_all, fields(handler = "send_forget_email"))]
 pub async fn send_forget_email(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<UserSendForgetEmailRequest>,

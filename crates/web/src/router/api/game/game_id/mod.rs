@@ -63,6 +63,7 @@ pub struct GameDetailResponse {
     pub game: Game,
 }
 
+/// Returns game.
 #[utoipa::path(
     get,
     path = "/",
@@ -76,8 +77,7 @@ pub struct GameDetailResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns game.
+#[tracing::instrument(skip_all, fields(handler = "get_game"))]
 pub async fn get_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -110,6 +110,7 @@ pub struct GameScoreboardResponse {
     pub total: u64,
 }
 
+/// Returns game scoreboard.
 #[utoipa::path(
     get,
     path = "/scoreboard",
@@ -124,8 +125,7 @@ pub struct GameScoreboardResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns game scoreboard.
+#[tracing::instrument(skip_all, fields(handler = "get_game_scoreboard"))]
 pub async fn get_game_scoreboard(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -178,6 +178,7 @@ pub struct GetEventsRequest {
     pub token: String,
 }
 
+/// Returns events.
 #[utoipa::path(
     get,
     path = "/events",
@@ -191,8 +192,7 @@ pub struct GetEventsRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns events.
+#[tracing::instrument(skip_all, fields(handler = "get_events"))]
 pub async fn get_events(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,

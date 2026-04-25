@@ -22,6 +22,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(get_team_write_up).with_state(state.clone()))
 }
 
+/// Returns team write up.
 #[utoipa::path(
     get,
     path = "/",
@@ -35,8 +36,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns team write up.
+#[tracing::instrument(skip_all, fields(handler = "get_team_write_up"))]
 pub async fn get_team_write_up(
     State(s): State<Arc<AppState>>,
 

@@ -41,6 +41,7 @@ pub struct EmailsListResponse {
     pub total: u64,
 }
 
+/// Returns email.
 #[utoipa::path(
     get,
     path = "/",
@@ -51,8 +52,7 @@ pub struct EmailsListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns email.
+#[tracing::instrument(skip_all, fields(handler = "get_email"))]
 pub async fn get_email(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -69,6 +69,7 @@ pub struct UserAddEmailRequest {
     pub email: String,
 }
 
+/// Associates a new email address with a user.
 #[utoipa::path(
     post,
     path = "/",
@@ -80,8 +81,7 @@ pub struct UserAddEmailRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Associates a new email address with a user.
+#[tracing::instrument(skip_all, fields(handler = "add_email"))]
 pub async fn add_email(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -102,6 +102,7 @@ pub async fn add_email(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Deletes email.
 #[utoipa::path(
     delete,
     path = "/{mailbox}",
@@ -115,8 +116,7 @@ pub async fn add_email(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes email.
+#[tracing::instrument(skip_all, fields(handler = "delete_email"))]
 pub async fn delete_email(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -135,6 +135,7 @@ pub struct EmailVerifyRequest {
     pub code: String,
 }
 
+/// Confirms ownership of a pending email address.
 #[utoipa::path(
     post,
     path = "/{mailbox}/verify",
@@ -150,8 +151,7 @@ pub struct EmailVerifyRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Confirms ownership of a pending email address.
+#[tracing::instrument(skip_all, fields(handler = "verify_email"))]
 pub async fn verify_email(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -203,6 +203,7 @@ pub async fn verify_email(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Sends an address-verification message through the mail queue.
 #[utoipa::path(
     post,
     path = "/{mailbox}/verify/send",
@@ -217,8 +218,7 @@ pub async fn verify_email(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Sends an address-verification message through the mail queue.
+#[tracing::instrument(skip_all, fields(handler = "send_verify_email"))]
 pub async fn send_verify_email(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

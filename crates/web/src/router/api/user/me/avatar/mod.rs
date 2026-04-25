@@ -34,6 +34,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(delete_user_avatar).with_state(state.clone()))
 }
 
+/// Stores the authenticated user's avatar object.
 #[utoipa::path(
     post,
     path = "/",
@@ -44,8 +45,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Stores the authenticated user's avatar object.
+#[tracing::instrument(skip_all, fields(handler = "save_user_avatar"))]
 pub async fn save_user_avatar(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -72,6 +72,7 @@ pub async fn save_user_avatar(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Deletes user avatar.
 #[utoipa::path(
     delete,
     path = "/",
@@ -82,8 +83,7 @@ pub async fn save_user_avatar(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes user avatar.
+#[tracing::instrument(skip_all, fields(handler = "delete_user_avatar"))]
 pub async fn delete_user_avatar(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

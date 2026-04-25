@@ -35,6 +35,7 @@ pub struct GameNoticeResponse {
     pub notice: GameNotice,
 }
 
+/// Creates game notice.
 #[utoipa::path(
     post,
     path = "/",
@@ -48,8 +49,7 @@ pub struct GameNoticeResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates game notice.
+#[tracing::instrument(skip_all, fields(handler = "create_game_notice"))]
 pub async fn create_game_notice(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -74,6 +74,7 @@ pub async fn create_game_notice(
     ))
 }
 
+/// Deletes game notice.
 #[utoipa::path(
     delete,
     path = "/{notice_id}",
@@ -87,8 +88,7 @@ pub async fn create_game_notice(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes game notice.
+#[tracing::instrument(skip_all, fields(handler = "delete_game_notice"))]
 pub async fn delete_game_notice(
     State(s): State<Arc<AppState>>,
     Path((game_id, notice_id)): Path<(i64, i64)>,

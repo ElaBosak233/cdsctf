@@ -41,6 +41,8 @@ pub struct GamesListResponse {
     pub total: u64,
 }
 
+/// Lists enabled public games (collection). Use `GET /games/{game_id}` for one
+/// game.
 #[utoipa::path(
     get,
     path = "/",
@@ -51,9 +53,7 @@ pub struct GamesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Lists enabled public games (collection). Use `GET /games/{game_id}` for one
-/// game.
+#[tracing::instrument(skip_all, fields(handler = "list_games"))]
 pub async fn list_games(
     State(s): State<Arc<AppState>>,
     Query(params): Query<ListGamesRequest>,

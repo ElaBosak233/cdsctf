@@ -37,6 +37,7 @@ pub struct EmailTemplateResponse {
     pub content: String,
 }
 
+/// Returns email.
 #[utoipa::path(
     get,
     path = "/",
@@ -47,8 +48,7 @@ pub struct EmailTemplateResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns email.
+#[tracing::instrument(skip_all, fields(handler = "get_email"))]
 pub async fn get_email(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetEmailRequest>,
@@ -66,6 +66,7 @@ pub struct SaveEmailRequest {
     pub data: String,
 }
 
+/// Updates email-related media configuration.
 #[utoipa::path(
     post,
     path = "/",
@@ -76,8 +77,7 @@ pub struct SaveEmailRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates email-related media configuration.
+#[tracing::instrument(skip_all, fields(handler = "save_email"))]
 pub async fn save_email(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<SaveEmailRequest>,

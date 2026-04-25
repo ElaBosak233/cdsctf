@@ -41,6 +41,7 @@ pub struct AdminChallengeAttachmentsListResponse {
     pub total: u64,
 }
 
+/// Returns challenge attachment.
 #[utoipa::path(
     get,
     path = "/",
@@ -54,8 +55,7 @@ pub struct AdminChallengeAttachmentsListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns challenge attachment.
+#[tracing::instrument(skip_all, fields(handler = "get_challenge_attachment"))]
 pub async fn get_challenge_attachment(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,
@@ -82,6 +82,7 @@ pub async fn get_challenge_attachment(
     }))
 }
 
+/// Uploads an administrator attachment for a challenge.
 #[utoipa::path(
     post,
     path = "/",
@@ -95,8 +96,7 @@ pub async fn get_challenge_attachment(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Uploads an administrator attachment for a challenge.
+#[tracing::instrument(skip_all, fields(handler = "save_challenge_attachment"))]
 pub async fn save_challenge_attachment(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,

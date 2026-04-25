@@ -11,6 +11,7 @@ use axum::{
 
 use crate::traits::{AppState, WebError};
 
+/// Returns logo.
 #[utoipa::path(
     get,
     path = "/",
@@ -21,8 +22,7 @@ use crate::traits::{AppState, WebError};
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns logo.
+#[tracing::instrument(skip_all, fields(handler = "get_logo"))]
 pub async fn get_logo(State(s): State<Arc<AppState>>) -> Result<impl IntoResponse, WebError> {
     match s.media.config().logo().get_logo().await {
         Ok(buffer) => Ok(Response::builder().body(Body::from(buffer))?),

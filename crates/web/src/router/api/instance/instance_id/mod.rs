@@ -29,6 +29,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(wsrx).with_state(state.clone()))
 }
 
+/// Extends or refreshes a player instance from the API.
 #[utoipa::path(
     post,
     path = "/renew",
@@ -45,8 +46,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Extends or refreshes a player instance from the API.
+#[tracing::instrument(skip_all, fields(handler = "renew_instance"))]
 pub async fn renew_instance(
     State(s): State<Arc<AppState>>,
 
@@ -114,6 +114,7 @@ pub async fn renew_instance(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Tears down Kubernetes resources for an instance.
 #[utoipa::path(
     post,
     path = "/stop",
@@ -129,8 +130,7 @@ pub async fn renew_instance(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Tears down Kubernetes resources for an instance.
+#[tracing::instrument(skip_all, fields(handler = "stop_instance"))]
 pub async fn stop_instance(
     State(s): State<Arc<AppState>>,
 
@@ -176,6 +176,7 @@ pub struct WsrxRequest {
     pub port: u32,
 }
 
+/// Proxies WebSocket traffic into a pod port via `wsrx`.
 #[utoipa::path(
     get,
     path = "/wsrx",
@@ -191,8 +192,7 @@ pub struct WsrxRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Proxies WebSocket traffic into a pod port via `wsrx`.
+#[tracing::instrument(skip_all, fields(handler = "wsrx"))]
 pub async fn wsrx(
     State(s): State<Arc<AppState>>,
 

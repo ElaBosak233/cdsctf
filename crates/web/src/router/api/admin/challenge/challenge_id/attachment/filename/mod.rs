@@ -29,6 +29,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(delete_attachment).with_state(state.clone()))
 }
 
+/// Returns attachment.
 #[utoipa::path(
     get,
     path = "/",
@@ -43,8 +44,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns attachment.
+#[tracing::instrument(skip_all, fields(handler = "get_attachment"))]
 pub async fn get_attachment(
     State(s): State<Arc<AppState>>,
     Path((challenge_id, filename)): Path<(i64, String)>,
@@ -82,6 +82,7 @@ pub async fn get_attachment(
         .body(Body::from(buffer))?)
 }
 
+/// Deletes attachment.
 #[utoipa::path(
     delete,
     path = "/",
@@ -96,8 +97,7 @@ pub async fn get_attachment(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes attachment.
+#[tracing::instrument(skip_all, fields(handler = "delete_attachment"))]
 pub async fn delete_attachment(
     State(s): State<Arc<AppState>>,
     Path((challenge_id, filename)): Path<(i64, String)>,

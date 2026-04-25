@@ -55,6 +55,7 @@ pub struct UpdateTeamRequest {
     pub description: Option<String>,
 }
 
+/// Updates team.
 #[utoipa::path(
     put,
     path = "/",
@@ -69,8 +70,7 @@ pub struct UpdateTeamRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates team.
+#[tracing::instrument(skip_all, fields(handler = "update_team"))]
 pub async fn update_team(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
@@ -106,6 +106,7 @@ pub async fn update_team(
     Ok(Json(TeamResponse { team: new_team }))
 }
 
+/// Deletes team.
 #[utoipa::path(
     delete,
     path = "/",
@@ -120,8 +121,7 @@ pub async fn update_team(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes team.
+#[tracing::instrument(skip_all, fields(handler = "delete_team"))]
 pub async fn delete_team(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,

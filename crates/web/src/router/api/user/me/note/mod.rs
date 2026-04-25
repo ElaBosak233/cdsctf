@@ -42,6 +42,7 @@ pub struct MyNotesListResponse {
     pub total: u64,
 }
 
+/// Returns my note.
 #[utoipa::path(
     get,
     path = "/",
@@ -53,8 +54,7 @@ pub struct MyNotesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns my note.
+#[tracing::instrument(skip_all, fields(handler = "get_my_note"))]
 pub async fn get_my_note(
     State(s): State<Arc<AppState>>,
     Extension(ap): Extension<AuthPrincipal>,
@@ -90,6 +90,7 @@ pub struct NoteResponse {
     pub note: Note,
 }
 
+/// Persists the authenticated user's personal note blob.
 #[utoipa::path(
     post,
     path = "/",
@@ -102,8 +103,7 @@ pub struct NoteResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Persists the authenticated user's personal note blob.
+#[tracing::instrument(skip_all, fields(handler = "save_my_note"))]
 pub async fn save_my_note(
     State(s): State<Arc<AppState>>,
     Extension(ap): Extension<AuthPrincipal>,

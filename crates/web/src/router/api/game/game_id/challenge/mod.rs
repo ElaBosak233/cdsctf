@@ -38,6 +38,7 @@ pub struct GameChallengesListResponse {
     pub total: u64,
 }
 
+/// Returns game challenge.
 #[utoipa::path(
     get,
     path = "/",
@@ -53,8 +54,7 @@ pub struct GameChallengesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns game challenge.
+#[tracing::instrument(skip_all, fields(handler = "get_game_challenge"))]
 pub async fn get_game_challenge(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

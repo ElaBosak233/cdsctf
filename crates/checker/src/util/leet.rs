@@ -149,8 +149,8 @@ pub fn decode(template: &str, payload: &str, key: &str) -> Result<i64, io::Error
     Ok(i64::from_le_bytes(decrypted_slice))
 }
 
-#[cfg(test)]
 /// Unit tests for the Leet encoder/decoder helpers.
+#[cfg(test)]
 mod tests {
     const TEMPLATE: &str = "MyLittlePony";
     const KEY: &str = "Fr1endShip1sM4g1c";

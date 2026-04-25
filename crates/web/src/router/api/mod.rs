@@ -70,14 +70,14 @@ pub struct IndexResponse {
     pub message: serde_json::Value,
 }
 
+/// HTTP handler for the API index route.
 #[utoipa::path(
     get,
     path = "/",
     tag = "system",
     responses((status = 200, description = "Welcome payload", body = IndexResponse))
 )]
-
-/// HTTP handler for the API index route.
+#[tracing::instrument(skip_all, fields(handler = "index"))]
 pub async fn index() -> Json<IndexResponse> {
     Json(IndexResponse {
         message: json!("This is the heart of CdsCTF!"),

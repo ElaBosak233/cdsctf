@@ -20,7 +20,7 @@ use cds_db::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_sessions::Session;
-use tracing::debug;
+use tracing::{Span, info};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -57,6 +57,7 @@ pub struct UserLoginRequest {
     pub captcha: Option<cds_captcha::Answer>,
 }
 
+/// Authenticates a user and establishes a session.
 #[utoipa::path(
     post,
     path = "/login",
@@ -68,8 +69,7 @@ pub struct UserLoginRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Authenticates a user and establishes a session.
+#[tracing::instrument(skip_all, fields(handler = "user_login"))]
 pub async fn user_login(
     State(s): State<Arc<AppState>>,
     session: Session,
@@ -100,11 +100,12 @@ pub async fn user_login(
     }
 
     session.insert("user_id", user.id).await?;
+    Span::current().record("username", user.username.as_str());
 
-    debug!(
+    info!(
         user_id = user.id,
-        username = user.username,
-        "User logged in"
+        username = %user.username,
+        "user logged in"
     );
 
     Ok(Json(UserResponse { user }))
@@ -121,6 +122,7 @@ pub struct UserRegisterRequest {
     pub captcha: Option<cds_captcha::Answer>,
 }
 
+/// Creates a new account after validation and captcha.
 #[utoipa::path(
     post,
     path = "/register",
@@ -133,8 +135,7 @@ pub struct UserRegisterRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates a new account after validation and captcha.
+#[tracing::instrument(skip_all, fields(handler = "user_register"))]
 pub async fn user_register(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -202,16 +203,18 @@ pub async fn user_register(
         },
     )
     .await?;
+    Span::current().record("username", user.username.as_str());
 
-    debug!(
+    info!(
         user_id = user.id,
-        username = user.username,
-        "New user registered"
+        username = %user.username,
+        "new user registered"
     );
 
     Ok((StatusCode::CREATED, Json(UserResponse { user })))
 }
 
+/// Destroys the active session cookie.
 #[utoipa::path(
     post,
     path = "/logout",
@@ -222,13 +225,17 @@ pub async fn user_register(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Destroys the active session cookie.
+#[tracing::instrument(skip_all, fields(handler = "user_logout"))]
 pub async fn user_logout(
     session: Session,
     Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     let _ = session.remove::<Option<i64>>("user_id").await?;
+    info!(
+        user_id = operator.id,
+        username = %operator.username,
+        "user logged out"
+    );
     Ok(Json(EmptyJson::default()))
 }

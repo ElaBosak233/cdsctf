@@ -25,6 +25,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(delete_token).with_state(state.clone()))
 }
 
+/// Creates token.
 #[utoipa::path(
     post,
     path = "/",
@@ -38,8 +39,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates token.
+#[tracing::instrument(skip_all, fields(handler = "create_token"))]
 pub async fn create_token(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
@@ -54,6 +54,7 @@ pub async fn create_token(
     Ok(Json(InviteTokenResponse { token: Some(token) }))
 }
 
+/// Returns token.
 #[utoipa::path(
     get,
     path = "/",
@@ -67,8 +68,7 @@ pub async fn create_token(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns token.
+#[tracing::instrument(skip_all, fields(handler = "get_token"))]
 pub async fn get_token(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
@@ -82,6 +82,7 @@ pub async fn get_token(
     Ok(Json(InviteTokenResponse { token }))
 }
 
+/// Deletes token.
 #[utoipa::path(
     delete,
     path = "/",
@@ -95,8 +96,7 @@ pub async fn get_token(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes token.
+#[tracing::instrument(skip_all, fields(handler = "delete_token"))]
 pub async fn delete_token(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,

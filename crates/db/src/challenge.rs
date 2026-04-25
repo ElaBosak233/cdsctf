@@ -7,6 +7,7 @@ use sea_orm::{
     Iden as _, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, prelude::Expr,
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 pub use crate::entity::challenge::{ActiveModel, Container, EnvVar, Instance, Model, Port};
 pub(crate) use crate::entity::challenge::{Column, Entity};
@@ -182,6 +183,15 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let challenge = model.insert(conn).await?;
+    info!(
+        challenge_id = challenge.id,
+        title = %challenge.title,
+        category = challenge.category,
+        public = challenge.public,
+        has_instance = challenge.has_instance,
+        has_attachment = challenge.has_attachment,
+        "challenge created"
+    );
 
     Ok(find_by_id::<T>(conn, challenge.id)
         .await?
@@ -193,6 +203,15 @@ pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let challenge = model.update(conn).await?;
+    info!(
+        challenge_id = challenge.id,
+        title = %challenge.title,
+        category = challenge.category,
+        public = challenge.public,
+        has_instance = challenge.has_instance,
+        has_attachment = challenge.has_attachment,
+        "challenge updated"
+    );
 
     Ok(find_by_id::<T>(conn, challenge.id)
         .await?
@@ -212,6 +231,11 @@ pub async fn delete(conn: &impl ConnectionTrait, challenge_id: i64) -> Result<()
     }
     .update(conn)
     .await?;
+    info!(
+        challenge_id,
+        title = %challenge.title,
+        "challenge deleted"
+    );
 
     Ok(())
 }

@@ -28,6 +28,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(get_attachment).with_state(state.clone()))
 }
 
+/// Returns attachment.
 #[utoipa::path(
     get,
     path = "/",
@@ -43,8 +44,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns attachment.
+#[tracing::instrument(skip_all, fields(handler = "get_attachment"))]
 pub async fn get_attachment(
     State(s): State<Arc<AppState>>,
 

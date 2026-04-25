@@ -33,13 +33,16 @@ use cds_db::{
 use cds_queue::Queue;
 use futures_util::{StreamExt as _, future::join_all};
 pub use payload::Payload;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 /// JetStream subject name for score / rank recomputation jobs.
 pub const SUBJECT: &str = "calculator";
 
 /// Rebuilds scoring state for one competition (`game_id`) from the database.
+#[tracing::instrument(skip_all, fields(game_id = game_id))]
 async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
+    info!(game_id, "score calculation started");
+
     // Closure avoids duplicating the "load correct submissions" query in multiple
     // phases.
     let submissions = async || -> Result<Vec<Submission>, anyhow::Error> {
@@ -63,6 +66,11 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
     for s in submissions().await? {
         sc.entry(s.challenge_id).or_default().push(s);
     }
+    debug!(
+        game_id,
+        solved_challenges = sc.len(),
+        "loaded correct submissions for scoring"
+    );
 
     let sc = Arc::new(sc);
 
@@ -145,6 +153,7 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
         });
 
     join_all(futures).await;
+    debug!(game_id, "challenge scores updated");
 
     // --- Team leaderboard: sum submission points per team, then rank teams ---
     let (mut teams, _) = cds_db::team::find::<Team>(
@@ -193,22 +202,27 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
 
     join_all(futures).await;
 
+    info!(game_id, teams = teams.len(), "score calculation completed");
+
     Ok(())
 }
 
 /// Pull loop: parse [`Payload`], then either recompute one game or **all**
 /// games.
+#[tracing::instrument(skip_all, fields(subject = SUBJECT))]
 async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
     let mut messages = queue.subscribe(SUBJECT, None).await?;
     while let Some(Ok(message)) = messages.next().await {
         let payload = String::from_utf8(message.payload.to_vec())?;
         let calculator_payload = serde_json::from_str::<Payload>(&payload)?;
+        debug!(payload = %payload, "calculator message received");
 
         if let Some(game_id) = calculator_payload.game_id {
             calculate(&db, game_id).await?;
         } else {
             let (games, _) =
                 cds_db::game::find::<Game>(&db.conn, FindGameOptions::default()).await?;
+            info!(games = games.len(), "calculator full rebuild requested");
             for game in games {
                 calculate(&db, game.id).await?;
             }
@@ -221,6 +235,7 @@ async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
 }
 
 /// Spawns a Tokio task that subscribes to [`SUBJECT`] and runs [`run`].
+#[tracing::instrument(skip_all, fields(handler = "spawn"))]
 pub async fn spawn(db: &DB, queue: &Queue) {
     let db = db.clone();
     let queue = queue.clone();

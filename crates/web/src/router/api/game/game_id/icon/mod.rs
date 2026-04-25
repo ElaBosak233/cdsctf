@@ -20,6 +20,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(get_game_icon).with_state(state.clone()))
 }
 
+/// Returns game icon.
 #[utoipa::path(
     get,
     path = "/",
@@ -32,8 +33,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns game icon.
+#[tracing::instrument(skip_all, fields(handler = "get_game_icon"))]
 pub async fn get_game_icon(
     State(s): State<Arc<AppState>>,
 

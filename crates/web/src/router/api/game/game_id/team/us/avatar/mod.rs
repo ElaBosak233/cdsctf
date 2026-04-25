@@ -36,6 +36,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(delete_team_avatar).with_state(state.clone()))
 }
 
+/// Stores a team's avatar for the current game context.
 #[utoipa::path(
     post,
     path = "/",
@@ -49,8 +50,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Stores a team's avatar for the current game context.
+#[tracing::instrument(skip_all, fields(handler = "save_team_avatar"))]
 pub async fn save_team_avatar(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -80,6 +80,7 @@ pub async fn save_team_avatar(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Deletes team avatar.
 #[utoipa::path(
     delete,
     path = "/",
@@ -93,8 +94,7 @@ pub async fn save_team_avatar(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes team avatar.
+#[tracing::instrument(skip_all, fields(handler = "delete_team_avatar"))]
 pub async fn delete_team_avatar(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

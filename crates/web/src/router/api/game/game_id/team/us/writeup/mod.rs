@@ -35,6 +35,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(save_team_write_up).with_state(state.clone()))
 }
 
+/// Returns team write up.
 #[utoipa::path(
     get,
     path = "/",
@@ -48,8 +49,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns team write up.
+#[tracing::instrument(skip_all, fields(handler = "get_team_write_up"))]
 pub async fn get_team_write_up(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -61,6 +61,7 @@ pub async fn get_team_write_up(
     util::media::get_write_up(s.media.clone(), game_id, team.id).await
 }
 
+/// Persists a team's write-up document.
 #[utoipa::path(
     post,
     path = "/",
@@ -75,8 +76,7 @@ pub async fn get_team_write_up(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Persists a team's write-up document.
+#[tracing::instrument(skip_all, fields(handler = "save_team_write_up"))]
 pub async fn save_team_write_up(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

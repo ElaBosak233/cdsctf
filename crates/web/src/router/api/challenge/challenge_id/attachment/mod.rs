@@ -33,6 +33,7 @@ pub struct ChallengeAttachmentsListResponse {
     pub total: u64,
 }
 
+/// Returns challenge attachment.
 #[utoipa::path(
     get,
     path = "/",
@@ -47,8 +48,7 @@ pub struct ChallengeAttachmentsListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns challenge attachment.
+#[tracing::instrument(skip_all, fields(handler = "get_challenge_attachment"))]
 pub async fn get_challenge_attachment(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

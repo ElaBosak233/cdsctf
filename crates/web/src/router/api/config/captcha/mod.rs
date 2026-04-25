@@ -8,6 +8,7 @@ use serde_json::json;
 
 use crate::traits::{AppState, WebError};
 
+/// Issues a captcha challenge for unauthenticated flows.
 #[utoipa::path(
     get,
     path = "/generate",
@@ -18,8 +19,7 @@ use crate::traits::{AppState, WebError};
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Issues a captcha challenge for unauthenticated flows.
+#[tracing::instrument(skip_all, fields(handler = "generate_captcha"))]
 pub async fn generate_captcha(
     State(s): State<Arc<AppState>>,
 ) -> Result<Json<cds_captcha::CaptchaChallenge>, WebError> {

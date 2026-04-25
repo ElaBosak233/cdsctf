@@ -4,6 +4,7 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, QueryFilter,
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 pub use crate::entity::game_notice::{ActiveModel, Model};
 pub(crate) use crate::entity::game_notice::{Column, Entity};
@@ -56,6 +57,12 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let game_notice = model.insert(conn).await?;
+    info!(
+        notice_id = game_notice.id,
+        game_id = game_notice.game_id,
+        title = %game_notice.title,
+        "game notice created"
+    );
 
     Ok(find_by_id::<T>(conn, game_notice.id, game_notice.game_id)
         .await?
@@ -73,6 +80,7 @@ pub async fn delete(
         .filter(Column::GameId.eq(game_id))
         .exec(conn)
         .await?;
+    info!(notice_id, game_id, "game notice deleted");
 
     Ok(())
 }

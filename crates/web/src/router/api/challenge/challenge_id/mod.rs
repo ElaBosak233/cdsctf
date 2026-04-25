@@ -32,6 +32,7 @@ pub struct ChallengeDetailResponse {
     pub challenge: Challenge,
 }
 
+/// Returns challenge.
 #[utoipa::path(
     get,
     path = "/",
@@ -46,8 +47,7 @@ pub struct ChallengeDetailResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns challenge.
+#[tracing::instrument(skip_all, fields(handler = "get_challenge"))]
 pub async fn get_challenge(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

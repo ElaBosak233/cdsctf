@@ -31,6 +31,7 @@ pub struct AdminTeamUsersListResponse {
     pub total: u64,
 }
 
+/// Returns team user.
 #[utoipa::path(
     get,
     path = "/",
@@ -44,8 +45,7 @@ pub struct AdminTeamUsersListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns team user.
+#[tracing::instrument(skip_all, fields(handler = "get_team_user"))]
 pub async fn get_team_user(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
@@ -66,6 +66,7 @@ pub struct CreateTeamUserRequest {
     pub user_id: i64,
 }
 
+/// Creates team user.
 #[utoipa::path(
     post,
     path = "/",
@@ -81,8 +82,7 @@ pub struct CreateTeamUserRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates team user.
+#[tracing::instrument(skip_all, fields(handler = "create_team_user"))]
 pub async fn create_team_user(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
@@ -112,6 +112,7 @@ pub async fn create_team_user(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Deletes team user.
 #[utoipa::path(
     delete,
     path = "/{user_id}",
@@ -127,8 +128,7 @@ pub async fn create_team_user(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes team user.
+#[tracing::instrument(skip_all, fields(handler = "delete_team_user"))]
 pub async fn delete_team_user(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id, user_id)): Path<(i64, i64, i64)>,

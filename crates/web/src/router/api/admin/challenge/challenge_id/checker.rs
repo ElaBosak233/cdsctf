@@ -35,6 +35,7 @@ pub struct UpdateCheckerRequest {
     pub checker: Option<String>,
 }
 
+/// Updates checker.
 #[utoipa::path(
     put,
     path = "/",
@@ -48,8 +49,7 @@ pub struct UpdateCheckerRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates checker.
+#[tracing::instrument(skip_all, fields(handler = "update_checker"))]
 pub async fn update_checker(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,
@@ -80,6 +80,7 @@ pub struct CheckerLintResponse {
     pub markers: Vec<DiagnosticMarker>,
 }
 
+/// Runs static analysis on a challenge checker script via API.
 #[utoipa::path(
     post,
     path = "/lint",
@@ -93,8 +94,7 @@ pub struct CheckerLintResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Runs static analysis on a challenge checker script via API.
+#[tracing::instrument(skip_all, fields(handler = "lint_checker"))]
 pub async fn lint_checker(
     State(s): State<Arc<AppState>>,
     Path(challenge_id): Path<i64>,

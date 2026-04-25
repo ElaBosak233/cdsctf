@@ -52,6 +52,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/poster", poster::router(state.clone()))
 }
 
+/// Returns game.
 #[utoipa::path(
     get,
     path = "/",
@@ -64,8 +65,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns game.
+#[tracing::instrument(skip_all, fields(handler = "get_game"))]
 pub async fn get_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -90,6 +90,7 @@ pub struct UpdateGameRequest {
     pub ended_at: Option<i64>,
 }
 
+/// Updates game.
 #[utoipa::path(
     put,
     path = "/",
@@ -103,8 +104,7 @@ pub struct UpdateGameRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates game.
+#[tracing::instrument(skip_all, fields(handler = "update_game"))]
 pub async fn update_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -138,6 +138,7 @@ pub async fn update_game(
     Ok(Json(GameDetailResponse { game }))
 }
 
+/// Deletes game.
 #[utoipa::path(
     delete,
     path = "/",
@@ -150,8 +151,7 @@ pub async fn update_game(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes game.
+#[tracing::instrument(skip_all, fields(handler = "delete_game"))]
 pub async fn delete_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
@@ -161,6 +161,7 @@ pub async fn delete_game(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Publishes a score-recalculation job for administrators.
 #[utoipa::path(
     post,
     path = "/calculate",
@@ -173,8 +174,7 @@ pub async fn delete_game(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Publishes a score-recalculation job for administrators.
+#[tracing::instrument(skip_all, fields(handler = "calculate_game"))]
 pub async fn calculate_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,

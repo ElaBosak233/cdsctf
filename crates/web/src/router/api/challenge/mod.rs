@@ -50,6 +50,7 @@ pub struct ChallengesListResponse {
     pub total: u64,
 }
 
+/// Lists public challenges (collection).
 #[utoipa::path(
     get,
     path = "/",
@@ -61,8 +62,7 @@ pub struct ChallengesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Lists public challenges (collection).
+#[tracing::instrument(skip_all, fields(handler = "list_challenges"))]
 pub async fn list_challenges(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -113,6 +113,8 @@ pub struct ChallengeStatusesResponse {
     pub statuses: HashMap<i64, ChallengeStatusResponse>,
 }
 
+/// Batch query for solve status and score hints. Uses POST so `challenge_ids`
+/// can be a JSON array.
 #[utoipa::path(
     post,
     path = "/status",
@@ -125,9 +127,7 @@ pub struct ChallengeStatusesResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Batch query for solve status and score hints. Uses POST so `challenge_ids`
-/// can be a JSON array.
+#[tracing::instrument(skip_all, fields(handler = "query_challenge_status"))]
 pub async fn query_challenge_status(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

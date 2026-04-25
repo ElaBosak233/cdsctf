@@ -5,6 +5,7 @@ use sea_orm::{
     QueryFilter,
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 use super::{
     team::{Column as TeamColumn, Entity as TeamEntity},
@@ -100,6 +101,11 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let team_user = model.insert(conn).await?;
+    info!(
+        team_id = team_user.team_id,
+        user_id = team_user.user_id,
+        "team member created"
+    );
 
     Ok(find_by_id::<T>(conn, team_user.team_id, team_user.user_id)
         .await?
@@ -122,6 +128,7 @@ pub async fn delete(
         .filter(Column::UserId.eq(user_id))
         .exec(conn)
         .await?;
+    info!(team_id, user_id, "team member deleted");
 
     Ok(())
 }
@@ -133,6 +140,7 @@ pub async fn delete_by_team_id(conn: &impl ConnectionTrait, team_id: i64) -> Res
         .filter(Column::TeamId.eq(team_id))
         .exec(conn)
         .await?;
+    info!(team_id, "team members deleted");
 
     Ok(())
 }

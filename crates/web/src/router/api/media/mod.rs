@@ -37,6 +37,8 @@ pub struct GetMediaRequest {
     pub hash: String,
 }
 
+/// Returns stored media bytes by `?hash=` (kept for backward compatibility with
+/// stored URLs).
 #[utoipa::path(
     get,
     path = "/",
@@ -48,9 +50,7 @@ pub struct GetMediaRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns stored media bytes by `?hash=` (kept for backward compatibility with
-/// stored URLs).
+#[tracing::instrument(skip_all, fields(handler = "get_media"))]
 pub async fn get_media(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetMediaRequest>,
@@ -67,6 +67,7 @@ pub struct UploadMediaResponse {
     pub hash: String,
 }
 
+/// Accepts a multipart upload and stores it in configured media backend.
 #[utoipa::path(
     post,
     path = "/",
@@ -80,8 +81,7 @@ pub struct UploadMediaResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Accepts a multipart upload and stores it in configured media backend.
+#[tracing::instrument(skip_all, fields(handler = "upload_media"))]
 pub async fn upload_media(
     State(s): State<Arc<AppState>>,
 

@@ -29,6 +29,7 @@ pub struct GameNoticesListResponse {
     pub total: u64,
 }
 
+/// Lists notices for a game (collection).
 #[utoipa::path(
     get,
     path = "/",
@@ -42,8 +43,7 @@ pub struct GameNoticesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Lists notices for a game (collection).
+#[tracing::instrument(skip_all, fields(handler = "list_game_notices"))]
 pub async fn list_game_notices(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,

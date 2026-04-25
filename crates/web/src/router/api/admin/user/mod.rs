@@ -13,6 +13,7 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tracing::info;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -51,6 +52,7 @@ pub struct AdminUsersListResponse {
     pub total: u64,
 }
 
+/// Returns users.
 #[utoipa::path(
     get,
     path = "/",
@@ -61,8 +63,7 @@ pub struct AdminUsersListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns users.
+#[tracing::instrument(skip_all, fields(handler = "get_users"))]
 pub async fn get_users(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetUsersRequest>,
@@ -97,6 +98,7 @@ pub struct CreateUserRequest {
     pub group: Group,
 }
 
+/// Creates user.
 #[utoipa::path(
     post,
     path = "/",
@@ -108,8 +110,7 @@ pub struct CreateUserRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates user.
+#[tracing::instrument(skip_all, fields(handler = "create_user"))]
 pub async fn create_user(
     State(s): State<Arc<AppState>>,
     VJson(mut body): VJson<CreateUserRequest>,
@@ -142,6 +143,13 @@ pub async fn create_user(
         },
     )
     .await?;
+
+    info!(
+        user_id = user.id,
+        username = %user.username,
+        group = ?user.group,
+        "admin created user"
+    );
 
     Ok((StatusCode::CREATED, Json(UserResponse { user })))
 }

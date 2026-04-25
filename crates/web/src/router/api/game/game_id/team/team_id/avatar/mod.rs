@@ -10,6 +10,7 @@ use crate::{
     traits::{AppState, WebError},
 };
 
+/// Returns team avatar.
 #[utoipa::path(
     get,
     path = "/",
@@ -23,8 +24,7 @@ use crate::{
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns team avatar.
+#[tracing::instrument(skip_all, fields(handler = "get_team_avatar"))]
 pub async fn get_team_avatar(
     State(s): State<Arc<AppState>>,
 

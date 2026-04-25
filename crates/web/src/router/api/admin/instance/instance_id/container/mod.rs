@@ -25,6 +25,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         )
 }
 
+/// Returns container.
 #[utoipa::path(
     get,
     path = "/",
@@ -34,8 +35,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns container.
+#[tracing::instrument(skip_all, fields(handler = "get_container"))]
 pub async fn get_container() -> Result<Json<EmptyJson>, WebError> {
     Ok(Json(EmptyJson::default()))
 }

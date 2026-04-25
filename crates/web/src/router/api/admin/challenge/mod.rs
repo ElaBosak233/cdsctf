@@ -9,6 +9,7 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{Challenge, challenge::FindChallengeOptions, sea_orm::ActiveValue::Set};
 use serde::{Deserialize, Serialize};
+use tracing::info;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -48,6 +49,7 @@ pub struct AdminChallengesListResponse {
     pub total: u64,
 }
 
+/// Returns challenges.
 #[utoipa::path(
     get,
     path = "/",
@@ -58,8 +60,7 @@ pub struct AdminChallengesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns challenges.
+#[tracing::instrument(skip_all, fields(handler = "get_challenges"))]
 pub async fn get_challenges(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetChallengeRequest>,
@@ -104,6 +105,7 @@ pub struct AdminChallengeResponse {
     pub challenge: Challenge,
 }
 
+/// Creates challenge.
 #[utoipa::path(
     post,
     path = "/",
@@ -114,13 +116,12 @@ pub struct AdminChallengeResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates challenge.
+#[tracing::instrument(skip_all, fields(handler = "create_challenge"))]
 pub async fn create_challenge(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<CreateChallengeRequest>,
 ) -> Result<(StatusCode, Json<AdminChallengeResponse>), WebError> {
-    let challenge = cds_db::challenge::create(
+    let challenge = cds_db::challenge::create::<Challenge>(
         &s.db.conn,
         cds_db::challenge::ActiveModel {
             title: Set(body.title),
@@ -137,6 +138,14 @@ pub async fn create_challenge(
         },
     )
     .await?;
+    info!(
+        challenge_id = challenge.id,
+        title = %challenge.title,
+        category = challenge.category,
+        public = challenge.public,
+        has_instance = challenge.has_instance,
+        "admin created challenge"
+    );
 
     Ok((
         StatusCode::CREATED,

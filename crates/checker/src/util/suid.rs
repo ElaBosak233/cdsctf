@@ -138,8 +138,8 @@ pub fn decode(payload: &str, key: &str) -> Result<i64, anyhow::Error> {
     Ok(i64::from_be_bytes(m_bytes))
 }
 
-#[cfg(test)]
 /// Unit tests for the SUID encoder/decoder helpers.
+#[cfg(test)]
 mod tests {
     const KEY: &str = "Fr1endShip1sM4g1c";
 

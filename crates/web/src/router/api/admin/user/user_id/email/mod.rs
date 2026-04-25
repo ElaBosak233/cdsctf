@@ -37,6 +37,7 @@ pub struct AdminEmailsListResponse {
     pub total: u64,
 }
 
+/// Returns email.
 #[utoipa::path(
     get,
     path = "/",
@@ -49,8 +50,7 @@ pub struct AdminEmailsListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns email.
+#[tracing::instrument(skip_all, fields(handler = "get_email"))]
 pub async fn get_email(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
@@ -71,6 +71,7 @@ pub struct AdminEmailResponse {
     pub email: Email,
 }
 
+/// Associates a new email address with a user.
 #[utoipa::path(
     post,
     path = "/",
@@ -84,8 +85,7 @@ pub struct AdminEmailResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Associates a new email address with a user.
+#[tracing::instrument(skip_all, fields(handler = "add_email"))]
 pub async fn add_email(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
@@ -104,6 +104,7 @@ pub async fn add_email(
     Ok(Json(AdminEmailResponse { email }))
 }
 
+/// Deletes email.
 #[utoipa::path(
     delete,
     path = "/{mailbox}",
@@ -117,8 +118,7 @@ pub async fn add_email(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes email.
+#[tracing::instrument(skip_all, fields(handler = "delete_email"))]
 pub async fn delete_email(
     State(s): State<Arc<AppState>>,
     Path((user_id, email)): Path<(i64, String)>,
@@ -128,6 +128,7 @@ pub async fn delete_email(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Confirms ownership of a pending email address.
 #[utoipa::path(
     post,
     path = "/{mailbox}/verify",
@@ -142,8 +143,7 @@ pub async fn delete_email(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Confirms ownership of a pending email address.
+#[tracing::instrument(skip_all, fields(handler = "verify_email"))]
 pub async fn verify_email(
     State(s): State<Arc<AppState>>,
     Path((user_id, email)): Path<(i64, String)>,

@@ -5,6 +5,7 @@ use sea_orm::{
     QueryFilter,
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 pub(crate) use crate::entity::game_challenge::Entity;
 pub use crate::entity::game_challenge::{ActiveModel, Column, Model, Relation};
@@ -112,6 +113,13 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let game_challenge = model.insert(conn).await?;
+    info!(
+        game_id = game_challenge.game_id,
+        challenge_id = game_challenge.challenge_id,
+        enabled = game_challenge.enabled,
+        pts = game_challenge.pts,
+        "game challenge created"
+    );
 
     Ok(
         find_by_id::<T>(conn, game_challenge.game_id, game_challenge.challenge_id)
@@ -130,6 +138,13 @@ pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let game_challenge = model.update(conn).await?;
+    info!(
+        game_id = game_challenge.game_id,
+        challenge_id = game_challenge.challenge_id,
+        enabled = game_challenge.enabled,
+        pts = game_challenge.pts,
+        "game challenge updated"
+    );
 
     Ok(
         find_by_id::<T>(conn, game_challenge.game_id, game_challenge.challenge_id)
@@ -154,6 +169,7 @@ pub async fn delete(
         .filter(Column::ChallengeId.eq(challenge_id))
         .exec(conn)
         .await?;
+    info!(game_id, challenge_id, "game challenge deleted");
 
     Ok(())
 }

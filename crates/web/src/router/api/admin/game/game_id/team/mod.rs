@@ -51,6 +51,7 @@ pub struct AdminTeamsListResponse {
     pub total: u64,
 }
 
+/// Returns team.
 #[utoipa::path(
     get,
     path = "/",
@@ -65,8 +66,7 @@ pub struct AdminTeamsListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns team.
+#[tracing::instrument(skip_all, fields(handler = "get_team"))]
 pub async fn get_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -101,6 +101,7 @@ pub struct CreateTeamRequest {
     pub slogan: Option<String>,
 }
 
+/// Creates team.
 #[utoipa::path(
     post,
     path = "/",
@@ -114,8 +115,7 @@ pub struct CreateTeamRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates team.
+#[tracing::instrument(skip_all, fields(handler = "create_team"))]
 pub async fn create_team(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,

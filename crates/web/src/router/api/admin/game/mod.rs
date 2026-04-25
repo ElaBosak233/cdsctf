@@ -12,6 +12,7 @@ use cds_db::{
     sea_orm::ActiveValue::{NotSet, Set},
 };
 use serde::{Deserialize, Serialize};
+use tracing::info;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -50,6 +51,7 @@ pub struct AdminGamesListResponse {
     pub total: u64,
 }
 
+/// Returns games.
 #[utoipa::path(
     get,
     path = "/",
@@ -60,8 +62,7 @@ pub struct AdminGamesListResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns games.
+#[tracing::instrument(skip_all, fields(handler = "get_games"))]
 pub async fn get_games(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetGameRequest>,
@@ -100,6 +101,7 @@ pub struct CreateGameRequest {
     pub ended_at: i64,
 }
 
+/// Creates game.
 #[utoipa::path(
     post,
     path = "/",
@@ -110,13 +112,12 @@ pub struct CreateGameRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Creates game.
+#[tracing::instrument(skip_all, fields(handler = "create_game"))]
 pub async fn create_game(
     State(s): State<Arc<AppState>>,
     VJson(body): VJson<CreateGameRequest>,
 ) -> Result<(StatusCode, Json<GameDetailResponse>), WebError> {
-    let game = cds_db::game::create(
+    let game = cds_db::game::create::<Game>(
         &s.db.conn,
         cds_db::game::ActiveModel {
             title: Set(body.title),
@@ -138,6 +139,13 @@ pub async fn create_game(
         },
     )
     .await?;
+    info!(
+        game_id = game.id,
+        title = %game.title,
+        enabled = game.enabled,
+        public = game.public,
+        "admin created game"
+    );
 
     Ok((StatusCode::CREATED, Json(GameDetailResponse { game })))
 }

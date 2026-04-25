@@ -46,6 +46,7 @@ pub struct ListSubmissionsResponse {
     pub total: u64,
 }
 
+/// Returns submissions.
 #[utoipa::path(
     get,
     path = "/",
@@ -57,8 +58,7 @@ pub struct ListSubmissionsResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns submissions.
+#[tracing::instrument(skip_all, fields(handler = "get_submissions"))]
 pub async fn get_submissions(
     State(s): State<Arc<AppState>>,
 
@@ -86,6 +86,7 @@ pub async fn get_submissions(
     Ok(Json(ListSubmissionsResponse { submissions, total }))
 }
 
+/// Deletes submission.
 #[utoipa::path(
     delete,
     path = "/{submission_id}",
@@ -99,8 +100,7 @@ pub async fn get_submissions(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes submission.
+#[tracing::instrument(skip_all, fields(handler = "delete_submission"))]
 pub async fn delete_submission(
     State(s): State<Arc<AppState>>,
 

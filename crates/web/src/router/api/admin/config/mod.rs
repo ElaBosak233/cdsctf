@@ -38,6 +38,7 @@ pub struct AdminConfigResponse {
     pub config: Config,
 }
 
+/// Returns config.
 #[utoipa::path(
     get,
     path = "/",
@@ -47,8 +48,7 @@ pub struct AdminConfigResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns config.
+#[tracing::instrument(skip_all, fields(handler = "get_config"))]
 pub async fn get_config(
     State(s): State<Arc<AppState>>,
 ) -> Result<Json<AdminConfigResponse>, WebError> {
@@ -57,6 +57,7 @@ pub async fn get_config(
     }))
 }
 
+/// Updates config.
 #[utoipa::path(
     put,
     path = "/",
@@ -67,8 +68,7 @@ pub async fn get_config(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates config.
+#[tracing::instrument(skip_all, fields(handler = "update_config"))]
 pub async fn update_config(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<Config>,
@@ -102,6 +102,7 @@ pub struct StatisticsResponse {
     pub statistics: Statistics,
 }
 
+/// Returns statistics.
 #[utoipa::path(
     get,
     path = "/statistics",
@@ -111,8 +112,7 @@ pub struct StatisticsResponse {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns statistics.
+#[tracing::instrument(skip_all, fields(handler = "get_statistics"))]
 pub async fn get_statistics(
     State(s): State<Arc<AppState>>,
 ) -> Result<Json<StatisticsResponse>, WebError> {

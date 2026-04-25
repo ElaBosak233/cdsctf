@@ -51,6 +51,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/writeup", writeup::router(state.clone()))
 }
 
+/// Returns team.
 #[utoipa::path(
     get,
     path = "/",
@@ -64,8 +65,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Returns team.
+#[tracing::instrument(skip_all, fields(handler = "get_team"))]
 pub async fn get_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -85,6 +85,7 @@ pub struct UpdateTeamRequest {
     pub description: Option<String>,
 }
 
+/// Updates team.
 #[utoipa::path(
     put,
     path = "/",
@@ -99,8 +100,7 @@ pub struct UpdateTeamRequest {
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates team.
+#[tracing::instrument(skip_all, fields(handler = "update_team"))]
 pub async fn update_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -127,6 +127,7 @@ pub async fn update_team(
     Ok(Json(TeamResponse { team }))
 }
 
+/// Deletes team.
 #[utoipa::path(
     delete,
     path = "/",
@@ -141,8 +142,7 @@ pub async fn update_team(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Deletes team.
+#[tracing::instrument(skip_all, fields(handler = "delete_team"))]
 pub async fn delete_team(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
@@ -162,6 +162,7 @@ pub async fn delete_team(
     Ok(Json(EmptyJson::default()))
 }
 
+/// Updates team ready.
 #[utoipa::path(
     post,
     path = "/ready",
@@ -176,8 +177,7 @@ pub async fn delete_team(
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
-
-/// Updates team ready.
+#[tracing::instrument(skip_all, fields(handler = "set_team_ready"))]
 pub async fn set_team_ready(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
