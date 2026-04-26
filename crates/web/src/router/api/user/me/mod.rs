@@ -6,6 +6,9 @@ mod avatar;
 /// Defines the `email` submodule (see sibling `*.rs` files).
 mod email;
 
+/// Defines the `idp` submodule (see sibling `*.rs` files).
+mod idp;
+
 /// Defines the `note` submodule (see sibling `*.rs` files).
 mod note;
 
@@ -40,6 +43,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(delete_user_profile).with_state(state.clone()))
         .routes(routes!(update_user_profile_password).with_state(state.clone()))
         .nest("/emails", email::router(state.clone()))
+        .nest("/idp", idp::router(state.clone()))
         .nest("/avatar", avatar::router(state.clone()))
         .nest("/notes", note::router(state.clone()))
 }

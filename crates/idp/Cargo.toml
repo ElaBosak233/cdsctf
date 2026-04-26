@@ -1,0 +1,24 @@
+[package]
+name     = "cds-idp"
+resolver = "3"
+
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = { workspace = true }
+repository   = { workspace = true }
+rust-version = { workspace = true }
+version      = { workspace = true }
+
+[dependencies]
+cds-engine = { workspace = true }
+
+rune         = { workspace = true }
+rune-modules = { workspace = true }
+serde        = { workspace = true }
+serde_json   = { workspace = true }
+thiserror    = { workspace = true }
+tracing      = { workspace = true }
+
+[lib]
+path = "src/lib.rs"

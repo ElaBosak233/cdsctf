@@ -31,6 +31,8 @@ impl MigratorTrait for Migrator {
             Box::new(migrations::m20260201_000009_create_team_user::Migration),
             Box::new(migrations::m20260201_000010_create_submission::Migration),
             Box::new(migrations::m20260201_000011_create_note::Migration),
+            Box::new(migrations::m20260201_000012_create_idp::Migration),
+            Box::new(migrations::m20260201_000013_create_user_idp::Migration),
         ]
     }
 }

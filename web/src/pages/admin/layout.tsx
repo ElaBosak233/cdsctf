@@ -2,6 +2,7 @@ import {
   BotIcon,
   FlagIcon,
   HousePlugIcon,
+  IdCardIcon,
   LibraryIcon,
   MailCheckIcon,
   TypeIcon,
@@ -69,6 +70,11 @@ export default function Layout() {
       link: "/admin/users",
       name: t("user:_"),
       icon: <UserRoundIcon />,
+    },
+    {
+      link: "/admin/idps",
+      name: t("admin:idp._"),
+      icon: <IdCardIcon />,
     },
     {
       link: "/admin/mailbox",

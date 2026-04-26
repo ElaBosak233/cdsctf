@@ -1,8 +1,10 @@
-import { LogInIcon, UserRoundPlusIcon } from "lucide-react";
-import { useEffect } from "react";
+import { IdCardIcon, LogInIcon, UserRoundPlusIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
+import { getIdps } from "@/api/idps";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +15,9 @@ import { LoginForm } from "./_blocks/login-form";
 
 export default function Index() {
   const { config } = useConfigStore();
+  const [idps, setIdps] = useState<Awaited<ReturnType<typeof getIdps>>["idps"]>(
+    []
+  );
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -24,6 +29,10 @@ export default function Index() {
       id: "login-already",
     });
   }, [navigate, t]);
+
+  useEffect(() => {
+    getIdps().then((res) => setIdps(res.idps ?? []));
+  }, []);
 
   return (
     <>
@@ -52,6 +61,34 @@ export default function Index() {
               <div className={cn(["pt-6"])}>
                 <LoginForm />
               </div>
+              {idps.length > 0 && (
+                <div className={cn(["flex", "flex-col", "gap-2"])}>
+                  <div className={cn(["text-sm", "text-secondary-foreground"])}>
+                    IdP
+                  </div>
+                  <div className={cn(["grid", "gap-2"])}>
+                    {idps.map((idp) => (
+                      <Button
+                        key={idp.id}
+                        asChild
+                        variant="tonal"
+                        icon={<IdCardIcon />}
+                        className={cn(["justify-start"])}
+                      >
+                        <a href={idp.portal || `/account/idp/${idp.id ?? ""}`}>
+                          <Avatar
+                            square
+                            className={cn(["size-5"])}
+                            src={idp.has_avatar && `/api/idps/${idp.id}/avatar`}
+                            fallback={idp.name?.charAt(0)}
+                          />
+                          {idp.name}
+                        </a>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <Separator

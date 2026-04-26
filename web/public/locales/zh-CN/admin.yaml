@@ -90,3 +90,47 @@ captcha:
     update:
       _: 更新人机验证设置
       success: 人机验证设置更新成功。
+idp:
+  _: IdP
+  empty: 暂无 IdP 配置
+  enabled:
+    "true": 已启用
+    "false": 已禁用
+  avatar_upload:
+    progress: "上传进度 {{percent}}%"
+    success: 头像上传成功。
+    error: 头像上传失败。
+  avatar_delete:
+    success: 头像移除成功。
+  form:
+    name:
+      _: 名称
+      placeholder: GitHub
+      message: 请输入 IdP 名称。
+    portal:
+      _: 入口
+      placeholder: https://example.com/oauth
+    enabled:
+      _: 启用
+    avatar: 头像
+    script:
+      _: Rune
+      templates:
+        _: 模板
+        default: 默认
+        oauth: OAuth 2.0
+        cas: CAS
+  actions:
+    create:
+      _: 创建 IdP
+      success: "{{name}} 创建成功。"
+    update:
+      success: "{{name}} 更新成功。"
+    enable:
+      success: "{{name}} 已启用。"
+    disable:
+      success: "{{name}} 已禁用。"
+    delete:
+      _: 删除 IdP
+      message: "确定要删除 <muted>{{name}}</muted> 吗？"
+      success: "{{name}} 删除成功。"

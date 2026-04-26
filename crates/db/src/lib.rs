@@ -28,6 +28,9 @@ pub mod game_challenge;
 /// Defines the `game_notice` submodule (see sibling `*.rs` files).
 pub mod game_notice;
 
+/// Defines the `idp` submodule (see sibling `*.rs` files).
+pub mod idp;
+
 /// Defines the `note` submodule (see sibling `*.rs` files).
 pub mod note;
 
@@ -39,6 +42,9 @@ pub mod team;
 
 /// Defines the `team_user` submodule (see sibling `*.rs` files).
 pub mod team_user;
+
+/// Defines the `user_idp` submodule (see sibling `*.rs` files).
+pub mod user_idp;
 
 /// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
@@ -58,6 +64,7 @@ pub use email::Email;
 pub use game::{Game, GameMini};
 pub use game_challenge::{GameChallenge, GameChallengeMini};
 pub use game_notice::GameNotice;
+pub use idp::Idp;
 pub use sea_orm;
 use sea_orm::{ConnectOptions, ConnectionTrait, Database, DatabaseConnection};
 pub use submission::Submission;
@@ -66,6 +73,7 @@ pub use team_user::TeamUser;
 use tracing::{info, log};
 pub use traits::DbError;
 pub use user::{User, UserMini};
+pub use user_idp::UserIdp;
 
 /// Shared database connection (actually a connection pool managed by SeaORM /
 /// SQLx).

@@ -98,6 +98,8 @@ pub enum WebError {
     EventError(#[from] cds_event::traits::EventError),
     #[error("captcha error: {0}")]
     CaptchaError(#[from] cds_captcha::traits::CaptchaError),
+    #[error("idp error: {0}")]
+    IdpError(#[from] cds_idp::IdpError),
     #[error("media error: {0}")]
     MediaError(#[from] cds_media::traits::MediaError),
     #[error("queue error: {0}")]
@@ -128,6 +130,7 @@ impl IntoResponse for WebError {
             Self::EnvError(_) => "env",
             Self::EventError(_) => "event",
             Self::CaptchaError(_) => "captcha",
+            Self::IdpError(_) => "idp",
             Self::MediaError(_) => "media",
             Self::QueueError(_) => "queue",
             Self::ClusterError(_) => "cluster",
@@ -193,6 +196,7 @@ impl IntoResponse for WebError {
                     serde_json::json!(err.to_string()),
                 ),
             },
+            Self::IdpError(err) => (StatusCode::BAD_REQUEST, serde_json::json!(err.to_string())),
             Self::MediaError(err) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),

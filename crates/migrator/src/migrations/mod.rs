@@ -43,3 +43,12 @@ pub mod m20260201_000010_create_submission;
 /// Defines the `m20260201_000011_create_note` submodule (see sibling `*.rs`
 /// files).
 pub mod m20260201_000011_create_note;
+
+/// Defines the `m20260201_000012_create_idp` submodule (see sibling `*.rs`
+/// files).
+pub mod m20260201_000012_create_idp;
+
+/// Defines the `m20260201_000013_create_user_idp` submodule (see sibling `*.rs`
+/// files).
+pub mod m20260201_000013_create_user_idp;
+

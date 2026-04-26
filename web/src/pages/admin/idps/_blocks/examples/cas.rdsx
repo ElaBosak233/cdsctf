@@ -1,0 +1,46 @@
+//! cas.rdsx
+//! CAS (Central Authentication Service) protocol.
+//!
+//! Required params (passed via portal redirect):
+//!   - ticket: the service ticket from the CAS server
+//!
+//! Configure the constants below for your CAS deployment.
+
+/// CAS server base URL (no trailing slash).
+const CAS_BASE_URL = "https://cas.example.com";
+/// The service URL registered with CAS — must match the portal redirect URI.
+const SERVICE_URL = "https://your-cdsctf.example.com/account/idp";
+
+pub async fn login(params) {
+    let ticket = params.get("ticket")?;
+
+    // Validate the ticket against the CAS server.
+    let validate_url = `${CAS_BASE_URL}/serviceValidate?ticket=${ticket}&service=${SERVICE_URL}&format=JSON`;
+
+    let res = http::get(validate_url)
+        .header("Accept", "application/json")
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    let service_response = res["serviceResponse"];
+
+    // CAS returns either authenticationSuccess or authenticationFailure.
+    let success = service_response["authenticationSuccess"];
+    let user_id = success["user"].into_string()?;
+
+    // Optional: extract display name from attributes if your CAS provides them.
+    let attrs = success["attributes"];
+    let name = attrs["displayName"].into_string().unwrap_or(user_id);
+
+    Ok(#{
+        auth_key: user_id,
+        username: user_id,
+        name: name,
+    })
+}
+
+pub async fn bind(params, user) {
+    login(params).await
+}

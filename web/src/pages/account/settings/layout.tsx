@@ -1,4 +1,10 @@
-import { InfoIcon, LockIcon, MailsIcon, UserRoundXIcon } from "lucide-react";
+import {
+  IdCardIcon,
+  InfoIcon,
+  LockIcon,
+  MailsIcon,
+  UserRoundXIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
@@ -27,11 +33,11 @@ export default function Layout() {
       name: t("user:settings.password"),
       icon: <LockIcon />,
     },
-    // {
-    //   link: `/account/settings/oauth`,
-    //   name: "Third-party identity provider",
-    //   icon: <HandshakeIcon />,
-    // },
+    {
+      link: `/account/settings/idp`,
+      name: "IdP",
+      icon: <IdCardIcon />,
+    },
   ];
 
   return (

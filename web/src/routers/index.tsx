@@ -156,6 +156,12 @@ const router = createBrowserRouter([
             }),
           },
           {
+            path: "idp/:idp_id",
+            lazy: async () => ({
+              Component: (await import("@/pages/account/idp")).default,
+            }),
+          },
+          {
             path: "settings",
             lazy: async () => ({
               Component: (await import("@/pages/account/settings/layout"))
@@ -179,6 +185,13 @@ const router = createBrowserRouter([
                 path: "emails",
                 lazy: async () => ({
                   Component: (await import("@/pages/account/settings/emails"))
+                    .default,
+                }),
+              },
+              {
+                path: "idp",
+                lazy: async () => ({
+                  Component: (await import("@/pages/account/settings/idp"))
                     .default,
                 }),
               },
@@ -222,6 +235,24 @@ const router = createBrowserRouter([
             lazy: async () => ({
               Component: (await import("@/pages/admin/captcha")).default,
             }),
+          },
+          {
+            path: "idps",
+            children: [
+              {
+                index: true,
+                lazy: async () => ({
+                  Component: (await import("@/pages/admin/idps")).default,
+                }),
+              },
+              {
+                path: ":idp_id",
+                lazy: async () => ({
+                  Component: (await import("@/pages/admin/idps/idp_id"))
+                    .default,
+                }),
+              },
+            ],
           },
           {
             path: "challenges",

@@ -874,6 +874,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "cds-idp"
+version = "1.9.2"
+dependencies = [
+ "cds-engine",
+ "rune",
+ "rune-modules",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
 name = "cds-mailbox"
 version = "1.9.2"
 dependencies = [
@@ -991,6 +1004,7 @@ dependencies = [
  "cds-engine",
  "cds-env",
  "cds-event",
+ "cds-idp",
  "cds-mailbox",
  "cds-media",
  "cds-observe",
@@ -999,6 +1013,7 @@ dependencies = [
  "futures-util",
  "mime",
  "nanoid",
+ "regex",
  "scraper",
  "serde",
  "serde_json",

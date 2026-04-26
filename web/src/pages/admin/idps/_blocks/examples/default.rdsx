@@ -1,0 +1,16 @@
+//! default.rdsx
+//! Generic identity provider template.
+//! Reads `auth_key` directly from the login params.
+
+pub async fn login(params) {
+    let auth_key = params.get("auth_key")?;
+    Ok(#{
+        auth_key: auth_key,
+        username: auth_key,
+        name: auth_key,
+    })
+}
+
+pub async fn bind(params, user) {
+    login(params).await
+}
