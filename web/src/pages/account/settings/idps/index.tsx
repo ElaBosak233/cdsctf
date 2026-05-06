@@ -60,7 +60,7 @@ export default function Index() {
               >
                 <Avatar
                   square
-                  className={cn(["size-11"])}
+                  className={cn(["size-11", "bg-transparent", "border-none"])}
                   src={idp.has_avatar && `/api/idps/${idp.id}/avatar`}
                   fallback={idp.name?.charAt(0)}
                 />
@@ -83,7 +83,7 @@ export default function Index() {
                   <Button asChild variant="solid" icon={<LinkIcon />}>
                     <a
                       href={
-                        idp.portal || `/account/idp/${idp.id ?? ""}`
+                        idp.portal || `/account/idps/${idp.id ?? ""}`
                       }
                     >
                       Bind

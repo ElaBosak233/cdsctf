@@ -1,4 +1,4 @@
-//! default.rdsx
+//! default.cdsx
 //! Generic identity provider template.
 //! Reads `auth_key` directly from the login params.
 

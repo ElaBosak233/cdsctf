@@ -1,4 +1,4 @@
-//! cas.rdsx
+//! cas.cdsx
 //! CAS (Central Authentication Service) protocol.
 //!
 //! Required params (passed via portal redirect):
@@ -9,7 +9,7 @@
 /// CAS server base URL (no trailing slash).
 const CAS_BASE_URL = "https://cas.example.com";
 /// The service URL registered with CAS — must match the portal redirect URI.
-const SERVICE_URL = "https://your-cdsctf.example.com/account/idp";
+const SERVICE_URL = "https://your-cdsctf.example.com/account/idps";
 
 pub async fn login(params) {
     let ticket = params.get("ticket")?;

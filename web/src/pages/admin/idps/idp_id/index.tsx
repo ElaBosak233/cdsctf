@@ -48,13 +48,13 @@ import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 import { parseRouteNumericId } from "@/utils/query";
 
-import casScript from "../_blocks/examples/cas.rdsx?raw";
-import defaultScript from "../_blocks/examples/default.rdsx?raw";
-import oauthScript from "../_blocks/examples/oauth.rdsx?raw";
+import casScript from "./_blocks/examples/cas.cdsx?raw";
+import defaultScript from "./_blocks/examples/default.cdsx?raw";
+import githubScript from "./_blocks/examples/github.cdsx?raw";
 
 const scriptTemplates = {
   default: defaultScript,
-  oauth: oauthScript,
+  github: githubScript,
   cas: casScript,
 };
 
@@ -139,19 +139,6 @@ export default function Index() {
       sharedStore.setRefresh();
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (idpId == null) return;
-    setDeleting(true);
-    try {
-      await deleteAdminIdp(idpId);
-      toast.success(t("admin:idp.actions.delete.success", { name: idp?.name }));
-      sharedStore.setRefresh();
-      window.history.back();
-    } finally {
-      setDeleting(false);
     }
   }
 
@@ -357,7 +344,7 @@ export default function Index() {
                             ),
                           },
                           {
-                            value: "oauth",
+                            value: "github",
                             content: t("admin:idp.form.script.templates.oauth"),
                           },
                           {

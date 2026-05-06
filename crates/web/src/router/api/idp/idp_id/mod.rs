@@ -6,7 +6,7 @@ mod avatar;
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::{Path, State}, http::StatusCode};
-use cds_db::UserIdp;
+use cds_db::{Idp, UserIdp};
 use serde::Serialize;
 use serde_json::json;
 use utoipa_axum::{
@@ -22,7 +22,7 @@ use crate::{
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(bind).with_state(state.clone()))
+        .routes(routes!(get_idp, bind).with_state(state.clone()))
         .nest(
             "/avatar",
             OpenApiRouter::from(Router::new())
@@ -33,6 +33,32 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct IdpBindResponse {
     pub idp: UserIdp,
+}
+
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct IdpResponse {
+    pub idp: Idp,
+}
+
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "idp",
+    params(("idp_id" = i64, Path, description = "IdP id")),
+    responses(
+        (status = 200, description = "IdP info", body = IdpResponse),
+        (status = 404, description = "Not found", body = crate::traits::ErrorResponse)
+    )
+)]
+#[tracing::instrument(skip_all, fields(handler = "get_idp"))]
+pub async fn get_idp(
+    State(s): State<Arc<AppState>>,
+    Path(idp_id): Path<i64>,
+) -> Result<Json<IdpResponse>, WebError> {
+    let idp = enabled_idp(&s, idp_id).await?;
+    Ok(Json(IdpResponse {
+        idp: idp.desensitize(),
+    }))
 }
 
 #[utoipa::path(

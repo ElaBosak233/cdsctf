@@ -21,7 +21,8 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { defaultScript } from "./defaults";
+
+import defaultScript from "../idp_id/_blocks/examples/default.cdsx?raw";
 
 interface CreateDialogProps {
   onClose: () => void;
@@ -51,8 +52,7 @@ function CreateDialog(props: CreateDialogProps) {
     setLoading(true);
     createAdminIdp({
       name: values.name,
-      enabled: true,
-      has_avatar: false,
+      enabled: false,
       portal: null,
       script: defaultScript,
     })

@@ -114,7 +114,7 @@ idp:
       _: Enabled
     avatar: Avatar
     script:
-      _: Rune
+      _: Script
       templates:
         _: Templates
         default: Default

@@ -10,6 +10,10 @@ export interface IdpAuthRequest {
   } | null;
 }
 
+export async function getIdp(idpId: number) {
+  return api.get(`idps/${idpId}`).json<{ idp: Idp }>();
+}
+
 export async function getIdps() {
   return api.get("idps").json<{ idps: Idp[] }>();
 }

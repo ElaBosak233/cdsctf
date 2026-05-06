@@ -12,6 +12,7 @@ import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { LoginForm } from "./_blocks/login-form";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function Index() {
   const { config } = useConfigStore();
@@ -61,34 +62,6 @@ export default function Index() {
               <div className={cn(["pt-6"])}>
                 <LoginForm />
               </div>
-              {idps.length > 0 && (
-                <div className={cn(["flex", "flex-col", "gap-2"])}>
-                  <div className={cn(["text-sm", "text-secondary-foreground"])}>
-                    IdP
-                  </div>
-                  <div className={cn(["grid", "gap-2"])}>
-                    {idps.map((idp) => (
-                      <Button
-                        key={idp.id}
-                        asChild
-                        variant="tonal"
-                        icon={<IdCardIcon />}
-                        className={cn(["justify-start"])}
-                      >
-                        <a href={idp.portal || `/account/idp/${idp.id ?? ""}`}>
-                          <Avatar
-                            square
-                            className={cn(["size-5"])}
-                            src={idp.has_avatar && `/api/idps/${idp.id}/avatar`}
-                            fallback={idp.name?.charAt(0)}
-                          />
-                          {idp.name}
-                        </a>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
           <Separator
@@ -134,6 +107,37 @@ export default function Index() {
                   {t("account:register.not_yet")}
                 </Link>
               </Button>
+            )}
+            {idps.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className={cn("w-full", "mt-2")}
+                  size={"lg"}
+                  variant={"tonal"}
+                  icon={<IdCardIcon />}
+                >使用第三方登录</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className={cn(["min-w-64"])}>
+                {idps.map((idp) => (
+                    <DropdownMenuItem
+                    key={idp.id}
+                    className={cn(["flex", "items-center", "gap-2"])}
+                    asChild
+                  >   
+                    <a href={idp.portal || `/account/idps/${idp.id ?? ""}`}>
+                          <Avatar
+                            square
+                            className={cn(["size-5", "bg-transparent"])}
+                            src={idp.has_avatar && `/api/idps/${idp.id}/avatar`}
+                            fallback={idp.name?.charAt(0)}
+                          />
+                          {idp.name}
+                        </a>
+                    </DropdownMenuItem>
+                    ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             )}
           </div>
         </Card>

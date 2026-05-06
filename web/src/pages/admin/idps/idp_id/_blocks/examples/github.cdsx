@@ -1,0 +1,61 @@
+//! github.cdsx
+//! OAuth 2.0 authorization code flow. (GitHub)
+//!
+//! Required params (passed via portal redirect):
+//!   - code: the authorization code from the OAuth provider
+//!
+//! Configure the constants below for your OAuth provider.
+
+/// Your application's client ID.
+const CLIENT_ID = "GITHUB_CLIENT_ID";
+/// Your application's client secret.
+const CLIENT_SECRET = "GITHUB_CLIENT_SECRET";
+/// Redirect URI registered with the OAuth provider.
+const REDIRECT_URI = "http://localhost:5173/account/idps/1";
+
+pub async fn login(params) {
+    let code = params.get("code")?;
+  
+    let client = http::Client::new();
+
+    // Exchange authorization code for access token.
+    let body = #{
+        "code": code,
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "redirect_uri": REDIRECT_URI
+    };
+
+    let token_res = client.post("https://github.com/login/oauth/access_token")
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/json")
+        .body_bytes(json::to_bytes(body)?)
+        .send().await?.json().await?;
+
+    let access_token = token_res["access_token"];
+
+    // Fetch user info with the access token.
+    let user_res = client.get("https://api.github.com/user")
+        .header("Authorization", `Bearer ${access_token}`)
+        .header("User-Agent", "CdsCTF")
+        .header("Accept", "application/json")
+        .send().await?.text().await?;
+
+    let user_res = json::from_string(user_res)?;
+
+    // Use a stable, unique identifier from the provider as auth_key.
+    let auth_key = user_res["id"];
+
+    // let username = user_res["login"];
+    // let name = user_res["name"];
+
+    Ok(#{
+        "auth_key": auth_key.to_string(),
+        // "username": username,
+        // "name": name
+    })
+}
+
+pub async fn bind(params, user) {
+    login(params).await
+}

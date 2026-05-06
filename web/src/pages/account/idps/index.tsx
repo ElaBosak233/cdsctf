@@ -1,12 +1,15 @@
 import { HTTPError } from "ky";
-import { LoaderCircleIcon } from "lucide-react";
+import { ChevronsLeftRightEllipsisIcon, LoaderCircleIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
-import { bindWithIdp, loginWithIdp } from "@/api/idps";
+import { useQuery } from "@tanstack/react-query";
+import { Avatar } from "@/components/ui/avatar";
+import { bindWithIdp, getIdp, loginWithIdp } from "@/api/idps";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
+import { DefaultLogo } from "@/components/widgets/default-logo";
 
 function searchParamsToRecord(searchParams: URLSearchParams) {
   const params: Record<string, string> = {};
@@ -22,8 +25,14 @@ export default function Index() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const { data: idp, isLoading } = useQuery({
+    queryKey: ["idp", idpId],
+    queryFn: () => getIdp(idpId!).then((res) => res.idp),
+    enabled: idpId != null,
+  });
+
   useEffect(() => {
-    if (idpId == null) return;
+    if (idpId == null || !idp) return;
 
     const resolvedIdpId = idpId;
     const redirect = searchParams.get("redirect") || "/";
@@ -56,10 +65,20 @@ export default function Index() {
     }
 
     run();
-  }, [idpId, searchParams, navigate]);
+  }, [idpId, idp, searchParams, navigate]);
 
   return (
-    <div className={cn(["flex", "flex-1", "items-center", "justify-center"])}>
+    <div className={cn(["flex", "flex-col", "flex-1", "items-center", "justify-center", "gap-5"])}>
+      {idp && (
+        <div className={cn(["flex", "items-center", "gap-4"])}>
+          <Avatar
+            square
+            className={cn(["size-24", "bg-transparent"])}
+            src={idp.has_avatar && `/api/idps/${idp.id}/avatar`}
+            fallback={idp.name?.charAt(0)}
+          />
+        </div>
+      )}
       <LoaderCircleIcon
         className={cn(["size-8", "animate-spin", "text-primary"])}
       />

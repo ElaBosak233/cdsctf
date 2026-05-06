@@ -54,7 +54,7 @@ function IdpCard({ idp }: { idp: Idp }) {
     <Card className={cn(["p-4", "flex", "items-center", "gap-4"])}>
       <Avatar
         square
-        className={cn(["size-11", "border"])}
+        className={cn(["size-11", "border", "bg-transparent", "border-none"])}
         src={idp.has_avatar && `/api/idps/${idp.id}/avatar`}
         fallback={idp.name?.charAt(0)}
       />
