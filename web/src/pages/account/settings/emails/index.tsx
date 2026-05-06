@@ -85,10 +85,10 @@ export default function Index() {
                   <ItemTitle>{email.email}</ItemTitle>
                   <ItemDescription>
                     {email.verified ? (
-                      <div className={cn(["flex", "gap-1", "items-center"])}>
+                      <span className={cn(["flex", "gap-1", "items-center"])}>
                         <span>{t("user:emails.verified.true._")}</span>
                         <CheckIcon className={cn(["size-4", "text-success"])} />
-                      </div>
+                      </span>
                     ) : (
                       t("user:emails.verified.false._")
                     )}
