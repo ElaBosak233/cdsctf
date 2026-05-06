@@ -15,6 +15,8 @@ use utoipa_axum::{
     routes,
 };
 
+use serde_json::json;
+
 use crate::{
     extract::Path,
     traits::{AppState, EmptyJson, WebError},
@@ -53,16 +55,17 @@ pub async fn save_game_icon(
     multipart: Multipart,
 ) -> Result<Json<EmptyJson>, WebError> {
     let data = handle_multipart(multipart, mime::IMAGE).await?;
+    let data = cds_media::util::img_convert_to_webp(data).await?;
 
-    let path = format!("games/{}", game_id);
+    let hash = cds_media::util::hash(data.clone());
 
-    s.media.save(path, "icon".to_owned(), data).await?;
+    s.media.save("media".to_owned(), hash.clone(), data).await?;
 
     let _ = cds_db::game::update::<Game>(
         &s.db.conn,
         cds_db::game::ActiveModel {
             id: Unchanged(game_id),
-            has_icon: Set(true),
+            icon_hash: Set(Some(hash)),
             ..Default::default()
         },
     )
@@ -89,15 +92,19 @@ pub async fn delete_game_icon(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let path = format!("games/{}", game_id);
+    let game = cds_db::game::find_by_id::<cds_db::Game>(&s.db.conn, game_id)
+        .await?
+        .ok_or(WebError::NotFound(json!("game_not_found")))?;
 
-    s.media.delete(path, "icon".to_owned()).await?;
+    if let Some(hash) = game.icon_hash {
+        s.media.delete("media".to_owned(), hash).await?;
+    }
 
     let _ = cds_db::game::update::<Game>(
         &s.db.conn,
         cds_db::game::ActiveModel {
             id: Unchanged(game_id),
-            has_icon: Set(false),
+            icon_hash: Set(None),
             ..Default::default()
         },
     )

@@ -40,8 +40,8 @@ function TeamCard() {
           <Avatar
             className={cn(["w-16", "h-16", "shrink-0"])}
             src={
-              selfTeam?.has_avatar &&
-              `/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar`
+              selfTeam?.avatar_hash &&
+              `/api/media?hash=${selfTeam?.avatar_hash}`
             }
             fallback={selfTeam?.name?.charAt(0)}
           />

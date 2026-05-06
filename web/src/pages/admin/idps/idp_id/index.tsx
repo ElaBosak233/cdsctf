@@ -40,7 +40,6 @@ import { Label } from "@/components/ui/label";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
-import { useRefresh } from "@/hooks/use-refresh";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
@@ -60,7 +59,6 @@ const scriptTemplates = {
 
 const schema = z.object({
   name: z.string().min(1),
-  has_avatar: z.boolean(),
   portal: z.string().optional().nullable(),
   script: z.string().min(1),
 });
@@ -79,8 +77,6 @@ export default function Index() {
   const [hasAvatar, setHasAvatar] = useState(false);
   const [lint, setLint] = useState<Array<DiagnosticMarker>>();
   const avatarInput = useRef<HTMLInputElement>(null);
-  const { tick: avatarTick, bump: avatarBump } = useRefresh();
-
   const { data: idp, isLoading } = useQuery({
     queryKey: ["admin", "idp", idpId, sharedStore.refresh],
     queryFn: async () => {
@@ -95,7 +91,6 @@ export default function Index() {
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
-      has_avatar: false,
       portal: "",
       script: defaultScript,
     },
@@ -105,7 +100,6 @@ export default function Index() {
     form.reset(
       {
         name: idp?.name ?? "",
-        has_avatar: idp?.has_avatar ?? false,
         portal: idp?.portal ?? "",
         script: idp?.script || defaultScript,
       },
@@ -163,7 +157,6 @@ export default function Index() {
       toast.success(t("admin:idp.avatar_upload.success"), {
         id: "idp-avatar-upload",
       });
-      avatarBump();
       sharedStore.setRefresh();
     } catch {
       toast.error(t("admin:idp.avatar_upload.error"), {
@@ -178,7 +171,6 @@ export default function Index() {
     await deleteAdminIdpAvatar(idpId);
     toast.success(t("admin:idp.avatar_delete.success"));
     setHasAvatar(false);
-    avatarBump();
     sharedStore.setRefresh();
   }
 
@@ -274,8 +266,8 @@ export default function Index() {
                     "border",
                   ])}
                   src={
-                    idp?.has_avatar && idpId != null
-                      ? `/api/idps/${idpId}/avatar?r=${avatarTick}`
+                    idp?.avatar_hash
+                      ? `/api/media?hash=${idp?.avatar_hash}`
                       : undefined
                   }
                   onLoadingStatusChange={(status) =>

@@ -148,8 +148,8 @@ function WriteupSection() {
                     <div className={cn(["flex", "items-center", "gap-2"])}>
                       <Avatar
                         src={
-                          note.user_has_avatar &&
-                          `/api/users/${note.user_id}/avatar`
+                          note.user_avatar_hash &&
+                          `/api/media?hash=${note.user_avatar_hash}`
                         }
                         fallback={note.user_name?.charAt(0)}
                         className={cn(["size-8"])}

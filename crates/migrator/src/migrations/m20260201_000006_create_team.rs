@@ -29,7 +29,7 @@ impl MigrationTrait for Migration {
                     "name" VARCHAR NOT NULL,
                     "email" VARCHAR,
                     "slogan" VARCHAR,
-                    "has_avatar" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "avatar_hash" VARCHAR,
                     "has_writeup" BOOLEAN NOT NULL DEFAULT FALSE,
                     "state" INT NOT NULL,
                     "pts" BIGINT NOT NULL DEFAULT 0,

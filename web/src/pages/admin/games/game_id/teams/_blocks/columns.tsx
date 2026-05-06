@@ -61,10 +61,8 @@ function useColumns(): Array<ColumnDef<Team>> {
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <Avatar
               src={
-                row.original.has_avatar &&
-                gid != null &&
-                tid != null &&
-                `/api/games/${gid}/teams/${tid}/avatar`
+                row.original.avatar_hash &&
+                `/api/media?hash=${row.original.avatar_hash}`
               }
               fallback={name.charAt(0)}
             />

@@ -17,7 +17,7 @@ pub struct Idp {
     pub id: i64,
     pub name: String,
     pub enabled: bool,
-    pub has_avatar: bool,
+    pub avatar_hash: Option<String>,
     pub portal: Option<String>,
     pub script: String,
     pub created_at: i64,

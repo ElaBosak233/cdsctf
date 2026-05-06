@@ -25,7 +25,7 @@ impl MigrationTrait for Migration {
                     "id" BIGSERIAL PRIMARY KEY,
                     "name" VARCHAR(127) NOT NULL,
                     "enabled" BOOLEAN NOT NULL DEFAULT TRUE,
-                    "has_avatar" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "avatar_hash" VARCHAR,
                     "portal" VARCHAR(255),
                     "script" TEXT NOT NULL,
                     "created_at" BIGINT NOT NULL,

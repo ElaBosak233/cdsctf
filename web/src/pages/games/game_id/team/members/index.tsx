@@ -100,7 +100,7 @@ export default function Index() {
             <Link key={user?.id} to={`/users/${user?.id}`}>
               <Card className={cn(["p-3", "flex", "gap-3", "items-center"])}>
                 <Avatar
-                  src={user?.has_avatar && `/api/users/${user?.id}/avatar`}
+                  src={user?.avatar_hash && `/api/media?hash=${user?.avatar_hash}`}
                   fallback={user?.name?.charAt(0)}
                 />
                 <div>

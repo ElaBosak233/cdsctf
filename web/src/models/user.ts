@@ -7,7 +7,7 @@ export interface User {
   verified?: boolean;
   group?: Group;
   description?: string;
-  has_avatar?: boolean;
+  avatar_hash?: string;
   teams?: Array<Team>;
   created_at?: string;
   updated_at?: string;
@@ -24,5 +24,5 @@ export interface UserMini {
   id?: number;
   name?: string;
   username?: string;
-  has_avatar?: boolean;
+  avatar_hash?: string;
 }

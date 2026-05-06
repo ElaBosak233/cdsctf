@@ -58,7 +58,7 @@ pub async fn get_media(
     let buffer = s.media.get("media".to_owned(), params.hash).await?;
 
     Ok(Response::builder()
-        .header(CACHE_CONTROL, "public, max-age=3600")
+        .header(CACHE_CONTROL, "public, max-age=31536000, immutable")
         .body(Body::from(buffer))?)
 }
 

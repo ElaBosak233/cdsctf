@@ -37,8 +37,8 @@ impl MigrationTrait for Migration {
                     "started_at" BIGINT NOT NULL,
                     "frozen_at" BIGINT NOT NULL,
                     "ended_at" BIGINT NOT NULL,
-                    "has_icon" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "has_poster" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "icon_hash" VARCHAR,
+                    "poster_hash" VARCHAR,
                     "created_at" BIGINT NOT NULL
                 );
             "#

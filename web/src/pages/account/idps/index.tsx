@@ -74,7 +74,7 @@ export default function Index() {
           <Avatar
             square
             className={cn(["size-24", "bg-transparent"])}
-            src={idp.has_avatar && `/api/idps/${idp.id}/avatar`}
+            src={idp.avatar_hash && `/api/media?hash=${idp.avatar_hash}`}
             fallback={idp.name?.charAt(0)}
           />
         </div>

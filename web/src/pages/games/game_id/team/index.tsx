@@ -219,8 +219,8 @@ export default function Index() {
                     "border",
                   ])}
                   src={
-                    selfTeam?.has_avatar &&
-                    `/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar`
+                    selfTeam?.avatar_hash &&
+                    `/api/media?hash=${selfTeam?.avatar_hash}`
                   }
                   fallback={selfTeam?.name?.charAt(0)}
                   onLoadingStatusChange={(status) =>

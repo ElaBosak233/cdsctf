@@ -12,7 +12,7 @@ use axum::{
 use cds_db::{
     Email, Idp, User, UserIdp,
     sea_orm::ActiveValue::{NotSet, Set},
-    user::{FindUserOptions, Group},
+    user::Group,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -24,8 +24,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Extension, Json as ReqJson},
-    traits::{AppState, AuthPrincipal, WebError},
+    extract::Json as ReqJson,
+    traits::{AppState, WebError},
     util,
 };
 

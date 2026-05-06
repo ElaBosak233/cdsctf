@@ -111,7 +111,7 @@ export default function Index() {
       <div className={cn(["flex", "flex-col", "items-center", "gap-4"])}>
         <Avatar
           className={cn(["h-30", "w-30"])}
-          src={user?.has_avatar && `/api/users/${user_id}/avatar`}
+          src={user?.avatar_hash && `/api/media?hash=${user?.avatar_hash}`}
           fallback={user?.username?.charAt(0)}
         />
       </div>

@@ -34,7 +34,7 @@ import type { Challenge } from "@/models/challenge";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { useColumns } from "./_blocks/columns";
+import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 import { ChallengeListContext } from "./context";
 
@@ -184,20 +184,21 @@ export default function Index() {
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.getValue("id")}
-                    data-state={row.getIsSelected() ? "selected" : undefined}
-                    className={cn(["transition-colors"])}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+                  <RowProvider key={row.getValue("id")} challenge={row.original}>
+                    <TableRow
+                      data-state={row.getIsSelected() ? "selected" : undefined}
+                      className={cn(["transition-colors"])}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </RowProvider>
                 ))
               ) : !loading ? (
                 <TableRow>

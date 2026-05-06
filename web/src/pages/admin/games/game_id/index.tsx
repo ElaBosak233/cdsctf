@@ -59,11 +59,11 @@ export default function Index() {
 
   const iconInput = useRef<HTMLInputElement>(null);
   const [hasIcon, setHasIcon] = useState<boolean>(false);
-  const { tick: iconTick, bump: iconBump } = useRefresh();
+  const { bump: iconBump } = useRefresh();
 
   const posterInput = useRef<HTMLInputElement>(null);
   const [hasPoster, setHasPoster] = useState<boolean>(false);
-  const { tick: posterTick, bump: posterBump } = useRefresh();
+  const { bump: posterBump } = useRefresh();
 
   const formSchema = z.object({
     title: z.string({
@@ -117,8 +117,8 @@ export default function Index() {
   useEffect(() => {
     if (!game) return;
 
-    setHasIcon(game.has_icon!);
-    setHasPoster(game.has_poster!);
+    setHasIcon(game.icon_hash != null);
+    setHasPoster(game.poster_hash != null);
   }, [game]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -284,8 +284,8 @@ export default function Index() {
                     "select-none",
                   ])}
                   src={
-                    resolvedGameId != null
-                      ? `/api/games/${resolvedGameId}/poster?r=${posterTick}`
+                    game?.poster_hash
+                      ? `/api/media?hash=${game?.poster_hash}`
                       : undefined
                   }
                   onLoadingStatusChange={(status) =>
@@ -352,8 +352,8 @@ export default function Index() {
                     "select-none",
                   ])}
                   src={
-                    resolvedGameId != null
-                      ? `/api/games/${resolvedGameId}/icon?r=${iconTick}`
+                    game?.icon_hash
+                      ? `/api/media?hash=${game?.icon_hash}`
                       : undefined
                   }
                   onLoadingStatusChange={(status) =>

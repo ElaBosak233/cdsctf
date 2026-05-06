@@ -212,8 +212,8 @@ export default function Index() {
                     "border",
                   ])}
                   src={
-                    authStore?.user?.has_avatar &&
-                    `/api/users/${authStore?.user?.id}/avatar`
+                    authStore?.user?.avatar_hash &&
+                    `/api/media?hash=${authStore?.user?.avatar_hash}`
                   }
                   onLoadingStatusChange={(status) =>
                     setHasAvatar(status === "loaded")

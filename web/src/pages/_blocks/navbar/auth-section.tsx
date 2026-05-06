@@ -38,8 +38,8 @@ function AuthSection() {
             <Avatar
               className={cn("h-8", "w-8")}
               src={
-                authStore?.user?.has_avatar &&
-                `/api/users/${authStore?.user?.id}/avatar`
+                authStore?.user?.avatar_hash &&
+                `/api/media?hash=${authStore?.user?.avatar_hash}`
               }
               fallback={authStore?.user?.name?.charAt(0)}
             />
@@ -54,8 +54,8 @@ function AuthSection() {
               <Avatar
                 className={cn("h-8", "w-8")}
                 src={
-                  authStore?.user?.has_avatar &&
-                  `/api/users/${authStore?.user?.id}/avatar`
+                  authStore?.user?.avatar_hash &&
+                  `/api/media?hash=${authStore?.user?.avatar_hash}`
                 }
                 fallback={authStore?.user?.name?.charAt(0)}
               />

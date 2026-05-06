@@ -30,7 +30,7 @@ pub struct User {
     #[serde(skip_serializing)]
     #[schema(ignore)]
     pub hashed_password: String,
-    pub has_avatar: bool,
+    pub avatar_hash: Option<String>,
     pub created_at: i64,
     pub updated_at: i64,
 }
@@ -43,7 +43,7 @@ pub struct UserMini {
     pub id: i64,
     pub name: String,
     pub username: String,
-    pub has_avatar: bool,
+    pub avatar_hash: Option<String>,
 }
 
 #[derive(Clone, Debug, Default)]

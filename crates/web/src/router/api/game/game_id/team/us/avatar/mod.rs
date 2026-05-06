@@ -63,15 +63,15 @@ pub async fn save_team_avatar(
     let data = handle_multipart(multipart, mime::IMAGE).await?;
     let data = cds_media::util::img_convert_to_webp(data).await?;
 
-    let path = format!("games/{}/teams/{}", game_id, team.id);
+    let hash = cds_media::util::hash(data.clone());
 
-    s.media.save(path, "avatar".to_owned(), data).await?;
+    s.media.save("media".to_owned(), hash.clone(), data).await?;
 
     let _ = cds_db::team::update::<Team>(
         &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
-            has_avatar: Set(true),
+            avatar_hash: Set(Some(hash)),
             ..Default::default()
         },
     )
@@ -103,15 +103,15 @@ pub async fn delete_team_avatar(
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
     let team = util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
-    let path = format!("games/{}/teams/{}", game_id, team.id);
-
-    s.media.delete(path, "avatar".to_owned()).await?;
+    if let Some(hash) = team.avatar_hash {
+        s.media.delete("media".to_owned(), hash).await?;
+    }
 
     let _ = cds_db::team::update::<Team>(
         &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
-            has_avatar: Set(false),
+            avatar_hash: Set(None),
             ..Default::default()
         },
     )

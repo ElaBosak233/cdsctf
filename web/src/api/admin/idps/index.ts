@@ -4,7 +4,6 @@ import { api } from "@/utils/query";
 export interface IdpRequest {
   name?: string;
   enabled?: boolean;
-  has_avatar?: boolean;
   portal?: string | null;
   script?: string;
 }

@@ -1,6 +1,7 @@
 import {
   BotIcon,
   FlagIcon,
+  GaugeIcon,
   HousePlugIcon,
   IdCardIcon,
   LibraryIcon,
@@ -49,7 +50,7 @@ export default function Layout() {
     {
       link: "/admin",
       name: t("admin:home._"),
-      icon: <HousePlugIcon />,
+      icon: <GaugeIcon />,
     },
     {
       link: "/admin/platform",

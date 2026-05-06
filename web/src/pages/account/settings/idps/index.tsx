@@ -61,7 +61,7 @@ export default function Index() {
                 <Avatar
                   square
                   className={cn(["size-11", "bg-transparent", "border-none"])}
-                  src={idp.has_avatar && `/api/idps/${idp.id}/avatar`}
+                  src={idp.avatar_hash && `/api/media?hash=${idp.avatar_hash}`}
                   fallback={idp.name?.charAt(0)}
                 />
                 <div className={cn(["flex-1", "min-w-0"])}>

@@ -50,7 +50,7 @@ export default function Index() {
   const { t } = useTranslation();
 
   const configStore = useConfigStore();
-  const { tick, bump } = useRefresh();
+  const { bump } = useRefresh();
   const [config, setConfig] = useState<Config>();
 
   useEffect(() => {
@@ -253,7 +253,7 @@ export default function Index() {
                     ])}
                   >
                     <Image
-                      src={`/api/configs/logo?r=${tick}`}
+                      src={"/api/configs/logo"}
                       className={cn([
                         "object-cover",
                         "rounded-md",

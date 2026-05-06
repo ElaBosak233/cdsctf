@@ -77,7 +77,7 @@ export default function Index() {
         >
           <div className={cn(["flex", "flex-col", "gap-5", "items-center"])}>
             <Image
-              src={currentGame?.has_poster && `/api/games/${game_id}/poster`}
+              src={currentGame?.poster_hash && `/api/media?hash=${currentGame?.poster_hash}`}
               className={cn([
                 "object-cover",
                 "rounded-xl",

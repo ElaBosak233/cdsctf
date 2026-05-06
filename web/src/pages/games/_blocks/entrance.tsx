@@ -94,8 +94,8 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
             >
               <Image
                 src={
-                  game?.has_icon
-                    ? `/api/games/${game.id}/icon`
+                  game?.icon_hash
+                    ? `/api/media?hash=${game?.icon_hash}`
                     : `/api/configs/logo`
                 }
                 fallback={<DefaultLogo />}

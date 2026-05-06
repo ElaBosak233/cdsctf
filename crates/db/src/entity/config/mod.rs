@@ -41,6 +41,7 @@ pub struct Config {
     pub auth: auth::Config,
     pub email: email::Config,
     pub captcha: captcha::Config,
+    pub logo_hash: Option<String>,
 }
 
 impl Config {
@@ -51,6 +52,7 @@ impl Config {
             auth: self.auth.clone(),
             email: self.email.desensitize(),
             captcha: self.captcha.desensitize(),
+            logo_hash: self.logo_hash.clone(),
         }
     }
 }

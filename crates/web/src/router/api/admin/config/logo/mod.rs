@@ -6,6 +6,7 @@ use axum::{
     Json, Router,
     extract::{Multipart, State},
 };
+use cds_db::config::{get as get_config, save as save_config};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -40,10 +41,15 @@ pub async fn save_logo(
     multipart: Multipart,
 ) -> Result<Json<EmptyJson>, WebError> {
     let data = handle_multipart(multipart, mime::IMAGE).await?;
+    let data = cds_media::util::img_convert_to_webp(data).await?;
 
-    s.media
-        .save("configs".to_owned(), "logo".to_owned(), data)
-        .await?;
+    let hash = cds_media::util::hash(data.clone());
+
+    s.media.save("media".to_owned(), hash.clone(), data).await?;
+
+    let mut config = get_config(&s.db.conn).await?;
+    config.logo_hash = Some(hash);
+    save_config(&s.db.conn, config).await?;
 
     Ok(Json(EmptyJson::default()))
 }
@@ -60,9 +66,13 @@ pub async fn save_logo(
 )]
 #[tracing::instrument(skip_all, fields(handler = "delete_logo"))]
 pub async fn delete_logo(State(s): State<Arc<AppState>>) -> Result<Json<EmptyJson>, WebError> {
-    s.media
-        .delete("configs".to_owned(), "logo".to_owned())
-        .await?;
+    let mut config = get_config(&s.db.conn).await?;
+
+    if let Some(hash) = config.logo_hash.take() {
+        s.media.delete("media".to_owned(), hash).await?;
+    }
+
+    save_config(&s.db.conn, config).await?;
 
     Ok(Json(EmptyJson::default()))
 }

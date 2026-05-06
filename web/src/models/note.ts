@@ -3,7 +3,7 @@ export interface Note {
   content: string;
   user_id: number;
   user_name?: string;
-  user_has_avatar?: boolean;
+  user_avatar_hash?: string;
   challenge_id: number;
   challenge_title?: string;
   challenge_category?: number;

@@ -10,11 +10,21 @@ import {
   EditIcon,
   EyeClosedIcon,
   EyeIcon,
+  LockIcon,
   ShipWheelIcon,
   TrashIcon,
   XIcon,
 } from "lucide-react";
-import { useMemo, useOptimistic, useState, useTransition } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useOptimistic,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -37,6 +47,52 @@ import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 
+const RowContext = createContext<{
+  optimisticPublic: boolean;
+  togglePublic: (title: string) => void;
+} | null>(null);
+
+function useRowContext() {
+  return useContext(RowContext);
+}
+
+function RowProvider({
+  challenge,
+  children,
+}: {
+  challenge: Challenge;
+  children: ReactNode;
+}) {
+  const { t } = useTranslation();
+  const [isPublic, setIsPublic] = useState(challenge.public ?? false);
+  const [, startTransition] = useTransition();
+  const [optimisticPublic, setOptimisticPublic] = useOptimistic(isPublic);
+
+  const togglePublic = useCallback(
+    (title: string) => {
+      const newValue = !optimisticPublic;
+      startTransition(async () => {
+        setOptimisticPublic(newValue);
+        await updateChallenge({
+          id: challenge.id,
+          public: newValue,
+        });
+        setIsPublic(newValue);
+        toast.success(t("challenge:public.actions.success", { title }), {
+          id: "publicness_change",
+        });
+      });
+    },
+    [optimisticPublic, challenge.id, startTransition, setOptimisticPublic, t],
+  );
+
+  return (
+    <RowContext.Provider value={{ optimisticPublic, togglePublic }}>
+      {children}
+    </RowContext.Provider>
+  );
+}
+
 function IdCell({ row }: { row: Row<Challenge> }) {
   const id = row.original.id!;
   const { t } = useTranslation();
@@ -55,6 +111,29 @@ function IdCell({ row }: { row: Row<Challenge> }) {
         </TooltipTrigger>
         <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
       </Tooltip>
+    </div>
+  );
+}
+
+function TitleCell({ row }: { row: Row<Challenge> }) {
+  const ctx = useRowContext();
+  const isPublic = ctx ? ctx.optimisticPublic : row.original.public ?? false;
+  return (
+    <div
+      className={cn([
+        "w-42",
+        "flex",
+        "gap-2",
+        "items-center",
+        "overflow-hidden",
+        "text-ellipsis",
+        "whitespace-nowrap",
+      ])}
+    >
+      {!isPublic && (
+        <LockIcon className={cn(["size-[1em]", "text-warning"])} />
+      )}
+      {row.original.title || "-"}
     </div>
   );
 }
@@ -125,23 +204,10 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  const [isPublic, setIsPublic] = useState(row.original.public);
-  const [_, startTransition] = useTransition();
-  const [optimisticPublic, setOptimisticPublic] = useOptimistic(isPublic);
+  const { optimisticPublic, togglePublic } = useRowContext()!;
 
-  async function handlePublicnessChange() {
-    const newValue = !optimisticPublic;
-    setOptimisticPublic(newValue);
-    startTransition(async () => {
-      await updateChallenge({
-        id,
-        public: newValue,
-      });
-      setIsPublic(newValue);
-      toast.success(t("challenge:public.actions.success", { title }), {
-        id: "publicness_change",
-      });
-    });
+  function handlePublicnessChange() {
+    togglePublic(title!);
   }
 
   async function handleDelete() {
@@ -246,18 +312,7 @@ function useColumns() {
         accessorKey: "title",
         id: "title",
         header: t("challenge:title"),
-        cell: ({ row }) => (
-          <div
-            className={cn([
-              "w-42",
-              "overflow-hidden",
-              "text-ellipsis",
-              "whitespace-nowrap",
-            ])}
-          >
-            {row.original.title || "-"}
-          </div>
-        ),
+        cell: TitleCell,
       },
       {
         accessorKey: "category",
@@ -376,4 +431,4 @@ function useColumns() {
   return columns;
 }
 
-export { useColumns };
+export { RowProvider, useColumns };

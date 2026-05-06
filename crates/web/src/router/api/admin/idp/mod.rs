@@ -61,8 +61,6 @@ pub struct AdminIdpRequest {
     pub name: String,
     #[serde(default = "default_true")]
     pub enabled: bool,
-    #[serde(default)]
-    pub has_avatar: bool,
     pub portal: Option<String>,
     pub script: String,
 }
@@ -122,7 +120,6 @@ pub async fn create_idp(
             id: NotSet,
             name: Set(body.name),
             enabled: Set(body.enabled),
-            has_avatar: Set(body.has_avatar),
             portal: Set(body.portal),
             script: Set(body.script),
             ..Default::default()
@@ -184,7 +181,6 @@ pub async fn update_idp(
             id: Unchanged(idp_id),
             name: Set(body.name),
             enabled: Set(body.enabled),
-            has_avatar: Set(body.has_avatar),
             portal: Set(body.portal),
             script: Set(body.script),
             ..Default::default()

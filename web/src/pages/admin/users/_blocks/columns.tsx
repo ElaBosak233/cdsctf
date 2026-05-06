@@ -184,8 +184,8 @@ function useColumns() {
           <div className={cn(["flex", "items-center", "gap-3"])}>
             <Avatar
               src={
-                row.original.has_avatar &&
-                `/api/users/${row.original.id}/avatar`
+                row.original.avatar_hash &&
+                `/api/media?hash=${row.original.avatar_hash}`
               }
               fallback={row.original.username?.charAt(0)}
             />

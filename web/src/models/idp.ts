@@ -2,7 +2,7 @@ export interface Idp {
   id?: number;
   name?: string;
   enabled?: boolean;
-  has_avatar?: boolean;
+  avatar_hash?: string;
   portal?: string | null;
   script?: string;
   created_at?: number;
