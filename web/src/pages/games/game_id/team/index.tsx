@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  InfoIcon,
   MailIcon,
   MessageCircleIcon,
   SaveIcon,
@@ -31,6 +32,7 @@ import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { Separator } from "@/components/ui/separator";
 
 export default function Index() {
   const { currentGame, selfTeam } = useGameStore();
@@ -140,8 +142,14 @@ export default function Index() {
           "p-10",
           "xl:mx-50",
           "lg:mx-30",
+          "gap-5",
         ])}
       >
+                <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
+          <InfoIcon />
+          {t("team:info")}
+        </h2>
+        <Separator />
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}

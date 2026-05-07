@@ -22,6 +22,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import { Separator } from "@/components/ui/separator";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -86,15 +87,21 @@ export default function Index() {
           "flex-col",
           "flex-1",
           "p-10",
+          "gap-5",
           "xl:mx-50",
           "lg:mx-30",
         ])}
       >
+        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
+          <LockIcon />
+          {t("user:settings.password")}
+        </h2>
+        <Separator />
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             autoComplete={"off"}
-            className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
+            className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
           >
             <FormField
               control={form.control}

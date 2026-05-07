@@ -2,6 +2,7 @@ import {
   CheckIcon,
   MailCheckIcon,
   MailPlusIcon,
+  MailsIcon,
   TrashIcon,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -63,10 +64,14 @@ export default function Index() {
           "p-10",
           "xl:mx-50",
           "lg:mx-30",
-          "gap-8",
+          "gap-5",
         ])}
       >
-        <div className={cn(["flex", "justify-end"])}>
+        <div className={cn(["flex", "justify-between", "items-center"])}>
+          <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
+          <MailsIcon />
+          {t("user:settings.email")}
+        </h2>
           <Button
             size={"md"}
             variant={"solid"}

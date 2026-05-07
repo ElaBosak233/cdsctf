@@ -110,18 +110,10 @@ export default function Index() {
           "gap-5",
         ])}
       >
-        <h1
-          className={cn([
-            "text-2xl",
-            "font-bold",
-            "flex",
-            "gap-2",
-            "items-center",
-          ])}
-        >
+        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
           <FilePenIcon />
           {t("team:write_up._")}
-        </h1>
+        </h2>
         <Separator />
 
         <Dropzone {...dropzone}>

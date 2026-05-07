@@ -46,13 +46,13 @@ pub async fn login(params) {
     // Use a stable, unique identifier from the provider as auth_key.
     let auth_key = user_res["id"];
 
-    // let username = user_res["login"];
-    // let name = user_res["name"];
+    let username = user_res["login"];
+    let name = user_res["name"];
 
     Ok(#{
         "auth_key": auth_key.to_string(),
-        // "username": username,
-        // "name": name
+        "username": username,
+        "name": name
     })
 }
 

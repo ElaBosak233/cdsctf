@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  InfoIcon,
   SaveIcon,
   TrashIcon,
   TypeIcon,
@@ -32,6 +33,7 @@ import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { Separator } from "@/components/ui/separator";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -118,8 +120,14 @@ export default function Index() {
           "p-10",
           "xl:mx-50",
           "lg:mx-30",
+          "gap-5",
         ])}
       >
+          <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
+          <InfoIcon />
+          {t("user:settings.info")}
+        </h2>
+        <Separator />
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}

@@ -57,18 +57,10 @@ export default function Index() {
           "gap-5",
         ])}
       >
-        <h1
-          className={cn([
-            "text-2xl",
-            "font-bold",
-            "flex",
-            "gap-2",
-            "items-center",
-          ])}
-        >
+        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
           <UsersRoundIcon />
           {t("team:members")}
-        </h1>
+        </h2>
         <Separator />
         {!disabled && (
           <div className={cn(["flex", "gap-5", "items-center"])}>
