@@ -31,7 +31,7 @@ import type { Game } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { useColumns } from "./_blocks/columns";
+import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 import { GameListContext } from "./context";
 
@@ -62,8 +62,12 @@ function useGameQuery(params: GetGamesRequest) {
 export default function Index() {
   const { t } = useTranslation();
   const configStore = useConfigStore();
-  const { createDialogOpen, setCreateDialogOpen, columnFilters, setColumnFilters } =
-    useContext(GameListContext)!;
+  const {
+    createDialogOpen,
+    setCreateDialogOpen,
+    columnFilters,
+    setColumnFilters,
+  } = useContext(GameListContext)!;
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
@@ -85,9 +89,7 @@ export default function Index() {
     title: debouncedColumnFilters.find((c) => c.id === "title")
       ?.value as string,
     enabled,
-    sorts: sorting
-      .map((s) => (s.desc ? `-${s.id}` : s.id))
-      .join(","),
+    sorts: sorting.map((s) => (s.desc ? `-${s.id}` : s.id)).join(","),
     page,
     size,
   });
@@ -172,20 +174,21 @@ export default function Index() {
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.getValue("id")}
-                    data-state={row.getIsSelected() ? "selected" : undefined}
-                    className={cn(["transition-colors"])}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+                  <RowProvider key={row.getValue("id")} game={row.original}>
+                    <TableRow
+                      data-state={row.getIsSelected() ? "selected" : undefined}
+                      className={cn(["transition-colors"])}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </RowProvider>
                 ))
               ) : !loading ? (
                 <TableRow>

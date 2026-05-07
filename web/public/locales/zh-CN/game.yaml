@@ -1,11 +1,15 @@
 _: 比赛
 empty: 好像还没有比赛哦。
+filter:
+  all: ALL
+  pts: 分
 edit:
   _: 编辑比赛
   info: 基本信息
   challenge: 题目
   team: 团队
   notice: 通知
+id: ID
 title: 标题
 public: 公开赛
 sketch: 简述
@@ -48,7 +52,10 @@ form:
   title:
     _: 标题
     message: 请输入标题
-  sketch: 简述
+    placeholder: "My CTF Game"
+  sketch:
+    _: 简述
+    placeholder: 很久很久以前…
   poster: 海报
   poster_upload:
     progress: "上传进度 {{percent}}%"
@@ -74,9 +81,11 @@ form:
   member_limit_min:
     _: 团队所需最小人数
     message: 请输入团队所需最小人数
+    placeholder: "3"
   member_limit_max:
     _: 团队所需最大人数
     message: 请输入团队所需最大人数
+    placeholder: "3"
   started_at:
     _: 开始时间
     message: 请选择开始时间
@@ -86,7 +95,9 @@ form:
   ended_at:
     _: 结束时间
     message: 请选择结束时间
-  description: 描述
+  description:
+    _: 描述
+    placeholder: 很久很久以前…
 actions:
   _: 操作
   create:
@@ -116,17 +127,22 @@ challenge:
     max_pts:
       _: 最大分值
       message: 请输入最大分值
+      placeholder: "2000"
     min_pts:
       _: 最小分值
       message: 请输入最小分值
+      placeholder: "500"
     difficulty:
       _: 难度系数
       message: 请输入难度系数
+      placeholder: "5"
     frozen_at: 冻结时间
     bonus_ratio: 奖励分数（%）
+    bonus_ratio_item: "第 {{index}} 项"
   actions:
     _: 操作
     edit_config_success: "赛题 {{title}} 配置更新成功。"
+    state_wrapper: "（{{state}}）"
     add_exists: 题目在该比赛中已存在。
     add:
       _: 添加题目
@@ -149,6 +165,7 @@ team:
     message: "团队 {{name}} 状态更新成功。"
 notice:
   _: 通知
+  id: ID
   board: 公告栏
   empty: 哎呀，好像还没有通知呢。
   title: 标题
@@ -158,6 +175,7 @@ notice:
     title:
       _: 标题
       message: 请输入标题
+      placeholder: 我的 CTF 比赛
     content:
       _: 详情
       message: 请输入详情

@@ -1,6 +1,6 @@
-import * as RadixSelect from "@radix-ui/react-select";
 import { cva } from "class-variance-authority";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { Select as RadixSelect } from "radix-ui";
 import * as React from "react";
 import { cn } from "@/utils";
 import { FieldContext } from "./field";

@@ -117,7 +117,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"Username"}
+                      placeholder={t("user:form.username.placeholder")}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -141,7 +141,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"Name"}
+                      placeholder={t("user:form.name.placeholder")}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -166,7 +166,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                     <TextField
                       {...field}
                       type="email"
-                      placeholder={"ctf@example.com"}
+                      placeholder={t("user:form.email.placeholder")}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -191,7 +191,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                     <TextField
                       {...field}
                       type="password"
-                      placeholder={"P4ssw0rd!"}
+                      placeholder={t("user:form.password.placeholder")}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />

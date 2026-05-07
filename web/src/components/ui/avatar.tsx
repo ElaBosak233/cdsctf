@@ -1,6 +1,6 @@
-import * as RadixAvatar from "@radix-ui/react-avatar";
 import { cva, type VariantProps } from "class-variance-authority";
 import { LoaderCircleIcon } from "lucide-react";
+import { Avatar as RadixAvatar } from "radix-ui";
 import type * as React from "react";
 import { useState } from "react";
 import { cn } from "@/utils";

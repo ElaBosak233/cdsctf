@@ -13,6 +13,8 @@ note: Note
 note_placeholder: Note your solution here...
 note_save_success: Note saved successfully.
 writeup_official: Official Write-up
+writeup_empty: No content
+note_empty: No notes
 title: Title
 description: Description
 category: Category
@@ -71,9 +73,12 @@ search:
     "true": Public
     "false": Private
 form:
+  id:
+    _: ID
   title:
     _: Title
     message: Please enter a title
+    placeholder: Try hack me!
   category:
     _: Category
     message: Please select a category
@@ -90,6 +95,7 @@ form:
   description:
     _: Description
     message: Please enter description
+    placeholder: Once upon a time...
   has_writeup:
     _: Has Write-up
     "true": Yes
@@ -97,10 +103,12 @@ form:
   writeup:
     _: Write-up
     message: Please enter write-up
+    placeholder: Once upon a time...
   instance:
     duration:
       _: Duration (seconds)
       message: Please enter duration in seconds
+      placeholder: "1800"
     internet:
       _: Allow Internet Access
       message: Please select whether to allow internet access
@@ -111,6 +119,7 @@ form:
       image:
         _: Image
         message: Please enter container image
+        placeholder: "repository:tag"
       cpu_limit:
         _: CPU Limit (cores)
         message: Please enter CPU limit in cores

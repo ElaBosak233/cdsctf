@@ -57,18 +57,10 @@ export default function Index() {
           "gap-5",
         ])}
       >
-        <h1
-          className={cn([
-            "text-2xl",
-            "font-bold",
-            "flex",
-            "gap-2",
-            "items-center",
-          ])}
-        >
+        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
           <UsersRoundIcon />
           {t("team:members")}
-        </h1>
+        </h2>
         <Separator />
         {!disabled && (
           <div className={cn(["flex", "gap-5", "items-center"])}>
@@ -98,9 +90,21 @@ export default function Index() {
         <div className={cn(["grid", "grid-cols-2", "gap-5"])}>
           {members?.map((user) => (
             <Link key={user?.id} to={`/users/${user?.id}`}>
-              <Card className={cn(["p-3", "flex", "gap-3", "items-center"])}>
+              <Card
+                className={cn([
+                  "p-3",
+                  "flex",
+                  "gap-3",
+                  "items-center",
+                  "shadow-sm",
+                  "hover:shadow-md",
+                  "transition-shadow",
+                ])}
+              >
                 <Avatar
-                  src={user?.has_avatar && `/api/users/${user?.id}/avatar`}
+                  src={
+                    user?.avatar_hash && `/api/media?hash=${user?.avatar_hash}`
+                  }
                   fallback={user?.name?.charAt(0)}
                 />
                 <div>

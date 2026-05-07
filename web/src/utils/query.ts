@@ -4,7 +4,14 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/storages/auth";
 import type { ErrorResponse } from "@/types";
 
-const pendingRequests = new Map<string, AbortController>();
+interface PendingEntry {
+  controller: AbortController;
+  resolve: (response: Response) => void;
+  reject: (reason: unknown) => void;
+  responsePromise: Promise<Response>;
+}
+
+const pendingRequests = new Map<string, PendingEntry>();
 
 const api = ky.extend({
   prefix: "/api",
@@ -17,23 +24,49 @@ const api = ky.extend({
         const key = `${request.method}:${request.url}`;
         const existing = pendingRequests.get(key);
         if (existing) {
-          existing.abort();
+          // A request is already in-flight — share its response instead of
+          // making a duplicate call to the server.
+          return existing.responsePromise;
         }
+
+        let resolve: (response: Response) => void;
+        let reject: (reason: unknown) => void;
+        const responsePromise = new Promise<Response>((res, rej) => {
+          resolve = res;
+          reject = rej;
+        });
+
         const controller = new AbortController();
-        pendingRequests.set(key, controller);
+        pendingRequests.set(key, {
+          controller,
+          resolve: resolve!,
+          reject: reject!,
+          responsePromise,
+        });
+
         return new Request(request, { signal: controller.signal });
       },
     ],
     afterResponse: [
-      ({ request }) => {
+      ({ request, response }) => {
         if (!["GET", "HEAD"].includes(request.method)) return;
-        pendingRequests.delete(`${request.method}:${request.url}`);
+        const key = `${request.method}:${request.url}`;
+        const pending = pendingRequests.get(key);
+        if (pending) {
+          pending.resolve(response.clone());
+        }
+        pendingRequests.delete(key);
       },
     ],
     beforeError: [
       async ({ request, error }) => {
         if (["GET", "HEAD"].includes(request.method)) {
-          pendingRequests.delete(`${request.method}:${request.url}`);
+          const key = `${request.method}:${request.url}`;
+          const pending = pendingRequests.get(key);
+          if (pending) {
+            pending.reject(error);
+          }
+          pendingRequests.delete(key);
         }
         if (!(error instanceof HTTPError)) return error;
 

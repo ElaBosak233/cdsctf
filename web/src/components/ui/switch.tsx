@@ -1,4 +1,4 @@
-import * as RadixSwitch from "@radix-ui/react-switch";
+import { Switch as RadixSwitch } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "@/utils";

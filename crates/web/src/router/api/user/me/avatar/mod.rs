@@ -11,6 +11,7 @@ use cds_db::{
     User,
     sea_orm::{Set, Unchanged},
 };
+use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -56,14 +57,15 @@ pub async fn save_user_avatar(
     let data = handle_multipart(multipart, mime::IMAGE).await?;
     let data = cds_media::util::img_convert_to_webp(data).await?;
 
-    let path = format!("users/{}", operator.id);
-    s.media.save(path, "avatar".to_owned(), data).await?;
+    let hash = cds_media::util::hash(data.clone());
+
+    s.media.save("media".to_owned(), hash.clone(), data).await?;
 
     let _ = cds_db::user::update::<User>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             id: Unchanged(operator.id),
-            has_avatar: Set(true),
+            avatar_hash: Set(Some(hash)),
             ..Default::default()
         },
     )
@@ -90,14 +92,19 @@ pub async fn delete_user_avatar(
 ) -> Result<Json<EmptyJson>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let path = format!("users/{}", operator.id);
-    s.media.delete(path, "avatar".to_owned()).await?;
+    let user = cds_db::user::find_by_id::<cds_db::user::Model>(&s.db.conn, operator.id)
+        .await?
+        .ok_or(WebError::NotFound(json!("")))?;
+
+    if let Some(hash) = user.avatar_hash {
+        s.media.delete("media".to_owned(), hash).await?;
+    }
 
     let _ = cds_db::user::update::<User>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             id: Unchanged(operator.id),
-            has_avatar: Set(false),
+            avatar_hash: Set(None),
             ..Default::default()
         },
     )

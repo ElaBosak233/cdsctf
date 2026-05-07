@@ -224,8 +224,8 @@ export default function Index() {
         <div className={cn(["relative", "select-none", "w-full", "xl:w-1/2"])}>
           <Image
             src={
-              selectedGame?.has_poster &&
-              `/api/games/${selectedGame?.id}/poster`
+              selectedGame?.poster_hash &&
+              `/api/media?hash=${selectedGame?.poster_hash}`
             }
             className={cn([
               "object-cover",
@@ -276,11 +276,12 @@ export default function Index() {
             >
               <Image
                 src={
-                  selectedGame?.has_icon
-                    ? `/api/games/${selectedGame?.id}/icon`
+                  selectedGame?.icon_hash
+                    ? `/api/media?hash=${selectedGame?.icon_hash}`
                     : `/api/configs/logo`
                 }
                 fallback={<DefaultLogo />}
+                glass={false}
                 className={cn(["h-16", "min-w-16"])}
               />
               <div className={cn(["space-y-1", "flex-1", "max-w-100"])}>

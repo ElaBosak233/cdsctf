@@ -105,7 +105,7 @@ function WriteupSection() {
             </div>
           ) : (
             <span className={cn(["text-muted", "text-center", "select-none"])}>
-              暂无内容
+              {t("challenge:writeup_empty")}
             </span>
           )}
         </>
@@ -122,7 +122,7 @@ function WriteupSection() {
                     setNoteId(null);
                   }}
                 >
-                  Official Writeup
+                  {t("challenge:writeup_official")}
                 </Button>
                 <Separator />
               </>
@@ -148,8 +148,8 @@ function WriteupSection() {
                     <div className={cn(["flex", "items-center", "gap-2"])}>
                       <Avatar
                         src={
-                          note.user_has_avatar &&
-                          `/api/users/${note.user_id}/avatar`
+                          note.user_avatar_hash &&
+                          `/api/media?hash=${note.user_avatar_hash}`
                         }
                         fallback={note.user_name?.charAt(0)}
                         className={cn(["size-8"])}
@@ -198,7 +198,7 @@ function WriteupSection() {
               <span
                 className={cn(["text-muted", "text-center", "select-none"])}
               >
-                暂无笔记
+                {t("challenge:note_empty")}
               </span>
             )}
           </div>

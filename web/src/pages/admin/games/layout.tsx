@@ -30,7 +30,8 @@ function setFilter(
 export default function Layout() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const isListPage = pathname === "/admin/games" || pathname === "/admin/games/";
+  const isListPage =
+    pathname === "/admin/games" || pathname === "/admin/games/";
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [columnFilters, setColumnFiltersState] = useState<ColumnFiltersState>([
@@ -60,7 +61,12 @@ export default function Layout() {
 
   return (
     <GameListContext.Provider
-      value={{ createDialogOpen, setCreateDialogOpen, columnFilters, setColumnFilters }}
+      value={{
+        createDialogOpen,
+        setCreateDialogOpen,
+        columnFilters,
+        setColumnFilters,
+      }}
     >
       <div
         className={cn([
@@ -135,7 +141,7 @@ export default function Layout() {
                 <HashIcon className="size-4" />
               </FieldIcon>
               <TextField
-                placeholder="ID"
+                placeholder={t("game:id")}
                 value={idValue}
                 onChange={(e) =>
                   setColumnFilters((prev) =>

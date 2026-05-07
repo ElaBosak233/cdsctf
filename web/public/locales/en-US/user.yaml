@@ -9,6 +9,7 @@ settings:
   info: Info
   email: Emails
   password: Change Password
+  idp: Identity Provider
   delete: Delete Account
   profile_update_success: Profile updated successfully.
   avatar_upload:
@@ -16,6 +17,7 @@ settings:
     success: Avatar uploaded successfully.
     error: Avatar upload failed.
   avatar_delete_success: Avatar deleted successfully.
+id: ID
 username: Username
 name: Name
 password: Password
@@ -38,11 +40,13 @@ form:
     messages:
       _: Please enter a username
       min: Username must be at least 3 characters
+    placeholder: Username
   name:
     _: Name
     messages:
       _: Please enter a name
       min: Name must be at least 2 characters
+    placeholder: Name
   email:
     _: Email
     message: Please enter a valid email address
@@ -51,12 +55,14 @@ form:
     messages:
       _: Please enter a password
       min: Password must be at least 6 characters
+    placeholder: P4ssw0rd!
   group:
     _: Group
     message: Please select a user group
   description:
     _: Description
     message: Please enter a description
+    placeholder: Once upon a time...
   avatar: Avatar
 actions:
   _: Actions
@@ -75,6 +81,7 @@ actions:
 emails:
   _: Emails
   brief: Add or edit this user's email addresses
+  verify_code_placeholder: I_d0nt_kn0w
   empty: No emails have been added for this user yet.
   verified:
     "true":
@@ -87,6 +94,7 @@ emails:
     email:
       _: Email
       message: Please enter a valid email address
+      placeholder: ctf@example.com
     verified:
       _: Mark as verified
       message: Immediately mark the email as verified.
@@ -118,16 +126,19 @@ change_password:
     old_password:
       _: Old Password
       message: Please enter the old password
+      placeholder: Old P4ssw0rd
     new_password:
       _: New Password
       messages:
         _: Please enter a new password
         min: Password must be at least 6 characters
+      placeholder: New P4ssw0rd
     confirm_password:
       _: Confirm New Password
       messages:
         _: Please confirm the new password
         match: The two passwords do not match
+      placeholder: Confirm New P4ssw0rd
   actions:
     update:
       _: Change Password
@@ -138,6 +149,13 @@ change_password:
 delete_account:
   _: Delete Account
   final_warning: Final Warning
+  warnings:
+    intro: You are deleting your account. Your account will not be truly deleted, but will be permanently soft-deleted and cannot be recovered.
+    username: Your username will be modified and saved in a special form. You can register a new account with your original username.
+    email: Your email will be unbound and cleared. You can register a new account with your original email.
+    data: All your related competition, team, and submission data will still be retained. However, after deletion, no information can prove that this data belongs to you.
+    irreversible: Please note again, the following operation is irreversible! Think twice before proceeding!
+    confirm: Please read and confirm the above content carefully! If you really want to delete your account, enter your full username and password below and click confirm.
   form:
     username:
       _: Username
@@ -153,3 +171,14 @@ delete_account:
   actions:
     delete:
       success: Account deleted successfully.
+idp:
+  _: Identity Provider
+  actions:
+    bind: Bind
+    unbind: Unbind
+    bound: Bound
+    unbound: Unbound
+    bound_toast: IdP bound
+    unbound_toast: IdP unbound
+    request_failed: IdP request failed
+    signed_in: Signed in

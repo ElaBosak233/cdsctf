@@ -22,7 +22,7 @@ pub struct Note {
     pub public: bool,
     pub user_id: i64,
     pub user_name: String,
-    pub user_has_avatar: bool,
+    pub user_avatar_hash: Option<String>,
     pub challenge_id: i64,
     pub challenge_title: String,
     pub challenge_category: i32,

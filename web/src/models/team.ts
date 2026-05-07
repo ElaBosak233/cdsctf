@@ -4,7 +4,7 @@ export interface Team {
   name?: string;
   email?: string;
   slogan?: string;
-  has_avatar?: boolean;
+  avatar_hash?: string;
   has_writeup?: boolean;
   writeup_submitted_at?: number;
   writeup_updated_at?: number;

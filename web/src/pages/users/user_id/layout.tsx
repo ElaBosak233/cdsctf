@@ -50,7 +50,7 @@ export default function Layout() {
           <div className={cn(["flex", "flex-row", "items-center", "gap-5"])}>
             <Avatar
               className={cn("h-12", "w-12")}
-              src={user?.has_avatar && `/api/users/${user?.id}/avatar`}
+              src={user?.avatar_hash && `/api/media?hash=${user?.avatar_hash}`}
               fallback={user?.name?.charAt(0)}
             />
             <div className={cn(["flex", "flex-col", "flex-1", "min-w-0"])}>

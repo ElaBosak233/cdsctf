@@ -204,7 +204,9 @@ export default function Index() {
                       <ClockIcon />
                     </FieldIcon>
                     <NumberField
-                      placeholder={"1800"}
+                      placeholder={t(
+                        "challenge:form.instance.duration.placeholder"
+                      )}
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
                     />
@@ -276,7 +278,9 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder={"repository:tag"}
+                        placeholder={t(
+                          "challenge:form.instance.containers.image.placeholder"
+                        )}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
@@ -420,8 +424,18 @@ export default function Index() {
                             <Select
                               {...field}
                               options={[
-                                { value: "TCP", content: "TCP" },
-                                { value: "UDP", content: "UDP" },
+                                {
+                                  value: "TCP",
+                                  content: t(
+                                    "challenge:form.instance.containers.ports.protocol.tcp"
+                                  ),
+                                },
+                                {
+                                  value: "UDP",
+                                  content: t(
+                                    "challenge:form.instance.containers.ports.protocol.udp"
+                                  ),
+                                },
                               ]}
                               onValueChange={field.onChange}
                               value={field.value}

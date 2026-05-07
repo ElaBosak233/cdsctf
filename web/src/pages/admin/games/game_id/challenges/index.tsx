@@ -154,7 +154,7 @@ export default function Index() {
               <HashIcon />
             </FieldIcon>
             <TextField
-              placeholder={"ID"}
+              placeholder={t("challenge:form.id._")}
               value={
                 (table.getColumn("challenge_id")?.getFilterValue() as string) ??
                 ""

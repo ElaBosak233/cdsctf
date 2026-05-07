@@ -13,6 +13,9 @@ mod game;
 /// Defines the `instance` submodule (see sibling `*.rs` files).
 mod instance;
 
+/// Defines the `idp` submodule (see sibling `*.rs` files).
+mod idp;
+
 /// Defines the `submission` submodule (see sibling `*.rs` files).
 mod submission;
 
@@ -35,5 +38,6 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/users", user::router(state.clone()))
         .nest("/challenges", challenge::router(state.clone()))
         .nest("/games", game::router(state.clone()))
+        .nest("/idps", idp::router(state.clone()))
         .nest("/configs", config::router(state.clone()))
 }

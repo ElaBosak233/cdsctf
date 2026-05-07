@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Editor, type EditorProps } from "@/components/ui/editor";
 import { cn } from "@/utils";
@@ -233,9 +234,14 @@ function MarkdownEditor(props: MarkdownEditorProps) {
       const placeholder = "![Uploading](...)";
       const { from, to } = insertAtCursor(placeholder);
 
+      toast.loading("0%", { id: "image-upload" });
+
       try {
-        const res = await uploadFile("/api/media", [file]);
+        const res = await uploadFile("/api/media", [file], ({ percent }) => {
+          toast.loading(`${percent.toFixed(0)}%`, { id: "image-upload" });
+        });
         const replacement = resolveMediaMarkdown(res);
+        toast.dismiss("image-upload");
         if (!replacement) return;
 
         const view = viewRef.current;
@@ -255,6 +261,7 @@ function MarkdownEditor(props: MarkdownEditorProps) {
         const source = value ?? "";
         onChange?.(source.replace(placeholder, replacement));
       } catch {
+        toast.dismiss("image-upload");
         const view = viewRef.current;
         if (view) {
           const safeFrom = Math.min(from, view.state.doc.length);

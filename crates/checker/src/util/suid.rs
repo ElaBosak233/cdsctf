@@ -3,7 +3,7 @@
 //! # What is `suid`
 //! A fake uuid with steganography.
 
-use aes::cipher::{BlockDecrypt, BlockEncrypt, KeyInit};
+use aes::cipher::{BlockCipherDecrypt, BlockCipherEncrypt, KeyInit};
 use anyhow::anyhow;
 use ring::{
     hkdf::{HKDF_SHA256, Salt},

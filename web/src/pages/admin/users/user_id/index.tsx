@@ -36,7 +36,7 @@ export default function Index() {
   const { t } = useTranslation();
 
   const { user } = useContext(Context);
-  const { user_id } = useParams<{ user_id: string }>();
+  useParams<{ user_id: string }>();
 
   const sharedStore = useSharedStore();
   const [loading, setLoading] = useState<boolean>(false);
@@ -107,11 +107,11 @@ export default function Index() {
   }
 
   return (
-    <div className={cn(["flex", "flex-col", "gap-6", "flex-1"])}>
+    <div className={cn(["flex", "flex-col", "gap-5", "flex-1"])}>
       <div className={cn(["flex", "flex-col", "items-center", "gap-4"])}>
         <Avatar
           className={cn(["h-30", "w-30"])}
-          src={user?.has_avatar && `/api/users/${user_id}/avatar`}
+          src={user?.avatar_hash && `/api/media?hash=${user?.avatar_hash}`}
           fallback={user?.username?.charAt(0)}
         />
       </div>
@@ -137,7 +137,7 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder={"Username"}
+                        placeholder={t("user:form.username.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
@@ -161,7 +161,7 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder={"Name"}
+                        placeholder={t("user:form.name.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />

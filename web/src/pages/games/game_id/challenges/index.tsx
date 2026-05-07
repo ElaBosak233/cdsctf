@@ -134,7 +134,7 @@ export default function Index() {
                 className={cn(["flex-1", "min-w-fit"])}
                 variant={category === "all" ? "solid" : "ghost"}
               >
-                ALL
+                {t("game:filter.all")}
               </Button>
             )}
             {categories?.map((c) => {

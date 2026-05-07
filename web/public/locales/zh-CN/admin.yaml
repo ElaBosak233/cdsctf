@@ -24,10 +24,12 @@ platform:
       _: 元信息
       title:
         _: 标题
+        placeholder: CdsCTF
       keywords:
         _: 关键词
       description:
         _: 描述
+        placeholder: 我才不想攻击你呢！
       footer:
         _: 页脚
     auth:
@@ -54,18 +56,23 @@ mailbox:
       _: 启用邮箱
     host:
       _: SMTP 主机
+      placeholder: smtp.example.com
     port:
       _: 端口
     tls:
       _: TLS
     username:
       _: 用户名
+      placeholder: 邮箱用户名
     password:
       _: 密码
+      placeholder: 邮箱密码
     verification_email:
       _: 验证邮件模板
+      placeholder: xHTML (RFC 2557)
     reset_password_email:
       _: 重置密码邮件模板
+      placeholder: xHTML (RFC 2557)
   actions:
     update:
       _: 更新邮箱设置
@@ -86,7 +93,67 @@ captcha:
     difficulty:
       _: 难度
       description: 适用于图像和工作量证明验证。
+    turnstile:
+      url:
+        _: API URL
+      site_key:
+        _: 站点密钥
+      secret_key:
+        _: 密钥
+    hcaptcha:
+      url:
+        _: API URL
+      site_key:
+        _: 站点密钥
+      secret_key:
+        _: 密钥
+      score:
+        _: 分数
   actions:
     update:
       _: 更新人机验证设置
       success: 人机验证设置更新成功。
+idp:
+  _: 第三方认证服务
+  empty: 暂无第三方认证服务配置
+  enabled:
+    "true": 已启用
+    "false": 已禁用
+  avatar_upload:
+    progress: "上传进度 {{percent}}%"
+    success: 头像上传成功。
+    error: 头像上传失败。
+  avatar_delete:
+    success: 头像移除成功。
+  form:
+    name:
+      _: 名称
+      placeholder: GitHub
+      message: 请输入第三方认证服务名称。
+    portal:
+      _: 入口
+      placeholder: https://example.com/oauth
+    enabled:
+      _: 启用
+    avatar: 头像
+    script:
+      _: 脚本
+      templates:
+        _: 模板
+        default: 默认
+        oauth: OAuth 2.0
+        cas: CAS
+  actions:
+    create:
+      _: 创建第三方认证服务
+      success: "{{name}} 创建成功。"
+    update:
+      success: "{{name}} 更新成功。"
+    enable:
+      success: "{{name}} 已启用。"
+    disable:
+      success: "{{name}} 已禁用。"
+    delete:
+      _: 删除第三方认证服务
+      message: "确定要删除 <muted>{{name}}</muted> 吗？"
+      success: "{{name}} 删除成功。"

@@ -68,7 +68,10 @@ function CreateDialog(props: CreateDialogProps) {
                     <FieldIcon>
                       <MailIcon />
                     </FieldIcon>
-                    <TextField placeholder={"ctf@example.com"} {...field} />
+                    <TextField
+                      placeholder={t("user:emails.form.email.placeholder")}
+                      {...field}
+                    />
                   </Field>
                 </FormControl>
                 <FormMessage />

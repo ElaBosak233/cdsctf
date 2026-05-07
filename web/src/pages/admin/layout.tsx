@@ -1,10 +1,11 @@
 import {
   BotIcon,
   FlagIcon,
-  HousePlugIcon,
+  GaugeIcon,
+  IdCardIcon,
   LibraryIcon,
   MailCheckIcon,
-  TypeIcon,
+  PencilLineIcon,
   UserRoundIcon,
 } from "lucide-react";
 import { useEffect } from "react";
@@ -48,12 +49,12 @@ export default function Layout() {
     {
       link: "/admin",
       name: t("admin:home._"),
-      icon: <HousePlugIcon />,
+      icon: <GaugeIcon />,
     },
     {
       link: "/admin/platform",
       name: t("admin:platform._"),
-      icon: <TypeIcon />,
+      icon: <PencilLineIcon />,
     },
     {
       link: "/admin/challenges",
@@ -69,6 +70,11 @@ export default function Layout() {
       link: "/admin/users",
       name: t("user:_"),
       icon: <UserRoundIcon />,
+    },
+    {
+      link: "/admin/idps",
+      name: t("admin:idp._"),
+      icon: <IdCardIcon />,
     },
     {
       link: "/admin/mailbox",

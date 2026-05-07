@@ -19,6 +19,9 @@ pub mod game;
 /// Defines the `instance` submodule (see sibling `*.rs` files).
 pub mod instance;
 
+/// Defines the `idp` submodule (see sibling `*.rs` files).
+pub mod idp;
+
 /// Defines the `media` submodule (see sibling `*.rs` files).
 mod media;
 
@@ -51,6 +54,7 @@ pub fn openapi_documented_under_api(state: Arc<AppState>) -> OpenApiRouter<Arc<A
         .nest("/users", user::router(state.clone()))
         .nest("/challenges", challenge::router(state.clone()))
         .nest("/games", game::router(state.clone()))
+        .nest("/idps", idp::router(state.clone()))
         .nest("/instances", instance::router(state.clone()))
         .nest("/notes", note::router(state.clone()))
         .nest("/media", media::router(state.clone()))

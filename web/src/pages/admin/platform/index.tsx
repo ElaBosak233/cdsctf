@@ -50,7 +50,7 @@ export default function Index() {
   const { t } = useTranslation();
 
   const configStore = useConfigStore();
-  const { tick, bump } = useRefresh();
+  const { bump, tick } = useRefresh();
   const [config, setConfig] = useState<Config>();
 
   useEffect(() => {
@@ -97,6 +97,14 @@ export default function Index() {
 
   const iconDropzone = useDropzone({
     onDropFile: async (file) => {
+      toast.loading(
+        t("admin:platform.logo_upload.progress", {
+          percent: "0",
+        }),
+        {
+          id: "logo-upload",
+        }
+      );
       try {
         await uploadFile("/api/admin/configs/logo", [file], ({ percent }) => {
           toast.loading(
@@ -182,7 +190,9 @@ export default function Index() {
                         </FieldIcon>
                         <TextField
                           {...field}
-                          placeholder={"CdsCTF"}
+                          placeholder={t(
+                            "admin:platform.form.meta.title.placeholder"
+                          )}
                           value={field.value || ""}
                           onChange={field.onChange}
                         />
@@ -253,7 +263,7 @@ export default function Index() {
                     ])}
                   >
                     <Image
-                      src={`/api/configs/logo?r=${tick}`}
+                      src={`/api/configs/logo?t=${tick}`}
                       className={cn([
                         "object-cover",
                         "rounded-md",
@@ -262,6 +272,7 @@ export default function Index() {
                         "w-full",
                         "select-none",
                       ])}
+                      glass={false}
                     />
                   </DropzoneTrigger>
                 </DropZoneArea>
@@ -283,7 +294,9 @@ export default function Index() {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"I dont't like hacking you at all!"}
+                      placeholder={t(
+                        "admin:platform.form.meta.description.placeholder"
+                      )}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />

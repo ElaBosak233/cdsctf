@@ -9,6 +9,7 @@ settings:
   info: 基本信息
   email: 电子邮箱
   password: 修改密码
+  idp: 第三方认证服务
   delete: 注销账号
   profile_update_success: 个人资料更新成功。
   avatar_upload:
@@ -16,6 +17,7 @@ settings:
     success: 头像上传成功。
     error: 头像上传失败。
   avatar_delete_success: 头像删除成功。
+id: ID
 username: 用户名
 name: 昵称
 password: 密码
@@ -38,25 +40,30 @@ form:
     messages:
       _: 请输入用户名
       min: 用户名至少3个字符
+    placeholder: 用户名
   name:
     _: 昵称
     messages:
       _: 请输入昵称
       min: 昵称至少2个字符
+    placeholder: 昵称
   email:
     _: 邮箱
     message: 请输入有效的邮箱地址
+    placeholder: ctf@example.com
   password:
     _: 密码
     messages:
       _: 请输入密码
       min: 密码至少6个字符
+    placeholder: P4ssw0rd!
   group:
     _: 用户组
     message: 请选择用户组
   description:
     _: 描述
     message: 请输入描述
+    placeholder: 很久很久以前…
   avatar: 头像
 actions:
   _: 操作
@@ -75,6 +82,7 @@ actions:
 emails:
   _: 邮箱
   brief: 添加、编辑该用户的绑定邮箱
+  verify_code_placeholder: I_d0nt_kn0w
   empty: 该用户尚未添加任何邮箱。
   verified:
     "true":
@@ -87,6 +95,7 @@ emails:
     email:
       _: 邮箱
       message: 请输入有效的邮箱地址
+      placeholder: ctf@example.com
     verified:
       _: 标记为已验证
       message: 立即将邮箱标记为已验证状态。
@@ -114,16 +123,19 @@ change_password:
     old_password:
       _: 原始密码
       message: 请输入原始密码
+      placeholder: 原始密码
     new_password:
       _: 新密码
       messages:
         _: 请输入新密码
         min: 密码至少6个字符
+      placeholder: 新密码
     confirm_password:
       _: 确认新密码
       messages:
         _: 请再次输入新密码
         match: 两次输入的密码不匹配
+      placeholder: 确认新密码
   actions:
     update:
       _: 修改密码
@@ -134,6 +146,13 @@ change_password:
 delete_account:
   _: 移除存档
   final_warning: 最后警告
+  warnings:
+    intro: 你正在注销你的账号。但是你的账号不会被真正地删除，而是将永久处于软删除状态。且无法恢复！
+    username: 你的用户名会以一种特别的形式修改并保存。你可以使用原先的用户名注册新的账号。
+    email: 你的邮箱会被全部解绑并清除。你可以使用原先的邮箱注册新的账号。
+    data: 所有与你相关的比赛、团队、提交等数据仍然会被留存。但在注销账号后，没有任何信息可以证明这些数据属于你。
+    irreversible: 请再次注意，你接下来的操作是不可逆的！请三思而后行！
+    confirm: 请认真阅读并确定上述内容！如果你真的确定要注销账号，请在下方输入你的完整用户名、密码并点击确认。
   form:
     username:
       _: 用户名
@@ -149,3 +168,14 @@ delete_account:
   actions:
     delete:
       success: 注销成功
+idp:
+  _: 第三方认证服务
+  actions:
+    bind: 绑定
+    unbind: 解除绑定
+    bound: 已绑定
+    unbound: 已解除
+    bound_toast: 第三方账号绑定成功
+    unbound_toast: 第三方账号解绑成功
+    request_failed: 第三方登录失败
+    signed_in: 登录成功

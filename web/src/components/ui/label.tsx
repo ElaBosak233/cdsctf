@@ -1,4 +1,4 @@
-import * as RadixLabel from "@radix-ui/react-label";
+import { Label as RadixLabel } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "@/utils";

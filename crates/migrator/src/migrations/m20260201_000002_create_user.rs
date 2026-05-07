@@ -30,7 +30,7 @@ impl MigrationTrait for Migration {
                     "description" TEXT,
                     "group" INTEGER NOT NULL,
                     "hashed_password" VARCHAR NOT NULL,
-                    "has_avatar" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "avatar_hash" VARCHAR,
                     "deleted_at" BIGINT,
                     "created_at" BIGINT NOT NULL,
                     "updated_at" BIGINT NOT NULL

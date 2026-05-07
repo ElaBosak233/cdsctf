@@ -181,7 +181,9 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             {...field}
-                            placeholder="smtp.example.com"
+                            placeholder={t(
+                              "admin:mailbox.form.host.placeholder"
+                            )}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -264,7 +266,9 @@ export default function Index() {
                         </FieldIcon>
                         <TextField
                           {...field}
-                          placeholder={"Mailbox Username"}
+                          placeholder={t(
+                            "admin:mailbox.form.username.placeholder"
+                          )}
                           value={field.value || ""}
                           onChange={field.onChange}
                         />
@@ -288,7 +292,9 @@ export default function Index() {
                         </FieldIcon>
                         <TextField
                           {...field}
-                          placeholder={"Mailbox P4ssw0rd"}
+                          placeholder={t(
+                            "admin:mailbox.form.password.placeholder"
+                          )}
                           value={field.value || ""}
                           onChange={field.onChange}
                         />
@@ -314,7 +320,9 @@ export default function Index() {
                         <Editor
                           {...field}
                           lang="html"
-                          placeholder="xHTML (RFC 2557)"
+                          placeholder={t(
+                            "admin:mailbox.form.verification_email.placeholder"
+                          )}
                           value={field.value ?? ""}
                           tabSize={4}
                           onChange={field.onChange}
@@ -341,7 +349,9 @@ export default function Index() {
                         <Editor
                           {...field}
                           lang="html"
-                          placeholder="xHTML (RFC 2557)"
+                          placeholder={t(
+                            "admin:mailbox.form.reset_password_email.placeholder"
+                          )}
                           value={field.value ?? ""}
                           tabSize={4}
                           onChange={field.onChange}

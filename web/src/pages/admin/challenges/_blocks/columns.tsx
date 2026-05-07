@@ -8,13 +8,24 @@ import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
+  EllipsisIcon,
   EyeClosedIcon,
   EyeIcon,
+  LockIcon,
   ShipWheelIcon,
   TrashIcon,
   XIcon,
 } from "lucide-react";
-import { useMemo, useOptimistic, useState, useTransition } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useOptimistic,
+  useState,
+  useTransition,
+} from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -27,6 +38,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -36,6 +53,52 @@ import type { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+
+const RowContext = createContext<{
+  optimisticPublic: boolean;
+  togglePublic: (title: string) => void;
+} | null>(null);
+
+function useRowContext() {
+  return useContext(RowContext);
+}
+
+function RowProvider({
+  challenge,
+  children,
+}: {
+  challenge: Challenge;
+  children: ReactNode;
+}) {
+  const { t } = useTranslation();
+  const [isPublic, setIsPublic] = useState(challenge.public ?? false);
+  const [, startTransition] = useTransition();
+  const [optimisticPublic, setOptimisticPublic] = useOptimistic(isPublic);
+
+  const togglePublic = useCallback(
+    (title: string) => {
+      const newValue = !optimisticPublic;
+      startTransition(async () => {
+        setOptimisticPublic(newValue);
+        await updateChallenge({
+          id: challenge.id,
+          public: newValue,
+        });
+        setIsPublic(newValue);
+        toast.success(t("challenge:public.actions.success", { title }), {
+          id: "publicness_change",
+        });
+      });
+    },
+    [optimisticPublic, challenge.id, setOptimisticPublic, t]
+  );
+
+  return (
+    <RowContext.Provider value={{ optimisticPublic, togglePublic }}>
+      {children}
+    </RowContext.Provider>
+  );
+}
 
 function IdCell({ row }: { row: Row<Challenge> }) {
   const id = row.original.id!;
@@ -55,6 +118,27 @@ function IdCell({ row }: { row: Row<Challenge> }) {
         </TooltipTrigger>
         <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
       </Tooltip>
+    </div>
+  );
+}
+
+function TitleCell({ row }: { row: Row<Challenge> }) {
+  const ctx = useRowContext();
+  const isPublic = ctx ? ctx.optimisticPublic : (row.original.public ?? false);
+  return (
+    <div
+      className={cn([
+        "w-42",
+        "flex",
+        "gap-2",
+        "items-center",
+        "overflow-hidden",
+        "text-ellipsis",
+        "whitespace-nowrap",
+      ])}
+    >
+      {!isPublic && <LockIcon className={cn(["size-[1em]", "text-warning"])} />}
+      {row.original.title || "-"}
     </div>
   );
 }
@@ -125,23 +209,10 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  const [isPublic, setIsPublic] = useState(row.original.public);
-  const [_, startTransition] = useTransition();
-  const [optimisticPublic, setOptimisticPublic] = useOptimistic(isPublic);
+  const { optimisticPublic, togglePublic } = useRowContext()!;
 
-  async function handlePublicnessChange() {
-    const newValue = !optimisticPublic;
-    setOptimisticPublic(newValue);
-    startTransition(async () => {
-      await updateChallenge({
-        id,
-        public: newValue,
-      });
-      setIsPublic(newValue);
-      toast.success(t("challenge:public.actions.success", { title }), {
-        id: "publicness_change",
-      });
-    });
+  function handlePublicnessChange() {
+    togglePublic(title!);
   }
 
   async function handleDelete() {
@@ -163,32 +234,32 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
         <Link to={`/admin/challenges/${id}`} />
       </Button>
 
-      <Tooltip>
-        <TooltipTrigger asChild>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
           <Button
-            level={optimisticPublic ? "warning" : "success"}
-            variant={"ghost"}
-            size={"sm"}
             square
-            icon={optimisticPublic ? <EyeClosedIcon /> : <EyeIcon />}
-            onClick={handlePublicnessChange}
+            size={"sm"}
+            variant={"ghost"}
+            icon={<EllipsisIcon />}
           />
-        </TooltipTrigger>
-        <TooltipContent>
-          {optimisticPublic
-            ? t("challenge:public.actions.false")
-            : t("challenge:public.actions.true")}
-        </TooltipContent>
-      </Tooltip>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={handlePublicnessChange}>
+            {optimisticPublic ? <EyeClosedIcon /> : <EyeIcon />}
+            {optimisticPublic
+              ? t("challenge:public.actions.false")
+              : t("challenge:public.actions.true")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setDeleteDialogOpen(true)}
+            className={cn(["text-error"])}
+          >
+            <TrashIcon />
+            {t("challenge:actions.delete._")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <Button
-        level={"error"}
-        variant={"ghost"}
-        size={"sm"}
-        square
-        icon={<TrashIcon />}
-        onClick={() => setDeleteDialogOpen(true)}
-      />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <Card
@@ -239,25 +310,14 @@ function useColumns() {
       {
         accessorKey: "id",
         id: "id",
-        header: "ID",
+        header: t("challenge:form.id._"),
         cell: IdCell,
       },
       {
         accessorKey: "title",
         id: "title",
         header: t("challenge:title"),
-        cell: ({ row }) => (
-          <div
-            className={cn([
-              "w-42",
-              "overflow-hidden",
-              "text-ellipsis",
-              "whitespace-nowrap",
-            ])}
-          >
-            {row.original.title || "-"}
-          </div>
-        ),
+        cell: TitleCell,
       },
       {
         accessorKey: "category",
@@ -376,4 +436,4 @@ function useColumns() {
   return columns;
 }
 
-export { useColumns };
+export { RowProvider, useColumns };

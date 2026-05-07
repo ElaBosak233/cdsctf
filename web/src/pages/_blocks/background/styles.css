@@ -1,17 +1,41 @@
-.bg-twinkle-1 {
-  animation: bg-twinkle 5s ease infinite;
-}
-
-.bg-twinkle-2 {
-  animation: bg-twinkle 6s ease infinite;
-}
-
-@keyframes bg-twinkle {
+@keyframes bg-float-1 {
   0%,
   100% {
-    opacity: 0.05;
+    transform: translate(0, 0);
   }
   50% {
-    opacity: 0.12;
+    transform: translate(-10px, 0);
   }
+}
+
+@keyframes bg-float-2 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-5px, -5px);
+  }
+}
+
+@keyframes bg-float-3 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(0, -10px);
+  }
+}
+
+.bg-float-1 {
+  animation: bg-float-1 5s ease-in-out infinite;
+}
+
+.bg-float-2 {
+  animation: bg-float-2 4s ease-in-out infinite;
+}
+
+.bg-float-3 {
+  animation: bg-float-3 6s ease-in-out infinite;
 }

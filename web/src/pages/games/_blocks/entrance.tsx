@@ -94,12 +94,13 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
             >
               <Image
                 src={
-                  game?.has_icon
-                    ? `/api/games/${game.id}/icon`
+                  game?.icon_hash
+                    ? `/api/media?hash=${game?.icon_hash}`
                     : `/api/configs/logo`
                 }
                 fallback={<DefaultLogo />}
                 delay={0}
+                glass={false}
                 className={cn(["w-full", "h-full", "object-contain"])}
               />
             </motion.div>
@@ -148,7 +149,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
               className="absolute left-6 bottom-4 flex items-center text-secondary-foreground space-x-2"
             >
               <LoaderCircleIcon className="animate-spin w-4 h-4" />
-              <span>{t("common:loading")}...</span>
+              <span>{t("common:loading")}</span>
             </motion.div>
           </motion.div>
         </motion.div>

@@ -29,7 +29,7 @@ export default function Index() {
   const { t } = useTranslation();
 
   const { currentGame } = useGameStore();
-  const { game_id } = useParams<{ game_id: string }>();
+  useParams<{ game_id: string }>();
 
   const status = useMemo(() => {
     if (!currentGame) return "loading";
@@ -77,7 +77,10 @@ export default function Index() {
         >
           <div className={cn(["flex", "flex-col", "gap-5", "items-center"])}>
             <Image
-              src={currentGame?.has_poster && `/api/games/${game_id}/poster`}
+              src={
+                currentGame?.poster_hash &&
+                `/api/media?hash=${currentGame?.poster_hash}`
+              }
               className={cn([
                 "object-cover",
                 "rounded-xl",
@@ -333,7 +336,11 @@ export function GameActionButton({ status }: GameActionProps) {
       onClick={() => navigate(`/games/${game_id}/challenges`)}
     >
       <span>{t("team:actions.participate", { name: selfTeam.name })}</span>
-      {invalidMessage && <span>（{invalidMessage}）</span>}
+      {invalidMessage && (
+        <span>
+          {t("game:challenge.state_wrapper", { state: invalidMessage })}
+        </span>
+      )}
     </Button>
   );
 }

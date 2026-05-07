@@ -183,7 +183,7 @@ export default function Index() {
               <HashIcon />
             </FieldIcon>
             <TextField
-              placeholder="ID"
+              placeholder={t("team:id")}
               value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
               onChange={(e) =>
                 table.getColumn("id")?.setFilterValue(e.target.value)

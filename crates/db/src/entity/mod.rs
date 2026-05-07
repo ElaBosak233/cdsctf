@@ -18,6 +18,9 @@ pub mod game_challenge;
 /// Defines the `game_notice` submodule (see sibling `*.rs` files).
 pub mod game_notice;
 
+/// Defines the `idp` submodule (see sibling `*.rs` files).
+pub mod idp;
+
 /// Defines the `note` submodule (see sibling `*.rs` files).
 pub mod note;
 
@@ -29,6 +32,9 @@ pub mod team;
 
 /// Defines the `team_user` submodule (see sibling `*.rs` files).
 pub mod team_user;
+
+/// Defines the `user_idp` submodule (see sibling `*.rs` files).
+pub mod user_idp;
 
 /// Defines the `user` submodule (see sibling `*.rs` files).
 pub mod user;

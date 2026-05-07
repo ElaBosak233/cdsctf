@@ -24,3 +24,8 @@ errors:
   network: Network error
 captcha:
   placeholder: Captcha
+language:
+  en: EN
+  zh-CN: 简
+  zh-TW: 繁
+  ja: な

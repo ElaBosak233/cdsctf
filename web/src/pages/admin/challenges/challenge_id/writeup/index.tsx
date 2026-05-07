@@ -83,7 +83,7 @@ export default function Index() {
               <FormControl>
                 <MarkdownEditor
                   {...field}
-                  placeholder={"Once upon a time..."}
+                  placeholder={t("challenge:form.writeup.placeholder")}
                   className={cn(["h-full", "min-h-64"])}
                 />
               </FormControl>

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  InfoIcon,
   MailIcon,
   MessageCircleIcon,
   SaveIcon,
@@ -26,6 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
@@ -33,7 +35,7 @@ import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 
 export default function Index() {
-  const { currentGame, selfTeam } = useGameStore();
+  const { currentGame, selfTeam, setSelfTeam } = useGameStore();
   const { setRefresh } = useSharedStore();
   const { t } = useTranslation();
 
@@ -89,8 +91,12 @@ export default function Index() {
 
     if (!file) return;
 
+    toast.loading(t("team:avatar.upload.progress", { percent: "0" }), {
+      id: "team-avatar-upload",
+    });
+
     try {
-      await uploadFile(
+      const res = await uploadFile(
         `/api/games/${currentGame?.id}/teams/us/avatar`,
         [file],
         ({ percent }) => {
@@ -102,6 +108,13 @@ export default function Index() {
           );
         }
       );
+      const data = res as { hash?: string } | undefined;
+      if (data?.hash && selfTeam) {
+        setSelfTeam({
+          ...selfTeam,
+          avatar_hash: data.hash,
+        });
+      }
       toast.success(t("team:avatar.upload.success"), {
         id: "team-avatar-upload",
       });
@@ -121,6 +134,11 @@ export default function Index() {
         team_id: selfTeam.id!,
       });
 
+      setSelfTeam({
+        ...selfTeam,
+        avatar_hash: undefined,
+      });
+      setHasAvatar(false);
       toast.success(
         t("team:avatar.team_delete_success", { name: selfTeam?.name })
       );
@@ -140,8 +158,14 @@ export default function Index() {
           "p-10",
           "xl:mx-50",
           "lg:mx-30",
+          "gap-5",
         ])}
       >
+        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
+          <InfoIcon />
+          {t("team:info")}
+        </h2>
+        <Separator />
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -219,8 +243,8 @@ export default function Index() {
                     "border",
                   ])}
                   src={
-                    selfTeam?.has_avatar &&
-                    `/api/games/${currentGame?.id}/teams/${selfTeam?.id}/avatar`
+                    selfTeam?.avatar_hash &&
+                    `/api/media?hash=${selfTeam?.avatar_hash}`
                   }
                   fallback={selfTeam?.name?.charAt(0)}
                   onLoadingStatusChange={(status) =>

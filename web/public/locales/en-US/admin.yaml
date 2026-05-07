@@ -24,10 +24,12 @@ platform:
       _: Meta
       title:
         _: Title
+        placeholder: CdsCTF
       keywords:
         _: Keywords
       description:
         _: Description
+        placeholder: I don't like hacking you at all!
       footer:
         _: Footer
     auth:
@@ -54,18 +56,23 @@ mailbox:
       _: Enable Mailbox
     host:
       _: SMTP Host
+      placeholder: smtp.example.com
     port:
       _: Port
     tls:
       _: TLS
     username:
       _: Username
+      placeholder: Mailbox Username
     password:
       _: Password
+      placeholder: Mailbox P4ssw0rd
     verification_email:
       _: Verification Email Template
+      placeholder: xHTML (RFC 2557)
     reset_password_email:
       _: Reset Password Email Template
+      placeholder: xHTML (RFC 2557)
   actions:
     update:
       _: Update Mailbox Settings
@@ -86,7 +93,67 @@ captcha:
     difficulty:
       _: Difficulty
       description: Suitable for image and PoW verification.
+    turnstile:
+      url:
+        _: API URL
+      site_key:
+        _: Site Key
+      secret_key:
+        _: Secret Key
+    hcaptcha:
+      url:
+        _: API URL
+      site_key:
+        _: Site Key
+      secret_key:
+        _: Secret Key
+      score:
+        _: Score
   actions:
     update:
       _: Update Captcha Settings
       success: Captcha settings updated successfully.
+idp:
+  _: IdP
+  empty: No IdP configured
+  enabled:
+    "true": Enabled
+    "false": Disabled
+  avatar_upload:
+    progress: "Upload progress {{percent}}%"
+    success: Avatar uploaded successfully.
+    error: Avatar upload failed.
+  avatar_delete:
+    success: Avatar removed successfully.
+  form:
+    name:
+      _: Name
+      placeholder: GitHub
+      message: Please enter an IdP name.
+    portal:
+      _: Portal
+      placeholder: https://example.com/oauth
+    enabled:
+      _: Enabled
+    avatar: Avatar
+    script:
+      _: Script
+      templates:
+        _: Templates
+        default: Default
+        oauth: OAuth 2.0
+        cas: CAS
+  actions:
+    create:
+      _: Create IdP
+      success: "{{name}} created successfully."
+    update:
+      success: "{{name}} updated successfully."
+    enable:
+      success: "{{name}} enabled."
+    disable:
+      success: "{{name}} disabled."
+    delete:
+      _: Delete IdP
+      message: "Are you sure you want to delete <muted>{{name}}</muted>?"
+      success: "{{name}} deleted successfully."

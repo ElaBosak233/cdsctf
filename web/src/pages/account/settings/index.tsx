@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  InfoIcon,
   SaveIcon,
   TrashIcon,
   TypeIcon,
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
+import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
@@ -78,17 +80,37 @@ export default function Index() {
 
     if (!file) return;
 
+    toast.loading(
+      t("user:settings.avatar_upload.progress", {
+        percent: "0",
+      }),
+      {
+        id: "user-avatar-upload",
+      }
+    );
+
     try {
-      await uploadFile("/api/users/me/avatar", [file], ({ percent }) => {
-        toast.loading(
-          t("user:settings.avatar_upload.progress", {
-            percent: percent.toFixed(0),
-          }),
-          {
-            id: "user-avatar-upload",
-          }
-        );
-      });
+      const res = await uploadFile(
+        "/api/users/me/avatar",
+        [file],
+        ({ percent }) => {
+          toast.loading(
+            t("user:settings.avatar_upload.progress", {
+              percent: percent.toFixed(0),
+            }),
+            {
+              id: "user-avatar-upload",
+            }
+          );
+        }
+      );
+      const data = res as { hash?: string } | undefined;
+      if (data?.hash && authStore?.user) {
+        authStore?.setUser({
+          ...authStore.user,
+          avatar_hash: data.hash,
+        });
+      }
       toast.success(t("user:settings.avatar_upload.success"), {
         id: "user-avatar-upload",
       });
@@ -103,6 +125,11 @@ export default function Index() {
     if (!authStore?.user) return;
 
     await deleteUserAvatar();
+    authStore?.setUser({
+      ...authStore.user,
+      avatar_hash: undefined,
+    });
+    setHasAvatar(false);
     toast.success(t("user:settings.avatar_delete_success"));
     sharedStore.setRefresh();
   }
@@ -118,8 +145,14 @@ export default function Index() {
           "p-10",
           "xl:mx-50",
           "lg:mx-30",
+          "gap-5",
         ])}
       >
+        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
+          <InfoIcon />
+          {t("user:settings.info")}
+        </h2>
+        <Separator />
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -158,7 +191,7 @@ export default function Index() {
                           <TextField
                             {...field}
                             disabled
-                            placeholder={"Username"}
+                            placeholder={t("user:form.username.placeholder")}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -181,7 +214,7 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             {...field}
-                            placeholder={"Name"}
+                            placeholder={t("user:form.name.placeholder")}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -212,8 +245,8 @@ export default function Index() {
                     "border",
                   ])}
                   src={
-                    authStore?.user?.has_avatar &&
-                    `/api/users/${authStore?.user?.id}/avatar`
+                    authStore?.user?.avatar_hash &&
+                    `/api/media?hash=${authStore?.user?.avatar_hash}`
                   }
                   onLoadingStatusChange={(status) =>
                     setHasAvatar(status === "loaded")
@@ -266,7 +299,7 @@ export default function Index() {
                   <FormControl>
                     <MarkdownEditor
                       {...field}
-                      placeholder={"Once upon a time..."}
+                      placeholder={t("user:form.description.placeholder")}
                       className={cn(["h-full", "min-h-64"])}
                       value={field.value || ""}
                     />

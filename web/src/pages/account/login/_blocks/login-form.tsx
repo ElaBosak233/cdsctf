@@ -130,7 +130,7 @@ function LoginForm() {
                       {...field}
                       value={field.value || ""}
                       onChange={field.onChange}
-                      placeholder={"Account"}
+                      placeholder={t("user:username")}
                     />
                   </Field>
                 </FormControl>
@@ -170,7 +170,7 @@ function LoginForm() {
                       {...field}
                       value={field.value || ""}
                       onChange={field.onChange}
-                      placeholder={"Password"}
+                      placeholder={t("user:password")}
                       type={"password"}
                     />
                   </Field>

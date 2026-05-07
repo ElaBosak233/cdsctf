@@ -38,7 +38,6 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
-import { useRefresh } from "@/hooks/use-refresh";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
@@ -59,11 +58,9 @@ export default function Index() {
 
   const iconInput = useRef<HTMLInputElement>(null);
   const [hasIcon, setHasIcon] = useState<boolean>(false);
-  const { tick: iconTick, bump: iconBump } = useRefresh();
 
   const posterInput = useRef<HTMLInputElement>(null);
   const [hasPoster, setHasPoster] = useState<boolean>(false);
-  const { tick: posterTick, bump: posterBump } = useRefresh();
 
   const formSchema = z.object({
     title: z.string({
@@ -117,8 +114,8 @@ export default function Index() {
   useEffect(() => {
     if (!game) return;
 
-    setHasIcon(game.has_icon!);
-    setHasPoster(game.has_poster!);
+    setHasIcon(game.icon_hash != null);
+    setHasPoster(game.poster_hash != null);
   }, [game]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -149,18 +146,36 @@ export default function Index() {
     const file = event.target.files?.[0];
     if (!file || resolvedGameId == null) return;
 
+    toast.loading(t("game:form.poster_upload.progress", { percent: "0" }), {
+      id: "game-poster-upload",
+    });
+
     try {
-      await uploadFile(`/api/admin/games/${resolvedGameId}/poster`, [file]);
-      toast.success(t("game:form.poster_upload.success"));
+      await uploadFile(
+        `/api/admin/games/${resolvedGameId}/poster`,
+        [file],
+        ({ percent }) => {
+          toast.loading(
+            t("game:form.poster_upload.progress", {
+              percent: percent.toFixed(0),
+            }),
+            { id: "game-poster-upload" }
+          );
+        }
+      );
+      toast.success(t("game:form.poster_upload.success"), {
+        id: "game-poster-upload",
+      });
     } catch (_) {
       toast.error(t("game:form.poster_upload.error"), {
+        id: "game-poster-upload",
         description: t("common:errors.network"),
       });
       return;
     }
 
     event.target.value = "";
-    posterBump();
+    sharedStore.setRefresh();
   }
 
   async function handlePosterDelete() {
@@ -173,7 +188,7 @@ export default function Index() {
 
       toast.success(t("game:form.poster_delete.success"));
     } finally {
-      posterBump();
+      sharedStore.setRefresh();
     }
   }
 
@@ -181,18 +196,36 @@ export default function Index() {
     const file = event.target.files?.[0];
     if (!file || resolvedGameId == null) return;
 
+    toast.loading(t("game:form.icon_upload.progress", { percent: "0" }), {
+      id: "game-icon-upload",
+    });
+
     try {
-      await uploadFile(`/api/admin/games/${resolvedGameId}/icon`, [file]);
-      toast.success(t("game:form.icon_upload.success"));
+      await uploadFile(
+        `/api/admin/games/${resolvedGameId}/icon`,
+        [file],
+        ({ percent }) => {
+          toast.loading(
+            t("game:form.icon_upload.progress", {
+              percent: percent.toFixed(0),
+            }),
+            { id: "game-icon-upload" }
+          );
+        }
+      );
+      toast.success(t("game:form.icon_upload.success"), {
+        id: "game-icon-upload",
+      });
     } catch (_) {
       toast.error(t("game:form.icon_upload.error"), {
+        id: "game-icon-upload",
         description: t("common:errors.network"),
       });
       return;
     }
 
     event.target.value = "";
-    iconBump();
+    sharedStore.setRefresh();
   }
 
   async function handleIconDelete() {
@@ -205,7 +238,7 @@ export default function Index() {
 
       toast.success(t("game:form.icon_delete.success"));
     } finally {
-      iconBump();
+      sharedStore.setRefresh();
     }
   }
 
@@ -233,7 +266,7 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder={"My CTF Game"}
+                        placeholder={t("game:form.title.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
@@ -248,11 +281,11 @@ export default function Index() {
               name={"sketch"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>{t("game:form.sketch")}</FormLabel>
+                  <FormLabel>{t("game:form.sketch._")}</FormLabel>
                   <FormControl>
                     <Editor
                       {...field}
-                      placeholder={"Once upon a time..."}
+                      placeholder={t("game:form.sketch.placeholder")}
                       value={field.value || ""}
                       className={cn(["h-32"])}
                     />
@@ -284,8 +317,8 @@ export default function Index() {
                     "select-none",
                   ])}
                   src={
-                    resolvedGameId != null
-                      ? `/api/games/${resolvedGameId}/poster?r=${posterTick}`
+                    game?.poster_hash
+                      ? `/api/media?hash=${game?.poster_hash}`
                       : undefined
                   }
                   onLoadingStatusChange={(status) =>
@@ -352,8 +385,8 @@ export default function Index() {
                     "select-none",
                   ])}
                   src={
-                    resolvedGameId != null
-                      ? `/api/games/${resolvedGameId}/icon?r=${iconTick}`
+                    game?.icon_hash
+                      ? `/api/media?hash=${game?.icon_hash}`
                       : undefined
                   }
                   onLoadingStatusChange={(status) =>
@@ -480,7 +513,7 @@ export default function Index() {
                       <UsersRoundIcon />
                     </FieldIcon>
                     <NumberField
-                      placeholder={"3"}
+                      placeholder={t("game:form.member_limit_min.placeholder")}
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
                     />
@@ -502,7 +535,7 @@ export default function Index() {
                       <UsersRoundIcon />
                     </FieldIcon>
                     <NumberField
-                      placeholder={"3"}
+                      placeholder={t("game:form.member_limit_max.placeholder")}
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
                     />
@@ -574,11 +607,11 @@ export default function Index() {
           name={"description"}
           render={({ field }) => (
             <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-              <FormLabel>{t("game:form.description")}</FormLabel>
+              <FormLabel>{t("game:form.description._")}</FormLabel>
               <FormControl>
                 <MarkdownEditor
                   {...field}
-                  placeholder={"Once upon a time..."}
+                  placeholder={t("game:form.description.placeholder")}
                   value={field.value || ""}
                   className={cn(["h-full", "min-h-128"])}
                 />

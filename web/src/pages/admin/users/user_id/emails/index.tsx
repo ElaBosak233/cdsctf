@@ -85,18 +85,10 @@ export default function Emails() {
         ])}
       >
         <div className={cn(["space-y-1"])}>
-          <h1
-            className={cn([
-              "text-2xl",
-              "font-bold",
-              "flex",
-              "gap-2",
-              "items-center",
-            ])}
-          >
+          <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
             <MailIcon />
             {t("user:emails._")}
-          </h1>
+          </h2>
           <p className={cn(["text-muted-foreground", "text-sm"])}>
             {t("user:emails.brief")}
           </p>

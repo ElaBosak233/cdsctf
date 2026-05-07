@@ -18,8 +18,8 @@ function Title(props: TitleProps) {
   const modeConfig = {
     game: {
       to: `/games/${currentGame?.id}`,
-      src: currentGame?.has_icon
-        ? `/api/games/${currentGame?.id}/icon`
+      src: currentGame?.icon_hash
+        ? `/api/media?hash=${currentGame?.icon_hash}`
         : "/api/configs/logo",
       title: currentGame?.title,
     },
@@ -53,6 +53,7 @@ function Title(props: TitleProps) {
         src={src}
         fallback={<DefaultLogo />}
         delay={0}
+        glass={false}
         className={cn(["h-8", "min-w-8"])}
       />
       <h1
