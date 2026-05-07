@@ -77,6 +77,7 @@ export default function Index() {
                 className={cn(["aspect-square", "h-32"])}
                 alt={"logo"}
                 delay={0}
+                glass={false}
               />
             </motion.div>
 

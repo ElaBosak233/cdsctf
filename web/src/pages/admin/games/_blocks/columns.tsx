@@ -7,12 +7,23 @@ import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
+  EllipsisIcon,
   EyeClosedIcon,
   EyeIcon,
+  LockIcon,
   TrashIcon,
   XIcon,
 } from "lucide-react";
-import { useMemo, useOptimistic, useState, useTransition } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useOptimistic,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -22,6 +33,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -30,6 +47,51 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import type { Game } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+
+const RowContext = createContext<{
+  optimisticEnabled: boolean;
+  toggleEnabled: (title: string) => void;
+} | null>(null);
+
+function useRowContext() {
+  return useContext(RowContext);
+}
+
+function RowProvider({
+  game,
+  children,
+}: {
+  game: Game;
+  children: ReactNode;
+}) {
+  const { t } = useTranslation();
+  const [isEnabled, setIsEnabled] = useState(game.enabled ?? false);
+  const [, startTransition] = useTransition();
+  const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(isEnabled);
+  const gameId = game.id;
+
+  const toggleEnabled = useCallback(
+    (title: string) => {
+      if (gameId == null) return;
+      const newValue = !optimisticEnabled;
+      startTransition(async () => {
+        setOptimisticEnabled(newValue);
+        await updateGame({ id: gameId, enabled: newValue });
+        setIsEnabled(newValue);
+        toast.success(t("game:enabled.actions.success", { title }), {
+          id: "enablement_change",
+        });
+      });
+    },
+    [optimisticEnabled, gameId, startTransition, setOptimisticEnabled, t],
+  );
+
+  return (
+    <RowContext.Provider value={{ optimisticEnabled, toggleEnabled }}>
+      {children}
+    </RowContext.Provider>
+  );
+}
 
 function IdCell({ row }: { row: Row<Game> }) {
   const id = row.original.id;
@@ -53,6 +115,29 @@ function IdCell({ row }: { row: Row<Game> }) {
   );
 }
 
+function TitleCell({ row }: { row: Row<Game> }) {
+  const ctx = useRowContext();
+  const isEnabled = ctx ? ctx.optimisticEnabled : row.original.enabled ?? false;
+  return (
+    <div
+      className={cn([
+        "w-64",
+        "flex",
+        "gap-2",
+        "items-center",
+        "overflow-hidden",
+        "text-ellipsis",
+        "whitespace-nowrap",
+      ])}
+    >
+      {!isEnabled && (
+        <LockIcon className={cn(["size-[1em]", "text-warning"])} />
+      )}
+      {row.original.title || "-"}
+    </div>
+  );
+}
+
 function ActionsCell({ row }: { row: Row<Game> }) {
   const { t } = useTranslation();
 
@@ -60,32 +145,17 @@ function ActionsCell({ row }: { row: Row<Game> }) {
   const title = row.original.title;
 
   const sharedStore = useSharedStore();
-
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  const [isEnabled, setIsEnabled] = useState(row.original.enabled);
-  const [isPending, startTransition] = useTransition();
-  const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(isEnabled);
+  const { optimisticEnabled, toggleEnabled } = useRowContext()!;
 
-  async function handlePublicnessChange() {
-    if (id == null) return;
-    const newValue = !optimisticEnabled;
-    setOptimisticEnabled(newValue);
-    startTransition(async () => {
-      await updateGame({ id, enabled: newValue });
-      setIsEnabled(newValue);
-      toast.success(t("game:enabled.actions.success", { title }), {
-        id: "enablement_change",
-      });
-    });
+  function handleEnabledChange() {
+    toggleEnabled(title!);
   }
 
   async function handleDelete() {
     try {
-      await deleteGame({
-        id,
-      });
-
+      await deleteGame({ id });
       toast.success(t("game:actions.delete.success", { title }));
       setDeleteDialogOpen(false);
     } finally {
@@ -99,33 +169,24 @@ function ActionsCell({ row }: { row: Row<Game> }) {
         <Link to={`/admin/games/${id}`} />
       </Button>
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            level={optimisticEnabled ? "warning" : "success"}
-            variant={"ghost"}
-            size={"sm"}
-            square
-            icon={optimisticEnabled ? <EyeClosedIcon /> : <EyeIcon />}
-            onClick={handlePublicnessChange}
-            disabled={isPending}
-          />
-        </TooltipTrigger>
-        <TooltipContent>
-          {optimisticEnabled
-            ? t("game:enabled.actions.false")
-            : t("game:enabled.actions.true")}
-        </TooltipContent>
-      </Tooltip>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button square size={"sm"} variant={"ghost"} icon={<EllipsisIcon />} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={handleEnabledChange}>
+            {optimisticEnabled ? <EyeClosedIcon /> : <EyeIcon />}
+            {optimisticEnabled
+              ? t("game:enabled.actions.false")
+              : t("game:enabled.actions.true")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className={cn(["text-error"])}>
+            <TrashIcon />
+            {t("game:actions.delete._")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <Button
-        level={"error"}
-        variant={"ghost"}
-        size={"sm"}
-        square
-        icon={<TrashIcon />}
-        onClick={() => setDeleteDialogOpen(true)}
-      />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <Card
@@ -241,18 +302,7 @@ function useColumns() {
         accessorKey: "title",
         id: "title",
         header: () => t("game:title"),
-        cell: ({ row }) => (
-          <div
-            className={cn([
-              "w-64",
-              "overflow-hidden",
-              "text-ellipsis",
-              "whitespace-nowrap",
-            ])}
-          >
-            {row.original.title || "-"}
-          </div>
-        ),
+        cell: TitleCell,
       },
       {
         accessorKey: "public",
@@ -316,4 +366,4 @@ function useColumns() {
   return columns;
 }
 
-export { useColumns };
+export { RowProvider, useColumns };

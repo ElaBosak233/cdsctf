@@ -262,6 +262,7 @@ export default function Index() {
                         "w-full",
                         "select-none",
                       ])}
+                      glass={false}
                     />
                   </DropzoneTrigger>
                 </DropZoneArea>

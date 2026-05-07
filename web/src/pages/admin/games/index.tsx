@@ -31,7 +31,7 @@ import type { Game } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { useColumns } from "./_blocks/columns";
+import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 import { GameListContext } from "./context";
 
@@ -172,20 +172,21 @@ export default function Index() {
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.getValue("id")}
-                    data-state={row.getIsSelected() ? "selected" : undefined}
-                    className={cn(["transition-colors"])}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+                  <RowProvider key={row.getValue("id")} game={row.original}>
+                    <TableRow
+                      data-state={row.getIsSelected() ? "selected" : undefined}
+                      className={cn(["transition-colors"])}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </RowProvider>
                 ))
               ) : !loading ? (
                 <TableRow>

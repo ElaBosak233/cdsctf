@@ -8,6 +8,7 @@ import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
+  EllipsisIcon,
   ShieldIcon,
   TrashIcon,
   UserRoundCheckIcon,
@@ -24,6 +25,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -114,15 +121,23 @@ function ActionsCell({ row }: { row: Row<User> }) {
       <Button variant={"ghost"} size={"sm"} square icon={<EditIcon />} asChild>
         <Link to={`/admin/users/${id}`} />
       </Button>
-      <Button
-        level={"error"}
-        variant={"ghost"}
-        size={"sm"}
-        square
-        icon={<TrashIcon />}
-        disabled={row.original.group === Group.Admin}
-        onClick={() => setDeleteDialogOpen(true)}
-      />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button square size={"sm"} variant={"ghost"} icon={<EllipsisIcon />} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
+            onClick={() => setDeleteDialogOpen(true)}
+            className={cn(["text-error"])}
+            disabled={row.original.group === Group.Admin}
+          >
+            <TrashIcon />
+            {t("user:actions.delete._")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <Card

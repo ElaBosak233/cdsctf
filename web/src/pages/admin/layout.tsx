@@ -6,6 +6,7 @@ import {
   IdCardIcon,
   LibraryIcon,
   MailCheckIcon,
+  PencilLineIcon,
   TypeIcon,
   UserRoundIcon,
 } from "lucide-react";
@@ -55,7 +56,7 @@ export default function Layout() {
     {
       link: "/admin/platform",
       name: t("admin:platform._"),
-      icon: <TypeIcon />,
+      icon: <PencilLineIcon />,
     },
     {
       link: "/admin/challenges",

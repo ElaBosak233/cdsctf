@@ -53,6 +53,7 @@ function Title(props: TitleProps) {
         src={src}
         fallback={<DefaultLogo />}
         delay={0}
+        glass={false}
         className={cn(["h-8", "min-w-8"])}
       />
       <h1

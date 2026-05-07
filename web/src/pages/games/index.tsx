@@ -281,6 +281,7 @@ export default function Index() {
                     : `/api/configs/logo`
                 }
                 fallback={<DefaultLogo />}
+                glass={false}
                 className={cn(["h-16", "min-w-16"])}
               />
               <div className={cn(["space-y-1", "flex-1", "max-w-100"])}>

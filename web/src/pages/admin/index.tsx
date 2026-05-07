@@ -76,6 +76,7 @@ export default function AdminDashboard() {
               className={cn(["aspect-square", "h-24"])}
               alt={"logo"}
               delay={0}
+              glass={false}
             />
             <div>
               <h2 className={cn(["text-3xl", "font-semibold"])}>

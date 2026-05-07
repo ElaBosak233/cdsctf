@@ -8,6 +8,8 @@ import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
+  EllipseIcon,
+  EllipsisIcon,
   EyeClosedIcon,
   EyeIcon,
   LockIcon,
@@ -46,6 +48,7 @@ import type { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { DropdownMenuContent, DropdownMenu, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 const RowContext = createContext<{
   optimisticPublic: boolean;
@@ -229,32 +232,24 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
         <Link to={`/admin/challenges/${id}`} />
       </Button>
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            level={optimisticPublic ? "warning" : "success"}
-            variant={"ghost"}
-            size={"sm"}
-            square
-            icon={optimisticPublic ? <EyeClosedIcon /> : <EyeIcon />}
-            onClick={handlePublicnessChange}
-          />
-        </TooltipTrigger>
-        <TooltipContent>
-          {optimisticPublic
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button square size={"sm"} variant={"ghost"} icon={<EllipsisIcon />} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={handlePublicnessChange}>
+            {optimisticPublic ? <EyeClosedIcon /> : <EyeIcon />}
+            {optimisticPublic
             ? t("challenge:public.actions.false")
             : t("challenge:public.actions.true")}
-        </TooltipContent>
-      </Tooltip>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className={cn(["text-error"])} >
+            <TrashIcon />
+            {t("challenge:actions.delete._")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <Button
-        level={"error"}
-        variant={"ghost"}
-        size={"sm"}
-        square
-        icon={<TrashIcon />}
-        onClick={() => setDeleteDialogOpen(true)}
-      />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <Card
@@ -293,6 +288,7 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
           </Card>
         </DialogContent>
       </Dialog>
+      
     </div>
   );
 }

@@ -100,6 +100,7 @@ export default function Entrance({ game, onFinish }: EntranceProps) {
                 }
                 fallback={<DefaultLogo />}
                 delay={0}
+                glass={false}
                 className={cn(["w-full", "h-full", "object-contain"])}
               />
             </motion.div>
