@@ -108,7 +108,13 @@ function SubmitSection() {
           }}
         />
       </Field>
-      <Button variant={"solid"} size={"sm"} onClick={handleFlagSubmit} square icon={<SendIcon />} />
+      <Button
+        variant={"solid"}
+        size={"sm"}
+        onClick={handleFlagSubmit}
+        square
+        icon={<SendIcon />}
+      />
     </div>
   );
 }

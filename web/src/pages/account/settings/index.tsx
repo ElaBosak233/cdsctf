@@ -80,17 +80,37 @@ export default function Index() {
 
     if (!file) return;
 
+    toast.loading(
+      t("user:settings.avatar_upload.progress", {
+        percent: "0",
+      }),
+      {
+        id: "user-avatar-upload",
+      }
+    );
+
     try {
-      await uploadFile("/api/users/me/avatar", [file], ({ percent }) => {
-        toast.loading(
-          t("user:settings.avatar_upload.progress", {
-            percent: percent.toFixed(0),
-          }),
-          {
-            id: "user-avatar-upload",
-          }
-        );
-      });
+      const res = await uploadFile(
+        "/api/users/me/avatar",
+        [file],
+        ({ percent }) => {
+          toast.loading(
+            t("user:settings.avatar_upload.progress", {
+              percent: percent.toFixed(0),
+            }),
+            {
+              id: "user-avatar-upload",
+            }
+          );
+        }
+      );
+      const data = res as { hash?: string } | undefined;
+      if (data?.hash && authStore?.user) {
+        authStore?.setUser({
+          ...authStore.user,
+          avatar_hash: data.hash,
+        });
+      }
       toast.success(t("user:settings.avatar_upload.success"), {
         id: "user-avatar-upload",
       });
@@ -105,6 +125,11 @@ export default function Index() {
     if (!authStore?.user) return;
 
     await deleteUserAvatar();
+    authStore?.setUser({
+      ...authStore.user,
+      avatar_hash: undefined,
+    });
+    setHasAvatar(false);
     toast.success(t("user:settings.avatar_delete_success"));
     sharedStore.setRefresh();
   }

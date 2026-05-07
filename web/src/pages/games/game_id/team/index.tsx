@@ -35,7 +35,7 @@ import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 
 export default function Index() {
-  const { currentGame, selfTeam } = useGameStore();
+  const { currentGame, selfTeam, setSelfTeam } = useGameStore();
   const { setRefresh } = useSharedStore();
   const { t } = useTranslation();
 
@@ -91,8 +91,12 @@ export default function Index() {
 
     if (!file) return;
 
+    toast.loading(t("team:avatar.upload.progress", { percent: "0" }), {
+      id: "team-avatar-upload",
+    });
+
     try {
-      await uploadFile(
+      const res = await uploadFile(
         `/api/games/${currentGame?.id}/teams/us/avatar`,
         [file],
         ({ percent }) => {
@@ -104,6 +108,13 @@ export default function Index() {
           );
         }
       );
+      const data = res as { hash?: string } | undefined;
+      if (data?.hash && selfTeam) {
+        setSelfTeam({
+          ...selfTeam,
+          avatar_hash: data.hash,
+        });
+      }
       toast.success(t("team:avatar.upload.success"), {
         id: "team-avatar-upload",
       });
@@ -123,6 +134,11 @@ export default function Index() {
         team_id: selfTeam.id!,
       });
 
+      setSelfTeam({
+        ...selfTeam,
+        avatar_hash: undefined,
+      });
+      setHasAvatar(false);
       toast.success(
         t("team:avatar.team_delete_success", { name: selfTeam?.name })
       );

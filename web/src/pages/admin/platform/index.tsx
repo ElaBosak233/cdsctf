@@ -50,7 +50,7 @@ export default function Index() {
   const { t } = useTranslation();
 
   const configStore = useConfigStore();
-  const { bump } = useRefresh();
+  const { bump, tick } = useRefresh();
   const [config, setConfig] = useState<Config>();
 
   useEffect(() => {
@@ -97,6 +97,14 @@ export default function Index() {
 
   const iconDropzone = useDropzone({
     onDropFile: async (file) => {
+      toast.loading(
+        t("admin:platform.logo_upload.progress", {
+          percent: "0",
+        }),
+        {
+          id: "logo-upload",
+        }
+      );
       try {
         await uploadFile("/api/admin/configs/logo", [file], ({ percent }) => {
           toast.loading(
@@ -255,7 +263,7 @@ export default function Index() {
                     ])}
                   >
                     <Image
-                      src={"/api/configs/logo"}
+                      src={`/api/configs/logo?t=${tick}`}
                       className={cn([
                         "object-cover",
                         "rounded-md",

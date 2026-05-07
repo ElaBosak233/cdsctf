@@ -4,7 +4,6 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { StatusCodes } from "http-status-codes";
 import { CloudUploadIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -29,6 +28,7 @@ import {
 import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { uploadFile } from "@/utils/file";
 import { Context } from "../context";
 import { useColumns } from "./columns";
 
@@ -57,52 +57,42 @@ export default function Index() {
 
   const dropzone = useDropzone({
     onDropFile: async (file) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      const xhr = new XMLHttpRequest();
-      xhr.open(
-        "POST",
-        `/api/admin/challenges/${challenge?.id}/attachments`,
-        true
+      toast.loading(
+        t("challenge:attachment.upload.progress", {
+          percent: "0",
+        }),
+        { id: "attachment-upload" }
       );
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          toast.loading(
-            t("challenge:attachment.upload.progress", {
-              percent: Math.round(percentComplete),
-            }),
-            {
-              id: "attachment-upload",
-            }
-          );
-        }
-      };
-      xhr.onload = () => {
-        if (xhr.status === StatusCodes.OK) {
-          toast.success(t("challenge:attachment.upload.success"), {
-            id: "attachment-upload",
-          });
-          sharedStore.setRefresh();
-        } else {
-          toast.error(t("challenge:attachment.upload.error"), {
-            id: "attachment-upload",
-            description: xhr.responseText,
-          });
-        }
-      };
-      xhr.onerror = () => {
+
+      try {
+        await uploadFile(
+          `/api/admin/challenges/${challenge?.id}/attachments`,
+          [file],
+          ({ percent }) => {
+            toast.loading(
+              t("challenge:attachment.upload.progress", {
+                percent: Math.round(percent).toString(),
+              }),
+              { id: "attachment-upload" }
+            );
+          }
+        );
+        toast.success(t("challenge:attachment.upload.success"), {
+          id: "attachment-upload",
+        });
+        sharedStore.setRefresh();
+        return {
+          status: "success",
+          result: "",
+        };
+      } catch {
+        toast.error(t("challenge:attachment.upload.error"), {
+          id: "attachment-upload",
+        });
         return {
           status: "error",
         };
-      };
-
-      xhr.send(formData);
-
-      return {
-        status: "success",
-        result: "",
-      };
+      }
     },
   });
 

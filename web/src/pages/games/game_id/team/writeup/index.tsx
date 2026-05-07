@@ -1,4 +1,3 @@
-import { StatusCodes } from "http-status-codes";
 import {
   CheckCircleIcon,
   ClockIcon,
@@ -19,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { uploadFile } from "@/utils/file";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -30,61 +30,46 @@ export default function Index() {
 
   const dropzone = useDropzone({
     onDropFile: async (file) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", `/api/games/${currentGame?.id}/teams/us/writeup`, true);
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          toast.loading(
-            t("team:write_up.actions.upload.progress", {
-              percent: Math.round(percentComplete),
-            }),
-            {
-              id: "writeup-upload",
-            }
-          );
-        }
-      };
-      xhr.onload = () => {
-        if (xhr.status === StatusCodes.OK) {
-          try {
-            const body = JSON.parse(xhr.responseText || "{}") as {
-              team?: typeof selfTeam;
-            };
-            if (body.team) {
-              setSelfTeam(body.team);
-            }
-          } catch {
-            sharedStore.setRefresh();
+      toast.loading(
+        t("team:write_up.actions.upload.progress", {
+          percent: "0",
+        }),
+        { id: "writeup-upload" }
+      );
+
+      try {
+        const res = await uploadFile(
+          `/api/games/${currentGame?.id}/teams/us/writeup`,
+          [file],
+          ({ percent }) => {
+            toast.loading(
+              t("team:write_up.actions.upload.progress", {
+                percent: Math.round(percent).toString(),
+              }),
+              { id: "writeup-upload" }
+            );
           }
-          toast.success(t("team:write_up.actions.upload.success"), {
-            id: "writeup-upload",
-          });
-          sharedStore.setRefresh();
-        } else {
-          toast.error(t("team:write_up.actions.upload.error"), {
-            id: "writeup-upload",
-            description: xhr.responseText,
-          });
+        );
+        const body = res as { team?: typeof selfTeam } | undefined;
+        if (body?.team) {
+          setSelfTeam(body.team);
         }
-      };
-      xhr.onerror = () => {
+        toast.success(t("team:write_up.actions.upload.success"), {
+          id: "writeup-upload",
+        });
+        sharedStore.setRefresh();
+        return {
+          status: "success",
+          result: "",
+        };
+      } catch {
         toast.error(t("team:write_up.actions.upload.error"), {
           id: "writeup-upload",
         });
         return {
           status: "error",
         };
-      };
-
-      xhr.send(formData);
-
-      return {
-        status: "success",
-        result: "",
-      };
+      }
     },
     validation: {
       maxFiles: 1,

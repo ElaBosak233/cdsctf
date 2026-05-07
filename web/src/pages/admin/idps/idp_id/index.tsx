@@ -139,6 +139,14 @@ export default function Index() {
   ) {
     const file = event.target.files?.[0];
     if (!file || idpId == null) return;
+
+    toast.loading(
+      t("admin:idp.avatar_upload.progress", {
+        percent: "0",
+      }),
+      { id: "idp-avatar-upload" }
+    );
+
     try {
       await uploadFile(
         `/api/admin/idps/${idpId}/avatar`,

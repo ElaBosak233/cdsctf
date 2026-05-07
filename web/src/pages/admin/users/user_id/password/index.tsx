@@ -16,10 +16,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
 import { Context } from "../context";
-import { Separator } from "@/components/ui/separator";
 
 export default function Index() {
   const { t } = useTranslation();

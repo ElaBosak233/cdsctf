@@ -38,7 +38,6 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
-import { useRefresh } from "@/hooks/use-refresh";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
@@ -59,11 +58,9 @@ export default function Index() {
 
   const iconInput = useRef<HTMLInputElement>(null);
   const [hasIcon, setHasIcon] = useState<boolean>(false);
-  const { bump: iconBump } = useRefresh();
 
   const posterInput = useRef<HTMLInputElement>(null);
   const [hasPoster, setHasPoster] = useState<boolean>(false);
-  const { bump: posterBump } = useRefresh();
 
   const formSchema = z.object({
     title: z.string({
@@ -149,18 +146,36 @@ export default function Index() {
     const file = event.target.files?.[0];
     if (!file || resolvedGameId == null) return;
 
+    toast.loading(t("game:form.poster_upload.progress", { percent: "0" }), {
+      id: "game-poster-upload",
+    });
+
     try {
-      await uploadFile(`/api/admin/games/${resolvedGameId}/poster`, [file]);
-      toast.success(t("game:form.poster_upload.success"));
+      await uploadFile(
+        `/api/admin/games/${resolvedGameId}/poster`,
+        [file],
+        ({ percent }) => {
+          toast.loading(
+            t("game:form.poster_upload.progress", {
+              percent: percent.toFixed(0),
+            }),
+            { id: "game-poster-upload" }
+          );
+        }
+      );
+      toast.success(t("game:form.poster_upload.success"), {
+        id: "game-poster-upload",
+      });
     } catch (_) {
       toast.error(t("game:form.poster_upload.error"), {
+        id: "game-poster-upload",
         description: t("common:errors.network"),
       });
       return;
     }
 
     event.target.value = "";
-    posterBump();
+    sharedStore.setRefresh();
   }
 
   async function handlePosterDelete() {
@@ -173,7 +188,7 @@ export default function Index() {
 
       toast.success(t("game:form.poster_delete.success"));
     } finally {
-      posterBump();
+      sharedStore.setRefresh();
     }
   }
 
@@ -181,18 +196,36 @@ export default function Index() {
     const file = event.target.files?.[0];
     if (!file || resolvedGameId == null) return;
 
+    toast.loading(t("game:form.icon_upload.progress", { percent: "0" }), {
+      id: "game-icon-upload",
+    });
+
     try {
-      await uploadFile(`/api/admin/games/${resolvedGameId}/icon`, [file]);
-      toast.success(t("game:form.icon_upload.success"));
+      await uploadFile(
+        `/api/admin/games/${resolvedGameId}/icon`,
+        [file],
+        ({ percent }) => {
+          toast.loading(
+            t("game:form.icon_upload.progress", {
+              percent: percent.toFixed(0),
+            }),
+            { id: "game-icon-upload" }
+          );
+        }
+      );
+      toast.success(t("game:form.icon_upload.success"), {
+        id: "game-icon-upload",
+      });
     } catch (_) {
       toast.error(t("game:form.icon_upload.error"), {
+        id: "game-icon-upload",
         description: t("common:errors.network"),
       });
       return;
     }
 
     event.target.value = "";
-    iconBump();
+    sharedStore.setRefresh();
   }
 
   async function handleIconDelete() {
@@ -205,7 +238,7 @@ export default function Index() {
 
       toast.success(t("game:form.icon_delete.success"));
     } finally {
-      iconBump();
+      sharedStore.setRefresh();
     }
   }
 
