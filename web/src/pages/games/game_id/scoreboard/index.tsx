@@ -112,7 +112,7 @@ export default function Index() {
                           "w-full",
                         ])}
                       >
-                        <Badge variant="outline">{record.team?.rank}</Badge>
+                        <Badge>{record.team?.rank}</Badge>
 
                         <Avatar
                           className={cn(["size-10", "shrink-0"])}

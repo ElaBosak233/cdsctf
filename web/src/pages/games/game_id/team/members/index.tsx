@@ -90,7 +90,7 @@ export default function Index() {
         <div className={cn(["grid", "grid-cols-2", "gap-5"])}>
           {members?.map((user) => (
             <Link key={user?.id} to={`/users/${user?.id}`}>
-              <Card className={cn(["p-3", "flex", "gap-3", "items-center"])}>
+              <Card className={cn(["p-3", "flex", "gap-3", "items-center", "shadow-sm", "hover:shadow-md", "transition-shadow"])}>
                 <Avatar
                   src={
                     user?.avatar_hash && `/api/media?hash=${user?.avatar_hash}`
