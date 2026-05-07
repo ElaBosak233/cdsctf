@@ -97,7 +97,7 @@ function CreateDialog(props: CreateDialogProps) {
           <TextField
             value={id}
             onChange={(e) => setId(e.target.value)}
-            placeholder={"ID"}
+            placeholder={t("challenge:form.id._")}
           />
         </Field>
         <Field size={"sm"} className={cn(["w-full"])}>

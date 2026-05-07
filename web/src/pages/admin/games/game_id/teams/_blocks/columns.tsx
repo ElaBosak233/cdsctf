@@ -39,7 +39,7 @@ function useColumns(): Array<ColumnDef<Team>> {
     {
       accessorKey: "id",
       id: "id",
-      header: "ID",
+      header: t("team:id"),
       cell: function IdCell({ row }) {
         const id = row.original.id;
         return (
@@ -55,8 +55,8 @@ function useColumns(): Array<ColumnDef<Team>> {
       header: t("team:name"),
       cell: ({ row }) => {
         const name = row.original.name!;
-        const gid = row.original.game_id ?? resolvedGameId;
-        const tid = row.original.id;
+        const _gid = row.original.game_id ?? resolvedGameId;
+        const _tid = row.original.id;
         return (
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <Avatar
@@ -122,7 +122,7 @@ function useColumns(): Array<ColumnDef<Team>> {
       ? [
           {
             id: "has_writeup",
-            header: "Write-up",
+            header: t("team:has_writeup._"),
             cell: function WriteUpCell({ row }) {
               const has_writeup = row.original.has_writeup;
 

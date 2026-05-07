@@ -1,4 +1,5 @@
 _: 团队
+id: ID
 info: 基本信息
 members: 团队成员
 write_up:

@@ -1,5 +1,5 @@
-import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Slot as RadixSlot } from "radix-ui";
 import type * as React from "react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils/index";
@@ -58,7 +58,7 @@ function Item({
   ...props
 }: React.ComponentProps<"div"> &
   VariantProps<typeof itemVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "div";
+  const Comp = asChild ? RadixSlot.Slot : "div";
   return (
     <Comp
       data-slot="item"

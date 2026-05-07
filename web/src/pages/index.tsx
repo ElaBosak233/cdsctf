@@ -75,7 +75,7 @@ export default function Index() {
                 src={"/api/configs/logo"}
                 fallback={<DefaultLogo />}
                 className={cn(["aspect-square", "h-32"])}
-                alt={"logo"}
+                alt={config?.meta?.title || ""}
                 delay={0}
                 glass={false}
               />

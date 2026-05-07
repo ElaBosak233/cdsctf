@@ -62,8 +62,12 @@ function useUserQuery(params: GetUsersRequest) {
 export default function Index() {
   const { t } = useTranslation();
   const configStore = useConfigStore();
-  const { createDialogOpen, setCreateDialogOpen, columnFilters, setColumnFilters } =
-    useContext(UserListContext)!;
+  const {
+    createDialogOpen,
+    setCreateDialogOpen,
+    columnFilters,
+    setColumnFilters,
+  } = useContext(UserListContext)!;
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
@@ -86,9 +90,7 @@ export default function Index() {
     name: debouncedColumnFilters.find((c) => c.id === "username")
       ?.value as string,
     group: groupFilter,
-    sorts: sorting
-      .map((s) => (s.desc ? `-${s.id}` : s.id))
-      .join(","),
+    sorts: sorting.map((s) => (s.desc ? `-${s.id}` : s.id)).join(","),
     page,
     size,
   });

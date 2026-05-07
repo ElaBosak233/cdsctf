@@ -155,10 +155,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         <div className={cn(["flex", "gap-5", "my-5"])}>
           <Avatar
             className={cn(["size-15"])}
-            src={
-              team?.avatar_hash &&
-              `/api/media?hash=${team?.avatar_hash}`
-            }
+            src={team?.avatar_hash && `/api/media?hash=${team?.avatar_hash}`}
             fallback={team.name?.charAt(0)}
           />
           <div className={cn(["flex", "flex-col", "gap-1"])}>
@@ -172,7 +169,9 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         </div>
         <Badge className={cn(["font-mono", "flex", "gap-1", "items-center"])}>
           <StarIcon />
-          <span>{team?.pts} pts</span>
+          <span>
+            {team?.pts} {t("game:filter.pts")}
+          </span>
         </Badge>
       </div>
       <ScrollArea className={cn(["h-128", "rounded-md", "border", "relative"])}>
@@ -226,7 +225,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
                       colSpan={columns.length}
                       className={cn(["h-24", "text-center"])}
                     >
-                      积分榜空空如也呢。
+                      {t("game:scoreboard.empty")}
                     </TableCell>
                   </TableRow>
                 )}

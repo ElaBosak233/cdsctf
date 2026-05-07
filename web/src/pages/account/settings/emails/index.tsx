@@ -69,9 +69,9 @@ export default function Index() {
       >
         <div className={cn(["flex", "justify-between", "items-center"])}>
           <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
-          <MailsIcon />
-          {t("user:settings.email")}
-        </h2>
+            <MailsIcon />
+            {t("user:settings.email")}
+          </h2>
           <Button
             size={"md"}
             variant={"solid"}

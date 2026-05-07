@@ -13,6 +13,8 @@ note: 笔记
 note_placeholder: 在此记录你的思路与解法…
 note_save_success: 笔记保存成功。
 writeup_official: 官方题解
+writeup_empty: 暂无题解
+note_empty: 暂无笔记
 title: 标题
 description: 描述
 category: 分类
@@ -67,9 +69,12 @@ search:
     "true": 公开
     "false": 非公开
 form:
+  id:
+    _: ID
   title:
     _: 标题
     message: 请输入标题
+    placeholder: Try hack me!
   category:
     _: 分类
     message: 请选择分类
@@ -86,6 +91,7 @@ form:
   writeup:
     _: 题解
     message: 请输入题解
+    placeholder: 很久很久以前…
   has_instance:
     _: 动态性
     "true": 动态环境
@@ -93,10 +99,12 @@ form:
   description:
     _: 描述
     message: 请输入描述
+    placeholder: 很久很久以前…
   instance:
     duration:
       _: 持续时间（秒）
       message: 请输入持续时间（秒）
+      placeholder: "1800"
     internet:
       _: 是否允许访问互联网
       message: 请选择是否允许访问互联网
@@ -107,6 +115,7 @@ form:
       image:
         _: 镜像名
         message: 请输入镜像名
+        placeholder: "repository:tag"
       cpu_limit:
         _: CPU 限制（核）
         message: 请输入 CPU 限制（核）

@@ -99,7 +99,7 @@ function CreateDialog(props: CreateDialogProps) {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"Try hack me..."}
+                      placeholder={t("challenge:form.title.placeholder")}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />

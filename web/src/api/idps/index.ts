@@ -19,19 +19,17 @@ export async function getIdps() {
 }
 
 export async function loginWithIdp(idpId: number, request: IdpAuthRequest) {
-  return api
-    .post(`idps/${idpId}/login`, { json: request })
-    .json<{
-      user?: User;
-      identity?: UserIdp;
-      registered: boolean;
-      requires_registration?: boolean;
-      pending_identity?: {
-        token: string;
-        idp_id: number;
-        data: Record<string, string>;
-      };
-    }>();
+  return api.post(`idps/${idpId}/login`, { json: request }).json<{
+    user?: User;
+    identity?: UserIdp;
+    registered: boolean;
+    requires_registration?: boolean;
+    pending_identity?: {
+      token: string;
+      idp_id: number;
+      data: Record<string, string>;
+    };
+  }>();
 }
 
 export async function bindWithIdp(idpId: number, request: IdpAuthRequest) {

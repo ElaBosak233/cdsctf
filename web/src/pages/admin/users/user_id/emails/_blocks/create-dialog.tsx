@@ -99,7 +99,7 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"ctf@example.com"}
+                      placeholder={t("user:emails.form.email.placeholder")}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />

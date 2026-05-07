@@ -75,6 +75,26 @@ forget:
     code_sent: Verification code sent
 logout: Logout
 setting: Account Settings
+idp:
+  _: Identity Provider
+  register:
+    _: Complete Registration
+    description: Please fill in the details to complete your account registration via third-party login.
+    no_pending: No pending identity found. Please log in with a third-party provider first.
+    go_login: Go to Login
+    submit: Complete Registration
+    success: Account created
+    success_desc: You have been signed in
+    failed: Registration failed
+    conflict: Username or email already exists
+  bind:
+    success: IdP bound
+  login:
+    success: Signed in
+    error: IdP request failed
+  unbind:
+    success: IdP unbound
+  third_party: Third-party Login
 captcha:
   _: Captcha
   please_refresh: Please refresh your Captcha

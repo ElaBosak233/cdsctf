@@ -178,7 +178,9 @@ function EditDialog(props: EditDialogProps) {
                           <HashIcon />
                         </FieldIcon>
                         <NumberField
-                          placeholder={"2000"}
+                          placeholder={t(
+                            "game:challenge.form.max_pts.placeholder"
+                          )}
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
                         />
@@ -200,7 +202,9 @@ function EditDialog(props: EditDialogProps) {
                           <HashIcon />
                         </FieldIcon>
                         <NumberField
-                          placeholder={"500"}
+                          placeholder={t(
+                            "game:challenge.form.min_pts.placeholder"
+                          )}
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
                         />
@@ -224,7 +228,9 @@ function EditDialog(props: EditDialogProps) {
                           <HashIcon />
                         </FieldIcon>
                         <NumberField
-                          placeholder={"5"}
+                          placeholder={t(
+                            "game:challenge.form.difficulty.placeholder"
+                          )}
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
                         />
@@ -272,7 +278,10 @@ function EditDialog(props: EditDialogProps) {
                                 <StarIcon />
                               </FieldIcon>
                               <NumberField
-                                placeholder={`No. ${ratioIndex + 1}`}
+                                placeholder={t(
+                                  "game:challenge.form.bonus_ratio_item",
+                                  { index: ratioIndex + 1 }
+                                )}
                                 value={field.value}
                                 onValueChange={(value) => field.onChange(value)}
                               />

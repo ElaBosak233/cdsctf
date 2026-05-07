@@ -191,7 +191,9 @@ export default function Index() {
                 name={"turnstile.url"}
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
-                    <FormLabel>API URL</FormLabel>
+                    <FormLabel>
+                      {t("admin:captcha.form.turnstile.url._")}
+                    </FormLabel>
                     <FormControl>
                       <Field>
                         <FieldIcon>
@@ -214,7 +216,9 @@ export default function Index() {
                   name={"turnstile.site_key"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>SITE_KEY</FormLabel>
+                      <FormLabel>
+                        {t("admin:captcha.form.turnstile.site_key._")}
+                      </FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -236,7 +240,9 @@ export default function Index() {
                   name={"turnstile.secret_key"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>SECRET_KEY</FormLabel>
+                      <FormLabel>
+                        {t("admin:captcha.form.turnstile.secret_key._")}
+                      </FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -264,7 +270,9 @@ export default function Index() {
                   name={"hcaptcha.url"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>API URL</FormLabel>
+                      <FormLabel>
+                        {t("admin:captcha.form.hcaptcha.url._")}
+                      </FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -286,7 +294,9 @@ export default function Index() {
                   name={"hcaptcha.score"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>Score</FormLabel>
+                      <FormLabel>
+                        {t("admin:captcha.form.hcaptcha.score._")}
+                      </FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -313,7 +323,9 @@ export default function Index() {
                   name={"hcaptcha.site_key"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>SITE_KEY</FormLabel>
+                      <FormLabel>
+                        {t("admin:captcha.form.hcaptcha.site_key._")}
+                      </FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>
@@ -335,7 +347,9 @@ export default function Index() {
                   name={"hcaptcha.secret_key"}
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
-                      <FormLabel>SECRET_KEY</FormLabel>
+                      <FormLabel>
+                        {t("admin:captcha.form.hcaptcha.secret_key._")}
+                      </FormLabel>
                       <FormControl>
                         <Field>
                           <FieldIcon>

@@ -40,7 +40,9 @@ function ExpandedCard(props: ExpandedCardProps) {
           <Tooltip key={member.id}>
             <TooltipTrigger>
               <Avatar
-                src={member.avatar_hash && `/api/media?hash=${member.avatar_hash}`}
+                src={
+                  member.avatar_hash && `/api/media?hash=${member.avatar_hash}`
+                }
                 fallback={member.name?.charAt(0)}
               />
             </TooltipTrigger>

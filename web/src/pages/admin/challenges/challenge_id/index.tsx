@@ -110,7 +110,7 @@ export default function Index() {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"Try Hack Me!"}
+                      placeholder={t("challenge:form.title.placeholder")}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -308,7 +308,7 @@ export default function Index() {
               <FormControl>
                 <MarkdownEditor
                   {...field}
-                  placeholder={"Once upon a time..."}
+                  placeholder={t("challenge:form.description.placeholder")}
                   className={cn(["h-full", "min-h-64"])}
                 />
               </FormControl>

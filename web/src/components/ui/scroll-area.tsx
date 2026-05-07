@@ -1,4 +1,4 @@
-import * as RadixScrollArea from "@radix-ui/react-scroll-area";
+import { ScrollArea as RadixScrollArea } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "@/utils";

@@ -110,24 +110,18 @@ export default function Index() {
           </div>
           <Separator />
           <p className={cn(["font-bold"])}>
-            你正在注销你的账号。但是你的账号不会被真正地删除，而是将永久处于软删除状态。且无法恢复！
+            {t("user:delete_account.warnings.intro")}
           </p>
           <ul>
-            <li>
-              你的用户名会以一种特别的形式修改并保存。你可以使用原先的用户名注册新的账号。
-            </li>
-            <li>
-              你的邮箱会被全部解绑并清除。你可以使用原先的邮箱注册新的账号。
-            </li>
-            <li>
-              所有与你相关的比赛、团队、提交等数据仍然会被留存。但在注销账号后，没有任何信息可以证明这些数据属于你。
-            </li>
+            <li>{t("user:delete_account.warnings.username")}</li>
+            <li>{t("user:delete_account.warnings.email")}</li>
+            <li>{t("user:delete_account.warnings.data")}</li>
           </ul>
           <p className={cn(["font-bold"])}>
-            请再次注意，你接下来的操作是不可逆的！请三思而后行！
+            {t("user:delete_account.warnings.irreversible")}
           </p>
           <p className={cn(["text-error"])}>
-            请认真阅读并确定上述内容！如果你真的确定要注销账号，请在下方输入你的完整用户名、密码并点击确认。
+            {t("user:delete_account.warnings.confirm")}
           </p>
         </Typography>
         <div className={cn(["flex-1"])} />

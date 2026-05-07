@@ -97,7 +97,7 @@ function CreateDialog(props: CreateDialogProps) {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"My CTF Game"}
+                      placeholder={t("game:form.title.placeholder")}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />

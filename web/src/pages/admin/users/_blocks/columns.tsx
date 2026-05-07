@@ -124,7 +124,12 @@ function ActionsCell({ row }: { row: Row<User> }) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button square size={"sm"} variant={"ghost"} icon={<EllipsisIcon />} />
+          <Button
+            square
+            size={"sm"}
+            variant={"ghost"}
+            icon={<EllipsisIcon />}
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
@@ -188,7 +193,7 @@ function useColumns() {
       {
         accessorKey: "id",
         id: "id",
-        header: "ID",
+        header: t("user:id"),
         cell: IdCell,
       },
       {

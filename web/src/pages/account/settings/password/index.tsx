@@ -18,11 +18,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
-import { Separator } from "@/components/ui/separator";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -119,7 +119,9 @@ export default function Index() {
                       <TextField
                         {...field}
                         type={"password"}
-                        placeholder={"Old P4ssw0rd"}
+                        placeholder={t(
+                          "user:change_password.form.old_password.placeholder"
+                        )}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
@@ -145,7 +147,9 @@ export default function Index() {
                       <TextField
                         {...field}
                         type={"password"}
-                        placeholder={"New P4ssw0rd"}
+                        placeholder={t(
+                          "user:change_password.form.new_password.placeholder"
+                        )}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
@@ -171,7 +175,9 @@ export default function Index() {
                       <TextField
                         {...field}
                         type={"password"}
-                        placeholder={"Confirm New P4ssw0rd"}
+                        placeholder={t(
+                          "user:change_password.form.confirm_password.placeholder"
+                        )}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />

@@ -19,6 +19,7 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
 import { Context } from "../context";
+import { Separator } from "@/components/ui/separator";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -72,7 +73,12 @@ export default function Index() {
   }
 
   return (
-    <div className={cn(["flex", "flex-col", "flex-1"])}>
+    <div className={cn(["flex", "flex-col", "flex-1", "gap-5"])}>
+      <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
+        <LockIcon />
+        {t("user:edit.password")}
+      </h2>
+      <Separator />
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -95,7 +101,9 @@ export default function Index() {
                     <TextField
                       {...field}
                       type={"password"}
-                      placeholder={"New P4ssw0rd"}
+                      placeholder={t(
+                        "user:change_password.form.new_password.placeholder"
+                      )}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
@@ -121,7 +129,9 @@ export default function Index() {
                     <TextField
                       {...field}
                       type={"password"}
-                      placeholder={"Confirm New P4ssw0rd"}
+                      placeholder={t(
+                        "user:change_password.form.confirm_password.placeholder"
+                      )}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />

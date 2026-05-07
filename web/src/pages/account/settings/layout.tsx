@@ -35,7 +35,7 @@ export default function Layout() {
     },
     {
       link: `/account/settings/idps`,
-      name: "IdP",
+      name: t("user:settings.idp"),
       icon: <IdCardIcon />,
     },
   ];

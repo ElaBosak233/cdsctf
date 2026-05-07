@@ -1,4 +1,4 @@
-import * as RadixDialog from "@radix-ui/react-dialog";
+import { Dialog as RadixDialog } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "@/utils";

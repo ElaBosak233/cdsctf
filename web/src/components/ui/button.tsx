@@ -1,6 +1,6 @@
-import { Slot, Slottable } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { LoaderCircleIcon } from "lucide-react";
+import { Slot as RadixSlot } from "radix-ui";
 import type React from "react";
 import type { ButtonHTMLAttributes, CSSProperties, Ref } from "react";
 
@@ -107,7 +107,7 @@ function Button(props: ButtonProps) {
   ) : (
     icon!
   );
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ? RadixSlot.Slot : "button";
   return (
     <Comp
       type={type}
@@ -124,7 +124,7 @@ function Button(props: ButtonProps) {
       {...rest}
     >
       {(!!icon || loading) && Icon}
-      <Slottable>{children}</Slottable>
+      <RadixSlot.Slottable>{children}</RadixSlot.Slottable>
     </Comp>
   );
 }

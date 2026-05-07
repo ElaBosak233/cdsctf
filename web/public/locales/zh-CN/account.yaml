@@ -75,6 +75,26 @@ forget:
     code_sent: 验证码已发送，请查收
 logout: 退出登录
 setting: 账号设置
+idp:
+  _: 第三方认证服务
+  register:
+    _: 完成注册
+    description: 请填写详细信息以完成第三方账号注册。
+    no_pending: 未找到待处理的身份信息。请先使用第三方登录。
+    go_login: 前往登录
+    submit: 完成注册
+    success: 账号创建成功
+    success_desc: 您已登录
+    failed: 注册失败
+    conflict: 用户名或邮箱已存在
+  bind:
+    success: 第三方账号绑定成功
+  login:
+    success: 登录成功
+    error: 第三方登录失败
+  unbind:
+    success: 第三方账号解绑成功
+  third_party: 第三方登录
 captcha:
   _: 人机验证
   please_refresh: 请刷新验证码

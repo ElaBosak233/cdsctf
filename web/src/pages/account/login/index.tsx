@@ -7,12 +7,17 @@ import { getIdps } from "@/api/idps";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { LoginForm } from "./_blocks/login-form";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function Index() {
   const { config } = useConfigStore();
@@ -82,7 +87,7 @@ export default function Index() {
               ])}
             >
               <img
-                alt="logo"
+                alt={config?.meta?.title || ""}
                 decoding={"async"}
                 src={"/api/configs/logo"}
                 draggable={false}
@@ -109,35 +114,40 @@ export default function Index() {
               </Button>
             )}
             {idps.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  className={cn("w-full", "mt-2")}
-                  size={"lg"}
-                  variant={"tonal"}
-                  icon={<IdCardIcon />}
-                >使用第三方登录</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className={cn(["min-w-64"])}>
-                {idps.map((idp) => (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    className={cn("w-full", "mt-2")}
+                    size={"lg"}
+                    variant={"tonal"}
+                    icon={<IdCardIcon />}
+                  >
+                    {t("account:idp.third_party")}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className={cn(["min-w-64"])}>
+                  {idps.map((idp) => (
                     <DropdownMenuItem
-                    key={idp.id}
-                    className={cn(["flex", "items-center", "gap-2"])}
-                    asChild
-                  >   
-                    <a href={idp.portal || `/account/idps/${idp.id ?? ""}`}>
-                          <Avatar
-                            square
-                            className={cn(["size-5", "bg-transparent"])}
-                            src={idp.avatar_hash && `/api/media?hash=${idp.avatar_hash}`}
-                            fallback={idp.name?.charAt(0)}
-                          />
-                          {idp.name}
-                        </a>
+                      key={idp.id}
+                      className={cn(["flex", "items-center", "gap-2"])}
+                      asChild
+                    >
+                      <a href={idp.portal || `/account/idps/${idp.id ?? ""}`}>
+                        <Avatar
+                          square
+                          className={cn(["size-5", "bg-transparent"])}
+                          src={
+                            idp.avatar_hash &&
+                            `/api/media?hash=${idp.avatar_hash}`
+                          }
+                          fallback={idp.name?.charAt(0)}
+                        />
+                        {idp.name}
+                      </a>
                     </DropdownMenuItem>
-                    ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </Card>

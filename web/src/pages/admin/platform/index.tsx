@@ -182,7 +182,9 @@ export default function Index() {
                         </FieldIcon>
                         <TextField
                           {...field}
-                          placeholder={"CdsCTF"}
+                          placeholder={t(
+                            "admin:platform.form.meta.title.placeholder"
+                          )}
                           value={field.value || ""}
                           onChange={field.onChange}
                         />
@@ -284,7 +286,9 @@ export default function Index() {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"I dont't like hacking you at all!"}
+                      placeholder={t(
+                        "admin:platform.form.meta.description.placeholder"
+                      )}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />

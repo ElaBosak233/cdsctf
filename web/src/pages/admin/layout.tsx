@@ -2,12 +2,10 @@ import {
   BotIcon,
   FlagIcon,
   GaugeIcon,
-  HousePlugIcon,
   IdCardIcon,
   LibraryIcon,
   MailCheckIcon,
   PencilLineIcon,
-  TypeIcon,
   UserRoundIcon,
 } from "lucide-react";
 import { useEffect } from "react";

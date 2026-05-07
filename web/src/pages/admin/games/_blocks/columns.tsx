@@ -16,13 +16,13 @@ import {
 } from "lucide-react";
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useMemo,
   useOptimistic,
   useState,
   useTransition,
-  type ReactNode,
 } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -57,13 +57,7 @@ function useRowContext() {
   return useContext(RowContext);
 }
 
-function RowProvider({
-  game,
-  children,
-}: {
-  game: Game;
-  children: ReactNode;
-}) {
+function RowProvider({ game, children }: { game: Game; children: ReactNode }) {
   const { t } = useTranslation();
   const [isEnabled, setIsEnabled] = useState(game.enabled ?? false);
   const [, startTransition] = useTransition();
@@ -83,7 +77,7 @@ function RowProvider({
         });
       });
     },
-    [optimisticEnabled, gameId, startTransition, setOptimisticEnabled, t],
+    [optimisticEnabled, gameId, setOptimisticEnabled, t]
   );
 
   return (
@@ -117,7 +111,9 @@ function IdCell({ row }: { row: Row<Game> }) {
 
 function TitleCell({ row }: { row: Row<Game> }) {
   const ctx = useRowContext();
-  const isEnabled = ctx ? ctx.optimisticEnabled : row.original.enabled ?? false;
+  const isEnabled = ctx
+    ? ctx.optimisticEnabled
+    : (row.original.enabled ?? false);
   return (
     <div
       className={cn([
@@ -171,7 +167,12 @@ function ActionsCell({ row }: { row: Row<Game> }) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button square size={"sm"} variant={"ghost"} icon={<EllipsisIcon />} />
+          <Button
+            square
+            size={"sm"}
+            variant={"ghost"}
+            icon={<EllipsisIcon />}
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem onClick={handleEnabledChange}>
@@ -180,7 +181,10 @@ function ActionsCell({ row }: { row: Row<Game> }) {
               ? t("game:enabled.actions.false")
               : t("game:enabled.actions.true")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className={cn(["text-error"])}>
+          <DropdownMenuItem
+            onClick={() => setDeleteDialogOpen(true)}
+            className={cn(["text-error"])}
+          >
             <TrashIcon />
             {t("game:actions.delete._")}
           </DropdownMenuItem>
@@ -295,7 +299,7 @@ function useColumns() {
       {
         accessorKey: "id",
         id: "id",
-        header: "ID",
+        header: t("game:id"),
         cell: IdCell,
       },
       {

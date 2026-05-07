@@ -24,10 +24,12 @@ platform:
       _: Meta
       title:
         _: Title
+        placeholder: CdsCTF
       keywords:
         _: Keywords
       description:
         _: Description
+        placeholder: I don't like hacking you at all!
       footer:
         _: Footer
     auth:
@@ -54,18 +56,23 @@ mailbox:
       _: Enable Mailbox
     host:
       _: SMTP Host
+      placeholder: smtp.example.com
     port:
       _: Port
     tls:
       _: TLS
     username:
       _: Username
+      placeholder: Mailbox Username
     password:
       _: Password
+      placeholder: Mailbox P4ssw0rd
     verification_email:
       _: Verification Email Template
+      placeholder: xHTML (RFC 2557)
     reset_password_email:
       _: Reset Password Email Template
+      placeholder: xHTML (RFC 2557)
   actions:
     update:
       _: Update Mailbox Settings
@@ -86,6 +93,22 @@ captcha:
     difficulty:
       _: Difficulty
       description: Suitable for image and PoW verification.
+    turnstile:
+      url:
+        _: API URL
+      site_key:
+        _: Site Key
+      secret_key:
+        _: Secret Key
+    hcaptcha:
+      url:
+        _: API URL
+      site_key:
+        _: Site Key
+      secret_key:
+        _: Secret Key
+      score:
+        _: Score
   actions:
     update:
       _: Update Captcha Settings

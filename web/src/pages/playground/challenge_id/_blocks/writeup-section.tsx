@@ -105,7 +105,7 @@ function WriteupSection() {
             </div>
           ) : (
             <span className={cn(["text-muted", "text-center", "select-none"])}>
-              暂无内容
+              {t("challenge:writeup_empty")}
             </span>
           )}
         </>
@@ -122,7 +122,7 @@ function WriteupSection() {
                     setNoteId(null);
                   }}
                 >
-                  Official Writeup
+                  {t("challenge:writeup_official")}
                 </Button>
                 <Separator />
               </>
@@ -198,7 +198,7 @@ function WriteupSection() {
               <span
                 className={cn(["text-muted", "text-center", "select-none"])}
               >
-                暂无笔记
+                {t("challenge:note_empty")}
               </span>
             )}
           </div>

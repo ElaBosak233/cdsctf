@@ -178,7 +178,7 @@ export default function Index() {
                 />
                 Albert
                 <span className={cn(["text-sm", "text-muted-foreground"])}>
-                  Art Design
+                  {t("about:art_design")}
                 </span>
               </a>
             </Button>
@@ -199,7 +199,7 @@ export default function Index() {
                 />
                 skyhaibara
                 <span className={cn(["text-sm", "text-muted-foreground"])}>
-                  Paper Work
+                  {t("about:paper_work")}
                 </span>
               </a>
             </Button>

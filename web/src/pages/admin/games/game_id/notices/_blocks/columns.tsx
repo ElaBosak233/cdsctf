@@ -107,7 +107,7 @@ function useColumns() {
       {
         accessorKey: "id",
         id: "id",
-        header: "ID",
+        header: t("game:notice.id"),
         cell: function IdCell({ row }) {
           const id = row.original.id;
           return <Badge>{id}</Badge>;

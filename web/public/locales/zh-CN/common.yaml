@@ -24,3 +24,8 @@ errors:
   network: 网络错误
 captcha:
   placeholder: 验证码
+language:
+  en: EN
+  zh-CN: 简
+  zh-TW: 繁
+  ja: な

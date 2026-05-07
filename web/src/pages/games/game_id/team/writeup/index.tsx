@@ -97,7 +97,7 @@ export default function Index() {
 
   return (
     <>
-      <title>{`Write-up - ${currentGame?.title}`}</title>
+      <title>{`${t("team:write_up._")} - ${currentGame?.title}`}</title>
       <div
         className={cn([
           "flex",

@@ -69,7 +69,10 @@ function IdpCard({ idp }: { idp: Idp }) {
           ? t("admin:idp.enabled.true")
           : t("admin:idp.enabled.false")}
       </Badge>
-      <Switch checked={optimisticEnabled} onCheckedChange={handleToggleEnabled} />
+      <Switch
+        checked={optimisticEnabled}
+        onCheckedChange={handleToggleEnabled}
+      />
       <Button variant="ghost" size="sm" square icon={<EditIcon />} asChild>
         <Link to={`/admin/idps/${idp.id}`} />
       </Button>
@@ -84,7 +87,14 @@ function IdpCard({ idp }: { idp: Idp }) {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <Card
-            className={cn(["flex", "flex-col", "p-5", "min-h-32", "w-lg", "gap-5"])}
+            className={cn([
+              "flex",
+              "flex-col",
+              "p-5",
+              "min-h-32",
+              "w-lg",
+              "gap-5",
+            ])}
           >
             <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
               <TrashIcon className={cn(["size-4", "text-error"])} />

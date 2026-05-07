@@ -233,7 +233,7 @@ export default function Index() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder={"My CTF Game"}
+                        placeholder={t("game:form.title.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
@@ -248,11 +248,11 @@ export default function Index() {
               name={"sketch"}
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
-                  <FormLabel>{t("game:form.sketch")}</FormLabel>
+                  <FormLabel>{t("game:form.sketch._")}</FormLabel>
                   <FormControl>
                     <Editor
                       {...field}
-                      placeholder={"Once upon a time..."}
+                      placeholder={t("game:form.sketch.placeholder")}
                       value={field.value || ""}
                       className={cn(["h-32"])}
                     />
@@ -480,7 +480,7 @@ export default function Index() {
                       <UsersRoundIcon />
                     </FieldIcon>
                     <NumberField
-                      placeholder={"3"}
+                      placeholder={t("game:form.member_limit_min.placeholder")}
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
                     />
@@ -502,7 +502,7 @@ export default function Index() {
                       <UsersRoundIcon />
                     </FieldIcon>
                     <NumberField
-                      placeholder={"3"}
+                      placeholder={t("game:form.member_limit_max.placeholder")}
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
                     />
@@ -574,11 +574,11 @@ export default function Index() {
           name={"description"}
           render={({ field }) => (
             <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-              <FormLabel>{t("game:form.description")}</FormLabel>
+              <FormLabel>{t("game:form.description._")}</FormLabel>
               <FormControl>
                 <MarkdownEditor
                   {...field}
-                  placeholder={"Once upon a time..."}
+                  placeholder={t("game:form.description.placeholder")}
                   value={field.value || ""}
                   className={cn(["h-full", "min-h-128"])}
                 />

@@ -27,12 +27,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
-import { Separator } from "@/components/ui/separator";
 
 export default function Index() {
   const { currentGame, selfTeam } = useGameStore();
@@ -145,7 +145,7 @@ export default function Index() {
           "gap-5",
         ])}
       >
-                <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
+        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
           <InfoIcon />
           {t("team:info")}
         </h2>

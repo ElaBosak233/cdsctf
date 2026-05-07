@@ -62,8 +62,12 @@ function useGameQuery(params: GetGamesRequest) {
 export default function Index() {
   const { t } = useTranslation();
   const configStore = useConfigStore();
-  const { createDialogOpen, setCreateDialogOpen, columnFilters, setColumnFilters } =
-    useContext(GameListContext)!;
+  const {
+    createDialogOpen,
+    setCreateDialogOpen,
+    columnFilters,
+    setColumnFilters,
+  } = useContext(GameListContext)!;
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
@@ -85,9 +89,7 @@ export default function Index() {
     title: debouncedColumnFilters.find((c) => c.id === "title")
       ?.value as string,
     enabled,
-    sorts: sorting
-      .map((s) => (s.desc ? `-${s.id}` : s.id))
-      .join(","),
+    sorts: sorting.map((s) => (s.desc ? `-${s.id}` : s.id)).join(","),
     page,
     size,
   });

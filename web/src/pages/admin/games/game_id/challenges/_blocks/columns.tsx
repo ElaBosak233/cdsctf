@@ -226,7 +226,7 @@ function useColumns() {
       },
       {
         id: "challenge_id",
-        header: "ID",
+        header: t("challenge:form.id._"),
         cell: ChallengeIdCell,
       },
       {
@@ -257,7 +257,9 @@ function useColumns() {
         cell: ({ row }) => (
           <span>
             {row.original.pts}{" "}
-            <span className={cn(["text-muted-foreground"])}>pts</span>
+            <span className={cn(["text-muted-foreground"])}>
+              {t("game:filter.pts")}
+            </span>
           </span>
         ),
       },

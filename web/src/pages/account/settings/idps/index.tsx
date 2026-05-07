@@ -1,5 +1,6 @@
 import { IdCardIcon, LinkIcon, TrashIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { getIdps } from "@/api/idps";
 import { getMyIdps, unbindMyIdp } from "@/api/users/me/idp";
@@ -13,6 +14,7 @@ import { cn } from "@/utils";
 
 export default function Index() {
   const { config } = useConfigStore();
+  const { t } = useTranslation();
   const [idps, setIdps] = useState<Idp[]>([]);
   const [bound, setBound] = useState<UserIdp[]>([]);
 
@@ -28,13 +30,13 @@ export default function Index() {
 
   async function handleUnbind(id: number) {
     await unbindMyIdp(id);
-    toast.success("IdP unbound");
+    toast.success(t("user:idp.actions.unbound_toast"));
     refresh();
   }
 
   return (
     <>
-      <title>{`IdP - ${config?.meta?.title}`}</title>
+      <title>{`${t("user:idp._")} - ${config?.meta?.title}`}</title>
       <div
         className={cn([
           "p-10",
@@ -47,7 +49,7 @@ export default function Index() {
       >
         <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
           <IdCardIcon />
-          IdP
+          {t("user:idp._")}
         </h2>
         <Separator />
         <div className={cn(["grid", "gap-3"])}>
@@ -77,16 +79,12 @@ export default function Index() {
                     icon={<TrashIcon />}
                     onClick={() => handleUnbind(item.id!)}
                   >
-                    Unbind
+                    {t("user:idp.actions.unbind")}
                   </Button>
                 ) : (
                   <Button asChild variant="solid" icon={<LinkIcon />}>
-                    <a
-                      href={
-                        idp.portal || `/account/idps/${idp.id ?? ""}`
-                      }
-                    >
-                      Bind
+                    <a href={idp.portal || `/account/idps/${idp.id ?? ""}`}>
+                      {t("user:idp.actions.bind")}
                     </a>
                   </Button>
                 )}

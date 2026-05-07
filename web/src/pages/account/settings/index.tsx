@@ -27,13 +27,13 @@ import {
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
+import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
-import { Separator } from "@/components/ui/separator";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -123,7 +123,7 @@ export default function Index() {
           "gap-5",
         ])}
       >
-          <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
+        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
           <InfoIcon />
           {t("user:settings.info")}
         </h2>
@@ -166,7 +166,7 @@ export default function Index() {
                           <TextField
                             {...field}
                             disabled
-                            placeholder={"Username"}
+                            placeholder={t("user:form.username.placeholder")}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -189,7 +189,7 @@ export default function Index() {
                           </FieldIcon>
                           <TextField
                             {...field}
-                            placeholder={"Name"}
+                            placeholder={t("user:form.name.placeholder")}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
@@ -274,7 +274,7 @@ export default function Index() {
                   <FormControl>
                     <MarkdownEditor
                       {...field}
-                      placeholder={"Once upon a time..."}
+                      placeholder={t("user:form.description.placeholder")}
                       className={cn(["h-full", "min-h-64"])}
                       value={field.value || ""}
                     />

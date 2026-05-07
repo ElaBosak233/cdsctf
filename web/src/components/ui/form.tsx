@@ -1,5 +1,4 @@
-import type * as RadixLabel from "@radix-ui/react-label";
-import { Slot } from "@radix-ui/react-slot";
+import { type Label as RadixLabel, Slot as RadixSlot } from "radix-ui";
 import * as React from "react";
 import {
   Controller,
@@ -102,12 +101,14 @@ function FormLabel({
   );
 }
 
-function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
+function FormControl({
+  ...props
+}: React.ComponentProps<typeof RadixSlot.Slot>) {
   const { error, formItemId, formDescriptionId, formMessageId } =
     useFormField();
 
   return (
-    <Slot
+    <RadixSlot.Slot
       data-slot="form-control"
       id={formItemId}
       aria-describedby={

@@ -5,10 +5,9 @@ mod idp_id;
 
 use std::{collections::HashMap, sync::Arc};
 
-use axum::{Json, Router, extract::State};
-use cds_db::{Email, Idp, User, UserIdp, sea_orm::ActiveValue::{NotSet, Set}};
+use axum::{extract::State, Json, Router};
+use cds_db::Idp;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -47,57 +46,4 @@ pub async fn list_idps(State(s): State<Arc<AppState>>) -> Result<Json<IdpsRespon
         .map(Idp::desensitize)
         .collect();
     Ok(Json(IdpsResponse { idps }))
-}
-
-pub(crate) async fn enabled_idp(s: &AppState, idp_id: i64) -> Result<Idp, WebError> {
-    let idp = cds_db::idp::find_idp_by_id::<Idp>(&s.db.conn, idp_id)
-        .await?
-        .ok_or(WebError::NotFound(json!("idp_not_found")))?;
-    if !idp.enabled {
-        return Err(WebError::NotFound(json!("idp_not_found")));
-    }
-    Ok(idp)
-}
-
-pub(crate) async fn user_map(
-    s: &AppState,
-    user: &User,
-) -> Result<HashMap<String, String>, WebError> {
-    let mut map = HashMap::from([
-        ("id".to_string(), user.id.to_string()),
-        ("username".to_string(), user.username.clone()),
-        ("name".to_string(), user.name.clone()),
-        (
-            "group".to_string(),
-            format!("{:?}", user.group).to_lowercase(),
-        ),
-    ]);
-    if let Some(email) = cds_db::email::find_by_user_id::<Email>(&s.db.conn, user.id)
-        .await?
-        .into_iter()
-        .find(|email| email.verified)
-    {
-        map.insert("email".to_string(), email.email);
-    }
-    Ok(map)
-}
-
-pub(crate) async fn create_user_idp(
-    s: &AppState,
-    idp: &Idp,
-    user_id: i64,
-    payload: &cds_idp::IdentityPayload,
-) -> Result<UserIdp, WebError> {
-    Ok(cds_db::user_idp::create_user_idp::<UserIdp>(
-        &s.db.conn,
-        cds_db::user_idp::UserIdpActiveModel {
-            id: NotSet,
-            user_id: Set(user_id),
-            idp_id: Set(idp.id),
-            auth_key: Set(payload.auth_key.clone()),
-            data: Set(Some(json!(payload.data))),
-            ..Default::default()
-        },
-    )
-    .await?)
 }

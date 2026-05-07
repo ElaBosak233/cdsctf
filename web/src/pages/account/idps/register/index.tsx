@@ -29,11 +29,10 @@ export default function Index() {
                 ])}
               >
                 <UserRoundPlusIcon />
-                Complete Registration
+                {t("account:idp.register._")}
               </div>
               <div className={cn(["text-sm", "text-secondary-foreground"])}>
-                Please fill in the details to complete your account registration
-                via third-party login.
+                {t("account:idp.register.description")}
               </div>
               <div className={cn(["pt-6"])}>
                 <IdpRegisterForm />

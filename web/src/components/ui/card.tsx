@@ -1,4 +1,4 @@
-import { Slot, Slottable } from "@radix-ui/react-slot";
+import { Slot as RadixSlot } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "@/utils";
@@ -10,7 +10,7 @@ type CardProps = React.ComponentProps<"div"> & {
 function Card(props: CardProps) {
   const { className, asChild = false, ref, children, ...rest } = props;
 
-  const Comp = asChild ? Slot : "div";
+  const Comp = asChild ? RadixSlot.Slot : "div";
 
   return (
     <Comp
@@ -27,7 +27,7 @@ function Card(props: CardProps) {
       )}
       {...rest}
     >
-      <Slottable>{children}</Slottable>
+      <RadixSlot.Slottable>{children}</RadixSlot.Slottable>
     </Comp>
   );
 }

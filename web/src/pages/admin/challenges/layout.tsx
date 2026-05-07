@@ -65,7 +65,12 @@ export default function Layout() {
 
   return (
     <ChallengeListContext.Provider
-      value={{ createDialogOpen, setCreateDialogOpen, columnFilters, setColumnFilters }}
+      value={{
+        createDialogOpen,
+        setCreateDialogOpen,
+        columnFilters,
+        setColumnFilters,
+      }}
     >
       <div
         className={cn([
@@ -140,7 +145,7 @@ export default function Layout() {
                 <HashIcon className="size-4" />
               </FieldIcon>
               <TextField
-                placeholder="ID"
+                placeholder={t("challenge:form.id._")}
                 value={idValue}
                 onChange={(e) =>
                   setColumnFilters((prev) =>

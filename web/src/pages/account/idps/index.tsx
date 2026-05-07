@@ -1,15 +1,15 @@
+import { useQuery } from "@tanstack/react-query";
 import { HTTPError } from "ky";
-import { ChevronsLeftRightEllipsisIcon, LoaderCircleIcon } from "lucide-react";
+import { LoaderCircleIcon } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
-import { Avatar } from "@/components/ui/avatar";
 import { bindWithIdp, getIdp, loginWithIdp } from "@/api/idps";
+import { Avatar } from "@/components/ui/avatar";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
-import { DefaultLogo } from "@/components/widgets/default-logo";
 
 function searchParamsToRecord(searchParams: URLSearchParams) {
   const params: Record<string, string> = {};
@@ -25,7 +25,8 @@ export default function Index() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const { data: idp, isLoading } = useQuery({
+  const { t } = useTranslation();
+  const { data: idp } = useQuery({
     queryKey: ["idp", idpId],
     queryFn: () => getIdp(idpId!).then((res) => res.idp),
     enabled: idpId != null,
@@ -43,7 +44,7 @@ export default function Index() {
       try {
         if (user) {
           await bindWithIdp(resolvedIdpId, { params });
-          toast.success("IdP bound");
+          toast.success(t("account:idp.bind.success"));
           navigate("/account/settings/idps", { replace: true });
           return;
         }
@@ -57,7 +58,9 @@ export default function Index() {
           );
           navigate(
             `/account/idps/${resolvedIdpId}/register${
-              redirect !== "/" ? `?redirect=${encodeURIComponent(redirect)}` : ""
+              redirect !== "/"
+                ? `?redirect=${encodeURIComponent(redirect)}`
+                : ""
             }`,
             { replace: true }
           );
@@ -65,11 +68,11 @@ export default function Index() {
         }
 
         useAuthStore.getState().setUser(res.user!);
-        toast.success("Signed in");
+        toast.success(t("account:idp.login.success"));
         navigate(redirect, { replace: true });
       } catch (error) {
         if (error instanceof HTTPError) {
-          toast.error("IdP request failed");
+          toast.error(t("account:idp.login.error"));
           navigate(user ? "/account/settings/idps" : "/account/login", {
             replace: true,
           });
@@ -80,10 +83,19 @@ export default function Index() {
     }
 
     run();
-  }, [idpId, idp, searchParams, navigate]);
+  }, [idpId, idp, searchParams, navigate, t]);
 
   return (
-    <div className={cn(["flex", "flex-col", "flex-1", "items-center", "justify-center", "gap-5"])}>
+    <div
+      className={cn([
+        "flex",
+        "flex-col",
+        "flex-1",
+        "items-center",
+        "justify-center",
+        "gap-5",
+      ])}
+    >
       {idp && (
         <div className={cn(["flex", "items-center", "gap-4"])}>
           <Avatar

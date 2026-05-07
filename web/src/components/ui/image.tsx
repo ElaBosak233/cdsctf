@@ -91,51 +91,49 @@ function Image(props: ImageProps) {
         ])}
       />
 
-      {glass ? (
-        !hasError && (
-          <div
-            className={cn([
-              "absolute",
-              "inset-0",
-              "flex",
-              "items-center",
-              "justify-center",
-              "bg-white/10",
-              "dark:bg-black/10",
-              "backdrop-blur-lg",
-              "pointer-events-none",
-              "transition-opacity",
-              "duration-700",
-              "ease-out",
-              isLoading ? "opacity-100" : "opacity-0",
-            ])}
-          >
-            {isLoading && (
+      {glass
+        ? !hasError && (
+            <div
+              className={cn([
+                "absolute",
+                "inset-0",
+                "flex",
+                "items-center",
+                "justify-center",
+                "bg-white/10",
+                "dark:bg-black/10",
+                "backdrop-blur-lg",
+                "pointer-events-none",
+                "transition-opacity",
+                "duration-700",
+                "ease-out",
+                isLoading ? "opacity-100" : "opacity-0",
+              ])}
+            >
+              {isLoading && (
+                <LoaderCircle
+                  className={cn(["animate-spin", "text-foreground"])}
+                  size={24}
+                />
+              )}
+            </div>
+          )
+        : isLoading && (
+            <div
+              className={cn([
+                "absolute",
+                "inset-0",
+                "flex",
+                "items-center",
+                "justify-center",
+              ])}
+            >
               <LoaderCircle
                 className={cn(["animate-spin", "text-foreground"])}
                 size={24}
               />
-            )}
-          </div>
-        )
-      ) : (
-        isLoading && (
-          <div
-            className={cn([
-              "absolute",
-              "inset-0",
-              "flex",
-              "items-center",
-              "justify-center",
-            ])}
-          >
-            <LoaderCircle
-              className={cn(["animate-spin", "text-foreground"])}
-              size={24}
-            />
-          </div>
-        )
-      )}
+            </div>
+          )}
 
       {hasError && (
         <div

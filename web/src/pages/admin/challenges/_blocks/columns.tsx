@@ -8,7 +8,6 @@ import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
-  EllipseIcon,
   EllipsisIcon,
   EyeClosedIcon,
   EyeIcon,
@@ -19,13 +18,13 @@ import {
 } from "lucide-react";
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useMemo,
   useOptimistic,
   useState,
   useTransition,
-  type ReactNode,
 } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -39,6 +38,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -48,7 +53,6 @@ import type { Challenge } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import { DropdownMenuContent, DropdownMenu, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 const RowContext = createContext<{
   optimisticPublic: boolean;
@@ -86,7 +90,7 @@ function RowProvider({
         });
       });
     },
-    [optimisticPublic, challenge.id, startTransition, setOptimisticPublic, t],
+    [optimisticPublic, challenge.id, setOptimisticPublic, t]
   );
 
   return (
@@ -120,7 +124,7 @@ function IdCell({ row }: { row: Row<Challenge> }) {
 
 function TitleCell({ row }: { row: Row<Challenge> }) {
   const ctx = useRowContext();
-  const isPublic = ctx ? ctx.optimisticPublic : row.original.public ?? false;
+  const isPublic = ctx ? ctx.optimisticPublic : (row.original.public ?? false);
   return (
     <div
       className={cn([
@@ -133,9 +137,7 @@ function TitleCell({ row }: { row: Row<Challenge> }) {
         "whitespace-nowrap",
       ])}
     >
-      {!isPublic && (
-        <LockIcon className={cn(["size-[1em]", "text-warning"])} />
-      )}
+      {!isPublic && <LockIcon className={cn(["size-[1em]", "text-warning"])} />}
       {row.original.title || "-"}
     </div>
   );
@@ -234,16 +236,24 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button square size={"sm"} variant={"ghost"} icon={<EllipsisIcon />} />
+          <Button
+            square
+            size={"sm"}
+            variant={"ghost"}
+            icon={<EllipsisIcon />}
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem onClick={handlePublicnessChange}>
             {optimisticPublic ? <EyeClosedIcon /> : <EyeIcon />}
             {optimisticPublic
-            ? t("challenge:public.actions.false")
-            : t("challenge:public.actions.true")}
+              ? t("challenge:public.actions.false")
+              : t("challenge:public.actions.true")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className={cn(["text-error"])} >
+          <DropdownMenuItem
+            onClick={() => setDeleteDialogOpen(true)}
+            className={cn(["text-error"])}
+          >
             <TrashIcon />
             {t("challenge:actions.delete._")}
           </DropdownMenuItem>
@@ -288,7 +298,6 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
           </Card>
         </DialogContent>
       </Dialog>
-      
     </div>
   );
 }
@@ -301,7 +310,7 @@ function useColumns() {
       {
         accessorKey: "id",
         id: "id",
-        header: "ID",
+        header: t("challenge:form.id._"),
         cell: IdCell,
       },
       {

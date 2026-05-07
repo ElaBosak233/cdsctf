@@ -1,9 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
-import { CheckIcon, LockIcon, MailIcon, TypeIcon, UserRoundIcon } from "lucide-react";
+import {
+  CheckIcon,
+  LockIcon,
+  MailIcon,
+  TypeIcon,
+  UserRoundIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -23,7 +31,6 @@ import { TextField } from "@/components/ui/text-field";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
-import { useQuery } from "@tanstack/react-query";
 
 interface PendingIdentity {
   token: string;
@@ -36,6 +43,7 @@ function IdpRegisterForm() {
   const { idp_id } = useParams();
   const idpId = Number(idp_id);
 
+  const { t } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
 
   const { data: idp } = useQuery({
@@ -56,17 +64,15 @@ function IdpRegisterForm() {
     .object({
       username: z
         .string()
-        .regex(/^[a-z]/, "Username must start with a lowercase letter")
-        .regex(/^[a-z0-9]*$/, "Username can only contain lowercase letters and numbers"),
+        .regex(/^[a-z]/, t("account:register.form.username.start_lower"))
+        .regex(/^[a-z0-9]*$/, t("account:register.form.username.chars")),
       name: z.string(),
-      email: z.email("Invalid email address"),
-      password: z
-        .string()
-        .min(6, "Password must be at least 6 characters"),
+      email: z.email(t("account:register.form.email.invalid")),
+      password: z.string().min(6, t("account:register.form.password.min")),
       confirm_password: z.string(),
     })
     .refine((data) => data.password === data.confirm_password, {
-      message: "Passwords do not match",
+      message: t("account:register.form.confirm_password.mismatch"),
       path: ["confirm_password"],
     });
 
@@ -81,16 +87,18 @@ function IdpRegisterForm() {
 
   if (!pending) {
     return (
-      <div className={cn(["flex", "flex-col", "items-center", "gap-4", "py-8"])}>
+      <div
+        className={cn(["flex", "flex-col", "items-center", "gap-4", "py-8"])}
+      >
         <p className={cn(["text-muted-foreground", "text-sm"])}>
-          No pending identity found. Please log in with a third-party provider first.
+          {t("account:idp.register.no_pending")}
         </p>
         <Button
           variant={"solid"}
           level={"info"}
           onClick={() => navigate("/account/login")}
         >
-          Go to Login
+          {t("account:idp.register.go_login")}
         </Button>
       </div>
     );
@@ -109,9 +117,9 @@ function IdpRegisterForm() {
 
       sessionStorage.removeItem("idp_pending_identity");
       useAuthStore.getState().setUser(res.user);
-      toast.success("Account created", {
+      toast.success(t("account:idp.register.success"), {
         id: "idp-register-success",
-        description: "You have been signed in",
+        description: t("account:idp.register.success_desc"),
       });
       navigate("/", { replace: true });
     } catch (error) {
@@ -120,16 +128,16 @@ function IdpRegisterForm() {
       const body = await parseErrorResponse(error);
 
       if (status === StatusCodes.BAD_REQUEST) {
-        toast.error("Registration failed", {
+        toast.error(t("account:idp.register.failed"), {
           id: "idp-register-error",
           description: formatApiMsg(body.msg),
         });
       }
 
       if (status === StatusCodes.CONFLICT) {
-        toast.error("Registration failed", {
+        toast.error(t("account:idp.register.failed"), {
           id: "idp-register-error",
-          description: "Username or email already exists",
+          description: t("account:idp.register.conflict"),
         });
       }
     } finally {
@@ -145,14 +153,22 @@ function IdpRegisterForm() {
         className={cn(["flex", "flex-col", "h-full", "gap-8"])}
       >
         {idp && (
-          <div className={cn(["flex", "items-center", "justify-center", "gap-3"])}>
+          <div
+            className={cn(["flex", "items-center", "justify-center", "gap-3"])}
+          >
             <Avatar
               square
               className={cn(["size-12", "bg-transparent"])}
               src={idp.avatar_hash && `/api/media?hash=${idp.avatar_hash}`}
               fallback={idp.name?.charAt(0)}
             />
-            <span className={cn(["text-lg", "font-medium", "text-muted-foreground"])}>
+            <span
+              className={cn([
+                "text-lg",
+                "font-medium",
+                "text-muted-foreground",
+              ])}
+            >
               {idp.name}
             </span>
           </div>
@@ -164,7 +180,7 @@ function IdpRegisterForm() {
               name={"username"}
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>{t("account:register.form.username._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -172,7 +188,7 @@ function IdpRegisterForm() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder={"Username"}
+                        placeholder={t("account:register.form.username._")}
                       />
                     </Field>
                   </FormControl>
@@ -185,7 +201,7 @@ function IdpRegisterForm() {
               name={"name"}
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("account:register.form.name._")}</FormLabel>
                   <FormControl>
                     <Field>
                       <FieldIcon>
@@ -193,7 +209,7 @@ function IdpRegisterForm() {
                       </FieldIcon>
                       <TextField
                         {...field}
-                        placeholder={"Name"}
+                        placeholder={t("account:register.form.name._")}
                       />
                     </Field>
                   </FormControl>
@@ -207,7 +223,7 @@ function IdpRegisterForm() {
             name={"email"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("account:register.form.email._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -215,7 +231,7 @@ function IdpRegisterForm() {
                     </FieldIcon>
                     <TextField
                       {...field}
-                      placeholder={"Email"}
+                      placeholder={t("account:register.form.email._")}
                     />
                   </Field>
                 </FormControl>
@@ -228,7 +244,7 @@ function IdpRegisterForm() {
             name={"password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t("account:register.form.password._")}</FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -237,7 +253,7 @@ function IdpRegisterForm() {
                     <TextField
                       type={"password"}
                       {...field}
-                      placeholder={"Password"}
+                      placeholder={t("account:register.form.password._")}
                     />
                   </Field>
                 </FormControl>
@@ -250,7 +266,9 @@ function IdpRegisterForm() {
             name={"confirm_password"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel>
+                  {t("account:register.form.confirm_password._")}
+                </FormLabel>
                 <FormControl>
                   <Field>
                     <FieldIcon>
@@ -259,7 +277,9 @@ function IdpRegisterForm() {
                     <TextField
                       type={"password"}
                       {...field}
-                      placeholder={"Confirm Password"}
+                      placeholder={t(
+                        "account:register.form.confirm_password._"
+                      )}
                     />
                   </Field>
                 </FormControl>
@@ -277,7 +297,7 @@ function IdpRegisterForm() {
           icon={<CheckIcon />}
           loading={loading}
         >
-          Complete Registration
+          {t("account:idp.register.submit")}
         </Button>
       </form>
     </Form>

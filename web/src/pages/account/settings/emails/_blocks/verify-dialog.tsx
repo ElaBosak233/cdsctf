@@ -80,7 +80,7 @@ function VerifyDialog(props: VerifyDialogProps) {
         <div className={cn(["flex", "gap-2", "items-center"])}>
           <Field size={"sm"} className={cn(["flex-1"])}>
             <TextField
-              placeholder={"I_d0nt_kn0w"}
+              placeholder={t("user:emails.verify_code_placeholder")}
               value={code}
               onChange={(e) => setCode(e.target.value)}
             />

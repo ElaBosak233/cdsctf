@@ -1,5 +1,9 @@
 _: Game
 empty: "Oops, it seems that there are no games yet."
+filter:
+  all: ALL
+  pts: pts
+id: ID
 edit:
   _: Edit Game
   info: Info
@@ -48,7 +52,10 @@ form:
   title:
     _: Title
     message: Please enter a title
-  sketch: Sketch
+    placeholder: "My CTF Game"
+  sketch:
+    _: Sketch
+    placeholder: Once upon a time...
   poster: Poster
   poster_upload:
     progress: "Upload progress {{percent}}%"
@@ -74,9 +81,11 @@ form:
   member_limit_min:
     _: Minimum Member Limit
     message: Please enter minimum member limit
+    placeholder: "3"
   member_limit_max:
     _: Maximum Member Limit
     message: Please enter maximum member limit
+    placeholder: "3"
   started_at:
     _: Started At
     message: Please select start time
@@ -86,7 +95,9 @@ form:
   ended_at:
     _: Ended At
     message: Please select end time
-  description: Description
+  description:
+    _: Description
+    placeholder: Once upon a time...
 actions:
   _: Actions
   create:
@@ -116,17 +127,22 @@ challenge:
     max_pts:
       _: Maximum Points
       message: Please enter the maximum points
+      placeholder: "2000"
     min_pts:
       _: Minimum Points
       message: Please enter the minimum points
+      placeholder: "500"
     difficulty:
       _: Difficulty
       message: Please enter the difficulty
+      placeholder: "5"
     frozen_at: Frozen At
     bonus_ratio: Bonus Ratio (%)
+    bonus_ratio_item: "No. {{index}}"
   actions:
     _: Actions
     edit_config_success: "Challenge {{title}} configuration updated successfully."
+    state_wrapper: "({{state}})"
     add_exists: This challenge already exists in this game.
     add:
       _: Add Challenge
@@ -154,6 +170,7 @@ team:
     message: "Team {{name}} states updated successfully."
 notice:
   _: Notice
+  id: ID
   board: Notice Board
   empty: "Oops, it seems that there are no notices yet."
   title: Title
@@ -163,6 +180,7 @@ notice:
     title:
       _: Title
       message: Please enter a title
+      placeholder: My CTF Game
     content:
       _: Content
       message: Please enter content

@@ -1,5 +1,9 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { ListOrderedIcon, MessageCircleDashedIcon, StarIcon } from "lucide-react";
+import {
+  ListOrderedIcon,
+  MessageCircleDashedIcon,
+  StarIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getGameScoreboard } from "@/api/games/game_id";
@@ -108,11 +112,7 @@ export default function Index() {
                           "w-full",
                         ])}
                       >
-                        <Badge
-                          variant="outline"
-                        >
-                          {record.team?.rank}
-                        </Badge>
+                        <Badge variant="outline">{record.team?.rank}</Badge>
 
                         <Avatar
                           className={cn(["size-10", "shrink-0"])}
@@ -131,9 +131,7 @@ export default function Index() {
                             "min-w-0",
                           ])}
                         >
-                          <span
-                            className={cn(["font-semibold", "text-base"])}
-                          >
+                          <span className={cn(["font-semibold", "text-base"])}>
                             {record.team?.name}
                           </span>
                           <span

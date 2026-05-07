@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
-  IdCardIcon,
   LayoutTemplateIcon,
   LinkIcon,
   SaveIcon,
@@ -12,12 +11,11 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
   type DiagnosticMarker,
-  deleteAdminIdp,
   deleteAdminIdpAvatar,
   getAdminIdp,
   lintIdpScript,
@@ -73,7 +71,7 @@ export default function Index() {
   const idpId = parseRouteNumericId(idp_id);
 
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [_deleting, _setDeleting] = useState(false);
   const [hasAvatar, setHasAvatar] = useState(false);
   const [lint, setLint] = useState<Array<DiagnosticMarker>>();
   const avatarInput = useRef<HTMLInputElement>(null);
