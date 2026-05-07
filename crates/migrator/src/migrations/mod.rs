@@ -51,4 +51,3 @@ pub mod m20260201_000012_create_idp;
 /// Defines the `m20260201_000013_create_user_idp` submodule (see sibling `*.rs`
 /// files).
 pub mod m20260201_000013_create_user_idp;
-

@@ -5,7 +5,7 @@ mod idp_id;
 
 use std::{collections::HashMap, sync::Arc};
 
-use axum::{extract::State, Json, Router};
+use axum::{Json, Router, extract::State};
 use cds_db::Idp;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{

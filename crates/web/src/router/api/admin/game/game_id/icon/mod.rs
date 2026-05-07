@@ -10,12 +10,11 @@ use cds_db::{
     Game,
     sea_orm::{Set, Unchanged},
 };
+use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-
-use serde_json::json;
 
 use crate::{
     extract::Path,

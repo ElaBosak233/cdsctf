@@ -119,7 +119,10 @@ impl Idp {
             );
         }
 
-        let auth_key = data.get("auth_key").ok_or_else(|| IdpError::MissingField("auth_key".to_owned()))?.to_owned();
+        let auth_key = data
+            .get("auth_key")
+            .ok_or_else(|| IdpError::MissingField("auth_key".to_owned()))?
+            .to_owned();
 
         Ok(IdentityPayload { auth_key, data })
     }

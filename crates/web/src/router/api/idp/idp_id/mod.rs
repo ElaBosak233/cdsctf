@@ -12,7 +12,7 @@ use axum::{
 };
 use cds_db::{
     Email, Idp, User, UserIdp,
-    sea_orm::ActiveValue::Set,
+    sea_orm::{ActiveValue::Set, NotSet},
     user::{FindUserOptions, Group},
 };
 use serde::{Deserialize, Serialize};
@@ -24,10 +24,10 @@ use utoipa_axum::{
     routes,
 };
 use validator::Validate;
-use cds_db::sea_orm::NotSet;
+
 use crate::{
     extract::{Extension, Json as ReqJson},
-    router::api::idp::{IdpAuthRequest},
+    router::api::idp::IdpAuthRequest,
     traits::{AppState, AuthPrincipal, WebError},
     util,
 };
@@ -269,9 +269,7 @@ pub async fn register(
 
     // Verify the auth_key is not already bound
     if cds_db::user_idp::find_user_idp_by_auth_key::<cds_db::user_idp::UserIdpModel>(
-        &s.db.conn,
-        idp.id,
-        &auth_key,
+        &s.db.conn, idp.id, &auth_key,
     )
     .await?
     .is_some()
@@ -344,7 +342,10 @@ pub async fn register(
         "user registered through idp"
     );
 
-    Ok((StatusCode::CREATED, Json(crate::router::api::user::UserResponse { user })))
+    Ok((
+        StatusCode::CREATED,
+        Json(crate::router::api::user::UserResponse { user }),
+    ))
 }
 
 async fn enabled_idp(s: &AppState, idp_id: i64) -> Result<Idp, WebError> {
@@ -357,10 +358,7 @@ async fn enabled_idp(s: &AppState, idp_id: i64) -> Result<Idp, WebError> {
     Ok(idp)
 }
 
-async fn user_map(
-    s: &AppState,
-    user: &User,
-) -> Result<HashMap<String, String>, WebError> {
+async fn user_map(s: &AppState, user: &User) -> Result<HashMap<String, String>, WebError> {
     let mut map = HashMap::from([
         ("id".to_string(), user.id.to_string()),
         ("username".to_string(), user.username.clone()),
@@ -397,5 +395,5 @@ async fn create_user_idp(
             ..Default::default()
         },
     )
-        .await?)
+    .await?)
 }
