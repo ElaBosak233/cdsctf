@@ -162,6 +162,13 @@ const router = createBrowserRouter([
             }),
           },
           {
+            path: "idps/:idp_id/register",
+            lazy: async () => ({
+              Component: (await import("@/pages/account/idps/register"))
+                .default,
+            }),
+          },
+          {
             path: "settings",
             lazy: async () => ({
               Component: (await import("@/pages/account/settings/layout"))

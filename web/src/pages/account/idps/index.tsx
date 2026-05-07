@@ -44,18 +44,33 @@ export default function Index() {
         if (user) {
           await bindWithIdp(resolvedIdpId, { params });
           toast.success("IdP bound");
-          navigate("/account/settings/idp", { replace: true });
+          navigate("/account/settings/idps", { replace: true });
           return;
         }
 
         const res = await loginWithIdp(resolvedIdpId, { params });
-        useAuthStore.getState().setUser(res.user);
+
+        if (res.requires_registration && res.pending_identity) {
+          sessionStorage.setItem(
+            "idp_pending_identity",
+            JSON.stringify(res.pending_identity)
+          );
+          navigate(
+            `/account/idps/${resolvedIdpId}/register${
+              redirect !== "/" ? `?redirect=${encodeURIComponent(redirect)}` : ""
+            }`,
+            { replace: true }
+          );
+          return;
+        }
+
+        useAuthStore.getState().setUser(res.user!);
         toast.success("Signed in");
         navigate(redirect, { replace: true });
       } catch (error) {
         if (error instanceof HTTPError) {
           toast.error("IdP request failed");
-          navigate(user ? "/account/settings/idp" : "/account/login", {
+          navigate(user ? "/account/settings/idps" : "/account/login", {
             replace: true,
           });
         } else {
