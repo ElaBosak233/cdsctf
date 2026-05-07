@@ -1,33 +1,19 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { ListOrderedIcon, MessageCircleDashedIcon } from "lucide-react";
+import { ListOrderedIcon, MessageCircleDashedIcon, StarIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getGameScoreboard } from "@/api/games/game_id";
+import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { Pagination } from "@/components/ui/pagination";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import type { ScoreRecord } from "@/models/game";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 
 import { ChampionChart } from "./_blocks/champion-chart";
-import { useColumns } from "./_blocks/columns";
 import { TeamDetailsDialog } from "./_blocks/team-details-dialog";
 
 export default function Index() {
@@ -53,18 +39,6 @@ export default function Index() {
     enabled: !!currentGame?.id,
   });
 
-  const columns = useColumns();
-  const table = useReactTable<ScoreRecord>({
-    data: scoreboardData?.scoreboard || [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    rowCount: scoreboardData?.total,
-    manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
-    manualSorting: true,
-  });
-
   return (
     <>
       <title>{`${t("game:scoreboard._")} - ${currentGame?.title}`}</title>
@@ -84,10 +58,9 @@ export default function Index() {
         {scoreboardData?.total ? (
           <>
             <ChampionChart scoreboard={scoreboardData?.scoreboard} />
-            <div className={cn(["flex", "items-center", "gap-10"])}>
+            <div className={cn(["flex", "items-center", "gap-10", "w-full"])}>
               <div className="flex-1 text-sm text-muted-foreground">
-                {table.getFilteredRowModel().rows.length} /{" "}
-                {scoreboardData?.total}
+                {scoreboardData?.scoreboard.length} / {scoreboardData?.total}
               </div>
               <Field size={"sm"} className={cn(["w-48"])}>
                 <FieldIcon>
@@ -119,61 +92,84 @@ export default function Index() {
                 "w-full",
               ])}
             >
-              <ScrollArea
-                className={cn([
-                  "rounded-md",
-                  "w-full",
-                  "h-full",
-                  "min-h-0",
-                  "overflow-hidden",
-                ])}
-              >
-                <Table className={cn(["text-foreground"])}>
-                  <TableHeader
-                    className={cn(["bg-muted/70", "backdrop-blur-md"])}
-                  >
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => {
-                          return (
-                            <TableHead key={header.id}>
-                              {!header.isPlaceholder &&
-                                flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                            </TableHead>
-                          );
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody>
-                    {table.getRowModel().rows.map((row) => (
-                      <Dialog key={row.original.team?.id}>
-                        <DialogTrigger>
-                          <TableRow
-                            data-state={row.getIsSelected() && "selected"}
-                            className={cn(["cursor-pointer"])}
+              <div className={cn(["flex", "flex-col", "gap-4", "w-full"])}>
+                {scoreboardData.scoreboard.map((record) => (
+                  <Dialog key={record.team?.id}>
+                    <DialogTrigger>
+                      <Card
+                        className={cn([
+                          "flex",
+                          "items-center",
+                          "gap-5",
+                          "p-5",
+                          "cursor-pointer",
+                          "hover:bg-muted/50",
+                          "transition-colors",
+                          "w-full",
+                        ])}
+                      >
+                        <Badge
+                          variant="outline"
+                        >
+                          {record.team?.rank}
+                        </Badge>
+
+                        <Avatar
+                          className={cn(["size-10", "shrink-0"])}
+                          src={
+                            record.team?.avatar_hash &&
+                            `/api/media?hash=${record.team?.avatar_hash}`
+                          }
+                          fallback={record.team?.name?.charAt(0)}
+                        />
+
+                        <div
+                          className={cn([
+                            "flex",
+                            "flex-col",
+                            "flex-1",
+                            "min-w-0",
+                          ])}
+                        >
+                          <span
+                            className={cn(["font-semibold", "text-base"])}
                           >
-                            {row.getVisibleCells().map((cell) => (
-                              <TableCell key={cell.id}>
-                                {flexRender(
-                                  cell.column.columnDef.cell,
-                                  cell.getContext()
-                                )}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <TeamDetailsDialog team={row.original.team!} />
-                        </DialogContent>
-                      </Dialog>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
+                            {record.team?.name}
+                          </span>
+                          <span
+                            className={cn([
+                              "text-sm",
+                              "text-muted-foreground",
+                              "truncate",
+                            ])}
+                          >
+                            {record.team?.slogan}
+                          </span>
+                        </div>
+
+                        <Badge
+                          variant="tonal"
+                          size="md"
+                          className={cn([
+                            "font-mono",
+                            "flex",
+                            "gap-1.5",
+                            "items-center",
+                            "shrink-0",
+                            "px-4",
+                          ])}
+                        >
+                          <StarIcon className={cn(["size-4"])} />
+                          {record.team?.pts}
+                        </Badge>
+                      </Card>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <TeamDetailsDialog team={record.team!} />
+                    </DialogContent>
+                  </Dialog>
+                ))}
+              </div>
             </div>
           </>
         ) : (

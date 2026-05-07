@@ -58,7 +58,7 @@ function Background() {
           "print:hidden",
         ])}
       >
-        <g className={cn(["[&_circle]:fill-primary/1"])}>
+        <g className={cn(["[&_circle]:fill-primary/2.5", "dark:[&_circle]:fill-primary/1"])}>
           {circles.map((circle, i) => (
             <circle
               key={i}
