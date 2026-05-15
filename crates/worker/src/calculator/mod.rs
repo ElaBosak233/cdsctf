@@ -1,4 +1,4 @@
-//! JetStream consumer for subject **`calculator`**: recomputes **per-submission
+//! JetStream consumer for subject **`cds.game.recalc`**: recomputes **per-submission
 //! points**, **challenge leaderboard snapshots**, and **team totals / ranks**
 //! after new correct solves.
 //!
@@ -36,7 +36,7 @@ pub use payload::Payload;
 use tracing::{debug, error, info};
 
 /// JetStream subject name for score / rank recomputation jobs.
-pub const SUBJECT: &str = "calculator";
+pub const SUBJECT: &str = "cds.game.recalc";
 
 /// Rebuilds scoring state for one competition (`game_id`) from the database.
 #[tracing::instrument(skip_all, fields(game_id = game_id))]

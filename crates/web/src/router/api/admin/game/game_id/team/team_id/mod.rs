@@ -21,7 +21,7 @@ use cds_db::{
     },
     team::State as TState,
 };
-use cds_worker::calculator::Payload;
+use cds_worker::calculator::{Payload, SUBJECT};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -95,7 +95,7 @@ pub async fn update_team(
     if team.state != new_team.state {
         s.queue
             .publish(
-                "calculator",
+                SUBJECT,
                 Payload {
                     game_id: Some(game_id),
                 },

@@ -6,6 +6,7 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State};
 use cds_db::{Email, User};
 use cds_media::config::email::EmailType;
+use cds_worker::mailbox::SUBJECT;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -141,7 +142,7 @@ pub async fn send_forget_email(
 
     s.queue
         .publish(
-            "mailbox",
+            SUBJECT,
             cds_mailbox::Payload {
                 name: user.name.to_owned(),
                 email: email.email.to_owned(),

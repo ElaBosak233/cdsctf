@@ -9,6 +9,7 @@ use cds_db::{
     sea_orm::{Set, Unchanged},
 };
 use cds_media::config::email::EmailType;
+use cds_worker::mailbox::SUBJECT;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -267,7 +268,7 @@ pub async fn send_verify_email(
 
     s.queue
         .publish(
-            "mailbox",
+            SUBJECT,
             cds_mailbox::Payload {
                 name: operator.name.to_owned(),
                 email: email.email.to_owned(),

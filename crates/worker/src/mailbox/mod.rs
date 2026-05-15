@@ -1,4 +1,4 @@
-//! JetStream consumer for subject **`mailbox`**: deserializes
+//! JetStream consumer for subject **`cds.mail.send`**: deserializes
 //! [`cds_mailbox::Payload`] and delivers mail through [`cds_mailbox::Mailbox`]
 //! (SMTP settings from the database).
 //!
@@ -11,7 +11,7 @@ use futures_util::StreamExt as _;
 use tracing::{debug, error, info, warn};
 
 /// Stream / subject name for asynchronous outbound email.
-pub const SUBJECT: &str = "mailbox";
+pub const SUBJECT: &str = "cds.mail.send";
 
 /// Blocking pull loop until the subscription ends or the process shuts down.
 #[tracing::instrument(skip_all, fields(subject = SUBJECT))]

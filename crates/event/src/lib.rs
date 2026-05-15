@@ -1,4 +1,4 @@
-//! Simple event bus on top of NATS JetStream (`events` subject).
+//! Simple event bus on top of NATS JetStream (`cds.event.broadcast` subject).
 //!
 //! [`EventManager::push`] serializes [`types::Event`] as JSON;
 //! [`EventManager::subscribe`] yields a stream of decoded events for WebSocket
@@ -11,6 +11,9 @@ use futures_util::{Stream, StreamExt as _};
 use tracing::info;
 
 use crate::{traits::EventError, types::Event};
+
+/// JetStream subject for real-time event broadcast.
+pub const SUBJECT: &str = "cds.event.broadcast";
 
 /// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
@@ -42,9 +45,9 @@ pub fn init(queue: &Queue) -> Result<EventManager, EventError> {
 }
 
 impl EventManager {
-    /// Publishes a single [`Event`] JSON payload on the fixed `events` subject.
+    /// Publishes a single [`Event`] JSON payload on the fixed `cds.event.broadcast` subject.
     pub async fn push(&self, event: Event) -> Result<(), EventError> {
-        self.queue.publish("events", event).await?;
+        self.queue.publish(SUBJECT, event).await?;
 
         Ok(())
     }
@@ -58,7 +61,7 @@ impl EventManager {
         &self,
         SubscribeOptions { game_id: _, token }: SubscribeOptions,
     ) -> Result<impl Stream<Item = Result<Event, Infallible>> + Send + use<>, EventError> {
-        let mut messages = self.queue.subscribe("events", token.as_deref()).await?;
+        let mut messages = self.queue.subscribe(SUBJECT, token.as_deref()).await?;
 
         let stream = async_stream::stream! {
             while let Some(Ok(message)) = messages.next().await {

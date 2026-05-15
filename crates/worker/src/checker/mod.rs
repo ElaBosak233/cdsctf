@@ -1,4 +1,4 @@
-//! JetStream consumer for subject **`checker`**: resolves **pending** flag
+//! JetStream consumer for subject **`cds.submission.check`**: resolves **pending** flag
 //! submissions with the Rune [`cds_checker::Checker`], applies game rules
 //! (duplicate, freeze, cheat), and may enqueue [`crate::calculator`] work when
 //! a submission becomes correct.
@@ -29,7 +29,7 @@ use tracing::{debug, error, info, warn};
 use crate::calculator::{self, Payload};
 
 /// JetStream subject for asynchronous submission verification.
-pub const SUBJECT: &str = "checker";
+pub const SUBJECT: &str = "cds.submission.check";
 
 /// Shared handles for one consumer instance (cloned into async jobs).
 #[derive(Clone)]

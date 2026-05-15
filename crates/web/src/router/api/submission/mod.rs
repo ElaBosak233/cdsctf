@@ -18,6 +18,8 @@ use utoipa_axum::{
     routes,
 };
 
+use cds_worker::checker::SUBJECT;
+
 use crate::{
     extract::{Extension, Json as ReqJson, Query},
     traits::{AppState, AuthPrincipal, WebError},
@@ -211,14 +213,14 @@ pub async fn create_submission(
     )
     .await?;
 
-    s.queue.publish("checker", submission.id).await?;
+    s.queue.publish(SUBJECT, submission.id).await?;
     info!(
         submission_id = submission.id,
         user_id = operator.id,
         team_id = body.team_id,
         game_id = body.game_id,
         challenge_id = body.challenge_id,
-        subject = "checker",
+        subject = SUBJECT,
         "submission created and queued"
     );
 

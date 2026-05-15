@@ -12,7 +12,7 @@ use cds_db::{
     },
 };
 use cds_event::types::game_challenge::{GameChallengeEvent, GameChallengeEventType};
-use cds_worker::calculator::Payload;
+use cds_worker::calculator::{Payload, SUBJECT};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use utoipa_axum::{
@@ -98,7 +98,7 @@ pub async fn update_game_challenge(
     {
         s.queue
             .publish(
-                "calculator",
+                SUBJECT,
                 Payload {
                     game_id: Some(new_game_challenge.game_id),
                 },

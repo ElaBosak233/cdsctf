@@ -1,11 +1,11 @@
 //! Background JetStream **consumers**: one Tokio task per logical queue
 //! subject.
 //!
-//! | Module       | Subject      | Purpose                                      |
-//! |-------------|--------------|----------------------------------------------|
-//! | [`calculator`] | `calculator` | Recompute dynamic scores/ranks after solves |
-//! | [`checker`]  | `checker`    | Run asynchronous flag checks                |
-//! | [`mailbox`]  | `mailbox`    | Deliver outbound SMTP mail                  |
+//! | Module       | Subject               | Purpose                                      |
+//! |-------------|----------------------|----------------------------------------------|
+//! | [`calculator`] | `cds.game.recalc`    | Recompute dynamic scores/ranks after solves |
+//! | [`checker`]    | `cds.submission.check`  | Run asynchronous flag checks                |
+//! | [`mailbox`]    | `cds.mail.send`      | Deliver outbound SMTP mail                  |
 
 use cds_checker::Checker;
 use cds_db::DB;
@@ -21,7 +21,7 @@ pub mod checker;
 /// Defines the `mailbox` submodule (see sibling `*.rs` files).
 pub mod mailbox;
 
-/// Start every queue consumer (calculator, checker, mailbox).
+/// Start every queue consumer (`cds.game.recalc`, `cds.submission.check`, `cds.mail.send`).
 #[tracing::instrument(skip_all, fields(handler = "init"))]
 pub async fn init(
     db: &DB,

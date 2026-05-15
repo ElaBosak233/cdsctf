@@ -23,7 +23,7 @@ use cds_db::sea_orm::{
     ActiveValue::{Set, Unchanged},
     NotSet,
 };
-use cds_worker::calculator::Payload;
+use cds_worker::calculator::{Payload, SUBJECT};
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -183,7 +183,7 @@ pub async fn calculate_game(
 
     s.queue
         .publish(
-            "calculator",
+            SUBJECT,
             Payload {
                 game_id: Some(game.id),
             },

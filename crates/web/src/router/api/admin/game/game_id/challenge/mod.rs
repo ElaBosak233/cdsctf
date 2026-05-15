@@ -9,7 +9,7 @@ use cds_db::{
     game_challenge::FindGameChallengeOptions,
     sea_orm::{ActiveValue::Set, NotSet},
 };
-use cds_worker::calculator::Payload;
+use cds_worker::calculator::{Payload, SUBJECT};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -148,7 +148,7 @@ pub async fn create_game_challenge(
 
     s.queue
         .publish(
-            "calculator",
+            SUBJECT,
             Payload {
                 game_id: Some(game.id),
             },
