@@ -61,7 +61,8 @@ impl Queue {
         let stream = self
             .jet_stream
             .get_or_create_stream(async_nats::jetstream::stream::Config {
-                name: String::from(subject),
+                name: subject.replace(['.', '_'], "-"),
+                subjects: vec![subject.to_owned()],
                 max_messages: 10_000,
                 ..Default::default()
             })
@@ -71,8 +72,9 @@ impl Queue {
         // messages.
         let subscriber = stream
             .get_or_create_consumer(
-                subject,
+                &subject.replace(['.', '_'], "-"),
                 async_nats::jetstream::consumer::pull::Config {
+                    filter_subject: subject.to_owned(),
                     durable_name: Some(durable_name.unwrap_or("worker").to_owned()),
                     ..Default::default()
                 },
