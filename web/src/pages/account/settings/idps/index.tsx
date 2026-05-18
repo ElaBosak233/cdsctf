@@ -1,4 +1,4 @@
-import { IdCardIcon, LinkIcon, TrashIcon } from "lucide-react";
+import { IdCardIcon, LinkIcon, UnplugIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -76,7 +76,7 @@ export default function Index() {
                   <Button
                     variant="tonal"
                     level="error"
-                    icon={<TrashIcon />}
+                    icon={<UnplugIcon />}
                     onClick={() => handleUnbind(item.id!)}
                   >
                     {t("user:idp.actions.unbind")}

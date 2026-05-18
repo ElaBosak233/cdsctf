@@ -137,32 +137,45 @@ export default function Index() {
   const handleAddPort = (containerIndex: number) => {
     const containers = form.getValues("containers") || [];
     const ports = containers[containerIndex]?.ports || [];
-    containers[containerIndex].ports = [
-      ...ports,
-      { port: NaN, protocol: "TCP" },
-    ];
-    form.setValue("containers", containers);
+    const newContainers = [...containers];
+    newContainers[containerIndex] = {
+      ...newContainers[containerIndex],
+      ports: [...ports, { port: NaN, protocol: "TCP" }],
+    };
+    form.setValue("containers", newContainers);
   };
 
   const handleRemovePort = (containerIndex: number, portIndex: number) => {
     const containers = form.getValues("containers") || [];
     const ports = containers[containerIndex]?.ports || [];
-    containers[containerIndex].ports = ports.filter((_, i) => i !== portIndex);
-    form.setValue("containers", containers);
+    const newContainers = [...containers];
+    newContainers[containerIndex] = {
+      ...newContainers[containerIndex],
+      ports: ports.filter((_, i) => i !== portIndex),
+    };
+    form.setValue("containers", newContainers);
   };
 
   const handleAddEnv = (containerIndex: number) => {
     const containers = form.getValues("containers") || [];
     const envs = containers[containerIndex]?.envs || [];
-    containers[containerIndex].envs = [...envs, { key: "", value: "" }];
-    form.setValue("containers", containers);
+    const newContainers = [...containers];
+    newContainers[containerIndex] = {
+      ...newContainers[containerIndex],
+      envs: [...envs, { key: "", value: "" }],
+    };
+    form.setValue("containers", newContainers);
   };
 
   const handleRemoveEnv = (containerIndex: number, envIndex: number) => {
     const containers = form.getValues("containers") || [];
     const envs = containers[containerIndex]?.envs || [];
-    containers[containerIndex].envs = envs.filter((_, i) => i !== envIndex);
-    form.setValue("containers", containers);
+    const newContainers = [...containers];
+    newContainers[containerIndex] = {
+      ...newContainers[containerIndex],
+      envs: envs.filter((_, i) => i !== envIndex),
+    };
+    form.setValue("containers", newContainers);
   };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
