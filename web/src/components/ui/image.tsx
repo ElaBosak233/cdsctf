@@ -27,50 +27,36 @@ function Image(props: ImageProps) {
     className,
   } = props;
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [hasError, setHasError] = useState<boolean>(false);
-  const errorTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const [isLoading, setIsLoading] = useState<boolean>(!!src);
+  const [hasError, setHasError] = useState<boolean>(!src);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
-    if (errorTimerRef.current) {
-      clearTimeout(errorTimerRef.current);
-    }
-
-    if (src) {
-      setIsLoading(true);
-      setHasError(false);
-    } else {
-      setIsLoading(true);
-      errorTimerRef.current = setTimeout(() => {
-        setIsLoading(false);
-        setHasError(true);
-      }, 2000);
-    }
-
     return () => {
-      if (errorTimerRef.current) {
-        clearTimeout(errorTimerRef.current);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
       }
     };
-  }, [src]);
+  }, []);
 
   function handleLoad() {
-    if (errorTimerRef.current) {
-      clearTimeout(errorTimerRef.current);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
     }
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       setIsLoading(false);
     }, delay);
   }
 
   function handleError() {
-    errorTimerRef.current = setTimeout(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = setTimeout(() => {
       setIsLoading(false);
       setHasError(true);
     }, 2000);
   }
-
-  const imgHidden = glass ? hasError : isLoading || hasError;
 
   return (
     <div className={cn(["relative", "overflow-hidden"], className)}>
@@ -85,55 +71,53 @@ function Image(props: ImageProps) {
           "w-full",
           "h-full",
           "object-cover",
-          glass && ["transition-all", "duration-700", "ease-out"],
           glass && isLoading && !hasError && "scale-105",
-          imgHidden && "hidden",
+          glass && "transition-all duration-700 ease-out",
+          hasError && "hidden",
         ])}
       />
 
-      {glass
-        ? !hasError && (
-            <div
-              className={cn([
-                "absolute",
-                "inset-0",
-                "flex",
-                "items-center",
-                "justify-center",
-                "bg-white/10",
-                "dark:bg-black/10",
-                "backdrop-blur-lg",
-                "pointer-events-none",
-                "transition-opacity",
-                "duration-700",
-                "ease-out",
-                isLoading ? "opacity-100" : "opacity-0",
-              ])}
-            >
-              {isLoading && (
-                <LoaderCircle
-                  className={cn(["animate-spin", "text-foreground"])}
-                  size={24}
-                />
-              )}
-            </div>
-          )
-        : isLoading && (
-            <div
-              className={cn([
-                "absolute",
-                "inset-0",
-                "flex",
-                "items-center",
-                "justify-center",
-              ])}
-            >
-              <LoaderCircle
-                className={cn(["animate-spin", "text-foreground"])}
-                size={24}
-              />
-            </div>
+      {glass && !hasError && (
+        <div
+          className={cn([
+            "absolute",
+            "inset-0",
+            "flex",
+            "items-center",
+            "justify-center",
+            "bg-white/10",
+            "dark:bg-black/10",
+            "backdrop-blur-lg",
+            "pointer-events-none",
+            "transition-opacity duration-700 ease-out",
+            isLoading ? "opacity-100" : "opacity-0",
+          ])}
+        >
+          {isLoading && (
+            <LoaderCircle
+              className={cn(["animate-spin", "text-foreground"])}
+              size={24}
+            />
           )}
+        </div>
+      )}
+
+      {!glass && isLoading && (
+        <div
+          className={cn([
+            "absolute",
+            "inset-0",
+            "flex",
+            "items-center",
+            "justify-center",
+          ])}
+        >
+          <LoaderCircle
+            className={cn(["animate-spin", "text-foreground"])}
+            size={24}
+          />
+        </div>
+      )}
 
       {hasError && (
         <div

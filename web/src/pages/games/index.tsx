@@ -223,6 +223,7 @@ export default function Index() {
         </div>
         <div className={cn(["relative", "select-none", "w-full", "xl:w-1/2"])}>
           <Image
+            key={selectedGame?.id}
             src={
               selectedGame?.poster_hash &&
               `/api/media?hash=${selectedGame?.poster_hash}`
@@ -301,10 +302,7 @@ export default function Index() {
                   className={cn([
                     "text-sm",
                     "text-secondary-foreground",
-                    "max-w-full",
-                    "text-ellipsis",
-                    "overflow-hidden",
-                    "max-h-24",
+                    "line-clamp-2",
                   ])}
                 >
                   {selectedGame?.sketch}
