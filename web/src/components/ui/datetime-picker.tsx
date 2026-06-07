@@ -560,7 +560,7 @@ const dateTimePickerVariants = cva(
   }
 );
 
-interface DateTimePickerProps {
+type DateTimePickerProps = {
   value?: Date;
   clearable?: boolean;
   onChange?: (date: Date | undefined) => void;
