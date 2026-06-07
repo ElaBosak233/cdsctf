@@ -230,7 +230,7 @@ export default function Index() {
             }
             className={cn([
               "object-cover",
-              "rounded-2xl",
+              "rounded-elevated",
               "overflow-hidden",
               "border",
               "aspect-video",

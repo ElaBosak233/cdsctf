@@ -522,7 +522,7 @@ type DropzoneFileListContext<TUploadRes, TUploadError> = {
   canRetry: boolean;
   dropzoneId: string;
   messageId: string;
-}
+};
 
 const DropzoneFileListContext = createContext<
   DropzoneFileListContext<unknown, unknown>

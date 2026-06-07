@@ -10,7 +10,7 @@ export type UpdateGameChallengeRequest = {
   difficulty?: number;
   bonus_ratios?: Array<number>;
   frozen_at?: number | null;
-}
+};
 
 export async function updateGameChallenge(request: UpdateGameChallengeRequest) {
   return api
@@ -23,7 +23,7 @@ export async function updateGameChallenge(request: UpdateGameChallengeRequest) {
 export type DeleteGameChallengeRequest = {
   challenge_id?: number;
   game_id?: number;
-}
+};
 
 export async function deleteGameChallenge(request: DeleteGameChallengeRequest) {
   return api

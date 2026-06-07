@@ -69,61 +69,82 @@ function CreateDialog(props: CreateDialogProps) {
 
   return (
     <Card
-      className={cn(["p-5", "w-156", "min-h-64", "flex", "flex-col", "gap-5"])}
+      className={cn([
+        "w-156",
+        "min-h-64",
+        "rounded-elevated",
+        "shadow-lg",
+        "overflow-hidden",
+        "flex",
+        "flex-col",
+      ])}
     >
-      <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
-        <MessageCircleIcon className={cn(["size-4"])} />
-        {t("game:notice.actions.create._")}
-      </h3>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          autoComplete={"off"}
-          className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
-        >
-          <FormField
-            control={form.control}
-            name={"title"}
-            render={({ field }) => (
-              <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game:notice.form.title._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <TypeIcon />
-                    </FieldIcon>
-                    <TextField
+      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
+          >
+            <MessageCircleIcon className={cn(["size-5"])} />
+          </div>
+          <h3 className={cn(["text-base", "font-semibold"])}>
+            {t("game:notice.actions.create._")}
+          </h3>
+        </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            autoComplete={"off"}
+            className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
+          >
+            <FormField
+              control={form.control}
+              name={"title"}
+              render={({ field }) => (
+                <FormItem className={cn(["w-full"])}>
+                  <FormLabel>{t("game:notice.form.title._")}</FormLabel>
+                  <FormControl>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <TypeIcon />
+                      </FieldIcon>
+                      <TextField
+                        {...field}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name={"content"}
+              render={({ field }) => (
+                <FormItem className={cn(["w-full"])}>
+                  <FormLabel>{t("game:notice.form.content._")}</FormLabel>
+                  <FormControl>
+                    <MarkdownEditor
                       {...field}
-                      value={field.value || ""}
-                      onChange={field.onChange}
+                      className={cn(["h-full", "min-h-64"])}
                     />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name={"content"}
-            render={({ field }) => (
-              <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game:notice.form.content._")}</FormLabel>
-                <FormControl>
-                  <MarkdownEditor
-                    {...field}
-                    className={cn(["h-full", "min-h-64"])}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button icon={<SaveIcon />} variant={"solid"} type={"submit"}>
-            {t("common:actions.save")}
-          </Button>
-        </form>
-      </Form>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button icon={<SaveIcon />} variant={"solid"} type={"submit"}>
+              {t("common:actions.save")}
+            </Button>
+          </form>
+        </Form>
+      </div>
     </Card>
   );
 }

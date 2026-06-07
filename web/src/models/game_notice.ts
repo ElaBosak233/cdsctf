@@ -4,4 +4,4 @@ export type GameNotice = {
   title?: string;
   content?: string;
   created_at?: number;
-}
+};

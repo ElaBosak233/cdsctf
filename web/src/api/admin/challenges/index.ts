@@ -11,7 +11,7 @@ export type GetChallengesRequest = {
   page?: number;
   size?: number;
   sorts?: string;
-}
+};
 
 export async function getChallenges(request: GetChallengesRequest) {
   return api
@@ -28,7 +28,7 @@ export type CreateChallengeRequest = {
   public?: boolean;
   has_instance?: boolean;
   has_attachment?: boolean;
-}
+};
 
 export async function createChallenge(request: CreateChallengeRequest) {
   return api

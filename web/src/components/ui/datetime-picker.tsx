@@ -426,7 +426,7 @@ type TimePickerRef = {
   minuteRef: HTMLInputElement | null;
   hourRef: HTMLInputElement | null;
   secondRef: HTMLInputElement | null;
-}
+};
 
 function TimePicker({
   date,

@@ -10,7 +10,7 @@ export type GetTeamRequest = {
   page?: number;
   size?: number;
   sorts?: string;
-}
+};
 
 export async function getTeams(request: GetTeamRequest) {
   return api
@@ -26,7 +26,7 @@ export type CreateTeamRequest = {
   email?: string;
   slogan?: string;
   description?: string;
-}
+};
 
 export async function createTeam(request: CreateTeamRequest) {
   return api

@@ -3,7 +3,7 @@ import { api, toSearchParams } from "@/utils/query";
 export type CreateTokenRequest = {
   team_id?: number;
   game_id?: number;
-}
+};
 
 export async function createToken(request: CreateTokenRequest) {
   return api
@@ -16,7 +16,7 @@ export async function createToken(request: CreateTokenRequest) {
 export type GetTokenRequest = {
   team_id?: number;
   game_id?: number;
-}
+};
 
 export async function getToken(request: GetTokenRequest) {
   return api
@@ -29,7 +29,7 @@ export async function getToken(request: GetTokenRequest) {
 export type DeleteTokenRequest = {
   team_id?: number;
   game_id?: number;
-}
+};
 
 export async function deleteToken(request: DeleteTokenRequest) {
   return api

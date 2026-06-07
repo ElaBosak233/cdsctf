@@ -5,7 +5,7 @@ import { cn } from "@/utils";
 interface LoadingOverlayProps {
   loading: boolean;
   className?: string;
-};
+}
 
 function LoadingOverlay(props: LoadingOverlayProps) {
   const { loading, className } = props;

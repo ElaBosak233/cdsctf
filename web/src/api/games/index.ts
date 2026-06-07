@@ -6,7 +6,7 @@ export type GetGameRequest = {
   sorts?: string;
   page?: number;
   size?: number;
-}
+};
 
 export async function getGames(request: GetGameRequest) {
   return api

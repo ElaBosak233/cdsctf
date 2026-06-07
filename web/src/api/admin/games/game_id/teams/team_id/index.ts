@@ -9,7 +9,7 @@ export type UpdateTeamRequest = {
   slogan?: string | null;
   description?: string | null;
   state?: State | null;
-}
+};
 
 export async function updateTeam(request: UpdateTeamRequest) {
   return api
@@ -22,7 +22,7 @@ export async function updateTeam(request: UpdateTeamRequest) {
 export type DeleteTeamRequest = {
   team_id?: number;
   game_id?: number;
-}
+};
 
 export async function deleteTeam(request: DeleteTeamRequest) {
   return api

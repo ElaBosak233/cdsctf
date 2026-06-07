@@ -3,7 +3,7 @@ import { api } from "@/utils/query";
 
 export type GetEmailsRequest = {
   user_id: number;
-}
+};
 
 export async function getEmails(request: GetEmailsRequest) {
   return api
@@ -15,7 +15,7 @@ export type AddEmailRequest = {
   user_id: number;
   email: string;
   verified?: boolean;
-}
+};
 
 export async function addEmail(request: AddEmailRequest) {
   return api
@@ -29,7 +29,7 @@ export type UpdateEmailRequest = {
   user_id: number;
   email: string;
   verified: boolean;
-}
+};
 
 export async function updateEmail(request: UpdateEmailRequest) {
   return api
@@ -45,7 +45,7 @@ export async function updateEmail(request: UpdateEmailRequest) {
 export type DeleteEmailRequest = {
   user_id: number;
   email: string;
-}
+};
 
 export async function deleteEmail(request: DeleteEmailRequest) {
   return api

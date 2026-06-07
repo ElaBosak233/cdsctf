@@ -6,7 +6,7 @@ export type IdpRequest = {
   enabled?: boolean;
   portal?: string | null;
   script?: string;
-}
+};
 
 export type DiagnosticMarker = {
   start_line: number;
@@ -15,7 +15,7 @@ export type DiagnosticMarker = {
   end_column: number;
   kind: "error" | "warning";
   message: string;
-}
+};
 
 export async function getAdminIdps() {
   return api.get("admin/idps").json<{ idps: Idp[] }>();

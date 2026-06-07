@@ -83,7 +83,7 @@ export default function Index() {
               }
               className={cn([
                 "object-cover",
-                "rounded-xl",
+                "rounded-elevated",
                 "overflow-hidden",
                 "border",
                 "aspect-video",
@@ -337,9 +337,7 @@ export function GameActionButton({ status }: GameActionProps) {
     >
       <span>{t("team:actions.participate", { name: selfTeam.name })}</span>
       {invalidMessage && (
-        <span>
-          {t("team:state.state_wrapper", { state: invalidMessage })}
-        </span>
+        <span>{t("team:state.state_wrapper", { state: invalidMessage })}</span>
       )}
     </Button>
   );

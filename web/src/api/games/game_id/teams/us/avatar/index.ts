@@ -3,7 +3,7 @@ import { api } from "@/utils/query";
 export type DeleteTeamAvatarRequest = {
   game_id: number;
   team_id: number;
-}
+};
 
 export function deleteTeamAvatar(request: DeleteTeamAvatarRequest) {
   return api

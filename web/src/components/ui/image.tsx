@@ -11,7 +11,7 @@ interface ImageProps {
   glass?: boolean;
   fallback?: React.ReactNode;
   className?: string;
-};
+}
 
 function Image(props: ImageProps) {
   const {

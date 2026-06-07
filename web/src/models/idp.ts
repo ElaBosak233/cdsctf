@@ -7,7 +7,7 @@ export type Idp = {
   script?: string;
   created_at?: number;
   updated_at?: number;
-}
+};
 
 export type UserIdp = {
   id?: number;
@@ -17,4 +17,4 @@ export type UserIdp = {
   data?: Record<string, string>;
   created_at?: number;
   updated_at?: number;
-}
+};

@@ -3,7 +3,7 @@ import { api } from "@/utils/query";
 
 export type StopInstanceRequest = {
   id: string;
-}
+};
 
 export async function stopInstance(request: StopInstanceRequest) {
   return api
@@ -15,7 +15,7 @@ export type RenewInstanceRequest = {
   id: string;
   team_id?: number;
   game_id?: number;
-}
+};
 
 export async function renewInstance(request: RenewInstanceRequest) {
   return api

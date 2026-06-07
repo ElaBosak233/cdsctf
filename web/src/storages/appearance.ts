@@ -9,7 +9,7 @@ type AppearanceState = {
 
   computedTheme: Theme;
   setComputedTheme: (theme: Theme) => void;
-}
+};
 
 export const useApperanceStore = create<AppearanceState>()(
   persist(

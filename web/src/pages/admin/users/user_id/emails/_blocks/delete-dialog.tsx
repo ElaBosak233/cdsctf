@@ -36,35 +36,57 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
   }
 
   return (
-    <Card className={cn(["w-lg", "p-6", "flex", "flex-col", "gap-6"])}>
-      <div className={cn(["flex", "items-center", "gap-2", "text-sm"])}>
-        <TrashIcon className={cn(["size-4", "text-error"])} />
-        {t("user:emails.actions.delete._")}
-      </div>
-      <div className={cn(["space-y-1"])}>
-        <p className={cn(["text-base", "font-medium"])}>
-          <Trans
-            i18nKey={"user:emails.actions.delete.message"}
-            values={{ email }}
-            components={{
-              muted: <span className={cn(["text-muted-foreground"])} />,
-            }}
-          />
-        </p>
-        <p className={cn(["text-muted-foreground", "text-sm"])}>
-          {t("user:emails.actions.delete.message_brief")}
-        </p>
-      </div>
-      <div className={cn(["flex", "justify-end", "gap-2"])}>
-        <Button
-          variant={"solid"}
-          level={"error"}
-          loading={loading}
-          onClick={handleDelete}
-          disabled={!email}
-        >
-          {t("common:actions.confirm")}
-        </Button>
+    <Card
+      className={cn([
+        "w-lg",
+        "rounded-elevated",
+        "shadow-lg",
+        "overflow-hidden",
+        "flex",
+        "flex-col",
+      ])}
+    >
+      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-error/10 text-error",
+              "shrink-0",
+            ])}
+          >
+            <TrashIcon className={cn(["size-5"])} />
+          </div>
+          <h3 className={cn(["text-base", "font-semibold"])}>
+            {t("user:emails.actions.delete._")}
+          </h3>
+        </div>
+        <div className={cn(["flex", "flex-col", "gap-1"])}>
+          <p className={cn(["text-sm", "font-medium"])}>
+            <Trans
+              i18nKey={"user:emails.actions.delete.message"}
+              values={{ email }}
+              components={{
+                muted: <span className={cn(["text-muted-foreground"])} />,
+              }}
+            />
+          </p>
+          <p className={cn(["text-sm", "text-muted-foreground"])}>
+            {t("user:emails.actions.delete.message_brief")}
+          </p>
+        </div>
+        <div className={cn(["flex", "justify-end", "gap-2"])}>
+          <Button
+            variant={"solid"}
+            level={"error"}
+            loading={loading}
+            onClick={handleDelete}
+            disabled={!email}
+          >
+            {t("common:actions.confirm")}
+          </Button>
+        </div>
       </div>
     </Card>
   );

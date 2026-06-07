@@ -137,6 +137,8 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         "min-h-128",
         "w-screen",
         "md:w-3xl",
+        "rounded-elevated",
+        "shadow-lg",
         "flex",
         "flex-col",
         "gap-6",

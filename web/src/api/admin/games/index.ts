@@ -8,7 +8,7 @@ export type GetGamesRequest = {
   sorts?: string;
   page?: number;
   size?: number;
-}
+};
 
 export async function getGames(request: GetGamesRequest) {
   return api
@@ -29,7 +29,7 @@ export type CreateGameRequest = {
   member_limit_max?: number;
   started_at?: number;
   ended_at?: number;
-}
+};
 
 export async function createGame(request: CreateGameRequest) {
   return api

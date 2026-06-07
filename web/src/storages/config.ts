@@ -9,7 +9,7 @@ export type ConfigState = {
 
   version?: Version;
   setVersion: (version: Version) => void;
-}
+};
 
 export const useConfigStore = create<ConfigState>()(
   persist(

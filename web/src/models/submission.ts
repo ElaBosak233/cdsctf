@@ -15,7 +15,7 @@ export type Submission = {
   pts?: number;
   rank?: number;
   created_at?: number;
-}
+};
 
 export enum Status {
   Pending = 0,

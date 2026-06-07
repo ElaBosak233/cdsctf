@@ -2,7 +2,7 @@ import { api } from "@/utils/query";
 
 type DeleteGameIconRequest = {
   game_id: number;
-}
+};
 
 export async function deleteGameIcon(request: DeleteGameIconRequest) {
   return api

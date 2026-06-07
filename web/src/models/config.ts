@@ -32,12 +32,12 @@ export type Config = {
     password?: string;
     whitelist?: Array<string>;
   };
-}
+};
 
 export type Version = {
   tag?: string;
   commit?: string;
-}
+};
 
 export type Statistics = {
   users?: number;
@@ -50,4 +50,4 @@ export type Statistics = {
     total?: number;
     solved?: number;
   };
-}
+};

@@ -3,7 +3,7 @@ import { api } from "@/utils/query";
 
 export type GetChallengeRequest = {
   id?: number;
-}
+};
 
 export async function getChallenge(request: GetChallengeRequest) {
   return api
@@ -20,7 +20,7 @@ export type UpdateChallengeRequest = {
   has_attachment?: boolean | null;
   public?: boolean | null;
   has_instance?: boolean | null;
-}
+};
 
 export async function updateChallenge(request: UpdateChallengeRequest) {
   return api
@@ -30,7 +30,7 @@ export async function updateChallenge(request: UpdateChallengeRequest) {
 
 export type DeleteChallengeRequest = {
   id?: number;
-}
+};
 
 export async function deleteChallenge(request: DeleteChallengeRequest) {
   return api

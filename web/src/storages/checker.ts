@@ -9,7 +9,7 @@ type CheckerState = {
   submissions: Array<Submission>;
   add: (submission: Submission) => void;
   pop: (id: number) => void;
-}
+};
 
 export const useCheckerStore = create<CheckerState>()((set, get) => ({
   loading: false,

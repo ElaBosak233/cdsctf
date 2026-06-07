@@ -161,10 +161,21 @@ export default function Index() {
           "gap-5",
         ])}
       >
-        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
-          <InfoIcon />
-          {t("team:info")}
-        </h2>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
+          >
+            <InfoIcon className={cn(["size-5"])} />
+          </div>
+          <h2 className={cn(["text-base", "font-semibold"])}>
+            {t("team:info")}
+          </h2>
+        </div>
         <Separator />
         <Form {...form}>
           <form

@@ -5,7 +5,7 @@ export type JoinTeamRequest = {
   game_id?: number;
   team_id?: number;
   token?: string;
-}
+};
 
 export async function joinTeam(request: JoinTeamRequest) {
   return api
@@ -18,7 +18,7 @@ export async function joinTeam(request: JoinTeamRequest) {
 export type GetTeamMemberRequest = {
   game_id?: number;
   team_id?: number;
-}
+};
 
 export async function getTeamMembers(request: GetTeamMemberRequest) {
   return api

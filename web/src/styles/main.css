@@ -23,6 +23,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
+  --radius-elevated: 1rem;
+  --radius-badge: 0.75rem;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
@@ -135,6 +138,10 @@
 }
 
 @layer base {
+  :root {
+    text-autospace: normal;
+  }
+
   *,
   ::after,
   ::before,

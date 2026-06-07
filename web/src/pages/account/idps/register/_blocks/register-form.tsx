@@ -36,7 +36,7 @@ type PendingIdentity = {
   token: string;
   idp_id: number;
   data: Record<string, string>;
-}
+};
 
 function IdpRegisterForm() {
   const navigate = useNavigate();

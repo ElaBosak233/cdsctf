@@ -20,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
@@ -123,7 +124,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     <Card
       className={cn([
         "w-lg",
-        "rounded-2xl",
+        "rounded-elevated",
         "shadow-lg",
         "overflow-hidden",
         "flex",
@@ -135,7 +136,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
         className={cn([
           "flex",
           "p-2.5",
-          "gap-1",
+          "gap-2",
           "bg-muted/15",
           "border-b",
           "border-border",
@@ -154,6 +155,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
           <UserPlusIcon className={cn(["size-4"])} />
           {t("team:actions.gather.create.title")}
         </Button>
+        <Separator orientation="vertical" />
         <Button
           variant={tab === "join" ? "tonal" : "ghost"}
           level="primary"
@@ -178,19 +180,30 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
               <div
                 className={cn([
                   "flex items-center justify-center",
-                  "size-10 rounded-xl",
-                  "bg-info/10 text-info",
-                  "shadow-xs",
+                  "size-10 rounded-badge",
+                  "bg-primary/10",
                   "shrink-0",
                 ])}
               >
                 <UserPlusIcon className={cn(["size-5"])} />
               </div>
               <div className={cn(["flex flex-col gap-1", "pt-0.5"])}>
-                <h3 className={cn(["text-sm", "font-semibold", "text-foreground"])}>
+                <h3
+                  className={cn([
+                    "text-sm",
+                    "font-semibold",
+                    "text-foreground",
+                  ])}
+                >
                   {t("team:actions.gather.create.title")}
                 </h3>
-                <p className={cn(["text-xs", "text-muted-foreground/80", "leading-relaxed"])}>
+                <p
+                  className={cn([
+                    "text-xs",
+                    "text-muted-foreground/80",
+                    "leading-relaxed",
+                  ])}
+                >
                   {t("team:form.name.placeholder")}
                 </p>
               </div>
@@ -253,19 +266,30 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
               <div
                 className={cn([
                   "flex items-center justify-center",
-                  "size-10 rounded-xl",
-                  "bg-primary/10 text-primary",
-                  "shadow-xs",
+                  "size-10 rounded-badge",
+                  "bg-primary/10",
                   "shrink-0",
                 ])}
               >
                 <LogInIcon className={cn(["size-5"])} />
               </div>
               <div className={cn(["flex flex-col gap-1", "pt-0.5"])}>
-                <h3 className={cn(["text-sm", "font-semibold", "text-foreground"])}>
+                <h3
+                  className={cn([
+                    "text-sm",
+                    "font-semibold",
+                    "text-foreground",
+                  ])}
+                >
                   {t("team:actions.gather.join.title")}
                 </h3>
-                <p className={cn(["text-xs", "text-muted-foreground/80", "leading-relaxed"])}>
+                <p
+                  className={cn([
+                    "text-xs",
+                    "text-muted-foreground/80",
+                    "leading-relaxed",
+                  ])}
+                >
                   {t("team:form.invite_code.placeholder")}
                 </p>
               </div>

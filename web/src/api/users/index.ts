@@ -8,7 +8,7 @@ export type UserLoginRequest = {
     id?: string;
     content?: string;
   } | null;
-}
+};
 
 export async function login(request: UserLoginRequest) {
   return api.post("users/login", { json: request }).json<{ user: User }>();
@@ -27,7 +27,7 @@ export type UserRegisterRequest = {
     id?: string;
     content?: string;
   };
-}
+};
 
 export async function register(request: UserRegisterRequest) {
   return api.post("users/register", { json: request }).json<{ user: User }>();

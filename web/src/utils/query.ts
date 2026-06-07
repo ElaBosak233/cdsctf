@@ -9,7 +9,7 @@ type PendingEntry = {
   resolve: (response: Response) => void;
   reject: (reason: unknown) => void;
   responsePromise: Promise<Response>;
-}
+};
 
 const pendingRequests = new Map<string, PendingEntry>();
 

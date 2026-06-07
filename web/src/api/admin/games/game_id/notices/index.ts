@@ -5,7 +5,7 @@ export type CreateGameNoticeRequest = {
   game_id?: number;
   title?: string;
   content?: string;
-}
+};
 
 export async function createGameNotice(request: CreateGameNoticeRequest) {
   const { game_id, title, content } = request;
@@ -19,7 +19,7 @@ export async function createGameNotice(request: CreateGameNoticeRequest) {
 export type DeleteGameNoticeRequest = {
   id?: number;
   game_id?: number;
-}
+};
 
 export async function deleteGameNotice(request: DeleteGameNoticeRequest) {
   return api

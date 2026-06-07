@@ -15,7 +15,7 @@ export type UpdateUserProfileRequest = {
   name?: string;
   email?: string;
   description?: string | null;
-}
+};
 
 export async function updateUserProfile(request: UpdateUserProfileRequest) {
   return api.put("users/me", { json: request }).json<{ user: User }>();
@@ -24,7 +24,7 @@ export async function updateUserProfile(request: UpdateUserProfileRequest) {
 export type UpdateUserProfilePasswordRequest = {
   old_password: string;
   new_password: string;
-}
+};
 
 export async function updateUserProfilePassword(
   request: UpdateUserProfilePasswordRequest
@@ -40,7 +40,7 @@ export type DeleteUserProfileRequest = {
     id?: string;
     content?: string;
   } | null;
-}
+};
 
 export async function deleteUserProfile(request: DeleteUserProfileRequest) {
   return api

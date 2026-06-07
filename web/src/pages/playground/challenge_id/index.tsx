@@ -61,8 +61,8 @@ export default function Index() {
     display === "description" ? challenge?.description : challenge?.writeup;
 
   const problemHeader = (
-    <div className={cn(["flex", "items-center", "justify-between", "gap-3"])}>
-      <div className={cn(["flex", "gap-3", "items-center", "flex-wrap"])}>
+    <div className={cn(["flex", "items-start", "justify-between", "gap-3"])}>
+      <div className={cn(["flex", "gap-3.5", "items-start", "flex-wrap"])}>
         <Button
           size={"sm"}
           square
@@ -76,10 +76,27 @@ export default function Index() {
           <ChevronLeftIcon />
         </Button>
 
-        <CategoryIcon color={category?.color} className={cn(["size-5"])} />
-        <h2 className={cn(["text-lg", "font-semibold"])}>
-          {challenge?.title || "-"}
-        </h2>
+        <div
+          className={cn([
+            "flex items-center justify-center",
+            "size-10 rounded-badge",
+            "shadow-xs shrink-0",
+            "bg-(--badge-color)/10 text-(--badge-color)",
+          ])}
+          style={{ "--badge-color": category?.color } as React.CSSProperties}
+        >
+          <CategoryIcon className={cn(["size-5"])} />
+        </div>
+        <div className={cn(["flex", "flex-col", "gap-1", "pt-0.5"])}>
+          <h2 className={cn(["text-sm", "font-semibold"])}>
+            {challenge?.title || "-"}
+          </h2>
+          <span
+            className={cn(["text-xs", "text-muted-foreground/80", "uppercase"])}
+          >
+            {category?.name}
+          </span>
+        </div>
       </div>
       <Button
         size={"sm"}
@@ -177,9 +194,11 @@ export default function Index() {
                   className={cn([
                     "flex-1",
                     "min-h-0",
-                    "rounded-lg",
+                    "rounded-elevated",
+                    "shadow-lg",
                     "border",
                     "bg-card",
+                    "overflow-hidden",
                   ])}
                 >
                   <ResizablePanel defaultSize={"30%"} minSize={"30%"}>

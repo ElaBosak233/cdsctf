@@ -10,7 +10,7 @@ export type GetUsersRequest = {
   page?: number;
   size?: number;
   sorts?: string;
-}
+};
 
 export async function getUsers(request: GetUsersRequest) {
   return api
@@ -26,7 +26,7 @@ export type CreateUserRequest = {
   email?: string;
   group?: Group;
   password?: string;
-}
+};
 
 export async function createUser(request: CreateUserRequest) {
   return api

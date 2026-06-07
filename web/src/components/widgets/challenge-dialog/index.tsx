@@ -53,12 +53,14 @@ function ChallengeDialog(props: ChallengeDialogProps) {
   const CategoryIcon = category.icon!;
 
   return (
-    <Context.Provider value={{ challenge: challenge ?? digest, team: gameTeam, debug }}>
+    <Context.Provider
+      value={{ challenge: challenge ?? digest, team: gameTeam, debug }}
+    >
       <Card
         className={cn([
           "w-screen",
           "md:w-3xl",
-          "rounded-2xl",
+          "rounded-elevated",
           "shadow-lg",
           "overflow-hidden",
           "flex",
@@ -68,28 +70,51 @@ function ChallengeDialog(props: ChallengeDialogProps) {
         {...rest}
       >
         {/* Header */}
-        <div className={cn(["p-6", "pb-4", "flex", "flex-col", "gap-3", "shrink-0"])}>
-          <div className={cn(["flex", "items-start", "justify-between", "gap-3"])}>
+        <div
+          className={cn([
+            "p-6",
+            "pb-4",
+            "flex",
+            "flex-col",
+            "gap-3",
+            "shrink-0",
+          ])}
+        >
+          <div
+            className={cn(["flex", "items-start", "justify-between", "gap-3"])}
+          >
             <div className={cn(["flex", "items-start", "gap-3.5"])}>
               <div
                 className={cn([
                   "flex items-center justify-center",
-                  "size-10 rounded-xl",
-                  "bg-info/10 text-info",
-                  "shadow-xs shrink-0",
+                  "size-10 rounded-badge",
+                  "shrink-0",
+                  "bg-(--badge-color)/10 text-(--badge-color)",
                 ])}
+                style={
+                  { "--badge-color": category?.color } as React.CSSProperties
+                }
               >
-                <CategoryIcon
-                  color={category?.color}
-                  className={cn(["size-5"])}
-                />
+                <CategoryIcon className={cn(["size-5"])} />
               </div>
               <div className={cn(["flex", "flex-col", "gap-1", "pt-0.5"])}>
-                <h3 className={cn(["text-sm", "font-semibold", "text-foreground"])}>
+                <h3
+                  className={cn([
+                    "text-sm",
+                    "font-semibold",
+                    "text-foreground",
+                  ])}
+                >
                   {digest?.title}
                 </h3>
-                <span className={cn(["text-xs", "text-muted-foreground/80"])}>
-                  {category?.name?.toUpperCase()}
+                <span
+                  className={cn([
+                    "text-xs",
+                    "text-muted-foreground/80",
+                    "uppercase",
+                  ])}
+                >
+                  {category?.name}
                 </span>
               </div>
             </div>

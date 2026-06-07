@@ -73,52 +73,73 @@ function CreateDialog(props: CreateDialogProps) {
 
   return (
     <Card
-      className={cn(["w-lg", "min-h-48", "p-5", "flex", "flex-col", "gap-5"])}
+      className={cn([
+        "w-lg",
+        "min-h-48",
+        "rounded-elevated",
+        "shadow-lg",
+        "overflow-hidden",
+        "flex",
+        "flex-col",
+      ])}
     >
-      <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
-        <IdCardIcon className={cn(["size-4"])} />
-        {t("admin:idp.actions.create._")}
-      </h3>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          autoComplete="off"
-          className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
-        >
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("admin:idp.form.name._")}</FormLabel>
-                <FormControl>
-                  <Field size="sm">
-                    <FieldIcon>
-                      <TypeIcon />
-                    </FieldIcon>
-                    <TextField
-                      {...field}
-                      placeholder={t("admin:idp.form.name.placeholder")}
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            variant="solid"
-            icon={<CheckIcon />}
-            level="success"
-            loading={loading}
-            type="submit"
+      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
           >
-            {t("common:actions.confirm")}
-          </Button>
-        </form>
-      </Form>
+            <IdCardIcon className={cn(["size-5"])} />
+          </div>
+          <h3 className={cn(["text-base", "font-semibold"])}>
+            {t("admin:idp.actions.create._")}
+          </h3>
+        </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            autoComplete="off"
+            className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
+          >
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("admin:idp.form.name._")}</FormLabel>
+                  <FormControl>
+                    <Field size="sm">
+                      <FieldIcon>
+                        <TypeIcon />
+                      </FieldIcon>
+                      <TextField
+                        {...field}
+                        placeholder={t("admin:idp.form.name.placeholder")}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              variant="solid"
+              icon={<CheckIcon />}
+              level="success"
+              loading={loading}
+              type="submit"
+            >
+              {t("common:actions.confirm")}
+            </Button>
+          </form>
+        </Form>
+      </div>
     </Card>
   );
 }

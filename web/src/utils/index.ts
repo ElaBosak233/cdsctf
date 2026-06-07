@@ -1,5 +1,13 @@
 import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      rounded: ["rounded-elevated", "rounded-badge"],
+    },
+  },
+});
 
 export function cn(...inputs: Array<ClassValue>) {
   return twMerge(clsx(inputs));

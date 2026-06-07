@@ -80,53 +80,74 @@ function CreateDialog(props: CreateDialogProps) {
 
   return (
     <Card
-      className={cn(["p-5", "w-156", "min-h-64", "flex", "flex-col", "gap-5"])}
+      className={cn([
+        "w-156",
+        "min-h-64",
+        "rounded-elevated",
+        "shadow-lg",
+        "overflow-hidden",
+        "flex",
+        "flex-col",
+      ])}
     >
-      <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
-        <LibraryIcon className={cn(["size-4"])} />
-        {t("game:challenge.actions.add._")}
-      </h3>
-      <span className={cn(["text-secondary-foreground", "text-sm"])}>
-        {t("game:challenge.actions.add.message")}
-      </span>
-      <div className={cn(["flex", "gap-3"])}>
-        <Field size={"sm"} className={cn(["w-full"])}>
-          <FieldIcon>
-            <HashIcon />
-          </FieldIcon>
-          <TextField
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            placeholder={t("challenge:form.id._")}
-          />
-        </Field>
-        <Field size={"sm"} className={cn(["w-full"])}>
-          <FieldIcon>
-            <TypeIcon />
-          </FieldIcon>
-          <TextField
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={t("challenge:title")}
-          />
-        </Field>
-      </div>
-      <div className={cn(["grid", "grid-cols-2", "gap-3"])}>
-        {challenges?.map((challenge) => {
-          const Icon = getCategory(challenge.category!).icon!;
-          return (
-            <Button
-              key={challenge?.id}
-              className={cn(["justify-start"])}
-              variant={"ghost"}
-              onClick={() => handleCreateGameChallenge(challenge)}
-            >
-              <Badge className={cn(["font-mono"])}>{challenge?.id}</Badge>
-              <Icon className={cn(["size-4"])} />
-              <span>{challenge?.title}</span>
-            </Button>
-          );
-        })}
+      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
+          >
+            <LibraryIcon className={cn(["size-5"])} />
+          </div>
+          <h3 className={cn(["text-base", "font-semibold"])}>
+            {t("game:challenge.actions.add._")}
+          </h3>
+        </div>
+        <span className={cn(["text-secondary-foreground", "text-sm"])}>
+          {t("game:challenge.actions.add.message")}
+        </span>
+        <div className={cn(["flex", "gap-3"])}>
+          <Field size={"sm"} className={cn(["w-full"])}>
+            <FieldIcon>
+              <HashIcon />
+            </FieldIcon>
+            <TextField
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              placeholder={t("challenge:form.id._")}
+            />
+          </Field>
+          <Field size={"sm"} className={cn(["w-full"])}>
+            <FieldIcon>
+              <TypeIcon />
+            </FieldIcon>
+            <TextField
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t("challenge:title")}
+            />
+          </Field>
+        </div>
+        <div className={cn(["grid", "grid-cols-2", "gap-3"])}>
+          {challenges?.map((challenge) => {
+            const Icon = getCategory(challenge.category!).icon!;
+            return (
+              <Button
+                key={challenge?.id}
+                className={cn(["justify-start"])}
+                variant={"ghost"}
+                onClick={() => handleCreateGameChallenge(challenge)}
+              >
+                <Badge className={cn(["font-mono"])}>{challenge?.id}</Badge>
+                <Icon className={cn(["size-4"])} />
+                <span>{challenge?.title}</span>
+              </Button>
+            );
+          })}
+        </div>
       </div>
     </Card>
   );

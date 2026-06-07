@@ -4,7 +4,7 @@ import { api } from "@/utils/query";
 export type GetTeamUserRequest = {
   team_id?: number;
   game_id?: number;
-}
+};
 
 export async function getTeamUser(request: GetTeamUserRequest) {
   return api
@@ -16,7 +16,7 @@ export type CreateTeamUserRequest = {
   team_id?: number;
   game_id?: number;
   user_id?: number;
-}
+};
 
 export async function createTeamUser(request: CreateTeamUserRequest) {
   return api
@@ -30,7 +30,7 @@ export type DeleteTeamUserRequest = {
   team_id?: number;
   game_id?: number;
   user_id?: number;
-}
+};
 
 export async function deleteTeamUser(request: DeleteTeamUserRequest) {
   return api

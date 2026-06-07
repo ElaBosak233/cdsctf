@@ -3,7 +3,7 @@ import { api } from "@/utils/query";
 export type UpdateCheckerRequest = {
   id?: number;
   checker?: string;
-}
+};
 
 export async function updateChallengeChecker(request: UpdateCheckerRequest) {
   return api
@@ -14,7 +14,7 @@ export async function updateChallengeChecker(request: UpdateCheckerRequest) {
 export type LintCheckerRequest = {
   id?: number;
   checker?: string;
-}
+};
 
 export type DiagnosticMarker = {
   start_line: number;
@@ -23,7 +23,7 @@ export type DiagnosticMarker = {
   end_column: number;
   kind: "error" | "warning";
   message: string;
-}
+};
 
 export async function lintChallengeChecker(request: LintCheckerRequest) {
   return api

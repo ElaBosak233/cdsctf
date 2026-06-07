@@ -7,7 +7,7 @@ export type GetNotesRequest = {
   size?: number;
   page?: number;
   sorts?: string;
-}
+};
 
 export async function listNotes(request: GetNotesRequest) {
   return api

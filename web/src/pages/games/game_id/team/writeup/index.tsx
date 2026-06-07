@@ -95,10 +95,32 @@ export default function Index() {
           "gap-5",
         ])}
       >
-        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
-          <FilePenIcon />
-          {t("team:write_up._")}
-        </h2>
+        <div className={cn(["flex", "items-start", "gap-3.5"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
+          >
+            <FilePenIcon className={cn(["size-5"])} />
+          </div>
+          <div className={cn(["flex flex-col gap-1", "pt-0.5"])}>
+            <h2 className={cn(["text-sm", "font-semibold", "text-foreground"])}>
+              {t("team:write_up._")}
+            </h2>
+            <p
+              className={cn([
+                "text-xs",
+                "text-muted-foreground/80",
+                "leading-relaxed",
+              ])}
+            >
+              {t("team:write_up.actions.upload.hint")}
+            </p>
+          </div>
+        </div>
         <Separator />
 
         <Dropzone {...dropzone}>
@@ -117,7 +139,8 @@ export default function Index() {
         <Card
           className={cn([
             "p-5",
-            "rounded-xl",
+            "rounded-elevated",
+            "shadow-lg",
             "flex",
             "flex-col",
             "gap-4",

@@ -3,7 +3,7 @@ import { api, toSearchParams } from "@/utils/query";
 
 export type GetGameNoticeRequest = {
   game_id?: number;
-}
+};
 
 export async function getGameNotice(request: GetGameNoticeRequest) {
   return api

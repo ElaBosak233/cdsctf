@@ -4,7 +4,7 @@ export type UserForgetRequest = {
   email?: string;
   code?: string;
   password?: string;
-}
+};
 
 export async function forget(request: UserForgetRequest) {
   return api
@@ -14,7 +14,7 @@ export async function forget(request: UserForgetRequest) {
 
 export type UserSendForgetEmailRequest = {
   email?: string;
-}
+};
 
 export async function sendForgetEmail(request: UserSendForgetEmailRequest) {
   return api

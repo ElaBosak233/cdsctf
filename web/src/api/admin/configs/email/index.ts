@@ -9,7 +9,7 @@ export function getEmail(type: "verify" | "forget") {
 export type SaveEmailRequest = {
   type: "verify" | "forget";
   data: string;
-}
+};
 
 export function saveEmail(request: SaveEmailRequest) {
   return api

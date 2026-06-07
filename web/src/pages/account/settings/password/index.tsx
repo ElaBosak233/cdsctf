@@ -92,10 +92,21 @@ export default function Index() {
           "lg:mx-30",
         ])}
       >
-        <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
-          <LockIcon />
-          {t("user:settings.password")}
-        </h2>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
+          >
+            <LockIcon className={cn(["size-5"])} />
+          </div>
+          <h2 className={cn(["text-base", "font-semibold"])}>
+            {t("user:settings.password")}
+          </h2>
+        </div>
         <Separator />
         <Form {...form}>
           <form

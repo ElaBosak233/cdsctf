@@ -21,7 +21,7 @@ export type Game = {
   poster_hash?: string;
 
   created_at?: number;
-}
+};
 
 export type GameMini = {
   id?: number;
@@ -32,9 +32,9 @@ export type GameMini = {
   ended_at?: number;
   icon_hash?: string;
   poster_hash?: string;
-}
+};
 
 export type ScoreRecord = {
   team?: Team;
   submissions?: Array<Submission>;
-}
+};

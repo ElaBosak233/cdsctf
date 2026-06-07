@@ -6,7 +6,7 @@ export type CreateSubmissionRequest = {
   challenge_id?: number;
   team_id?: number;
   game_id?: number;
-}
+};
 
 export async function createSubmission(request: CreateSubmissionRequest) {
   return api
@@ -30,7 +30,7 @@ export type GetSubmissionRequest = {
   sorts?: string;
 
   is_desensitized?: boolean;
-}
+};
 
 export async function listSubmissions(request: GetSubmissionRequest) {
   return api

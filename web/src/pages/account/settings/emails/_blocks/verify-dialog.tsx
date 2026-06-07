@@ -71,44 +71,66 @@ function VerifyDialog(props: VerifyDialogProps) {
   }
 
   return (
-    <Card className={cn(["w-lg", "p-5", "flex", "flex-col", "gap-5"])}>
-      <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
-        <MailCheckIcon className={cn(["size-4"])} />
-        {t("user:emails.actions.verify._")}
-      </h3>
-      {configStore?.config?.email?.enabled ? (
-        <div className={cn(["flex", "gap-2", "items-center"])}>
-          <Field size={"sm"} className={cn(["flex-1"])}>
-            <TextField
-              placeholder={t("user:emails.verify_code_placeholder")}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-          </Field>
-          <Button
-            variant={"solid"}
-            icon={<SendIcon />}
-            onClick={handleSendVerifyEmail}
+    <Card
+      className={cn([
+        "w-lg",
+        "rounded-elevated",
+        "shadow-lg",
+        "overflow-hidden",
+        "flex",
+        "flex-col",
+      ])}
+    >
+      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
           >
-            {t("user:emails.actions.send_verify._")}
-          </Button>
+            <MailCheckIcon className={cn(["size-5"])} />
+          </div>
+          <h3 className={cn(["text-base", "font-semibold"])}>
+            {t("user:emails.actions.verify._")}
+          </h3>
         </div>
-      ) : (
-        <div>
-          {t("user:emails.actions.verify.disabled", {
-            title: configStore?.config?.meta?.title,
-          })}
-        </div>
-      )}
-      <Button
-        size={"sm"}
-        level={"success"}
-        variant={"solid"}
-        icon={<CheckIcon />}
-        onClick={handleVerify}
-      >
-        {t("common:actions.confirm")}
-      </Button>
+        {configStore?.config?.email?.enabled ? (
+          <div className={cn(["flex", "gap-2", "items-center"])}>
+            <Field size={"sm"} className={cn(["flex-1"])}>
+              <TextField
+                placeholder={t("user:emails.verify_code_placeholder")}
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+              />
+            </Field>
+            <Button
+              variant={"solid"}
+              icon={<SendIcon />}
+              onClick={handleSendVerifyEmail}
+            >
+              {t("user:emails.actions.send_verify._")}
+            </Button>
+          </div>
+        ) : (
+          <div>
+            {t("user:emails.actions.verify.disabled", {
+              title: configStore?.config?.meta?.title,
+            })}
+          </div>
+        )}
+        <Button
+          size={"sm"}
+          level={"success"}
+          variant={"solid"}
+          icon={<CheckIcon />}
+          onClick={handleVerify}
+        >
+          {t("common:actions.confirm")}
+        </Button>
+      </div>
     </Card>
   );
 }

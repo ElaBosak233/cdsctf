@@ -7,7 +7,7 @@ export type CreateTeamRequest = {
   email?: string;
   slogan?: string;
   description?: string;
-}
+};
 
 export async function createTeam(request: CreateTeamRequest) {
   return api

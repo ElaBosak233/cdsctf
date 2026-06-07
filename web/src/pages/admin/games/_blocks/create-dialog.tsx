@@ -72,88 +72,109 @@ function CreateDialog(props: CreateDialogProps) {
   }
   return (
     <Card
-      className={cn(["w-lg", "min-h-64", "p-5", "flex", "flex-col", "gap-5"])}
+      className={cn([
+        "w-lg",
+        "min-h-64",
+        "rounded-elevated",
+        "shadow-lg",
+        "overflow-hidden",
+        "flex",
+        "flex-col",
+      ])}
     >
-      <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
-        <FlagIcon className={cn(["size-4"])} />
-        {t("game:actions.create._")}
-      </h3>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          autoComplete={"off"}
-          className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
-        >
-          <FormField
-            control={form.control}
-            name={"title"}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("game:form.title._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <TypeIcon />
-                    </FieldIcon>
-                    <TextField
-                      {...field}
-                      placeholder={t("game:form.title.placeholder")}
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name={"started_at"}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("game:form.started_at._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <CalendarIcon />
-                    </FieldIcon>
-                    <DateTimePicker {...field} clearable />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name={"ended_at"}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("game:form.ended_at._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <CalendarIcon />
-                    </FieldIcon>
-                    <DateTimePicker {...field} clearable />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            type={"submit"}
-            variant={"solid"}
-            icon={<CheckIcon />}
-            level={"success"}
-            loading={loading}
+      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
           >
-            {t("common:actions.confirm")}
-          </Button>
-        </form>
-      </Form>
+            <FlagIcon className={cn(["size-5"])} />
+          </div>
+          <h3 className={cn(["text-base", "font-semibold"])}>
+            {t("game:actions.create._")}
+          </h3>
+        </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            autoComplete={"off"}
+            className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
+          >
+            <FormField
+              control={form.control}
+              name={"title"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("game:form.title._")}</FormLabel>
+                  <FormControl>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <TypeIcon />
+                      </FieldIcon>
+                      <TextField
+                        {...field}
+                        placeholder={t("game:form.title.placeholder")}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name={"started_at"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("game:form.started_at._")}</FormLabel>
+                  <FormControl>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <CalendarIcon />
+                      </FieldIcon>
+                      <DateTimePicker {...field} clearable />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name={"ended_at"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("game:form.ended_at._")}</FormLabel>
+                  <FormControl>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <CalendarIcon />
+                      </FieldIcon>
+                      <DateTimePicker {...field} clearable />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type={"submit"}
+              variant={"solid"}
+              icon={<CheckIcon />}
+              level={"success"}
+              loading={loading}
+            >
+              {t("common:actions.confirm")}
+            </Button>
+          </form>
+        </Form>
+      </div>
     </Card>
   );
 }

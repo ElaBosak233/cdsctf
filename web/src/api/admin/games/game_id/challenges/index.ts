@@ -6,7 +6,7 @@ export type GetGameChallengeRequest = {
   challenge_id?: number;
   category?: number;
   enabled?: boolean;
-}
+};
 
 export async function getGameChallenges(request: GetGameChallengeRequest) {
   return api
@@ -24,7 +24,7 @@ export type CreateGameChallengeRequest = {
   min_pts?: number;
   difficulty?: number;
   bonus_ratios?: Array<number>;
-}
+};
 
 export async function createGameChallenge(request: CreateGameChallengeRequest) {
   return api

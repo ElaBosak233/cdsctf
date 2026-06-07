@@ -11,7 +11,7 @@ export type ListChallengesRequest = {
   page?: number;
   size?: number;
   sorts?: string;
-}
+};
 
 export async function listChallenges(request: ListChallengesRequest) {
   return api
@@ -26,14 +26,14 @@ export type QueryChallengeStatusRequest = {
   user_id?: number;
   team_id?: number;
   game_id?: number;
-}
+};
 
 export type ChallengeStatus = {
   solved?: boolean;
   solved_times?: number;
   pts?: number;
   bloods?: Array<Submission>;
-}
+};
 
 export async function queryChallengeStatus(
   request: QueryChallengeStatusRequest

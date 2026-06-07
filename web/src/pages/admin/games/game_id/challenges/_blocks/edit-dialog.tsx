@@ -152,203 +152,234 @@ function EditDialog(props: EditDialogProps) {
 
   return (
     <Card
-      className={cn(["p-5", "w-156", "min-h-64", "flex", "flex-col", "gap-8"])}
+      className={cn([
+        "w-156",
+        "min-h-64",
+        "rounded-elevated",
+        "shadow-lg",
+        "overflow-hidden",
+        "flex",
+        "flex-col",
+      ])}
     >
-      <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
-        <LibraryIcon className={cn(["size-4"])} />
-        {t("game:challenge.actions.edit._")}
-      </h3>
-      <ScrollArea className={cn(["max-h-144", "overflow-y-auto"])}>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            autoComplete={"off"}
-            className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
+      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
           >
-            <div className={cn(["grid", "grid-cols-3", "gap-3"])}>
-              <FormField
-                control={form.control}
-                name={"max_pts"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>{t("game:challenge.form.max_pts._")}</FormLabel>
-                    <FormControl>
-                      <Field size={"sm"}>
-                        <FieldIcon>
-                          <HashIcon />
-                        </FieldIcon>
-                        <NumberField
-                          placeholder={t(
-                            "game:challenge.form.max_pts.placeholder"
-                          )}
-                          value={field.value}
-                          onValueChange={(value) => field.onChange(value)}
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={"min_pts"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>{t("game:challenge.form.min_pts._")}</FormLabel>
-                    <FormControl>
-                      <Field size={"sm"}>
-                        <FieldIcon>
-                          <HashIcon />
-                        </FieldIcon>
-                        <NumberField
-                          placeholder={t(
-                            "game:challenge.form.min_pts.placeholder"
-                          )}
-                          value={field.value}
-                          onValueChange={(value) => field.onChange(value)}
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={"difficulty"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>
-                      {t("game:challenge.form.difficulty._")}
-                    </FormLabel>
-                    <FormControl>
-                      <Field size={"sm"}>
-                        <FieldIcon>
-                          <HashIcon />
-                        </FieldIcon>
-                        <NumberField
-                          placeholder={t(
-                            "game:challenge.form.difficulty.placeholder"
-                          )}
-                          value={field.value}
-                          onValueChange={(value) => field.onChange(value)}
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name={"frozen_at"}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("game:challenge.form.frozen_at")}</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <ClockFadingIcon />
-                      </FieldIcon>
-                      <DateTimePicker {...field} clearable />
-                    </Field>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className={cn(["flex", "flex-col", "gap-2"])}>
-              <Label>{t("game:challenge.form.bonus_ratio")}</Label>
+            <LibraryIcon className={cn(["size-5"])} />
+          </div>
+          <h3 className={cn(["text-base", "font-semibold"])}>
+            {t("game:challenge.actions.edit._")}
+          </h3>
+        </div>
+        <ScrollArea className={cn(["max-h-144", "overflow-y-auto"])}>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              autoComplete={"off"}
+              className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
+            >
               <div className={cn(["grid", "grid-cols-3", "gap-3"])}>
-                {form.watch("bonus_ratios").map((_ratio, ratioIndex) => (
-                  <FormField
-                    key={ratioIndex}
-                    control={form.control}
-                    name={`bonus_ratios.${ratioIndex}`}
-                    render={({ field }) => (
-                      <FormItem className={cn(["flex-1", "flex", "flex-col"])}>
-                        <FormControl>
-                          <div
-                            className={cn(["flex", "items-center", "gap-3"])}
-                          >
-                            <Field size={"sm"} className={cn(["flex-1"])}>
-                              <FieldIcon>
-                                <StarIcon />
-                              </FieldIcon>
-                              <NumberField
-                                placeholder={t(
-                                  "game:challenge.form.bonus_ratio_item",
-                                  { index: ratioIndex + 1 }
-                                )}
-                                value={field.value}
-                                onValueChange={(value) => field.onChange(value)}
-                              />
-                            </Field>
-                            <Button
-                              type={"button"}
-                              icon={<MinusIcon />}
-                              size={"sm"}
-                              square
-                              onClick={() => handleRemoveBonusRatio(ratioIndex)}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
-                <Button
-                  type={"button"}
-                  size={"sm"}
-                  icon={<PlusIcon />}
-                  className={cn(["self-center"])}
-                  square
-                  onClick={() => handleAddBonusRatio()}
+                <FormField
+                  control={form.control}
+                  name={"max_pts"}
+                  render={({ field }) => (
+                    <FormItem className={cn(["w-full"])}>
+                      <FormLabel>
+                        {t("game:challenge.form.max_pts._")}
+                      </FormLabel>
+                      <FormControl>
+                        <Field size={"sm"}>
+                          <FieldIcon>
+                            <HashIcon />
+                          </FieldIcon>
+                          <NumberField
+                            placeholder={t(
+                              "game:challenge.form.max_pts.placeholder"
+                            )}
+                            value={field.value}
+                            onValueChange={(value) => field.onChange(value)}
+                          />
+                        </Field>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={"min_pts"}
+                  render={({ field }) => (
+                    <FormItem className={cn(["w-full"])}>
+                      <FormLabel>
+                        {t("game:challenge.form.min_pts._")}
+                      </FormLabel>
+                      <FormControl>
+                        <Field size={"sm"}>
+                          <FieldIcon>
+                            <HashIcon />
+                          </FieldIcon>
+                          <NumberField
+                            placeholder={t(
+                              "game:challenge.form.min_pts.placeholder"
+                            )}
+                            value={field.value}
+                            onValueChange={(value) => field.onChange(value)}
+                          />
+                        </Field>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={"difficulty"}
+                  render={({ field }) => (
+                    <FormItem className={cn(["w-full"])}>
+                      <FormLabel>
+                        {t("game:challenge.form.difficulty._")}
+                      </FormLabel>
+                      <FormControl>
+                        <Field size={"sm"}>
+                          <FieldIcon>
+                            <HashIcon />
+                          </FieldIcon>
+                          <NumberField
+                            placeholder={t(
+                              "game:challenge.form.difficulty.placeholder"
+                            )}
+                            value={field.value}
+                            onValueChange={(value) => field.onChange(value)}
+                          />
+                        </Field>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-            </div>
-            <ChartContainer
-              config={{} satisfies ChartConfig}
-              className={cn(["h-50", "w-full"])}
-            >
-              <AreaChart
-                accessibilityLayer
-                data={data}
-                margin={{
-                  left: 12,
-                  right: 12,
-                }}
+              <FormField
+                control={form.control}
+                name={"frozen_at"}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("game:challenge.form.frozen_at")}</FormLabel>
+                    <FormControl>
+                      <Field>
+                        <FieldIcon>
+                          <ClockFadingIcon />
+                        </FieldIcon>
+                        <DateTimePicker {...field} clearable />
+                      </Field>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className={cn(["flex", "flex-col", "gap-2"])}>
+                <Label>{t("game:challenge.form.bonus_ratio")}</Label>
+                <div className={cn(["grid", "grid-cols-3", "gap-3"])}>
+                  {form.watch("bonus_ratios").map((_ratio, ratioIndex) => (
+                    <FormField
+                      key={ratioIndex}
+                      control={form.control}
+                      name={`bonus_ratios.${ratioIndex}`}
+                      render={({ field }) => (
+                        <FormItem
+                          className={cn(["flex-1", "flex", "flex-col"])}
+                        >
+                          <FormControl>
+                            <div
+                              className={cn(["flex", "items-center", "gap-3"])}
+                            >
+                              <Field size={"sm"} className={cn(["flex-1"])}>
+                                <FieldIcon>
+                                  <StarIcon />
+                                </FieldIcon>
+                                <NumberField
+                                  placeholder={t(
+                                    "game:challenge.form.bonus_ratio_item",
+                                    { index: ratioIndex + 1 }
+                                  )}
+                                  value={field.value}
+                                  onValueChange={(value) =>
+                                    field.onChange(value)
+                                  }
+                                />
+                              </Field>
+                              <Button
+                                type={"button"}
+                                icon={<MinusIcon />}
+                                size={"sm"}
+                                square
+                                onClick={() =>
+                                  handleRemoveBonusRatio(ratioIndex)
+                                }
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+                  <Button
+                    type={"button"}
+                    size={"sm"}
+                    icon={<PlusIcon />}
+                    className={cn(["self-center"])}
+                    square
+                    onClick={() => handleAddBonusRatio()}
+                  />
+                </div>
+              </div>
+              <ChartContainer
+                config={{} satisfies ChartConfig}
+                className={cn(["h-50", "w-full"])}
               >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey={"times"}
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                />
-                <YAxis dataKey={"pts"} />
-                <Area
-                  dataKey="pts"
-                  type="monotone"
-                  fill="var(--color-foreground)"
-                  fillOpacity={0.4}
-                  stroke="var(--color-foreground)"
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="line" hideLabel />}
-                />
-              </AreaChart>
-            </ChartContainer>
-            <Button type={"submit"} variant={"solid"} icon={<SaveIcon />}>
-              {t("common:actions.save")}
-            </Button>
-          </form>
-        </Form>
-      </ScrollArea>
+                <AreaChart
+                  accessibilityLayer
+                  data={data}
+                  margin={{
+                    left: 12,
+                    right: 12,
+                  }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey={"times"}
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                  />
+                  <YAxis dataKey={"pts"} />
+                  <Area
+                    dataKey="pts"
+                    type="monotone"
+                    fill="var(--color-foreground)"
+                    fillOpacity={0.4}
+                    stroke="var(--color-foreground)"
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="line" hideLabel />}
+                  />
+                </AreaChart>
+              </ChartContainer>
+              <Button type={"submit"} variant={"solid"} icon={<SaveIcon />}>
+                {t("common:actions.save")}
+              </Button>
+            </form>
+          </Form>
+        </ScrollArea>
+      </div>
     </Card>
   );
 }

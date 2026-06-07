@@ -6,7 +6,7 @@ export type GetNotesRequest = {
   size?: number;
   page?: number;
   sorts?: string;
-}
+};
 
 export async function getMyNotes(request: GetNotesRequest) {
   return api
@@ -20,7 +20,7 @@ export type SaveNoteRequest = {
   content: string;
   challenge_id: number;
   public: boolean;
-}
+};
 
 export async function saveMyNote(request: SaveNoteRequest) {
   return api.post(`users/me/notes`, { json: request }).json<{ note: Note }>();

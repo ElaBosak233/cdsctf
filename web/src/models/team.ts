@@ -13,7 +13,7 @@ export type Team = {
 
   pts?: number;
   rank?: number;
-}
+};
 
 export enum State {
   Banned = 0,

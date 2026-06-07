@@ -4,7 +4,7 @@ import { api } from "@/utils/query";
 export type UpdateChallengeInstanceRequest = {
   id?: number;
   instance?: Instance;
-}
+};
 
 export async function updateChallengeInstance(
   request: UpdateChallengeInstanceRequest

@@ -264,36 +264,49 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
         <DialogContent>
           <Card
             className={cn([
+              "w-lg",
+              "rounded-elevated",
+              "shadow-lg",
+              "overflow-hidden",
               "flex",
               "flex-col",
-              "p-5",
-              "min-h-32",
-              "w-lg",
-              "gap-5",
             ])}
           >
-            <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
-              <TrashIcon className={cn(["size-4", "text-error"])} />
-              {t("challenge:actions.delete._")}
-            </div>
-            <p className={cn(["text-sm"])}>
-              <Trans
-                i18nKey={"challenge:actions.delete.message"}
-                values={{ title }}
-                components={{
-                  muted: <span className={cn(["text-muted-foreground"])} />,
-                }}
-              />
-            </p>
-            <div className={cn(["flex", "justify-end"])}>
-              <Button
-                level={"error"}
-                variant={"solid"}
-                size={"sm"}
-                onClick={handleDelete}
-              >
-                {t("common:actions.confirm")}
-              </Button>
+            <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+              <div className={cn(["flex", "items-center", "gap-3"])}>
+                <div
+                  className={cn([
+                    "flex items-center justify-center",
+                    "size-10 rounded-badge",
+                    "bg-error/10 text-error",
+                    "shrink-0",
+                  ])}
+                >
+                  <TrashIcon className={cn(["size-5"])} />
+                </div>
+                <h3 className={cn(["text-base", "font-semibold"])}>
+                  {t("challenge:actions.delete._")}
+                </h3>
+              </div>
+              <p className={cn(["text-sm"])}>
+                <Trans
+                  i18nKey={"challenge:actions.delete.message"}
+                  values={{ title }}
+                  components={{
+                    muted: <span className={cn(["text-muted-foreground"])} />,
+                  }}
+                />
+              </p>
+              <div className={cn(["flex", "justify-end"])}>
+                <Button
+                  level={"error"}
+                  variant={"solid"}
+                  size={"sm"}
+                  onClick={handleDelete}
+                >
+                  {t("common:actions.confirm")}
+                </Button>
+              </div>
             </div>
           </Card>
         </DialogContent>

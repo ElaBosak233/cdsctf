@@ -16,10 +16,10 @@ export type Instance = {
   renew?: number;
   duration?: number;
   started_at?: number;
-}
+};
 
 export type Nat = {
   port: number;
   node_port: number;
   protocol: "TCP" | "UDP";
-}
+};

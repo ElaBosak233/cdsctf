@@ -11,7 +11,7 @@ export type User = {
   teams?: Array<Team>;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export enum Group {
   Guest = 0,
@@ -25,4 +25,4 @@ export type UserMini = {
   name?: string;
   username?: string;
   avatar_hash?: string;
-}
+};

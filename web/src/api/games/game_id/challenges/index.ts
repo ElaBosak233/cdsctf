@@ -5,7 +5,7 @@ export type GetGameChallengeRequest = {
   game_id?: number;
   challenge_id?: number;
   category?: number;
-}
+};
 
 export async function getGameChallenges(request: GetGameChallengeRequest) {
   return api

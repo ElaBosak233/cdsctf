@@ -3,7 +3,7 @@ import { api } from "@/utils/query";
 
 export type GetGameRequest = {
   id: number;
-}
+};
 
 export async function getGame(request: GetGameRequest) {
   return api.get(`admin/games/${request.id}`).json<{ game: Game }>();
@@ -21,11 +21,11 @@ export type UpdateGameBody = {
   started_at?: number;
   frozen_at?: number;
   ended_at?: number;
-}
+};
 
 export type UpdateGameRequest = UpdateGameBody & {
   id: number;
-}
+};
 
 export async function updateGame(request: UpdateGameRequest) {
   const { id, ...body } = request;
@@ -34,7 +34,7 @@ export async function updateGame(request: UpdateGameRequest) {
 
 export type DeleteGameRequest = {
   id?: number;
-}
+};
 
 export async function deleteGame(request: DeleteGameRequest) {
   return api.delete(`admin/games/${request.id}`).json<Record<string, never>>();

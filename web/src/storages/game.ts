@@ -13,7 +13,7 @@ type GameState = {
 
   members?: Array<UserMini>;
   setMembers: (users?: Array<UserMini>) => void;
-}
+};
 
 export const useGameStore = create<GameState>()((set, _get) => ({
   setCurrentGame: (game) => set({ currentGame: game }),

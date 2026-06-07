@@ -2,7 +2,7 @@ import { api } from "@/utils/query";
 
 export type CreateDebugInstanceRequest = {
   challenge_id?: number;
-}
+};
 
 export async function createDebugInstance(request: CreateDebugInstanceRequest) {
   return api

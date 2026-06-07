@@ -8,7 +8,7 @@ export type IdpAuthRequest = {
     id?: string;
     content?: string;
   } | null;
-}
+};
 
 export async function getIdp(idpId: number) {
   return api.get(`idps/${idpId}`).json<{ idp: Idp }>();

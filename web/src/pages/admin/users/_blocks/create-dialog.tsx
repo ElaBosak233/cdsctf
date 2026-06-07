@@ -92,165 +92,190 @@ function CreateUserDialog(props: CreateUserDialogProps) {
 
   return (
     <Card
-      className={cn(["w-lg", "min-h-64", "p-5", "flex", "flex-col", "gap-5"])}
+      className={cn([
+        "w-lg",
+        "min-h-64",
+        "rounded-elevated",
+        "shadow-lg",
+        "overflow-hidden",
+        "flex",
+        "flex-col",
+      ])}
     >
-      <h3 className={cn(["flex", "gap-3", "items-center", "text-md"])}>
-        <UserRoundPlusIcon className={cn(["size-4"])} />
-        {t("user:actions.create._")}
-      </h3>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          autoComplete={"off"}
-          className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
-        >
-          <FormField
-            control={form.control}
-            name={"username"}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("user:form.username._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <UserRoundIcon />
-                    </FieldIcon>
-                    <TextField
-                      {...field}
-                      placeholder={t("user:form.username.placeholder")}
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={"name"}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("user:form.name._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <UserRoundCheckIcon />
-                    </FieldIcon>
-                    <TextField
-                      {...field}
-                      placeholder={t("user:form.name.placeholder")}
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={"email"}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("user:form.email._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <MailIcon />
-                    </FieldIcon>
-                    <TextField
-                      {...field}
-                      type="email"
-                      placeholder={t("user:form.email.placeholder")}
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={"password"}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("user:form.password._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <KeyIcon />
-                    </FieldIcon>
-                    <TextField
-                      {...field}
-                      type="password"
-                      placeholder={t("user:form.password.placeholder")}
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={"group"}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("user:form.group._")}</FormLabel>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <UserRoundCheckIcon />
-                    </FieldIcon>
-                    <Select
-                      {...field}
-                      options={groupOptions.map((group) => {
-                        const Icon = group.icon;
-                        return {
-                          value: String(group.id),
-                          content: (
-                            <div
-                              className={cn(["flex", "gap-2", "items-center"])}
-                            >
-                              <Icon className="size-4" />
-                              {group.name}
-                            </div>
-                          ),
-                        };
-                      })}
-                      onValueChange={(value) => {
-                        field.onChange(Number(value));
-                      }}
-                      value={String(field.value)}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            type={"submit"}
-            variant={"solid"}
-            icon={<CheckIcon />}
-            level={"success"}
-            loading={loading}
+      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
           >
-            {t("common:actions.confirm")}
-          </Button>
-        </form>
-      </Form>
+            <UserRoundPlusIcon className={cn(["size-5"])} />
+          </div>
+          <h3 className={cn(["text-base", "font-semibold"])}>
+            {t("user:actions.create._")}
+          </h3>
+        </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            autoComplete={"off"}
+            className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
+          >
+            <FormField
+              control={form.control}
+              name={"username"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("user:form.username._")}</FormLabel>
+                  <FormControl>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <UserRoundIcon />
+                      </FieldIcon>
+                      <TextField
+                        {...field}
+                        placeholder={t("user:form.username.placeholder")}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name={"name"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("user:form.name._")}</FormLabel>
+                  <FormControl>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <UserRoundCheckIcon />
+                      </FieldIcon>
+                      <TextField
+                        {...field}
+                        placeholder={t("user:form.name.placeholder")}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name={"email"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("user:form.email._")}</FormLabel>
+                  <FormControl>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <MailIcon />
+                      </FieldIcon>
+                      <TextField
+                        {...field}
+                        type="email"
+                        placeholder={t("user:form.email.placeholder")}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name={"password"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("user:form.password._")}</FormLabel>
+                  <FormControl>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <KeyIcon />
+                      </FieldIcon>
+                      <TextField
+                        {...field}
+                        type="password"
+                        placeholder={t("user:form.password.placeholder")}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name={"group"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("user:form.group._")}</FormLabel>
+                  <FormControl>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <UserRoundCheckIcon />
+                      </FieldIcon>
+                      <Select
+                        {...field}
+                        options={groupOptions.map((group) => {
+                          const Icon = group.icon;
+                          return {
+                            value: String(group.id),
+                            content: (
+                              <div
+                                className={cn([
+                                  "flex",
+                                  "gap-2",
+                                  "items-center",
+                                ])}
+                              >
+                                <Icon className="size-4" />
+                                {group.name}
+                              </div>
+                            ),
+                          };
+                        })}
+                        onValueChange={(value) => {
+                          field.onChange(Number(value));
+                        }}
+                        value={String(field.value)}
+                      />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type={"submit"}
+              variant={"solid"}
+              icon={<CheckIcon />}
+              level={"success"}
+              loading={loading}
+            >
+              {t("common:actions.confirm")}
+            </Button>
+          </form>
+        </Form>
+      </div>
     </Card>
   );
 }

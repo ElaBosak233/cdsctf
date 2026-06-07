@@ -7,7 +7,7 @@ type AuthState = {
   user?: User;
   setUser: (user?: User) => void;
   clear: () => void;
-}
+};
 
 export const useAuthStore = create<AuthState>()(
   persist(

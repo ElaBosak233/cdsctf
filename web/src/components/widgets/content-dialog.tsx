@@ -12,7 +12,7 @@ interface ContentDialogProps {
   triggerText?: string;
   maxPreviewLength?: number;
   showPreview?: boolean;
-};
+}
 
 export function ContentDialog({
   content,

@@ -68,6 +68,8 @@ function NoticeCard() {
                       "min-h-81",
                       "w-screen",
                       "md:w-xl",
+                      "rounded-elevated",
+                      "shadow-lg",
                       "flex",
                       "flex-col",
                       "gap-5",
@@ -81,9 +83,26 @@ function NoticeCard() {
                           "items-baseline",
                         ])}
                       >
-                        <div className={cn(["flex", "gap-3", "items-center"])}>
-                          <RssIcon className={cn(["size-5"])} />
-                          <h3>{gameNotice?.title}</h3>
+                        <div className={cn(["flex", "items-start", "gap-3.5"])}>
+                          <div
+                            className={cn([
+                              "flex items-center justify-center",
+                              "size-10 rounded-badge",
+                              "bg-primary/10",
+                              "shrink-0",
+                            ])}
+                          >
+                            <RssIcon className={cn(["size-5"])} />
+                          </div>
+                          <h3
+                            className={cn([
+                              "text-sm",
+                              "font-semibold",
+                              "pt-0.5",
+                            ])}
+                          >
+                            {gameNotice?.title}
+                          </h3>
                         </div>
                         <span
                           className={cn([

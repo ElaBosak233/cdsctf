@@ -47,48 +47,70 @@ function CreateDialog(props: CreateDialogProps) {
   }
 
   return (
-    <Card className={cn(["w-lg", "p-5", "flex", "flex-col", "gap-5"])}>
-      <div className={cn(["flex", "gap-2", "items-center", "text-sm"])}>
-        <MailPlusIcon className={cn(["size-4"])} />
-        {t("user:emails.actions.create._")}
-      </div>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          autoComplete={"off"}
-          className={cn(["flex", "flex-col", "h-full", "gap-8"])}
-        >
-          <FormField
-            control={form.control}
-            name={"email"}
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Field size={"sm"}>
-                    <FieldIcon>
-                      <MailIcon />
-                    </FieldIcon>
-                    <TextField
-                      placeholder={t("user:emails.form.email.placeholder")}
-                      {...field}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            icon={<CheckIcon />}
-            level={"success"}
-            variant={"solid"}
-            size={"sm"}
-            type={"submit"}
+    <Card
+      className={cn([
+        "w-lg",
+        "rounded-elevated",
+        "shadow-lg",
+        "overflow-hidden",
+        "flex",
+        "flex-col",
+      ])}
+    >
+      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
           >
-            {t("common:actions.confirm")}
-          </Button>
-        </form>
-      </Form>
+            <MailPlusIcon className={cn(["size-5"])} />
+          </div>
+          <h3 className={cn(["text-base", "font-semibold"])}>
+            {t("user:emails.actions.create._")}
+          </h3>
+        </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            autoComplete={"off"}
+            className={cn(["flex", "flex-col", "h-full", "gap-8"])}
+          >
+            <FormField
+              control={form.control}
+              name={"email"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <MailIcon />
+                      </FieldIcon>
+                      <TextField
+                        placeholder={t("user:emails.form.email.placeholder")}
+                        {...field}
+                      />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              icon={<CheckIcon />}
+              level={"success"}
+              variant={"solid"}
+              size={"sm"}
+              type={"submit"}
+            >
+              {t("common:actions.confirm")}
+            </Button>
+          </form>
+        </Form>
+      </div>
     </Card>
   );
 }

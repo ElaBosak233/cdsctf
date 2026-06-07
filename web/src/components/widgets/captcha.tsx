@@ -36,7 +36,7 @@ export type CaptchaRef = {
 interface CaptchaProps {
   onChange: (captcha?: { id?: string; content?: string }) => void;
   ref?: Ref<CaptchaRef>;
-};
+}
 
 export function Captcha(props: CaptchaProps) {
   const { onChange, ref } = props;

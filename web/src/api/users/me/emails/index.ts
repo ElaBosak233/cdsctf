@@ -7,7 +7,7 @@ export async function getEmails() {
 
 export type AddEmailRequest = {
   email: string;
-}
+};
 
 export async function addEmail(request: AddEmailRequest) {
   return api
@@ -17,7 +17,7 @@ export async function addEmail(request: AddEmailRequest) {
 
 export type DeleteEmailRequest = {
   email: string;
-}
+};
 
 export async function deleteEmail(request: DeleteEmailRequest) {
   return api
@@ -28,7 +28,7 @@ export async function deleteEmail(request: DeleteEmailRequest) {
 export type VerifyEmailRequest = {
   email: string;
   code: string;
-}
+};
 
 export async function verifyEmail(request: VerifyEmailRequest) {
   return api
@@ -38,7 +38,7 @@ export async function verifyEmail(request: VerifyEmailRequest) {
 
 export type SendVerifyEmailRequest = {
   email: string;
-}
+};
 
 export async function sendVerifyEmail(request: SendVerifyEmailRequest) {
   return api

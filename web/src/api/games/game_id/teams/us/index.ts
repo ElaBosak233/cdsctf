@@ -3,7 +3,7 @@ import { api } from "@/utils/query";
 
 export type GetTeamProfile = {
   game_id?: number;
-}
+};
 
 export async function getTeamProfile(request: GetTeamProfile) {
   return api.get(`games/${request.game_id}/teams/us`).json<{ team: Team }>();
@@ -16,7 +16,7 @@ export type UpdateTeamRequest = {
   email?: string | null;
   slogan?: string | null;
   description?: string | null;
-}
+};
 
 export async function updateTeam(request: UpdateTeamRequest) {
   return api
@@ -27,7 +27,7 @@ export async function updateTeam(request: UpdateTeamRequest) {
 export type DeleteTeamRequest = {
   team_id?: number;
   game_id?: number;
-}
+};
 
 export async function deleteTeam(request: DeleteTeamRequest) {
   return api
@@ -40,7 +40,7 @@ export async function deleteTeam(request: DeleteTeamRequest) {
 export type SetTeamReadyRequest = {
   id?: number;
   game_id?: number;
-}
+};
 
 export async function setTeamReady(request: SetTeamReadyRequest) {
   return api

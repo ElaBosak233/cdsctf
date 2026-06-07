@@ -22,7 +22,7 @@ interface StatCardProps {
   icon: React.ReactNode;
   label: string;
   value: number | string | undefined;
-};
+}
 
 function StatCard({ icon, label, value }: StatCardProps) {
   return (
