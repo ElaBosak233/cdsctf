@@ -33,7 +33,7 @@ export type CaptchaRef = {
   refresh: () => void;
 };
 
-type CaptchaProps = {
+interface CaptchaProps {
   onChange: (captcha?: { id?: string; content?: string }) => void;
   ref?: Ref<CaptchaRef>;
 };

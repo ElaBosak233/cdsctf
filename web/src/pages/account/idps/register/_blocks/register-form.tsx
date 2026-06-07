@@ -32,7 +32,7 @@ import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
 
-interface PendingIdentity {
+type PendingIdentity = {
   token: string;
   idp_id: number;
   data: Record<string, string>;

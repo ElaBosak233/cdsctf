@@ -1,7 +1,7 @@
 import type { Group, User } from "@/models/user";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetUsersRequest {
+export type GetUsersRequest = {
   id?: number;
   name?: string;
   username?: string;
@@ -20,7 +20,7 @@ export async function getUsers(request: GetUsersRequest) {
     .json<{ users: User[]; total: number }>();
 }
 
-export interface CreateUserRequest {
+export type CreateUserRequest = {
   name?: string;
   username?: string;
   email?: string;

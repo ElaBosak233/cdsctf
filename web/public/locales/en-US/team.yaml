@@ -39,6 +39,7 @@ state:
   preparing: Preparing
   pending: Pending Approval
   passed: Approved
+  state_wrapper: "({{state}})"
 has_writeup:
   _: Write-up
   "true": Submitted

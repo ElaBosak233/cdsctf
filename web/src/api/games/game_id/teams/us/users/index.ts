@@ -1,6 +1,6 @@
 import { api } from "@/utils/query";
 
-export interface LeaveTeamRequest {
+export type LeaveTeamRequest = {
   game_id?: number;
   team_id?: number;
 }

@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 import type { User } from "@/models/user";
 
-interface AuthState {
+type AuthState = {
   user?: User;
   setUser: (user?: User) => void;
   clear: () => void;

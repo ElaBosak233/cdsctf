@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-interface SharedState {
+type SharedState = {
   refresh: number;
   setRefresh: () => void;
 }

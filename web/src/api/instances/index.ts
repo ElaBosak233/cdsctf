@@ -1,7 +1,7 @@
 import type { Instance } from "@/models/instance";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetInstanceRequest {
+export type GetInstanceRequest = {
   id?: string;
   game_id?: number;
   user_id?: number;
@@ -17,7 +17,7 @@ export async function getInstances(request: GetInstanceRequest) {
     .json<{ instances: Instance[] }>();
 }
 
-export interface CreateInstanceRequest {
+export type CreateInstanceRequest = {
   game_id?: number;
   team_id?: number;
   challenge_id?: number;

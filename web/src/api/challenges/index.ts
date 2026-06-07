@@ -2,7 +2,7 @@ import type { ChallengeMini } from "@/models/challenge";
 import type { Submission } from "@/models/submission";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface ListChallengesRequest {
+export type ListChallengesRequest = {
   id?: number;
   title?: string;
   tag?: string;
@@ -21,14 +21,14 @@ export async function listChallenges(request: ListChallengesRequest) {
     .json<{ challenges: ChallengeMini[]; total: number }>();
 }
 
-export interface QueryChallengeStatusRequest {
+export type QueryChallengeStatusRequest = {
   challenge_ids: Array<number>;
   user_id?: number;
   team_id?: number;
   game_id?: number;
 }
 
-export interface ChallengeStatus {
+export type ChallengeStatus = {
   solved?: boolean;
   solved_times?: number;
   pts?: number;

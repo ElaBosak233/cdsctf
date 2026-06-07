@@ -1,4 +1,4 @@
-export interface Team {
+export type Team = {
   id?: number;
   game_id?: number;
   name?: string;

@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 import type { Submission } from "@/models/submission";
 
-interface CheckerState {
+type CheckerState = {
   loading: boolean;
   setLoading: (loading: boolean) => void;
 

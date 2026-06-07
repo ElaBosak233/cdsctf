@@ -1,4 +1,4 @@
-export interface Submission {
+export type Submission = {
   id?: number;
   content?: string;
   status?: Status;

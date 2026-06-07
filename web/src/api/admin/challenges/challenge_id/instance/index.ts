@@ -1,7 +1,7 @@
 import type { Instance } from "@/models/challenge";
 import { api } from "@/utils/query";
 
-export interface UpdateChallengeInstanceRequest {
+export type UpdateChallengeInstanceRequest = {
   id?: number;
   instance?: Instance;
 }

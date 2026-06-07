@@ -2,7 +2,7 @@ import type { Idp, UserIdp } from "@/models/idp";
 import type { User } from "@/models/user";
 import { api } from "@/utils/query";
 
-export interface IdpAuthRequest {
+export type IdpAuthRequest = {
   params?: Record<string, string>;
   captcha?: {
     id?: string;

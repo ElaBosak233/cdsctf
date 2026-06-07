@@ -1,14 +1,14 @@
 import type { Idp } from "@/models/idp";
 import { api } from "@/utils/query";
 
-export interface IdpRequest {
+export type IdpRequest = {
   name?: string;
   enabled?: boolean;
   portal?: string | null;
   script?: string;
 }
 
-export interface DiagnosticMarker {
+export type DiagnosticMarker = {
   start_line: number;
   start_column: number;
   end_line: number;

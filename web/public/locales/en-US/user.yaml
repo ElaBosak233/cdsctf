@@ -50,6 +50,7 @@ form:
   email:
     _: Email
     message: Please enter a valid email address
+    placeholder: ctf@example.com
   password:
     _: Password
     messages:

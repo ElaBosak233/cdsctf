@@ -1,6 +1,6 @@
 import { api, toSearchParams } from "@/utils/query";
 
-export interface CreateTokenRequest {
+export type CreateTokenRequest = {
   team_id?: number;
   game_id?: number;
 }
@@ -13,7 +13,7 @@ export async function createToken(request: CreateTokenRequest) {
     .json<{ token: string | null }>();
 }
 
-export interface GetTokenRequest {
+export type GetTokenRequest = {
   team_id?: number;
   game_id?: number;
 }
@@ -26,7 +26,7 @@ export async function getToken(request: GetTokenRequest) {
     .json<{ token: string | null }>();
 }
 
-export interface DeleteTokenRequest {
+export type DeleteTokenRequest = {
   team_id?: number;
   game_id?: number;
 }

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/utils";
 
-type ImageProps = {
+interface ImageProps {
   src?: string | false;
   alt?: string;
   delay?: number;

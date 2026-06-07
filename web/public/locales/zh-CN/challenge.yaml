@@ -27,6 +27,9 @@ has_instance:
 frozen:
   already: 已冻结
   countdown: "距冻结 {{hours}} 时 {{minutes}} 分 {{seconds}} 秒"
+instance:
+  renew_success: 动态环境续期成功。
+  renew_error: 动态环境续期失败。
 public:
   _: 公开性
   actions:

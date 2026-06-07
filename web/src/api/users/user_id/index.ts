@@ -1,7 +1,7 @@
 import type { User } from "@/models/user";
 import { api } from "@/utils/query";
 
-export interface GetUserRequest {
+export type GetUserRequest = {
   id: number;
 }
 

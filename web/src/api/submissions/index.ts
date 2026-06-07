@@ -1,7 +1,7 @@
 import type { Submission } from "@/models/submission";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface CreateSubmissionRequest {
+export type CreateSubmissionRequest = {
   content?: string;
   challenge_id?: number;
   team_id?: number;
@@ -16,7 +16,7 @@ export async function createSubmission(request: CreateSubmissionRequest) {
     .json<Submission>();
 }
 
-export interface GetSubmissionRequest {
+export type GetSubmissionRequest = {
   id?: number;
   content?: string;
   status?: number;

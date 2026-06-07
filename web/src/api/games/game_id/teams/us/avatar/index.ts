@@ -1,6 +1,6 @@
 import { api } from "@/utils/query";
 
-export interface DeleteTeamAvatarRequest {
+export type DeleteTeamAvatarRequest = {
   game_id: number;
   team_id: number;
 }

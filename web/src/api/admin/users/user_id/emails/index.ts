@@ -1,7 +1,7 @@
 import type { Email } from "@/models/email";
 import { api } from "@/utils/query";
 
-export interface GetEmailsRequest {
+export type GetEmailsRequest = {
   user_id: number;
 }
 
@@ -11,7 +11,7 @@ export async function getEmails(request: GetEmailsRequest) {
     .json<{ emails: Email[]; total: number }>();
 }
 
-export interface AddEmailRequest {
+export type AddEmailRequest = {
   user_id: number;
   email: string;
   verified?: boolean;
@@ -25,7 +25,7 @@ export async function addEmail(request: AddEmailRequest) {
     .json<{ email: Email }>();
 }
 
-export interface UpdateEmailRequest {
+export type UpdateEmailRequest = {
   user_id: number;
   email: string;
   verified: boolean;
@@ -42,7 +42,7 @@ export async function updateEmail(request: UpdateEmailRequest) {
     .json<{ email: Email }>();
 }
 
-export interface DeleteEmailRequest {
+export type DeleteEmailRequest = {
   user_id: number;
   email: string;
 }

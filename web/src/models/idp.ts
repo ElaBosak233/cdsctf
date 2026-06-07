@@ -1,4 +1,4 @@
-export interface Idp {
+export type Idp = {
   id?: number;
   name?: string;
   enabled?: boolean;
@@ -9,7 +9,7 @@ export interface Idp {
   updated_at?: number;
 }
 
-export interface UserIdp {
+export type UserIdp = {
   id?: number;
   user_id?: number;
   idp_id?: number;

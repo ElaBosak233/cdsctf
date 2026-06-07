@@ -1,6 +1,6 @@
 import { api } from "@/utils/query";
 
-export interface UserForgetRequest {
+export type UserForgetRequest = {
   email?: string;
   code?: string;
   password?: string;
@@ -12,7 +12,7 @@ export async function forget(request: UserForgetRequest) {
     .json<Record<string, never>>();
 }
 
-export interface UserSendForgetEmailRequest {
+export type UserSendForgetEmailRequest = {
   email?: string;
 }
 

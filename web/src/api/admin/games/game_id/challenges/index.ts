@@ -1,7 +1,7 @@
 import type { GameChallenge } from "@/models/game_challenge";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetGameChallengeRequest {
+export type GetGameChallengeRequest = {
   game_id?: number;
   challenge_id?: number;
   category?: number;
@@ -16,7 +16,7 @@ export async function getGameChallenges(request: GetGameChallengeRequest) {
     .json<{ challenges: GameChallenge[]; total: number }>();
 }
 
-export interface CreateGameChallengeRequest {
+export type CreateGameChallengeRequest = {
   game_id?: number;
   challenge_id?: number;
   enabled?: boolean;

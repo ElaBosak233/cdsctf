@@ -2,7 +2,7 @@ import { LoaderCircleIcon } from "lucide-react";
 
 import { cn } from "@/utils";
 
-type LoadingOverlayProps = {
+interface LoadingOverlayProps {
   loading: boolean;
   className?: string;
 };

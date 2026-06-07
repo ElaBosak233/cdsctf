@@ -37,6 +37,7 @@ state:
   preparing: 准备中
   pending: 审核中
   passed: 正常参赛
+  state_wrapper: "（{{state}}）"
 has_writeup:
   _: Write-up
   "true": 已提交

@@ -21,7 +21,7 @@ export type ChartConfig = Record<
   )
 >;
 
-interface ChartContextProps {
+type ChartContextProps = {
   config: ChartConfig;
 }
 

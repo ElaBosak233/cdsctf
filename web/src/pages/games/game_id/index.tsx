@@ -338,7 +338,7 @@ export function GameActionButton({ status }: GameActionProps) {
       <span>{t("team:actions.participate", { name: selfTeam.name })}</span>
       {invalidMessage && (
         <span>
-          {t("game:challenge.state_wrapper", { state: invalidMessage })}
+          {t("team:state.state_wrapper", { state: invalidMessage })}
         </span>
       )}
     </Button>

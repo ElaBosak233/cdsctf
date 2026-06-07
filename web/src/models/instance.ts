@@ -1,6 +1,6 @@
 import type { Port } from "./challenge";
 
-export interface Instance {
+export type Instance = {
   id: string;
   game_id: number;
   user_id: number;
@@ -18,7 +18,7 @@ export interface Instance {
   started_at?: number;
 }
 
-export interface Nat {
+export type Nat = {
   port: number;
   node_port: number;
   protocol: "TCP" | "UDP";

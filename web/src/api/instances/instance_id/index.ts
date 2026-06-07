@@ -1,7 +1,7 @@
 import type { Instance } from "@/models/challenge";
 import { api } from "@/utils/query";
 
-export interface StopInstanceRequest {
+export type StopInstanceRequest = {
   id: string;
 }
 
@@ -11,7 +11,7 @@ export async function stopInstance(request: StopInstanceRequest) {
     .json<unknown>();
 }
 
-export interface RenewInstanceRequest {
+export type RenewInstanceRequest = {
   id: string;
   team_id?: number;
   game_id?: number;

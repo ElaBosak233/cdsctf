@@ -1,6 +1,6 @@
 import type { Team } from "./team";
 
-export interface User {
+export type User = {
   id?: number;
   name?: string;
   username?: string;
@@ -20,7 +20,7 @@ export enum Group {
   Admin = 3,
 }
 
-export interface UserMini {
+export type UserMini = {
   id?: number;
   name?: string;
   username?: string;

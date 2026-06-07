@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 export type Theme = "light" | "dark" | "system";
 
-interface AppearanceState {
+type AppearanceState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
 

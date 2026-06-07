@@ -1,6 +1,6 @@
 import { api } from "@/utils/query";
 
-interface DeleteGameIconRequest {
+type DeleteGameIconRequest = {
   game_id: number;
 }
 

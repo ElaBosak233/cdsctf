@@ -11,7 +11,7 @@ export async function getUserProfile() {
     .json<{ user: User }>();
 }
 
-export interface UpdateUserProfileRequest {
+export type UpdateUserProfileRequest = {
   name?: string;
   email?: string;
   description?: string | null;
@@ -21,7 +21,7 @@ export async function updateUserProfile(request: UpdateUserProfileRequest) {
   return api.put("users/me", { json: request }).json<{ user: User }>();
 }
 
-export interface UpdateUserProfilePasswordRequest {
+export type UpdateUserProfilePasswordRequest = {
   old_password: string;
   new_password: string;
 }
@@ -34,7 +34,7 @@ export async function updateUserProfilePassword(
     .json<Record<string, never>>();
 }
 
-export interface DeleteUserProfileRequest {
+export type DeleteUserProfileRequest = {
   password: string;
   captcha?: {
     id?: string;

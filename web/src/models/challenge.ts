@@ -1,4 +1,4 @@
-export interface Challenge {
+export type Challenge = {
   id?: number;
   title?: string;
   tags?: Array<string>;
@@ -15,13 +15,13 @@ export interface Challenge {
   created_at?: number;
 }
 
-export interface Instance {
+export type Instance = {
   duration?: number;
   internet?: boolean;
   containers?: Array<Container>;
 }
 
-export interface Container {
+export type Container = {
   image: string;
   cpu_limit: number;
   memory_limit: number;
@@ -30,17 +30,17 @@ export interface Container {
   image_pull_policy: string;
 }
 
-export interface Port {
+export type Port = {
   port: number;
   protocol: "TCP" | "UDP";
 }
 
-export interface EnvVar {
+export type EnvVar = {
   key: string;
   value: string;
 }
 
-export interface ChallengeMini {
+export type ChallengeMini = {
   id?: number;
   title?: string;
   category?: number;

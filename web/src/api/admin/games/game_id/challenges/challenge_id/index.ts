@@ -1,7 +1,7 @@
 import type { GameChallenge } from "@/models/game_challenge";
 import { api } from "@/utils/query";
 
-export interface UpdateGameChallengeRequest {
+export type UpdateGameChallengeRequest = {
   game_id?: number;
   challenge_id?: number;
   enabled?: boolean;
@@ -20,7 +20,7 @@ export async function updateGameChallenge(request: UpdateGameChallengeRequest) {
     .json<{ game_challenge: GameChallenge }>();
 }
 
-export interface DeleteGameChallengeRequest {
+export type DeleteGameChallengeRequest = {
   challenge_id?: number;
   game_id?: number;
 }

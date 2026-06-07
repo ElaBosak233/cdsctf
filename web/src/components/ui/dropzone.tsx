@@ -515,7 +515,7 @@ function DropzoneDescription(props: DropzoneDescriptionProps) {
   );
 }
 
-interface DropzoneFileListContext<TUploadRes, TUploadError> {
+type DropzoneFileListContext<TUploadRes, TUploadError> = {
   onRemoveFile: () => Promise<void>;
   onRetry: () => Promise<void>;
   fileStatus: FileStatus<TUploadRes, TUploadError>;

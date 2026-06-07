@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 import type { Config, Version } from "@/models/config";
 
-export interface ConfigState {
+export type ConfigState = {
   config?: Config;
   setConfig: (config: ConfigState["config"]) => void;
 

@@ -422,7 +422,7 @@ interface TimePickerProps {
   granularity?: Granularity;
 }
 
-interface TimePickerRef {
+type TimePickerRef = {
   minuteRef: HTMLInputElement | null;
   hourRef: HTMLInputElement | null;
   secondRef: HTMLInputElement | null;
@@ -560,7 +560,7 @@ const dateTimePickerVariants = cva(
   }
 );
 
-type DateTimePickerProps = {
+interface DateTimePickerProps {
   value?: Date;
   clearable?: boolean;
   onChange?: (date: Date | undefined) => void;

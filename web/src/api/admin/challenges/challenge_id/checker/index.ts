@@ -1,6 +1,6 @@
 import { api } from "@/utils/query";
 
-export interface UpdateCheckerRequest {
+export type UpdateCheckerRequest = {
   id?: number;
   checker?: string;
 }
@@ -11,12 +11,12 @@ export async function updateChallengeChecker(request: UpdateCheckerRequest) {
     .json<Record<string, never>>();
 }
 
-export interface LintCheckerRequest {
+export type LintCheckerRequest = {
   id?: number;
   checker?: string;
 }
 
-export interface DiagnosticMarker {
+export type DiagnosticMarker = {
   start_line: number;
   start_column: number;
   end_line: number;

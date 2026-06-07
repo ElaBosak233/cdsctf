@@ -5,7 +5,7 @@ export async function getEmails() {
   return api.get(`users/me/emails`).json<{ emails: Email[]; total: number }>();
 }
 
-export interface AddEmailRequest {
+export type AddEmailRequest = {
   email: string;
 }
 
@@ -15,7 +15,7 @@ export async function addEmail(request: AddEmailRequest) {
     .json<{ email: Email }>();
 }
 
-export interface DeleteEmailRequest {
+export type DeleteEmailRequest = {
   email: string;
 }
 
@@ -25,7 +25,7 @@ export async function deleteEmail(request: DeleteEmailRequest) {
     .json<{ email: Email }>();
 }
 
-export interface VerifyEmailRequest {
+export type VerifyEmailRequest = {
   email: string;
   code: string;
 }
@@ -36,7 +36,7 @@ export async function verifyEmail(request: VerifyEmailRequest) {
     .json<{ email: Email }>();
 }
 
-export interface SendVerifyEmailRequest {
+export type SendVerifyEmailRequest = {
   email: string;
 }
 

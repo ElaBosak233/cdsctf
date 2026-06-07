@@ -18,7 +18,7 @@ function useStatisticsQuery() {
   });
 }
 
-type StatCardProps = {
+interface StatCardProps {
   icon: React.ReactNode;
   label: string;
   value: number | string | undefined;

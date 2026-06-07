@@ -4,7 +4,7 @@ import type { Game } from "@/models/game";
 import type { Team } from "@/models/team";
 import type { UserMini } from "@/models/user";
 
-interface GameState {
+type GameState = {
   currentGame?: Game;
   setCurrentGame: (game?: Game) => void;
 

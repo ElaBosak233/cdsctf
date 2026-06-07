@@ -1,7 +1,7 @@
 import type { Submission } from "./submission";
 import type { Team } from "./team";
 
-export interface Game {
+export type Game = {
   id?: number;
   title?: string;
   sketch?: string;
@@ -23,7 +23,7 @@ export interface Game {
   created_at?: number;
 }
 
-export interface GameMini {
+export type GameMini = {
   id?: number;
   title?: string;
   sketch?: string;
@@ -34,7 +34,7 @@ export interface GameMini {
   poster_hash?: string;
 }
 
-export interface ScoreRecord {
+export type ScoreRecord = {
   team?: Team;
   submissions?: Array<Submission>;
 }

@@ -1,7 +1,7 @@
 import type { GameNotice } from "@/models/game_notice";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetGameNoticeRequest {
+export type GetGameNoticeRequest = {
   game_id?: number;
 }
 

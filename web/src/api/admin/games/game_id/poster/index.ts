@@ -1,6 +1,6 @@
 import { api } from "@/utils/query";
 
-interface DeleteGamePosterRequest {
+type DeleteGamePosterRequest = {
   game_id: number;
 }
 

@@ -1,4 +1,4 @@
-export interface GameNotice {
+export type GameNotice = {
   id?: number;
   game_id?: number;
   title?: string;

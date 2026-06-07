@@ -6,7 +6,7 @@ export function getEmail(type: "verify" | "forget") {
     .json<{ content: string }>();
 }
 
-export interface SaveEmailRequest {
+export type SaveEmailRequest = {
   type: "verify" | "forget";
   data: string;
 }

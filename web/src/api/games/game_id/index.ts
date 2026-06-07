@@ -1,7 +1,7 @@
 import type { Game, ScoreRecord } from "@/models/game";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetGameRequest {
+export type GetGameRequest = {
   id?: number;
 }
 
@@ -9,7 +9,7 @@ export async function getGame(request: GetGameRequest) {
   return api.get(`games/${request.id}`).json<{ game: Game }>();
 }
 
-export interface GetGameScoreboardRequest {
+export type GetGameScoreboardRequest = {
   id?: number;
   size?: number;
   page?: number;

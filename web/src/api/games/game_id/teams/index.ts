@@ -1,7 +1,7 @@
 import type { Team } from "@/models/team";
 import { api } from "@/utils/query";
 
-export interface CreateTeamRequest {
+export type CreateTeamRequest = {
   game_id?: number;
   name?: string;
   email?: string;

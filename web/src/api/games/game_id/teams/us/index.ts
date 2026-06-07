@@ -1,7 +1,7 @@
 import type { Team } from "@/models/team";
 import { api } from "@/utils/query";
 
-export interface GetTeamProfile {
+export type GetTeamProfile = {
   game_id?: number;
 }
 
@@ -9,7 +9,7 @@ export async function getTeamProfile(request: GetTeamProfile) {
   return api.get(`games/${request.game_id}/teams/us`).json<{ team: Team }>();
 }
 
-export interface UpdateTeamRequest {
+export type UpdateTeamRequest = {
   id: number;
   game_id: number;
   name?: string | null;
@@ -24,7 +24,7 @@ export async function updateTeam(request: UpdateTeamRequest) {
     .json<{ team: Team }>();
 }
 
-export interface DeleteTeamRequest {
+export type DeleteTeamRequest = {
   team_id?: number;
   game_id?: number;
 }
@@ -37,7 +37,7 @@ export async function deleteTeam(request: DeleteTeamRequest) {
     .json<Record<string, never>>();
 }
 
-export interface SetTeamReadyRequest {
+export type SetTeamReadyRequest = {
   id?: number;
   game_id?: number;
 }

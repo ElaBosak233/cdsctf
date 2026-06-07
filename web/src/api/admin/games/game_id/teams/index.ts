@@ -1,7 +1,7 @@
 import type { State, Team } from "@/models/team";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetTeamRequest {
+export type GetTeamRequest = {
   id?: number;
   game_id?: number;
   user_id?: number;
@@ -20,7 +20,7 @@ export async function getTeams(request: GetTeamRequest) {
     .json<{ teams: Team[]; total: number }>();
 }
 
-export interface CreateTeamRequest {
+export type CreateTeamRequest = {
   game_id?: number;
   name?: string;
   email?: string;

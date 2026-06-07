@@ -1,7 +1,7 @@
 import type { Challenge } from "@/models/challenge";
 import { api } from "@/utils/query";
 
-export interface UpdateWriteupRequest {
+export type UpdateWriteupRequest = {
   id?: number | null;
   writeup?: string | null;
 }

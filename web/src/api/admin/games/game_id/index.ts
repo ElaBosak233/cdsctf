@@ -1,7 +1,7 @@
 import type { Game } from "@/models/game";
 import { api } from "@/utils/query";
 
-export interface GetGameRequest {
+export type GetGameRequest = {
   id: number;
 }
 
@@ -9,7 +9,7 @@ export async function getGame(request: GetGameRequest) {
   return api.get(`admin/games/${request.id}`).json<{ game: Game }>();
 }
 
-export interface UpdateGameBody {
+export type UpdateGameBody = {
   title?: string;
   sketch?: string | null;
   description?: string | null;
@@ -23,7 +23,7 @@ export interface UpdateGameBody {
   ended_at?: number;
 }
 
-export interface UpdateGameRequest extends UpdateGameBody {
+export type UpdateGameRequest = UpdateGameBody & {
   id: number;
 }
 
@@ -32,7 +32,7 @@ export async function updateGame(request: UpdateGameRequest) {
   return api.put(`admin/games/${id}`, { json: body }).json<{ game: Game }>();
 }
 
-export interface DeleteGameRequest {
+export type DeleteGameRequest = {
   id?: number;
 }
 

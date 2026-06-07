@@ -1,7 +1,7 @@
 import type { Note } from "@/models/note";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetNotesRequest {
+export type GetNotesRequest = {
   user_id?: number;
   challenge_id?: number;
   size?: number;

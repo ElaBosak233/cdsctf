@@ -1,7 +1,7 @@
 import type { User } from "@/models/user";
 import { api } from "@/utils/query";
 
-export interface UserLoginRequest {
+export type UserLoginRequest = {
   account: string;
   password: string;
   captcha?: {
@@ -18,7 +18,7 @@ export async function logout() {
   return api.post("users/logout").json<Record<string, never>>();
 }
 
-export interface UserRegisterRequest {
+export type UserRegisterRequest = {
   username: string;
   name?: string;
   email: string;

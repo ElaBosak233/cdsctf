@@ -27,6 +27,9 @@ has_instance:
 frozen:
   already: Frozen
   countdown: "Freezes in {{hours}}h {{minutes}}m {{seconds}}s"
+instance:
+  renew_success: Dynamic environment renewed successfully.
+  renew_error: Dynamic environment renewal failed.
 public:
   _: Public
   actions:
@@ -156,6 +159,7 @@ actions:
   _: Actions
   create:
     _: Create Challenge
+    success: "Challenge {{title}} created successfully."
   update:
     success: "Challenge {{title}} updated successfully."
   writeup_update:

@@ -1,7 +1,7 @@
 import type { UserMini } from "@/models/user";
 import { api } from "@/utils/query";
 
-export interface GetTeamUserRequest {
+export type GetTeamUserRequest = {
   team_id?: number;
   game_id?: number;
 }
@@ -12,7 +12,7 @@ export async function getTeamUser(request: GetTeamUserRequest) {
     .json<{ users: UserMini[]; total: number }>();
 }
 
-export interface CreateTeamUserRequest {
+export type CreateTeamUserRequest = {
   team_id?: number;
   game_id?: number;
   user_id?: number;
@@ -26,7 +26,7 @@ export async function createTeamUser(request: CreateTeamUserRequest) {
     .json<Record<string, never>>();
 }
 
-export interface DeleteTeamUserRequest {
+export type DeleteTeamUserRequest = {
   team_id?: number;
   game_id?: number;
   user_id?: number;

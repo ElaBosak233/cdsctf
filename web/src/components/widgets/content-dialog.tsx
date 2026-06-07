@@ -6,7 +6,7 @@ import { Typography } from "@/components/ui/typography";
 import { cn } from "@/utils";
 import { MarkdownRender } from "../ui/markdown-render";
 
-type ContentDialogProps = {
+interface ContentDialogProps {
   title: string;
   content: string;
   triggerText?: string;

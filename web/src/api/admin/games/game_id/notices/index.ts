@@ -1,7 +1,7 @@
 import type { GameNotice } from "@/models/game_notice";
 import { api } from "@/utils/query";
 
-export interface CreateGameNoticeRequest {
+export type CreateGameNoticeRequest = {
   game_id?: number;
   title?: string;
   content?: string;
@@ -16,7 +16,7 @@ export async function createGameNotice(request: CreateGameNoticeRequest) {
     .json<{ notice: GameNotice }>();
 }
 
-export interface DeleteGameNoticeRequest {
+export type DeleteGameNoticeRequest = {
   id?: number;
   game_id?: number;
 }

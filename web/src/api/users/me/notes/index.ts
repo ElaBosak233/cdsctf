@@ -1,7 +1,7 @@
 import type { Note } from "@/models/note";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetNotesRequest {
+export type GetNotesRequest = {
   challenge_id?: number;
   size?: number;
   page?: number;
@@ -16,7 +16,7 @@ export async function getMyNotes(request: GetNotesRequest) {
     .json<{ notes: Note[]; total: number }>();
 }
 
-export interface SaveNoteRequest {
+export type SaveNoteRequest = {
   content: string;
   challenge_id: number;
   public: boolean;

@@ -1,4 +1,4 @@
-export interface Config {
+export type Config = {
   meta?: {
     title?: string;
     description?: string;
@@ -34,12 +34,12 @@ export interface Config {
   };
 }
 
-export interface Version {
+export type Version = {
   tag?: string;
   commit?: string;
 }
 
-export interface Statistics {
+export type Statistics = {
   users?: number;
   games?: number;
   challenges?: {

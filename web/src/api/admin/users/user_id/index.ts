@@ -1,7 +1,7 @@
 import type { Group, User } from "@/models/user";
 import { api } from "@/utils/query";
 
-export interface GetUserRequest {
+export type GetUserRequest = {
   id: number;
 }
 
@@ -9,7 +9,7 @@ export async function getUser(request: GetUserRequest) {
   return api.get(`admin/users/${request.id}`).json<{ user: User }>();
 }
 
-export interface DeleteUserRequest {
+export type DeleteUserRequest = {
   id: number;
 }
 
@@ -19,7 +19,7 @@ export async function deleteUser(request: DeleteUserRequest) {
     .json<Record<string, never>>();
 }
 
-export interface UpdateUserRequest {
+export type UpdateUserRequest = {
   id: number;
   username?: string;
   name?: string;

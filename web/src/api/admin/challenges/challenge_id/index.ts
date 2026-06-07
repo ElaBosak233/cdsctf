@@ -1,7 +1,7 @@
 import type { Challenge } from "@/models/challenge";
 import { api } from "@/utils/query";
 
-export interface GetChallengeRequest {
+export type GetChallengeRequest = {
   id?: number;
 }
 
@@ -11,7 +11,7 @@ export async function getChallenge(request: GetChallengeRequest) {
     .json<{ challenge: Challenge }>();
 }
 
-export interface UpdateChallengeRequest {
+export type UpdateChallengeRequest = {
   id?: number | null;
   title?: string | null;
   tags?: Array<string> | null;
@@ -28,7 +28,7 @@ export async function updateChallenge(request: UpdateChallengeRequest) {
     .json<{ challenge: Challenge }>();
 }
 
-export interface DeleteChallengeRequest {
+export type DeleteChallengeRequest = {
   id?: number;
 }
 

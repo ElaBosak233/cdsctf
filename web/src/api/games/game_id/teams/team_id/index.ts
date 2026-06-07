@@ -1,7 +1,7 @@
 import type { UserMini } from "@/models/user";
 import { api } from "@/utils/query";
 
-export interface JoinTeamRequest {
+export type JoinTeamRequest = {
   game_id?: number;
   team_id?: number;
   token?: string;
@@ -15,7 +15,7 @@ export async function joinTeam(request: JoinTeamRequest) {
     .json<Record<string, never>>();
 }
 
-export interface GetTeamMemberRequest {
+export type GetTeamMemberRequest = {
   game_id?: number;
   team_id?: number;
 }

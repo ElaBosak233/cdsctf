@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/storages/auth";
 import type { ErrorResponse } from "@/types";
 
-interface PendingEntry {
+type PendingEntry = {
   controller: AbortController;
   resolve: (response: Response) => void;
   reject: (reason: unknown) => void;

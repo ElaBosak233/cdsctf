@@ -1,7 +1,7 @@
 import type { Game } from "@/models/game";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetGamesRequest {
+export type GetGamesRequest = {
   id?: number;
   title?: string;
   enabled?: boolean;
@@ -18,7 +18,7 @@ export async function getGames(request: GetGamesRequest) {
     .json<{ games: Game[]; total: number }>();
 }
 
-export interface CreateGameRequest {
+export type CreateGameRequest = {
   title?: string;
   sketch?: string;
   description?: string;

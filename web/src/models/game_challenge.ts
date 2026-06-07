@@ -1,4 +1,4 @@
-export interface GameChallenge {
+export type GameChallenge = {
   game_id?: number;
   challenge_id?: number;
   challenge_title?: string;

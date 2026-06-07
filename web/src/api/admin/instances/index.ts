@@ -1,6 +1,6 @@
 import { api } from "@/utils/query";
 
-export interface CreateDebugInstanceRequest {
+export type CreateDebugInstanceRequest = {
   challenge_id?: number;
 }
 

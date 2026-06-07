@@ -1,7 +1,7 @@
 import type { State, Team } from "@/models/team";
 import { api } from "@/utils/query";
 
-export interface UpdateTeamRequest {
+export type UpdateTeamRequest = {
   team_id: number;
   game_id: number;
   name?: string | null;
@@ -19,7 +19,7 @@ export async function updateTeam(request: UpdateTeamRequest) {
     .json<{ team: Team }>();
 }
 
-export interface DeleteTeamRequest {
+export type DeleteTeamRequest = {
   team_id?: number;
   game_id?: number;
 }

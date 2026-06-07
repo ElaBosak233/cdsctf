@@ -1,7 +1,7 @@
 import type { GameChallenge } from "@/models/game_challenge";
 import { api, toSearchParams } from "@/utils/query";
 
-export interface GetGameChallengeRequest {
+export type GetGameChallengeRequest = {
   game_id?: number;
   challenge_id?: number;
   category?: number;
