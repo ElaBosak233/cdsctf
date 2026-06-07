@@ -56,39 +56,98 @@ function ChallengeDialog(props: ChallengeDialogProps) {
     <Context.Provider value={{ challenge: challenge ?? digest, team: gameTeam, debug }}>
       <Card
         className={cn([
-          "p-6",
-          "min-h-128",
           "w-screen",
           "md:w-3xl",
+          "rounded-2xl",
+          "shadow-lg",
+          "overflow-hidden",
           "flex",
           "flex-col",
-          "gap-5",
+          "min-h-128",
         ])}
         {...rest}
       >
-        <div className={cn("flex", "flex-col", "gap-3")}>
-          <div className={cn(["flex", "items-center", "justify-between"])}>
-            <div className={cn(["flex", "gap-3", "items-center"])}>
-              <CategoryIcon
-                color={category?.color}
-                className={cn(["size-5"])}
-              />
-              <h3>{digest?.title}</h3>
+        {/* Header */}
+        <div className={cn(["p-6", "pb-4", "flex", "flex-col", "gap-3", "shrink-0"])}>
+          <div className={cn(["flex", "items-start", "justify-between", "gap-3"])}>
+            <div className={cn(["flex", "items-start", "gap-3.5"])}>
+              <div
+                className={cn([
+                  "flex items-center justify-center",
+                  "size-10 rounded-xl",
+                  "bg-info/10 text-info",
+                  "shadow-xs shrink-0",
+                ])}
+              >
+                <CategoryIcon
+                  color={category?.color}
+                  className={cn(["size-5"])}
+                />
+              </div>
+              <div className={cn(["flex", "flex-col", "gap-1", "pt-0.5"])}>
+                <h3 className={cn(["text-sm", "font-semibold", "text-foreground"])}>
+                  {digest?.title}
+                </h3>
+                <span className={cn(["text-xs", "text-muted-foreground/80"])}>
+                  {category?.name?.toUpperCase()}
+                </span>
+              </div>
             </div>
-            {frozenAt && <FrozenBadge frozenAt={frozenAt} />}
+            {frozenAt && (
+              <div className={cn(["shrink-0", "pt-1"])}>
+                <FrozenBadge frozenAt={frozenAt} />
+              </div>
+            )}
           </div>
           <Separator />
         </div>
-        <ScrollArea className={cn(["flex-1", "max-h-144", "overflow-auto"])}>
-          <LoadingOverlay loading={isLoading} />
-          <Typography>
-            <MarkdownRender src={challenge?.description} />
-          </Typography>
-        </ScrollArea>
-        {challenge?.has_attachment && <AttachmentSection />}
-        {challenge?.has_instance && <InstanceSection />}
+
+        {/* Description */}
+        <div className={cn(["px-6", "flex-1", "flex", "flex-col", "min-h-0"])}>
+          <ScrollArea
+            className={cn([
+              "flex-1",
+              "max-h-144",
+              "overflow-auto",
+              "-mx-2",
+              "px-2",
+            ])}
+          >
+            <LoadingOverlay loading={isLoading} />
+            <div className={cn(["pb-6"])}>
+              <Typography>
+                <MarkdownRender src={challenge?.description} />
+              </Typography>
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Attachment section */}
+        {challenge?.has_attachment && (
+          <div className={cn(["px-6", "pb-4", "shrink-0"])}>
+            <AttachmentSection />
+          </div>
+        )}
+
+        {/* Instance section */}
+        {challenge?.has_instance && (
+          <div className={cn(["px-6", "pb-4", "shrink-0"])}>
+            <InstanceSection />
+          </div>
+        )}
+
+        {/* Submit section */}
         {!debug && (
-          <div className={cn("flex", "flex-col", "gap-3")}>
+          <div
+            className={cn([
+              "px-6",
+              "pb-6",
+              "flex",
+              "flex-col",
+              "gap-3",
+              "shrink-0",
+            ])}
+          >
             <Separator />
             <SubmitSection />
           </div>
