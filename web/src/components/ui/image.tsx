@@ -29,6 +29,7 @@ function Image(props: ImageProps) {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [hasError, setHasError] = useState<boolean>(false);
+  const imgRef = useRef<HTMLImageElement>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
@@ -39,6 +40,16 @@ function Image(props: ImageProps) {
     if (src) {
       setIsLoading(true);
       setHasError(false);
+
+      // Safari cached-image workaround:
+      // Safari fires onLoad synchronously when an image is served from cache,
+      // which can happen before React attaches the synthetic event handler,
+      // causing the loading state to hang indefinitely.
+      // Use handleLoad() instead of immediate setIsLoading(false) to preserve
+      // the glass blur + spinner transition delay.
+      if (imgRef.current?.complete) {
+        handleLoad();
+      }
     } else {
       setIsLoading(true);
       errorTimerRef.current = setTimeout(() => {
@@ -81,7 +92,10 @@ function Image(props: ImageProps) {
         onLoad={handleLoad}
         onError={handleError}
         draggable={false}
+        ref={imgRef}
         className={cn([
+          "absolute",
+          "inset-0",
           "w-full",
           "h-full",
           "object-cover",
