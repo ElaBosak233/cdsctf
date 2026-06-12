@@ -159,28 +159,26 @@ export default function Index() {
                       Math.floor((target.getTime() - now.getTime()) / 1000)
                     );
 
-                  const remain = diff(endTime);
-                  const h = Math.floor(remain / 3600);
-                  const m = Math.floor((remain % 3600) / 60);
-                  const s = remain % 60;
-
                   if (now < startTime) {
+                    const remain = diff(startTime);
                     return t("game:status.upcoming.remaining", {
-                      hours: h,
-                      minutes: m,
-                      seconds: s,
+                      hours: Math.floor(remain / 3600),
+                      minutes: Math.floor((remain % 3600) / 60),
+                      seconds: remain % 60,
                     });
                   } else if (now < freezeTime) {
+                    const remain = diff(endTime);
                     return t("game:status.ongoing.remaining", {
-                      hours: h,
-                      minutes: m,
-                      seconds: s,
+                      hours: Math.floor(remain / 3600),
+                      minutes: Math.floor((remain % 3600) / 60),
+                      seconds: remain % 60,
                     });
                   } else if (now < endTime) {
+                    const remain = diff(endTime);
                     return t("game:status.frozen.remaining", {
-                      hours: h,
-                      minutes: m,
-                      seconds: s,
+                      hours: Math.floor(remain / 3600),
+                      minutes: Math.floor((remain % 3600) / 60),
+                      seconds: remain % 60,
                     });
                   } else {
                     return t("game:status.ended.remaining");
