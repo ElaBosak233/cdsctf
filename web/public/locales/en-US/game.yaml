@@ -61,6 +61,7 @@ form:
     progress: "Upload progress {{percent}}%"
     success: Poster uploaded successfully.
     error: Poster upload failed.
+    size_error: Poster size exceeds 3MB limit.
   poster_delete:
     success: Poster deleted successfully.
   icon: Icon
@@ -68,6 +69,7 @@ form:
     progress: "Upload progress {{percent}}%"
     success: Icon uploaded successfully.
     error: Icon upload failed.
+    size_error: Icon size exceeds 5MB limit.
   icon_delete:
     success: Icon deleted successfully.
   public:

@@ -288,6 +288,11 @@ function MarkdownEditor(props: MarkdownEditorProps) {
     event.target.value = "";
     if (!file) return;
 
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image size exceeds 10MB limit");
+      return;
+    }
+
     await uploadAndInsert(file);
   };
 
@@ -301,6 +306,7 @@ function MarkdownEditor(props: MarkdownEditorProps) {
         if (item.kind === "file") {
           const file = item.getAsFile();
           if (file?.type?.startsWith("image/")) {
+            if (file.size > 10 * 1024 * 1024) continue;
             files.push(file);
           }
         }

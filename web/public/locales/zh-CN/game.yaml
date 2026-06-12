@@ -61,6 +61,7 @@ form:
     progress: "上传进度 {{percent}}%"
     success: 海报上传成功。
     error: 海报上传失败。
+    size_error: 海报大小超过 3MB 限制。
   poster_delete:
     success: 海报删除成功。
   icon: 图标
@@ -68,6 +69,7 @@ form:
     progress: "上传进度 {{percent}}%"
     success: 图标上传成功。
     error: 图标上传失败。
+    size_error: 图标大小超过 5MB 限制。
   icon_delete:
     success: 图标删除成功。
   public:

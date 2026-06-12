@@ -80,6 +80,12 @@ export default function Index() {
 
     if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("user:settings.avatar_upload.size_error"));
+      event.target.value = "";
+      return;
+    }
+
     toast.loading(
       t("user:settings.avatar_upload.progress", {
         percent: "0",

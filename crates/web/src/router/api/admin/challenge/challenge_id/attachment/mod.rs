@@ -30,7 +30,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(
             routes!(save_challenge_attachment)
                 .with_state(state.clone())
-                .layer(DefaultBodyLimit::max(512 * 1024 * 1024 /* MB */)),
+                .layer(DefaultBodyLimit::max(200 * 1024 * 1024 /* MB */)),
         )
         .nest("/{filename}", filename::router(state.clone()))
 }

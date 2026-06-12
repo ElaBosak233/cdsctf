@@ -6,7 +6,7 @@ use std::sync::Arc;
 use axum::{
     Json, Router,
     body::Body,
-    extract::{Multipart, State},
+    extract::{DefaultBodyLimit, Multipart, State},
     http::{Response, StatusCode, header::CACHE_CONTROL},
     response::IntoResponse,
 };
@@ -28,7 +28,11 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_media).with_state(state.clone()))
-        .routes(routes!(upload_media).with_state(state.clone()))
+        .routes(
+            routes!(upload_media)
+                .with_state(state.clone())
+                .layer(DefaultBodyLimit::max(10 * 1024 * 1024 /* MB */)),
+        )
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]

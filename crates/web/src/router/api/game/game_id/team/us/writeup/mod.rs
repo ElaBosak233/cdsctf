@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{Multipart, State},
+    extract::{DefaultBodyLimit, Multipart, State},
     response::IntoResponse,
 };
 use cds_db::{
@@ -32,7 +32,11 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_team_write_up).with_state(state.clone()))
-        .routes(routes!(save_team_write_up).with_state(state.clone()))
+        .routes(
+            routes!(save_team_write_up)
+                .with_state(state.clone())
+                .layer(DefaultBodyLimit::max(50 * 1024 * 1024 /* MB */)),
+        )
 }
 
 /// Returns team write up.

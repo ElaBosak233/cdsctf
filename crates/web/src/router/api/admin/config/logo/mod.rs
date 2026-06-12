@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{Multipart, State},
+    extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::config::{get as get_config, save as save_config};
 use utoipa_axum::{
@@ -21,7 +21,11 @@ use crate::{
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(save_logo).with_state(state.clone()))
+        .routes(
+            routes!(save_logo)
+                .with_state(state.clone())
+                .layer(DefaultBodyLimit::max(5 * 1024 * 1024 /* MB */)),
+        )
         .routes(routes!(delete_logo).with_state(state.clone()))
 }
 

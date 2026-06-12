@@ -140,6 +140,12 @@ export default function Index() {
     const file = event.target.files?.[0];
     if (!file || idpId == null) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("admin:idp.avatar_upload.size_error"));
+      event.target.value = "";
+      return;
+    }
+
     toast.loading(
       t("admin:idp.avatar_upload.progress", {
         percent: "0",

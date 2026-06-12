@@ -97,6 +97,7 @@ avatar:
     progress: "Upload progress {{percent}}%"
     success: Avatar uploaded successfully.
     error: Avatar upload failed.
+    size_error: Avatar size exceeds 5MB limit.
   delete:
     success: Avatar deleted successfully.
   team_delete_success: "Team {{name}} avatar deleted successfully."

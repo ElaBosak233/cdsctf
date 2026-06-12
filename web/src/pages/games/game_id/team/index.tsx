@@ -91,6 +91,12 @@ export default function Index() {
 
     if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("team:avatar.upload.size_error"));
+      event.target.value = "";
+      return;
+    }
+
     toast.loading(t("team:avatar.upload.progress", { percent: "0" }), {
       id: "team-avatar-upload",
     });

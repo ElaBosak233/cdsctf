@@ -123,6 +123,7 @@ idp:
     progress: "上传进度 {{percent}}%"
     success: 头像上传成功。
     error: 头像上传失败。
+    size_error: 头像大小超过 5MB 限制。
   avatar_delete:
     success: 头像移除成功。
   form:

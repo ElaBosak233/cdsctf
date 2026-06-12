@@ -94,6 +94,9 @@ export default function Index() {
         };
       }
     },
+    validation: {
+      maxSize: 200 * 1024 * 1024,
+    },
   });
 
   const columns = useColumns();

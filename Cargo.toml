@@ -9,7 +9,7 @@ homepage     = "https://cdsctf.e23.dev"
 publish      = false
 repository   = "https://github.com/elabosak233/cdsctf"
 rust-version = "1.95.0"
-version      = "1.10.0"
+version      = "1.10.1"
 
 [workspace.dependencies]
 # Local Libraries
@@ -39,9 +39,6 @@ tokio        = { version = "1.52", features = ["full"] }
 tokio-util   = { version = "0.7.18" }
 
 # Web
-utoipa            = { version = "5.5", features = ["macros"] }
-utoipa-axum       = { version = "0.2" }
-utoipa-scalar     = { version = "0.3", features = ["axum"] }
 axum = { version = "0.8", features = [
   "ws",
   "http2",
@@ -56,6 +53,9 @@ tower = { version = "0.5" }
 tower-http = { version = "0.6", features = ["cors", "fs", "trace"] }
 tower-sessions = { version = "0.15" }
 tower-sessions-core = { version = "0.15" }
+utoipa = { version = "5.5", features = ["macros"] }
+utoipa-axum = { version = "0.2" }
+utoipa-scalar = { version = "0.3", features = ["axum"] }
 #tower-sessions-redis-store = { version = "0.16" }
 tower_governor = { version = "0.8" }
 wsrx           = { version = "0.5", features = ["server"] }
@@ -76,7 +76,7 @@ rmp-serde  = { version = "1.3" }
 serde      = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 serde_repr = { version = "0.1" }
-serde_with = { version = "3.19" }
+serde_with = { version = "3.21" }
 time       = { version = "0.3", features = ["serde", "macros", "local-offset"] }
 toml       = { version = "1.1" }
 uuid       = { version = "1.23", features = ["v4", "fast-rng", "macro-diagnostics"] }
@@ -86,18 +86,18 @@ anyhow    = { version = "1.0" }
 thiserror = { version = "2.0" }
 
 # Observability & Monitoring
-opentelemetry = { version = "0.31", features = ["metrics"] }
-opentelemetry-appender-tracing = { version = "0.31" }
-opentelemetry-otlp = { version = "0.31", features = [
+opentelemetry = { version = "0.32", features = ["metrics"] }
+opentelemetry-appender-tracing = { version = "0.32" }
+opentelemetry-otlp = { version = "0.32", features = [
   "gzip-http",
   "reqwest-rustls",
 ] }
-opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
-sysinfo = { version = "0.38" }
+opentelemetry_sdk = { version = "0.32", features = ["rt-tokio"] }
+sysinfo = { version = "0.39" }
 tracing = { version = "0.1" }
 tracing-appender = "0.2"
 tracing-error = { version = "0.2" }
-tracing-opentelemetry = { version = "0.32" }
+tracing-opentelemetry = { version = "0.33" }
 tracing-subscriber = { version = "0.3", features = [
   "env-filter",
   "std",
@@ -116,7 +116,7 @@ sea-orm = { version = "1.1", features = [
 sea-orm-migration = { version = "1.1" }
 
 # Message Queue
-async-nats = { version = "0.47" }
+async-nats = { version = "0.49" }
 
 # Cache
 fred = { version = "10.1", features = [
@@ -146,7 +146,7 @@ rune-modules = { version = "0.14", features = ["full"] }
 
 # Miscellaneous
 biosvg = { version = "0.1" }
-dashmap = { version = "6.1" }
+dashmap = { version = "6.2" }
 image = { version = "0.25.10" }
 lettre = { version = "0.11", features = [
   "tokio1-rustls-tls",
@@ -164,7 +164,7 @@ rust-s3 = { version = "0.37", default-features = false, features = [
   "fail-on-err",
   "tags",
 ] }
-scraper = { version = "0.26" }
+scraper = { version = "0.27" }
 shadow-rs = { version = "2.0" }
 validator = { version = "0.20", features = ["derive"] }
 webp = { version = "0.3.1", features = ["image"] }

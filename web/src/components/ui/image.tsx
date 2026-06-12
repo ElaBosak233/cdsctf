@@ -1,6 +1,6 @@
 import { CircleOff, LoaderCircle } from "lucide-react";
 import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@/utils";
 
@@ -31,6 +31,15 @@ function Image(props: ImageProps) {
   const [hasError, setHasError] = useState<boolean>(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const handleLoad = useCallback(() => {
+    if (errorTimerRef.current) {
+      clearTimeout(errorTimerRef.current);
+    }
+    setTimeout(() => {
+      setIsLoading(false);
+    }, delay);
+  }, [delay]);
 
   useEffect(() => {
     if (errorTimerRef.current) {
@@ -63,16 +72,7 @@ function Image(props: ImageProps) {
         clearTimeout(errorTimerRef.current);
       }
     };
-  }, [src]);
-
-  function handleLoad() {
-    if (errorTimerRef.current) {
-      clearTimeout(errorTimerRef.current);
-    }
-    setTimeout(() => {
-      setIsLoading(false);
-    }, delay);
-  }
+  }, [src, handleLoad]);
 
   function handleError() {
     errorTimerRef.current = setTimeout(() => {

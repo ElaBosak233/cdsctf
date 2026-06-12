@@ -31,7 +31,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(
             routes!(save_team_avatar)
                 .with_state(state.clone())
-                .layer(DefaultBodyLimit::max(512 * 1024 * 1024 /* MB */)),
+                .layer(DefaultBodyLimit::max(5 * 1024 * 1024 /* MB */)),
         )
         .routes(routes!(delete_team_avatar).with_state(state.clone()))
 }
