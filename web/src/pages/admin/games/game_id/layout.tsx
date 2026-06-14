@@ -4,12 +4,15 @@ import {
   InfoIcon,
   LibraryIcon,
   MessageCircleIcon,
+  RefreshCwIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
+import { toast } from "sonner";
 import { getGame } from "@/api/admin/games/game_id";
+import { calculateGame } from "@/api/admin/games/game_id/calculate";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useConfigStore } from "@/storages/config";
@@ -67,6 +70,19 @@ export default function Layout() {
       },
     ];
   }, [game_id, t]);
+
+  const [loading, setLoading] = useState<boolean>(false);
+
+  function handleRecalculate() {
+    setLoading(true);
+    calculateGame({ game_id: gameId! })
+      .then(() => {
+        toast.success(t("game:edit.recalculate"));
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
 
   return (
     <>
@@ -146,7 +162,7 @@ export default function Layout() {
               <FlagIcon className="size-4" />
               {t("game:edit._")}
             </div>
-            <nav className={cn(["flex", "flex-col", "gap-1"])}>
+            <nav className={cn(["flex", "flex-col", "gap-1", "flex-1"])}>
               {options?.map((option, index) => (
                 <Button
                   key={index}
@@ -159,6 +175,21 @@ export default function Layout() {
                 </Button>
               ))}
             </nav>
+            <div className={cn(["border-t", "pt-4"])}>
+              <Button
+                icon={<RefreshCwIcon className="size-4" />}
+                variant="ghost"
+                className={cn([
+                  "justify-start",
+                  "w-full",
+                  "text-muted-foreground",
+                ])}
+                loading={loading}
+                onClick={handleRecalculate}
+              >
+                {t("game:edit.recalculate")}
+              </Button>
+            </div>
           </aside>
           <Card
             className={cn([

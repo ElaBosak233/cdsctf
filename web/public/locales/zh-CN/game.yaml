@@ -10,6 +10,7 @@ edit:
   team: 团队
   notice: 通知
   submission: 提交
+  recalculate: 重新计算分数
 id: ID
 title: 标题
 public: 公开赛

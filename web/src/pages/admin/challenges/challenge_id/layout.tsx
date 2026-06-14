@@ -170,7 +170,7 @@ export default function Layout() {
               <LibraryIcon className="size-4" />
               {t("challenge:edit._")}
             </div>
-            <nav className={cn(["flex", "flex-col", "gap-1"])}>
+            <nav className={cn(["flex", "flex-col", "gap-1", "flex-1"])}>
               {options?.map((option, index) => {
                 const Comp = option?.disabled ? Button : Link;
                 return (
@@ -187,18 +187,26 @@ export default function Layout() {
                 );
               })}
             </nav>
-            <div className={cn(["flex-1"])} />
-            <Dialog>
-              <DialogTrigger>
-                <Button variant="ghost" className="justify-start w-full">
-                  <PlayIcon className="size-4" />
-                  {t("challenge:preview")}
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <ChallengeDialog digest={challenge} debug />
-              </DialogContent>
-            </Dialog>
+            <div className={cn(["border-t", "pt-4"])}>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    icon={<PlayIcon className="size-4" />}
+                    variant="ghost"
+                    className={cn([
+                      "justify-start",
+                      "w-full",
+                      "text-muted-foreground",
+                    ])}
+                  >
+                    {t("challenge:preview")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <ChallengeDialog digest={challenge} debug />
+                </DialogContent>
+              </Dialog>
+            </div>
           </aside>
           <Card
             className={cn([
