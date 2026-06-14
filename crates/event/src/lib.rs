@@ -45,7 +45,8 @@ pub fn init(queue: &Queue) -> Result<EventManager, EventError> {
 }
 
 impl EventManager {
-    /// Publishes a single [`Event`] JSON payload on the fixed `cds.event.broadcast` subject.
+    /// Publishes a single [`Event`] JSON payload on the fixed
+    /// `cds.event.broadcast` subject.
     pub async fn push(&self, event: Event) -> Result<(), EventError> {
         self.queue.publish(SUBJECT, event).await?;
 

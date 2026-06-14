@@ -1,9 +1,9 @@
 //! NATS / JetStream integration: publish messages and subscribe as pull
 //! consumers.
 //!
-//! Workers call [`Queue::subscribe`] to process subjects such as `cds.game.recalc`,
-//! `cds.mail.send`, or `cds.event.broadcast`. Each subject maps to a JetStream stream (created if
-//! absent) with a durable consumer name.
+//! Workers call [`Queue::subscribe`] to process subjects such as
+//! `cds.game.recalc`, `cds.mail.send`, or `cds.event.broadcast`. Each subject
+//! maps to a JetStream stream (created if absent) with a durable consumer name.
 
 /// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;

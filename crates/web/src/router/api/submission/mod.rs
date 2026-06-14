@@ -10,6 +10,7 @@ use cds_db::{
     submission::{FindSubmissionsOptions, Status},
     team::{FindTeamOptions, State as TState},
 };
+use cds_worker::checker::SUBJECT;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::{debug, info, warn};
@@ -17,8 +18,6 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-
-use cds_worker::checker::SUBJECT;
 
 use crate::{
     extract::{Extension, Json as ReqJson, Query},

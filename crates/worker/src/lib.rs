@@ -21,7 +21,8 @@ pub mod checker;
 /// Defines the `mailbox` submodule (see sibling `*.rs` files).
 pub mod mailbox;
 
-/// Start every queue consumer (`cds.game.recalc`, `cds.submission.check`, `cds.mail.send`).
+/// Start every queue consumer (`cds.game.recalc`, `cds.submission.check`,
+/// `cds.mail.send`).
 #[tracing::instrument(skip_all, fields(handler = "init"))]
 pub async fn init(
     db: &DB,

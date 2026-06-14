@@ -1,6 +1,6 @@
-//! JetStream consumer for subject **`cds.game.recalc`**: recomputes **per-submission
-//! points**, **challenge leaderboard snapshots**, and **team totals / ranks**
-//! after new correct solves.
+//! JetStream consumer for subject **`cds.game.recalc`**: recomputes
+//! **per-submission points**, **challenge leaderboard snapshots**, and **team
+//! totals / ranks** after new correct solves.
 //!
 //! # Flow
 //!

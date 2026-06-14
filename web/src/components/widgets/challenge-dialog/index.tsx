@@ -162,21 +162,19 @@ function ChallengeDialog(props: ChallengeDialogProps) {
         )}
 
         {/* Submit section */}
-        {!debug && (
-          <div
-            className={cn([
-              "px-6",
-              "pb-6",
-              "flex",
-              "flex-col",
-              "gap-3",
-              "shrink-0",
-            ])}
-          >
-            <Separator />
-            <SubmitSection />
-          </div>
-        )}
+        <div
+          className={cn([
+            "px-6",
+            "pb-6",
+            "flex",
+            "flex-col",
+            "gap-3",
+            "shrink-0",
+          ])}
+        >
+          <Separator />
+          <SubmitSection />
+        </div>
       </Card>
     </Context.Provider>
   );

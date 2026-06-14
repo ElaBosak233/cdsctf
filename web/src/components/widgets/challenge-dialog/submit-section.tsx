@@ -1,13 +1,15 @@
 import { HTTPError } from "ky";
-import { FlagIcon, SendIcon } from "lucide-react";
+import { BugIcon, FlagIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { createSubmission } from "@/api/submissions";
+import { debugCreateSubmission } from "@/api/admin/submissions";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useInterval } from "@/hooks/use-interval";
+import { Status } from "@/models/submission";
 import { useCheckerStore } from "@/storages/checker";
 import { cn } from "@/utils";
 import { formatApiMsg } from "@/utils/query";
@@ -16,7 +18,7 @@ import { Context } from "./context";
 function SubmitSection() {
   const { t } = useTranslation();
 
-  const { challenge, team } = useContext(Context);
+  const { challenge, team, debug } = useContext(Context);
   const [placeholder, setPlaceholder] = useState<string>("flag");
   const { add } = useCheckerStore();
 
@@ -90,6 +92,48 @@ function SubmitSection() {
       });
   }
 
+  async function handleDebugSubmit() {
+    const challengeId = challenge?.id;
+    const trimmed = flag?.trim();
+    if (challengeId == null || !Number.isFinite(challengeId) || !trimmed) {
+      return;
+    }
+
+    try {
+      const result = await debugCreateSubmission({
+        challenge_id: challengeId,
+        content: trimmed,
+      });
+
+      if (result.status === Status.Correct) {
+        toast.success("Correct", {
+          description: t("submission:result.correct"),
+        });
+      } else if (result.status === Status.Incorrect) {
+        toast.error("Incorrect", {
+          description: t("submission:result.incorrect"),
+        });
+      } else if (result.status === Status.Cheat) {
+        toast.error("Cheat", {
+          description: t("submission:result.cheat"),
+        });
+      }
+    } catch (err) {
+      if (!(err instanceof HTTPError)) {
+        return;
+      }
+
+      try {
+        const body = (await err.response.json()) as { msg?: unknown };
+        toast.error(t("common:errors.default"), {
+          description: formatApiMsg(body.msg) || err.message,
+        });
+      } catch {
+        toast.error(t("common:errors.default"));
+      }
+    }
+  }
+
   return (
     <div className={cn(["flex", "gap-3", "items-center"])}>
       <Field size={"sm"} className={cn(["flex-1"])}>
@@ -108,13 +152,23 @@ function SubmitSection() {
           }}
         />
       </Field>
-      <Button
-        variant={"solid"}
-        size={"sm"}
-        onClick={handleFlagSubmit}
-        square
-        icon={<SendIcon />}
-      />
+      {debug ? (
+        <Button
+          variant={"solid"}
+          size={"sm"}
+          onClick={handleDebugSubmit}
+          square
+          icon={<BugIcon />}
+        ></Button>
+      ) : (
+        <Button
+          variant={"solid"}
+          size={"sm"}
+          onClick={handleFlagSubmit}
+          square
+          icon={<SendIcon />}
+        />
+      )}
     </div>
   );
 }

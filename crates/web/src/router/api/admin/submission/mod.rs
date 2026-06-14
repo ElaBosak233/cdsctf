@@ -9,14 +9,16 @@ use cds_db::{
     submission::{FindSubmissionsOptions, Status},
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
+use tracing::{info, warn};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
 
 use crate::{
-    extract::{Path, Query},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson, Path, Query},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -25,6 +27,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_submissions).with_state(state.clone()))
         .routes(routes!(delete_submission).with_state(state.clone()))
+        .routes(routes!(create_debug_submission).with_state(state.clone()))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
@@ -109,4 +112,74 @@ pub async fn delete_submission(
     cds_db::submission::delete(&s.db.conn, submission_id).await?;
 
     Ok(Json(EmptyJson::default()))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct CreateDebugSubmissionRequest {
+    pub content: String,
+    pub challenge_id: i64,
+}
+
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct CreateDebugSubmissionResponse {
+    pub status: Status,
+}
+
+/// Debug-submits a flag for immediate feedback without recording a submission.
+///
+/// Runs the checker script synchronously and returns the result directly.
+/// Does **not** create a submission record, affect counts, or trigger scoring.
+/// Intended for admin challenge preview use.
+#[utoipa::path(
+    post,
+    path = "/debug",
+    tag = "admin-submission",
+    request_body = CreateDebugSubmissionRequest,
+    responses(
+        (status = 200, description = "Debug check result", body = CreateDebugSubmissionResponse),
+        (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
+        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
+    )
+)]
+#[tracing::instrument(skip_all, fields(handler = "debug_submit"))]
+pub async fn create_debug_submission(
+    State(s): State<Arc<AppState>>,
+
+    Extension(ext): Extension<AuthPrincipal>,
+    ReqJson(body): ReqJson<CreateDebugSubmissionRequest>,
+) -> Result<Json<CreateDebugSubmissionResponse>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+
+    // Validate challenge exists.
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
+
+    // Run the Rune checker synchronously (no queue, no DB record).
+    let result = s
+        .checker
+        .check(&challenge, operator.id, &body.content)
+        .await;
+
+    let status = match result {
+        Ok(cds_checker::Status::Correct) => Status::Correct,
+        Ok(cds_checker::Status::Cheat(peer_id)) => {
+            warn!(
+                user_id = operator.id,
+                peer_team_id = peer_id,
+                "cheat detected in debug submit"
+            );
+            Status::Cheat
+        }
+        _ => Status::Incorrect,
+    };
+
+    info!(
+        user_id = operator.id,
+        challenge_id = body.challenge_id,
+        status = ?status,
+        "debug submit result"
+    );
+
+    Ok(Json(CreateDebugSubmissionResponse { status }))
 }

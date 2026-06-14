@@ -140,7 +140,7 @@ export default function Index() {
           className={cn([
             "p-5",
             "rounded-elevated",
-            "shadow-lg",
+            "shadow-md",
             "flex",
             "flex-col",
             "gap-4",

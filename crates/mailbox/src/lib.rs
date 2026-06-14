@@ -3,8 +3,8 @@
 //! # Architecture
 //!
 //! - The HTTP layer (or other code) **publishes** a JSON [`Payload`] to the
-//!   NATS JetStream subject `cds.mail.send` (consumed by the `cds-worker` crate’s
-//!   `mailbox` module).
+//!   NATS JetStream subject `cds.mail.send` (consumed by the `cds-worker`
+//!   crate’s `mailbox` module).
 //! - This crate’s [`Mailbox`] type reads SMTP options from [`cds_db`] config
 //!   and sends mail with [`lettre`].
 //!
@@ -28,8 +28,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::traits::MailboxError;
 
-/// JSON envelope for one outbound message, serialized on the `cds.mail.send` queue
-/// subject.
+/// JSON envelope for one outbound message, serialized on the `cds.mail.send`
+/// queue subject.
 ///
 /// The worker deserializes this struct and calls [`Mailbox::send_payload`].
 #[derive(Clone, Debug, Serialize, Deserialize)]
