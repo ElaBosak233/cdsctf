@@ -7,4 +7,5 @@ export const Context = createContext<{
   challenge?: Challenge;
   team?: Team;
   debug?: boolean;
+  cheated?: boolean;
 }>({});

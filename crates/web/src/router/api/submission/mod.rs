@@ -198,6 +198,28 @@ pub async fn create_submission(
         };
     }
 
+    // Block submission if the team has a prior Cheat record for this
+    // challenge in the game (e.g. after an auto-ban that was later lifted).
+    if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
+        if cds_db::submission::has_cheat(
+            &s.db.conn,
+            body.challenge_id,
+            team_id,
+            game_id,
+        )
+        .await?
+        {
+            warn!(
+                user_id = operator.id,
+                challenge_id = body.challenge_id,
+                team_id,
+                game_id,
+                "submission blocked: prior cheat detected"
+            );
+            return Err(WebError::Forbidden(json!("cheated")));
+        }
+    }
+
     let submission = cds_db::submission::create::<Submission>(
         &s.db.conn,
         cds_db::submission::ActiveModel {

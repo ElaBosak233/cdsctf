@@ -33,6 +33,7 @@ export type ChallengeStatus = {
   solved_times?: number;
   pts?: number;
   bloods?: Array<Submission>;
+  cheated?: boolean;
 };
 
 export async function queryChallengeStatus(

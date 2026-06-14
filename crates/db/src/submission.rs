@@ -25,6 +25,7 @@ pub struct Submission {
     pub user_avatar_hash: Option<String>,
     pub team_id: Option<i64>,
     pub team_name: Option<String>,
+    pub team_avatar_hash: Option<String>,
     pub game_id: Option<i64>,
     pub game_title: Option<String>,
     pub challenge_id: i64,
@@ -212,6 +213,51 @@ where
         .await?;
 
     Ok(submissions)
+}
+
+/// Checks if the given team+game scope has a `Cheat` submission for the
+/// specified challenge.
+pub async fn has_cheat(
+    conn: &impl ConnectionTrait,
+    challenge_id: i64,
+    team_id: i64,
+    game_id: i64,
+) -> Result<bool, DbError> {
+    let (submissions, _) = find::<Submission>(
+        conn,
+        FindSubmissionsOptions {
+            challenge_id: Some(challenge_id),
+            team_id: Some(Some(team_id)),
+            game_id: Some(Some(game_id)),
+            status: Some(Status::Cheat),
+            page: Some(1),
+            size: Some(1),
+            ..Default::default()
+        },
+    )
+    .await?;
+
+    Ok(!submissions.is_empty())
+}
+
+/// Returns challenge_ids where the team has a `Cheat` submission, filtered to
+/// the given set of candidate challenge_ids.
+pub async fn find_cheat_challenge_ids(
+    conn: &impl ConnectionTrait,
+    challenge_ids: Vec<i64>,
+    team_id: i64,
+    game_id: i64,
+) -> Result<Vec<i64>, DbError> {
+    let submissions = Entity::base_find()
+        .filter(Column::ChallengeId.is_in(challenge_ids))
+        .filter(Column::Status.eq(Status::Cheat))
+        .filter(Column::TeamId.eq(team_id))
+        .filter(Column::GameId.eq(game_id))
+        .into_model::<Submission>()
+        .all(conn)
+        .await?;
+
+    Ok(submissions.into_iter().map(|s| s.challenge_id).collect())
 }
 
 /// Counts rows that match optional filters.

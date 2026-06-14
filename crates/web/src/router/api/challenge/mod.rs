@@ -4,7 +4,7 @@
 /// Defines the `challenge_id` submodule (see sibling `*.rs` files).
 mod challenge_id;
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::{HashMap, HashSet}, sync::Arc};
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
@@ -106,6 +106,7 @@ pub struct ChallengeStatusResponse {
     pub solved_times: i64,
     pub pts: i64,
     pub bloods: Vec<Submission>,
+    pub cheated: bool,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
@@ -158,6 +159,7 @@ pub async fn query_challenge_status(
                 solved_times: 0,
                 pts: 0,
                 bloods: Vec::new(),
+                cheated: false,
             },
         );
     }
@@ -178,6 +180,25 @@ pub async fn query_challenge_status(
 
             if status_response.bloods.len() < 3 {
                 status_response.bloods.push(submission.clone());
+            }
+        }
+    }
+
+    // Check for Cheat submissions in the requested game scope.
+    if let (Some(team_id), Some(game_id)) = (body.team_id, body.game_id) {
+        let cheated_ids = cds_db::submission::find_cheat_challenge_ids(
+            &s.db.conn,
+            body.challenge_ids.clone(),
+            team_id,
+            game_id,
+        )
+        .await?;
+        let cheated_set: HashSet<i64> = cheated_ids.into_iter().collect();
+        for challenge_id in body.challenge_ids.iter() {
+            if cheated_set.contains(challenge_id) {
+                if let Some(status_response) = result.get_mut(challenge_id) {
+                    status_response.cheated = true;
+                }
             }
         }
     }

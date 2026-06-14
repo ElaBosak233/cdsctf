@@ -1,4 +1,4 @@
-import { Flag } from "lucide-react";
+import { Flag, LockIcon } from "lucide-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
@@ -53,6 +53,7 @@ function ChallengeCard(props: ChallengeCardProps) {
           "transition-all",
           "duration-200",
           "cursor-pointer",
+          status?.cheated && "hover:cursor-not-allowed"
         ],
         className
       )}
@@ -71,7 +72,19 @@ function ChallengeCard(props: ChallengeCardProps) {
       >
         <CategoryIcon className={cn(["size-36"])} />
       </span>
-      {!debug && status?.solved && (
+      {!debug && status?.cheated ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <LockIcon
+              className={cn(["absolute", "top-[10%]", "right-[7%]", "size-5"])}
+              color={category?.color}
+            />
+          </TooltipTrigger>
+          <TooltipContent onClick={(e) => e.stopPropagation()} sideOffset={0}>
+            {"该题目存在作弊记录"}
+          </TooltipContent>
+        </Tooltip>
+      ) : !debug && status?.solved ? (
         <Tooltip>
           <TooltipTrigger asChild>
             <Flag
@@ -84,7 +97,7 @@ function ChallengeCard(props: ChallengeCardProps) {
             {t("submission:solved")}
           </TooltipContent>
         </Tooltip>
-      )}
+      ) : null}
       <Badge
         variant={"tonal"}
         className={cn(["bg-(--color-badge)/10", "text-(--color-badge)"])}

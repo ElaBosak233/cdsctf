@@ -1,5 +1,5 @@
 import { HTTPError } from "ky";
-import { BugIcon, FlagIcon, SendIcon } from "lucide-react";
+import { BugIcon, FlagIcon, LockIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { debugCreateSubmission } from "@/api/admin/submissions";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
+import { Typography } from "@/components/ui/typography";
 import { useInterval } from "@/hooks/use-interval";
 import { Status } from "@/models/submission";
 import { useCheckerStore } from "@/storages/checker";
@@ -18,7 +19,7 @@ import { Context } from "./context";
 function SubmitSection() {
   const { t } = useTranslation();
 
-  const { challenge, team, debug } = useContext(Context);
+  const { challenge, team, debug, cheated } = useContext(Context);
   const [placeholder, setPlaceholder] = useState<string>("flag");
   const { add } = useCheckerStore();
 
@@ -135,40 +136,51 @@ function SubmitSection() {
   }
 
   return (
-    <div className={cn(["flex", "gap-3", "items-center"])}>
-      <Field size={"sm"} className={cn(["flex-1"])}>
-        <FieldIcon>
-          <FlagIcon />
-        </FieldIcon>
-        <TextField
-          placeholder={placeholder}
-          value={flag}
-          onChange={(e) => setFlag(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              handleFlagSubmit();
-            }
-          }}
-        />
-      </Field>
-      {debug ? (
-        <Button
-          variant={"solid"}
-          size={"sm"}
-          onClick={handleDebugSubmit}
-          square
-          icon={<BugIcon />}
-        ></Button>
-      ) : (
-        <Button
-          variant={"solid"}
-          size={"sm"}
-          onClick={handleFlagSubmit}
-          square
-          icon={<SendIcon />}
-        />
+    <div className={cn(["flex", "flex-col", "gap-2"])}>
+      {cheated && (
+        <Typography className={cn(["text-xs", "text-error", "flex", "items-center", "gap-1.5"])}>
+          <LockIcon className={cn(["size-3.5"])} />
+          {"该题目存在作弊记录，无法继续提交"}
+        </Typography>
       )}
+      <div className={cn(["flex", "gap-3", "items-center"])}>
+        <Field size={"sm"} className={cn(["flex-1"])}>
+          <FieldIcon>
+            {cheated ? <LockIcon /> : <FlagIcon />}
+          </FieldIcon>
+          <TextField
+            placeholder={placeholder}
+            value={flag}
+            disabled={cheated}
+            onChange={(e) => setFlag(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleFlagSubmit();
+              }
+            }}
+          />
+        </Field>
+        {debug ? (
+          <Button
+            variant={"solid"}
+            size={"sm"}
+            onClick={handleDebugSubmit}
+            disabled={cheated}
+            square
+            icon={<BugIcon />}
+          ></Button>
+        ) : (
+          <Button
+            variant={"solid"}
+            size={"sm"}
+            onClick={handleFlagSubmit}
+            disabled={cheated}
+            square
+            icon={cheated ? <LockIcon /> : <SendIcon />}
+          />
+        )}
+      </div>
     </div>
   );
 }

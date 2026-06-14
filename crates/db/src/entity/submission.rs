@@ -141,6 +141,7 @@ impl Entity {
             .column_as(user::Column::Name, "user_name")
             .column_as(user::Column::AvatarHash, "user_avatar_hash")
             .column_as(team::Column::Name, "team_name")
+            .column_as(team::Column::AvatarHash, "team_avatar_hash")
             .column_as(game::Column::Title, "game_title")
             .column_as(challenge::Column::Title, "challenge_title")
             .column_as(challenge::Column::Category, "challenge_category")

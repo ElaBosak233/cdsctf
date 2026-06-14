@@ -24,6 +24,7 @@ type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   gameTeam?: Team;
   frozenAt?: number;
   debug?: boolean;
+  cheated?: boolean;
 };
 
 function useChallengeQuery(
@@ -42,7 +43,7 @@ function useChallengeQuery(
 }
 
 function ChallengeDialog(props: ChallengeDialogProps) {
-  const { digest, gameTeam, frozenAt, debug = false, ...rest } = props;
+  const { digest, gameTeam, frozenAt, debug = false, cheated = false, ...rest } = props;
 
   const { data: challenge, isLoading } = useChallengeQuery(digest?.id, debug);
 
@@ -54,7 +55,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
 
   return (
     <Context.Provider
-      value={{ challenge: challenge ?? digest, team: gameTeam, debug }}
+      value={{ challenge: challenge ?? digest, team: gameTeam, debug, cheated }}
     >
       <Card
         className={cn([

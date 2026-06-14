@@ -173,31 +173,46 @@ export default function Index() {
                 "relative",
               ])}
             >
-              {gameChallenges?.map((gameChallenge, index) => (
-                <Dialog key={index}>
-                  <DialogTrigger>
-                    <ChallengeCard
-                      digest={{
-                        id: gameChallenge.challenge_id,
-                        title: gameChallenge.challenge_title,
-                        category: gameChallenge.challenge_category,
-                      }}
-                      status={challengeStatus?.[gameChallenge.challenge_id!]}
-                    />
-                  </DialogTrigger>
-                  <DialogContent>
-                    <ChallengeDialog
-                      digest={{
-                        id: gameChallenge.challenge_id,
-                        title: gameChallenge.challenge_title,
-                        category: gameChallenge.challenge_category,
-                      }}
-                      gameTeam={selfGameTeam}
-                      frozenAt={gameChallenge?.frozen_at}
-                    />
-                  </DialogContent>
-                </Dialog>
-              ))}
+              {gameChallenges?.map((gameChallenge, index) => {
+                const status = challengeStatus?.[gameChallenge.challenge_id!];
+                const isCheated = status?.cheated ?? false;
+
+                return isCheated ? (
+                  <ChallengeCard
+                    key={index}
+                    digest={{
+                      id: gameChallenge.challenge_id,
+                      title: gameChallenge.challenge_title,
+                      category: gameChallenge.challenge_category,
+                    }}
+                    status={status}
+                  />
+                ) : (
+                  <Dialog key={index}>
+                    <DialogTrigger>
+                      <ChallengeCard
+                        digest={{
+                          id: gameChallenge.challenge_id,
+                          title: gameChallenge.challenge_title,
+                          category: gameChallenge.challenge_category,
+                        }}
+                        status={status}
+                      />
+                    </DialogTrigger>
+                    <DialogContent>
+                      <ChallengeDialog
+                        digest={{
+                          id: gameChallenge.challenge_id,
+                          title: gameChallenge.challenge_title,
+                          category: gameChallenge.challenge_category,
+                        }}
+                        gameTeam={selfGameTeam}
+                        frozenAt={gameChallenge?.frozen_at}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                );
+              })}
             </div>
           </div>
         </div>
