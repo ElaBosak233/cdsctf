@@ -10,6 +10,7 @@ export type Submission = {
   challenge_category?: number;
   team_id?: number;
   team_name?: string;
+  team_avatar_hash?: string;
   game_id?: number;
   game_title?: string;
   pts?: number;

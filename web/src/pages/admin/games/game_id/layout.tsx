@@ -56,6 +56,11 @@ export default function Layout() {
         icon: <UsersRoundIcon />,
       },
       {
+        link: `/admin/games/${game_id}/submissions`,
+        name: t("game:edit.submission"),
+        icon: <FlagIcon />,
+      },
+      {
         link: `/admin/games/${game_id}/notices`,
         name: t("game:edit.notice"),
         icon: <MessageCircleIcon />,

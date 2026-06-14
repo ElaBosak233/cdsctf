@@ -3,8 +3,8 @@ import { BugIcon, FlagIcon, LockIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { createSubmission } from "@/api/submissions";
 import { debugCreateSubmission } from "@/api/admin/submissions";
+import { createSubmission } from "@/api/submissions";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
@@ -69,7 +69,10 @@ function SubmitSection() {
         if (!submission) return;
         setFlag("");
         toast.loading(
-          `#${submission.id} 已提交题目 ${submission.challenge_title} 的解答`,
+          t("submission:submitted", {
+            id: submission.id,
+            title: submission.challenge_title,
+          }),
           {
             id: `submission-${submission.id}`,
             description: t("submission:pending_review"),
@@ -107,15 +110,15 @@ function SubmitSection() {
       });
 
       if (result.status === Status.Correct) {
-        toast.success("Correct", {
+        toast.success(t("submission:status.correct"), {
           description: t("submission:result.correct"),
         });
       } else if (result.status === Status.Incorrect) {
-        toast.error("Incorrect", {
+        toast.error(t("submission:status.incorrect"), {
           description: t("submission:result.incorrect"),
         });
       } else if (result.status === Status.Cheat) {
-        toast.error("Cheat", {
+        toast.error(t("submission:status.cheat"), {
           description: t("submission:result.cheat"),
         });
       }
@@ -138,16 +141,22 @@ function SubmitSection() {
   return (
     <div className={cn(["flex", "flex-col", "gap-2"])}>
       {cheated && (
-        <Typography className={cn(["text-xs", "text-error", "flex", "items-center", "gap-1.5"])}>
+        <Typography
+          className={cn([
+            "text-xs",
+            "text-error",
+            "flex",
+            "items-center",
+            "gap-1.5",
+          ])}
+        >
           <LockIcon className={cn(["size-3.5"])} />
-          {"该题目存在作弊记录，无法继续提交"}
+          {t("submission:cheated")}
         </Typography>
       )}
       <div className={cn(["flex", "gap-3", "items-center"])}>
         <Field size={"sm"} className={cn(["flex-1"])}>
-          <FieldIcon>
-            {cheated ? <LockIcon /> : <FlagIcon />}
-          </FieldIcon>
+          <FieldIcon>{cheated ? <LockIcon /> : <FlagIcon />}</FieldIcon>
           <TextField
             placeholder={placeholder}
             value={flag}

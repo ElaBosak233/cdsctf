@@ -4,7 +4,10 @@
 /// Defines the `challenge_id` submodule (see sibling `*.rs` files).
 mod challenge_id;
 
-use std::{collections::{HashMap, HashSet}, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 use axum::{Json, Router, extract::State};
 use cds_db::{

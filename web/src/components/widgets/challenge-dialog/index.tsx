@@ -43,7 +43,14 @@ function useChallengeQuery(
 }
 
 function ChallengeDialog(props: ChallengeDialogProps) {
-  const { digest, gameTeam, frozenAt, debug = false, cheated = false, ...rest } = props;
+  const {
+    digest,
+    gameTeam,
+    frozenAt,
+    debug = false,
+    cheated = false,
+    ...rest
+  } = props;
 
   const { data: challenge, isLoading } = useChallengeQuery(digest?.id, debug);
 

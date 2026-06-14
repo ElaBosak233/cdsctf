@@ -60,8 +60,8 @@ function AuthSection() {
                 fallback={authStore?.user?.name?.charAt(0)}
               />
               <div className={cn(["flex", "flex-col"])}>
-                <p className={cn(["text-sm"])}>{authStore?.user?.name}</p>
-                <p className={cn(["text-xs", "text-muted-foreground"])}>
+                <p className={cn(["text-sm", "line-clamp-2"])}>{authStore?.user?.name}</p>
+                <p className={cn(["text-xs", "text-muted-foreground", "line-clamp-1"])}>
                   {`# ${authStore?.user?.username}`}
                 </p>
               </div>

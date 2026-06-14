@@ -114,6 +114,7 @@ export default function Index() {
           "items-center",
           "mb-6",
           "gap-10",
+          "shrink-0",
         ])}
       >
         <h1

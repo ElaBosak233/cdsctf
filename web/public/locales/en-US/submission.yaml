@@ -1,12 +1,34 @@
 _: Submission
+id: ID
+team_name: Team
+team_id: Team ID
+challenge_title: Challenge
+challenge_id: Challenge ID
+flag: Flag
+user_name: User
+created_at: Time
 solved: Solved
 solves: "{{count}} Solves"
 pending_review: Please wait for review, it will not take long.
+empty: No submissions yet.
+cheated: This challenge has cheating records, cannot submit.
+submitted: "#{{id}} Submitted answer for {{title}}"
 actions:
   submit: Submit
+  mark_cheat: Mark as Cheat
+  mark_incorrect: Mark as Incorrect
+  status_updated: Status updated
 result:
   correct: Congratulations, submission accepted!
   incorrect: Have another look?
   cheat: Possible cheating detected, recorded.
   timeout: Submission timed out.
   duplicate: You have already solved this challenge.
+status:
+  _: Status
+  pending: Pending
+  correct: Correct
+  incorrect: Incorrect
+  cheat: Cheat
+  expired: Expired
+  duplicate: Duplicate

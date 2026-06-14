@@ -1,6 +1,8 @@
 //! HTTP routing for `submission` — Axum router wiring and OpenAPI route
 //! registration.
 
+mod submission_id;
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -17,8 +19,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Extension, Json as ReqJson, Path, Query},
-    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -26,7 +28,7 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_submissions).with_state(state.clone()))
-        .routes(routes!(delete_submission).with_state(state.clone()))
+        .nest("/{submission_id}", submission_id::router(state.clone()))
         .routes(routes!(create_debug_submission).with_state(state.clone()))
 }
 
@@ -41,6 +43,7 @@ pub struct GetSubmissionsRequest {
     pub status: Option<Status>,
     pub page: Option<u64>,
     pub size: Option<u64>,
+    pub sorts: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
@@ -75,10 +78,11 @@ pub async fn get_submissions(
         FindSubmissionsOptions {
             id: params.id,
             user_id: params.user_id,
-            team_id: Some(params.team_id),
-            game_id: Some(params.game_id),
+            team_id: params.team_id.map(Some),
+            game_id: params.game_id.map(Some),
             challenge_id: params.challenge_id,
             status: params.status,
+            sorts: params.sorts,
             page: Some(page),
             size: Some(size),
             ..Default::default()
@@ -87,31 +91,6 @@ pub async fn get_submissions(
     .await?;
 
     Ok(Json(ListSubmissionsResponse { submissions, total }))
-}
-
-/// Deletes submission.
-#[utoipa::path(
-    delete,
-    path = "/{submission_id}",
-    tag = "admin-submission",
-    params(
-        ("submission_id" = i64, Path, description = "Submission id"),
-    ),
-    responses(
-        (status = 200, description = "Deleted", body = EmptyJson),
-        (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
-        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
-    )
-)]
-#[tracing::instrument(skip_all, fields(handler = "delete_submission"))]
-pub async fn delete_submission(
-    State(s): State<Arc<AppState>>,
-
-    Path(submission_id): Path<i64>,
-) -> Result<Json<EmptyJson>, WebError> {
-    cds_db::submission::delete(&s.db.conn, submission_id).await?;
-
-    Ok(Json(EmptyJson::default()))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]

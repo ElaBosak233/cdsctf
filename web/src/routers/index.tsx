@@ -396,6 +396,14 @@ const router = createBrowserRouter([
                       ).default,
                     }),
                   },
+                  {
+                    path: "submissions",
+                    lazy: async () => ({
+                      Component: (
+                        await import("@/pages/admin/games/game_id/submissions")
+                      ).default,
+                    }),
+                  },
                 ],
               },
             ],

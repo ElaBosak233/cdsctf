@@ -115,21 +115,13 @@ function TitleCell({ row }: { row: Row<Game> }) {
     ? ctx.optimisticEnabled
     : (row.original.enabled ?? false);
   return (
-    <div
-      className={cn([
-        "w-64",
-        "flex",
-        "gap-2",
-        "items-center",
-        "overflow-hidden",
-        "text-ellipsis",
-        "whitespace-nowrap",
-      ])}
-    >
+    <div className={cn(["flex", "gap-2", "items-center"])}>
       {!isEnabled && (
         <LockIcon className={cn(["size-[1em]", "text-warning"])} />
       )}
-      {row.original.title || "-"}
+      <span className={cn(["w-64", "truncate"])}>
+        {row.original.title || "-"}
+      </span>
     </div>
   );
 }
@@ -345,7 +337,9 @@ function useColumns() {
         accessorKey: "sketch",
         header: () => t("game:sketch"),
         cell: ({ row }) => (
-          <div className={cn(["w-42", "text-wrap"])}>{row.original.sketch}</div>
+          <div className={cn(["w-96", "line-clamp-2"])}>
+            {row.original.sketch}
+          </div>
         ),
       },
       {

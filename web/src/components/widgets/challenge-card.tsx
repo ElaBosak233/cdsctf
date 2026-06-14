@@ -53,7 +53,7 @@ function ChallengeCard(props: ChallengeCardProps) {
           "transition-all",
           "duration-200",
           "cursor-pointer",
-          status?.cheated && "hover:cursor-not-allowed"
+          status?.cheated && "hover:cursor-not-allowed",
         ],
         className
       )}
@@ -81,7 +81,7 @@ function ChallengeCard(props: ChallengeCardProps) {
             />
           </TooltipTrigger>
           <TooltipContent onClick={(e) => e.stopPropagation()} sideOffset={0}>
-            {"该题目存在作弊记录"}
+            {t("submission:cheated")}
           </TooltipContent>
         </Tooltip>
       ) : !debug && status?.solved ? (

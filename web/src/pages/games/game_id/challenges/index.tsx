@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
 import { LibraryIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
-import { useEffect, useMemo } from "react";
+import { Fragment, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -141,10 +141,9 @@ export default function Index() {
               const Icon = c.icon!;
 
               return (
-                <>
+                <Fragment key={c.id}>
                   <Separator orientation="vertical" />
                   <Button
-                    key={c.id}
                     icon={<Icon />}
                     className={cn(["flex-1", "min-w-fit"])}
                     variant={c?.id?.toString() === category ? "solid" : "ghost"}
@@ -154,7 +153,7 @@ export default function Index() {
                   >
                     {c.name?.toUpperCase()}
                   </Button>
-                </>
+                </Fragment>
               );
             })}
           </div>

@@ -126,19 +126,11 @@ function TitleCell({ row }: { row: Row<Challenge> }) {
   const ctx = useRowContext();
   const isPublic = ctx ? ctx.optimisticPublic : (row.original.public ?? false);
   return (
-    <div
-      className={cn([
-        "w-42",
-        "flex",
-        "gap-2",
-        "items-center",
-        "overflow-hidden",
-        "text-ellipsis",
-        "whitespace-nowrap",
-      ])}
-    >
+    <div className={cn(["flex", "gap-2", "items-center"])}>
       {!isPublic && <LockIcon className={cn(["size-[1em]", "text-warning"])} />}
-      {row.original.title || "-"}
+      <span className={cn(["w-64", "truncate"])}>
+        {row.original.title || "-"}
+      </span>
     </div>
   );
 }

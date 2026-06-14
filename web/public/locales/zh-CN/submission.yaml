@@ -1,12 +1,34 @@
 _: 提交
+id: ID
+team_name: 团队
+team_id: 团队 ID
+challenge_title: 题目
+challenge_id: 题目 ID
+flag: Flag
+user_name: 用户
+created_at: 时间
 solved: 已解出
 solves: "{{count}} 次解出"
 pending_review: 请等待审核，这不会太久...
+empty: 暂无提交记录
+cheated: 该题目存在作弊记录，无法继续提交
+submitted: "#{{id}} 已提交题目 {{title}} 的解答"
 actions:
   submit: 提交
+  mark_cheat: 标记作弊
+  mark_incorrect: 标记错误
+  status_updated: 状态已更新
 result:
   correct: 恭喜你，提交成功！
   incorrect: 再检查一下？
   cheat: 你存在作弊的可能，已记录。
   timeout: 提交超时。
   duplicate: 你已经做出过这道题了。
+status:
+  _: 状态
+  pending: 待审核
+  correct: 正确
+  incorrect: 错误
+  cheat: 作弊
+  expired: 过期
+  duplicate: 重复
