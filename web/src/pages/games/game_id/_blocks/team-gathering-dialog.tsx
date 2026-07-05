@@ -215,7 +215,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             </div>
 
             {/* Form */}
-            <Form {...createForm}>
+            <Form key="create" {...createForm}>
               <form
                 onSubmit={createForm.handleSubmit(onCreateFormSubmit)}
                 autoComplete="off"
@@ -301,7 +301,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             </div>
 
             {/* Form */}
-            <Form {...joinForm}>
+            <Form key="join" {...joinForm}>
               <form
                 onSubmit={joinForm.handleSubmit(onJoinFormSubmit)}
                 autoComplete="off"
