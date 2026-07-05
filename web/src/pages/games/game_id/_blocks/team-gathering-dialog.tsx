@@ -44,9 +44,14 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
   const [tab, setTab] = useState<Tab>("create");
 
   const createFormSchema = z.object({
-    name: z.string({
-      message: t("team:form.name.required"),
-    }),
+    name: z
+      .string({
+        message: t("team:form.name.required"),
+      })
+      .trim()
+      .min(1, {
+        message: t("team:form.name.required"),
+      }),
   });
 
   const createForm = useForm<z.infer<typeof createFormSchema>>({
