@@ -44,9 +44,14 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
   const [tab, setTab] = useState<Tab>("create");
 
   const createFormSchema = z.object({
-    name: z.string({
-      message: t("team:form.name.required"),
-    }),
+    name: z
+      .string({
+        message: t("team:form.name.required"),
+      })
+      .trim()
+      .min(1, {
+        message: t("team:form.name.required"),
+      }),
   });
 
   const createForm = useForm<z.infer<typeof createFormSchema>>({
@@ -210,7 +215,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             </div>
 
             {/* Form */}
-            <Form {...createForm}>
+            <Form key="create" {...createForm}>
               <form
                 onSubmit={createForm.handleSubmit(onCreateFormSubmit)}
                 autoComplete="off"
@@ -296,7 +301,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
             </div>
 
             {/* Form */}
-            <Form {...joinForm}>
+            <Form key="join" {...joinForm}>
               <form
                 onSubmit={joinForm.handleSubmit(onJoinFormSubmit)}
                 autoComplete="off"
