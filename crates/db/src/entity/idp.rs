@@ -1,4 +1,4 @@
-//! SeaORM `idp` entity — maps configured Rune-backed identity providers.
+//! SeaORM `idp` entity — maps configured Lua-backed identity providers.
 
 use async_trait::async_trait;
 use sea_orm::{Set, entity::prelude::*};

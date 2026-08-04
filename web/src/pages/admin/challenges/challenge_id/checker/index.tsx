@@ -20,9 +20,9 @@ import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { Context } from "../context";
 
-import leetChecker from "./_blocks/examples/leet.cdsx?raw";
-import simpleChecker from "./_blocks/examples/simple.cdsx?raw";
-import suidChecker from "./_blocks/examples/suid.cdsx?raw";
+import leetChecker from "./_blocks/examples/leet.lua?raw";
+import simpleChecker from "./_blocks/examples/simple.lua?raw";
+import suidChecker from "./_blocks/examples/suid.lua?raw";
 
 const checkerMap = {
   simple: simpleChecker,
@@ -141,7 +141,7 @@ export default function Index() {
                 <Editor
                   {...field}
                   value={field.value ?? ""}
-                  lang={"rune"}
+                  lang={"lua"}
                   tabSize={4}
                   showLineNumbers
                   className={cn(["h-full", "min-h-120"])}

@@ -1,108 +1,118 @@
-//! Rune built-in module `audit` for challenge checker scripts.
+//! Lua module `cds.audit` for checker status and flag helpers.
 
-use std::{io, str::FromStr};
+use std::io;
 
 use cds_engine::{
-    rune,
-    rune::{Any, ContextError, Module},
+    mlua::{Lua, Table},
+    traits::EngineError,
 };
 
-/// Constructs the Rune native module exposed to checker scripts.
-#[rune::module(::audit)]
-pub fn module(_stdio: bool) -> Result<Module, ContextError> {
-    let mut module = Module::from_meta(module_meta)?;
-    module.ty::<Status>()?;
-
-    module.ty::<Flag>()?;
-    module.function_meta(Flag::new)?;
-    module.function_meta(Flag::parse)?;
-    module.function_meta(Flag::with_prefix)?;
-    module.function_meta(Flag::prefix)?;
-    module.function_meta(Flag::with_content)?;
-    module.function_meta(Flag::content)?;
-    module.function_meta(Flag::format)?;
-
-    Ok(module)
-}
-
-#[derive(Any, Debug, Clone)]
-#[rune(item = ::audit)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Status {
-    #[rune(constructor)]
     Correct,
-    #[rune(constructor)]
     Incorrect,
-    #[rune(constructor)]
-    Cheat(#[rune(get, set)] i64),
+    Cheat(i64),
 }
 
-#[derive(Any, Debug, Clone)]
-#[rune(item = ::audit)]
+#[derive(Debug, Clone)]
 pub struct Flag {
     prefix: String,
     content: String,
 }
 
 impl Flag {
-    /// Constructs a new value.
-    #[rune::function(path = Self::new)]
-    pub fn new() -> Self {
-        Self {
-            prefix: "".to_owned(),
-            content: "".to_owned(),
-        }
-    }
-
-    /// Parses audit log prefixes from checker scripts.
-    #[rune::function(path = Self::parse)]
-    pub fn parse(f: &str) -> Result<Self, io::Error> {
-        let f = f.trim();
-        let prefix_end = f
+    pub fn parse(value: &str) -> Result<Self, io::Error> {
+        let value = value.trim();
+        let prefix_end = value
             .find('{')
-            .ok_or(io::Error::other("flag format is incorrect"))?;
-        let prefix: String = f.chars().take(prefix_end).collect();
-        let content = f.to_owned().replacen(&prefix, "", 1);
-        if !(content.starts_with("{") && content.ends_with("}")) {
-            return Err(io::Error::other("flag format is incorrect"))?;
+            .ok_or_else(|| io::Error::other("flag format is incorrect"))?;
+        let prefix = value[..prefix_end].to_owned();
+        let content = &value[prefix_end..];
+        if !(content.starts_with('{') && content.ends_with('}')) {
+            return Err(io::Error::other("flag format is incorrect"));
         }
-        let content = String::from_str(&content[1..(content.len() - 1)])
-            .map_err(|_| io::Error::other("failed to extract flag content"))?;
-        Ok(Self { prefix, content })
+        Ok(Self {
+            prefix,
+            content: content[1..content.len() - 1].to_owned(),
+        })
     }
 
-    /// Returns the configured audit prefix token.
-    #[rune::function]
-    pub fn prefix(&self) -> String {
-        self.prefix.clone()
-    }
-
-    /// Returns the captured audit content token.
-    #[rune::function]
-    pub fn content(&self) -> String {
-        self.content.clone()
-    }
-
-    /// Prefixes a logical key with the configured bucket prefix.
-    #[rune::function]
-    pub fn with_prefix(self, p: &str) -> Self {
-        Self {
-            prefix: p.to_owned(),
-            ..self
-        }
-    }
-
-    /// Attaches structured audit content to the status object.
-    #[rune::function]
-    pub fn with_content(self, c: &str) -> Self {
-        Self {
-            content: c.to_owned(),
-            ..self
-        }
-    }
-
-    /// Renders the final audit string for checker output.
-    #[rune::function]
-    pub fn format(self) -> String {
+    pub fn format(&self) -> String {
         format!("{}{{{}}}", self.prefix, self.content)
+    }
+}
+
+fn flag_table(lua: &Lua, flag: Flag) -> mlua::Result<Table> {
+    let table = lua.create_table()?;
+    table.set("prefix", flag.prefix)?;
+    table.set("content", flag.content)?;
+    Ok(table)
+}
+
+fn status_table(lua: &Lua, kind: &str, operator_id: Option<i64>) -> mlua::Result<Table> {
+    let table = lua.create_table()?;
+    table.set("kind", kind)?;
+    if let Some(operator_id) = operator_id {
+        table.set("operator_id", operator_id)?;
+    }
+    Ok(table)
+}
+
+pub fn install(lua: &Lua) -> Result<(), EngineError> {
+    let module = cds_engine::module(lua, "audit")?;
+    module.set(
+        "parse",
+        lua.create_function(|lua, value: String| {
+            let flag = Flag::parse(&value).map_err(mlua::Error::external)?;
+            flag_table(lua, flag)
+        })?,
+    )?;
+    module.set(
+        "new",
+        lua.create_function(|lua, ()| {
+            flag_table(
+                lua,
+                Flag {
+                    prefix: String::new(),
+                    content: String::new(),
+                },
+            )
+        })?,
+    )?;
+    module.set(
+        "format",
+        lua.create_function(|_, flag: Table| {
+            Ok(Flag {
+                prefix: flag.get("prefix")?,
+                content: flag.get("content")?,
+            }
+            .format())
+        })?,
+    )?;
+    module.set(
+        "correct",
+        lua.create_function(|lua, ()| status_table(lua, "correct", None))?,
+    )?;
+    module.set(
+        "incorrect",
+        lua.create_function(|lua, ()| status_table(lua, "incorrect", None))?,
+    )?;
+    module.set(
+        "cheat",
+        lua.create_function(|lua, operator_id: i64| status_table(lua, "cheat", Some(operator_id)))?,
+    )?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Flag;
+
+    #[test]
+    fn parses_and_formats_flag() {
+        let flag = Flag::parse("flag{content}").unwrap();
+        assert_eq!(flag.prefix, "flag");
+        assert_eq!(flag.content, "content");
+        assert_eq!(flag.format(), "flag{content}");
     }
 }

@@ -22,7 +22,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
-import defaultScript from "../idp_id/_blocks/examples/default.cdsx?raw";
+import defaultScript from "../idp_id/_blocks/examples/default.lua?raw";
 
 interface CreateDialogProps {
   onClose: () => void;

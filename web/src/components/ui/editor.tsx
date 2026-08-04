@@ -6,6 +6,7 @@ import { useApperanceStore } from "@/storages/appearance";
 import { cn } from "@/utils";
 
 loadLanguage("rs");
+loadLanguage("lua");
 loadLanguage("markdown");
 
 type EditorProps = Omit<React.ComponentProps<"div">, "onChange"> & {
@@ -49,8 +50,9 @@ function Editor(props: EditorProps) {
     switch (lang) {
       case "rs":
       case "rust":
-      case "rune":
         return langs.rs();
+      case "lua":
+        return langs.lua();
       default:
         return langs.markdown();
     }

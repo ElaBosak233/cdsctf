@@ -1,40 +1,28 @@
-//! Challenge checker powered by the Rune scripting engine.
+//! Challenge checker powered by the embedded Lua engine.
 //!
-//! Scripts must expose `check` and `generate` entrypoints. `check` validates a
-//! submitted flag; `generate` returns dynamic key/value environment variables
-//! injected into challenge pods.
+//! Scripts expose top-level `check` and `generate` functions. Host APIs are
+//! available under the `cds` global namespace.
 
-/// Defines the `modules` submodule (see sibling `*.rs` files).
 pub mod modules;
-
-/// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
-
-/// Defines the `util` submodule (see sibling `*.rs` files).
 pub mod util;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
-use cds_engine::{
-    rune::{Context, Value, runtime::Object},
-    rune_modules,
-    traits::EngineError,
-};
+use cds_engine::{ConfigureLua, mlua::Lua};
 use cds_media::Media;
+use serde::Deserialize;
 use time::OffsetDateTime;
 use tracing::debug;
 
 pub use crate::modules::audit::Status;
 use crate::traits::CheckerError;
 
-/// Checker state: needs [`Media`] so Rune `fs` module can read challenge-local
-/// files from object storage.
 #[derive(Clone)]
 pub struct Checker {
     media: Media,
 }
 
-/// Builds a checker that shares the global [`Media`] handle.
 pub fn init(media: &Media) -> Result<Checker, CheckerError> {
     Ok(Checker {
         media: media.clone(),
@@ -42,61 +30,45 @@ pub fn init(media: &Media) -> Result<Checker, CheckerError> {
 }
 
 impl Checker {
-    /// Builds a Rune [`Context`] with checker builtins installed.
-    async fn gen_rune_context(&self, challenge_id: i64) -> Result<Context, CheckerError> {
-        Ok(cds_engine::gen_rune_context(vec![
-            rune_modules::http::module(true).map_err(EngineError::from)?,
-            rune_modules::json::module(true).map_err(EngineError::from)?,
-            rune_modules::toml::module(true).map_err(EngineError::from)?,
-            rune_modules::process::module(true).map_err(EngineError::from)?,
-            modules::audit::module(true).map_err(EngineError::from)?,
-            modules::crypto::module(true).map_err(EngineError::from)?,
-            modules::regex::module(true).map_err(EngineError::from)?,
-            modules::suid::module(true).map_err(EngineError::from)?,
-            modules::leet::module(true).map_err(EngineError::from)?,
-            modules::fs::module(true, self.media.clone(), challenge_id)
-                .await
-                .map_err(EngineError::from)?,
-        ])
-        .await?)
+    fn configure_lua(&self, challenge_id: i64) -> Arc<ConfigureLua> {
+        let media = self.media.clone();
+        Arc::new(move |lua: &Lua| {
+            modules::audit::install(lua)?;
+            modules::crypto::install(lua)?;
+            modules::regex::install(lua)?;
+            modules::suid::install(lua)?;
+            modules::leet::install(lua)?;
+            modules::fs::install(lua, media.clone(), challenge_id)?;
+            Ok(())
+        })
     }
 
-    /// Validates checker source and required entrypoints.
     pub async fn lint(&self, challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
-        cds_engine::lint(
-            self.gen_rune_context(challenge.id).await?,
-            challenge
-                .checker
-                .clone()
-                .ok_or(CheckerError::MissingScript("".to_owned()))?,
-            &["check", "generate"],
-        )
-        .await?;
-
+        let script = challenge
+            .checker
+            .as_deref()
+            .ok_or_else(|| CheckerError::MissingScript(String::new()))?;
+        let configure = self.configure_lua(challenge.id);
+        cds_engine::lint(script, &["check", "generate"], configure.as_ref()).await?;
         Ok(())
     }
 
-    /// Compiles and caches checker bytecode for a challenge.
     async fn preload(&self, challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
         cds_engine::preload(
-            self.gen_rune_context(challenge.id).await?,
             format!("challenge/{}", challenge.id),
             challenge
                 .checker
-                .clone()
-                .ok_or(CheckerError::MissingScript("".to_owned()))?,
+                .as_deref()
+                .ok_or_else(|| CheckerError::MissingScript(String::new()))?,
             Some(
                 OffsetDateTime::from_unix_timestamp(challenge.updated_at)
-                    .ok()
-                    .unwrap_or(OffsetDateTime::now_utc()),
+                    .unwrap_or_else(|_| OffsetDateTime::now_utc()),
             ),
         )
         .await?;
-
         Ok(())
     }
 
-    /// Verifies a submitted flag against the checker script.
     pub async fn check(
         &self,
         challenge: &cds_db::Challenge,
@@ -106,25 +78,19 @@ impl Checker {
         self.preload(challenge).await?;
         debug!(
             challenge_id = challenge.id,
-            operator_id = operator_id,
-            content = content,
-            "Checking answers"
+            operator_id, "Checking answer with Lua"
         );
-        let result = cds_engine::execute(
+        let configure = self.configure_lua(challenge.id);
+        let result: StatusOutput = cds_engine::execute(
             format!("challenge/{}", challenge.id),
             "check",
             (operator_id, content),
+            configure.as_ref(),
         )
         .await?;
-        let output = cds_engine::rune::from_value::<Result<Status, Value>>(result)
-            .map_err(EngineError::from)?;
-
-        let is_correct = output.map_err(|_| CheckerError::ScriptError("".to_owned()))?;
-
-        Ok(is_correct)
+        result.try_into()
     }
 
-    /// Produces captcha challenges or dynamic checker environment data.
     pub async fn generate(
         &self,
         challenge: &cds_db::Challenge,
@@ -133,28 +99,124 @@ impl Checker {
         self.preload(challenge).await?;
         debug!(
             challenge_id = challenge.id,
-            operator_id = operator_id,
-            "Generating environment variables"
+            operator_id, "Generating environment variables"
         );
-        let result = cds_engine::execute(
+        let configure = self.configure_lua(challenge.id);
+        Ok(cds_engine::execute(
             format!("challenge/{}", challenge.id),
             "generate",
             (operator_id,),
+            configure.as_ref(),
         )
-        .await?;
-        let output = cds_engine::rune::from_value::<Result<Object, Value>>(result)
-            .map_err(EngineError::from)?;
+        .await?)
+    }
+}
 
-        let object = output.map_err(|err| CheckerError::ScriptError(format!("{:?}", err)))?;
+#[derive(Deserialize)]
+struct StatusOutput {
+    kind: String,
+    operator_id: Option<i64>,
+}
 
-        let mut environs = HashMap::new();
-        for (key, value) in object.iter() {
-            environs.insert(
-                key.to_string(),
-                cds_engine::rune::from_value(value.to_owned()).map_err(EngineError::from)?,
-            );
+impl TryFrom<StatusOutput> for Status {
+    type Error = CheckerError;
+
+    fn try_from(output: StatusOutput) -> Result<Self, Self::Error> {
+        match output.kind.as_str() {
+            "correct" => Ok(Status::Correct),
+            "incorrect" => Ok(Status::Incorrect),
+            "cheat" => output.operator_id.map(Status::Cheat).ok_or_else(|| {
+                CheckerError::ScriptError("cheat status requires operator_id".to_owned())
+            }),
+            _ => Err(CheckerError::ScriptError(format!(
+                "unknown checker status: {}",
+                output.kind
+            ))),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{collections::HashMap, sync::Arc};
+
+    use cds_engine::{ConfigureLua, mlua::Lua};
+
+    use super::{Status, StatusOutput, modules};
+
+    const SIMPLE: &str = include_str!(
+        "../../../web/src/pages/admin/challenges/challenge_id/checker/_blocks/examples/simple.lua"
+    );
+    const SUID: &str = include_str!(
+        "../../../web/src/pages/admin/challenges/challenge_id/checker/_blocks/examples/suid.lua"
+    );
+    const LEET: &str = include_str!(
+        "../../../web/src/pages/admin/challenges/challenge_id/checker/_blocks/examples/leet.lua"
+    );
+
+    fn configure() -> Arc<ConfigureLua> {
+        Arc::new(|lua: &Lua| {
+            modules::audit::install(lua)?;
+            modules::crypto::install(lua)?;
+            modules::regex::install(lua)?;
+            modules::suid::install(lua)?;
+            modules::leet::install(lua)?;
+            let fs = cds_engine::module(lua, "fs")?;
+            fs.set("key", lua.create_function(|_, ()| Ok("11".repeat(64)))?)?;
+            Ok(())
+        })
+    }
+
+    #[test]
+    fn decodes_checker_status() {
+        let status = StatusOutput {
+            kind: "cheat".to_owned(),
+            operator_id: Some(42),
+        };
+        assert_eq!(Status::try_from(status).unwrap(), Status::Cheat(42));
+    }
+
+    #[tokio::test]
+    async fn bundled_templates_lint_and_execute() {
+        let configure = configure();
+        for script in [SIMPLE, SUID, LEET] {
+            cds_engine::lint(script, &["check", "generate"], configure.as_ref())
+                .await
+                .unwrap();
         }
 
-        Ok(environs)
+        cds_engine::preload("test/simple", SIMPLE, None)
+            .await
+            .unwrap();
+        let status: StatusOutput = cds_engine::execute(
+            "test/simple",
+            "check",
+            (1_i64, "flag{this_is_my_flag}"),
+            configure.as_ref(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(Status::try_from(status).unwrap(), Status::Correct);
+
+        for (key, script) in [("test/suid", SUID), ("test/leet", LEET)] {
+            cds_engine::preload(key, script, None).await.unwrap();
+            let mut generated: HashMap<String, String> =
+                cds_engine::execute(key, "generate", (7_i64,), configure.as_ref())
+                    .await
+                    .unwrap();
+            let flag = generated.remove("FLAG").unwrap();
+
+            let correct: StatusOutput =
+                cds_engine::execute(key, "check", (7_i64, flag.as_str()), configure.as_ref())
+                    .await
+                    .unwrap();
+            assert_eq!(Status::try_from(correct).unwrap(), Status::Correct);
+
+            let cheat: StatusOutput =
+                cds_engine::execute(key, "check", (8_i64, flag.as_str()), configure.as_ref())
+                    .await
+                    .unwrap();
+            assert_eq!(Status::try_from(cheat).unwrap(), Status::Cheat(7));
+        }
     }
 }

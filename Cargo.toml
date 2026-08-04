@@ -80,6 +80,7 @@ serde_with = { version = "3.21" }
 time       = { version = "0.3", features = ["serde", "macros", "local-offset"] }
 toml       = { version = "1.1" }
 uuid       = { version = "1.23", features = ["v4", "fast-rng", "macro-diagnostics"] }
+url        = { version = "2.5" }
 
 # Error Handling
 anyhow    = { version = "1.0" }
@@ -141,8 +142,7 @@ kube = { version = "3.1", features = [
 ] }
 
 # Script Engine
-rune         = { version = "0.14", features = ["tokio"] }
-rune-modules = { version = "0.14", features = ["full"] }
+mlua = { version = "0.12", features = ["lua54", "vendored", "async", "send", "serde", "error-send"] }
 
 # Miscellaneous
 biosvg = { version = "0.1" }

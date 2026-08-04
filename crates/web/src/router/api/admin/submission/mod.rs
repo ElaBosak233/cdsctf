@@ -134,7 +134,7 @@ pub async fn create_debug_submission(
     // Validate challenge exists.
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
-    // Run the Rune checker synchronously (no queue, no DB record).
+    // Run the Lua checker synchronously (no queue, no DB record).
     let result = s
         .checker
         .check(&challenge, operator.id, &body.content)

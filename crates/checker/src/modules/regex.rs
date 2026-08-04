@@ -1,26 +1,20 @@
-//! Rune built-in module `regex` for challenge checker scripts.
+//! Lua module `cds.regex` for checker scripts.
 
-use cds_engine::{
-    rune,
-    rune::{ContextError, Module},
-};
+use cds_engine::{mlua::Lua, traits::EngineError};
 
-/// Constructs the Rune native module exposed to checker scripts.
-#[rune::module(::regex)]
-pub fn module(_stdio: bool) -> Result<Module, ContextError> {
-    let mut module = Module::from_meta(module_meta)?;
-    module.function_meta(is_match)?;
-
-    Ok(module)
+pub fn install(lua: &Lua) -> Result<(), EngineError> {
+    let module = cds_engine::module(lua, "regex")?;
+    module.set(
+        "is_match",
+        lua.create_function(|_, (pattern, value): (String, String)| {
+            Ok(is_match(&pattern, &value))
+        })?,
+    )?;
+    Ok(())
 }
 
-/// Returns whether is match.
-
-#[rune::function]
 pub fn is_match(pattern: &str, payload: &str) -> bool {
-    let re = regex::Regex::new(pattern);
-    match re {
-        Err(_) => false,
-        Ok(re) => re.is_match(payload),
-    }
+    regex::Regex::new(pattern)
+        .map(|regex| regex.is_match(payload))
+        .unwrap_or(false)
 }

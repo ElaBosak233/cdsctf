@@ -1,26 +1,14 @@
-//! Shared traits and error types for the `engine` crate.
+//! Shared error and diagnostic types for the Lua engine.
 
 use serde::Serialize;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum EngineError {
-    #[error("rune context error: {0}")]
-    ContextError(#[from] rune::ContextError),
-    #[error("rune source error: {0}")]
-    SourceError(#[from] rune::source::FromPathError),
-    #[error("rune build error: {0}")]
-    BuildError(#[from] rune::BuildError),
-    #[error("rune alloc error: {0}")]
-    AllocError(#[from] rune::alloc::Error),
-    #[error("rune vm error: {0}")]
-    RuntimeError(#[from] rune::runtime::RuntimeError),
-    #[error("rune vm error: {0}")]
-    VmError(#[from] rune::runtime::VmError),
-    #[error("rune diagnostics error")]
+    #[error("lua error: {0}")]
+    LuaError(#[from] mlua::Error),
+    #[error("lua diagnostics error")]
     DiagnosticsError(Vec<DiagnosticMarker>),
-    #[error("compile error: {0}")]
-    CompileError(String),
     #[error("missing context: {0}")]
     MissingContext(String),
     #[error("missing function: {0}")]
@@ -29,8 +17,8 @@ pub enum EngineError {
     MissingScript(String),
     #[error("script error: {0}")]
     ScriptError(String),
-    #[error("String UTF-8 decode error: {0}")]
-    FromUtf8Error(#[from] std::string::FromUtf8Error),
+    #[error("script execution timed out")]
+    Timeout,
     #[error(transparent)]
     OtherError(#[from] anyhow::Error),
 }

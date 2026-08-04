@@ -24,7 +24,7 @@ pub struct AppState {
     pub db: cds_db::DB,
     /// Redis JSON cache and session backing store.
     pub cache: cds_cache::Cache,
-    /// Rune-based dynamic challenge checking.
+    /// Lua-based dynamic challenge checking.
     pub checker: cds_checker::Checker,
     /// Captcha provider facade.
     pub captcha: cds_captcha::Captcha,

@@ -15,12 +15,15 @@ cds-db     = { workspace = true }
 cds-engine = { workspace = true }
 cds-media  = { workspace = true }
 
+mlua       = { workspace = true }
+
 aes       = { workspace = true }
 anyhow    = { workspace = true }
 hex       = { workspace = true }
 once_cell = { workspace = true }
 regex     = { workspace = true }
 ring      = { workspace = true }
+serde     = { workspace = true }
 thiserror = { workspace = true }
 time      = { workspace = true }
 tokio     = { workspace = true }

@@ -1,3 +1,3 @@
 /// <reference types="vite/client" />
 
-declare module "*.rn";
+declare module "*.lua";

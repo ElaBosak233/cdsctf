@@ -45,9 +45,9 @@ import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 import { parseRouteNumericId } from "@/utils/query";
 
-import casScript from "./_blocks/examples/cas.cdsx?raw";
-import defaultScript from "./_blocks/examples/default.cdsx?raw";
-import githubScript from "./_blocks/examples/github.cdsx?raw";
+import casScript from "./_blocks/examples/cas.lua?raw";
+import defaultScript from "./_blocks/examples/default.lua?raw";
+import githubScript from "./_blocks/examples/github.lua?raw";
 
 const scriptTemplates = {
   default: defaultScript,
@@ -366,7 +366,7 @@ export default function Index() {
                   </div>
                   <FormControl>
                     <Editor
-                      lang="rune"
+                      lang="lua"
                       showLineNumbers
                       className={cn(["min-h-96", "flex-1"])}
                       value={field.value}

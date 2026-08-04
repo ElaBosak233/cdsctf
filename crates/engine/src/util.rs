@@ -1,51 +1,20 @@
-//! Rune engine support — `util` (compile/run helpers).
+//! Lua diagnostic helpers.
 
-use rune::{
-    Sources,
-    ast::Spanned,
-    diagnostics::{Diagnostic, FatalDiagnosticKind},
-};
+use regex::Regex;
 
-use crate::traits::{DiagnosticKind, DiagnosticMarker};
-
-/// Converts a Rune diagnostic into an API-friendly marker struct.
-pub(crate) fn diagnostic_to_marker(
-    diagnostic: &Diagnostic,
-    sources: &Sources,
-) -> Option<DiagnosticMarker> {
-    match diagnostic {
-        Diagnostic::Fatal(fatal) => {
-            if let FatalDiagnosticKind::CompileError(error) = fatal.kind() {
-                let span = error.span();
-                let source = sources.get(fatal.source_id())?;
-                let (start_line, start_column) =
-                    source.pos_to_utf8_linecol(span.start.into_usize());
-                let (end_line, end_column) = source.pos_to_utf8_linecol(span.end.into_usize());
-                return Some(DiagnosticMarker {
-                    kind: DiagnosticKind::Error,
-                    message: error.to_string(),
-                    start_line,
-                    start_column,
-                    end_line,
-                    end_column,
-                });
-            }
-        }
-        Diagnostic::Warning(warning) => {
-            let span = warning.span();
-            let source = sources.get(warning.source_id())?;
-            let (start_line, start_column) = source.pos_to_utf8_linecol(span.start.into_usize());
-            let (end_line, end_column) = source.pos_to_utf8_linecol(span.end.into_usize());
-            return Some(DiagnosticMarker {
-                kind: DiagnosticKind::Warning,
-                message: warning.to_string(),
-                start_line,
-                start_column,
-                end_line,
-                end_column,
-            });
-        }
-        _ => {}
-    }
-    None
+pub(crate) fn parse_location(message: &str) -> Option<(usize, usize)> {
+    let pattern = Regex::new(r":([0-9]+)(?::([0-9]+))?:").ok()?;
+    let captures = pattern.captures(message)?;
+    let line = captures
+        .get(1)?
+        .as_str()
+        .parse::<usize>()
+        .ok()?
+        .saturating_sub(1);
+    let column = captures
+        .get(2)
+        .and_then(|capture| capture.as_str().parse::<usize>().ok())
+        .unwrap_or(1)
+        .saturating_sub(1);
+    Some((line, column))
 }

@@ -13,10 +13,11 @@ version      = { workspace = true }
 [dependencies]
 anyhow       = { workspace = true }
 dashmap      = { workspace = true }
+mlua         = { workspace = true }
 once_cell    = { workspace = true }
-rune         = { workspace = true }
-rune-modules = { workspace = true }
+regex        = { workspace = true }
 serde        = { workspace = true }
+serde_json   = { workspace = true }
 thiserror    = { workspace = true }
 utoipa       = { workspace = true }
 time         = { workspace = true }

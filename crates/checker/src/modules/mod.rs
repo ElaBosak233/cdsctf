@@ -1,4 +1,4 @@
-//! Rune built-in module `mod` for challenge checker scripts.
+//! Lua modules exposed to challenge checker scripts.
 
 /// Defines the `audit` submodule (see sibling `*.rs` files).
 pub mod audit;
