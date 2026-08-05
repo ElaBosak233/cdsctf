@@ -178,7 +178,6 @@ function luaCompletionSource(
   };
 }
 
-loadLanguage("rs");
 loadLanguage("lua");
 loadLanguage("markdown");
 

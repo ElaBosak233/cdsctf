@@ -1,5 +1,6 @@
 _: 比赛
 empty: 好像还没有比赛哦。
+result_count: "{{count}} 场比赛"
 filter:
   all: ALL
   pts: 分
@@ -50,6 +51,7 @@ status:
     remaining: 比赛已结束
 search:
   title: 比赛标题
+  clear: 清除搜索
 form:
   title:
     _: 标题
@@ -104,6 +106,7 @@ form:
     placeholder: 很久很久以前…
 actions:
   _: 操作
+  enter: 进入比赛
   create:
     _: 创建比赛
     success: "比赛 {{title}} 创建成功。"

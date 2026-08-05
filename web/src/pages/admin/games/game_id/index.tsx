@@ -359,6 +359,7 @@ export default function Index() {
               </div>
               <div className={cn(["w-full", "aspect-video"])}>
                 <Avatar
+                  aspect="video"
                   className={cn([
                     "h-full",
                     "w-full",
@@ -385,8 +386,9 @@ export default function Index() {
                       "opacity-100",
                       "backdrop-blur-xs",
                       "transition-all",
-                      "lg:opacity-0",
-                      "lg:hover:opacity-100",
+                      "focus-visible:opacity-100",
+                      "[@media(hover:hover)]:opacity-0",
+                      "[@media(hover:hover)]:hover:opacity-100",
                     ])}
                     aria-label={t("game:form.poster")}
                     onClick={() => {
@@ -455,8 +457,9 @@ export default function Index() {
                       "opacity-100",
                       "backdrop-blur-xs",
                       "transition-all",
-                      "lg:opacity-0",
-                      "lg:hover:opacity-100",
+                      "focus-visible:opacity-100",
+                      "[@media(hover:hover)]:opacity-0",
+                      "[@media(hover:hover)]:hover:opacity-100",
                     ])}
                     aria-label={t("game:form.icon")}
                     onClick={() => {
