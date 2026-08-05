@@ -96,12 +96,12 @@ export default function Index() {
         autoComplete={"off"}
         className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
       >
-        <div className={cn(["flex", "gap-5"])}>
+        <div className={cn(["flex", "flex-col", "gap-5", "sm:flex-row"])}>
           <FormField
             control={form.control}
             name={"title"}
             render={({ field }) => (
-              <FormItem className={cn(["w-3/4"])}>
+              <FormItem className={cn(["w-full", "sm:w-3/4"])}>
                 <FormLabel>{t("challenge:form.title._")}</FormLabel>
                 <FormControl>
                   <Field>
@@ -124,7 +124,7 @@ export default function Index() {
             control={form.control}
             name={"category"}
             render={({ field }) => (
-              <FormItem className={cn(["w-1/4"])}>
+              <FormItem className={cn(["w-full", "sm:w-1/4"])}>
                 <FormLabel>{t("challenge:form.category._")}</FormLabel>
                 <FormControl>
                   <Field>
@@ -181,12 +181,12 @@ export default function Index() {
             </FormItem>
           )}
         />
-        <div className={cn(["flex", "gap-5"])}>
+        <div className={cn(["flex", "flex-col", "gap-5", "sm:flex-row"])}>
           <FormField
             control={form.control}
             name={"has_attachment"}
             render={({ field }) => (
-              <FormItem className={cn(["w-1/2"])}>
+              <FormItem className={cn(["w-full", "sm:w-1/3"])}>
                 <FormLabel>{t("challenge:form.has_attachment._")}</FormLabel>
                 <FormControl>
                   <Field>
@@ -220,7 +220,7 @@ export default function Index() {
             control={form.control}
             name={"has_instance"}
             render={({ field }) => (
-              <FormItem className={cn(["w-1/2"])}>
+              <FormItem className={cn(["w-full", "sm:w-1/3"])}>
                 <FormLabel>{t("challenge:form.has_instance._")}</FormLabel>
                 <FormControl>
                   <Field>
@@ -268,7 +268,7 @@ export default function Index() {
             control={form.control}
             name={"has_writeup"}
             render={({ field }) => (
-              <FormItem className={cn(["w-1/2"])}>
+              <FormItem className={cn(["w-full", "sm:w-1/3"])}>
                 <FormLabel>{t("challenge:form.has_writeup._")}</FormLabel>
                 <FormControl>
                   <Field>

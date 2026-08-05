@@ -39,7 +39,9 @@ export default function Index() {
       <title>{`${t("user:idp._")} - ${config?.meta?.title}`}</title>
       <div
         className={cn([
-          "p-10",
+          "p-4",
+          "sm:p-6",
+          "lg:p-10",
           "flex",
           "flex-col",
           "gap-5",
@@ -69,7 +71,13 @@ export default function Index() {
             return (
               <Card
                 key={idp.id}
-                className={cn(["p-4", "flex", "items-center", "gap-4"])}
+                className={cn([
+                  "p-4",
+                  "flex",
+                  "items-center",
+                  "gap-4",
+                  "min-w-0",
+                ])}
               >
                 <Avatar
                   square
@@ -85,6 +93,7 @@ export default function Index() {
                 </div>
                 {item?.id ? (
                   <Button
+                    className={cn(["shrink-0"])}
                     variant="tonal"
                     level="error"
                     icon={<UnplugIcon />}

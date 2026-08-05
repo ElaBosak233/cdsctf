@@ -78,26 +78,39 @@ export default function Emails() {
       <div
         className={cn([
           "flex",
+          "flex-col",
           "gap-2",
-          "flex-row",
-          "items-center",
+          "sm:flex-row",
+          "sm:items-center",
           "justify-between",
         ])}
       >
-        <div className={cn(["space-y-1"])}>
-          <h2 className={cn(["flex", "items-center", "gap-2", "text-xl"])}>
-            <MailIcon />
-            {t("user:emails._")}
-          </h2>
-          <p className={cn(["text-muted-foreground", "text-sm"])}>
-            {t("user:emails.brief")}
-          </p>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <div
+            className={cn([
+              "flex items-center justify-center",
+              "size-10 rounded-badge",
+              "bg-primary/10",
+              "shrink-0",
+            ])}
+          >
+            <MailIcon className={cn(["size-5"])} />
+          </div>
+          <div className={cn(["space-y-1", "min-w-0"])}>
+            <h2 className={cn(["text-base", "font-semibold"])}>
+              {t("user:emails._")}
+            </h2>
+            <p className={cn(["text-muted-foreground", "text-sm"])}>
+              {t("user:emails.brief")}
+            </p>
+          </div>
         </div>
         <div className={cn(["flex", "items-center", "gap-2"])}>
           <Button
             size={"sm"}
             variant={"solid"}
             icon={<MailPlusIcon />}
+            className={cn(["self-start", "sm:self-auto"])}
             disabled={userId == null}
             onClick={() => setCreateDialogOpen(true)}
           >

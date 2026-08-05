@@ -115,7 +115,9 @@ export default function Index() {
             "flex",
             "flex-col",
             "gap-3",
-            "p-10",
+            "p-4",
+            "sm:p-6",
+            "lg:p-10",
             "xl:mx-60",
             "lg:mx-30",
             "min-h-(--app-content-height)",
@@ -167,7 +169,7 @@ export default function Index() {
 
           {form.watch("enabled") && (
             <>
-              <div className={cn(["flex", "gap-3"])}>
+              <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
                 <FormField
                   control={form.control}
                   name={"host"}

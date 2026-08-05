@@ -198,7 +198,7 @@ export default function Index() {
                         status={status}
                       />
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent size="preview">
                       <ChallengeDialog
                         digest={{
                           id: gameChallenge.challenge_id,

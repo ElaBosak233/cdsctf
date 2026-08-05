@@ -150,6 +150,10 @@ export default function Index() {
           className={cn([
             "flex-1",
             "min-h-0",
+            "min-w-0",
+            "w-full",
+            "max-w-full",
+            "overflow-hidden",
             "rounded-xl",
             "border",
             "ring-1",

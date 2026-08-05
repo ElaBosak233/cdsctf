@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  InfoIcon,
   SaveIcon,
   ShieldIcon,
   UserRoundCheckIcon,
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/form";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Select } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
@@ -108,6 +110,22 @@ export default function Index() {
 
   return (
     <div className={cn(["flex", "flex-col", "gap-5", "flex-1"])}>
+      <div className={cn(["flex", "items-center", "gap-3"])}>
+        <div
+          className={cn([
+            "flex items-center justify-center",
+            "size-10 rounded-badge",
+            "bg-primary/10",
+            "shrink-0",
+          ])}
+        >
+          <InfoIcon className={cn(["size-5"])} />
+        </div>
+        <h2 className={cn(["text-base", "font-semibold"])}>
+          {t("user:edit.info")}
+        </h2>
+      </div>
+      <Separator />
       <div className={cn(["flex", "flex-col", "items-center", "gap-4"])}>
         <Avatar
           className={cn(["h-30", "w-30"])}

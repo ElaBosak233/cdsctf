@@ -150,7 +150,7 @@ function ActionsCell({ row }: { row: Row<GameChallenge> }) {
         onClick={() => setEditDialogOpen(true)}
       />
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent size="wide">
           <EditDialog
             gameChallenge={row.original}
             onClose={() => setEditDialogOpen(false)}
@@ -172,7 +172,8 @@ function ActionsCell({ row }: { row: Row<GameChallenge> }) {
         <DialogContent>
           <Card
             className={cn([
-              "w-lg",
+              "w-full",
+              "max-w-xl",
               "rounded-elevated",
               "shadow-lg",
               "overflow-hidden",

@@ -78,7 +78,9 @@ export default function Index() {
       <div
         className={cn([
           "w-full",
-          "p-10",
+          "p-4",
+          "sm:p-6",
+          "lg:p-10",
           "xl:p-0",
           "flex",
           "flex-col",
@@ -261,8 +263,9 @@ export default function Index() {
                 "bg-card/90",
                 "backdrop-blur-2xl",
                 "min-h-24",
-                "w-lg",
-                "max-w-3/4",
+                "w-full",
+                "max-w-lg",
+                "sm:max-w-3/4",
                 "shadow-sm",
                 "hover:bg-card/85",
                 "hover:shadow-md",

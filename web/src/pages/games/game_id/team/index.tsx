@@ -161,7 +161,9 @@ export default function Index() {
           "flex",
           "flex-col",
           "flex-1",
-          "p-10",
+          "p-4",
+          "sm:p-6",
+          "lg:p-10",
           "xl:mx-50",
           "lg:mx-30",
           "gap-5",
@@ -189,8 +191,25 @@ export default function Index() {
             autoComplete={"off"}
             className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
           >
-            <div className={cn(["flex", "gap-5", "items-center"])}>
-              <div className={cn(["flex", "flex-col", "gap-8", "flex-1"])}>
+            <div
+              className={cn([
+                "flex",
+                "flex-col",
+                "gap-5",
+                "items-stretch",
+                "sm:flex-row",
+                "sm:items-center",
+              ])}
+            >
+              <div
+                className={cn([
+                  "flex",
+                  "flex-col",
+                  "gap-8",
+                  "flex-1",
+                  "min-w-0",
+                ])}
+              >
                 <FormField
                   control={form.control}
                   name={"name"}
