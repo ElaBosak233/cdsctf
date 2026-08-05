@@ -7,7 +7,13 @@ mod challenge_id;
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
-use cds_db::{Challenge, challenge::FindChallengeOptions, sea_orm::ActiveValue::Set};
+use cds_db::{
+    Challenge,
+    challenge::FindChallengeOptions,
+    sea_orm::{ActiveValue::Set, TransactionTrait},
+};
+use cds_media::{Media, SaveIfAbsent};
+use ring::rand::{SecureRandom, SystemRandom};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use utoipa_axum::{
@@ -121,8 +127,9 @@ pub async fn create_challenge(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<CreateChallengeRequest>,
 ) -> Result<(StatusCode, Json<AdminChallengeResponse>), WebError> {
-    let challenge = cds_db::challenge::create::<Challenge>(
+    let challenge = create_challenge_with_key(
         &s.db.conn,
+        &s.media,
         cds_db::challenge::ActiveModel {
             title: Set(body.title),
             description: Set(body.description),
@@ -138,6 +145,7 @@ pub async fn create_challenge(
         },
     )
     .await?;
+
     info!(
         challenge_id = challenge.id,
         title = %challenge.title,
@@ -151,4 +159,42 @@ pub async fn create_challenge(
         StatusCode::CREATED,
         Json(AdminChallengeResponse { challenge }),
     ))
+}
+
+async fn create_challenge_with_key(
+    conn: &cds_db::sea_orm::DatabaseConnection,
+    media: &Media,
+    model: cds_db::challenge::ActiveModel,
+) -> Result<Challenge, WebError> {
+    let transaction = conn.begin().await.map_err(cds_db::DbError::from)?;
+    let challenge = cds_db::challenge::create::<Challenge>(&transaction, model).await?;
+
+    let mut key = [0_u8; 64];
+    SystemRandom::new().fill(&mut key).map_err(|_| {
+        WebError::InternalServerError(serde_json::json!("checker_key_generation_failed"))
+    })?;
+    let key = hex::encode(key);
+    let path = format!("challenges/{}", challenge.id);
+    let key_result = media
+        .save_if_absent(path.clone(), ".key".to_owned(), key.into_bytes())
+        .await;
+    match key_result {
+        Ok(SaveIfAbsent::Created) => {}
+        Ok(SaveIfAbsent::AlreadyExists) => {
+            return Err(WebError::InternalServerError(serde_json::json!(
+                "checker_key_already_exists"
+            )));
+        }
+        Err(error) => {
+            let _ = media.delete(path.clone(), ".key".to_owned()).await;
+            return Err(error.into());
+        }
+    }
+    if let Err(error) = transaction.commit().await {
+        // A commit error has an unknown outcome. Keep the object because the
+        // transaction may have committed and made the challenge visible.
+        return Err(cds_db::DbError::from(error).into());
+    }
+
+    Ok(challenge)
 }

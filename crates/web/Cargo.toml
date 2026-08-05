@@ -30,9 +30,11 @@ anyhow         = { workspace = true }
 argon2         = { workspace = true }
 axum           = { workspace = true }
 futures-util   = { workspace = true }
+hex            = { workspace = true }
 mime           = { workspace = true }
 nanoid         = { workspace = true }
 regex          = { workspace = true }
+ring           = { workspace = true }
 scraper        = { workspace = true }
 serde          = { workspace = true }
 serde_json     = { workspace = true }

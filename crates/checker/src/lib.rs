@@ -7,7 +7,10 @@ pub mod modules;
 pub mod traits;
 pub mod util;
 
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use cds_engine::{ConfigureLua, mlua::Lua};
 use cds_media::Media;
@@ -21,24 +24,27 @@ use crate::traits::CheckerError;
 #[derive(Clone)]
 pub struct Checker {
     media: Media,
+    key_cache: modules::fs::KeyCache,
 }
 
 pub fn init(media: &Media) -> Result<Checker, CheckerError> {
     Ok(Checker {
         media: media.clone(),
+        key_cache: Arc::new(RwLock::new(HashMap::new())),
     })
 }
 
 impl Checker {
     fn configure_lua(&self, challenge_id: i64) -> Arc<ConfigureLua> {
         let media = self.media.clone();
+        let key_cache = self.key_cache.clone();
         Arc::new(move |lua: &Lua| {
             modules::audit::install(lua)?;
             modules::crypto::install(lua)?;
             modules::regex::install(lua)?;
             modules::suid::install(lua)?;
             modules::leet::install(lua)?;
-            modules::fs::install(lua, media.clone(), challenge_id)?;
+            modules::fs::install(lua, media.clone(), key_cache.clone(), challenge_id)?;
             Ok(())
         })
     }
