@@ -13,6 +13,7 @@ version      = { workspace = true }
 [dependencies]
 anyhow       = { workspace = true }
 dashmap      = { workspace = true }
+full_moon    = { workspace = true }
 mlua         = { workspace = true }
 once_cell    = { workspace = true }
 regex        = { workspace = true }

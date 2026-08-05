@@ -142,6 +142,7 @@ kube = { version = "3.1", features = [
 ] }
 
 # Script Engine
+full_moon = { version = "2.2", default-features = false, features = ["lua54"] }
 mlua = { version = "0.12", features = ["lua54", "vendored", "async", "send", "serde", "error-send"] }
 
 # Miscellaneous

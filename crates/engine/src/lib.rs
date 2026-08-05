@@ -233,17 +233,37 @@ pub fn module(lua: &Lua, name: &str) -> Result<Table, EngineError> {
     Ok(table)
 }
 
-fn diagnostic(error: impl ToString) -> DiagnosticMarker {
-    let message = error.to_string();
-    let (start_line, start_column) = util::parse_location(&message).unwrap_or((0, 0));
+fn diagnostic(message: String, span: util::DiagnosticSpan) -> DiagnosticMarker {
     DiagnosticMarker {
         kind: DiagnosticKind::Error,
         message,
-        start_line,
-        start_column,
-        end_line: start_line,
-        end_column: start_column,
+        start_line: span.start_line,
+        start_column: span.start_column,
+        end_line: span.end_line,
+        end_column: span.end_column,
     }
+}
+
+fn syntax_diagnostics(script: &str, error: impl ToString) -> Vec<DiagnosticMarker> {
+    let lua_message = error.to_string();
+    util::syntax_diagnostics(script, &lua_message)
+        .into_iter()
+        .enumerate()
+        .map(|(index, parsed)| {
+            let message = if index == 0 {
+                lua_message.clone()
+            } else {
+                parsed.message
+            };
+            diagnostic(message, parsed.span)
+        })
+        .collect()
+}
+
+fn runtime_diagnostic(script: &str, error: impl ToString) -> DiagnosticMarker {
+    let message = error.to_string();
+    let span = util::error_line_span(script, &message);
+    diagnostic(message, span)
 }
 
 /// Compiles and validates a script and its required top-level functions.
@@ -252,16 +272,29 @@ pub async fn lint(
     required_functions: &[&str],
     configure: &ConfigureLua,
 ) -> Result<(), EngineError> {
+    let script = script.as_ref();
     let lua = create_lua()?;
     configure(&lua)?;
 
-    if let Err(error) = lua
-        .load(script.as_ref())
+    // Compile first so syntax errors are reported separately from errors caused
+    // by top-level code. Both need to be surfaced as editor diagnostics.
+    let function = match lua
+        .load(script)
         .set_name("@script")
         .set_mode(ChunkMode::Text)
-        .exec()
+        .into_function()
     {
-        return Err(EngineError::DiagnosticsError(vec![diagnostic(error)]));
+        Ok(function) => function,
+        Err(error) => {
+            return Err(EngineError::DiagnosticsError(syntax_diagnostics(
+                script, error,
+            )));
+        }
+    };
+    if let Err(error) = function.call::<()>(()) {
+        return Err(EngineError::DiagnosticsError(vec![runtime_diagnostic(
+            script, error,
+        )]));
     }
 
     let globals = lua.globals();
@@ -452,6 +485,8 @@ mod tests {
             panic!("expected diagnostics error");
         };
         assert_eq!(markers[0].start_line, 0);
+        assert_eq!(markers[0].start_column, 0);
+        assert_eq!(markers[0].end_column, "function check(".len());
 
         let error = lint("function check() end", &["check", "generate"], configure())
             .await
@@ -471,6 +506,37 @@ mod tests {
             panic!("expected diagnostics error");
         };
         assert!(markers[0].message.contains("instruction limit"));
+    }
+
+    #[tokio::test]
+    async fn marks_runtime_errors_across_the_reported_line() {
+        let error = lint(
+            "local value = nil + 1\nfunction check() end",
+            &[],
+            configure(),
+        )
+        .await
+        .unwrap_err();
+        let EngineError::DiagnosticsError(markers) = error else {
+            panic!("expected diagnostics error");
+        };
+        assert_eq!(markers[0].start_line, 0);
+        assert_eq!(markers[0].start_column, 0);
+        assert_eq!(markers[0].end_column, "local value = nil + 1".len());
+    }
+
+    #[tokio::test]
+    async fn reports_multiple_syntax_errors() {
+        let script = "function check()\n  if true then\n    return true\nfunction generate() end";
+        let error = lint(script, &["check", "generate"], configure())
+            .await
+            .unwrap_err();
+        let EngineError::DiagnosticsError(markers) = error else {
+            panic!("expected diagnostics error");
+        };
+
+        assert_eq!(markers.len(), 2);
+        assert_ne!(markers[0].message, markers[1].message);
     }
 
     #[tokio::test]

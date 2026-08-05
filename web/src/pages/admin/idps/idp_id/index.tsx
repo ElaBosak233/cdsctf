@@ -109,11 +109,25 @@ export default function Index() {
   const debouncedScript = useDebounce(form.watch("script"), 500);
 
   useEffect(() => {
-    if (debouncedScript) {
-      lintIdpScript(debouncedScript).then((res) => {
-        setLint(res.markers);
-      });
+    let active = true;
+    if (!debouncedScript) {
+      setLint([]);
+      return () => {
+        active = false;
+      };
     }
+
+    lintIdpScript(debouncedScript)
+      .then((res) => {
+        if (active) setLint(res.markers);
+      })
+      .catch(() => {
+        if (active) setLint([]);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [debouncedScript]);
 
   async function submit(values: IdpForm) {
