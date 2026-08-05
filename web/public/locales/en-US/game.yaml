@@ -176,6 +176,7 @@ notice:
   _: Notice
   id: ID
   board: Notice Board
+  new: New notice
   empty: "Oops, it seems that there are no notices yet."
   title: Title
   content: Content

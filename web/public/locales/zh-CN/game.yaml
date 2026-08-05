@@ -171,6 +171,7 @@ notice:
   _: 通知
   id: ID
   board: 公告栏
+  new: 有新公告
   empty: 哎呀，好像还没有通知呢。
   title: 标题
   content: 详情
