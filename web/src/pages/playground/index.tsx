@@ -116,7 +116,9 @@ export default function Index() {
           "flex-1",
           "p-4",
           "sm:p-7",
-          "xl:mx-auto",
+          "mx-auto",
+          "w-full",
+          "max-w-[1440px]",
           "flex",
           "flex-col",
           "gap-5",
@@ -302,9 +304,9 @@ export default function Index() {
               "grid",
               "w-full",
               "sm:grid-cols-2",
-              "md:grid-cols-3",
+              "lg:grid-cols-3",
               "xl:grid-cols-4",
-              "xl:w-[60vw]",
+              "2xl:grid-cols-5",
               "gap-4",
             ])}
           >
