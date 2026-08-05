@@ -147,7 +147,8 @@ function ActionsCell({ row }: { row: Row<User> }) {
         <DialogContent>
           <Card
             className={cn([
-              "w-lg",
+              "w-full",
+              "max-w-xl",
               "rounded-elevated",
               "shadow-lg",
               "overflow-hidden",

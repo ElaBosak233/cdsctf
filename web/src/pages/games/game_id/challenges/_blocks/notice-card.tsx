@@ -61,13 +61,13 @@ function NoticeCard() {
                     </span>
                   </Card>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent size="wide">
                   <Card
                     className={cn([
                       "p-6",
                       "min-h-81",
-                      "w-screen",
-                      "md:w-xl",
+                      "w-full",
+                      "max-w-2xl",
                       "rounded-elevated",
                       "shadow-lg",
                       "flex",

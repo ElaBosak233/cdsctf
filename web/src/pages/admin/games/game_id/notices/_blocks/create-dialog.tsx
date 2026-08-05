@@ -70,7 +70,8 @@ function CreateDialog(props: CreateDialogProps) {
   return (
     <Card
       className={cn([
-        "w-156",
+        "w-full",
+        "max-w-2xl",
         "min-h-64",
         "rounded-elevated",
         "shadow-lg",

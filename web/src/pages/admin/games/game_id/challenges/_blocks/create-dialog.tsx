@@ -81,7 +81,8 @@ function CreateDialog(props: CreateDialogProps) {
   return (
     <Card
       className={cn([
-        "w-156",
+        "w-full",
+        "max-w-2xl",
         "min-h-64",
         "rounded-elevated",
         "shadow-lg",
@@ -109,7 +110,7 @@ function CreateDialog(props: CreateDialogProps) {
         <span className={cn(["text-secondary-foreground", "text-sm"])}>
           {t("game:challenge.actions.add.message")}
         </span>
-        <div className={cn(["flex", "gap-3"])}>
+        <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
           <Field size={"sm"} className={cn(["w-full"])}>
             <FieldIcon>
               <HashIcon />
@@ -131,7 +132,7 @@ function CreateDialog(props: CreateDialogProps) {
             />
           </Field>
         </div>
-        <div className={cn(["grid", "grid-cols-2", "gap-3"])}>
+        <div className={cn(["grid", "grid-cols-1", "sm:grid-cols-2", "gap-3"])}>
           {challenges?.map((challenge) => {
             const Icon = getCategory(challenge.category!).icon!;
             return (

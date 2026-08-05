@@ -43,9 +43,26 @@ export default function Index() {
   return (
     <>
       <title>{`${t("account:login._")} - ${config?.meta?.title}`}</title>
-      <div className={cn(["flex-1", "flex", "items-center", "justify-center"])}>
-        <Card className={cn(["p-2", "w-200", "flex", "justify-between"])}>
-          <div className={cn(["flex-1/2", "flex", "flex-col"])}>
+      <div
+        className={cn([
+          "flex-1",
+          "flex",
+          "items-center",
+          "justify-center",
+          "p-3",
+          "sm:p-6",
+        ])}
+      >
+        <Card
+          className={cn([
+            "p-2",
+            "w-full",
+            "max-w-200",
+            "flex",
+            "justify-between",
+          ])}
+        >
+          <div className={cn(["w-full", "md:flex-1/2", "flex", "flex-col"])}>
             <div className={cn(["flex", "flex-col", "space-y-1.5", "p-6"])}>
               <div
                 className={cn([
@@ -66,6 +83,59 @@ export default function Index() {
               </div>
               <div className={cn(["pt-6"])}>
                 <LoginForm />
+              </div>
+              <div className={cn(["md:hidden", "flex", "flex-col", "gap-2"])}>
+                {config?.auth?.registration_enabled && (
+                  <Button
+                    asChild
+                    className={cn(["w-full"])}
+                    size={"lg"}
+                    variant={"tonal"}
+                    icon={<UserRoundPlusIcon />}
+                  >
+                    <Link to={"/account/register"}>
+                      {t("account:register.not_yet")}
+                    </Link>
+                  </Button>
+                )}
+                {idps.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        className={cn(["w-full"])}
+                        size={"lg"}
+                        variant={"tonal"}
+                        icon={<IdCardIcon />}
+                      >
+                        {t("account:idp.third_party")}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className={cn(["min-w-64"])}>
+                      {idps.map((idp) => (
+                        <DropdownMenuItem
+                          key={idp.id}
+                          className={cn(["flex", "items-center", "gap-2"])}
+                          asChild
+                        >
+                          <a
+                            href={idp.portal || `/account/idps/${idp.id ?? ""}`}
+                          >
+                            <Avatar
+                              square
+                              className={cn(["size-5", "bg-transparent"])}
+                              src={
+                                idp.avatar_hash &&
+                                `/api/media?hash=${idp.avatar_hash}`
+                              }
+                              fallback={idp.name?.charAt(0)}
+                            />
+                            {idp.name}
+                          </a>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
           </div>

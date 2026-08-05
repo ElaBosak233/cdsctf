@@ -91,6 +91,7 @@ export default function Index() {
         });
         return {
           status: "error",
+          error: t("challenge:attachment.upload.error"),
         };
       }
     },
@@ -114,7 +115,7 @@ export default function Index() {
     <div className={cn(["flex", "flex-1", "min-h-0", "flex-col", "gap-5"])}>
       <Dropzone {...dropzone}>
         <DropZoneArea>
-          <DropzoneTrigger className="h-fit flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm">
+          <DropzoneTrigger className="h-fit flex flex-col items-center gap-4 bg-transparent p-4 sm:p-10 text-center text-sm">
             <CloudUploadIcon className="size-16" />
             <p className="font-semibold">
               {t("challenge:attachment.upload._")}

@@ -153,7 +153,8 @@ function EditDialog(props: EditDialogProps) {
   return (
     <Card
       className={cn([
-        "w-156",
+        "w-full",
+        "max-w-2xl",
         "min-h-64",
         "rounded-elevated",
         "shadow-lg",
@@ -185,7 +186,14 @@ function EditDialog(props: EditDialogProps) {
               autoComplete={"off"}
               className={cn(["flex", "flex-col", "flex-1", "gap-5"])}
             >
-              <div className={cn(["grid", "grid-cols-3", "gap-3"])}>
+              <div
+                className={cn([
+                  "grid",
+                  "grid-cols-1",
+                  "sm:grid-cols-3",
+                  "gap-3",
+                ])}
+              >
                 <FormField
                   control={form.control}
                   name={"max_pts"}
@@ -285,7 +293,15 @@ function EditDialog(props: EditDialogProps) {
               />
               <div className={cn(["flex", "flex-col", "gap-2"])}>
                 <Label>{t("game:challenge.form.bonus_ratio")}</Label>
-                <div className={cn(["grid", "grid-cols-3", "gap-3"])}>
+                <div
+                  className={cn([
+                    "grid",
+                    "grid-cols-1",
+                    "sm:grid-cols-2",
+                    "lg:grid-cols-3",
+                    "gap-3",
+                  ])}
+                >
                   {form.watch("bonus_ratios").map((_ratio, ratioIndex) => (
                     <FormField
                       key={ratioIndex}

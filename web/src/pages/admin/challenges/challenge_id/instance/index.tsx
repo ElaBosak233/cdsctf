@@ -204,7 +204,7 @@ export default function Index() {
         autoComplete={"off"}
         className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
       >
-        <div className={cn(["grid", "grid-cols-2", "gap-5"])}>
+        <div className={cn(["grid", "grid-cols-1", "sm:grid-cols-2", "gap-5"])}>
           <FormField
             control={form.control}
             name={"duration"}
@@ -303,12 +303,12 @@ export default function Index() {
                 </FormItem>
               )}
             />
-            <div className={cn(["flex", "gap-5"])}>
+            <div className={cn(["flex", "flex-col", "gap-5", "sm:flex-row"])}>
               <FormField
                 control={form.control}
                 name={`containers.${containerIndex}.cpu_limit`}
                 render={({ field }) => (
-                  <FormItem className={cn(["w-1/3"])}>
+                  <FormItem className={cn(["w-full", "sm:w-1/3"])}>
                     <FormLabel>
                       {t("challenge:form.instance.containers.cpu_limit._")}
                     </FormLabel>
@@ -331,7 +331,7 @@ export default function Index() {
                 control={form.control}
                 name={`containers.${containerIndex}.memory_limit`}
                 render={({ field }) => (
-                  <FormItem className={cn(["w-1/3"])}>
+                  <FormItem className={cn(["w-full", "sm:w-1/3"])}>
                     <FormLabel>
                       {t("challenge:form.instance.containers.memory_limit._")}
                     </FormLabel>
@@ -354,7 +354,7 @@ export default function Index() {
                 control={form.control}
                 name={`containers.${containerIndex}.image_pull_policy`}
                 render={({ field }) => (
-                  <FormItem className={cn(["w-1/3"])}>
+                  <FormItem className={cn(["w-full", "sm:w-1/3"])}>
                     <FormLabel>
                       {t(
                         "challenge:form.instance.containers.image_pull_policy._"
@@ -398,7 +398,15 @@ export default function Index() {
               />
             </div>
             <Label>{t("challenge:form.instance.containers.ports._")}</Label>
-            <div className={cn(["grid", "grid-cols-3", "gap-7"])}>
+            <div
+              className={cn([
+                "grid",
+                "grid-cols-1",
+                "sm:grid-cols-2",
+                "xl:grid-cols-3",
+                "gap-7",
+              ])}
+            >
               {container.ports?.map((_port, portIndex) => (
                 <div
                   key={portIndex}
@@ -478,7 +486,9 @@ export default function Index() {
               />
             </div>
             <Label>{t("challenge:form.instance.containers.envs._")}</Label>
-            <div className={cn(["grid", "grid-cols-2", "gap-7"])}>
+            <div
+              className={cn(["grid", "grid-cols-1", "sm:grid-cols-2", "gap-7"])}
+            >
               {container.envs?.map((_env, envIndex) => (
                 <div
                   key={envIndex}

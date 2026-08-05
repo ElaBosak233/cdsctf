@@ -40,8 +40,8 @@ export function ContentDialog({
             <EyeIcon className="h-4 w-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent>
-          <Card className={cn(["sm:max-w-2xl", "p-5", "w-lg", "min-h-64"])}>
+        <DialogContent size="wide">
+          <Card className={cn(["w-full", "max-w-2xl", "p-5", "min-h-64"])}>
             <Typography>
               <MarkdownRender src={content} />
             </Typography>

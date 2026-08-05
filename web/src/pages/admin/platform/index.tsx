@@ -158,7 +158,9 @@ export default function Index() {
             "flex",
             "flex-col",
             "gap-3",
-            "p-10",
+            "p-4",
+            "sm:p-6",
+            "lg:p-10",
             "xl:mx-60",
             "lg:mx-30",
             "min-h-(--app-content-height)",
@@ -173,8 +175,18 @@ export default function Index() {
             {t("admin:platform.form.meta._")}
           </h2>
           <Separator />
-          <div className={cn(["flex", "gap-3"])}>
-            <div className={cn(["flex", "flex-col", "gap-3", "flex-1"])}>
+          <div
+            className={cn([
+              "flex",
+              "flex-col",
+              "gap-5",
+              "sm:flex-row",
+              "sm:gap-3",
+            ])}
+          >
+            <div
+              className={cn(["flex", "flex-col", "gap-3", "flex-1", "min-w-0"])}
+            >
               <FormField
                 control={form.control}
                 name={"meta.title"}
@@ -226,7 +238,9 @@ export default function Index() {
                 )}
               />
             </div>
-            <div className={cn(["space-y-1"])}>
+            <div
+              className={cn(["space-y-1", "w-full", "sm:w-auto", "shrink-0"])}
+            >
               <div
                 className={cn([
                   "flex",

@@ -18,13 +18,20 @@ function DialogTrigger({
 }
 
 type DialogContentProps = React.ComponentProps<typeof RadixDialog.Content> & {
+  size?: "default" | "wide" | "preview";
   slotProps?: {
     title?: React.ComponentProps<typeof RadixDialog.DialogTitle>;
   };
 };
 
 function DialogContent(props: DialogContentProps) {
-  const { children, className, slotProps, ...rest } = props;
+  const { children, className, size = "default", slotProps, ...rest } = props;
+
+  const sizeClass = {
+    default: "max-w-xl",
+    wide: "max-w-2xl",
+    preview: "max-w-5xl",
+  }[size];
 
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -45,6 +52,8 @@ function DialogContent(props: DialogContentProps) {
           "left-1/2",
           "z-50",
           "grid",
+          "w-[calc(100%-2rem)]",
+          sizeClass,
           "-translate-x-1/2",
           "-translate-y-1/2",
           "duration-200",

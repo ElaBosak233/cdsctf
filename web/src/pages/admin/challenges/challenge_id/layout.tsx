@@ -15,6 +15,7 @@ import { getChallenge } from "@/api/admin/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
@@ -92,19 +93,7 @@ export default function Layout() {
             "xl:pl-64",
           ])}
         >
-          <nav
-            className={cn([
-              "xl:hidden",
-              "flex",
-              "flex-row",
-              "flex-wrap",
-              "gap-2",
-              "p-3",
-              "border-b",
-              "bg-card/30",
-              "shrink-0",
-            ])}
-          >
+          <ScrollableNav className={cn(["xl:hidden"])}>
             {options?.map((option, index) => {
               const Comp = option?.disabled ? Button : Link;
               return (
@@ -128,11 +117,11 @@ export default function Layout() {
                   {t("challenge:preview")}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent size="preview">
                 <ChallengeDialog digest={challenge} debug />
               </DialogContent>
             </Dialog>
-          </nav>
+          </ScrollableNav>
           <aside
             className={cn([
               "hidden",
@@ -189,7 +178,7 @@ export default function Layout() {
             </nav>
             <div className={cn(["border-t", "pt-4"])}>
               <Dialog>
-                <DialogTrigger asChild>
+                <DialogTrigger>
                   <Button
                     icon={<PlayIcon className="size-4" />}
                     variant="ghost"
@@ -202,7 +191,7 @@ export default function Layout() {
                     {t("challenge:preview")}
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent size="preview">
                   <ChallengeDialog digest={challenge} debug />
                 </DialogContent>
               </Dialog>
@@ -213,7 +202,9 @@ export default function Layout() {
               "flex-1",
               "min-h-0",
               "min-w-0",
-              "p-10",
+              "p-4",
+              "sm:p-6",
+              "xl:p-10",
               "border-y-0",
               "rounded-none",
               "flex",

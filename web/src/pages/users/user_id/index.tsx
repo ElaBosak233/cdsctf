@@ -18,7 +18,17 @@ export default function Index() {
   return (
     <>
       <title>{`${user?.name} - ${configStore?.config?.meta?.title}`}</title>
-      <div className={cn(["p-12", "flex", "flex-col", "gap-5"])}>
+      <div
+        className={cn([
+          "p-4",
+          "sm:p-8",
+          "lg:p-12",
+          "flex",
+          "flex-col",
+          "gap-5",
+          "min-w-0",
+        ])}
+      >
         <div className={cn(["flex", "flex-col", "gap-3"])}>
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <UserRoundPenIcon />

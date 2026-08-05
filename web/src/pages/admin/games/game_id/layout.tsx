@@ -15,6 +15,7 @@ import { getGame } from "@/api/admin/games/game_id";
 import { calculateGame } from "@/api/admin/games/game_id/calculate";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -99,19 +100,7 @@ export default function Layout() {
             "xl:pl-64",
           ])}
         >
-          <nav
-            className={cn([
-              "xl:hidden",
-              "flex",
-              "flex-row",
-              "flex-wrap",
-              "gap-2",
-              "p-3",
-              "border-b",
-              "bg-card/30",
-              "shrink-0",
-            ])}
-          >
+          <ScrollableNav className={cn(["xl:hidden"])}>
             {options?.map((option, index) => (
               <Button
                 key={index}
@@ -124,7 +113,7 @@ export default function Layout() {
                 <Link to={option?.link}>{option?.name}</Link>
               </Button>
             ))}
-          </nav>
+          </ScrollableNav>
           <aside
             className={cn([
               "hidden",
@@ -196,7 +185,9 @@ export default function Layout() {
               "flex-1",
               "min-w-0",
               "min-h-0",
-              "p-10",
+              "p-4",
+              "sm:p-6",
+              "xl:p-10",
               "border-y-0",
               "rounded-none",
               "flex",
