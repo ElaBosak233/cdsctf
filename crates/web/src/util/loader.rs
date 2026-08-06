@@ -1,9 +1,9 @@
 //! Web utility — `loader` (shared HTTP helpers).
 
 use cds_db::{
-    Challenge, Game, GameChallenge, User,
+    ChallengeDetail, GameChallengeView, GameDetail, UserAccountView,
     sea_orm::DatabaseConnection,
-    team::{FindTeamOptions, Team},
+    team::{FindTeamOptions, TeamView},
 };
 use serde_json::json;
 
@@ -13,7 +13,7 @@ use crate::traits::WebError;
 pub async fn prepare_challenge(
     db: &DatabaseConnection,
     challenge_id: i64,
-) -> Result<Challenge, WebError> {
+) -> Result<ChallengeDetail, WebError> {
     let challenge = cds_db::challenge::find_by_id(db, challenge_id)
         .await?
         .ok_or(WebError::NotFound(json!("challenge_not_found")))?;
@@ -22,7 +22,7 @@ pub async fn prepare_challenge(
 }
 
 /// Loads a game model for downstream handlers.
-pub async fn prepare_game(db: &DatabaseConnection, game_id: i64) -> Result<Game, WebError> {
+pub async fn prepare_game(db: &DatabaseConnection, game_id: i64) -> Result<GameDetail, WebError> {
     let game = cds_db::game::find_by_id(db, game_id)
         .await?
         .ok_or(WebError::NotFound(json!("challenge_not_found")))?;
@@ -35,7 +35,7 @@ pub async fn prepare_game_challenge(
     db: &DatabaseConnection,
     game_id: i64,
     challenge_id: i64,
-) -> Result<GameChallenge, WebError> {
+) -> Result<GameChallengeView, WebError> {
     let game_challenge = cds_db::game_challenge::find_by_id(db, game_id, challenge_id)
         .await?
         .ok_or(WebError::NotFound(json!("game_challenge_not_found")))?;
@@ -48,7 +48,7 @@ pub async fn prepare_self_team(
     db: &DatabaseConnection,
     game_id: i64,
     user_id: i64,
-) -> Result<Team, WebError> {
+) -> Result<TeamView, WebError> {
     let (teams, _) = cds_db::team::find(
         db,
         FindTeamOptions {
@@ -70,14 +70,17 @@ pub async fn prepare_team(
     db: &DatabaseConnection,
     game_id: i64,
     team_id: i64,
-) -> Result<Team, WebError> {
+) -> Result<TeamView, WebError> {
     cds_db::team::find_by_id(db, team_id, game_id)
         .await?
         .ok_or(WebError::NotFound(json!("team_not_found")))
 }
 
 /// Loads a user model for permission checks.
-pub async fn prepare_user(db: &DatabaseConnection, user_id: i64) -> Result<User, WebError> {
+pub async fn prepare_user(
+    db: &DatabaseConnection,
+    user_id: i64,
+) -> Result<UserAccountView, WebError> {
     let user = cds_db::user::find_by_id(db, user_id)
         .await?
         .ok_or(WebError::NotFound(json!("user_not_found")))?;

@@ -23,12 +23,12 @@ pub mod payload;
 use std::{collections::HashMap, sync::Arc};
 
 use cds_db::{
-    DB, Game, GameChallenge, Submission,
+    DB, GameChallengeView, GameDetail, SubmissionView,
     game::FindGameOptions,
     game_challenge::FindGameChallengeOptions,
     sea_orm::{Set, Unchanged},
     submission::{FindSubmissionsOptions, Status},
-    team::{FindTeamOptions, State, Team},
+    team::{FindTeamOptions, State, TeamView},
 };
 use cds_queue::Queue;
 use futures_util::{StreamExt as _, future::join_all};
@@ -45,7 +45,7 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
 
     // Closure avoids duplicating the "load correct submissions" query in multiple
     // phases.
-    let submissions = async || -> Result<Vec<Submission>, anyhow::Error> {
+    let submissions = async || -> Result<Vec<SubmissionView>, anyhow::Error> {
         let (submissions, _) = cds_db::submission::find(
             &db.conn,
             FindSubmissionsOptions {
@@ -62,7 +62,7 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
 
     // challenge_id -> ordered list of correct submissions (sorted by `created_at`
     // from the query).
-    let mut sc: HashMap<i64, Vec<Submission>> = HashMap::new();
+    let mut sc: HashMap<i64, Vec<SubmissionView>> = HashMap::new();
     for s in submissions().await? {
         sc.entry(s.challenge_id).or_default().push(s);
     }
@@ -85,7 +85,7 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
 
     let futures = game_challenges
         .into_iter()
-        .map(|game_challenge: GameChallenge| {
+        .map(|game_challenge: GameChallengeView| {
             let sc = Arc::clone(&sc);
             async move {
                 let challenge_submissions = sc
@@ -155,8 +155,8 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
     join_all(futures).await;
     debug!(game_id, "challenge scores updated");
 
-    // --- Team leaderboard: sum submission points per team, then rank teams ---
-    let (mut teams, _) = cds_db::team::find::<Team>(
+    // --- TeamView leaderboard: sum submission points per team, then rank teams ---
+    let (mut teams, _) = cds_db::team::find::<TeamView>(
         &db.conn,
         FindTeamOptions {
             game_id: Some(game_id),
@@ -194,7 +194,7 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
                 ..Default::default()
             };
 
-            let _ = cds_db::team::update::<Team>(&db.conn, team_model)
+            let _ = cds_db::team::update::<TeamView>(&db.conn, team_model)
                 .await
                 .map_err(|e| error!("{:?}", e));
         }
@@ -221,7 +221,7 @@ async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
             calculate(&db, game_id).await?;
         } else {
             let (games, _) =
-                cds_db::game::find::<Game>(&db.conn, FindGameOptions::default()).await?;
+                cds_db::game::find::<GameDetail>(&db.conn, FindGameOptions::default()).await?;
             info!(games = games.len(), "calculator full rebuild requested");
             for game in games {
                 calculate(&db, game.id).await?;

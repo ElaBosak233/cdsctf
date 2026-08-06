@@ -11,7 +11,7 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use cds_db::{User, user::Group};
+use cds_db::{UserAccountView, user::Group};
 use serde_json::json;
 use tower_sessions::Session;
 use tracing::{Span, debug, warn};
@@ -44,7 +44,8 @@ pub async fn extract(
         .to_owned();
 
     if let Ok(Some(user_id)) = session.get::<i64>("user_id").await {
-        if let Some(user) = cds_db::user::find_by_id::<User>(&s.db.conn, user_id).await? {
+        if let Some(user) = cds_db::user::find_by_id::<UserAccountView>(&s.db.conn, user_id).await?
+        {
             if user.group == Group::Banned {
                 warn!(user_id = user.id, username = %user.username, "banned user rejected");
                 return Err(WebError::Forbidden(json!("forbidden")));

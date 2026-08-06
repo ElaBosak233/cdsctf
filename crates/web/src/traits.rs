@@ -8,7 +8,7 @@ use axum::{
     http::{Response, StatusCode},
     response::IntoResponse,
 };
-use cds_db::User;
+use cds_db::UserAccountView;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tracing::{error, warn};
@@ -42,7 +42,7 @@ pub struct AppState {
 /// handlers run.
 #[derive(Clone, Debug, Default)]
 pub struct AuthPrincipal {
-    pub operator: Option<User>,
+    pub operator: Option<UserAccountView>,
     pub client_ip: String,
 }
 

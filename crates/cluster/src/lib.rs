@@ -376,10 +376,10 @@ impl Cluster {
 
     pub async fn create_challenge_instance(
         &self,
-        user: cds_db::User,
-        team: Option<cds_db::Team>,
-        game: Option<cds_db::Game>,
-        challenge: cds_db::Challenge,
+        user: cds_db::UserAccountView,
+        team: Option<cds_db::TeamView>,
+        game: Option<cds_db::GameDetail>,
+        challenge: cds_db::ChallengeDetail,
     ) -> Result<String, ClusterError> {
         let id = util::gen_safe_nanoid();
         let name = format!("cds-{}", id);

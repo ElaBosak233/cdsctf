@@ -1,4 +1,4 @@
-//! Challenge checker powered by the embedded Lua engine.
+//! ChallengeDetail checker powered by the embedded Lua engine.
 //!
 //! Scripts expose top-level `check` and `generate` functions. Checker-specific
 //! APIs are available under the `checker` global namespace.
@@ -69,7 +69,7 @@ impl Checker {
         Ok(key)
     }
 
-    pub async fn lint(&self, challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
+    pub async fn lint(&self, challenge: &cds_db::ChallengeDetail) -> Result<(), CheckerError> {
         let script = challenge
             .checker
             .as_deref()
@@ -79,7 +79,7 @@ impl Checker {
         Ok(())
     }
 
-    async fn preload(&self, challenge: &cds_db::Challenge) -> Result<(), CheckerError> {
+    async fn preload(&self, challenge: &cds_db::ChallengeDetail) -> Result<(), CheckerError> {
         cds_engine::preload(
             format!("challenge/{}", challenge.id),
             challenge
@@ -97,7 +97,7 @@ impl Checker {
 
     pub async fn check(
         &self,
-        challenge: &cds_db::Challenge,
+        challenge: &cds_db::ChallengeDetail,
         operator_id: i64,
         content: &str,
     ) -> Result<Status, CheckerError> {
@@ -120,7 +120,7 @@ impl Checker {
 
     pub async fn generate(
         &self,
-        challenge: &cds_db::Challenge,
+        challenge: &cds_db::ChallengeDetail,
         operator_id: i64,
     ) -> Result<HashMap<String, String>, CheckerError> {
         self.preload(challenge).await?;

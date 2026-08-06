@@ -17,7 +17,7 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use cds_checker::Checker;
 use cds_db::{
-    DB, Game, GameChallenge, Submission, Team, User,
+    DB, GameChallengeView, GameDetail, SubmissionView, TeamView, UserAccountView,
     sea_orm::{ActiveValue::Unchanged, IntoActiveModel, Set},
     submission::{FindSubmissionsOptions, Status},
     team::{Model, State},
@@ -50,9 +50,9 @@ impl Context {
     }
 }
 
-/// Loads a [`Game`] row or fails with `game_not_found`.
+/// Loads a [`GameDetail`] row or fails with `game_not_found`.
 #[tracing::instrument(skip_all, fields(game_id = game_id))]
-async fn prepare_game(db: &cds_db::DB, game_id: i64) -> Result<Game, anyhow::Error> {
+async fn prepare_game(db: &cds_db::DB, game_id: i64) -> Result<GameDetail, anyhow::Error> {
     cds_db::game::find_by_id(&db.conn, game_id)
         .await?
         .ok_or_else(|| anyhow!("game_not_found"))
@@ -65,7 +65,7 @@ async fn prepare_game_challenge(
     db: &cds_db::DB,
     game_id: i64,
     challenge_id: i64,
-) -> Result<GameChallenge, anyhow::Error> {
+) -> Result<GameChallengeView, anyhow::Error> {
     cds_db::game_challenge::find_by_id(&db.conn, game_id, challenge_id)
         .await?
         .ok_or_else(|| anyhow!("game_challenge_not_found"))
@@ -88,7 +88,7 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
     );
 
     let user = if let Some(user) =
-        cds_db::user::find_by_id::<User>(&ctx.db.conn, submission.user_id).await?
+        cds_db::user::find_by_id::<UserAccountView>(&ctx.db.conn, submission.user_id).await?
     {
         user
     } else {
@@ -244,7 +244,7 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
 ))]
 async fn handle_cheat(
     ctx: Arc<Context>,
-    submission: &Submission,
+    submission: &SubmissionView,
     peer_team_id: i64,
 ) -> Result<Status, anyhow::Error> {
     let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) else {
@@ -260,7 +260,7 @@ async fn handle_cheat(
                 team_id = t.id,
                 game_id, peer_team_id, "team banned by cheat detection"
             );
-            let _ = cds_db::team::update::<Team>(
+            let _ = cds_db::team::update::<TeamView>(
                 &ctx.db.conn,
                 cds_db::team::ActiveModel {
                     id: Unchanged(t.id),
