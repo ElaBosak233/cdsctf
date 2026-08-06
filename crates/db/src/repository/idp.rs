@@ -3,33 +3,14 @@
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, QueryFilter,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
-pub use crate::entity::idp::{ActiveModel as IdpActiveModel, Model as IdpModel};
 pub(crate) use crate::entity::idp::{Column as IdpColumn, Entity as IdpEntity};
 use crate::traits::DbError;
-
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct Idp {
-    pub id: i64,
-    pub name: String,
-    pub enabled: bool,
-    pub avatar_hash: Option<String>,
-    pub portal: Option<String>,
-    pub script: String,
-    pub created_at: i64,
-    pub updated_at: i64,
-}
-
-impl Idp {
-    pub fn desensitize(mut self) -> Self {
-        self.script.clear();
-        self
-    }
-}
+pub use crate::{
+    dto::idp::{IdpSummary, IdpView},
+    entity::idp::{ActiveModel as IdpActiveModel, Model as IdpModel},
+};
 
 pub async fn find_idps<T>(conn: &impl ConnectionTrait) -> Result<Vec<T>, DbError>
 where

@@ -6,51 +6,18 @@
 //! environment. [`get_config`] returns the cached singleton row of platform
 //! settings (title, email, captcha, …).
 
-/// Defines the `challenge` submodule (see sibling `*.rs` files).
-pub mod challenge;
-
-/// Defines the `config` submodule (see sibling `*.rs` files).
-pub mod config;
-
-/// Defines the `email` submodule (see sibling `*.rs` files).
-pub mod email;
+/// Serializable query projections kept separate from SeaORM entities.
+pub mod dto;
 
 /// SeaORM entity models (internal to `cds-db`, re-exported selectively via `pub
 /// use`).
 pub(crate) mod entity;
 
-/// Defines the `game` submodule (see sibling `*.rs` files).
-pub mod game;
-
-/// Defines the `game_challenge` submodule (see sibling `*.rs` files).
-pub mod game_challenge;
-
-/// Defines the `game_notice` submodule (see sibling `*.rs` files).
-pub mod game_notice;
-
-/// Defines the `idp` submodule (see sibling `*.rs` files).
-pub mod idp;
-
-/// Defines the `note` submodule (see sibling `*.rs` files).
-pub mod note;
-
-/// Defines the `submission` submodule (see sibling `*.rs` files).
-pub mod submission;
-
-/// Defines the `team` submodule (see sibling `*.rs` files).
-pub mod team;
-
-/// Defines the `team_user` submodule (see sibling `*.rs` files).
-pub mod team_user;
-
-/// Defines the `user_idp` submodule (see sibling `*.rs` files).
-pub mod user_idp;
+/// Database queries, loaders, pagination, and mutations.
+pub mod repository;
 
 /// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
-
-/// Defines the `user` submodule (see sibling `*.rs` files).
-pub mod user;
 
 /// Defines the `util` submodule (see sibling `*.rs` files).
 pub mod util;
@@ -58,22 +25,22 @@ pub mod util;
 use std::time::Duration;
 
 use cds_env::Env;
-pub use challenge::{Challenge, ChallengeMini};
 pub use config::Config;
-pub use email::Email;
-pub use game::{Game, GameMini};
-pub use game_challenge::{GameChallenge, GameChallengeMini};
-pub use game_notice::GameNotice;
-pub use idp::Idp;
+pub use dto::{
+    ChallengeDetail, ChallengeSummary, ChallengeView, EmailView, GameChallengeSummary,
+    GameChallengeView, GameDetail, GameNoticeView, GameSummary, GameView, IdpSummary, IdpView,
+    NoteView, PublicCaptchaConfig, PublicCaptchaSiteConfig, PublicConfig, PublicEmailConfig,
+    ScoreboardEntry, ScoreboardSubmission, ScoreboardTeam, SubmissionSummary, SubmissionView,
+    TeamUserView, TeamView, UserAccountView, UserIdpSummary, UserIdpView, UserProfile, UserSummary,
+};
+pub use repository::{
+    challenge, config, email, game, game_challenge, game_notice, idp, note, submission, team,
+    team_user, user, user_idp,
+};
 pub use sea_orm;
 use sea_orm::{ConnectOptions, ConnectionTrait, Database, DatabaseConnection};
-pub use submission::{Submission, SubmissionPublic};
-pub use team::{ScoreRecord, Team, TeamPublic};
-pub use team_user::TeamUser;
 use tracing::{info, log};
 pub use traits::DbError;
-pub use user::{User, UserMini, UserPublic};
-pub use user_idp::UserIdp;
 
 /// Shared database connection (actually a connection pool managed by SeaORM /
 /// SQLx).

@@ -3,23 +3,14 @@
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, QueryFilter,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
-pub use crate::entity::game_notice::{ActiveModel, Model};
 pub(crate) use crate::entity::game_notice::{Column, Entity};
 use crate::traits::DbError;
-
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct GameNotice {
-    pub id: i64,
-    pub game_id: i64,
-    pub title: String,
-    pub content: String,
-    pub created_at: i64,
-}
+pub use crate::{
+    dto::game_notice::GameNoticeView,
+    entity::game_notice::{ActiveModel, Model},
+};
 
 /// Looks up by id.
 

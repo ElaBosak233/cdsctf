@@ -8,99 +8,15 @@ use sea_orm::{
     prelude::Expr,
     sea_query::{Func, Query},
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
 pub use super::team_user::find_users as find_by_team_id;
-pub use crate::entity::user::{ActiveModel, Group, Model};
 pub(crate) use crate::entity::user::{Column, Entity};
-use crate::{Email, traits::DbError};
-
-#[allow(dead_code)]
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct User {
-    pub id: i64,
-    pub name: String,
-    pub username: String,
-    pub verified: Option<bool>,
-    pub group: Group,
-    pub description: Option<String>,
-    #[serde(skip_serializing)]
-    #[schema(ignore)]
-    pub hashed_password: String,
-    pub avatar_hash: Option<String>,
-    pub created_at: i64,
-    pub updated_at: i64,
-}
-
-#[allow(dead_code)]
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct UserMini {
-    pub id: i64,
-    pub name: String,
-    pub username: String,
-    pub avatar_hash: Option<String>,
-}
-
-/// Public profile fields. Authentication and moderation state stay private to
-/// authenticated/account and administrator responses.
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct UserPublic {
-    pub id: i64,
-    pub name: String,
-    pub username: String,
-    pub description: Option<String>,
-    pub avatar_hash: Option<String>,
-    pub created_at: i64,
-}
-
-impl From<&User> for UserPublic {
-    fn from(user: &User) -> Self {
-        Self {
-            id: user.id,
-            name: user.name.clone(),
-            username: user.username.clone(),
-            description: user.description.clone(),
-            avatar_hash: user.avatar_hash.clone(),
-            created_at: user.created_at,
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::UserPublic;
-
-    #[test]
-    fn public_user_serialization_excludes_account_and_moderation_state() {
-        let user = UserPublic {
-            id: 1,
-            name: "User".to_owned(),
-            username: "user".to_owned(),
-            description: Some("bio".to_owned()),
-            avatar_hash: Some("avatar".to_owned()),
-            created_at: 1_700_000_000,
-        };
-
-        assert_eq!(
-            serde_json::to_value(user).unwrap(),
-            serde_json::json!({
-                "id": 1,
-                "name": "User",
-                "username": "user",
-                "description": "bio",
-                "avatar_hash": "avatar",
-                "created_at": 1_700_000_000,
-            })
-        );
-    }
-}
+use crate::{EmailView, traits::DbError};
+pub use crate::{
+    dto::user::{UserAccountView, UserProfile, UserSummary},
+    entity::user::{ActiveModel, Group, Model},
+};
 
 #[derive(Clone, Debug, Default)]
 pub struct FindUserOptions {
@@ -298,9 +214,11 @@ pub async fn is_username_unique(
 /// Returns whether is email unique.
 
 pub async fn is_email_unique(conn: &impl ConnectionTrait, email: &str) -> Result<bool, DbError> {
-    Ok(crate::email::find_by_email::<Email>(conn, email.to_owned())
-        .await?
-        .is_none())
+    Ok(
+        crate::email::find_by_email::<EmailView>(conn, email.to_owned())
+            .await?
+            .is_none(),
+    )
 }
 
 /// Inserts a new row and returns the persisted model.

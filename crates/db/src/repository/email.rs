@@ -4,22 +4,14 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
     QueryFilter,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
-pub use crate::entity::email::{ActiveModel, Model};
 pub(crate) use crate::entity::email::{Column, Entity};
 use crate::traits::DbError;
-
-#[allow(dead_code)]
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct Email {
-    pub email: String,
-    pub verified: bool,
-    pub user_id: i64,
-}
+pub use crate::{
+    dto::email::EmailView,
+    entity::email::{ActiveModel, Model},
+};
 
 /// Looks up by user id.
 

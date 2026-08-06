@@ -6,61 +6,14 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityName, EntityTrait, FromQueryResult,
     Iden as _, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, prelude::Expr,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
-pub use crate::entity::challenge::{ActiveModel, Container, EnvVar, Instance, Model, Port};
 pub(crate) use crate::entity::challenge::{Column, Entity};
 use crate::traits::DbError;
-
-#[allow(dead_code)]
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct Challenge {
-    pub id: i64,
-    pub title: String,
-    pub description: String,
-    pub category: i32,
-    pub tags: Vec<String>,
-    pub has_instance: bool,
-    pub has_attachment: bool,
-    pub public: bool,
-    pub has_writeup: bool,
-    pub instance: Option<Instance>,
-    pub checker: Option<String>,
-    pub writeup: Option<String>,
-    pub deleted_at: Option<i64>,
-    pub created_at: i64,
-    pub updated_at: i64,
-}
-
-impl Challenge {
-    /// Strips secrets so configuration can be returned to clients.
-    pub fn desensitize(&self) -> Self {
-        Self {
-            instance: None,
-            checker: None,
-            writeup: if self.has_writeup && self.public {
-                self.writeup.clone()
-            } else {
-                None
-            },
-            ..self.to_owned()
-        }
-    }
-}
-
-#[allow(dead_code)]
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct ChallengeMini {
-    pub id: i64,
-    pub title: String,
-    pub category: i32,
-    pub tags: Vec<String>,
-}
+pub use crate::{
+    dto::challenge::{ChallengeDetail, ChallengeSummary, ChallengeView},
+    entity::challenge::{ActiveModel, Container, EnvVar, Instance, Model, Port},
+};
 
 #[derive(Clone, Debug, Default)]
 pub struct FindChallengeOptions {

@@ -1,48 +1,19 @@
 //! Database access for `game_challenge` — SeaORM queries, updates, and DTOs.
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
-    QueryFilter, QuerySelect,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, PaginatorTrait, QueryFilter,
+    QuerySelect,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
 pub(crate) use crate::entity::game_challenge::Entity;
-pub use crate::entity::game_challenge::{ActiveModel, Column, Model, Relation};
 use crate::traits::DbError;
+pub use crate::{
+    dto::game_challenge::{GameChallengeSummary, GameChallengeView},
+    entity::game_challenge::{ActiveModel, Column, Model, Relation},
+};
 
-#[allow(dead_code)]
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct GameChallenge {
-    pub game_id: i64,
-    pub challenge_id: i64,
-    pub challenge_title: String,
-    pub challenge_category: i32,
-    pub difficulty: i64,
-    pub bonus_ratios: Vec<i64>,
-    pub max_pts: i64,
-    pub min_pts: i64,
-    pub pts: i64,
-    pub enabled: bool,
-    pub frozen_at: Option<i64>,
-}
-
-#[allow(dead_code)]
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct GameChallengeMini {
-    pub game_id: i64,
-    pub challenge_id: i64,
-    pub challenge_title: String,
-    pub challenge_category: i32,
-    pub pts: i64,
-    pub frozen_at: Option<i64>,
-}
-
-impl TryFrom<crate::entity::game_challenge::ModelEx> for GameChallenge {
+impl TryFrom<crate::entity::game_challenge::ModelEx> for GameChallengeView {
     type Error = DbError;
 
     fn try_from(
@@ -72,8 +43,8 @@ impl TryFrom<crate::entity::game_challenge::ModelEx> for GameChallenge {
     }
 }
 
-impl From<GameChallenge> for GameChallengeMini {
-    fn from(game_challenge: GameChallenge) -> Self {
+impl From<GameChallengeView> for GameChallengeSummary {
+    fn from(game_challenge: GameChallengeView) -> Self {
         Self {
             game_id: game_challenge.game_id,
             challenge_id: game_challenge.challenge_id,
@@ -82,35 +53,6 @@ impl From<GameChallenge> for GameChallengeMini {
             pts: game_challenge.pts,
             frozen_at: game_challenge.frozen_at,
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::GameChallengeMini;
-
-    #[test]
-    fn mini_serialization_excludes_admin_scoring_configuration() {
-        let game_challenge = GameChallengeMini {
-            game_id: 1,
-            challenge_id: 2,
-            challenge_title: "challenge".to_owned(),
-            challenge_category: 3,
-            pts: 100,
-            frozen_at: Some(1_700_000_000),
-        };
-
-        assert_eq!(
-            serde_json::to_value(game_challenge).unwrap(),
-            serde_json::json!({
-                "game_id": 1,
-                "challenge_id": 2,
-                "challenge_title": "challenge",
-                "challenge_category": 3,
-                "pts": 100,
-                "frozen_at": 1_700_000_000_i64,
-            })
-        );
     }
 }
 
@@ -133,7 +75,7 @@ pub async fn find<T>(
     }: FindGameChallengeOptions,
 ) -> Result<(Vec<T>, u64), DbError>
 where
-    T: From<GameChallenge>, {
+    T: From<GameChallengeView>, {
     let mut loader = Entity::load()
         .with(crate::entity::challenge::Entity)
         .filter(Column::GameId.eq(game_id));
@@ -161,7 +103,7 @@ where
     let total = models.len() as u64;
     let game_challenges = models
         .into_iter()
-        .map(GameChallenge::try_from)
+        .map(GameChallengeView::try_from)
         .collect::<Result<Vec<_>, _>>()?
         .into_iter()
         .map(T::from)
@@ -176,14 +118,14 @@ pub async fn find_by_id(
     conn: &impl ConnectionTrait,
     game_id: i64,
     challenge_id: i64,
-) -> Result<Option<GameChallenge>, DbError> {
+) -> Result<Option<GameChallengeView>, DbError> {
     Ok(Entity::load()
         .with(crate::entity::challenge::Entity)
         .filter(Column::GameId.eq(game_id))
         .filter(Column::ChallengeId.eq(challenge_id))
         .one(conn)
         .await?
-        .map(GameChallenge::try_from)
+        .map(GameChallengeView::try_from)
         .transpose()?)
 }
 
@@ -196,7 +138,7 @@ pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
 pub async fn create(
     conn: &impl ConnectionTrait,
     model: ActiveModel,
-) -> Result<GameChallenge, DbError> {
+) -> Result<GameChallengeView, DbError> {
     let game_challenge = model.insert(conn).await?;
     info!(
         game_id = game_challenge.game_id,
@@ -222,7 +164,7 @@ pub async fn create(
 pub async fn update(
     conn: &impl ConnectionTrait,
     model: ActiveModel,
-) -> Result<GameChallenge, DbError> {
+) -> Result<GameChallengeView, DbError> {
     let game_challenge = model.update(conn).await?;
     info!(
         game_id = game_challenge.game_id,

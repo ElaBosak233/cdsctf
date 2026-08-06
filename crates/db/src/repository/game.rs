@@ -6,52 +6,16 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, Order,
     PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
-pub use crate::entity::game::{ActiveModel, Model, Relation, Timeslot};
+pub use crate::{
+    dto::game::{GameDetail, GameSummary, GameView},
+    entity::game::{ActiveModel, Model, Relation, Timeslot},
+};
 use crate::{
     entity::game::{Column, Entity},
     traits::DbError,
 };
-
-#[allow(dead_code)]
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct Game {
-    pub id: i64,
-    pub title: String,
-    pub sketch: Option<String>,
-    pub description: Option<String>,
-    pub enabled: bool,
-    pub public: bool,
-    pub writeup_required: bool,
-    pub member_limit_min: i64,
-    pub member_limit_max: i64,
-    pub timeslots: Vec<Timeslot>,
-    pub started_at: i64,
-    pub frozen_at: i64,
-    pub ended_at: i64,
-    pub icon_hash: Option<String>,
-    pub poster_hash: Option<String>,
-    pub created_at: i64,
-}
-
-#[allow(dead_code)]
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct GameMini {
-    pub id: i64,
-    pub title: String,
-    pub sketch: Option<String>,
-    pub started_at: i64,
-    pub frozen_at: i64,
-    pub ended_at: i64,
-    pub icon_hash: Option<String>,
-    pub poster_hash: Option<String>,
-}
 
 #[derive(Clone, Debug, Default)]
 pub struct FindGameOptions {

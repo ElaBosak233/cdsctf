@@ -3,25 +3,14 @@
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, QueryFilter, Set,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
-pub use crate::entity::user_idp::{ActiveModel as UserIdpActiveModel, Model as UserIdpModel};
 pub(crate) use crate::entity::user_idp::{Column as UserIdpColumn, Entity as UserIdpEntity};
 use crate::traits::DbError;
-
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct UserIdp {
-    pub id: i64,
-    pub user_id: i64,
-    pub idp_id: i64,
-    pub auth_key: String,
-    pub data: Option<serde_json::Value>,
-    pub created_at: i64,
-    pub updated_at: i64,
-}
+pub use crate::{
+    dto::user_idp::{UserIdpSummary, UserIdpView},
+    entity::user_idp::{ActiveModel as UserIdpActiveModel, Model as UserIdpModel},
+};
 
 pub async fn find_user_idp_by_auth_key<T>(
     conn: &impl ConnectionTrait,

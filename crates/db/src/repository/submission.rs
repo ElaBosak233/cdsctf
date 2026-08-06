@@ -6,38 +6,19 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait, Order,
     PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
-pub use crate::entity::submission::{ActiveModel, Status};
 pub(crate) use crate::entity::submission::{Column, Entity};
-use crate::{sea_orm, sea_orm::FromQueryResult, traits::DbError};
+use crate::traits::DbError;
+pub use crate::{
+    dto::{
+        scoreboard::ScoreboardSubmission,
+        submission::{SubmissionSummary, SubmissionView},
+    },
+    entity::submission::{ActiveModel, Status},
+};
 
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct Submission {
-    pub id: i64,
-    pub content: String,
-    pub status: Status,
-    pub user_id: i64,
-    pub user_name: String,
-    pub user_avatar_hash: Option<String>,
-    pub team_id: Option<i64>,
-    pub team_name: Option<String>,
-    pub team_avatar_hash: Option<String>,
-    pub game_id: Option<i64>,
-    pub game_title: Option<String>,
-    pub challenge_id: i64,
-    pub challenge_title: String,
-    pub challenge_category: i32,
-    pub created_at: i64,
-
-    pub pts: i64,
-    pub rank: i64,
-}
-
-impl TryFrom<crate::entity::submission::ModelEx> for Submission {
+impl TryFrom<crate::entity::submission::ModelEx> for SubmissionView {
     type Error = DbError;
 
     fn try_from(submission: crate::entity::submission::ModelEx) -> Result<Self, Self::Error> {
@@ -97,23 +78,10 @@ impl TryFrom<crate::entity::submission::ModelEx> for Submission {
     }
 }
 
-/// Submission fields needed to render the public scoreboard timeline.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
-pub struct SubmissionPublic {
-    pub id: i64,
-    pub user_id: i64,
-    pub user_name: String,
-    pub user_avatar_hash: Option<String>,
-    pub challenge_id: i64,
-    pub challenge_title: String,
-    pub pts: i64,
-    pub created_at: i64,
-}
-
 /// Projects a SeaORM 2 loaded submission graph to the public scoreboard
 /// contract. The graph supplies the related user and challenge without a
 /// second hand-written join DTO.
-impl TryFrom<&crate::entity::submission::ModelEx> for SubmissionPublic {
+impl TryFrom<&crate::entity::submission::ModelEx> for ScoreboardSubmission {
     type Error = DbError;
 
     fn try_from(submission: &crate::entity::submission::ModelEx) -> Result<Self, Self::Error> {
@@ -143,8 +111,8 @@ impl TryFrom<&crate::entity::submission::ModelEx> for SubmissionPublic {
     }
 }
 
-impl From<&Submission> for SubmissionPublic {
-    fn from(submission: &Submission) -> Self {
+impl From<&SubmissionView> for ScoreboardSubmission {
+    fn from(submission: &SubmissionView) -> Self {
         Self {
             id: submission.id,
             user_id: submission.user_id,
@@ -154,49 +122,6 @@ impl From<&Submission> for SubmissionPublic {
             challenge_title: submission.challenge_title.clone(),
             pts: submission.pts,
             created_at: submission.created_at,
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::SubmissionPublic;
-
-    #[test]
-    fn public_submission_serialization_excludes_content_and_internal_scope() {
-        let submission = SubmissionPublic {
-            id: 1,
-            user_id: 2,
-            user_name: "user".to_owned(),
-            user_avatar_hash: Some("avatar".to_owned()),
-            challenge_id: 3,
-            challenge_title: "challenge".to_owned(),
-            pts: 100,
-            created_at: 1_700_000_000,
-        };
-
-        assert_eq!(
-            serde_json::to_value(submission).unwrap(),
-            serde_json::json!({
-                "id": 1,
-                "user_id": 2,
-                "user_name": "user",
-                "user_avatar_hash": "avatar",
-                "challenge_id": 3,
-                "challenge_title": "challenge",
-                "pts": 100,
-                "created_at": 1_700_000_000,
-            })
-        );
-    }
-}
-
-impl Submission {
-    /// Strips secrets so configuration can be returned to clients.
-    pub fn desensitize(&self) -> Self {
-        Self {
-            content: "".to_owned(),
-            ..self.to_owned()
         }
     }
 }
@@ -228,7 +153,7 @@ pub async fn find(
         size,
         sorts,
     }: FindSubmissionsOptions,
-) -> Result<(Vec<Submission>, u64), DbError> {
+) -> Result<(Vec<SubmissionView>, u64), DbError> {
     let mut loader = Entity::load()
         .with(crate::entity::user::Entity)
         .with(crate::entity::challenge::Entity)
@@ -300,7 +225,7 @@ pub async fn find(
 
     let submissions = models
         .into_iter()
-        .map(Submission::try_from)
+        .map(SubmissionView::try_from)
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok((submissions, total))
@@ -311,7 +236,7 @@ pub async fn find(
 pub async fn find_by_id(
     conn: &impl ConnectionTrait,
     submission_id: i64,
-) -> Result<Option<Submission>, DbError> {
+) -> Result<Option<SubmissionView>, DbError> {
     Ok(Entity::load()
         .with(crate::entity::user::Entity)
         .with(crate::entity::challenge::Entity)
@@ -320,7 +245,7 @@ pub async fn find_by_id(
         .filter(Column::Id.eq(submission_id))
         .one(conn)
         .await?
-        .map(Submission::try_from)
+        .map(SubmissionView::try_from)
         .transpose()?)
 }
 
@@ -329,7 +254,7 @@ pub async fn find_by_id(
 pub async fn find_pending_by_id(
     conn: &impl ConnectionTrait,
     submission_id: i64,
-) -> Result<Option<Submission>, DbError> {
+) -> Result<Option<SubmissionView>, DbError> {
     Ok(Entity::load()
         .with(crate::entity::user::Entity)
         .with(crate::entity::challenge::Entity)
@@ -339,7 +264,7 @@ pub async fn find_pending_by_id(
         .filter(Column::Status.eq(Status::Pending))
         .one(conn)
         .await?
-        .map(Submission::try_from)
+        .map(SubmissionView::try_from)
         .transpose()?)
 }
 
@@ -349,7 +274,7 @@ pub async fn find_correct_by_team_ids_and_game_id(
     conn: &impl ConnectionTrait,
     team_ids: Vec<i64>,
     game_id: i64,
-) -> Result<Vec<Submission>, DbError> {
+) -> Result<Vec<SubmissionView>, DbError> {
     Ok(Entity::load()
         .with(crate::entity::user::Entity)
         .with(crate::entity::challenge::Entity)
@@ -361,7 +286,7 @@ pub async fn find_correct_by_team_ids_and_game_id(
         .all(conn)
         .await?
         .into_iter()
-        .map(Submission::try_from)
+        .map(SubmissionView::try_from)
         .collect::<Result<Vec<_>, _>>()?)
 }
 
@@ -372,7 +297,7 @@ pub async fn find_correct_by_challenge_ids_and_optional_team_game(
     challenge_ids: Vec<i64>,
     team_id: Option<i64>,
     game_id: Option<i64>,
-) -> Result<Vec<Submission>, DbError> {
+) -> Result<Vec<SubmissionView>, DbError> {
     let mut loader = Entity::load()
         .with(crate::entity::user::Entity)
         .with(crate::entity::challenge::Entity)
@@ -394,7 +319,7 @@ pub async fn find_correct_by_challenge_ids_and_optional_team_game(
         .all(conn)
         .await?
         .into_iter()
-        .map(Submission::try_from)
+        .map(SubmissionView::try_from)
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok(submissions)
@@ -464,7 +389,7 @@ pub async fn count_correct(conn: &impl ConnectionTrait) -> Result<u64, DbError> 
 pub async fn create(
     conn: &impl ConnectionTrait,
     model: ActiveModel,
-) -> Result<Submission, DbError> {
+) -> Result<SubmissionView, DbError> {
     let submission = model.insert(conn).await?;
     info!(
         submission_id = submission.id,
@@ -485,7 +410,7 @@ pub async fn create(
 pub async fn update(
     conn: &impl ConnectionTrait,
     model: ActiveModel,
-) -> Result<Submission, DbError> {
+) -> Result<SubmissionView, DbError> {
     let submission = model.update(conn).await?;
     info!(
         submission_id = submission.id,

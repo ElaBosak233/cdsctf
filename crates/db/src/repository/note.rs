@@ -6,31 +6,13 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait, Order,
     QueryFilter, QueryOrder,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
-pub use crate::entity::note::ActiveModel;
 pub(crate) use crate::entity::note::{Column, Entity};
-use crate::{sea_orm, sea_orm::FromQueryResult, traits::DbError};
+use crate::traits::DbError;
+pub use crate::{dto::note::NoteView, entity::note::ActiveModel};
 
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct Note {
-    pub id: i64,
-    pub content: String,
-    pub public: bool,
-    pub user_id: i64,
-    pub user_name: String,
-    pub user_avatar_hash: Option<String>,
-    pub challenge_id: i64,
-    pub challenge_title: String,
-    pub challenge_category: i32,
-    pub created_at: i64,
-    pub updated_at: i64,
-}
-
-impl TryFrom<crate::entity::note::ModelEx> for Note {
+impl TryFrom<crate::entity::note::ModelEx> for NoteView {
     type Error = DbError;
 
     fn try_from(note: crate::entity::note::ModelEx) -> Result<Self, Self::Error> {
@@ -63,45 +45,6 @@ impl TryFrom<crate::entity::note::ModelEx> for Note {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::Note;
-
-    #[test]
-    fn note_serialization_does_not_expose_loaded_entity_graphs() {
-        let note = Note {
-            id: 1,
-            content: "content".to_owned(),
-            public: true,
-            user_id: 2,
-            user_name: "user".to_owned(),
-            user_avatar_hash: Some("avatar".to_owned()),
-            challenge_id: 3,
-            challenge_title: "challenge".to_owned(),
-            challenge_category: 4,
-            created_at: 1_700_000_000,
-            updated_at: 1_700_000_001,
-        };
-
-        assert_eq!(
-            serde_json::to_value(note).unwrap(),
-            serde_json::json!({
-                "id": 1,
-                "content": "content",
-                "public": true,
-                "user_id": 2,
-                "user_name": "user",
-                "user_avatar_hash": "avatar",
-                "challenge_id": 3,
-                "challenge_title": "challenge",
-                "challenge_category": 4,
-                "created_at": 1_700_000_000_i64,
-                "updated_at": 1_700_000_001_i64,
-            })
-        );
-    }
-}
-
 #[derive(Clone, Debug, Default)]
 pub struct FindNotesOptions {
     pub id: Option<i64>,
@@ -125,7 +68,7 @@ pub async fn find(
         size,
         sorts,
     }: FindNotesOptions,
-) -> Result<(Vec<Note>, u64), DbError> {
+) -> Result<(Vec<NoteView>, u64), DbError> {
     let mut loader = Entity::load()
         .with(crate::entity::user::Entity)
         .with(crate::entity::challenge::Entity);
@@ -181,7 +124,7 @@ pub async fn find(
 
     let notes = models
         .into_iter()
-        .map(Note::try_from)
+        .map(NoteView::try_from)
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok((notes, total))
@@ -192,14 +135,14 @@ pub async fn find(
 pub async fn find_by_id(
     conn: &impl ConnectionTrait,
     note_id: i64,
-) -> Result<Option<Note>, DbError> {
+) -> Result<Option<NoteView>, DbError> {
     Ok(Entity::load()
         .with(crate::entity::user::Entity)
         .with(crate::entity::challenge::Entity)
         .filter(Column::Id.eq(note_id))
         .one(conn)
         .await?
-        .map(Note::try_from)
+        .map(NoteView::try_from)
         .transpose()?)
 }
 
@@ -209,7 +152,7 @@ pub async fn find_by_user_id_and_challenge_id(
     conn: &impl ConnectionTrait,
     user_id: i64,
     challenge_id: i64,
-) -> Result<Option<Note>, DbError> {
+) -> Result<Option<NoteView>, DbError> {
     Ok(Entity::load()
         .with(crate::entity::user::Entity)
         .with(crate::entity::challenge::Entity)
@@ -217,12 +160,12 @@ pub async fn find_by_user_id_and_challenge_id(
         .filter(Column::ChallengeId.eq(challenge_id))
         .one(conn)
         .await?
-        .map(Note::try_from)
+        .map(NoteView::try_from)
         .transpose()?)
 }
 
 /// Inserts a new row and returns the persisted model.
-pub async fn create(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<Note, DbError> {
+pub async fn create(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<NoteView, DbError> {
     let note = model.insert(conn).await?;
     info!(
         note_id = note.id,
@@ -238,7 +181,7 @@ pub async fn create(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<N
 }
 
 /// Applies an active model update to the database.
-pub async fn update(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<Note, DbError> {
+pub async fn update(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<NoteView, DbError> {
     let note = model.update(conn).await?;
     info!(
         note_id = note.id,

@@ -7,57 +7,20 @@ use sea_orm::{
     FromQueryResult, JoinType, LoaderTraitEx, Order, PaginatorTrait, QueryFilter, QueryOrder,
     QuerySelect, RelationTrait,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
 pub use super::team_user::find_teams as find_by_user_id;
-pub use crate::entity::team::{ActiveModel, Model, State};
 pub(crate) use crate::entity::team::{Column, Entity};
 use crate::traits::DbError;
+pub use crate::{
+    dto::{
+        scoreboard::{ScoreboardEntry, ScoreboardTeam},
+        team::TeamView,
+    },
+    entity::team::{ActiveModel, Model, State},
+};
 
-#[allow(dead_code)]
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct Team {
-    pub id: i64,
-    pub game_id: i64,
-    pub name: String,
-    pub email: Option<String>,
-    pub slogan: Option<String>,
-    pub avatar_hash: Option<String>,
-    pub has_writeup: bool,
-    pub state: State,
-    pub pts: i64,
-    pub rank: i64,
-}
-
-/// Public team fields used by the scoreboard. Contact and moderation fields
-/// are intentionally excluded from this response model.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
-pub struct TeamPublic {
-    pub id: i64,
-    pub name: String,
-    pub slogan: Option<String>,
-    pub avatar_hash: Option<String>,
-    pub pts: i64,
-    pub rank: i64,
-}
-
-impl From<&Team> for TeamPublic {
-    fn from(team: &Team) -> Self {
-        Self {
-            id: team.id,
-            name: team.name.clone(),
-            slogan: team.slogan.clone(),
-            avatar_hash: team.avatar_hash.clone(),
-            pts: team.pts,
-            rank: team.rank,
-        }
-    }
-}
-
-impl From<&crate::entity::team::ModelEx> for TeamPublic {
+impl From<&crate::entity::team::ModelEx> for ScoreboardTeam {
     fn from(team: &crate::entity::team::ModelEx) -> Self {
         Self {
             id: team.id,
@@ -68,13 +31,6 @@ impl From<&crate::entity::team::ModelEx> for TeamPublic {
             rank: team.rank,
         }
     }
-}
-
-/// A scoreboard record assembled from a SeaORM 2 relation graph.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
-pub struct ScoreRecord {
-    pub team: TeamPublic,
-    pub submissions: Vec<crate::submission::SubmissionPublic>,
 }
 
 /// Loads the public scoreboard graph with SeaORM 2's batch loader.
@@ -88,7 +44,7 @@ pub async fn find_scoreboard(
     game_id: i64,
     page: Option<u64>,
     size: Option<u64>,
-) -> Result<(Vec<ScoreRecord>, u64), DbError> {
+) -> Result<(Vec<ScoreboardEntry>, u64), DbError> {
     use crate::entity::{submission, team};
 
     let loader = team::Entity::load()
@@ -144,11 +100,13 @@ pub async fn find_scoreboard(
         .map(|(team, submissions)| {
             let submissions = submissions
                 .into_iter()
-                .map(|submission| crate::submission::SubmissionPublic::try_from(&submission))
+                .map(|submission| {
+                    crate::dto::scoreboard::ScoreboardSubmission::try_from(&submission)
+                })
                 .collect::<Result<Vec<_>, _>>()?;
 
-            Ok(ScoreRecord {
-                team: TeamPublic::from(&team),
+            Ok(ScoreboardEntry {
+                team: ScoreboardTeam::from(&team),
                 submissions,
             })
         })
@@ -159,37 +117,12 @@ pub async fn find_scoreboard(
 
 #[cfg(test)]
 mod tests {
-    use super::{ScoreRecord, TeamPublic};
-    use crate::submission::SubmissionPublic;
+    use crate::dto::scoreboard::{ScoreboardEntry, ScoreboardSubmission, ScoreboardTeam};
 
     #[test]
-    fn public_team_serialization_excludes_contact_and_moderation_fields() {
-        let team = TeamPublic {
-            id: 1,
-            name: "team".to_owned(),
-            slogan: Some("hello".to_owned()),
-            avatar_hash: Some("avatar".to_owned()),
-            pts: 100,
-            rank: 2,
-        };
-
-        assert_eq!(
-            serde_json::to_value(team).unwrap(),
-            serde_json::json!({
-                "id": 1,
-                "name": "team",
-                "slogan": "hello",
-                "avatar_hash": "avatar",
-                "pts": 100,
-                "rank": 2,
-            })
-        );
-    }
-
-    #[test]
-    fn score_record_serialization_is_an_explicit_public_contract() {
-        let record = ScoreRecord {
-            team: TeamPublic {
+    fn scoreboard_serialization_is_an_explicit_public_contract() {
+        let record = ScoreboardEntry {
+            team: ScoreboardTeam {
                 id: 1,
                 name: "team".to_owned(),
                 slogan: Some("hello".to_owned()),
@@ -197,7 +130,7 @@ mod tests {
                 pts: 100,
                 rank: 2,
             },
-            submissions: vec![SubmissionPublic {
+            submissions: vec![ScoreboardSubmission {
                 id: 10,
                 user_id: 20,
                 user_name: "user".to_owned(),
@@ -208,29 +141,9 @@ mod tests {
                 created_at: 1_700_000_000,
             }],
         };
-
         assert_eq!(
             serde_json::to_value(record).unwrap(),
-            serde_json::json!({
-                "team": {
-                    "id": 1,
-                    "name": "team",
-                    "slogan": "hello",
-                    "avatar_hash": "team-avatar",
-                    "pts": 100,
-                    "rank": 2,
-                },
-                "submissions": [{
-                    "id": 10,
-                    "user_id": 20,
-                    "user_name": "user",
-                    "user_avatar_hash": "user-avatar",
-                    "challenge_id": 30,
-                    "challenge_title": "challenge",
-                    "pts": 100,
-                    "created_at": 1_700_000_000,
-                }],
-            })
+            serde_json::json!({"team":{"id":1,"name":"team","slogan":"hello","avatar_hash":"team-avatar","pts":100,"rank":2},"submissions":[{"id":10,"user_id":20,"user_name":"user","user_avatar_hash":"user-avatar","challenge_id":30,"challenge_title":"challenge","pts":100,"created_at":1_700_000_000_i64}]})
         );
     }
 }

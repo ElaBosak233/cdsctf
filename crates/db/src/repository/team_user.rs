@@ -4,25 +4,15 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
     QueryFilter,
 };
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
 use super::{
     team::{Column as TeamColumn, Entity as TeamEntity},
     user::{Column as UserColumn, Entity as UserEntity},
 };
-pub use crate::entity::team_user::ActiveModel;
 pub(crate) use crate::entity::team_user::{Column, Entity, Relation};
 use crate::traits::DbError;
-
-#[allow(dead_code)]
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
-pub struct TeamUser {
-    pub team_id: i64,
-    pub user_id: i64,
-}
+pub use crate::{dto::team_user::TeamUserView, entity::team_user::ActiveModel};
 
 #[derive(Clone, Debug, Default)]
 pub struct FindTeamUserOptions {
