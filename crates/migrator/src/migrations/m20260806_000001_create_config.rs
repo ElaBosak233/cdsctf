@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260201_000011_create_note` — applies forward/backward
+//! SeaORM migration `m20260806_000001_create_config` — applies forward/backward
 //! schema changes.
 
 use async_trait::async_trait;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260201_000011_create_note"
+        "m20260806_000001_create_config"
     }
 }
 
@@ -23,20 +23,9 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "notes" (
-                    "id" BIGSERIAL PRIMARY KEY,
-                    "content" TEXT NOT NULL,
-                    "public" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "user_id" BIGINT NOT NULL,
-                    "challenge_id" BIGINT NOT NULL,
-                    "created_at" BIGINT NOT NULL,
-                    "updated_at" BIGINT NOT NULL,
-                
-                    CONSTRAINT fk_notes_challenge FOREIGN KEY ("challenge_id")
-                        REFERENCES challenges ("id") ON DELETE CASCADE,
-                    CONSTRAINT fk_notes_user FOREIGN KEY ("user_id")
-                        REFERENCES users ("id") ON DELETE CASCADE,
-                    CONSTRAINT uq_notes_user_challenge UNIQUE ("user_id", "challenge_id")
+                CREATE TABLE IF NOT EXISTS "configs" (
+                    "id" BOOLEAN PRIMARY KEY DEFAULT TRUE,
+                    "data" JSONB NOT NULL
                 );
             "#
             .to_owned(),
@@ -53,7 +42,7 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "notes";
+                DROP TABLE IF EXISTS "configs";
             "#
             .to_owned(),
         ))

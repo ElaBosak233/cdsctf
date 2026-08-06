@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260201_000013_create_user_idp` — creates user IdP
+//! SeaORM migration `m20260806_000013_create_user_idp` — creates user IdP
 //! binding table.
 
 use async_trait::async_trait;
@@ -9,7 +9,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20260201_000013_create_user_idp"
+        "m20260806_000013_create_user_idp"
     }
 }
 

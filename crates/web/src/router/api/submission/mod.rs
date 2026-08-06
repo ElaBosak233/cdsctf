@@ -221,7 +221,7 @@ pub async fn create_submission(
             team_id: body.team_id.map_or(NotSet, |v| Set(Some(v))),
             game_id: body.game_id.map_or(NotSet, |v| Set(Some(v))),
             challenge_id: Set(body.challenge_id),
-            status: Set(Status::Pending),
+            status: Set(Status::Queued),
             ..Default::default()
         },
     )

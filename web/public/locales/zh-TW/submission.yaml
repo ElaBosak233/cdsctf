@@ -7,9 +7,10 @@ challenge_id: 題目 ID
 flag: Flag
 user_name: 使用者
 created_at: 送出時間
+processing_duration: 處理時長
 solved: 已解題
 solves: "已解出 {{count}} 題"
-pending_review: 等待審核中，請稍候。
+queued_review: 已進入檢查佇列...
 empty: 尚無送出紀錄
 cheated: 此題目已有作弊紀錄，無法再送出答案。
 submitted: "#{{id}} 已送出 {{title}} 的答案"
@@ -26,7 +27,8 @@ result:
   duplicate: 你已解出此題目。
 status:
   _: 狀態
-  pending: 待審核
+  queued: 排隊中
+  processing: 處理中
   correct: 正確
   incorrect: 不正確
   cheat: 作弊

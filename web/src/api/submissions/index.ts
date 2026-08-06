@@ -1,4 +1,4 @@
-import type { SubmissionSummary } from "@/models/submission";
+import type { Status, SubmissionSummary } from "@/models/submission";
 import { api, toSearchParams } from "@/utils/query";
 
 export type CreateSubmissionRequest = {
@@ -19,7 +19,7 @@ export async function createSubmission(request: CreateSubmissionRequest) {
 export type GetSubmissionRequest = {
   id?: number;
   content?: string;
-  status?: number;
+  status?: Status;
   user_id?: number;
   is_detailed?: boolean;
   challenge_id?: number;

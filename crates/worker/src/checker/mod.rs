@@ -1,5 +1,5 @@
 //! JetStream consumer for subject **`cds.submission.check`**: resolves
-//! **pending** flag submissions with the Lua [`cds_checker::Checker`], applies
+//! **queued** flag submissions with the Lua [`cds_checker::Checker`], applies
 //! game rules (duplicate, freeze, cheat), and may enqueue [`crate::calculator`]
 //! work when a submission becomes correct.
 //!
@@ -9,8 +9,8 @@
 //!
 //! # Startup
 //!
-//! [`spawn`] re-publishes every still-`Pending` submission so no job is lost
-//! after a restart.
+//! [`spawn`] returns interrupted `Processing` rows to `Queued` and
+//! re-publishes every queued submission so no job is lost after a restart.
 
 use std::sync::Arc;
 
@@ -30,6 +30,9 @@ use crate::calculator::{self, Payload};
 
 /// JetStream subject for asynchronous submission verification.
 pub const SUBJECT: &str = "cds.submission.check";
+
+/// Maximum number of submissions checked concurrently by this process.
+const MAX_IN_FLIGHT: usize = 16;
 
 /// Shared handles for one consumer instance (cloned into async jobs).
 #[derive(Clone)]
@@ -71,20 +74,24 @@ async fn prepare_game_challenge(
         .ok_or_else(|| anyhow!("game_challenge_not_found"))
 }
 
-/// End-to-end pipeline for one pending submission: load graph, run script,
-/// post-process status, notify calculator.
+/// Claims one queued submission, runs its script, applies game rules, and
+/// notifies the calculator.
 #[tracing::instrument(skip_all, fields(submission_id = id))]
 async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
-    let submission = cds_db::submission::find_pending_by_id(&ctx.db.conn, id)
-        .await?
-        .ok_or(anyhow!("submission_not_found"))?;
+    let Some(submission) = cds_db::submission::claim_queued_by_id(&ctx.db.conn, id).await? else {
+        debug!(
+            submission_id = id,
+            "submission is not queued; message skipped"
+        );
+        return Ok(());
+    };
     debug!(
         submission_id = submission.id,
         user_id = submission.user_id,
         team_id = submission.team_id,
         game_id = submission.game_id,
         challenge_id = submission.challenge_id,
-        "pending submission loaded"
+        "submission claimed"
     );
 
     let user = if let Some(user) =
@@ -203,15 +210,15 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
         "submission checked"
     );
 
-    let submission = cds_db::submission::update(
-        &ctx.db.conn,
-        cds_db::submission::ActiveModel {
-            id: Unchanged(submission.id),
-            status: Set(status.clone()),
-            ..Default::default()
-        },
-    )
-    .await?;
+    let Some(submission) =
+        cds_db::submission::finish_processing(&ctx.db.conn, submission.id, status.clone()).await?
+    else {
+        warn!(
+            submission_id = submission.id,
+            "submission status changed while checker was running"
+        );
+        return Ok(());
+    };
 
     if submission.game_id.is_some() && status == Status::Correct {
         // Fan-out score recompute for the affected competition only.
@@ -275,14 +282,15 @@ async fn handle_cheat(
     Ok(Status::Cheat)
 }
 
-/// Re-queues historical `Pending` rows so they are checked after deploys /
+/// Re-publishes historical `Queued` rows so they are checked after deploys /
 /// crashes.
 #[tracing::instrument(skip_all)]
-async fn recover_pending(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
+async fn recover_queued(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
+    let reset = cds_db::submission::reset_processing(&ctx.db.conn).await?;
     let (unchecked_submissions, _) = cds_db::submission::find(
         &ctx.db.conn,
         FindSubmissionsOptions {
-            status: Some(Status::Pending),
+            status: Some(Status::Queued),
             sorts: Some("created_at".to_owned()),
             ..Default::default()
         },
@@ -297,37 +305,65 @@ async fn recover_pending(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
 
     info!(
         count = recovered,
+        reset,
         subject = SUBJECT,
-        "pending submissions recovered"
+        "queued submissions recovered"
     );
 
     Ok(())
 }
 
-/// Infinite pull loop: parse submission id, invoke [`check`], acknowledge the
-/// JetStream message.
+/// Pulls messages and runs at most [`MAX_IN_FLIGHT`] checker jobs concurrently.
 #[tracing::instrument(skip_all, fields(subject = SUBJECT))]
 async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
-    let mut messages = ctx.queue.subscribe(SUBJECT, None).await?;
-    while let Some(Ok(message)) = messages.next().await {
-        let payload = String::from_utf8(message.payload.to_vec())?;
-        let id = payload.parse::<i64>()?;
-        debug!(submission_id = id, "checker message received");
+    let messages = ctx.queue.subscribe(SUBJECT, None).await?;
+    messages
+        .for_each_concurrent(Some(MAX_IN_FLIGHT), |result| {
+            let ctx = Arc::clone(&ctx);
+            async move {
+                let message = match result {
+                    Ok(message) => message,
+                    Err(err) => {
+                        error!(error = ?err, "checker message receive failed");
+                        return;
+                    }
+                };
 
-        if let Err(err) = check(Arc::clone(&ctx), id).await {
-            error!("{:?}", err);
-        }
+                let id = match serde_json::from_slice::<i64>(&message.payload) {
+                    Ok(id) => id,
+                    Err(err) => {
+                        warn!(error = ?err, "invalid checker payload skipped");
+                        message.double_ack().await.ok();
+                        return;
+                    }
+                };
+                debug!(submission_id = id, "checker message received");
 
-        message.double_ack().await.ok();
-    }
+                let mut acknowledge = true;
+                if let Err(err) = check(Arc::clone(&ctx), id).await {
+                    let released = cds_db::submission::release_processing(&ctx.db.conn, id)
+                        .await
+                        .unwrap_or(false);
+                    acknowledge = !released;
+                    error!(submission_id = id, released, error = ?err, "submission check failed");
+                }
+
+                if acknowledge {
+                    message.double_ack().await.ok();
+                }
+            }
+        })
+        .await;
 
     Ok(())
 }
 
-/// Starts the consumer task and immediately calls [`recover_pending`].
+/// Starts the consumer task after calling [`recover_queued`].
 #[tracing::instrument(skip_all, fields(handler = "spawn"))]
 pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker) {
     let ctx = Arc::new(Context::new(db, queue, checker));
+    recover_queued(Arc::clone(&ctx)).await.unwrap();
+
     let run_ctx = Arc::clone(&ctx);
     tokio::spawn(async move {
         if let Err(err) = run(run_ctx).await {
@@ -335,6 +371,9 @@ pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker) {
         }
     });
 
-    recover_pending(ctx).await.unwrap();
-    info!(subject = SUBJECT, "queue consumer spawned");
+    info!(
+        subject = SUBJECT,
+        concurrency = MAX_IN_FLIGHT,
+        "queue consumer spawned"
+    );
 }

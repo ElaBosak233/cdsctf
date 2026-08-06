@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260201_000010_create_submission` — applies
+//! SeaORM migration `m20260806_000010_create_submission` — applies
 //! forward/backward schema changes.
 
 use async_trait::async_trait;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260201_000010_create_submission"
+        "m20260806_000010_create_submission"
     }
 }
 
@@ -26,12 +26,14 @@ impl MigrationTrait for Migration {
                 CREATE TABLE IF NOT EXISTS "submissions" (
                     "id" BIGSERIAL PRIMARY KEY,
                     "content" TEXT NOT NULL,
-                    "status" INTEGER NOT NULL DEFAULT 0,
+                    "status" TEXT NOT NULL DEFAULT 'queued',
                     "challenge_id" BIGINT NOT NULL,
                     "user_id" BIGINT NOT NULL,
                     "team_id" BIGINT,
                     "game_id" BIGINT,
                     "created_at" BIGINT NOT NULL,
+                    "processing_at" BIGINT,
+                    "checked_at" BIGINT,
                     "pts" BIGINT NOT NULL DEFAULT 0,
                     "rank" BIGINT NOT NULL DEFAULT 0,
                 
@@ -45,7 +47,12 @@ impl MigrationTrait for Migration {
                         REFERENCES games ("id") ON DELETE CASCADE,
                 
                     CONSTRAINT fk_submissions_game_challenge FOREIGN KEY ("game_id", "challenge_id")
-                        REFERENCES game_challenges ("game_id", "challenge_id") ON DELETE CASCADE
+                        REFERENCES game_challenges ("game_id", "challenge_id") ON DELETE CASCADE,
+
+                    CONSTRAINT chk_submissions_status CHECK ("status" IN (
+                        'queued', 'processing', 'correct', 'incorrect',
+                        'cheat', 'expired', 'duplicate'
+                    ))
                 );
             "#
             .to_owned(),

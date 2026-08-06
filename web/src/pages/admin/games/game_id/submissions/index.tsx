@@ -93,12 +93,13 @@ export default function Index() {
   });
 
   const statusOptions = [
-    { id: Status.Pending.toString(), name: t("submission:status.pending") },
-    { id: Status.Correct.toString(), name: t("submission:status.correct") },
-    { id: Status.Incorrect.toString(), name: t("submission:status.incorrect") },
-    { id: Status.Cheat.toString(), name: t("submission:status.cheat") },
-    { id: Status.Expired.toString(), name: t("submission:status.expired") },
-    { id: Status.Duplicate.toString(), name: t("submission:status.duplicate") },
+    { id: Status.Queued, name: t("submission:status.queued") },
+    { id: Status.Processing, name: t("submission:status.processing") },
+    { id: Status.Correct, name: t("submission:status.correct") },
+    { id: Status.Incorrect, name: t("submission:status.incorrect") },
+    { id: Status.Cheat, name: t("submission:status.cheat") },
+    { id: Status.Expired, name: t("submission:status.expired") },
+    { id: Status.Duplicate, name: t("submission:status.duplicate") },
   ];
 
   useEffect(() => {
@@ -113,10 +114,9 @@ export default function Index() {
     const rawStatus = debouncedColumnFilters.find(
       (c) => c.id === "status"
     )?.value;
-    const parsedStatus =
-      rawStatus !== undefined && rawStatus !== null && rawStatus !== "all"
-        ? Number(rawStatus)
-        : undefined;
+    const status = Object.values(Status).includes(rawStatus as Status)
+      ? (rawStatus as Status)
+      : undefined;
 
     getSubmissions({
       game_id: gid,
@@ -125,7 +125,7 @@ export default function Index() {
         ?.value as number,
       challenge_id: debouncedColumnFilters.find((c) => c.id === "challenge_id")
         ?.value as number,
-      status: Number.isFinite(parsedStatus) ? parsedStatus : undefined,
+      status,
       sorts: "-created_at",
       page,
       size,

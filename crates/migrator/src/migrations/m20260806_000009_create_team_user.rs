@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260201_000009_create_team_user` — applies
+//! SeaORM migration `m20260806_000009_create_team_user` — applies
 //! forward/backward schema changes.
 
 use async_trait::async_trait;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260201_000009_create_team_user"
+        "m20260806_000009_create_team_user"
     }
 }
 

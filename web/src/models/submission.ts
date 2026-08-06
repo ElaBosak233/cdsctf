@@ -16,15 +16,18 @@ export type SubmissionView = {
   pts: number;
   rank: number;
   created_at: number;
+  processing_at: number | null;
+  checked_at: number | null;
 };
 
 export type SubmissionSummary = Omit<SubmissionView, "content">;
 
 export enum Status {
-  Pending = 0,
-  Correct = 1,
-  Incorrect = 2,
-  Cheat = 3,
-  Expired = 4,
-  Duplicate = 5,
+  Queued = "queued",
+  Processing = "processing",
+  Correct = "correct",
+  Incorrect = "incorrect",
+  Cheat = "cheat",
+  Expired = "expired",
+  Duplicate = "duplicate",
 }

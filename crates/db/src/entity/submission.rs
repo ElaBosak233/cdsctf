@@ -3,7 +3,6 @@
 use async_trait::async_trait;
 use sea_orm::{DeriveActiveEnum, EnumIter, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
@@ -18,6 +17,8 @@ pub struct Model {
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub created_at: i64,
+    pub processing_at: Option<i64>,
+    pub checked_at: Option<i64>,
 
     #[sea_orm(default_value = 0)]
     pub pts: i64,
@@ -39,22 +40,30 @@ pub struct Model {
     Default,
     PartialEq,
     Eq,
-    Serialize_repr,
-    Deserialize_repr,
+    Serialize,
+    Deserialize,
     EnumIter,
     DeriveActiveEnum,
     utoipa::ToSchema,
 )]
-#[sea_orm(rs_type = "i32", db_type = "Integer")]
-#[repr(i32)]
+#[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
+#[serde(rename_all = "snake_case")]
 pub enum Status {
     #[default]
-    Pending   = 0,
-    Correct   = 1,
-    Incorrect = 2,
-    Cheat     = 3,
-    Expired   = 4,
-    Duplicate = 5,
+    #[sea_orm(string_value = "queued")]
+    Queued,
+    #[sea_orm(string_value = "processing")]
+    Processing,
+    #[sea_orm(string_value = "correct")]
+    Correct,
+    #[sea_orm(string_value = "incorrect")]
+    Incorrect,
+    #[sea_orm(string_value = "cheat")]
+    Cheat,
+    #[sea_orm(string_value = "expired")]
+    Expired,
+    #[sea_orm(string_value = "duplicate")]
+    Duplicate,
 }
 
 #[async_trait]
@@ -70,5 +79,19 @@ impl ActiveModelBehavior for ActiveModel {
         }
 
         Ok(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Status;
+
+    #[test]
+    fn status_uses_stable_string_values() {
+        assert_eq!(serde_json::to_value(Status::Queued).unwrap(), "queued");
+        assert_eq!(
+            serde_json::from_str::<Status>(r#""processing""#).unwrap(),
+            Status::Processing
+        );
     }
 }

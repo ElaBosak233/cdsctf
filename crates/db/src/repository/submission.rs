@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait, Order,
-    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
 };
 use tracing::info;
 
@@ -72,6 +72,8 @@ impl TryFrom<crate::entity::submission::ModelEx> for SubmissionView {
             challenge_title: challenge.title.clone(),
             challenge_category: challenge.category,
             created_at: submission.created_at,
+            processing_at: submission.processing_at,
+            checked_at: submission.checked_at,
             pts: submission.pts,
             rank: submission.rank,
         })
@@ -249,23 +251,90 @@ pub async fn find_by_id(
         .transpose()?)
 }
 
-/// Looks up pending by id.
+/// Atomically claims a queued submission for one checker worker.
 
-pub async fn find_pending_by_id(
+pub async fn claim_queued_by_id(
     conn: &impl ConnectionTrait,
     submission_id: i64,
 ) -> Result<Option<SubmissionView>, DbError> {
-    Ok(Entity::load()
-        .with(crate::entity::user::Entity)
-        .with(crate::entity::challenge::Entity)
-        .with(crate::entity::team::Entity)
-        .with(crate::entity::game::Entity)
+    let now = time::OffsetDateTime::now_utc().unix_timestamp();
+    let result = Entity::update_many()
+        .set(ActiveModel {
+            status: Set(Status::Processing),
+            processing_at: Set(Some(now)),
+            checked_at: Set(None),
+            ..Default::default()
+        })
         .filter(Column::Id.eq(submission_id))
-        .filter(Column::Status.eq(Status::Pending))
-        .one(conn)
+        .filter(Column::Status.eq(Status::Queued))
+        .exec(conn)
+        .await?;
+
+    if result.rows_affected == 0 {
+        return Ok(None);
+    }
+
+    find_by_id(conn, submission_id).await
+}
+
+/// Returns a claimed submission to the queue after a transient checker failure.
+pub async fn release_processing(
+    conn: &impl ConnectionTrait,
+    submission_id: i64,
+) -> Result<bool, DbError> {
+    let result = Entity::update_many()
+        .set(ActiveModel {
+            status: Set(Status::Queued),
+            processing_at: Set(None),
+            checked_at: Set(None),
+            ..Default::default()
+        })
+        .filter(Column::Id.eq(submission_id))
+        .filter(Column::Status.eq(Status::Processing))
+        .exec(conn)
+        .await?;
+
+    Ok(result.rows_affected == 1)
+}
+
+/// Stores a final status only when the submission is still owned by a checker.
+pub async fn finish_processing(
+    conn: &impl ConnectionTrait,
+    submission_id: i64,
+    status: Status,
+) -> Result<Option<SubmissionView>, DbError> {
+    let now = time::OffsetDateTime::now_utc().unix_timestamp();
+    let result = Entity::update_many()
+        .set(ActiveModel {
+            status: Set(status),
+            checked_at: Set(Some(now)),
+            ..Default::default()
+        })
+        .filter(Column::Id.eq(submission_id))
+        .filter(Column::Status.eq(Status::Processing))
+        .exec(conn)
+        .await?;
+
+    if result.rows_affected == 0 {
+        return Ok(None);
+    }
+
+    find_by_id(conn, submission_id).await
+}
+
+/// Returns in-flight rows to the queue during startup recovery.
+pub async fn reset_processing(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
+    Ok(Entity::update_many()
+        .set(ActiveModel {
+            status: Set(Status::Queued),
+            processing_at: Set(None),
+            checked_at: Set(None),
+            ..Default::default()
+        })
+        .filter(Column::Status.eq(Status::Processing))
+        .exec(conn)
         .await?
-        .map(SubmissionView::try_from)
-        .transpose()?)
+        .rows_affected)
 }
 
 /// Looks up correct by team ids and game id.

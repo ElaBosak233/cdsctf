@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260201_000006_create_team` — applies forward/backward
+//! SeaORM migration `m20260806_000004_create_game` — applies forward/backward
 //! schema changes.
 
 use async_trait::async_trait;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260201_000006_create_team"
+        "m20260806_000004_create_game"
     }
 }
 
@@ -23,21 +23,23 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "teams" (
+                CREATE TABLE IF NOT EXISTS "games" (
                     "id" BIGSERIAL PRIMARY KEY,
-                    "game_id" BIGINT NOT NULL,
-                    "name" VARCHAR NOT NULL,
-                    "email" VARCHAR,
-                    "slogan" VARCHAR,
-                    "avatar_hash" VARCHAR,
-                    "has_writeup" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "state" INT NOT NULL,
-                    "pts" BIGINT NOT NULL DEFAULT 0,
-                    "rank" BIGINT NOT NULL DEFAULT 0,
-                    
-                    CONSTRAINT "fk_teams_game_id"
-                        FOREIGN KEY ("game_id") REFERENCES "games" ("id")
-                        ON DELETE CASCADE
+                    "title" VARCHAR NOT NULL,
+                    "sketch" TEXT,
+                    "description" TEXT,
+                    "enabled" BOOLEAN NOT NULL,
+                    "public" BOOLEAN NOT NULL,
+                    "member_limit_min" BIGINT NOT NULL DEFAULT 3,
+                    "member_limit_max" BIGINT NOT NULL DEFAULT 3,
+                    "writeup_required" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "timeslots" JSONB NOT NULL,
+                    "started_at" BIGINT NOT NULL,
+                    "frozen_at" BIGINT NOT NULL,
+                    "ended_at" BIGINT NOT NULL,
+                    "icon_hash" VARCHAR,
+                    "poster_hash" VARCHAR,
+                    "created_at" BIGINT NOT NULL
                 );
             "#
             .to_owned(),
@@ -54,7 +56,7 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "teams";
+                DROP TABLE IF EXISTS "games";
             "#
             .to_owned(),
         ))

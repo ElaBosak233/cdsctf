@@ -1,5 +1,5 @@
-//! SeaORM migration `m20260201_000004_create_game` — applies forward/backward
-//! schema changes.
+//! SeaORM migration `m20260806_000007_create_game_notice` — applies
+//! forward/backward schema changes.
 
 use async_trait::async_trait;
 use sea_orm::Statement;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260201_000004_create_game"
+        "m20260806_000007_create_game_notice"
     }
 }
 
@@ -23,23 +23,16 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "games" (
+                CREATE TABLE IF NOT EXISTS "game_notices" (
                     "id" BIGSERIAL PRIMARY KEY,
+                    "game_id" BIGINT NOT NULL,
                     "title" VARCHAR NOT NULL,
-                    "sketch" TEXT,
-                    "description" TEXT,
-                    "enabled" BOOLEAN NOT NULL,
-                    "public" BOOLEAN NOT NULL,
-                    "member_limit_min" BIGINT NOT NULL DEFAULT 3,
-                    "member_limit_max" BIGINT NOT NULL DEFAULT 3,
-                    "writeup_required" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "timeslots" JSONB NOT NULL,
-                    "started_at" BIGINT NOT NULL,
-                    "frozen_at" BIGINT NOT NULL,
-                    "ended_at" BIGINT NOT NULL,
-                    "icon_hash" VARCHAR,
-                    "poster_hash" VARCHAR,
-                    "created_at" BIGINT NOT NULL
+                    "content" TEXT NOT NULL,
+                    "created_at" BIGINT NOT NULL,
+                
+                    CONSTRAINT "fk_game_notices_game_id"
+                        FOREIGN KEY ("game_id") REFERENCES "games" ("id")
+                        ON DELETE CASCADE
                 );
             "#
             .to_owned(),
@@ -56,7 +49,7 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "games";
+                DROP TABLE IF EXISTS "game_notices";
             "#
             .to_owned(),
         ))

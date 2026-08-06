@@ -5,8 +5,8 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State};
 use cds_db::{
     SubmissionView,
-    sea_orm::ActiveValue::{Set, Unchanged},
-    submission::ActiveModel,
+    sea_orm::ActiveValue::{NotSet, Set, Unchanged},
+    submission::{ActiveModel, Status},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -60,11 +60,20 @@ pub async fn update_submission_status(
         .await?
         .ok_or_else(|| WebError::NotFound(json!("")))?;
 
+    let now = time::OffsetDateTime::now_utc().unix_timestamp();
+    let (processing_at, checked_at) = match &body.status {
+        Status::Queued => (Set(None), Set(None)),
+        Status::Processing => (Set(Some(now)), Set(None)),
+        _ => (NotSet, Set(Some(now))),
+    };
+
     let submission = cds_db::submission::update(
         &s.db.conn,
         ActiveModel {
             id: Unchanged(submission_id),
             status: Set(body.status),
+            processing_at,
+            checked_at,
             ..Default::default()
         },
     )

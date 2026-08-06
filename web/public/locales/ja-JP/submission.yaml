@@ -7,9 +7,10 @@ challenge_id: 課題 ID
 flag: フラグ
 user_name: ユーザー
 created_at: 提出日時
+processing_duration: 処理時間
 solved: 解決済み
 solves: '{{count}} 件の正解'
-pending_review: 審査中です。しばらくお待ちください。
+queued_review: チェッカーのキューに入りました...
 empty: 提出はまだありません。
 cheated: この課題には不正行為の記録があるため、提出できません。
 submitted: '#{{id}} {{title}} の解答を提出しました'
@@ -26,7 +27,8 @@ result:
   duplicate: この課題はすでに解決済みです。
 status:
   _: ステータス
-  pending: 審査待ち
+  queued: キュー待ち
+  processing: 処理中
   correct: 正解
   incorrect: 不正解
   cheat: 不正行為

@@ -7,9 +7,10 @@ challenge_id: 题目 ID
 flag: Flag
 user_name: 用户
 created_at: 时间
+processing_duration: 处理时长
 solved: 已解出
 solves: "{{count}} 次解出"
-pending_review: 请等待审核，这不会太久...
+queued_review: 已进入检查队列...
 empty: 暂无提交记录
 cheated: 该题目存在作弊记录，无法继续提交
 submitted: "#{{id}} 已提交题目 {{title}} 的解答"
@@ -26,7 +27,8 @@ result:
   duplicate: 你已经做出过这道题了。
 status:
   _: 状态
-  pending: 待审核
+  queued: 排队中
+  processing: 处理中
   correct: 正确
   incorrect: 错误
   cheat: 作弊

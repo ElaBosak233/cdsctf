@@ -1,5 +1,5 @@
-//! SeaORM migration `m20260201_000007_create_game_notice` — applies
-//! forward/backward schema changes.
+//! SeaORM migration `m20260806_000011_create_note` — applies forward/backward
+//! schema changes.
 
 use async_trait::async_trait;
 use sea_orm::Statement;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260201_000007_create_game_notice"
+        "m20260806_000011_create_note"
     }
 }
 
@@ -23,16 +23,20 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "game_notices" (
+                CREATE TABLE IF NOT EXISTS "notes" (
                     "id" BIGSERIAL PRIMARY KEY,
-                    "game_id" BIGINT NOT NULL,
-                    "title" VARCHAR NOT NULL,
                     "content" TEXT NOT NULL,
+                    "public" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "user_id" BIGINT NOT NULL,
+                    "challenge_id" BIGINT NOT NULL,
                     "created_at" BIGINT NOT NULL,
+                    "updated_at" BIGINT NOT NULL,
                 
-                    CONSTRAINT "fk_game_notices_game_id"
-                        FOREIGN KEY ("game_id") REFERENCES "games" ("id")
-                        ON DELETE CASCADE
+                    CONSTRAINT fk_notes_challenge FOREIGN KEY ("challenge_id")
+                        REFERENCES challenges ("id") ON DELETE CASCADE,
+                    CONSTRAINT fk_notes_user FOREIGN KEY ("user_id")
+                        REFERENCES users ("id") ON DELETE CASCADE,
+                    CONSTRAINT uq_notes_user_challenge UNIQUE ("user_id", "challenge_id")
                 );
             "#
             .to_owned(),
@@ -49,7 +53,7 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "game_notices";
+                DROP TABLE IF EXISTS "notes";
             "#
             .to_owned(),
         ))

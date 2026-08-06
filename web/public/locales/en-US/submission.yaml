@@ -7,9 +7,10 @@ challenge_id: Challenge ID
 flag: Flag
 user_name: User
 created_at: Time
+processing_duration: Processing time
 solved: Solved
 solves: "{{count}} Solves"
-pending_review: Please wait for review, it will not take long.
+queued_review: Waiting for the checker...
 empty: No submissions yet.
 cheated: This challenge has cheating records, cannot submit.
 submitted: "#{{id}} Submitted answer for {{title}}"
@@ -26,7 +27,8 @@ result:
   duplicate: You have already solved this challenge.
 status:
   _: Status
-  pending: Pending
+  queued: Queued
+  processing: Processing
   correct: Correct
   incorrect: Incorrect
   cheat: Cheat
