@@ -213,7 +213,7 @@ pub async fn create_submission(
         }
     }
 
-    let submission = cds_db::submission::create::<Submission>(
+    let submission = cds_db::submission::create(
         &s.db.conn,
         cds_db::submission::ActiveModel {
             content: Set(body.content),

@@ -2,10 +2,8 @@
 //! relations.
 
 use async_trait::async_trait;
-use sea_orm::{QuerySelect, entity::prelude::*};
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
-
-use super::{challenge, game};
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
@@ -33,15 +31,3 @@ pub struct Model {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
-
-impl Entity {
-    /// Begins the canonical query with standard joins and projections.
-    pub fn base_find() -> Select<Self> {
-        Self::find()
-            .inner_join(game::Entity)
-            .inner_join(challenge::Entity)
-            .column_as(challenge::Column::Title, "challenge_title")
-            .column_as(challenge::Column::Category, "challenge_category")
-            .column_as(challenge::Column::Tags, "challenge_tags")
-    }
-}

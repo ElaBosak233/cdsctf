@@ -4,12 +4,9 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::{
-    GameChallenge,
-    sea_orm::{
-        ActiveValue::{Set, Unchanged},
-        NotSet,
-    },
+use cds_db::sea_orm::{
+    ActiveValue::{Set, Unchanged},
+    NotSet,
 };
 use cds_event::types::game_challenge::{GameChallengeEvent, GameChallengeEventType};
 use cds_worker::calculator::{Payload, SUBJECT};
@@ -75,7 +72,7 @@ pub async fn update_game_challenge(
     let game_challenge =
         crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 
-    let new_game_challenge = cds_db::game_challenge::update::<GameChallenge>(
+    let new_game_challenge = cds_db::game_challenge::update(
         &s.db.conn,
         cds_db::game_challenge::ActiveModel {
             game_id: Unchanged(game_challenge.game_id),

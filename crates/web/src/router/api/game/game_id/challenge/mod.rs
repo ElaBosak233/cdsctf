@@ -74,7 +74,7 @@ pub async fn get_game_challenge(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let (game_challenges, total) = cds_db::game_challenge::find(
+    let (game_challenges, total) = cds_db::game_challenge::find::<GameChallengeMini>(
         &s.db.conn,
         FindGameChallengeOptions {
             game_id: Some(game.id),

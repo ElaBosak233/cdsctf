@@ -1,7 +1,7 @@
 //! SeaORM `note` entity — maps the `note` table and its relations.
 
 use async_trait::async_trait;
-use sea_orm::{EnumIter, QuerySelect, Set, entity::prelude::*};
+use sea_orm::{EnumIter, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 #[sea_orm::model]
@@ -36,18 +36,5 @@ impl ActiveModelBehavior for ActiveModel {
         }
 
         Ok(self)
-    }
-}
-
-impl Entity {
-    /// Begins the canonical query with standard joins and projections.
-    pub fn base_find() -> Select<Self> {
-        Self::find()
-            .inner_join(super::user::Entity)
-            .inner_join(super::challenge::Entity)
-            .column_as(super::user::Column::Name, "user_name")
-            .column_as(super::user::Column::AvatarHash, "user_avatar_hash")
-            .column_as(super::challenge::Column::Title, "challenge_title")
-            .column_as(super::challenge::Column::Category, "challenge_category")
     }
 }

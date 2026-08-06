@@ -116,7 +116,7 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
                                 rank: Set(rank as i64 + 1),
                                 ..Default::default()
                             };
-                            let _ = cds_db::submission::update::<Submission>(&db.conn, model)
+                            let _ = cds_db::submission::update(&db.conn, model)
                                 .await
                                 .map_err(|e| error!("{:?}", e));
                         }
@@ -138,7 +138,7 @@ async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
                     return;
                 }
 
-                let _ = cds_db::game_challenge::update::<GameChallenge>(
+                let _ = cds_db::game_challenge::update(
                     &db.conn,
                     cds_db::game_challenge::ActiveModel {
                         game_id: Unchanged(game_challenge.game_id),

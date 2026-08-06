@@ -75,7 +75,7 @@ async fn prepare_game_challenge(
 /// post-process status, notify calculator.
 #[tracing::instrument(skip_all, fields(submission_id = id))]
 async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
-    let submission = cds_db::submission::find_pending_by_id::<Submission>(&ctx.db.conn, id)
+    let submission = cds_db::submission::find_pending_by_id(&ctx.db.conn, id)
         .await?
         .ok_or(anyhow!("submission_not_found"))?;
     debug!(
@@ -142,7 +142,7 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
         // Duplicate.
         let is_already_correct =
             if let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) {
-                cds_db::submission::find::<Submission>(
+                cds_db::submission::find(
                     &ctx.db.conn,
                     FindSubmissionsOptions {
                         challenge_id: Some(submission.challenge_id),
@@ -155,7 +155,7 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
                 .await?
                 .1 > 0
             } else {
-                cds_db::submission::find::<Submission>(
+                cds_db::submission::find(
                     &ctx.db.conn,
                     FindSubmissionsOptions {
                         challenge_id: Some(submission.challenge_id),
@@ -203,7 +203,7 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
         "submission checked"
     );
 
-    let submission = cds_db::submission::update::<Submission>(
+    let submission = cds_db::submission::update(
         &ctx.db.conn,
         cds_db::submission::ActiveModel {
             id: Unchanged(submission.id),
@@ -279,7 +279,7 @@ async fn handle_cheat(
 /// crashes.
 #[tracing::instrument(skip_all)]
 async fn recover_pending(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
-    let (unchecked_submissions, _) = cds_db::submission::find::<Submission>(
+    let (unchecked_submissions, _) = cds_db::submission::find(
         &ctx.db.conn,
         FindSubmissionsOptions {
             status: Some(Status::Pending),

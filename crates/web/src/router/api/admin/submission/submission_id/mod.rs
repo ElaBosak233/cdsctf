@@ -56,11 +56,11 @@ pub async fn update_submission_status(
     Path(submission_id): Path<i64>,
     ReqJson(body): ReqJson<UpdateSubmissionStatusRequest>,
 ) -> Result<Json<Submission>, WebError> {
-    let _submission = cds_db::submission::find_by_id::<Submission>(&s.db.conn, submission_id)
+    let _submission = cds_db::submission::find_by_id(&s.db.conn, submission_id)
         .await?
         .ok_or_else(|| WebError::NotFound(json!("")))?;
 
-    let submission = cds_db::submission::update::<Submission>(
+    let submission = cds_db::submission::update(
         &s.db.conn,
         ActiveModel {
             id: Unchanged(submission_id),

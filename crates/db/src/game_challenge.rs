@@ -2,7 +2,7 @@
 
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
-    QueryFilter,
+    QueryFilter, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
 use tracing::info;
@@ -42,6 +42,78 @@ pub struct GameChallengeMini {
     pub frozen_at: Option<i64>,
 }
 
+impl TryFrom<crate::entity::game_challenge::ModelEx> for GameChallenge {
+    type Error = DbError;
+
+    fn try_from(
+        game_challenge: crate::entity::game_challenge::ModelEx,
+    ) -> Result<Self, Self::Error> {
+        let challenge = game_challenge.challenge.as_ref().ok_or_else(|| {
+            DbError::Other(anyhow::anyhow!(
+                "game challenge {}/{} was loaded without its challenge relation",
+                game_challenge.game_id,
+                game_challenge.challenge_id
+            ))
+        })?;
+
+        Ok(Self {
+            game_id: game_challenge.game_id,
+            challenge_id: game_challenge.challenge_id,
+            challenge_title: challenge.title.clone(),
+            challenge_category: challenge.category,
+            difficulty: game_challenge.difficulty,
+            bonus_ratios: game_challenge.bonus_ratios,
+            max_pts: game_challenge.max_pts,
+            min_pts: game_challenge.min_pts,
+            pts: game_challenge.pts,
+            enabled: game_challenge.enabled,
+            frozen_at: game_challenge.frozen_at,
+        })
+    }
+}
+
+impl From<GameChallenge> for GameChallengeMini {
+    fn from(game_challenge: GameChallenge) -> Self {
+        Self {
+            game_id: game_challenge.game_id,
+            challenge_id: game_challenge.challenge_id,
+            challenge_title: game_challenge.challenge_title,
+            challenge_category: game_challenge.challenge_category,
+            pts: game_challenge.pts,
+            frozen_at: game_challenge.frozen_at,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::GameChallengeMini;
+
+    #[test]
+    fn mini_serialization_excludes_admin_scoring_configuration() {
+        let game_challenge = GameChallengeMini {
+            game_id: 1,
+            challenge_id: 2,
+            challenge_title: "challenge".to_owned(),
+            challenge_category: 3,
+            pts: 100,
+            frozen_at: Some(1_700_000_000),
+        };
+
+        assert_eq!(
+            serde_json::to_value(game_challenge).unwrap(),
+            serde_json::json!({
+                "game_id": 1,
+                "challenge_id": 2,
+                "challenge_title": "challenge",
+                "challenge_category": 3,
+                "pts": 100,
+                "frozen_at": 1_700_000_000_i64,
+            })
+        );
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct FindGameChallengeOptions {
     pub game_id: Option<i64>,
@@ -61,46 +133,58 @@ pub async fn find<T>(
     }: FindGameChallengeOptions,
 ) -> Result<(Vec<T>, u64), DbError>
 where
-    T: FromQueryResult, {
-    // Using inner join to access fields in related tables.
-    let mut sql = Entity::base_find();
-
-    sql = sql.filter(Column::GameId.eq(game_id));
+    T: From<GameChallenge>, {
+    let mut loader = Entity::load()
+        .with(crate::entity::challenge::Entity)
+        .filter(Column::GameId.eq(game_id));
 
     if let Some(challenge_id) = challenge_id {
-        sql = sql.filter(Column::ChallengeId.eq(challenge_id));
+        loader = loader.filter(Column::ChallengeId.eq(challenge_id));
     }
 
     if let Some(enabled) = enabled {
-        sql = sql.filter(Column::Enabled.eq(enabled));
+        loader = loader.filter(Column::Enabled.eq(enabled));
     }
 
     if let Some(category) = category {
-        sql = sql.filter(super::challenge::Column::Category.eq(category));
+        let challenge_ids = super::challenge::Entity::find()
+            .filter(super::challenge::Column::Category.eq(category))
+            .select_only()
+            .column(super::challenge::Column::Id)
+            .into_tuple::<i64>()
+            .all(conn)
+            .await?;
+        loader = loader.filter(Column::ChallengeId.is_in(challenge_ids));
     }
 
-    let total = sql.clone().count(conn).await?;
-
-    let game_challenges = sql.into_model::<T>().all(conn).await?;
+    let models = loader.all(conn).await?;
+    let total = models.len() as u64;
+    let game_challenges = models
+        .into_iter()
+        .map(GameChallenge::try_from)
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .map(T::from)
+        .collect();
 
     Ok((game_challenges, total))
 }
 
 /// Looks up by id.
 
-pub async fn find_by_id<T>(
+pub async fn find_by_id(
     conn: &impl ConnectionTrait,
     game_id: i64,
     challenge_id: i64,
-) -> Result<Option<T>, DbError>
-where
-    T: FromQueryResult, {
-    Ok(Entity::base_find()
+) -> Result<Option<GameChallenge>, DbError> {
+    Ok(Entity::load()
+        .with(crate::entity::challenge::Entity)
         .filter(Column::GameId.eq(game_id))
         .filter(Column::ChallengeId.eq(challenge_id))
-        .into_model::<T>()
         .one(conn)
-        .await?)
+        .await?
+        .map(GameChallenge::try_from)
+        .transpose()?)
 }
 
 /// Counts rows that match optional filters.
@@ -109,9 +193,10 @@ pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
 }
 
 /// Inserts a new row and returns the persisted model.
-pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
-where
-    T: FromQueryResult, {
+pub async fn create(
+    conn: &impl ConnectionTrait,
+    model: ActiveModel,
+) -> Result<GameChallenge, DbError> {
     let game_challenge = model.insert(conn).await?;
     info!(
         game_id = game_challenge.game_id,
@@ -122,7 +207,7 @@ where
     );
 
     Ok(
-        find_by_id::<T>(conn, game_challenge.game_id, game_challenge.challenge_id)
+        find_by_id(conn, game_challenge.game_id, game_challenge.challenge_id)
             .await?
             .ok_or_else(|| {
                 DbError::NotFound(format!(
@@ -134,9 +219,10 @@ where
 }
 
 /// Applies an active model update to the database.
-pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
-where
-    T: FromQueryResult, {
+pub async fn update(
+    conn: &impl ConnectionTrait,
+    model: ActiveModel,
+) -> Result<GameChallenge, DbError> {
     let game_challenge = model.update(conn).await?;
     info!(
         game_id = game_challenge.game_id,
@@ -147,7 +233,7 @@ where
     );
 
     Ok(
-        find_by_id::<T>(conn, game_challenge.game_id, game_challenge.challenge_id)
+        find_by_id(conn, game_challenge.game_id, game_challenge.challenge_id)
             .await?
             .ok_or_else(|| {
                 DbError::NotFound(format!(

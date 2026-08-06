@@ -3,8 +3,8 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, Order, PaginatorTrait,
-    QueryFilter, QueryOrder, QuerySelect,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait, Order,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
 use tracing::info;
@@ -35,6 +35,66 @@ pub struct Submission {
 
     pub pts: i64,
     pub rank: i64,
+}
+
+impl TryFrom<crate::entity::submission::ModelEx> for Submission {
+    type Error = DbError;
+
+    fn try_from(submission: crate::entity::submission::ModelEx) -> Result<Self, Self::Error> {
+        let user = submission.user.as_ref().ok_or_else(|| {
+            DbError::Other(anyhow::anyhow!(
+                "submission {} was loaded without its user relation",
+                submission.id
+            ))
+        })?;
+        let challenge = submission.challenge.as_ref().ok_or_else(|| {
+            DbError::Other(anyhow::anyhow!(
+                "submission {} was loaded without its challenge relation",
+                submission.id
+            ))
+        })?;
+
+        let team = if submission.team_id.is_some() {
+            Some(submission.team.as_ref().ok_or_else(|| {
+                DbError::Other(anyhow::anyhow!(
+                    "submission {} was loaded without its team relation",
+                    submission.id
+                ))
+            })?)
+        } else {
+            None
+        };
+        let game = if submission.game_id.is_some() {
+            Some(submission.game.as_ref().ok_or_else(|| {
+                DbError::Other(anyhow::anyhow!(
+                    "submission {} was loaded without its game relation",
+                    submission.id
+                ))
+            })?)
+        } else {
+            None
+        };
+
+        Ok(Self {
+            id: submission.id,
+            content: submission.content,
+            status: submission.status,
+            user_id: submission.user_id,
+            user_name: user.name.clone(),
+            user_avatar_hash: user.avatar_hash.clone(),
+            team_id: submission.team_id,
+            team_name: team.map(|team| team.name.clone()),
+            team_avatar_hash: team.and_then(|team| team.avatar_hash.clone()),
+            game_id: submission.game_id,
+            game_title: game.map(|game| game.title.clone()),
+            challenge_id: submission.challenge_id,
+            challenge_title: challenge.title.clone(),
+            challenge_category: challenge.category,
+            created_at: submission.created_at,
+            pts: submission.pts,
+            rank: submission.rank,
+        })
+    }
 }
 
 /// Submission fields needed to render the public scoreboard timeline.
@@ -155,7 +215,7 @@ pub struct FindSubmissionsOptions {
 }
 
 /// Queries rows using filter options and returns `(rows, total_count)`.
-pub async fn find<T>(
+pub async fn find(
     conn: &impl ConnectionTrait,
     FindSubmissionsOptions {
         id,
@@ -168,39 +228,41 @@ pub async fn find<T>(
         size,
         sorts,
     }: FindSubmissionsOptions,
-) -> Result<(Vec<T>, u64), DbError>
-where
-    T: FromQueryResult, {
-    let mut sql = Entity::base_find();
+) -> Result<(Vec<Submission>, u64), DbError> {
+    let mut loader = Entity::load()
+        .with(crate::entity::user::Entity)
+        .with(crate::entity::challenge::Entity)
+        .with(crate::entity::team::Entity)
+        .with(crate::entity::game::Entity);
 
     if let Some(id) = id {
-        sql = sql.filter(Column::Id.eq(id));
+        loader = loader.filter(Column::Id.eq(id));
     }
 
     if let Some(user_id) = user_id {
-        sql = sql.filter(Column::UserId.eq(user_id));
+        loader = loader.filter(Column::UserId.eq(user_id));
     }
 
     if let Some(team_id) = team_id {
         match team_id {
-            Some(team_id) => sql = sql.filter(Column::TeamId.eq(team_id)),
-            None => sql = sql.filter(Column::TeamId.is_null()),
+            Some(team_id) => loader = loader.filter(Column::TeamId.eq(team_id)),
+            None => loader = loader.filter(Column::TeamId.is_null()),
         }
     }
 
     if let Some(game_id) = game_id {
         match game_id {
-            Some(game_id) => sql = sql.filter(Column::GameId.eq(game_id)),
-            None => sql = sql.filter(Column::GameId.is_null()),
+            Some(game_id) => loader = loader.filter(Column::GameId.eq(game_id)),
+            None => loader = loader.filter(Column::GameId.is_null()),
         }
     }
 
     if let Some(challenge_id) = challenge_id {
-        sql = sql.filter(Column::ChallengeId.eq(challenge_id));
+        loader = loader.filter(Column::ChallengeId.eq(challenge_id));
     }
 
     if let Some(status) = status {
-        sql = sql.filter(Column::Status.eq(status));
+        loader = loader.filter(Column::Status.eq(status));
     }
 
     if let Some(sorts) = sorts {
@@ -211,100 +273,129 @@ where
                 Err(_) => continue,
             };
             if sort.starts_with("-") {
-                sql = sql.order_by(col, Order::Desc);
+                loader = loader.order_by(col, Order::Desc);
             } else {
-                sql = sql.order_by(col, Order::Asc);
+                loader = loader.order_by(col, Order::Asc);
             }
         }
     }
 
-    let total = sql.clone().count(conn).await?;
+    let (models, total) = match (page, size) {
+        (Some(_), Some(0)) => {
+            let total = loader.clone().paginate(conn, 1).num_items().await?;
+            (Vec::new(), total)
+        }
+        (Some(page), Some(size)) => {
+            let paginator = loader.paginate(conn, size);
+            let total = paginator.num_items().await?;
+            let models = paginator.fetch_page(page.saturating_sub(1)).await?;
+            (models, total)
+        }
+        _ => {
+            let models = loader.all(conn).await?;
+            let total = models.len() as u64;
+            (models, total)
+        }
+    };
 
-    if let (Some(page), Some(size)) = (page, size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
-    }
-
-    let submissions = sql.into_model::<T>().all(conn).await?;
+    let submissions = models
+        .into_iter()
+        .map(Submission::try_from)
+        .collect::<Result<Vec<_>, _>>()?;
 
     Ok((submissions, total))
 }
 
 /// Looks up by id.
 
-pub async fn find_by_id<T>(
+pub async fn find_by_id(
     conn: &impl ConnectionTrait,
     submission_id: i64,
-) -> Result<Option<T>, DbError>
-where
-    T: FromQueryResult, {
-    Ok(Entity::base_find()
+) -> Result<Option<Submission>, DbError> {
+    Ok(Entity::load()
+        .with(crate::entity::user::Entity)
+        .with(crate::entity::challenge::Entity)
+        .with(crate::entity::team::Entity)
+        .with(crate::entity::game::Entity)
         .filter(Column::Id.eq(submission_id))
-        .into_model::<T>()
         .one(conn)
-        .await?)
+        .await?
+        .map(Submission::try_from)
+        .transpose()?)
 }
 
 /// Looks up pending by id.
 
-pub async fn find_pending_by_id<T>(
+pub async fn find_pending_by_id(
     conn: &impl ConnectionTrait,
     submission_id: i64,
-) -> Result<Option<T>, DbError>
-where
-    T: FromQueryResult, {
-    Ok(Entity::base_find()
+) -> Result<Option<Submission>, DbError> {
+    Ok(Entity::load()
+        .with(crate::entity::user::Entity)
+        .with(crate::entity::challenge::Entity)
+        .with(crate::entity::team::Entity)
+        .with(crate::entity::game::Entity)
         .filter(Column::Id.eq(submission_id))
         .filter(Column::Status.eq(Status::Pending))
-        .into_model::<T>()
         .one(conn)
-        .await?)
+        .await?
+        .map(Submission::try_from)
+        .transpose()?)
 }
 
 /// Looks up correct by team ids and game id.
 
-pub async fn find_correct_by_team_ids_and_game_id<T>(
+pub async fn find_correct_by_team_ids_and_game_id(
     conn: &impl ConnectionTrait,
     team_ids: Vec<i64>,
     game_id: i64,
-) -> Result<Vec<T>, DbError>
-where
-    T: FromQueryResult, {
-    Ok(Entity::base_find()
+) -> Result<Vec<Submission>, DbError> {
+    Ok(Entity::load()
+        .with(crate::entity::user::Entity)
+        .with(crate::entity::challenge::Entity)
+        .with(crate::entity::team::Entity)
+        .with(crate::entity::game::Entity)
         .filter(Column::TeamId.is_in(team_ids))
         .filter(Column::GameId.eq(game_id))
         .filter(Column::Status.eq(Status::Correct))
-        .into_model::<T>()
         .all(conn)
-        .await?)
+        .await?
+        .into_iter()
+        .map(Submission::try_from)
+        .collect::<Result<Vec<_>, _>>()?)
 }
 
 /// Looks up correct by challenge ids and optional team game.
 
-pub async fn find_correct_by_challenge_ids_and_optional_team_game<T>(
+pub async fn find_correct_by_challenge_ids_and_optional_team_game(
     conn: &impl ConnectionTrait,
     challenge_ids: Vec<i64>,
     team_id: Option<i64>,
     game_id: Option<i64>,
-) -> Result<Vec<T>, DbError>
-where
-    T: FromQueryResult, {
-    let mut sql = Entity::base_find().filter(Column::ChallengeId.is_in(challenge_ids));
+) -> Result<Vec<Submission>, DbError> {
+    let mut loader = Entity::load()
+        .with(crate::entity::user::Entity)
+        .with(crate::entity::challenge::Entity)
+        .with(crate::entity::team::Entity)
+        .with(crate::entity::game::Entity)
+        .filter(Column::ChallengeId.is_in(challenge_ids));
 
     if let (Some(_), Some(game_id)) = (team_id, game_id) {
-        sql = sql.filter(Column::GameId.eq(game_id));
+        loader = loader.filter(Column::GameId.eq(game_id));
     } else {
-        sql = sql
+        loader = loader
             .filter(Column::GameId.is_null())
             .filter(Column::TeamId.is_null());
     }
 
-    let submissions = sql
+    let submissions = loader
         .filter(Column::Status.eq(Status::Correct))
         .order_by_asc(Column::CreatedAt)
-        .into_model::<T>()
         .all(conn)
-        .await?;
+        .await?
+        .into_iter()
+        .map(Submission::try_from)
+        .collect::<Result<Vec<_>, _>>()?;
 
     Ok(submissions)
 }
@@ -317,7 +408,7 @@ pub async fn has_cheat(
     team_id: i64,
     game_id: i64,
 ) -> Result<bool, DbError> {
-    let (submissions, _) = find::<Submission>(
+    let (submissions, _) = find(
         conn,
         FindSubmissionsOptions {
             challenge_id: Some(challenge_id),
@@ -342,35 +433,38 @@ pub async fn find_cheat_challenge_ids(
     team_id: i64,
     game_id: i64,
 ) -> Result<Vec<i64>, DbError> {
-    let submissions = Entity::base_find()
+    let submissions = Entity::find()
         .filter(Column::ChallengeId.is_in(challenge_ids))
         .filter(Column::Status.eq(Status::Cheat))
         .filter(Column::TeamId.eq(team_id))
         .filter(Column::GameId.eq(game_id))
-        .into_model::<Submission>()
+        .select_only()
+        .column(Column::ChallengeId)
+        .into_tuple::<i64>()
         .all(conn)
         .await?;
 
-    Ok(submissions.into_iter().map(|s| s.challenge_id).collect())
+    Ok(submissions)
 }
 
 /// Counts rows that match optional filters.
 pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
-    Ok(Entity::base_find().count(conn).await?)
+    Ok(Entity::find().count(conn).await?)
 }
 
 /// Counts submissions in `Correct` status for the given scope.
 pub async fn count_correct(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
-    Ok(Entity::base_find()
+    Ok(Entity::find()
         .filter(Column::Status.eq(Status::Correct))
         .count(conn)
         .await?)
 }
 
 /// Inserts a new row and returns the persisted model.
-pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
-where
-    T: FromQueryResult, {
+pub async fn create(
+    conn: &impl ConnectionTrait,
+    model: ActiveModel,
+) -> Result<Submission, DbError> {
     let submission = model.insert(conn).await?;
     info!(
         submission_id = submission.id,
@@ -382,15 +476,16 @@ where
         "submission created"
     );
 
-    Ok(find_by_id::<T>(conn, submission.id)
+    Ok(find_by_id(conn, submission.id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }
 
 /// Applies an active model update to the database.
-pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
-where
-    T: FromQueryResult, {
+pub async fn update(
+    conn: &impl ConnectionTrait,
+    model: ActiveModel,
+) -> Result<Submission, DbError> {
     let submission = model.update(conn).await?;
     info!(
         submission_id = submission.id,
@@ -404,7 +499,7 @@ where
         "submission updated"
     );
 
-    Ok(find_by_id::<T>(conn, submission.id)
+    Ok(find_by_id(conn, submission.id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }

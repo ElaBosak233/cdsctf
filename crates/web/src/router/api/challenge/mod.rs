@@ -143,14 +143,13 @@ pub async fn query_challenge_status(
         return Err(WebError::BadRequest(json!("either_user_or_team")));
     }
 
-    let mut submissions =
-        cds_db::submission::find_correct_by_challenge_ids_and_optional_team_game::<Submission>(
-            &s.db.conn,
-            body.challenge_ids.clone(),
-            body.team_id,
-            body.game_id,
-        )
-        .await?;
+    let mut submissions = cds_db::submission::find_correct_by_challenge_ids_and_optional_team_game(
+        &s.db.conn,
+        body.challenge_ids.clone(),
+        body.team_id,
+        body.game_id,
+    )
+    .await?;
 
     let mut result: HashMap<i64, ChallengeStatusResponse> = HashMap::new();
 

@@ -1,7 +1,7 @@
 //! SeaORM `submission` entity — maps the `submission` table and its relations.
 
 use async_trait::async_trait;
-use sea_orm::{DeriveActiveEnum, EnumIter, QuerySelect, Set, entity::prelude::*};
+use sea_orm::{DeriveActiveEnum, EnumIter, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
@@ -70,23 +70,5 @@ impl ActiveModelBehavior for ActiveModel {
         }
 
         Ok(self)
-    }
-}
-
-impl Entity {
-    /// Begins the canonical query with standard joins and projections.
-    pub fn base_find() -> Select<Self> {
-        Self::find()
-            .inner_join(super::user::Entity)
-            .inner_join(super::challenge::Entity)
-            .left_join(super::team::Entity)
-            .left_join(super::game::Entity)
-            .column_as(super::user::Column::Name, "user_name")
-            .column_as(super::user::Column::AvatarHash, "user_avatar_hash")
-            .column_as(super::team::Column::Name, "team_name")
-            .column_as(super::team::Column::AvatarHash, "team_avatar_hash")
-            .column_as(super::game::Column::Title, "game_title")
-            .column_as(super::challenge::Column::Title, "challenge_title")
-            .column_as(super::challenge::Column::Category, "challenge_category")
     }
 }
