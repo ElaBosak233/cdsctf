@@ -1,0 +1,198 @@
+_: 比賽
+empty: 目前尚無比賽。
+result_count: "{{count}} 場比賽"
+filter:
+  all: 全部
+  pts: 分
+edit:
+  _: 編輯比賽
+  info: 基本資訊
+  challenge: 題目
+  team: 團隊
+  notice: 通知
+  submission: 送出紀錄
+  recalculate: 重新計算分數
+id: ID
+title: 標題
+public: 公開
+sketch: 簡述
+started_at: 開始時間
+ended_at: 結束時間
+enabled:
+  "true": 啟用
+  "false": 停用
+  actions:
+    "true": 啟用
+    "false": 停用
+    success: "比賽 {{title}} 狀態更新成功。"
+scoreboard:
+  _: 積分榜
+  empty: 目前尚無團隊。
+  columns:
+    user: 使用者
+    challenge: 題目
+    score: 分數
+    time: 時間
+description:
+  _: 描述
+  empty: 主辦方尚未提供描述。
+status:
+  upcoming:
+    _: 即將開始
+    remaining: "距離開始還有 {{hours}} 時 {{minutes}} 分 {{seconds}} 秒"
+  ongoing:
+    _: 進行中
+    remaining: "距離凍結還有 {{hours}} 時 {{minutes}} 分 {{seconds}} 秒"
+  frozen:
+    _: 凍結中
+    remaining: "距離結束還有 {{hours}} 時 {{minutes}} 分 {{seconds}} 秒"
+  ended:
+    _: 已結束
+    remaining: 比賽已結束
+search:
+  title: 比賽標題
+  clear: 清除搜尋
+form:
+  title:
+    _: 標題
+    message: 請輸入標題
+    placeholder: "My CTF Game"
+  sketch:
+    _: 簡述
+    placeholder: 很久很久以前…
+  poster: 海報
+  poster_upload:
+    progress: "上傳進度 {{percent}}%"
+    success: 海報上傳成功。
+    error: 海報上傳失敗。
+    size_error: 海報大小超過 3 MB 限制。
+  poster_delete:
+    success: 海報刪除成功。
+  icon: 圖示
+  icon_upload:
+    progress: "上傳進度 {{percent}}%"
+    success: 圖示上傳成功。
+    error: 圖示上傳失敗。
+    size_error: 圖示大小超過 5 MB 限制。
+  icon_delete:
+    success: 圖示刪除成功。
+  public:
+    _: 是否公開（免審核）
+    "true": 是
+    "false": 否
+  writeup_required:
+    _: 是否需要送出解題報告
+    "true": 是
+    "false": 否
+  member_limit_min:
+    _: 團隊所需最小人數
+    message: 請輸入團隊所需最小人數
+    placeholder: "3"
+  member_limit_max:
+    _: 團隊所需最大人數
+    message: 請輸入團隊所需最大人數
+    placeholder: "3"
+  started_at:
+    _: 開始時間
+    message: 請選擇開始時間
+  frozen_at:
+    _: 凍結時間
+    message: 請選擇凍結時間
+  ended_at:
+    _: 結束時間
+    message: 請選擇結束時間
+  description:
+    _: 描述
+    placeholder: 很久很久以前…
+actions:
+  _: 操作
+  enter: 進入比賽
+  create:
+    _: 建立比賽
+    success: "比賽 {{title}} 建立成功。"
+  delete:
+    _: 刪除比賽
+    message: "你確定要刪除比賽 <muted>{{title}}</muted> 嗎？"
+    success: "比賽 {{title}} 刪除成功。"
+  update:
+    _: 更新比賽
+    success: "比賽 {{title}} 更新成功。"
+challenges:
+  no_permission: 你沒有權限檢視這場比賽的題目。
+challenge:
+  empty: 此比賽目前尚無題目。
+  pts: 目前分數
+  title: 標題
+  category: 分類
+  enabled:
+    _: 啟用
+    toast: "題目 {{title}} 已{{enabled}}"
+    aria_label: 題目啟用狀態切換
+    actions:
+      success: "題目 {{title}} 狀態更新成功。"
+  form:
+    max_pts:
+      _: 最大分值
+      message: 請輸入最大分值
+      placeholder: "2000"
+    min_pts:
+      _: 最小分值
+      message: 請輸入最小分值
+      placeholder: "500"
+    difficulty:
+      _: 難度係數
+      message: 請輸入難度係數
+      placeholder: "5"
+    frozen_at: 凍結時間
+    bonus_ratio: 獎勵分數（%）
+    bonus_ratio_item: "第 {{index}} 項"
+  actions:
+    _: 操作
+    edit_config_success: "題目 {{title}} 設定更新成功。"
+    state_wrapper: "（{{state}}）"
+    add_exists: 題目在該比賽中已存在。
+    add:
+      _: 新增題目
+      message: 請使用 ID 或題目名稱搜尋題目，列表僅顯示前 10 筆結果。點選題目即可加入比賽。
+      success: "題目 {{title}} 已加入此比賽。"
+    edit:
+      _: 編輯題目
+      success: "題目 {{title}} 更新成功。"
+    delete:
+      _: 刪除題目
+      message: "你確定要從本場比賽中刪除題目 <muted>{{title}}</muted> 嗎？"
+      success: "題目 {{title}} 已從此比賽移除。"
+team:
+  empty: 目前尚無團隊。
+  actions:
+    _: 操作
+    ban: 禁賽
+    refuse: 拒絕
+    pass: 核准
+    message: "團隊 {{name}} 狀態更新成功。"
+notice:
+  _: 通知
+  id: ID
+  board: 公告欄
+  new: 有新公告
+  empty: 目前尚無公告。
+  title: 標題
+  content: 詳情
+  created_at: 發布於
+  form:
+    title:
+      _: 標題
+      message: 請輸入標題
+      placeholder: 我的 CTF 比賽
+    content:
+      _: 詳情
+      message: 請輸入詳情
+  actions:
+    _: 操作
+    create:
+      _: 建立通知
+      success: "通知 {{title}} 建立成功。"
+    delete:
+      _: 刪除通知
+      message: "你確定要刪除通知 <muted>{{title}}</muted> 嗎？"
+      success: "通知 {{title}} 刪除成功。"

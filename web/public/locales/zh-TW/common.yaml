@@ -1,0 +1,31 @@
+home: 首頁
+search: 搜尋
+loading: 載入中
+filter: 篩選
+all: 全部
+exit: 離開
+pagination:
+  _: 分頁
+  items: 筆
+actions:
+  add: 新增
+  save: 儲存
+  cancel: 取消
+  confirm: 確認
+  delete: 刪除
+  edit: 編輯
+  refresh: 重新整理
+  clear_cache: 清除快取
+tooltip:
+  copy: 複製到剪貼簿
+errors:
+  default: 發生錯誤
+  unexpected: 發生錯誤
+  network: 網路錯誤
+captcha:
+  placeholder: 驗證碼
+language:
+  en: EN
+  zh-CN: 簡
+  zh-TW: 繁
+  ja: な

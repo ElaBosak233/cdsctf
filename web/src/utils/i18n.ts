@@ -9,9 +9,13 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    supportedLngs: ["en-US", "zh-CN", "zh-TW", "ja-JP"],
     fallbackLng: {
       en: ["en-US"],
       zh: ["zh-CN"],
+      "zh-TW": ["zh-TW", "zh-CN"],
+      ja: ["ja-JP"],
+      "ja-JP": ["ja-JP"],
       default: ["en-US"],
     },
     ns: [

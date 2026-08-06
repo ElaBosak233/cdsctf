@@ -1,0 +1,178 @@
+_: 課題
+playground: プレイグラウンド
+empty: 課題はまだありません。
+edit:
+  _: 課題を編集
+  info: 情報
+  checker: チェッカー
+  attachment: 添付ファイル
+  instance: インスタンス
+  writeup: 解答レポート
+preview: 課題をプレビュー
+note: メモ
+note_placeholder: ここに解法やメモを記録してください…
+note_save_success: メモを保存しました。
+writeup_official: 公式解答レポート
+writeup_empty: 解答レポートはありません
+note_empty: メモはありません
+title: タイトル
+description: 説明
+category: カテゴリ
+tags: タグ
+has_attachment: 添付ファイル
+has_instance:
+  _: 動的環境
+  'true': 動的
+  'false': 静的
+frozen:
+  already: 凍結済み
+  countdown: '{{hours}}時間{{minutes}}分{{seconds}}秒後に凍結'
+instance:
+  renew_success: 動的環境を延長しました。
+  renew_error: 動的環境の延長に失敗しました。
+public:
+  _: 公開状態
+  actions:
+    'true': 公開する
+    'false': 非公開にする
+    success: 課題 {{title}} の公開状態を更新しました。
+updated_at: 更新日時
+created_at: 作成日時
+checker:
+  form:
+    script_required: チェッカー用のスクリプトを記述してください。
+  actions:
+    update_success: 課題 {{title}} のチェッカーを更新しました。
+  lint:
+    idle: コードを待っています
+    checking: コードを確認しています…
+    valid: 問題は見つかりませんでした。
+    invalid_one: '{{count}} 件の問題が見つかりました'
+    invalid_other: '{{count}} 件の問題が見つかりました'
+    error: チェックサービスは一時的に利用できません
+  templates:
+    _: プリセットテンプレートを選択
+    simple: 簡易固定文字列判定
+    regex: 正規表現判定
+    leet: 動的 LEET 文字列判定
+    leet_custom_key: 動的 LEET 文字列判定（カスタムキー）
+    suid: 動的疑似 UUID 文字列判定
+    suid_custom_key: 動的疑似 UUID 文字列判定（カスタムキー）
+attachment:
+  empty: 添付ファイルはまだありません。
+  upload:
+    _: 添付ファイルのアップロード
+    progress: アップロードの進行状況 {{percent}}%
+    success: ファイルをアップロードしました。
+    error: アップロードに失敗しました。
+    hint: 添付ファイルはサーバーから直接配信されます。ストレージ容量や通信量にご注意ください。
+  filename: ファイル名
+  size: ファイルサイズ
+  actions:
+    _: 操作
+    delete:
+      _: 添付ファイルを削除
+      message: 添付ファイル <muted>{{filename}}</muted> を削除してもよろしいですか？
+      success: 添付ファイル {{filename}} を削除しました。
+search:
+  title: 課題タイトル
+  tag: タグ
+  public:
+    _: 公開状態
+    'true': 公開
+    'false': 非公開
+form:
+  id:
+    _: ID
+  title:
+    _: タイトル
+    message: タイトルを入力してください
+    placeholder: ハッキングしてみて！
+  category:
+    _: カテゴリ
+    message: カテゴリを選択してください
+  tags:
+    _: タグ
+  has_attachment:
+    _: 添付ファイルあり
+    'true': はい
+    'false': いいえ
+  has_instance:
+    _: 動的環境
+    'true': 動的
+    'false': 静的
+  description:
+    _: 説明
+    message: 説明を入力してください
+    placeholder: 昔々…
+  has_writeup:
+    _: 解答レポートあり
+    'true': はい
+    'false': いいえ
+  writeup:
+    _: 解答レポート
+    message: 解答レポートを入力してください
+    placeholder: 昔々…
+  instance:
+    duration:
+      _: 有効期間（秒）
+      message: 有効期間を秒単位で入力してください
+      placeholder: '1800'
+    internet:
+      _: インターネットアクセスを許可する
+      message: インターネットアクセスを許可するかどうかを選択してください
+      'true': はい
+      'false': いいえ
+    containers:
+      _: コンテナ
+      image:
+        _: イメージ
+        message: コンテナイメージを入力してください
+        placeholder: repository:tag
+      cpu_limit:
+        _: CPU制限（コア）
+        message: コア単位でCPU制限を入力してください
+      memory_limit:
+        _: メモリ制限（MB）
+        message: メモリ制限を MB 単位で入力してください
+      image_pull_policy:
+        _: イメージ取得ポリシー
+        message: イメージ取得ポリシーを選択してください
+        always: 常に取得
+        if_not_present: 存在しない場合のみ取得
+        never: 取得しない
+      ports:
+        _: 公開ポート
+        port:
+          _: ポート
+          message: ポート番号を入力してください
+        protocol:
+          _: プロトコル
+          tcp: TCP
+          udp: UDP
+      envs:
+        _: 環境変数
+        key:
+          _: キー
+          message: 環境変数キーを入力してください
+        value:
+          _: 値
+          message: 環境変数の値を入力してください
+      actions:
+        delete: コンテナの削除
+        add: コンテナを追加
+actions:
+  _: 操作
+  create:
+    _: 課題を作成
+    success: 課題 {{title}} を作成しました。
+  update:
+    success: 課題 {{title}} を更新しました。
+  writeup_update:
+    success: 課題 {{title}} の解答レポートを更新しました。
+  instance_update:
+    success: 課題 {{title}} の動的環境を更新しました。
+  delete:
+    _: 課題を削除
+    message: 課題 <muted>{{title}}</muted> を削除してもよろしいですか？
+    success: 課題 {{title}} を削除しました。

@@ -11,6 +11,7 @@ function useLocale() {
       case "zh-TW":
         return zhHK;
       case "ja":
+      case "ja-JP":
         return ja;
       default:
         return enUS;

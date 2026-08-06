@@ -1,0 +1,18 @@
+hint1: この課題には動的環境が必要です。
+hint2: 「開始」をクリックして環境を起動します。
+remaining: 残り {{hours}}:{{minutes}}:{{seconds}}
+error: エラーが発生しました。
+actions:
+  start:
+    _: 開始
+    creating: コンテナの作成リクエストを送信しています。
+    sent: コンテナ起動コマンドを送信しました。
+    description: これは時間がかかる場合があります。
+    error: コンテナの作成中にエラーが発生しました。破棄処理を開始します。
+  stop:
+    _: 停止
+    sent: コンテナ停止コマンドを送信しました。
+  renew:
+    _: 延長
+    success: 延長しました。
+    error: 延長に失敗しました。

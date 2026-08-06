@@ -1,0 +1,178 @@
+_: 題目
+playground: 練習場
+empty: 目前尚無題目。
+edit:
+  _: 編輯題目
+  info: 基本資訊
+  checker: 檢查器
+  attachment: 附件
+  instance: 動態環境
+  writeup: 解題報告
+preview: 預覽題目
+note: 筆記
+note_placeholder: 在這裡記錄解題思路與方法…
+note_save_success: 筆記儲存成功。
+writeup_official: 官方解題報告
+writeup_empty: 尚無解題報告
+note_empty: 尚無筆記
+title: 標題
+description: 描述
+category: 分類
+tags: 標籤
+has_attachment: 附件
+has_instance:
+  _: 動態環境
+  "true": 是
+  "false": 否
+frozen:
+  already: 已凍結
+  countdown: "距凍結 {{hours}} 時 {{minutes}} 分 {{seconds}} 秒"
+instance:
+  renew_success: 動態環境續期成功。
+  renew_error: 動態環境續期失敗。
+public:
+  _: 公開狀態
+  actions:
+    "true": 公開
+    "false": 不公開
+    success: "題目 {{title}} 的公開狀態已更新。"
+updated_at: 更新於
+created_at: 建立於
+checker:
+  form:
+    script_required: 請撰寫檢查器指令碼。
+  actions:
+    update_success: "題目 {{title}} 的檢查器已更新。"
+  lint:
+    idle: 等待輸入程式碼
+    checking: 正在檢查程式碼…
+    valid: 未發現問題
+    invalid_one: "發現 {{count}} 個問題"
+    invalid_other: "發現 {{count}} 個問題"
+    error: 檢查服務暫時不可用
+  templates:
+    _: 選擇預設範本
+    simple: 固定字串比對
+    regex: 正規表示式比對
+    leet: 動態 LEET 字串比對
+    leet_custom_key: 動態 LEET 字串比對（自訂金鑰）
+    suid: 動態偽 UUID 字串比對
+    suid_custom_key: 動態偽 UUID 字串比對（自訂金鑰）
+attachment:
+  empty: 目前尚無附件。
+  upload:
+    _: 上傳附件
+    progress: "上傳進度 {{percent}}%"
+    success: 檔案上傳成功。
+    error: 檔案上傳失敗。
+    hint: 附件將由伺服器直接提供，請留意儲存空間與流量用量。
+  filename: 檔名
+  size: 檔案大小
+  actions:
+    _: 操作
+    delete:
+      _: 刪除附件
+      message: "你確定要刪除附件 <muted>{{filename}}</muted> 嗎？"
+      success: "附件 {{filename}} 刪除成功。"
+search:
+  title: 題目標題
+  tag: 標籤
+  public:
+    _: 公開狀態
+    "true": 公開
+    "false": 不公開
+form:
+  id:
+    _: ID
+  title:
+    _: 標題
+    message: 請輸入標題
+    placeholder: Try hack me!
+  category:
+    _: 分類
+    message: 請選擇分類
+  tags:
+    _: 標籤
+  has_attachment:
+    _: 是否有附件
+    "true": 是
+    "false": 否
+  has_writeup:
+    _: 是否提供解題報告
+    "true": 是
+    "false": 否
+  writeup:
+    _: 解題報告
+    message: 請輸入解題報告
+    placeholder: 很久很久以前…
+  has_instance:
+    _: 動態環境
+    "true": 動態環境
+    "false": 靜態環境
+  description:
+    _: 描述
+    message: 請輸入描述
+    placeholder: 很久很久以前…
+  instance:
+    duration:
+      _: 持續時間（秒）
+      message: 請輸入持續時間（秒）
+      placeholder: "1800"
+    internet:
+      _: 是否允許存取網際網路
+      message: 請選擇是否允許存取網際網路
+      "true": 允許
+      "false": 不允許
+    containers:
+      _: 容器
+      image:
+        _: 映像檔名稱
+        message: 請輸入映像檔名稱
+        placeholder: "repository:tag"
+      cpu_limit:
+        _: CPU 限制（核）
+        message: 請輸入 CPU 限制（核）
+      memory_limit:
+        _: 記憶體限制（MB）
+        message: 請輸入記憶體限制（MB）
+      image_pull_policy:
+        _: 映像檔拉取策略
+        message: 請選擇映像檔拉取策略
+        always: 一律拉取（Always）
+        if_not_present: 僅在本機不存在時拉取（IfNotPresent）
+        never: 從不拉取（Never）
+      ports:
+        _: 對外連接埠
+        port:
+          _: 連接埠
+          message: 請輸入連接埠號碼
+        protocol:
+          _: 通訊協定
+          tcp: TCP
+          udp: UDP
+      envs:
+        _: 環境變數
+        key:
+          _: 變數名稱
+          message: 請輸入變數名稱
+        value:
+          _: 變數值
+          message: 請輸入變數值
+      actions:
+        delete: 刪除容器
+        add: 新增容器
+actions:
+  _: 操作
+  create:
+    _: 建立題目
+    success: "題目 {{title}} 建立成功。"
+  update:
+    success: "題目 {{title}} 更新成功。"
+  writeup_update:
+    success: "題目 {{title}} 解題報告更新成功。"
+  instance_update:
+    success: "題目 {{title}} 動態環境更新成功。"
+  delete:
+    _: 刪除題目
+    message: "你確定要刪除題目 <muted>{{title}}</muted> 嗎？"
+    success: "題目 {{title}} 刪除成功。"

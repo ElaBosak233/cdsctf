@@ -1,0 +1,103 @@
+_: 團隊
+id: ID
+info: 基本資訊
+members: 團隊成員
+write_up:
+  _: 解題報告
+  submission:
+    submitted_at: 送出時間
+    submitted_at_empty: 尚未送出
+  actions:
+    submit:
+      _: 送出解題報告
+      done: 已送出解題報告
+    upload:
+      _: 上傳解題報告
+      progress: "上傳進度 {{percent}}%"
+      success: 解題報告上傳成功。
+      error: 解題報告上傳失敗。
+      hint: 請將解題報告匯出為 PDF 後上傳，檔案大小不得超過 50 MB。
+    download:
+      _: 下載解題報告
+invite_code:
+  _: 邀請碼
+  empty: 尚無邀請碼
+  actions:
+    generate: 產生新的邀請碼
+name: 團隊名稱
+email: 電子郵件
+slogan:
+  _: 口號
+  empty: 這個團隊很懶，什麼也沒留下。
+rank: 排名
+pts: 分數
+state:
+  _: 目前狀態
+  banned: 禁賽中
+  preparing: 準備中
+  pending: 審核中
+  passed: 已核准
+  state_wrapper: "（{{state}}）"
+has_writeup:
+  _: 解題報告
+  "true": 已送出
+  "false": 未送出
+search:
+  name: 團隊名稱
+actions:
+  gather:
+    _: 組隊
+    create:
+      _: 建立
+      title: 建立團隊
+    join:
+      _: 加入
+      title: 加入團隊
+  participate_after_login: 請先登入再參加比賽
+  participate: "以 {{name}} 身分參賽"
+  disband:
+    _: 解散團隊
+    message: 團隊將立即解散，所有成員之後都可建立或加入其他團隊。
+    success: 解散成功。
+    description: "已解散團隊 {{name}}。"
+  leave:
+    _: 離開團隊
+    message: 你即將離開此團隊，之後可建立或加入其他團隊。
+    success: 離隊成功。
+    description: "已離開團隊 {{name}}。"
+    error: 離隊失敗。
+  ready:
+    _: 準備好了！
+    success: 準備成功。
+    description: "{{name}} 即將登場！"
+    title: 最終確認
+    message: 此操作會將團隊狀態設為待審核。之後將無法新增或移除成員、退出比賽，或進行其他影響團隊狀態的操作。
+    of_course: 真的準備好了！
+  create:
+    success: "團隊 {{name}} 建立成功。"
+  join:
+    success: 成功加入團隊。
+    error: 加入失敗。
+  update:
+    success: "團隊 {{name}} 更新成功。"
+  locked: 團隊已鎖定
+avatar:
+  _: 頭像
+  upload:
+    progress: "上傳進度 {{percent}}%"
+    success: 頭像上傳成功。
+    error: 頭像上傳失敗。
+    size_error: 頭像大小超過 5 MB 限制。
+  delete:
+    success: 頭像刪除成功。
+  team_delete_success: "團隊 {{name}} 頭像刪除成功。"
+form:
+  name:
+    _: 團隊名
+    placeholder: 請輸入團隊名稱
+    required: 請輸入團隊名稱
+  invite_code:
+    _: 邀請碼
+    placeholder: 請輸入邀請碼
+    required: 請輸入邀請碼
+    invalid: 無效的邀請碼

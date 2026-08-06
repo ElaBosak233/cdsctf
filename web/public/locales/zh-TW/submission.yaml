@@ -1,0 +1,34 @@
+_: 送出紀錄
+id: ID
+team_name: 團隊
+team_id: 團隊 ID
+challenge_title: 題目
+challenge_id: 題目 ID
+flag: Flag
+user_name: 使用者
+created_at: 送出時間
+solved: 已解題
+solves: "已解出 {{count}} 題"
+pending_review: 等待審核中，請稍候。
+empty: 尚無送出紀錄
+cheated: 此題目已有作弊紀錄，無法再送出答案。
+submitted: "#{{id}} 已送出 {{title}} 的答案"
+actions:
+  submit: 送出
+  mark_cheat: 標記為作弊
+  mark_incorrect: 標記為不正確
+  status_updated: 狀態已更新
+result:
+  correct: 恭喜，答案正確！
+  incorrect: 答案不正確，請再試一次。
+  cheat: 偵測到可能的作弊行為，已記錄。
+  timeout: 送出逾時。
+  duplicate: 你已解出此題目。
+status:
+  _: 狀態
+  pending: 待審核
+  correct: 正確
+  incorrect: 不正確
+  cheat: 作弊
+  expired: 已過期
+  duplicate: 重複

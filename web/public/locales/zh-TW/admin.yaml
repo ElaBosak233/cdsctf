@@ -1,0 +1,160 @@
+_: 管理員
+home:
+  _: 首頁
+  statistics:
+    users: 已註冊使用者
+    games: 已舉辦比賽
+    challenges: 已收集題目
+    submissions: 已處理送出紀錄
+platform:
+  _: 平台
+  logo: 標誌
+  logo_upload:
+    progress: "上傳進度 {{percent}}%"
+    success: 標誌更新成功。
+    error: 標誌上傳失敗。
+  logo_reset:
+    success: 標誌重設成功。
+  auth:
+    registration_enabled:
+      "true": 允許
+      "false": 不允許
+  form:
+    meta:
+      _: 中繼資料
+      title:
+        _: 標題
+        placeholder: CdsCTF
+      keywords:
+        _: 關鍵字
+      description:
+        _: 描述
+        placeholder: 我才不想攻擊你呢！
+      footer:
+        _: 頁尾
+    auth:
+      _: 認證
+      registration_enabled:
+        _: 是否允許新使用者註冊
+  actions:
+    update:
+      _: 更新平台設定
+      success: 平台設定更新成功。
+mailbox:
+  _: 郵件服務
+  enabled:
+    _: 啟用郵件服務
+    "true": 是
+    "false": 否
+  tls:
+    _: TLS
+    none: 無
+    tls: TLS
+    starttls: StartTLS
+  form:
+    enabled:
+      _: 啟用郵件服務
+    host:
+      _: SMTP 主機
+      placeholder: smtp.example.com
+    port:
+      _: 連接埠
+    tls:
+      _: TLS
+    username:
+      _: SMTP 使用者名稱
+      placeholder: SMTP 使用者名稱
+    password:
+      _: 密碼
+      placeholder: SMTP 密碼
+    verification_email:
+      _: 驗證信範本
+      placeholder: xHTML (RFC 2557)
+    reset_password_email:
+      _: 重設密碼信範本
+      placeholder: xHTML (RFC 2557)
+  actions:
+    update:
+      _: 更新郵件服務設定
+      success: 郵件服務設定更新成功。
+captcha:
+  _: 人機驗證
+  provider:
+    _: 提供者
+    none: 無
+    pow: 工作量證明
+    image: 圖片驗證
+    turnstile: Cloudflare Turnstile
+    hcaptcha: HCaptcha
+  form:
+    provider:
+      _: 提供者
+      description: 啟用後，會在需要的頁面顯示驗證碼。
+    difficulty:
+      _: 難度
+      description: 適用於影像和工作量證明驗證。
+    turnstile:
+      url:
+        _: API 位址
+      site_key:
+        _: 網站金鑰
+      secret_key:
+        _: 金鑰
+    hcaptcha:
+      url:
+        _: API 位址
+      site_key:
+        _: 網站金鑰
+      secret_key:
+        _: 金鑰
+      score:
+        _: 分數
+  actions:
+    update:
+      _: 更新人機驗證設定
+      success: 人機驗證設定更新成功。
+idp:
+  _: 第三方身分驗證
+  empty: 尚未設定第三方身分驗證服務
+  enabled:
+    "true": 已啟用
+    "false": 已停用
+  avatar_upload:
+    progress: "上傳進度 {{percent}}%"
+    success: 頭像上傳成功。
+    error: 頭像上傳失敗。
+    size_error: 頭像大小超過 5 MB 限制。
+  avatar_delete:
+    success: 頭像移除成功。
+  form:
+    name:
+      _: 名稱
+      placeholder: GitHub
+      message: 請輸入第三方身分驗證服務名稱。
+    portal:
+      _: 入口
+      placeholder: https://example.com/oauth
+    enabled:
+      _: 啟用
+    avatar: 頭像
+    script:
+      _: 指令碼
+      templates:
+        _: 範本
+        default: 預設
+        oauth: OAuth 2.0
+        cas: CAS
+  actions:
+    create:
+      _: 建立第三方身分驗證服務
+      success: "{{name}} 建立成功。"
+    update:
+      success: "{{name}} 更新成功。"
+    enable:
+      success: "{{name}} 已啟用。"
+    disable:
+      success: "{{name}} 已停用。"
+    delete:
+      _: 刪除第三方身分驗證服務
+      message: "確定要刪除 <muted>{{name}}</muted> 嗎？"
+      success: "{{name}} 刪除成功。"

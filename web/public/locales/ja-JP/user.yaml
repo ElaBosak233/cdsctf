@@ -1,0 +1,182 @@
+_: ユーザー
+empty: ユーザーはまだいません。
+edit:
+  _: ユーザーを編集
+  info: 情報
+  email: メールアドレス
+  password: パスワードの変更
+settings:
+  info: 情報
+  email: メールアドレス
+  password: パスワードの変更
+  idp: ID プロバイダー
+  delete: アカウント削除
+  profile_update_success: プロフィールが更新されました。
+  avatar_upload:
+    progress: アップロードの進行状況 {{percent}}%
+    success: アバターが正常にアップロードされました。
+    error: アバターのアップロードに失敗しました。
+    size_error: アバターサイズが 5 MB の制限を超えています。
+  avatar_delete_success: アバターが正常に削除されました。
+id: ID
+username: ユーザー名
+name: ニックネーム
+password: パスワード
+email: メールアドレス
+group:
+  _: グループ
+  guest: ゲスト
+  banned: 利用停止
+  user: ユーザー
+  admin: 管理者
+avatar: アバター
+description: 自己紹介
+created_at: 登録日時
+search:
+  username: ユーザー名
+  group: グループ
+form:
+  username:
+    _: ユーザー名
+    messages:
+      _: ユーザー名を入力してください
+      min: ユーザー名は 3 文字以上でなければなりません
+    placeholder: ユーザー名
+  name:
+    _: ニックネーム
+    messages:
+      _: ニックネームを入力してください
+      min: ニックネームは 2 文字以上で入力してください。
+    placeholder: ニックネーム
+  email:
+    _: メールアドレス
+    message: 有効なメールアドレスを入力してください
+    placeholder: ctf@example.com
+  password:
+    _: パスワード
+    messages:
+      _: パスワードを入力してください
+      min: パスワードは6文字以上でなければなりません
+    placeholder: P4ssw0rd!
+  group:
+    _: グループ
+    message: グループを選択してください。
+  description:
+    _: 自己紹介
+    message: 自己紹介を入力してください
+    placeholder: 昔々…
+  avatar: アバター
+actions:
+  _: 操作
+  create:
+    _: ユーザーを作成
+    success: ユーザー {{username}} を作成しました。
+    errors:
+      conflict: ユーザー名またはメールアドレスは既に使用されています。
+  update:
+    _: ユーザーを更新
+    success: ユーザー {{username}} を更新しました。
+  delete:
+    _: ユーザーを削除
+    message: ユーザー <muted>{{username}}</muted> を削除しますか？
+    success: ユーザー {{username}} を削除しました。
+emails:
+  _: メールアドレス
+  brief: このユーザーのメールアドレスを追加または編集します
+  verify_code_placeholder: I_d0nt_kn0w
+  empty: このユーザーのメールアドレスはまだ登録されていません。
+  verified:
+    'true':
+      _: 認証済み
+      long: このメールアドレスは認証済みです。
+    'false':
+      _: 未認証
+      long: このメールアドレスはまだ認証されていません。
+  form:
+    email:
+      _: メールアドレス
+      message: 有効なメールアドレスを入力してください
+      placeholder: ctf@example.com
+    verified:
+      _: 認証済みとしてマーク
+      message: このメールアドレスを認証済みとしてマークします。
+  actions:
+    create:
+      _: メールアドレスを追加
+      success: メールアドレス {{email}} を追加しました。
+    update:
+      _: メールアドレスの状態を更新
+      success: メールアドレス {{email}} の認証状態を更新しました。
+    delete:
+      _: メールアドレスを削除
+      message: メールアドレス <muted>{{email}}</muted> を削除しますか？
+      message_brief: 削除後、このメールアドレスはログインやメール通知に使用できなくなります。
+      success: メールアドレス {{email}} を削除しました。
+    verify:
+      _: メールアドレスを認証
+      disabled: '{{title}} ではメールサービスが有効ではありません。直接確認してメールアドレスを認証できます。'
+      success: メールアドレス {{email}} を認証しました。
+    send_verify:
+      _: 認証メールを送信
+      success: 認証メールを {{email}} に送信しました。
+change_password:
+  form:
+    old_password:
+      _: 現在のパスワード
+      message: 現在のパスワードを入力してください
+      placeholder: 現在のパスワード
+    new_password:
+      _: 新しいパスワード
+      messages:
+        _: 新しいパスワードを入力してください
+        min: パスワードは6文字以上でなければなりません
+      placeholder: 新しいパスワード
+    confirm_password:
+      _: 新しいパスワードの確認
+      messages:
+        _: 新しいパスワードを確認してください。
+        match: パスワードが一致しません
+      placeholder: 新しいパスワードを確認
+  actions:
+    update:
+      _: パスワードの変更
+      success: ユーザー {{username}} のパスワードを更新しました。
+    self_update:
+      _: パスワードの変更
+      success: パスワードの更新に成功しました。
+delete_account:
+  _: アカウント削除
+  final_warning: 最終警告
+  warnings:
+    intro: アカウントを削除しようとしています。アカウントは論理削除され、復元できません。
+    username: ユーザー名は変更され、特別な形式で保存されます。元のユーザー名で新しいアカウントを登録できます。
+    email: メールアドレスの紐付けが解除され、消去されます。元のメールアドレスで新しいアカウントを登録できます。
+    data: 関連する大会、チーム、提出データは保持されます。ただし、削除後はこれらのデータがあなたのものだと証明する情報がなくなります。
+    irreversible: 以下の操作は元に戻せませんので、もう一度ご注意ください！先に進む前によく考えてください！
+    confirm: 上記の内容をよくお読みください。本当にアカウントを削除する場合は、以下にユーザー名とパスワードを入力して「確認」をクリックしてください。
+  form:
+    username:
+      _: ユーザー名
+      messages:
+        _: ユーザー名を入力してください
+        match: ユーザー名が一致しません
+    password:
+      _: パスワード
+      message: パスワードを入力してください
+    captcha:
+      _: CAPTCHA
+      message: CAPTCHA を入力してください。
+  actions:
+    delete:
+      success: アカウントを削除しました。
+idp:
+  _: ID プロバイダー
+  actions:
+    bind: 紐付け
+    unbind: 紐付け解除
+    bound: 紐付け済み
+    unbound: 未紐付け
+    bound_toast: ID プロバイダーを紐付けました。
+    unbound_toast: ID プロバイダーの紐付けを解除しました。
+    request_failed: ID プロバイダーへのリクエストに失敗しました。
+    signed_in: サインインしました

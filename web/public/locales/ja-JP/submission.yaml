@@ -1,0 +1,34 @@
+_: 提出
+id: ID
+team_name: チーム
+team_id: チームID
+challenge_title: 課題
+challenge_id: 課題 ID
+flag: フラグ
+user_name: ユーザー
+created_at: 提出日時
+solved: 解決済み
+solves: '{{count}} 件の正解'
+pending_review: 審査中です。しばらくお待ちください。
+empty: 提出はまだありません。
+cheated: この課題には不正行為の記録があるため、提出できません。
+submitted: '#{{id}} {{title}} の解答を提出しました'
+actions:
+  submit: 提出
+  mark_cheat: チートとしてマーク
+  mark_incorrect: 不正解としてマーク
+  status_updated: ステータスを更新しました
+result:
+  correct: おめでとうございます。正解です！
+  incorrect: 不正解です。もう一度確認してください。
+  cheat: 不正行為の可能性が検出され、記録されました。
+  timeout: 送信がタイムアウトしました。
+  duplicate: この課題はすでに解決済みです。
+status:
+  _: ステータス
+  pending: 審査待ち
+  correct: 正解
+  incorrect: 不正解
+  cheat: 不正行為
+  expired: 期限切れ
+  duplicate: 重複

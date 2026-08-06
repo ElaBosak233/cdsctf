@@ -1,0 +1,18 @@
+hint1: 此題目需要動態環境。
+hint2: 點選「啟動」以佈建環境。
+remaining: "剩餘時間 {{hours}}:{{minutes}}:{{seconds}}"
+error: 發生錯誤。
+actions:
+  start:
+    _: 啟動
+    creating: 正在建立容器。
+    sent: 已發出啟動命令。
+    description: 這可能需要一些時間。
+    error: 建立容器時發生錯誤，即將銷毀容器。
+  stop:
+    _: 停止
+    sent: 已發出停止命令。
+  renew:
+    _: 續期
+    success: 續期成功。
+    error: 續期失敗。

@@ -1,0 +1,160 @@
+_: 管理者
+home:
+  _: ホーム
+  statistics:
+    users: 登録済みユーザー
+    games: 開催済みの大会
+    challenges: 登録済みの課題
+    submissions: 処理済みの提出
+platform:
+  _: プラットフォーム
+  logo: ロゴ
+  logo_upload:
+    progress: "アップロードの進行状況: {{percent}}%"
+    success: ロゴを更新しました。
+    error: ロゴのアップロードに失敗しました。
+  logo_reset:
+    success: ロゴをリセットしました。
+  auth:
+    registration_enabled:
+      'true': はい
+      'false': いいえ
+  form:
+    meta:
+      _: メタ情報
+      title:
+        _: タイトル
+        placeholder: CdsCTF
+      keywords:
+        _: キーワード
+      description:
+        _: 説明
+        placeholder: あなたを攻撃したくありません！
+      footer:
+        _: フッター
+    auth:
+      _: 認証
+      registration_enabled:
+        _: 登録を有効にする
+  actions:
+    update:
+      _: プラットフォーム設定の更新
+      success: プラットフォーム設定を更新しました
+mailbox:
+  _: メールサービス
+  enabled:
+    _: メールサービスを有効にする
+    'true': はい
+    'false': いいえ
+  tls:
+    _: TLS
+    none: なし
+    tls: TLS
+    starttls: StartTLS
+  form:
+    enabled:
+      _: メールサービスを有効にする
+    host:
+      _: SMTPホスト
+      placeholder: smtp.example.com
+    port:
+      _: ポート
+    tls:
+      _: TLS
+    username:
+      _: SMTP ユーザー名
+      placeholder: SMTP ユーザー名
+    password:
+      _: パスワード
+      placeholder: SMTP パスワード
+    verification_email:
+      _: 認証メールテンプレート
+      placeholder: xHTML (RFC 2557)
+    reset_password_email:
+      _: パスワードリセット用メールテンプレート
+      placeholder: xHTML (RFC 2557)
+  actions:
+    update:
+      _: メールサービス設定を更新
+      success: メールサービス設定を更新しました
+captcha:
+  _: CAPTCHA
+  provider:
+    _: プロバイダー
+    none: なし
+    pow: プルーフオブワーク
+    image: 画像認証
+    turnstile: Cloudflare Turnstile
+    hcaptcha: HCaptcha
+  form:
+    provider:
+      _: プロバイダー
+      description: 有効にすると、必要な画面で CAPTCHA を表示します。
+    difficulty:
+      _: 難易度
+      description: 画像認証と PoW の難易度に使用されます。
+    turnstile:
+      url:
+        _: API URL
+      site_key:
+        _: サイトキー
+      secret_key:
+        _: シークレットキー
+    hcaptcha:
+      url:
+        _: API URL
+      site_key:
+        _: サイトキー
+      secret_key:
+        _: シークレットキー
+      score:
+        _: スコア
+  actions:
+    update:
+      _: CAPTCHA 設定を更新
+      success: CAPTCHA 設定を更新しました
+idp:
+  _: ID プロバイダー
+  empty: ID プロバイダーが設定されていません。
+  enabled:
+    'true': 有効
+    'false': 無効
+  avatar_upload:
+    progress: "アップロードの進行状況: {{percent}}%"
+    success: アバターをアップロードしました。
+    error: アバターのアップロードに失敗しました。
+    size_error: アバターサイズが 5 MB の制限を超えています。
+  avatar_delete:
+    success: アバターを削除しました。
+  form:
+    name:
+      _: 名前
+      placeholder: GitHub
+      message: ID プロバイダー名を入力してください。
+    portal:
+      _: ポータル
+      placeholder: https://example.com/oauth
+    enabled:
+      _: 有効
+    avatar: アバター
+    script:
+      _: スクリプト
+      templates:
+        _: テンプレート
+        default: デフォルト
+        oauth: OAuth 2.0
+        cas: CAS
+  actions:
+    create:
+      _: ID プロバイダーを作成
+      success: '{{name}} を作成しました。'
+    update:
+      success: '{{name}} を更新しました。'
+    enable:
+      success: '{{name}} を有効にしました。'
+    disable:
+      success: '{{name}} を無効にしました。'
+    delete:
+      _: ID プロバイダーを削除
+      message: 本当に <muted>{{name}}</muted> を削除しますか？
+      success: '{{name}} を削除しました。'

@@ -1,0 +1,101 @@
+login:
+  _: 登入
+  please: 請登入
+  continue: 登入以繼續瀏覽
+  success:
+    _: 登入成功
+    welcome: "歡迎回來，{{name}}"
+  error:
+    _: 登入失敗
+    invalid: 帳號或密碼錯誤
+  form:
+    message:
+      please_input_account: 請輸入帳號
+      please_input_password: 請輸入密碼
+  warning:
+    already_logged_in: 你已登入
+    not_verified: 你的帳號尚未驗證
+    verify_email: 請先驗證你的電子郵件地址
+register:
+  _: 註冊
+  not_yet: 還沒有帳號？註冊！
+  continue: 註冊以繼續瀏覽 {{title}}
+  submit: 註冊
+  form:
+    username:
+      _: 使用者名稱
+      message: 請輸入使用者名稱
+      start_lower: 使用者名稱必須以小寫字母開頭
+      chars: 使用者名稱僅可包含小寫英文字母和數字
+    name:
+      _: 暱稱
+      message: 請輸入暱稱
+    email:
+      _: 電子郵件
+      invalid: 電子郵件地址格式不正確
+    password:
+      _: 密碼
+      message: 請輸入密碼
+      min: 密碼最少需要 6 個字元
+    confirm_password:
+      _: 確認密碼
+      message: 請重新輸入新密碼
+      mismatch: 新密碼與確認密碼不一致
+    captcha:
+      _: 驗證碼
+  toast:
+    success:
+      _: 註冊成功
+      desc: 註冊成功，請登入
+    failure:
+      _: 註冊失敗
+      conflict: 使用者名稱或電子郵件地址已被使用
+forgot: 忘記密碼？
+forget:
+  subtitle: 下次請妥善保管密碼。
+  form:
+    email:
+      _: 電子郵件
+      message: 請輸入電子郵件
+    code:
+      _: 驗證碼
+      message: 請輸入驗證碼
+      request: 取得驗證碼
+    password:
+      _: 新密碼
+      message: 請輸入新密碼
+    captcha:
+      _: 驗證碼
+    submit: 重設密碼
+  toast:
+    success:
+      _: 密碼重設成功
+      desc: 請登入
+    not_found: 電子郵件不存在
+    code_sent: 驗證碼已寄出，請查收。
+logout: 登出
+setting: 帳號設定
+idp:
+  _: 第三方認證服務
+  register:
+    _: 完成註冊
+    description: 請填寫詳細資訊以完成第三方帳號註冊。
+    no_pending: 找不到待處理的第三方登入資訊。請先使用第三方服務登入。
+    go_login: 前往登入頁面
+    submit: 完成註冊
+    success: 帳號建立成功
+    success_desc: 您已登入
+    failed: 註冊失敗
+    conflict: 使用者名稱或電子郵件已存在
+  bind:
+    success: 第三方帳號綁定成功
+  login:
+    success: 登入成功
+    error: 第三方登入失敗
+  unbind:
+    success: 第三方帳號解除綁定成功
+  third_party: 第三方登入
+captcha:
+  _: 人機驗證
+  please_refresh: 請重新整理驗證碼
+  expired: 驗證碼已失效

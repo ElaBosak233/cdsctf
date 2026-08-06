@@ -1,0 +1,101 @@
+login:
+  _: ログイン
+  please: ログインしてください
+  continue: ログインして閲覧を続ける
+  success:
+    _: ログインしました
+    welcome: おかえりなさい、{{name}}
+  error:
+    _: ログインに失敗しました
+    invalid: 無効なアカウントまたはパスワードです
+  form:
+    message:
+      please_input_account: アカウントを入力してください
+      please_input_password: パスワードを入力してください
+  warning:
+    already_logged_in: すでにログインしています
+    not_verified: まだ認証されていません
+    verify_email: 先にメールアドレスを認証してください。
+register:
+  _: 登録
+  not_yet: アカウントをお持ちでない方は登録してください。
+  continue: 登録して{{title}}の閲覧を続ける
+  submit: 登録
+  form:
+    username:
+      _: ユーザー名
+      message: ユーザー名を入力してください。
+      start_lower: ユーザー名は英小文字で始める必要があります。
+      chars: ユーザー名に使用できるのは英小文字と数字のみです。
+    name:
+      _: ニックネーム
+      message: ニックネームを入力してください
+    email:
+      _: メールアドレス
+      invalid: 無効なメールアドレス
+    password:
+      _: パスワード
+      message: パスワードを入力してください
+      min: パスワードは6文字以上なければなりません
+    confirm_password:
+      _: パスワードの確認
+      message: パスワードを再度入力してください。
+      mismatch: パスワードが一致しません
+    captcha:
+      _: CAPTCHA
+  toast:
+    success:
+      _: 登録しました。
+      desc: 登録に成功しました。ログインしてください
+    failure:
+      _: 登録に失敗しました
+      conflict: ユーザー名またはメールアドレスが既に存在します
+forgot: パスワードをお忘れですか？
+forget:
+  subtitle: 次回はパスワードを大切に保管してください。
+  form:
+    email:
+      _: メールアドレス
+      message: メールアドレスを入力してください
+    code:
+      _: 認証コード
+      message: 認証コードを入力してください。
+      request: 認証コードを送信
+    password:
+      _: 新しいパスワード
+      message: 新しいパスワードを入力してください
+    captcha:
+      _: CAPTCHA
+    submit: パスワードをリセットする
+  toast:
+    success:
+      _: パスワードのリセットに成功しました
+      desc: ログインしてください
+    not_found: メールアドレスが見つかりません
+    code_sent: 認証コードを送信しました
+logout: ログアウト
+setting: アカウント設定
+idp:
+  _: ID プロバイダー
+  register:
+    _: 登録を完了
+    description: サードパーティーログインでのアカウント登録を完了するには、詳細を入力してください。
+    no_pending: 保留中の ID プロバイダー情報がありません。先にサードパーティーのプロバイダーでログインしてください。
+    go_login: ログインへ
+    submit: 登録を完了
+    success: アカウントを作成しました
+    success_desc: ログインしました。
+    failed: 登録に失敗しました
+    conflict: ユーザー名またはメールアドレスが既に存在します
+  bind:
+    success: ID プロバイダーを紐付けました。
+  login:
+    success: サインインしました。
+    error: ID プロバイダーへのリクエストに失敗しました。
+  unbind:
+    success: ID プロバイダーの紐付けを解除しました。
+  third_party: サードパーティのログイン
+captcha:
+  _: CAPTCHA
+  please_refresh: CAPTCHA を更新してください
+  expired: CAPTCHA の有効期限が切れています

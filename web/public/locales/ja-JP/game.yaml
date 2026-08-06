@@ -1,0 +1,198 @@
+_: 大会
+empty: 大会はまだありません。
+result_count: '{{count}} 件の大会'
+filter:
+  all: すべて
+  pts: 点
+id: ID
+edit:
+  _: 大会を編集
+  info: 情報
+  challenge: 課題
+  team: チーム
+  notice: お知らせ
+  submission: 提出
+  recalculate: 再計算
+title: タイトル
+public: 公開
+sketch: 概要
+started_at: 開始日時
+ended_at: 終了日時
+enabled:
+  'true': 有効
+  'false': 無効
+  actions:
+    'true': 有効にする
+    'false': 無効にする
+    success: 大会 {{title}} の状態を更新しました。
+scoreboard:
+  _: スコアボード
+  empty: 参加チームはありません。
+  columns:
+    user: ユーザー
+    challenge: 課題
+    score: スコア
+    time: 時刻
+description:
+  _: 説明
+  empty: 主催者からの説明はありません。
+status:
+  upcoming:
+    _: 開催予定
+    remaining: '{{hours}}:{{minutes}}:{{seconds}}後に開始'
+  ongoing:
+    _: 開催中
+    remaining: '{{hours}}:{{minutes}}:{{seconds}}後に凍結'
+  frozen:
+    _: 凍結中
+    remaining: '{{hours}}:{{minutes}}:{{seconds}}後に終了'
+  ended:
+    _: 終了
+    remaining: この大会は終了しました
+search:
+  title: 大会タイトル
+  clear: 検索条件をクリア
+form:
+  title:
+    _: タイトル
+    message: タイトルを入力してください
+    placeholder: 私のCTF大会
+  sketch:
+    _: 概要
+    placeholder: 昔々…
+  poster: ポスター
+  poster_upload:
+    progress: アップロードの進行状況 {{percent}}%
+    success: ポスターが正常にアップロードされました。
+    error: ポスターのアップロードに失敗しました。
+    size_error: ポスターのサイズが3 MBの制限を超えています。
+  poster_delete:
+    success: ポスターが正常に削除されました。
+  icon: アイコン
+  icon_upload:
+    progress: アップロードの進行状況 {{percent}}%
+    success: アイコンをアップロードしました。
+    error: アップロードに失敗しました。
+    size_error: アイコンのサイズが5 MBの制限を超えています。
+  icon_delete:
+    success: アイコンを削除しました。
+  public:
+    _: 公開（審査不要）
+    'true': はい
+    'false': いいえ
+  writeup_required:
+    _: 解答レポートの提出が必要
+    'true': はい
+    'false': いいえ
+  member_limit_min:
+    _: チームの最小人数
+    message: チームの最小人数を入力してください
+    placeholder: '3'
+  member_limit_max:
+    _: チームの最大人数
+    message: チームの最大人数を入力してください
+    placeholder: '3'
+  started_at:
+    _: 開始日時
+    message: 開始日時を選択してください。
+  frozen_at:
+    _: 凍結日時
+    message: 凍結日時を選択してください
+  ended_at:
+    _: 終了日時
+    message: 終了日時を選択してください
+  description:
+    _: 説明
+    placeholder: 昔々…
+actions:
+  _: 操作
+  enter: 大会に参加
+  create:
+    _: 大会を作成
+    success: 大会 {{title}} を作成しました。
+  delete:
+    _: 大会を削除
+    message: 大会 <muted>{{title}}</muted> を削除しますか？
+    success: 大会 {{title}} を削除しました。
+  update:
+    _: 大会を更新
+    success: 大会 {{title}} を更新しました。
+challenges:
+  no_permission: この大会の課題を表示する権限がありません。
+challenge:
+  empty: この大会には課題がまだありません。
+  pts: 現在のポイント
+  title: タイトル
+  category: カテゴリ
+  enabled:
+    _: 有効
+    toast: '課題 {{title}} を{{enabled}}にしました'
+    aria_label: 課題の有効状態を切り替え
+    actions:
+      success: 課題 {{title}} の状態を更新しました。
+  form:
+    max_pts:
+      _: 最大ポイント
+      message: 最大ポイントを入力してください
+      placeholder: '2000'
+    min_pts:
+      _: 最低ポイント
+      message: 最低ポイントを入力してください
+      placeholder: '500'
+    difficulty:
+      _: 難易度
+      message: 難易度を入力してください
+      placeholder: '5'
+    frozen_at: 凍結日時
+    bonus_ratio: ボーナス比率（%）
+    bonus_ratio_item: 第{{index}}項
+  actions:
+    _: 操作
+    edit_config_success: 課題 {{title}} の設定を更新しました。
+    state_wrapper: ({{state}})
+    add_exists: この課題はすでにこの大会に存在します。
+    add:
+      _: 課題を追加
+      message: IDまたは課題名で課題を検索してください。一覧には最初の10件のみ表示されます。課題名をクリックすると大会に追加できます。
+      success: 課題 {{title}} をこの大会に追加しました。
+    edit:
+      _: 課題を編集
+      success: 課題 {{title}} を更新しました。
+    delete:
+      _: 課題を削除
+      message: この大会から課題 <muted>{{title}}</muted> を削除してもよろしいですか？
+      success: 課題 {{title}} をこの大会から削除しました。
+team:
+  empty: 参加チームはありません。
+  actions:
+    _: 操作
+    ban: 利用停止
+    refuse: 拒否
+    pass: 承認
+    message: チーム {{name}} の状態を更新しました。
+notice:
+  _: お知らせ
+  id: ID
+  board: 掲示板
+  new: 新しいお知らせ
+  empty: お知らせはまだありません。
+  title: タイトル
+  content: 内容
+  created_at: 作成日時
+  form:
+    title:
+      _: タイトル
+      message: タイトルを入力してください
+      placeholder: 私のCTF大会
+    content:
+      _: 内容
+      message: 内容を入力してください
+  actions:
+    _: 操作
+    create:
+      _: お知らせを作成
+      success: お知らせ {{title}} を作成しました。
+    delete:
+      _: お知らせを削除
+      message: お知らせ <muted>{{title}}</muted> を削除してもよろしいですか？
+      success: お知らせ {{title}} を削除しました。

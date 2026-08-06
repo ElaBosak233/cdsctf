@@ -1,0 +1,103 @@
+_: チーム
+id: ID
+info: 情報
+members: メンバー
+write_up:
+  _: 解答レポート
+  submission:
+    submitted_at: 提出日時
+    submitted_at_empty: 未提出
+  actions:
+    submit:
+      _: 解答レポートを提出
+      done: 解答レポートを提出済み
+    upload:
+      _: 解答レポートをアップロード
+      progress: アップロードの進行状況 {{percent}}%
+      success: 解答レポートをアップロードしました。
+      error: 解答レポートのアップロードに失敗しました。
+      hint: 解答レポートを PDF ファイルとしてエクスポートしてアップロードしてください。ファイルサイズは 50 MB 以下にしてください。
+    download:
+      _: 解答レポートをダウンロード
+name: チーム名
+email: メールアドレス
+slogan:
+  _: スローガン
+  empty: このチームは何も残していません。
+rank: 順位
+pts: スコア
+invite_code:
+  _: 招待コード
+  empty: 利用可能な招待コードがありません
+  actions:
+    generate: 新しい招待コードを生成
+state:
+  _: 現在の状態
+  banned: 参加禁止
+  preparing: 準備中
+  pending: 審査待ち
+  passed: 承認済み
+  state_wrapper: ({{state}})
+has_writeup:
+  _: 解答レポート
+  'true': 提出済み
+  'false': 未提出
+search:
+  name: チーム名
+actions:
+  gather:
+    _: チームを結成
+    create:
+      _: 作成
+      title: チームを作成
+    join:
+      _: 参加
+      title: チームに参加
+  participate_after_login: 参加するにはログインしてください
+  participate: '{{name}}として参加'
+  disband:
+    _: チームを解散する
+    message: チームは直ちに解散します。すべてのメンバーがほかのチームを作成したり、参加したりできるようになります。
+    success: チームは正常に解散しました。
+    description: チーム {{name}} を解散しました。
+  leave:
+    _: チームを脱退する
+    message: このチームを脱退しようとしています。その後、ほかのチームを作成したり、参加したりできます。
+    success: チームを脱退しました。
+    description: チーム {{name}} から脱退しました。
+    error: チームを脱退できませんでした。
+  ready:
+    _: 準備完了
+    success: 準備ができました。
+    description: '{{name}}が登場します！'
+    title: 最終確認
+    message: この操作によりチームの状態は審査待ちになります。その後、メンバーの追加や脱退、大会からの離脱など、チームの状態に影響する操作は行えません。
+    of_course: 本当に準備完了です！
+  create:
+    success: チーム {{name}} を作成しました。
+  join:
+    success: チームに正常に参加しました。
+    error: 参加失敗
+  update:
+    success: チーム {{name}} を更新しました。
+  locked: チームはロックされています。
+avatar:
+  _: アバター
+  upload:
+    progress: アップロードの進行状況 {{percent}}%
+    success: アバターが正常にアップロードされました。
+    error: アバターのアップロードに失敗しました。
+    size_error: アバターサイズが5 MBの制限を超えています。
+  delete:
+    success: アバターが正常に削除されました。
+  team_delete_success: チーム {{name}} のアバターを削除しました。
+form:
+  name:
+    _: チーム名
+    placeholder: チーム名を入力してください
+    required: チーム名を入力してください
+  invite_code:
+    _: 招待コード
+    placeholder: 招待コードを入力してください。
+    required: 招待コードを入力してください。
+    invalid: 無効な招待コード

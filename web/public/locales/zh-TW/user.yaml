@@ -1,0 +1,182 @@
+_: 使用者
+empty: 目前尚無使用者。
+edit:
+  _: 編輯使用者
+  info: 基本資訊
+  email: 電子郵件管理
+  password: 修改密碼
+settings:
+  info: 基本資訊
+  email: 電子郵件
+  password: 修改密碼
+  idp: 第三方認證服務
+  delete: 刪除帳號
+  profile_update_success: 個人資料更新成功。
+  avatar_upload:
+    progress: "上傳進度 {{percent}}%"
+    success: 頭像上傳成功。
+    error: 頭像上傳失敗。
+    size_error: 頭像大小超過 5 MB 限制。
+  avatar_delete_success: 頭像刪除成功。
+id: ID
+username: 使用者名稱
+name: 暱稱
+password: 密碼
+email: 電子郵件
+group:
+  _: 使用者群組
+  guest: 訪客
+  banned: 已停權
+  user: 使用者
+  admin: 管理員
+avatar: 頭像
+description: 個人簡介
+created_at: 註冊於
+search:
+  username: 使用者名稱
+  group: 使用者群組
+form:
+  username:
+    _: 使用者名稱
+    messages:
+      _: 請輸入使用者名稱
+      min: 使用者名稱至少 3 個字元
+    placeholder: 使用者名稱
+  name:
+    _: 暱稱
+    messages:
+      _: 請輸入暱稱
+      min: 暱稱至少 2 個字元
+    placeholder: 暱稱
+  email:
+    _: 電子郵件
+    message: 請輸入有效的電子郵件地址
+    placeholder: ctf@example.com
+  password:
+    _: 密碼
+    messages:
+      _: 請輸入密碼
+      min: 密碼至少 6 個字元
+    placeholder: P4ssw0rd!
+  group:
+    _: 使用者群組
+    message: 請選擇使用者群組
+  description:
+    _: 描述
+    message: 請輸入描述
+    placeholder: 很久很久以前…
+  avatar: 頭像
+actions:
+  _: 操作
+  create:
+    _: 建立使用者
+    success: "使用者 {{username}} 建立成功。"
+    errors:
+      conflict: 使用者名稱或電子郵件已被佔用。
+  update:
+    _: 更新使用者
+    success: "使用者 {{username}} 更新成功。"
+  delete:
+    _: 刪除使用者
+    message: "您確定要刪除使用者 <muted>{{username}}</muted> 嗎？"
+    success: "使用者 {{username}} 刪除成功。"
+emails:
+  _: 電子郵件
+  brief: 新增或編輯此使用者綁定的電子郵件地址
+  verify_code_placeholder: I_d0nt_kn0w
+  empty: 此使用者尚未新增任何電子郵件地址。
+  verified:
+    "true":
+      _: 已驗證
+      long: 此電子郵件地址已通過驗證。
+    "false":
+      _: 未驗證
+      long: 此電子郵件地址尚未驗證。
+  form:
+    email:
+      _: 電子郵件
+      message: 請輸入有效的電子郵件地址
+      placeholder: ctf@example.com
+    verified:
+      _: 標記為已驗證
+      message: 立即將電子郵件地址標記為已驗證。
+  actions:
+    create:
+      _: 新增電子郵件
+      success: "電子郵件 {{email}} 新增成功。"
+    update:
+      _: 更新電子郵件狀態
+      success: "電子郵件 {{email}} 的驗證狀態已更新。"
+    delete:
+      _: 刪除電子郵件
+      message: "您確定要刪除該電子郵件 <muted>{{email}}</muted> 嗎？"
+      message_brief: 刪除後，此電子郵件地址將無法用於登入或郵件通知。
+      success: "電子郵件 {{email}} 刪除成功。"
+    verify:
+      _: 驗證電子郵件
+      disabled: "{{title}} 未啟用郵件服務，可直接確認此電子郵件地址。"
+      success: "電子郵件 {{email}} 驗證成功。"
+    send_verify:
+      _: 傳送驗證郵件
+      success: "驗證信已傳送至 {{email}}。"
+change_password:
+  form:
+    old_password:
+      _: 原始密碼
+      message: 請輸入原始密碼
+      placeholder: 原始密碼
+    new_password:
+      _: 新密碼
+      messages:
+        _: 請輸入新密碼
+        min: 密碼至少 6 個字元
+      placeholder: 新密碼
+    confirm_password:
+      _: 確認新密碼
+      messages:
+        _: 請再次輸入新密碼
+        match: 兩次輸入的密碼不一致
+      placeholder: 確認新密碼
+  actions:
+    update:
+      _: 修改密碼
+      success: "使用者 {{username}} 的密碼修改成功。"
+    self_update:
+      _: 修改密碼
+      success: 個人密碼更新成功。
+delete_account:
+  _: 刪除帳號
+  final_warning: 最後警告
+  warnings:
+    intro: 你即將刪除帳號。帳號不會立即實體刪除，而會永久進入軟刪除狀態，且無法復原！
+    username: 你的使用者名稱會以特殊格式修改並儲存。之後可使用原本的使用者名稱註冊新的帳號。
+    email: 你的電子郵件地址會解除綁定並清除。之後可使用原本的電子郵件地址註冊新的帳號。
+    data: 所有與你相關的比賽、團隊及送出紀錄仍會保留。但刪除帳號後，不再有資訊可證明這些資料屬於你。
+    irreversible: 請再次注意，你接下來的操作是不可逆的！請三思而後行！
+    confirm: 請仔細閱讀上述內容。若確定要刪除帳號，請在下方輸入完整使用者名稱與密碼，然後點選確認。
+  form:
+    username:
+      _: 使用者名稱
+      messages:
+        _: 請輸入使用者名稱
+        match: 使用者名稱不一致
+    password:
+      _: 密碼
+      message: 請輸入密碼
+    captcha:
+      _: 驗證碼
+      message: 請輸入驗證碼
+  actions:
+    delete:
+      success: 帳號已刪除。
+idp:
+  _: 第三方認證服務
+  actions:
+    bind: 綁定
+    unbind: 解除綁定
+    bound: 已綁定
+    unbound: 未綁定
+    bound_toast: 第三方帳號綁定成功
+    unbound_toast: 第三方帳號解除綁定成功
+    request_failed: 第三方登入失敗
+    signed_in: 登入成功

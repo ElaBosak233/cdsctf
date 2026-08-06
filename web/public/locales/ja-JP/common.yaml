@@ -1,0 +1,31 @@
+home: ホーム
+search: 検索
+loading: 読み込み中
+filter: 絞り込み
+all: すべて
+exit: 終了
+pagination:
+  _: ページネーション
+  items: 件
+actions:
+  add: 追加
+  save: 保存
+  cancel: キャンセル
+  confirm: 確認
+  delete: 削除
+  edit: 編集
+  refresh: 更新
+  clear_cache: キャッシュをクリア
+tooltip:
+  copy: クリップボードにコピー
+errors:
+  default: エラーが発生しました
+  unexpected: エラーが発生しました
+  network: ネットワークエラー
+captcha:
+  placeholder: CAPTCHA
+language:
+  en: EN
+  zh-CN: 简
+  zh-TW: 繁
+  ja: な
