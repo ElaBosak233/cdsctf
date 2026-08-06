@@ -18,6 +18,8 @@ function TeamCard() {
     ? t("team:write_up.actions.submit.done")
     : t("team:write_up.actions.submit._");
 
+  if (!selfTeam) return null;
+
   return (
     <section
       className={cn([
