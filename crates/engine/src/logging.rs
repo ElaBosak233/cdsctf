@@ -7,7 +7,7 @@ use std::sync::{
 
 use mlua::{Function, Lua, MultiValue, Table, Value};
 
-use crate::{module, traits::EngineError};
+use crate::{global_module, traits::EngineError};
 
 const MAX_LOG_ENTRIES: u32 = 256;
 const MAX_LOG_MESSAGE_BYTES: usize = 8 * 1024;
@@ -21,19 +21,18 @@ enum Level {
     Error,
 }
 
-/// Installs both the namespaced `cds.log` API and the shorter global `log`
-/// alias. `print` is intentionally mapped to debug for script compatibility.
+/// Installs the global `log` API. `print` is intentionally mapped to debug for
+/// script compatibility.
 pub(crate) fn install(lua: &Lua) -> Result<(), EngineError> {
     let budget = Arc::new(AtomicU32::new(0));
     lua.set_app_data(LogBudget(budget.clone()));
-    let log = module(lua, "log")?;
+    let log = global_module(lua, "log")?;
 
     install_level(lua, &log, "debug", Level::Debug, budget.clone())?;
     install_level(lua, &log, "info", Level::Info, budget.clone())?;
     install_level(lua, &log, "warn", Level::Warn, budget.clone())?;
     install_level(lua, &log, "error", Level::Error, budget.clone())?;
 
-    lua.globals().set("log", log.clone())?;
     lua.globals()
         .set("print", create_log_function(lua, Level::Debug, budget)?)?;
     Ok(())
@@ -115,24 +114,17 @@ mod tests {
     };
 
     #[test]
-    fn installs_global_and_namespaced_logging() {
+    fn installs_global_logging() {
         let lua = Lua::new();
-        lua.globals()
-            .set("cds", lua.create_table().unwrap())
-            .unwrap();
         install(&lua).unwrap();
 
         let _: Function = lua.globals().get("print").unwrap();
         let _: Function = lua.load("return log.debug").eval().unwrap();
-        let _: Function = lua.load("return cds.log.info").eval().unwrap();
     }
 
     #[test]
     fn accepts_multiple_values_and_maps_print_to_debug() {
         let lua = Lua::new();
-        lua.globals()
-            .set("cds", lua.create_table().unwrap())
-            .unwrap();
         install(&lua).unwrap();
 
         lua.load(
@@ -142,7 +134,6 @@ mod tests {
                 log.info("info")
                 log.warn("warn")
                 log.error("error")
-                cds.log.info("namespaced")
             "#,
         )
         .exec()
@@ -161,9 +152,6 @@ mod tests {
     #[test]
     fn logging_budget_is_silent_after_limit() {
         let lua = Lua::new();
-        lua.globals()
-            .set("cds", lua.create_table().unwrap())
-            .unwrap();
         install(&lua).unwrap();
 
         let script = format!(

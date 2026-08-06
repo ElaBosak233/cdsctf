@@ -1,4 +1,4 @@
-//! Lua module `cds.audit` for checker status and flag helpers.
+//! Lua module `checker.audit` for checker status and flag helpers.
 
 use std::io;
 
@@ -59,7 +59,7 @@ fn status_table(lua: &Lua, kind: &str, operator_id: Option<i64>) -> mlua::Result
 }
 
 pub fn install(lua: &Lua) -> Result<(), EngineError> {
-    let module = cds_engine::module(lua, "audit")?;
+    let module = cds_engine::module(lua, "checker", "audit")?;
     module.set(
         "parse",
         lua.create_function(|lua, value: String| {

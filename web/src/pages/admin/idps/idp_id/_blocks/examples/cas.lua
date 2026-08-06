@@ -10,9 +10,9 @@ function login(params)
     end
 
     local url = CAS_BASE_URL
-        .. "/serviceValidate?format=JSON&ticket=" .. cds.http.url_encode(ticket)
-        .. "&service=" .. cds.http.url_encode(SERVICE_URL)
-    local response = cds.http.request(
+        .. "/serviceValidate?format=JSON&ticket=" .. http.url_encode(ticket)
+        .. "&service=" .. http.url_encode(SERVICE_URL)
+    local response = http.request(
         "GET",
         url,
         { Accept = "application/json" },
@@ -22,7 +22,7 @@ function login(params)
         error("CAS validation request failed")
     end
 
-    local payload = cds.json.decode(response.body)
+    local payload = json.decode(response.body)
     local success = payload.serviceResponse.authenticationSuccess
     if not success then
         error("CAS authentication failed")

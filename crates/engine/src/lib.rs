@@ -2,8 +2,10 @@
 //! providers.
 //!
 //! Scripts are cached by source and executed in an isolated Lua state. Native
-//! integrations install their APIs below the `cds` global namespace.
+//! Platform-specific integrations install their APIs below an explicit script
+//! namespace, while generic runtime libraries remain top-level globals.
 
+pub mod modules;
 pub mod traits;
 
 mod logging;
@@ -11,7 +13,7 @@ mod util;
 mod worker;
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     sync::{
         Arc, Mutex,
         atomic::{AtomicU32, Ordering},
@@ -47,6 +49,8 @@ struct EngineContext {
 }
 
 struct InstructionBudget(Arc<AtomicU32>);
+
+struct NamespaceRegistry(Mutex<HashSet<String>>);
 
 struct LuaPool {
     slots: Mutex<Vec<Lua>>,
@@ -161,8 +165,9 @@ pub fn create_lua() -> Result<Lua, EngineError> {
         },
     )?;
 
-    lua.globals().set("cds", lua.create_table()?)?;
+    lua.set_app_data(NamespaceRegistry(Mutex::new(HashSet::new())));
     logging::install(&lua)?;
+    modules::install(&lua)?;
     Ok(lua)
 }
 
@@ -210,9 +215,35 @@ fn execution_environment(lua: &Lua) -> mlua::Result<Table> {
     let mut visited = HashMap::new();
     let environment = lua.create_table()?;
 
-    for name in ["cds", "coroutine", "math", "string", "table", "utf8", "log"] {
-        if let Value::Table(table) = globals.get(name)? {
-            environment.set(name, proxy_table(lua, &table, &mut visited)?)?;
+    let mut names = [
+        "crypto",
+        "http",
+        "json",
+        "coroutine",
+        "math",
+        "string",
+        "table",
+        "utf8",
+        "log",
+        "regex",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect::<Vec<_>>();
+    if let Some(registry) = lua.app_data_ref::<NamespaceRegistry>() {
+        names.extend(
+            registry
+                .0
+                .lock()
+                .expect("lua namespace registry poisoned")
+                .iter()
+                .cloned(),
+        );
+    }
+
+    for name in names {
+        if let Value::Table(table) = globals.get(name.as_str())? {
+            environment.set(name.as_str(), proxy_table(lua, &table, &mut visited)?)?;
         }
     }
     environment.set("print", globals.get::<Function>("print")?)?;
@@ -225,11 +256,40 @@ fn execution_environment(lua: &Lua) -> mlua::Result<Table> {
     Ok(environment)
 }
 
-/// Creates and installs a module table below the host-owned `cds` namespace.
-pub fn module(lua: &Lua, name: &str) -> Result<Table, EngineError> {
-    let cds: Table = lua.globals().get("cds")?;
+/// Creates and installs a module table below a host-owned namespace.
+pub fn module(lua: &Lua, namespace: &str, name: &str) -> Result<Table, EngineError> {
+    let globals = lua.globals();
+    let namespace_table = match globals.get::<Value>(namespace)? {
+        Value::Nil => {
+            let table = lua.create_table()?;
+            globals.set(namespace, table.clone())?;
+            table
+        }
+        Value::Table(table) => table,
+        value => {
+            return Err(mlua::Error::RuntimeError(format!(
+                "Lua namespace `{namespace}` is not a table (got {})",
+                value.type_name()
+            ))
+            .into());
+        }
+    };
     let table = lua.create_table()?;
-    cds.set(name, table.clone())?;
+    namespace_table.set(name, table.clone())?;
+    if let Some(registry) = lua.app_data_ref::<NamespaceRegistry>() {
+        registry
+            .0
+            .lock()
+            .expect("lua namespace registry poisoned")
+            .insert(namespace.to_owned());
+    }
+    Ok(table)
+}
+
+/// Creates and installs a module table in the script's global namespace.
+pub fn global_module(lua: &Lua, name: &str) -> Result<Table, EngineError> {
+    let table = lua.create_table()?;
+    lua.globals().set(name, table.clone())?;
     Ok(table)
 }
 
@@ -558,7 +618,7 @@ mod tests {
     async fn isolates_globals_between_pooled_executions() {
         clear_cache();
         let configure: &ConfigureLua = &|lua: &Lua| {
-            let state = super::module(lua, "state")?;
+            let state = super::module(lua, "checker", "state")?;
             state.set("value", 0)?;
             Ok(())
         };
@@ -566,9 +626,9 @@ mod tests {
             "test/pool-isolation",
             r#"
                 counter = (counter or 0) + 1
-                cds.state.value = cds.state.value + 1
+                checker.state.value = checker.state.value + 1
                 function value()
-                    return counter * 100 + cds.state.value
+                    return counter * 100 + checker.state.value
                 end
             "#,
             None,

@@ -10,14 +10,14 @@ function login(params)
         error("missing authorization code")
     end
 
-    local token_response = cds.http.request(
+    local token_response = http.request(
         "POST",
         "https://github.com/login/oauth/access_token",
         {
             Accept = "application/json",
             ["Content-Type"] = "application/json"
         },
-        cds.json.encode({
+        json.encode({
             code = code,
             client_id = CLIENT_ID,
             client_secret = CLIENT_SECRET,
@@ -27,9 +27,9 @@ function login(params)
     if token_response.status < 200 or token_response.status >= 300 then
         error("GitHub token exchange failed")
     end
-    local token = cds.json.decode(token_response.body)
+    local token = json.decode(token_response.body)
 
-    local user_response = cds.http.request(
+    local user_response = http.request(
         "GET",
         "https://api.github.com/user",
         {
@@ -42,7 +42,7 @@ function login(params)
     if user_response.status < 200 or user_response.status >= 300 then
         error("GitHub user request failed")
     end
-    local user = cds.json.decode(user_response.body)
+    local user = json.decode(user_response.body)
     return {
         auth_key = tostring(user.id),
         username = user.login,

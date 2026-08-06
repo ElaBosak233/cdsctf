@@ -1,7 +1,7 @@
--- Static flag checker.
+-- Regular expression flag checker.
 
 local PREFIX = "flag"
-local CONTENT = "this_is_my_flag"
+local PATTERN = "^this_is_my_flag_[0-9]+$"
 
 function check(operator_id, content)
     local ok, flag = pcall(checker.audit.parse, content)
@@ -9,7 +9,7 @@ function check(operator_id, content)
         return checker.audit.incorrect()
     end
 
-    if flag.content == CONTENT then
+    if regex.is_match(PATTERN, flag.content) then
         return checker.audit.correct()
     end
     return checker.audit.incorrect()

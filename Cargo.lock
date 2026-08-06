@@ -794,7 +794,6 @@ dependencies = [
  "hex",
  "mlua",
  "once_cell",
- "regex",
  "ring",
  "serde",
  "thiserror 2.0.18",
@@ -852,15 +851,19 @@ dependencies = [
  "anyhow",
  "dashmap",
  "full_moon",
+ "hex",
  "mlua",
  "once_cell",
  "regex",
+ "reqwest 0.13.2",
+ "ring",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
  "time",
  "tokio",
  "tracing",
+ "url",
  "utoipa",
 ]
 
@@ -893,16 +896,13 @@ dependencies = [
 name = "cds-idp"
 version = "1.10.2"
 dependencies = [
- "anyhow",
  "cds-engine",
  "mlua",
- "reqwest 0.13.2",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
- "url",
 ]
 
 [[package]]

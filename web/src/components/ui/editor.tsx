@@ -13,8 +13,12 @@ import { cn } from "@/utils";
 
 const luaCompletions: Record<string, Completion[]> = {
   "": [
-    { label: "cds", type: "namespace", info: "CdsCTF Lua APIs" },
+    { label: "checker", type: "namespace", info: "Checker Lua APIs" },
+    { label: "crypto", type: "namespace", info: "Cryptographic hash helpers" },
+    { label: "http", type: "namespace", info: "HTTP request helpers" },
+    { label: "json", type: "namespace", info: "JSON encode/decode helpers" },
     { label: "log", type: "namespace", info: "Script logging APIs" },
+    { label: "regex", type: "namespace", info: "Regular expression helpers" },
     { label: "assert", type: "function" },
     { label: "error", type: "function" },
     { label: "ipairs", type: "function" },
@@ -31,22 +35,17 @@ const luaCompletions: Record<string, Completion[]> = {
     { label: "table", type: "namespace" },
     { label: "utf8", type: "namespace" },
   ],
-  cds: [
+  checker: [
     {
       label: "audit",
       type: "namespace",
       info: "Checker status and flag helpers",
     },
-    { label: "crypto", type: "namespace", info: "Cryptographic hash helpers" },
     { label: "fs", type: "namespace", info: "Checker file storage APIs" },
-    { label: "http", type: "namespace", info: "HTTP request helpers" },
-    { label: "json", type: "namespace", info: "JSON encode/decode helpers" },
     { label: "leet", type: "namespace", info: "Leet flag encoding helpers" },
-    { label: "log", type: "namespace", info: "Script logging APIs" },
-    { label: "regex", type: "namespace", info: "Regular expression helpers" },
     { label: "suid", type: "namespace", info: "SUID encoding helpers" },
   ],
-  "cds.audit": [
+  "checker.audit": [
     { label: "cheat", type: "function", info: "cheat(operator_id)" },
     { label: "correct", type: "function", info: "correct()" },
     { label: "format", type: "function", info: "format(flag)" },
@@ -54,16 +53,15 @@ const luaCompletions: Record<string, Completion[]> = {
     { label: "new", type: "function", info: "new()" },
     { label: "parse", type: "function", info: "parse(content)" },
   ],
-  "cds.crypto": [
+  crypto: [
     { label: "sha256", type: "function", info: "sha256(value)" },
     { label: "sha512", type: "function", info: "sha512(value)" },
   ],
-  "cds.fs": [
-    { label: "key", type: "function", info: "key()" },
+  "checker.fs": [
     { label: "read_to_string", type: "function", info: "read_to_string(path)" },
     { label: "write", type: "function", info: "write(path, content)" },
   ],
-  "cds.http": [
+  http: [
     {
       label: "request",
       type: "function",
@@ -71,37 +69,35 @@ const luaCompletions: Record<string, Completion[]> = {
     },
     { label: "url_encode", type: "function", info: "url_encode(value)" },
   ],
-  "cds.json": [
+  json: [
     { label: "decode", type: "function", info: "decode(value)" },
     { label: "encode", type: "function", info: "encode(value)" },
   ],
-  "cds.leet": [
+  "checker.leet": [
     {
       label: "decode",
       type: "function",
-      info: "decode(template, payload, key)",
+      info: "decode(template, payload, options?: { key?: string })",
     },
     {
       label: "encode",
       type: "function",
-      info: "encode(template, operator_id, key)",
+      info: "encode(template, operator_id, options?: { key?: string })",
     },
   ],
-  "cds.log": [
-    { label: "debug", type: "function", info: "debug(...)" },
-    { label: "error", type: "function", info: "error(...)" },
-    { label: "info", type: "function", info: "info(...)" },
-    { label: "warn", type: "function", info: "warn(...)" },
-  ],
-  "cds.regex": [
+  regex: [
     { label: "is_match", type: "function", info: "is_match(pattern, value)" },
   ],
-  "cds.suid": [
-    { label: "decode", type: "function", info: "decode(payload, key)" },
+  "checker.suid": [
+    {
+      label: "decode",
+      type: "function",
+      info: "decode(payload, options?: { key?: string })",
+    },
     {
       label: "encode",
       type: "function",
-      info: "encode(data, key, hyphenated)",
+      info: "encode(data, options?: { key?: string; hyphenated?: boolean })",
     },
   ],
   log: [

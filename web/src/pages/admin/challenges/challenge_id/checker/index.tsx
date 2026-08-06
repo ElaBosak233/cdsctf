@@ -29,14 +29,22 @@ import { cn } from "@/utils";
 import { Context } from "../context";
 
 import leetChecker from "./_blocks/examples/leet.lua?raw";
+import leetCustomKeyChecker from "./_blocks/examples/leet-custom-key.lua?raw";
+import regexChecker from "./_blocks/examples/regex.lua?raw";
 import simpleChecker from "./_blocks/examples/simple.lua?raw";
 import suidChecker from "./_blocks/examples/suid.lua?raw";
+import suidCustomKeyChecker from "./_blocks/examples/suid-custom-key.lua?raw";
 
 const checkerMap = {
   simple: simpleChecker,
+  regex: regexChecker,
   suid: suidChecker,
+  suid_custom_key: suidCustomKeyChecker,
   leet: leetChecker,
+  leet_custom_key: leetCustomKeyChecker,
 };
+
+type CheckerTemplate = keyof typeof checkerMap;
 
 export default function Index() {
   const { t } = useTranslation();
@@ -155,15 +163,27 @@ export default function Index() {
                   content: t("challenge:checker.templates.simple"),
                 },
                 {
+                  value: "regex",
+                  content: t("challenge:checker.templates.regex"),
+                },
+                {
                   value: "suid",
                   content: t("challenge:checker.templates.suid"),
+                },
+                {
+                  value: "suid_custom_key",
+                  content: t("challenge:checker.templates.suid_custom_key"),
                 },
                 {
                   value: "leet",
                   content: t("challenge:checker.templates.leet"),
                 },
+                {
+                  value: "leet_custom_key",
+                  content: t("challenge:checker.templates.leet_custom_key"),
+                },
               ]}
-              onValueChange={(value: "simple" | "suid" | "leet") => {
+              onValueChange={(value: CheckerTemplate) => {
                 form.setValue("checker", checkerMap[value]);
               }}
             />
