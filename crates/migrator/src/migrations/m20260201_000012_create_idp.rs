@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260201_000012_create_idp` — creates Rune-backed IdP
+//! SeaORM migration `m20260201_000012_create_idp` — creates script-backed IdP
 //! and user binding tables.
 
 use async_trait::async_trait;

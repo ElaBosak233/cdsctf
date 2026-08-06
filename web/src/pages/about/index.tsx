@@ -155,6 +155,24 @@ export default function Index() {
                 fR0Z863xF
               </a>
             </Button>
+            <Button
+              className={cn(["rounded-full"])}
+              variant={"tonal"}
+              size={"sm"}
+              asChild
+            >
+              <a
+                href={"https://github.com/xiaoheiCat"}
+                target={"_blank"}
+                rel="noopener"
+              >
+                <span
+                  className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                  aria-hidden="true"
+                />
+                xiaoheiCat
+              </a>
+            </Button>
           </div>
           <h3 className={cn(["flex", "gap-2", "items-center"])}>
             <HandshakeIcon className={cn(["size-5"])} />

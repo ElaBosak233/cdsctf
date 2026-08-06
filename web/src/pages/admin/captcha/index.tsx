@@ -92,7 +92,9 @@ export default function Index() {
             "flex",
             "flex-col",
             "gap-3",
-            "p-10",
+            "p-4",
+            "sm:p-6",
+            "lg:p-10",
             "xl:mx-60",
             "lg:mx-30",
             "min-h-(--app-content-height)",
@@ -107,7 +109,7 @@ export default function Index() {
             {t("admin:captcha._")}
           </h2>
           <Separator />
-          <div className={cn(["flex", "gap-3"])}>
+          <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
             <FormField
               control={form.control}
               name={"provider"}
@@ -210,7 +212,7 @@ export default function Index() {
                   </FormItem>
                 )}
               />
-              <div className={cn(["flex", "gap-3"])}>
+              <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
                 <FormField
                   control={form.control}
                   name={"turnstile.site_key"}
@@ -264,7 +266,7 @@ export default function Index() {
           )}
           {form.watch("provider") === "hcaptcha" && (
             <>
-              <div className={cn(["flex", "gap-3"])}>
+              <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
                 <FormField
                   control={form.control}
                   name={"hcaptcha.url"}
@@ -317,7 +319,7 @@ export default function Index() {
                   )}
                 />
               </div>
-              <div className={cn(["flex", "gap-3"])}>
+              <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
                 <FormField
                   control={form.control}
                   name={"hcaptcha.site_key"}

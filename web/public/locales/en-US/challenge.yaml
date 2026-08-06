@@ -43,11 +43,21 @@ checker:
     script_required: Please write a script for the checker.
   actions:
     update_success: "Checker for challenge {{title}} updated successfully."
+  lint:
+    idle: Waiting for code
+    checking: Checking code…
+    valid: No issues found
+    invalid_one: "{{count}} issue found"
+    invalid_other: "{{count}} issues found"
+    error: Checking service is temporarily unavailable
   templates:
     _: Select a preset template
     simple: Simple fixed string judgment
+    regex: Regular expression judgment
     leet: Dynamic LEET string judgment
+    leet_custom_key: Dynamic LEET string judgment (custom key)
     suid: Dynamic pseudo-UUID string judgment
+    suid_custom_key: Dynamic pseudo-UUID string judgment (custom key)
 attachment:
   empty: "Oops, it seems there are no attachments yet."
   upload:

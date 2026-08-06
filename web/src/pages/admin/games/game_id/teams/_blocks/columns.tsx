@@ -55,8 +55,6 @@ function useColumns(): Array<ColumnDef<Team>> {
       header: t("team:name"),
       cell: ({ row }) => {
         const name = row.original.name!;
-        const _gid = row.original.game_id ?? resolvedGameId;
-        const _tid = row.original.id;
         return (
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <Avatar

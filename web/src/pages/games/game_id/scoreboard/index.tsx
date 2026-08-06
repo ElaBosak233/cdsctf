@@ -162,7 +162,7 @@ export default function Index() {
                         </Badge>
                       </Card>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent size="preview">
                       <TeamDetailsDialog team={record.team!} />
                     </DialogContent>
                   </Dialog>

@@ -1,4 +1,4 @@
-//! Rune engine support — `worker` (compile/run helpers).
+//! Lua engine cache maintenance.
 
 use time::OffsetDateTime;
 

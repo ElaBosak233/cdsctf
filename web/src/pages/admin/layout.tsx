@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
+import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import {
   Tooltip,
   TooltipContent,
@@ -92,6 +93,8 @@ export default function Layout() {
     <div className={cn(["flex", "flex-1", "min-h-0"])}>
       <div
         className={cn([
+          "hidden",
+          "lg:flex",
           "w-16",
           "h-(--app-content-height)",
           "sticky",
@@ -99,7 +102,6 @@ export default function Layout() {
           "bg-card/30",
           "border-r",
           "p-4",
-          "flex",
           "flex-col",
           "items-center",
           "gap-4",
@@ -131,12 +133,29 @@ export default function Layout() {
       <div
         className={cn([
           "flex-1",
-          "min-h-0",
+          "min-w-0",
           "flex",
           "flex-col",
+          "min-h-0",
           "min-h-(--app-content-height)",
         ])}
       >
+        <ScrollableNav className={cn(["lg:hidden"])}>
+          {options.map((option) => (
+            <Button
+              key={option.link}
+              icon={option.icon}
+              size="sm"
+              className={cn(["shrink-0"])}
+              variant={
+                isSubRoute(option.link, pathname, "/admin") ? "tonal" : "ghost"
+              }
+              asChild
+            >
+              <Link to={option.link}>{option.name}</Link>
+            </Button>
+          ))}
+        </ScrollableNav>
         <Outlet />
       </div>
     </div>

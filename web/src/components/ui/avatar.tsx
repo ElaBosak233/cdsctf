@@ -33,6 +33,7 @@ type AvatarProps = React.ComponentProps<typeof RadixAvatar.Root> &
     src?: string | false;
     fallback?: React.ReactNode;
     fit?: "cover" | "contain" | "fill" | "none" | "scale-down";
+    aspect?: "square" | "video";
     onLoadingStatusChange?: (
       status: "idle" | "loading" | "loaded" | "error"
     ) => void;
@@ -43,6 +44,7 @@ function Avatar(props: AvatarProps) {
     src,
     fallback,
     fit = "cover",
+    aspect = "square",
     square,
     className,
     ref,
@@ -61,6 +63,7 @@ function Avatar(props: AvatarProps) {
       <AvatarImage
         src={src || undefined}
         fit={fit}
+        aspect={aspect}
         onLoadingStatusChange={(status) => {
           setLoading(status === "loading");
           onLoadingStatusChange?.(status);
@@ -93,13 +96,21 @@ function AvatarImage({
   className,
   ref,
   fit = "cover",
+  aspect = "square",
   ...rest
-}: React.ComponentProps<typeof RadixAvatar.Image> & { fit?: string }) {
+}: React.ComponentProps<typeof RadixAvatar.Image> & {
+  fit?: string;
+  aspect?: "square" | "video";
+}) {
   return (
     <RadixAvatar.Image
       ref={ref}
       className={cn(
-        ["aspect-square", "h-full", "w-full"],
+        [
+          aspect === "video" ? "aspect-video" : "aspect-square",
+          "h-full",
+          "w-full",
+        ],
         fit === "cover" && "object-cover",
         fit === "contain" && "object-contain",
         fit === "fill" && "object-fill",

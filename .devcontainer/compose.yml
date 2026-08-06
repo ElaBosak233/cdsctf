@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: cdsctf
       POSTGRES_DB: cdsctf
     ports:
-      - "5432:5432"
+      - "${CDSCTF_DEV_DB_PORT:-5432}:5432"
     volumes:
       - db:/var/lib/postgresql/18/docker
 
@@ -15,7 +15,7 @@ services:
     image: valkey/valkey:9-alpine
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${CDSCTF_DEV_CACHE_PORT:-6379}:6379"
     volumes:
       - cache:/data
 
@@ -23,18 +23,18 @@ services:
     image: nats:2-alpine
     restart: unless-stopped
     ports:
-      - "4222:4222"   # client
-      - "8222:8222"   # HTTP monitoring
+      - "${CDSCTF_DEV_QUEUE_PORT:-4222}:4222"   # client
+      - "${CDSCTF_DEV_QUEUE_MONITOR_PORT:-8222}:8222"   # HTTP monitoring
     volumes:
       - queue:/data
-    command: ["--jetstream", "-sd", "/data"]
+    command: ["--jetstream", "-sd", "/data", "-m", "8222"]
 
   media:
     image: rustfs/rustfs:latest
     restart: unless-stopped
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${CDSCTF_DEV_MEDIA_PORT:-9000}:9000"
+      - "${CDSCTF_DEV_MEDIA_CONSOLE_PORT:-9001}:9001"
     volumes:
       - media:/data
 

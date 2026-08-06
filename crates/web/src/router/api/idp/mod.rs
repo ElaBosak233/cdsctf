@@ -1,4 +1,4 @@
-//! Public IdP routes: IdP list, Rune-backed login, bind, and unbind.
+//! Public IdP routes: IdP list, Lua-backed login, bind, and unbind.
 
 /// Defines the `idp_id` submodule (see sibling `*.rs` files).
 mod idp_id;

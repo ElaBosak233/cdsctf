@@ -80,6 +80,7 @@ export default function Layout() {
           "xl:min-h-(--app-content-height)",
           "flex-1",
           "min-h-0",
+          "min-w-0",
           "xl:pl-64",
         ])}
       >

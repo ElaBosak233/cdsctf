@@ -1,96 +1,86 @@
-//! Rune built-in module `fs` for challenge checker scripts.
+//! Async Lua module `checker.fs` backed by challenge object storage.
 
-use anyhow::anyhow;
-use cds_engine::{rune, rune::Module};
-use cds_media::{Media, traits::MediaError};
-use ring::rand::{SecureRandom, SystemRandom};
-use tokio::runtime::Handle;
-use tracing::debug;
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
-/// Constructs the Rune native module exposed to checker scripts.
-#[rune::module(::fs)]
-pub async fn module(
-    _stdio: bool,
-    media: Media,
-    challenge_id: i64,
-) -> Result<Module, anyhow::Error> {
-    let mut module = Module::from_meta(module_meta)?;
-    let base = format!("challenges/{}", challenge_id);
+use cds_engine::{mlua::Lua, traits::EngineError};
+use cds_media::Media;
 
-    module
-        .function("key", {
+pub(crate) type KeyCache = Arc<RwLock<HashMap<i64, String>>>;
+
+pub(crate) fn decode_key(data: Vec<u8>) -> Result<String, &'static str> {
+    let key = String::from_utf8(data).map_err(|_| "invalid_key_encoding")?;
+    if key.len() != 128 || hex::decode(&key).map_or(true, |decoded| decoded.len() != 64) {
+        return Err("invalid_key_encoding");
+    }
+    Ok(key)
+}
+
+fn ensure_public_path(path: &str) -> Result<(), mlua::Error> {
+    if path == ".key" {
+        Err(mlua::Error::RuntimeError("reserved_path".to_owned()))
+    } else {
+        Ok(())
+    }
+}
+
+pub fn install(lua: &Lua, media: Media, challenge_id: i64) -> Result<(), EngineError> {
+    let module = cds_engine::module(lua, "checker", "fs")?;
+    let base = format!("challenges/{challenge_id}");
+
+    module.set(
+        "read_to_string",
+        lua.create_async_function({
             let base = base.clone();
             let media = media.clone();
-            move || -> Result<String, anyhow::Error> {
+            move |_lua, path: String| {
                 let base = base.clone();
                 let media = media.clone();
-
-                tokio::task::block_in_place(|| {
-                    Handle::current().block_on(async move {
-                        match media.get(base.clone(), ".key".to_string()).await {
-                            Ok(data) => {
-                                String::from_utf8(data).map_err(|_| anyhow!("invalid_key_encoding"))
-                            }
-                            Err(MediaError::NotFound(_)) => {
-                                debug!(challenge_id = challenge_id, "Generating new key");
-
-                                let rng = SystemRandom::new();
-                                let mut bytes = [0u8; 64];
-                                rng.fill(&mut bytes).unwrap();
-                                let key = hex::encode(bytes);
-
-                                media
-                                    .save(base.clone(), ".key".to_string(), key.as_bytes().to_vec())
-                                    .await?;
-
-                                Ok(key)
-                            }
-                            Err(err) => Err(anyhow!(err)),
-                        }
-                    })
-                })
+                async move {
+                    ensure_public_path(&path)?;
+                    let data = media.get(base, path).await.map_err(mlua::Error::external)?;
+                    String::from_utf8(data)
+                        .map_err(|_| mlua::Error::RuntimeError("invalid_utf8".to_owned()))
+                }
             }
-        })
-        .build()?;
+        })?,
+    )?;
 
-    module
-        .function("read_to_string", {
+    module.set(
+        "write",
+        lua.create_async_function(move |_lua, (path, content): (String, String)| {
             let base = base.clone();
             let media = media.clone();
-            move |path: String| -> Result<String, anyhow::Error> {
-                let base = base.clone();
-                let media = media.clone();
-
-                tokio::task::block_in_place(|| {
-                    Handle::current().block_on(async move {
-                        let data = media.get(base.clone(), path).await?;
-                        String::from_utf8(data).map_err(|_| anyhow!("invalid_utf8"))
-                    })
-                })
+            async move {
+                ensure_public_path(&path)?;
+                media
+                    .save(base, path, content.into_bytes())
+                    .await
+                    .map_err(mlua::Error::external)
             }
-        })
-        .build()?;
+        })?,
+    )?;
+    Ok(())
+}
 
-    module
-        .function("write", {
-            let base = base.clone();
-            let media = media.clone();
-            move |path: String, content: String| -> Result<(), anyhow::Error> {
-                let base = base.clone();
-                let media = media.clone();
+#[cfg(test)]
+mod tests {
+    use super::{decode_key, ensure_public_path};
 
-                tokio::task::block_in_place(|| {
-                    Handle::current().block_on(async move {
-                        media
-                            .save(base.clone(), path, content.into_bytes())
-                            .await
-                            .map_err(|err| anyhow!(err))?;
-                        Ok(())
-                    })
-                })
-            }
-        })
-        .build()?;
+    #[test]
+    fn validates_checker_key_encoding() {
+        let key = "11".repeat(64);
+        assert_eq!(decode_key(key.clone().into_bytes()).unwrap(), key);
+        assert!(decode_key(vec![0xFF]).is_err());
+        assert!(decode_key(b"11".to_vec()).is_err());
+        assert!(decode_key("zz".repeat(64).into_bytes()).is_err());
+    }
 
-    Ok(module)
+    #[test]
+    fn reserves_checker_key_path() {
+        assert!(ensure_public_path(".key").is_err());
+        assert!(ensure_public_path("attachment.txt").is_ok());
+    }
 }

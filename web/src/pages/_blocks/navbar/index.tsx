@@ -44,8 +44,8 @@ function Navbar() {
         <div
           className={cn([
             "w-full",
-            "pl-5",
-            "pr-5",
+            "px-3",
+            "sm:px-5",
             "flex",
             "items-center",
             "justify-between",
@@ -53,7 +53,7 @@ function Navbar() {
         >
           <div className={cn(["flex", "items-center"])}>
             <MobileTab />
-            <Button asChild size={"lg"} className={"px-5"}>
+            <Button asChild size={"lg"} className={cn(["px-2", "sm:px-5"])}>
               <Title />
             </Button>
             <div
@@ -68,10 +68,16 @@ function Navbar() {
               <TabSection />
             </div>
           </div>
-          <div className={cn(["flex", "gap-3", "items-center"])}>
+          <div className={cn(["flex", "gap-1", "sm:gap-3", "items-center"])}>
             <Appearance />
             {authStore?.user?.group === Group.Admin && (
-              <Button asChild icon={<SettingsIcon />} size={"sm"} square>
+              <Button
+                asChild
+                icon={<SettingsIcon />}
+                size={"sm"}
+                square
+                aria-label="Open administration"
+              >
                 <Link to={"/admin"} />
               </Button>
             )}

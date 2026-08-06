@@ -59,27 +59,46 @@ export default function AdminDashboard() {
   return (
     <>
       <title>{`${t("admin:home._")} - ${config?.meta?.title}`}</title>
-      <div className={cn(["p-10", "xl:mx-60", "lg:mx-30", "space-y-6"])}>
+      <div
+        className={cn([
+          "p-4",
+          "sm:p-6",
+          "lg:p-10",
+          "xl:mx-60",
+          "lg:mx-30",
+          "space-y-6",
+          "min-w-0",
+        ])}
+      >
         <div
           className={cn([
             "flex",
             "justify-between",
             "items-center",
             "select-none",
-            "mx-5",
+            "mx-0",
+            "sm:mx-5",
+            "flex-wrap",
           ])}
         >
           <div className={cn(["flex", "items-center", "gap-4"])}>
             <Image
               src={"/api/configs/logo"}
               fallback={<DefaultLogo />}
-              className={cn(["aspect-square", "h-24"])}
+              className={cn(["aspect-square", "h-16", "sm:h-24"])}
               alt={"logo"}
               delay={0}
               glass={false}
             />
             <div>
-              <h2 className={cn(["text-3xl", "font-semibold"])}>
+              <h2
+                className={cn([
+                  "text-xl",
+                  "sm:text-3xl",
+                  "font-semibold",
+                  "break-words",
+                ])}
+              >
                 {config?.meta?.title}
               </h2>
               <span className={cn(["text-secondary-foreground"])}>

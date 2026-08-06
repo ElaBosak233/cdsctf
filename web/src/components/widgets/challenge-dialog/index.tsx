@@ -66,8 +66,8 @@ function ChallengeDialog(props: ChallengeDialogProps) {
     >
       <Card
         className={cn([
-          "w-screen",
-          "md:w-3xl",
+          "w-full",
+          "max-w-5xl",
           "rounded-elevated",
           "shadow-lg",
           "overflow-hidden",

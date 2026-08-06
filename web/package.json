@@ -11,6 +11,7 @@
     "format": "biome format --write ./src"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.2",
     "@codemirror/lint": "^6.9.7",
     "@fontsource-variable/ubuntu-sans": "^5.2.10",
     "@fontsource-variable/ubuntu-sans-mono": "^5.2.10",

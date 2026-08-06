@@ -148,7 +148,9 @@ export default function Index() {
           "flex",
           "flex-col",
           "flex-1",
-          "p-10",
+          "p-4",
+          "sm:p-6",
+          "lg:p-10",
           "xl:mx-50",
           "lg:mx-30",
           "gap-5",
@@ -179,9 +181,12 @@ export default function Index() {
             <div
               className={cn([
                 "flex",
+                "flex-col",
+                "lg:flex-row",
                 "flex-wrap-reverse",
                 "gap-5",
-                "items-center",
+                "items-stretch",
+                "lg:items-center",
                 "justify-center",
               ])}
             >
@@ -191,7 +196,9 @@ export default function Index() {
                   "flex-col",
                   "gap-8",
                   "flex-1",
-                  "min-w-2xs",
+                  "w-full",
+                  "lg:w-auto",
+                  "min-w-0",
                 ])}
               >
                 <FormField

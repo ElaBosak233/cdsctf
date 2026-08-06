@@ -50,6 +50,13 @@ pub struct Media {
     presigner: Option<Presigner>,
 }
 
+/// Outcome of an atomic object creation request.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SaveIfAbsent {
+    Created,
+    AlreadyExists,
+}
+
 /// Connects to S3/MinIO from `env.media`, ensures the bucket exists, and
 /// uploads missing embeds.
 pub async fn init(env: &Env) -> Result<Media, MediaError> {
@@ -218,6 +225,29 @@ impl Media {
             .await
             .map_err(|err| map_s3_error(err, false))?;
         Ok(())
+    }
+
+    /// Atomically creates an object without replacing an existing value.
+    pub async fn save_if_absent(
+        &self,
+        path: String,
+        filename: String,
+        data: Vec<u8>,
+    ) -> Result<SaveIfAbsent, MediaError> {
+        let key = self.build_key(&path, &filename, false)?;
+        let result = self
+            .bucket
+            .put_object_builder(&key, &data)
+            .with_header("if-none-match", "*")
+            .map_err(|err| map_s3_error(err, false))?
+            .execute()
+            .await;
+
+        match result {
+            Ok(_) => Ok(SaveIfAbsent::Created),
+            Err(S3Error::HttpFailWithBody(412, _)) => Ok(SaveIfAbsent::AlreadyExists),
+            Err(err) => Err(map_s3_error(err, false)),
+        }
     }
 
     /// Deletes rows matching the provided identifier or filter.

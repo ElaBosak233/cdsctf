@@ -135,8 +135,8 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
       className={cn([
         "p-6",
         "min-h-128",
-        "w-screen",
-        "md:w-3xl",
+        "w-full",
+        "max-w-5xl",
         "rounded-elevated",
         "shadow-lg",
         "flex",

@@ -43,11 +43,20 @@ checker:
     script_required: 请为检查器编写脚本。
   actions:
     update_success: "题目 {{title}} 检查器更新成功。"
+  lint:
+    idle: 等待代码输入
+    checking: 正在检查代码…
+    valid: 未发现问题
+    invalid: "发现 {{count}} 处问题"
+    error: 检查服务暂时不可用
   templates:
     _: 使用预设模板
     simple: 简易固定字符串评判
+    regex: 正则表达式评判
     leet: 动态 LEET 字符串评判
+    leet_custom_key: 动态 LEET 字符串评判（自定义密钥）
     suid: 动态伪 UUID 字符串评判
+    suid_custom_key: 动态伪 UUID 字符串评判（自定义密钥）
 attachment:
   empty: 哎呀，好像还没有附件呢。
   upload:

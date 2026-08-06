@@ -3,109 +3,112 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 
 function TeamCard() {
   const { t } = useTranslation();
-
   const { currentGame, selfTeam } = useGameStore();
+  const writeupLabel = selfTeam?.has_writeup
+    ? t("team:write_up.actions.submit.done")
+    : t("team:write_up.actions.submit._");
 
   return (
-    <Card className={cn(["p-5", "flex", "flex-col", "items-center"])}>
+    <section
+      className={cn([
+        "grid",
+        "grid-cols-[minmax(0,1fr)_auto]",
+        "min-w-0",
+        "items-center",
+        "gap-x-3",
+        "gap-y-2",
+        "lg:flex",
+        "lg:flex-1",
+        "lg:flex-wrap",
+        "lg:gap-x-4",
+      ])}
+      aria-labelledby="game-team-summary"
+    >
+      <div className={cn(["flex", "min-w-0", "items-center", "gap-2.5"])}>
+        <Avatar
+          className={cn(["size-9", "shrink-0"])}
+          src={
+            selfTeam?.avatar_hash && `/api/media?hash=${selfTeam?.avatar_hash}`
+          }
+          fallback={selfTeam?.name?.charAt(0)}
+        />
+        <div className={cn(["min-w-0"])}>
+          <h2
+            id="game-team-summary"
+            className={cn(["truncate", "text-sm", "font-semibold"])}
+          >
+            {selfTeam?.name}
+          </h2>
+          <p
+            className={cn(["truncate", "text-[11px]", "text-muted-foreground"])}
+          >
+            {`# ${selfTeam?.id?.toString(16).padStart(6, "0")}`}
+          </p>
+        </div>
+      </div>
+
       <div
         className={cn([
           "flex",
-          "flex-col",
           "items-center",
+          "justify-self-end",
           "gap-3",
-          "justify-center",
-          "select-none",
-          "w-full",
+          "lg:justify-self-auto",
+          "lg:gap-4",
         ])}
       >
-        <div
-          className={cn([
-            "flex",
-            "justify-center",
-            "w-full",
-            "items-center",
-            "gap-5",
-            "max-w-full",
-            "overflow-hidden",
-          ])}
-        >
-          <Avatar
-            className={cn(["w-16", "h-16", "shrink-0"])}
-            src={
-              selfTeam?.avatar_hash &&
-              `/api/media?hash=${selfTeam?.avatar_hash}`
-            }
-            fallback={selfTeam?.name?.charAt(0)}
+        <div className={cn(["flex", "items-center", "gap-1.5"])}>
+          <Star className={cn(["size-3.5", "text-muted-foreground"])} />
+          <span className={cn(["font-mono", "text-sm", "tabular-nums"])}>
+            {selfTeam?.pts}
+          </span>
+          <span className={cn(["text-xs", "text-muted-foreground"])}>
+            {t("team:pts")}
+          </span>
+        </div>
+        <div className={cn(["flex", "items-center", "gap-1.5"])}>
+          <ChartNoAxesCombined
+            className={cn(["size-3.5", "text-muted-foreground"])}
           />
-          <div className={cn(["flex", "flex-col", "min-w-0"])}>
-            <p className={cn(["text-lg", "truncate"])}>{selfTeam?.name}</p>
-            <p
-              className={cn([
-                "truncate",
-                "text-xs",
-                "text-secondary-foreground",
-                "max-w-full",
-              ])}
-            >
-              {`# ${selfTeam?.id?.toString(16).padStart(6, "0")}`}
-            </p>
-          </div>
+          <span className={cn(["font-mono", "text-sm", "tabular-nums"])}>
+            {selfTeam?.rank}
+          </span>
+          <span className={cn(["text-xs", "text-muted-foreground"])}>
+            {t("team:rank")}
+          </span>
         </div>
-
-        <div className={cn(["flex", "gap-3", "w-full", "justify-center"])}>
-          <div className={cn(["flex", "gap-2", "items-center"])}>
-            <Star className={cn(["size-4"])} />
-            <span>{selfTeam?.pts}</span>
-          </div>
-          <Separator orientation={"vertical"} />
-          <div className={cn(["flex", "gap-2", "items-center"])}>
-            <ChartNoAxesCombined className={cn(["size-4"])} />
-            <span>{selfTeam?.rank}</span>
-          </div>
-        </div>
-
         {currentGame?.writeup_required && (
-          <>
-            <Separator className={"w-full"} />
-            <div
-              className={cn([
-                "flex",
-                "gap-3",
-                "items-center",
-                "select-none",
-                "justify-between",
-              ])}
-            >
+          <Tooltip>
+            <TooltipTrigger asChild>
               <Button
-                className={cn([
-                  "flex",
-                  "gap-3",
-                  "items-center",
-                  "text-secondary-foreground",
-                ])}
+                className={cn(["size-9"])}
                 size={"sm"}
-                icon={<FilePenIcon />}
+                square
+                variant={"ghost"}
+                level={selfTeam?.has_writeup ? "secondary" : "warning"}
                 asChild
+                aria-label={writeupLabel}
               >
                 <Link to={`/games/${selfTeam?.game_id}/team/writeup`}>
-                  {selfTeam?.has_writeup
-                    ? t("team:write_up.actions.submit.done")
-                    : t("team:write_up.actions.submit._")}
+                  <FilePenIcon />
                 </Link>
               </Button>
-            </div>
-          </>
+            </TooltipTrigger>
+            <TooltipContent>{writeupLabel}</TooltipContent>
+          </Tooltip>
         )}
       </div>
-    </Card>
+    </section>
   );
 }
 

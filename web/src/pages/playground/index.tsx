@@ -114,14 +114,18 @@ export default function Index() {
       <div
         className={cn([
           "flex-1",
-          "p-7",
-          "xl:mx-auto",
+          "p-4",
+          "sm:p-7",
+          "mx-auto",
+          "w-full",
+          "max-w-[1440px]",
           "flex",
           "flex-col",
-          "gap-7",
+          "gap-5",
+          "sm:gap-7",
         ])}
       >
-        <div className={cn(["flex", "items-center", "gap-3"])}>
+        <div className={cn(["flex", "items-center", "gap-2", "sm:gap-3"])}>
           <Field className={cn(["flex-1"])}>
             <FieldIcon>
               <TypeIcon />
@@ -148,6 +152,7 @@ export default function Index() {
             "flex-wrap",
             "items-center",
             "justify-center",
+            "gap-4",
           ])}
         >
           <Pagination
@@ -223,6 +228,74 @@ export default function Index() {
               />
             </Field>
           </div>
+          <div
+            className={cn([
+              "md:hidden",
+              "grid",
+              "grid-cols-1",
+              "sm:grid-cols-3",
+              "gap-3",
+              "w-full",
+            ])}
+          >
+            <Field size={"sm"} className={cn(["w-full"])}>
+              <FieldIcon>
+                <TagIcon />
+              </FieldIcon>
+              <TextField
+                placeholder={t("challenge:search.tag")}
+                value={tag || undefined}
+                onChange={(e) => setTag(e.target.value)}
+              />
+            </Field>
+            <Field size={"sm"} className={cn(["w-full"])}>
+              <FieldIcon>
+                <LibraryIcon />
+              </FieldIcon>
+              <Select
+                options={[
+                  {
+                    value: "all",
+                    content: (
+                      <div className={cn(["flex", "gap-2", "items-center"])}>
+                        {t("common:all")}
+                      </div>
+                    ),
+                  },
+                  ...(categories || []).map((category) => {
+                    const Icon = category.icon!;
+
+                    return {
+                      value: String(category?.id),
+                      content: (
+                        <div className={cn(["flex", "gap-2", "items-center"])}>
+                          <Icon />
+                          {category?.name?.toUpperCase()}
+                        </div>
+                      ),
+                    };
+                  }),
+                ]}
+                onValueChange={(value) => setCategory(value)}
+                value={category}
+              />
+            </Field>
+            <Field size={"sm"} className={cn(["w-full"])}>
+              <FieldIcon>
+                <ListOrderedIcon />
+              </FieldIcon>
+              <Select
+                options={[
+                  { value: "10" },
+                  { value: "20" },
+                  { value: "40" },
+                  { value: "60" },
+                ]}
+                value={String(size)}
+                onValueChange={(value) => setSize(Number(value))}
+              />
+            </Field>
+          </div>
         </div>
         <div className={cn(["flex-1", "relative"])}>
           <LoadingOverlay loading={loading} />
@@ -231,9 +304,9 @@ export default function Index() {
               "grid",
               "w-full",
               "sm:grid-cols-2",
-              "md:grid-cols-3",
+              "lg:grid-cols-3",
               "xl:grid-cols-4",
-              "xl:w-[60vw]",
+              "2xl:grid-cols-5",
               "gap-4",
             ])}
           >

@@ -211,7 +211,7 @@ export default function Index() {
             {t("common:actions.add")}
           </Button>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent>
+            <DialogContent size="wide">
               <CreateDialog onClose={() => setCreateDialogOpen(false)} />
             </DialogContent>
           </Dialog>

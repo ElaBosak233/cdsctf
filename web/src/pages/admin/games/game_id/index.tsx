@@ -259,11 +259,36 @@ export default function Index() {
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         autoComplete={"off"}
-        className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
+        className={cn([
+          "flex",
+          "flex-col",
+          "flex-1",
+          "min-w-0",
+          "w-full",
+          "gap-6",
+          "sm:gap-8",
+        ])}
       >
-        <div className={cn(["flex", "gap-8", "flex-wrap", "items-center"])}>
+        <div
+          className={cn([
+            "flex",
+            "flex-col",
+            "gap-6",
+            "xl:flex-row",
+            "xl:gap-8",
+            "xl:items-center",
+          ])}
+        >
           <div
-            className={cn(["flex", "flex-col", "flex-1", "gap-8", "w-full"])}
+            className={cn([
+              "flex",
+              "flex-col",
+              "flex-1",
+              "min-w-0",
+              "gap-6",
+              "sm:gap-8",
+              "w-full",
+            ])}
           >
             <FormField
               control={form.control}
@@ -307,8 +332,21 @@ export default function Index() {
               )}
             />
           </div>
-          <div className={cn(["flex", "gap-8"])}>
-            <div className={cn(["flex", "flex-col", "gap-3"])}>
+          <div
+            className={cn([
+              "grid",
+              "w-full",
+              "grid-cols-[minmax(0,16fr)_minmax(0,9fr)]",
+              "gap-3",
+              "sm:gap-6",
+              "sm:w-108",
+              "sm:self-center",
+              "xl:self-auto",
+              "xl:gap-8",
+              "shrink-0",
+            ])}
+          >
+            <div className={cn(["flex", "min-w-0", "flex-col", "gap-3"])}>
               <div
                 className={cn([
                   "flex",
@@ -319,8 +357,9 @@ export default function Index() {
               >
                 <Label className="py-1.5">{t("game:form.poster")}</Label>
               </div>
-              <div className={cn(["h-36", "aspect-video"])}>
+              <div className={cn(["w-full", "aspect-video"])}>
                 <Avatar
+                  aspect="video"
                   className={cn([
                     "h-full",
                     "w-full",
@@ -344,11 +383,14 @@ export default function Index() {
                       "left-0",
                       "w-full",
                       "h-full",
-                      "opacity-0",
+                      "opacity-100",
                       "backdrop-blur-xs",
                       "transition-all",
-                      "hover:opacity-100",
+                      "focus-visible:opacity-100",
+                      "[@media(hover:hover)]:opacity-0",
+                      "[@media(hover:hover)]:hover:opacity-100",
                     ])}
+                    aria-label={t("game:form.poster")}
                     onClick={() => {
                       if (hasPoster) {
                         handlePosterDelete();
@@ -374,7 +416,7 @@ export default function Index() {
                 </Avatar>
               </div>
             </div>
-            <div className={cn(["flex", "flex-col", "gap-3"])}>
+            <div className={cn(["flex", "min-w-0", "flex-col", "gap-3"])}>
               <div
                 className={cn([
                   "flex",
@@ -385,7 +427,7 @@ export default function Index() {
               >
                 <Label className="py-1.5">{t("game:form.icon")}</Label>
               </div>
-              <div className={cn(["h-36", "aspect-square"])}>
+              <div className={cn(["w-full", "aspect-square"])}>
                 <Avatar
                   fit="contain"
                   className={cn([
@@ -412,11 +454,14 @@ export default function Index() {
                       "left-0",
                       "w-full",
                       "h-full",
-                      "opacity-0",
+                      "opacity-100",
                       "backdrop-blur-xs",
                       "transition-all",
-                      "hover:opacity-100",
+                      "focus-visible:opacity-100",
+                      "[@media(hover:hover)]:opacity-0",
+                      "[@media(hover:hover)]:hover:opacity-100",
                     ])}
+                    aria-label={t("game:form.icon")}
                     onClick={() => {
                       if (hasIcon) {
                         handleIconDelete();
@@ -444,7 +489,15 @@ export default function Index() {
             </div>
           </div>
         </div>
-        <div className={cn(["grid", "grid-cols-4", "gap-5"])}>
+        <div
+          className={cn([
+            "grid",
+            "grid-cols-1",
+            "sm:grid-cols-2",
+            "xl:grid-cols-4",
+            "gap-5",
+          ])}
+        >
           <FormField
             control={form.control}
             name={"public"}
@@ -558,7 +611,15 @@ export default function Index() {
             )}
           />
         </div>
-        <div className={cn(["grid", "grid-cols-3", "gap-5"])}>
+        <div
+          className={cn([
+            "grid",
+            "grid-cols-1",
+            "md:grid-cols-2",
+            "xl:grid-cols-3",
+            "gap-5",
+          ])}
+        >
           <FormField
             control={form.control}
             name={"started_at"}
@@ -625,7 +686,12 @@ export default function Index() {
                   {...field}
                   placeholder={t("game:form.description.placeholder")}
                   value={field.value || ""}
-                  className={cn(["h-full", "min-h-128"])}
+                  className={cn([
+                    "h-full",
+                    "min-h-80",
+                    "sm:min-h-96",
+                    "xl:min-h-128",
+                  ])}
                 />
               </FormControl>
               <FormMessage />

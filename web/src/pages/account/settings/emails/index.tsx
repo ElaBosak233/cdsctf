@@ -61,7 +61,9 @@ export default function Index() {
           "flex",
           "flex-col",
           "flex-1",
-          "p-10",
+          "p-4",
+          "sm:p-6",
+          "lg:p-10",
           "xl:mx-50",
           "lg:mx-30",
           "gap-5",
@@ -93,7 +95,7 @@ export default function Index() {
           </Button>
         </div>
         <Separator />
-        <ItemGroup>
+        <ItemGroup className={cn(["rounded-xl", "border"])}>
           {emails?.map((email, index) => (
             <React.Fragment key={email.email}>
               <Item>

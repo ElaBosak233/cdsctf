@@ -22,7 +22,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
-import defaultScript from "../idp_id/_blocks/examples/default.cdsx?raw";
+import defaultScript from "../idp_id/_blocks/examples/default.lua?raw";
 
 interface CreateDialogProps {
   onClose: () => void;
@@ -74,7 +74,8 @@ function CreateDialog(props: CreateDialogProps) {
   return (
     <Card
       className={cn([
-        "w-lg",
+        "w-full",
+        "max-w-xl",
         "min-h-48",
         "rounded-elevated",
         "shadow-lg",

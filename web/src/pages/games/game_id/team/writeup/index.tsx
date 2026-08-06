@@ -68,6 +68,7 @@ export default function Index() {
         });
         return {
           status: "error",
+          error: t("team:write_up.actions.upload.error"),
         };
       }
     },
@@ -88,7 +89,9 @@ export default function Index() {
           "flex",
           "flex-col",
           "flex-1",
-          "p-10",
+          "p-4",
+          "sm:p-6",
+          "lg:p-10",
           "min-h-0",
           "xl:mx-50",
           "lg:mx-30",
@@ -125,7 +128,7 @@ export default function Index() {
 
         <Dropzone {...dropzone}>
           <DropZoneArea>
-            <DropzoneTrigger className="h-fit flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm">
+            <DropzoneTrigger className="h-fit flex flex-col items-center gap-4 bg-transparent p-4 sm:p-10 text-center text-sm">
               <p className="font-semibold">
                 {t("team:write_up.actions.upload._")}
               </p>

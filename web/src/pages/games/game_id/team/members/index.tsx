@@ -51,7 +51,9 @@ export default function Index() {
           "flex",
           "flex-col",
           "flex-1",
-          "p-10",
+          "p-4",
+          "sm:p-6",
+          "lg:p-10",
           "xl:mx-50",
           "lg:mx-30",
           "gap-5",
@@ -74,8 +76,17 @@ export default function Index() {
         </div>
         <Separator />
         {!disabled && (
-          <div className={cn(["flex", "gap-5", "items-center"])}>
-            <Field className={cn(["flex-1"])}>
+          <div
+            className={cn([
+              "flex",
+              "flex-col",
+              "gap-3",
+              "items-stretch",
+              "sm:flex-row",
+              "sm:items-center",
+            ])}
+          >
+            <Field className={cn(["flex-1", "min-w-0"])}>
               <FieldIcon>
                 <KeyIcon />
               </FieldIcon>
@@ -98,7 +109,7 @@ export default function Index() {
             </Button>
           </div>
         )}
-        <div className={cn(["grid", "grid-cols-2", "gap-5"])}>
+        <div className={cn(["grid", "grid-cols-1", "sm:grid-cols-2", "gap-5"])}>
           {members?.map((user) => (
             <Link key={user?.id} to={`/users/${user?.id}`}>
               <Card

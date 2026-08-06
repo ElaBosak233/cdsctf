@@ -45,9 +45,9 @@ import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 import { parseRouteNumericId } from "@/utils/query";
 
-import casScript from "./_blocks/examples/cas.cdsx?raw";
-import defaultScript from "./_blocks/examples/default.cdsx?raw";
-import githubScript from "./_blocks/examples/github.cdsx?raw";
+import casScript from "./_blocks/examples/cas.lua?raw";
+import defaultScript from "./_blocks/examples/default.lua?raw";
+import githubScript from "./_blocks/examples/github.lua?raw";
 
 const scriptTemplates = {
   default: defaultScript,
@@ -109,11 +109,25 @@ export default function Index() {
   const debouncedScript = useDebounce(form.watch("script"), 500);
 
   useEffect(() => {
-    if (debouncedScript) {
-      lintIdpScript(debouncedScript).then((res) => {
-        setLint(res.markers);
-      });
+    let active = true;
+    if (!debouncedScript) {
+      setLint([]);
+      return () => {
+        active = false;
+      };
     }
+
+    lintIdpScript(debouncedScript)
+      .then((res) => {
+        if (active) setLint(res.markers);
+      })
+      .catch(() => {
+        if (active) setLint([]);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [debouncedScript]);
 
   async function submit(values: IdpForm) {
@@ -195,7 +209,9 @@ export default function Index() {
           "flex-1",
           "min-h-0",
           "min-w-0",
-          "p-10",
+          "p-4",
+          "sm:p-6",
+          "xl:p-10",
           "border-y-0",
           "rounded-none",
           "flex",
@@ -210,8 +226,24 @@ export default function Index() {
             autoComplete="off"
             className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
           >
-            <div className={cn(["flex", "gap-8", "flex-wrap-reverse"])}>
-              <div className={cn(["flex", "flex-col", "gap-8", "flex-1"])}>
+            <div
+              className={cn([
+                "flex",
+                "flex-col",
+                "gap-8",
+                "flex-wrap-reverse",
+                "lg:flex-row",
+              ])}
+            >
+              <div
+                className={cn([
+                  "flex",
+                  "flex-col",
+                  "gap-8",
+                  "flex-1",
+                  "min-w-0",
+                ])}
+              >
                 <FormField
                   control={form.control}
                   name="name"
@@ -366,7 +398,7 @@ export default function Index() {
                   </div>
                   <FormControl>
                     <Editor
-                      lang="rune"
+                      lang="lua"
                       showLineNumbers
                       className={cn(["min-h-96", "flex-1"])}
                       value={field.value}

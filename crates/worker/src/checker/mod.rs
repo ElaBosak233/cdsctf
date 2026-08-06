@@ -1,5 +1,5 @@
 //! JetStream consumer for subject **`cds.submission.check`**: resolves
-//! **pending** flag submissions with the Rune [`cds_checker::Checker`], applies
+//! **pending** flag submissions with the Lua [`cds_checker::Checker`], applies
 //! game rules (duplicate, freeze, cheat), and may enqueue [`crate::calculator`]
 //! work when a submission becomes correct.
 //!
