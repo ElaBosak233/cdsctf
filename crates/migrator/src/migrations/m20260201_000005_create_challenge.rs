@@ -20,7 +20,7 @@ impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
 
-        db.execute(Statement::from_string(
+        db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
                 CREATE TABLE IF NOT EXISTS "challenges" (
@@ -45,7 +45,7 @@ impl MigrationTrait for Migration {
         ))
         .await?;
 
-        db.execute(Statement::from_string(
+        db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
                 CREATE INDEX IF NOT EXISTS "idx_challenges_category"
@@ -55,7 +55,7 @@ impl MigrationTrait for Migration {
         ))
         .await?;
 
-        db.execute(Statement::from_string(
+        db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
                 CREATE EXTENSION IF NOT EXISTS pg_trgm;
@@ -64,7 +64,7 @@ impl MigrationTrait for Migration {
         ))
         .await?;
 
-        db.execute(Statement::from_string(
+        db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
                 CREATE INDEX IF NOT EXISTS "idx_challenges_title"
@@ -75,7 +75,7 @@ impl MigrationTrait for Migration {
         ))
         .await?;
 
-        db.execute(Statement::from_string(
+        db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
                 CREATE INDEX IF NOT EXISTS "idx_challenges_tags"
@@ -93,7 +93,7 @@ impl MigrationTrait for Migration {
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
 
-        db.execute(Statement::from_string(
+        db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
                 DROP TABLE IF EXISTS "challenges";

@@ -112,8 +112,7 @@ where
                 "\"{}\".\"{}\" @> $1::text[]",
                 Entity.table_name(),
                 Column::Tags.to_string()
-            )
-            .as_str(),
+            ),
             vec![tag],
         ))
     }

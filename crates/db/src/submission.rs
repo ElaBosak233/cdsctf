@@ -37,6 +37,67 @@ pub struct Submission {
     pub rank: i64,
 }
 
+/// Submission fields needed to render the public scoreboard timeline.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct SubmissionPublic {
+    pub id: i64,
+    pub user_id: i64,
+    pub user_name: String,
+    pub user_avatar_hash: Option<String>,
+    pub challenge_id: i64,
+    pub challenge_title: String,
+    pub pts: i64,
+    pub created_at: i64,
+}
+
+impl From<&Submission> for SubmissionPublic {
+    fn from(submission: &Submission) -> Self {
+        Self {
+            id: submission.id,
+            user_id: submission.user_id,
+            user_name: submission.user_name.clone(),
+            user_avatar_hash: submission.user_avatar_hash.clone(),
+            challenge_id: submission.challenge_id,
+            challenge_title: submission.challenge_title.clone(),
+            pts: submission.pts,
+            created_at: submission.created_at,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SubmissionPublic;
+
+    #[test]
+    fn public_submission_serialization_excludes_content_and_internal_scope() {
+        let submission = SubmissionPublic {
+            id: 1,
+            user_id: 2,
+            user_name: "user".to_owned(),
+            user_avatar_hash: Some("avatar".to_owned()),
+            challenge_id: 3,
+            challenge_title: "challenge".to_owned(),
+            pts: 100,
+            created_at: 1_700_000_000,
+        };
+
+        assert_eq!(
+            serde_json::to_value(submission).unwrap(),
+            serde_json::json!({
+                "id": 1,
+                "user_id": 2,
+                "user_name": "user",
+                "user_avatar_hash": "avatar",
+                "challenge_id": 3,
+                "challenge_title": "challenge",
+                "pts": 100,
+                "created_at": 1_700_000_000,
+            })
+        );
+    }
+}
+
 impl Submission {
     /// Strips secrets so configuration can be returned to clients.
     pub fn desensitize(&self) -> Self {

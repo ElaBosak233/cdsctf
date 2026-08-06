@@ -1,12 +1,13 @@
 //! SeaORM `user` entity — maps the `user` table and its relations.
 
 use async_trait::async_trait;
-use sea_orm::{QuerySelect, Set, entity::prelude::*, sea_query::Query};
+use sea_orm::{ExprTrait, QuerySelect, Set, entity::prelude::*, sea_query::Query};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::{email, note, submission, team, team_user};
+use super::email;
 
+#[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "users")]
 pub struct Model {
@@ -23,6 +24,14 @@ pub struct Model {
     pub deleted_at: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
+    #[sea_orm(has_one)]
+    pub email: HasOne<super::email::Entity>,
+    #[sea_orm(has_many)]
+    pub submissions: HasMany<super::submission::Entity>,
+    #[sea_orm(has_many)]
+    pub notes: HasMany<super::note::Entity>,
+    #[sea_orm(has_many, via = "team_user")]
+    pub teams: HasMany<super::team::Entity>,
 }
 
 #[derive(
@@ -47,36 +56,6 @@ pub enum Group {
     Banned = 1,
     User   = 2,
     Admin  = 3,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    Email,
-    Submission,
-    Note,
-}
-
-impl RelationTrait for Relation {
-    /// Returns the [`RelationDef`] for this relation variant.
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::Email => Entity::has_one(email::Entity).into(),
-            Self::Submission => Entity::has_many(submission::Entity).into(),
-            Self::Note => Entity::has_many(note::Entity).into(),
-        }
-    }
-}
-
-impl Related<team::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        team_user::Relation::Team.def()
-    }
-
-    /// Declares a `via` join path for related entities.
-    fn via() -> Option<RelationDef> {
-        Some(team_user::Relation::User.def().rev())
-    }
 }
 
 #[async_trait]

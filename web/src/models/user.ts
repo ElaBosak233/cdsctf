@@ -26,3 +26,12 @@ export type UserMini = {
   username?: string;
   avatar_hash?: string;
 };
+
+export type UserPublic = {
+  id?: number;
+  name?: string;
+  username?: string;
+  description?: string;
+  avatar_hash?: string;
+  created_at?: number;
+};

@@ -31,6 +31,60 @@ pub struct Team {
     pub rank: i64,
 }
 
+/// Public team fields used by the scoreboard. Contact and moderation fields
+/// are intentionally excluded from this response model.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct TeamPublic {
+    pub id: i64,
+    pub name: String,
+    pub slogan: Option<String>,
+    pub avatar_hash: Option<String>,
+    pub pts: i64,
+    pub rank: i64,
+}
+
+impl From<&Team> for TeamPublic {
+    fn from(team: &Team) -> Self {
+        Self {
+            id: team.id,
+            name: team.name.clone(),
+            slogan: team.slogan.clone(),
+            avatar_hash: team.avatar_hash.clone(),
+            pts: team.pts,
+            rank: team.rank,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::TeamPublic;
+
+    #[test]
+    fn public_team_serialization_excludes_contact_and_moderation_fields() {
+        let team = TeamPublic {
+            id: 1,
+            name: "team".to_owned(),
+            slogan: Some("hello".to_owned()),
+            avatar_hash: Some("avatar".to_owned()),
+            pts: 100,
+            rank: 2,
+        };
+
+        assert_eq!(
+            serde_json::to_value(team).unwrap(),
+            serde_json::json!({
+                "id": 1,
+                "name": "team",
+                "slogan": "hello",
+                "avatar_hash": "avatar",
+                "pts": 100,
+                "rank": 2,
+            })
+        );
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct FindTeamOptions {
     /// The team id of expected game teams.

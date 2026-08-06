@@ -4,8 +4,7 @@ use async_trait::async_trait;
 use sea_orm::{EnumIter, QuerySelect, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::{challenge, user};
-
+#[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "notes")]
 pub struct Model {
@@ -17,44 +16,10 @@ pub struct Model {
     pub challenge_id: i64,
     pub created_at: i64,
     pub updated_at: i64,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    Challenge,
-    User,
-}
-
-impl RelationTrait for Relation {
-    /// Returns the [`RelationDef`] for this relation variant.
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::Challenge => Entity::belongs_to(challenge::Entity)
-                .from(Column::ChallengeId)
-                .to(challenge::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-            Self::User => Entity::belongs_to(user::Entity)
-                .from(Column::UserId)
-                .to(user::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-        }
-    }
-}
-
-impl Related<challenge::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        Relation::Challenge.def()
-    }
-}
-
-impl Related<user::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        Relation::User.def()
-    }
+    #[sea_orm(belongs_to, from = "challenge_id", to = "id", on_delete = "Cascade")]
+    pub challenge: BelongsTo<super::challenge::Entity>,
+    #[sea_orm(belongs_to, from = "user_id", to = "id", on_delete = "Cascade")]
+    pub user: BelongsTo<super::user::Entity>,
 }
 
 #[async_trait]
@@ -78,11 +43,11 @@ impl Entity {
     /// Begins the canonical query with standard joins and projections.
     pub fn base_find() -> Select<Self> {
         Self::find()
-            .inner_join(user::Entity)
-            .inner_join(challenge::Entity)
-            .column_as(user::Column::Name, "user_name")
-            .column_as(user::Column::AvatarHash, "user_avatar_hash")
-            .column_as(challenge::Column::Title, "challenge_title")
-            .column_as(challenge::Column::Category, "challenge_category")
+            .inner_join(super::user::Entity)
+            .inner_join(super::challenge::Entity)
+            .column_as(super::user::Column::Name, "user_name")
+            .column_as(super::user::Column::AvatarHash, "user_avatar_hash")
+            .column_as(super::challenge::Column::Title, "challenge_title")
+            .column_as(super::challenge::Column::Category, "challenge_category")
     }
 }

@@ -4,8 +4,7 @@ use async_trait::async_trait;
 use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::user_idp;
-
+#[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "idps")]
 pub struct Model {
@@ -19,31 +18,14 @@ pub struct Model {
     pub script: String,
     pub created_at: i64,
     pub updated_at: i64,
+    #[sea_orm(has_many)]
+    pub user_idps: HasMany<super::user_idp::Entity>,
 }
 
 impl Model {
     pub fn desensitize(mut self) -> Self {
         self.script.clear();
         self
-    }
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    UserIdp,
-}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::UserIdp => Entity::has_many(user_idp::Entity).into(),
-        }
-    }
-}
-
-impl Related<user_idp::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::UserIdp.def()
     }
 }
 

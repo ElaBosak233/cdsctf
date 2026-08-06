@@ -4,8 +4,7 @@ use async_trait::async_trait;
 use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::{idp, user};
-
+#[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "user_idps")]
 pub struct Model {
@@ -18,41 +17,10 @@ pub struct Model {
     pub data: Option<Json>,
     pub created_at: i64,
     pub updated_at: i64,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    Idp,
-    User,
-}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::Idp => Entity::belongs_to(idp::Entity)
-                .from(Column::IdpId)
-                .to(idp::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-            Self::User => Entity::belongs_to(user::Entity)
-                .from(Column::UserId)
-                .to(user::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-        }
-    }
-}
-
-impl Related<idp::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Idp.def()
-    }
-}
-
-impl Related<user::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::User.def()
-    }
+    #[sea_orm(belongs_to, from = "idp_id", to = "id", on_delete = "Cascade")]
+    pub idp: BelongsTo<super::idp::Entity>,
+    #[sea_orm(belongs_to, from = "user_id", to = "id", on_delete = "Cascade")]
+    pub user: BelongsTo<super::user::Entity>,
 }
 
 #[async_trait]

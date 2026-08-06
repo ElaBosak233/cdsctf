@@ -7,12 +7,13 @@ use serde::{Deserialize, Serialize};
 
 use super::{challenge, game};
 
+#[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "game_challenges")]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub game_id: i64,
-    #[sea_orm(primary_key)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub challenge_id: i64,
     pub difficulty: i64,
     pub max_pts: i64,
@@ -24,44 +25,10 @@ pub struct Model {
 
     #[sea_orm(default_value = 0)]
     pub pts: i64,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    Game,
-    Challenge,
-}
-
-impl RelationTrait for Relation {
-    /// Returns the [`RelationDef`] for this relation variant.
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::Game => Entity::belongs_to(game::Entity)
-                .from(Column::GameId)
-                .to(game::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-            Self::Challenge => Entity::belongs_to(challenge::Entity)
-                .from(Column::ChallengeId)
-                .to(challenge::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-        }
-    }
-}
-
-impl Related<challenge::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        Relation::Challenge.def()
-    }
-}
-
-impl Related<game::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        Relation::Game.def()
-    }
+    #[sea_orm(belongs_to, from = "game_id", to = "id", on_delete = "Cascade")]
+    pub game: BelongsTo<super::game::Entity>,
+    #[sea_orm(belongs_to, from = "challenge_id", to = "id", on_delete = "Cascade")]
+    pub challenge: BelongsTo<super::challenge::Entity>,
 }
 
 #[async_trait]

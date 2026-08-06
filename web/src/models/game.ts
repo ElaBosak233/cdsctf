@@ -1,6 +1,3 @@
-import type { Submission } from "./submission";
-import type { Team } from "./team";
-
 export type Game = {
   id?: number;
   title?: string;
@@ -35,6 +32,26 @@ export type GameMini = {
 };
 
 export type ScoreRecord = {
-  team?: Team;
-  submissions?: Array<Submission>;
+  team?: ScoreboardTeam;
+  submissions?: Array<ScoreboardSubmission>;
+};
+
+export type ScoreboardTeam = {
+  id?: number;
+  name?: string;
+  slogan?: string;
+  avatar_hash?: string;
+  pts?: number;
+  rank?: number;
+};
+
+export type ScoreboardSubmission = {
+  id?: number;
+  user_id?: number;
+  user_name?: string;
+  user_avatar_hash?: string;
+  challenge_id?: number;
+  challenge_title?: string;
+  pts?: number;
+  created_at?: number;
 };

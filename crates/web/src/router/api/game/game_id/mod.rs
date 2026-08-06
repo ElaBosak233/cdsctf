@@ -27,7 +27,7 @@ use axum::{
     },
 };
 use cds_db::{
-    Game, Submission, Team,
+    Game, Submission, SubmissionPublic, Team, TeamPublic,
     team::{FindTeamOptions, State as TState},
 };
 use cds_event::SubscribeOptions;
@@ -100,8 +100,8 @@ pub struct GetGameScoreboardRequest {
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ScoreRecord {
-    pub team: Team,
-    pub submissions: Vec<Submission>,
+    pub team: TeamPublic,
+    pub submissions: Vec<SubmissionPublic>,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
@@ -160,10 +160,13 @@ pub async fn get_game_scoreboard(
             .iter()
             .filter(|s| s.team_id.is_some_and(|t| t == team.id))
             .cloned()
-            .map(|submission| submission.desensitize())
-            .collect::<Vec<Submission>>();
+            .map(|submission| SubmissionPublic::from(&submission))
+            .collect::<Vec<SubmissionPublic>>();
 
-        result.push(ScoreRecord { team, submissions });
+        result.push(ScoreRecord {
+            team: TeamPublic::from(&team),
+            submissions,
+        });
     }
 
     Ok(Json(GameScoreboardResponse {

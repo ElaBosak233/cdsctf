@@ -5,9 +5,7 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::{game, team_user, user};
-use crate::entity;
-
+#[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "teams")]
 pub struct Model {
@@ -26,6 +24,12 @@ pub struct Model {
     pub pts: i64,
     #[sea_orm(default_value = 0)]
     pub rank: i64,
+    #[sea_orm(belongs_to, from = "game_id", to = "id", on_delete = "Cascade")]
+    pub game: BelongsTo<super::game::Entity>,
+    #[sea_orm(has_many)]
+    pub submissions: HasMany<super::submission::Entity>,
+    #[sea_orm(has_many, via = "team_user")]
+    pub users: HasMany<super::user::Entity>,
 }
 
 #[derive(
@@ -48,48 +52,6 @@ pub enum State {
     Preparing = 1,
     Pending   = 2,
     Passed    = 3,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    Game,
-    Submission,
-}
-
-impl RelationTrait for Relation {
-    /// Returns the [`RelationDef`] for this relation variant.
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::Game => Entity::belongs_to(game::Entity)
-                .from(Column::GameId)
-                .to(game::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-            Self::Submission => Entity::has_many(entity::submission::Entity)
-                .from(Column::Id)
-                .to(entity::submission::Column::TeamId)
-                .into(),
-        }
-    }
-}
-
-impl Related<game::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        Relation::Game.def()
-    }
-}
-
-impl Related<user::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        team_user::Relation::User.def()
-    }
-
-    /// Declares a `via` join path for related entities.
-    fn via() -> Option<RelationDef> {
-        Some(team_user::Relation::Team.def().rev())
-    }
 }
 
 #[async_trait]

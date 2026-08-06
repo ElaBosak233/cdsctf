@@ -5,8 +5,7 @@ use sea_orm::{DeriveActiveEnum, EnumIter, QuerySelect, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::{challenge, game, team, user};
-
+#[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "submissions")]
 pub struct Model {
@@ -24,6 +23,14 @@ pub struct Model {
     pub pts: i64,
     #[sea_orm(default_value = 0)]
     pub rank: i64,
+    #[sea_orm(belongs_to, from = "challenge_id", to = "id", on_delete = "Cascade")]
+    pub challenge: BelongsTo<super::challenge::Entity>,
+    #[sea_orm(belongs_to, from = "user_id", to = "id", on_delete = "Cascade")]
+    pub user: BelongsTo<super::user::Entity>,
+    #[sea_orm(belongs_to, from = "team_id", to = "id", on_delete = "Cascade")]
+    pub team: BelongsTo<Option<super::team::Entity>>,
+    #[sea_orm(belongs_to, from = "game_id", to = "id", on_delete = "Cascade")]
+    pub game: BelongsTo<Option<super::game::Entity>>,
 }
 
 #[derive(
@@ -50,70 +57,6 @@ pub enum Status {
     Duplicate = 5,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    Challenge,
-    User,
-    Game,
-    Team,
-}
-
-impl RelationTrait for Relation {
-    /// Returns the [`RelationDef`] for this relation variant.
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::Challenge => Entity::belongs_to(challenge::Entity)
-                .from(Column::ChallengeId)
-                .to(challenge::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-            Self::User => Entity::belongs_to(user::Entity)
-                .from(Column::UserId)
-                .to(user::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-            Self::Team => Entity::belongs_to(team::Entity)
-                .from(Column::TeamId)
-                .to(team::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-            Self::Game => Entity::belongs_to(game::Entity)
-                .from(Column::GameId)
-                .to(game::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-        }
-    }
-}
-
-impl Related<challenge::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        Relation::Challenge.def()
-    }
-}
-
-impl Related<user::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        Relation::User.def()
-    }
-}
-
-impl Related<team::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        Relation::Team.def()
-    }
-}
-
-impl Related<game::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        Relation::Game.def()
-    }
-}
-
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
     /// SeaORM lifecycle hook executed before insert/update.
@@ -134,16 +77,16 @@ impl Entity {
     /// Begins the canonical query with standard joins and projections.
     pub fn base_find() -> Select<Self> {
         Self::find()
-            .inner_join(user::Entity)
-            .inner_join(challenge::Entity)
-            .left_join(team::Entity)
-            .left_join(game::Entity)
-            .column_as(user::Column::Name, "user_name")
-            .column_as(user::Column::AvatarHash, "user_avatar_hash")
-            .column_as(team::Column::Name, "team_name")
-            .column_as(team::Column::AvatarHash, "team_avatar_hash")
-            .column_as(game::Column::Title, "game_title")
-            .column_as(challenge::Column::Title, "challenge_title")
-            .column_as(challenge::Column::Category, "challenge_category")
+            .inner_join(super::user::Entity)
+            .inner_join(super::challenge::Entity)
+            .left_join(super::team::Entity)
+            .left_join(super::game::Entity)
+            .column_as(super::user::Column::Name, "user_name")
+            .column_as(super::user::Column::AvatarHash, "user_avatar_hash")
+            .column_as(super::team::Column::Name, "team_name")
+            .column_as(super::team::Column::AvatarHash, "team_avatar_hash")
+            .column_as(super::game::Column::Title, "game_title")
+            .column_as(super::challenge::Column::Title, "challenge_title")
+            .column_as(super::challenge::Column::Category, "challenge_category")
     }
 }

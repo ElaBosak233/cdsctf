@@ -3,7 +3,7 @@
 use std::{fmt::Debug, str::FromStr};
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, ConnectionTrait, EntityName, EntityTrait,
+    ActiveModelTrait, ColumnTrait, Condition, ConnectionTrait, EntityName, EntityTrait, ExprTrait,
     FromQueryResult, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, Unchanged,
     prelude::Expr,
     sea_query::{Func, Query},
@@ -44,6 +44,62 @@ pub struct UserMini {
     pub name: String,
     pub username: String,
     pub avatar_hash: Option<String>,
+}
+
+/// Public profile fields. Authentication and moderation state stay private to
+/// authenticated/account and administrator responses.
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
+)]
+pub struct UserPublic {
+    pub id: i64,
+    pub name: String,
+    pub username: String,
+    pub description: Option<String>,
+    pub avatar_hash: Option<String>,
+    pub created_at: i64,
+}
+
+impl From<&User> for UserPublic {
+    fn from(user: &User) -> Self {
+        Self {
+            id: user.id,
+            name: user.name.clone(),
+            username: user.username.clone(),
+            description: user.description.clone(),
+            avatar_hash: user.avatar_hash.clone(),
+            created_at: user.created_at,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::UserPublic;
+
+    #[test]
+    fn public_user_serialization_excludes_account_and_moderation_state() {
+        let user = UserPublic {
+            id: 1,
+            name: "User".to_owned(),
+            username: "user".to_owned(),
+            description: Some("bio".to_owned()),
+            avatar_hash: Some("avatar".to_owned()),
+            created_at: 1_700_000_000,
+        };
+
+        assert_eq!(
+            serde_json::to_value(user).unwrap(),
+            serde_json::json!({
+                "id": 1,
+                "name": "User",
+                "username": "user",
+                "description": "bio",
+                "avatar_hash": "avatar",
+                "created_at": 1_700_000_000,
+            })
+        );
+    }
 }
 
 #[derive(Clone, Debug, Default)]

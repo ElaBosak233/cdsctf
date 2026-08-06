@@ -13,7 +13,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    Email, User,
+    Email, User, UserPublic,
     sea_orm::ActiveValue::Set,
     user::{FindUserOptions, Group},
 };
@@ -48,6 +48,11 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct UserResponse {
     pub user: User,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct UserPublicResponse {
+    pub user: UserPublic,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]

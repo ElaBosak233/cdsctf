@@ -1,4 +1,4 @@
-import type { User } from "@/models/user";
+import type { UserPublic } from "@/models/user";
 import { api } from "@/utils/query";
 
 export type GetUserRequest = {
@@ -6,5 +6,5 @@ export type GetUserRequest = {
 };
 
 export async function getUser(request: GetUserRequest) {
-  return api.get(`users/${request.id}`).json<{ user: User }>();
+  return api.get(`users/${request.id}`).json<{ user: UserPublic }>();
 }

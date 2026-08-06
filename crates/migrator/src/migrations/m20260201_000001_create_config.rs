@@ -20,7 +20,7 @@ impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
 
-        db.execute(Statement::from_string(
+        db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
                 CREATE TABLE IF NOT EXISTS "configs" (
@@ -39,7 +39,7 @@ impl MigrationTrait for Migration {
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
 
-        db.execute(Statement::from_string(
+        db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
                 DROP TABLE IF EXISTS "configs";

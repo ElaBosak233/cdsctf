@@ -67,12 +67,12 @@ pub use game_notice::GameNotice;
 pub use idp::Idp;
 pub use sea_orm;
 use sea_orm::{ConnectOptions, ConnectionTrait, Database, DatabaseConnection};
-pub use submission::Submission;
-pub use team::Team;
+pub use submission::{Submission, SubmissionPublic};
+pub use team::{Team, TeamPublic};
 pub use team_user::TeamUser;
 use tracing::{info, log};
 pub use traits::DbError;
-pub use user::{User, UserMini};
+pub use user::{User, UserMini, UserPublic};
 pub use user_idp::UserIdp;
 
 /// Shared database connection (actually a connection pool managed by SeaORM /
