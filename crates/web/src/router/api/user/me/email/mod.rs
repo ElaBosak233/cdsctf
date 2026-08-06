@@ -187,7 +187,7 @@ pub async fn verify_email(
 
         let _ = s
             .cache
-            .get_del::<String>(format!("mailbox:{}:code", email.email.to_owned()))
+            .take::<String>(format!("mailbox:{}:code", email.email.to_owned()))
             .await?;
     }
 
@@ -254,10 +254,10 @@ pub async fn send_verify_email(
 
     let code = nanoid!();
     s.cache
-        .set_ex(
+        .set_with_ttl(
             format!("mailbox:{}:code", email.email.to_owned()),
             code.to_owned(),
-            60 * 60,
+            std::time::Duration::from_secs(60 * 60),
         )
         .await?;
 
@@ -284,7 +284,11 @@ pub async fn send_verify_email(
         .await?;
 
     s.cache
-        .set_ex(format!("mailbox:{}:buffer", email.email.to_owned()), 1, 60)
+        .set_with_ttl(
+            format!("mailbox:{}:buffer", email.email.to_owned()),
+            1,
+            std::time::Duration::from_secs(60),
+        )
         .await?;
 
     Ok(Json(EmptyJson::default()))

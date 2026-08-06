@@ -120,14 +120,18 @@ sea-orm-migration = { version = "2.0.1" }
 async-nats = { version = "0.49" }
 
 # Cache
-fred = { version = "10.1", features = [
-  "enable-rustls-ring",
-  "dns",
-  "mocks",
-  "monitor",
-  "partial-tracing",
-  "sentinel-client",
-  "serde-json",
+redis = { version = "1.5", features = [
+  "acl",
+  "bloom",
+  "cluster-async",
+  "connection-manager",
+  "geospatial",
+  "json",
+  "script",
+  "sentinel",
+  "streams",
+  "tokio-rustls-comp",
+  "vector-sets",
 ] }
 
 # Containerization & Orchestration

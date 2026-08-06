@@ -150,18 +150,17 @@ pub async fn create_submission(
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let token = format!("submission:user:{}", operator.id);
-    if let Some(limit) = s.cache.get::<i32>(&token).await? {
-        if limit > 10 {
-            warn!(
-                user_id = operator.id,
-                limit, "submission rate limit exceeded"
-            );
-            return Err(WebError::TooManyRequests(json!("submission")));
-        } else {
-            s.cache.set_ex(&token, limit + 1, 60).await?;
-        }
-    } else {
-        s.cache.set_ex(&token, 1, 60).await?;
+    let decision = s
+        .cache
+        .fixed_window(&token, 10, std::time::Duration::from_secs(60))
+        .await?;
+    if !decision.allowed {
+        warn!(
+            user_id = operator.id,
+            limit = decision.used,
+            "submission rate limit exceeded"
+        );
+        return Err(WebError::TooManyRequests(json!("submission")));
     }
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;

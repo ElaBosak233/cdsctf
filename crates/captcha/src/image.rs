@@ -26,7 +26,11 @@ pub(crate) async fn generate(c: &Captcha) -> Result<CaptchaChallenge, CaptchaErr
     };
 
     c.cache
-        .set_ex(format!("captcha:image:{}", &captcha.id), &captcha, 5 * 60)
+        .set_with_ttl(
+            format!("captcha:image:{}", &captcha.id),
+            &captcha,
+            std::time::Duration::from_secs(5 * 60),
+        )
         .await?;
 
     Ok(captcha)
@@ -36,7 +40,7 @@ pub(crate) async fn generate(c: &Captcha) -> Result<CaptchaChallenge, CaptchaErr
 pub(crate) async fn check(c: &Captcha, answer: &Answer) -> Result<bool, CaptchaError> {
     let captcha = c
         .cache
-        .get_del::<CaptchaChallenge>(format!(
+        .take::<CaptchaChallenge>(format!(
             "captcha:image:{}",
             answer
                 .id

@@ -214,13 +214,13 @@ pub async fn login(
 
     let token = nanoid::nanoid!();
     s.cache
-        .set_ex(
+        .set_with_ttl(
             format!("idp_pending:{}", token),
             serde_json::json!({
                 "idp_id": idp.id,
                 "auth_key": payload.auth_key,
             }),
-            600,
+            std::time::Duration::from_secs(600),
         )
         .await?;
 
@@ -261,7 +261,7 @@ pub async fn register(
 
     // Resolve auth_key from one-time token stored in cache
     let pending_key = format!("idp_pending:{}", body.token);
-    let pending: Option<serde_json::Value> = s.cache.get_del(&pending_key).await?;
+    let pending: Option<serde_json::Value> = s.cache.take(&pending_key).await?;
     let pending = pending.ok_or(WebError::BadRequest(json!("invalid_or_expired_token")))?;
     let auth_key = pending
         .get("auth_key")
